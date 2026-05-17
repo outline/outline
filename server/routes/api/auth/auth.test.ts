@@ -27,11 +27,7 @@ describe("#auth.info", () => {
       teamId: team2.id,
       email: user.email,
     });
-    const res = await server.post("/api/auth.info", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/auth.info", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
 
@@ -52,11 +48,7 @@ describe("#auth.info", () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     await team.destroy();
-    const res = await server.post("/api/auth.info", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/auth.info", user);
     expect(res.status).toEqual(401);
   });
 
@@ -69,18 +61,10 @@ describe("#auth.info", () => {
 describe("#auth.delete", () => {
   it("should make the access token unusable", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/auth.delete", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/auth.delete", user);
     expect(res.status).toEqual(200);
 
-    const res2 = await server.post("/api/auth.info", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res2 = await server.post("/api/auth.info", user);
     expect(res2.status).toEqual(401);
   });
 

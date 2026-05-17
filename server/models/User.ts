@@ -608,7 +608,7 @@ class User extends ParanoidModel<
    * @param service The authentication service used to generate the token, if applicable
    * @returns The session token
    */
-  getJwtToken = (expiresAt?: Date, service?: string) =>
+  getSessionToken = (expiresAt?: Date, service?: string) =>
     JWT.sign(
       {
         id: this.id,

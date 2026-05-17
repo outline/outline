@@ -6,9 +6,8 @@ const server = getTestServer();
 describe("#pagination", () => {
   it("should allow offset and limit", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/users.list", {
+    const res = await server.post("/api/users.list", user, {
       body: {
-        token: user.getJwtToken(),
         limit: 1,
         offset: 1,
       },
@@ -18,9 +17,8 @@ describe("#pagination", () => {
 
   it("should not allow negative limit", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/users.list", {
+    const res = await server.post("/api/users.list", user, {
       body: {
-        token: user.getJwtToken(),
         limit: -1,
       },
     });
@@ -29,9 +27,8 @@ describe("#pagination", () => {
 
   it("should not allow non-integer limit", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/users.list", {
+    const res = await server.post("/api/users.list", user, {
       body: {
-        token: user.getJwtToken(),
         limit: "blah",
       },
     });
@@ -40,9 +37,8 @@ describe("#pagination", () => {
 
   it("should not allow negative offset", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/users.list", {
+    const res = await server.post("/api/users.list", user, {
       body: {
-        token: user.getJwtToken(),
         offset: -1,
       },
     });
@@ -51,9 +47,8 @@ describe("#pagination", () => {
 
   it("should not allow non-integer offset", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/users.list", {
+    const res = await server.post("/api/users.list", user, {
       body: {
-        token: user.getJwtToken(),
         offset: "blah",
       },
     });

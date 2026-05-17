@@ -13,7 +13,7 @@ describe("#gitlab.callback", () => {
     const res = await server.get(
       `/api/gitlab.callback?state=${encodeURIComponent(
         state
-      )}&code=123&token=${user.getJwtToken()}`,
+      )}&code=123&token=${user.getSessionToken()}`,
       { redirect: "manual" }
     );
     const body = await res.json();
@@ -27,7 +27,7 @@ describe("#gitlab.callback", () => {
     const res = await server.get(
       `/api/gitlab.callback?state=${encodeURIComponent(
         state
-      )}&code=123&token=${user.getJwtToken()}`,
+      )}&code=123&token=${user.getSessionToken()}`,
       { redirect: "manual" }
     );
     expect(res.status).toEqual(400);
@@ -36,7 +36,7 @@ describe("#gitlab.callback", () => {
   it("should fail when state is not valid JSON", async () => {
     const user = await buildUser();
     const res = await server.get(
-      `/api/gitlab.callback?state=bad&code=123&token=${user.getJwtToken()}`,
+      `/api/gitlab.callback?state=bad&code=123&token=${user.getSessionToken()}`,
       { redirect: "manual" }
     );
     expect(res.status).toEqual(400);

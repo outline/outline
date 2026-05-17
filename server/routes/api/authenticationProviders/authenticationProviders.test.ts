@@ -20,10 +20,9 @@ describe("#authenticationProviders.info", () => {
       teamId: team.id,
     });
     const authenticationProviders = await team.$get("authenticationProviders");
-    const res = await server.post("/api/authenticationProviders.info", {
+    const res = await server.post("/api/authenticationProviders.info", user, {
       body: {
         id: authenticationProviders[0].id,
-        token: user.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -39,10 +38,9 @@ describe("#authenticationProviders.info", () => {
     const team = await buildTeam();
     const user = await buildUser();
     const authenticationProviders = await team.$get("authenticationProviders");
-    const res = await server.post("/api/authenticationProviders.info", {
+    const res = await server.post("/api/authenticationProviders.info", user, {
       body: {
         id: authenticationProviders[0].id,
-        token: user.getJwtToken(),
       },
     });
     expect(res.status).toEqual(403);
@@ -69,11 +67,10 @@ describe("#authenticationProviders.update", () => {
       teamId: team.id,
     });
     const authenticationProviders = await team.$get("authenticationProviders");
-    const res = await server.post("/api/authenticationProviders.update", {
+    const res = await server.post("/api/authenticationProviders.update", user, {
       body: {
         id: authenticationProviders[0].id,
         isEnabled: false,
-        token: user.getJwtToken(),
       },
     });
     expect(res.status).toEqual(400);
@@ -88,11 +85,10 @@ describe("#authenticationProviders.update", () => {
       name: "google",
       providerId: randomUUID(),
     });
-    const res = await server.post("/api/authenticationProviders.update", {
+    const res = await server.post("/api/authenticationProviders.update", user, {
       body: {
         id: googleProvider.id,
         isEnabled: false,
-        token: user.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -106,11 +102,10 @@ describe("#authenticationProviders.update", () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const authenticationProviders = await team.$get("authenticationProviders");
-    const res = await server.post("/api/authenticationProviders.update", {
+    const res = await server.post("/api/authenticationProviders.update", user, {
       body: {
         id: authenticationProviders[0].id,
         isEnabled: false,
-        token: user.getJwtToken(),
       },
     });
     expect(res.status).toEqual(403);
@@ -135,11 +130,7 @@ describe("#authenticationProviders.list", () => {
     const user = await buildAdmin({
       teamId: team.id,
     });
-    const res = await server.post("/api/authenticationProviders.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/authenticationProviders.list", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toBe(3);
@@ -170,10 +161,9 @@ describe("#authenticationProviders.delete", () => {
       name: "google",
       providerId: randomUUID(),
     });
-    const res = await server.post("/api/authenticationProviders.delete", {
+    const res = await server.post("/api/authenticationProviders.delete", user, {
       body: {
         id: googleProvider.id,
-        token: user.getJwtToken(),
       },
     });
     expect(res.status).toEqual(200);
@@ -191,10 +181,9 @@ describe("#authenticationProviders.delete", () => {
       name: "google",
       providerId: randomUUID(),
     });
-    const res = await server.post("/api/authenticationProviders.delete", {
+    const res = await server.post("/api/authenticationProviders.delete", user, {
       body: {
         id: googleProvider.id,
-        token: user.getJwtToken(),
       },
     });
     expect(res.status).toEqual(200);
@@ -213,10 +202,9 @@ describe("#authenticationProviders.delete", () => {
       name: "google",
       providerId: randomUUID(),
     });
-    const res = await server.post("/api/authenticationProviders.delete", {
+    const res = await server.post("/api/authenticationProviders.delete", user, {
       body: {
         id: googleProvider.id,
-        token: user.getJwtToken(),
       },
     });
     expect(res.status).toEqual(403);

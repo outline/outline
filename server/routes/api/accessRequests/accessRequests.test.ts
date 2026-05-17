@@ -15,11 +15,7 @@ const server = getTestServer();
 describe("#accessRequests.create", () => {
   it("should require id", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/accessRequests.create", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/accessRequests.create", user);
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("documentId: Must be a valid UUID or slug");
@@ -37,9 +33,8 @@ describe("#accessRequests.create", () => {
 
   it("should return 404 for non-existent document", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/accessRequests.create", {
+    const res = await server.post("/api/accessRequests.create", user, {
       body: {
-        token: user.getJwtToken(),
         documentId: "a8f22c38-f4eb-4909-8c30-b927af36c5f3",
       },
     });
@@ -63,9 +58,8 @@ describe("#accessRequests.create", () => {
       collectionId: collection.id,
     });
 
-    const res = await server.post("/api/accessRequests.create", {
+    const res = await server.post("/api/accessRequests.create", requester, {
       body: {
-        token: requester.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -85,9 +79,8 @@ describe("#accessRequests.create", () => {
       createdById: owner.id,
     });
 
-    const res = await server.post("/api/accessRequests.create", {
+    const res = await server.post("/api/accessRequests.create", requester, {
       body: {
-        token: requester.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -110,9 +103,8 @@ describe("#accessRequests.create", () => {
       collectionId: collection.id,
     });
 
-    const res = await server.post("/api/accessRequests.create", {
+    const res = await server.post("/api/accessRequests.create", requester, {
       body: {
-        token: requester.getJwtToken(),
         documentId: document.urlId,
       },
     });
@@ -135,17 +127,15 @@ describe("#accessRequests.create", () => {
     });
 
     // Create first access request
-    const res1 = await server.post("/api/accessRequests.create", {
+    const res1 = await server.post("/api/accessRequests.create", requester, {
       body: {
-        token: requester.getJwtToken(),
         documentId: document.id,
       },
     });
 
     // Try to create another
-    const res2 = await server.post("/api/accessRequests.create", {
+    const res2 = await server.post("/api/accessRequests.create", requester, {
       body: {
-        token: requester.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -189,9 +179,8 @@ describe("#accessRequests.create", () => {
     });
 
     // Create new request
-    const res2 = await server.post("/api/accessRequests.create", {
+    const res2 = await server.post("/api/accessRequests.create", requester, {
       body: {
-        token: requester.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -211,11 +200,7 @@ describe("#accessRequests.info", () => {
 
   it("should fail if both id and documentId are missing", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/accessRequests.info", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/accessRequests.info", user);
     expect(res.status).toEqual(400);
   });
 
@@ -234,9 +219,8 @@ describe("#accessRequests.info", () => {
       teamId: team.id,
     });
 
-    const res = await server.post("/api/accessRequests.info", {
+    const res = await server.post("/api/accessRequests.info", requester, {
       body: {
-        token: requester.getJwtToken(),
         id: accessRequest.id,
       },
     });
@@ -262,9 +246,8 @@ describe("#accessRequests.info", () => {
       teamId: team.id,
     });
 
-    const res = await server.post("/api/accessRequests.info", {
+    const res = await server.post("/api/accessRequests.info", requester, {
       body: {
-        token: requester.getJwtToken(),
         documentId: document.urlId,
       },
     });
@@ -277,9 +260,8 @@ describe("#accessRequests.info", () => {
 
   it("should return 404 if access request not found", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/accessRequests.info", {
+    const res = await server.post("/api/accessRequests.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: "00000000-0000-0000-0000-000000000000",
       },
     });
@@ -309,9 +291,8 @@ describe("#accessRequests.approve", () => {
       status: AccessRequestStatus.Pending,
     });
 
-    const res = await server.post("/api/accessRequests.approve", {
+    const res = await server.post("/api/accessRequests.approve", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: accessRequest.id,
         permission: DocumentPermission.ReadWrite,
       },
@@ -355,9 +336,8 @@ describe("#accessRequests.approve", () => {
       teamId: team.id,
     });
 
-    const res = await server.post("/api/accessRequests.approve", {
+    const res = await server.post("/api/accessRequests.approve", nonManager, {
       body: {
-        token: nonManager.getJwtToken(),
         id: accessRequest.id,
         permission: DocumentPermission.ReadWrite,
       },
@@ -389,9 +369,8 @@ describe("#accessRequests.approve", () => {
       status: AccessRequestStatus.Pending,
     });
 
-    const res = await server.post("/api/accessRequests.approve", {
+    const res = await server.post("/api/accessRequests.approve", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: accessRequest.id,
         permission: DocumentPermission.ReadWrite,
       },
@@ -429,9 +408,8 @@ describe("#accessRequests.approve", () => {
       respondedAt: new Date(),
     });
 
-    const res = await server.post("/api/accessRequests.approve", {
+    const res = await server.post("/api/accessRequests.approve", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: accessRequest.id,
         permission: DocumentPermission.ReadWrite,
       },
@@ -463,9 +441,8 @@ describe("#accessRequests.dismiss", () => {
       teamId: team.id,
     });
 
-    const res = await server.post("/api/accessRequests.dismiss", {
+    const res = await server.post("/api/accessRequests.dismiss", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: accessRequest.id,
       },
     });
@@ -509,9 +486,8 @@ describe("#accessRequests.dismiss", () => {
       teamId: team.id,
     });
 
-    const res = await server.post("/api/accessRequests.dismiss", {
+    const res = await server.post("/api/accessRequests.dismiss", nonManager, {
       body: {
-        token: nonManager.getJwtToken(),
         id: accessRequest.id,
       },
     });
@@ -539,9 +515,8 @@ describe("#accessRequests.dismiss", () => {
       respondedAt,
     });
 
-    const res = await server.post("/api/accessRequests.dismiss", {
+    const res = await server.post("/api/accessRequests.dismiss", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: accessRequest.id,
       },
     });

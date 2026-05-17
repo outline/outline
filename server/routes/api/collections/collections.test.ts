@@ -27,11 +27,7 @@ describe("#collections.list", () => {
       userId: user.id,
       teamId: team.id,
     });
-    const res = await server.post("/api/collections.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/collections.list", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
@@ -47,9 +43,8 @@ describe("#collections.list", () => {
       teamId: team.id,
       archivedAt: new Date(),
     });
-    const res = await server.post("/api/collections.list", {
+    const res = await server.post("/api/collections.list", admin, {
       body: {
-        token: admin.getJwtToken(),
         statusFilter: [CollectionStatusFilter.Archived],
       },
     });
@@ -68,11 +63,7 @@ describe("#collections.list", () => {
       teamId: team.id,
       archivedAt: new Date(),
     });
-    const res = await server.post("/api/collections.list", {
-      body: {
-        token: admin.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/collections.list", admin);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data).toHaveLength(0);
@@ -89,11 +80,7 @@ describe("#collections.list", () => {
       permission: null,
       teamId: user.teamId,
     });
-    const res = await server.post("/api/collections.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/collections.list", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
@@ -112,11 +99,7 @@ describe("#collections.list", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    const res = await server.post("/api/collections.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/collections.list", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
@@ -149,11 +132,7 @@ describe("#collections.list", () => {
         createdById: user.id,
       },
     });
-    const res = await server.post("/api/collections.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/collections.list", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
@@ -169,11 +148,7 @@ describe("#collections.list", () => {
       teamId: team.id,
       archivedAt: new Date(),
     });
-    const res = await server.post("/api/collections.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/collections.list", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
@@ -187,30 +162,21 @@ describe("#collections.list", () => {
       teamId: team.id,
     });
 
-    const beforeArchiveRes = await server.post("/api/collections.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const beforeArchiveRes = await server.post("/api/collections.list", user);
     const beforeArchiveBody = await beforeArchiveRes.json();
     expect(beforeArchiveRes.status).toEqual(200);
     expect(beforeArchiveBody.data).toHaveLength(1);
     expect(beforeArchiveBody.data[0].id).toEqual(collection.id);
 
-    const archiveRes = await server.post("/api/collections.archive", {
+    const archiveRes = await server.post("/api/collections.archive", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
 
     expect(archiveRes.status).toEqual(200);
 
-    const afterArchiveRes = await server.post("/api/collections.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const afterArchiveRes = await server.post("/api/collections.list", user);
 
     const afterArchiveBody = await afterArchiveRes.json();
     expect(afterArchiveRes.status).toEqual(200);
@@ -221,11 +187,7 @@ describe("#collections.list", () => {
 describe("#collections.import", () => {
   it("should error if no attachmentId is passed", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/collections.import", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/collections.import", user);
     expect(res.status).toEqual(400);
   });
 
@@ -248,9 +210,8 @@ describe("#collections.move", () => {
   it("should require authorization", async () => {
     const user = await buildUser();
     const collection = await buildCollection();
-    const res = await server.post("/api/collections.move", {
+    const res = await server.post("/api/collections.move", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         index: "P",
       },
@@ -262,9 +223,8 @@ describe("#collections.move", () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
-    const res = await server.post("/api/collections.move", {
+    const res = await server.post("/api/collections.move", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         index: "P",
         icon: "flame",
@@ -279,9 +239,8 @@ describe("#collections.move", () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
-    const res = await server.post("/api/collections.move", {
+    const res = await server.post("/api/collections.move", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         index: "P",
         icon: "😁",
@@ -296,9 +255,8 @@ describe("#collections.move", () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
-    const res = await server.post("/api/collections.move", {
+    const res = await server.post("/api/collections.move", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         icon: "nonsRence",
       },
@@ -310,9 +268,8 @@ describe("#collections.move", () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
-    const res = await server.post("/api/collections.move", {
+    const res = await server.post("/api/collections.move", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         index: "يونيكود",
       },
@@ -330,9 +287,9 @@ describe("#collections.move", () => {
     });
     const createdCollectionResponse = await server.post(
       "/api/collections.create",
+      user,
       {
         body: {
-          token: user.getJwtToken(),
           name: "Test",
           sharing: false,
           index: "Q",
@@ -340,13 +297,16 @@ describe("#collections.move", () => {
       }
     );
     await createdCollectionResponse.json();
-    const movedCollectionRes = await server.post("/api/collections.move", {
-      body: {
-        token: admin.getJwtToken(),
-        id: collection.id,
-        index: "Q",
-      },
-    });
+    const movedCollectionRes = await server.post(
+      "/api/collections.move",
+      admin,
+      {
+        body: {
+          id: collection.id,
+          index: "Q",
+        },
+      }
+    );
     const movedCollection = await movedCollectionRes.json();
     expect(movedCollectionRes.status).toEqual(200);
     expect(movedCollection.success).toBe(true);
@@ -360,9 +320,9 @@ describe("#collections.move", () => {
     const user = await buildUser({ teamId: team.id });
     const createdCollectionAResponse = await server.post(
       "/api/collections.create",
+      user,
       {
         body: {
-          token: user.getJwtToken(),
           name: "A",
           sharing: false,
           index: "a",
@@ -371,9 +331,9 @@ describe("#collections.move", () => {
     );
     const createdCollectionBResponse = await server.post(
       "/api/collections.create",
+      user,
       {
         body: {
-          token: user.getJwtToken(),
           name: "B",
           sharing: false,
           index: "b",
@@ -382,9 +342,9 @@ describe("#collections.move", () => {
     );
     const createdCollectionCResponse = await server.post(
       "/api/collections.create",
+      user,
       {
         body: {
-          token: user.getJwtToken(),
           name: "C",
           sharing: false,
           index: "c",
@@ -396,9 +356,9 @@ describe("#collections.move", () => {
     const createdCollectionC = await createdCollectionCResponse.json();
     const movedCollectionCResponse = await server.post(
       "/api/collections.move",
+      admin,
       {
         body: {
-          token: admin.getJwtToken(),
           id: createdCollectionC.data.id,
           index: "a",
         },
@@ -420,9 +380,8 @@ describe("#collections.export", () => {
       permission: null,
       teamId: user.teamId,
     });
-    const res = await server.post("/api/collections.export", {
+    const res = await server.post("/api/collections.export", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -441,9 +400,8 @@ describe("#collections.export", () => {
       userId: admin.id,
       permission: CollectionPermission.ReadWrite,
     });
-    const res = await server.post("/api/collections.export", {
+    const res = await server.post("/api/collections.export", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
       },
     });
@@ -470,9 +428,8 @@ describe("#collections.export", () => {
         createdById: admin.id,
       },
     });
-    const res = await server.post("/api/collections.export", {
+    const res = await server.post("/api/collections.export", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
       },
     });
@@ -493,9 +450,8 @@ describe("#collections.export", () => {
       userId: admin.id,
       teamId: admin.teamId,
     });
-    const res = await server.post("/api/collections.export", {
+    const res = await server.post("/api/collections.export", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -507,9 +463,8 @@ describe("#collections.export", () => {
     const collection = await buildCollection({
       teamId: admin.teamId,
     });
-    const res = await server.post("/api/collections.export", {
+    const res = await server.post("/api/collections.export", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
       },
     });
@@ -530,21 +485,13 @@ describe("#collections.export_all", () => {
 
   it("should require authorization", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/collections.export_all", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/collections.export_all", user);
     expect(res.status).toEqual(403);
   });
 
   it("should return success", async () => {
     const admin = await buildAdmin();
-    const res = await server.post("/api/collections.export_all", {
-      body: {
-        token: admin.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/collections.export_all", admin);
     expect(res.status).toEqual(200);
   });
 });
@@ -566,9 +513,8 @@ describe("#collections.add_user", () => {
       userId: user.id,
       permission: CollectionPermission.Admin,
     });
-    const res = await server.post("/api/collections.add_user", {
+    const res = await server.post("/api/collections.add_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -588,9 +534,8 @@ describe("#collections.add_user", () => {
     const anotherUser = await buildUser({
       teamId: admin.teamId,
     });
-    const res = await server.post("/api/collections.add_user", {
+    const res = await server.post("/api/collections.add_user", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -606,9 +551,8 @@ describe("#collections.add_user", () => {
       teamId: user.teamId,
       permission: null,
     });
-    const res = await server.post("/api/collections.add_user", {
+    const res = await server.post("/api/collections.add_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         userId: user.id,
       },
@@ -625,9 +569,8 @@ describe("#collections.add_user", () => {
       permission: null,
     });
     const anotherUser = await buildUser();
-    const res = await server.post("/api/collections.add_user", {
+    const res = await server.post("/api/collections.add_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -648,9 +591,8 @@ describe("#collections.add_user", () => {
     const anotherUser = await buildUser({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/collections.add_user", {
+    const res = await server.post("/api/collections.add_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -670,9 +612,8 @@ describe("#collections.add_group", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/collections.add_group", {
+    const res = await server.post("/api/collections.add_group", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -692,9 +633,8 @@ describe("#collections.add_group", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/collections.add_group", {
+    const res = await server.post("/api/collections.add_group", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         groupId: group.id,
         permission: null,
@@ -715,9 +655,8 @@ describe("#collections.add_group", () => {
       permission: null,
     });
     const group = await buildGroup();
-    const res = await server.post("/api/collections.add_group", {
+    const res = await server.post("/api/collections.add_group", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -738,9 +677,8 @@ describe("#collections.add_group", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/collections.add_group", {
+    const res = await server.post("/api/collections.add_group", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -760,18 +698,16 @@ describe("#collections.remove_group", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    await server.post("/api/collections.add_group", {
+    await server.post("/api/collections.add_group", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         groupId: group.id,
       },
     });
     let groups = await collection.$get("groups");
     expect(groups.length).toEqual(1);
-    const res = await server.post("/api/collections.remove_group", {
+    const res = await server.post("/api/collections.remove_group", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -788,9 +724,8 @@ describe("#collections.remove_group", () => {
       permission: null,
     });
     const group = await buildGroup();
-    const res = await server.post("/api/collections.remove_group", {
+    const res = await server.post("/api/collections.remove_group", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -811,9 +746,8 @@ describe("#collections.remove_group", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/collections.remove_group", {
+    const res = await server.post("/api/collections.remove_group", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -833,16 +767,14 @@ describe("#collections.remove_user", () => {
     const anotherUser = await buildUser({
       teamId: admin.teamId,
     });
-    await server.post("/api/collections.add_user", {
+    await server.post("/api/collections.add_user", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
     });
-    const res = await server.post("/api/collections.remove_user", {
+    const res = await server.post("/api/collections.remove_user", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -862,9 +794,8 @@ describe("#collections.remove_user", () => {
     const nonMember = await buildUser({
       teamId: admin.teamId,
     });
-    const res = await server.post("/api/collections.remove_user", {
+    const res = await server.post("/api/collections.remove_user", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         userId: nonMember.id,
       },
@@ -881,9 +812,8 @@ describe("#collections.remove_user", () => {
       permission: null,
     });
     const anotherUser = await buildUser();
-    const res = await server.post("/api/collections.remove_user", {
+    const res = await server.post("/api/collections.remove_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -904,9 +834,8 @@ describe("#collections.remove_user", () => {
     const anotherUser = await buildUser({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/collections.remove_user", {
+    const res = await server.post("/api/collections.remove_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -937,9 +866,8 @@ describe("#collections.group_memberships", () => {
       groupId: group.id,
       permission: CollectionPermission.ReadWrite,
     });
-    const res = await server.post("/api/collections.group_memberships", {
+    const res = await server.post("/api/collections.group_memberships", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -987,9 +915,8 @@ describe("#collections.group_memberships", () => {
       groupId: group2.id,
       permission: CollectionPermission.ReadWrite,
     });
-    const res = await server.post("/api/collections.group_memberships", {
+    const res = await server.post("/api/collections.group_memberships", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         query: "will",
       },
@@ -1030,9 +957,8 @@ describe("#collections.group_memberships", () => {
       groupId: group2.id,
       permission: CollectionPermission.Read,
     });
-    const res = await server.post("/api/collections.group_memberships", {
+    const res = await server.post("/api/collections.group_memberships", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         permission: CollectionPermission.Read,
       },
@@ -1056,9 +982,8 @@ describe("#collections.group_memberships", () => {
       permission: null,
       teamId: user.teamId,
     });
-    const res = await server.post("/api/collections.group_memberships", {
+    const res = await server.post("/api/collections.group_memberships", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1077,9 +1002,8 @@ describe("#collections.memberships", () => {
     collection.permission = null;
     await collection.save();
 
-    const res = await server.post("/api/collections.memberships", {
+    const res = await server.post("/api/collections.memberships", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1111,9 +1035,8 @@ describe("#collections.memberships", () => {
       userId: user2.id,
       permission: CollectionPermission.ReadWrite,
     });
-    const res = await server.post("/api/collections.memberships", {
+    const res = await server.post("/api/collections.memberships", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         query: user.name.slice(0, 3),
       },
@@ -1144,9 +1067,8 @@ describe("#collections.memberships", () => {
       userId: user2.id,
       permission: CollectionPermission.Read,
     });
-    const res = await server.post("/api/collections.memberships", {
+    const res = await server.post("/api/collections.memberships", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         permission: CollectionPermission.Read,
       },
@@ -1167,9 +1089,8 @@ describe("#collections.memberships", () => {
   it("should require authorization", async () => {
     const collection = await buildCollection();
     const user = await buildUser();
-    const res = await server.post("/api/collections.memberships", {
+    const res = await server.post("/api/collections.memberships", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1187,9 +1108,8 @@ describe("#collections.info", () => {
       archivedAt: new Date(),
       archivedById: user.id,
     });
-    const res = await server.post("/api/collections.info", {
+    const res = await server.post("/api/collections.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1205,9 +1125,8 @@ describe("#collections.info", () => {
       userId: user.id,
       teamId: team.id,
     });
-    const res = await server.post("/api/collections.info", {
+    const res = await server.post("/api/collections.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1223,9 +1142,8 @@ describe("#collections.info", () => {
       userId: user.id,
       teamId: team.id,
     });
-    const res = await server.post("/api/collections.info", {
+    const res = await server.post("/api/collections.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: `any-slug-${collection.urlId}`,
       },
     });
@@ -1250,9 +1168,8 @@ describe("#collections.info", () => {
         userId: user.id,
       },
     });
-    const res = await server.post("/api/collections.info", {
+    const res = await server.post("/api/collections.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1274,9 +1191,8 @@ describe("#collections.info", () => {
       createdById: user.id,
       permission: CollectionPermission.Read,
     });
-    const res = await server.post("/api/collections.info", {
+    const res = await server.post("/api/collections.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1295,9 +1211,8 @@ describe("#collections.info", () => {
   it("should require authorization", async () => {
     const collection = await buildCollection();
     const user = await buildUser();
-    const res = await server.post("/api/collections.info", {
+    const res = await server.post("/api/collections.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1315,9 +1230,8 @@ describe("#collections.create", () => {
 
   it("should create collection", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/collections.create", {
+    const res = await server.post("/api/collections.create", user, {
       body: {
-        token: user.getJwtToken(),
         name: "Test",
       },
     });
@@ -1333,9 +1247,8 @@ describe("#collections.create", () => {
 
   it("should error when index is invalid", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/collections.create", {
+    const res = await server.post("/api/collections.create", user, {
       body: {
-        token: user.getJwtToken(),
         name: "Test",
         index: "يونيكود",
       },
@@ -1345,9 +1258,8 @@ describe("#collections.create", () => {
 
   it("should allow setting sharing to false", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/collections.create", {
+    const res = await server.post("/api/collections.create", user, {
       body: {
-        token: user.getJwtToken(),
         name: "Test",
         sharing: false,
       },
@@ -1360,9 +1272,8 @@ describe("#collections.create", () => {
 
   it("should return correct policies with private collection", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/collections.create", {
+    const res = await server.post("/api/collections.create", user, {
       body: {
-        token: user.getJwtToken(),
         name: "Test",
         permission: null,
       },
@@ -1381,15 +1292,13 @@ describe("#collections.create", () => {
       buildAdmin({ teamId: team.id }),
     ]);
 
-    const resA = await server.post("/api/collections.create", {
+    const resA = await server.post("/api/collections.create", adminA, {
       body: {
-        token: adminA.getJwtToken(),
         name: "Test A",
       },
     });
-    const resB = await server.post("/api/collections.create", {
+    const resB = await server.post("/api/collections.create", adminB, {
       body: {
-        token: adminB.getJwtToken(),
         name: "Test B",
       },
     });
@@ -1404,9 +1313,9 @@ describe("#collections.create", () => {
     const user = await buildUser();
     const createdCollectionAResponse = await server.post(
       "/api/collections.create",
+      user,
       {
         body: {
-          token: user.getJwtToken(),
           name: "A",
           sharing: false,
           index: "a",
@@ -1416,9 +1325,9 @@ describe("#collections.create", () => {
     await createdCollectionAResponse.json();
     const createCollectionResponse = await server.post(
       "/api/collections.create",
+      user,
       {
         body: {
-          token: user.getJwtToken(),
           name: "C",
           sharing: false,
           index: "a",
@@ -1435,9 +1344,9 @@ describe("#collections.create", () => {
     const user = await buildUser();
     const createdCollectionAResponse = await server.post(
       "/api/collections.create",
+      user,
       {
         body: {
-          token: user.getJwtToken(),
           name: "A",
           sharing: false,
           index: "a",
@@ -1446,9 +1355,9 @@ describe("#collections.create", () => {
     );
     const createdCollectionBResponse = await server.post(
       "/api/collections.create",
+      user,
       {
         body: {
-          token: user.getJwtToken(),
           name: "B",
           sharing: false,
           index: "b",
@@ -1459,9 +1368,9 @@ describe("#collections.create", () => {
     await createdCollectionBResponse.json();
     const createCollectionResponse = await server.post(
       "/api/collections.create",
+      user,
       {
         body: {
-          token: user.getJwtToken(),
           name: "C",
           sharing: false,
           index: "a",
@@ -1493,9 +1402,8 @@ describe("#collections.update", () => {
   it("should require authorization", async () => {
     const collection = await buildCollection();
     const user = await buildUser();
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         name: "Test",
       },
@@ -1507,9 +1415,8 @@ describe("#collections.update", () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         name: "Test",
       },
@@ -1524,9 +1431,8 @@ describe("#collections.update", () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         description: "Test",
       },
@@ -1545,9 +1451,8 @@ describe("#collections.update", () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         data: {
           content: [
@@ -1570,9 +1475,8 @@ describe("#collections.update", () => {
       field: "index",
       direction: "desc",
     };
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         sort,
       },
@@ -1587,9 +1491,8 @@ describe("#collections.update", () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         permission: null,
       },
@@ -1604,9 +1507,8 @@ describe("#collections.update", () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         permission: null,
         name: "  Test  ",
@@ -1633,9 +1535,8 @@ describe("#collections.update", () => {
       createdById: admin.id,
       permission: CollectionPermission.ReadWrite,
     });
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         permission: CollectionPermission.ReadWrite,
         name: "Test",
@@ -1662,9 +1563,8 @@ describe("#collections.update", () => {
       createdById: admin.id,
       permission: CollectionPermission.ReadWrite,
     });
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         name: "Test",
       },
@@ -1695,9 +1595,8 @@ describe("#collections.update", () => {
         createdById: user.id,
       },
     });
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         name: "Test",
       },
@@ -1729,9 +1628,8 @@ describe("#collections.update", () => {
         },
       }
     );
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
         name: "Test",
       },
@@ -1747,9 +1645,8 @@ describe("#collections.update", () => {
       field: "blah",
       direction: "desc",
     };
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         sort,
       },
@@ -1765,9 +1662,8 @@ describe("#collections.update", () => {
       field: "title",
       direction: "blah",
     };
-    const res = await server.post("/api/collections.update", {
+    const res = await server.post("/api/collections.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
         sort,
       },
@@ -1787,9 +1683,8 @@ describe("#collections.delete", () => {
   it("should require authorization", async () => {
     const collection = await buildCollection();
     const user = await buildUser();
-    const res = await server.post("/api/collections.delete", {
+    const res = await server.post("/api/collections.delete", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1800,9 +1695,8 @@ describe("#collections.delete", () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
-    const res = await server.post("/api/collections.delete", {
+    const res = await server.post("/api/collections.delete", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1815,9 +1709,8 @@ describe("#collections.delete", () => {
     const collection = await buildCollection({ teamId: team.id });
     await buildCollection({ teamId: team.id });
 
-    const res = await server.post("/api/collections.delete", {
+    const res = await server.post("/api/collections.delete", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1840,9 +1733,8 @@ describe("#collections.delete", () => {
       collectionId: collection.id,
       archivedAt: new Date(),
     });
-    const res = await server.post("/api/collections.delete", {
+    const res = await server.post("/api/collections.delete", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1881,9 +1773,8 @@ describe("#collections.delete", () => {
         createdById: user.id,
       },
     });
-    const res = await server.post("/api/collections.delete", {
+    const res = await server.post("/api/collections.delete", user, {
       body: {
-        token: user.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1907,9 +1798,8 @@ describe("#collections.archive", () => {
     await collection.reload();
     expect(collection.documentStructure).not.toBe(null);
     expect(document.archivedAt).toBe(null);
-    const res = await server.post("/api/collections.archive", {
+    const res = await server.post("/api/collections.archive", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1941,9 +1831,8 @@ describe("#collections.restore", () => {
     // reload to ensure documentStructure is set
     await collection.reload();
     expect(collection.documentStructure).not.toBe(null);
-    const archiveRes = await server.post("/api/collections.archive", {
+    const archiveRes = await server.post("/api/collections.archive", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1953,9 +1842,8 @@ describe("#collections.restore", () => {
     ]);
     expect(archiveRes.status).toEqual(200);
     expect(archiveBody.data.archivedAt).not.toBe(null);
-    const res = await server.post("/api/collections.restore", {
+    const res = await server.post("/api/collections.restore", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: collection.id,
       },
     });
@@ -1982,9 +1870,8 @@ describe("#collections.restore", () => {
     expect(collection.index).toEqual("P");
     expect(archivedCollection.index).toEqual("P");
 
-    const res = await server.post("/api/collections.restore", {
+    const res = await server.post("/api/collections.restore", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: archivedCollection.id,
       },
     });

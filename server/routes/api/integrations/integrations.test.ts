@@ -20,10 +20,9 @@ describe("#integrations.update", () => {
       teamId: team.id,
     });
 
-    const res = await server.post("/api/integrations.update", {
+    const res = await server.post("/api/integrations.update", user, {
       body: {
         events: ["documents.update"],
-        token: user.getJwtToken(),
         id: integration.id,
       },
     });
@@ -38,9 +37,8 @@ describe("#integrations.update", () => {
     const integration = await buildIntegration({
       userId: user.id,
     });
-    const res = await server.post("/api/integrations.update", {
+    const res = await server.post("/api/integrations.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: integration.id,
       },
     });
@@ -58,9 +56,8 @@ describe("#integrations.update", () => {
       settings: { url: "https://example.com" },
     });
 
-    const res = await server.post("/api/integrations.update", {
+    const res = await server.post("/api/integrations.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: integration.id,
         settings: { url: "https://foo.bar" },
       },
@@ -82,9 +79,8 @@ describe("#integrations.update", () => {
       settings: { url: "https://example.com" },
     });
 
-    const res = await server.post("/api/integrations.update", {
+    const res = await server.post("/api/integrations.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: integration.id,
         settings: { url: "https://grist.example.com" },
       },
@@ -100,9 +96,8 @@ describe("#integrations.create", () => {
   it("should fail with status 400 bad request for an invalid url value supplied in settings param", async () => {
     const admin = await buildAdmin();
 
-    const res = await server.post("/api/integrations.create", {
+    const res = await server.post("/api/integrations.create", admin, {
       body: {
-        token: admin.getJwtToken(),
         type: IntegrationType.Embed,
         service: IntegrationService.Diagrams,
         settings: { url: "not a url" },
@@ -116,9 +111,8 @@ describe("#integrations.create", () => {
   it("should succeed with status 200 ok for an integration without url", async () => {
     const admin = await buildAdmin();
 
-    const res = await server.post("/api/integrations.create", {
+    const res = await server.post("/api/integrations.create", admin, {
       body: {
-        token: admin.getJwtToken(),
         type: IntegrationType.Analytics,
         service: IntegrationService.GoogleAnalytics,
         settings: { measurementId: "123" },
@@ -135,9 +129,8 @@ describe("#integrations.create", () => {
   it("should succeed with status 200 ok for an grist integration", async () => {
     const admin = await buildAdmin();
 
-    const res = await server.post("/api/integrations.create", {
+    const res = await server.post("/api/integrations.create", admin, {
       body: {
-        token: admin.getJwtToken(),
         type: IntegrationType.Embed,
         service: IntegrationService.Grist,
         settings: { url: "https://grist.example.com" },
@@ -171,9 +164,8 @@ describe("#integrations.delete", () => {
   it("should fail with status 403 unauthorized when the user is not an admin", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/integrations.delete", {
+    const res = await server.post("/api/integrations.delete", user, {
       body: {
-        token: user.getJwtToken(),
         id: integration.id,
       },
     });
@@ -181,11 +173,7 @@ describe("#integrations.delete", () => {
   });
 
   it("should fail with status 400 bad request when id is not sent", async () => {
-    const res = await server.post("/api/integrations.delete", {
-      body: {
-        token: admin.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/integrations.delete", admin);
 
     const body = await res.json();
     expect(res.status).toEqual(400);
@@ -202,9 +190,8 @@ describe("#integrations.delete", () => {
       service: IntegrationService.Slack,
       type: IntegrationType.LinkedAccount,
     });
-    const res = await server.post("/api/integrations.delete", {
+    const res = await server.post("/api/integrations.delete", user, {
       body: {
-        token: user.getJwtToken(),
         id: linkedAccount.id,
       },
     });
@@ -212,9 +199,8 @@ describe("#integrations.delete", () => {
   });
 
   it("should succeed with status 200 ok when integration is deleted", async () => {
-    const res = await server.post("/api/integrations.delete", {
+    const res = await server.post("/api/integrations.delete", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: integration.id,
       },
     });

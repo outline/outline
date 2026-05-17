@@ -64,11 +64,7 @@ describe("installation.info", () => {
 
   it.skip("should return installation information", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/installation.info", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/installation.info", user);
 
     const body = await res.json();
 

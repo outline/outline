@@ -33,9 +33,8 @@ describe("#reactions.list", () => {
       { emoji: "😅", commentId: comment.id, userId: user.id },
     ]);
 
-    const res = await server.post("/api/reactions.list", {
+    const res = await server.post("/api/reactions.list", user, {
       body: {
-        token: user.getJwtToken(),
         commentId: comment.id,
       },
     });

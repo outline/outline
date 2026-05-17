@@ -153,10 +153,10 @@ describe("user model", () => {
     });
   });
 
-  describe("getJwtToken", () => {
+  describe("getSessionToken", () => {
     it("should set JWT secret", async () => {
       const user = await buildUser();
-      expect(user.getJwtToken()).toBeTruthy();
+      expect(user.getSessionToken()).toBeTruthy();
     });
   });
 
