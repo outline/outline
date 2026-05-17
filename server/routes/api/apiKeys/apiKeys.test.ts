@@ -14,9 +14,8 @@ describe("#apiKeys.create", () => {
     const now = new Date();
     const user = await buildUser();
 
-    const res = await server.post("/api/apiKeys.create", {
+    const res = await server.post("/api/apiKeys.create", user, {
       body: {
-        token: user.getSessionToken(),
         name: "My API Key",
         expiresAt: now.toISOString(),
       },
@@ -32,9 +31,8 @@ describe("#apiKeys.create", () => {
   it("should allow creating an api key without expiry", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/apiKeys.create", {
+    const res = await server.post("/api/apiKeys.create", user, {
       body: {
-        token: user.getSessionToken(),
         name: "My API Key",
       },
     });
@@ -49,9 +47,8 @@ describe("#apiKeys.create", () => {
   it("should allow creating an api key with scopes", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/apiKeys.create", {
+    const res = await server.post("/api/apiKeys.create", user, {
       body: {
-        token: user.getSessionToken(),
         name: "My API Key",
         scope: [
           "/api/documents.list",
@@ -82,9 +79,8 @@ describe("#apiKeys.create", () => {
   it("should allow viewers to create an api key", async () => {
     const viewer = await buildViewer();
 
-    const res = await server.post("/api/apiKeys.create", {
+    const res = await server.post("/api/apiKeys.create", viewer, {
       body: {
-        token: viewer.getSessionToken(),
         name: "My API Key",
       },
     });
@@ -97,9 +93,8 @@ describe("#apiKeys.create", () => {
   it("should not allow guests to create an api key", async () => {
     const guest = await buildGuestUser();
 
-    const res = await server.post("/api/apiKeys.create", {
+    const res = await server.post("/api/apiKeys.create", guest, {
       body: {
-        token: guest.getSessionToken(),
         name: "My API Key",
       },
     });
@@ -119,10 +114,9 @@ describe("#apiKeys.list", () => {
     const admin = await buildAdmin({ teamId: user.teamId });
     await buildApiKey({ userId: user.id });
 
-    const res = await server.post("/api/apiKeys.list", {
+    const res = await server.post("/api/apiKeys.list", admin, {
       body: {
         userId: user.id,
-        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -137,10 +131,9 @@ describe("#apiKeys.list", () => {
     await buildApiKey({ userId: user.id });
     await buildApiKey({ userId: admin.id });
 
-    const res = await server.post("/api/apiKeys.list", {
+    const res = await server.post("/api/apiKeys.list", admin, {
       body: {
         userId: admin.id,
-        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -156,11 +149,7 @@ describe("#apiKeys.list", () => {
     await buildApiKey({ userId: user.id });
     await buildApiKey();
 
-    const res = await server.post("/api/apiKeys.list", {
-      body: {
-        token: admin.getSessionToken(),
-      },
-    });
+    const res = await server.post("/api/apiKeys.list", admin);
 
     const body = await res.json();
 
@@ -174,9 +163,8 @@ describe("#apiKeys.list", () => {
     await buildApiKey({ userId: admin.id, name: "Staging Key" });
     await buildApiKey({ userId: admin.id, name: "Development Token" });
 
-    const res = await server.post("/api/apiKeys.list", {
+    const res = await server.post("/api/apiKeys.list", admin, {
       body: {
-        token: admin.getSessionToken(),
         query: "key",
       },
     });
@@ -196,9 +184,8 @@ describe("#apiKeys.list", () => {
     await buildApiKey({ userId: admin.id, name: "Production Key" });
     await buildApiKey({ userId: admin.id, name: "Staging Key" });
 
-    const res = await server.post("/api/apiKeys.list", {
+    const res = await server.post("/api/apiKeys.list", admin, {
       body: {
-        token: admin.getSessionToken(),
         query: "PRODUCTION",
       },
     });
@@ -213,9 +200,8 @@ describe("#apiKeys.list", () => {
     const admin = await buildAdmin();
     await buildApiKey({ userId: admin.id, name: "Production Key" });
 
-    const res = await server.post("/api/apiKeys.list", {
+    const res = await server.post("/api/apiKeys.list", admin, {
       body: {
-        token: admin.getSessionToken(),
         query: "nonexistent",
       },
     });
@@ -229,9 +215,8 @@ describe("#apiKeys.list", () => {
     const viewer = await buildViewer();
     await buildApiKey({ userId: viewer.id });
 
-    const res = await server.post("/api/apiKeys.list", {
+    const res = await server.post("/api/apiKeys.list", viewer, {
       body: {
-        token: viewer.getSessionToken(),
         userId: viewer.id,
       },
     });
@@ -255,9 +240,8 @@ describe("#apiKeys.delete", () => {
       userId: user.id,
     });
 
-    const res = await server.post("/api/apiKeys.delete", {
+    const res = await server.post("/api/apiKeys.delete", user, {
       body: {
-        token: user.getSessionToken(),
         id: apiKey.id,
       },
     });
@@ -273,9 +257,8 @@ describe("#apiKeys.delete", () => {
       userId: otherUser.id,
     });
 
-    const res = await server.post("/api/apiKeys.delete", {
+    const res = await server.post("/api/apiKeys.delete", user, {
       body: {
-        token: user.getSessionToken(),
         id: apiKey.id,
       },
     });
@@ -291,9 +274,8 @@ describe("#apiKeys.delete", () => {
       userId: user.id,
     });
 
-    const res = await server.post("/api/apiKeys.delete", {
+    const res = await server.post("/api/apiKeys.delete", admin, {
       body: {
-        token: admin.getSessionToken(),
         id: apiKey.id,
       },
     });
@@ -305,9 +287,8 @@ describe("#apiKeys.delete", () => {
     const viewer = await buildViewer();
     const apiKey = await buildApiKey({ userId: viewer.id });
 
-    const res = await server.post("/api/apiKeys.delete", {
+    const res = await server.post("/api/apiKeys.delete", viewer, {
       body: {
-        token: viewer.getSessionToken(),
         id: apiKey.id,
       },
     });

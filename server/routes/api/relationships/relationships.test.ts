@@ -55,11 +55,7 @@ describe("#relationships.info", () => {
   });
 
   it("should fail with status 400 bad request when id is not supplied", async () => {
-    const res = await server.post("/api/relationships.info", {
-      body: {
-        token: user.getSessionToken(),
-      },
-    });
+    const res = await server.post("/api/relationships.info", user);
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
@@ -68,9 +64,8 @@ describe("#relationships.info", () => {
   });
 
   it("should fail with status 400 bad request when id is not a valid UUID", async () => {
-    const res = await server.post("/api/relationships.info", {
+    const res = await server.post("/api/relationships.info", user, {
       body: {
-        token: user.getSessionToken(),
         id: "invalid-uuid",
       },
     });
@@ -80,9 +75,8 @@ describe("#relationships.info", () => {
   });
 
   it("should fail with status 404 not found when relationship does not exist", async () => {
-    const res = await server.post("/api/relationships.info", {
+    const res = await server.post("/api/relationships.info", admin, {
       body: {
-        token: admin.getSessionToken(),
         id: "550e8400-e29b-41d4-a716-446655440000",
       },
     });
@@ -92,9 +86,8 @@ describe("#relationships.info", () => {
   });
 
   it("should fail with status 403 forbidden when user cannot read the document", async () => {
-    const res = await server.post("/api/relationships.info", {
+    const res = await server.post("/api/relationships.info", anotherUser, {
       body: {
-        token: anotherUser.getSessionToken(),
         id: relationship.id,
       },
     });
@@ -104,9 +97,8 @@ describe("#relationships.info", () => {
   });
 
   it("should succeed with status 200 ok when user can read the document", async () => {
-    const res = await server.post("/api/relationships.info", {
+    const res = await server.post("/api/relationships.info", admin, {
       body: {
-        token: admin.getSessionToken(),
         id: relationship.id,
       },
     });
@@ -143,9 +135,8 @@ describe("#relationships.info", () => {
       reverseDocumentId: adminDocument.id,
     });
 
-    const res = await server.post("/api/relationships.info", {
+    const res = await server.post("/api/relationships.info", user, {
       body: {
-        token: user.getSessionToken(),
         id: userRelationship.id,
       },
     });
@@ -165,9 +156,8 @@ describe("#relationships.info", () => {
     // Make user team member so they can read both documents
     const teamUser = await buildUser({ teamId: admin.teamId });
 
-    const res = await server.post("/api/relationships.info", {
+    const res = await server.post("/api/relationships.info", teamUser, {
       body: {
-        token: teamUser.getSessionToken(),
         id: relationship.id,
       },
     });
@@ -243,11 +233,7 @@ describe("#relationships.list", () => {
   });
 
   it("should succeed with status 200 ok returning all relationships", async () => {
-    const res = await server.post("/api/relationships.list", {
-      body: {
-        token: admin.getSessionToken(),
-      },
-    });
+    const res = await server.post("/api/relationships.list", admin);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data).toBeTruthy();
@@ -259,9 +245,8 @@ describe("#relationships.list", () => {
   });
 
   it("should succeed with status 200 ok returning relationships filtered by type", async () => {
-    const res = await server.post("/api/relationships.list", {
+    const res = await server.post("/api/relationships.list", admin, {
       body: {
-        token: admin.getSessionToken(),
         type: RelationshipType.Backlink,
       },
     });
@@ -277,9 +262,8 @@ describe("#relationships.list", () => {
   });
 
   it("should succeed with status 200 ok returning relationships filtered by documentId", async () => {
-    const res = await server.post("/api/relationships.list", {
+    const res = await server.post("/api/relationships.list", admin, {
       body: {
-        token: admin.getSessionToken(),
         documentId: documents[0].id,
       },
     });
@@ -295,9 +279,8 @@ describe("#relationships.list", () => {
   });
 
   it("should succeed with status 200 ok returning relationships filtered by reverseDocumentId", async () => {
-    const res = await server.post("/api/relationships.list", {
+    const res = await server.post("/api/relationships.list", admin, {
       body: {
-        token: admin.getSessionToken(),
         reverseDocumentId: documents[1].id,
       },
     });
@@ -313,9 +296,8 @@ describe("#relationships.list", () => {
   });
 
   it("should succeed with status 200 ok returning relationships with multiple filters", async () => {
-    const res = await server.post("/api/relationships.list", {
+    const res = await server.post("/api/relationships.list", admin, {
       body: {
-        token: admin.getSessionToken(),
         type: RelationshipType.Backlink,
         documentId: documents[0].id,
       },
@@ -335,9 +317,8 @@ describe("#relationships.list", () => {
   });
 
   it("should fail with status 400 bad request when documentId is invalid", async () => {
-    const res = await server.post("/api/relationships.list", {
+    const res = await server.post("/api/relationships.list", admin, {
       body: {
-        token: admin.getSessionToken(),
         documentId: "invalid-id",
       },
     });
@@ -345,9 +326,8 @@ describe("#relationships.list", () => {
   });
 
   it("should fail with status 400 bad request when reverseDocumentId is invalid", async () => {
-    const res = await server.post("/api/relationships.list", {
+    const res = await server.post("/api/relationships.list", admin, {
       body: {
-        token: admin.getSessionToken(),
         reverseDocumentId: "invalid-id",
       },
     });
@@ -357,9 +337,8 @@ describe("#relationships.list", () => {
   });
 
   it("should respect pagination", async () => {
-    const res = await server.post("/api/relationships.list", {
+    const res = await server.post("/api/relationships.list", admin, {
       body: {
-        token: admin.getSessionToken(),
         limit: 1,
         offset: 0,
       },
@@ -373,9 +352,8 @@ describe("#relationships.list", () => {
   });
 
   it("should return empty results when no relationships match filters", async () => {
-    const res = await server.post("/api/relationships.list", {
+    const res = await server.post("/api/relationships.list", admin, {
       body: {
-        token: admin.getSessionToken(),
         documentId: "550e8400-e29b-41d4-a716-446655440000",
       },
     });
@@ -411,9 +389,8 @@ describe("#relationships.list", () => {
       reverseDocumentId: cannotAccessDocument.id,
     });
 
-    const res = await server.post("/api/relationships.list", {
+    const res = await server.post("/api/relationships.list", user, {
       body: {
-        token: user.getSessionToken(),
         documentId: userDocument.id,
       },
     });

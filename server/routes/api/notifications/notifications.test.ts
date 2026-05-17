@@ -64,11 +64,7 @@ describe("#notifications.list", () => {
       }),
     ]);
 
-    const res = await server.post("/api/notifications.list", {
-      body: {
-        token: user.getSessionToken(),
-      },
-    });
+    const res = await server.post("/api/notifications.list", user);
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -130,9 +126,8 @@ describe("#notifications.list", () => {
       }),
     ]);
 
-    const res = await server.post("/api/notifications.list", {
+    const res = await server.post("/api/notifications.list", user, {
       body: {
-        token: user.getSessionToken(),
         eventType: NotificationEventType.MentionedInComment,
       },
     });
@@ -197,9 +192,8 @@ describe("#notifications.list", () => {
       }),
     ]);
 
-    const res = await server.post("/api/notifications.list", {
+    const res = await server.post("/api/notifications.list", user, {
       body: {
-        token: user.getSessionToken(),
         archived: true,
       },
     });
@@ -265,9 +259,8 @@ describe("#notifications.list", () => {
       }),
     ]);
 
-    const res = await server.post("/api/notifications.list", {
+    const res = await server.post("/api/notifications.list", user, {
       body: {
-        token: user.getSessionToken(),
         archived: false,
       },
     });
@@ -385,9 +378,8 @@ describe("#notifications.update", () => {
 
     expect(notification.viewedAt).toBeNull();
 
-    const res = await server.post("/api/notifications.update", {
+    const res = await server.post("/api/notifications.update", user, {
       body: {
-        token: user.getSessionToken(),
         id: notification.id,
         viewedAt: new Date(),
       },
@@ -425,9 +417,8 @@ describe("#notifications.update", () => {
 
     expect(notification.archivedAt).toBeNull();
 
-    const res = await server.post("/api/notifications.update", {
+    const res = await server.post("/api/notifications.update", user, {
       body: {
-        token: user.getSessionToken(),
         id: notification.id,
         archivedAt: new Date(),
       },
@@ -483,11 +474,7 @@ describe("#notifications.update_all", () => {
       }),
     ]);
 
-    const res = await server.post("/api/notifications.update_all", {
-      body: {
-        token: user.getSessionToken(),
-      },
-    });
+    const res = await server.post("/api/notifications.update_all", user);
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
@@ -536,9 +523,8 @@ describe("#notifications.update_all", () => {
       }),
     ]);
 
-    const res = await server.post("/api/notifications.update_all", {
+    const res = await server.post("/api/notifications.update_all", user, {
       body: {
-        token: user.getSessionToken(),
         viewedAt: new Date(),
       },
     });
@@ -591,9 +577,8 @@ describe("#notifications.update_all", () => {
       }),
     ]);
 
-    const res = await server.post("/api/notifications.update_all", {
+    const res = await server.post("/api/notifications.update_all", user, {
       body: {
-        token: user.getSessionToken(),
         viewedAt: null,
       },
     });
@@ -645,9 +630,8 @@ describe("#notifications.update_all", () => {
       }),
     ]);
 
-    const res = await server.post("/api/notifications.update_all", {
+    const res = await server.post("/api/notifications.update_all", user, {
       body: {
-        token: user.getSessionToken(),
         archivedAt: new Date(),
       },
     });
@@ -700,9 +684,8 @@ describe("#notifications.update_all", () => {
       }),
     ]);
 
-    const res = await server.post("/api/notifications.update_all", {
+    const res = await server.post("/api/notifications.update_all", user, {
       body: {
-        token: user.getSessionToken(),
         archivedAt: null,
       },
     });

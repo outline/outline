@@ -33,9 +33,8 @@ describe("#emojis.update", () => {
       userId: user.id,
     });
 
-    const res = await server.post("/api/emojis.update", {
+    const res = await server.post("/api/emojis.update", user, {
       body: {
-        token: user.getSessionToken(),
         id: emoji.id,
         attachmentId: newAttachment.id,
       },
@@ -69,9 +68,8 @@ describe("#emojis.update", () => {
       userId: admin.id,
     });
 
-    const res = await server.post("/api/emojis.update", {
+    const res = await server.post("/api/emojis.update", admin, {
       body: {
-        token: admin.getSessionToken(),
         id: emoji.id,
         attachmentId: newAttachment.id,
       },
@@ -97,9 +95,8 @@ describe("#emojis.update", () => {
       userId: user.id,
     });
 
-    const res = await server.post("/api/emojis.update", {
+    const res = await server.post("/api/emojis.update", user, {
       body: {
-        token: user.getSessionToken(),
         id: emoji.id,
         attachmentId: newAttachment.id,
       },
@@ -121,9 +118,8 @@ describe("#emojis.update", () => {
       userId: user.id,
     });
 
-    const res = await server.post("/api/emojis.update", {
+    const res = await server.post("/api/emojis.update", user, {
       body: {
-        token: user.getSessionToken(),
         id: emoji.id,
         attachmentId: newAttachment.id,
       },
@@ -139,9 +135,8 @@ describe("#emojis.update", () => {
       userId: user.id,
     });
 
-    const res = await server.post("/api/emojis.update", {
+    const res = await server.post("/api/emojis.update", user, {
       body: {
-        token: user.getSessionToken(),
         id: "00000000-0000-0000-0000-000000000000",
         attachmentId: newAttachment.id,
       },
@@ -157,9 +152,8 @@ describe("#emojis.update", () => {
       createdById: user.id,
     });
 
-    const res = await server.post("/api/emojis.update", {
+    const res = await server.post("/api/emojis.update", user, {
       body: {
-        token: user.getSessionToken(),
         id: emoji.id,
         attachmentId: "00000000-0000-0000-0000-000000000000",
       },

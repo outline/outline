@@ -25,9 +25,8 @@ vi.setConfig({ testTimeout: 10000 });
 describe("#files.create", () => {
   it("should fail with status 400 bad request if key is invalid", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/files.create", {
+    const res = await server.post("/api/files.create", user, {
       body: {
-        token: user.getSessionToken(),
         key: "public/foo/bar/baz.png",
       },
     });
