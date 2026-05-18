@@ -1,10 +1,9 @@
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { escapeRegExp } from "es-toolkit/compat";
-import fs from "fs-extra";
 import mime from "mime-types";
 import { UniqueConstraintError } from "sequelize";
-import tmp from "tmp";
+import { DocumentValidation } from "@shared/validations";
 import type {
   ImportTaskInput,
   ImportTaskOutput,
@@ -19,23 +18,19 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type { ImportTask } from "@server/models";
 import { Attachment } from "@server/models";
-import { Buckets } from "@server/models/helpers/AttachmentHelper";
+import AttachmentHelper, {
+  Buckets,
+} from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
-import type { FileTreeNode } from "@server/utils/ImportHelper";
-import ImportHelper from "@server/utils/ImportHelper";
+import type { ZipTreeNode } from "@server/utils/ZipHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import type { ProcessOutput } from "./APIImportTask";
 import APIImportTask from "./APIImportTask";
 import { DocumentConverter } from "@server/utils/DocumentConverter";
 
 type Markdown = IntegrationService.Markdown;
-
-interface ExtractedZip {
-  dirPath: string;
-  cleanup: () => Promise<void>;
-}
 
 interface DiscoveredDocument {
   id: string;
@@ -173,25 +168,31 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       return;
     }
 
-    const { dirPath, cleanup } = await this.downloadAndExtract(
-      scratch.storageKey
-    );
+    const handle = await FileStorage.getFileHandle(scratch.storageKey);
 
     try {
       const createdBy = lastImportTask.import.createdBy;
+      const manifestByPath = new Map<string, MarkdownAttachmentManifestItem>(
+        scratch.manifest.map((item) => [item.pathInZip, item])
+      );
+      const maxAttachmentSize = AttachmentHelper.presetToMaxUploadSize(
+        AttachmentPreset.DocumentAttachment
+      );
+      const seen = new Set<string>();
 
-      for (const item of scratch.manifest) {
-        const filePath = path.join(dirPath, item.pathInZip);
-        let buffer: Buffer;
-        try {
-          buffer = await fs.readFile(filePath);
-        } catch (err) {
-          Logger.warn(
-            `Markdown import attachment missing in zip, skipping: ${item.pathInZip}`,
-            err instanceof Error ? err : undefined
-          );
-          continue;
+      await ZipHelper.walk(handle.path, async (entry) => {
+        if (entry.isDirectory) {
+          return;
         }
+        // Normalize to match the bootstrap-phase pathInZip (segments rejoined
+        // with `/`, no leading `./` or empty segments).
+        const normalized = entry.fileName.split("/").filter(Boolean).join("/");
+        const item = manifestByPath.get(normalized);
+        if (!item) {
+          return;
+        }
+        seen.add(item.pathInZip);
+        const buffer = await entry.readBuffer(maxAttachmentSize);
 
         try {
           await sequelize.transaction(async (transaction) =>
@@ -214,13 +215,21 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           // this hook can re-encounter ids that already landed. Treat the
           // unique-id collision as a no-op so the import remains resumable.
           if (err instanceof UniqueConstraintError) {
-            continue;
+            return;
           }
           throw err;
         }
+      });
+
+      for (const item of scratch.manifest) {
+        if (!seen.has(item.pathInZip)) {
+          Logger.warn(
+            `Markdown import attachment missing in zip, skipping: ${item.pathInZip}`
+          );
+        }
       }
     } finally {
-      await cleanup();
+      await handle.cleanup().catch(() => {});
     }
   }
 
@@ -232,11 +241,28 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       throw new Error("Markdown import is missing scratch.storageKey");
     }
 
-    const { dirPath, cleanup } = await this.downloadAndExtract(storageKey);
+    const handle = await FileStorage.getFileHandle(storageKey);
 
     try {
-      const tree = await ImportHelper.toFileTree(dirPath);
-      if (!tree) {
+      // Side map of pre-loaded markdown text keyed by tree node identity.
+      // ZipHelper's tree carries only metadata; we capture text during the
+      // single walk so the downstream pass doesn't have to re-open the zip.
+      const markdownByNode = new Map<ZipTreeNode, string>();
+
+      const tree = await ZipHelper.toFileTree(
+        handle.path,
+        async (node, entry) => {
+          const ext = path.extname(node.name).toLowerCase();
+          if (ext === ".md" || ext === ".markdown") {
+            const buffer = await entry.readBuffer(
+              DocumentValidation.maxStateLength
+            );
+            markdownByNode.set(node, buffer.toString("utf8"));
+          }
+        }
+      );
+
+      if (tree.children.length === 0) {
         throw new Error("Could not find valid content in zip file");
       }
 
@@ -245,14 +271,14 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
 
       for (const node of tree.children) {
         if (node.children.length === 0) {
-          Logger.debug("task", `Unhandled file in zip: ${node.path}`, {
+          Logger.debug("task", `Unhandled file in zip: ${node.pathInZip}`, {
             importTaskId: importTask.id,
           });
           continue;
         }
 
         if (this.isAttachmentFolder(node)) {
-          this.collectAttachments(node, manifest, dirPath);
+          this.collectAttachments(node, manifest);
           continue;
         }
 
@@ -263,12 +289,12 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         };
         collections.push(collection);
 
-        await this.collectDocumentsAndAttachments({
+        this.collectDocumentsAndAttachments({
           children: node.children,
           collectionId: collection.id,
           out: collection.children,
           manifest,
-          extractionRoot: dirPath,
+          markdownByNode,
         });
       }
 
@@ -336,7 +362,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
 
       return { taskOutput: collectionOutputs, childTasksInput };
     } finally {
-      await cleanup();
+      await handle.cleanup().catch(() => {});
     }
   }
 
@@ -477,10 +503,10 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
    * Detects folders containing only attachments (no markdown documents).
    * Recursively considers nested folders; mirrors the legacy heuristic.
    *
-   * @param node FileTreeNode to inspect.
+   * @param node ZipTreeNode to inspect.
    * @returns true when the folder appears to hold only attachments.
    */
-  private isAttachmentFolder(node: FileTreeNode): boolean {
+  private isAttachmentFolder(node: ZipTreeNode): boolean {
     if (node.children.length === 0) {
       return false;
     }
@@ -501,29 +527,26 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
 
   /**
    * Recursively collects all files under an attachment-only folder into the
-   * manifest. `pathInZip` is stored as a path relative to the extraction
-   * root so it can be resolved again after the zip is re-extracted during
-   * the completion phase (which lands in a fresh tmp dir).
+   * manifest. `pathInZip` is stored verbatim so the completion phase can find
+   * the same entry when re-walking the archive.
    *
-   * @param node Attachment-folder FileTreeNode.
+   * @param node Attachment-folder ZipTreeNode.
    * @param manifest Manifest array to push entries into.
-   * @param extractionRoot Absolute path to the zip extraction root.
    */
   private collectAttachments(
-    node: FileTreeNode,
-    manifest: MarkdownAttachmentManifestItem[],
-    extractionRoot: string
+    node: ZipTreeNode,
+    manifest: MarkdownAttachmentManifestItem[]
   ): void {
     for (const child of node.children) {
       if (child.children.length > 0) {
-        this.collectAttachments(child, manifest, extractionRoot);
+        this.collectAttachments(child, manifest);
         continue;
       }
       manifest.push({
         id: randomUUID(),
         name: child.name,
-        pathInZip: path.relative(extractionRoot, child.path),
-        mimeType: mime.lookup(child.path) || "application/octet-stream",
+        pathInZip: child.pathInZip,
+        mimeType: mime.lookup(child.name) || "application/octet-stream",
       });
     }
   }
@@ -534,31 +557,31 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
    * entry's `children` holds its direct descendants. This is the shape the
    * per-page task cascade consumes.
    *
-   * @param children FileTreeNode children of the current folder.
+   * @param children ZipTreeNode children of the current folder.
    * @param collectionId Pre-assigned id of the enclosing collection.
    * @param parentDocumentId Optional parent document id when nested.
    * @param out Sibling accumulator to push discovered documents into.
    * @param manifest Attachment manifest accumulator.
-   * @returns Promise that resolves when the subtree has been processed.
+   * @param markdownByNode Pre-loaded markdown text keyed by tree node.
    */
-  private async collectDocumentsAndAttachments({
+  private collectDocumentsAndAttachments({
     children,
     collectionId,
     parentDocumentId,
     out,
     manifest,
-    extractionRoot,
+    markdownByNode,
   }: {
-    children: FileTreeNode[];
+    children: ZipTreeNode[];
     collectionId: string;
     parentDocumentId?: string;
     out: DiscoveredDocument[];
     manifest: MarkdownAttachmentManifestItem[];
-    extractionRoot: string;
-  }): Promise<void> {
+    markdownByNode: Map<ZipTreeNode, string>;
+  }): void {
     for (const child of children) {
       if (child.children.length > 0 && this.isAttachmentFolder(child)) {
-        this.collectAttachments(child, manifest, extractionRoot);
+        this.collectAttachments(child, manifest);
         continue;
       }
 
@@ -570,16 +593,14 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         manifest.push({
           id: randomUUID(),
           name: child.name,
-          pathInZip: path.relative(extractionRoot, child.path),
-          mimeType: mime.lookup(child.path) || "application/octet-stream",
+          pathInZip: child.pathInZip,
+          mimeType: mime.lookup(child.name) || "application/octet-stream",
         });
         continue;
       }
 
       const id = randomUUID();
-      const markdownText = isFolder
-        ? ""
-        : await fs.readFile(child.path, "utf8");
+      const markdownText = isFolder ? "" : (markdownByNode.get(child) ?? "");
 
       // Folder-and-file with the same title (a "name.md" alongside a "name/"
       // directory) is merged onto a single document: the folder body picks up
@@ -591,13 +612,13 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           sibling.markdownText = markdownText;
         }
         if (isFolder) {
-          await this.collectDocumentsAndAttachments({
+          this.collectDocumentsAndAttachments({
             children: child.children,
             collectionId,
             parentDocumentId: sibling.id,
             out: sibling.children,
             manifest,
-            extractionRoot,
+            markdownByNode,
           });
         }
         continue;
@@ -606,7 +627,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       const node: DiscoveredDocument = {
         id,
         title: child.title,
-        pathInZip: path.relative(extractionRoot, child.path),
+        pathInZip: child.pathInZip,
         collectionId,
         parentDocumentId,
         markdownText,
@@ -615,58 +636,15 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       out.push(node);
 
       if (isFolder) {
-        await this.collectDocumentsAndAttachments({
+        this.collectDocumentsAndAttachments({
           children: child.children,
           collectionId,
           parentDocumentId: id,
           out: node.children,
           manifest,
-          extractionRoot,
+          markdownByNode,
         });
       }
-    }
-  }
-
-  /**
-   * Downloads the zip from object storage and extracts it into a temporary
-   * directory.
-   *
-   * @param storageKey Storage key for the uploaded zip.
-   * @returns The temp dir path and a cleanup callback. Caller must invoke
-   *          cleanup() once finished.
-   */
-  private async downloadAndExtract(storageKey: string): Promise<ExtractedZip> {
-    const handle = await FileStorage.getFileHandle(storageKey);
-
-    let dirPath: string | undefined;
-    try {
-      dirPath = await new Promise<string>((resolve, reject) => {
-        tmp.dir({ unsafeCleanup: true }, (err, tmpDir) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          resolve(tmpDir);
-        });
-      });
-
-      await ZipHelper.extract(handle.path, dirPath);
-
-      return {
-        dirPath,
-        cleanup: async () => {
-          await fs
-            .rm(dirPath!, { recursive: true, force: true })
-            .catch(() => {});
-          await handle.cleanup().catch(() => {});
-        },
-      };
-    } catch (err) {
-      if (dirPath) {
-        await fs.rm(dirPath, { recursive: true, force: true }).catch(() => {});
-      }
-      await handle.cleanup().catch(() => {});
-      throw err;
     }
   }
 }
