@@ -11,6 +11,18 @@ import { trimFilenameAndExt } from "./fs";
 
 const MAX_FILE_NAME_LENGTH = 255;
 
+export interface ZipEntryHandle {
+  /** UTF-8 filename as recorded in the zip; directory entries end with `/`. */
+  fileName: string;
+  /** True when this entry is a directory marker rather than a file. */
+  isDirectory: boolean;
+  /**
+   * Read the entry's contents into memory. Safe to skip — entries the caller
+   * does not read are simply advanced past.
+   */
+  readBuffer(): Promise<Buffer>;
+}
+
 @trace()
 export default class ZipHelper {
   public static defaultStreamOptions: JSZip.JSZipGeneratorOptions<"nodebuffer"> =
@@ -99,6 +111,94 @@ export default class ZipHelper {
             .on("error", handleError)
             .pipe(dest)
             .on("error", handleError);
+        }
+      );
+    });
+  }
+
+  /**
+   * Iterate through entries in a zip file without extracting it to disk.
+   * Entries are visited serially in archive order. `onEntry` may be async; the
+   * next entry is only read once the previous handler resolves.
+   *
+   * @param filePath The file path where the zip is located.
+   * @param onEntry Handler invoked for each entry. Skip an entry by returning
+   *                without calling `entry.readBuffer()`.
+   * @returns Promise that resolves once the archive has been fully walked.
+   */
+  public static walk(
+    filePath: string,
+    onEntry: (entry: ZipEntryHandle) => Promise<void> | void
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      yauzl.open(
+        filePath,
+        {
+          lazyEntries: true,
+          autoClose: true,
+          decodeStrings: false,
+        },
+        function (err, zipfile) {
+          if (err) {
+            return reject(err);
+          }
+
+          let settled = false;
+          const fail = (error: Error) => {
+            if (settled) {
+              return;
+            }
+            settled = true;
+            zipfile.close();
+            reject(error);
+          };
+
+          zipfile.on("entry", (entry: Entry) => {
+            const fileName = Buffer.from(entry.fileName).toString("utf8");
+
+            if (validateFileName(fileName)) {
+              Logger.warn("Invalid zip entry", { fileName });
+              zipfile.readEntry();
+              return;
+            }
+
+            const handle: ZipEntryHandle = {
+              fileName,
+              isDirectory: /\/$/.test(fileName),
+              readBuffer: () =>
+                new Promise<Buffer>((res, rej) => {
+                  zipfile.openReadStream(entry, (rErr, readStream) => {
+                    if (rErr) {
+                      return rej(rErr);
+                    }
+                    const chunks: Buffer[] = [];
+                    readStream.on("data", (chunk: Buffer) =>
+                      chunks.push(chunk)
+                    );
+                    readStream.on("end", () => res(Buffer.concat(chunks)));
+                    readStream.on("error", rej);
+                  });
+                }),
+            };
+
+            Promise.resolve()
+              .then(() => onEntry(handle))
+              .then(() => {
+                if (!settled) {
+                  zipfile.readEntry();
+                }
+              })
+              .catch(fail);
+          });
+
+          zipfile.on("close", () => {
+            if (!settled) {
+              settled = true;
+              resolve();
+            }
+          });
+          zipfile.on("error", (error) => fail(error));
+          zipfile.readEntry();
         }
       );
     });
