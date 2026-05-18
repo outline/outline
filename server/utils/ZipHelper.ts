@@ -5,6 +5,7 @@ import tmp from "tmp";
 import type { Entry } from "yauzl";
 import yauzl, { validateFileName } from "yauzl";
 import { bytesToHumanReadable } from "@shared/utils/files";
+import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import { deserializeFilename, trimFilenameAndExt } from "./fs";
@@ -14,13 +15,17 @@ const MAX_FILE_NAME_LENGTH = 255;
 export interface ZipEntryHandle {
   /** UTF-8 filename as recorded in the zip; directory entries end with `/`. */
   fileName: string;
+  /** Size of the uncompressed entry in bytes. */
+  uncompressedSize: number;
   /** True when this entry is a directory marker rather than a file. */
   isDirectory: boolean;
   /**
    * Read the entry's contents into memory. Safe to skip — entries the caller
    * does not read are simply advanced past.
+   *
+   * @param maxSize Maximum uncompressed size to read into memory, in bytes.
    */
-  readBuffer(): Promise<Buffer>;
+  readBuffer(maxSize: number): Promise<Buffer>;
 }
 
 export interface ZipTreeNode {
@@ -134,7 +139,7 @@ export default class ZipHelper {
    *
    * @param filePath The file path where the zip is located.
    * @param onEntry Handler invoked for each entry. Skip an entry by returning
-   *                without calling `entry.readBuffer()`.
+   *                without calling `entry.readBuffer(maxSize)`.
    * @returns Promise that resolves once the archive has been fully walked.
    */
   public static walk(
@@ -175,17 +180,30 @@ export default class ZipHelper {
 
             const handle: ZipEntryHandle = {
               fileName,
+              uncompressedSize: entry.uncompressedSize,
               isDirectory: /\/$/.test(fileName),
-              readBuffer: () =>
+              readBuffer: (maxSize) =>
                 new Promise<Buffer>((res, rej) => {
+                  if (entry.uncompressedSize > maxSize) {
+                    return rej(ZipHelper.entryTooLargeError(fileName, maxSize));
+                  }
+
                   zipfile.openReadStream(entry, (rErr, readStream) => {
                     if (rErr) {
                       return rej(rErr);
                     }
                     const chunks: Buffer[] = [];
-                    readStream.on("data", (chunk: Buffer) =>
-                      chunks.push(chunk)
-                    );
+                    let bytesRead = 0;
+                    readStream.on("data", (chunk: Buffer) => {
+                      bytesRead += chunk.length;
+                      if (bytesRead > maxSize) {
+                        readStream.destroy(
+                          ZipHelper.entryTooLargeError(fileName, maxSize)
+                        );
+                        return;
+                      }
+                      chunks.push(chunk);
+                    });
                     readStream.on("end", () => res(Buffer.concat(chunks)));
                     readStream.on("error", rej);
                   });
@@ -223,7 +241,7 @@ export default class ZipHelper {
    * The optional `onFile` callback fires once per file entry as it is
    * encountered, with both the materialized tree node and a handle to the
    * raw entry. Callers that need to pre-load contents (e.g. small text
-   * files) can call `entry.readBuffer()`; callers that only need the tree
+   * files) can call `entry.readBuffer(maxSize)`; callers that only need the tree
    * structure can omit the callback entirely.
    *
    * @param filePath Local filesystem path to the zip.
@@ -423,5 +441,13 @@ export default class ZipHelper {
         }
       );
     });
+  }
+
+  private static entryTooLargeError(fileName: string, maxSize: number): Error {
+    return ValidationError(
+      `${fileName} is too large - the maximum size is ${bytesToHumanReadable(
+        maxSize
+      )}`
+    );
   }
 }

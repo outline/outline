@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { escapeRegExp } from "es-toolkit/compat";
 import mime from "mime-types";
 import { UniqueConstraintError } from "sequelize";
+import { DocumentValidation } from "@shared/validations";
 import type {
   ImportTaskInput,
   ImportTaskOutput,
@@ -17,7 +18,9 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type { ImportTask } from "@server/models";
 import { Attachment } from "@server/models";
-import { Buckets } from "@server/models/helpers/AttachmentHelper";
+import AttachmentHelper, {
+  Buckets,
+} from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
@@ -172,6 +175,9 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       const manifestByPath = new Map<string, MarkdownAttachmentManifestItem>(
         scratch.manifest.map((item) => [item.pathInZip, item])
       );
+      const maxAttachmentSize = AttachmentHelper.presetToMaxUploadSize(
+        AttachmentPreset.DocumentAttachment
+      );
       const seen = new Set<string>();
 
       await ZipHelper.walk(handle.path, async (entry) => {
@@ -186,7 +192,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           return;
         }
         seen.add(item.pathInZip);
-        const buffer = await entry.readBuffer();
+        const buffer = await entry.readBuffer(maxAttachmentSize);
 
         try {
           await sequelize.transaction(async (transaction) =>
@@ -248,7 +254,9 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         async (node, entry) => {
           const ext = path.extname(node.name).toLowerCase();
           if (ext === ".md" || ext === ".markdown") {
-            const buffer = await entry.readBuffer();
+            const buffer = await entry.readBuffer(
+              DocumentValidation.maxStateLength
+            );
             markdownByNode.set(node, buffer.toString("utf8"));
           }
         }

@@ -122,11 +122,36 @@ describe("ZipHelper.toFileTree", () => {
     const seen: Record<string, string> = {};
     await ZipHelper.toFileTree(zipPath, async (node, entry) => {
       if (node.name.endsWith(".md")) {
-        const buf = await entry.readBuffer();
+        const buf = await entry.readBuffer(100);
         seen[node.pathInZip] = buf.toString("utf8");
       }
     });
 
     expect(seen).toEqual({ "Collection/page.md": "hello world" });
+  });
+
+  it("rejects reads larger than the provided max size", async () => {
+    const zipPath = await writeZip({
+      "Collection/page.md": "hello world",
+    });
+
+    await expect(
+      ZipHelper.toFileTree(zipPath, async (_node, entry) => {
+        await entry.readBuffer(10);
+      })
+    ).rejects.toThrow("Collection/page.md is too large");
+  });
+
+  it("exposes entry sizes before the entry is read", async () => {
+    const zipPath = await writeZip({
+      "Collection/page.md": "hello world",
+    });
+
+    const sizes: Record<string, number> = {};
+    await ZipHelper.toFileTree(zipPath, (node, entry) => {
+      sizes[node.pathInZip] = entry.uncompressedSize;
+    });
+
+    expect(sizes).toEqual({ "Collection/page.md": 11 });
   });
 });
