@@ -21,26 +21,13 @@ import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
-import { deserializeFilename } from "@server/utils/fs";
+import type { ZipTreeNode } from "@server/utils/ZipHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import type { ProcessOutput } from "./APIImportTask";
 import APIImportTask from "./APIImportTask";
 import { DocumentConverter } from "@server/utils/DocumentConverter";
 
 type Markdown = IntegrationService.Markdown;
-
-interface ZipTreeNode {
-  /** The title, extracted from the file name. */
-  title: string;
-  /** The file name including extension. */
-  name: string;
-  /** Path of this entry within the zip (relative, no leading slash). */
-  pathInZip: string;
-  /** Nested children — populated for directory entries. */
-  children: ZipTreeNode[];
-  /** Markdown text pre-loaded during the zip walk; undefined for non-md files. */
-  markdownText?: string;
-}
 
 interface DiscoveredDocument {
   id: string;
@@ -251,7 +238,22 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     const handle = await FileStorage.getFileHandle(storageKey);
 
     try {
-      const tree = await this.buildTreeFromZip(handle.path);
+      // Side map of pre-loaded markdown text keyed by tree node identity.
+      // ZipHelper's tree carries only metadata; we capture text during the
+      // single walk so the downstream pass doesn't have to re-open the zip.
+      const markdownByNode = new Map<ZipTreeNode, string>();
+
+      const tree = await ZipHelper.toFileTree(
+        handle.path,
+        async (node, entry) => {
+          const ext = path.extname(node.name).toLowerCase();
+          if (ext === ".md" || ext === ".markdown") {
+            const buffer = await entry.readBuffer();
+            markdownByNode.set(node, buffer.toString("utf8"));
+          }
+        }
+      );
+
       if (tree.children.length === 0) {
         throw new Error("Could not find valid content in zip file");
       }
@@ -284,6 +286,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           collectionId: collection.id,
           out: collection.children,
           manifest,
+          markdownByNode,
         });
       }
 
@@ -551,6 +554,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
    * @param parentDocumentId Optional parent document id when nested.
    * @param out Sibling accumulator to push discovered documents into.
    * @param manifest Attachment manifest accumulator.
+   * @param markdownByNode Pre-loaded markdown text keyed by tree node.
    */
   private collectDocumentsAndAttachments({
     children,
@@ -558,12 +562,14 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     parentDocumentId,
     out,
     manifest,
+    markdownByNode,
   }: {
     children: ZipTreeNode[];
     collectionId: string;
     parentDocumentId?: string;
     out: DiscoveredDocument[];
     manifest: MarkdownAttachmentManifestItem[];
+    markdownByNode: Map<ZipTreeNode, string>;
   }): void {
     for (const child of children) {
       if (child.children.length > 0 && this.isAttachmentFolder(child)) {
@@ -586,7 +592,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       }
 
       const id = randomUUID();
-      const markdownText = isFolder ? "" : (child.markdownText ?? "");
+      const markdownText = isFolder ? "" : (markdownByNode.get(child) ?? "");
 
       // Folder-and-file with the same title (a "name.md" alongside a "name/"
       // directory) is merged onto a single document: the folder body picks up
@@ -604,6 +610,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
             parentDocumentId: sibling.id,
             out: sibling.children,
             manifest,
+            markdownByNode,
           });
         }
         continue;
@@ -627,74 +634,9 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           parentDocumentId: id,
           out: node.children,
           manifest,
+          markdownByNode,
         });
       }
     }
-  }
-
-  /**
-   * Walks the zip once, materializing a tree of nodes and pre-loading the
-   * text of every markdown file. Attachments are recorded as leaf nodes
-   * without reading their bytes — those are streamed lazily in the
-   * completion phase. macOS metadata directories and dotfiles are filtered
-   * out at any path segment, matching the prior on-disk filtering.
-   *
-   * @param zipPath Local filesystem path to the zip file.
-   * @returns A synthetic root node whose `children` are the zip's top-level entries.
-   */
-  private async buildTreeFromZip(zipPath: string): Promise<ZipTreeNode> {
-    const root: ZipTreeNode = {
-      title: "",
-      name: "",
-      pathInZip: "",
-      children: [],
-    };
-
-    const isFiltered = (segment: string) =>
-      segment === "__MACOSX" || segment.startsWith(".");
-
-    const resolveNode = (entryName: string): ZipTreeNode | null => {
-      const segments = entryName.split("/").filter(Boolean);
-      if (segments.length === 0) {
-        return null;
-      }
-
-      let current = root;
-      for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i];
-        if (isFiltered(segment)) {
-          return null;
-        }
-
-        let next = current.children.find((c) => c.name === segment);
-        if (!next) {
-          next = {
-            name: segment,
-            title: deserializeFilename(path.parse(segment).name),
-            pathInZip: segments.slice(0, i + 1).join("/"),
-            children: [],
-          };
-          current.children.push(next);
-        }
-        current = next;
-      }
-
-      return current;
-    };
-
-    await ZipHelper.walk(zipPath, async (entry) => {
-      const node = resolveNode(entry.fileName);
-      if (!node || entry.isDirectory) {
-        return;
-      }
-
-      const ext = path.extname(node.name).toLowerCase();
-      if (ext === ".md" || ext === ".markdown") {
-        const buffer = await entry.readBuffer();
-        node.markdownText = buffer.toString("utf8");
-      }
-    });
-
-    return root;
   }
 }

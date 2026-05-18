@@ -7,7 +7,7 @@ import yauzl, { validateFileName } from "yauzl";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
-import { trimFilenameAndExt } from "./fs";
+import { deserializeFilename, trimFilenameAndExt } from "./fs";
 
 const MAX_FILE_NAME_LENGTH = 255;
 
@@ -21,6 +21,17 @@ export interface ZipEntryHandle {
    * does not read are simply advanced past.
    */
   readBuffer(): Promise<Buffer>;
+}
+
+export interface ZipTreeNode {
+  /** The file name (last path segment) including extension. */
+  name: string;
+  /** Title derived from the file name (extension stripped, deserialized). */
+  title: string;
+  /** Path within the zip (no leading slash, segments joined with `/`). */
+  pathInZip: string;
+  /** Nested children — populated for directory entries. */
+  children: ZipTreeNode[];
 }
 
 @trace()
@@ -202,6 +213,78 @@ export default class ZipHelper {
         }
       );
     });
+  }
+
+  /**
+   * Walk a zip file once and build a tree of its entries without extracting
+   * to disk. macOS metadata directories (`__MACOSX`) and dotfiles are
+   * filtered out at any path segment.
+   *
+   * The optional `onFile` callback fires once per file entry as it is
+   * encountered, with both the materialized tree node and a handle to the
+   * raw entry. Callers that need to pre-load contents (e.g. small text
+   * files) can call `entry.readBuffer()`; callers that only need the tree
+   * structure can omit the callback entirely.
+   *
+   * @param filePath Local filesystem path to the zip.
+   * @param onFile Optional per-file hook; not called for directory entries.
+   * @returns A synthetic root node whose `children` are the zip's top-level
+   *          entries.
+   */
+  public static async toFileTree(
+    filePath: string,
+    onFile?: (node: ZipTreeNode, entry: ZipEntryHandle) => Promise<void> | void
+  ): Promise<ZipTreeNode> {
+    const root: ZipTreeNode = {
+      name: "",
+      title: "",
+      pathInZip: "",
+      children: [],
+    };
+
+    const isFiltered = (segment: string) =>
+      segment === "__MACOSX" || segment.startsWith(".");
+
+    const resolveNode = (entryName: string): ZipTreeNode | null => {
+      const segments = entryName.split("/").filter(Boolean);
+      if (segments.length === 0) {
+        return null;
+      }
+
+      let current = root;
+      for (let i = 0; i < segments.length; i++) {
+        const segment = segments[i];
+        if (isFiltered(segment)) {
+          return null;
+        }
+
+        let next = current.children.find((c) => c.name === segment);
+        if (!next) {
+          next = {
+            name: segment,
+            title: deserializeFilename(path.parse(segment).name),
+            pathInZip: segments.slice(0, i + 1).join("/"),
+            children: [],
+          };
+          current.children.push(next);
+        }
+        current = next;
+      }
+
+      return current;
+    };
+
+    await this.walk(filePath, async (entry) => {
+      const node = resolveNode(entry.fileName);
+      if (!node || entry.isDirectory) {
+        return;
+      }
+      if (onFile) {
+        await onFile(node, entry);
+      }
+    });
+
+    return root;
   }
 
   /**
