@@ -66,3 +66,67 @@ describe("ZipHelper.extract", () => {
     expect(await fs.pathExists(path.join(scratchCwd, filename))).toBe(false);
   });
 });
+
+describe("ZipHelper.toFileTree", () => {
+  it("builds a nested tree with normalized pathInZip", async () => {
+    const zipPath = await writeZip({
+      "Collection/sub/page.md": "# hi",
+      "Collection/other.md": "other",
+    });
+
+    const root = await ZipHelper.toFileTree(zipPath);
+    expect(root.children).toHaveLength(1);
+
+    const collection = root.children[0];
+    expect(collection.name).toBe("Collection");
+    expect(collection.pathInZip).toBe("Collection");
+    expect(collection.children.map((c) => c.name).sort()).toEqual([
+      "other.md",
+      "sub",
+    ]);
+
+    const sub = collection.children.find((c) => c.name === "sub");
+    expect(sub?.children[0].pathInZip).toBe("Collection/sub/page.md");
+  });
+
+  it("normalizes `./`-prefixed entries instead of dropping them", async () => {
+    const zipPath = await writeZip({
+      "./Collection/page.md": "body",
+    });
+
+    const root = await ZipHelper.toFileTree(zipPath);
+    expect(root.children).toHaveLength(1);
+    expect(root.children[0].name).toBe("Collection");
+    expect(root.children[0].children[0].pathInZip).toBe("Collection/page.md");
+  });
+
+  it("filters macOS metadata and dotfiles at any depth", async () => {
+    const zipPath = await writeZip({
+      "__MACOSX/Collection/page.md": "junk",
+      "Collection/.DS_Store": "junk",
+      "Collection/page.md": "body",
+    });
+
+    const root = await ZipHelper.toFileTree(zipPath);
+    expect(root.children).toHaveLength(1);
+    expect(root.children[0].name).toBe("Collection");
+    expect(root.children[0].children.map((c) => c.name)).toEqual(["page.md"]);
+  });
+
+  it("invokes onFile for each file entry with a readable handle", async () => {
+    const zipPath = await writeZip({
+      "Collection/page.md": "hello world",
+      "Collection/image.png": "binary",
+    });
+
+    const seen: Record<string, string> = {};
+    await ZipHelper.toFileTree(zipPath, async (node, entry) => {
+      if (node.name.endsWith(".md")) {
+        const buf = await entry.readBuffer();
+        seen[node.pathInZip] = buf.toString("utf8");
+      }
+    });
+
+    expect(seen).toEqual({ "Collection/page.md": "hello world" });
+  });
+});

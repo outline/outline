@@ -245,28 +245,38 @@ export default class ZipHelper {
     const isFiltered = (segment: string) =>
       segment === "__MACOSX" || segment.startsWith(".");
 
+    const nodesByPath = new Map<string, ZipTreeNode>();
+
     const resolveNode = (entryName: string): ZipTreeNode | null => {
-      const segments = entryName.split("/").filter(Boolean);
+      // Drop empty segments and the path-no-op `.` (e.g. entries written as
+      // `./Collection/page.md`). `..` is preserved so the dotfile filter
+      // below rejects it — we never resolve path traversal in zip entries.
+      const segments = entryName
+        .split("/")
+        .filter((s) => s !== "" && s !== ".");
       if (segments.length === 0) {
         return null;
       }
 
       let current = root;
+      let pathSoFar = "";
       for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];
         if (isFiltered(segment)) {
           return null;
         }
 
-        let next = current.children.find((c) => c.name === segment);
+        pathSoFar = pathSoFar ? `${pathSoFar}/${segment}` : segment;
+        let next = nodesByPath.get(pathSoFar);
         if (!next) {
           next = {
             name: segment,
             title: deserializeFilename(path.parse(segment).name),
-            pathInZip: segments.slice(0, i + 1).join("/"),
+            pathInZip: pathSoFar,
             children: [],
           };
           current.children.push(next);
+          nodesByPath.set(pathSoFar, next);
         }
         current = next;
       }
