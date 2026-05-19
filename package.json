@@ -304,7 +304,7 @@
     "@types/jsdom": "^28.0.1",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/katex": "^0.16.8",
-    "@types/koa": "^2.15.0",
+    "@types/koa": "^2.15.1",
     "@types/koa-compress": "^4.0.7",
     "@types/koa-helmet": "^6.0.8",
     "@types/koa-logger": "^3.1.5",
@@ -378,7 +378,7 @@
   },
   "resolutions": {
     "@types/react": "17.0.91",
-    "@types/koa": "2.15.0",
+    "@types/koa": "2.15.1",
     "prosemirror-transform": "1.10.5",
     "debug": "4.3.4",
     "prismjs": "1.30.0",

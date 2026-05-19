@@ -7573,9 +7573,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/koa@npm:2.15.0":
-  version: 2.15.0
-  resolution: "@types/koa@npm:2.15.0"
+"@types/koa@npm:2.15.1":
+  version: 2.15.1
+  resolution: "@types/koa@npm:2.15.1"
   dependencies:
     "@types/accepts": "npm:*"
     "@types/content-disposition": "npm:*"
@@ -7585,7 +7585,7 @@ __metadata:
     "@types/keygrip": "npm:*"
     "@types/koa-compose": "npm:*"
     "@types/node": "npm:*"
-  checksum: 10c0/3fd591e25ecffc32ffa7cb152d2c5caeccefe5a72cb09d187102d8f41101bdaeeb802a07a6672eac58f805fa59892e79c1cc203ca7b27b0de75d7eac508c2b47
+  checksum: 10c0/a46944d7b982ddb05501edf12853df50138b0e05ca70daf9a7cb860e20c65314ceab8bb6ee2bc451b6997f279082111d80276d47123724d3d40e293a8428fa79
   languageName: node
   linkType: hard
 
@@ -15693,7 +15693,7 @@ __metadata:
     "@types/jsdom": "npm:^28.0.1"
     "@types/jsonwebtoken": "npm:^8.5.9"
     "@types/katex": "npm:^0.16.8"
-    "@types/koa": "npm:^2.15.0"
+    "@types/koa": "npm:^2.15.1"
     "@types/koa-compress": "npm:^4.0.7"
     "@types/koa-helmet": "npm:^6.0.8"
     "@types/koa-logger": "npm:^3.1.5"
