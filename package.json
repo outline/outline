@@ -257,7 +257,7 @@
     "tmp": "^0.2.5",
     "tunnel-agent": "^0.6.0",
     "ukkonen": "^2.2.0",
-    "umzug": "^3.8.2",
+    "umzug": "^3.8.3",
     "utility-types": "^3.11.0",
     "uuid": "^11.1.0",
     "validator": "13.15.35",
