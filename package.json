@@ -266,7 +266,7 @@
     "vite-plugin-pwa": "1.2.0",
     "web-haptics": "^0.0.6",
     "winston": "^3.17.0",
-    "ws": "^7.5.10",
+    "ws": "^8.20.1",
     "y-indexeddb": "^9.0.12",
     "y-prosemirror": "^1.3.7",
     "y-protocols": "^1.0.7",

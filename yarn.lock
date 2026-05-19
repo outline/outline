@@ -15915,7 +15915,7 @@ __metadata:
     vitest: "npm:^4.1.5"
     web-haptics: "npm:^0.0.6"
     winston: "npm:^3.17.0"
-    ws: "npm:^7.5.10"
+    ws: "npm:^8.20.1"
     y-indexeddb: "npm:^9.0.12"
     y-prosemirror: "npm:^1.3.7"
     y-protocols: "npm:^1.0.7"
@@ -21177,7 +21177,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^7.5.10, ws@npm:^7.5.5":
+"ws@npm:^7.5.5":
   version: 7.5.10
   resolution: "ws@npm:7.5.10"
   peerDependencies:
@@ -21189,6 +21189,21 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 10c0/bd7d5f4aaf04fae7960c23dcb6c6375d525e00f795dd20b9385902bd008c40a94d3db3ce97d878acc7573df852056ca546328b27b39f47609f80fb22a0a9b61d
+  languageName: node
+  linkType: hard
+
+"ws@npm:^8.20.1":
+  version: 8.20.1
+  resolution: "ws@npm:8.20.1"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 10c0/ce162433218399cdedeb76fd33363d4d86a7d910058d4e3c679dce08cea65d6da6b39f11baa4d7808d024cf46ed88f6a05c17611621aaad8fc5e62edacc30c5d
   languageName: node
   linkType: hard
 
