@@ -480,7 +480,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
       // Click handler for toggle button + auto-expand on focus
       new Plugin({
         key: new PluginKey("collapse-toggle"),
-        appendTransaction: (transactions, _oldState, newState) => {
+        appendTransaction: (transactions, oldState, newState) => {
           const hasCollapseMeta = transactions.some((tr) =>
             tr.getMeta(collapseKey)
           );
@@ -495,6 +495,14 @@ export default class CodeFence extends Node<CodeFenceOptions> {
             !codeBlock ||
             !collapseState?.collapsedBlocks.has(codeBlock.pos)
           ) {
+            return null;
+          }
+
+          // Only auto-expand when the selection moved INTO the block. If the
+          // selection was already inside this block (e.g. after the user just
+          // clicked Collapse while the cursor was inside), don't re-expand.
+          const oldCodeBlock = findParentNode(isCode)(oldState.selection);
+          if (oldCodeBlock?.pos === codeBlock.pos) {
             return null;
           }
 
