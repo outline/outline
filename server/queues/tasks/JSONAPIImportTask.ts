@@ -42,7 +42,6 @@ const ATTACHMENT_NODE_TYPES = ["attachment", "image", "video"];
 
 interface DiscoveredDocument {
   externalId: string;
-  internalId: string;
   parentExternalId?: string;
   collectionExternalId: string;
   export: DocumentJSONExport;
@@ -258,7 +257,6 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
 
       const collectionExports: {
         externalId: string;
-        internalId: string;
         data: CollectionJSONExport;
       }[] = [];
 
@@ -281,11 +279,9 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
         }
 
         const collectionExternalId = parsed.collection.id;
-        const collectionInternalId = randomUUID();
 
         collectionExports.push({
           externalId: collectionExternalId,
-          internalId: collectionInternalId,
           data: parsed,
         });
 
@@ -297,7 +293,7 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
       // Discover documents per collection, building the parent/child tree
       // shape expected by the per-page cascade.
       const collections = collectionExports.map((c) =>
-        this.buildCollection(c.externalId, c.internalId, c.data)
+        this.buildCollection(c.externalId, c.data)
       );
 
       // Replace anything past the create-time placeholder with the freshly
@@ -396,39 +392,30 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
   }
 
   /**
-   * Discovers documents in a parsed CollectionJSONExport, assigning new
-   * internal ids and recursively packing each parent's direct descendants
-   * into `children`. Falls back to the export's `documentStructure` when
-   * present (preserves authored order) and otherwise walks the
-   * `documents` map.
+   * Discovers documents in a parsed CollectionJSONExport, recursively packing
+   * each parent's direct descendants into `children`. Falls back to the
+   * export's `documentStructure` when present (preserves authored order) and
+   * otherwise walks the `documents` map.
    *
    * @param externalId The collection's external id.
-   * @param internalId Pre-assigned internal id for the collection.
    * @param data Parsed CollectionJSONExport.
    * @returns A collection record with a tree of `DiscoveredDocument`s.
    */
   private buildCollection(
     externalId: string,
-    internalId: string,
     data: CollectionJSONExport
   ): {
     externalId: string;
-    internalId: string;
     export: CollectionJSONExport["collection"];
     children: DiscoveredDocument[];
   } {
     const docMap: Record<string, DocumentJSONExport> = data.documents ?? {};
-    const internalDocIdByExternalId: Record<string, string> = {};
-    for (const doc of Object.values(docMap)) {
-      internalDocIdByExternalId[doc.id] = randomUUID();
-    }
 
     const makeNode = (
       doc: DocumentJSONExport,
       parentExternalId?: string
     ): DiscoveredDocument => ({
       externalId: doc.id,
-      internalId: internalDocIdByExternalId[doc.id],
       parentExternalId: parentExternalId ?? doc.parentDocumentId ?? undefined,
       collectionExternalId: externalId,
       export: doc,
@@ -483,7 +470,6 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
 
     return {
       externalId,
-      internalId,
       export: data.collection,
       children: roots,
     };

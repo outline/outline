@@ -390,7 +390,6 @@ export default abstract class ImportsProcessor<
 
               const urlId = await this.preserveCollectionUrlId(
                 output.urlId,
-                importModel.teamId,
                 transaction
               );
 
@@ -442,7 +441,6 @@ export default abstract class ImportsProcessor<
 
             const urlId = await this.preserveDocumentUrlId(
               output.urlId,
-              importModel.teamId,
               transaction
             );
 
@@ -705,18 +703,15 @@ export default abstract class ImportsProcessor<
 
   /**
    * Honors a urlId from a document export if it does not collide with an
-   * existing Document in the same team, otherwise generates a fresh one.
-   * Returns `undefined` when no urlId is supplied (so the model's default
-   * applies).
+   * existing Document, otherwise generates a fresh one. Returns `undefined`
+   * when no urlId is supplied (so the model's default applies).
    *
    * @param sourceUrlId The urlId requested by the importer.
-   * @param teamId Team to scope the collision check to.
    * @param transaction Active sequelize transaction.
    * @returns A urlId to use, or undefined to fall through to the default.
    */
   private async preserveDocumentUrlId(
     sourceUrlId: string | undefined,
-    teamId: string,
     transaction: Transaction
   ): Promise<string | undefined> {
     if (!sourceUrlId) {
@@ -725,7 +720,7 @@ export default abstract class ImportsProcessor<
     const existing = await Document.unscoped().findOne({
       attributes: ["id"],
       paranoid: false,
-      where: { urlId: sourceUrlId, teamId },
+      where: { urlId: sourceUrlId },
       transaction,
     });
     return existing ? generateUrlId() : sourceUrlId;
@@ -733,18 +728,15 @@ export default abstract class ImportsProcessor<
 
   /**
    * Honors a urlId from a collection export if it does not collide with an
-   * existing Collection in the same team, otherwise generates a fresh one.
-   * Returns `undefined` when no urlId is supplied (so the model's default
-   * applies).
+   * existing Collection, otherwise generates a fresh one. Returns `undefined`
+   * when no urlId is supplied (so the model's default applies).
    *
    * @param sourceUrlId The urlId requested by the importer.
-   * @param teamId Team to scope the collision check to.
    * @param transaction Active sequelize transaction.
    * @returns A urlId to use, or undefined to fall through to the default.
    */
   private async preserveCollectionUrlId(
     sourceUrlId: string | undefined,
-    teamId: string,
     transaction: Transaction
   ): Promise<string | undefined> {
     if (!sourceUrlId) {
@@ -753,7 +745,7 @@ export default abstract class ImportsProcessor<
     const existing = await Collection.unscoped().findOne({
       attributes: ["id"],
       paranoid: false,
-      where: { urlId: sourceUrlId, teamId },
+      where: { urlId: sourceUrlId },
       transaction,
     });
     return existing ? generateUrlId() : sourceUrlId;
