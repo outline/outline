@@ -12650,12 +12650,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18next-http-backend@npm:^3.0.5":
-  version: 3.0.5
-  resolution: "i18next-http-backend@npm:3.0.5"
+"i18next-http-backend@npm:^3.0.6":
+  version: 3.0.6
+  resolution: "i18next-http-backend@npm:3.0.6"
   dependencies:
     cross-fetch: "npm:4.1.0"
-  checksum: 10c0/ca26555be3487eb34c0b2dc879ba8ddbca426fd3fbd2568cb15cd1a8e2c641b8196cb8420fabb09762d1752d612895e54847f5e7db630a75a82301e7e829a90e
+  checksum: 10c0/b799c4c49943cca5f215d8a7b563785e194e9061724213d5942c049855ed00a340a2478a305dd66cac59cf5fc32c90cbfe3d62c7063a59ad4401948196d430a5
   languageName: node
   linkType: hard
 
@@ -15783,7 +15783,7 @@ __metadata:
     husky: "npm:^8.0.3"
     i18next: "npm:^22.5.1"
     i18next-fs-backend: "npm:^2.6.5"
-    i18next-http-backend: "npm:^3.0.5"
+    i18next-http-backend: "npm:^3.0.6"
     i18next-parser: "npm:^9.4.0"
     invariant: "npm:^2.2.4"
     ioredis: "npm:^5.10.1"
