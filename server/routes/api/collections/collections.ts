@@ -1,13 +1,17 @@
 import Router from "koa-router";
+import { randomUUID } from "node:crypto";
+import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
 import {
   CollectionPermission,
   CollectionStatusFilter,
-  FileOperationState,
-  FileOperationType,
+  FileOperationFormat,
+  ImportState,
+  IntegrationService,
   UserRole,
 } from "@shared/types";
+import { ImportValidation } from "@shared/validations";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import { parser } from "@server/editor";
@@ -23,8 +27,8 @@ import {
   User,
   Group,
   Attachment,
-  FileOperation,
   Document,
+  Import,
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
@@ -169,17 +173,27 @@ router.post(
     });
     authorize(user, "read", attachment);
 
-    await FileOperation.createWithCtx(ctx, {
-      type: FileOperationType.Import,
-      state: FileOperationState.Creating,
-      format,
-      size: attachment.size,
-      key: attachment.key,
-      userId: user.id,
+    const service =
+      format === FileOperationFormat.MarkdownZip
+        ? IntegrationService.Markdown
+        : IntegrationService.JSON;
+
+    await Import.createWithCtx(ctx, {
+      name: truncate(attachment.name, {
+        length: ImportValidation.maxNameLength,
+      }),
+      service,
+      state: ImportState.Created,
+      input: [
+        {
+          externalId: randomUUID(),
+          permission: permission ?? undefined,
+        },
+      ],
+      scratch: { storageKey: attachment.key },
+      integrationId: null,
+      createdById: user.id,
       teamId: user.teamId,
-      options: {
-        permission,
-      },
     });
 
     ctx.body = {

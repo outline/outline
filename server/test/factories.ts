@@ -576,18 +576,25 @@ export async function buildImport(overrides: Partial<Import<any>> = {}) {
     overrides.integrationId = integration.id;
   }
 
+  // Skip BeforeCreate hooks so tests can seed multiple imports per team. The
+  // production "one in-progress import per team" rule is enforced by the
+  // Import.checkInProgress hook; tests don't need to abide by it.
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-  return Import.create<Import<any>>({
-    name: "testImport",
-    service: IntegrationService.Notion,
-    state: ImportState.Created,
-    input: [
-      {
-        permission: CollectionPermission.Read,
-      },
-    ],
-    ...overrides,
-  });
+  return Import.create<Import<any>>(
+    {
+      name: "testImport",
+      service: IntegrationService.Notion,
+      state: ImportState.Created,
+      input: [
+        {
+          permission: CollectionPermission.Read,
+        },
+      ],
+      ...overrides,
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any,
+    { hooks: false }
+  );
 }
 
 export async function buildAttachment(

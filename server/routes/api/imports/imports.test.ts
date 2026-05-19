@@ -59,6 +59,12 @@ describe("#imports.create", () => {
     const integration = await buildIntegration({
       userId: admin.id,
       teamId: admin.teamId,
+      service: IntegrationService.Notion,
+      type: IntegrationType.Import,
+      settings: {
+        externalWorkspace: { id: "ws-1", name: "Test Workspace" },
+        // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
     });
     const input: NotionImportInput = [
       { permission: CollectionPermission.Read },

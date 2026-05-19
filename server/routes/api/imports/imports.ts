@@ -5,7 +5,6 @@ import type { WhereOptions } from "sequelize";
 import type { IntegrationType } from "@shared/types";
 import { ImportState, IntegrationService, UserRole } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
-import { UnprocessableEntityError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -33,22 +32,10 @@ router.post(
 
     authorize(user, "createImport", user.team);
 
-    const importInProgress = await Import.count({
-      where: {
-        state: [
-          ImportState.Created,
-          ImportState.InProgress,
-          ImportState.Processed,
-        ],
-        teamId: user.teamId,
-      },
-    });
-
-    if (importInProgress) {
-      throw UnprocessableEntityError("An import is already in progress");
-    }
-
-    if (body.service === IntegrationService.Markdown) {
+    if (
+      body.service === IntegrationService.Markdown ||
+      body.service === IntegrationService.JSON
+    ) {
       const attachment = await Attachment.findByPk(body.attachmentId, {
         rejectOnEmpty: true,
       });
@@ -58,7 +45,7 @@ router.post(
         name: truncate(attachment.name, {
           length: ImportValidation.maxNameLength,
         }),
-        service: IntegrationService.Markdown,
+        service: body.service,
         state: ImportState.Created,
         input: [
           {

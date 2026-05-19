@@ -1,6 +1,11 @@
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  SaveOptions,
+} from "sequelize";
 import {
   AllowNull,
+  BeforeCreate,
   BelongsTo,
   Column,
   DataType,
@@ -14,6 +19,7 @@ import {
 import { type ImportInput, type ImportScratch } from "@shared/schema";
 import { ImportableIntegrationService, ImportState } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
+import { UnprocessableEntityError } from "@server/errors";
 import Integration from "./Integration";
 import Team from "./Team";
 import User from "./User";
@@ -91,6 +97,31 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   @ForeignKey(() => Team)
   @Column(DataType.UUID)
   teamId: string;
+
+  /**
+   * Serializes imports per team — blocks creation while another import is
+   * already in flight. Centralizing the check here lets every code path that
+   * creates an Import (route handlers, integrations) share one definition of
+   * "in progress" without duplicating the count query.
+   */
+  @BeforeCreate
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+  static async checkInProgress(model: Import<any>, options: SaveOptions) {
+    const inProgress = await this.count({
+      where: {
+        teamId: model.teamId,
+        state: [
+          ImportState.Created,
+          ImportState.InProgress,
+          ImportState.Processed,
+        ],
+      },
+      transaction: options.transaction,
+    });
+    if (inProgress) {
+      throw UnprocessableEntityError("An import is already in progress");
+    }
+  }
 }
 
 export default Import;
