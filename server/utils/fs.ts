@@ -1,6 +1,26 @@
 import path from "node:path";
 import fs from "fs-extra";
 
+const windowsInvalidFileNameCharsRegex = /[\\/:*?"<>|]/g;
+const windowsTrailingFileNameCharsRegex = /[. ]+$/g;
+const encodedWindowsCharacters: Record<string, string> = {
+  "%2F": "/",
+  "%5C": "\\",
+  "%3A": ":",
+  "%2A": "*",
+  "%3F": "?",
+  "%22": "\"",
+  "%3C": "<",
+  "%3E": ">",
+  "%7C": "|",
+  "%2E": ".",
+  "%20": " ",
+};
+
+function encodeWindowsUnsafeCharacter(char: string): string {
+  return `%${char.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`;
+}
+
 /**
  * Serialize a file name for inclusion in a ZIP.
  *
@@ -8,7 +28,17 @@ import fs from "fs-extra";
  * @returns The serialized file name.
  */
 export function serializeFilename(text: string): string {
-  return text.replace(/\//g, "%2F").replace(/\\/g, "%5C");
+  const encoded = text.replace(
+    windowsInvalidFileNameCharsRegex,
+    encodeWindowsUnsafeCharacter
+  );
+
+  return encoded.replace(windowsTrailingFileNameCharsRegex, (trailing) =>
+    trailing
+      .split("")
+      .map(encodeWindowsUnsafeCharacter)
+      .join("")
+  );
 }
 
 /**
@@ -18,7 +48,10 @@ export function serializeFilename(text: string): string {
  * @returns The deserialized file name.
  */
 export function deserializeFilename(text: string): string {
-  return text.replace(/%2F/g, "/").replace(/%5C/g, "\\");
+  return text.replace(
+    /%(2F|5C|3A|2A|3F|22|3C|3E|7C|2E|20)/gi,
+    (match) => encodedWindowsCharacters[match.toUpperCase()] ?? match
+  );
 }
 
 /**

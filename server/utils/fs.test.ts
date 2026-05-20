@@ -19,6 +19,18 @@ describe("serializeFilename", () => {
       "this %5C and %5C this"
     );
   });
+
+  it("should serialize Windows-invalid filename characters", () => {
+    expect(serializeFilename(`this: * ? " < > | that`)).toBe(
+      "this%3A %2A %3F %22 %3C %3E %7C that"
+    );
+  });
+
+  it("should serialize trailing Windows-invalid filename characters", () => {
+    expect(serializeFilename("file.")).toBe("file%2E");
+    expect(serializeFilename("file ")).toBe("file%20");
+    expect(serializeFilename("file. ")).toBe("file%2E%20");
+  });
 });
 
 describe("deserializeFilename", () => {
@@ -34,6 +46,18 @@ describe("deserializeFilename", () => {
     expect(deserializeFilename("this %5C and %5C this")).toBe(
       `this \\ and \\ this`
     );
+  });
+
+  it("should deserialize Windows-invalid filename characters", () => {
+    expect(deserializeFilename("%3A %2A %3F %22 %3C %3E %7C")).toBe(
+      `: * ? " < > |`
+    );
+  });
+
+  it("should deserialize trailing Windows-invalid filename characters", () => {
+    expect(deserializeFilename("file%2E")).toBe("file.");
+    expect(deserializeFilename("file%20")).toBe("file ");
+    expect(deserializeFilename("file%2E%20")).toBe("file. ");
   });
 });
 
