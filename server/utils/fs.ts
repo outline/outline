@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "fs-extra";
 
-const windowsInvalidFileNameCharsRegex = /[\\\\/:*?"<>|]/g;
+const windowsInvalidFileNameCharsRegex = /[\\/:*?"<>|]/g;
 const windowsTrailingFileNameCharsRegex = /[. ]+$/g;
 const encodedWindowsCharacters: Record<string, string> = {
   "%2F": "/",
@@ -9,7 +9,7 @@ const encodedWindowsCharacters: Record<string, string> = {
   "%3A": ":",
   "%2A": "*",
   "%3F": "?",
-  "%22": "\"",
+  "%22": '"',
   "%3C": "<",
   "%3E": ">",
   "%7C": "|",
@@ -41,10 +41,7 @@ export function serializeFilename(text: string): string {
   );
 
   return encoded.replace(windowsTrailingFileNameCharsRegex, (trailing) =>
-    trailing
-      .split("")
-      .map(encodeWindowsUnsafeCharacter)
-      .join("")
+    trailing.split("").map(encodeWindowsUnsafeCharacter).join("")
   );
 }
 
