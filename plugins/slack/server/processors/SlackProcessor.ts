@@ -124,10 +124,10 @@ export default class SlackProcessor extends BaseProcessor {
     if (!integration) {
       return;
     }
-    let text = `${document.updatedBy.name} updated "${document.title}"`;
+    let text = `${document.updatedBy.name} updated "${document.titleWithDefault}"`;
 
     if (event.name === "documents.publish") {
-      text = `${document.createdBy.name} published "${document.title}"`;
+      text = `${document.createdBy.name} published "${document.titleWithDefault}"`;
     }
 
     await fetch(integration.settings.url, {
