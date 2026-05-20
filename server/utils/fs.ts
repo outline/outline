@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "fs-extra";
 
-const windowsInvalidFileNameCharsRegex = /[\\/:*?"<>|]/g;
+const windowsInvalidFileNameCharsRegex = /[\\\\/:*?"<>|]/g;
 const windowsTrailingFileNameCharsRegex = /[. ]+$/g;
 const encodedWindowsCharacters: Record<string, string> = {
   "%2F": "/",
@@ -16,7 +16,14 @@ const encodedWindowsCharacters: Record<string, string> = {
   "%2E": ".",
   "%20": " ",
 };
+const encodedWindowsCharactersRegex = /%(?:2F|5C|3A|2A|3F|22|3C|3E|7C|2E|20)/gi;
 
+/**
+ * Encodes a single character to uppercase percent-encoding.
+ *
+ * @param char The character to encode.
+ * @returns The encoded character.
+ */
 function encodeWindowsUnsafeCharacter(char: string): string {
   return `%${char.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`;
 }
@@ -49,7 +56,7 @@ export function serializeFilename(text: string): string {
  */
 export function deserializeFilename(text: string): string {
   return text.replace(
-    /%(2F|5C|3A|2A|3F|22|3C|3E|7C|2E|20)/gi,
+    encodedWindowsCharactersRegex,
     (match) => encodedWindowsCharacters[match.toUpperCase()] ?? match
   );
 }
