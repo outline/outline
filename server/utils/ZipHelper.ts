@@ -1,9 +1,9 @@
 import path from "node:path";
 import fs from "fs-extra";
-import type JSZip from "jszip";
 import tmp from "tmp";
 import type { Entry } from "yauzl";
 import yauzl, { validateFileName } from "yauzl";
+import type { ZipFile } from "yazl";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -41,27 +41,16 @@ export interface ZipTreeNode {
 
 @trace()
 export default class ZipHelper {
-  public static defaultStreamOptions: JSZip.JSZipGeneratorOptions<"nodebuffer"> =
-    {
-      type: "nodebuffer",
-      streamFiles: true,
-      compression: "DEFLATE",
-      compressionOptions: {
-        level: 5,
-      },
-    };
-
   /**
-   * Write a zip file to a temporary disk location
+   * Write a zip file to a temporary disk location.
    *
-   * @deprecated Use `extract` instead
-   * @param zip JSZip object
-   * @returns pathname of the temporary file where the zip was written to disk
+   * The caller is responsible for adding entries to the `ZipFile`; this method
+   * calls `end()` and waits for the output stream to drain to disk.
+   *
+   * @param zip yazl ZipFile object with entries already added.
+   * @returns pathname of the temporary file where the zip was written to disk.
    */
-  public static async toTmpFile(
-    zip: JSZip,
-    options?: JSZip.JSZipGeneratorOptions<"nodebuffer">
-  ): Promise<string> {
+  public static async toTmpFile(zip: ZipFile): Promise<string> {
     Logger.debug("utils", "Creating tmp file…");
     return new Promise((resolve, reject) => {
       tmp.file(
@@ -73,11 +62,6 @@ export default class ZipHelper {
           if (err) {
             return reject(err);
           }
-
-          let previousMetadata: JSZip.JSZipMetadata = {
-            percent: 0,
-            currentFile: null,
-          };
 
           const handleError = (error: Error) => {
             dest.destroy();
@@ -98,35 +82,8 @@ export default class ZipHelper {
             })
             .on("error", handleError);
 
-          zip
-            .generateNodeStream(
-              {
-                ...this.defaultStreamOptions,
-                ...options,
-              },
-              (metadata) => {
-                if (metadata.currentFile !== previousMetadata.currentFile) {
-                  const percent = Math.round(metadata.percent);
-                  const memory = process.memoryUsage();
-
-                  previousMetadata = {
-                    currentFile: metadata.currentFile,
-                    percent,
-                  };
-                  Logger.debug(
-                    "utils",
-                    `Writing zip file progress… ${percent}%`,
-                    {
-                      currentFile: metadata.currentFile,
-                      memory: bytesToHumanReadable(memory.rss),
-                    }
-                  );
-                }
-              }
-            )
-            .on("error", handleError)
-            .pipe(dest)
-            .on("error", handleError);
+          zip.outputStream.on("error", handleError).pipe(dest);
+          zip.end();
         }
       );
     });

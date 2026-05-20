@@ -1,9 +1,9 @@
 import path from "node:path";
 import Router from "koa-router";
 import contentDisposition from "content-disposition";
-import JSZip from "jszip";
 import { escapeRegExp } from "es-toolkit/compat";
 import mime from "mime-types";
+import { ZipFile } from "yazl";
 import { UserRole } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import slugify from "@shared/utils/slugify";
@@ -20,7 +20,6 @@ import { authorize } from "@server/policies";
 import { presentPolicies, presentRevision } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import ZipHelper from "@server/utils/ZipHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -195,41 +194,34 @@ router.post(
       return;
     }
 
-    const zip = new JSZip();
+    const zip = new ZipFile();
 
-    await Promise.all(
-      attachments.map(async (attachment) => {
-        const location = path.join(
-          "attachments",
-          `${attachment.id}.${mime.extension(attachment.contentType)}`
-        );
-        zip.file(
-          location,
-          new Promise<Buffer>((resolve) => {
-            attachment.buffer.then(resolve).catch((err) => {
-              Logger.warn(`Failed to read attachment from storage`, {
-                attachmentId: attachment.id,
-                teamId: attachment.teamId,
-                error: err.message,
-              });
-              resolve(Buffer.from(""));
-            });
-          }),
-          {
-            date: attachment.updatedAt,
-            createFolders: true,
-          }
-        );
+    for (const attachment of attachments) {
+      const location = path.join(
+        "attachments",
+        `${attachment.id}.${mime.extension(attachment.contentType)}`
+      );
+      let buffer: Buffer;
+      try {
+        buffer = await attachment.buffer;
+      } catch (err) {
+        Logger.warn(`Failed to read attachment from storage`, {
+          attachmentId: attachment.id,
+          teamId: attachment.teamId,
+          error: err.message,
+        });
+        buffer = Buffer.from("");
+      }
+      zip.addBuffer(buffer, location, { mtime: attachment.updatedAt });
 
-        content = content.replace(
-          new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
-          location
-        );
-      })
-    );
+      content = content.replace(
+        new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+        location
+      );
+    }
 
-    zip.file(`${fileName}.${extension}`, content, {
-      date: revision.updatedAt,
+    zip.addBuffer(Buffer.from(content), `${fileName}.${extension}`, {
+      mtime: revision.updatedAt,
     });
 
     ctx.set("Content-Type", "application/zip");
@@ -239,7 +231,8 @@ router.post(
         type: "attachment",
       })
     );
-    ctx.body = zip.generateNodeStream(ZipHelper.defaultStreamOptions);
+    ctx.body = zip.outputStream;
+    zip.end();
   }
 );
 
