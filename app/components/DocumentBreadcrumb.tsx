@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import { observer } from "mobx-react";
 import { ArchiveIcon, GoToIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
@@ -19,6 +20,34 @@ import useStores from "~/hooks/useStores";
 import { archivePath, trashPath } from "~/utils/routeHelpers";
 import { createInternalLinkAction } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
+
+/**
+ * Returns the breadcrumb path leading up to a document as a plain text
+ * string, including the collection name and any ancestor documents. The
+ * document itself is not included.
+ *
+ * @param document - the document to compute the breadcrumb for.
+ * @param t - translation function for fallback titles.
+ * @returns the breadcrumb as a slash-separated string, or undefined if the
+ * document has no resolvable parent context.
+ */
+export function documentBreadcrumbText(
+  document: Document,
+  t: TFunction
+): string | undefined {
+  const segments: string[] = [];
+
+  if (document.collection?.name) {
+    segments.push(document.collection.name);
+  }
+
+  const ancestors = document.pathTo.slice(0, -1);
+  for (const node of ancestors) {
+    segments.push(node.title || t("Untitled"));
+  }
+
+  return segments.length ? segments.join(" / ") : undefined;
+}
 
 type Props = {
   children?: React.ReactNode;
