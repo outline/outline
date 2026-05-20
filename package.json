@@ -388,7 +388,8 @@
     "ip-address@npm:10.1.0": "^10.2.0",
     "minimatch@npm:9.0.1": "9.0.9",
     "lodash@npm:4.17.21": "^4.18.1",
-    "i18next-parser/i18next": "^23.16.8"
+    "i18next-parser/i18next": "^23.16.8",
+    "ws@npm:~8.17.1": "^8.20.1"
   },
   "version": "1.7.1",
   "packageManager": "yarn@4.11.0"
