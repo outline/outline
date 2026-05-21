@@ -1,0 +1,21 @@
+{
+  "name": "attuned-outline-infra",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "tsc",
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy --require-approval never",
+    "destroy": "cdk destroy"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "aws-cdk": "2.170.0",
+    "ts-node": "^10.9.0",
+    "typescript": "~5.4.0"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.170.0",
+    "constructs": "^10.0.0"
+  }
+}
