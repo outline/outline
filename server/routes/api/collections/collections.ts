@@ -10,7 +10,6 @@ import {
 } from "@shared/types";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
-import { parser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -26,7 +25,6 @@ import {
   FileOperation,
   Document,
 } from "@server/models";
-import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
 import {
   presentCollection,
@@ -73,8 +71,6 @@ router.post(
 
     const collection = Collection.build({
       name,
-      content: data,
-      description: data ? undefined : description,
       icon,
       color,
       teamId: user.teamId,
@@ -88,9 +84,9 @@ router.post(
     });
 
     if (data) {
-      collection.description = await DocumentHelper.toMarkdown(collection, {
-        includeTitle: false,
-      });
+      await collection.setContent(data);
+    } else if (description !== undefined) {
+      collection.setDescription(description);
     }
 
     await collection.saveWithCtx(ctx);
@@ -627,17 +623,11 @@ router.post(
     }
 
     if (description !== undefined) {
-      collection.description = description;
-      collection.content = description
-        ? parser.parse(description)?.toJSON()
-        : null;
+      collection.setDescription(description);
     }
 
     if (data !== undefined) {
-      collection.content = data;
-      collection.description = await DocumentHelper.toMarkdown(collection, {
-        includeTitle: false,
-      });
+      await collection.setContent(data);
     }
 
     if (icon !== undefined) {
