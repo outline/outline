@@ -31,6 +31,8 @@ type Props = {
   onPointerMove: (ev: React.MouseEvent) => void;
   /** Fired when the node is clicked to toggle its selection. */
   onClick: (ev: React.MouseEvent) => void;
+  /** Fired when the node is double-clicked to submit the current selection. */
+  onDoubleClick: (ev: React.MouseEvent) => void;
 };
 
 function DocumentExplorerNode(
@@ -46,6 +48,7 @@ function DocumentExplorerNode(
     onDisclosureClick,
     onPointerMove,
     onClick,
+    onDoubleClick,
   }: Props,
   ref: React.RefObject<HTMLSpanElement>
 ) {
@@ -59,6 +62,7 @@ function DocumentExplorerNode(
       selected={selected}
       active={active}
       onClick={onClick}
+      onDoubleClick={onDoubleClick}
       style={style}
       onPointerMove={onPointerMove}
       role="option"

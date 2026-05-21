@@ -33,16 +33,16 @@ function DocumentPublish({ document }: Props) {
     [policies, collectionTrees]
   );
 
-  const publish = async () => {
-    if (!selectedPath) {
+  const publish = async (path = selectedPath) => {
+    if (!path) {
       toast.message(t("Select a location to publish"));
       return;
     }
 
     try {
-      const { type, id: parentDocumentId } = selectedPath;
+      const { type, id: parentDocumentId } = path;
 
-      const collectionId = selectedPath.collectionId as string;
+      const collectionId = path.collectionId as string;
 
       // Also move it under if selected path corresponds to another doc
       if (type === "document") {

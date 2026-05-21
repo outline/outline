@@ -40,8 +40,8 @@ function DocumentCopy({ document, onSubmit }: Props) {
     return nodes;
   }, [policies, collectionTrees]);
 
-  const copy = async () => {
-    if (!selectedPath) {
+  const copy = async (path = selectedPath) => {
+    if (!path) {
       toast.message(t("Select a location to copy"));
       return;
     }
@@ -52,9 +52,9 @@ function DocumentCopy({ document, onSubmit }: Props) {
         publish,
         recursive,
         title: document.title,
-        collectionId: selectedPath.collectionId,
-        ...(selectedPath.type === "document"
-          ? { parentDocumentId: selectedPath.id }
+        collectionId: path.collectionId,
+        ...(path.type === "document"
+          ? { parentDocumentId: path.id }
           : {}),
       });
 

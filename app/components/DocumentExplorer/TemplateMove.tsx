@@ -33,15 +33,14 @@ function TemplateMove({ template }: Props) {
     [policies, collectionTrees]
   );
 
-  const move = async () => {
-    if (!selectedPath) {
+  const move = async (path = selectedPath) => {
+    if (!path) {
       toast.message(t("Select a location to move"));
       return;
     }
 
     try {
-      const collectionId = (selectedPath.collectionId ??
-        selectedPath.id) as string;
+      const collectionId = (path.collectionId ?? path.id) as string;
       await template.save({ collectionId });
 
       toast.success(t("Template moved"));
