@@ -81,6 +81,7 @@ import {
   trashPath,
   documentEditPath,
 } from "~/utils/routeHelpers";
+import { documentBreadcrumbText } from "~/components/DocumentBreadcrumb";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type {
   Action,
@@ -108,19 +109,21 @@ export const openDocument = createActionWithChildren({
   shortcut: ["o", "d"],
   keywords: "go to",
   icon: <DocumentIcon />,
-  children: ({ stores }) => {
+  children: ({ stores, t }) => {
     const nodes = stores.collections.navigationNodes.reduce(
       (acc, node) => [...acc, ...node.children],
       [] as NavigationNode[]
     );
     const documents = stores.documents.orderedData;
 
-    return uniqBy([...documents, ...nodes], "id").map((item) =>
-      createInternalLinkAction({
+    return uniqBy([...documents, ...nodes], "id").map((item) => {
+      const document = stores.documents.get(item.id);
+      return createInternalLinkAction({
         // Note: using url which includes the slug rather than id here to bust
         // cache if the document is renamed
         id: item.url,
         name: item.title,
+        description: document ? documentBreadcrumbText(document, t) : undefined,
         icon: item.icon ? (
           <Icon
             value={item.icon}
@@ -132,8 +135,8 @@ export const openDocument = createActionWithChildren({
         ),
         section: DocumentSection,
         to: item.url,
-      })
-    );
+      });
+    });
   },
 });
 

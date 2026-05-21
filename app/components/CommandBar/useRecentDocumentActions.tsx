@@ -1,13 +1,16 @@
 import { DocumentIcon } from "outline-icons";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import { createInternalLinkAction } from "~/actions";
 import { RecentSection } from "~/actions/sections";
+import { documentBreadcrumbText } from "~/components/DocumentBreadcrumb";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
 
 const useRecentDocumentActions = (count = 6) => {
   const { documents, ui } = useStores();
+  const { t } = useTranslation();
 
   return useMemo(
     () =>
@@ -19,6 +22,7 @@ const useRecentDocumentActions = (count = 6) => {
             name: item.titleWithDefault,
             analyticsName: "Recently viewed document",
             section: RecentSection,
+            description: documentBreadcrumbText(item, t),
             icon: item.icon ? (
               <Icon
                 value={item.icon}
@@ -31,7 +35,7 @@ const useRecentDocumentActions = (count = 6) => {
             to: documentPath(item),
           })
         ),
-    [count, ui.activeDocumentId, documents.recentlyViewed]
+    [count, ui.activeDocumentId, documents.recentlyViewed, t]
   );
 };
 
