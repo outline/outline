@@ -71,6 +71,8 @@ router.post(
 
     const collection = Collection.build({
       name,
+      content: data,
+      description: data ? undefined : description,
       icon,
       color,
       teamId: user.teamId,
@@ -82,12 +84,6 @@ router.post(
       commenting,
       templateManagement,
     });
-
-    if (data) {
-      await collection.setContent(data);
-    } else if (description !== undefined) {
-      collection.setDescription(description);
-    }
 
     await collection.saveWithCtx(ctx);
 
@@ -623,11 +619,11 @@ router.post(
     }
 
     if (description !== undefined) {
-      collection.setDescription(description);
+      collection.description = description;
     }
 
     if (data !== undefined) {
-      await collection.setContent(data);
+      collection.content = data;
     }
 
     if (icon !== undefined) {

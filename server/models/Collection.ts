@@ -347,9 +347,21 @@ class Collection extends ParanoidModel<
 
   @BeforeSave
   static async onBeforeSave(model: Collection) {
-    if (!model.content) {
+    const descriptionChanged = model.changed("description");
+    const contentChanged = model.changed("content");
+
+    if (descriptionChanged && !contentChanged) {
+      model.content = model.description
+        ? (parser.parse(model.description)?.toJSON() ?? null)
+        : null;
+    } else if (contentChanged && !descriptionChanged) {
+      model.description = model.content
+        ? await DocumentHelper.toMarkdown(model, { includeTitle: false })
+        : null;
+    } else if (!model.content) {
       model.content = await DocumentHelper.toJSON(model);
     }
+
     if (model.changed("documentStructure")) {
       await CacheHelper.clearData(
         RedisPrefixHelper.getCollectionDocumentsKey(model.id)
@@ -787,33 +799,6 @@ class Collection extends ParanoidModel<
       ...result,
       children: sortNavigationNodes(result.children, this.sort),
     };
-  };
-
-  /**
-   * Sets the collection's Overview from a markdown string, keeping the
-   * deprecated `description` column and the ProseMirror `content` column in
-   * sync. Pass an empty string or null to clear both.
-   *
-   * @param markdown - the markdown source, or null to clear.
-   */
-  setDescription = (markdown: string | null): void => {
-    this.description = markdown;
-    this.content = markdown ? (parser.parse(markdown)?.toJSON() ?? null) : null;
-  };
-
-  /**
-   * Sets the collection's Overview from a ProseMirror document, deriving the
-   * deprecated markdown `description` column so both stay in sync. Pass `null`
-   * to clear both.
-   *
-   * @param data - the ProseMirror document JSON, or null to clear.
-   * @returns a promise that resolves once the markdown has been derived.
-   */
-  setContent = async (data: ProsemirrorData | null): Promise<void> => {
-    this.content = data;
-    this.description = data
-      ? await DocumentHelper.toMarkdown(this, { includeTitle: false })
-      : null;
   };
 
   /**

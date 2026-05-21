@@ -174,16 +174,13 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           const collection = Collection.build({
             name: input.name,
+            description: input.description,
             icon: input.icon,
             color: input.color,
             teamId: user.teamId,
             createdById: user.id,
             permission: CollectionPermission.ReadWrite,
           });
-
-          if (input.description !== undefined) {
-            collection.setDescription(input.description);
-          }
 
           await collection.saveWithCtx(ctx);
 
@@ -255,7 +252,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             collection.name = input.name.trim();
           }
           if (input.description !== undefined) {
-            collection.setDescription(input.description);
+            collection.description = input.description;
           }
           if (input.icon !== undefined) {
             collection.icon = input.icon;
