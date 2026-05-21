@@ -1,6 +1,7 @@
-import { Transaction } from "sequelize";
+import { sleep } from "@shared/utils/timers";
 import { traceFunction } from "@server/logging/tracing";
 import { Document, Collection, Pin } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import type { APIContext } from "@server/types";
 
 type Props = {
@@ -20,15 +21,29 @@ type Result = {
   collectionChanged: boolean;
 };
 
-async function documentMover(
+const MAX_RETRIES = 3;
+
+function isOptimisticLockError(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as { id?: string }).id === "optimistic_lock"
+  );
+}
+
+async function runMove(
   ctx: APIContext,
   {
     document,
-    collectionId = null,
-    parentDocumentId = null,
-    // convert undefined to null so parentId comparison treats them as equal
+    collectionId,
+    parentDocumentId,
     index,
-  }: Props
+  }: {
+    document: Document;
+    collectionId: string | null;
+    parentDocumentId: string | null;
+    index?: number;
+  }
 ): Promise<Result> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
@@ -41,11 +56,12 @@ async function documentMover(
     collectionChanged,
   };
 
-  // Load the current and the next collection upfront and lock them
+  // Load the current and next collection. No FOR UPDATE lock: concurrent
+  // moves on the same collection are coordinated via optimistic concurrency
+  // on `documentStructureVersion` and retried at the savepoint boundary.
   const collection = await Collection.findByPk(document.collectionId!, {
     includeDocumentStructure: true,
     transaction,
-    lock: Transaction.LOCK.UPDATE,
     paranoid: false,
   });
 
@@ -54,17 +70,17 @@ async function documentMover(
     newCollection = await Collection.findByPk(collectionId, {
       includeDocumentStructure: true,
       transaction,
-      lock: Transaction.LOCK.UPDATE,
     });
   } else if (!collectionId) {
     newCollection = null;
   }
 
   if (document.publishedAt) {
-    // Remove the document from the current collection
+    // Mutate source structure in memory without saving; we'll persist via the
+    // version-checked path below.
     const response = await collection?.removeDocumentInStructure(document, {
       transaction,
-      save: collectionChanged,
+      save: false,
     });
 
     let documentJson = response?.[0];
@@ -94,12 +110,24 @@ async function documentMover(
     document.updatedBy = user;
 
     if (newCollection) {
-      // Add the document and it's tree to the new collection
+      // When source and destination are the same instance, both the remove and
+      // add mutate `this.documentStructure`; the single save below persists
+      // them together with one version bump.
       await newCollection.addDocumentToStructure(document, toIndex, {
         documentJson,
         transaction,
+        save: false,
       });
     }
+
+    await Promise.all([
+      collectionChanged && collection
+        ? collection.saveDocumentStructure({ transaction })
+        : null,
+      newCollection
+        ? newCollection.saveDocumentStructure({ transaction })
+        : null,
+    ]);
   } else {
     document.collectionId = collectionId;
     document.parentDocumentId = parentDocumentId;
@@ -186,7 +214,6 @@ async function documentMover(
         collectionId: previousCollectionId,
       },
       transaction,
-      lock: Transaction.LOCK.UPDATE,
     });
 
     await pin?.destroyWithCtx(ctx);
@@ -204,6 +231,71 @@ async function documentMover(
 
   // we need to send all updated models back to the client
   return result;
+}
+
+async function documentMover(ctx: APIContext, props: Props): Promise<Result> {
+  const {
+    document,
+    collectionId = null,
+    parentDocumentId = null,
+    index,
+  } = props;
+
+  // Snapshot the document fields we mutate inside `runMove`. On retry the
+  // in-memory instance keeps the writes from the previous attempt, so we
+  // restore the original values before re-entering the savepoint to keep
+  // each attempt deterministic.
+  const initial = {
+    collectionId: document.collectionId,
+    parentDocumentId: document.parentDocumentId,
+    lastModifiedById: document.lastModifiedById,
+    publishedAt: document.publishedAt,
+    updatedBy: document.updatedBy,
+    collection: document.collection,
+  };
+
+  const outerTransaction = ctx.state.transaction;
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      document.collectionId = initial.collectionId;
+      document.parentDocumentId = initial.parentDocumentId;
+      document.lastModifiedById = initial.lastModifiedById;
+      document.publishedAt = initial.publishedAt;
+      document.updatedBy = initial.updatedBy;
+      document.collection = initial.collection;
+
+      await sleep(5 * 2 ** (attempt - 1) + Math.random() * 5);
+    }
+
+    try {
+      return await sequelize.transaction(
+        { transaction: outerTransaction },
+        async (savepoint) => {
+          ctx.state.transaction = savepoint;
+          try {
+            return await runMove(ctx, {
+              document,
+              collectionId,
+              parentDocumentId,
+              index,
+            });
+          } finally {
+            ctx.state.transaction = outerTransaction;
+          }
+        }
+      );
+    } catch (err) {
+      if (isOptimisticLockError(err) && attempt < MAX_RETRIES) {
+        lastError = err;
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw lastError;
 }
 
 export default traceFunction({
