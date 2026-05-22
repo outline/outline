@@ -51,7 +51,6 @@ const schema = env.DATABASE_SCHEMA;
 // are exempted because background jobs may legitimately run long queries.
 const isApiProcess =
   (env.SERVICES.includes("web") ||
-    env.SERVICES.includes("api") ||
     env.SERVICES.includes("collaboration") ||
     env.SERVICES.includes("websockets") ||
     env.SERVICES.includes("admin")) &&
