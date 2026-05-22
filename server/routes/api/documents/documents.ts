@@ -308,6 +308,16 @@ router.post(
 
     const includeDrafts = !!statusFilter?.includes(StatusFilter.Draft);
 
+    // Switching to the withDrafts scope drops the defaultScope filters, so
+    // re-apply the ones we still want (templates and trial-import documents
+    // should never appear in this listing).
+    if (includeDrafts) {
+      where[Op.and].push({
+        template: false,
+        sourceMetadata: { trial: { [Op.is]: null } },
+      });
+    }
+
     // When sorting by index, pagination is already handled by slicing documentIds,
     // so we skip the SQL-level offset to avoid double-pagination
     const { results: documents, pagination } = await paginateQuery(
