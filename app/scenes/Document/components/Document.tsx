@@ -155,11 +155,11 @@ function DocumentScene({
 
         if (event.shiftKey) {
           if (!readOnly) {
-            editorRef.current?.commands.redo();
+            editorRef.current?.commands.redo?.();
           }
         } else {
           if (!readOnly) {
-            editorRef.current?.commands.undo();
+            editorRef.current?.commands.undo?.();
           }
         }
       }
