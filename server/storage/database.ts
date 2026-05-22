@@ -1,3 +1,4 @@
+import cluster from "node:cluster";
 import path from "node:path";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
@@ -49,6 +50,8 @@ const schema = env.DATABASE_SCHEMA;
 // HTTP request timeout, so a single slow query cannot hold a connection past
 // the point at which its response could be delivered. Worker/cron processes
 // are exempted because background jobs may legitimately run long queries.
+// Only applied in forked cluster workers so that startup work driven from
+// the master process (notably migrations) is not subject to the timeout.
 const isApiProcess =
   (env.SERVICES.includes("web") ||
     env.SERVICES.includes("collaboration") ||
@@ -56,7 +59,8 @@ const isApiProcess =
     env.SERVICES.includes("admin")) &&
   !env.SERVICES.includes("worker") &&
   !env.SERVICES.includes("cron");
-const statementTimeout = isApiProcess ? env.REQUEST_TIMEOUT : undefined;
+const statementTimeout =
+  isApiProcess && cluster.isWorker ? env.REQUEST_TIMEOUT : undefined;
 
 export function createDatabaseInstance(
   databaseConfig: string | object,
