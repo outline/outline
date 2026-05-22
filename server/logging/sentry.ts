@@ -25,6 +25,9 @@ if (env.SENTRY_DSN) {
       "AuthRedirectError",
       "UserSuspendedError",
       "TooManyRequestsError",
+
+      // Client disconnects
+      "Premature close",
     ],
     beforeSend(event) {
       try {
