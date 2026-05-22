@@ -1,20 +1,26 @@
 import path from "node:path";
 import fs from "fs-extra";
-import JSZip from "jszip";
 import tmp from "tmp";
+import { ZipFile } from "yazl";
 import ZipHelper from "./ZipHelper";
 
 async function writeZip(
   entries: Record<string, string>,
   postfix = ".zip"
 ): Promise<string> {
-  const zip = new JSZip();
+  const zip = new ZipFile();
   for (const [name, content] of Object.entries(entries)) {
-    zip.file(name, content);
+    zip.addBuffer(Buffer.from(content), name);
   }
-  const buffer = await zip.generateAsync({ type: "nodebuffer" });
   const zipPath = tmp.fileSync({ postfix }).name;
-  await fs.writeFile(zipPath, buffer);
+  await new Promise<void>((resolve, reject) => {
+    const dest = fs
+      .createWriteStream(zipPath)
+      .on("finish", () => resolve())
+      .on("error", reject);
+    zip.outputStream.on("error", reject).pipe(dest);
+    zip.end();
+  });
   return zipPath;
 }
 

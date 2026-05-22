@@ -3,7 +3,6 @@ import fractionalIndex from "fractional-index";
 import fs from "fs-extra";
 import invariant from "invariant";
 import contentDisposition from "content-disposition";
-import JSZip from "jszip";
 import Router from "koa-router";
 import { escapeRegExp, has, remove, uniq } from "es-toolkit/compat";
 import mime from "mime-types";
@@ -84,8 +83,8 @@ import EmptyTrashTask from "@server/queues/tasks/EmptyTrashTask";
 import FileStorage from "@server/storage/files";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import ZipHelper from "@server/utils/ZipHelper";
 import { convertBareUrlsToEmbedMarkdown } from "@server/utils/embeds";
+import { streamZipResponse } from "@server/utils/koa";
 import { getTeamFromContext } from "@server/utils/passport";
 import { assertPresent } from "@server/validation";
 import pagination, { paginateQuery } from "../middlewares/pagination";
@@ -890,51 +889,35 @@ router.post(
       return;
     }
 
-    const zip = new JSZip();
-
-    await Promise.all(
-      attachments.map(async (attachment) => {
+    await streamZipResponse(ctx, `${fileName}.zip`, async (zip) => {
+      for (const attachment of attachments) {
         const location = path.join(
           "attachments",
           `${attachment.id}.${mime.extension(attachment.contentType)}`
         );
-        zip.file(
-          location,
-          new Promise<Buffer>((resolve) => {
-            attachment.buffer.then(resolve).catch((err) => {
-              Logger.warn(`Failed to read attachment from storage`, {
-                attachmentId: attachment.id,
-                teamId: attachment.teamId,
-                error: err.message,
-              });
-              resolve(Buffer.from(""));
-            });
-          }),
-          {
-            date: attachment.updatedAt,
-            createFolders: true,
-          }
-        );
+        let buffer: Buffer;
+        try {
+          buffer = await attachment.buffer;
+        } catch (err) {
+          Logger.warn(`Failed to read attachment from storage`, {
+            attachmentId: attachment.id,
+            teamId: attachment.teamId,
+            error: err.message,
+          });
+          buffer = Buffer.from("");
+        }
+        zip.addBuffer(buffer, location, { mtime: attachment.updatedAt });
 
         content = content.replace(
           new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
           location
         );
-      })
-    );
+      }
 
-    zip.file(`${fileName}.${extension}`, content, {
-      date: document.updatedAt,
+      zip.addBuffer(Buffer.from(content), `${fileName}.${extension}`, {
+        mtime: document.updatedAt,
+      });
     });
-
-    ctx.set("Content-Type", "application/zip");
-    ctx.set(
-      "Content-Disposition",
-      contentDisposition(`${fileName}.zip`, {
-        type: "attachment",
-      })
-    );
-    ctx.body = zip.generateNodeStream(ZipHelper.defaultStreamOptions);
   }
 );
 
