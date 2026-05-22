@@ -103,7 +103,7 @@ function DocumentMove({ document }: Props) {
             t("Select a location to move")
           )}
         </Text>
-        <Button disabled={!selectedPath || moving} onClick={move}>
+        <Button disabled={!selectedPath || moving} onClick={() => move()}>
           {moving ? `${t("Moving")}…` : t("Move")}
         </Button>
       </Footer>

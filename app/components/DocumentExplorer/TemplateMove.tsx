@@ -75,7 +75,7 @@ function TemplateMove({ template }: Props) {
             t("Select a location to move")
           )}
         </Text>
-        <Button disabled={!selectedPath} onClick={move}>
+        <Button disabled={!selectedPath} onClick={() => move()}>
           {t("Move")}
         </Button>
       </Footer>

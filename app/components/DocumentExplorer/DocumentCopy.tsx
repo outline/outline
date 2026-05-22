@@ -53,9 +53,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
         recursive,
         title: document.title,
         collectionId: path.collectionId,
-        ...(path.type === "document"
-          ? { parentDocumentId: path.id }
-          : {}),
+        ...(path.type === "document" ? { parentDocumentId: path.id } : {}),
       });
 
       toast.success(t("Document copied"));
@@ -111,7 +109,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
             t("Select a location to copy")
           )}
         </Text>
-        <Button disabled={!selectedPath || copying} onClick={copy}>
+        <Button disabled={!selectedPath || copying} onClick={() => copy()}>
           {copying ? `${t("Copying")}…` : t("Copy")}
         </Button>
       </Footer>

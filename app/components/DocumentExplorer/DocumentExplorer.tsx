@@ -259,7 +259,6 @@ function DocumentExplorer({
     const selectedNode = nodes[node];
 
     selectNode(selectedNode);
-    onSelect(selectedNode);
     onSubmit(selectedNode);
   };
 
@@ -319,7 +318,7 @@ function DocumentExplorer({
             width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
           }}
           onPointerMove={() => setActiveNode(index)}
-          onClick={() => toggleSelect(index)}
+          onClick={() => selectNode(nodes[index])}
           onDoubleClick={() => submitNode(index)}
           icon={renderedIcon}
           title={title}
@@ -334,7 +333,7 @@ function DocumentExplorer({
             width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
           }}
           onPointerMove={() => setActiveNode(index)}
-          onClick={() => toggleSelect(index)}
+          onClick={() => selectNode(nodes[index])}
           onDoubleClick={() => submitNode(index)}
           onDisclosureClick={(ev) => {
             ev.stopPropagation();

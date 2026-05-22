@@ -83,7 +83,7 @@ function DocumentPublish({ document }: Props) {
             t("Select a location to publish")
           )}
         </StyledText>
-        <Button disabled={!selectedPath} onClick={publish}>
+        <Button disabled={!selectedPath} onClick={() => publish()}>
           {t("Publish")}
         </Button>
       </Footer>
