@@ -31,7 +31,7 @@ import useStores from "~/hooks/useStores";
 
 type Props = {
   /** Action taken upon submission of selected item, could be publish, move etc. */
-  onSubmit: () => void;
+  onSubmit: (item: NavigationNode | null) => void;
   /** A side-effect of item selection */
   onSelect: (item: NavigationNode | null) => void;
   /** Items to be shown in explorer */
@@ -255,6 +255,13 @@ function DocumentExplorer({
     }
   };
 
+  const submitNode = (node: number) => {
+    const selectedNode = nodes[node];
+
+    selectNode(selectedNode);
+    onSubmit(selectedNode);
+  };
+
   const ListItem = observer(
     ({
       index,
@@ -311,7 +318,8 @@ function DocumentExplorer({
             width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
           }}
           onPointerMove={() => setActiveNode(index)}
-          onClick={() => toggleSelect(index)}
+          onClick={() => selectNode(nodes[index])}
+          onDoubleClick={() => submitNode(index)}
           icon={renderedIcon}
           title={title}
           path={path}
@@ -325,7 +333,8 @@ function DocumentExplorer({
             width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
           }}
           onPointerMove={() => setActiveNode(index)}
-          onClick={() => toggleSelect(index)}
+          onClick={() => selectNode(nodes[index])}
+          onDoubleClick={() => submitNode(index)}
           onDisclosureClick={(ev) => {
             ev.stopPropagation();
             toggleCollapse(index);
@@ -387,7 +396,7 @@ function DocumentExplorer({
       }
       case "Enter": {
         if (isModKey(ev)) {
-          onSubmit();
+          onSubmit(selectedNode);
         } else {
           toggleSelect(activeNode);
         }
