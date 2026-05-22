@@ -45,6 +45,20 @@ const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
 const databaseConfig = env.DATABASE_CONNECTION_POOL_URL || getDatabaseConfig();
 const schema = env.DATABASE_SCHEMA;
 
+// Request-handling processes get a Postgres `statement_timeout` matching the
+// HTTP request timeout, so a single slow query cannot hold a connection past
+// the point at which its response could be delivered. Worker/cron processes
+// are exempted because background jobs may legitimately run long queries.
+const isApiProcess =
+  (env.SERVICES.includes("web") ||
+    env.SERVICES.includes("api") ||
+    env.SERVICES.includes("collaboration") ||
+    env.SERVICES.includes("websockets") ||
+    env.SERVICES.includes("admin")) &&
+  !env.SERVICES.includes("worker") &&
+  !env.SERVICES.includes("cron");
+const statementTimeout = isApiProcess ? env.REQUEST_TIMEOUT : undefined;
+
 export function createDatabaseInstance(
   databaseConfig: string | object,
   input: {
@@ -68,6 +82,7 @@ export function createDatabaseInstance(
       logQueryParameters: env.isDevelopment,
       dialectOptions: {
         application_name: getConnectionName(),
+        statement_timeout: statementTimeout,
         ssl:
           env.isProduction && !isSSLDisabled
             ? {
