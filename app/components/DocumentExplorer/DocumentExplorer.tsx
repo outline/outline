@@ -31,7 +31,7 @@ import useStores from "~/hooks/useStores";
 
 type Props = {
   /** Action taken upon submission of selected item, could be publish, move etc. */
-  onSubmit: (item?: NavigationNode | null) => void;
+  onSubmit: (item: NavigationNode | null) => void;
   /** A side-effect of item selection */
   onSelect: (item: NavigationNode | null) => void;
   /** Items to be shown in explorer */

@@ -29,7 +29,7 @@ type Props = {
   onDisclosureClick: (ev: React.MouseEvent) => void;
   /** Fired on pointer movement over the node; used to update the active highlight. */
   onPointerMove: (ev: React.MouseEvent) => void;
-  /** Fired when the node is clicked to toggle its selection. */
+  /** Fired when the node is clicked to select it. */
   onClick: (ev: React.MouseEvent) => void;
   /** Fired when the node is double-clicked to submit the current selection. */
   onDoubleClick: (ev: React.MouseEvent) => void;
