@@ -52,6 +52,9 @@ const schema = env.DATABASE_SCHEMA;
 // are exempted because background jobs may legitimately run long queries.
 // Only applied in forked cluster workers so that startup work driven from
 // the master process (notably migrations) is not subject to the timeout.
+// Applied via `SET` on connect rather than as a startup parameter so pgbouncer
+// (which rejects unknown startup parameters in transaction pooling mode) does
+// not refuse the connection.
 const isApiProcess =
   (env.SERVICES.includes("web") ||
     env.SERVICES.includes("collaboration") ||
@@ -85,7 +88,6 @@ export function createDatabaseInstance(
       logQueryParameters: env.isDevelopment,
       dialectOptions: {
         application_name: getConnectionName(),
-        statement_timeout: statementTimeout,
         ssl:
           env.isProduction && !isSSLDisabled
             ? {
@@ -94,6 +96,17 @@ export function createDatabaseInstance(
               }
             : false,
       },
+      hooks: statementTimeout
+        ? {
+            afterConnect: async (connection: unknown) => {
+              await (
+                connection as {
+                  query: (sql: string) => Promise<unknown>;
+                }
+              ).query(`SET statement_timeout = ${Number(statementTimeout)}`);
+            },
+          }
+        : undefined,
       models: Object.values(input),
       pool: {
         // Read-only connections can have larger pools since there's no write contention
