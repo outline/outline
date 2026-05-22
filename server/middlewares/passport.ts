@@ -1,6 +1,10 @@
 import passport from "@outlinewiki/koa-passport";
 import type { Context } from "koa";
-import { InternalOAuthError } from "passport-oauth2";
+import {
+  AuthorizationError,
+  InternalOAuthError,
+  TokenError,
+} from "passport-oauth2";
 import { Client } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
@@ -56,6 +60,17 @@ export default function createMiddleware(providerName: string) {
       },
       async (err, user, result: AuthenticationResult) => {
         if (err) {
+          // TokenError / AuthorizationError surface input problems reported by
+          // the upstream OAuth provider (expired or already-redeemed codes,
+          // access_denied, etc). They are not server bugs, so log at warn
+          // level and skip the error reporter.
+          if (err instanceof TokenError || err instanceof AuthorizationError) {
+            Logger.warn(`OAuth error during authentication: ${err.message}`, {
+              code: err.code,
+            });
+            return ctx.redirect(`/?notice=auth-error`);
+          }
+
           Logger.error(
             "Error during authentication",
             err instanceof InternalOAuthError ? err.oauthError : err
