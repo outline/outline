@@ -244,6 +244,19 @@ router.post(
     }
 
     if (statusFilter?.includes(StatusFilter.Draft)) {
+      // Pre-fetch document IDs the user has a direct membership on so the
+      // filter can be expressed without referencing the (separately-loaded)
+      // memberships association, which would otherwise break the COUNT query.
+      const membershipDocumentIds = (
+        await UserMembership.findAll({
+          attributes: ["documentId"],
+          where: {
+            userId: user.id,
+            documentId: { [Op.ne]: null },
+          },
+        })
+      ).map((m) => m.documentId as string);
+
       statusQuery.push({
         [Op.and]: [
           {
@@ -256,7 +269,7 @@ router.post(
             [Op.or]: [
               // Only ever include draft results for the user's own documents
               { createdById: user.id },
-              { "$memberships.id$": { [Op.ne]: null } },
+              { id: membershipDocumentIds },
             ],
           },
         ],
@@ -293,12 +306,14 @@ router.post(
           : undefined
         : [[sort, direction]];
 
+    const includeDrafts = !!statusFilter?.includes(StatusFilter.Draft);
+
     // When sorting by index, pagination is already handled by slicing documentIds,
     // so we skip the SQL-level offset to avoid double-pagination
     const { results: documents, pagination } = await paginateQuery(
       ctx,
       ({ offset: queryOffset, limit: queryLimit }) =>
-        Document.withMembershipScope(user.id).findAll({
+        Document.withMembershipScope(user.id, { includeDrafts }).findAll({
           where,
           order: orderClause as Order,
           offset: sort === "index" ? 0 : queryOffset,
@@ -307,7 +322,10 @@ router.post(
             documentIds,
           },
         }),
-      () => Document.count({ where })
+      () =>
+        Document.withMembershipScope(user.id, { includeDrafts }).count({
+          where,
+        })
     );
 
     const data = await presentDocuments(ctx, documents);
