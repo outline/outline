@@ -157,14 +157,6 @@ type AdditionalFindOptions = {
         paranoid: false,
       },
     ],
-    where: {
-      sourceMetadata: {
-        trial: {
-          [Op.is]: null,
-        },
-      },
-      template: false,
-    },
   },
   withViews: (userId: string) => {
     if (!userId) {
