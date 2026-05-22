@@ -68,13 +68,12 @@ export default function createMiddleware(providerName: string) {
             Logger.warn(`OAuth error during authentication: ${err.message}`, {
               code: err.code,
             });
-            return ctx.redirect(`/?notice=auth-error`);
+          } else {
+            Logger.error(
+              "Error during authentication",
+              err instanceof InternalOAuthError ? err.oauthError : err
+            );
           }
-
-          Logger.error(
-            "Error during authentication",
-            err instanceof InternalOAuthError ? err.oauthError : err
-          );
 
           if (err.id) {
             const notice = err.id.replace(/_/g, "-");
