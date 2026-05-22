@@ -403,13 +403,24 @@ async function findUserForRequest(
     return integration.user;
   }
 
-  // Fallback to authentication provider if the user has Slack sign-in
+  // Fallback to authentication provider if the user has Slack sign-in.
+  // Scoped via AuthenticationProvider to the matching Slack workspace so a
+  // colliding providerId from another team/provider cannot resolve.
   const authentication = await UserAuthentication.findOne({
     where: {
       providerId: serviceUserId,
     },
     order: [["createdAt", "DESC"]],
     include: [
+      {
+        model: AuthenticationProvider,
+        as: "authenticationProvider",
+        required: true,
+        where: {
+          name: "slack",
+          providerId: serviceTeamId,
+        },
+      },
       {
         model: User,
         as: "user",
