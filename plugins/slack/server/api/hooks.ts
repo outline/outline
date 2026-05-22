@@ -404,27 +404,29 @@ async function findUserForRequest(
   }
 
   // Fallback to authentication provider if the user has Slack sign-in
-  const user = await User.findOne({
+  const authentication = await UserAuthentication.findOne({
+    where: {
+      providerId: serviceUserId,
+    },
+    order: [["createdAt", "DESC"]],
     include: [
       {
-        where: {
-          providerId: serviceUserId,
-        },
-        order: [["createdAt", "DESC"]],
-        model: UserAuthentication,
-        as: "authentications",
+        model: User,
+        as: "user",
         required: true,
-      },
-      {
-        model: Team,
-        as: "team",
-        required: true,
+        include: [
+          {
+            model: Team,
+            as: "team",
+            required: true,
+          },
+        ],
       },
     ],
   });
 
-  if (user) {
-    return user;
+  if (authentication?.user) {
+    return authentication.user;
   }
 
   return;
