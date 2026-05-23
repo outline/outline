@@ -1,4 +1,5 @@
 import { action, observable } from "mobx";
+import { t } from "i18next";
 import type { EditorState, Selection } from "prosemirror-state";
 import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
@@ -7,10 +8,14 @@ import Extension from "@shared/editor/lib/Extension";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import type { SelectionToolbarMenuDescriptor } from "@shared/editor/types";
+import type {
+  MenuItem,
+  SelectionContext,
+  SelectionToolbarMenuDescriptor,
+} from "@shared/editor/types";
+import { CommentIcon } from "outline-icons";
 import { SelectionToolbar } from "../components/SelectionToolbar";
 import getFormattingMenuItems from "../menus/formatting";
-import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
 
@@ -62,17 +67,27 @@ export default class SelectionToolbarExtension extends Extension {
         id: "read-only",
         priority: 30,
         matches: (ctx) => ctx.readOnly,
-        getItems: (ctx) =>
-          getReadOnlyMenuItems(
-            ctx,
-            this.editor.props.canUpdate ?? false
-          ),
+        getItems: (ctx) => this.readOnlyMenuItems(ctx),
       },
       {
         id: "formatting",
         priority: 0,
         matches: () => true,
         getItems: (ctx) => getFormattingMenuItems(ctx),
+      },
+    ];
+  }
+
+  private readOnlyMenuItems(ctx: SelectionContext): MenuItem[] {
+    const { schema } = ctx;
+    return [
+      {
+        visible: (this.editor.props.canUpdate ?? false) && !ctx.isEmpty,
+        name: "comment",
+        tooltip: t("Comment"),
+        label: t("Comment"),
+        icon: <CommentIcon />,
+        active: isMarkActive(schema.marks.comment),
       },
     ];
   }
