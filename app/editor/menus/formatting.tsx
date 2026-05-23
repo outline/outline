@@ -34,7 +34,7 @@ import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import { t } from "i18next";
-import CircleIcon from "~/components/Icons/CircleIcon";
+import CircleIcon from "@shared/components/Icons/CircleIcon";
 import {
   getColorSetForSelectedCells,
   getDocumentTableBackgroundColors,
@@ -46,7 +46,7 @@ import {
 import type { CellSelection } from "prosemirror-tables";
 import TableCell from "@shared/editor/nodes/TableCell";
 import Highlight from "@shared/editor/marks/Highlight";
-import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
+import { DottedCircleIcon } from "@shared/components/Icons/DottedCircleIcon";
 
 /**
  * Returns menu items for the default formatting selection toolbar.

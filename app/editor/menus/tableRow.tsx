@@ -17,11 +17,11 @@ import {
 } from "@shared/editor/queries/table";
 import { t } from "i18next";
 import type { MenuItem, NodeAttrMark, SelectionContext } from "@shared/editor/types";
-import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
-import CircleIcon from "~/components/Icons/CircleIcon";
+import { ArrowDownIcon, ArrowUpIcon } from "@shared/components/Icons/ArrowIcon";
+import CircleIcon from "@shared/components/Icons/CircleIcon";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import TableCell from "@shared/editor/nodes/TableCell";
-import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
+import { DottedCircleIcon } from "@shared/components/Icons/DottedCircleIcon";
 
 /**
  * Get the set of background colors used in a row.

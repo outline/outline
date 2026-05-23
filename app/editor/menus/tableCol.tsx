@@ -25,11 +25,11 @@ import {
 } from "@shared/editor/queries/table";
 import { t } from "i18next";
 import type { MenuItem, NodeAttrMark, SelectionContext } from "@shared/editor/types";
-import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
-import CircleIcon from "~/components/Icons/CircleIcon";
+import { ArrowLeftIcon, ArrowRightIcon } from "@shared/components/Icons/ArrowIcon";
+import CircleIcon from "@shared/components/Icons/CircleIcon";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import TableCell from "@shared/editor/nodes/TableCell";
-import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
+import { DottedCircleIcon } from "@shared/components/Icons/DottedCircleIcon";
 import type { EditorState } from "prosemirror-state";
 
 /**
