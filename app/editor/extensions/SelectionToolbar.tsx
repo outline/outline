@@ -11,7 +11,7 @@ import type { SelectionToolbarMenuDescriptor } from "@shared/editor/types";
 import { SelectionToolbar } from "../components/SelectionToolbar";
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
-import getDividerMenuItems from "../menus/divider";
+
 import getFormattingMenuItems from "../menus/formatting";
 import getImageMenuItems from "../menus/image";
 import getNoticeMenuItems from "../menus/notice";
@@ -84,11 +84,6 @@ export default class SelectionToolbarExtension extends Extension {
         priority: 50,
         matches: (ctx) => ctx.selectedNodeType === "attachment",
         getItems: (ctx) => getAttachmentMenuItems(ctx),
-      },
-      {
-        priority: 50,
-        matches: (ctx) => ctx.selectedNodeType === "hr",
-        getItems: (ctx) => getDividerMenuItems(ctx),
       },
       {
         priority: 30,
