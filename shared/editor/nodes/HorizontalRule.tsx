@@ -49,11 +49,8 @@ export default class HorizontalRule extends Node {
     return [
       {
         priority: 50,
-        matches: (ctx) => ctx.selectedNodeType === "hr",
+        matches: (ctx) => ctx.selectedNodeType === "hr" && !ctx.readOnly,
         getItems: (ctx) => {
-          if (ctx.readOnly) {
-            return [];
-          }
           const { schema } = ctx;
           return [
             {
