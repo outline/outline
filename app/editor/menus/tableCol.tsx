@@ -23,7 +23,7 @@ import {
   isMultipleCellSelection,
   tableHasRowspan,
 } from "@shared/editor/queries/table";
-import type { TFunction } from "i18next";
+import { t } from "i18next";
 import type { MenuItem, NodeAttrMark, SelectionContext } from "@shared/editor/types";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
@@ -63,12 +63,10 @@ function getColumnColors(state: EditorState, colIndex: number): Set<string> {
  * Returns menu items for the table column selection toolbar.
  *
  * @param ctx - the current selection context.
- * @param t - the i18next translation function.
  * @returns an array of menu items.
  */
 export default function tableColMenuItems(
-  ctx: SelectionContext,
-  t: TFunction
+  ctx: SelectionContext
 ): MenuItem[] {
   if (ctx.readOnly) {
     return [];

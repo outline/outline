@@ -15,7 +15,7 @@ import {
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import type { TFunction } from "i18next";
+import { t } from "i18next";
 import type { MenuItem, NodeAttrMark, SelectionContext } from "@shared/editor/types";
 import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
@@ -54,12 +54,10 @@ function getRowColors(state: EditorState, rowIndex: number): Set<string> {
  * Returns menu items for the table row selection toolbar.
  *
  * @param ctx - the current selection context.
- * @param t - the i18next translation function.
  * @returns an array of menu items.
  */
 export default function tableRowMenuItems(
-  ctx: SelectionContext,
-  t: TFunction
+  ctx: SelectionContext
 ): MenuItem[] {
   if (ctx.readOnly) {
     return [];

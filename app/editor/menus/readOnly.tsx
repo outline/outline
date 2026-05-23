@@ -1,4 +1,4 @@
-import type { TFunction } from "i18next";
+import { t } from "i18next";
 import { CommentIcon } from "outline-icons";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
@@ -8,13 +8,11 @@ import type { MenuItem, SelectionContext } from "@shared/editor/types";
  *
  * @param ctx - the current selection context.
  * @param canUpdate - whether the user has permission to update the document.
- * @param t - the i18next translation function.
  * @returns an array of menu items.
  */
 export default function readOnlyMenuItems(
   ctx: SelectionContext,
-  canUpdate: boolean,
-  t: TFunction
+  canUpdate: boolean
 ): MenuItem[] {
   const { schema } = ctx;
 

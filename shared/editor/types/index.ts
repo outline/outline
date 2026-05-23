@@ -144,8 +144,7 @@ export interface SelectionToolbarMenuDescriptor {
    * Returns the menu items to display for the current selection.
    *
    * @param ctx - the current selection context.
-   * @param t - the i18next translation function.
    * @returns an array of menu items.
    */
-  getItems: (ctx: SelectionContext, t: TFunction) => MenuItem[];
+  getItems: (ctx: SelectionContext) => MenuItem[];
 }
