@@ -1,5 +1,11 @@
 import copy from "copy-to-clipboard";
 import { t } from "i18next";
+import {
+  CopyIcon,
+  EditIcon,
+  ExpandedIcon,
+  TextWrapIcon,
+} from "outline-icons";
 import type Token from "markdown-it/lib/token.mjs";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import type {
@@ -38,6 +44,9 @@ import Mermaid, {
   type MermaidState,
 } from "../extensions/Mermaid";
 import {
+  getFrequentCodeLanguages,
+  codeLanguages,
+  getLabelForLanguage,
   getRecentlyUsedCodeLanguage,
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
@@ -52,6 +61,8 @@ import {
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { getMarkRange } from "../queries/getMarkRange";
 import { isInCode } from "../queries/isInCode";
+import type { MenuItem, SelectionToolbarMenuDescriptor } from "../types";
+import { metaDisplay } from "../../utils/keyboard";
 import Node from "./Node";
 
 const DEFAULT_LANGUAGE = "javascript";
@@ -366,6 +377,102 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         return false;
       },
     };
+  }
+
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [
+      {
+        id: "code",
+        priority: 100,
+        align: "end",
+        matches: (ctx) =>
+          ctx.isInCodeBlock &&
+          (ctx.isEmpty || ctx.selectedNodeType !== undefined),
+        getItems: (ctx) => {
+          const { state, readOnly } = ctx;
+          const node =
+            state.selection instanceof NodeSelection
+              ? state.selection.node
+              : state.selection.$from.node();
+
+          const frequentLanguages = getFrequentCodeLanguages();
+
+          const frequentLangMenuItems = frequentLanguages.map((value) => {
+            const label = codeLanguages[value]?.label;
+            return langToMenuItem({ node, value, label });
+          });
+
+          const remainingLangMenuItems = Object.entries(codeLanguages)
+            .filter(
+              ([value]) =>
+                !frequentLanguages.includes(
+                  value as keyof typeof codeLanguages
+                )
+            )
+            .map(([value, item]) =>
+              langToMenuItem({ node, value, label: item.label })
+            );
+
+          const getLanguageMenuItems = () =>
+            frequentLangMenuItems.length
+              ? [
+                  ...frequentLangMenuItems,
+                  { name: "separator" },
+                  ...remainingLangMenuItems,
+                ]
+              : remainingLangMenuItems;
+
+          const isEditingMermaid = !!(
+            mermaidPluginKey.getState(state) as MermaidState
+          )?.editingId;
+
+          return [
+            {
+              name: "copyToClipboard",
+              icon: <CopyIcon />,
+              label: readOnly
+                ? getLabelForLanguage(node.attrs.language ?? "none")
+                : undefined,
+              tooltip: t("Copy"),
+            },
+            {
+              name: "separator",
+            },
+            {
+              name: "edit_mermaid",
+              icon: <EditIcon />,
+              tooltip: t("Edit diagram"),
+              shortcut: `${metaDisplay} Enter`,
+              visible:
+                isMermaid(node) && !isEditingMermaid && !readOnly,
+            },
+            {
+              name: "separator",
+            },
+            {
+              name: "toggleCodeBlockWrap",
+              icon: <TextWrapIcon />,
+              tooltip: t("Wrap text"),
+              active: () => node.attrs.wrap,
+              visible:
+                !readOnly && (!isMermaid(node) || isEditingMermaid),
+            },
+            {
+              name: "separator",
+            },
+            {
+              name: "code_block",
+              label: getLabelForLanguage(
+                node.attrs.language ?? "none"
+              ),
+              icon: <ExpandedIcon />,
+              children: getLanguageMenuItems(),
+              visible: !readOnly,
+            },
+          ];
+        },
+      },
+    ];
   }
 
   get allowInReadOnly() {
@@ -713,3 +820,20 @@ export default class CodeFence extends Node<CodeFenceOptions> {
     };
   }
 }
+
+const langToMenuItem = ({
+  node,
+  value,
+  label,
+}: {
+  node: ProsemirrorNode;
+  value: string;
+  label: string;
+}): MenuItem => ({
+  name: "code_block",
+  label,
+  active: () => node.attrs.language === value,
+  attrs: {
+    language: value,
+  },
+});
