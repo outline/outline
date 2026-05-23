@@ -4,21 +4,26 @@ import {
   TableColumnsDistributeIcon,
   TrashIcon,
 } from "outline-icons";
-import type { EditorState } from "prosemirror-state";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import type { TFunction } from "i18next";
-import type { MenuItem } from "@shared/editor/types";
+import type { MenuItem, SelectionContext } from "@shared/editor/types";
 import { TableLayout } from "@shared/editor/types";
 
+/**
+ * Returns menu items for the table selection toolbar (full table selected).
+ *
+ * @param ctx - the current selection context.
+ * @param t - the i18next translation function.
+ * @returns an array of menu items.
+ */
 export default function tableMenuItems(
-  state: EditorState,
-  readOnly: boolean,
+  ctx: SelectionContext,
   t: TFunction
 ): MenuItem[] {
-  if (readOnly) {
+  if (ctx.readOnly) {
     return [];
   }
-  const { schema } = state;
+  const { schema, state } = ctx;
 
   const isFullWidth = isNodeActive(schema.nodes.table, {
     layout: TableLayout.fullWidth,

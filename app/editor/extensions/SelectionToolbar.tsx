@@ -7,7 +7,18 @@ import Extension from "@shared/editor/lib/Extension";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
+import type { SelectionToolbarMenuDescriptor } from "@shared/editor/types";
 import { SelectionToolbar } from "../components/SelectionToolbar";
+import getAttachmentMenuItems from "../menus/attachment";
+import getCodeMenuItems from "../menus/code";
+import getDividerMenuItems from "../menus/divider";
+import getFormattingMenuItems from "../menus/formatting";
+import getImageMenuItems from "../menus/image";
+import getNoticeMenuItems from "../menus/notice";
+import getReadOnlyMenuItems from "../menus/readOnly";
+import getTableMenuItems from "../menus/table";
+import getTableColMenuItems from "../menus/tableCol";
+import getTableRowMenuItems from "../menus/tableRow";
 
 export default class SelectionToolbarExtension extends Extension {
   get name() {
@@ -30,6 +41,78 @@ export default class SelectionToolbarExtension extends Extension {
 
   @observable
   state: Selection | boolean = false;
+
+  /**
+   * Returns all selection toolbar menu descriptors. Each descriptor declares
+   * when it matches (via a predicate on SelectionContext) and what items to
+   * show. The toolbar evaluates them in priority order and uses the first
+   * match.
+   *
+   * @returns an array of selection toolbar menu descriptors.
+   */
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [
+      {
+        priority: 100,
+        align: "end",
+        matches: (ctx) =>
+          ctx.isInCodeBlock &&
+          (ctx.isEmpty || ctx.selectedNodeType !== undefined),
+        getItems: (ctx, t) => getCodeMenuItems(ctx, t),
+      },
+      {
+        priority: 90,
+        matches: (ctx) => ctx.isTableSelected,
+        getItems: (ctx, t) => getTableMenuItems(ctx, t),
+      },
+      {
+        priority: 85,
+        matches: (ctx) => ctx.colIndex !== undefined,
+        getItems: (ctx, t) => getTableColMenuItems(ctx, t),
+      },
+      {
+        priority: 80,
+        matches: (ctx) => ctx.rowIndex !== undefined,
+        getItems: (ctx, t) => getTableRowMenuItems(ctx, t),
+      },
+      {
+        priority: 50,
+        matches: (ctx) => ctx.selectedNodeType === "image",
+        getItems: (ctx, t) => getImageMenuItems(ctx, t),
+      },
+      {
+        priority: 50,
+        matches: (ctx) => ctx.selectedNodeType === "attachment",
+        getItems: (ctx, t) => getAttachmentMenuItems(ctx, t),
+      },
+      {
+        priority: 50,
+        matches: (ctx) => ctx.selectedNodeType === "hr",
+        getItems: (ctx, t) => getDividerMenuItems(ctx, t),
+      },
+      {
+        priority: 30,
+        matches: (ctx) => ctx.readOnly,
+        getItems: (ctx, t) =>
+          getReadOnlyMenuItems(
+            ctx,
+            this.editor.props.canUpdate ?? false,
+            t
+          ),
+      },
+      {
+        priority: 20,
+        align: "end",
+        matches: (ctx) => ctx.isInNotice && ctx.isEmpty,
+        getItems: (ctx, t) => getNoticeMenuItems(ctx, t),
+      },
+      {
+        priority: 0,
+        matches: () => true,
+        getItems: (ctx, t) => getFormattingMenuItems(ctx, t),
+      },
+    ];
+  }
 
   private handleUpdate = action((view: EditorView) => {
     const { state } = view;
