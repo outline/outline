@@ -5,7 +5,7 @@ import {
   TrashIcon,
 } from "outline-icons";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import type { TFunction } from "i18next";
+import { t } from "i18next";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
 import { TableLayout } from "@shared/editor/types";
 
@@ -13,12 +13,10 @@ import { TableLayout } from "@shared/editor/types";
  * Returns menu items for the table selection toolbar (full table selected).
  *
  * @param ctx - the current selection context.
- * @param t - the i18next translation function.
  * @returns an array of menu items.
  */
 export default function tableMenuItems(
-  ctx: SelectionContext,
-  t: TFunction
+  ctx: SelectionContext
 ): MenuItem[] {
   if (ctx.readOnly) {
     return [];

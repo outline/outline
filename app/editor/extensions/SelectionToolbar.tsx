@@ -58,58 +58,57 @@ export default class SelectionToolbarExtension extends Extension {
         matches: (ctx) =>
           ctx.isInCodeBlock &&
           (ctx.isEmpty || ctx.selectedNodeType !== undefined),
-        getItems: (ctx, t) => getCodeMenuItems(ctx, t),
+        getItems: (ctx) => getCodeMenuItems(ctx),
       },
       {
         priority: 90,
         matches: (ctx) => ctx.isTableSelected,
-        getItems: (ctx, t) => getTableMenuItems(ctx, t),
+        getItems: (ctx) => getTableMenuItems(ctx),
       },
       {
         priority: 85,
         matches: (ctx) => ctx.colIndex !== undefined,
-        getItems: (ctx, t) => getTableColMenuItems(ctx, t),
+        getItems: (ctx) => getTableColMenuItems(ctx),
       },
       {
         priority: 80,
         matches: (ctx) => ctx.rowIndex !== undefined,
-        getItems: (ctx, t) => getTableRowMenuItems(ctx, t),
+        getItems: (ctx) => getTableRowMenuItems(ctx),
       },
       {
         priority: 50,
         matches: (ctx) => ctx.selectedNodeType === "image",
-        getItems: (ctx, t) => getImageMenuItems(ctx, t),
+        getItems: (ctx) => getImageMenuItems(ctx),
       },
       {
         priority: 50,
         matches: (ctx) => ctx.selectedNodeType === "attachment",
-        getItems: (ctx, t) => getAttachmentMenuItems(ctx, t),
+        getItems: (ctx) => getAttachmentMenuItems(ctx),
       },
       {
         priority: 50,
         matches: (ctx) => ctx.selectedNodeType === "hr",
-        getItems: (ctx, t) => getDividerMenuItems(ctx, t),
+        getItems: (ctx) => getDividerMenuItems(ctx),
       },
       {
         priority: 30,
         matches: (ctx) => ctx.readOnly,
-        getItems: (ctx, t) =>
+        getItems: (ctx) =>
           getReadOnlyMenuItems(
             ctx,
-            this.editor.props.canUpdate ?? false,
-            t
+            this.editor.props.canUpdate ?? false
           ),
       },
       {
         priority: 20,
         align: "end",
         matches: (ctx) => ctx.isInNotice && ctx.isEmpty,
-        getItems: (ctx, t) => getNoticeMenuItems(ctx, t),
+        getItems: (ctx) => getNoticeMenuItems(ctx),
       },
       {
         priority: 0,
         matches: () => true,
-        getItems: (ctx, t) => getFormattingMenuItems(ctx, t),
+        getItems: (ctx) => getFormattingMenuItems(ctx),
       },
     ];
   }

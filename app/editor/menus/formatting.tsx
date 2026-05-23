@@ -33,7 +33,7 @@ import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
-import type { TFunction } from "i18next";
+import { t } from "i18next";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import {
   getColorSetForSelectedCells,
@@ -52,12 +52,10 @@ import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
  * Returns menu items for the default formatting selection toolbar.
  *
  * @param ctx - the current selection context.
- * @param t - the i18next translation function.
  * @returns an array of menu items.
  */
 export default function formattingMenuItems(
-  ctx: SelectionContext,
-  t: TFunction
+  ctx: SelectionContext
 ): MenuItem[] {
   const { schema, state, isTemplate, isMobile, isTouch, isEmpty, isInCode, isInCodeBlock, isInList: isList, isTableCell } = ctx;
 

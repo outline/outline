@@ -1,4 +1,4 @@
-import type { TFunction } from "i18next";
+import { t } from "i18next";
 import {
   DoneIcon,
   ExpandedIcon,
@@ -13,12 +13,10 @@ import type { MenuItem, SelectionContext } from "@shared/editor/types";
  * Returns menu items for the notice/callout selection toolbar.
  *
  * @param ctx - the current selection context.
- * @param t - the i18next translation function.
  * @returns an array of menu items.
  */
 export default function noticeMenuItems(
-  ctx: SelectionContext,
-  t: TFunction
+  ctx: SelectionContext
 ): MenuItem[] {
   const node = ctx.selection.$from.node(-1);
   const currentStyle = node?.attrs.style as NoticeTypes;

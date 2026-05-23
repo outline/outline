@@ -1,4 +1,4 @@
-import type { TFunction } from "i18next";
+import { t } from "i18next";
 import { PageBreakIcon, HorizontalRuleIcon } from "outline-icons";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
@@ -7,12 +7,10 @@ import type { MenuItem, SelectionContext } from "@shared/editor/types";
  * Returns menu items for the divider/page-break selection toolbar.
  *
  * @param ctx - the current selection context.
- * @param t - the i18next translation function.
  * @returns an array of menu items.
  */
 export default function dividerMenuItems(
-  ctx: SelectionContext,
-  t: TFunction
+  ctx: SelectionContext
 ): MenuItem[] {
   if (ctx.readOnly) {
     return [];

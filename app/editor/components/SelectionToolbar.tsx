@@ -2,7 +2,7 @@ import type { EditorState, Selection } from "prosemirror-state";
 import Suggestion from "~/editor/extensions/Suggestion";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { buildSelectionContext } from "@shared/editor/lib/buildSelectionContext";
 import {
@@ -66,7 +66,6 @@ enum Toolbar {
 export function SelectionToolbar(props: Props) {
   const { readOnly = false } = props;
   const { view, extensions, commands, selectionToolbarMenus } = useEditor();
-  const { t } = useTranslation();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isMobile = useMobile();
   const isActive = props.isActive || isMobile;
@@ -216,7 +215,7 @@ export function SelectionToolbar(props: Props) {
   // Find the first matching menu from the registry (sorted by priority)
   const matched = selectionToolbarMenus.find((menu) => menu.matches(ctx));
 
-  let items: MenuItem[] = matched ? matched.getItems(ctx, t) : [];
+  let items: MenuItem[] = matched ? matched.getItems(ctx) : [];
   const align = matched?.align ?? "center";
 
   // Filter out items for disabled extensions or invisible items
