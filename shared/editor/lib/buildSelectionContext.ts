@@ -9,7 +9,11 @@ import {
   getRowIndex,
   isTableSelected,
 } from "../queries/table";
-import { isMobile as isMobileDevice, isTouchDevice } from "../../utils/browser";
+import {
+  isMobile as isMobileDevice,
+  isTouchDevice,
+  isBrowser,
+} from "../../utils/browser";
 import type { SelectionContext } from "../types";
 
 /**
@@ -43,6 +47,7 @@ export function buildSelectionContext(
     isInNotice: isInNotice(state),
     isTableCell: selection instanceof CellSelection,
     isTableSelected: isTableSelected(state),
+    isElectron: isBrowser && !!navigator?.userAgent?.includes("Electron"),
     selectedNodeType:
       selection instanceof NodeSelection
         ? selection.node.type.name

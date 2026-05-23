@@ -6,6 +6,18 @@ import type {
   NodeSpec,
   NodeType,
 } from "prosemirror-model";
+import {
+  TrashIcon,
+  DownloadIcon,
+  ReplaceIcon,
+  AlignImageLeftIcon,
+  AlignImageRightIcon,
+  AlignImageCenterIcon,
+  AlignFullWidthIcon,
+  EditIcon,
+  CommentIcon,
+  LinkIcon,
+} from "outline-icons";
 import type { Command } from "prosemirror-state";
 import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import * as React from "react";
@@ -14,7 +26,10 @@ import Caption from "../components/Caption";
 import ImageComponent from "../components/Image";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import type { ComponentProps } from "../types";
+import { isMarkActive } from "../queries/isMarkActive";
+import { isNodeActive } from "../queries/isNodeActive";
+import type { ComponentProps, SelectionToolbarMenuDescriptor } from "../types";
+import { metaDisplay } from "../../utils/keyboard";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import { ImageSource } from "../lib/FileHelper";
@@ -458,6 +473,132 @@ export default class Image extends SimpleImage {
     return {
       "Mod-Alt-m": addComment({ userId: this.options.userId }),
     };
+  }
+
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [
+      {
+        id: "image",
+        priority: 50,
+        matches: (ctx) =>
+          ctx.selectedNodeType === "image" && !ctx.readOnly,
+        getItems: (ctx) => {
+          const { schema, state } = ctx;
+          const isLeftAligned = isNodeActive(schema.nodes.image, {
+            layoutClass: "left-50",
+          });
+          const isRightAligned = isNodeActive(schema.nodes.image, {
+            layoutClass: "right-50",
+          });
+          const isFullWidthAligned = isNodeActive(schema.nodes.image, {
+            layoutClass: "full-width",
+          });
+          const isDiagram = isNodeActive(schema.nodes.image, {
+            source: ImageSource.DiagramsNet,
+          });
+          const isEmptyDiagram = isNodeActive(schema.nodes.image, {
+            source: ImageSource.DiagramsNet,
+            src: "",
+          });
+
+          return [
+            {
+              name: "alignLeft",
+              tooltip: t("Align left"),
+              icon: <AlignImageLeftIcon />,
+              active: isLeftAligned,
+              visible: !isEmptyDiagram(state),
+            },
+            {
+              name: "alignCenter",
+              tooltip: t("Align center"),
+              icon: <AlignImageCenterIcon />,
+              active: (state) =>
+                isNodeActive(schema.nodes.image)(state) &&
+                !isLeftAligned(state) &&
+                !isRightAligned(state) &&
+                !isFullWidthAligned(state),
+              visible: !isEmptyDiagram(state),
+            },
+            {
+              name: "alignRight",
+              tooltip: t("Align right"),
+              icon: <AlignImageRightIcon />,
+              active: isRightAligned,
+              visible: !isEmptyDiagram(state),
+            },
+            {
+              name: "alignFullWidth",
+              tooltip: t("Full width"),
+              icon: <AlignFullWidthIcon />,
+              active: isFullWidthAligned,
+              visible: !isEmptyDiagram(state),
+            },
+            {
+              name: "separator",
+            },
+            {
+              name: "dimensions",
+              tooltip: `${t("Width")} × ${t("Height")}`,
+              visible:
+                !isFullWidthAligned(state) && !isEmptyDiagram(state),
+              skipIcon: true,
+            },
+            {
+              name: "separator",
+            },
+            {
+              name: "editDiagram",
+              tooltip: t("Edit diagram"),
+              icon: <EditIcon />,
+              visible: isDiagram(state) && !ctx.isElectron,
+            },
+            {
+              name: "downloadImage",
+              tooltip: t("Download image"),
+              icon: <DownloadIcon />,
+              visible: !!fetch && !isEmptyDiagram(state),
+            },
+            {
+              tooltip: t("Replace image"),
+              icon: <ReplaceIcon />,
+              visible: !isDiagram(state),
+              children: [
+                {
+                  name: "replaceImage",
+                  label: t("Upload an image"),
+                },
+                {
+                  name: "editImageUrl",
+                  label: t("Edit image URL"),
+                },
+              ],
+            },
+            {
+              name: "deleteImage",
+              tooltip: t("Delete image"),
+              icon: <TrashIcon />,
+            },
+            {
+              name: "separator",
+            },
+            {
+              name: "linkOnImage",
+              tooltip: t("Create link"),
+              shortcut: `${metaDisplay}+K`,
+              active: isMarkActive(schema.marks.link),
+              icon: <LinkIcon />,
+            },
+            {
+              name: "commentOnImage",
+              tooltip: t("Comment"),
+              shortcut: `${metaDisplay}+⌥+M`,
+              icon: <CommentIcon />,
+            },
+          ];
+        },
+      },
+    ];
   }
 
   commands({ type }: { type: NodeType }) {

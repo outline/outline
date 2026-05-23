@@ -112,6 +112,8 @@ export interface SelectionContext {
   isTableSelected: boolean;
   /** The node type name when a NodeSelection is active, otherwise undefined. */
   selectedNodeType: string | undefined;
+  /** Whether the app is running inside the Electron desktop wrapper. */
+  isElectron: boolean;
   /** The selected column index when a column drag handle is active. */
   colIndex: number | undefined;
   /** The selected row index when a row drag handle is active. */

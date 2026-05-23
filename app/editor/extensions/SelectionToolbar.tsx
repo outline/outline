@@ -10,7 +10,6 @@ import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import type { SelectionToolbarMenuDescriptor } from "@shared/editor/types";
 import { SelectionToolbar } from "../components/SelectionToolbar";
 import getFormattingMenuItems from "../menus/formatting";
-import getImageMenuItems from "../menus/image";
 import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
@@ -58,12 +57,6 @@ export default class SelectionToolbarExtension extends Extension {
         priority: 80,
         matches: (ctx) => ctx.rowIndex !== undefined,
         getItems: (ctx) => getTableRowMenuItems(ctx),
-      },
-      {
-        id: "image",
-        priority: 50,
-        matches: (ctx) => ctx.selectedNodeType === "image",
-        getItems: (ctx) => getImageMenuItems(ctx),
       },
       {
         id: "read-only",
