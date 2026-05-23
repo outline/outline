@@ -61,12 +61,14 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
   const parentContext = useContext(ActionContext);
   const stores = useStores();
   const { t } = useTranslation();
+
   // Use history (stable reference) and read location lazily via a getter so
   // navigation does not invalidate the context value. Action perform/visible
   // callbacks see the current location at call time.
   const history = useHistory();
   const locationRef = useRef(history.location);
   locationRef.current = history.location;
+
   const {
     activeModels: valueModels,
     isMenu,
@@ -78,7 +80,7 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
 
   // Track membership of stores.ui.activeModels so memos invalidate when it changes.
   // Reading inside the observer-wrapped render keeps MobX subscriptions intact.
-  const activeModelsSize = stores.ui.activeModels.size;
+  const activeModelsKey = Array.from(stores.ui.activeModels.keys()).join(",");
   const activeCollectionIdFromStore = stores.ui.activeCollectionId ?? undefined;
   const activeDocumentIdFromStore = stores.ui.activeDocumentId ?? undefined;
   const currentUserId = stores.auth.user?.id;
@@ -124,10 +126,8 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
       return new Set([...base, ...valueModels]);
     }
     return base;
-    // activeModelsSize is included so the memo invalidates when membership of
-    // stores.ui.activeModels changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [parentContext, stores, valueModels, activeModelsSize]);
+  }, [parentContext, stores, valueModels, activeModelsKey]);
 
   const isModelActive = useCallback(
     (model: Model): boolean => allActiveModels.has(model),
@@ -152,9 +152,7 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
 
       currentUserId,
       currentTeamId,
-      // Placeholder — replaced below with a getter so navigation does not
-      // invalidate this memo. Consumers reading `ctx.location` get the
-      // current location at access time.
+      // Consumers reading `ctx.location` get the current location at access time.
       location: locationRef.current,
       stores,
       t,
