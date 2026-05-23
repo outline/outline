@@ -10,24 +10,29 @@ import {
   CommentIcon,
   LinkIcon,
 } from "outline-icons";
-import type { EditorState } from "prosemirror-state";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import type { TFunction } from "i18next";
-import type { MenuItem } from "@shared/editor/types";
+import type { MenuItem, SelectionContext } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import { ImageSource } from "@shared/editor/lib/FileHelper";
 import Desktop from "~/utils/Desktop";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
+import type { TFunction } from "i18next";
 
+/**
+ * Returns menu items for the image selection toolbar.
+ *
+ * @param ctx - the current selection context.
+ * @param t - the i18next translation function.
+ * @returns an array of menu items.
+ */
 export default function imageMenuItems(
-  state: EditorState,
-  readOnly: boolean,
+  ctx: SelectionContext,
   t: TFunction
 ): MenuItem[] {
-  if (readOnly) {
+  if (ctx.readOnly) {
     return [];
   }
-  const { schema } = state;
+  const { schema, state } = ctx;
   const isLeftAligned = isNodeActive(schema.nodes.image, {
     layoutClass: "left-50",
   });
