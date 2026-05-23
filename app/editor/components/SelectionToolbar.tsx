@@ -215,7 +215,15 @@ export function SelectionToolbar(props: Props) {
   // Find the first matching menu from the registry (sorted by priority)
   const matched = selectionToolbarMenus.find((menu) => menu.matches(ctx));
 
+  const menuId = matched?.id ?? "";
   let items: MenuItem[] = matched ? matched.getItems(ctx) : [];
+
+  // Collect contributed items from all extensions for the active menu
+  const contributed = extensions.selectionToolbarItems(ctx, menuId);
+  if (contributed.length) {
+    items = [...items, { name: "separator" }, ...contributed];
+  }
+
   const align = matched?.align ?? "center";
 
   // Filter out items for disabled extensions or invisible items

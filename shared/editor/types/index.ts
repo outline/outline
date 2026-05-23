@@ -124,6 +124,8 @@ export interface SelectionContext {
  * pick the right menu for the current selection.
  */
 export interface SelectionToolbarMenuDescriptor {
+  /** Unique identifier for this menu, used by extensions contributing items. */
+  id: string;
   /**
    * Predicate that returns true when this menu should be shown for the
    * current selection. The first matching menu (by priority) wins.

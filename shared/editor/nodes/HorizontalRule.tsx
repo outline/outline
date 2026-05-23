@@ -48,6 +48,7 @@ export default class HorizontalRule extends Node {
   selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
     return [
       {
+        id: "hr",
         priority: 50,
         matches: (ctx) => ctx.selectedNodeType === "hr" && !ctx.readOnly,
         getItems: (ctx) => {

@@ -53,6 +53,7 @@ export default class SelectionToolbarExtension extends Extension {
   selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
     return [
       {
+        id: "code",
         priority: 100,
         align: "end",
         matches: (ctx) =>
@@ -61,31 +62,37 @@ export default class SelectionToolbarExtension extends Extension {
         getItems: (ctx) => getCodeMenuItems(ctx),
       },
       {
+        id: "table",
         priority: 90,
         matches: (ctx) => ctx.isTableSelected,
         getItems: (ctx) => getTableMenuItems(ctx),
       },
       {
+        id: "table-col",
         priority: 85,
         matches: (ctx) => ctx.colIndex !== undefined,
         getItems: (ctx) => getTableColMenuItems(ctx),
       },
       {
+        id: "table-row",
         priority: 80,
         matches: (ctx) => ctx.rowIndex !== undefined,
         getItems: (ctx) => getTableRowMenuItems(ctx),
       },
       {
+        id: "image",
         priority: 50,
         matches: (ctx) => ctx.selectedNodeType === "image",
         getItems: (ctx) => getImageMenuItems(ctx),
       },
       {
+        id: "attachment",
         priority: 50,
         matches: (ctx) => ctx.selectedNodeType === "attachment",
         getItems: (ctx) => getAttachmentMenuItems(ctx),
       },
       {
+        id: "read-only",
         priority: 30,
         matches: (ctx) => ctx.readOnly,
         getItems: (ctx) =>
@@ -95,12 +102,14 @@ export default class SelectionToolbarExtension extends Extension {
           ),
       },
       {
+        id: "notice",
         priority: 20,
         align: "end",
         matches: (ctx) => ctx.isInNotice && ctx.isEmpty,
         getItems: (ctx) => getNoticeMenuItems(ctx),
       },
       {
+        id: "formatting",
         priority: 0,
         matches: () => true,
         getItems: (ctx) => getFormattingMenuItems(ctx),

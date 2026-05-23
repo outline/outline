@@ -8,7 +8,11 @@ import type { Primitive } from "utility-types";
 import type { Editor } from "~/editor";
 import type Mark from "../marks/Mark";
 import type Node from "../nodes/Node";
-import type { SelectionToolbarMenuDescriptor } from "../types";
+import type {
+  MenuItem,
+  SelectionContext,
+  SelectionToolbarMenuDescriptor,
+} from "../types";
 import type { CommandFactory, WidgetProps } from "./Extension";
 import type Extension from "./Extension";
 import type { AnyExtension, AnyExtensionClass } from "./types";
@@ -245,6 +249,20 @@ export default class ExtensionManager {
     return this.extensions
       .flatMap((extension) => extension.selectionToolbarMenus())
       .sort((a, b) => b.priority - a.priority);
+  }
+
+  /**
+   * Collects contributed menu items from all extensions for the given
+   * selection context and active menu.
+   *
+   * @param ctx - the current selection context.
+   * @param menuId - the id of the matched menu being displayed.
+   * @returns a flat array of menu items from all extensions.
+   */
+  selectionToolbarItems(ctx: SelectionContext, menuId: string): MenuItem[] {
+    return this.extensions.flatMap((extension) =>
+      extension.selectionToolbarItems(ctx, menuId)
+    );
   }
 
   commands({ schema, view }: { schema: Schema; view: EditorView }) {
