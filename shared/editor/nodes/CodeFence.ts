@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import type { Primitive } from "utility-types";
 import type { UserPreferences } from "../../types";
 import { isBrowser, isMac } from "../../utils/browser";
+import { addComment } from "../commands/comment";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import {
   newlineInCode,
@@ -151,6 +152,8 @@ function buildCollapseState(
 type CodeFenceOptions = {
   /** Display preferences for the logged in user, if any. */
   userPreferences?: UserPreferences | null;
+  /** The id of the current user, used for comment attribution. */
+  userId?: string;
 };
 
 export default class CodeFence extends Node<CodeFenceOptions> {
@@ -177,6 +180,9 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         wrap: {
           default: false,
           validate: "boolean",
+        },
+        marks: {
+          default: undefined,
         },
       },
       content: "text*",
@@ -333,6 +339,8 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         }
         return true;
       },
+      commentOnMermaid: (): Command =>
+        addComment({ userId: this.options.userId }),
       copyToClipboard: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
 

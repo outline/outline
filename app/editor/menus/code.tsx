@@ -1,4 +1,10 @@
-import { CopyIcon, EditIcon, ExpandedIcon, TextWrapIcon } from "outline-icons";
+import {
+  CommentIcon,
+  CopyIcon,
+  EditIcon,
+  ExpandedIcon,
+  TextWrapIcon,
+} from "outline-icons";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { NodeSelection } from "prosemirror-state";
 import type { EditorState } from "prosemirror-state";
@@ -69,6 +75,13 @@ export default function codeMenuItems(
       icon: <EditIcon />,
       tooltip: t("Edit diagram"),
       shortcut: `${metaDisplay} Enter`,
+      visible: isMermaid(node) && !isEditingMermaid && !readOnly,
+    },
+    {
+      name: "commentOnMermaid",
+      icon: <CommentIcon />,
+      tooltip: t("Comment"),
+      shortcut: `${metaDisplay}+⌥+M`,
       visible: isMermaid(node) && !isEditingMermaid && !readOnly,
     },
     {
