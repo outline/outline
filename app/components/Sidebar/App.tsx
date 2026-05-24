@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import {
@@ -71,11 +71,15 @@ function AppSidebar() {
     [dndArea]
   );
 
+  // Scrollable reads ref.current internally for its shadow/ResizeObserver
+  // logic, so we must pass an object ref — a callback ref would leave those
+  // reads undefined. We mirror the attached node into state so the
+  // SidebarScrollProvider can re-render descendants with the scroll element.
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollArea, setScrollArea] = useState<HTMLElement | null>(null);
-  const handleScrollRef = useCallback(
-    (node: HTMLElement | null) => setScrollArea(node),
-    []
-  );
+  useEffect(() => {
+    setScrollArea(scrollRef.current);
+  }, []);
 
   return (
     <Sidebar hidden={!ui.readyToShow} ref={handleSidebarRef}>
@@ -130,7 +134,7 @@ function AppSidebar() {
                 {can.createDocument && <DraftsLink />}
               </Section>
             </Overflow>
-            <Scrollable flex shadow ref={handleScrollRef}>
+            <Scrollable flex shadow ref={scrollRef}>
               <SidebarScrollProvider value={scrollArea}>
                 <Section>
                   <Starred />
