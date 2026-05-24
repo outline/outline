@@ -3,6 +3,10 @@ import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import {
+  DragActiveProvider,
+  SidebarScrollProvider,
+} from "./components/DragActiveContext";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
@@ -67,78 +71,88 @@ function AppSidebar() {
     [dndArea]
   );
 
+  const [scrollArea, setScrollArea] = useState<HTMLElement | null>(null);
+  const handleScrollRef = useCallback(
+    (node: HTMLElement | null) => setScrollArea(node),
+    []
+  );
+
   return (
     <Sidebar hidden={!ui.readyToShow} ref={handleSidebarRef}>
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
-          <DragPlaceholder />
+          <DragActiveProvider>
+            <DragPlaceholder />
 
-          <TeamMenu>
-            <SidebarButton
-              title={team.name}
-              image={<TeamLogo model={team} size={24} alt={t("Logo")} />}
-            >
-              {isMobile ? null : (
-                <Tooltip
-                  content={t("Toggle sidebar")}
-                  shortcut={`${metaDisplay}+.`}
-                >
-                  <ToggleButton
-                    position="bottom"
-                    image={<SidebarIcon />}
-                    aria-label={
-                      ui.sidebarCollapsed
-                        ? t("Expand sidebar")
-                        : t("Collapse sidebar")
-                    }
-                    style={{ paddingInline: 4 }}
-                    onClick={() => {
-                      ui.toggleCollapsedSidebar();
-                      (document.activeElement as HTMLElement)?.blur();
-                    }}
-                  />
-                </Tooltip>
-              )}
-            </SidebarButton>
-          </TeamMenu>
-          <Overflow>
-            <Section>
-              <SidebarLink
-                to={homePath()}
-                icon={<HomeIcon />}
-                exact={false}
-                label={t("Home")}
-              />
-              <SidebarLink
-                to={searchPath()}
-                icon={<SearchIcon />}
-                label={t("Search")}
-                exact={false}
-                onClick={handleSearchClick}
-              />
-              {can.createDocument && <DraftsLink />}
-            </Section>
-          </Overflow>
-          <Scrollable flex shadow>
-            <Section>
-              <Starred />
-            </Section>
-            <Section>
-              <SharedWithMe />
-            </Section>
-            <Section>
-              <Collections />
-            </Section>
-            {can.createDocument && (
-              <Section auto>
-                <ArchiveLink />
+            <TeamMenu>
+              <SidebarButton
+                title={team.name}
+                image={<TeamLogo model={team} size={24} alt={t("Logo")} />}
+              >
+                {isMobile ? null : (
+                  <Tooltip
+                    content={t("Toggle sidebar")}
+                    shortcut={`${metaDisplay}+.`}
+                  >
+                    <ToggleButton
+                      position="bottom"
+                      image={<SidebarIcon />}
+                      aria-label={
+                        ui.sidebarCollapsed
+                          ? t("Expand sidebar")
+                          : t("Collapse sidebar")
+                      }
+                      style={{ paddingInline: 4 }}
+                      onClick={() => {
+                        ui.toggleCollapsedSidebar();
+                        (document.activeElement as HTMLElement)?.blur();
+                      }}
+                    />
+                  </Tooltip>
+                )}
+              </SidebarButton>
+            </TeamMenu>
+            <Overflow>
+              <Section>
+                <SidebarLink
+                  to={homePath()}
+                  icon={<HomeIcon />}
+                  exact={false}
+                  label={t("Home")}
+                />
+                <SidebarLink
+                  to={searchPath()}
+                  icon={<SearchIcon />}
+                  label={t("Search")}
+                  exact={false}
+                  onClick={handleSearchClick}
+                />
+                {can.createDocument && <DraftsLink />}
               </Section>
-            )}
-            <Section>
-              {can.createDocument && <TrashLink />}
-              <SidebarAction action={inviteUser} />
-            </Section>
-          </Scrollable>
+            </Overflow>
+            <Scrollable flex shadow ref={handleScrollRef}>
+              <SidebarScrollProvider value={scrollArea}>
+                <Section>
+                  <Starred />
+                </Section>
+                <Section>
+                  <SharedWithMe />
+                </Section>
+                <Section>
+                  <Collections />
+                </Section>
+                {can.createDocument && (
+                  <Section auto>
+                    <ArchiveLink />
+                  </Section>
+                )}
+                <Section>
+                  {can.createDocument && <TrashLink />}
+                  <SidebarAction action={inviteUser} />
+                </Section>
+              </SidebarScrollProvider>
+            </Scrollable>
+          </DragActiveProvider>
         </DndProvider>
       )}
       <HistoryNavigation />

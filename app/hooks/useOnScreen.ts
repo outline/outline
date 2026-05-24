@@ -7,8 +7,16 @@ const isSupported = "IntersectionObserver" in window;
  *
  * @returns boolean if the node is visible
  */
-export default function useOnScreen(ref: React.RefObject<HTMLElement>) {
+export default function useOnScreen(
+  ref: React.RefObject<HTMLElement>,
+  options?: IntersectionObserverInit
+) {
   const [isIntersecting, setIntersecting] = React.useState(!isSupported);
+  const root = options?.root;
+  const rootMargin = options?.rootMargin;
+  const threshold = Array.isArray(options?.threshold)
+    ? options?.threshold.join(",")
+    : options?.threshold;
 
   React.useEffect(() => {
     const element = ref.current;
@@ -16,9 +24,8 @@ export default function useOnScreen(ref: React.RefObject<HTMLElement>) {
 
     if (isSupported) {
       observer = new IntersectionObserver(([entry]) => {
-        // Update our state when observer callback fires
         setIntersecting(entry.isIntersecting);
-      });
+      }, options);
     }
 
     if (element) {
@@ -29,7 +36,9 @@ export default function useOnScreen(ref: React.RefObject<HTMLElement>) {
         observer?.unobserve(element);
       }
     };
-  }, [ref]);
+    // Re-create when option primitives change; options object identity ignored
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ref, root, rootMargin, threshold]);
 
   return isIntersecting;
 }
