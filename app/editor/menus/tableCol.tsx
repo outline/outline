@@ -14,7 +14,6 @@ import {
   SortDescendingIcon,
   TableColumnsDistributeIcon,
 } from "outline-icons";
-import type { EditorState } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
@@ -24,16 +23,21 @@ import {
   isMultipleCellSelection,
   tableHasRowspan,
 } from "@shared/editor/queries/table";
-import type { TFunction } from "i18next";
-import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
-import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
-import CircleIcon from "~/components/Icons/CircleIcon";
+import { t } from "i18next";
+import type { MenuItem, NodeAttrMark, SelectionContext } from "@shared/editor/types";
+import { ArrowLeftIcon, ArrowRightIcon } from "@shared/components/Icons/ArrowIcon";
+import CircleIcon from "@shared/components/Icons/CircleIcon";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import TableCell from "@shared/editor/nodes/TableCell";
-import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
+import { DottedCircleIcon } from "@shared/components/Icons/DottedCircleIcon";
+import type { EditorState } from "prosemirror-state";
 
 /**
- * Get the set of background colors used in a column
+ * Get the set of background colors used in a column.
+ *
+ * @param state - the current editor state.
+ * @param colIndex - the column index.
+ * @returns a set of hex color strings.
  */
 function getColumnColors(state: EditorState, colIndex: number): Set<string> {
   const colors = new Set<string>();
@@ -55,21 +59,23 @@ function getColumnColors(state: EditorState, colIndex: number): Set<string> {
   return colors;
 }
 
+/**
+ * Returns menu items for the table column selection toolbar.
+ *
+ * @param ctx - the current selection context.
+ * @returns an array of menu items.
+ */
 export default function tableColMenuItems(
-  state: EditorState,
-  readOnly: boolean,
-  t: TFunction,
-  options: {
-    index: number;
-    rtl: boolean;
-  }
+  ctx: SelectionContext
 ): MenuItem[] {
-  if (readOnly) {
+  if (ctx.readOnly) {
     return [];
   }
 
-  const { index, rtl } = options;
-  const { schema, selection } = state;
+  const index = ctx.colIndex!;
+  const rtl = ctx.rtl;
+  const { schema, state } = ctx;
+  const { selection } = state;
   const selectedCols = getAllSelectedColumns(state);
 
   if (!(selection instanceof CellSelection)) {

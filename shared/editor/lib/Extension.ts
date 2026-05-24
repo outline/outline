@@ -3,6 +3,11 @@ import type { InputRule } from "prosemirror-inputrules";
 import type { NodeType, MarkType, Schema } from "prosemirror-model";
 import type { Command, Plugin, Selection } from "prosemirror-state";
 import type { Editor } from "../../../app/editor";
+import type {
+  MenuItem,
+  SelectionContext,
+  SelectionToolbarMenuDescriptor,
+} from "../types";
 
 export type CommandFactory = (attrs?: unknown, options?: unknown) => Command;
 
@@ -107,5 +112,33 @@ export default class Extension<TOptions extends object = object> {
     schema: Schema;
   }): Record<string, CommandFactory> | CommandFactory | undefined {
     return {};
+  }
+
+  /**
+   * Declares selection toolbar menus contributed by this extension. When
+   * the user selects content or clicks a node, the toolbar evaluates all
+   * registered menus in priority order and displays the first match.
+   *
+   * @returns an array of menu descriptors, or an empty array if this extension does not contribute menus.
+   */
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [];
+  }
+
+  /**
+   * Returns menu items to be merged into the active selection toolbar menu.
+   * Unlike `selectionToolbarMenus()` which provides entire menus, this method
+   * lets extensions contribute individual items to menus owned by other
+   * extensions.
+   *
+   * @param ctx - the current selection context.
+   * @param menuId - the id of the matched menu that will be displayed.
+   * @returns an array of menu items to append, or an empty array.
+   */
+  selectionToolbarItems(
+    _ctx: SelectionContext,
+    _menuId: string
+  ): MenuItem[] {
+    return [];
   }
 }

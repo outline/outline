@@ -1,7 +1,14 @@
+import { t } from "i18next";
 import { chainCommands } from "prosemirror-commands";
 import { InputRule } from "prosemirror-inputrules";
 import type { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
+import {
+  AlignFullWidthIcon,
+  DownloadIcon,
+  TableColumnsDistributeIcon,
+  TrashIcon,
+} from "outline-icons";
 import {
   addColumnAfter,
   addRowAfter,
@@ -45,7 +52,11 @@ import { FixTablesPlugin } from "../plugins/FixTablesPlugin";
 import { TableLayoutPlugin } from "../plugins/TableLayoutPlugin";
 import tablesRule from "../rules/tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import type { TableLayout } from "../types";
+import { isNodeActive } from "../queries/isNodeActive";
+import { TableLayout } from "../types";
+import type {
+  SelectionToolbarMenuDescriptor,
+} from "../types";
 import Node from "./Node";
 import { TableView } from "./TableView";
 
@@ -83,6 +94,62 @@ export default class Table extends Node {
 
   get rulePlugins() {
     return [tablesRule];
+  }
+
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [
+      {
+        id: "table",
+        priority: 90,
+        matches: (ctx) => ctx.isTableSelected && !ctx.readOnly,
+        getItems: (ctx) => {
+          const { schema, state } = ctx;
+          const isFullWidth = isNodeActive(schema.nodes.table, {
+            layout: TableLayout.fullWidth,
+          })(state);
+
+          return [
+            {
+              name: "setTableAttr",
+              tooltip: isFullWidth
+                ? t("Default width")
+                : t("Full width"),
+              icon: <AlignFullWidthIcon />,
+              attrs: isFullWidth
+                ? { layout: null }
+                : { layout: TableLayout.fullWidth },
+              active: () => isFullWidth,
+            },
+            {
+              name: "distributeColumns",
+              tooltip: t("Distribute columns"),
+              icon: <TableColumnsDistributeIcon />,
+            },
+            {
+              name: "separator",
+            },
+            {
+              name: "deleteTable",
+              tooltip: t("Delete table"),
+              icon: <TrashIcon />,
+            },
+            {
+              name: "separator",
+            },
+            {
+              name: "exportTable",
+              tooltip: t("Export as CSV"),
+              label: "CSV",
+              attrs: {
+                format: "csv",
+                fileName: `${window.document.title}.csv`,
+              },
+              icon: <DownloadIcon />,
+            },
+          ];
+        },
+      },
+    ];
   }
 
   commands() {

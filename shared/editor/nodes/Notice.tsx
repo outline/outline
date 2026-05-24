@@ -1,5 +1,12 @@
+import { t } from "i18next";
 import type Token from "markdown-it/lib/token.mjs";
-import { WarningIcon, InfoIcon, StarredIcon, DoneIcon } from "outline-icons";
+import {
+  WarningIcon,
+  InfoIcon,
+  StarredIcon,
+  DoneIcon,
+  ExpandedIcon,
+} from "outline-icons";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import type {
   NodeSpec,
@@ -13,6 +20,7 @@ import type { Primitive } from "utility-types";
 import toggleWrap from "../commands/toggleWrap";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import noticesRule from "../rules/notices";
+import type { SelectionToolbarMenuDescriptor } from "../types";
 import Node from "./Node";
 
 export enum NoticeTypes {
@@ -122,6 +130,63 @@ export default class Notice extends Node {
         ];
       },
     };
+  }
+
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [
+      {
+        id: "notice",
+        priority: 20,
+        align: "end",
+        matches: (ctx) => ctx.isInNotice && ctx.isEmpty,
+        getItems: (ctx) => {
+          const node = ctx.selection.$from.node(-1);
+          const currentStyle = node?.attrs.style as NoticeTypes;
+
+          const mapping = {
+            [NoticeTypes.Info]: t("Info notice"),
+            [NoticeTypes.Warning]: t("Warning notice"),
+            [NoticeTypes.Success]: t("Success notice"),
+            [NoticeTypes.Tip]: t("Tip notice"),
+          };
+
+          return [
+            {
+              name: "container_notice",
+              visible: !ctx.readOnly,
+              label: mapping[currentStyle],
+              icon: <ExpandedIcon />,
+              children: [
+                {
+                  name: NoticeTypes.Info,
+                  icon: <InfoIcon />,
+                  label: t("Info notice"),
+                  active: () => currentStyle === NoticeTypes.Info,
+                },
+                {
+                  name: NoticeTypes.Success,
+                  icon: <DoneIcon />,
+                  label: t("Success notice"),
+                  active: () => currentStyle === NoticeTypes.Success,
+                },
+                {
+                  name: NoticeTypes.Warning,
+                  icon: <WarningIcon />,
+                  label: t("Warning notice"),
+                  active: () => currentStyle === NoticeTypes.Warning,
+                },
+                {
+                  name: NoticeTypes.Tip,
+                  icon: <StarredIcon />,
+                  label: t("Tip notice"),
+                  active: () => currentStyle === NoticeTypes.Tip,
+                },
+              ],
+            },
+          ];
+        },
+      },
+    ];
   }
 
   commands({ type }: { type: NodeType }) {

@@ -1,4 +1,5 @@
 import { action, observable } from "mobx";
+import { t } from "i18next";
 import type { EditorState, Selection } from "prosemirror-state";
 import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
@@ -7,7 +8,16 @@ import Extension from "@shared/editor/lib/Extension";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
+import type {
+  MenuItem,
+  SelectionContext,
+  SelectionToolbarMenuDescriptor,
+} from "@shared/editor/types";
+import { CommentIcon } from "outline-icons";
 import { SelectionToolbar } from "../components/SelectionToolbar";
+import getFormattingMenuItems from "../menus/formatting";
+import getTableColMenuItems from "../menus/tableCol";
+import getTableRowMenuItems from "../menus/tableRow";
 
 export default class SelectionToolbarExtension extends Extension {
   get name() {
@@ -30,6 +40,57 @@ export default class SelectionToolbarExtension extends Extension {
 
   @observable
   state: Selection | boolean = false;
+
+  /**
+   * Returns all selection toolbar menu descriptors. Each descriptor declares
+   * when it matches (via a predicate on SelectionContext) and what items to
+   * show. The toolbar evaluates them in priority order and uses the first
+   * match.
+   *
+   * @returns an array of selection toolbar menu descriptors.
+   */
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [
+      {
+        id: "table-col",
+        priority: 85,
+        matches: (ctx) => ctx.colIndex !== undefined,
+        getItems: (ctx) => getTableColMenuItems(ctx),
+      },
+      {
+        id: "table-row",
+        priority: 80,
+        matches: (ctx) => ctx.rowIndex !== undefined,
+        getItems: (ctx) => getTableRowMenuItems(ctx),
+      },
+      {
+        id: "read-only",
+        priority: 30,
+        matches: (ctx) => ctx.readOnly,
+        getItems: (ctx) => this.readOnlyMenuItems(ctx),
+      },
+      {
+        id: "formatting",
+        priority: 0,
+        matches: () => true,
+        getItems: (ctx) => getFormattingMenuItems(ctx),
+      },
+    ];
+  }
+
+  private readOnlyMenuItems(ctx: SelectionContext): MenuItem[] {
+    const { schema } = ctx;
+    return [
+      {
+        visible: (this.editor.props.canUpdate ?? false) && !ctx.isEmpty,
+        name: "comment",
+        tooltip: t("Comment"),
+        label: t("Comment"),
+        icon: <CommentIcon />,
+        active: isMarkActive(schema.marks.comment),
+      },
+    ];
+  }
 
   private handleUpdate = action((view: EditorView) => {
     const { state } = view;

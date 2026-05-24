@@ -25,22 +25,16 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import HighlightColorPicker from "../components/HighlightColorPicker";
-import type { EditorState } from "prosemirror-state";
 
 import { getDocumentHighlightColors } from "@shared/editor/queries/getDocumentHighlightColors";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
-import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInList } from "@shared/editor/queries/isInList";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import type { MenuItem } from "@shared/editor/types";
+import type { MenuItem, SelectionContext } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
-import type { TFunction } from "i18next";
-import CircleIcon from "~/components/Icons/CircleIcon";
-import {
-  isMobile as isMobileDevice,
-  isTouchDevice,
-} from "@shared/utils/browser";
+import { t } from "i18next";
+import CircleIcon from "@shared/components/Icons/CircleIcon";
 import {
   getColorSetForSelectedCells,
   getDocumentTableBackgroundColors,
@@ -49,24 +43,21 @@ import {
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import { CellSelection } from "prosemirror-tables";
+import type { CellSelection } from "prosemirror-tables";
 import TableCell from "@shared/editor/nodes/TableCell";
 import Highlight from "@shared/editor/marks/Highlight";
-import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
+import { DottedCircleIcon } from "@shared/components/Icons/DottedCircleIcon";
 
+/**
+ * Returns menu items for the default formatting selection toolbar.
+ *
+ * @param ctx - the current selection context.
+ * @returns an array of menu items.
+ */
 export default function formattingMenuItems(
-  state: EditorState,
-  isTemplate: boolean,
-  t: TFunction
+  ctx: SelectionContext
 ): MenuItem[] {
-  const { schema } = state;
-  const isCode = isInCode(state);
-  const isCodeBlock = isInCode(state, { onlyBlock: true });
-  const isEmpty = state.selection.empty;
-  const isMobile = isMobileDevice();
-  const isTouch = isTouchDevice();
-  const isList = isInList(state);
-  const isTableCell = state.selection instanceof CellSelection;
+  const { schema, state, isTemplate, isMobile, isTouch, isEmpty, isInCode, isInCodeBlock, isInList: isList, isTableCell } = ctx;
 
   const highlight = getMarksBetween(
     state.selection.from,
@@ -82,6 +73,9 @@ export default function formattingMenuItems(
     : false;
 
   const selectedCellsColorSet = getColorSetForSelectedCells(state.selection);
+
+  const canFormatInline = !isInCodeBlock && (!isMobile || !isEmpty);
+  const canFormatBlock = !isInCodeBlock && (!isMobile || isEmpty);
 
   return [
     {
@@ -101,7 +95,7 @@ export default function formattingMenuItems(
       shortcut: `${metaDisplay}+B`,
       icon: <BoldIcon />,
       active: isMarkActive(schema.marks.strong),
-      visible: !isCodeBlock && (!isMobile || !isEmpty),
+      visible: canFormatInline,
     },
     {
       name: "em",
@@ -109,7 +103,7 @@ export default function formattingMenuItems(
       shortcut: `${metaDisplay}+I`,
       icon: <ItalicIcon />,
       active: isMarkActive(schema.marks.em),
-      visible: !isCodeBlock && (!isMobile || !isEmpty),
+      visible: canFormatInline,
     },
     {
       name: "strikethrough",
@@ -117,7 +111,7 @@ export default function formattingMenuItems(
       shortcut: `${metaDisplay}+D`,
       icon: <StrikethroughIcon />,
       active: isMarkActive(schema.marks.strikethrough),
-      visible: !isCodeBlock && (!isMobile || !isEmpty),
+      visible: canFormatInline,
     },
     {
       tooltip: t("Background color"),
@@ -133,12 +127,10 @@ export default function formattingMenuItems(
         ) : (
           <PaletteIcon />
         ),
-      visible: !isCode && (!isMobile || !isEmpty) && isTableCell,
+      visible: !isInCode && (!isMobile || !isEmpty) && isTableCell,
       children: (): MenuItem[] => {
-        // Get all unique background colors used in table cells (lazily computed when menu opens)
         const documentTableColors = getDocumentTableBackgroundColors(state);
 
-        // Filter out preset colors and currently selected colors
         const nonPresetDocumentColors = documentTableColors.filter(
           (color: string) =>
             !TableCell.isPresetColor(color) && !selectedCellsColorSet.has(color)
@@ -181,7 +173,6 @@ export default function formattingMenuItems(
                 },
               ]
             : []),
-          // Add all other document table background colors
           ...nonPresetDocumentColors.map((color: string) => ({
             name: "toggleCellSelectionBackgroundAndCollapseSelection",
             label: color,
@@ -225,12 +216,10 @@ export default function formattingMenuItems(
         <HighlightIcon />
       ),
       active: () => !!highlight,
-      visible: !isCode && (!isMobile || !isEmpty) && !isTableCell,
+      visible: !isInCode && (!isMobile || !isEmpty) && !isTableCell,
       children: (): MenuItem[] => {
-        // Get all unique highlight colors used in the document (lazily computed when menu opens)
         const documentHighlightColors = getDocumentHighlightColors(state);
 
-        // Filter out preset colors and the currently selected color
         const currentHighlightColor = highlight?.mark.attrs.color;
         const nonPresetDocumentColors = documentHighlightColors.filter(
           (color: string) =>
@@ -276,7 +265,6 @@ export default function formattingMenuItems(
                 },
               ]
             : []),
-          // Add all other document highlight colors
           ...nonPresetDocumentColors.map((color: string) => ({
             name: "highlight",
             label: color,
@@ -313,11 +301,11 @@ export default function formattingMenuItems(
       shortcut: `${metaDisplay}+E`,
       icon: <CodeIcon />,
       active: isMarkActive(schema.marks.code_inline),
-      visible: !isCodeBlock && (!isMobile || !isEmpty),
+      visible: canFormatInline,
     },
     {
       name: "separator",
-      visible: !isCodeBlock,
+      visible: !isInCodeBlock,
     },
     {
       name: "heading",
@@ -326,7 +314,7 @@ export default function formattingMenuItems(
       icon: <Heading1Icon />,
       active: isNodeActive(schema.nodes.heading, { level: 1 }),
       attrs: { level: 1 },
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: canFormatBlock,
     },
     {
       name: "heading",
@@ -335,7 +323,7 @@ export default function formattingMenuItems(
       icon: <Heading2Icon />,
       active: isNodeActive(schema.nodes.heading, { level: 2 }),
       attrs: { level: 2 },
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: canFormatBlock,
     },
     {
       name: "heading",
@@ -344,7 +332,7 @@ export default function formattingMenuItems(
       icon: <Heading3Icon />,
       active: isNodeActive(schema.nodes.heading, { level: 3 }),
       attrs: { level: 3 },
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: canFormatBlock,
     },
     {
       name: "blockquote",
@@ -353,7 +341,7 @@ export default function formattingMenuItems(
       icon: <BlockQuoteIcon />,
       active: isNodeActive(schema.nodes.blockquote),
       attrs: { level: 2 },
-      visible: !isCodeBlock && !isTableCell && (!isMobile || isEmpty),
+      visible: !isInCodeBlock && !isTableCell && (!isMobile || isEmpty),
     },
     {
       name: "separator",
@@ -376,7 +364,7 @@ export default function formattingMenuItems(
       tooltip: t("Toggle block"),
       active: isNodeActive(schema.nodes.container_toggle),
       attrs: { id: uuidv4() },
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: canFormatBlock,
     },
     {
       name: "separator",
@@ -388,7 +376,7 @@ export default function formattingMenuItems(
       icon: <TodoListIcon />,
       keywords: "checklist checkbox task",
       active: isNodeActive(schema.nodes.checkbox_list),
-      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
+      visible: !isInCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "bullet_list",
@@ -396,7 +384,7 @@ export default function formattingMenuItems(
       shortcut: `⇧+Ctrl+8`,
       icon: <BulletedListIcon />,
       active: isNodeActive(schema.nodes.bullet_list),
-      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
+      visible: !isInCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "ordered_list",
@@ -404,7 +392,7 @@ export default function formattingMenuItems(
       shortcut: `⇧+Ctrl+9`,
       icon: <OrderedListIcon />,
       active: isNodeActive(schema.nodes.ordered_list),
-      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
+      visible: !isInCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "outdentList",
@@ -436,7 +424,7 @@ export default function formattingMenuItems(
     },
     {
       name: "separator",
-      visible: !isCodeBlock,
+      visible: !isInCodeBlock,
     },
     {
       name: "addLink",
@@ -445,14 +433,14 @@ export default function formattingMenuItems(
       icon: <LinkIcon />,
       attrs: { href: "" },
       active: isMarkActive(schema.marks.link, undefined, { exact: true }),
-      visible: !isCodeBlock && (!isMobile || !isEmpty),
+      visible: canFormatInline,
     },
     {
       name: "comment",
       tooltip: t("Comment"),
       shortcut: `${metaDisplay}+⌥+M`,
       icon: <CommentIcon />,
-      label: isCodeBlock ? t("Comment") : undefined,
+      label: isInCodeBlock ? t("Comment") : undefined,
       active: isMarkActive(
         schema.marks.comment,
         { resolved: false },
@@ -462,14 +450,14 @@ export default function formattingMenuItems(
     },
     {
       name: "separator",
-      visible: isCode && !isCodeBlock && (!isMobile || !isEmpty),
+      visible: isInCode && !isInCodeBlock && (!isMobile || !isEmpty),
     },
     {
       name: "copyToClipboard",
       icon: <CopyIcon />,
       tooltip: t("Copy"),
       shortcut: `${metaDisplay}+C`,
-      visible: isCode && !isCodeBlock && (!isMobile || !isEmpty),
+      visible: isInCode && !isInCodeBlock && (!isMobile || !isEmpty),
     },
   ];
 }

@@ -1,5 +1,6 @@
+import { t } from "i18next";
 import type Token from "markdown-it/lib/token.mjs";
-import { DownloadIcon } from "outline-icons";
+import { DownloadIcon, TrashIcon, ReplaceIcon, PDFIcon } from "outline-icons";
 import type {
   NodeSpec,
   NodeType,
@@ -16,8 +17,9 @@ import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { isNodeActive } from "../queries/isNodeActive";
 import attachmentsRule from "../rules/links";
-import type { ComponentProps } from "../types";
+import type { ComponentProps, SelectionToolbarMenuDescriptor } from "../types";
 import Node from "./Node";
 import PdfViewer from "../components/PDF";
 
@@ -159,6 +161,65 @@ export default class Attachment extends Node {
       </Widget>
     );
   };
+
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [
+      {
+        id: "attachment",
+        priority: 50,
+        matches: (ctx) =>
+          ctx.selectedNodeType === "attachment" && !ctx.readOnly,
+        getItems: (ctx) => {
+          const { schema, state } = ctx;
+          const isAttachmentWithPreview = isNodeActive(
+            schema.nodes.attachment,
+            { preview: true }
+          );
+          const isPdfAttachment = isNodeActive(schema.nodes.attachment, {
+            contentType: "application/pdf",
+          });
+
+          return [
+            {
+              name: "replaceAttachment",
+              tooltip: t("Replace file"),
+              icon: <ReplaceIcon />,
+            },
+            {
+              name: "deleteAttachment",
+              tooltip: t("Delete file"),
+              icon: <TrashIcon />,
+            },
+            {
+              name: "toggleAttachmentPreview",
+              tooltip: t("Show preview"),
+              icon: <PDFIcon />,
+              active: isAttachmentWithPreview,
+              visible: isPdfAttachment(state),
+            },
+            {
+              name: "separator",
+            },
+            {
+              name: "dimensions",
+              tooltip: `${t("Width")} × ${t("Height")}`,
+              visible: isAttachmentWithPreview(state),
+              skipIcon: true,
+            },
+            {
+              name: "separator",
+            },
+            {
+              name: "downloadAttachment",
+              label: t("Download"),
+              icon: <DownloadIcon />,
+              visible: !!fetch,
+            },
+          ];
+        },
+      },
+    ];
+  }
 
   commands({ type }: { type: NodeType }) {
     return {
