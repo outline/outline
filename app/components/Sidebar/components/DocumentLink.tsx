@@ -124,13 +124,14 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
   const isDragActive = useIsDragActive();
   const [mounted, setMounted] = React.useState(false);
 
-  React.useEffect(() => {
-    if (isOnScreen) {
-      setMounted(true);
-    } else if (!isDragActive) {
-      setMounted(false);
-    }
-  }, [isOnScreen, isDragActive]);
+  // Flip mount state during render (not in an effect) so the first paint
+  // already contains the row content when the placeholder is on screen,
+  // avoiding a blank frame.
+  if (isOnScreen && !mounted) {
+    setMounted(true);
+  } else if (!isOnScreen && !isDragActive && mounted) {
+    setMounted(false);
+  }
 
   return (
     <>
