@@ -16080,7 +16080,7 @@ __metadata:
     styled-components: "npm:^5.3.11"
     styled-components-breakpoint: "npm:^2.1.1"
     styled-normalize: "npm:^8.1.1"
-    terser: "npm:^5.44.1"
+    terser: "npm:^5.48.0"
     throng: "npm:^5.0.0"
     tiny-cookie: "npm:^2.5.1"
     tmp: "npm:^0.2.5"
@@ -19663,7 +19663,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"terser@npm:^5.17.4, terser@npm:^5.44.1":
+"terser@npm:^5.17.4":
   version: 5.44.1
   resolution: "terser@npm:5.44.1"
   dependencies:
@@ -19674,6 +19674,20 @@ __metadata:
   bin:
     terser: bin/terser
   checksum: 10c0/ee7a76692cb39b1ed22c30ff366c33ff3c977d9bb769575338ff5664676168fcba59192fb5168ef80c7cd901ef5411a1b0351261f5eaa50decf0fc71f63bde75
+  languageName: node
+  linkType: hard
+
+"terser@npm:^5.48.0":
+  version: 5.48.0
+  resolution: "terser@npm:5.48.0"
+  dependencies:
+    "@jridgewell/source-map": "npm:^0.3.3"
+    acorn: "npm:^8.15.0"
+    commander: "npm:^2.20.0"
+    source-map-support: "npm:~0.5.20"
+  bin:
+    terser: bin/terser
+  checksum: 10c0/d6ee713ea09a2b83b461ccbf1b76bd673a5090b3076ec13db7edc6d6470ab940d21c87b8d1ad82523b7cf02d9be07393fcdd334bde8f589e9bc3804da6fc32d2
   languageName: node
   linkType: hard
 
