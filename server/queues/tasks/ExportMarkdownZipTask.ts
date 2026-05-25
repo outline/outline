@@ -1,4 +1,4 @@
-import JSZip from "jszip";
+import { ZipFile } from "yazl";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationFormat } from "@shared/types";
 import type { Collection, FileOperation } from "@server/models";
@@ -10,7 +10,7 @@ export default class ExportMarkdownZipTask extends ExportDocumentTreeTask {
     collections: Collection[],
     fileOperation: FileOperation
   ) {
-    const zip = new JSZip();
+    const zip = new ZipFile();
 
     return await this.addCollectionsToArchive(
       zip,
@@ -24,7 +24,7 @@ export default class ExportMarkdownZipTask extends ExportDocumentTreeTask {
     document: Document,
     documentStructure: NavigationNode[]
   ): Promise<string> {
-    const zip = new JSZip();
+    const zip = new ZipFile();
 
     return await this.addDocumentToArchive({
       document,

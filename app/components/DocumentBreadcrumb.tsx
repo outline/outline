@@ -1,10 +1,10 @@
+import type { TFunction } from "i18next";
 import { observer } from "mobx-react";
 import { ArchiveIcon, GoToIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
-import type { NavigationNode } from "@shared/types";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
@@ -19,6 +19,56 @@ import useStores from "~/hooks/useStores";
 import { archivePath, trashPath } from "~/utils/routeHelpers";
 import { createInternalLinkAction } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
+
+/**
+ * Returns the breadcrumb parts leading up to a document, separating the
+ * (possibly deleted) collection label from ancestor document titles. The
+ * document itself is not included.
+ *
+ * @param document - the document to compute the breadcrumb for.
+ * @param t - translation function for fallback titles.
+ * @returns the collection label and ancestor titles.
+ */
+export function documentBreadcrumbParts(
+  document: Document,
+  t: TFunction
+): { collection: string | undefined; ancestors: string[] } {
+  let collectionLabel: string | undefined;
+  if (document.isCollectionDeleted) {
+    collectionLabel = t("Deleted Collection");
+  } else if (document.collection?.name) {
+    collectionLabel = document.collection.name;
+  }
+
+  return {
+    collection: collectionLabel,
+    ancestors: document.pathTo
+      .slice(0, -1)
+      .map((node) => node.title || t("Untitled")),
+  };
+}
+
+/**
+ * Returns the breadcrumb path leading up to a document as a plain text
+ * string. Includes the collection name (or "Deleted Collection" fallback)
+ * and any ancestor document titles, slash-separated.
+ *
+ * @param document - the document to compute the breadcrumb for.
+ * @param t - translation function for fallback titles.
+ * @returns the breadcrumb as a slash-separated string, or undefined if the
+ * document has no resolvable parent context.
+ */
+export function documentBreadcrumbText(
+  document: Document,
+  t: TFunction
+): string | undefined {
+  const parts = documentBreadcrumbParts(document, t);
+  const segments = [
+    ...(parts.collection ? [parts.collection] : []),
+    ...parts.ancestors,
+  ];
+  return segments.length ? segments.join(" / ") : undefined;
+}
 
 type Props = {
   children?: React.ReactNode;
@@ -147,22 +197,25 @@ function DocumentBreadcrumb(
       return <></>;
     }
 
-    const slicedPath = reverse
-      ? path.slice(depth && -depth)
-      : path.slice(0, depth);
+    const { collection: collectionLabel, ancestors: ancestorLabels } =
+      documentBreadcrumbParts(document, t);
+
+    const slicedAncestors = reverse
+      ? ancestorLabels.slice(depth && -depth)
+      : ancestorLabels.slice(0, depth);
 
     const showCollection =
-      collection &&
-      (!reverse || depth === undefined || slicedPath.length < depth);
+      !!collectionLabel &&
+      (!reverse || depth === undefined || slicedAncestors.length < depth);
 
     return (
       <>
-        {showCollection && collection.name}
-        {slicedPath.map((node: NavigationNode, index: number) => (
-          <React.Fragment key={node.id}>
+        {showCollection && collectionLabel}
+        {slicedAncestors.map((label, index) => (
+          <React.Fragment key={index}>
             {showCollection && <SmallSlash />}
-            {node.title || t("Untitled")}
-            {!showCollection && index !== slicedPath.length - 1 && (
+            {label}
+            {!showCollection && index !== slicedAncestors.length - 1 && (
               <SmallSlash />
             )}
           </React.Fragment>

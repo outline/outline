@@ -1,4 +1,4 @@
-import JSZip from "jszip";
+import { ZipFile } from "yazl";
 import { omit } from "es-toolkit/compat";
 import type { NavigationNode } from "@shared/types";
 import env from "@server/env";
@@ -19,7 +19,7 @@ export default class ExportJSONTask extends ExportTask {
     collections: Collection[],
     fileOperation: FileOperation
   ) {
-    const zip = new JSZip();
+    const zip = new ZipFile();
     const usedFilenames = new Set<string>();
 
     // serial to avoid overloading, slow and steady wins the race
@@ -44,7 +44,10 @@ export default class ExportJSONTask extends ExportTask {
     return ZipHelper.toTmpFile(zip);
   }
 
-  private async addMetadataToArchive(zip: JSZip, fileOperation: FileOperation) {
+  private async addMetadataToArchive(
+    zip: ZipFile,
+    fileOperation: FileOperation
+  ) {
     const user = await fileOperation.$get("user");
 
     const metadata: JSONExportMetadata = {
@@ -55,16 +58,18 @@ export default class ExportJSONTask extends ExportTask {
       createdByEmail: user?.email ?? null,
     };
 
-    zip.file(
-      `metadata.json`,
-      env.isDevelopment
-        ? JSON.stringify(metadata, null, 2)
-        : JSON.stringify(metadata)
+    zip.addBuffer(
+      Buffer.from(
+        env.isDevelopment
+          ? JSON.stringify(metadata, null, 2)
+          : JSON.stringify(metadata)
+      ),
+      `metadata.json`
     );
   }
 
   private async addCollectionToArchive(
-    zip: JSZip,
+    zip: ZipFile,
     collection: Collection,
     includeAttachments: boolean,
     filename: string
@@ -82,32 +87,27 @@ export default class ExportJSONTask extends ExportTask {
     };
 
     async function addAttachments(attachments: Attachment[]) {
-      await Promise.all(
-        attachments.map(async (attachment) => {
-          zip.file(
-            attachment.key,
-            new Promise<Buffer>((resolve) => {
-              attachment.buffer.then(resolve).catch((err) => {
-                Logger.warn(`Failed to read attachment from storage`, {
-                  attachmentId: attachment.id,
-                  teamId: attachment.teamId,
-                  error: err.message,
-                });
-                resolve(Buffer.from(""));
-              });
-            }),
-            {
-              date: attachment.updatedAt,
-              createFolders: true,
-            }
-          );
+      for (const attachment of attachments) {
+        let buffer: Buffer;
+        try {
+          buffer = await attachment.buffer;
+        } catch (err) {
+          Logger.warn(`Failed to read attachment from storage`, {
+            attachmentId: attachment.id,
+            teamId: attachment.teamId,
+            error: err.message,
+          });
+          buffer = Buffer.from("");
+        }
+        zip.addBuffer(buffer, attachment.key, {
+          mtime: attachment.updatedAt,
+        });
 
-          output.attachments[attachment.id] = {
-            ...omit(presentAttachment(attachment), "url"),
-            key: attachment.key,
-          };
-        })
-      );
+        output.attachments[attachment.id] = {
+          ...omit(presentAttachment(attachment), "url"),
+          key: attachment.key,
+        };
+      }
     }
 
     async function addDocumentTree(nodes: NavigationNode[]) {
@@ -175,11 +175,13 @@ export default class ExportJSONTask extends ExportTask {
       await addDocumentTree(collection.documentStructure);
     }
 
-    zip.file(
-      `${filename}.json`,
-      env.isDevelopment
-        ? JSON.stringify(output, null, 2)
-        : JSON.stringify(output)
+    zip.addBuffer(
+      Buffer.from(
+        env.isDevelopment
+          ? JSON.stringify(output, null, 2)
+          : JSON.stringify(output)
+      ),
+      `${filename}.json`
     );
   }
 

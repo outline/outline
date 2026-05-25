@@ -56,17 +56,17 @@ function DocumentMove({ document }: Props) {
     return nodes;
   }, [policies, collectionTrees, document.id]);
 
-  const move = async () => {
-    if (!selectedPath) {
+  const move = async (path = selectedPath) => {
+    if (!path) {
       toast.message(t("Select a location to move"));
       return;
     }
 
     try {
       setMoving(true);
-      const { type, id: parentDocumentId } = selectedPath;
+      const { type, id: parentDocumentId } = path;
 
-      const collectionId = selectedPath.collectionId as string;
+      const collectionId = path.collectionId as string;
 
       if (type === "document") {
         await document.move({ collectionId, parentDocumentId });
@@ -103,7 +103,7 @@ function DocumentMove({ document }: Props) {
             t("Select a location to move")
           )}
         </Text>
-        <Button disabled={!selectedPath || moving} onClick={move}>
+        <Button disabled={!selectedPath || moving} onClick={() => move()}>
           {moving ? `${t("Moving")}…` : t("Move")}
         </Button>
       </Footer>

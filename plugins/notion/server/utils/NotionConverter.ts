@@ -586,7 +586,7 @@ export class NotionConverter {
 
   private static table(
     item: TableBlockObjectResponse & {
-      children: Array<{
+      children?: Array<{
         table_row: {
           cells: Array<Array<RichTextItemResponse>>;
         };
@@ -597,7 +597,7 @@ export class NotionConverter {
   ) {
     return {
       type: "table",
-      content: item.children.map((tr, y) => ({
+      content: (item.children ?? []).map((tr, y) => ({
         type: "tr",
         content: tr.table_row.cells.map((td, x) => ({
           type:

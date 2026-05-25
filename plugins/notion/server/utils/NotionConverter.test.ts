@@ -36,4 +36,25 @@ describe("NotionConverter", () => {
     expect(response).toMatchSnapshot();
     expect(ProsemirrorHelper.toProsemirror(response)).toBeInstanceOf(Node);
   });
+
+  it("converts a page with an empty table", () => {
+    const response = NotionConverter.page({
+      children: [
+        {
+          object: "block",
+          id: "1b32c2bb-bca8-8022-b490-e42a8f6b00f5",
+          type: "table",
+          has_children: false,
+          table: {
+            table_width: 0,
+            has_column_header: false,
+            has_row_header: false,
+          },
+        },
+      ],
+    } as unknown as NotionPage);
+
+    expect(response.content).toEqual([{ type: "table", content: [] }]);
+    expect(ProsemirrorHelper.toProsemirror(response)).toBeInstanceOf(Node);
+  });
 });

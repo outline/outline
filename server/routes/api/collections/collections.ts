@@ -10,7 +10,6 @@ import {
 } from "@shared/types";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
-import { parser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -26,7 +25,6 @@ import {
   FileOperation,
   Document,
 } from "@server/models";
-import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
 import {
   presentCollection,
@@ -86,12 +84,6 @@ router.post(
       commenting,
       templateManagement,
     });
-
-    if (data) {
-      collection.description = await DocumentHelper.toMarkdown(collection, {
-        includeTitle: false,
-      });
-    }
 
     await collection.saveWithCtx(ctx);
 
@@ -628,16 +620,10 @@ router.post(
 
     if (description !== undefined) {
       collection.description = description;
-      collection.content = description
-        ? parser.parse(description)?.toJSON()
-        : null;
     }
 
     if (data !== undefined) {
       collection.content = data;
-      collection.description = await DocumentHelper.toMarkdown(collection, {
-        includeTitle: false,
-      });
     }
 
     if (icon !== undefined) {
