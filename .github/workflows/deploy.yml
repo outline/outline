@@ -1,0 +1,116 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-central-1
+
+jobs:
+  deploy:
+    runs-on: attuned-runner/${{ github.run_id }}/family=c7i+c7a/cpu=4/image=ubuntu24-full-x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - run: corepack enable && corepack prepare pnpm@9 --activate
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::662860781475:role/outline-github-actions
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install CDK dependencies
+        working-directory: infra
+        run: pnpm install --frozen-lockfile
+
+      - name: CDK deploy
+        working-directory: infra
+        run: npx cdk deploy --require-approval never
+
+      - name: Get instance ID from stack
+        id: instance
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters \
+              "Name=tag:Project,Values=outline" \
+              "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
+            echo "No running Outline instance found"
+            exit 1
+          fi
+          echo "id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Restart Outline via SSM
+        env:
+          INSTANCE_ID: ${{ steps.instance.outputs.id }}
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "/opt/outline/refresh-config.sh",
+              "cd /opt/outline && docker compose pull && docker compose up -d"
+            ]' \
+            --timeout-seconds 300 \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "SSM Command ID: $COMMAND_ID"
+
+          for i in $(seq 1 30); do
+            if ! OUTPUT=$(aws ssm get-command-invocation \
+              --command-id "$COMMAND_ID" \
+              --instance-id "$INSTANCE_ID" \
+              --output json 2>&1); then
+              echo "SSM API error: $OUTPUT"
+              if echo "$OUTPUT" | grep -q "InvocationDoesNotExist"; then
+                echo "Command not yet registered (attempt $i/30)"
+                sleep 10
+                continue
+              fi
+              exit 1
+            fi
+
+            STATUS=$(echo "$OUTPUT" | jq -r '.Status')
+
+            if [ "$STATUS" = "Success" ]; then
+              echo "Restart completed successfully"
+              exit 0
+            elif [ "$STATUS" = "Failed" ] || \
+                 [ "$STATUS" = "Cancelled" ] || \
+                 [ "$STATUS" = "TimedOut" ]; then
+              echo "Restart failed with status: $STATUS"
+              echo "$OUTPUT" | jq -r '.StandardErrorContent'
+              exit 1
+            fi
+
+            echo "Status: $STATUS (attempt $i/30)"
+            sleep 10
+          done
+
+          echo "Timed out waiting for restart"
+          exit 1
+
+      - name: Health check
+        run: |
+          curl --fail --retry 12 --retry-delay 10 \
+            --retry-all-errors -s -o /dev/null \
+            "https://docs.attuned.ai/_health"
+          echo "Health check passed"
