@@ -707,6 +707,49 @@ describe("#documents.list", () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it("should return draft documents when filtering with statusFilter", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        statusFilter: [StatusFilter.Draft],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+    expect(body.pagination.total).toEqual(1);
+  });
+
+  it("should return drafts shared directly with the user", async () => {
+    const user = await buildUser();
+    const author = await buildUser({ teamId: user.teamId });
+    const document = await buildDraftDocument({
+      userId: author.id,
+      teamId: user.teamId,
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: user.id,
+      createdById: author.id,
+      permission: DocumentPermission.Read,
+    });
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        statusFilter: [StatusFilter.Draft],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+    expect(body.pagination.total).toEqual(1);
+  });
+
   it("should not return archived documents", async () => {
     const user = await buildUser();
     const document = await buildDocument({
