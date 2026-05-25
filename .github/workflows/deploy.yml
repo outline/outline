@@ -64,7 +64,7 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=[
               "/opt/outline/refresh-config.sh",
-              "cd /opt/outline && docker compose pull && docker compose up -d"
+              "cd /opt/outline && docker-compose pull && docker-compose up -d"
             ]' \
             --timeout-seconds 300 \
             --query "Command.CommandId" \
