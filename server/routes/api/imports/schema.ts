@@ -43,6 +43,11 @@ export const ImportsCreateSchema = BaseSchema.extend({
       attachmentId: z.uuid(),
       permission: z.enum(CollectionPermission).optional(),
     }),
+    z.object({
+      service: z.literal(IntegrationService.JSON),
+      attachmentId: z.uuid(),
+      permission: z.enum(CollectionPermission).optional(),
+    }),
   ]),
 });
 

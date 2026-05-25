@@ -38,6 +38,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import type { Event, ImportEvent } from "@server/types";
+import { generateUrlId } from "@server/utils/url";
 import BaseProcessor from "./BaseProcessor";
 
 export const PagePerImportTask = 3;
@@ -285,6 +286,9 @@ export default abstract class ImportsProcessor<
     const createdCollections: Collection[] = [];
     // External id to internal model id.
     const idMap: Record<string, string> = {};
+    // Cache of resolved external author → internal user id (or undefined when
+    // no match). Reused across every output in the import.
+    const userIdCache = new Map<string, string | undefined>();
     // These will be imported as collections. Widened to the base input shape
     // because the abstract class has no narrowed view of T.
     const importInput = keyBy(
@@ -358,6 +362,14 @@ export default abstract class ImportsProcessor<
               teamId: importModel.teamId,
             });
 
+            const resolvedCreatedById =
+              (await this.resolveExternalUserId(
+                output,
+                importModel.teamId,
+                userIdCache,
+                transaction
+              )) ?? importModel.createdById;
+
             if (collectionItem) {
               // imported collection will be placed in the beginning.
               collectionIdx = fractionalIndex(null, collectionIdx);
@@ -376,16 +388,24 @@ export default abstract class ImportsProcessor<
                 createdByName: output.author,
               };
 
+              const urlId = await this.preserveCollectionUrlId(
+                output.urlId,
+                transaction
+              );
+
               const collection = Collection.build({
                 id: internalId,
+                urlId,
                 name: output.title,
                 icon: output.icon ?? "collection",
-                color: output.icon ? undefined : randomElement(colorPalette),
+                color:
+                  output.color ??
+                  (output.icon ? undefined : randomElement(colorPalette)),
                 content: transformedContent,
                 description: truncate(description, {
                   length: CollectionValidation.maxDescriptionLength,
                 }),
-                createdById: importModel.createdById,
+                createdById: resolvedCreatedById,
                 teamId: importModel.createdBy.teamId,
                 apiImportId: importModel.id,
                 index: collectionIdx,
@@ -419,17 +439,24 @@ export default abstract class ImportsProcessor<
             const isRootDocument =
               !parentExternalId || !!importInput[parentExternalId];
 
+            const urlId = await this.preserveDocumentUrlId(
+              output.urlId,
+              transaction
+            );
+
             const defaults = {
               title: output.title,
+              urlId,
               icon: output.icon,
+              color: output.color,
               content: transformedContent,
               text: await DocumentHelper.toMarkdown(transformedContent, {
                 includeTitle: false,
               }),
               collectionId: collectionInternalId,
               parentDocumentId: isRootDocument ? undefined : parentInternalId,
-              createdById: importModel.createdById,
-              lastModifiedById: importModel.createdById,
+              createdById: resolvedCreatedById,
+              lastModifiedById: resolvedCreatedById,
               teamId: importModel.createdBy.teamId,
               apiImportId: importModel.id,
               sourceMetadata: {
@@ -439,7 +466,11 @@ export default abstract class ImportsProcessor<
               },
               createdAt: output.createdAt ?? now,
               updatedAt: output.updatedAt ?? now,
-              publishedAt: output.updatedAt ?? output.createdAt ?? now,
+              publishedAt:
+                output.publishedAt ??
+                output.updatedAt ??
+                output.createdAt ??
+                now,
             };
 
             try {
@@ -610,6 +641,114 @@ export default abstract class ImportsProcessor<
 
     idMap[externalId] = internalId ?? randomUUID();
     return idMap[externalId];
+  }
+
+  /**
+   * Resolves the original author of an imported item to a user in the target
+   * team. Tries `createdById` first then falls back to `createdByEmail`; both
+   * hits and misses are cached. Returns `undefined` when no match is found so
+   * the caller can fall back to the importing user.
+   *
+   * @param output The ImportTaskOutput entry carrying optional original-author
+   *               fields from the source.
+   * @param teamId Team to scope the lookup to.
+   * @param cache Map reused across calls within one persistence pass.
+   * @param transaction Active sequelize transaction.
+   * @returns The matched internal user id, or undefined.
+   */
+  private async resolveExternalUserId(
+    output: { createdById?: string; createdByEmail?: string | null },
+    teamId: string,
+    cache: Map<string, string | undefined>,
+    transaction: Transaction
+  ): Promise<string | undefined> {
+    if (output.createdById) {
+      const cacheKey = `id:${output.createdById}`;
+      if (cache.has(cacheKey)) {
+        return cache.get(cacheKey);
+      }
+      const user = await User.findOne({
+        where: { id: output.createdById, teamId },
+        transaction,
+      });
+      if (user) {
+        cache.set(cacheKey, user.id);
+        return user.id;
+      }
+      cache.set(cacheKey, undefined);
+    }
+
+    if (output.createdByEmail) {
+      const email = output.createdByEmail.toLowerCase().trim();
+      const cacheKey = `email:${email}`;
+      if (cache.has(cacheKey)) {
+        return cache.get(cacheKey);
+      }
+      const user = await User.findOne({
+        where: { email, teamId },
+        transaction,
+      });
+      if (user) {
+        cache.set(cacheKey, user.id);
+        if (output.createdById) {
+          cache.set(`id:${output.createdById}`, user.id);
+        }
+        return user.id;
+      }
+      cache.set(cacheKey, undefined);
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Honors a urlId from a document export if it does not collide with an
+   * existing Document, otherwise generates a fresh one. Returns `undefined`
+   * when no urlId is supplied (so the model's default applies).
+   *
+   * @param sourceUrlId The urlId requested by the importer.
+   * @param transaction Active sequelize transaction.
+   * @returns A urlId to use, or undefined to fall through to the default.
+   */
+  private async preserveDocumentUrlId(
+    sourceUrlId: string | undefined,
+    transaction: Transaction
+  ): Promise<string | undefined> {
+    if (!sourceUrlId) {
+      return undefined;
+    }
+    const existing = await Document.unscoped().findOne({
+      attributes: ["id"],
+      paranoid: false,
+      where: { urlId: sourceUrlId },
+      transaction,
+    });
+    return existing ? generateUrlId() : sourceUrlId;
+  }
+
+  /**
+   * Honors a urlId from a collection export if it does not collide with an
+   * existing Collection, otherwise generates a fresh one. Returns `undefined`
+   * when no urlId is supplied (so the model's default applies).
+   *
+   * @param sourceUrlId The urlId requested by the importer.
+   * @param transaction Active sequelize transaction.
+   * @returns A urlId to use, or undefined to fall through to the default.
+   */
+  private async preserveCollectionUrlId(
+    sourceUrlId: string | undefined,
+    transaction: Transaction
+  ): Promise<string | undefined> {
+    if (!sourceUrlId) {
+      return undefined;
+    }
+    const existing = await Collection.unscoped().findOne({
+      attributes: ["id"],
+      paranoid: false,
+      where: { urlId: sourceUrlId },
+      transaction,
+    });
+    return existing ? generateUrlId() : sourceUrlId;
   }
 
   /**

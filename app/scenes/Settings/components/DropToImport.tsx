@@ -67,6 +67,14 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
             permission: permission ?? undefined,
           }
         );
+      } else if (format === FileOperationFormat.JSON) {
+        await imports.create(
+          { service: IntegrationService.JSON },
+          {
+            attachmentId: attachment.id,
+            permission: permission ?? undefined,
+          }
+        );
       } else {
         await collections.import(attachment.id, { format, permission });
       }
