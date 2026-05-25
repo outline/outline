@@ -109,6 +109,15 @@ export class GithubActionsRole extends Construct {
 
     role.addToPolicy(
       new iam.PolicyStatement({
+        actions: ["ssm:PutParameter"],
+        resources: [
+          `arn:aws:ssm:${props.region}:${props.accountId}:parameter/outline/deploy-config`,
+        ],
+      }),
+    );
+
+    role.addToPolicy(
+      new iam.PolicyStatement({
         actions: ["ec2:DescribeInstances"],
         resources: ["*"],
       }),

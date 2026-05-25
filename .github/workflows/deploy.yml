@@ -15,6 +15,10 @@ permissions:
 
 env:
   AWS_REGION: eu-central-1
+  SSM_PREFIX: /outline
+  DOMAIN: docs.attuned.ai
+  BUCKET_NAME: attuned-outline-uploads
+  OUTLINE_VERSION: "1.7.1"
 
 jobs:
   deploy:
@@ -40,7 +44,7 @@ jobs:
         working-directory: infra
         run: npx cdk deploy --require-approval never
 
-      - name: Get instance ID from stack
+      - name: Get instance ID
         id: instance
         run: |
           INSTANCE_ID=$(aws ec2 describe-instances \
@@ -55,17 +59,125 @@ jobs:
           fi
           echo "id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
 
-      - name: Restart Outline via SSM
+      - name: Store deploy config in SSM
+        run: |
+          aws ssm put-parameter \
+            --name "$SSM_PREFIX/deploy-config" \
+            --type String \
+            --overwrite \
+            --value '{
+              "region": "${{ env.AWS_REGION }}",
+              "ssmPrefix": "${{ env.SSM_PREFIX }}",
+              "domain": "${{ env.DOMAIN }}",
+              "bucketName": "${{ env.BUCKET_NAME }}",
+              "outlineVersion": "${{ env.OUTLINE_VERSION }}"
+            }'
+
+      - name: Build deploy script
+        run: |
+          cat > /tmp/deploy.sh << 'SCRIPT'
+          #!/bin/bash
+          set -euo pipefail
+
+          CONFIG=$(aws ssm get-parameter \
+            --region eu-central-1 \
+            --name /outline/deploy-config \
+            --query Parameter.Value --output text)
+
+          REGION=$(echo "$CONFIG" | jq -r .region)
+          SSM_PREFIX=$(echo "$CONFIG" | jq -r .ssmPrefix)
+          DOMAIN=$(echo "$CONFIG" | jq -r .domain)
+          BUCKET_NAME=$(echo "$CONFIG" | jq -r .bucketName)
+          OUTLINE_VERSION=$(echo "$CONFIG" | jq -r .outlineVersion)
+
+          get_ssm() {
+            aws ssm get-parameter \
+              --region "$REGION" \
+              --name "${SSM_PREFIX}/$1" \
+              --with-decryption \
+              --query Parameter.Value \
+              --output text 2>/dev/null || echo ""
+          }
+
+          SECRET_KEY=$(get_ssm secret-key)
+          UTILS_SECRET=$(get_ssm utils-secret)
+          PG_PASSWORD=$(get_ssm pg-password)
+          GOOGLE_CLIENT_ID=$(get_ssm google-client-id)
+          GOOGLE_CLIENT_SECRET=$(get_ssm google-client-secret)
+          NOTION_CLIENT_ID=$(get_ssm notion-client-id)
+          NOTION_CLIENT_SECRET=$(get_ssm notion-client-secret)
+          LINEAR_CLIENT_ID=$(get_ssm linear-client-id)
+          LINEAR_CLIENT_SECRET=$(get_ssm linear-client-secret)
+
+          cd /opt/outline
+
+          cat > .env << ENVEOF
+          NODE_ENV=production
+          URL=https://${DOMAIN}
+          PORT=3000
+          SECRET_KEY=${SECRET_KEY}
+          UTILS_SECRET=${UTILS_SECRET}
+          FORCE_HTTPS=true
+          WEB_CONCURRENCY=2
+
+          DATABASE_URL=postgres://outline:${PG_PASSWORD}@postgres:5432/outline
+          PGSSLMODE=disable
+          REDIS_URL=redis://redis:6379
+
+          GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+          GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+
+          FILE_STORAGE=s3
+          AWS_REGION=${REGION}
+          AWS_S3_UPLOAD_BUCKET_NAME=${BUCKET_NAME}
+          AWS_S3_UPLOAD_BUCKET_URL=https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com
+          AWS_S3_FORCE_PATH_STYLE=false
+          AWS_S3_ACL=private
+          FILE_STORAGE_UPLOAD_MAX_SIZE=2684354560
+          FILE_STORAGE_IMPORT_MAX_SIZE=3221225472
+          FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE=3221225472
+          ENVEOF
+
+          [ -n "$NOTION_CLIENT_ID" ] && \
+            printf "NOTION_CLIENT_ID=%s\nNOTION_CLIENT_SECRET=%s\n" \
+              "$NOTION_CLIENT_ID" "$NOTION_CLIENT_SECRET" >> .env
+
+          [ -n "$LINEAR_CLIENT_ID" ] && \
+            printf "LINEAR_CLIENT_ID=%s\nLINEAR_CLIENT_SECRET=%s\n" \
+              "$LINEAR_CLIENT_ID" "$LINEAR_CLIENT_SECRET" >> .env
+
+          cat > Caddyfile << CADDYEOF
+          ${DOMAIN} {
+              request_body {
+                  max_size 3GB
+              }
+              reverse_proxy outline:3000
+          }
+          CADDYEOF
+
+          docker-compose pull
+          docker-compose up -d
+          echo "Deploy complete at $(date)"
+          SCRIPT
+
+          # Base64-encode the script (no secrets - just a template)
+          base64 -w0 /tmp/deploy.sh > /tmp/deploy.b64
+
+      - name: Deploy to instance via SSM
         env:
           INSTANCE_ID: ${{ steps.instance.outputs.id }}
         run: |
+          SCRIPT_B64=$(cat /tmp/deploy.b64)
+
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters 'commands=[
-              "/opt/outline/refresh-config.sh",
-              "cd /opt/outline && docker-compose pull && docker-compose up -d"
-            ]' \
+            --parameters commands="[
+              \"echo $SCRIPT_B64 | base64 -d > /tmp/deploy.sh\",
+              \"chmod +x /tmp/deploy.sh\",
+              \"/tmp/deploy.sh\",
+              \"rm /tmp/deploy.sh\"
+            ]" \
             --timeout-seconds 300 \
             --query "Command.CommandId" \
             --output text)
@@ -89,12 +201,12 @@ jobs:
             STATUS=$(echo "$OUTPUT" | jq -r '.Status')
 
             if [ "$STATUS" = "Success" ]; then
-              echo "Restart completed successfully"
+              echo "Deploy completed successfully"
               exit 0
             elif [ "$STATUS" = "Failed" ] || \
                  [ "$STATUS" = "Cancelled" ] || \
                  [ "$STATUS" = "TimedOut" ]; then
-              echo "Restart failed with status: $STATUS"
+              echo "Deploy failed with status: $STATUS"
               echo "$OUTPUT" | jq -r '.StandardErrorContent'
               exit 1
             fi
@@ -103,7 +215,7 @@ jobs:
             sleep 10
           done
 
-          echo "Timed out waiting for restart"
+          echo "Timed out waiting for deploy"
           exit 1
 
       - name: Health check
