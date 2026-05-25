@@ -9,4 +9,6 @@ export const config = {
   instanceType: "t3.small",
   dataDiskSizeGb: 30,
   outlineVersion: "1.7.1",
+  githubRepo: "wahlandcase/attuned.outline",
+  githubBranch: "main",
 };

@@ -4,6 +4,7 @@ import { OutlineNetworking } from "./constructs/networking";
 import { OutlineStorage } from "./constructs/storage";
 import { OutlineInstance } from "./constructs/instance";
 import { OutlineDns } from "./constructs/dns";
+import { GithubActionsRole } from "./constructs/github-actions-role";
 import type { config as Config } from "./config";
 
 interface OutlineStackProps extends cdk.StackProps {
@@ -41,6 +42,14 @@ export class OutlineStack extends cdk.Stack {
       domain: config.domain,
       hostedZoneDomain: config.hostedZoneDomain,
       eip: instance.eip,
+    });
+
+    new GithubActionsRole(this, "GithubActions", {
+      repo: config.githubRepo,
+      branch: config.githubBranch,
+      stackName: config.prefix,
+      region: config.region,
+      accountId: config.accountId,
     });
 
     new cdk.CfnOutput(this, "PublicIp", {
