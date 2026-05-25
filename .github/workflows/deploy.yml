@@ -26,8 +26,6 @@ jobs:
         with:
           node-version: "24"
 
-      - run: corepack enable && corepack prepare pnpm@9 --activate
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -36,7 +34,7 @@ jobs:
 
       - name: Install CDK dependencies
         working-directory: infra
-        run: pnpm install --frozen-lockfile
+        run: COREPACK_ENABLE_STRICT=0 npm install
 
       - name: CDK deploy
         working-directory: infra
