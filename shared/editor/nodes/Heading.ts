@@ -207,6 +207,30 @@ export default class Heading extends Node<HeadingOptions> {
       ...options,
       Backspace: backspaceToParagraph(type),
       Enter: splitHeading(type),
+      ArrowLeft: ((state, dispatch) => {
+        if (!isSafari) {
+          return false;
+        }
+
+        const { $from, empty } = state.selection;
+        if (!empty || $from.parent.type !== type) {
+          return false;
+        }
+
+        const end = $from.end();
+        if ($from.pos !== end || !$from.parent.lastChild?.isText) {
+          return false;
+        }
+
+        if (dispatch) {
+          dispatch(
+            state.tr
+              .setSelection(TextSelection.create(state.doc, end - 1))
+              .scrollIntoView()
+          );
+        }
+        return true;
+      }) as Command,
       // Cmd+Left in Firefox lands the DOM caret inside the heading-actions
       // widget (contentEditable=false, ignoreSelection: true), so Prosemirror
       // does not update its model. Subsequent commands like Enter then operate
@@ -287,9 +311,11 @@ export default class Heading extends Node<HeadingOptions> {
               isSafari ? pos + node.nodeSize - 1 : pos + 1,
               container,
               {
-                side: -1,
+                // Safari keeps this widget at the end; positive side preserves IME
+                // insertion order, while relaxed side preserves caret navigation.
+                side: isSafari ? 1 : -1,
                 ignoreSelection: true,
-                relaxedSide: false,
+                relaxedSide: isSafari,
                 key: pos.toString(),
               }
             )
