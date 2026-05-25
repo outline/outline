@@ -9,6 +9,10 @@ type LanguageOption = {
 // locales array in shared/utils/date.ts to enable translation for timestamps.
 export const languageOptions: LanguageOption[] = [
   {
+    label: "Català (Catalan)",
+    value: "ca_ES",
+  },
+  {
     label: "简体中文 (Chinese, Simplified)",
     value: "zh_CN",
   },
