@@ -336,7 +336,7 @@ export default abstract class ImportsProcessor<
               ? await this.preserveCollectionUrlId(output.urlId, transaction)
               : await this.preserveDocumentUrlId(output.urlId, transaction);
             urlIdMap[output.urlId] = {
-              urlId: allocated ?? generateUrlId(),
+              urlId: allocated,
               title: output.title,
             };
           }
@@ -642,7 +642,10 @@ export default abstract class ImportsProcessor<
         const slugMatch = UrlHelper.SLUG_URL_REGEX.exec(collectionMatch[1]);
         const mapped = slugMatch ? urlIdMap[slugMatch[1]] : undefined;
         if (mapped) {
-          return `/collection/${mapped.urlId}${collectionMatch[2]}`;
+          return (
+            Collection.getPath({ name: mapped.title, urlId: mapped.urlId }) +
+            collectionMatch[2]
+          );
         }
       }
       return href;

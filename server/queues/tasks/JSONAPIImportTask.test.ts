@@ -110,6 +110,24 @@ async function buildJSONExportZip(): Promise<BuiltZip> {
               type: "paragraph",
               content: [
                 {
+                  type: "text",
+                  text: "see collection",
+                  marks: [
+                    {
+                      type: "link",
+                      attrs: {
+                        href: `/collection/test-json-${collectionUrlId}`,
+                        title: null,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
                   type: "image",
                   attrs: {
                     src: `/api/attachments.redirect?id=${attachmentExternalId}`,
@@ -347,6 +365,29 @@ describe("JSONAPIImportTask", () => {
     const linkMark = linkText?.marks?.find((m) => m.type === "link");
     expect(linkMark?.attrs?.href).toBe(`/doc/document-2-${docTwo!.urlId}`);
     expect(linkMark?.attrs?.href).not.toContain(zip.documentTwoUrlId);
+  });
+
+  it("rewrites internal collection links to slugged collection paths", async () => {
+    const admin = await buildAdmin();
+    const { importId } = await runImport({
+      teamId: admin.teamId,
+      createdById: admin.id,
+      zipPath: zip.filePath,
+    });
+
+    const collection = await Collection.findOne({
+      where: { apiImportId: importId },
+      rejectOnEmpty: true,
+    });
+    const docOne = await Document.findOne({
+      where: { apiImportId: importId, title: "Document 1" },
+      rejectOnEmpty: true,
+    });
+
+    const linkParagraph = docOne.content?.content?.[2];
+    const linkText = linkParagraph?.content?.[0];
+    const linkMark = linkText?.marks?.find((m) => m.type === "link");
+    expect(linkMark?.attrs?.href).toBe(collection.path);
   });
 
   describe("user mapping", () => {

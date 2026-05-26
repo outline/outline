@@ -322,10 +322,28 @@ class Collection extends ParanoidModel<
 
   /** The frontend path to this collection. */
   get path(): string {
-    if (!this.name) {
-      return `/collection/untitled-${this.urlId}`;
+    return Collection.getPath({
+      name: this.name,
+      urlId: this.urlId,
+    });
+  }
+
+  /**
+   * Returns the frontend path for a collection.
+   *
+   * @param name The collection name.
+   * @param urlId The collection URL ID.
+   * @returns the frontend path for the collection.
+   */
+  static getPath({ name, urlId }: { name: string; urlId: string }): string {
+    if (!name) {
+      return `/collection/untitled-${urlId}`;
     }
-    return `/collection/${slugify(this.name)}-${this.urlId}`;
+    const slugifiedName = slugify(name);
+    if (!slugifiedName) {
+      return `/collection/untitled-${urlId}`;
+    }
+    return `/collection/${slugifiedName}-${urlId}`;
   }
 
   /**
