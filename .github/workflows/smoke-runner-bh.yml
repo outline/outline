@@ -1,0 +1,95 @@
+# Smoke test do runner self-hosted BH (mil-build-2, org briotecnologia)
+#
+# INFRA-21 / spec 0013 (repo uneinternet/une-infra-ia) — validacao
+# on-demand de que a build platform BH esta viva para a org briotecnologia.
+#
+# Mil-build-1 (uneinternet) e mil-build-2 (briotecnologia) rodam na MESMA
+# VM142 (mesmo daemon docker, mesmo swarm membership, mesmo registry mirror).
+# A diferenca e apenas a label final e a org onde o runner esta registrado.
+#
+# Disparar via:
+#   gh workflow run smoke-runner-bh.yml -R briotecnologia/outline-brio
+#
+# Esperado (todos os steps verdes em ~30s):
+#   - hostname = mil-vm142-docker-build-bh
+#   - user = actions-runner uid=1001
+#   - docker engine >= 29.5
+#   - swarm-vm140 worker Active
+#   - registry-mirrors = https://dockerhub.une.vc/
+#   - pull dockerhub.une.vc/library/alpine:latest funciona
+#   - GET https://registry.une.vc/v2/ retorna 401 (auth correto)
+
+name: smoke-runner-bh
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: smoke mil-build-2 (briotecnologia)
+    runs-on: [self-hosted, linux, mil-bh, build, briotecnologia]
+    timeout-minutes: 5
+    steps:
+      - name: Host + kernel
+        run: |
+          set -euo pipefail
+          echo "hostname: $(hostname)"
+          echo "uname: $(uname -a)"
+          echo "os-release:"
+          cat /etc/os-release | grep -E "PRETTY|VERSION_CODENAME"
+          [ "$(hostname)" = "mil-vm142-docker-build-bh" ] || { echo "FAIL: hostname inesperado"; exit 1; }
+
+      - name: User + workdir
+        run: |
+          id
+          echo "HOME=$HOME"
+          echo "pwd=$(pwd)"
+          [ "$(id -u)" = "1001" ] || { echo "FAIL: uid != 1001"; exit 1; }
+          [ "$(id -un)" = "actions-runner" ] || { echo "FAIL: user != actions-runner"; exit 1; }
+
+      - name: Docker engine + buildx
+        run: |
+          docker --version
+          docker buildx version
+          docker compose version
+          docker version --format '{{.Server.Version}}' | grep -qE '^(29|3[0-9])\.' \
+            || { echo "FAIL: Docker engine < 29"; exit 1; }
+
+      - name: Swarm membership (worker de swarm-vm140)
+        run: |
+          docker info 2>/dev/null | grep -E "Swarm|NodeID|Is Manager|Cluster Managers" | head -5
+          [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" = "active" ] \
+            || { echo "FAIL: swarm nao ativo"; exit 1; }
+          [ "$(docker info --format '{{.Swarm.ControlAvailable}}')" = "false" ] \
+            || { echo "FAIL: deveria ser worker, nao manager"; exit 1; }
+
+      - name: Registry mirror (dockerhub.une.vc)
+        run: |
+          docker info 2>/dev/null | grep -A1 'Registry Mirrors'
+          MIRROR=$(docker info --format '{{range .RegistryConfig.Mirrors}}{{.}}{{end}}')
+          echo "mirror=$MIRROR"
+          [ "$MIRROR" = "https://dockerhub.une.vc/" ] \
+            || { echo "FAIL: mirror inesperado ($MIRROR)"; exit 1; }
+
+      - name: Pull-through cache funcional (alpine via mirror)
+        run: |
+          time docker pull dockerhub.une.vc/library/alpine:latest
+          docker images dockerhub.une.vc/library/alpine:latest --format '{{.Repository}}:{{.Tag}} {{.Size}}'
+
+      - name: Registry interno responde (sem auth → 401 esperado)
+        run: |
+          STATUS=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 15 https://registry.une.vc/v2/)
+          echo "registry.une.vc/v2/ → HTTP $STATUS"
+          [ "$STATUS" = "401" ] \
+            || { echo "FAIL: registry.une.vc deveria responder 401 (auth) — recebi $STATUS"; exit 1; }
+
+      - name: Sumario
+        if: success()
+        run: |
+          echo ""
+          echo "✅ build-platform BH OK (mil-build-2 / briotecnologia)"
+          echo "   runner: mil-build-2 @ $(hostname)"
+          echo "   docker: $(docker --version | cut -d' ' -f3 | tr -d ',')"
+          echo "   swarm:  worker de $(docker info --format '{{.Swarm.RemoteManagers}}' | grep -oE '[0-9.:]+' | head -1)"
+          echo "   mirror: $(docker info --format '{{range .RegistryConfig.Mirrors}}{{.}}{{end}}')"
+          echo "   registry interno: HTTP 401 (auth ok)"
