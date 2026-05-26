@@ -24,6 +24,7 @@ import {
   MentionType,
 } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { CollectionValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
@@ -307,6 +308,42 @@ export default abstract class ImportsProcessor<
 
     let collectionIdx = firstCollection?.index ?? null;
 
+    // Pre-pass: allocate new urlIds for every collection and document in this
+    // import so internal link hrefs in document content can be rewritten to
+    // point at the new paths during persistence. The map is keyed by the old
+    // urlId from the export, which is what appears in `/doc/<slug>-<urlId>`
+    // and `/collection/<slug>-<urlId>` link hrefs.
+    const urlIdMap: Record<string, { urlId: string; title: string }> = {};
+
+    await ImportTask.findAllInBatches<ImportTask<T>>(
+      {
+        where: { importId: importModel.id },
+        order: [
+          ["createdAt", "ASC"],
+          ["id", "ASC"],
+        ],
+        batchLimit: 5,
+        transaction,
+      },
+      async (importTasks) => {
+        for (const importTask of importTasks) {
+          for (const output of importTask.output ?? []) {
+            if (!output.urlId || urlIdMap[output.urlId]) {
+              continue;
+            }
+            const isCollection = !!importInput[output.externalId];
+            const allocated = isCollection
+              ? await this.preserveCollectionUrlId(output.urlId, transaction)
+              : await this.preserveDocumentUrlId(output.urlId, transaction);
+            urlIdMap[output.urlId] = {
+              urlId: allocated ?? generateUrlId(),
+              title: output.title,
+            };
+          }
+        }
+      }
+    );
+
     await ImportTask.findAllInBatches<ImportTask<T>>(
       {
         where: { importId: importModel.id },
@@ -353,11 +390,12 @@ export default abstract class ImportsProcessor<
               transaction,
             });
 
-            const transformedContent = await this.updateMentionsAndAttachments({
+            const transformedContent = await this.rewriteReferences({
               content: output.content,
               attachments,
               importInput,
               idMap,
+              urlIdMap,
               actorId: importModel.createdById,
               teamId: importModel.teamId,
             });
@@ -388,10 +426,9 @@ export default abstract class ImportsProcessor<
                 createdByName: output.author,
               };
 
-              const urlId = await this.preserveCollectionUrlId(
-                output.urlId,
-                transaction
-              );
+              const urlId = output.urlId
+                ? urlIdMap[output.urlId]?.urlId
+                : undefined;
 
               const collection = Collection.build({
                 id: internalId,
@@ -439,10 +476,9 @@ export default abstract class ImportsProcessor<
             const isRootDocument =
               !parentExternalId || !!importInput[parentExternalId];
 
-            const urlId = await this.preserveDocumentUrlId(
-              output.urlId,
-              transaction
-            );
+            const urlId = output.urlId
+              ? urlIdMap[output.urlId]?.urlId
+              : undefined;
 
             const defaults = {
               title: output.title,
@@ -519,19 +555,25 @@ export default abstract class ImportsProcessor<
   }
 
   /**
-   * Transform the mentions and attachments in ProseMirrorDoc to their internal references.
+   * Rewrite the mentions, attachments, and internal document/collection link
+   * marks in a ProseMirrorDoc so they resolve against the imported models
+   * rather than the source export.
    *
    * @param content ProseMirrorDoc that represents collection (or) document content.
    * @param attachments Array of attachment models created for the import.
    * @param idMap Map of internalId to externalId.
+   * @param urlIdMap Map of old urlId to the newly allocated urlId and title,
+   *   used to rewrite `/doc/<slug>-<urlId>` and `/collection/<slug>-<urlId>`
+   *   link hrefs.
    * @param importInput Contains the root externalId and associated info which were used to create the import.
    * @param actorId ID of the user who created the import.
    * @returns Updated ProseMirrorDoc.
    */
-  private async updateMentionsAndAttachments({
+  private async rewriteReferences({
     content,
     attachments,
     idMap,
+    urlIdMap,
     importInput,
     actorId,
     teamId,
@@ -539,6 +581,7 @@ export default abstract class ImportsProcessor<
     content: ProsemirrorDoc;
     attachments: Attachment[];
     idMap: Record<string, string>;
+    urlIdMap: Record<string, { urlId: string; title: string }>;
     // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     importInput: Record<string, ImportInput<any>[number]>;
     actorId: string;
@@ -551,6 +594,7 @@ export default abstract class ImportsProcessor<
 
     const attachmentsMap = keyBy(attachments, "id");
     const doc = ProsemirrorHelper.toProsemirror(content);
+    const linkMarkType = schema.marks.link;
 
     const transformMentionNode = async (node: Node): Promise<Node> => {
       const json = node.toJSON() as ProsemirrorData;
@@ -581,6 +625,52 @@ export default abstract class ImportsProcessor<
       return Node.fromJSON(schema, json);
     };
 
+    const rewriteInternalLinkHref = (href: string): string => {
+      const docMatch = /^\/doc\/([^/?#]+)(.*)$/.exec(href);
+      if (docMatch) {
+        const slugMatch = UrlHelper.SLUG_URL_REGEX.exec(docMatch[1]);
+        const mapped = slugMatch ? urlIdMap[slugMatch[1]] : undefined;
+        if (mapped) {
+          return (
+            Document.getPath({ title: mapped.title, urlId: mapped.urlId }) +
+            docMatch[2]
+          );
+        }
+      }
+      const collectionMatch = /^\/collection\/([^/?#]+)(.*)$/.exec(href);
+      if (collectionMatch) {
+        const slugMatch = UrlHelper.SLUG_URL_REGEX.exec(collectionMatch[1]);
+        const mapped = slugMatch ? urlIdMap[slugMatch[1]] : undefined;
+        if (mapped) {
+          return `/collection/${mapped.urlId}${collectionMatch[2]}`;
+        }
+      }
+      return href;
+    };
+
+    const transformLinkMarks = (node: Node): Node => {
+      if (!node.marks.length) {
+        return node;
+      }
+      let changed = false;
+      const newMarks = node.marks.map((mark) => {
+        if (mark.type !== linkMarkType) {
+          return mark;
+        }
+        const href = mark.attrs.href as string | undefined;
+        if (!href) {
+          return mark;
+        }
+        const newHref = rewriteInternalLinkHref(href);
+        if (newHref === href) {
+          return mark;
+        }
+        changed = true;
+        return linkMarkType.create({ ...mark.attrs, href: newHref });
+      });
+      return changed ? node.mark(newMarks) : node;
+    };
+
     const transformFragment = async (fragment: Fragment): Promise<Fragment> => {
       const nodePromises: Promise<Node>[] = [];
 
@@ -592,7 +682,7 @@ export default abstract class ImportsProcessor<
         } else {
           nodePromises.push(
             transformFragment(node.content).then((transformedContent) =>
-              node.copy(transformedContent)
+              transformLinkMarks(node.copy(transformedContent))
             )
           );
         }
