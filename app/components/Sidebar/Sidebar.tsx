@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { mergeRefs } from "react-merge-refs";
 import { useWebHaptics } from "web-haptics/react";
 import { useLocation } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
@@ -63,6 +64,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   const [hasPointerMoved, setPointerMoved] = React.useState(false);
   const isSmallerThanMinimum = width < minWidth;
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const internalRef = React.useRef<HTMLDivElement | null>(null);
+  const mergedRef = React.useMemo(() => mergeRefs([internalRef, ref]), [ref]);
 
   const handleDrag = React.useCallback(
     (event: MouseEvent) => {
@@ -174,6 +177,31 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     }
   }, [ui.sidebarIsClosed]);
 
+  // Reset stale hover state when the sidebar becomes visible after being
+  // hidden via display:none (e.g. returning from settings). Without this, a
+  // pointer-leave event never fires when navigating away while hovering, so
+  // isHovering stays true and the sidebar appears expanded until the cursor
+  // re-enters and leaves.
+  React.useEffect(() => {
+    const el = internalRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+    let wasVisible = false;
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        const nowVisible = entry.isIntersecting;
+        if (nowVisible && !wasVisible) {
+          setHovering(false);
+          setPointerMoved(false);
+        }
+        wasVisible = nowVisible;
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   React.useEffect(() => {
     if (isAnimating) {
       setTimeout(() => setAnimating(false), ANIMATION_MS);
@@ -237,7 +265,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     <TooltipProvider>
       <Container
         id="sidebar"
-        ref={ref}
+        ref={mergedRef}
         style={style}
         $hidden={hidden}
         $isHovering={isHovering}
