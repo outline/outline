@@ -796,20 +796,16 @@ export default abstract class ImportsProcessor<
 
   /**
    * Honors a urlId from a document export if it does not collide with an
-   * existing Document, otherwise generates a fresh one. Returns `undefined`
-   * when no urlId is supplied (so the model's default applies).
+   * existing Document, otherwise generates a fresh one.
    *
    * @param sourceUrlId The urlId requested by the importer.
    * @param transaction Active sequelize transaction.
-   * @returns A urlId to use, or undefined to fall through to the default.
+   * @returns A urlId to use.
    */
   private async preserveDocumentUrlId(
-    sourceUrlId: string | undefined,
+    sourceUrlId: string,
     transaction: Transaction
-  ): Promise<string | undefined> {
-    if (!sourceUrlId) {
-      return undefined;
-    }
+  ): Promise<string> {
     const existing = await Document.unscoped().findOne({
       attributes: ["id"],
       paranoid: false,
@@ -821,20 +817,16 @@ export default abstract class ImportsProcessor<
 
   /**
    * Honors a urlId from a collection export if it does not collide with an
-   * existing Collection, otherwise generates a fresh one. Returns `undefined`
-   * when no urlId is supplied (so the model's default applies).
+   * existing Collection, otherwise generates a fresh one.
    *
    * @param sourceUrlId The urlId requested by the importer.
    * @param transaction Active sequelize transaction.
-   * @returns A urlId to use, or undefined to fall through to the default.
+   * @returns A urlId to use.
    */
   private async preserveCollectionUrlId(
-    sourceUrlId: string | undefined,
+    sourceUrlId: string,
     transaction: Transaction
-  ): Promise<string | undefined> {
-    if (!sourceUrlId) {
-      return undefined;
-    }
+  ): Promise<string> {
     const existing = await Collection.unscoped().findOne({
       attributes: ["id"],
       paranoid: false,
