@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import scrollIntoView from "scroll-into-view-if-needed";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import { UserPreference } from "@shared/types";
@@ -132,6 +133,22 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
   } else if (!isOnScreen && !isDragActive && mounted) {
     setMounted(false);
   }
+
+  // The inner row's own scrollIntoView only fires while it is mounted, which
+  // skips active documents that are virtualized off-screen
+  React.useLayoutEffect(() => {
+    if (
+      isActiveDocument &&
+      sidebarContext === "collections" &&
+      placeholderRef.current
+    ) {
+      scrollIntoView(placeholderRef.current, {
+        scrollMode: "if-needed",
+        behavior: "auto",
+        boundary: (parent) => parent.id !== "sidebar",
+      });
+    }
+  }, [isActiveDocument, sidebarContext]);
 
   return (
     <>
@@ -393,7 +410,7 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
       to={toPath}
       depth={depth}
       isDraft={isDraft}
-      scrollIntoViewIfNeeded={sidebarContext === "collections"}
+      scrollIntoViewIfNeeded={false}
       icon={iconElement}
       canEdit={canUpdate}
       labelText={title}
