@@ -71,7 +71,7 @@ export default async function documentCollaborativeUpdater({
     const pud = new Y.PermanentUserData(ydoc);
     const pudIds = Array.from(pud.clients.values());
     const collaboratorIds = uniq([
-      ...document.collaboratorIds,
+      ...(document.collaboratorIds ?? []),
       ...sessionCollaboratorIds,
       ...pudIds,
     ]);
