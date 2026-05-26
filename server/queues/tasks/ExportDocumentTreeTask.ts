@@ -70,6 +70,17 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         key: attachment.key,
       });
 
+      // Skip attachments with a malformed key that has no filename component,
+      // as yazl rejects entries whose path ends with a slash.
+      if (!attachment.key || attachment.key.endsWith("/")) {
+        Logger.warn(`Skipping attachment with invalid key`, {
+          attachmentId: attachment.id,
+          teamId: attachment.teamId,
+          key: attachment.key,
+        });
+        continue;
+      }
+
       const dir = path.dirname(pathInZip);
       let buffer: Buffer;
       try {
