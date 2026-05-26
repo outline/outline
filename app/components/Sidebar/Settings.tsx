@@ -1,35 +1,30 @@
 import { groupBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { BackIcon, SidebarIcon } from "outline-icons";
+import { BackIcon } from "outline-icons";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { metaDisplay } from "@shared/utils/keyboard";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { settingsPath } from "~/utils/routeHelpers";
-import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
-import ToggleButton from "./components/ToggleButton";
 import Version from "./components/Version";
-import useMobile from "~/hooks/useMobile";
 
 function SettingsSidebar() {
-  const { ui, integrations } = useStores();
+  const { integrations } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation();
   const configs = useSettingsConfig();
-  const isMobile = useMobile();
 
   const groupedConfig = groupBy(
     configs.filter((item) =>
@@ -45,31 +40,12 @@ function SettingsSidebar() {
   }, [history]);
 
   return (
-    <Sidebar>
+    <Sidebar canCollapse={false}>
       <SidebarButton
         title={t("Return to App")}
         image={<StyledBackIcon />}
         onClick={returnToApp}
-      >
-        {isMobile ? null : (
-          <Tooltip content={t("Toggle sidebar")} shortcut={`${metaDisplay}+.`}>
-            <ToggleButton
-              aria-label={
-                ui.sidebarCollapsed
-                  ? t("Expand sidebar")
-                  : t("Collapse sidebar")
-              }
-              position="bottom"
-              image={<SidebarIcon />}
-              style={{ paddingInline: 4 }}
-              onClick={() => {
-                ui.toggleCollapsedSidebar();
-                (document.activeElement as HTMLElement)?.blur();
-              }}
-            />
-          </Tooltip>
-        )}
-      </SidebarButton>
+      />
 
       <Flex auto column>
         <Scrollable shadow>
