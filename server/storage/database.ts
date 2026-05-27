@@ -1,6 +1,11 @@
 import cluster from "node:cluster";
 import path from "node:path";
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  Transaction,
+  TransactionOptions,
+} from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
 import type { SequelizeOptions } from "sequelize-typescript";
 import { Sequelize } from "sequelize-typescript";
@@ -52,9 +57,9 @@ const schema = env.DATABASE_SCHEMA;
 // are exempted because background jobs may legitimately run long queries.
 // Only applied in forked cluster workers so that startup work driven from
 // the master process (notably migrations) is not subject to the timeout.
-// Applied via `SET` on connect rather than as a startup parameter so pgbouncer
-// (which rejects unknown startup parameters in transaction pooling mode) does
-// not refuse the connection.
+// Applied as `SET LOCAL` inside each transaction so the value is scoped to the
+// transaction and cannot leak via pgbouncer to other consumers (e.g. workers)
+// sharing the underlying database connection.
 const isApiProcess =
   (env.SERVICES.includes("web") ||
     env.SERVICES.includes("collaboration") ||
@@ -96,17 +101,6 @@ export function createDatabaseInstance(
               }
             : false,
       },
-      hooks: statementTimeout
-        ? {
-            afterConnect: async (connection: unknown) => {
-              await (
-                connection as {
-                  query: (sql: string) => Promise<unknown>;
-                }
-              ).query(`SET statement_timeout = ${Number(statementTimeout)}`);
-            },
-          }
-        : undefined,
       models: Object.values(input),
       pool: {
         // Read-only connections can have larger pools since there's no write contention
@@ -135,6 +129,13 @@ export function createDatabaseInstance(
     }
 
     sequelizeStrictAttributes(instance);
+
+    if (statementTimeout) {
+      instance = applyStatementTimeoutToTransactions(
+        instance,
+        Number(statementTimeout)
+      );
+    }
 
     if (env.isTest) {
       instance = monkeyPatchSequelizeErrorsForTests(instance);
@@ -257,6 +258,54 @@ export function createMigrationRunner(
         ),
     },
   });
+}
+
+/**
+ * Wraps `sequelize.transaction()` so that every transaction issues
+ * `SET LOCAL statement_timeout` immediately after it begins. Using `SET LOCAL`
+ * scopes the value to the transaction, preventing it from leaking to other
+ * consumers (e.g. background workers) sharing the same underlying connection
+ * via pgbouncer's transaction pooling.
+ */
+export function applyStatementTimeoutToTransactions(
+  instance: Sequelize,
+  timeoutMs: number
+) {
+  const origTransaction = instance.transaction.bind(
+    instance
+  ) as Sequelize["transaction"];
+
+  const setLocalTimeout = (t: Transaction) =>
+    instance.query(`SET LOCAL statement_timeout = ${timeoutMs}`, {
+      transaction: t,
+    });
+
+  instance.transaction = (async (
+    optionsOrCallback?:
+      | TransactionOptions
+      | ((t: Transaction) => PromiseLike<unknown>),
+    maybeCallback?: (t: Transaction) => PromiseLike<unknown>
+  ) => {
+    const autoCallback =
+      typeof optionsOrCallback === "function"
+        ? optionsOrCallback
+        : maybeCallback;
+    const options =
+      typeof optionsOrCallback === "function" ? undefined : optionsOrCallback;
+
+    if (autoCallback) {
+      return origTransaction(options as TransactionOptions, async (t) => {
+        await setLocalTimeout(t);
+        return autoCallback(t);
+      });
+    }
+
+    const t = await origTransaction(options);
+    await setLocalTimeout(t);
+    return t;
+  }) as typeof instance.transaction;
+
+  return instance;
 }
 
 /**
