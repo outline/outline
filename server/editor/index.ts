@@ -9,6 +9,7 @@ import {
   richExtensions,
   withComments,
 } from "@shared/editor/nodes";
+import CodeFence from "@shared/editor/nodes/CodeFence";
 import Mention from "@shared/editor/nodes/Mention";
 
 populateEmojiData(data as EmojiMartData);
@@ -56,7 +57,7 @@ export const basicParser = basicExtensionManager.parser({
   plugins: basicExtensionManager.rulePlugins,
 });
 
-const commentExtensions = [...basicExtensions, Mention];
+const commentExtensions = [...basicExtensions, CodeFence, Mention];
 export const commentExtensionManager = new ExtensionManager(commentExtensions);
 
 export const commentSchema = new Schema({
