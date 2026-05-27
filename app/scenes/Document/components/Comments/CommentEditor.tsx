@@ -1,6 +1,8 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { basicExtensions, withComments } from "@shared/editor/nodes";
+import CodeBlock from "@shared/editor/nodes/CodeBlock";
+import CodeFence from "@shared/editor/nodes/CodeFence";
 import HardBreak from "@shared/editor/nodes/HardBreak";
 import type { Props as EditorProps } from "~/components/Editor";
 import Editor from "~/components/Editor";
@@ -17,6 +19,8 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 
 const extensions = [
   ...withComments(basicExtensions),
+  CodeBlock,
+  CodeFence,
   HardBreak,
   SmartText,
   PasteHandler,
