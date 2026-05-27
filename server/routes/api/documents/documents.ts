@@ -1593,20 +1593,28 @@ router.post(
       throw ValidationError("one of attachmentId or file is required");
     }
 
-    if (collectionId) {
-      const collection = await Collection.findByPk(collectionId, {
-        userId: user.id,
-      });
-      authorize(user, "createDocument", collection);
-    }
-
     let parentDocument: Document | null = null;
+    let collection: Collection | null = null;
 
     if (parentDocumentId) {
       parentDocument = await Document.findByPk(parentDocumentId, {
         userId: user.id,
       });
-      authorize(user, "createChildDocument", parentDocument);
+
+      if (parentDocument?.collectionId) {
+        collection = await Collection.findByPk(parentDocument.collectionId, {
+          userId: user.id,
+        });
+      }
+
+      authorize(user, "createChildDocument", parentDocument, {
+        collection,
+      });
+    } else if (collectionId) {
+      collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+      });
+      authorize(user, "createDocument", collection);
     }
 
     let key: string;

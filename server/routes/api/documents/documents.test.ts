@@ -3200,6 +3200,68 @@ describe("#documents.import", () => {
     vi.restoreAllMocks();
   });
 
+  it("should import a child document with parent document permission only", async () => {
+    const team = await buildTeam();
+    const author = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: author.id,
+      teamId: team.id,
+      permission: null,
+    });
+    const parentDocument = await buildDocument({
+      userId: author.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      documentId: parentDocument.id,
+      userId: user.id,
+      createdById: author.id,
+      permission: DocumentPermission.ReadWrite,
+    });
+    const childDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      parentDocumentId: parentDocument.id,
+    });
+
+    vi.spyOn(FileStorage, "store").mockResolvedValue(
+      undefined as unknown as string
+    );
+    vi.spyOn(DocumentImportTask.prototype, "schedule").mockResolvedValue({
+      finished: vi.fn().mockResolvedValue({ documentId: childDocument.id }),
+    } as unknown as Awaited<ReturnType<DocumentImportTask["schedule"]>>);
+
+    const content = await readFile(
+      path.resolve(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "test",
+        "fixtures",
+        "markdown.md"
+      )
+    );
+    const form = new FormData();
+    form.append("file", content, "markdown.md");
+    form.append("token", user.getSessionToken());
+    form.append("collectionId", collection.id);
+    form.append("parentDocumentId", parentDocument.id);
+
+    const res = await server.post("/api/documents.import", {
+      headers: form.getHeaders(),
+      body: form,
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(childDocument.id);
+
+    vi.restoreAllMocks();
+  });
+
   it("should require authentication", async () => {
     const document = await buildDocument();
     const res = await server.post("/api/documents.import", {
