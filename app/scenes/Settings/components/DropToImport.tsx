@@ -149,7 +149,9 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
       <Flex justify="flex-end">
         <Button disabled={!file || isImporting} onClick={handleStartImport}>
           {isImporting
-            ? `${t("Uploading")} ${Math.round(uploadProgress * 100)}%`
+            ? t("Uploading {{progress}}%", {
+                progress: Math.min(99, Math.floor(uploadProgress * 100)),
+              })
             : t("Start import")}
         </Button>
       </Flex>
