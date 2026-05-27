@@ -121,8 +121,7 @@ function setupRowDragTracking(
 
     if (isDragging && currentToIndex !== fromIndex && isInTable(view.state)) {
       // Verify both indices are still valid for the current table. The document
-      // may have changed during the drag (e.g. collaborative editing) which can
-      // leave the captured fromIndex out of bounds and crash prosemirror-tables.
+      // may have changed during the drag (e.g. collaborative editing)
       const currentRows = getRowsInTable(view.state);
       const inBounds =
         fromIndex >= 0 &&
