@@ -572,12 +572,18 @@ export class Editor extends React.PureComponent<
       this.mutationObserver = observe(
         hash,
         (element) => {
-          const pos = this.view.posAtDOM(element, 0, 1);
-          this.view.dispatch(
-            this.view.state.tr.setSelection(
-              TextSelection.near(this.view.state.doc.resolve(pos), 1)
-            )
-          );
+          try {
+            const pos = this.view.posAtDOM(element, 0, 1);
+            if (pos >= 0 && pos <= this.view.state.doc.content.size) {
+              this.view.dispatch(
+                this.view.state.tr.setSelection(
+                  TextSelection.near(this.view.state.doc.resolve(pos), 1)
+                )
+              );
+            }
+          } catch (_err) {
+            // posAtDOM may throw if the element is not part of the editor doc
+          }
 
           if (isVisible(element)) {
             element.scrollIntoView();
