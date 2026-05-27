@@ -35,6 +35,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
   const { collections, imports } = useStores();
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setImporting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [permission, setPermission] = useState<CollectionPermission | null>(
     CollectionPermission.ReadWrite
   );
@@ -52,11 +53,13 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
       return;
     }
     setImporting(true);
+    setUploadProgress(0);
 
     try {
       const attachment = await uploadFile(file, {
         name: file.name,
         preset: AttachmentPreset.WorkspaceImport,
+        onProgress: (progress) => setUploadProgress(progress),
       });
 
       if (format === FileOperationFormat.MarkdownZip) {
@@ -89,6 +92,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
       toast.error(err.message);
     } finally {
       setImporting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -144,7 +148,11 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
       </div>
       <Flex justify="flex-end">
         <Button disabled={!file || isImporting} onClick={handleStartImport}>
-          {isImporting ? t("Uploading") + "…" : t("Start import")}
+          {isImporting
+            ? t("Uploading {{progress}}%", {
+                progress: Math.min(99, Math.floor(uploadProgress * 100)),
+              })
+            : t("Start import")}
         </Button>
       </Flex>
     </Flex>
