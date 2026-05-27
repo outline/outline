@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { ellipsis } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Tooltip from "~/components/Tooltip";
+import { undraggableOnDesktop } from "~/styles";
 
 export function SearchHighlightChip() {
   const { t } = useTranslation();
@@ -50,6 +51,7 @@ export function SearchHighlightChip() {
 }
 
 const Chip = styled.button`
+  ${undraggableOnDesktop()}
   display: inline-flex;
   align-items: center;
   gap: 2px;
