@@ -132,13 +132,24 @@ function setupColumnDragTracking(
     document.body.classList.remove(EditorStyleHelper.tableDragging);
 
     if (isDragging && currentToIndex !== fromIndex && isInTable(view.state)) {
-      const moved = moveTableColumn({ from: fromIndex, to: currentToIndex })(
-        view.state,
-        view.dispatch
-      );
-      if (moved) {
-        // Select the column at its new position
-        selectColumn(currentToIndex)(view.state, view.dispatch);
+      // Verify both indices are still valid for the current table. The document
+      // may have changed during the drag (e.g. collaborative editing)
+      const currentCols = getCellsInRow(0)(view.state);
+      const inBounds =
+        fromIndex >= 0 &&
+        fromIndex < currentCols.length &&
+        currentToIndex >= 0 &&
+        currentToIndex < currentCols.length;
+
+      if (inBounds) {
+        const moved = moveTableColumn({ from: fromIndex, to: currentToIndex })(
+          view.state,
+          view.dispatch
+        );
+        if (moved) {
+          // Select the column at its new position
+          selectColumn(currentToIndex)(view.state, view.dispatch);
+        }
       }
     }
 

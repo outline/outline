@@ -120,13 +120,24 @@ function setupRowDragTracking(
     document.body.classList.remove(EditorStyleHelper.tableDragging);
 
     if (isDragging && currentToIndex !== fromIndex && isInTable(view.state)) {
-      const moved = moveTableRow({ from: fromIndex, to: currentToIndex })(
-        view.state,
-        view.dispatch
-      );
-      if (moved) {
-        // Select the row at its new position
-        selectRow(currentToIndex)(view.state, view.dispatch);
+      // Verify both indices are still valid for the current table. The document
+      // may have changed during the drag (e.g. collaborative editing)
+      const currentRows = getRowsInTable(view.state);
+      const inBounds =
+        fromIndex >= 0 &&
+        fromIndex < currentRows.length &&
+        currentToIndex >= 0 &&
+        currentToIndex < currentRows.length;
+
+      if (inBounds) {
+        const moved = moveTableRow({ from: fromIndex, to: currentToIndex })(
+          view.state,
+          view.dispatch
+        );
+        if (moved) {
+          // Select the row at its new position
+          selectRow(currentToIndex)(view.state, view.dispatch);
+        }
       }
     }
 
