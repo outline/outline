@@ -297,7 +297,18 @@ export function applyStatementTimeoutToTransactions(
     }
 
     const t = await origTransaction(options);
-    await setLocalTimeout(t);
+    try {
+      await setLocalTimeout(t);
+    } catch (err) {
+      // Roll back so the started transaction does not linger on the pooled
+      // connection until idle-in-transaction timeout closes it.
+      try {
+        await t.rollback();
+      } catch {
+        // Ignore rollback failure; the original error is more informative.
+      }
+      throw err;
+    }
     return t;
   }) as typeof instance.transaction;
 
