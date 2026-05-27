@@ -39,8 +39,8 @@ export default class AuthenticationHelper {
       return true;
     }
 
-    // strip any query string, this is never used as part of scope matching
-    path = path.split("?")[0];
+    // strip any query string or fragment, these are never used as part of scope matching
+    path = path.split("?")[0].split("#")[0];
 
     const resource = path.split("/").pop() ?? "";
     const [namespace, method] = resource.split(".");

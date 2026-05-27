@@ -21,6 +21,20 @@ describe("AuthenticationHelper", () => {
         expect(canAccess("/api/documents.info?foo=bar", scopes)).toBe(true);
       });
 
+      it("should ignore URL fragment", async () => {
+        const scopes = ["/api/documents.info"];
+
+        expect(
+          canAccess("/api/documents.create#foo/api/documents.info", scopes)
+        ).toBe(false);
+        expect(
+          canAccess("/api/documents.info#foo/api/documents.create", scopes)
+        ).toBe(true);
+        expect(
+          canAccess("/api/documents.create?x=1#foo/api/documents.info", scopes)
+        ).toBe(false);
+      });
+
       it("should return false if no matching scope", async () => {
         const scopes = ["/api/documents.info"];
 
