@@ -1,5 +1,6 @@
 import { chunk, uniq } from "es-toolkit/compat";
 import { Op, QueryTypes } from "sequelize";
+import { sleep } from "@shared/utils/timers";
 import Logger from "@server/logging/Logger";
 import { Document, Attachment } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -76,11 +77,6 @@ export default async function documentPermanentDeleter(documents: Document[]) {
     );
   }
 
-  // Number of documents to delete per database statement. Keeps the exclusive
-  // lock window short enough to avoid blocking concurrent web requests that
-  // read from the documents table.
-  const BATCH_SIZE = 100;
-
   const documentIds = documents.map((document) => document.id);
 
   // Re-check deletedAt in the database to exclude documents that were restored
@@ -95,9 +91,8 @@ export default async function documentPermanentDeleter(documents: Document[]) {
     paranoid: false,
   });
   const deletedIds = stillDeleted.map((document) => document.id);
-  const batches = chunk(deletedIds, BATCH_SIZE);
 
-  for (const batch of batches) {
+  for (const batch of chunk(deletedIds, 100)) {
     await Document.update(
       {
         parentDocumentId: null,
@@ -113,15 +108,23 @@ export default async function documentPermanentDeleter(documents: Document[]) {
     );
   }
 
+  // Small batch size and inter-batch sleep keep the exclusive lock window short
+  // enough to avoid blocking concurrent web requests, since each delete
+  // cascades into vectors, attachments, revisions, comments, and notifications.
+  const destroyBatches = chunk(deletedIds, 10);
+
   let totalDeleted = 0;
-  for (const batch of batches) {
+  for (let i = 0; i < destroyBatches.length; i++) {
     totalDeleted += await Document.scope("withDrafts").destroy({
       where: {
-        id: batch,
+        id: destroyBatches[i],
         deletedAt: { [Op.ne]: null },
       },
       force: true,
     });
+    if (i < destroyBatches.length - 1) {
+      await sleep(100);
+    }
   }
   return totalDeleted;
 }
