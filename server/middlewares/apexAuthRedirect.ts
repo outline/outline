@@ -39,8 +39,11 @@ export default function apexAuthRedirect<T>({
       try {
         const team = await Team.findByPk(teamId, {
           attributes: ["id", "domain", "subdomain"],
-          rejectOnEmpty: true,
         });
+
+        if (!team) {
+          return ctx.redirect(getErrorPath(ctx));
+        }
 
         return parseDomain(ctx.host).teamSubdomain === team.subdomain
           ? ctx.redirect("/")
