@@ -69,23 +69,24 @@ export function defaultRateLimiter() {
     try {
       await limiter.consume(key);
     } catch (rateLimiterRes) {
-      if (rateLimiterRes.msBeforeNext) {
-        ctx.set("Retry-After", `${rateLimiterRes.msBeforeNext / 1000}`);
-        ctx.set("RateLimit-Limit", `${limiter.points}`);
-        ctx.set("RateLimit-Remaining", `${rateLimiterRes.remainingPoints}`);
-        ctx.set(
-          "RateLimit-Reset",
-          new Date(Date.now() + rateLimiterRes.msBeforeNext).toString()
-        );
-
-        Metrics.increment("rate_limit.exceeded", {
-          path: fullPath,
-        });
-
-        throw RateLimitExceededError();
-      } else {
+      if (rateLimiterRes instanceof Error) {
         Logger.error("Rate limiter error", rateLimiterRes);
+        return next();
       }
+
+      ctx.set("Retry-After", `${rateLimiterRes.msBeforeNext / 1000}`);
+      ctx.set("RateLimit-Limit", `${limiter.points}`);
+      ctx.set("RateLimit-Remaining", `${rateLimiterRes.remainingPoints}`);
+      ctx.set(
+        "RateLimit-Reset",
+        new Date(Date.now() + rateLimiterRes.msBeforeNext).toString()
+      );
+
+      Metrics.increment("rate_limit.exceeded", {
+        path: fullPath,
+      });
+
+      throw RateLimitExceededError();
     }
 
     return next();
