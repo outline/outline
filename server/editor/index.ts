@@ -9,6 +9,7 @@ import {
   richExtensions,
   withComments,
 } from "@shared/editor/nodes";
+import CodeBlock from "@shared/editor/nodes/CodeBlock";
 import CodeFence from "@shared/editor/nodes/CodeFence";
 import Mention from "@shared/editor/nodes/Mention";
 
@@ -57,7 +58,7 @@ export const basicParser = basicExtensionManager.parser({
   plugins: basicExtensionManager.rulePlugins,
 });
 
-const commentExtensions = [...basicExtensions, CodeFence, Mention];
+const commentExtensions = [...basicExtensions, CodeBlock, CodeFence, Mention];
 export const commentExtensionManager = new ExtensionManager(commentExtensions);
 
 export const commentSchema = new Schema({
