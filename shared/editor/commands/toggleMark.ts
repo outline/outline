@@ -9,6 +9,8 @@ import { isMarkActive } from "../queries/isMarkActive";
 
 const wordCharRegex = /[\p{L}\p{N}_]/u;
 
+const ATOM_PLACEHOLDER = "￼";
+
 /**
  * If the selection is an empty cursor sitting inside a word (with word
  * characters on both sides) in a textblock that allows the given mark type,
@@ -34,7 +36,12 @@ function findWordRangeAtCursor(
 
   const parentStart = $cursor.start();
   const parentEnd = $cursor.end();
-  const text = state.doc.textBetween(parentStart, parentEnd, undefined, "￼");
+  const text = state.doc.textBetween(
+    parentStart,
+    parentEnd,
+    undefined,
+    ATOM_PLACEHOLDER
+  );
   const offset = $cursor.pos - parentStart;
 
   const before = offset > 0 ? text[offset - 1] : "";
@@ -97,16 +104,10 @@ export function toggleMark(
     if (wordRange) {
       const { from, to } = wordRange;
       const hasMatching = rangeHasMarkWithAttrs(state, type, attrs, from, to);
-      const hasType = state.doc.rangeHasMark(from, to, type);
 
       if (dispatch) {
-        const tr = state.tr;
-        if (hasMatching) {
-          tr.removeMark(from, to, type);
-        } else {
-          if (hasType) {
-            tr.removeMark(from, to, type);
-          }
+        const tr = state.tr.removeMark(from, to, type);
+        if (!hasMatching) {
           tr.addMark(from, to, type.create(attrs));
         }
         dispatch(tr);
