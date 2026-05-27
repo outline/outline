@@ -861,10 +861,10 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         // spaces. Ref: https://github.com/caub/pg-tsquery/issues/27
         quotedSearch ? limitedQuery.trim() : `${limitedQuery.trim()}*`
       )
-        // Remove any trailing join characters
-        .replace(/&$/, "")
-        // Remove any trailing escape characters
-        .replace(/\\$/, "")
+        // Strip any trailing join (&) or escape (\) characters, in any
+        // combination, so we never hand to_tsquery an operator with no
+        // operand (e.g. a tail of "&\" would leave a dangling "&").
+        .replace(/[&\\]+$/, "")
     );
   }
 
