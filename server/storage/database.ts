@@ -51,15 +51,6 @@ const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
 const databaseConfig = env.DATABASE_CONNECTION_POOL_URL || getDatabaseConfig();
 const schema = env.DATABASE_SCHEMA;
 
-// Request-handling processes get a Postgres `statement_timeout` matching the
-// HTTP request timeout, so a single slow query cannot hold a connection past
-// the point at which its response could be delivered. Worker/cron processes
-// are exempted because background jobs may legitimately run long queries.
-// Only applied in forked cluster workers so that startup work driven from
-// the master process (notably migrations) is not subject to the timeout.
-// Applied as `SET LOCAL` inside each transaction so the value is scoped to the
-// transaction and cannot leak via pgbouncer to other consumers (e.g. workers)
-// sharing the underlying database connection.
 const isApiProcess =
   (env.SERVICES.includes("web") ||
     env.SERVICES.includes("collaboration") ||
@@ -67,6 +58,11 @@ const isApiProcess =
     env.SERVICES.includes("admin")) &&
   !env.SERVICES.includes("worker") &&
   !env.SERVICES.includes("cron");
+
+// Request-handling processes get a Postgres `statement_timeout` matching the
+// HTTP request timeout, so a single slow query cannot hold a connection past
+// the point at which its response could be delivered. Applied as `SET LOCAL`
+// inside each transaction so the value is scoped to the transaction.
 const statementTimeout =
   isApiProcess && cluster.isWorker ? env.REQUEST_TIMEOUT : undefined;
 
