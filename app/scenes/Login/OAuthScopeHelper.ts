@@ -9,7 +9,7 @@ export class OAuthScopeHelper {
       info: t("read"),
       read: t("read"),
       write: t("write"),
-      create: t("write"),
+      create: t("create"),
       update: t("write"),
       delete: t("write"),
       "*": t("read and write"),
@@ -34,11 +34,17 @@ export class OAuthScopeHelper {
     };
 
     const normalizedScopes = scopes.map((scope) => {
+      if (scope === "*" || scope === "/api/*.*") {
+        return t("Full access");
+      }
       if (scope === Scope.Read) {
         return t("Read all data");
       }
       if (scope === Scope.Write) {
         return t("Write all data");
+      }
+      if (scope === Scope.Create) {
+        return t("Create all data");
       }
 
       const [namespace, method] = scope.replace("/api/", "").split(/[:.]/g);

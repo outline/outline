@@ -353,5 +353,12 @@ describe("OAuthInterface", () => {
       const result = await OAuthInterface.validateScope(user, client, scope);
       expect(result).toBe(false);
     });
+
+    it("should reject root wildcard route scopes", async () => {
+      const result = await OAuthInterface.validateScope(user, client, [
+        "/api/*.*",
+      ]);
+      expect(result).toBe(false);
+    });
   });
 });

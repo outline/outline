@@ -83,8 +83,9 @@ class OAuthAuthentication extends ParanoidModel<
   grantId: string | null;
 
   /** A list of scopes that this authentication has access to */
-  @Matches(/[/.\w\s]*/, {
+  @Matches(AuthenticationHelper.scopeGrammarRegex, {
     each: true,
+    message: "Scope must be a valid API scope",
   })
   @Column(DataType.ARRAY(DataType.STRING))
   scope: string[];

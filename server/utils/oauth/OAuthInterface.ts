@@ -5,7 +5,7 @@ import type {
   User as OAuthUser,
 } from "@node-oauth/oauth2-server";
 import type { Required } from "utility-types";
-import { Scope } from "@shared/types";
+import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { isUrl } from "@shared/utils/urls";
 import {
   OAuthClient,
@@ -393,29 +393,11 @@ export const OAuthInterface: RefreshTokenModel &
     }
 
     const scopes = Array.isArray(scope) ? scope : [scope];
-    const validAccessScopes = Object.values(Scope);
 
-    return scopes.every((s: string) => {
-      if (validAccessScopes.includes(s as Scope)) {
-        return true;
-      }
-
-      const periodCount = (s.match(/\./g) || []).length;
-      const colonCount = (s.match(/:/g) || []).length;
-
-      if (periodCount === 1 && colonCount === 0) {
-        return true;
-      }
-
-      if (
-        colonCount === 1 &&
-        validAccessScopes.includes(s.split(":")[1] as Scope)
-      ) {
-        return true;
-      }
-
-      return false;
-    })
+    // OAuth clients cannot request scopes that grant unrestricted access.
+    return scopes.every((s: string) =>
+      AuthenticationHelper.isValidScope(s, { allowRootWildcard: false })
+    )
       ? scopes
       : false;
   },
