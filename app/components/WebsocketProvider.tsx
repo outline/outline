@@ -96,6 +96,10 @@ function useConnectionHandlers() {
 
       toast.error(message);
 
+      if (message === "No access token") {
+        return;
+      }
+
       if (err instanceof Error) {
         Sentry.captureException(err);
       } else {
