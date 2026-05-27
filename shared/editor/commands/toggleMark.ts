@@ -87,9 +87,9 @@ function rangeHasMarkWithAttrs(
  * matching attributes it will remove the mark instead, if the mark is active
  * but with different attributes it will update the mark with the new attributes.
  *
- * When invoked with an empty cursor positioned on or adjacent to a word, the
- * mark is applied to that whole word without altering the user's selection —
- * matching the behavior users expect from common editors.
+ * When invoked with an empty cursor sitting inside a word (with word
+ * characters on both sides), the mark is applied to that whole word without
+ * altering the user's selection.
  *
  * @param type - The mark type to toggle.
  * @param attrs - The attributes to apply to the mark.
