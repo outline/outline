@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Adjon egy leíró nevet ennek a webhorognak és URL-nek, amelyre POST-kérést kell küldenünk, amikor illeszkedő események jönnek létre.",
   "A memorable identifer": "A memorable identifer",
   "URL": "URL",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "Signing secret",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.",
   "All events": "Minden esemény",
