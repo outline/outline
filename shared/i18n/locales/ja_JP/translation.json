@@ -1401,7 +1401,6 @@
   "No templates have been created yet": "No templates have been created yet",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} は {{ appName }} を使用してドキュメントを共有しています。続けるにはログインしてください。",
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "登録されたメールアドレスに認証用のコードが送信されました。ワークスペースを永久に削除するには、メール内のコードを入力してください。",
-  "Confirmation code": "認証コード",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "<1>{{workspaceName}}</1> ワークスペースを削除すると、全てのコレクション、ドキュメント、ユーザー、および関連データが破棄されます。 {{appName}} からすぐにログアウトされます。",
   "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "ワークスペースは完全に分離されているため、異なるドメイン・設定・ユーザー・請求書を利用することができます。",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "現在のアカウントを使用して新しいワークスペースを作成しています — <em>{{email}}</em>",
