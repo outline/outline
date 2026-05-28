@@ -7,7 +7,6 @@ import { escape, isNil, snakeCase } from "es-toolkit/compat";
 import env from "@server/env";
 import { ClientClosedRequestError, InternalError } from "@server/errors";
 import { requestErrorHandler } from "@server/logging/sentry";
-import { addTags, getRootSpanFromRequestContext } from "@server/logging/tracer";
 
 let errorHtmlCache: Buffer | undefined;
 
@@ -53,14 +52,6 @@ export default function onerror(app: Koa) {
           console.error(err);
         }
         err = InternalError();
-      }
-    } else {
-      // Clear error tags that dd-trace's Koa plugin sets automatically
-      // when an exception propagates through middleware, so that
-      // non-reportable errors are not flagged as errors in DataDog.
-      const span = getRootSpanFromRequestContext(this);
-      if (span) {
-        addTags({ error: false }, span);
       }
     }
 
