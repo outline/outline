@@ -1401,7 +1401,6 @@
   "No templates have been created yet": "No templates have been created yet",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} está a usar {{ appName }} para partilhar documentos, entre para continuar.",
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "Um código de confirmação foi enviado para o seu endereço de e-mail, por favor introduza o código abaixo para eliminar permanentemente a área de trabalho.",
-  "Confirmation code": "Código de confirmação",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "Excluir área de trabalho  <1>{{workspaceName}}</1> eliminará todas as coleções, documentos, utilizadores, e dados associados. Será desligado imediatamente do {{appName}}.",
   "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "Por favor, note que as áreas de trabalho estão completamente isoladas. Elas podem ter um domínio, configurações, utilizadores e faturação distintos.",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "Está a criar uma área de trabalho utilizando a conta atual — <em>{{email}}</em>",
