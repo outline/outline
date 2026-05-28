@@ -1401,7 +1401,6 @@
   "No templates have been created yet": "Er zijn nog geen sjablonen aangemaakt",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} gebruikt {{ appName }} om documenten te delen, log alsjeblieft in om door te gaan.",
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "Een bevestigingscode is naar je e-mailadres verzonden, voer hieronder de code in om deze werkruimte definitief te verwijderen.",
-  "Confirmation code": "Bevestigingscode",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "Het verwijderen van de werkruimte <1>{{workspaceName}}</1> zal alle collecties, documenten, gebruikers en bijbehorende gegevens verwijderen. Je wordt onmiddellijk uitgelogd bij {{appName}}.",
   "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "Houd er rekening mee dat werkruimtes volledig gescheiden zijn. Ze kunnen een verschillend domein, instellingen, gebruikers en facturering hebben.",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "Je maakt een nieuwe werkruimte aan met je huidige account — <em>{{email}}</em>",
