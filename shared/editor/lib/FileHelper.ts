@@ -80,7 +80,10 @@ export default class FileHelper {
         window.URL.revokeObjectURL(video.src);
         resolve({ width: video.videoWidth, height: video.videoHeight });
       };
-      video.onerror = reject;
+      video.onerror = () => {
+        window.URL.revokeObjectURL(video.src);
+        reject(new Error("Failed to load video for dimensions"));
+      };
       video.src = URL.createObjectURL(file);
     });
   }
@@ -154,7 +157,10 @@ export default class FileHelper {
         resolve({ width: img.width, height: img.height });
       };
 
-      img.onerror = reject;
+      img.onerror = () => {
+        window.URL.revokeObjectURL(img.src);
+        reject(new Error("Failed to load image for dimensions"));
+      };
       img.src = URL.createObjectURL(file);
     });
   }
