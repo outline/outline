@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "یک نام توصیفی برای این webhook ارائه دهید و URL که باید هنگام ایجاد رویدادهای مطابقت یافته، درخواست POST را به آن ارسال کنیم، مشخص کنید.",
   "A memorable identifer": "یک شناسه به یاد ماندنی",
   "URL": "آدرس",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "کلید امضا",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "برای همه رویدادها، گروه‌ها یا رویدادهای جداگانه مشترک شوید. توصیه می‌کنیم فقط به حداقل رویدادهایی که برنامه شما برای عملکرد نیاز دارد مشترک شوید.",
   "All events": "همه رویدادها",
