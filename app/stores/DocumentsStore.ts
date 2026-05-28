@@ -503,6 +503,16 @@ export default class DocumentsStore extends Store<Document> {
       invariant(res?.data, "Data not available");
       res.data.documents.forEach(this.add);
       this.addPolicies(res.policies);
+
+      // The websocket "documents.move" event is only broadcast to the
+      // collection channel, so users with document-only access never receive
+      // it. Refresh the affected membership tree locally so the sidebar
+      // reflects the new structure.
+      const membership =
+        this.rootStore.userMemberships.getByDocumentId(documentId);
+      if (membership) {
+        await membership.fetchDocuments({ force: true });
+      }
     } finally {
       this.movingDocumentId = undefined;
     }
