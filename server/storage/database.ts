@@ -1,6 +1,11 @@
 import cluster from "node:cluster";
 import path from "node:path";
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  Transaction,
+  TransactionOptions,
+} from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
 import type { SequelizeOptions } from "sequelize-typescript";
 import { Sequelize } from "sequelize-typescript";
@@ -46,15 +51,6 @@ const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
 const databaseConfig = env.DATABASE_CONNECTION_POOL_URL || getDatabaseConfig();
 const schema = env.DATABASE_SCHEMA;
 
-// Request-handling processes get a Postgres `statement_timeout` matching the
-// HTTP request timeout, so a single slow query cannot hold a connection past
-// the point at which its response could be delivered. Worker/cron processes
-// are exempted because background jobs may legitimately run long queries.
-// Only applied in forked cluster workers so that startup work driven from
-// the master process (notably migrations) is not subject to the timeout.
-// Applied via `SET` on connect rather than as a startup parameter so pgbouncer
-// (which rejects unknown startup parameters in transaction pooling mode) does
-// not refuse the connection.
 const isApiProcess =
   (env.SERVICES.includes("web") ||
     env.SERVICES.includes("collaboration") ||
@@ -62,6 +58,11 @@ const isApiProcess =
     env.SERVICES.includes("admin")) &&
   !env.SERVICES.includes("worker") &&
   !env.SERVICES.includes("cron");
+
+// Request-handling processes get a Postgres `statement_timeout` matching the
+// HTTP request timeout, so a single slow query cannot hold a connection past
+// the point at which its response could be delivered. Applied as `SET LOCAL`
+// inside each transaction so the value is scoped to the transaction.
 const statementTimeout =
   isApiProcess && cluster.isWorker ? env.REQUEST_TIMEOUT : undefined;
 
@@ -96,17 +97,6 @@ export function createDatabaseInstance(
               }
             : false,
       },
-      hooks: statementTimeout
-        ? {
-            afterConnect: async (connection: unknown) => {
-              await (
-                connection as {
-                  query: (sql: string) => Promise<unknown>;
-                }
-              ).query(`SET statement_timeout = ${Number(statementTimeout)}`);
-            },
-          }
-        : undefined,
       models: Object.values(input),
       pool: {
         // Read-only connections can have larger pools since there's no write contention
@@ -135,6 +125,13 @@ export function createDatabaseInstance(
     }
 
     sequelizeStrictAttributes(instance);
+
+    if (statementTimeout) {
+      instance = applyStatementTimeoutToTransactions(
+        instance,
+        Number(statementTimeout)
+      );
+    }
 
     if (env.isTest) {
       instance = monkeyPatchSequelizeErrorsForTests(instance);
@@ -257,6 +254,65 @@ export function createMigrationRunner(
         ),
     },
   });
+}
+
+/**
+ * Wraps `sequelize.transaction()` so that every transaction issues
+ * `SET LOCAL statement_timeout` immediately after it begins. Using `SET LOCAL`
+ * scopes the value to the transaction, preventing it from leaking to other
+ * consumers (e.g. background workers) sharing the same underlying connection
+ * via pgbouncer's transaction pooling.
+ */
+export function applyStatementTimeoutToTransactions(
+  instance: Sequelize,
+  timeoutMs: number
+) {
+  const origTransaction = instance.transaction.bind(
+    instance
+  ) as Sequelize["transaction"];
+
+  const setLocalTimeout = (t: Transaction) =>
+    instance.query(`SET LOCAL statement_timeout = ${timeoutMs}`, {
+      transaction: t,
+    });
+
+  instance.transaction = (async (
+    optionsOrCallback?:
+      | TransactionOptions
+      | ((t: Transaction) => PromiseLike<unknown>),
+    maybeCallback?: (t: Transaction) => PromiseLike<unknown>
+  ) => {
+    const autoCallback =
+      typeof optionsOrCallback === "function"
+        ? optionsOrCallback
+        : maybeCallback;
+    const options =
+      typeof optionsOrCallback === "function" ? undefined : optionsOrCallback;
+
+    if (autoCallback) {
+      return origTransaction(options as TransactionOptions, async (t) => {
+        await setLocalTimeout(t);
+        return autoCallback(t);
+      });
+    }
+
+    const t = await origTransaction(options);
+    try {
+      await setLocalTimeout(t);
+    } catch (err) {
+      // Roll back so the started transaction does not linger on the pooled
+      // connection until idle-in-transaction timeout closes it.
+      try {
+        await t.rollback();
+      } catch {
+        // Ignore rollback failure; the original error is more informative.
+      }
+      throw err;
+    }
+    return t;
+  }) as typeof instance.transaction;
+
+  return instance;
 }
 
 /**
