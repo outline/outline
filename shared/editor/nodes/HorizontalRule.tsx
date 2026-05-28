@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import type Token from "markdown-it/lib/token.mjs";
 import { InputRule } from "prosemirror-inputrules";
 import type {
@@ -6,8 +7,11 @@ import type {
   Node as ProsemirrorNode,
 } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
+import { PageBreakIcon, HorizontalRuleIcon } from "outline-icons";
 import type { Primitive } from "utility-types";
+import { isNodeActive } from "../queries/isNodeActive";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { SelectionToolbarMenuDescriptor } from "../types";
 import Node from "./Node";
 
 export default class HorizontalRule extends Node {
@@ -39,6 +43,34 @@ export default class HorizontalRule extends Node {
         );
         return true;
       };
+  }
+
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [
+      {
+        priority: 50,
+        matches: (ctx) => ctx.selectedNodeType === "hr" && !ctx.readOnly,
+        getItems: (ctx) => {
+          const { schema } = ctx;
+          return [
+            {
+              name: "hr",
+              tooltip: t("Divider"),
+              attrs: { markup: "---" },
+              active: isNodeActive(schema.nodes.hr, { markup: "---" }),
+              icon: <HorizontalRuleIcon />,
+            },
+            {
+              name: "hr",
+              tooltip: t("Page break"),
+              attrs: { markup: "***" },
+              active: isNodeActive(schema.nodes.hr, { markup: "***" }),
+              icon: <PageBreakIcon />,
+            },
+          ];
+        },
+      },
+    ];
   }
 
   keys({ type }: { type: NodeType }): Record<string, Command> {

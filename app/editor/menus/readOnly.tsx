@@ -1,20 +1,24 @@
-import type { TFunction } from "i18next";
+import { t } from "i18next";
 import { CommentIcon } from "outline-icons";
-import type { EditorState } from "prosemirror-state";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
-import type { MenuItem } from "@shared/editor/types";
+import type { MenuItem, SelectionContext } from "@shared/editor/types";
 
+/**
+ * Returns menu items for the read-only selection toolbar.
+ *
+ * @param ctx - the current selection context.
+ * @param canUpdate - whether the user has permission to update the document.
+ * @returns an array of menu items.
+ */
 export default function readOnlyMenuItems(
-  state: EditorState,
-  canUpdate: boolean,
-  t: TFunction
+  ctx: SelectionContext,
+  canUpdate: boolean
 ): MenuItem[] {
-  const { schema } = state;
-  const isEmpty = state.selection.empty;
+  const { schema } = ctx;
 
   return [
     {
-      visible: canUpdate && !isEmpty,
+      visible: canUpdate && !ctx.isEmpty,
       name: "comment",
       tooltip: t("Comment"),
       label: t("Comment"),

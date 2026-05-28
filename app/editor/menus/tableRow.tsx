@@ -15,8 +15,8 @@ import {
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import type { TFunction } from "i18next";
-import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
+import { t } from "i18next";
+import type { MenuItem, NodeAttrMark, SelectionContext } from "@shared/editor/types";
 import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
@@ -24,7 +24,11 @@ import TableCell from "@shared/editor/nodes/TableCell";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 
 /**
- * Get the set of background colors used in a row
+ * Get the set of background colors used in a row.
+ *
+ * @param state - the current editor state.
+ * @param rowIndex - the row index.
+ * @returns a set of hex color strings.
  */
 function getRowColors(state: EditorState, rowIndex: number): Set<string> {
   const colors = new Set<string>();
@@ -46,19 +50,21 @@ function getRowColors(state: EditorState, rowIndex: number): Set<string> {
   return colors;
 }
 
+/**
+ * Returns menu items for the table row selection toolbar.
+ *
+ * @param ctx - the current selection context.
+ * @returns an array of menu items.
+ */
 export default function tableRowMenuItems(
-  state: EditorState,
-  readOnly: boolean,
-  t: TFunction,
-  options: {
-    index: number;
-  }
+  ctx: SelectionContext
 ): MenuItem[] {
-  if (readOnly) {
+  if (ctx.readOnly) {
     return [];
   }
 
-  const { index } = options;
+  const index = ctx.rowIndex!;
+  const { state } = ctx;
   const { selection } = state;
 
   if (!(selection instanceof CellSelection)) {

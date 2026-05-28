@@ -3,6 +3,7 @@ import type { InputRule } from "prosemirror-inputrules";
 import type { NodeType, MarkType, Schema } from "prosemirror-model";
 import type { Command, Plugin, Selection } from "prosemirror-state";
 import type { Editor } from "../../../app/editor";
+import type { SelectionToolbarMenuDescriptor } from "../types";
 
 export type CommandFactory = (attrs?: unknown, options?: unknown) => Command;
 
@@ -107,5 +108,16 @@ export default class Extension<TOptions extends object = object> {
     schema: Schema;
   }): Record<string, CommandFactory> | CommandFactory | undefined {
     return {};
+  }
+
+  /**
+   * Declares selection toolbar menus contributed by this extension. When
+   * the user selects content or clicks a node, the toolbar evaluates all
+   * registered menus in priority order and displays the first match.
+   *
+   * @returns an array of menu descriptors, or an empty array if this extension does not contribute menus.
+   */
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [];
   }
 }

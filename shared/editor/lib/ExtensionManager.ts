@@ -8,6 +8,7 @@ import type { Primitive } from "utility-types";
 import type { Editor } from "~/editor";
 import type Mark from "../marks/Mark";
 import type Node from "../nodes/Node";
+import type { SelectionToolbarMenuDescriptor } from "../types";
 import type { CommandFactory, WidgetProps } from "./Extension";
 import type Extension from "./Extension";
 import type { AnyExtension, AnyExtensionClass } from "./types";
@@ -233,6 +234,17 @@ export default class ExtensionManager {
       (allInputRules, inputRules) => [...allInputRules, ...inputRules],
       []
     );
+  }
+
+  /**
+   * Collects selection toolbar menu descriptors from all extensions and returns
+   * them sorted by priority (highest first). The toolbar evaluates these in
+   * order and displays the first match.
+   */
+  get selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return this.extensions
+      .flatMap((extension) => extension.selectionToolbarMenus())
+      .sort((a, b) => b.priority - a.priority);
   }
 
   commands({ schema, view }: { schema: Schema; view: EditorView }) {
