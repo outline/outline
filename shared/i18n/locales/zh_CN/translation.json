@@ -1401,7 +1401,6 @@
   "No templates have been created yet": "No templates have been created yet",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} 正在使用 {{ appName }} 共享文档，请登录以继续。",
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "验证码已发送至您的电子邮件，请在下面输入代码以永久删除此工作区。",
-  "Confirmation code": "验证码",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "删除 <1>{{workspaceName}}</1> 工作区将销毁所有文档集、文档、用户和关联数据。 您将立即登出 {{appName}}。",
   "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "请注意，工作区是完全分离的。它们可以有不同的域、设置、用户和账单。",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "你正在使用当前账户创建新的工作区 —— <em>{{email}}</em>",
