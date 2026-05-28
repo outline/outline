@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "この Webhook のわかりやすい名前と、一致するイベントが発火されたときに POST リクエストを送信する URL を指定してください。",
   "A memorable identifer": "覚えやすい識別子",
   "URL": "URL",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "Secret",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "全てのイベント、グループ、または個別のイベントの通知を有効にします。アプリが機能するための最小限のものだけを選択することをお勧めします。",
   "All events": "全てのイベント",
