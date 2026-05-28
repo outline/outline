@@ -53,7 +53,6 @@ export default abstract class APIImportTask<
    */
   public async perform({ importTaskId }: Props) {
     let importTask = await ImportTask.findByPk<ImportTask<T>>(importTaskId, {
-      rejectOnEmpty: true,
       include: [
         {
           model: Import,
@@ -62,6 +61,12 @@ export default abstract class APIImportTask<
         },
       ],
     });
+
+    // The import_task row may have been deleted (e.g. its Import was removed)
+    // between the job being enqueued and the worker picking it up. Nothing to do.
+    if (!importTask) {
+      return;
+    }
 
     // Don't process any further when the associated import is canceled by the user.
     if (importTask.import.state === ImportState.Canceled) {
@@ -107,7 +112,6 @@ export default abstract class APIImportTask<
       const importTask = await ImportTask.findByPk<ImportTask<T>>(
         importTaskId,
         {
-          rejectOnEmpty: true,
           include: [
             {
               model: Import,
@@ -119,6 +123,10 @@ export default abstract class APIImportTask<
           lock: Transaction.LOCK.UPDATE,
         }
       );
+
+      if (!importTask) {
+        return;
+      }
 
       importTask.state = ImportTaskState.Errored;
       await importTask.save({ transaction });
