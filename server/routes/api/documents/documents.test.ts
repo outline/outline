@@ -2672,6 +2672,50 @@ describe("#documents.move", () => {
     });
     expect(res.status).toEqual(403);
   });
+
+  it("should allow reordering subdocuments with document-only admin access", async () => {
+    const owner = await buildUser();
+    const collection = await buildCollection({
+      teamId: owner.teamId,
+      userId: owner.id,
+      permission: null,
+    });
+    const parent = await buildDocument({
+      teamId: owner.teamId,
+      userId: owner.id,
+      collectionId: collection.id,
+    });
+    const childA = await buildDocument({
+      teamId: owner.teamId,
+      userId: owner.id,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+    });
+    const childB = await buildDocument({
+      teamId: owner.teamId,
+      userId: owner.id,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+    });
+
+    const user = await buildUser({ teamId: owner.teamId });
+    await UserMembership.create({
+      documentId: parent.id,
+      userId: user.id,
+      createdById: owner.id,
+      permission: DocumentPermission.Admin,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: {
+        id: childB.id,
+        parentDocumentId: parent.id,
+        index: 0,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect(childA).toBeTruthy();
+  });
 });
 
 describe("#documents.restore", () => {

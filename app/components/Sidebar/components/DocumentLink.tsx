@@ -6,7 +6,7 @@ import { useHistory } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import { UserPreference } from "@shared/types";
+import { DocumentPermission, UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import type Collection from "~/models/Collection";
@@ -304,14 +304,17 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
   const [{ isOverReparent, canDropToReparent }, dropToReparent] =
     useDropToReparentDocument(node, handleExpand, parentRef);
 
+  // Fall back so document-only access (e.g. "Manage" on a parent) can reorder.
+  const moveCollectionId = collection?.id ?? document?.collectionId;
+
   const [{ isOverReorder: isOverReorderAbove }, dropToReorderAbove] =
     useDropToReorderDocument(node, collection, (item) => {
-      if (!collection) {
+      if (!moveCollectionId) {
         return;
       }
       return {
         documentId: item.id,
-        collectionId: collection.id,
+        collectionId: moveCollectionId,
         parentDocumentId: parentId,
         index,
       };
@@ -319,20 +322,20 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
 
   const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] =
     useDropToReorderDocument(node, collection, (item) => {
-      if (!collection) {
+      if (!moveCollectionId) {
         return;
       }
       if (expansion.isExpanded(node.id)) {
         return {
           documentId: item.id,
-          collectionId: collection.id,
+          collectionId: moveCollectionId,
           parentDocumentId: node.id,
           index: 0,
         };
       }
       return {
         documentId: item.id,
-        collectionId: collection.id,
+        collectionId: moveCollectionId,
         parentDocumentId: parentId,
         index: index + 1,
       };
@@ -389,8 +392,15 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
       />
     ) : undefined;
 
+  // Without a collection we can't read isManualSort; fall back to the shared
+  // membership's permission, which is the same for every descendant.
+  const canReorderHere = collection
+    ? collection.isManualSort
+    : membership?.permission === DocumentPermission.Admin ||
+      membership?.permission === DocumentPermission.ReadWrite;
+
   const cursorBefore =
-    isDraggingAnyDocument && collection?.isManualSort && index === 0 ? (
+    isDraggingAnyDocument && canReorderHere && index === 0 ? (
       <DropCursor
         isActiveDrop={isOverReorderAbove}
         innerRef={dropToReorderAbove}
@@ -399,7 +409,7 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
     ) : undefined;
 
   const cursorAfter =
-    isDraggingAnyDocument && collection?.isManualSort ? (
+    isDraggingAnyDocument && canReorderHere ? (
       <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
     ) : undefined;
 
