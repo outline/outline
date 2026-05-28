@@ -1401,7 +1401,6 @@
   "No templates have been created yet": "עדיין לא נוצרו תבניות",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} משתמש ב-{{ appName }} כדי לשתף מסמכים, התחבר כדי להמשיך.",
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "קוד אישור נשלח לכתובת האימייל שלך, אנא הזן את הקוד למטה כדי להרוס לצמיתות את סביבת העבודה הזו.",
-  "Confirmation code": "קוד אישור",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "מחיקת סביבת העבודה <1>{{workspaceName}}</1> תהרוס את כל האוספים, המסמכים, המשתמשים והנתונים המשויכים. תנתק מיד מ{{appName}}.",
   "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "שימו לב שחללי העבודה מופרדים לחלוטין. הם יכולים להיות בעלי דומיין, הגדרות, משתמשים וחיוב שונים.",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "אתה יוצר סביבת עבודה חדשה באמצעות החשבון הנוכחי שלך - <em>{{email}}</em>",
