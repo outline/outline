@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Zadejte název webhooku a URL adresu, na kterou má být odeslán požadavek POST při vzniku vybraných událostí.",
   "A memorable identifer": "Snadno rozpoznatelný název",
   "URL": "URL",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "Podpisový klíč (signing secret)",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "Přihlaste se k odběru událostí. Doporučujeme odebírat pouze nezbytné minimum událostí potřebných pro fungování aplikace.",
   "All events": "Všechny události",
