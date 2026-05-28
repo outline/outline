@@ -54,10 +54,19 @@ import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
  * @param ctx - the current selection context.
  * @returns an array of menu items.
  */
-export default function formattingMenuItems(
-  ctx: SelectionContext
-): MenuItem[] {
-  const { schema, state, isTemplate, isMobile, isTouch, isEmpty, isInCode, isInCodeBlock, isInList: isList, isTableCell } = ctx;
+export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
+  const {
+    schema,
+    state,
+    isTemplate,
+    isMobile,
+    isTouch,
+    isEmpty,
+    isInCode,
+    isInCodeBlock,
+    isInList: isList,
+    isTableCell,
+  } = ctx;
 
   const highlight = getMarksBetween(
     state.selection.from,
@@ -399,28 +408,34 @@ export default function formattingMenuItems(
       tooltip: t("Outdent"),
       shortcut: `⇧+Tab`,
       icon: <OutdentIcon />,
-      visible: isTouch && isList,
+      visible:
+        (isTouch || isMobile) &&
+        isInList(state, { types: ["ordered_list", "bullet_list"] }),
     },
     {
       name: "indentList",
       tooltip: t("Indent"),
       shortcut: `Tab`,
       icon: <IndentIcon />,
-      visible: isTouch && isList,
+      visible:
+        (isTouch || isMobile) &&
+        isInList(state, { types: ["ordered_list", "bullet_list"] }),
     },
     {
       name: "outdentCheckboxList",
       tooltip: t("Outdent"),
       shortcut: `⇧+Tab`,
       icon: <OutdentIcon />,
-      visible: isTouch && isInList(state, { types: ["checkbox_list"] }),
+      visible:
+        (isTouch || isMobile) && isInList(state, { types: ["checkbox_list"] }),
     },
     {
       name: "indentCheckboxList",
       tooltip: t("Indent"),
       shortcut: `Tab`,
       icon: <IndentIcon />,
-      visible: isTouch && isInList(state, { types: ["checkbox_list"] }),
+      visible:
+        (isTouch || isMobile) && isInList(state, { types: ["checkbox_list"] }),
     },
     {
       name: "separator",
