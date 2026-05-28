@@ -270,7 +270,7 @@
     "y-indexeddb": "^9.0.12",
     "y-prosemirror": "^1.3.7",
     "y-protocols": "^1.0.7",
-    "yauzl": "^3.2.1",
+    "yauzl": "^3.3.1",
     "yazl": "^3.3.1",
     "yjs": "^13.6.30",
     "zod": "^4.3.6"

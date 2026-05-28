@@ -151,6 +151,7 @@ export default class ZipHelper {
                     }
                     const chunks: Buffer[] = [];
                     let bytesRead = 0;
+                    let settled = false;
                     readStream.on("data", (chunk: Buffer) => {
                       bytesRead += chunk.length;
                       if (bytesRead > maxSize) {
@@ -161,8 +162,28 @@ export default class ZipHelper {
                       }
                       chunks.push(chunk);
                     });
-                    readStream.on("end", () => res(Buffer.concat(chunks)));
-                    readStream.on("error", rej);
+                    readStream.on("end", () => {
+                      if (!settled) {
+                        settled = true;
+                        res(Buffer.concat(chunks));
+                      }
+                    });
+                    readStream.on("error", (err) => {
+                      if (!settled) {
+                        settled = true;
+                        rej(err);
+                      }
+                    });
+                    readStream.on("close", () => {
+                      if (!settled) {
+                        settled = true;
+                        rej(
+                          new Error(
+                            `Stream closed before completing read of ${fileName}`
+                          )
+                        );
+                      }
+                    });
                   });
                 }),
             };
