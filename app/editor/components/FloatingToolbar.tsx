@@ -420,11 +420,24 @@ const Wrapper = styled.div<WrapperProps>`
     box-sizing: border-box;
   }
 
+  & button,
+  & a,
+  & input {
+    pointer-events: none;
+  }
+
   ${({ active }) =>
     active &&
     `
     transform: translateY(-6px) scale(1);
     opacity: 1;
+
+    & button,
+    & a,
+    & input {
+      pointer-events: auto;
+      transition: pointer-events 0s 300ms;
+    }
   `};
 
   @media print {
