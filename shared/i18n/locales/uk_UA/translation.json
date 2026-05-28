@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Укажіть описову назву для цього вебхуку та URL-адресу, на яку ми маємо надіслати запит POST, коли створюються відповідні події.",
   "A memorable identifer": "Ідентифікатор, що запам'ятовується",
   "URL": "URL-адреса",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "Секретний ключ",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "Підписатись на всі події, групи або окремі події. Ми рекомендуємо підписуватися лише на мінімальну кількість подій, необхідних для роботи вашої програми.",
   "All events": "Всі події",
