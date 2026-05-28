@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Bu webhook için açıklayıcı bir ad ve eşleşen olaylar oluşturulduğunda POST isteği göndermemiz gereken URL'yi sağlayın.",
   "A memorable identifer": "Akılda kalıcı bir tanımlayıcı",
   "URL": "URL",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "Gizli anahtar imzalama",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "Tüm olaylara, gruplara veya bireysel olaylara abone olun. Uygulamanızın işlev görmesi için gereken minimum olay miktarına abone olmanızı öneririz.",
   "All events": "Tüm olaylar",
