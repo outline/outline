@@ -90,6 +90,10 @@ export default function createCSPMiddleware(options?: CSPOptions) {
         defaultSrc,
         styleSrc,
         scriptSrc: [
+          // Allow the service worker to load on custom domains, where the
+          // document origin differs from env.URL / env.CDN_URL. worker-src
+          // falls back to script-src and 'self' matches the document origin.
+          "'self'",
           ...uniq(scriptSrc),
           ...(options?.extraScriptSrc ?? []),
           env.DEVELOPMENT_UNSAFE_INLINE_CSP
@@ -99,9 +103,6 @@ export default function createCSPMiddleware(options?: CSPOptions) {
         mediaSrc: ["*", "data:", "blob:"],
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
-        // Service worker is served from the same origin as the document, which
-        // may be a custom domain that is not present in scriptSrc.
-        workerSrc: ["'self'"],
         objectSrc,
         // Do not use connect-src: because self + websockets does not work in
         // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
