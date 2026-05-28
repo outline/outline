@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "提供此 Webhook 的描述性名称以及创建匹配事件时我们应向其发送 POST 请求的 URL。",
   "A memorable identifer": "一个容易记的名称",
   "URL": "URL",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "签名密钥",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "您可选择订阅全部事件、特定事件组或单个事件。出于安全与效率考虑，建议仅订阅您的应用运行所必需的最小事件集合。",
   "All events": "全部事件",
