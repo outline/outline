@@ -54,6 +54,7 @@ import type { APIContext } from "@server/types";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { CacheHelper } from "@server/utils/CacheHelper";
+import { normalizeIp } from "@server/utils/ip";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { ValidationError } from "../errors";
 import Attachment from "./Attachment";
@@ -169,7 +170,12 @@ class User extends ParanoidModel<
   lastActiveAt: Date | null;
 
   @IsIP
-  @Column
+  @Column({
+    type: DataType.STRING,
+    set(this: User, value: string | null) {
+      this.setDataValue("lastActiveIp", normalizeIp(value));
+    },
+  })
   @SkipChangeset
   lastActiveIp: string | null;
 
@@ -179,7 +185,12 @@ class User extends ParanoidModel<
   lastSignedInAt: Date | null;
 
   @IsIP
-  @Column
+  @Column({
+    type: DataType.STRING,
+    set(this: User, value: string | null) {
+      this.setDataValue("lastSignedInIp", normalizeIp(value));
+    },
+  })
   @SkipChangeset
   lastSignedInIp: string | null;
 
