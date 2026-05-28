@@ -1401,7 +1401,6 @@
   "No templates have been created yet": "Encara no s'ha creat cap plantilla",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} està utilitzant {{ appName }} per compartir documents, inicieu la sessió per continuar.",
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "S'ha enviat un codi de confirmació a la vostra adreça de correu electrònic. Si us plau, introduïu el codi de sota per eliminar permanentment aquest espai de treball.",
-  "Confirmation code": "Codi de confirmació",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "Suprimint l'espai de treball <1>{{workspaceName}}</1> es destruiran totes les col·leccions, documents, usuaris i dades associades. Se us tancarà la sessió immediatament de {{appName}}.",
   "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "Tingueu en compte que els espais de treball estan completament separats. Poden tenir un domini diferent, configuració, usuaris i facturació.",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "Esteu creant un espai de treball nou utilitzant el vostre compte actual — <em>{{email}}</em>",
