@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Ange ett beskrivande namn för denna webhook och den URL vi bör skicka en POST-begäran till när matchande händelser skapas.",
   "A memorable identifer": "En minnesvärd identifierare",
   "URL": "URL",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "Signeringshemlighet",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "Prenumerera på alla evenemang, grupper eller enskilda evenemang. Vi rekommenderar att du endast prenumererar på det minsta antalet händelser som din applikation behöver för att fungera.",
   "All events": "Alla aktiviteter",
