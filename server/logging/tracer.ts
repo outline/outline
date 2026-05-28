@@ -31,6 +31,10 @@ if (env.DD_API_KEY) {
     env: env.ENVIRONMENT,
     logInjection: true,
   });
+
+  // Disable per-middleware spans so that non-reportable errors are not captured
+  // This is also generally excessive noise
+  tracer.use("koa", { middleware: false });
 }
 
 const getCurrentSpan = (): Span | null => tracer.scope().active();
