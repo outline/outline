@@ -1401,7 +1401,6 @@
   "No templates have been created yet": "No templates have been created yet",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} använder {{ appName }} för att dela dokument, logga in för att fortsätta.",
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "En bekräftelsekod har skickats till din e-postadress, ange koden nedan för att permanent förstöra denna arbetsyta.",
-  "Confirmation code": "Bekräftelsekod",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "Om du tar bort arbetsytan <1>{{workspaceName}}</1> kommer alla samlingar, dokument, användare och tillhörande data att förstöras. Du kommer omedelbart att loggas ut från {{appName}}.",
   "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "Observera att arbetsytor är helt åtskilda. De kan ha olika domäner, inställningar, användare och fakturering.",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "Du skapar en ny arbetsyta med ditt nuvarande konto — <em>{{email}}</em>",
