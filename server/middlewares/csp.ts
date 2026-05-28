@@ -84,30 +84,31 @@ export default function createCSPMiddleware(options?: CSPOptions) {
   return function cspMiddleware(ctx: Context, next: Next) {
     ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
 
-    return contentSecurityPolicy({
-      directives: {
-        baseUri: ["'none'"],
-        defaultSrc,
-        styleSrc,
-        scriptSrc: [
-          // Allow the service worker to load on custom domains, where the
-          // document origin differs from env.URL / env.CDN_URL. worker-src
-          // falls back to script-src and 'self' matches the document origin.
-          "'self'",
-          ...uniq(scriptSrc),
-          ...(options?.extraScriptSrc ?? []),
-          env.DEVELOPMENT_UNSAFE_INLINE_CSP
-            ? "'unsafe-inline'"
-            : `'nonce-${ctx.state.cspNonce}'`,
-        ],
-        mediaSrc: ["*", "data:", "blob:"],
-        imgSrc: ["*", "data:", "blob:"],
-        frameSrc: ["*", "data:"],
-        objectSrc,
-        // Do not use connect-src: because self + websockets does not work in
-        // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
-        connectSrc: ["*"],
-      },
-    })(ctx, next);
+    // Note: workerSrc is included even though it's missing from the koa-helmet
+    // type definitions — the underlying helmet supports it. The service worker
+    // is served from the same origin as the document, which may be a custom
+    // domain that is not present in scriptSrc.
+    const directives = {
+      baseUri: ["'none'"],
+      defaultSrc,
+      styleSrc,
+      scriptSrc: [
+        ...uniq(scriptSrc),
+        ...(options?.extraScriptSrc ?? []),
+        env.DEVELOPMENT_UNSAFE_INLINE_CSP
+          ? "'unsafe-inline'"
+          : `'nonce-${ctx.state.cspNonce}'`,
+      ],
+      mediaSrc: ["*", "data:", "blob:"],
+      imgSrc: ["*", "data:", "blob:"],
+      frameSrc: ["*", "data:"],
+      workerSrc: ["'self'"],
+      objectSrc,
+      // Do not use connect-src: because self + websockets does not work in
+      // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
+      connectSrc: ["*"],
+    };
+
+    return contentSecurityPolicy({ directives })(ctx, next);
   };
 }

@@ -6919,17 +6919,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/koa-helmet@npm:^6.0.8":
-  version: 6.0.8
-  resolution: "@types/koa-helmet@npm:6.0.8"
-  dependencies:
-    "@types/koa": "npm:*"
-    "@types/node": "npm:*"
-    helmet: "npm:^4.0.0"
-  checksum: 10c0/73c2ad0b37561b399e9493cf5ca2dccc0e37c3ea5da3cd281685728a242bc63f1b83d77838ff2ec616fad023e79c0f3a74ca935c740c4cc3c63a1fed3c27fe84
-  languageName: node
-  linkType: hard
-
 "@types/koa-logger@npm:^3.1.5":
   version: 3.1.5
   resolution: "@types/koa-logger@npm:3.1.5"
@@ -11869,7 +11858,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"helmet@npm:^4.0.0, helmet@npm:^4.4.1":
+"helmet@npm:^4.4.1":
   version: 4.6.0
   resolution: "helmet@npm:4.6.0"
   checksum: 10c0/fe0d986fc465be0f652e67dd1feab576d9b08b797846fdac5719d5ca857977d6b1712327223a7c25695104dfde118fdf303f4a18efca7cddf0159821bf36b7f8
@@ -15132,7 +15121,6 @@ __metadata:
     "@types/katex": "npm:^0.16.8"
     "@types/koa": "npm:^2.15.1"
     "@types/koa-compress": "npm:^4.0.7"
-    "@types/koa-helmet": "npm:^6.0.8"
     "@types/koa-logger": "npm:^3.1.5"
     "@types/koa-mount": "npm:^4.0.5"
     "@types/koa-router": "npm:^7.4.9"
