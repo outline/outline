@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Fornisci un nome descrittivo per questo webhook e l'URL a cui dobbiamo inviare una richiesta POST quando vengono creati gli eventi corrispondenti.",
   "A memorable identifer": "Un identificatore memorizzabile",
   "URL": "URL",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "Codice segreto per accesso",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "Iscrivi a tutti gli eventi, gruppi o singoli eventi. Ti consigliamo d'iscrivere solo al numero minimo di eventi di cui la tua applicazione ha bisogno per funzionare.",
   "All events": "Tutti gli eventi",
