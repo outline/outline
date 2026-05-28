@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "ספק שם תיאורי ל-webhook זה ואת כתובת האתר שאליה עלינו לשלוח בקשת POST כאשר נוצרים אירועים תואמים.",
   "A memorable identifer": "מזהה בלתי נשכח",
   "URL": "כתובת אתר",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "סוד חתימה",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "הירשם לכל האירועים, הקבוצות או האירועים האישיים. אנו ממליצים להירשם רק לכמות המינימלית של אירועים שהאפליקציה שלך צריכה כדי לתפקד.",
   "All events": "כל האירועים",
