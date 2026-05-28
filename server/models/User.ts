@@ -170,14 +170,15 @@ class User extends ParanoidModel<
   lastActiveAt: Date | null;
 
   @IsIP
-  @Column({
-    type: DataType.STRING,
-    set(this: User, value: string | null) {
-      this.setDataValue("lastActiveIp", normalizeIp(value));
-    },
-  })
   @SkipChangeset
-  lastActiveIp: string | null;
+  @Column(DataType.STRING)
+  get lastActiveIp(): string | null {
+    return this.getDataValue("lastActiveIp");
+  }
+
+  set lastActiveIp(value: string | null) {
+    this.setDataValue("lastActiveIp", normalizeIp(value));
+  }
 
   @IsDate
   @Column
@@ -185,14 +186,15 @@ class User extends ParanoidModel<
   lastSignedInAt: Date | null;
 
   @IsIP
-  @Column({
-    type: DataType.STRING,
-    set(this: User, value: string | null) {
-      this.setDataValue("lastSignedInIp", normalizeIp(value));
-    },
-  })
   @SkipChangeset
-  lastSignedInIp: string | null;
+  @Column(DataType.STRING)
+  get lastSignedInIp(): string | null {
+    return this.getDataValue("lastSignedInIp");
+  }
+
+  set lastSignedInIp(value: string | null) {
+    this.setDataValue("lastSignedInIp", normalizeIp(value));
+  }
 
   @IsDate
   @Column

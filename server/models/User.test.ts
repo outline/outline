@@ -76,6 +76,30 @@ describe("user model", () => {
     });
   });
 
+  describe("ip setters", () => {
+    it("normalizes lastActiveIp and lastSignedInIp on assignment", async () => {
+      const user = await buildUser();
+
+      user.lastActiveIp = "::ffff:127.0.0.1";
+      user.lastSignedInIp = "203.0.113.1, 70.41.3.18";
+      await user.save({ hooks: false });
+
+      expect(user.lastActiveIp).toBe("127.0.0.1");
+      expect(user.lastSignedInIp).toBe("203.0.113.1");
+    });
+
+    it("nulls out invalid IP values without failing validation", async () => {
+      const user = await buildUser();
+
+      user.lastActiveIp = "unknown";
+      user.lastSignedInIp = "not-an-ip";
+      await expect(user.save({ hooks: false })).resolves.toBeDefined();
+
+      expect(user.lastActiveIp).toBeNull();
+      expect(user.lastSignedInIp).toBeNull();
+    });
+  });
+
   describe("destroy", () => {
     it("should clear PII", async () => {
       const user = await buildUser();
