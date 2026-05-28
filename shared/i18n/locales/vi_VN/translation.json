@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Cung cấp tên mô tả cho webhook này và URL mà chúng tôi sẽ gửi yêu cầu POST khi tạo các sự kiện phù hợp.",
   "A memorable identifer": "Một nhận dạng đáng nhớ",
   "URL": "Đường Dẫn URL",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "Chữ ký bí mật",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "Đăng ký tất cả các sự kiện, nhóm hoặc sự kiện riêng lẻ. Chúng tôi khuyên bạn chỉ nên đăng ký số lượng sự kiện tối thiểu mà ứng dụng của bạn cần để hoạt động.",
   "All events": "Tất cả các sự kiện",
