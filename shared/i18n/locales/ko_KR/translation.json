@@ -1610,6 +1610,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "이 Webhook에 대한 설명이 포함된 이름과 일치하는 이벤트가 생성될 때 POST 요청을 보내야 하는 URL을 제공합니다.",
   "A memorable identifer": "기억 되는 식별자",
   "URL": "URL",
+  "Webhook delivery over http is insecure, use https if possible": "Webhook delivery over http is insecure, use https if possible",
   "Signing secret": "비밀키 서명",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "모든 이벤트, 그룹 또는 개별 이벤트를 구독하십시오. 애플리케이션이 작동하는 데 필요한 최소한의 이벤트만 구독하는 것이 좋습니다.",
   "All events": "모든 이벤트",
