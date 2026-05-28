@@ -1,3 +1,4 @@
+import env from "@server/env";
 import {
   buildAdmin,
   buildUser,
@@ -166,6 +167,39 @@ describe("#webhookSubscriptions.create", () => {
     expect(webhook.events).toEqual(events);
     expect(webhook.secret).toEqual(secret);
     expect(webhook.enabled).toEqual(true);
+  });
+
+  it("should reject http urls when cloud hosted", async () => {
+    vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(true);
+
+    const user = await buildAdmin();
+    const res = await server.post("/api/webhookSubscriptions.create", user, {
+      body: {
+        name: "Test webhook",
+        url: "http://www.example.com",
+        events: ["comments"],
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should allow http urls when not cloud hosted", async () => {
+    vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(false);
+
+    const user = await buildAdmin();
+    const url = "http://www.example.com";
+    const res = await server.post("/api/webhookSubscriptions.create", user, {
+      body: {
+        name: "Test webhook",
+        url,
+        events: ["comments"],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.url).toEqual(url);
   });
 });
 
