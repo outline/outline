@@ -17,6 +17,7 @@ export default class BlockMenuExtension extends Suggestion {
       allowSpaces: false,
       requireSearchTerm: false,
       enabledInCode: false,
+      enabledInMarks: false,
     };
   }
 
@@ -87,7 +88,8 @@ export default class BlockMenuExtension extends Suggestion {
           condition: ({ node, $start, state }) =>
             $start.depth === 1 &&
             state.selection.$from.pos === $start.pos + node.content.size &&
-            node.textContent === "/",
+            node.textContent === "/" &&
+            node.firstChild?.marks.length === 0,
           text: `  ${t("Keep typing to filter")}…`,
         },
       ]),

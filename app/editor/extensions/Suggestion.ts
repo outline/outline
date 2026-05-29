@@ -4,7 +4,10 @@ import { InputRule } from "prosemirror-inputrules";
 import type { NodeType, Schema } from "prosemirror-model";
 import type { EditorState, Plugin } from "prosemirror-state";
 import Extension from "@shared/editor/lib/Extension";
-import { SuggestionsMenuPlugin } from "@shared/editor/plugins/SuggestionsMenuPlugin";
+import {
+  isTriggerMarked,
+  SuggestionsMenuPlugin,
+} from "@shared/editor/plugins/SuggestionsMenuPlugin";
 import { isInCode } from "@shared/editor/queries/isInCode";
 
 /**
@@ -14,6 +17,12 @@ import { isInCode } from "@shared/editor/queries/isInCode";
 export type SuggestionOptions = {
   /** Whether the suggestion menu is allowed to open inside code blocks or inline code. */
   enabledInCode: boolean;
+  /**
+   * Whether the suggestion menu may open when the trigger character carries a
+   * mark (e.g. bold, italic, link). Defaults to true – disable for menus where
+   * the trigger is only meaningful as plain text, such as the block menu.
+   */
+  enabledInMarks?: boolean;
   /** Character (or list of characters) that opens the suggestion menu. */
   trigger: string | string[];
   /** Whether spaces are allowed inside the search term. */
@@ -45,7 +54,18 @@ export default class Suggestion<
   }
 
   get plugins(): Plugin[] {
-    return [new SuggestionsMenuPlugin(this.state, this.openRegex)];
+    return [
+      new SuggestionsMenuPlugin(
+        this.state,
+        this.openRegex,
+        this.enabledInMarks
+      ),
+    ];
+  }
+
+  /** Whether the menu may open when the trigger character carries a mark. */
+  protected get enabledInMarks(): boolean {
+    return this.options.enabledInMarks ?? true;
   }
 
   keys() {
@@ -62,21 +82,29 @@ export default class Suggestion<
   inputRules = (_options: { type: NodeType; schema: Schema }) => [
     new InputRule(
       this.openRegex,
-      action((state: EditorState, match: RegExpMatchArray) => {
-        const { parent } = state.selection.$from;
-        if (
-          match &&
-          (parent.type.name === "paragraph" ||
-            parent.type.name === "heading") &&
-          (!isInCode(state) || this.options.enabledInCode)
-        ) {
-          if (match[0].length <= 2) {
-            this.state.open = true;
+      action(
+        (
+          state: EditorState,
+          match: RegExpMatchArray,
+          _start: number,
+          end: number
+        ) => {
+          const { parent } = state.selection.$from;
+          if (
+            match &&
+            (parent.type.name === "paragraph" ||
+              parent.type.name === "heading") &&
+            (!isInCode(state) || this.options.enabledInCode) &&
+            (this.enabledInMarks || !isTriggerMarked(state, end, match))
+          ) {
+            if (match[0].length <= 2) {
+              this.state.open = true;
+            }
+            this.state.query = match[1];
           }
-          this.state.query = match[1];
+          return null;
         }
-        return null;
-      })
+      )
     ),
   ];
 
