@@ -151,6 +151,11 @@ function DocumentScene({
   const onUndoRedo = useCallback(
     (event: KeyboardEvent) => {
       if (isModKey(event)) {
+        // The editor handles undo/redo through its own keymap when focused
+        if (editorRef.current?.view?.hasFocus()) {
+          return;
+        }
+
         event.preventDefault();
 
         if (event.shiftKey) {
