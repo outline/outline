@@ -61,6 +61,7 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
             ? menuItem.attrs(state)
             : menuItem.attrs
         );
+        closeHistory(view);
       } else if (menuItem.onClick) {
         menuItem.onClick();
       }
@@ -164,6 +165,7 @@ function ToolbarMenu(props: Props) {
     commands[item.name](
       typeof item.attrs === "function" ? item.attrs(state) : item.attrs
     );
+    closeHistory(view);
   };
 
   return (
