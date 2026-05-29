@@ -542,7 +542,7 @@
   "Viewers can only view and comment on documents.": "Les lecteurs peuvent uniquement voir et commenter les documents.",
   "Are you sure you want to make {{ userName }} a {{ role }}?": "Êtes-vous sûr de vouloir faire de {{ userName }} un {{ role }}?",
   "I understand, delete": "J’ai compris, supprimer",
-  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.": "Êtes-vous sûr de vouloir supprimer définitivement {{ userName }} ? Cette opération est irréversible, envisagez plutôt de suspendre l'utilisateur.",
+  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.": "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.",
   "Are you sure you want to suspend {{ userName }}? Suspended users will be prevented from logging in.": "Voulez-vous vraiment suspendre {{ userName }} ? Les utilisateurs suspendus ne pourront plus se connecter.",
   "New name": "Nouveau nom",
   "Name can't be empty": "Le champ Nom ne peut pas être vide",
