@@ -10,7 +10,6 @@ export default class MentionMenuExtension extends Suggestion {
       allowSpaces: true,
       requireSearchTerm: false,
       enabledInCode: false,
-      enabledInMarks: true,
     };
   }
 

@@ -22,7 +22,7 @@ export type SuggestionOptions = {
    * mark (e.g. bold, italic, link). Defaults to true – disable for menus where
    * the trigger is only meaningful as plain text, such as the block menu.
    */
-  enabledInMarks: boolean;
+  enabledInMarks?: boolean;
   /** Character (or list of characters) that opens the suggestion menu. */
   trigger: string | string[];
   /** Whether spaces are allowed inside the search term. */
@@ -58,9 +58,14 @@ export default class Suggestion<
       new SuggestionsMenuPlugin(
         this.state,
         this.openRegex,
-        this.options.enabledInMarks
+        this.enabledInMarks
       ),
     ];
+  }
+
+  /** Whether the menu may open when the trigger character carries a mark. */
+  protected get enabledInMarks(): boolean {
+    return this.options.enabledInMarks ?? true;
   }
 
   keys() {
@@ -90,7 +95,7 @@ export default class Suggestion<
             (parent.type.name === "paragraph" ||
               parent.type.name === "heading") &&
             (!isInCode(state) || this.options.enabledInCode) &&
-            (this.options.enabledInMarks || !isTriggerMarked(state, end, match))
+            (this.enabledInMarks || !isTriggerMarked(state, end, match))
           ) {
             if (match[0].length <= 2) {
               this.state.open = true;

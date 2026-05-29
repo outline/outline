@@ -22,7 +22,6 @@ export default class EmojiMenuExtension extends Suggestion {
       allowSpaces: false,
       requireSearchTerm: languageIsUsingColon,
       enabledInCode: false,
-      enabledInMarks: true,
     };
   }
 
