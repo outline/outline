@@ -345,16 +345,13 @@ export class MarkdownSerializerState {
           this.text(this.markString(add, true, parent, index), false);
         }
 
-        // Render the node. Special case code marks, since their content is not
-        // escaped, apart from pipes in tables.
+        // Render the node. Special case code marks, since their content is
+        // not escaped. Pipes inside code spans are safe inside tables because
+        // the block table rule recognises code spans when splitting cells.
         if (noEsc && node.isText) {
-          const text = this.inTable
-            ? node.text.replace(/\|/gi, "\\$&")
-            : node.text;
-
           this.text(
             this.markString(inner, true, parent, index) +
-              text +
+              node.text +
               this.markString(inner, false, parent, index + 1),
             false
           );
