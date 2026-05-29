@@ -149,17 +149,21 @@ export const outdentInCode: Command = (state, dispatch) => {
     const { tr, selection } = state;
     const { $from, from, to } = selection;
     const selectionLength = to - from;
-    let line = 1;
 
     // Find all newlines in the selection and remove tab-sized spaces before
     // them, working backwards to avoid changing the offset.
-    let index = to - 1;
     let totalSpacesRemoved = 0;
     let spacesRemovedOnFirstLine = 0;
     const startOfFirstLine = findPreviousNewline($from);
     const tabSize = getTabSize(state);
 
-    while (index >= startOfFirstLine - line * tabSize) {
+    // Walk backwards from the end of the selection down to the start of its
+    // first line. Deletions happen at positions >= index, so earlier positions
+    // never shift and no offset compensation is needed. Stopping at
+    // startOfFirstLine ensures lines above the selection are left untouched.
+    let index = Math.max(to - 1, startOfFirstLine);
+
+    while (index >= startOfFirstLine) {
       const newLineBefore =
         tr.doc.textBetween(index - 1, index) === newline ||
         index === startOfFirstLine;
@@ -183,18 +187,20 @@ export const outdentInCode: Command = (state, dispatch) => {
           tr.delete(index, index + spaces);
           totalSpacesRemoved += spaces;
         }
-        line++;
       }
       index--;
     }
 
-    tr.setSelection(
-      TextSelection.create(
-        tr.doc,
-        to - selectionLength - spacesRemovedOnFirstLine,
-        to - totalSpacesRemoved
-      )
+    // Restore the selection, shifting each end back by the spaces removed
+    // before it. Clamp to the start of the first line so a selection that
+    // began within the removed leading whitespace doesn't underflow.
+    const newFrom = Math.max(
+      startOfFirstLine,
+      to - selectionLength - spacesRemovedOnFirstLine
     );
+    const newTo = Math.max(newFrom, to - totalSpacesRemoved);
+
+    tr.setSelection(TextSelection.create(tr.doc, newFrom, newTo));
 
     dispatch(tr);
     return true;
@@ -282,7 +288,24 @@ function getTabSize(state: EditorState): number {
     return 4;
   }
 
-  const existingText = codeBlock.node.textContent;
-  const usesFourSpaces = existingText.includes("    ");
-  return usesFourSpaces ? 4 : 2;
+  // Infer the indent size from the existing indentation. Treat the block as
+  // four-space indented only when every indented line is a multiple of four
+  // spaces – a simple `includes("    ")` check misfires on two-space code,
+  // which naturally contains four-space runs at deeper nesting levels or
+  // immediately after an indent, causing outdent to remove too many spaces.
+  // Only space characters are counted, since indent/outdent operate on spaces.
+  let hasIndentedLine = false;
+  for (const line of codeBlock.node.textContent.split(newline)) {
+    const leadingSpaces = line.length - line.replace(/^ +/, "").length;
+    // Ignore unindented and whitespace-only lines.
+    if (leadingSpaces === 0 || leadingSpaces === line.length) {
+      continue;
+    }
+    if (leadingSpaces % 4 !== 0) {
+      return 2;
+    }
+    hasIndentedLine = true;
+  }
+
+  return hasIndentedLine ? 4 : 2;
 }
