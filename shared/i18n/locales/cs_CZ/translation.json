@@ -542,7 +542,7 @@
   "Viewers can only view and comment on documents.": "Prohlížející mohou dokumenty pouze prohlížet a komentovat.",
   "Are you sure you want to make {{ userName }} a {{ role }}?": "Opravdu chcete uživateli {{ userName }} nastavit roli {{ role }}?",
   "I understand, delete": "Rozumím, odstranit",
-  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.": "Opravdu chcete uživatele {{ userName }} trvale odstranit? Tuto operaci nelze vrátit zpět, zvažte jeho pozastavení.",
+  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.": "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.",
   "Are you sure you want to suspend {{ userName }}? Suspended users will be prevented from logging in.": "Opravdu chcete pozastavit uživatele {{ userName }}? Pozastavení uživatelé se nebudou moci přihlásit.",
   "New name": "Nový název",
   "Name can't be empty": "Název nemůže být prázdný",
