@@ -71,7 +71,7 @@ export function UserDeleteDialog({ user, onSubmit }: Props) {
       danger
     >
       {t(
-        "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.",
+        "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.",
         {
           userName: user.name,
         }

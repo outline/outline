@@ -6,6 +6,7 @@ import {
   Subscription,
   UserAuthentication,
   UserMembership,
+  WebhookSubscription,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import type { Event as TEvent, UserEvent } from "@server/types";
@@ -56,6 +57,12 @@ export default class UserDeletedProcessor extends BaseProcessor {
       await Star.destroy({
         where: {
           userId: event.userId,
+        },
+        transaction,
+      });
+      await WebhookSubscription.destroy({
+        where: {
+          createdById: event.userId,
         },
         transaction,
       });
