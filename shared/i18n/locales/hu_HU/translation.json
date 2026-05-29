@@ -542,7 +542,7 @@
   "Viewers can only view and comment on documents.": "Viewers can only view and comment on documents.",
   "Are you sure you want to make {{ userName }} a {{ role }}?": "Biztosan {{ role }} szerepbe szeretné helyezni {{ userName }} felhasználót?",
   "I understand, delete": "Megértettem, töröljük",
-  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.": "Biztos, hogy {{ userName }} véglegesen törölve legyen? Ez a művelet nem vonható vissza, fontolja meg a felfüggesztést helyette.",
+  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.": "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.",
   "Are you sure you want to suspend {{ userName }}? Suspended users will be prevented from logging in.": "Bizthogy, hogy {{ userName }} fel legyen függesztve? A felfüggesztett felhasználók belépni sem tudnak.",
   "New name": "Új név",
   "Name can't be empty": "A név nem lehet üres",
