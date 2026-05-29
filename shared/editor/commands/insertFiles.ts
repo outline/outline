@@ -71,32 +71,48 @@ const insertFiles = async function (
   // we'll use this to track of how many files have succeeded or failed
   let complete = 0;
 
-  const filesToUpload = await Promise.all(
-    files.map(async (file) => {
-      const isImage =
-        FileHelper.isImage(file.type) &&
-        !options.isAttachment &&
-        !!schema.nodes.image;
-      const isVideo =
-        FileHelper.isVideo(file.type) &&
-        !options.isAttachment &&
-        !!schema.nodes.video;
-      const getDimensions = isImage
-        ? (f: File) => FileHelper.getImageDimensions(f)
-        : isVideo
-          ? (f: File) => FileHelper.getVideoDimensions(f)
-          : undefined;
+  const filesToUpload = (
+    await Promise.all(
+      files.map(async (file) => {
+        const isImage =
+          FileHelper.isImage(file.type) &&
+          !options.isAttachment &&
+          !!schema.nodes.image;
+        const isVideo =
+          FileHelper.isVideo(file.type) &&
+          !options.isAttachment &&
+          !!schema.nodes.video;
 
-      return {
-        id: uuidv4(),
-        dimensions: await getDimensions?.(file),
-        source: await FileHelper.getImageSourceAttr(file),
-        isImage,
-        isVideo,
-        file,
-      };
-    })
-  );
+        // a file that cannot be inserted as an image or video falls back to an
+        // attachment node – if the schema in use has none then it cannot be
+        // represented at all and should be skipped.
+        if (!isImage && !isVideo && !schema.nodes.attachment) {
+          return undefined;
+        }
+
+        const getDimensions = isImage
+          ? (f: File) => FileHelper.getImageDimensions(f)
+          : isVideo
+            ? (f: File) => FileHelper.getVideoDimensions(f)
+            : undefined;
+
+        return {
+          id: uuidv4(),
+          dimensions: await getDimensions?.(file),
+          source: await FileHelper.getImageSourceAttr(file),
+          isImage,
+          isVideo,
+          file,
+        };
+      })
+    )
+  ).filter((upload) => upload !== undefined);
+
+  // none of the dropped files can be represented in this schema, nothing to do
+  if (filesToUpload.length === 0) {
+    onFileUploadStop?.();
+    return;
+  }
 
   // the user might have dropped multiple files at once, we need to loop
   for (const upload of filesToUpload) {
@@ -234,7 +250,7 @@ const insertFiles = async function (
         complete++;
 
         // once everything is done, let the user know
-        if (complete === files.length && onFileUploadStop) {
+        if (complete === filesToUpload.length && onFileUploadStop) {
           onFileUploadStop();
         }
       });
