@@ -1,10 +1,12 @@
 import { CollectionPermission, Scope } from "@shared/types";
 import {
   buildUser,
+  buildViewer,
   buildCollection,
   buildDocument,
   buildOAuthAuthentication,
 } from "@server/test/factories";
+import { Document } from "@server/models";
 import { getTestServer } from "@server/test/support";
 import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
 
@@ -186,6 +188,61 @@ describe("create_document", () => {
     expect(data.document.title).toEqual("Child Document");
     expect(data.document.parentDocumentId).toEqual(parent.id);
   });
+
+  it("does not allow a viewer to create a draft", async () => {
+    const user = await buildViewer();
+    const auth = await buildOAuthAuthentication({
+      user,
+      scope: [Scope.Read, Scope.Write, Scope.Create],
+    });
+
+    const res = await callMcpTool(
+      server,
+      auth.accessToken!,
+      "create_document",
+      {
+        title: "Viewer Draft",
+        text: "Should not be created",
+        publish: false,
+      }
+    );
+
+    expect(res?.result?.isError).toBe(true);
+
+    const documents = await Document.unscoped().findAll({
+      where: { createdById: user.id },
+    });
+    expect(documents.length).toEqual(0);
+  });
+
+  it("does not allow a viewer to create a document in a collection", async () => {
+    const user = await buildViewer();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const auth = await buildOAuthAuthentication({
+      user,
+      scope: [Scope.Read, Scope.Write, Scope.Create],
+    });
+
+    const res = await callMcpTool(
+      server,
+      auth.accessToken!,
+      "create_document",
+      {
+        title: "Viewer Document",
+        collectionId: collection.id,
+      }
+    );
+
+    expect(res?.result?.isError).toBe(true);
+
+    const documents = await Document.unscoped().findAll({
+      where: { createdById: user.id },
+    });
+    expect(documents.length).toEqual(0);
+  });
 });
 
 describe("update_document", () => {
@@ -258,6 +315,41 @@ describe("update_document", () => {
     });
 
     expect(res?.result?.isError).toBe(true);
+  });
+
+  it("does not allow a viewer to publish their draft into a restricted collection", async () => {
+    const viewer = await buildViewer();
+    const collection = await buildCollection({
+      teamId: viewer.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const draft = await buildDocument({
+      teamId: viewer.teamId,
+      userId: viewer.id,
+      collectionId: null,
+      publishedAt: null,
+    });
+    const auth = await buildOAuthAuthentication({
+      user: viewer,
+      scope: [Scope.Read, Scope.Write, Scope.Create],
+    });
+
+    const res = await callMcpTool(
+      server,
+      auth.accessToken!,
+      "update_document",
+      {
+        id: draft.id,
+        publish: true,
+        collectionId: collection.id,
+      }
+    );
+
+    expect(res?.result?.isError).toBe(true);
+
+    const reloaded = await Document.unscoped().findByPk(draft.id);
+    expect(reloaded?.collectionId).toBeNull();
+    expect(reloaded?.publishedAt).toBeNull();
   });
 });
 

@@ -21,7 +21,10 @@ import {
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import { Day } from "@shared/utils/time";
-import documentCreator from "@server/commands/documentCreator";
+import documentCreator, {
+  authorizeDocumentCreate,
+  authorizeDocumentPublish,
+} from "@server/commands/documentCreator";
 import documentDuplicator from "@server/commands/documentDuplicator";
 import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
@@ -1324,33 +1327,7 @@ router.post(
     }
 
     if (publish) {
-      if (document.isDraft) {
-        authorize(user, "publish", document);
-      }
-
-      if (!document.collectionId) {
-        assertPresent(
-          collectionId,
-          "collectionId is required to publish a draft without collection"
-        );
-        collection = await Collection.findByPk(collectionId!, {
-          userId: user.id,
-          transaction,
-        });
-      }
-
-      if (document.parentDocumentId) {
-        const parentDocument = await Document.findByPk(
-          document.parentDocumentId,
-          {
-            userId: user.id,
-            transaction,
-          }
-        );
-        authorize(user, "createChildDocument", parentDocument, { collection });
-      } else {
-        authorize(user, "createDocument", collection);
-      }
+      await authorizeDocumentPublish(ctx, document, collectionId);
     }
 
     document = await documentUpdater(ctx, {
@@ -1704,31 +1681,10 @@ router.post(
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
 
-    let collection;
-
-    let parentDocument;
-
-    if (parentDocumentId) {
-      parentDocument = await Document.findByPk(parentDocumentId, {
-        userId: user.id,
-      });
-
-      if (parentDocument?.collectionId) {
-        collection = await Collection.findByPk(parentDocument.collectionId, {
-          userId: user.id,
-        });
-      }
-
-      authorize(user, "createChildDocument", parentDocument, {
-        collection,
-      });
-    } else if (collectionId) {
-      collection = await Collection.findByPk(collectionId, {
-        userId: user.id,
-        transaction,
-      });
-      authorize(user, "createDocument", collection);
-    }
+    const { collection } = await authorizeDocumentCreate(ctx, {
+      collectionId,
+      parentDocumentId,
+    });
 
     let template: Template | null | undefined;
 

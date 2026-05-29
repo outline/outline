@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import documentCreator from "@server/commands/documentCreator";
+import documentCreator, {
+  authorizeDocumentCreate,
+  authorizeDocumentPublish,
+} from "@server/commands/documentCreator";
 import documentMover from "@server/commands/documentMover";
 import documentUpdater from "@server/commands/documentUpdater";
 import { Op } from "sequelize";
@@ -339,30 +342,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const { collectionId, parentDocumentId } = input;
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
-          let collection;
-          let parentDocument;
 
-          if (parentDocumentId) {
-            parentDocument = await Document.findByPk(parentDocumentId, {
-              userId: user.id,
-            });
-
-            if (parentDocument?.collectionId) {
-              collection = await Collection.findByPk(
-                parentDocument.collectionId,
-                { userId: user.id }
-              );
-            }
-
-            authorize(user, "createChildDocument", parentDocument, {
-              collection,
-            });
-          } else if (collectionId) {
-            collection = await Collection.findByPk(collectionId, {
-              userId: user.id,
-            });
-            authorize(user, "createDocument", collection);
-          }
+          const { collection } = await authorizeDocumentCreate(ctx, {
+            collectionId,
+            parentDocumentId,
+          });
 
           const document = await documentCreator(ctx, {
             title: input.title,
@@ -618,6 +602,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
             });
           } else {
             authorize(user, "update", document);
+
+            if (input.publish) {
+              await authorizeDocumentPublish(ctx, document, input.collectionId);
+            }
 
             updated = await documentUpdater(ctx, {
               document,
