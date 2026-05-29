@@ -309,11 +309,7 @@ function DocumentScene({
   return (
     <ErrorBoundary showTitle>
       <RegisterKeyDown trigger="m" handler={onMove} />
-      <RegisterKeyDown
-        trigger="z"
-        handler={onUndoRedo}
-        options={{ allowInInput: false }}
-      />
+      <RegisterKeyDown trigger="z" handler={onUndoRedo} />
       <RegisterKeyDown trigger="e" handler={goToEdit} />
       <RegisterKeyDown trigger="Escape" handler={goBack} />
       <RegisterKeyDown trigger="h" handler={goToHistory} />
