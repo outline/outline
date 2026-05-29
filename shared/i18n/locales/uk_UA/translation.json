@@ -542,7 +542,7 @@
   "Viewers can only view and comment on documents.": "Переглядачі можуть переглядати й коментувати документи.",
   "Are you sure you want to make {{ userName }} a {{ role }}?": "Ви впевнені, що хочете зробити з {{ userName }} в ролі {{ role }}?",
   "I understand, delete": "Я розумію, видалити",
-  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.": "Ви впевнені, що бажаєте остаточно видалити {{ userName }}? Цю операцію неможливо скасувати, подумайте натомість про деактивацію користувача.",
+  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.": "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.",
   "Are you sure you want to suspend {{ userName }}? Suspended users will be prevented from logging in.": "Ви впевнені, що хочете заблокувати {{ userName }}? Заблоковані користувачі не зможуть увійти.",
   "New name": "Нова назва",
   "Name can't be empty": "Назва не може бути незаповненою",
