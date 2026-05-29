@@ -2,6 +2,7 @@ import { action } from "mobx";
 import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
+import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 
 const MAX_MATCH = 500;
 
@@ -10,8 +11,35 @@ type ExtensionState = {
   query: string;
 };
 
+/**
+ * Determine whether the trigger character of a suggestion match carries any
+ * marks (e.g. bold, code, link).
+ *
+ * @param state The editor state.
+ * @param cursorPos The document position of the cursor (end of the match).
+ * @param match The regex match where group 1 is the search term.
+ * @returns True if the trigger character has one or more marks applied.
+ */
+export function isTriggerMarked(
+  state: EditorState,
+  cursorPos: number,
+  match: RegExpMatchArray
+): boolean {
+  const queryLength = match[1]?.length ?? 0;
+  const triggerEnd = cursorPos - queryLength;
+  const triggerStart = triggerEnd - 1;
+  if (triggerStart < 0) {
+    return false;
+  }
+  return getMarksBetween(triggerStart, triggerEnd, state).length > 0;
+}
+
 export class SuggestionsMenuPlugin extends Plugin {
-  constructor(extensionState: ExtensionState, openRegex: RegExp) {
+  constructor(
+    extensionState: ExtensionState,
+    openRegex: RegExp,
+    enabledInMarks: boolean
+  ) {
     super({
       props: {
         handleDOMEvents: {
@@ -34,7 +62,10 @@ export class SuggestionsMenuPlugin extends Plugin {
               );
               const match = openRegex.exec(textBefore);
               action(() => {
-                if (match) {
+                if (
+                  match &&
+                  (enabledInMarks || !isTriggerMarked(state, fromPos, match))
+                ) {
                   if (match[0].length <= 2) {
                     extensionState.open = true;
                   }
@@ -59,8 +90,11 @@ export class SuggestionsMenuPlugin extends Plugin {
                 fromPos,
                 fromPos,
                 openRegex,
-                action((_, match) => {
-                  if (match) {
+                action((state, match) => {
+                  if (
+                    match &&
+                    (enabledInMarks || !isTriggerMarked(state, fromPos, match))
+                  ) {
                     extensionState.query = match[1];
                   } else {
                     extensionState.open = false;
@@ -89,8 +123,11 @@ export class SuggestionsMenuPlugin extends Plugin {
                 fromPos,
                 fromPos,
                 openRegex,
-                action((_, match) => {
-                  if (match) {
+                action((state, match) => {
+                  if (
+                    match &&
+                    (enabledInMarks || !isTriggerMarked(state, fromPos, match))
+                  ) {
                     if (match[0].length <= 2) {
                       extensionState.open = true;
                     }
