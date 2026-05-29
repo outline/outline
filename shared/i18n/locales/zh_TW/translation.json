@@ -542,7 +542,7 @@
   "Viewers can only view and comment on documents.": "預覽者只能預覽文件與留言",
   "Are you sure you want to make {{ userName }} a {{ role }}?": "您確定要將 {{ userName }} 設定為 {{ role }} 嗎？",
   "I understand, delete": "我明白了，刪除",
-  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.": "您確定要永久刪除 {{ userName }} 嗎？此操作不可恢復，請考慮使用暫停用戶。",
+  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.": "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.",
   "Are you sure you want to suspend {{ userName }}? Suspended users will be prevented from logging in.": "您確定要停用 {{ userName }} 的賬號嗎？遭到停用的使用者將無法登入。",
   "New name": "新的名稱",
   "Name can't be empty": "名稱不可以空白",
