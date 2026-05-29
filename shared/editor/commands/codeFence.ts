@@ -293,9 +293,10 @@ function getTabSize(state: EditorState): number {
   // spaces – a simple `includes("    ")` check misfires on two-space code,
   // which naturally contains four-space runs at deeper nesting levels or
   // immediately after an indent, causing outdent to remove too many spaces.
+  // Only space characters are counted, since indent/outdent operate on spaces.
   let hasIndentedLine = false;
   for (const line of codeBlock.node.textContent.split(newline)) {
-    const leadingSpaces = line.length - line.trimStart().length;
+    const leadingSpaces = line.length - line.replace(/^ +/, "").length;
     // Ignore unindented and whitespace-only lines.
     if (leadingSpaces === 0 || leadingSpaces === line.length) {
       continue;
