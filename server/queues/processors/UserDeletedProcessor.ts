@@ -60,12 +60,16 @@ export default class UserDeletedProcessor extends BaseProcessor {
         },
         transaction,
       });
-      await WebhookSubscription.destroy({
-        where: {
-          createdById: event.userId,
-        },
-        transaction,
-      });
+      await WebhookSubscription.update(
+        { enabled: false },
+        {
+          where: {
+            createdById: event.userId,
+            enabled: true,
+          },
+          transaction,
+        }
+      );
     });
   }
 }

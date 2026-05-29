@@ -1,4 +1,3 @@
-import { WebhookSubscription } from "@server/models";
 import UserAuthentication from "@server/models/UserAuthentication";
 import { buildUser, buildWebhookSubscription } from "@server/test/factories";
 import UserDeletedProcessor from "./UserDeletedProcessor";
@@ -34,7 +33,7 @@ describe("UserDeletedProcessor", () => {
     ).toBe(0);
   });
 
-  it("should remove webhook subscriptions created by the user", async () => {
+  it("should disable webhook subscriptions created by the user", async () => {
     const user = await buildUser();
     const webhook = await buildWebhookSubscription({
       teamId: user.teamId,
@@ -50,6 +49,7 @@ describe("UserDeletedProcessor", () => {
       ip,
     });
 
-    expect(await WebhookSubscription.findByPk(webhook.id)).toBeNull();
+    await webhook.reload();
+    expect(webhook.enabled).toEqual(false);
   });
 });
