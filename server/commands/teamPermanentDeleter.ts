@@ -40,21 +40,25 @@ async function teamPermanentDeleter(team: Team) {
   );
   const teamId = team.id;
 
-  await Attachment.findAllInBatches<Attachment>(
-    {
+  // Attachments are destroyed as individual instances (rather than a bulk
+  // delete) so the BeforeDestroy hook runs and removes the associated file from
+  // storage. We cannot use findAllInBatches with an advancing offset here –
+  // deleting a batch shifts the remaining rows backwards, so advancing the
+  // offset would skip records and leave attachments that still reference the
+  // team, causing a foreign key violation when the team itself is destroyed.
+  // Instead we repeatedly fetch and delete the first batch until none remain.
+  let attachments: Attachment[];
+  do {
+    attachments = await Attachment.findAll<Attachment>({
       where: {
         teamId,
       },
-      batchLimit: 100,
-    },
-    async (attachments, options) => {
+      limit: 100,
+    });
+
+    if (attachments.length > 0) {
       await sequelize.transaction(async (transaction) => {
-        Logger.info(
-          "commands",
-          `Deleting attachments ${options.offset} – ${
-            (options.offset || 0) + (options?.limit || 0)
-          }…`
-        );
+        Logger.info("commands", `Deleting ${attachments.length} attachments…`);
         await Promise.all(
           attachments.map((attachment) =>
             attachment.destroy({
@@ -64,7 +68,7 @@ async function teamPermanentDeleter(team: Team) {
         );
       });
     }
-  );
+  } while (attachments.length > 0);
 
   // Destroy user-relation models
   await User.findAllInBatches<User>(
@@ -80,14 +84,6 @@ async function teamPermanentDeleter(team: Team) {
         const userIds = users.map((user) => user.id);
         await UserAuthentication.destroy({
           where: {
-            userId: userIds,
-          },
-          force: true,
-          transaction,
-        });
-        await Attachment.destroy({
-          where: {
-            teamId,
             userId: userIds,
           },
           force: true,
