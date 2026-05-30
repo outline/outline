@@ -148,9 +148,9 @@ export class Linear {
 
       switch (resource.type) {
         case UnfurlResourceType.Issue:
-          return Linear.unfurlIssue(client, resource.id, actor);
+          return await Linear.unfurlIssue(client, resource.id, actor);
         case UnfurlResourceType.Project:
-          return Linear.unfurlProject(client, resource.id, actor);
+          return await Linear.unfurlProject(client, resource.id, actor);
         default:
           return;
       }
