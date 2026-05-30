@@ -2651,6 +2651,12 @@ li > .${EditorStyleHelper.toggleBlock} {
 .${EditorStyleHelper.toggleBlock} {
   display: flex;
 
+  /* When a toggle block is inside a collapsed heading it receives the
+     folded-content decoration; ensure it stays hidden despite display: flex. */
+  &.folded-content {
+    display: none;
+  }
+
   &:focus-within {
     transition-delay: 0.1s;
   }
