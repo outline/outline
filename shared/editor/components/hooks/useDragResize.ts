@@ -99,10 +99,13 @@ export default function useDragResize(props: Params): ReturnValue {
         const aspectRatio = naturalHeight / naturalWidth;
 
         setSize({
+          // When dragged to or beyond the editor edge, store the natural width as a
+          // sentinel for "full width" so the element stays responsive. Only do this
+          // when the natural width actually exceeds the editor — otherwise constrain
+          // to the editor edge rather than snapping a smaller image back down to its
+          // natural size.
           width:
-            // If the natural width is the same as the constrained width, use the natural width -
-            // special case for images resized to the full width of the editor.
-            constrainedWidth === Math.min(newWidth, maxWidth)
+            newWidth >= maxWidth && naturalWidth >= maxWidth
               ? naturalWidth
               : constrainedWidth,
           height: naturalWidth
