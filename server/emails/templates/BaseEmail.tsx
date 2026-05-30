@@ -334,7 +334,7 @@ export default abstract class BaseEmail<
       await ProsemirrorHelper.processMentions(node)
     );
 
-    let content = ProsemirrorHelper.toHTML(processedNode, {
+    let content = await ProsemirrorHelper.toHTML(processedNode, {
       centered: false,
     });
 

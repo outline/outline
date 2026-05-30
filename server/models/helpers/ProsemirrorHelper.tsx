@@ -1,5 +1,5 @@
 import emojiRegex from "emoji-regex";
-import { JSDOM } from "jsdom";
+import type { JSDOM } from "jsdom";
 import { chunk, isMatch } from "es-toolkit/compat";
 import { EditorState, type Plugin } from "prosemirror-state";
 import {
@@ -471,9 +471,12 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * @param options Options for the HTML output
    * @returns The content as a HTML string
    */
-  public static toHTML(node: Node, options?: HTMLOptions) {
+  public static async toHTML(node: Node, options?: HTMLOptions) {
     let view;
     let cleanupEnv;
+
+    // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
+    const { JSDOM } = await import("jsdom");
 
     try {
       const sheet = new ServerStyleSheet();

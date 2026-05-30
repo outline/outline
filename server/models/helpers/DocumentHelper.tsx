@@ -246,7 +246,7 @@ export class DocumentHelper {
     options?: HTMLOptions
   ) {
     const node = DocumentHelper.toProsemirror(model);
-    let output = ProsemirrorHelper.toHTML(node, {
+    let output = await ProsemirrorHelper.toHTML(node, {
       title:
         options?.includeTitle !== false
           ? model instanceof Collection
