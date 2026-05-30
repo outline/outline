@@ -103,8 +103,6 @@ async function presentDocument(
   }
 
   if (!options.isPublic) {
-    const source = document.import ?? (await document.$get("import"));
-
     res.tasks = document.tasks;
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.collectionId = document.collectionId;
@@ -118,15 +116,16 @@ async function presentDocument(
     if (options.includeCommentCount) {
       res.commentCount = await document.commentCount;
     }
-    res.sourceMetadata = document.sourceMetadata
-      ? {
-          importedAt: source?.createdAt ?? document.createdAt,
-          importType: source?.format,
-          createdByName: document.sourceMetadata.createdByName,
-          fileName: document.sourceMetadata?.fileName,
-          originalDocumentId: document.sourceMetadata?.originalDocumentId,
-        }
-      : undefined;
+    if (document.sourceMetadata) {
+      const source = document.import ?? (await document.$get("import"));
+      res.sourceMetadata = {
+        importedAt: source?.createdAt ?? document.createdAt,
+        importType: source?.format,
+        createdByName: document.sourceMetadata.createdByName,
+        fileName: document.sourceMetadata?.fileName,
+        originalDocumentId: document.sourceMetadata?.originalDocumentId,
+      };
+    }
   }
 
   return res;
