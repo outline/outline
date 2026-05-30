@@ -7,6 +7,8 @@ import {
   yUndoPlugin,
   undo,
   redo,
+  undoCommand,
+  redoCommand,
 } from "y-prosemirror";
 import * as Y from "yjs";
 import Extension from "@shared/editor/lib/Extension";
@@ -134,6 +136,14 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
     return {
       undo: () => undo,
       redo: () => redo,
+    };
+  }
+
+  keys() {
+    return {
+      "Mod-z": undoCommand,
+      "Mod-y": redoCommand,
+      "Shift-Mod-z": redoCommand,
     };
   }
 }

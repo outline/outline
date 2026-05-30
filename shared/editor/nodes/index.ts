@@ -2,6 +2,7 @@ import DateTime from "../extensions/DateTime";
 import DeleteNearAtom from "../extensions/DeleteNearAtom";
 import HexColorPreview from "../extensions/HexColorPreview";
 import History from "../extensions/History";
+import InputRuleUndo from "../extensions/InputRuleUndo";
 import MaxLength from "../extensions/MaxLength";
 import TrailingNode from "../extensions/TrailingNode";
 import type { AnyExtensionClass } from "../lib/types";
@@ -53,6 +54,7 @@ type Nodes = AnyExtensionClass[];
  */
 export const inlineExtensions: Nodes = [
   Doc,
+  InputRuleUndo,
   Paragraph,
   Emoji,
   Text,

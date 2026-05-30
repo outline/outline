@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
+import { closeHistory } from "@shared/editor/lib/closeHistory";
 import type { MenuItem } from "@shared/editor/types";
 import { hideScrollbars, s } from "@shared/styles";
 import { TooltipProvider } from "~/components/TooltipContext";
@@ -54,11 +55,13 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
       }
 
       if (commands[menuItem.name]) {
+        closeHistory(view);
         commands[menuItem.name](
           typeof menuItem.attrs === "function"
             ? menuItem.attrs(state)
             : menuItem.attrs
         );
+        closeHistory(view);
       } else if (menuItem.onClick) {
         menuItem.onClick();
       }
@@ -158,9 +161,11 @@ function ToolbarMenu(props: Props) {
     }
 
     // otherwise, run the associated editor command
+    closeHistory(view);
     commands[item.name](
       typeof item.attrs === "function" ? item.attrs(state) : item.attrs
     );
+    closeHistory(view);
   };
 
   return (

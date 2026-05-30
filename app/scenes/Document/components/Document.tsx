@@ -27,6 +27,7 @@ import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
+import isTextInput from "~/utils/isTextInput";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
 import { documentHistoryPath, documentEditPath } from "~/utils/routeHelpers";
@@ -151,6 +152,17 @@ function DocumentScene({
   const onUndoRedo = useCallback(
     (event: KeyboardEvent) => {
       if (isModKey(event)) {
+        const target =
+          event.target instanceof Element ? event.target : undefined;
+
+        // The editor handles undo/redo through its own keymap when focused
+        if (
+          editorRef.current?.view?.hasFocus() ||
+          (target && (isTextInput(target) || !!target.closest(".ProseMirror")))
+        ) {
+          return;
+        }
+
         event.preventDefault();
 
         if (event.shiftKey) {
