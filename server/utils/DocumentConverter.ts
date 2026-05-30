@@ -2,7 +2,6 @@ import { parse } from "@fast-csv/parse";
 import { JSDOM } from "jsdom";
 import { escapeRegExp } from "es-toolkit/compat";
 import { simpleParser } from "mailparser";
-import mammoth from "mammoth";
 import type { Node } from "prosemirror-model";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import yaml from "js-yaml";
@@ -259,6 +258,8 @@ export class DocumentConverter {
    */
   private static async docxToHtml(content: Buffer | string): Promise<string> {
     if (content instanceof Buffer) {
+      // Loaded lazily to keep mammoth off the startup path — only docx imports need it.
+      const mammoth = (await import("mammoth")).default;
       const { value } = await traceFunction({ spanName: "convertToHtml" })(
         mammoth.convertToHtml
       )({
