@@ -108,6 +108,12 @@ export default class PasteHandler extends Extension {
                 return false;
               }
 
+              // If the HTML on the clipboard is from Claude then the best
+              // compatability is to just use the HTML parser.
+              if (html?.includes("font-claude-response-body")) {
+                return false;
+              }
+
               // Check if the clipboard contents can be parsed as a single url.
               // Trim first so surrounding whitespace from the clipboard (e.g. a
               // trailing newline appended by the source) doesn't prevent URL
