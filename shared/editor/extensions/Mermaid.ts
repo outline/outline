@@ -26,7 +26,9 @@ export type MermaidState = {
   editingId?: string;
 };
 
-const STORAGE_PREFIX = "mermaid:";
+// The `v2` namespace discards entries cached before the #11782 fix, so
+// previously mis-sized diagrams are re-rendered instead of served from cache.
+const STORAGE_PREFIX = "mermaid:v2:";
 const MAX_STORAGE_ENTRIES = 20;
 
 class Cache {
@@ -224,15 +226,35 @@ class MermaidRenderer {
 
       const { svg, bindFunctions } = await mermaid.render(tempId, text);
 
-      // Cache the rendered SVG so we won't need to calculate it again in the same session
-      if (text) {
-        Cache.set(cacheKey, svg);
-      }
       element.classList.remove("parse-error", "empty");
       element.innerHTML = svg;
 
       // Allow the user to interact with the diagram
       bindFunctions?.(element);
+
+      // Mermaid sizes the SVG from a getBBox() taken in the hidden render
+      // element, which is unreliable on high-DPI/RDP displays and leaves
+      // diagrams too large or too small (#11782). Re-frame from the now-visible
+      // SVG, where getBBox() reflects the real content.
+      const rendered = element.querySelector("svg");
+      if (rendered instanceof SVGSVGElement) {
+        const box = rendered.getBBox();
+        if (box.width > 0 && box.height > 0) {
+          const padding = 8;
+          const frameWidth = box.width + padding * 2;
+          rendered.setAttribute(
+            "viewBox",
+            `${box.x - padding} ${box.y - padding} ${frameWidth} ${box.height + padding * 2}`
+          );
+          rendered.style.width = "100%";
+          rendered.style.maxWidth = `${frameWidth}px`;
+        }
+      }
+
+      // Cache the corrected SVG so we won't need to calculate it again this session
+      if (text) {
+        Cache.set(cacheKey, element.innerHTML);
+      }
     } catch (error) {
       const isEmpty = block.node.textContent.trim().length === 0;
 
