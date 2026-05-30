@@ -5,6 +5,9 @@ type DragDirection = "left" | "right" | "bottom";
 
 type SizeState = { width: number; height?: number };
 
+/** The minimum width an element can be resized to, as a fraction of the maximum width. */
+const minWidthRatio = 0.05;
+
 /**
  * Hook for resizing an element by dragging its sides.
  */
@@ -36,8 +39,6 @@ type Params = {
   naturalWidth: number;
   /** The natural height of the element. */
   naturalHeight: number;
-  /** The percentage of the grid to snap the element to. */
-  gridSnap: 5;
   /** The pixel increment to snap vertical resizing to. */
   gridHeightSnap?: number;
   /** The minimum height in pixels when resizing vertically. */
@@ -51,7 +52,6 @@ export default function useDragResize(props: Params): ReturnValue {
     onChangeSize,
     naturalWidth,
     naturalHeight,
-    gridSnap,
     gridHeightSnap,
     minHeight,
     ref,
@@ -74,10 +74,10 @@ export default function useDragResize(props: Params): ReturnValue {
 
   const constrainWidth = React.useCallback(
     (width: number, max: number) => {
-      const minWidth = Math.min(naturalWidth, (gridSnap / 100) * max);
+      const minWidth = Math.min(naturalWidth, minWidthRatio * max);
       return Math.round(Math.min(max, Math.max(width, minWidth)));
     },
-    [naturalWidth, gridSnap]
+    [naturalWidth]
   );
 
   const handlePointerMove = React.useCallback(
@@ -94,10 +94,8 @@ export default function useDragResize(props: Params): ReturnValue {
       }
 
       if (diffX && sizeAtDragStart.width) {
-        const gridWidth = (gridSnap / 100) * maxWidth;
         const newWidth = sizeAtDragStart.width + diffX * 2;
-        const widthOnGrid = Math.round(newWidth / gridWidth) * gridWidth;
-        const constrainedWidth = constrainWidth(widthOnGrid, maxWidth);
+        const constrainedWidth = constrainWidth(newWidth, maxWidth);
         const aspectRatio = naturalHeight / naturalWidth;
 
         setSize({
@@ -129,7 +127,6 @@ export default function useDragResize(props: Params): ReturnValue {
       offset,
       sizeAtDragStart,
       maxWidth,
-      gridSnap,
       gridHeightSnap,
       naturalWidth,
       naturalHeight,

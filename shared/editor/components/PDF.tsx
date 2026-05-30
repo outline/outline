@@ -33,7 +33,6 @@ export default function PdfViewer(props: Props) {
       height: node.attrs.height,
       naturalWidth: 300,
       naturalHeight: 424,
-      gridSnap: 5,
       onChangeSize,
       ref,
     }

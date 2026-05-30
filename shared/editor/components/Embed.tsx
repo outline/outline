@@ -28,7 +28,6 @@ const Embed = (props: Props) => {
       height: node.attrs.height ?? naturalHeight,
       naturalWidth,
       naturalHeight,
-      gridSnap: 5,
       onChangeSize,
       ref,
     }
