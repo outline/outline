@@ -9,6 +9,18 @@ import { richExtensions, withComments } from "../nodes";
 import type { ProsemirrorData } from "../../types";
 
 /**
+ * The maximum number of unchanged characters allowed between two adjacent
+ * changes for them to still be merged into a single change. This is
+ * deliberately small: merging absorbs the gap into the diff, so any unchanged
+ * text within it is rendered as deleted/reinserted. A value of 3 is the
+ * minimum that rejoins hyphenated word fragments such as replacing
+ * "no-await-in-loop", where the differ aligns the shared "no" and leaves an
+ * unchanged "no-" (gap of 3) between fragments, without swallowing longer
+ * unchanged words.
+ */
+const MAX_UNCHANGED_GAP = 3;
+
+/**
  * Merges adjacent Change objects that represent interleaved deletions/insertions.
  *
  * When word-level diffing is used, replacing "no-await-in-loop" with
@@ -55,13 +67,14 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
       let crossesNodeBoundary = false;
       if (gapA > 0) {
         try {
-          const gapSlice = docOld.slice(prev.toA, next.fromA);
-          // If the gap contains any non-text nodes or node boundaries, don't merge
-          gapSlice.content.forEach((node) => {
-            if (!node.isText) {
+          // If the gap contains any non-text node, it crosses a boundary
+          const gap = docOld.slice(prev.toA, next.fromA).content;
+          for (let n = 0; n < gap.childCount; n++) {
+            if (!gap.child(n).isText) {
               crossesNodeBoundary = true;
+              break;
             }
-          });
+          }
         } catch {
           crossesNodeBoundary = true;
         }
@@ -69,7 +82,12 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
 
       // If gaps are equal, reasonably small, and don't cross node boundaries,
       // they're part of the same logical replacement
-      if (gapA === gapB && gapA >= 0 && gapA <= 5 && !crossesNodeBoundary) {
+      if (
+        gapA === gapB &&
+        gapA >= 0 &&
+        gapA <= MAX_UNCHANGED_GAP &&
+        !crossesNodeBoundary
+      ) {
         j++;
       } else {
         break;
@@ -78,45 +96,45 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
 
     // If we found multiple adjacent changes, merge them
     if (j > i + 1) {
-      const firstChange = changes[i];
       const lastChange = changes[j - 1];
 
-      // Collect all deletions and insertions
-      const allDeleted: Array<{ length: number; data: T }> = [];
-      const allInserted: Array<{ length: number; data: T }> = [];
-
+      // The merged change only needs the first deletion/insertion in the window
+      // to carry forward the originating step; the spans themselves are
+      // recomputed from the window bounds below.
+      let firstDeleted: { length: number; data: T } | undefined;
+      let firstInserted: { length: number; data: T } | undefined;
       for (let k = i; k < j; k++) {
-        allDeleted.push(...changes[k].deleted);
-        allInserted.push(...changes[k].inserted);
+        firstDeleted ??= changes[k].deleted[0];
+        firstInserted ??= changes[k].inserted[0];
       }
 
-      // Create merged change
+      // Create merged change. The deletion slice holds the original (old) text
+      // spanning the whole window so it renders as one block; it is not treated
+      // as a modification downstream because its text differs from the insertion.
       const mergedChange: Change<T> = {
-        fromA: firstChange.fromA,
+        fromA: current.fromA,
         toA: lastChange.toA,
-        fromB: firstChange.fromB,
+        fromB: current.fromB,
         toB: lastChange.toB,
-        deleted:
-          allDeleted.length > 0
-            ? [
-                {
-                  length: lastChange.toA - firstChange.fromA,
-                  data: {
-                    ...allDeleted[0].data,
-                    slice: docOld.slice(firstChange.fromA, lastChange.toA),
-                  } as T,
-                },
-              ]
-            : [],
-        inserted:
-          allInserted.length > 0
-            ? [
-                {
-                  length: lastChange.toB - firstChange.fromB,
-                  data: allInserted[0].data,
-                },
-              ]
-            : [],
+        deleted: firstDeleted
+          ? [
+              {
+                length: lastChange.toA - current.fromA,
+                data: {
+                  ...firstDeleted.data,
+                  slice: docOld.slice(current.fromA, lastChange.toA),
+                } as T,
+              },
+            ]
+          : [],
+        inserted: firstInserted
+          ? [
+              {
+                length: lastChange.toB - current.fromB,
+                data: firstInserted.data,
+              },
+            ]
+          : [],
       };
 
       result.push(mergedChange);
