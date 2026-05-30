@@ -50,7 +50,6 @@ const Image = (props: Props) => {
     height: node.attrs.height ?? naturalHeight,
     naturalWidth,
     naturalHeight,
-    gridSnap: 5,
     onChangeSize,
     ref,
   });
@@ -119,6 +118,7 @@ const Image = (props: Props) => {
     <div contentEditable={false} className={className} ref={ref}>
       <ImageWrapper
         isFullWidth={isFullWidth}
+        $dragging={!!dragging}
         className={
           isSelected || dragging
             ? "image-wrapper ProseMirror-selectednode"
@@ -319,20 +319,22 @@ const Button = styled.button`
   }
 `;
 
-const ImageWrapper = styled.div<{ isFullWidth: boolean }>`
+const ImageWrapper = styled.div<{ isFullWidth: boolean; $dragging: boolean }>`
   line-height: 0;
   position: relative;
   margin-left: auto;
   margin-right: auto;
   max-width: ${(props) => (props.isFullWidth ? "initial" : "100%")};
   transition-property: width, height;
-  transition-duration: ${(props) => (props.isFullWidth ? "0ms" : "150ms")};
+  transition-duration: ${(props) =>
+    props.isFullWidth || props.$dragging ? "0ms" : "150ms"};
   transition-timing-function: ease-in-out;
   overflow: hidden;
 
   img {
     transition-property: width, height;
-    transition-duration: ${(props) => (props.isFullWidth ? "0ms" : "150ms")};
+    transition-duration: ${(props) =>
+      props.isFullWidth || props.$dragging ? "0ms" : "150ms"};
     transition-timing-function: ease-in-out;
   }
 

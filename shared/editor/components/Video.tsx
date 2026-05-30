@@ -30,7 +30,6 @@ export default function Video(props: Props) {
     height: node.attrs.height ?? naturalHeight,
     naturalWidth,
     naturalHeight,
-    gridSnap: 5,
     onChangeSize,
     ref,
   });
@@ -54,6 +53,7 @@ export default function Video(props: Props) {
     <div contentEditable={false} ref={ref}>
       <VideoWrapper
         className={isSelected ? "ProseMirror-selectednode" : ""}
+        $dragging={!!dragging}
         style={style}
       >
         <StyledVideo
@@ -97,7 +97,7 @@ const StyledVideo = styled.video`
   ${videoStyle}
 `;
 
-const VideoWrapper = styled.div`
+const VideoWrapper = styled.div<{ $dragging: boolean }>`
   line-height: 0;
   position: relative;
   margin-left: auto;
@@ -110,12 +110,12 @@ const VideoWrapper = styled.div`
   overflow: hidden;
 
   transition-property: width, max-height;
-  transition-duration: 150ms;
+  transition-duration: ${(props) => (props.$dragging ? "0ms" : "150ms")};
   transition-timing-function: ease-in-out;
 
   video {
     transition-property: width, max-height;
-    transition-duration: 150ms;
+    transition-duration: ${(props) => (props.$dragging ? "0ms" : "150ms")};
     transition-timing-function: ease-in-out;
   }
 
