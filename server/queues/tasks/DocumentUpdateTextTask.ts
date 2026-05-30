@@ -1,5 +1,3 @@
-import { franc } from "franc";
-import { iso6393To1 } from "iso-639-3";
 import { Node } from "prosemirror-model";
 import { schema, serializer } from "@server/editor";
 import { Document } from "@server/models";
@@ -16,6 +14,13 @@ export default class DocumentUpdateTextTask extends BaseTask<DocumentEvent> {
 
     const node = Node.fromJSON(schema, document.content);
     document.text = serializer.serialize(node);
+
+    // Loaded lazily to keep the language-detection corpus off the startup path —
+    // only this worker task needs it.
+    const [{ franc }, { iso6393To1 }] = await Promise.all([
+      import("franc"),
+      import("iso-639-3"),
+    ]);
 
     const language = franc(DocumentHelper.toPlainText(document), {
       minLength: 50,

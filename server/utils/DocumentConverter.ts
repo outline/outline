@@ -1,7 +1,5 @@
-import { parse } from "@fast-csv/parse";
 import { JSDOM } from "jsdom";
 import { escapeRegExp } from "es-toolkit/compat";
-import { simpleParser } from "mailparser";
 import type { Node } from "prosemirror-model";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import yaml from "js-yaml";
@@ -290,7 +288,9 @@ export class DocumentConverter {
     }
 
     // Confluence "Word" documents are actually just multi-part email messages, so we can use
-    // mailparser to parse the content.
+    // mailparser to parse the content. Loaded lazily to keep mailparser off the startup path —
+    // only Confluence Word imports need it.
+    const { simpleParser } = await import("mailparser");
     const parsed = await simpleParser(content);
     if (!parsed.html) {
       throw FileImportError("Unsupported Word file (No content found)");
@@ -324,7 +324,12 @@ export class DocumentConverter {
    * @param content The CSV file content.
    * @returns A markdown table representation.
    */
-  private static csvToMarkdown(content: Buffer | string): Promise<string> {
+  private static async csvToMarkdown(
+    content: Buffer | string
+  ): Promise<string> {
+    // Loaded lazily to keep @fast-csv off the startup path — only CSV imports need it.
+    const { parse } = await import("@fast-csv/parse");
+
     return new Promise((resolve, reject) => {
       const text = this.bufferToString(content).trim();
       const textLines = text.split("\n");
