@@ -456,6 +456,7 @@ export default class Image extends SimpleImage {
 
   keys(): Record<string, Command> {
     return {
+      ...super.keys(),
       "Mod-Alt-m": addComment({ userId: this.options.userId }),
     };
   }
