@@ -167,7 +167,13 @@ export default async function fetch(
       ...rest,
       headers,
       signal,
-      agent: buildAgent(url, { signal, allowPrivateIPAddress }),
+      // Passed as a function rather than a static agent so that node-fetch
+      // re-selects the correct http/https agent for each request in a redirect
+      // chain. Otherwise an http:// URL redirecting to https:// (or vice versa)
+      // would reuse the original protocol's agent and throw
+      // `Protocol "https:" not supported. Expected "http:"`.
+      agent: (parsedURL) =>
+        buildAgent(parsedURL.href, { signal, allowPrivateIPAddress }),
     });
 
     if (!response.ok) {
