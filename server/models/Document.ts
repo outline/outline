@@ -987,16 +987,17 @@ class Document extends ArchivableModel<
     const findAllChildDocumentIds = async (
       ...parentDocumentId: string[]
     ): Promise<string[]> => {
-      const childDocuments = await (
-        this.constructor as typeof Document
-      ).findAll({
-        attributes: ["id"],
-        where: {
-          parentDocumentId,
-          ...where,
-        },
-        ...options,
-      });
+      // Unscoped as this method only ever reads the id column
+      const childDocuments = await (this.constructor as typeof Document)
+        .unscoped()
+        .findAll({
+          attributes: ["id"],
+          where: {
+            parentDocumentId,
+            ...where,
+          },
+          ...options,
+        });
 
       const childDocumentIds = childDocuments.map((doc) => doc.id);
 
