@@ -144,7 +144,7 @@ const PDFWrapper = styled.div<{ $dragging: boolean }>`
   margin-right: auto;
   max-width: 100%;
   transition-property: width, height;
-  transition-duration: 120ms;
+  transition-duration: ${(props) => (props.$dragging ? "0ms" : "120ms")};
   transition-timing-function: ease-in-out;
   overflow: hidden;
   will-change: ${(props) => (props.$dragging ? "width, height" : "auto")};
@@ -154,7 +154,7 @@ const PDFWrapper = styled.div<{ $dragging: boolean }>`
 
   embed {
     transition-property: width, height;
-    transition-duration: 120ms;
+    transition-duration: ${(props) => (props.$dragging ? "0ms" : "120ms")};
     transition-timing-function: ease-in-out;
     will-change: ${(props) => (props.$dragging ? "width, height" : "auto")};
   }

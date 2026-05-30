@@ -50,7 +50,7 @@ const Embed = (props: Props) => {
   };
 
   return (
-    <FrameWrapper ref={ref}>
+    <FrameWrapper ref={ref} $dragging={!!dragging}>
       <InnerEmbed ref={ref} style={style} {...props} />
       {isEditable && isResizable && (
         <>
@@ -126,7 +126,7 @@ const InnerEmbed = React.forwardRef<HTMLIFrameElement, Props>(
   }
 );
 
-const FrameWrapper = styled.div`
+const FrameWrapper = styled.div<{ $dragging: boolean }>`
   line-height: 0;
   position: relative;
   margin-left: auto;
@@ -138,7 +138,7 @@ const FrameWrapper = styled.div`
   max-width: 100%;
 
   transition-property: width, max-height;
-  transition-duration: 150ms;
+  transition-duration: ${(props) => (props.$dragging ? "0ms" : "150ms")};
   transition-timing-function: ease-in-out;
 
   &:hover {
