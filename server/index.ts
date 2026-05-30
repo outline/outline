@@ -258,8 +258,11 @@ const isWebProcess =
   env.SERVICES.includes("api") ||
   env.SERVICES.includes("collaboration");
 
+const isWorkerProcess =
+  env.SERVICES.length === 1 && env.SERVICES.includes("worker");
+
 void throng({
   master,
   worker: start,
-  count: isWebProcess ? webProcessCount : undefined,
+  count: isWorkerProcess ? 1 : isWebProcess ? webProcessCount : undefined,
 });
