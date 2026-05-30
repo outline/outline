@@ -1,4 +1,3 @@
-import { JSDOM } from "jsdom";
 import { escapeRegExp } from "es-toolkit/compat";
 import type { Node } from "prosemirror-model";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
@@ -39,7 +38,7 @@ export class DocumentConverter {
     // Route to appropriate conversion method
     const html = await this.convertToHtml(content, fileName, mimeType);
     if (html !== undefined) {
-      doc = this.htmlToProsemirror(html);
+      doc = await this.htmlToProsemirror(html);
     } else {
       const markdown = await this.convertToMarkdown(
         content,
@@ -79,11 +78,15 @@ export class DocumentConverter {
    * @param content The HTML content as a string or Buffer.
    * @returns A Prosemirror Node representing the document.
    */
-  public static htmlToProsemirror(content: Buffer | string): Node {
+  public static async htmlToProsemirror(
+    content: Buffer | string
+  ): Promise<Node> {
     if (typeof content !== "string") {
       content = content.toString("utf8");
     }
 
+    // Loaded lazily to keep jsdom off the startup path — only HTML imports need it.
+    const { JSDOM } = await import("jsdom");
     const dom = new JSDOM(content);
     const document = dom.window.document;
 
