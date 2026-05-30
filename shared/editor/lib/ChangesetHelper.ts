@@ -9,6 +9,16 @@ import { richExtensions, withComments } from "../nodes";
 import type { ProsemirrorData } from "../../types";
 
 /**
+ * The structural subset of a changeset `Change` that this module reads and
+ * produces. Using a `Pick` rather than the `Change` class avoids requiring
+ * class-only members (such as `toJSON`) on the plain objects we build.
+ */
+type ChangeFields<T> = Pick<
+  Change<T>,
+  "fromA" | "toA" | "fromB" | "toB" | "deleted" | "inserted"
+>;
+
+/**
  * The maximum number of unchanged characters allowed between two adjacent
  * changes for them to still be merged into a single change. This is
  * deliberately small: merging absorbs the gap into the diff, so any unchanged
@@ -37,14 +47,14 @@ const MAX_UNCHANGED_GAP = 3;
  * @returns Changes with adjacent interleaved changes merged
  */
 function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
-  changes: readonly Change<T>[],
+  changes: readonly ChangeFields<T>[],
   docOld: Node
-): Change<T>[] {
+): ChangeFields<T>[] {
   if (changes.length <= 1) {
     return [...changes];
   }
 
-  const result: Change<T>[] = [];
+  const result: ChangeFields<T>[] = [];
   let i = 0;
 
   while (i < changes.length) {
@@ -111,7 +121,7 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
       // Create merged change. The deletion slice holds the original (old) text
       // spanning the whole window so it renders as one block; it is not treated
       // as a modification downstream because its text differs from the insertion.
-      const mergedChange: Change<T> = {
+      const mergedChange: ChangeFields<T> = {
         fromA: current.fromA,
         toA: lastChange.toA,
         fromB: current.fromB,
@@ -287,10 +297,11 @@ export class ChangesetHelper {
         }))
       );
 
-      let changes = simplifyChanges(changeset.changes, docNew);
-
       // Merge interleaved deletions/insertions into cleaner blocks
-      changes = mergeInterleavedChanges(changes, docOld);
+      const changes = mergeInterleavedChanges(
+        simplifyChanges(changeset.changes, docNew),
+        docOld
+      );
 
       // Post-process changes to detect modifications (attribute-only changes)
       const extendedChanges: ExtendedChange[] = changes.map((change) => {
