@@ -104,19 +104,22 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
       }
     }
 
-    // If we found multiple adjacent changes, merge them
-    if (j > i + 1) {
-      const lastChange = changes[j - 1];
+    // The merged change only needs the first deletion/insertion in the window
+    // to carry forward the originating step; the spans themselves are
+    // recomputed from the window bounds below.
+    let firstDeleted: { length: number; data: T } | undefined;
+    let firstInserted: { length: number; data: T } | undefined;
+    for (let k = i; k < j; k++) {
+      firstDeleted ??= changes[k].deleted[0];
+      firstInserted ??= changes[k].inserted[0];
+    }
 
-      // The merged change only needs the first deletion/insertion in the window
-      // to carry forward the originating step; the spans themselves are
-      // recomputed from the window bounds below.
-      let firstDeleted: { length: number; data: T } | undefined;
-      let firstInserted: { length: number; data: T } | undefined;
-      for (let k = i; k < j; k++) {
-        firstDeleted ??= changes[k].deleted[0];
-        firstInserted ??= changes[k].inserted[0];
-      }
+    // Merge the window only when it is a genuine replacement — it must contain
+    // both a deletion and an insertion. Otherwise a cluster of pure insertions
+    // (or pure deletions) separated by a short unchanged gap would merge and
+    // render the unchanged text between them as inserted/deleted.
+    if (j > i + 1 && firstDeleted && firstInserted) {
+      const lastChange = changes[j - 1];
 
       // Create merged change. The deletion slice holds the original (old) text
       // spanning the whole window so it renders as one block; it is not treated
@@ -126,25 +129,21 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
         toA: lastChange.toA,
         fromB: current.fromB,
         toB: lastChange.toB,
-        deleted: firstDeleted
-          ? [
-              {
-                length: lastChange.toA - current.fromA,
-                data: {
-                  ...firstDeleted.data,
-                  slice: docOld.slice(current.fromA, lastChange.toA),
-                } as T,
-              },
-            ]
-          : [],
-        inserted: firstInserted
-          ? [
-              {
-                length: lastChange.toB - current.fromB,
-                data: firstInserted.data,
-              },
-            ]
-          : [],
+        deleted: [
+          {
+            length: lastChange.toA - current.fromA,
+            data: {
+              ...firstDeleted.data,
+              slice: docOld.slice(current.fromA, lastChange.toA),
+            } as T,
+          },
+        ],
+        inserted: [
+          {
+            length: lastChange.toB - current.fromB,
+            data: firstInserted.data,
+          },
+        ],
       };
 
       result.push(mergedChange);

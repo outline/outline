@@ -111,6 +111,29 @@ describe("ChangesetHelper.getChangeset", () => {
       expect(deletedText(changes[0])).toBe("quick");
       expect(deletedText(changes[1])).toBe("fox");
     });
+
+    it("does not merge a cluster of pure insertions", () => {
+      // Inserting text on both sides of the unchanged "a" produces two pure
+      // insertions a short gap apart. Merging them would render the unchanged
+      // "a" as inserted, so the window (no deletion) must not merge.
+      const changes = changesFor(para("foo a bar"), para("a"));
+
+      expect(changes).toHaveLength(2);
+      // Both are pure insertions — nothing is marked as deleted.
+      expect(changes.every((change) => change.deleted.length === 0)).toBe(true);
+    });
+
+    it("does not merge a cluster of pure deletions", () => {
+      // Deleting text on both sides of the unchanged "a" produces two pure
+      // deletions a short gap apart. Merging them would render the unchanged
+      // "a" as deleted, so the window (no insertion) must not merge.
+      const changes = changesFor(para("a"), para("foo a bar"));
+
+      expect(changes).toHaveLength(2);
+      // The unchanged "a" is not absorbed into either deletion.
+      expect(deletedText(changes[0])).toBe("foo ");
+      expect(deletedText(changes[1])).toBe(" bar");
+    });
   });
 
   describe("gap merge threshold", () => {
