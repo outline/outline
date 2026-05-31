@@ -41,10 +41,9 @@ export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
   }
 
   get plugins() {
-    const isHoverTarget = (target: Element | null, view: EditorView) =>
+    const isHoverTarget = (target: Element | null) =>
       target instanceof HTMLElement &&
-      this.editor.elementRef.current?.contains(target) &&
-      (!view.editable || (view.editable && !view.hasFocus()));
+      this.editor.elementRef.current?.contains(target);
 
     let hoveringTimeout: ReturnType<typeof setTimeout>;
 
@@ -56,7 +55,7 @@ export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
               const target = (event.target as HTMLElement)?.closest(
                 ".use-hover-preview"
               );
-              if (isHoverTarget(target, view)) {
+              if (isHoverTarget(target)) {
                 hoveringTimeout = setTimeout(
                   action(async () => {
                     const element = target as HTMLElement;
@@ -98,7 +97,7 @@ export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
               const target = (event.target as HTMLElement)?.closest(
                 ".use-hover-preview"
               );
-              if (isHoverTarget(target, view)) {
+              if (isHoverTarget(target)) {
                 clearTimeout(hoveringTimeout);
                 this.state.activeLinkElement = null;
               }
