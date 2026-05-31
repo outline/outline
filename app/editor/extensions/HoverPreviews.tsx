@@ -51,7 +51,7 @@ export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
       new Plugin({
         props: {
           handleDOMEvents: {
-            mouseover: (view: EditorView, event: MouseEvent) => {
+            mouseover: (_view: EditorView, event: MouseEvent) => {
               const target = (event.target as HTMLElement)?.closest(
                 ".use-hover-preview"
               );
@@ -78,7 +78,15 @@ export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
                         documentId,
                       });
 
-                      if (unfurl) {
+                      // The fetch is async, so the pointer may have already
+                      // left the target (or the node may have been removed) by
+                      // the time it resolves – only show the preview if the
+                      // element is still hovered.
+                      if (
+                        unfurl &&
+                        element.isConnected &&
+                        element.matches(":hover")
+                      ) {
                         this.state.activeLinkElement = element;
                         this.state.unfurlId = transformedUrl;
                       } else {
@@ -93,7 +101,7 @@ export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
               }
               return false;
             },
-            mouseout: action((view: EditorView, event: MouseEvent) => {
+            mouseout: action((_view: EditorView, event: MouseEvent) => {
               const target = (event.target as HTMLElement)?.closest(
                 ".use-hover-preview"
               );
