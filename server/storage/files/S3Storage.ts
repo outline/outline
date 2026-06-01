@@ -2,17 +2,18 @@ import path from "node:path";
 import type { Readable } from "node:stream";
 import type { ObjectCannedACL } from "@aws-sdk/client-s3";
 import {
-  S3Client,
+  CopyObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
-  CopyObjectCommand,
+  S3Client,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import "@aws-sdk/signature-v4-crt"; // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
 import type { PresignedPostOptions } from "@aws-sdk/s3-presigned-post";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getSignedUrl as getCloudFrontSignedUrl } from "@aws-sdk/cloudfront-signer";
 import fs from "fs-extra";
 import invariant from "invariant";
 import { compact } from "es-toolkit/compat";
@@ -96,6 +97,10 @@ export default class S3Storage extends BaseStorage {
   }
 
   public getUrlForKey(key: string): string {
+    if (env.AWS_CLOUDFRONT_URL) {
+      const base = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
+      return `${base}/${key}`;
+    }
     return `${this.getPublicEndpoint()}/${key}`;
   }
 
@@ -142,6 +147,42 @@ export default class S3Storage extends BaseStorage {
     key: string,
     expiresIn = S3Storage.defaultSignedUrlExpires
   ) => {
+    if (env.AWS_CLOUDFRONT_URL) {
+      const cfBase = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
+      const encodedKey = encodeURI(key);
+      const cfUrl = `${cfBase}/${encodedKey}`;
+
+      let privateKey = env.AWS_CLOUDFRONT_PRIVATE_KEY;
+      if (env.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64) {
+        privateKey = Buffer.from(
+          env.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64,
+          "base64"
+        ).toString("utf-8");
+      }
+
+      if (!privateKey || !env.AWS_CLOUDFRONT_KEY_PAIR_ID) {
+        Logger.warn(
+          "CloudFront signed URLs requested but missing key pair config"
+        );
+        return cfUrl;
+      }
+
+      try {
+        return getCloudFrontSignedUrl({
+          url: cfUrl,
+          keyPairId: env.AWS_CLOUDFRONT_KEY_PAIR_ID,
+          privateKey,
+          dateLessThan: new Date(Date.now() + expiresIn * 1000).toISOString(),
+        });
+      } catch (err) {
+        Logger.error("Failed to sign CloudFront URL ", err, {
+          key,
+          cfUrl
+        });
+        return cfUrl; // fallback
+      }
+    }
+
     const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
     const params = {
       Bucket: this.getBucket(),

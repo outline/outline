@@ -136,6 +136,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@aws-sdk/cloudfront-signer@npm:^3.1052.0":
+  version: 3.1052.0
+  resolution: "@aws-sdk/cloudfront-signer@npm:3.1052.0"
+  dependencies:
+    "@smithy/core": "npm:^3.24.3"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/64ecb7ddee9e1d487d4cba8f7b6aa6b623a9020b3c81e02fe9875889f8c775178528fcf19fd1acf8aa4a37bbbab9af246fc9e417e8e74bf6b355019ee3262211
+  languageName: node
+  linkType: hard
+
 "@aws-sdk/core@npm:^3.974.13":
   version: 3.974.13
   resolution: "@aws-sdk/core@npm:3.974.13"
@@ -15037,6 +15047,7 @@ __metadata:
   resolution: "outline@workspace:."
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.1053.0"
+    "@aws-sdk/cloudfront-signer": "npm:^3.1052.0"
     "@aws-sdk/lib-storage": "npm:^3.1053.0"
     "@aws-sdk/s3-presigned-post": "npm:^3.1053.0"
     "@aws-sdk/s3-request-presigner": "npm:^3.1053.0"
