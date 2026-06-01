@@ -176,7 +176,7 @@ export default async function documentCreator(
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
   const templateId = template ? template.id : undefined;
-  const eventData = importId || apiImportId ? { source: "import" } : undefined;
+  const eventData = importId || apiImportId || createdAt ? { source: "import" } : undefined;
 
   if (state && template) {
     throw new Error(
