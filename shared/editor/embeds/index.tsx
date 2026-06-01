@@ -22,6 +22,11 @@ import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
 import PlantUmlDiagrams from "./PlantUml";
 
+export function createGitLabSnippetRegex(origin: string) {
+  const escapedOrigin = origin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`^${escapedOrigin}/(([a-zA-Z\\d-]+)/)*-/snippets/\\d+$`);
+}
+
 export type EmbedProps = {
   isSelected: boolean;
   isEditable: boolean;
@@ -316,11 +321,10 @@ const embeds: EmbedDescriptor[] = [
   }),
   new EmbedDescriptor({
     id: "gitlab-snippet",
+    name: IntegrationService.GitLab,
     title: "GitLab Snippet",
     keywords: "code",
-    regexMatch: [
-      new RegExp(`^https://gitlab\\.com/(([a-zA-Z\\d-]+)/)*-/snippets/\\d+$`),
-    ],
+    regexMatch: [createGitLabSnippetRegex("https://gitlab.com")],
     icon: <Img src="/images/gitlab.png" alt="GitLab" />,
     component: GitLabSnippet,
   }),
