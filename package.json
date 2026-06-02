@@ -273,7 +273,7 @@
     "yauzl": "^3.3.1",
     "yazl": "^3.3.1",
     "yjs": "^13.6.30",
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.28.6",
@@ -382,7 +382,7 @@
     "@types/koa": "2.15.1",
     "prosemirror-transform": "1.10.5",
     "prismjs": "1.30.0",
-    "zod": "^4.3.6",
+    "zod": "^4.4.3",
     "@types/markdown-it": "14.1.2",
     "ip-address@npm:10.1.0": "^10.2.0",
     "minimatch@npm:9.0.1": "9.0.9",
