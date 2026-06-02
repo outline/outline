@@ -119,6 +119,38 @@ export function canUseElementFullscreen(): boolean {
   return !!fullscreenAPI && !isIOS;
 }
 
+let visibleScrollbars: boolean | null = null;
+
+/**
+ * Returns true if the browser renders persistent scrollbars that occupy layout
+ * space, as opposed to overlay scrollbars that float over content and auto-hide
+ * (the default on macOS and touch devices). The result is measured once and
+ * cached for the lifetime of the page.
+ *
+ * @returns whether scrollbars take up space.
+ */
+export function hasVisibleScrollbars(): boolean {
+  if (!isBrowser) {
+    return false;
+  }
+  if (visibleScrollbars !== null) {
+    return visibleScrollbars;
+  }
+
+  const outer = document.createElement("div");
+  outer.style.visibility = "hidden";
+  outer.style.position = "absolute";
+  outer.style.top = "-9999px";
+  outer.style.width = "100px";
+  outer.style.height = "100px";
+  outer.style.overflow = "scroll";
+  document.body.appendChild(outer);
+  visibleScrollbars = outer.offsetWidth - outer.clientWidth > 0;
+  document.body.removeChild(outer);
+
+  return visibleScrollbars;
+}
+
 let supportsPassive = false;
 
 try {

@@ -1,3 +1,4 @@
+import { lighten } from "polished";
 import { createGlobalStyle } from "styled-components";
 import styledNormalize from "styled-normalize";
 import { breakpoints, depths, s } from ".";
@@ -151,6 +152,44 @@ export default createGlobalStyle<Props>`
       position: absolute !important;
       left: -9999px !important;
       top: -9999px !important;
+  }
+
+  /* Floating horizontal scrollbar for tables taller than the viewport. Lives on
+     the body (rather than inside the editor) so a full-width table's transform
+     does not become its containing block and break the fixed positioning. */
+  .${EditorStyleHelper.tableStickyScrollbar} {
+    position: fixed;
+    bottom: 0;
+    height: 14px;
+    z-index: ${depths.header};
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: ${s("scrollbarThumb")} transparent;
+
+    &:hover {
+      scrollbar-color: ${(props) =>
+        lighten(0.1, props.theme.scrollbarThumb)} transparent;
+    }
+
+    > div {
+      height: 1px;
+    }
+
+    &::-webkit-scrollbar {
+      height: 14px;
+      background-color: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: ${s("scrollbarThumb")};
+      border: 3px solid transparent;
+      border-radius: 7px;
+    }
+
+    &:hover::-webkit-scrollbar-thumb {
+      background-color: ${(props) => lighten(0.1, props.theme.scrollbarThumb)};
+    }
   }
 
   /* Table row/column drag and drop cursor */

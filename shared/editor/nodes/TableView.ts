@@ -2,7 +2,7 @@ import type { Node } from "prosemirror-model";
 import { TableView as ProsemirrorTableView } from "prosemirror-tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { TableLayout } from "../types";
-import { isBrowser } from "../../utils/browser";
+import { hasVisibleScrollbars, isBrowser } from "../../utils/browser";
 
 export class TableView extends ProsemirrorTableView {
   public constructor(
@@ -19,11 +19,43 @@ export class TableView extends ProsemirrorTableView {
     this.scrollable.appendChild(this.table);
     this.scrollable.classList.add(EditorStyleHelper.tableScrollable);
 
+    // Add a floating horizontal scrollbar that can be pinned to the bottom of
+    // the viewport when the table is taller than the screen. It mirrors the
+    // scroll position of the real scrollable container above. It is appended to
+    // the document body rather than this node view so that a full-width table's
+    // transform does not become the containing block for its fixed positioning.
+    this.stickyScrollbar = document.createElement("div");
+    this.stickyScrollbar.classList.add(EditorStyleHelper.tableStickyScrollbar);
+    this.stickyScrollbar.contentEditable = "false";
+    this.stickyScrollbar.style.display = "none";
+    this.stickyScrollbarInner = this.stickyScrollbar.appendChild(
+      document.createElement("div")
+    );
+    if (isBrowser) {
+      document.body.appendChild(this.stickyScrollbar);
+    }
+
     if (isBrowser) {
       this.scrollable.addEventListener(
         "scroll",
         () => {
           this.updateClassList(this.node);
+          this.syncStickyScrollbarPosition();
+        },
+        {
+          passive: true,
+        }
+      );
+
+      this.stickyScrollbar.addEventListener(
+        "scroll",
+        () => {
+          if (this.syncingScroll || !this.scrollable || !this.stickyScrollbar) {
+            return;
+          }
+          this.syncingScroll = true;
+          this.scrollable.scrollLeft = this.stickyScrollbar.scrollLeft;
+          this.syncingScroll = false;
         },
         {
           passive: true,
@@ -38,6 +70,7 @@ export class TableView extends ProsemirrorTableView {
       setTimeout(() => {
         if (this.dom) {
           this.updateClassList(node);
+          this.updateStickyScrollbar();
         }
       }, 0);
     }
@@ -52,6 +85,7 @@ export class TableView extends ProsemirrorTableView {
 
   public override update(node: Node) {
     this.updateClassList(node);
+    this.updateStickyScrollbar();
     return super.update(node);
   }
 
@@ -108,14 +142,23 @@ export class TableView extends ProsemirrorTableView {
 
   private scrollable: HTMLDivElement | null = null;
 
-  private scrollHandler: (() => void) | null = null;
+  private stickyScrollbar: HTMLDivElement | null = null;
+
+  private stickyScrollbarInner: HTMLDivElement | null = null;
+
+  private syncingScroll = false;
+
+  private scrollHandler: ((event: Event) => void) | null = null;
+
+  private resizeHandler: (() => void) | null = null;
 
   /** Default height of the app's fixed header */
   private static readonly HEADER_HEIGHT = 60;
 
   /**
-   * Sets up the scroll listener for sticky header behavior. Nested tables
-   * (tables within another table) are excluded from sticky header behavior.
+   * Sets up the scroll listeners for sticky header and sticky horizontal
+   * scrollbar behavior. Nested tables (tables within another table) are
+   * excluded from both behaviors.
    */
   private setupStickyHeader() {
     if (!isBrowser) {
@@ -124,13 +167,23 @@ export class TableView extends ProsemirrorTableView {
 
     // Defer setup to ensure DOM is fully rendered
     setTimeout(() => {
-      // Skip sticky header for nested tables
+      // Skip sticky behavior for nested tables
       if (this.dom.closest(`table .${EditorStyleHelper.table}`)) {
         return;
       }
 
-      this.scrollHandler = () => {
+      this.scrollHandler = (event: Event) => {
         this.updateStickyHeader();
+
+        // When the scroll originates from the floating scrollbar itself, don't
+        // sync the thumb position back from the table — the floating
+        // scrollbar's own listener is mid-flight propagating the new position
+        // to the table, and snapping it back here would fight the user's drag.
+        const fromStickyScrollbar = !!(
+          event.target instanceof HTMLElement &&
+          this.stickyScrollbar?.contains(event.target)
+        );
+        this.updateStickyScrollbar(!fromStickyScrollbar);
       };
 
       // Use capture phase on document to catch all scroll events
@@ -139,13 +192,19 @@ export class TableView extends ProsemirrorTableView {
         capture: true,
       });
 
+      this.resizeHandler = () => {
+        this.updateStickyScrollbar();
+      };
+      window.addEventListener("resize", this.resizeHandler, { passive: true });
+
       // Initial update
       this.updateStickyHeader();
+      this.updateStickyScrollbar();
     }, 0);
   }
 
   /**
-   * Cleans up the scroll listener and resets header styles.
+   * Cleans up the scroll listeners and resets sticky header and scrollbar state.
    */
   private cleanupStickyHeader() {
     if (!isBrowser) {
@@ -159,9 +218,19 @@ export class TableView extends ProsemirrorTableView {
       this.scrollHandler = null;
     }
 
+    if (this.resizeHandler) {
+      window.removeEventListener("resize", this.resizeHandler);
+      this.resizeHandler = null;
+    }
+
     // Reset sticky header state
     this.dom.classList.remove(EditorStyleHelper.tableStickyHeader);
     this.dom.style.removeProperty("--sticky-scroll-offset");
+
+    // Remove the floating scrollbar
+    this.stickyScrollbar?.remove();
+    this.stickyScrollbar = null;
+    this.stickyScrollbarInner = null;
   }
 
   /**
@@ -197,6 +266,77 @@ export class TableView extends ProsemirrorTableView {
     } else {
       this.dom.classList.remove(EditorStyleHelper.tableStickyHeader);
       this.dom.style.removeProperty("--sticky-scroll-offset");
+    }
+  }
+
+  /**
+   * Shows or hides the floating horizontal scrollbar and keeps its dimensions
+   * and scroll position in sync with the real scrollable container. The
+   * scrollbar is pinned to the bottom of the viewport whenever the table
+   * overflows horizontally and its own scrollbar has been scrolled out of view
+   * below the fold, so horizontal scrolling is always reachable.
+   *
+   * @param syncThumb whether to mirror the table's scroll position onto the
+   * floating scrollbar. Disabled while the user is dragging the floating
+   * scrollbar to avoid fighting their input.
+   */
+  private updateStickyScrollbar(syncThumb = true) {
+    if (
+      !isBrowser ||
+      !this.scrollable ||
+      !this.stickyScrollbar ||
+      !this.stickyScrollbarInner
+    ) {
+      return;
+    }
+
+    const scrollWidth = this.scrollable.scrollWidth;
+    const clientWidth = this.scrollable.clientWidth;
+    const overflows = scrollWidth > clientWidth + 1;
+
+    const rect = this.scrollable.getBoundingClientRect();
+    const viewportHeight =
+      window.innerHeight || document.documentElement.clientHeight;
+
+    // Only show the floating scrollbar when the browser renders persistent
+    // scrollbars (otherwise the table can be scrolled by gesture and a floating
+    // bar would look out of place), the table overflows horizontally, is within
+    // view, and its real scrollbar sits below the bottom of the viewport.
+    const shouldShow =
+      hasVisibleScrollbars() &&
+      overflows &&
+      rect.top < viewportHeight &&
+      rect.bottom > viewportHeight;
+
+    if (!shouldShow) {
+      if (this.stickyScrollbar.style.display !== "none") {
+        this.stickyScrollbar.style.display = "none";
+      }
+      return;
+    }
+
+    this.stickyScrollbar.style.display = "block";
+    this.stickyScrollbar.style.left = `${rect.left}px`;
+    this.stickyScrollbar.style.width = `${rect.width}px`;
+    this.stickyScrollbarInner.style.width = `${scrollWidth}px`;
+
+    if (syncThumb) {
+      this.syncStickyScrollbarPosition();
+    }
+  }
+
+  /**
+   * Mirrors the horizontal scroll position of the real scrollable container
+   * onto the floating scrollbar.
+   */
+  private syncStickyScrollbarPosition() {
+    if (this.syncingScroll || !this.scrollable || !this.stickyScrollbar) {
+      return;
+    }
+    if (this.stickyScrollbar.scrollLeft !== this.scrollable.scrollLeft) {
+      this.syncingScroll = true;
+      this.stickyScrollbar.scrollLeft = this.scrollable.scrollLeft;
+      this.syncingScroll = false;
     }
   }
 

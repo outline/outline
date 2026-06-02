@@ -116,6 +116,9 @@ export class EditorStyleHelper {
   /** Sticky header state */
   static readonly tableStickyHeader = "table-sticky-header";
 
+  /** Floating horizontal scrollbar pinned to the bottom of the viewport */
+  static readonly tableStickyScrollbar = "table-sticky-scrollbar";
+
   /** Drop indicator for table drag and drop */
   static readonly tableDragDropIndicator = "table-drag-drop-indicator";
 
