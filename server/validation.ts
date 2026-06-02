@@ -147,6 +147,38 @@ export const assertPositiveInteger = (
   }
 };
 
+const ISO8601_DURATION_RE =
+  /^-?P(?:(\d+W)|((?:\d+Y)?(?:\d+M)?(?:\d+D)?)(T(?:\d+H)?(?:\d+M)?(?:\d+S)?)?)$/;
+
+/**
+ * Validate a string against the ISO 8601 duration format.
+ *
+ * Supported subset: an optional leading `-`, then `P[nY][nM][nW][nD][T[nH][nM][nS]]`.
+ * The weeks form (`PnW`) is mutually exclusive with year/month/day units.
+ * Decimals are not supported.
+ *
+ * @param value the candidate string.
+ * @returns true if the string is a syntactically valid ISO 8601 duration.
+ */
+export function isISO8601Duration(value: string): boolean {
+  const m = ISO8601_DURATION_RE.exec(value);
+  if (!m) {
+    return false;
+  }
+  const [, weeks, date, time] = m;
+  if (weeks) {
+    return true;
+  }
+  // A bare `T` separator with no following time unit is invalid even if a date
+  // portion is present (e.g. `P1DT` should be rejected).
+  if (time === "T") {
+    return false;
+  }
+  const hasDate = !!date && date.length > 0;
+  const hasTime = !!time && time.length > 1;
+  return hasDate || hasTime;
+}
+
 export const assertHexColor = (value: string, message?: string) => {
   if (!validateColorHex(value)) {
     throw ValidationError(

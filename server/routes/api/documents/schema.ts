@@ -1,6 +1,7 @@
 import type formidable from "formidable";
 import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
+import { createFilterSchema } from "@shared/helpers/FilterHelper";
 import {
   DirectionFilter,
   DocumentPermission,
@@ -8,9 +9,23 @@ import {
   TextEditMode,
   SortFilter,
 } from "@shared/types";
+import { FilterValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
+
+const documentFilter = createFilterSchema([
+  "createdAt",
+  "updatedAt",
+  "publishedAt",
+  "archivedAt",
+  "title",
+  "templateId",
+  "collectionId",
+  "userId",
+  "documentId",
+  "parentDocumentId",
+] as const);
 
 const DocumentsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */
@@ -36,7 +51,11 @@ const DocumentsSortParamsSchema = z.object({
 });
 
 const DateFilterSchema = z.object({
-  /** Date filter */
+  /**
+   * Date filter.
+   * @deprecated use `filters` with `updatedAt` and an ISO 8601 duration
+   * (`-P1D`, `-P1W`, `-P1M`, `-P1Y`) instead.
+   */
   dateFilter: z
     .union([
       z.literal("day"),
@@ -48,16 +67,28 @@ const DateFilterSchema = z.object({
 });
 
 const BaseSearchSchema = DateFilterSchema.extend({
-  /** Filter results for team based on the collection */
+  /**
+   * Filter results for team based on the collection.
+   * @deprecated use `filters` with field `collectionId` instead.
+   */
   collectionId: z.uuid().optional(),
 
-  /** Filter results based on user */
+  /**
+   * Filter results based on user.
+   * @deprecated use `filters` with field `userId` instead.
+   */
   userId: z.uuid().optional(),
 
-  /** Filter results based on content within a document and it's children */
+  /**
+   * Filter results based on content within a document and it's children.
+   * @deprecated use `filters` with field `documentId` instead.
+   */
   documentId: z.uuid().optional(),
 
-  /** Document statuses to include in results */
+  /**
+   * Document statuses to include in results.
+   * @deprecated use `filters` with `archivedAt`/`publishedAt` instead.
+   */
   statusFilter: z.enum(StatusFilter).array().optional(),
 
   /** Filter results for the team derived from shareId */
@@ -77,36 +108,79 @@ const BaseIdSchema = z.object({
 
 export const DocumentsListSchema = BaseSchema.extend({
   body: DocumentsSortParamsSchema.extend({
-    /** Id of the user who created the doc */
+    /**
+     * Id of a user who collaborated on the doc.
+     * @deprecated use `filters` with field `userId` instead.
+     */
     userId: z.uuid().optional(),
 
-    /** Alias for userId - kept for backwards compatibility */
+    /**
+     * Alias for userId - kept for backwards compatibility.
+     * @deprecated use `filters` with field `userId` instead.
+     */
     user: z.uuid().optional(),
 
-    /** Id of the collection to which the document belongs */
+    /**
+     * Id of the collection to which the document belongs.
+     * @deprecated use `filters` with field `collectionId` instead.
+     */
     collectionId: z.uuid().optional(),
 
-    /** Alias for collectionId - kept for backwards compatibility */
+    /**
+     * Alias for collectionId - kept for backwards compatibility.
+     * @deprecated use `filters` with field `collectionId` instead.
+     */
     collection: z.uuid().optional(),
 
     /** Id of the backlinked document */
     backlinkDocumentId: z.uuid().optional(),
 
-    /** Id of the parent document to which the document belongs */
+    /**
+     * Id of the parent document to which the document belongs.
+     * @deprecated use `filters` with field `parentDocumentId` instead.
+     */
     parentDocumentId: z.uuid().nullish(),
 
-    /** Document statuses to include in results */
+    /**
+     * Document statuses to include in results.
+     * @deprecated use `filters` with `archivedAt`/`publishedAt` instead.
+     */
     statusFilter: z.enum(StatusFilter).array().optional(),
+
+    /** List of filter expressions. Implicit AND between top-level entries. */
+    filters: z
+      .array(documentFilter.FilterSchema)
+      .min(1)
+      .max(FilterValidation.maxFiltersPerGroup)
+      .optional(),
   }),
   // Maintains backwards compatibility
-}).transform((req) => {
-  req.body.collectionId = req.body.collectionId || req.body.collection;
-  req.body.userId = req.body.userId || req.body.user;
-  delete req.body.collection;
-  delete req.body.user;
+})
+  .transform((req) => {
+    req.body.collectionId = req.body.collectionId || req.body.collection;
+    req.body.userId = req.body.userId || req.body.user;
+    delete req.body.collection;
+    delete req.body.user;
 
-  return req;
-});
+    return req;
+  })
+  .refine(
+    (req) => {
+      if (req.body.filters === undefined) {
+        return true;
+      }
+      return (
+        req.body.userId === undefined &&
+        req.body.collectionId === undefined &&
+        req.body.parentDocumentId === undefined &&
+        req.body.statusFilter === undefined
+      );
+    },
+    {
+      message:
+        "filters cannot be combined with deprecated parameters userId, collectionId, parentDocumentId, or statusFilter",
+    }
+  );
 
 export type DocumentsListReq = z.infer<typeof DocumentsListSchema>;
 
@@ -194,6 +268,26 @@ export const DocumentsRestoreSchema = BaseSchema.extend({
 
 export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreSchema>;
 
+const filterIncompatibleWithLegacy = (req: {
+  body: {
+    filters?: unknown;
+    collectionId?: unknown;
+    userId?: unknown;
+    documentId?: unknown;
+    dateFilter?: unknown;
+    statusFilter?: unknown;
+  };
+}) =>
+  req.body.filters === undefined ||
+  (req.body.collectionId === undefined &&
+    req.body.userId === undefined &&
+    req.body.documentId === undefined &&
+    req.body.dateFilter === undefined &&
+    req.body.statusFilter === undefined);
+
+const filterIncompatibleWithLegacyMessage =
+  "filters cannot be combined with deprecated parameters collectionId, userId, documentId, dateFilter, or statusFilter";
+
 export const DocumentsSearchSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
     /** Query for search */
@@ -206,7 +300,16 @@ export const DocumentsSearchSchema = BaseSchema.extend({
     direction: z
       .enum(Object.values(DirectionFilter) as [string, ...string[]])
       .optional(),
+
+    /** List of filter expressions. Implicit AND between top-level entries. */
+    filters: z
+      .array(documentFilter.FilterSchema)
+      .min(1)
+      .max(FilterValidation.maxFiltersPerGroup)
+      .optional(),
   }),
+}).refine(filterIncompatibleWithLegacy, {
+  message: filterIncompatibleWithLegacyMessage,
 });
 
 export type DocumentsSearchReq = z.infer<typeof DocumentsSearchSchema>;
@@ -223,7 +326,16 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
     direction: z
       .enum(Object.values(DirectionFilter) as [string, ...string[]])
       .optional(),
+
+    /** List of filter expressions. Implicit AND between top-level entries. */
+    filters: z
+      .array(documentFilter.FilterSchema)
+      .min(1)
+      .max(FilterValidation.maxFiltersPerGroup)
+      .optional(),
   }),
+}).refine(filterIncompatibleWithLegacy, {
+  message: filterIncompatibleWithLegacyMessage,
 });
 
 export type DocumentsSearchTitlesReq = z.infer<
