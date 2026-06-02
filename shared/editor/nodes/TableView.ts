@@ -148,6 +148,8 @@ export class TableView extends ProsemirrorTableView {
 
   private syncingScroll = false;
 
+  private nestedTable: boolean | null = null;
+
   private scrollHandler: ((event: Event) => void) | null = null;
 
   private resizeHandler: (() => void) | null = null;
@@ -168,7 +170,7 @@ export class TableView extends ProsemirrorTableView {
     // Defer setup to ensure DOM is fully rendered
     setTimeout(() => {
       // Skip sticky behavior for nested tables
-      if (this.dom.closest(`table .${EditorStyleHelper.table}`)) {
+      if (this.isNestedTable()) {
         return;
       }
 
@@ -298,11 +300,13 @@ export class TableView extends ProsemirrorTableView {
     const viewportHeight =
       window.innerHeight || document.documentElement.clientHeight;
 
-    // Only show the floating scrollbar when the browser renders persistent
-    // scrollbars (otherwise the table can be scrolled by gesture and a floating
-    // bar would look out of place), the table overflows horizontally, is within
-    // view, and its real scrollbar sits below the bottom of the viewport.
+    // Only show the floating scrollbar when this is not a nested table, the
+    // browser renders persistent scrollbars (otherwise the table can be
+    // scrolled by gesture and a floating bar would look out of place), the
+    // table overflows horizontally, is within view, and its real scrollbar sits
+    // below the bottom of the viewport.
     const shouldShow =
+      !this.isNestedTable() &&
       hasVisibleScrollbars() &&
       overflows &&
       rect.top < viewportHeight &&
@@ -338,6 +342,22 @@ export class TableView extends ProsemirrorTableView {
       this.stickyScrollbar.scrollLeft = this.scrollable.scrollLeft;
       this.syncingScroll = false;
     }
+  }
+
+  /**
+   * Returns whether this table is nested within another table. Nested tables
+   * are excluded from sticky header and sticky scrollbar behavior. The result
+   * is memoized once the DOM is connected, as nesting is structural and stable.
+   *
+   * @returns whether the table is nested within another table.
+   */
+  private isNestedTable(): boolean {
+    if (this.nestedTable === null && isBrowser && this.dom.isConnected) {
+      this.nestedTable = !!this.dom.closest(
+        `table .${EditorStyleHelper.table}`
+      );
+    }
+    return this.nestedTable ?? false;
   }
 
   /**
