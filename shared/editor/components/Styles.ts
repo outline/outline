@@ -404,15 +404,14 @@ const diffStyle = (props: Props) => css`
   }
 `;
 
-const findAndReplaceStyle = () => css`
+const findAndReplaceStyle = (props: Props) => css`
   & ::highlight(search-results) {
     background-color: rgba(255, 213, 0, 0.25);
-    color: inherit;
   }
 
   & ::highlight(search-results-current) {
     background-color: rgba(255, 213, 0, 0.75);
-    color: inherit;
+    color: ${props.theme.textHighlightForeground};
   }
 
   .find-result:not(:has(.mention)),
@@ -424,6 +423,7 @@ const findAndReplaceStyle = () => css`
   .find-result.current-result .mention {
     background: rgba(255, 213, 0, 0.75);
     animation: ${pulse("rgba(255, 213, 0, 0.75)")} 150ms 1;
+    color: ${props.theme.textHighlightForeground};
   }
 `;
 
