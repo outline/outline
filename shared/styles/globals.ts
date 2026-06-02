@@ -160,4 +160,18 @@ export default createGlobalStyle<Props>`
   &.${EditorStyleHelper.tableDragging} *::after {
     cursor: grabbing !important;
   }
+
+  /* prosemirror-dropcursor renders adjacent to the editor (in view.dom.offsetParent), outside
+     the styled EditorContainer scope, so this rule has to live globally. */
+  .drop-cursor {
+    border-radius: 9999px;
+  }
+
+  /* Block drag handle is appended to document.body, outside the styled
+     EditorContainer scope, so the print rule has to live globally. */
+  @media print {
+    .block-drag-handle {
+      display: none !important;
+    }
+  }
 `;
