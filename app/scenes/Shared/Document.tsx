@@ -29,7 +29,7 @@ function SharedDocument({ document }: Props) {
     () => parseDomain(window.location.origin).custom,
     []
   );
-  const showBranding = !isCustomDomain && !user;
+  const showBranding = false;
   const searchTermProcessed = useRef<string | null>(null);
 
   const tocPosition = hasHeadings
