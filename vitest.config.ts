@@ -13,7 +13,7 @@ const fileMock = path.resolve(__dirname, "./__mocks__/fileMock.js");
 
 const babelPlugin = () =>
   babel({
-    filter: /\.(t|j)sx?$/,
+    include: /\.(t|j)sx?$/,
     babelConfig: {
       babelrc: false,
       configFile: false,

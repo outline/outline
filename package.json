@@ -373,7 +373,7 @@
     "terser": "^5.48.0",
     "typescript": "^5.9.3",
     "unplugin-swc": "^1.5.9",
-    "vite-plugin-babel": "^1.6.0",
+    "vite-plugin-babel": "^1.7.3",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.5"
   },
