@@ -668,7 +668,9 @@ This is a [test paragraph](https://example.net)`,
                         {
                           type: "code_fence",
                           attrs: { language: "abap" },
-                          content: [{ type: "text", text: "line 1\nline 2" }],
+                          content: [
+                            { type: "text", text: "a | b\nc \\ d\nline 2" },
+                          ],
                         },
                       ],
                     },
@@ -683,8 +685,11 @@ This is a [test paragraph](https://example.net)`,
         includeTitle: false,
       });
       // Code fences inside tables should use <br> tags rather than literal
-      // newlines that would break the table row structure.
-      expect(result).toContain("```abap<br>line 1<br>line 2<br>```");
+      // newlines that would break the table row structure, with pipes and
+      // backslashes escaped so the content cannot break out of the column.
+      expect(result).toContain(
+        "```abap<br>a \\| b<br>c \\\\ d<br>line 2<br>```"
+      );
       // The fence content must not introduce raw newlines inside the table.
       expect(result).not.toMatch(/```abap\n/);
     });

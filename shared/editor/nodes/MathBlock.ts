@@ -47,10 +47,11 @@ export default class MathBlock extends Node {
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     // Inside table cells literal newlines break the row structure, so encode
-    // the block on a single line using <br> for line breaks and escape pipes.
+    // the block on a single line using <br> for line breaks. Backslashes and
+    // pipes are escaped so the cell content cannot break out of the column.
     if (state.inTable) {
       const math = node.textContent
-        .replace(/\|/g, "\\|")
+        .replace(/[\\|]/g, "\\$&")
         .replace(/\n/g, "<br>");
       state.write("$$<br>" + math + "<br>$$");
       return;
