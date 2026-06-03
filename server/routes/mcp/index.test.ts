@@ -29,6 +29,36 @@ describe("POST /mcp/", () => {
       expect(res.status).toEqual(401);
     });
 
+    it("should include a WWW-Authenticate challenge when auth is missing", async () => {
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: { Accept: "application/json, text/event-stream" },
+        body,
+      });
+      expect(res.status).toEqual(401);
+
+      const challenge = res.headers.get("www-authenticate");
+      expect(challenge).toContain(`resource_metadata="`);
+      expect(challenge).toContain(`/.well-known/oauth-protected-resource/mcp"`);
+      expect(challenge).not.toContain("invalid_token");
+    });
+
+    it("should include an invalid_token challenge for a rejected bearer token", async () => {
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: {
+          Authorization: "Bearer invalid-token",
+          Accept: "application/json, text/event-stream",
+        },
+        body,
+      });
+      expect(res.status).toEqual(401);
+
+      const challenge = res.headers.get("www-authenticate");
+      expect(challenge).toContain(`/.well-known/oauth-protected-resource/mcp"`);
+      expect(challenge).toContain(`error="invalid_token"`);
+    });
+
     it("should reject JWT authentication", async () => {
       const user = await buildUser();
       const { body } = mcpRequest("tools/list");

@@ -1,16 +1,19 @@
 import Koa from "koa";
+import type { Next } from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { TeamPreference } from "@shared/types";
+import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import { UserFlag } from "@server/models/User";
+import type { AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { attachmentTools } from "@server/tools/attachments";
@@ -66,8 +69,44 @@ function createMcpServer(scopes: string[], guidance?: string): McpServer {
   return server;
 }
 
+/**
+ * Adds the RFC 9728 `WWW-Authenticate` challenge header to 401 responses so that
+ * OAuth-enabled MCP clients can discover the protected resource metadata URL and
+ * (re-)enter the authorization flow when their token is missing, invalid, or expired.
+ *
+ * @param ctx - the application context.
+ * @param next - the next middleware in the chain.
+ */
+async function mcpAuthChallenge(ctx: AppContext, next: Next) {
+  try {
+    await next();
+  } catch (err) {
+    if (err?.status === 401) {
+      // Use the configured URL for self-hosted deployments to preserve the port
+      // when behind a reverse proxy that may strip the port from the Host header.
+      const origin = env.isCloudHosted
+        ? ctx.request.URL.origin
+        : new URL(env.URL).origin;
+      const params = [
+        `resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`,
+      ];
+      // A token was supplied but rejected (invalid or expired) — signal that to
+      // the client per RFC 6750 so it knows to refresh rather than re-prompt.
+      if (ctx.request.get("authorization")) {
+        params.push(`error="invalid_token"`);
+      }
+      err.headers = {
+        ...err.headers,
+        "WWW-Authenticate": `Bearer ${params.join(", ")}`,
+      };
+    }
+    throw err;
+  }
+}
+
 router.post(
   "/",
+  mcpAuthChallenge,
   rateLimiter(RateLimiterStrategy.OneThousandPerHour),
   auth({
     type: [
