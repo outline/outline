@@ -274,7 +274,9 @@ export class Mailer {
 
   /** Whether the configured SMTP provider is Amazon SES. */
   private get isSES(): boolean {
-    return /amazonaws/i.test(this.provider);
+    // Detected by the SES SMTP host (email-smtp.<region>.amazonaws.com) or a
+    // well-known Nodemailer service key (SES, SES-US-EAST-1, etc.).
+    return /amazonaws|(?:^|\s)ses\b/i.test(this.provider);
   }
 
   /** Whether the configured SMTP provider is Postmark. */
