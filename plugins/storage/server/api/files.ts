@@ -44,6 +44,10 @@ router.post(
     const { key } = ctx.input.body;
     const file = ctx.input.file;
 
+    if (!file) {
+      throw ValidationError("Request must include a file parameter");
+    }
+
     const attachment = await Attachment.findOne({
       where: { key },
       rejectOnEmpty: true,
