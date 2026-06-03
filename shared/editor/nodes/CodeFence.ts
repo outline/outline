@@ -694,6 +694,18 @@ export default class CodeFence extends Node<CodeFenceOptions> {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
+    // Inside table cells literal newlines break the row structure, so encode
+    // the fence on a single line using <br> for line breaks and escape pipes.
+    if (state.inTable) {
+      const code = node.textContent
+        .replace(/\|/g, "\\|")
+        .replace(/\n/g, "<br>");
+      state.write(
+        "```" + (node.attrs.language || "") + "<br>" + code + "<br>```"
+      );
+      return;
+    }
+
     state.write("```" + (node.attrs.language || "") + "\n");
     state.text(node.textContent, false);
     state.ensureNewLine();

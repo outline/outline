@@ -635,6 +635,60 @@ This is a [test paragraph](https://example.net)`,
       expect(result).toContain("[x] done");
     });
 
+    it("should export code fences inside table cells on a single line", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "table",
+              content: [
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "th",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "Header" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "td",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "code_fence",
+                          attrs: { language: "abap" },
+                          content: [{ type: "text", text: "line 1\nline 2" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Code fences inside tables should use <br> tags rather than literal
+      // newlines that would break the table row structure.
+      expect(result).toContain("```abap<br>line 1<br>line 2<br>```");
+      // The fence content must not introduce raw newlines inside the table.
+      expect(result).not.toMatch(/```abap\n/);
+    });
+
     it("should include collection title by default", async () => {
       const collection = await buildCollection({
         name: "Test Collection",
