@@ -91,6 +91,7 @@ function CommentMenu({
       action={rootAction}
       align="end"
       ariaLabel={t("Comment options")}
+      modal={false}
     >
       <OverflowMenuButton className={className} />
     </DropdownMenu>
