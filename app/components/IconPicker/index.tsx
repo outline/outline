@@ -107,7 +107,6 @@ const IconPicker = ({
 
   const handleIconChange = React.useCallback(
     (ic: string) => {
-      setOpen(false);
       const icType = determineIconType(ic);
       const finalColor = icType === IconType.SVG ? chosenColor : null;
       onChange(ic, finalColor);
