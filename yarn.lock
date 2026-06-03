@@ -15356,7 +15356,7 @@ __metadata:
     y-protocols: "npm:^1.0.7"
     yauzl: "npm:^3.3.1"
     yazl: "npm:^3.3.1"
-    yjs: "npm:^13.6.30"
+    yjs: "npm:^13.6.31"
     zod: "npm:^4.3.6"
   languageName: unknown
   linkType: soft
@@ -20858,12 +20858,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yjs@npm:^13.6.30":
-  version: 13.6.30
-  resolution: "yjs@npm:13.6.30"
+"yjs@npm:^13.6.31":
+  version: 13.6.31
+  resolution: "yjs@npm:13.6.31"
   dependencies:
     lib0: "npm:^0.2.99"
-  checksum: 10c0/98ec3c85fdb8420fe250e86e66676d7421dd4c1960319409a39e6ae90d05dc967793b67705736751633d8b22e334dba51a1404ad83139300c0be42195f068261
+  checksum: 10c0/201a523c0360b349719410475f179105dce7b9d926d6087bea86dba2ceb39ba6450c5d5fba4ab6de97d2750ddade12d2d36e4500f01585976f930d5eb8d8d1de
   languageName: node
   linkType: hard
 
