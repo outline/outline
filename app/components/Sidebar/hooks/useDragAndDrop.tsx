@@ -105,6 +105,12 @@ export function useDropToCreateStar(getIndex?: () => string) {
   >({
     accept,
     drop: async (item, monitor) => {
+      // A more specific drop target (e.g. a reorder cursor) has already
+      // handled this drop, so avoid creating a duplicate star.
+      if (monitor.didDrop()) {
+        return;
+      }
+
       const type = monitor.getItemType();
       let model;
 
@@ -122,7 +128,7 @@ export function useDropToCreateStar(getIndex?: () => string) {
       );
     },
     collect: (monitor) => ({
-      isOverCursor: !!monitor.isOver(),
+      isOverCursor: !!monitor.isOver({ shallow: true }),
       isDragging: accept.includes(String(monitor.getItemType())),
     }),
   });
