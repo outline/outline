@@ -103,7 +103,9 @@ function DocumentListItem(
   const [{ isDragging }, draggableRef] = useDragDocument(
     document.asNavigationNode,
     0,
-    document
+    document,
+    false,
+    false
   );
 
   const mergedRef = React.useMemo(

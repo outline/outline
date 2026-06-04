@@ -22,6 +22,12 @@ import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 export type DragObject = NavigationNode & {
   depth: number;
   collectionId: string;
+  /**
+   * Whether the drag ghost should stay tethered to the sidebar. Drags that
+   * originate inside the sidebar set this; drags from elsewhere (e.g. a
+   * document list) leave it unset so the ghost follows the cursor.
+   */
+  constrainToSidebar?: boolean;
 };
 
 function useHover(
@@ -169,12 +175,16 @@ export function useDropToReorderStar(getIndex?: () => string) {
  * @param depth The depth of the node in the sidebar.
  * @param document The related Document model.
  * @param isEditing Whether the sidebar item is currently being edited.
+ * @param constrainToSidebar Whether the drag ghost should stay tethered to the
+ * sidebar. Defaults to true; pass false when dragging from outside the sidebar
+ * (e.g. a document list) so the ghost follows the cursor.
  */
 export function useDragDocument(
   node: NavigationNode,
   depth: number,
   document?: Document,
-  isEditing?: boolean
+  isEditing?: boolean,
+  constrainToSidebar = true
 ) {
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
@@ -194,6 +204,7 @@ export function useDragDocument(
           <Icon initial={initial} value={icon} color={color} />
         ) : undefined,
         collectionId: document?.collectionId || "",
+        constrainToSidebar,
       }) as DragObject,
     canDrag: () => !!document?.isActive && !isEditing,
     collect: (monitor) => ({
