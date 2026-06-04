@@ -179,7 +179,7 @@ const CollectionScene = observer(function CollectionScene_() {
           <Notices collection={collection} />
           <Header
             collection={collection}
-            isEditing={isEditRoute && !!user?.separateEditMode}
+            isEditing={isEditRoute || !user?.separateEditMode}
           />
 
           <PinnedDocuments
