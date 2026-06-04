@@ -102,6 +102,7 @@ const StyledContent = styled(m.div)`
 
 const StyledInnerContent = styled(Flex)`
   padding: 6px;
+  padding-bottom: calc(6px + var(--sab, 0px));
   height: 100%;
 `;
 
