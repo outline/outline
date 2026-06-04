@@ -1,4 +1,4 @@
-import { DocumentPermission } from "@shared/types";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import { AccessRequest, UserMembership } from "@server/models";
 import { AccessRequestStatus } from "@server/models/AccessRequest";
 import {
@@ -330,9 +330,9 @@ describe("#accessRequests.approve", () => {
 
     await UserMembership.create({
       userId: manager.id,
-      documentId: document.id,
+      collectionId: collection.id,
       createdById: manager.id,
-      permission: DocumentPermission.Admin,
+      permission: CollectionPermission.Admin,
     });
 
     const accessRequest = await AccessRequest.create({
@@ -526,9 +526,9 @@ describe("#accessRequests.dismiss", () => {
 
     await UserMembership.create({
       userId: manager.id,
-      documentId: document.id,
+      collectionId: collection.id,
       createdById: manager.id,
-      permission: DocumentPermission.Admin,
+      permission: CollectionPermission.Admin,
     });
 
     const accessRequest = await AccessRequest.create({
