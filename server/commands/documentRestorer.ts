@@ -1,6 +1,7 @@
 import { traceFunction } from "@server/logging/tracing";
 import { ValidationError } from "@server/errors";
-import { Collection, Document, Revision } from "@server/models";
+import { Collection, Revision } from "@server/models";
+import type { Document } from "@server/models";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
 import { assertPresent } from "@server/validation";
