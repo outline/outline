@@ -6,6 +6,7 @@ import documentCreator, {
   authorizeDocumentPublish,
 } from "@server/commands/documentCreator";
 import documentMover from "@server/commands/documentMover";
+import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
 import { Op } from "sequelize";
 import { Collection, Document } from "@server/models";
@@ -66,7 +67,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Search documents",
         description:
-          "Searches documents the user has access to. Performs full-text search across document content when a query is provided, or lists recent documents when no query is given. Optionally filter by collection. To retrieve the full contents or hierarchy of a specific collection, use list_collection_documents instead.",
+          "Searches documents the user has access to. Performs full-text search across document content when a query is provided, or lists recent documents when no query is given. Optionally filter by collection. Set status to 'archived' or 'trashed' to list archived or deleted documents instead (full-text search via query is not applied in these modes). To retrieve the full contents or hierarchy of a specific collection, use list_collection_documents instead.",
         annotations: {
           idempotentHint: true,
           readOnlyHint: true,
@@ -78,6 +79,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
           collectionId: optionalString().describe(
             "A collection ID to filter documents by."
           ),
+          status: z
+            .enum(["archived", "trashed"])
+            .optional()
+            .describe(
+              "Filter by document lifecycle status. Omit to return active documents. Set to 'archived' to list archived documents, or 'trashed' to list documents in the trash. Full-text search via query is not applied in these modes."
+            ),
           offset: z.coerce
             .number()
             .int()
@@ -97,11 +104,89 @@ export function documentTools(server: McpServer, scopes: string[]) {
       },
       withTracing(
         "list_documents",
-        async ({ query, collectionId, offset, limit }, extra) => {
+        async ({ query, collectionId, status, offset, limit }, extra) => {
           try {
             const user = getActorFromContext(extra);
             const effectiveOffset = offset ?? 0;
             const effectiveLimit = limit ?? 25;
+
+            if (status === "archived" || status === "trashed") {
+              if (collectionId) {
+                const collection = await Collection.findByPk(collectionId, {
+                  userId: user.id,
+                });
+                authorize(user, "readDocument", collection);
+              }
+
+              let documents: Document[];
+
+              if (status === "archived") {
+                documents = await Document.withMembershipScope(user.id).findAll(
+                  {
+                    where: {
+                      teamId: user.teamId,
+                      archivedAt: { [Op.ne]: null },
+                      collectionId:
+                        collectionId ?? (await user.collectionIds()),
+                    },
+                    order: [["archivedAt", "DESC"]],
+                    offset: effectiveOffset,
+                    limit: effectiveLimit,
+                  }
+                );
+              } else {
+                const collectionIds = await user.collectionIds({
+                  paranoid: false,
+                });
+                documents = await Document.withMembershipScope(user.id, {
+                  includeDrafts: true,
+                  paranoid: false,
+                }).findAll({
+                  where: {
+                    teamId: user.teamId,
+                    deletedAt: { [Op.ne]: null },
+                    ...(collectionId
+                      ? { collectionId }
+                      : {
+                          [Op.or]: [
+                            { collectionId: { [Op.in]: collectionIds } },
+                            {
+                              createdById: user.id,
+                              collectionId: { [Op.is]: null },
+                            },
+                          ],
+                        }),
+                  },
+                  paranoid: false,
+                  order: [["deletedAt", "DESC"]],
+                  offset: effectiveOffset,
+                  limit: effectiveLimit,
+                });
+              }
+
+              const breadcrumbs = await getBreadcrumbsForDocuments(
+                documents,
+                user
+              );
+
+              const presented = await Promise.all(
+                documents.map(async (document) => {
+                  const doc = pathToUrl(
+                    user.team,
+                    await presentDocument(document, {
+                      includeData: false,
+                      includeText: false,
+                    })
+                  );
+                  const breadcrumb = breadcrumbs.get(document.id);
+                  return {
+                    document: doc,
+                    ...(breadcrumb !== undefined && { breadcrumb }),
+                  };
+                })
+              );
+              return success(presented);
+            }
 
             let indexMap: Map<string, number> | undefined;
 
@@ -691,6 +776,79 @@ export function documentTools(server: McpServer, scopes: string[]) {
           });
 
           return success({ success: true });
+        } catch (message) {
+          return error(message);
+        }
+      })
+    );
+  }
+
+  if (AuthenticationHelper.canAccess("documents.restore", scopes)) {
+    server.registerTool(
+      "restore_document",
+      {
+        title: "Restore document",
+        description:
+          "Restores an archived or trashed document, making it active again. Optionally provide a collectionId to restore the document into a different collection; otherwise it returns to its original collection.",
+        annotations: {
+          idempotentHint: false,
+          readOnlyHint: false,
+        },
+        inputSchema: {
+          id: z
+            .string()
+            .describe("The unique identifier of the document to restore."),
+          collectionId: optionalString().describe(
+            "The collection to restore the document into. Defaults to its original collection."
+          ),
+        },
+      },
+      withTracing("restore_document", async ({ id, collectionId }, context) => {
+        try {
+          const ctx = buildAPIContext(context);
+          const { user } = ctx.state.auth;
+
+          return await sequelize.transaction(async (transaction) => {
+            ctx.state.transaction = transaction;
+            ctx.context.transaction = transaction;
+
+            const document = await Document.findByPk(id, {
+              userId: user.id,
+              paranoid: false,
+              rejectOnEmpty: true,
+              transaction,
+            });
+
+            if (!document.deletedAt && !document.archivedAt) {
+              return error("Document is not archived or trashed");
+            }
+
+            await documentRestorer(ctx, { document, collectionId });
+
+            const [{ text, ...attributes }, breadcrumb] = await Promise.all([
+              presentDocument(document, {
+                includeData: false,
+                includeText: true,
+                includeUpdatedAt: true,
+              }),
+              getDocumentBreadcrumb(document, user),
+            ]);
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: JSON.stringify({
+                    document: pathToUrl(user.team, attributes),
+                    ...(breadcrumb !== undefined && { breadcrumb }),
+                  }),
+                },
+                {
+                  type: "text" as const,
+                  text: typeof text === "string" ? text : "",
+                },
+              ],
+            } satisfies CallToolResult;
+          });
         } catch (message) {
           return error(message);
         }
