@@ -1,10 +1,14 @@
 import { z } from "zod";
+import { WebhookSubscriptionValidation } from "@shared/validations";
 import env from "@server/env";
 import { WebhookSubscription } from "@server/models";
 import { BaseSchema } from "@server/routes/api/schema";
 
 const webhookUrl = z
   .url()
+  .max(WebhookSubscriptionValidation.maxUrlLength, {
+    error: `Webhook url must be ${WebhookSubscriptionValidation.maxUrlLength} characters or less`,
+  })
   .refine((val) => !env.isCloudHosted || val.startsWith("https://"), {
     error: "Webhook url must use https",
   });

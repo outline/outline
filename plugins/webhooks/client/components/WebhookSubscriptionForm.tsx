@@ -7,6 +7,7 @@ import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
+import { WebhookSubscriptionValidation } from "@shared/validations";
 import type WebhookSubscription from "~/models/WebhookSubscription";
 import Button from "~/components/Button";
 import Input from "~/components/Input";
@@ -229,6 +230,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           required
           flex
           pattern={isCloudHosted ? "https://.*" : "https?://.*"}
+          maxLength={WebhookSubscriptionValidation.maxUrlLength}
           placeholder="https://…"
           label={t("URL")}
           error={
@@ -238,7 +240,10 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
                 )
               : undefined
           }
-          {...register("url", { required: true })}
+          {...register("url", {
+            required: true,
+            maxLength: WebhookSubscriptionValidation.maxUrlLength,
+          })}
         />
         <Input
           flex
