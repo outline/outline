@@ -92,6 +92,17 @@ describe("POST /mcp/", () => {
       expect(result?.serverInfo?.name).toEqual("outline");
     });
 
+    it("should return 202 for the notifications/initialized lifecycle message", async () => {
+      const { accessToken } = await buildOAuthUser();
+
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body: { jsonrpc: "2.0", method: "notifications/initialized" },
+      });
+
+      expect(res.status).toEqual(202);
+    });
+
     it("should set the MCP flag on the user after a successful request", async () => {
       const { user, accessToken } = await buildOAuthUser();
       expect(user.getFlag(UserFlag.MCP)).toEqual(0);
