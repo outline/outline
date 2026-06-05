@@ -78,6 +78,56 @@ function assertUnreachable(event: never) {
   Logger.warn(`DeliverWebhookTask did not handle ${(event as Event).name}`);
 }
 
+/**
+ * Node connection-level error codes that are expected when delivering to
+ * arbitrary, user-supplied webhook URLs. These indicate a misconfigured or
+ * unreachable destination rather than a bug in Outline.
+ */
+const expectedNetworkErrorCodes = new Set([
+  "ECONNRESET",
+  "ECONNREFUSED",
+  "ECONNABORTED",
+  "ETIMEDOUT",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "EPIPE",
+  "EPROTO",
+  "DEPTH_ZERO_SELF_SIGNED_CERT",
+  "SELF_SIGNED_CERT_IN_CHAIN",
+  "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+  "CERT_HAS_EXPIRED",
+  "ERR_TLS_CERT_ALTNAME_INVALID",
+]);
+
+/**
+ * Determine whether an error thrown while delivering a webhook is an expected
+ * network failure caused by the user-supplied destination URL (connection
+ * reset, timeout, unreachable host, invalid certificate, etc) rather than an
+ * unexpected bug. Such failures are noisy and do not need error tracking.
+ *
+ * @param err The error that occurred during delivery.
+ * @returns true if the error is an expected network failure.
+ */
+export function isExpectedNetworkError(err: unknown): boolean {
+  if (err instanceof FetchError) {
+    return true;
+  }
+  if (err instanceof Error) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code && expectedNetworkErrorCodes.has(code)) {
+      return true;
+    }
+    // node-fetch surfaces some low-level socket failures (and our fetch wrapper
+    // converts aborted requests into timeouts) without a structured code.
+    return /socket hang up|request timeout|network|ECONNRESET/i.test(
+      err.message
+    );
+  }
+  return false;
+}
+
 type Props = {
   subscriptionId: string;
   event: Event;
@@ -765,7 +815,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
-      if (err instanceof FetchError && env.isCloudHosted) {
+      if (isExpectedNetworkError(err) && env.isCloudHosted) {
         Logger.warn(`Failed to send webhook: ${err.message}`, {
           event,
           deliveryId: delivery.id,
