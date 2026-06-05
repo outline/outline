@@ -12,7 +12,7 @@ import {
 import { TextHelper } from "@shared/utils/TextHelper";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
-import type { User } from "@server/models";
+import type { Group, User } from "@server/models";
 import {
   Document,
   View,
@@ -46,6 +46,114 @@ const server = getTestServer();
 beforeEach(async () => {
   await buildDocument();
 });
+
+type PermissionManagementSubject = {
+  actor: User;
+  document: Document;
+  member: User;
+  group: Group;
+};
+
+async function expectCanManageDocumentPermissions({
+  actor,
+  document,
+  member,
+  group,
+}: PermissionManagementSubject) {
+  const addUser = await server.post("/api/documents.add_user", {
+    body: {
+      token: actor.getJwtToken(),
+      id: document.id,
+      userId: member.id,
+    },
+  });
+  expect(addUser.status).toEqual(200);
+
+  const removeUser = await server.post("/api/documents.remove_user", {
+    body: {
+      token: actor.getJwtToken(),
+      id: document.id,
+      userId: member.id,
+    },
+  });
+  expect(removeUser.status).toEqual(200);
+
+  const addGroup = await server.post("/api/documents.add_group", {
+    body: {
+      token: actor.getJwtToken(),
+      id: document.id,
+      groupId: group.id,
+    },
+  });
+  expect(addGroup.status).toEqual(200);
+
+  const removeGroup = await server.post("/api/documents.remove_group", {
+    body: {
+      token: actor.getJwtToken(),
+      id: document.id,
+      groupId: group.id,
+    },
+  });
+  expect(removeGroup.status).toEqual(200);
+}
+
+async function expectCannotManageDocumentPermissions({
+  actor,
+  document,
+  member,
+  group,
+}: PermissionManagementSubject) {
+  await UserMembership.create({
+    userId: member.id,
+    documentId: document.id,
+    permission: DocumentPermission.Read,
+    createdById: actor.id,
+  });
+  await GroupMembership.create({
+    groupId: group.id,
+    documentId: document.id,
+    permission: DocumentPermission.Read,
+    createdById: actor.id,
+  });
+
+  const addUser = await server.post("/api/documents.add_user", {
+    body: {
+      token: actor.getJwtToken(),
+      id: document.id,
+      userId: member.id,
+      permission: DocumentPermission.ReadWrite,
+    },
+  });
+  expect(addUser.status).toEqual(403);
+
+  const removeUser = await server.post("/api/documents.remove_user", {
+    body: {
+      token: actor.getJwtToken(),
+      id: document.id,
+      userId: member.id,
+    },
+  });
+  expect(removeUser.status).toEqual(403);
+
+  const addGroup = await server.post("/api/documents.add_group", {
+    body: {
+      token: actor.getJwtToken(),
+      id: document.id,
+      groupId: group.id,
+      permission: DocumentPermission.ReadWrite,
+    },
+  });
+  expect(addGroup.status).toEqual(403);
+
+  const removeGroup = await server.post("/api/documents.remove_group", {
+    body: {
+      token: actor.getJwtToken(),
+      id: document.id,
+      groupId: group.id,
+    },
+  });
+  expect(removeGroup.status).toEqual(403);
+}
 
 describe("#documents.info", () => {
   it("should fail if both id and shareId are absent", async () => {
@@ -4913,6 +5021,138 @@ describe("#documents.users", () => {
     expect(memberIds).not.toContain(alan.id);
     expect(memberIds).toContain(bret.id);
     expect(memberIds).toContain(ken.id);
+  });
+});
+
+describe("document permission management authorization", () => {
+  it("should prevent collection read_write members from managing document users and groups", async () => {
+    const team = await buildTeam();
+    const actor = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const member = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+
+    await expectCannotManageDocumentPermissions({
+      actor,
+      document,
+      member,
+      group,
+    });
+  });
+
+  it("should allow collection admins to manage document users and groups", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const actor = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const member = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    await collection.$add("user", actor, {
+      through: {
+        permission: CollectionPermission.Admin,
+        createdById: admin.id,
+      },
+    });
+
+    await expectCanManageDocumentPermissions({
+      actor,
+      document,
+      member,
+      group,
+    });
+  });
+
+  it("should allow workspace admins with read access to manage document users and groups", async () => {
+    const team = await buildTeam();
+    const actor = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.Read,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const member = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+
+    await expectCanManageDocumentPermissions({
+      actor,
+      document,
+      member,
+      group,
+    });
+  });
+
+  it("should allow direct document admins to manage users and groups", async () => {
+    const team = await buildTeam();
+    const actor = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const member = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    await UserMembership.create({
+      userId: actor.id,
+      documentId: document.id,
+      permission: DocumentPermission.Admin,
+      createdById: actor.id,
+    });
+
+    await expectCanManageDocumentPermissions({
+      actor,
+      document,
+      member,
+      group,
+    });
+  });
+
+  it("should prevent direct document read_write members from managing users and groups", async () => {
+    const team = await buildTeam();
+    const actor = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const member = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    await UserMembership.create({
+      userId: actor.id,
+      documentId: document.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: actor.id,
+    });
+
+    await expectCannotManageDocumentPermissions({
+      actor,
+      document,
+      member,
+      group,
+    });
   });
 });
 
