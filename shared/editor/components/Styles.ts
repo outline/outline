@@ -2438,8 +2438,8 @@ table {
     position: relative;
     z-index: 2;
 
-    th {
-      // Safari requires the TD to have raised z-index too
+    > th {
+      // Safari requires the header cell to have raised z-index too
       z-index: 2;
     }
   }
