@@ -1,6 +1,7 @@
 import { computed, observable } from "mobx";
 import { TeamPreferenceDefaults } from "@shared/constants";
-import type { TeamPreference, TeamPreferences, UserRole } from "@shared/types";
+import { CommentingAccess, TeamPreference } from "@shared/types";
+import type { TeamPreferences, UserRole } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
@@ -95,6 +96,19 @@ class Team extends Model {
   @computed
   get initial(): string {
     return (this.name ? this.name[0] : "?").toUpperCase();
+  }
+
+  /**
+   * Whether commenting is enabled for the team, for either members or
+   * members and guests.
+   *
+   * @returns true if commenting is enabled, false otherwise.
+   */
+  @computed
+  get commentingEnabled(): boolean {
+    return (
+      this.getPreference(TeamPreference.Commenting) !== CommentingAccess.None
+    );
   }
 
   /**

@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { ThemeProvider, useTheme } from "styled-components";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import type { CustomTheme } from "@shared/types";
-import { TOCPosition, TeamPreference } from "@shared/types";
+import { CommentingAccess, TOCPosition, TeamPreference } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import { TeamValidation } from "@shared/validations";
 import Button from "~/components/Button";
@@ -88,6 +88,28 @@ function Details() {
   const handleTocPositionChange = React.useCallback((position: string) => {
     setTocPosition(position as TOCPosition);
   }, []);
+
+  const commentingOptions: Option[] = React.useMemo(
+    () =>
+      [
+        {
+          type: "item",
+          label: t("Members"),
+          value: CommentingAccess.Members,
+        },
+        {
+          type: "item",
+          label: t("Members and guests"),
+          value: CommentingAccess.Everyone,
+        },
+        {
+          type: "item",
+          label: t("No one"),
+          value: CommentingAccess.None,
+        },
+      ] satisfies Option[],
+    [t]
+  );
 
   const handleSubmit = React.useCallback(
     async (event?: React.SyntheticEvent) => {
@@ -174,8 +196,8 @@ function Details() {
   );
 
   const handleCommentingChange = React.useCallback(
-    async (checked: boolean) => {
-      team.setPreference(TeamPreference.Commenting, checked);
+    async (value: string) => {
+      team.setPreference(TeamPreference.Commenting, value as CommentingAccess);
       await team.save();
       toast.success(t("Settings saved"));
     },
@@ -385,15 +407,17 @@ function Details() {
             border={false}
             name={TeamPreference.Commenting}
             label={t("Commenting")}
-            description={t(
-              "When enabled team members can add comments to documents."
-            )}
+            description={t("Controls who can add comments to documents.")}
           >
-            <Switch
-              id={TeamPreference.Commenting}
-              name={TeamPreference.Commenting}
-              checked={team.getPreference(TeamPreference.Commenting)}
+            <InputSelect
+              options={commentingOptions}
+              value={
+                team.getPreference(TeamPreference.Commenting) ||
+                CommentingAccess.Members
+              }
               onChange={handleCommentingChange}
+              label={t("Commenting")}
+              labelHidden
             />
           </SettingRow>
 

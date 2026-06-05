@@ -1,6 +1,8 @@
 import {
   CollectionPermission,
+  CommentingAccess,
   DocumentPermission,
+  TeamPreference,
   UserRole,
 } from "@shared/types";
 import { Document, UserMembership } from "@server/models";
@@ -362,6 +364,8 @@ describe("read_write document", () => {
   for (const role of nonAdminRoles) {
     it(`should allow write permissions for ${role}`, async () => {
       const team = await buildTeam();
+      team.setPreference(TeamPreference.Commenting, CommentingAccess.Everyone);
+      await team.save();
       const user = await buildUser({ teamId: team.id, role });
       const collection = await buildCollection({
         teamId: team.id,
@@ -432,10 +436,134 @@ describe("read_write document", () => {
   });
 });
 
+describe("commenting access", () => {
+  const buildGuestWithRead = async (commenting: CommentingAccess) => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.Commenting, commenting);
+    await team.save();
+    const user = await buildUser({ teamId: team.id, role: UserRole.Guest });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      userId: user.id,
+      documentId: doc.id,
+      permission: DocumentPermission.Read,
+      createdById: user.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    return { user, document };
+  };
+
+  it("should allow guest with read access to comment when members and guests", async () => {
+    const { user, document } = await buildGuestWithRead(
+      CommentingAccess.Everyone
+    );
+    const abilities = serialize(user, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.comment).toBeTruthy();
+    // proves commenting no longer requires write access
+    expect(abilities.update).toEqual(false);
+  });
+
+  it("should not allow guest with read access to comment when members only", async () => {
+    const { user, document } = await buildGuestWithRead(
+      CommentingAccess.Members
+    );
+    const abilities = serialize(user, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.comment).toEqual(false);
+  });
+
+  it("should not allow guest with read access to comment when disabled", async () => {
+    const { user, document } = await buildGuestWithRead(CommentingAccess.None);
+    const abilities = serialize(user, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.comment).toEqual(false);
+  });
+
+  it("should not allow guest without document access to comment when members and guests", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.Commenting, CommentingAccess.Everyone);
+    await team.save();
+    const user = await buildUser({ teamId: team.id, role: UserRole.Guest });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual(false);
+    expect(abilities.comment).toEqual(false);
+  });
+
+  it("should allow member with read access to comment when members only (default)", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      userId: user.id,
+      documentId: doc.id,
+      permission: DocumentPermission.Read,
+      createdById: user.id,
+    });
+
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.comment).toBeTruthy();
+  });
+
+  it("should not allow member with read access to comment when disabled", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.Commenting, CommentingAccess.None);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      userId: user.id,
+      documentId: doc.id,
+      permission: DocumentPermission.Read,
+      createdById: user.id,
+    });
+
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.comment).toEqual(false);
+  });
+});
+
 describe("manage document", () => {
   for (const role of Object.values(UserRole)) {
     it(`should allow write permissions, user management, and sub-document creation for ${role}`, async () => {
       const team = await buildTeam();
+      team.setPreference(TeamPreference.Commenting, CommentingAccess.Everyone);
+      await team.save();
       const user = await buildUser({
         teamId: team.id,
         role,

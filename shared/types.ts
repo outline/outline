@@ -404,6 +404,15 @@ export enum EmailDisplay {
   Everyone = "everyone",
 }
 
+export enum CommentingAccess {
+  /** No one can comment. */
+  None = "none",
+  /** Only members can comment. */
+  Members = "members",
+  /** Members and guests can comment. */
+  Everyone = "everyone",
+}
+
 export enum TeamPreference {
   /** Whether documents have a separate edit mode instead of always editing. */
   SeamlessEdit = "seamlessEdit",
@@ -419,7 +428,7 @@ export enum TeamPreference {
   MembersCanDeleteAccount = "membersCanDeleteAccount",
   /** Whether notification emails include document and comment content. */
   PreviewsInEmails = "previewsInEmails",
-  /** Whether users can comment on documents. */
+  /** Who can comment on documents. */
   Commenting = "commenting",
   /** The custom theme for the team. */
   CustomTheme = "customTheme",
@@ -443,7 +452,7 @@ export type TeamPreferences = {
   [TeamPreference.MembersCanCreateApiKey]?: boolean;
   [TeamPreference.MembersCanDeleteAccount]?: boolean;
   [TeamPreference.PreviewsInEmails]?: boolean;
-  [TeamPreference.Commenting]?: boolean;
+  [TeamPreference.Commenting]?: CommentingAccess;
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
   [TeamPreference.PreventDocumentEmbedding]?: boolean;

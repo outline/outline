@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import { randomString } from "@shared/random";
-import { TeamPreference } from "@shared/types";
 import type WebhookSubscription from "~/models/WebhookSubscription";
 import Button from "~/components/Button";
 import Input from "~/components/Input";
@@ -265,11 +264,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
       <FieldSet disabled={isAllEventSelected}>
         <Flex column>
           {Object.entries(WEBHOOK_EVENTS)
-            .filter(
-              ([group]) =>
-                group !== "comment" ||
-                team.getPreference(TeamPreference.Commenting)
-            )
+            .filter(([group]) => group !== "comment" || team.commentingEnabled)
             .map(([group, groupEvents], i) => {
               const { ref: registerRef, ...registerProps } = register(
                 "events",

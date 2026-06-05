@@ -1,5 +1,5 @@
 import type { Next } from "koa";
-import type { TeamPreference } from "@shared/types";
+import { CommentingAccess, TeamPreference } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
 
@@ -13,6 +13,26 @@ export function feature(preference: TeamPreference) {
   return async function featureEnabledMiddleware(ctx: APIContext, next: Next) {
     if (!ctx.state.auth.user.team.getPreference(preference)) {
       throw ValidationError(`${preference} is currently disabled`);
+    }
+    return next();
+  };
+}
+
+/**
+ * Middleware to check that commenting is enabled for the team.
+ *
+ * @returns The middleware function
+ */
+export function commentingEnabled() {
+  return async function commentingEnabledMiddleware(
+    ctx: APIContext,
+    next: Next
+  ) {
+    if (
+      ctx.state.auth.user.team.getPreference(TeamPreference.Commenting) ===
+      CommentingAccess.None
+    ) {
+      throw ValidationError("Commenting is currently disabled");
     }
     return next();
   };

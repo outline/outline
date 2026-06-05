@@ -5,7 +5,6 @@ import { useRef, Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { TeamPreference } from "@shared/types";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import type Template from "~/models/Template";
@@ -42,7 +41,7 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
   const Wrapper = viewsLoadedOnMount.current ? Fragment : Fade;
 
   const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);
-  const commentingEnabled = !!team.getPreference(TeamPreference.Commenting);
+  const commentingEnabled = team.commentingEnabled;
 
   return (
     <Meta
