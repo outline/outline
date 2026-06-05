@@ -23,9 +23,9 @@ export type DragObject = NavigationNode & {
   depth: number;
   collectionId: string;
   /**
-   * Whether the drag ghost should stay tethered to the sidebar. Drags that
-   * originate inside the sidebar set this; drags from elsewhere (e.g. a
-   * document list) leave it unset so the ghost follows the cursor.
+   * Whether the drag ghost should stay tethered to the sidebar. Defaults to
+   * tethered when unset — the placeholder only lets the ghost follow the
+   * cursor when this is explicitly `false` (e.g. drags from a document list).
    */
   constrainToSidebar?: boolean;
 };
