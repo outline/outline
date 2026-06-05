@@ -217,7 +217,7 @@ class WebhookSubscription extends ParanoidModel<
    * Determines if an event should be processed for this webhook subscription
    * based on the event configuration.
    *
-   * @param event Event to ceck
+   * @param event Event to check
    * @returns true if event is valid
    */
   public validForEvent = (event: Event): boolean =>
