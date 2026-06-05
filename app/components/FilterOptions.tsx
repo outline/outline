@@ -254,6 +254,7 @@ const FilterOptions = ({
               onChange={handleFilter}
               onKeyDown={handleKeyDown}
               placeholder={`${t("Filter")}…`}
+              margin={0}
             />
           )}
           <StyledScrollable hiddenScrollbars>{list}</StyledScrollable>
@@ -327,7 +328,9 @@ const SearchInput = styled(Input)`
 `;
 
 const MobileSearchInput = styled(Input)`
-  flex-shrink: 0;
+  /* "none" keeps an auto basis so the input retains its natural height; a
+     flexible/0% basis would collapse it and overlap the list below. */
+  flex: none;
   margin: 0 6px 6px;
 
   ${NativeInput} {
