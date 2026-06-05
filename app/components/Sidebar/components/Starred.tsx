@@ -101,7 +101,7 @@ const Section = styled.div<{ $isActiveDrop?: boolean }>`
   ${(props) =>
     props.$isActiveDrop &&
     css`
-      background: ${s("listItemHoverBackground")};
+      background: ${s("sidebarActiveBackground")};
     `}
 `;
 
