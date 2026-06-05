@@ -1,3 +1,4 @@
+import { FetchError } from "node-fetch";
 import {
   http,
   HttpResponse,
@@ -12,7 +13,9 @@ import {
   buildWebhookSubscription,
 } from "@server/test/factories";
 import type { UserEvent } from "@server/types";
-import DeliverWebhookTask from "./DeliverWebhookTask";
+import DeliverWebhookTask, {
+  isExpectedNetworkError,
+} from "./DeliverWebhookTask";
 
 const ip = "127.0.0.1";
 
@@ -241,5 +244,65 @@ describe("DeliverWebhookTask", () => {
     expect(delivery.status).toBe("failed");
     expect(delivery.statusCode).toBe(500);
     expect(delivery.responseBody).toEqual('{"message":"Failure"}');
+  });
+});
+
+describe("isExpectedNetworkError", () => {
+  test("treats node-fetch FetchError as expected", () => {
+    expect(
+      isExpectedNetworkError(
+        new FetchError("request to https://example.com failed", "system")
+      )
+    ).toBe(true);
+  });
+
+  test("treats raw socket errors as expected", () => {
+    expect(isExpectedNetworkError(new Error("socket hang up"))).toBe(true);
+    expect(
+      isExpectedNetworkError(
+        Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" })
+      )
+    ).toBe(true);
+  });
+
+  test("treats connection error codes as expected", () => {
+    for (const code of [
+      "ECONNREFUSED",
+      "ETIMEDOUT",
+      "EHOSTUNREACH",
+      "ENOTFOUND",
+      "EAI_AGAIN",
+    ]) {
+      expect(
+        isExpectedNetworkError(Object.assign(new Error("boom"), { code }))
+      ).toBe(true);
+    }
+  });
+
+  test("treats invalid certificate errors as expected", () => {
+    expect(
+      isExpectedNetworkError(
+        Object.assign(new Error("self signed certificate"), {
+          code: "DEPTH_ZERO_SELF_SIGNED_CERT",
+        })
+      )
+    ).toBe(true);
+  });
+
+  test("treats the request timeout thrown by the fetch wrapper as expected", () => {
+    expect(
+      isExpectedNetworkError(new Error("Request timeout after 5000ms"))
+    ).toBe(true);
+  });
+
+  test("does not treat unrelated errors as expected", () => {
+    expect(
+      isExpectedNetworkError(new TypeError("undefined is not a function"))
+    ).toBe(false);
+    expect(
+      isExpectedNetworkError(new Error("Cannot read property foo of undefined"))
+    ).toBe(false);
+    expect(isExpectedNetworkError("socket hang up")).toBe(false);
+    expect(isExpectedNetworkError(undefined)).toBe(false);
   });
 });
