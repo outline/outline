@@ -124,8 +124,6 @@ export default function blockMenuItems(
       keywords: "pdf upload attach",
       attrs: {
         accept: "application/pdf",
-        width: 300,
-        height: 424,
         preview: true,
       },
     },
