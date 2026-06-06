@@ -106,9 +106,9 @@ class Team extends Model {
    */
   @computed
   get commentingEnabled(): boolean {
-    return (
-      this.getPreference(TeamPreference.Commenting) !== CommentingAccess.None
-    );
+    const access = this.getPreference(TeamPreference.Commenting);
+    // A legacy boolean `false` (team not yet migrated) means disabled.
+    return access !== CommentingAccess.None && access !== false;
   }
 
   /**

@@ -28,10 +28,11 @@ export function commentingEnabled() {
     ctx: APIContext,
     next: Next
   ) {
-    if (
-      ctx.state.auth.user.team.getPreference(TeamPreference.Commenting) ===
-      CommentingAccess.None
-    ) {
+    const commenting = ctx.state.auth.user.team.getPreference(
+      TeamPreference.Commenting
+    );
+    // A legacy boolean `false` (team not yet migrated) means disabled.
+    if (commenting === CommentingAccess.None || commenting === false) {
       throw ValidationError("Commenting is currently disabled");
     }
     return next();

@@ -56,7 +56,8 @@ allow(User, "comment", Document, (actor, document) => {
     !!document?.isActive,
     isTeamMutable(actor),
     can(actor, "read", document),
-    commenting !== CommentingAccess.None,
+    // A legacy boolean `false` (team not yet migrated) means disabled.
+    commenting !== CommentingAccess.None && commenting !== false,
     or(!actor.isGuest, commenting === CommentingAccess.Everyone),
     or(!document?.collection, document?.collection?.commenting !== false)
   );
