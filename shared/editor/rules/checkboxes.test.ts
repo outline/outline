@@ -1,4 +1,10 @@
-import { parser, serializer } from "@server/editor";
+import { extensionManager, schema } from "../../test/editor";
+
+const serializer = extensionManager.serializer();
+const parser = extensionManager.parser({
+  schema,
+  plugins: extensionManager.rulePlugins,
+});
 
 interface ProsemirrorNode {
   type: string;
