@@ -79,10 +79,10 @@ function Collaborators(props: Props) {
   // Memoize ids to avoid unnecessary effect executions
   const missingUserIds = useMemo(
     () =>
-      uniq([...document.collaboratorIds, ...Array.from(presentIds)])
+      uniq([...collaboratorIdsSet, ...presentIds])
         .filter((userId) => !users.get(userId))
         .sort(),
-    [document.collaboratorIds, presentIds, users]
+    [collaboratorIdsSet, presentIds, users]
   );
 
   useEffect(() => {
