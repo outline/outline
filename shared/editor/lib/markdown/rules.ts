@@ -38,6 +38,9 @@ export default function makeRules({
   if (!schema?.nodes.heading) {
     markdownIt.disable("heading");
   }
+  if (!schema?.nodes.table) {
+    markdownIt.disable("table");
+  }
 
   plugins.forEach((plugin) => markdownIt.use(plugin));
   return markdownIt;
