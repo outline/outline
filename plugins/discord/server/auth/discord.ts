@@ -201,6 +201,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             },
             user: {
               email,
+              emailVerified: profile.verified,
               name: userName,
               language,
               avatarUrl: userAvatarUrl,

@@ -604,13 +604,26 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         return {
           update: (view) => {
             const generation = pluginKey.getState(view.state) as number;
-            if (generation !== lastGeneration) {
+            // Rebuild highlights when the results change (generation bump) or,
+            // while a search is active, on any view update. The CSS Custom
+            // Highlight API relies on static DOM ranges that become detached
+            // when the editor re-renders its DOM — e.g. content settling after
+            // sync when navigating from search results, collaboration cursors,
+            // or node views mounting — none of which bump the generation. This
+            // keeps the highlights tracking the live DOM, as decorations do.
+            if (generation !== lastGeneration || this.searchTerm) {
               lastGeneration = generation;
               this.updateHighlights();
             }
           },
           destroy: () => {
-            this.clearHighlights();
+            // The highlight registry is global and keyed by fixed names, so
+            // only tear down highlights when this editor actually owns an
+            // active search — otherwise an unmounting editor could wipe the
+            // highlights another editor just set during a route transition.
+            if (this.searchTerm) {
+              this.clearHighlights();
+            }
           },
         };
       },

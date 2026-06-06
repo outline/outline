@@ -44,6 +44,16 @@ export class RedisPrefixHelper {
   }
 
   /**
+   * Gets key for caching a team's enabled webhook subscriptions.
+   *
+   * @param teamId The team ID to generate a key for.
+   * @returns the cache key string.
+   */
+  public static getWebhookSubscriptionsKey(teamId: string) {
+    return `whs:${teamId}`;
+  }
+
+  /**
    * Gets key for caching the count of a relationship managed by the
    * `CounterCache` decorator.
    *
