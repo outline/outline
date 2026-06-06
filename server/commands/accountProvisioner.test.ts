@@ -115,6 +115,7 @@ describe("accountProvisioner", () => {
         user: {
           name: userWithoutAuth.name,
           email,
+          emailVerified: true,
           avatarUrl: userWithoutAuth.avatarUrl,
         },
         team: {
@@ -136,6 +137,54 @@ describe("accountProvisioner", () => {
       expect(user.id).toEqual(userWithoutAuth.id);
       expect(isNewTeam).toEqual(false);
       expect(isNewUser).toEqual(false);
+    });
+
+    it("should not allow authentication by email matching when email is unverified", async () => {
+      const subdomain = faker.internet.domainWord();
+      const existingTeam = await buildTeam({
+        subdomain,
+      });
+
+      const providers = await existingTeam.$get("authenticationProviders");
+      const authenticationProvider = providers[0];
+      const email = faker.internet.email();
+      const userWithoutAuth = await buildUser({
+        email,
+        teamId: existingTeam.id,
+        authentications: [],
+      });
+
+      let error;
+      try {
+        await accountProvisioner(ctx, {
+          user: {
+            name: userWithoutAuth.name,
+            email,
+            emailVerified: false,
+            avatarUrl: userWithoutAuth.avatarUrl,
+          },
+          team: {
+            teamId: existingTeam.id,
+            name: existingTeam.name,
+            avatarUrl: existingTeam.avatarUrl,
+            subdomain,
+          },
+          authenticationProvider: {
+            name: authenticationProvider.name,
+            providerId: authenticationProvider.providerId,
+          },
+          authentication: {
+            providerId: randomUUID(),
+            accessToken: "123",
+            scopes: ["read"],
+          },
+        });
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeTruthy();
+      expect(error.id).toEqual("invalid_authentication");
     });
 
     it("should throw an error when authentication provider is disabled", async () => {
@@ -250,6 +299,7 @@ describe("accountProvisioner", () => {
           user: {
             name: "Jenny Tester",
             email,
+            emailVerified: true,
             avatarUrl: faker.image.avatar(),
           },
           team: {
@@ -291,6 +341,7 @@ describe("accountProvisioner", () => {
         user: {
           name: "Jenny Tester",
           email,
+          emailVerified: true,
           avatarUrl: faker.image.avatar(),
         },
         team: {

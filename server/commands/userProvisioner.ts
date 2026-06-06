@@ -25,6 +25,13 @@ type Props = {
   name: string;
   /** The email address of the user */
   email: string;
+  /**
+   * Whether the provider has verified the user owns the email address.
+   * Matching an existing account by email only happens when explicitly true.
+   */
+  emailVerified?: boolean;
+  /** The display name of the authentication provider, eg "Google". */
+  authenticationProviderName?: string;
   /** The language of the user, if known */
   language?: string;
   /** The role for new user, Member if none is provided */
@@ -54,7 +61,17 @@ type Props = {
 
 export default async function userProvisioner(
   ctx: APIContext,
-  { name, email, role, language, avatarUrl, teamId, authentication }: Props
+  {
+    name,
+    email,
+    emailVerified,
+    authenticationProviderName,
+    role,
+    language,
+    avatarUrl,
+    teamId,
+    authentication,
+  }: Props
 ): Promise<UserProvisionerResult> {
   const auth = authentication
     ? await UserAuthentication.findOne({
@@ -134,6 +151,14 @@ export default async function userProvisioner(
   const team = await Team.scope("withDomains").findByPk(teamId, {
     attributes: ["defaultUserRole", "inviteRequired", "id"],
   });
+
+  // Unverified emails cannot match an existing account or pass allow listed domains
+  if (emailVerified !== true && (existingUser || team?.allowedDomains.length)) {
+    const providerName = authenticationProviderName ?? "your identity provider";
+    throw InvalidAuthenticationError(
+      `Your email address has not been verified by ${providerName}. Please verify your email and try signing in again.`
+    );
+  }
 
   // We have an existing user, so we need to update it with our
   // new details and count this as a new user creation.

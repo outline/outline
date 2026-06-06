@@ -110,6 +110,8 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           user: {
             name: profile.user.name,
             email: profile.user.email,
+            // Slack only returns confirmed workspace email addresses.
+            emailVerified: true,
             avatarUrl: profile.user.image_192,
           },
           authenticationProvider: {

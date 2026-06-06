@@ -17,6 +17,7 @@ import {
   Event,
   Team,
 } from "@server/models";
+import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
 import { PluginManager } from "@server/utils/PluginManager";
@@ -34,6 +35,8 @@ type Props = {
     name: string;
     /** The email address of the user */
     email: string;
+    /** Whether the provider has verified the user owns the email address */
+    emailVerified?: boolean;
     /** The public url of an image representing the user */
     avatarUrl?: string | null;
     /** The language of the user, if known */
@@ -178,6 +181,10 @@ async function accountProvisioner(
   result = await userProvisioner(ctx, {
     name: userParams.name,
     email: userParams.email,
+    emailVerified: userParams.emailVerified,
+    authenticationProviderName: AuthenticationHelper.getProviderName(
+      authenticationProviderParams.name
+    ),
     language: userParams.language,
     role: isNewTeam ? UserRole.Admin : undefined,
     avatarUrl: userParams.avatarUrl,
