@@ -15,9 +15,7 @@ import { TableLayout } from "@shared/editor/types";
  * @param ctx - the current selection context.
  * @returns an array of menu items.
  */
-export default function tableMenuItems(
-  ctx: SelectionContext
-): MenuItem[] {
+export default function tableMenuItems(ctx: SelectionContext): MenuItem[] {
   if (ctx.readOnly) {
     return [];
   }
@@ -30,33 +28,32 @@ export default function tableMenuItems(
   return [
     {
       name: "setTableAttr",
-      tooltip: isFullWidth ? t("Default width") : t("Full width"),
+      label: isFullWidth ? t("Default width") : t("Full width"),
       icon: <AlignFullWidthIcon />,
       attrs: isFullWidth ? { layout: null } : { layout: TableLayout.fullWidth },
-      active: () => isFullWidth,
     },
     {
       name: "distributeColumns",
-      tooltip: t("Distribute columns"),
+      label: t("Distribute columns"),
       icon: <TableColumnsDistributeIcon />,
     },
     {
       name: "separator",
     },
     {
-      name: "deleteTable",
-      tooltip: t("Delete table"),
-      icon: <TrashIcon />,
+      name: "exportTable",
+      label: t("Export as CSV"),
+      attrs: { format: "csv", fileName: `${window.document.title}.csv` },
+      icon: <DownloadIcon />,
     },
     {
       name: "separator",
     },
     {
-      name: "exportTable",
-      tooltip: t("Export as CSV"),
-      label: "CSV",
-      attrs: { format: "csv", fileName: `${window.document.title}.csv` },
-      icon: <DownloadIcon />,
+      name: "deleteTable",
+      label: t("Delete table"),
+      dangerous: true,
+      icon: <TrashIcon />,
     },
   ];
 }
