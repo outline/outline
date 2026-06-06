@@ -60,36 +60,32 @@ async function expectCanManageDocumentPermissions({
   member,
   group,
 }: PermissionManagementSubject) {
-  const addUser = await server.post("/api/documents.add_user", {
+  const addUser = await server.post("/api/documents.add_user", actor, {
     body: {
-      token: actor.getJwtToken(),
       id: document.id,
       userId: member.id,
     },
   });
   expect(addUser.status).toEqual(200);
 
-  const removeUser = await server.post("/api/documents.remove_user", {
+  const removeUser = await server.post("/api/documents.remove_user", actor, {
     body: {
-      token: actor.getJwtToken(),
       id: document.id,
       userId: member.id,
     },
   });
   expect(removeUser.status).toEqual(200);
 
-  const addGroup = await server.post("/api/documents.add_group", {
+  const addGroup = await server.post("/api/documents.add_group", actor, {
     body: {
-      token: actor.getJwtToken(),
       id: document.id,
       groupId: group.id,
     },
   });
   expect(addGroup.status).toEqual(200);
 
-  const removeGroup = await server.post("/api/documents.remove_group", {
+  const removeGroup = await server.post("/api/documents.remove_group", actor, {
     body: {
-      token: actor.getJwtToken(),
       id: document.id,
       groupId: group.id,
     },
@@ -116,9 +112,8 @@ async function expectCannotManageDocumentPermissions({
     createdById: actor.id,
   });
 
-  const addUser = await server.post("/api/documents.add_user", {
+  const addUser = await server.post("/api/documents.add_user", actor, {
     body: {
-      token: actor.getJwtToken(),
       id: document.id,
       userId: member.id,
       permission: DocumentPermission.ReadWrite,
@@ -126,18 +121,16 @@ async function expectCannotManageDocumentPermissions({
   });
   expect(addUser.status).toEqual(403);
 
-  const removeUser = await server.post("/api/documents.remove_user", {
+  const removeUser = await server.post("/api/documents.remove_user", actor, {
     body: {
-      token: actor.getJwtToken(),
       id: document.id,
       userId: member.id,
     },
   });
   expect(removeUser.status).toEqual(403);
 
-  const addGroup = await server.post("/api/documents.add_group", {
+  const addGroup = await server.post("/api/documents.add_group", actor, {
     body: {
-      token: actor.getJwtToken(),
       id: document.id,
       groupId: group.id,
       permission: DocumentPermission.ReadWrite,
@@ -145,9 +138,8 @@ async function expectCannotManageDocumentPermissions({
   });
   expect(addGroup.status).toEqual(403);
 
-  const removeGroup = await server.post("/api/documents.remove_group", {
+  const removeGroup = await server.post("/api/documents.remove_group", actor, {
     body: {
-      token: actor.getJwtToken(),
       id: document.id,
       groupId: group.id,
     },
