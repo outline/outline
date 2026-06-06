@@ -143,66 +143,6 @@ describe("list_documents", () => {
 
     expect(ids).toContain(document.id);
   });
-
-  it("lists archived documents when status is archived", async () => {
-    const { user, accessToken } = await buildOAuthUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      userId: user.id,
-    });
-    const active = await buildDocument({
-      teamId: user.teamId,
-      userId: user.id,
-      collectionId: collection.id,
-    });
-    const archived = await buildDocument({
-      teamId: user.teamId,
-      userId: user.id,
-      collectionId: collection.id,
-      archivedAt: new Date(),
-    });
-
-    const res = await callMcpTool(server, accessToken, "list_documents", {
-      status: "archived",
-    });
-    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-      JSON.parse(c.text)
-    );
-    const ids = data.map((d: { document: { id: string } }) => d.document.id);
-
-    expect(ids).toContain(archived.id);
-    expect(ids).not.toContain(active.id);
-  });
-
-  it("lists trashed documents when status is trashed", async () => {
-    const { user, accessToken } = await buildOAuthUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      userId: user.id,
-    });
-    const active = await buildDocument({
-      teamId: user.teamId,
-      userId: user.id,
-      collectionId: collection.id,
-    });
-    const trashed = await buildDocument({
-      teamId: user.teamId,
-      userId: user.id,
-      collectionId: collection.id,
-    });
-    await trashed.destroy();
-
-    const res = await callMcpTool(server, accessToken, "list_documents", {
-      status: "trashed",
-    });
-    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-      JSON.parse(c.text)
-    );
-    const ids = data.map((d: { document: { id: string } }) => d.document.id);
-
-    expect(ids).toContain(trashed.id);
-    expect(ids).not.toContain(active.id);
-  });
 });
 
 describe("create_document", () => {
