@@ -6,6 +6,7 @@ import type { EditorView } from "prosemirror-view";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { isInTable, moveTableColumn, TableMap } from "prosemirror-tables";
 import { addColumnBefore, selectColumn } from "../commands/table";
+import { isMobile } from "../../utils/browser";
 import {
   getCellAttrs,
   isValidCellAlignment,
@@ -326,7 +327,9 @@ export default class TableHeader extends Node {
             )
           );
 
-          if (!isDragging) {
+          // The add-column affordance is too small to tap on mobile, where
+          // columns can be added via the inline menu instead.
+          if (!isDragging && !isMobile()) {
             if (index === 0) {
               decorations.push(buildAddColumnDecoration(pos, index));
             }

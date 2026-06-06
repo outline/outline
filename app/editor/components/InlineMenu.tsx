@@ -2,13 +2,22 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 import { RemoveScroll } from "react-remove-scroll";
+import styled from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
 import { collapseSelection } from "@shared/editor/commands/collapseSelection";
 import type { MenuItem } from "@shared/editor/types";
 import { useTranslation } from "react-i18next";
-import { toMenuItems } from "~/components/Menu/transformer";
+import Scrollable from "~/components/Scrollable";
+import { toMenuItems, toMobileMenuItems } from "~/components/Menu/transformer";
 import * as Components from "~/components/primitives/components/Menu";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+} from "~/components/primitives/Drawer";
 import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
+import type { MenuItem as TMenuItem, MenuItemWithChildren } from "~/types";
+import useMobile from "~/hooks/useMobile";
 import { mapMenuItems } from "../menus/mapMenuItems";
 import { useEditor } from "./EditorContext";
 import { useInlineMenuAnchor } from "./useInlineMenuAnchor";
@@ -40,6 +49,7 @@ const InlineMenu: React.FC<Props> = ({ items, rtl }) => {
   const { t } = useTranslation();
   const { commands, view } = useEditor();
   const { state } = view;
+  const isMobile = useMobile();
   const {
     ref: anchorRef,
     key: anchorKey,
@@ -61,6 +71,16 @@ const InlineMenu: React.FC<Props> = ({ items, rtl }) => {
   const handleDismiss = React.useCallback(() => {
     collapseSelection()(view.state, view.dispatch);
   }, [view]);
+
+  if (isMobile) {
+    return (
+      <InlineMenuDrawer
+        items={mapped}
+        ariaLabel={t("Options")}
+        onDismiss={handleDismiss}
+      />
+    );
+  }
 
   return (
     <MenuProvider variant="dropdown">
@@ -95,5 +115,72 @@ const InlineMenu: React.FC<Props> = ({ items, rtl }) => {
     </MenuProvider>
   );
 };
+
+// Time for the drawer's close animation to play before the selection is
+// collapsed (which unmounts the menu).
+const DRAWER_CLOSE_MS = 500;
+
+type InlineMenuDrawerProps = {
+  items: TMenuItem[];
+  ariaLabel: string;
+  /** Collapse the selection so the toolbar stops rendering the menu. */
+  onDismiss: () => void;
+};
+
+/**
+ * Mobile presentation of the inline menu: a bottom drawer with submenu drill-in,
+ * matching the other menus. The menu is held open while the selection matches;
+ * closing animates the drawer out before collapsing the selection.
+ */
+function InlineMenuDrawer({
+  items,
+  ariaLabel,
+  onDismiss,
+}: InlineMenuDrawerProps) {
+  const [open, setOpen] = React.useState(true);
+  const [submenuName, setSubmenuName] = React.useState<string>();
+
+  const close = React.useCallback(() => {
+    setOpen(false);
+    setTimeout(() => {
+      setSubmenuName(undefined);
+      onDismiss();
+    }, DRAWER_CLOSE_MS);
+  }, [onDismiss]);
+
+  const handleOpenChange = React.useCallback(
+    (isOpen: boolean) => {
+      if (!isOpen) {
+        close();
+      }
+    },
+    [close]
+  );
+
+  const menuItems = React.useMemo(() => {
+    if (!items.length || !submenuName) {
+      return items;
+    }
+    const submenu = items.find(
+      (item) => item.type === "submenu" && item.title === submenuName
+    ) as MenuItemWithChildren | undefined;
+    return submenu?.items ?? items;
+  }, [items, submenuName]);
+
+  const content = toMobileMenuItems(menuItems, close, setSubmenuName);
+
+  return (
+    <Drawer open={open} onOpenChange={handleOpenChange}>
+      <DrawerContent aria-label={ariaLabel} aria-describedby={undefined}>
+        <DrawerTitle hidden>{ariaLabel}</DrawerTitle>
+        <StyledScrollable hiddenScrollbars>{content}</StyledScrollable>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+const StyledScrollable = styled(Scrollable)`
+  max-height: 75vh;
+`;
 
 export default InlineMenu;
