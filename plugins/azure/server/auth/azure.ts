@@ -102,13 +102,17 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const user =
           context.state?.auth?.user ?? (await getUserFromOAuthState(context));
 
-        // Microsoft's email claim is mutable, only trust it for matching when
-        // the domain is owner-verified via the xms_edov optional claim.
-        // https://learn.microsoft.com/en-us/entra/identity-platform/migrate-off-email-claim-authorization
-        const emailVerified =
-          profile.xms_edov === undefined
-            ? undefined
-            : profile.xms_edov === true || profile.xms_edov === "true";
+        // Microsoft's email claim is mutable, only trust it when a verification
+        // claim confirms it — xms_edov for workforce tenants, or the standard
+        // email_verified claim in External ID / OIDC scenarios.
+        // https://learn.microsoft.com/en-us/entra/identity-platform/reference-claims-customization
+        const verificationClaims = [profile.xms_edov, profile.email_verified];
+        const presentClaims = verificationClaims.filter(
+          (claim) => claim !== undefined
+        );
+        const emailVerified = presentClaims.length
+          ? presentClaims.some((claim) => claim === true || claim === "true")
+          : undefined;
 
         const domain = parseEmail(email).domain;
         const subdomain = slugifyDomain(domain);
