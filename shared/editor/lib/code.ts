@@ -380,6 +380,12 @@ export const getLoaderForLanguage = (language: string) =>
  * @param language The language identifier.
  */
 export const setRecentlyUsedCodeLanguage = (language: string) => {
+  // Mermaid diagrams have a separate insertion entry point, so they should
+  // never be remembered as the last selected code language.
+  if (language === "mermaid" || language === "mermaidjs") {
+    return;
+  }
+
   const frequentLangs = (Storage.get(StorageKey) ?? {}) as Record<
     string,
     number
