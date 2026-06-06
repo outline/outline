@@ -4,6 +4,7 @@ import {
   getLabelForLanguage,
   setRecentlyUsedCodeLanguage,
   getRecentlyUsedCodeLanguage,
+  getFrequentCodeLanguages,
 } from "./code";
 
 describe("getRefractorLangForLanguage", () => {
@@ -53,5 +54,25 @@ describe("setRecentlyUsedCodeLanguage", () => {
     setRecentlyUsedCodeLanguage("javascript");
     setRecentlyUsedCodeLanguage("mermaidjs");
     expect(getRecentlyUsedCodeLanguage()).toBe("javascript");
+  });
+
+  it("should ignore mermaid that was already persisted", () => {
+    Storage.set("rme-code-language", "mermaid");
+    expect(getRecentlyUsedCodeLanguage()).toBeUndefined();
+  });
+});
+
+describe("getFrequentCodeLanguages", () => {
+  beforeEach(() => {
+    Storage.clear();
+  });
+
+  it("should exclude mermaid that was already persisted", () => {
+    Storage.set("frequent-code-languages", {
+      javascript: 3,
+      mermaid: 5,
+      mermaidjs: 2,
+    });
+    expect(getFrequentCodeLanguages()).toEqual(["javascript"]);
   });
 });
