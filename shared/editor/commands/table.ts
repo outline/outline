@@ -65,6 +65,38 @@ function restoreColumnSelection(
   }
 }
 
+/**
+ * A command that places a text cursor at the start of the cell at the given row
+ * and column index within the table that begins at the given position. Used
+ * after inserting a row or column so that the selection lands inside the newly
+ * inserted cell rather than the shifted neighbouring one.
+ *
+ * @param tableStart The position inside the table (after the table node).
+ * @param rowIndex The row index of the target cell.
+ * @param columnIndex The column index of the target cell.
+ * @returns The command.
+ */
+function setCursorInCell(
+  tableStart: number,
+  rowIndex: number,
+  columnIndex: number
+): Command {
+  return (state, dispatch) => {
+    const table = state.doc.nodeAt(tableStart - 1);
+    if (!table) {
+      return false;
+    }
+    const map = TableMap.get(table);
+    if (rowIndex >= map.height || columnIndex >= map.width) {
+      return false;
+    }
+    const pos = map.positionAt(rowIndex, columnIndex, table);
+    const $pos = state.doc.resolve(tableStart + pos + 1);
+    dispatch?.(state.tr.setSelection(TextSelection.near($pos)));
+    return true;
+  };
+}
+
 export function createTable({
   rowsCount,
   colsCount,
@@ -522,7 +554,7 @@ export function addRowBefore({ index }: { index?: number }): Command {
       (s, d) =>
         !!d?.(addRowWithAlignment(s.tr, rect, position, copyFromRow, s)),
       headerSpecialCase ? toggleHeader("row") : undefined,
-      collapseSelection()
+      setCursorInCell(rect.tableStart, position, 0)
     )(state, dispatch);
 
     return true;
@@ -588,7 +620,7 @@ export function addColumnBefore({ index }: { index?: number }): Command {
       headerSpecialCase ? toggleHeader("column") : undefined,
       (s, d) => !!d?.(addColumn(s.tr, rect, position)),
       headerSpecialCase ? toggleHeader("column") : undefined,
-      collapseSelection()
+      setCursorInCell(rect.tableStart, 0, position)
     )(state, dispatch);
 
     return true;
