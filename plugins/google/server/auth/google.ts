@@ -127,6 +127,8 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             },
             user: {
               email: profile.email,
+              // Google only returns confirmed workspace email addresses.
+              emailVerified: true,
               name: profile.displayName,
               language,
               avatarUrl,
