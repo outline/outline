@@ -3,7 +3,18 @@
 // https://raw.githubusercontent.com/ProseMirror/prosemirror-markdown/master/src/to_markdown.js
 // forked for table support
 
-type Options = { tightLists?: boolean; softBreak?: boolean };
+/** Options that control how a ProseMirror document is serialized to Markdown. */
+type Options = {
+  /** Whether list items are rendered without blank lines between them. */
+  tightLists?: boolean;
+  /**
+   * Whether to emit portable, standard CommonMark intended to leave Outline,
+   * such as when copying to the clipboard or exporting. When false the
+   * serializer uses Outline's internal escaped representation, which round-trips
+   * losslessly through its own parser but is not standard Markdown.
+   */
+  commonMark?: boolean;
+};
 
 // ::- A specification for serializing a ProseMirror document as
 // Markdown/CommonMark text.
