@@ -264,6 +264,12 @@ class UiStore {
 
   @computed
   get activeCollectionId(): string | undefined {
+    // Derive from the active document so it resolves even if the collection
+    // loads after the document became active.
+    const activeDocument = this.getPrimaryActiveModel<Document>(Document);
+    if (activeDocument?.isActive && activeDocument.collectionId) {
+      return activeDocument.collectionId;
+    }
     return this.getPrimaryActiveModel<Collection>(Collection)?.id;
   }
 

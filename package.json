@@ -236,7 +236,7 @@
     "resolve-path": "^1.4.0",
     "sanitize-filename": "^1.6.4",
     "scroll-into-view-if-needed": "^3.1.0",
-    "semver": "^7.7.4",
+    "semver": "^7.8.1",
     "sequelize": "^6.37.8",
     "sequelize-cli": "^6.6.5",
     "sequelize-encrypted": "^1.0.0",
@@ -273,17 +273,17 @@
     "y-protocols": "^1.0.7",
     "yauzl": "^3.3.1",
     "yazl": "^3.3.1",
-    "yjs": "^13.6.30",
-    "zod": "^4.3.6"
+    "yjs": "^13.6.31",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@babel/cli": "^7.28.6",
-    "@babel/core": "^7.28.6",
-    "@babel/plugin-proposal-decorators": "^7.28.6",
-    "@babel/plugin-transform-class-properties": "^7.27.1",
-    "@babel/preset-env": "^7.29.5",
-    "@babel/preset-react": "^7.28.5",
-    "@babel/preset-typescript": "^7.28.5",
+    "@babel/cli": "^7.29.7",
+    "@babel/core": "^7.29.7",
+    "@babel/plugin-proposal-decorators": "^7.29.7",
+    "@babel/plugin-transform-class-properties": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@babel/preset-react": "^7.29.7",
+    "@babel/preset-typescript": "^7.29.7",
     "@faker-js/faker": "^8.4.1",
     "@relative-ci/agent": "^4.3.1",
     "@swc/core": "^1.15.32",
@@ -374,7 +374,7 @@
     "terser": "^5.48.0",
     "typescript": "^5.9.3",
     "unplugin-swc": "^1.5.9",
-    "vite-plugin-babel": "^1.6.0",
+    "vite-plugin-babel": "^1.7.3",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.5"
   },
@@ -383,7 +383,7 @@
     "@types/koa": "2.15.1",
     "prosemirror-transform": "1.10.5",
     "prismjs": "1.30.0",
-    "zod": "^4.3.6",
+    "zod": "^4.4.3",
     "@types/markdown-it": "14.1.2",
     "ip-address@npm:10.1.0": "^10.2.0",
     "minimatch@npm:9.0.1": "9.0.9",
@@ -392,6 +392,6 @@
     "ws@npm:~8.17.1": "^8.20.1",
     "uuid": "^11.1.1"
   },
-  "version": "1.8.0",
+  "version": "1.8.1",
   "packageManager": "yarn@4.11.0"
 }

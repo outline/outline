@@ -109,7 +109,7 @@ async function presentDocument(
     res.parentDocumentId = document.parentDocumentId;
     res.createdBy = presentUser(document.createdBy);
     res.updatedBy = presentUser(document.updatedBy);
-    res.collaboratorIds = document.collaboratorIds;
+    res.collaboratorIds = document.collaboratorIds ?? [];
     res.templateId = document.templateId;
     res.insightsEnabled = document.insightsEnabled;
     res.popularityScore = document.popularityScore;

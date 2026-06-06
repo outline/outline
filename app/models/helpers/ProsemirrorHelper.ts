@@ -29,7 +29,7 @@ export class ProsemirrorHelper {
     );
 
     const markdown = serializer.serialize(doc, {
-      softBreak: true,
+      commonMark: true,
     });
     return markdown;
   };

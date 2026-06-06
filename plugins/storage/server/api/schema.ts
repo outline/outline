@@ -10,7 +10,7 @@ export const FilesCreateSchema = z.object({
       .refine(ValidateKey.isValid, { message: ValidateKey.message })
       .transform(ValidateKey.sanitize),
   }),
-  file: z.custom<formidable.File>(),
+  file: z.custom<formidable.File>().optional(),
 });
 
 export type FilesCreateReq = z.infer<typeof FilesCreateSchema>;

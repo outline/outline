@@ -4,6 +4,7 @@ import Router from "koa-router";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import { ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 import { TeamPreference } from "@shared/types";
 import { NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -113,7 +114,35 @@ router.post(
     };
 
     ctx.respond = false;
-    await transport.handleRequest(ctx.req, ctx.res, ctx.request.body);
+
+    // The SDK's handleRequest answers known protocol failures itself (4xx with a
+    // JSON-RPC body) via the transport. Anything that escapes here is unexpected.
+    try {
+      await transport.handleRequest(ctx.req, ctx.res, ctx.request.body);
+    } catch (error) {
+      Logger.error(
+        "MCP request handling failed",
+        error instanceof Error ? error : new Error(String(error)),
+        undefined,
+        ctx.req
+      );
+
+      if (!ctx.res.headersSent) {
+        ctx.res.writeHead(500, { "Content-Type": "application/json" });
+        ctx.res.end(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            error: {
+              code: ErrorCode.InternalError,
+              message: "Internal server error",
+            },
+            id: null,
+          })
+        );
+      } else {
+        ctx.res.end();
+      }
+    }
   }
 );
 

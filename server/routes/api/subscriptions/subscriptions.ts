@@ -15,6 +15,7 @@ import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { safeEqual } from "@server/utils/crypto";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -171,7 +172,7 @@ router.get(
       documentId
     );
 
-    if (unsubscribeToken !== token) {
+    if (!safeEqual(unsubscribeToken, token)) {
       ctx.redirect(`${env.URL}?notice=invalid-auth`);
       return;
     }
