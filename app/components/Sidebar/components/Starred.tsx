@@ -2,6 +2,8 @@ import { observer } from "mobx-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import type Star from "~/models/Star";
 import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
@@ -29,6 +31,7 @@ function Starred() {
   );
   const [reorderStarProps, dropToReorder] = useDropToReorderStar();
   const [createStarProps, dropToStarRef] = useDropToCreateStar();
+  const [sectionStarProps, dropToSectionRef] = useDropToCreateStar();
 
   useEffect(() => {
     if (error) {
@@ -42,46 +45,64 @@ function Starred() {
 
   return (
     <Flex column>
-      <Header id="starred" title={t("Starred")}>
-        <Relative>
-          {reorderStarProps.isDragging && (
-            <DropCursor
-              isActiveDrop={reorderStarProps.isOverCursor}
-              innerRef={dropToReorder}
-              position="top"
-            />
-          )}
-          {createStarProps.isDragging && (
-            <DropCursor
-              isActiveDrop={createStarProps.isOverCursor}
-              innerRef={dropToStarRef}
-              position="top"
-            />
-          )}
-          {stars.orderedData
-            .slice(0, page * STARRED_PAGINATION_LIMIT)
-            .map((star) => (
-              <StarredLink key={star.id} star={star} />
-            ))}
-          {!loading && !end && (
-            <SidebarLink
-              onClick={next}
-              label={`${t("Show more")}…`}
-              disabled={stars.isFetching}
-              depth={0}
-            />
-          )}
-          {loading && (
-            <Flex column>
-              <DelayedMount>
-                <PlaceholderCollections />
-              </DelayedMount>
-            </Flex>
-          )}
-        </Relative>
-      </Header>
+      <Section
+        ref={dropToSectionRef}
+        $isActiveDrop={
+          sectionStarProps.isDragging && sectionStarProps.isOverCursor
+        }
+      >
+        <Header id="starred" title={t("Starred")}>
+          <Relative>
+            {reorderStarProps.isDragging && (
+              <DropCursor
+                isActiveDrop={reorderStarProps.isOverCursor}
+                innerRef={dropToReorder}
+                position="top"
+              />
+            )}
+            {createStarProps.isDragging && (
+              <DropCursor
+                isActiveDrop={createStarProps.isOverCursor}
+                innerRef={dropToStarRef}
+                position="top"
+              />
+            )}
+            {stars.orderedData
+              .slice(0, page * STARRED_PAGINATION_LIMIT)
+              .map((star) => (
+                <StarredLink key={star.id} star={star} />
+              ))}
+            {!loading && !end && (
+              <SidebarLink
+                onClick={next}
+                label={`${t("Show more")}…`}
+                disabled={stars.isFetching}
+                depth={0}
+              />
+            )}
+            {loading && (
+              <Flex column>
+                <DelayedMount>
+                  <PlaceholderCollections />
+                </DelayedMount>
+              </Flex>
+            )}
+          </Relative>
+        </Header>
+      </Section>
     </Flex>
   );
 }
+
+const Section = styled.div<{ $isActiveDrop?: boolean }>`
+  border-radius: 8px;
+  transition: background 100ms ease-in-out;
+
+  ${(props) =>
+    props.$isActiveDrop &&
+    css`
+      background: ${s("sidebarActiveBackground")};
+    `}
+`;
 
 export default observer(Starred);

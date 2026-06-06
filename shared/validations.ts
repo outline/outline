@@ -89,13 +89,13 @@ export const OAuthClientValidation = {
   maxDeveloperNameLength: 100,
 
   /** The maximum length of the OAuth client developer URL */
-  maxDeveloperUrlLength: 255,
+  maxDeveloperUrlLength: 1024,
 
   /** The maximum length of the OAuth client avatar URL */
-  maxAvatarUrlLength: 255,
+  maxAvatarUrlLength: 1024,
 
   /** The maximum length of an OAuth client redirect URI */
-  maxRedirectUriLength: 255,
+  maxRedirectUriLength: 1024,
 
   /** The allowed OAuth client types */
   clientTypes: ["confidential", "public"] as const,
@@ -170,7 +170,7 @@ export const WebhookSubscriptionValidation = {
   /** The maximum length of the webhook name */
   maxNameLength: 255,
   /** The maximum length of the webhook url */
-  maxUrlLength: 255,
+  maxUrlLength: 1024,
 };
 
 export const EmojiValidation = {

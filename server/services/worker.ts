@@ -57,7 +57,14 @@ export default async function init() {
               ProcessorClass.applicableEvents.includes(event.name) ||
               ProcessorClass.applicableEvents.includes("*")
             ) {
-              await processorEventQueue().add({ event, name });
+              // A processor may optionally opt out of an event before a job is
+              // created, avoiding the cost of an empty job.
+              if (
+                !ProcessorClass.shouldQueue ||
+                (await ProcessorClass.shouldQueue(event))
+              ) {
+                await processorEventQueue().add({ event, name });
+              }
             }
           } catch (error) {
             Logger.error(
