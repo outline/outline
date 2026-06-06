@@ -192,7 +192,9 @@ export default function useDragResize(props: Params): ReturnValue {
         : Infinity;
       setMaxWidth(max);
       setSizeAtDragStart({
-        width: constrainWidth(size.width, max),
+        // When no width has been set yet the element is displayed at full width,
+        // so begin resizing from the maximum width rather than the minimum.
+        width: constrainWidth(size.width || max, max),
         height: size.height,
       });
       setOffset(
