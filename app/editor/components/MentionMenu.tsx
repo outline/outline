@@ -2,7 +2,6 @@ import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
 import {
-  CalendarIcon,
   DocumentIcon,
   PlusIcon,
   NewDocumentIcon,
@@ -18,12 +17,14 @@ import { MentionType } from "@shared/types";
 import {
   dateToReadable,
   dateToRelativeReadable,
+  parseISODate,
   toISODate,
 } from "@shared/utils/date";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { parseNaturalLanguageDate } from "@shared/utils/parseNaturalLanguageDate";
 import { Avatar, AvatarSize, GroupAvatar } from "~/components/Avatar";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
+import { DynamicCalendarIcon } from "@shared/components/DynamicCalendarIcon";
 import Flex from "~/components/Flex";
 import {
   DateSection,
@@ -93,7 +94,11 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       ? [
           {
             name: "mention",
-            icon: <CalendarIcon />,
+            icon: (
+              <DynamicCalendarIcon
+                day={parseISODate(parsedISODate).getDate()}
+              />
+            ),
             title: dateToRelativeReadable(parsedISODate, t, userLocale),
             subtitle: dateToReadable(parsedISODate, userLocale),
             section: DateSection,

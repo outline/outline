@@ -1,7 +1,6 @@
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { observer } from "mobx-react";
 import {
-  CalendarIcon,
   DocumentIcon,
   EmailIcon,
   CollectionIcon,
@@ -569,7 +568,6 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
       })}
       $editable={isEditable}
     >
-      <CalendarIcon size={18} />
       {display}
     </DateMention>
   );
