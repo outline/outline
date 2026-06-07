@@ -817,8 +817,18 @@ export class DocumentHelper {
       const textSame = oldChild.textContent === newChild.textContent;
 
       if (textSame && oldChild.sameMarkup(newChild)) {
-        // Fully unchanged — keep original with its rich content
-        merged.push(oldChild);
+        // Compare against the round-tripped baseline: when the
+        // updated child is identical to a plain round-trip of the original,
+        // the patch did not touch it
+        if (!rtChild || newChild.eq(rtChild)) {
+          merged.push(oldChild);
+        } else if (!oldChild.isTextblock && !oldChild.isLeaf) {
+          // Container child changed deeper down — recurse to preserve rich
+          // content in the parts that did not change.
+          merged.push(DocumentHelper.mergeNodes(oldChild, newChild, rtChild));
+        } else {
+          merged.push(newChild);
+        }
       } else if (textSame) {
         // Attrs changed (e.g. checked state) but content same — merge attrs
         // so that non-markdown-representable values (colwidth, highlight
