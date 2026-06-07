@@ -11,7 +11,7 @@ import {
 } from "@shared/editor/queries/getMarkRange";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
-import type { MenuItem } from "@shared/editor/types";
+import { MenuType, type MenuItem } from "@shared/editor/types";
 import useBoolean from "~/hooks/useBoolean";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
@@ -24,6 +24,7 @@ import { MediaLinkEditor } from "./MediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
+import InlineMenu from "./InlineMenu";
 import { isModKey } from "@shared/utils/keyboard";
 
 type Props = {
@@ -263,6 +264,16 @@ export function SelectionToolbar(props: Props) {
     }
     setActiveToolbar(null);
   };
+
+  // Inline menus render as a vertical menu anchored to the selection rather
+  // than as a horizontal toolbar with trigger buttons.
+  if (
+    matched?.variant === MenuType.inline &&
+    activeToolbar === Toolbar.Menu &&
+    items.length
+  ) {
+    return <InlineMenu items={items} rtl={rtl} />;
+  }
 
   return (
     <FloatingToolbar

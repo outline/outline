@@ -4817,7 +4817,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-slot@npm:1.2.4":
+"@radix-ui/react-slot@npm:1.2.4, @radix-ui/react-slot@npm:^1.2.3":
   version: 1.2.4
   resolution: "@radix-ui/react-slot@npm:1.2.4"
   dependencies:
@@ -15087,6 +15087,7 @@ __metadata:
     "@radix-ui/react-one-time-password-field": "npm:^0.1.8"
     "@radix-ui/react-popover": "npm:^1.1.15"
     "@radix-ui/react-select": "npm:^2.2.6"
+    "@radix-ui/react-slot": "npm:^1.2.3"
     "@radix-ui/react-switch": "npm:^1.2.6"
     "@radix-ui/react-tabs": "npm:^1.1.13"
     "@radix-ui/react-toolbar": "npm:^1.1.11"
@@ -15299,6 +15300,7 @@ __metadata:
     react-merge-refs: "npm:^2.1.1"
     react-portal: "npm:^4.3.0"
     react-refresh: "npm:^0.18.0"
+    react-remove-scroll: "npm:^2.7.2"
     react-router-dom: "npm:^5.3.4"
     react-use-measure: "npm:^2.1.7"
     react-virtualized-auto-sizer: "npm:^1.0.26"
@@ -16853,7 +16855,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-remove-scroll@npm:^2.6.3":
+"react-remove-scroll@npm:^2.6.3, react-remove-scroll@npm:^2.7.2":
   version: 2.7.2
   resolution: "react-remove-scroll@npm:2.7.2"
   dependencies:

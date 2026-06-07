@@ -273,7 +273,19 @@ export default class ExtensionManager {
             return;
           }
           if (extension.focusAfterExecution) {
+            // Focusing a blurred editor (e.g. when the command is run from a
+            // menu that holds focus) can collapse a non-text selection such as
+            // a table cell selection. Restore it so selection-based commands
+            // operate on the intended selection.
+            const { selection } = view.state;
             view.focus();
+            if (!view.state.selection.eq(selection)) {
+              view.dispatch(
+                view.state.tr
+                  .setSelection(selection)
+                  .setMeta("addToHistory", false)
+              );
+            }
           }
           return callback(attrs)?.(view.state, view.dispatch, view);
         };

@@ -8,6 +8,7 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import type { EditorView } from "prosemirror-view";
 import { Plugin } from "prosemirror-state";
 import { addRowBefore, selectRow, selectTable } from "../commands/table";
+import { isMobile } from "../../utils/browser";
 import {
   getCellsInRow,
   getRowsInTable,
@@ -339,7 +340,9 @@ export default class TableRow extends Node {
                   )
                 );
 
-                if (!isDragging) {
+                // The add-row affordance is too small to tap on mobile, where
+                // rows can be added via the inline menu instead.
+                if (!isDragging && !isMobile()) {
                   if (index === 0) {
                     decorations.push(buildAddRowDecoration(pos, index));
                   }
