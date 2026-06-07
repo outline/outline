@@ -1524,6 +1524,11 @@ describe("documentUpdater", () => {
         .toJSON();
       await document.save();
 
+      // Capture the untouched (Beta) row BEFORE patching so we can assert its
+      // structure and attrs are preserved exactly, not just its text.
+      const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+      const untouchedRow = beforeDoc.content[0].content[2];
+
       const result = DocumentHelper.applyMarkdownToDocument(
         document,
         "see [docs](https://example.com/d)",
@@ -1531,10 +1536,10 @@ describe("documentUpdater", () => {
         "see"
       );
 
+      // The patched cell gained the link
       expect(result.text).toContain("[docs](https://example.com/d)");
-      // The untouched row must remain intact
-      expect(result.text).toContain("Beta");
-      expect(result.text).toContain("other");
+      // The untouched row node must remain identical
+      expect(result.content!.content![0].content![2]).toEqual(untouchedRow);
     });
 
     it("should apply a mark when wrapping existing list item text", async () => {
