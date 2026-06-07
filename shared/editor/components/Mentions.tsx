@@ -1,5 +1,7 @@
+import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { observer } from "mobx-react";
 import {
+  CalendarIcon,
   DocumentIcon,
   EmailIcon,
   CollectionIcon,
@@ -7,9 +9,18 @@ import {
 } from "outline-icons";
 import type { Node } from "prosemirror-model";
 import * as React from "react";
+import { DayPicker } from "react-day-picker";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
+import { depths, s } from "../../styles";
+import {
+  dateLocale,
+  dateToReadable,
+  dateToRelativeReadable,
+  parseISODate,
+  toISODate,
+} from "../../utils/date";
 import { Backticks } from "../../components/Backticks";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
@@ -510,6 +521,93 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
   );
 });
 
+type DateProps = ComponentProps & {
+  onChangeDate: (modelId: string, label: string) => void;
+};
+
+export const MentionDate = observer(function MentionDate_(props: DateProps) {
+  const { isSelected, isEditable, node, onChangeDate } = props;
+  const { t } = useTranslation();
+  const { auth } = useStores();
+  const theme = useTheme();
+  const [open, setOpen] = React.useState(false);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
+
+  const language = auth.user?.language;
+  const iso = typeof node.attrs.modelId === "string" ? node.attrs.modelId : "";
+  const display = dateToRelativeReadable(iso, t, language);
+  const selectedDate = parseISODate(iso) ?? undefined;
+
+  const styles = React.useMemo(
+    () =>
+      ({
+        "--rdp-caption-font-size": "16px",
+        "--rdp-cell-size": "34px",
+        "--rdp-selected-text": theme.accentText,
+        "--rdp-accent-color": theme.accent,
+        "--rdp-accent-color-dark": theme.accent,
+        "--rdp-background-color": theme.listItemHoverBackground,
+        "--rdp-background-color-dark": theme.listItemHoverBackground,
+      }) as React.CSSProperties,
+    [theme]
+  );
+
+  const handleSelect = React.useCallback(
+    (date: Date) => {
+      setOpen(false);
+      const newIso = toISODate(date);
+      onChangeDate(newIso, dateToReadable(newIso, language));
+    },
+    [onChangeDate, language]
+  );
+
+  const trigger = (
+    <DateMention
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      $editable={isEditable}
+    >
+      <CalendarIcon size={18} />
+      {display}
+    </DateMention>
+  );
+
+  if (!isEditable) {
+    return trigger;
+  }
+
+  return (
+    <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
+      <PopoverPrimitive.Trigger
+        asChild
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {trigger}
+      </PopoverPrimitive.Trigger>
+      <PopoverPrimitive.Portal>
+        <DatePopoverContent
+          sideOffset={4}
+          align="start"
+          aria-label={t("Choose a date")}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <DayPicker
+            required
+            mode="single"
+            selected={selectedDate}
+            defaultMonth={selectedDate}
+            onSelect={handleSelect}
+            style={styles}
+            locale={dateLocale(language)}
+          />
+        </DatePopoverContent>
+      </PopoverPrimitive.Portal>
+    </PopoverPrimitive.Root>
+  );
+});
+
 const MentionLoading = ({ className }: { className: string }) => {
   const { t } = useTranslation();
 
@@ -531,6 +629,33 @@ const MentionError = ({ className }: { className: string }) => {
     </span>
   );
 };
+
+const DateMention = styled.span<{ $editable: boolean }>`
+  cursor: ${(props) => (props.$editable ? "pointer" : "default")};
+  user-select: none;
+`;
+
+const DatePopoverContent = styled(PopoverPrimitive.Content)`
+  z-index: ${depths.modal};
+  background: ${s("menuBackground")};
+  box-shadow: ${s("menuShadow")};
+  border-radius: 6px;
+  outline: none;
+  padding: 6px 12px;
+
+  &[data-state="open"] {
+    animation: fadeIn 150ms ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+`;
 
 const StyledWarningIcon = styled(WarningIcon)`
   margin: 0 -2px;

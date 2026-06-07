@@ -8682,6 +8682,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chrono-node@npm:^2.9.1":
+  version: 2.9.1
+  resolution: "chrono-node@npm:2.9.1"
+  checksum: 10c0/2408e4a404ea3e7e8226daae75cdbc4621bc66065d596574440d0f81a7c456c166ca212c9e1c329e653c716300289498794fece2102f9365bfd33bd1a4b24473
+  languageName: node
+  linkType: hard
+
 "ci-info@npm:^3.7.0":
   version: 3.9.0
   resolution: "ci-info@npm:3.9.0"
@@ -15178,6 +15185,7 @@ __metadata:
     babel-plugin-transform-typescript-metadata: "npm:^0.4.0"
     browserslist-to-esbuild: "npm:^1.2.0"
     bull: "npm:^4.16.5"
+    chrono-node: "npm:^2.9.1"
     class-validator: "npm:^0.15.1"
     command-score: "npm:^0.1.2"
     compressorjs: "npm:^1.3.0"

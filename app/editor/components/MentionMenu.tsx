@@ -2,6 +2,7 @@ import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
 import {
+  CalendarIcon,
   DocumentIcon,
   PlusIcon,
   NewDocumentIcon,
@@ -14,11 +15,18 @@ import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
 import type { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
+import {
+  dateToReadable,
+  dateToRelativeReadable,
+  toISODate,
+} from "@shared/utils/date";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
+import { parseNaturalLanguageDate } from "@shared/utils/parseNaturalLanguageDate";
 import { Avatar, AvatarSize, GroupAvatar } from "~/components/Avatar";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Flex from "~/components/Flex";
 import {
+  DateSection,
   DocumentsSection,
   UserSection,
   CollectionsSection,
@@ -26,6 +34,7 @@ import {
 } from "~/actions/sections";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import useUserLocale from "~/hooks/useUserLocale";
 import { client } from "~/utils/ApiClient";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
@@ -54,7 +63,33 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const actorId = auth.currentUserId;
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
+  const userLocale = useUserLocale();
   const maxResultsInSection = search ? 25 : 5;
+
+  // Surface a date suggestion when the search query parses as a natural
+  // language date (e.g. "tomorrow", "next friday", "jan 2").
+  const parsedDate = search ? parseNaturalLanguageDate(search) : null;
+  const parsedISODate = parsedDate ? toISODate(parsedDate) : undefined;
+  const dateItems: MentionItem[] =
+    actorId && parsedISODate
+      ? [
+          {
+            name: "mention",
+            icon: <CalendarIcon />,
+            title: dateToRelativeReadable(parsedISODate, t, userLocale),
+            subtitle: dateToReadable(parsedISODate, userLocale),
+            section: DateSection,
+            appendSpace: true,
+            attrs: {
+              id: uuidv4(),
+              type: MentionType.Date,
+              modelId: parsedISODate,
+              actorId,
+              label: dateToReadable(parsedISODate, userLocale),
+            },
+          } as MentionItem,
+        ]
+      : [];
 
   const { loading, request } = useRequest(
     useCallback(async () => {
@@ -87,7 +122,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   // Computed in the render body so MobX observer can track store access
   // (e.g. searchSuppressed). Previously this lived inside a useEffect which
   // runs outside the reactive context and triggered MobX warnings.
-  const items: MentionItem[] = actorId
+  const mentionItems: MentionItem[] = actorId
     ? users
         .findByQuery(search, { maxResults: maxResultsInSection })
         .map(
@@ -253,9 +288,12 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
         ])
     : [];
 
+  const items: MentionItem[] = [...dateItems, ...mentionItems];
+
   const handleSelect = useCallback(
     async (item: MentionItem) => {
       if (
+        item.attrs.type === MentionType.Date ||
         item.attrs.type === MentionType.Document ||
         item.attrs.type === MentionType.Collection
       ) {
