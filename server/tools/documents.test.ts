@@ -458,3 +458,101 @@ describe("move_document", () => {
     expect(res?.result?.isError).toBe(true);
   });
 });
+
+describe("restore_document", () => {
+  it("restores an archived document", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      archivedAt: new Date(),
+    });
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+    expect(res?.result?.isError).toBeUndefined();
+    expect(data.document.id).toEqual(document.id);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.archivedAt).toBeNull();
+  });
+
+  it("restores a trashed document", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    await document.destroy();
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+
+    const reloaded = await Document.unscoped().findByPk(document.id, {
+      paranoid: false,
+    });
+    expect(reloaded?.deletedAt).toBeNull();
+  });
+
+  it("restores into a different collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: source.id,
+      archivedAt: new Date(),
+    });
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+      collectionId: destination.id,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+    expect(res?.result?.isError).toBeUndefined();
+    expect(data.document.collectionId).toEqual(destination.id);
+  });
+
+  it("fails when the document is not archived or trashed", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+  });
+});
