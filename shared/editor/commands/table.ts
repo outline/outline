@@ -627,6 +627,60 @@ export function addColumnBefore({ index }: { index?: number }): Command {
   };
 }
 
+/**
+ * A command that adds a row after the given index (or the current selection),
+ * copying alignment from the row above and placing the cursor in the new row.
+ *
+ * @param index The index of the row to add after, if undefined the current selection is used
+ * @returns The command
+ */
+export function addRowAfter({ index }: { index?: number }): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const position = index !== undefined ? index + 1 : rect.bottom;
+
+    // Copy alignment from the row above the insertion point.
+    const copyFromRow = position - 1;
+
+    chainTransactions(
+      (s, d) =>
+        !!d?.(addRowWithAlignment(s.tr, rect, position, copyFromRow, s)),
+      setCursorInCell(rect.tableStart, position, 0)
+    )(state, dispatch);
+
+    return true;
+  };
+}
+
+/**
+ * A command that adds a column after the given index (or the current selection),
+ * placing the cursor in the new column.
+ *
+ * @param index The index of the column to add after, if undefined the current selection is used
+ * @returns The command
+ */
+export function addColumnAfter({ index }: { index?: number }): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const position = index !== undefined ? index + 1 : rect.right;
+
+    chainTransactions(
+      (s, d) => !!d?.(addColumn(s.tr, rect, position)),
+      setCursorInCell(rect.tableStart, 0, position)
+    )(state, dispatch);
+
+    return true;
+  };
+}
+
 export function addRowAndMoveSelection({
   index,
 }: {
