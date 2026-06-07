@@ -26,7 +26,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     zip,
     pathInZip,
     documentId,
-    format = FileOperationFormat.MarkdownZip,
+    format,
     includeAttachments,
     pathMap,
   }: {

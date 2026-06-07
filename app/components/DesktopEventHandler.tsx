@@ -15,7 +15,7 @@ export default function DesktopEventHandler() {
   const hasDisabledUpdateMessage = useRef(false);
 
   useEffect(() => {
-    Desktop.bridge?.redirect((path: string, replace = false) => {
+    Desktop.bridge?.redirect((path: string, replace: boolean) => {
       if (replace) {
         history.replace(path);
       } else {

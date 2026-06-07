@@ -23,7 +23,7 @@ const SidebarButton = observer(
   React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
     function SidebarButton_(
       {
-        position = "top",
+        position,
         showMoreMenu,
         image,
         title,

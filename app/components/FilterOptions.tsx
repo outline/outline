@@ -44,7 +44,7 @@ type Props = {
 
 const FilterOptions = ({
   options,
-  selectedKeys = [],
+  selectedKeys,
   className,
   onSelect,
   showFilter,

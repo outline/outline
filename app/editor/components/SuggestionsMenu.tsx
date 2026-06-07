@@ -400,7 +400,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   };
 
   const filtered = React.useMemo(() => {
-    const { embeds = [], search = "", uploadFile, filterable = true } = props;
+    const { embeds = [], search, uploadFile, filterable = true } = props;
     let items: (EmbedDescriptor | MenuItem)[] = [...props.items];
     const embedItems: EmbedDescriptor[] = [];
 
