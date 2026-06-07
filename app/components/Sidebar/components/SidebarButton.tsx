@@ -11,7 +11,7 @@ import Desktop from "~/utils/Desktop";
 import { HStack } from "~/components/primitives/HStack";
 
 export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
-  position: "top" | "bottom";
+  position?: "top" | "bottom";
   title: React.ReactNode;
   image: React.ReactNode;
   showMoreMenu?: boolean;
@@ -23,7 +23,7 @@ const SidebarButton = observer(
   React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
     function SidebarButton_(
       {
-        position,
+        position = "top",
         showMoreMenu,
         image,
         title,
