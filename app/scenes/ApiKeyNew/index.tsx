@@ -13,7 +13,6 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
 import { dateToExpiry } from "~/utils/date";
-import "react-day-picker/dist/style.css";
 import ExpiryDatePicker from "./components/ExpiryDatePicker";
 import { ExpiryType, ExpiryValues, calculateExpiryDate } from "./utils";
 

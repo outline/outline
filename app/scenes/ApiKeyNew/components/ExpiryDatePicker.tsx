@@ -1,9 +1,9 @@
 import { format as formatDate } from "date-fns";
 import { CalendarIcon } from "outline-icons";
 import * as React from "react";
-import { DayPicker } from "react-day-picker";
 import { useTranslation } from "react-i18next";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
+import { Calendar } from "@shared/components/Calendar";
 import { dateLocale } from "@shared/utils/date";
 import Button from "~/components/Button";
 import {
@@ -21,24 +21,9 @@ type Props = {
 const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
-  const theme = useTheme();
 
   const userLocale = useUserLocale();
   const locale = dateLocale(userLocale);
-
-  const styles = React.useMemo(
-    () =>
-      ({
-        "--rdp-caption-font-size": "16px",
-        "--rdp-cell-size": "34px",
-        "--rdp-selected-text": theme.accentText,
-        "--rdp-accent-color": theme.accent,
-        "--rdp-accent-color-dark": theme.accent,
-        "--rdp-background-color": theme.listItemHoverBackground,
-        "--rdp-background-color-dark": theme.listItemHoverBackground,
-      }) as React.CSSProperties,
-    [theme]
-  );
 
   const handleSelect = React.useCallback(
     (date: Date) => {
@@ -63,12 +48,12 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
         side="right"
         shrink
       >
-        <DayPicker
+        <Calendar
           required
           mode="single"
           selected={selectedDate}
           onSelect={handleSelect}
-          style={styles}
+          locale={locale}
           disabled={{ before: new Date() }}
         />
       </PopoverContent>
