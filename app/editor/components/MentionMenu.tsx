@@ -96,7 +96,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             name: "mention",
             icon: (
               <DynamicCalendarIcon
-                day={parseISODate(parsedISODate).getDate()}
+                day={parseISODate(parsedISODate)?.getDate()}
               />
             ),
             title: dateToRelativeReadable(parsedISODate, t, userLocale),

@@ -1,4 +1,5 @@
 import * as PopoverPrimitive from "@radix-ui/react-popover";
+import { Slot } from "@radix-ui/react-slot";
 import { observer } from "mobx-react";
 import {
   DocumentIcon,
@@ -10,6 +11,7 @@ import type { Node } from "prosemirror-model";
 import * as React from "react";
 import { DayPicker } from "react-day-picker";
 import { useTranslation } from "react-i18next";
+import { RemoveScroll } from "react-remove-scroll";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import { depths, s } from "../../styles";
@@ -585,22 +587,28 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
         {trigger}
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
-        <DatePopoverContent
+        <PopoverPrimitive.Content
+          asChild
           sideOffset={4}
           align="start"
           aria-label={t("Choose a date")}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
-          <DayPicker
-            required
-            mode="single"
-            selected={selectedDate}
-            defaultMonth={selectedDate}
-            onSelect={handleSelect}
-            style={styles}
-            locale={dateLocale(language)}
-          />
-        </DatePopoverContent>
+          {/* Lock page scroll while open, matching the inline editor menu. */}
+          <RemoveScroll as={Slot} allowPinchZoom>
+            <DatePopoverContent>
+              <DayPicker
+                required
+                mode="single"
+                selected={selectedDate}
+                defaultMonth={selectedDate}
+                onSelect={handleSelect}
+                style={styles}
+                locale={dateLocale(language)}
+              />
+            </DatePopoverContent>
+          </RemoveScroll>
+        </PopoverPrimitive.Content>
       </PopoverPrimitive.Portal>
     </PopoverPrimitive.Root>
   );
@@ -633,7 +641,7 @@ const DateMention = styled.span<{ $editable: boolean }>`
   user-select: none;
 `;
 
-const DatePopoverContent = styled(PopoverPrimitive.Content)`
+const DatePopoverContent = styled.div`
   z-index: ${depths.modal};
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
