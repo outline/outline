@@ -67,9 +67,27 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const maxResultsInSection = search ? 25 : 5;
 
   // Surface a date suggestion when the search query parses as a natural
-  // language date (e.g. "tomorrow", "next friday", "jan 2").
-  const parsedDate = search ? parseNaturalLanguageDate(search) : null;
-  const parsedISODate = parsedDate ? toISODate(parsedDate) : undefined;
+  // language date (e.g. "tomorrow", "next friday", "jan 2"). Parsing is
+  // asynchronous as chrono-node is loaded lazily, so the result is held in
+  // state and applied once resolved.
+  const [parsedISODate, setParsedISODate] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!search) {
+      setParsedISODate(undefined);
+      return;
+    }
+    let cancelled = false;
+    void parseNaturalLanguageDate(search).then((date) => {
+      if (!cancelled) {
+        setParsedISODate(date ? toISODate(date) : undefined);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [search]);
+
   const dateItems: MentionItem[] =
     actorId && parsedISODate
       ? [
