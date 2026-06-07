@@ -280,7 +280,11 @@ export default class ExtensionManager {
             const { selection } = view.state;
             view.focus();
             if (!view.state.selection.eq(selection)) {
-              view.dispatch(view.state.tr.setSelection(selection));
+              view.dispatch(
+                view.state.tr
+                  .setSelection(selection)
+                  .setMeta("addToHistory", false)
+              );
             }
           }
           return callback(attrs)?.(view.state, view.dispatch, view);

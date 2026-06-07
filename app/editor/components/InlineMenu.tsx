@@ -84,7 +84,11 @@ const InlineMenu: React.FC<Props> = ({ items, rtl }) => {
 
   return (
     <MenuProvider variant="dropdown">
-      <DropdownMenuPrimitive.Root key={anchorKey} open modal={false}>
+      <DropdownMenuPrimitive.Root
+        key={anchorKey}
+        open={!!anchorKey}
+        modal={false}
+      >
         <DropdownMenuPrimitive.Trigger asChild>
           <div ref={anchorRef} aria-hidden style={anchorStyle} />
         </DropdownMenuPrimitive.Trigger>
