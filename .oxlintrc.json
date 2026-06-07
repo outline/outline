@@ -110,6 +110,7 @@
         "typescript/consistent-type-imports": "error",
         "typescript/restrict-template-expressions": "error",
         "typescript/no-floating-promises": "error",
+        "typescript/no-useless-default-assignment": "error",
         "no-unused-vars": [
           "error",
           {
