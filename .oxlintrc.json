@@ -73,6 +73,23 @@
         "eqeqeq": "error",
         "curly": "error",
         "no-console": "error",
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "prosemirror-tables",
+                "importNames": [
+                  "addRowBefore",
+                  "addRowAfter",
+                  "addColumnBefore",
+                  "addColumnAfter"
+                ],
+                "message": "Use the wrappers from shared/editor/commands/table instead, which respect the target index and place the cursor in the inserted cell."
+              }
+            ]
+          }
+        ],
         "no-unused-expressions": "error",
         "arrow-body-style": ["error", "as-needed"],
         "react/react-in-jsx-scope": "off",

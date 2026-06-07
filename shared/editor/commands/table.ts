@@ -65,6 +65,38 @@ function restoreColumnSelection(
   }
 }
 
+/**
+ * A command that places a text cursor at the start of the cell at the given row
+ * and column index within the table that begins at the given position. Used
+ * after inserting a row or column so that the selection lands inside the newly
+ * inserted cell rather than the shifted neighbouring one.
+ *
+ * @param tableStart The position inside the table (after the table node).
+ * @param rowIndex The row index of the target cell.
+ * @param columnIndex The column index of the target cell.
+ * @returns The command.
+ */
+function setCursorInCell(
+  tableStart: number,
+  rowIndex: number,
+  columnIndex: number
+): Command {
+  return (state, dispatch) => {
+    const table = state.doc.nodeAt(tableStart - 1);
+    if (!table) {
+      return false;
+    }
+    const map = TableMap.get(table);
+    if (rowIndex >= map.height || columnIndex >= map.width) {
+      return false;
+    }
+    const pos = map.positionAt(rowIndex, columnIndex, table);
+    const $pos = state.doc.resolve(tableStart + pos + 1);
+    dispatch?.(state.tr.setSelection(TextSelection.near($pos)));
+    return true;
+  };
+}
+
 export function createTable({
   rowsCount,
   colsCount,
@@ -522,7 +554,7 @@ export function addRowBefore({ index }: { index?: number }): Command {
       (s, d) =>
         !!d?.(addRowWithAlignment(s.tr, rect, position, copyFromRow, s)),
       headerSpecialCase ? toggleHeader("row") : undefined,
-      collapseSelection()
+      setCursorInCell(rect.tableStart, position, 0)
     )(state, dispatch);
 
     return true;
@@ -588,7 +620,61 @@ export function addColumnBefore({ index }: { index?: number }): Command {
       headerSpecialCase ? toggleHeader("column") : undefined,
       (s, d) => !!d?.(addColumn(s.tr, rect, position)),
       headerSpecialCase ? toggleHeader("column") : undefined,
-      collapseSelection()
+      setCursorInCell(rect.tableStart, 0, position)
+    )(state, dispatch);
+
+    return true;
+  };
+}
+
+/**
+ * A command that adds a row after the given index (or the current selection),
+ * copying alignment from the row above and placing the cursor in the new row.
+ *
+ * @param index The index of the row to add after, if undefined the current selection is used
+ * @returns The command
+ */
+export function addRowAfter({ index }: { index?: number }): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const position = index !== undefined ? index + 1 : rect.bottom;
+
+    // Copy alignment from the row above the insertion point.
+    const copyFromRow = position - 1;
+
+    chainTransactions(
+      (s, d) =>
+        !!d?.(addRowWithAlignment(s.tr, rect, position, copyFromRow, s)),
+      setCursorInCell(rect.tableStart, position, 0)
+    )(state, dispatch);
+
+    return true;
+  };
+}
+
+/**
+ * A command that adds a column after the given index (or the current selection),
+ * placing the cursor in the new column.
+ *
+ * @param index The index of the column to add after, if undefined the current selection is used
+ * @returns The command
+ */
+export function addColumnAfter({ index }: { index?: number }): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const position = index !== undefined ? index + 1 : rect.right;
+
+    chainTransactions(
+      (s, d) => !!d?.(addColumn(s.tr, rect, position)),
+      setCursorInCell(rect.tableStart, 0, position)
     )(state, dispatch);
 
     return true;
