@@ -68,16 +68,18 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         try {
           // "domain" is the Google Workspaces domain
           const domain = profile._json.hd;
-          const team = await getTeamFromContext(context);
+          let team = await getTeamFromContext(context);
           const client = getClientFromOAuthState(context);
           const user =
             context.state?.auth?.user ?? (await getUserFromOAuthState(context));
 
-          // No profile domain means personal gmail account
-          // No team implies the request came from the apex domain
-          // This combination is always an error
+          // No profile domain means a personal gmail account, and no team means
+          // the request came from the apex domain rather than a workspace
+          // subdomain. We can't infer the workspace from the domain, so resolve
+          // it from the verified email's existing accounts instead.
           if (!domain && !team) {
-            const userExists = await User.count({
+            const existingAccounts = await User.findAll({
+              attributes: ["id", "teamId"],
               where: { email: profile.email.toLowerCase() },
               include: [
                 {
@@ -86,14 +88,23 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
                 },
               ],
             });
+            const teamIds = new Set(
+              existingAccounts.map((account) => account.teamId)
+            );
 
-            // Users cannot create a team with personal gmail accounts
-            if (!userExists) {
+            // A personal gmail account cannot be used to create a new workspace.
+            if (teamIds.size === 0) {
               throw GmailAccountCreationError();
             }
 
-            // To log-in with a personal account, users must specify a team subdomain
-            throw TeamDomainRequiredError();
+            // When the email belongs to more than one workspace it is ambiguous
+            // which to sign into, so the user must start from its subdomain.
+            if (teamIds.size > 1) {
+              throw TeamDomainRequiredError();
+            }
+
+            // Belongs to exactly one workspace — resolve it and sign in there.
+            team = existingAccounts[0].team;
           }
 
           // remove the TLD and form a subdomain from the remaining
