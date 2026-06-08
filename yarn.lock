@@ -7601,12 +7601,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/pretty-format@npm:4.1.6":
-  version: 4.1.6
-  resolution: "@vitest/pretty-format@npm:4.1.6"
+"@vitest/pretty-format@npm:4.1.8":
+  version: 4.1.8
+  resolution: "@vitest/pretty-format@npm:4.1.8"
   dependencies:
     tinyrainbow: "npm:^3.1.0"
-  checksum: 10c0/f818a6abff9b7cf642edc2d0fe84d4f124911696bc7591f2af9ab6d88685b72133a1e9f87499e9b4dc2314dff85403ea66c64f7b408b2eb39f9880c6d3517ca0
+  checksum: 10c0/553c456692a4b9ae13cd116c234c74b4495e0f1a0d5c51ffc3fab8ea085e3550769967e29db79bdac0cf127b1bf88b7f70bfba3dcc72be6bddf834433e30cc91
   languageName: node
   linkType: hard
 
@@ -7639,11 +7639,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/ui@npm:^4.1.6":
-  version: 4.1.6
-  resolution: "@vitest/ui@npm:4.1.6"
+"@vitest/ui@npm:^4.1.8":
+  version: 4.1.8
+  resolution: "@vitest/ui@npm:4.1.8"
   dependencies:
-    "@vitest/utils": "npm:4.1.6"
+    "@vitest/utils": "npm:4.1.8"
     fflate: "npm:^0.8.2"
     flatted: "npm:^3.4.2"
     pathe: "npm:^2.0.3"
@@ -7651,8 +7651,8 @@ __metadata:
     tinyglobby: "npm:^0.2.15"
     tinyrainbow: "npm:^3.1.0"
   peerDependencies:
-    vitest: 4.1.6
-  checksum: 10c0/4e3a7416862feafe1ba2b0ca140bead49a2549ed189b2d42b8ea0bbd8656e103783b192151c0b9986861bc5f05e0fd33626c46e1f7572e8da068b85bd6a773ea
+    vitest: 4.1.8
+  checksum: 10c0/c2b559c9633df6d9019cf52b55f1deffa11f12500c124bf0a4fb47991e26d92d42ad549ef434e714dbecf1469b630764d264f78dd0518fbd472e81f43437390e
   languageName: node
   linkType: hard
 
@@ -7667,14 +7667,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/utils@npm:4.1.6":
-  version: 4.1.6
-  resolution: "@vitest/utils@npm:4.1.6"
+"@vitest/utils@npm:4.1.8":
+  version: 4.1.8
+  resolution: "@vitest/utils@npm:4.1.8"
   dependencies:
-    "@vitest/pretty-format": "npm:4.1.6"
+    "@vitest/pretty-format": "npm:4.1.8"
     convert-source-map: "npm:^2.0.0"
     tinyrainbow: "npm:^3.1.0"
-  checksum: 10c0/36437888088a1aae8565e62b9f145de9fb1599725574924477c655c7617ad677b575ac0eb3f2b3288854ed1aafff914a0417dffbb7f5244c821f157119701227
+  checksum: 10c0/acda9d3d640c1ebc81afb358ac30589d7d7d583af81e2d09419f0af9cbe41f3ce0b90527326943bf0da51614be5fc31afcd32259f6beb32b3417999d6ef380f3
   languageName: node
   linkType: hard
 
@@ -15169,7 +15169,7 @@ __metadata:
     "@types/yauzl": "npm:^2.10.3"
     "@types/yazl": "npm:^2.4.6"
     "@vitejs/plugin-react-oxc": "npm:^0.2.3"
-    "@vitest/ui": "npm:^4.1.6"
+    "@vitest/ui": "npm:^4.1.8"
     addressparser: "npm:^1.0.1"
     async-sema: "npm:^3.1.1"
     babel-plugin-module-resolver: "npm:^5.0.3"
