@@ -254,11 +254,10 @@ function canCreateSiblingDocument(
   stores: ActionContext["stores"],
   document: { collectionId?: string | null; parentDocumentId?: string }
 ): boolean {
-  const { abilities } = stores.policies;
   return document.parentDocumentId
-    ? abilities(document.parentDocumentId).createChildDocument
+    ? stores.policies.abilities(document.parentDocumentId).createChildDocument
     : !!document.collectionId &&
-        abilities(document.collectionId).createDocument;
+        stores.policies.abilities(document.collectionId).createDocument;
 }
 
 export const createNestedDocument = createInternalLinkAction({
