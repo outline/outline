@@ -1,12 +1,10 @@
-import {
-  createOAuthUserAuth,
-  createAppAuth,
-  type OAuthWebFlowAuthOptions,
-  type InstallationAuthOptions,
+import type {
+  OAuthWebFlowAuthOptions,
+  InstallationAuthOptions,
 } from "@octokit/auth-app";
 import { Sequelize } from "sequelize";
 import type { Endpoints, OctokitResponse } from "@octokit/types";
-import { Octokit } from "octokit";
+import type { Octokit } from "octokit";
 import pluralize from "pluralize";
 import type { IntegrationType } from "@shared/types";
 import { IntegrationService, UnfurlResourceType } from "@shared/types";
@@ -199,7 +197,20 @@ const requestPlugin = (octokit: Octokit) => ({
     }),
 });
 
-const CustomOctokit = Octokit.plugin(requestPlugin);
+type CustomOctokit = Octokit & ReturnType<typeof requestPlugin>;
+
+let cachedCustomOctokitPromise:
+  | Promise<ReturnType<typeof Octokit.plugin<[typeof requestPlugin]>>>
+  | undefined;
+
+async function getCustomOctokit() {
+  if (!cachedCustomOctokitPromise) {
+    cachedCustomOctokitPromise = import("octokit").then(({ Octokit }) =>
+      Octokit.plugin(requestPlugin)
+    );
+  }
+  return cachedCustomOctokitPromise;
+}
 
 export class GitHub {
   private static appId = env.GITHUB_APP_ID;
@@ -210,7 +221,7 @@ export class GitHub {
   private static clientId = env.GITHUB_CLIENT_ID;
   private static clientSecret = env.GITHUB_CLIENT_SECRET;
 
-  private static appOctokit: Octokit;
+  private static appOctokitPromise: Promise<CustomOctokit> | undefined;
 
   private static supportedResources = [
     UnfurlResourceType.Issue,
@@ -279,19 +290,22 @@ export class GitHub {
   }
 
   private static authenticateAsApp = () => {
-    if (!GitHub.appOctokit) {
-      GitHub.appOctokit = new CustomOctokit({
-        authStrategy: createAppAuth,
-        auth: {
-          appId: GitHub.appId,
-          privateKey: GitHub.appKey,
-          clientId: GitHub.clientId,
-          clientSecret: GitHub.clientSecret,
-        },
-      });
+    if (!GitHub.appOctokitPromise) {
+      GitHub.appOctokitPromise = (async () => {
+        const CustomOctokit = await getCustomOctokit();
+        const { createAppAuth } = await import("@octokit/auth-app");
+        return new CustomOctokit({
+          authStrategy: createAppAuth,
+          auth: {
+            appId: GitHub.appId,
+            privateKey: GitHub.appKey,
+            clientId: GitHub.clientId,
+            clientSecret: GitHub.clientSecret,
+          },
+        });
+      })();
     }
-
-    return GitHub.appOctokit;
+    return GitHub.appOctokitPromise;
   };
 
   /**
@@ -299,13 +313,16 @@ export class GitHub {
    *
    * @param code Temporary code received in callback url after user authorizes
    * @param state A string received in callback url to protect against CSRF
-   * @returns {Octokit} User-authenticated octokit instance
+   * @returns user-authenticated octokit instance.
    */
   public static authenticateAsUser = async (
     code: string,
     state?: string | null
-  ) =>
-    GitHub.authenticateAsApp().auth({
+  ) => {
+    const appOctokit = await GitHub.authenticateAsApp();
+    const CustomOctokit = await getCustomOctokit();
+    const { createOAuthUserAuth } = await import("@octokit/auth-app");
+    return appOctokit.auth({
       type: "oauth-user",
       code,
       state,
@@ -314,16 +331,20 @@ export class GitHub {
           authStrategy: createOAuthUserAuth,
           auth: options,
         }),
-    }) as Promise<InstanceType<typeof CustomOctokit>>;
+    }) as Promise<CustomOctokit>;
+  };
 
   /**
    * [Authenticates as a GitHub app installation](https://github.com/octokit/auth-app.js/?tab=readme-ov-file#authenticate-as-installation)
    *
    * @param installationId Id of an installation
-   * @returns {Octokit} Installation-authenticated octokit instance
+   * @returns installation-authenticated octokit instance.
    */
-  public static authenticateAsInstallation = async (installationId: number) =>
-    GitHub.authenticateAsApp().auth({
+  public static authenticateAsInstallation = async (installationId: number) => {
+    const appOctokit = await GitHub.authenticateAsApp();
+    const CustomOctokit = await getCustomOctokit();
+    const { createAppAuth } = await import("@octokit/auth-app");
+    return appOctokit.auth({
       type: "installation",
       installationId,
       factory: (options: InstallationAuthOptions) =>
@@ -331,7 +352,8 @@ export class GitHub {
           authStrategy: createAppAuth,
           auth: options,
         }),
-    }) as Promise<InstanceType<typeof CustomOctokit>>;
+    }) as Promise<CustomOctokit>;
+  };
 
   /**
    *
@@ -391,7 +413,7 @@ export class GitHub {
   };
 
   private static async unfurlProject(
-    client: InstanceType<typeof CustomOctokit>,
+    client: CustomOctokit,
     resource: ParsedProject
   ) {
     let project: GitHubProject | undefined;
