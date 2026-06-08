@@ -15267,7 +15267,7 @@ __metadata:
     png-chunks-extract: "npm:^1.0.0"
     polished: "npm:^4.3.1"
     postinstall-postinstall: "npm:^2.1.0"
-    prettier: "npm:^3.6.2"
+    prettier: "npm:^3.8.3"
     prosemirror-changeset: "npm:2.4.1"
     prosemirror-codemark: "npm:^0.4.2"
     prosemirror-commands: "npm:^1.7.1"
@@ -16226,12 +16226,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.6.2":
-  version: 3.7.4
-  resolution: "prettier@npm:3.7.4"
+"prettier@npm:^3.8.3":
+  version: 3.8.3
+  resolution: "prettier@npm:3.8.3"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10c0/9675d2cd08eacb1faf1d1a2dbfe24bfab6a912b059fc9defdb380a408893d88213e794a40a2700bd29b140eb3172e0b07c852853f6e22f16f3374659a1a13389
+  checksum: 10c0/754816fd7593eb80f6376d7476d463e832c38a12f32775a82683adb6e35b772b1f484d65f19401507b983a8c8a7cd5a4a9f12006bd56491e8f35503473f77473
   languageName: node
   linkType: hard
 
