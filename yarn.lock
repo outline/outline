@@ -15289,7 +15289,7 @@ __metadata:
     react: "npm:^17.0.2"
     react-avatar-editor: "npm:^13.0.2"
     react-colorful: "npm:^5.7.0"
-    react-day-picker: "npm:^8.10.1"
+    react-day-picker: "npm:^8.10.2"
     react-dnd: "npm:^16.0.1"
     react-dnd-html5-backend: "npm:^16.0.1"
     react-dom: "npm:^17.0.2"
@@ -16682,13 +16682,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-day-picker@npm:^8.10.1":
-  version: 8.10.1
-  resolution: "react-day-picker@npm:8.10.1"
+"react-day-picker@npm:^8.10.2":
+  version: 8.10.2
+  resolution: "react-day-picker@npm:8.10.2"
   peerDependencies:
     date-fns: ^2.28.0 || ^3.0.0
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 10c0/a0ff28c4b61b3882e6a825b19e5679e2fdf3256cf1be8eb0a0c028949815c1ae5a6561474c2c19d231c010c8e0e0b654d3a322610881e0655abca05a2e03d9df
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/701fe6dc0cc2de1430ddbf976c3a9e1f00b8b9970f1d11364047238d34e5f60f8089f505c8d9ec77faeef861b06a3b7b8ed6cc5d11d454abe46fe6b3a46270eb
   languageName: node
   linkType: hard
 
