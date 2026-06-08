@@ -50,6 +50,41 @@ describe("validateUrlNotPrivate", () => {
     ).rejects.toThrow("is not allowed");
   });
 
+  it.each([
+    ["::ffff:169.254.169.254", "metadata via IPv4-mapped IPv6"],
+    ["::ffff:127.0.0.1", "loopback via IPv4-mapped IPv6"],
+    ["::ffff:10.0.0.1", "RFC1918 via IPv4-mapped IPv6"],
+    ["::ffff:192.168.1.1", "RFC1918 via IPv4-mapped IPv6"],
+    ["64:ff9b::a9fe:a9fe", "metadata via NAT64"],
+    ["2002:a9fe:a9fe::", "metadata via 6to4"],
+  ])("should reject %s in URL (%s)", async (address) => {
+    await expect(
+      validateUrlNotPrivate(`https://[${address}]/api`)
+    ).rejects.toThrow("is not allowed");
+  });
+
+  it("should reject IPv4-mapped IPv6 address resolved via DNS", async () => {
+    lookupSpy.mockResolvedValue({
+      address: "::ffff:169.254.169.254",
+      family: 6,
+    });
+    await expect(
+      validateUrlNotPrivate("https://metadata.example.com")
+    ).rejects.toThrow("is not allowed");
+  });
+
+  it("should reject carrier-grade NAT address", async () => {
+    await expect(
+      validateUrlNotPrivate("https://100.64.0.1/api")
+    ).rejects.toThrow("is not allowed");
+  });
+
+  it("should reject IPv4-mapped IPv6 addresses outright", async () => {
+    await expect(
+      validateUrlNotPrivate("https://[::ffff:8.8.8.8]/")
+    ).rejects.toThrow("is not allowed");
+  });
+
   describe("with ALLOWED_PRIVATE_IP_ADDRESSES", () => {
     it("should allow exact IP match", async () => {
       env.ALLOWED_PRIVATE_IP_ADDRESSES = ["10.0.0.1"];

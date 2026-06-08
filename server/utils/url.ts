@@ -7,15 +7,6 @@ import { InvalidRequestError } from "@server/errors";
 
 const UrlIdLength = 10;
 
-/** IP ranges that are not allowed for outbound requests. */
-const privateRanges = new Set([
-  "private",
-  "loopback",
-  "linkLocal",
-  "uniqueLocal",
-  "unspecified",
-]);
-
 export const generateUrlId = () => randomString(UrlIdLength);
 
 // Paths probed by vulnerability scanners.
@@ -53,7 +44,9 @@ export function isPrivateIP(ip: string): boolean {
   if (!ipaddr.isValid(ip)) {
     return false;
   }
-  return privateRanges.has(ipaddr.parse(ip).range());
+
+  // Only globally-routable unicast addresses are permitted
+  return ipaddr.parse(ip).range() !== "unicast";
 }
 
 /**
@@ -102,7 +95,9 @@ function isAllowedPrivateIP(ip: string): boolean {
  * @throws InternalError if the URL resolves to a private IP that is not allowed.
  */
 export async function validateUrlNotPrivate(url: string) {
-  const { hostname } = new URL(url);
+  // URL.hostname keeps the square brackets around IPv6 literals (e.g.
+  // "[::1]"), which net.isIP does not accept, so strip them before checking.
+  const hostname = new URL(url).hostname.replace(/^\[|\]$/g, "");
 
   if (net.isIP(hostname)) {
     if (isPrivateIP(hostname) && !isAllowedPrivateIP(hostname)) {
