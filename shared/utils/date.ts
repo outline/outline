@@ -328,8 +328,9 @@ export function parseISODate(iso: string): Date | null {
 
 /**
  * Formats a date mention's stored ISO value into an absolute, localized,
- * human-readable label (e.g. "January 2nd, 2024"). Suitable for plaintext
- * and markdown serialization where a stable, unambiguous value is required.
+ * human-readable label. The year is omitted within the current year (e.g.
+ * "January 2nd") and included otherwise (e.g. "February 3rd, 2024"). Suitable
+ * for plaintext and markdown serialization.
  *
  * @param iso The date-only ISO string.
  * @param language The user's language preference.
@@ -343,7 +344,11 @@ export function dateToReadable(
   if (!date) {
     return iso;
   }
-  return format(date, "MMMM do, yyyy", { locale: dateLocale(language) });
+  const locale = dateLocale(language);
+  if (isSameYear(date, new Date())) {
+    return format(date, "MMMM do", { locale });
+  }
+  return format(date, "MMMM do, yyyy", { locale });
 }
 
 /**

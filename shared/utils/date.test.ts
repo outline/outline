@@ -19,8 +19,16 @@ describe("toISODate / parseISODate", () => {
 });
 
 describe("dateToReadable", () => {
-  it("formats an absolute, human-readable date", () => {
-    expect(dateToReadable("2024-02-03")).toBe("February 3rd, 2024");
+  it("includes the year outside the current year", () => {
+    expect(dateToReadable("2020-02-03")).toBe("February 3rd, 2020");
+  });
+
+  it("omits the year within the current year", () => {
+    const date = new Date();
+    date.setMonth(date.getMonth() === 0 ? 6 : 0);
+    date.setDate(15);
+    const result = dateToReadable(toISODate(date));
+    expect(result).not.toContain(`${date.getFullYear()}`);
   });
 
   it("returns the original string when invalid", () => {
