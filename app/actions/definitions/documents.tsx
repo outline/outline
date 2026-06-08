@@ -240,6 +240,26 @@ function findDocumentSiblingIndex(
   return siblings?.findIndex((node) => node.id === document.id) ?? -1;
 }
 
+/**
+ * Determines whether the user can create a sibling of the given document.
+ * A sibling shares the document's parent, so this mirrors the backend's
+ * create authorization: create permission on the parent document, or on the
+ * collection when the document is at the root.
+ *
+ * @param stores - the root stores.
+ * @param document - the document to create a sibling of.
+ * @returns true if the user can create a sibling.
+ */
+function canCreateSiblingDocument(
+  stores: ActionContext["stores"],
+  document: { collectionId?: string | null; parentDocumentId?: string }
+): boolean {
+  return document.parentDocumentId
+    ? stores.policies.abilities(document.parentDocumentId).createChildDocument
+    : !!document.collectionId &&
+        stores.policies.abilities(document.collectionId).createDocument;
+}
+
 export const createNestedDocument = createInternalLinkAction({
   name: ({ t }) => t("Nested document"),
   analyticsName: "New document",
@@ -279,7 +299,7 @@ const createDocumentBefore = createInternalLinkAction({
     if (collection?.sort.field === "title") {
       return false;
     }
-    return stores.policies.abilities(currentTeamId).createDocument;
+    return canCreateSiblingDocument(stores, document);
   },
   to: ({ activeDocumentId, stores, sidebarContext }) => {
     const document = activeDocumentId
@@ -321,7 +341,7 @@ const createDocumentAfter = createInternalLinkAction({
     if (collection?.sort.field === "title") {
       return false;
     }
-    return stores.policies.abilities(currentTeamId).createDocument;
+    return canCreateSiblingDocument(stores, document);
   },
   to: ({ activeDocumentId, stores, sidebarContext }) => {
     const document = activeDocumentId
