@@ -47,7 +47,9 @@ interface MentionItem extends MenuItem {
     id: string;
     type: MentionType;
     modelId: string;
-    label: string;
+    // Date mentions intentionally omit a label — their text is derived from
+    // the ISO `modelId` so nothing human-readable is persisted.
+    label?: string;
     actorId?: string;
   };
 }
@@ -108,7 +110,6 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               type: MentionType.Date,
               modelId: parsedISODate,
               actorId,
-              label: dateToReadable(parsedISODate, userLocale),
             },
           } as MentionItem,
         ]

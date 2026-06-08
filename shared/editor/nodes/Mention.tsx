@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
 import type { UnfurlResponse } from "../../types";
 import { MentionType, UnfurlResourceType } from "../../types";
+import { dateToReadable } from "../../utils/date";
 import {
   MentionCollection,
   MentionDocument,
@@ -40,17 +41,25 @@ export default class Mention extends Node {
   }
 
   get schema(): NodeSpec {
-    const toPlainText = (node: ProsemirrorNode) =>
-      node.attrs.type === MentionType.User
+    // Date mentions derive their text from the ISO `modelId`, which is the
+    // single source of truth — no human-readable label is persisted for them.
+    const toPlainText = (node: ProsemirrorNode) => {
+      if (node.attrs.type === MentionType.Date) {
+        return dateToReadable(node.attrs.modelId);
+      }
+      return node.attrs.type === MentionType.User
         ? `@${node.attrs.label}`
         : node.attrs.label;
+    };
 
     return {
       attrs: {
         type: {
           default: MentionType.User,
         },
-        label: {},
+        label: {
+          default: undefined,
+        },
         modelId: {},
         actorId: {
           default: undefined,
@@ -85,7 +94,9 @@ export default class Mention extends Node {
               type,
               modelId,
               actorId: dom.dataset.actorid,
-              label: dom.innerText,
+              // Date mentions derive their text from `modelId`; never capture
+              // the rendered text as a persisted label.
+              label: type === MentionType.Date ? undefined : dom.innerText,
               id: dom.id,
               href: dom.getAttribute("href"),
               unfurl: dom.dataset.unfurl
@@ -329,7 +340,10 @@ export default class Mention extends Node {
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     const mType = node.attrs.type;
     const mId = node.attrs.modelId;
-    const label = node.attrs.label;
+    // Date mentions have no stored label; the readable text is derived from
+    // the ISO `modelId` so it can never drift from the source of truth.
+    const label =
+      mType === MentionType.Date ? dateToReadable(mId) : node.attrs.label;
     const id = node.attrs.id;
 
     // Use regular links for document and collection mentions
@@ -350,26 +364,28 @@ export default class Mention extends Node {
         id: tok.attrGet("id"),
         type: tok.attrGet("type"),
         modelId: tok.attrGet("modelId"),
-        label: tok.content,
+        // Date mentions derive their text from `modelId`; the link text is not
+        // persisted as a label.
+        label:
+          tok.attrGet("type") === MentionType.Date ? undefined : tok.content,
       }),
     };
   }
 
   handleChangeDate =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
-    (modelId: string, label: string) => {
+    (modelId: string) => {
       const { view } = this.editor;
       const { tr } = view.state;
       const pos = getPos();
 
-      if (node.attrs.modelId === modelId && node.attrs.label === label) {
+      if (node.attrs.modelId === modelId) {
         return;
       }
 
       const transaction = tr.setNodeMarkup(pos, undefined, {
         ...node.attrs,
         modelId,
-        label,
       });
       view.dispatch(transaction);
     };

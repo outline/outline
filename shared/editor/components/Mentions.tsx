@@ -16,7 +16,6 @@ import styled from "styled-components";
 import { depths, s } from "../../styles";
 import {
   dateLocale,
-  dateToReadable,
   dateToRelativeReadable,
   parseISODate,
   toISODate,
@@ -523,7 +522,7 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
 });
 
 type DateProps = ComponentProps & {
-  onChangeDate: (modelId: string, label: string) => void;
+  onChangeDate: (modelId: string) => void;
 };
 
 export const MentionDate = observer(function MentionDate_(props: DateProps) {
@@ -541,10 +540,9 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
   const handleSelect = React.useCallback(
     (date: Date) => {
       setOpen(false);
-      const newIso = toISODate(date);
-      onChangeDate(newIso, dateToReadable(newIso, language));
+      onChangeDate(toISODate(date));
     },
-    [onChangeDate, language]
+    [onChangeDate]
   );
 
   const trigger = (
