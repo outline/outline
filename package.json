@@ -358,7 +358,7 @@
     "babel-plugin-transform-typescript-metadata": "^0.4.0",
     "browserslist-to-esbuild": "^1.2.0",
     "concurrently": "^8.2.2",
-    "discord-api-types": "^0.38.46",
+    "discord-api-types": "^0.38.48",
     "husky": "^8.0.3",
     "i18next-parser": "^9.4.0",
     "ioredis-mock": "^8.13.1",
