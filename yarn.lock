@@ -10045,10 +10045,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"discord-api-types@npm:^0.38.46":
-  version: 0.38.46
-  resolution: "discord-api-types@npm:0.38.46"
-  checksum: 10c0/a8b3d6bae79c33f02bef2892fdb23d139ce0139dc4a2cc2c0a3d1dc0c540685136a3c0f5a0ea5cb2f505c934caaeaca57a0def12d6ff1a98e36c6e348120d9ab
+"discord-api-types@npm:^0.38.48":
+  version: 0.38.48
+  resolution: "discord-api-types@npm:0.38.48"
+  checksum: 10c0/898e57378e6e30987d072f88d4d1c08c5e01f1b534c3c3390a117f1a79a9107e766fd3aaf8728c0afbd934f4dc63e76b1f458f7096d54409a68ae9f848b7c564
   languageName: node
   linkType: hard
 
@@ -15190,7 +15190,7 @@ __metadata:
     date-fns: "npm:^3.6.0"
     dd-trace: "npm:^5.98.0"
     diff: "npm:^5.2.2"
-    discord-api-types: "npm:^0.38.46"
+    discord-api-types: "npm:^0.38.48"
     email-providers: "npm:^1.14.0"
     emoji-mart: "npm:^5.6.0"
     emoji-regex: "npm:^10.6.0"
