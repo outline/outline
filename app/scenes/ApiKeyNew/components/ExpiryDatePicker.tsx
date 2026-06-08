@@ -1,5 +1,4 @@
 import { format as formatDate } from "date-fns";
-import { CalendarIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -36,7 +35,7 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>
-        <StyledPopoverButton icon={<Icon />} neutral>
+        <StyledPopoverButton neutral>
           {selectedDate
             ? formatDate(selectedDate, "MMM dd, yyyy", { locale })
             : t("Choose a date")}
@@ -61,23 +60,9 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
   );
 };
 
-const Icon = () => (
-  <IconWrapper>
-    <CalendarIcon />
-  </IconWrapper>
-);
-
 const StyledPopoverButton = styled(Button)`
   margin-top: 12px;
   width: 150px;
-`;
-
-const IconWrapper = styled.span`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 24px;
-  height: 24px;
 `;
 
 export default ExpiryDatePicker;

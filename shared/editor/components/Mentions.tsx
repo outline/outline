@@ -545,7 +545,7 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
     [onChangeDate]
   );
 
-  const trigger = (
+  const content = (
     <DateMention
       {...attrs}
       className={cn(className, {
@@ -558,7 +558,7 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
   );
 
   if (!isEditable) {
-    return trigger;
+    return content;
   }
 
   return (
@@ -567,7 +567,7 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
         asChild
         onMouseDown={(e) => e.stopPropagation()}
       >
-        {trigger}
+        {content}
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
@@ -577,7 +577,6 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
           aria-label={t("Choose a date")}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
-          {/* Lock page scroll while open, matching the inline editor menu. */}
           <RemoveScroll as={Slot} allowPinchZoom>
             <DatePopoverContent>
               <Calendar

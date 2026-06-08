@@ -122,7 +122,7 @@ function ApiKeyNew({ onSubmit }: Props) {
           )}
           .
         </Text>
-        <Flex align="center" gap={16}>
+        <Flex align="center" gap={8}>
           <StyledExpirySelect
             options={expiryOptions}
             value={expiryType}
