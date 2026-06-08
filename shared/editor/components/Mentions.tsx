@@ -1,5 +1,3 @@
-import * as PopoverPrimitive from "@radix-ui/react-popover";
-import { Slot } from "@radix-ui/react-slot";
 import { observer } from "mobx-react";
 import {
   DocumentIcon,
@@ -10,18 +8,10 @@ import {
 import type { Node } from "prosemirror-model";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { RemoveScroll } from "react-remove-scroll";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { depths, s } from "../../styles";
-import {
-  dateLocale,
-  dateToRelativeReadable,
-  parseISODate,
-  toISODate,
-} from "../../utils/date";
+import { dateToRelativeReadable, parseISODate } from "../../utils/date";
 import { Backticks } from "../../components/Backticks";
-import { Calendar } from "../../components/Calendar";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
 import { IssueStatusIcon } from "../../components/IssueStatusIcon";
@@ -525,25 +515,21 @@ type DateProps = ComponentProps & {
   onChangeDate: (modelId: string) => void;
 };
 
+// Loaded lazily so its browser-only dependencies (Radix, react-day-picker)
+// don't enter the editor schema's static import graph, which is also used on
+// the server.
+const DateMentionPicker = React.lazy(() => import("./DateMentionPicker"));
+
 export const MentionDate = observer(function MentionDate_(props: DateProps) {
   const { isSelected, isEditable, node, onChangeDate } = props;
   const { t } = useTranslation();
   const { auth } = useStores();
-  const [open, setOpen] = React.useState(false);
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   const language = auth.user?.language;
   const iso = typeof node.attrs.modelId === "string" ? node.attrs.modelId : "";
   const display = dateToRelativeReadable(iso, t, language);
   const selectedDate = parseISODate(iso) ?? undefined;
-
-  const handleSelect = React.useCallback(
-    (date: Date) => {
-      setOpen(false);
-      onChangeDate(toISODate(date));
-    },
-    [onChangeDate]
-  );
 
   const content = (
     <DateMention
@@ -562,36 +548,15 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
   }
 
   return (
-    <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
-      <PopoverPrimitive.Trigger
-        asChild
-        onMouseDown={(e) => e.stopPropagation()}
+    <React.Suspense fallback={content}>
+      <DateMentionPicker
+        selectedDate={selectedDate}
+        language={language}
+        onChange={onChangeDate}
       >
         {content}
-      </PopoverPrimitive.Trigger>
-      <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Content
-          asChild
-          sideOffset={4}
-          align="start"
-          aria-label={t("Choose a date")}
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-          <RemoveScroll as={Slot} allowPinchZoom>
-            <DatePopoverContent>
-              <Calendar
-                required
-                mode="single"
-                selected={selectedDate}
-                defaultMonth={selectedDate}
-                onSelect={handleSelect}
-                locale={dateLocale(language)}
-              />
-            </DatePopoverContent>
-          </RemoveScroll>
-        </PopoverPrimitive.Content>
-      </PopoverPrimitive.Portal>
-    </PopoverPrimitive.Root>
+      </DateMentionPicker>
+    </React.Suspense>
   );
 });
 
@@ -620,27 +585,6 @@ const MentionError = ({ className }: { className: string }) => {
 const DateMention = styled.span<{ $editable: boolean }>`
   cursor: ${(props) => (props.$editable ? "pointer" : "default")};
   user-select: none;
-`;
-
-const DatePopoverContent = styled.div`
-  z-index: ${depths.modal};
-  background: ${s("menuBackground")};
-  box-shadow: ${s("menuShadow")};
-  border-radius: 8px;
-  outline: none;
-
-  &[data-state="open"] {
-    animation: fadeIn 150ms ease;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
 `;
 
 const StyledWarningIcon = styled(WarningIcon)`
