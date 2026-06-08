@@ -20,6 +20,7 @@ import Diff from "@shared/editor/extensions/Diff";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { ExtendedChange } from "@shared/editor/lib/ChangesetHelper";
 import textBetween from "@shared/editor/lib/textBetween";
+import { withTrailingNode } from "@shared/editor/lib/trailingNode";
 import EditorContainer from "@shared/editor/components/Styles";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
@@ -106,15 +107,16 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * @returns The content as a Y.Doc.
    */
   static toYDoc(input: string | ProsemirrorData, fieldName = "default"): Y.Doc {
-    if (typeof input === "object") {
-      return prosemirrorToYDoc(
-        ProsemirrorHelper.toProsemirror(input),
-        fieldName
-      );
+    const node =
+      typeof input === "object"
+        ? ProsemirrorHelper.toProsemirror(input)
+        : parser.parse(input);
+    if (!node) {
+      return new Y.Doc();
     }
-
-    const node = parser.parse(input);
-    return node ? prosemirrorToYDoc(node, fieldName) : new Y.Doc();
+    // Normalize to the editor's trailing-node form so the document opens without
+    // the editor inserting a trailing paragraph, which would be a spurious edit.
+    return prosemirrorToYDoc(withTrailingNode(node), fieldName);
   }
 
   /**
