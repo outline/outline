@@ -17,7 +17,6 @@ import {
   WarningIcon,
   InfoIcon,
   AttachmentIcon,
-  ClockIcon,
   CalendarIcon,
   MathIcon,
   DoneIcon,
@@ -26,9 +25,12 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import { v4 as uuidv4 } from "uuid";
 import type { TFunction } from "i18next";
 import Image from "@shared/editor/components/Img";
 import type { MenuItem } from "@shared/editor/types";
+import { MentionType } from "@shared/types";
+import { toISODate } from "@shared/utils/date";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Desktop from "~/utils/Desktop";
 
@@ -184,22 +186,18 @@ export default function blockMenuItems(
       attrs: { markup: "***" },
     },
     {
-      name: "date",
+      // Inserts a date mention for today. Supersedes the deprecated "Current
+      // date/time" commands that inserted a static string or template token.
+      name: "mention",
       title: t("Current date"),
-      keywords: "clock today",
+      keywords: "clock today date time now",
       icon: <CalendarIcon />,
-    },
-    {
-      name: "time",
-      title: t("Current time"),
-      keywords: "clock now",
-      icon: <ClockIcon />,
-    },
-    {
-      name: "datetime",
-      title: t("Current date and time"),
-      keywords: "clock today date",
-      icon: <CalendarIcon />,
+      appendSpace: true,
+      attrs: () => ({
+        id: uuidv4(),
+        type: MentionType.Date,
+        modelId: toISODate(new Date()),
+      }),
     },
     {
       name: "separator",
