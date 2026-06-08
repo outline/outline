@@ -570,6 +570,12 @@ width: 100%;
     gap: 0;
   }
 
+  /* Date mentions are plain text, so they inherit the surrounding font weight
+     (e.g. bold when placed inside a heading). */
+  &[data-type="date"] {
+    font-weight: inherit;
+  }
+
   &.mention-user::before {
     content: "@";
   }
