@@ -132,8 +132,10 @@ export default class Image extends SimpleImage {
       marks: "",
       group: "inline",
       selectable: true,
-      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1289000
-      draggable: false,
+      // Draggable so the image can be moved within the document, including
+      // between table cells. The caption is marked non-draggable separately to
+      // keep it editable in Firefox (see Caption component).
+      draggable: true,
       atom: true,
       parseDOM: [
         {
