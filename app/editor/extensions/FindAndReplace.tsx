@@ -641,14 +641,8 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
               this.updateHighlights();
               return;
             }
-            // The results are unchanged, but the CSS Custom Highlight API relies
-            // on static DOM ranges that become detached when the editor
-            // re-renders its DOM without bumping the generation — e.g. content
-            // settling after sync when navigating from search results,
-            // collaboration cursors, or node views mounting. Only pay for an
-            // O(n) domAtPos rebuild when the ranges have actually gone stale;
-            // otherwise the live highlights are still valid and we skip the work
-            // (cheap isConnected checks only, no layout).
+            // Results unchanged: only rebuild when the static highlight ranges
+            // have detached from a DOM re-render that didn't bump the generation.
             if (this.searchTerm && this.highlightsStale()) {
               this.updateHighlights();
             }
