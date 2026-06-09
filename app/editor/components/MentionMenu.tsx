@@ -81,11 +81,19 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       return;
     }
     let cancelled = false;
-    void parseNaturalLanguageDate(search).then((date) => {
-      if (!cancelled) {
-        setParsedISODate(date ? toISODate(date) : undefined);
-      }
-    });
+    void parseNaturalLanguageDate(search)
+      .then((date) => {
+        if (!cancelled) {
+          setParsedISODate(date ? toISODate(date) : undefined);
+        }
+      })
+      .catch(() => {
+        // Parsing failed (e.g. the chrono chunk failed to load); drop the
+        // suggestion rather than leaving a stale one.
+        if (!cancelled) {
+          setParsedISODate(undefined);
+        }
+      });
     return () => {
       cancelled = true;
     };

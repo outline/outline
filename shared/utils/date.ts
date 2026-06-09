@@ -317,11 +317,17 @@ export function toISODate(date: Date): string {
 
 /**
  * Parses a date-only ISO string (yyyy-MM-dd) into a Date at local midnight.
+ * Strings carrying a time component are rejected so the date-only contract
+ * (and the day-granular comparisons that depend on it) cannot be violated.
  *
  * @param iso The date-only ISO string.
- * @returns the parsed Date, or null when the string is not a valid date.
+ * @returns the parsed Date at local midnight, or null when the string is not a
+ * valid date-only value.
  */
 export function parseISODate(iso: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    return null;
+  }
   const date = parseISO(iso);
   return isValid(date) ? date : null;
 }

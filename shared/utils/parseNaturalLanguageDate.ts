@@ -12,7 +12,13 @@ let chronoPromise: Promise<typeof Chrono> | undefined;
 
 function loadChrono(): Promise<typeof Chrono> {
   if (!chronoPromise) {
-    chronoPromise = import("chrono-node");
+    chronoPromise = import("chrono-node").catch((err) => {
+      // Don't cache a rejected import (e.g. a transient chunk-load failure),
+      // otherwise every subsequent parse would reuse the failure. Clearing it
+      // lets the next call retry.
+      chronoPromise = undefined;
+      throw err;
+    });
   }
   return chronoPromise;
 }

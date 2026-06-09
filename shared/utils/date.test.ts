@@ -16,6 +16,16 @@ describe("toISODate / parseISODate", () => {
   it("returns null for an invalid ISO string", () => {
     expect(parseISODate("not-a-date")).toBeNull();
   });
+
+  it("rejects strings carrying a time component", () => {
+    expect(parseISODate("2024-02-03T10:00:00Z")).toBeNull();
+  });
+
+  it("parses a date-only string to local midnight", () => {
+    const date = parseISODate("2024-02-03");
+    expect(date?.getHours()).toBe(0);
+    expect(date?.getMinutes()).toBe(0);
+  });
 });
 
 describe("dateToReadable", () => {

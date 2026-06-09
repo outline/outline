@@ -13,6 +13,10 @@ export function DynamicCalendarIcon({ day, className }: Props) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      // Decorative icon: hide from assistive tech so the day digit isn't
+      // announced out of context.
+      aria-hidden
+      focusable={false}
       // Isolate so the day text only blends against the icon's own fill below
       // it, not whatever is behind the icon on the page.
       style={{ isolation: "isolate" }}
