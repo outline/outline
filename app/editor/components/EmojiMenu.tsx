@@ -25,7 +25,7 @@ type Props = Omit<
 
 const EmojiMenu = (props: Props) => {
   const { emojis } = useStores();
-  const { search } = props;
+  const { search = "" } = props;
 
   useEffect(() => {
     if (search) {

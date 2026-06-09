@@ -35,7 +35,7 @@ import { MenuHeader } from "~/components/primitives/components/Menu";
 export type Props<T extends MenuItem = MenuItem> = {
   rtl: boolean;
   isActive: boolean;
-  search: string;
+  search?: string;
   trigger: string | string[];
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
@@ -400,7 +400,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   };
 
   const filtered = React.useMemo(() => {
-    const { embeds = [], search, uploadFile, filterable = true } = props;
+    const { embeds = [], search = "", uploadFile, filterable = true } = props;
     let items: (EmbedDescriptor | MenuItem)[] = [...props.items];
     const embedItems: EmbedDescriptor[] = [];
 

@@ -47,7 +47,7 @@ type Props = Omit<
   "renderMenuItem" | "items" | "embeds"
 >;
 
-function MentionMenu({ search, isActive, ...rest }: Props) {
+function MentionMenu({ search = "", isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
   const { t } = useTranslation();
   const { auth, documents, users, collections, groups } = useStores();
