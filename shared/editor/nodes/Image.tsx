@@ -9,12 +9,12 @@ import type {
 import type { Command } from "prosemirror-state";
 import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import * as React from "react";
-import { sanitizeImageSrc } from "../../utils/urls";
+import { sanitizeImageSrc, sanitizeUrl } from "../../utils/urls";
 import Caption from "../components/Caption";
 import ImageComponent from "../components/Image";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import type { ComponentProps } from "../types";
+import type { ComponentProps, NodeAttrMark } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import { ImageSource } from "../lib/FileHelper";
@@ -151,6 +151,11 @@ export default class Image extends SimpleImage {
 
             const width = img?.getAttribute("width");
             const height = img?.getAttribute("height");
+
+            // A link wrapping the image is stored as a node attribute rather
+            // than a mark, parse it back so it survives copy/paste.
+            const href = dom.getElementsByTagName("a")[0]?.getAttribute("href");
+
             return {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
@@ -159,17 +164,16 @@ export default class Image extends SimpleImage {
               width: width ? parseInt(width, 10) : undefined,
               height: height ? parseInt(height, 10) : undefined,
               layoutClass,
+              marks: href ? [{ type: "link", attrs: { href } }] : undefined,
             };
           },
         },
         {
           tag: "img",
           getAttrs: (dom: HTMLImageElement) => {
-            // Don't parse images from our own editor with this rule.
-            if (
-              dom.parentElement?.classList.contains("image") ||
-              dom.parentElement?.classList.contains("emoji")
-            ) {
+            // Don't parse images from our own editor with this rule. A linked
+            // image nests the <img> inside an <a>, so check ancestors too.
+            if (dom.closest(".image") || dom.closest(".emoji")) {
               return false;
             }
 
@@ -206,18 +210,27 @@ export default class Image extends SimpleImage {
           ? `image image-${node.attrs.layoutClass}`
           : "image";
 
-        const children = [
-          [
-            "img",
-            {
-              ...node.attrs,
-              src: sanitizeImageSrc(node.attrs.src),
-              width: node.attrs.width,
-              height: node.attrs.height,
-              contentEditable: "false",
-            },
-          ],
+        // `marks` is held separately below and is not a valid DOM attribute.
+        const { marks, ...attrs } = node.attrs;
+        const img = [
+          "img",
+          {
+            ...attrs,
+            src: sanitizeImageSrc(node.attrs.src),
+            width: node.attrs.width,
+            height: node.attrs.height,
+            contentEditable: "false",
+          },
         ];
+
+        // A link applied to an image is held as a node attribute rather than a
+        // mark, so it must be written into the DOM explicitly here.
+        const linkHref = (marks as NodeAttrMark[] | undefined)?.find(
+          (mark) => mark.type === "link"
+        )?.attrs?.href;
+        const href = typeof linkHref === "string" ? linkHref : undefined;
+
+        const children = [href ? ["a", { href: sanitizeUrl(href) }, img] : img];
 
         if (node.attrs.alt) {
           children.push([
