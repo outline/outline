@@ -116,18 +116,17 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
           .filter(Boolean)
           .map((value) => value.toLowerCase());
 
-        let emailVerified: boolean | undefined;
-        if (directoryEmails.includes(email.toLowerCase())) {
-          emailVerified = true;
-        } else {
-          const verificationClaims = [profile.xms_edov, profile.email_verified];
-          const presentClaims = verificationClaims.filter(
-            (claim) => claim !== undefined
-          );
-          emailVerified = presentClaims.length
-            ? presentClaims.some((claim) => claim === true || claim === "true")
-            : undefined;
-        }
+        const verificationClaims = [
+          profile.xms_edov,
+          profile.email_verified,
+        ].filter((claim) => claim !== undefined);
+        const emailVerified =
+          directoryEmails.includes(email.toLowerCase()) ||
+          (verificationClaims.length
+            ? verificationClaims.some(
+                (claim) => claim === true || claim === "true"
+              )
+            : undefined);
 
         const domain = parseEmail(email).domain;
         const subdomain = slugifyDomain(domain);
