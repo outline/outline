@@ -60,6 +60,7 @@ describe("collection tools", () => {
     expect(data.color).toEqual("#FF0000");
     expect(data.id).toBeDefined();
     expect(data.url).toMatch(/^https?:\/\//);
+    expect(data.permission).toEqual(null);
   });
 
   it("update_collection updates fields on existing collection", async () => {
