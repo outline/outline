@@ -1,6 +1,7 @@
 import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
+import { runInAction } from "mobx";
 import {
   DocumentIcon,
   PlusIcon,
@@ -40,7 +41,6 @@ import { client } from "~/utils/ApiClient";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
-import { runInAction } from "mobx";
 
 interface MentionItem extends MenuItem {
   attrs: {
@@ -99,29 +99,31 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
     };
   }, [search]);
 
-  const dateItems: MentionItem[] =
-    actorId && parsedISODate
-      ? [
-          {
-            name: "mention",
-            icon: (
-              <DynamicCalendarIcon
-                day={parseISODate(parsedISODate)?.getDate()}
-              />
-            ),
-            title: dateToRelativeReadable(parsedISODate, t, userLocale),
-            subtitle: dateToReadable(parsedISODate, userLocale),
-            section: DateSection,
-            appendSpace: true,
-            attrs: {
-              id: uuidv4(),
-              type: MentionType.Date,
-              modelId: parsedISODate,
-              actorId,
-            },
-          } as MentionItem,
-        ]
-      : [];
+  let dateItems: MentionItem[] = [];
+
+  if (actorId && parsedISODate) {
+    const title = dateToRelativeReadable(parsedISODate, t, userLocale);
+    const subtitle = dateToReadable(parsedISODate, userLocale);
+
+    dateItems = [
+      {
+        name: "mention",
+        icon: (
+          <DynamicCalendarIcon day={parseISODate(parsedISODate)?.getDate()} />
+        ),
+        title,
+        subtitle: title !== subtitle ? subtitle : undefined,
+        section: DateSection,
+        appendSpace: true,
+        attrs: {
+          id: uuidv4(),
+          type: MentionType.Date,
+          modelId: parsedISODate,
+          actorId,
+        },
+      } as MentionItem,
+    ];
+  }
 
   const { loading, request } = useRequest(
     useCallback(async () => {

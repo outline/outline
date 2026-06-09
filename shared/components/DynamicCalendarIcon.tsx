@@ -38,7 +38,7 @@ export function DynamicCalendarIcon({ day, className }: Props) {
         dominantBaseline="middle"
         letterSpacing="0em"
       >
-        <tspan x="12" y="14">
+        <tspan x="12" y="13.5">
           {day}
         </tspan>
       </text>

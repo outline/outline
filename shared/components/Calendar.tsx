@@ -98,7 +98,7 @@ const Wrapper = styled.div`
   }
 
   .rdp-head_cell {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     text-transform: none;
     color: ${s("textTertiary")};
