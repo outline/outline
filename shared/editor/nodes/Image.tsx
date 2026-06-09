@@ -153,8 +153,9 @@ export default class Image extends SimpleImage {
             const height = img?.getAttribute("height");
 
             // A link wrapping the image is stored as a node attribute rather
-            // than a mark, parse it back so it survives copy/paste.
-            const href = dom.getElementsByTagName("a")[0]?.getAttribute("href");
+            // than a mark, parse it back so it survives copy/paste. Sanitize
+            // the href as it is rendered directly into the DOM by the view.
+            const href = sanitizeUrl(img?.closest("a")?.getAttribute("href"));
 
             return {
               src: img?.getAttribute("src"),
