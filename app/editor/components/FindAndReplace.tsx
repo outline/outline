@@ -1,3 +1,4 @@
+import { debounce } from "es-toolkit/compat";
 import {
   CaretDownIcon,
   CaretUpIcon,
@@ -211,9 +212,32 @@ export default function FindAndReplace({
     });
   }, [caseSensitive, editor.commands, searchTerm]);
 
+  // Searching the document on every keystroke is expensive in long documents –
+  // it traverses the entire doc and rebuilds highlights – so debounce it to keep
+  // typing in the input responsive. The input value itself updates immediately.
+  const debouncedFind = React.useMemo(
+    () =>
+      debounce(
+        (attrs: {
+          text: string;
+          caseSensitive: boolean;
+          regexEnabled: boolean;
+        }) => {
+          editor.commands.find(attrs);
+        },
+        250
+      ),
+    [editor.commands]
+  );
+
+  React.useEffect(() => () => debouncedFind.cancel(), [debouncedFind]);
+
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
       function nextPrevious() {
+        // Ensure any pending debounced search has run so navigation acts on the
+        // results for the text currently in the input.
+        debouncedFind.flush();
         if (ev.shiftKey) {
           editor.commands.prevSearchMatch();
         } else {
@@ -243,7 +267,7 @@ export default function FindAndReplace({
         }
       }
     },
-    [editor.commands, selectInputText]
+    [debouncedFind, editor.commands, selectInputText]
   );
 
   const handleReplace = React.useCallback(
@@ -274,13 +298,13 @@ export default function FindAndReplace({
       ev.stopPropagation();
       setSearchTerm(ev.currentTarget.value);
 
-      editor.commands.find({
+      debouncedFind({
         text: ev.currentTarget.value,
         caseSensitive,
         regexEnabled,
       });
     },
-    [caseSensitive, editor.commands, regexEnabled]
+    [caseSensitive, debouncedFind, regexEnabled]
   );
 
   const handleReplaceKeyDown = React.useCallback(

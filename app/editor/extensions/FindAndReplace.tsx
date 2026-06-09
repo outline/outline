@@ -381,6 +381,11 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       }
     });
 
+    // Tracks already-seen match positions so duplicate matches (possible because
+    // we search the deburred text concatenated with the original) can be skipped
+    // in constant time rather than rescanning the entire results array.
+    const seen = new Set<string>();
+
     mergedTextNodes.forEach((node) => {
       const { text = "", pos, type } = node;
       try {
@@ -407,9 +412,11 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
 
           // Check if already exists in results, possible due to duplicated
           // search string on L257
-          if (this.results.some((r) => r.from === from && r.to === to)) {
+          const key = `${from}:${to}`;
+          if (seen.has(key)) {
             continue;
           }
+          seen.add(key);
 
           this.results.push({ from, to, type });
         }
