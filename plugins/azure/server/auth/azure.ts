@@ -102,17 +102,31 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const user =
           context.state?.auth?.user ?? (await getUserFromOAuthState(context));
 
-        // Microsoft's email claim is mutable, only trust it when a verification
-        // claim confirms it — xms_edov for workforce tenants, or the standard
-        // email_verified claim in External ID / OIDC scenarios.
+        // The mail and userPrincipalName values come from the directory via the
+        // Graph API and are owned by the organization, so an email sourced from
+        // them is inherently trusted. Microsoft's mutable `email` token claim is
+        // only trusted when a verification claim confirms it — xms_edov for
+        // workforce tenants, or the standard email_verified claim in External ID
+        // / OIDC scenarios.
         // https://learn.microsoft.com/en-us/entra/identity-platform/reference-claims-customization
-        const verificationClaims = [profile.xms_edov, profile.email_verified];
-        const presentClaims = verificationClaims.filter(
-          (claim) => claim !== undefined
-        );
-        const emailVerified = presentClaims.length
-          ? presentClaims.some((claim) => claim === true || claim === "true")
-          : undefined;
+        const directoryEmails = [
+          profileResponse.mail,
+          profileResponse.userPrincipalName,
+        ]
+          .filter(Boolean)
+          .map((value) => value.toLowerCase());
+
+        const verificationClaims = [
+          profile.xms_edov,
+          profile.email_verified,
+        ].filter((claim) => claim !== undefined);
+        const emailVerified =
+          directoryEmails.includes(email.toLowerCase()) ||
+          (verificationClaims.length
+            ? verificationClaims.some(
+                (claim) => claim === true || claim === "true"
+              )
+            : undefined);
 
         const domain = parseEmail(email).domain;
         const subdomain = slugifyDomain(domain);
