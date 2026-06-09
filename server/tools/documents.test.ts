@@ -4,6 +4,7 @@ import {
   buildViewer,
   buildCollection,
   buildDocument,
+  buildTemplate,
   buildOAuthAuthentication,
 } from "@server/test/factories";
 import { Document } from "@server/models";
@@ -187,6 +188,82 @@ describe("create_document", () => {
 
     expect(data.document.title).toEqual("Child Document");
     expect(data.document.parentDocumentId).toEqual(parent.id);
+  });
+
+  it("creates from a template", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "Content from the template",
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "From Template",
+      collectionId: collection.id,
+      templateId: template.id,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    const text = res?.result?.content?.[1]?.text ?? "";
+
+    expect(res?.result?.isError).not.toBe(true);
+    expect(data.document.title).toEqual("From Template");
+    expect(data.document.templateId).toEqual(template.id);
+    expect(text).toContain("Content from the template");
+  });
+
+  it("defaults the title to the template title", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Template Title",
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      collectionId: collection.id,
+      templateId: template.id,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+    expect(res?.result?.isError).not.toBe(true);
+    expect(data.document.title).toEqual("Template Title");
+  });
+
+  it("does not allow creating from a template the user cannot access", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const otherUser = await buildUser();
+    const otherCollection = await buildCollection({
+      teamId: otherUser.teamId,
+      userId: otherUser.id,
+    });
+    const template = await buildTemplate({
+      teamId: otherUser.teamId,
+      userId: otherUser.id,
+      collectionId: otherCollection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "From Template",
+      collectionId: collection.id,
+      templateId: template.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
   });
 
   it("does not allow a viewer to create a draft", async () => {

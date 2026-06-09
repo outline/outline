@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { Attachment, Collection, Document, User } from "@server/models";
+import {
+  Attachment,
+  Collection,
+  Document,
+  Template,
+  User,
+} from "@server/models";
 import { authorize, can } from "@server/policies";
 import { AuthorizationError } from "@server/errors";
 import {
@@ -11,6 +17,7 @@ import {
 } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { presentDocument } from "./documents";
+import { presentTemplate } from "./templates";
 import {
   error,
   success,
@@ -68,12 +75,17 @@ export function fetchTool(server: McpServer, scopes: string[]) {
     "attachments.info",
     scopes
   );
+  const canReadTemplates = AuthenticationHelper.canAccess(
+    "templates.info",
+    scopes
+  );
 
   if (
     !canReadDocuments &&
     !canReadCollections &&
     !canReadUsers &&
-    !canReadAttachments
+    !canReadAttachments &&
+    !canReadTemplates
   ) {
     return;
   }
@@ -83,6 +95,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
     ...(canReadCollections ? ["collection"] : []),
     ...(canReadUsers ? ["user"] : []),
     ...(canReadAttachments ? ["attachment"] : []),
+    ...(canReadTemplates ? ["template"] : []),
   ] as [string, ...string[]];
 
   server.registerTool(
@@ -90,7 +103,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
     {
       title: "Fetch",
       description:
-        'Fetches a document, collection, user, or attachment by type and ID. When fetching a collection the response includes the full hierarchical document tree. For users, "current_user" can be used as the ID to get the authenticated user. For attachments, the response includes a short-lived signed URL that can be used to download the file contents directly.',
+        'Fetches a document, collection, user, attachment, or template by type and ID. When fetching a collection the response includes the full hierarchical document tree. For users, "current_user" can be used as the ID to get the authenticated user. For attachments, the response includes a short-lived signed URL that can be used to download the file contents directly. For templates, the response includes the template body as markdown.',
       annotations: {
         idempotentHint: true,
         readOnlyHint: true,
@@ -196,6 +209,29 @@ export function fetchTool(server: McpServer, scopes: string[]) {
               size: attachment.size,
               signedUrl: await attachment.signedUrl,
             });
+          }
+
+          case "template": {
+            const template = await Template.findByPk(id, {
+              userId: actor.id,
+              rejectOnEmpty: true,
+            });
+
+            authorize(actor, "read", template);
+
+            const { text, ...attributes } = await presentTemplate(template);
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: JSON.stringify(pathToUrl(actor.team, attributes)),
+                },
+                {
+                  type: "text" as const,
+                  text,
+                },
+              ],
+            } satisfies CallToolResult;
           }
 
           default:
