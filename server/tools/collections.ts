@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { CollectionPermission } from "@shared/types";
 import { Collection, Team } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { authorize } from "@server/policies";
@@ -179,7 +178,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             color: input.color,
             teamId: user.teamId,
             createdById: user.id,
-            permission: CollectionPermission.ReadWrite,
+            permission: null,
           });
 
           await collection.saveWithCtx(ctx);
