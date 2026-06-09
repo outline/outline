@@ -83,7 +83,11 @@ async function documentImporter({
   );
 
   // Serialize final text and handle empty documents
-  let text = serializer.serialize(processedDoc).trim();
+  let text = serializer
+    .serialize(processedDoc, {
+      commonMark: true,
+    })
+    .trim();
   // Empty paragraphs serialize to escaped newlines/backslashes, treat as empty
   if (/^[\\\s]*$/.test(text)) {
     text = "";

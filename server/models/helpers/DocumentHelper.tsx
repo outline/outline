@@ -209,7 +209,9 @@ export class DocumentHelper {
     }
 
     const text = serializer
-      .serialize(node)
+      .serialize(node, {
+        commonMark: true,
+      })
       .replace(/(^|\n)\\(\n|$)/g, "\n\n")
       .trim();
 

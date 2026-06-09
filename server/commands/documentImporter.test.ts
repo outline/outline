@@ -214,6 +214,24 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("Title");
   });
 
+  it("should preserve hard breaks as trailing double spaces in markdown imports", async () => {
+    const user = await buildUser();
+    const fileName = "markdown.md";
+    const content = "# Title\n\nLine one  \nLine two";
+    const response = await sequelize.transaction((transaction) =>
+      documentImporter({
+        user,
+        mimeType: "text/plain",
+        fileName,
+        content,
+        ctx: createContext({ user, transaction }),
+      })
+    );
+
+    expect(response.text).toEqual("Line one  \nLine two");
+    expect(response.title).toEqual("Title");
+  });
+
   it("should convert frontmatter to yaml codeblock", async () => {
     const user = await buildUser();
     const fileName = "markdown-frontmatter.md";

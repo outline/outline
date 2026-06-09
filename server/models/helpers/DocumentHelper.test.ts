@@ -561,6 +561,37 @@ This is a [test paragraph](https://example.net)`,
       expect(result).toContain("2. second");
     });
 
+    it("should export hard breaks as trailing double spaces", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "Line one",
+                },
+                {
+                  type: "br",
+                },
+                {
+                  type: "text",
+                  text: "Line two",
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+
+      expect(result).toBe("Line one  \nLine two");
+    });
+
     it("should pad table cells to match header width", async () => {
       const document = await buildDocument({
         content: {

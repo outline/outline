@@ -62,7 +62,11 @@ export class DocumentConverter {
     doc = docWithoutEmoji;
 
     // Serialize to markdown and trim whitespace
-    const text = serializer.serialize(doc).trim();
+    const text = serializer
+      .serialize(doc, {
+        commonMark: true,
+      })
+      .trim();
 
     return {
       text,
