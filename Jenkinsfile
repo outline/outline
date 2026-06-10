@@ -41,7 +41,7 @@ pipeline {
 
         stage('Install dependencies') {
             steps {
-                sh 'corepack enable'
+                sh 'npm install -g yarn'
                 sh 'yarn install --frozen-lockfile'
             }
         }
