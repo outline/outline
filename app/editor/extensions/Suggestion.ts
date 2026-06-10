@@ -29,13 +29,6 @@ export type SuggestionOptions = {
   allowSpaces: boolean;
   /** Whether the menu only opens once at least one character has been typed after the trigger. */
   requireSearchTerm: boolean;
-  /**
-   * Additional characters that may immediately precede the trigger for the menu
-   * to open, on top of the defaults (start of line, whitespace, opening
-   * parenthesis, and CJK scripts). For example, the emoji menu allows "+" so
-   * that the "+:emoji:" reaction shorthand opens the menu.
-   */
-  precededBy?: string;
 };
 
 export default class Suggestion<
@@ -52,12 +45,8 @@ export default class Suggestion<
         ? escapeRegExp(triggers[0])
         : `(?:${triggers.map(escapeRegExp).join("|")})`;
 
-    const precededBy = this.options.precededBy
-      ? escapeRegExp(this.options.precededBy)
-      : "";
-
     this.openRegex = new RegExp(
-      `(?:^|\\s|\\(|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}${precededBy}])${triggerPattern}(${`[\\p{L}/\\p{M}\\d${
+      `(?:^|\\s|\\(|\\+|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${triggerPattern}(${`[\\p{L}/\\p{M}\\d${
         this.options.allowSpaces ? "\\s{1}" : ""
       }\\.\\-–_]+`})${this.options.requireSearchTerm ? "" : "?"}$`,
       "u"

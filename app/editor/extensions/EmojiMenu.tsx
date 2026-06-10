@@ -22,8 +22,6 @@ export default class EmojiMenuExtension extends Suggestion {
       allowSpaces: false,
       requireSearchTerm: languageIsUsingColon,
       enabledInCode: false,
-      // Allow the "+:emoji:" reaction shorthand to open the emoji menu.
-      precededBy: "+",
     };
   }
 
