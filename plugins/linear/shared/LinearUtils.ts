@@ -14,6 +14,10 @@ export class LinearUtils {
 
   public static tokenUrl = "https://api.linear.app/oauth/token";
   public static revokeUrl = "https://api.linear.app/oauth/revoke";
+
+  /** Hostname Linear uses for review (Diffs) urls, mirroring GitHub pull request urls. */
+  public static reviewHost = "linear.review";
+
   private static authBaseUrl = "https://linear.app/oauth/authorize";
 
   private static settingsUrl = integrationSettingsPath("linear");
@@ -43,6 +47,30 @@ export class LinearUtils {
     return params
       ? `${baseUrl}/api/linear.callback?${params}`
       : `${baseUrl}/api/linear.callback`;
+  }
+
+  /**
+   * Returns a color representing the given pull request status.
+   *
+   * @param status Pull request status synced from Linear, e.g. "open" or "merged".
+   * @returns a hex color string.
+   */
+  public static getColorForPullRequestStatus(status: string) {
+    switch (status) {
+      case "open":
+      case "reopened":
+      case "approved":
+        return "#238636";
+      case "inReview":
+        return "#d29922";
+      case "merged":
+        return "#8250df";
+      case "closed":
+        return "#f85149";
+      case "draft":
+      default:
+        return "#848d97";
+    }
   }
 
   static authUrl({ state }: { state: OAuthState }) {

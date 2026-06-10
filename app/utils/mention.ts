@@ -30,6 +30,12 @@ export const isURLMentionable = ({
     }
 
     case IntegrationService.Linear: {
+      // Review (Diffs) urls mirror GitHub pull request urls and don't include
+      // the workspace key, so any installed workspace can resolve them.
+      if (hostname === "linear.review") {
+        return true;
+      }
+
       const pathParts = pathname.split("/");
       const settings =
         integration.settings as IntegrationSettings<IntegrationType.Embed>;
@@ -84,6 +90,12 @@ export const determineMentionType = ({
     }
 
     case IntegrationService.Linear: {
+      if (url.hostname === "linear.review") {
+        return pathParts[3] === "pull" && pathParts[4]
+          ? MentionType.PullRequest
+          : undefined;
+      }
+
       const type = pathParts[2];
       return type === "issue"
         ? MentionType.Issue

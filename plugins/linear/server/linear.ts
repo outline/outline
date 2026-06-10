@@ -29,12 +29,31 @@ const AccessTokenResponseSchema = z.object({
   scope: z.string(),
 });
 
-export class Linear {
-  private static supportedUnfurls = [
-    UnfurlResourceType.Issue,
-    UnfurlResourceType.Project,
-  ];
+// Pull request data Linear syncs onto issue attachments through its GitHub integration.
+const PullRequestAttachmentMetadataSchema = z.object({
+  status: z.string().optional(),
+  draft: z.boolean().optional(),
+  title: z.string().optional(),
+  userLogin: z.string().optional(),
+});
 
+type ParsedIssueOrProject = {
+  type: UnfurlResourceType.Issue | UnfurlResourceType.Project;
+  workspaceKey: string;
+  id: string;
+  name?: string;
+};
+
+type ParsedPullRequest = {
+  type: UnfurlResourceType.PR;
+  owner: string;
+  repo: string;
+  number: number;
+};
+
+type LinearResource = ParsedIssueOrProject | ParsedPullRequest;
+
+export class Linear {
   static async oauthAccess(code: string) {
     const headers = {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -107,6 +126,53 @@ export class Linear {
   }
 
   /**
+   * Parses a given URL and returns resource identifiers for Linear specific URLs.
+   *
+   * @param url URL to parse
+   * @returns An object identifying a Linear issue, project or pull request review, or undefined.
+   */
+  public static parseUrl(url: string): LinearResource | undefined {
+    try {
+      const { hostname, pathname } = new URL(url);
+      const parts = pathname.split("/");
+
+      // Review (Diffs) urls mirror GitHub pull request urls, e.g.
+      // https://linear.review/{owner}/{repo}/pull/{number}
+      if (hostname === LinearUtils.reviewHost) {
+        const [, owner, repo, type, id] = parts;
+        const number = Number(id);
+
+        if (!owner || !repo || type !== "pull" || isNaN(number)) {
+          return;
+        }
+
+        return { type: UnfurlResourceType.PR, owner, repo, number };
+      }
+
+      if (hostname !== "linear.app") {
+        return;
+      }
+
+      const workspaceKey = parts[1];
+      const type = parts[2] ? (parts[2] as UnfurlResourceType) : undefined;
+      const id = parts[3];
+      const name = parts[4];
+
+      if (
+        type !== UnfurlResourceType.Issue &&
+        type !== UnfurlResourceType.Project
+      ) {
+        return;
+      }
+
+      return { workspaceKey, type, id, name };
+    } catch (_err) {
+      // Invalid URL format
+      return;
+    }
+  }
+
+  /**
    *
    * @param url Linear resource url
    * @param actor User attempting to unfurl resource url
@@ -135,7 +201,9 @@ export class Linear {
     // Prefer integration with matching workspaceKey, otherwise pick the first one
     const integration =
       integrations.find(
-        (int) => int.settings.linear?.workspace.key === resource.workspaceKey
+        (int) =>
+          "workspaceKey" in resource &&
+          int.settings.linear?.workspace.key === resource.workspaceKey
       ) ?? integrations[0];
 
     try {
@@ -151,6 +219,8 @@ export class Linear {
           return await Linear.unfurlIssue(client, resource.id, actor);
         case UnfurlResourceType.Project:
           return await Linear.unfurlProject(client, resource.id, actor);
+        case UnfurlResourceType.PR:
+          return await Linear.unfurlPullRequest(client, resource, url);
         default:
           return;
       }
@@ -264,6 +334,52 @@ export class Linear {
     } satisfies UnfurlProject;
   }
 
+  /**
+   * Unfurls a Linear review (Diffs) url. Linear's public API does not expose pull
+   * requests directly, so this reads the pull request data Linear syncs onto the
+   * attachments of linked issues, keyed by the GitHub url the review mirrors.
+   */
+  private static async unfurlPullRequest(
+    client: LinearClient,
+    resource: ParsedPullRequest,
+    url: string
+  ) {
+    const githubUrl = `https://github.com/${resource.owner}/${resource.repo}/pull/${resource.number}`;
+    const attachments = await client.attachmentsForURL(githubUrl);
+    const attachment = attachments.nodes[0];
+
+    if (!attachment) {
+      return { error: "Resource not found" };
+    }
+
+    const parsed = PullRequestAttachmentMetadataSchema.safeParse(
+      attachment.metadata
+    );
+    const metadata: z.infer<typeof PullRequestAttachmentMetadataSchema> =
+      parsed.success ? parsed.data : {};
+    const status = metadata.status ?? "open";
+
+    return {
+      type: UnfurlResourceType.PR,
+      url,
+      id: `#${resource.number}`,
+      title: metadata.title ?? attachment.title,
+      description: null,
+      author: {
+        name: metadata.userLogin ?? "",
+        avatarUrl: metadata.userLogin
+          ? `https://github.com/${metadata.userLogin}.png`
+          : "",
+      },
+      state: {
+        name: status === "merged" || status === "closed" ? status : "open",
+        color: LinearUtils.getColorForPullRequestStatus(status),
+        draft: metadata.draft ?? status === "draft",
+      },
+      createdAt: attachment.createdAt.toISOString(),
+    } satisfies UnfurlIssueOrPR;
+  }
+
   private static async completionPercentage(
     client: LinearClient,
     issue: Issue,
@@ -307,36 +423,6 @@ export class Linear {
       return idx === 0 ? 0.5 : 0.75;
     } else {
       return (idx + 1) / (states.length + 1); // add 1 to states for the "done" state.
-    }
-  }
-
-  /**
-   * Parses a given URL and returns resource identifiers for Linear specific URLs
-   *
-   * @param url URL to parse
-   * @returns An object containing resource identifiers - `workspaceKey`, `type`, `id` and `name`.
-   */
-  private static parseUrl(url: string) {
-    try {
-      const { hostname, pathname } = new URL(url);
-      if (hostname !== "linear.app") {
-        return;
-      }
-
-      const parts = pathname.split("/");
-      const workspaceKey = parts[1];
-      const type = parts[2] ? (parts[2] as UnfurlResourceType) : undefined;
-      const id = parts[3];
-      const name = parts[4];
-
-      if (!type || !Linear.supportedUnfurls.includes(type)) {
-        return;
-      }
-
-      return { workspaceKey, type, id, name };
-    } catch (_err) {
-      // Invalid URL format
-      return;
     }
   }
 }
