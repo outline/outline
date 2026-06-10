@@ -381,6 +381,11 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       }
     });
 
+    // Tracks already-seen match positions so duplicate matches (possible because
+    // we search the deburred text concatenated with the original) can be skipped
+    // in constant time rather than rescanning the entire results array.
+    const seen = new Set<string>();
+
     mergedTextNodes.forEach((node) => {
       const { text = "", pos, type } = node;
       try {
@@ -405,11 +410,13 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
             continue;
           }
 
-          // Check if already exists in results, possible due to duplicated
-          // search string on L257
-          if (this.results.some((r) => r.from === from && r.to === to)) {
+          // Check if already exists in results, possible because we search
+          // over `deburr(text) + text`
+          const key = `${from}:${to}`;
+          if (seen.has(key)) {
             continue;
           }
+          seen.add(key);
 
           this.results.push({ from, to, type });
         }
@@ -483,6 +490,7 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       }
     }
 
+    this.highlightRanges = allRanges;
     CSS.highlights.set("search-results", new Highlight(...allRanges));
     if (currentRanges.length) {
       CSS.highlights.set(
@@ -495,12 +503,32 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
   }
 
   private clearHighlights() {
+    this.highlightRanges = [];
     if (!supportsHighlightAPI) {
       return;
     }
     CSS.highlights.delete("search-results");
     CSS.highlights.delete("search-results-current");
     this.currentHighlightRange = undefined;
+  }
+
+  /**
+   * Determine whether the highlight ranges need to be rebuilt against the live
+   * DOM. The CSS Custom Highlight API holds static ranges that detach when the
+   * editor re-renders its DOM without changing the doc, so highlights are stale
+   * when a built range's nodes have disconnected, or when some matches have not
+   * yet been resolved to ranges (e.g. inside a node view that mounts later).
+   *
+   * @returns whether the highlights should be rebuilt.
+   */
+  private highlightsStale() {
+    if (this.highlightRanges.length < this.results.length) {
+      return true;
+    }
+    return this.highlightRanges.some(
+      (range) =>
+        !range.startContainer.isConnected || !range.endContainer.isConnected
+    );
   }
 
   private handleEscape = () => {
@@ -535,6 +563,8 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
   };
 
   private currentHighlightRange?: StaticRange;
+
+  private highlightRanges: StaticRange[] = [];
 
   get allowInReadOnly() {
     return true;
@@ -604,15 +634,16 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         return {
           update: (view) => {
             const generation = pluginKey.getState(view.state) as number;
-            // Rebuild highlights when the results change (generation bump) or,
-            // while a search is active, on any view update. The CSS Custom
-            // Highlight API relies on static DOM ranges that become detached
-            // when the editor re-renders its DOM — e.g. content settling after
-            // sync when navigating from search results, collaboration cursors,
-            // or node views mounting — none of which bump the generation. This
-            // keeps the highlights tracking the live DOM, as decorations do.
-            if (generation !== lastGeneration || this.searchTerm) {
+            // The results changed (search ran, doc changed, fold toggled), so
+            // always rebuild.
+            if (generation !== lastGeneration) {
               lastGeneration = generation;
+              this.updateHighlights();
+              return;
+            }
+            // Results unchanged: only rebuild when the static highlight ranges
+            // have detached from a DOM re-render that didn't bump the generation.
+            if (this.searchTerm && this.highlightsStale()) {
               this.updateHighlights();
             }
           },
