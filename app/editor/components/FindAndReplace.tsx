@@ -224,7 +224,7 @@ export default function FindAndReplace({
         }) => {
           editor.commands.find(attrs);
         },
-        250
+        100
       ),
     [editor.commands]
   );
