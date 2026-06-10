@@ -132,8 +132,7 @@ export default class Image extends SimpleImage {
       marks: "",
       group: "inline",
       selectable: true,
-      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1289000
-      draggable: false,
+      draggable: true,
       atom: true,
       parseDOM: [
         {
@@ -260,6 +259,32 @@ export default class Image extends SimpleImage {
       commentedImagePlugin(),
       new Plugin({
         props: {
+          handleDOMEvents: {
+            dragstart: (_view, event) => {
+              // ProseMirror lets the browser snapshot the dragged node's DOM as
+              // the drag image. For images that DOM includes the caption area and
+              // padding, which renders as a large white box around the image.
+              // Substitute the image element so the drag ghost is tight to it.
+              if (
+                !(event.target instanceof HTMLElement) ||
+                !event.dataTransfer
+              ) {
+                return false;
+              }
+              const image = event.target
+                .closest(`.component-${this.name}`)
+                ?.querySelector("img");
+              if (image) {
+                const rect = image.getBoundingClientRect();
+                event.dataTransfer.setDragImage(
+                  image,
+                  event.clientX - rect.left,
+                  event.clientY - rect.top
+                );
+              }
+              return false;
+            },
+          },
           handleKeyDown: (view, event) => {
             // prevent prosemirror's default spacebar behavior
             // & zoom in if the selected node is image

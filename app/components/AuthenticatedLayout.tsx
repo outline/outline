@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 import { useLocation } from "react-router-dom";
+import { EditorAwareHTML5Backend } from "~/components/EditorAwareHTML5Backend";
 import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
@@ -106,7 +106,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     <DocumentContextProvider>
       <RightSidebarProvider>
         <PortalContext.Provider value={layoutRef.current}>
-          <DndProvider backend={HTML5Backend}>
+          <DndProvider backend={EditorAwareHTML5Backend}>
             <Layout title={team.name} sidebar={sidebar} ref={layoutRef}>
               <RegisterKeyDown trigger="n" handler={goToNewDocument} />
               <RegisterKeyDown trigger="t" handler={goToSearch} />

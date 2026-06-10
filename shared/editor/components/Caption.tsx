@@ -46,6 +46,7 @@ function Caption({ placeholder, children, isSelected, width, ...rest }: Props) {
       tabIndex={-1}
       aria-label={t("Caption")}
       role="textbox"
+      draggable={false}
       contentEditable
       suppressContentEditableWarning
       data-caption={placeholder}
