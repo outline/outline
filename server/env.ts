@@ -636,6 +636,41 @@ export class Environment {
   public AWS_S3_ACCELERATE_URL = environment.AWS_S3_ACCELERATE_URL ?? "";
 
   /**
+   * Optional CloudFront distribution URL for serving attachment downloads.
+   * Uploads continue to use the S3 endpoint directly. When set together with
+   * AWS_CLOUDFRONT_KEY_PAIR_ID and a private key, signed CloudFront URLs are
+   * used for downloads. If signing credentials are missing, S3 presigned URLs
+   * are used instead.
+   * Example: https://d1a2b3c4d5e6f.cloudfront.net (no trailing slash)
+   */
+  @IsOptional()
+  public AWS_CLOUDFRONT_URL = environment.AWS_CLOUDFRONT_URL ?? "";
+
+  /**
+   * CloudFront key pair ID for signed download URLs. Required together with a
+   * private key when AWS_CLOUDFRONT_URL is set.
+   */
+  @IsOptional()
+  public AWS_CLOUDFRONT_KEY_PAIR_ID =
+    environment.AWS_CLOUDFRONT_KEY_PAIR_ID ?? "";
+
+  /**
+   * PEM-encoded RSA private key for CloudFront signed URLs. Use a YAML block
+   * scalar in docker-compose for multi-line values.
+   */
+  @IsOptional()
+  public AWS_CLOUDFRONT_PRIVATE_KEY =
+    environment.AWS_CLOUDFRONT_PRIVATE_KEY ?? "";
+
+  /**
+   * Base64-encoded CloudFront private key. Takes precedence over
+   * AWS_CLOUDFRONT_PRIVATE_KEY when set.
+   */
+  @IsOptional()
+  public AWS_CLOUDFRONT_PRIVATE_KEY_BASE64 =
+    environment.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64 ?? "";
+
+  /**
    * Optional AWS S3 endpoint URL for file attachments.
    */
   @Public
