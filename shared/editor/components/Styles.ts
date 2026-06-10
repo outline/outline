@@ -684,11 +684,6 @@ width: 100%;
     word-break: normal;
     user-select: none;
 
-    // Word joiner sets the caret height and prevents breaking the line at cursor
-    &::before {
-      content: "\\2060";
-    }
-
     &::after {
       content: "";
       display: block;

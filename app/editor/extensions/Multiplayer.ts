@@ -112,22 +112,6 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
       };
     };
 
-    // Build the cursor without the default U+2060 word joiner text nodes, which
-    // an IME can absorb into the document and leak into copied text (#12651).
-    // The word joiner is added back via CSS generated content instead.
-    const cursorBuilder = (u: { name?: string; color: string }) => {
-      const cursor = document.createElement("span");
-      cursor.classList.add(EditorStyleHelper.multiplayerCursor);
-      cursor.setAttribute("style", `border-color: ${u.color}`);
-
-      const name = document.createElement("div");
-      name.setAttribute("style", `background-color: ${u.color}`);
-      name.textContent = u.name ?? "";
-      cursor.appendChild(name);
-
-      return cursor;
-    };
-
     provider.setAwarenessField("user", user);
 
     // only once an actual change has been made do we add the userId <> clientId
@@ -138,7 +122,6 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
       ySyncPlugin(type),
       yCursorPlugin(provider.awareness, {
         awarenessStateFilter,
-        cursorBuilder,
         selectionBuilder,
       }),
       yUndoPlugin(),
