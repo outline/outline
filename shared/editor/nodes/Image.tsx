@@ -132,9 +132,6 @@ export default class Image extends SimpleImage {
       marks: "",
       group: "inline",
       selectable: true,
-      // Draggable so the image can be moved within the document, including
-      // between table cells. The caption is marked non-draggable separately to
-      // keep it editable in Firefox (see Caption component).
       draggable: true,
       atom: true,
       parseDOM: [
@@ -262,6 +259,32 @@ export default class Image extends SimpleImage {
       commentedImagePlugin(),
       new Plugin({
         props: {
+          handleDOMEvents: {
+            dragstart: (_view, event) => {
+              // ProseMirror lets the browser snapshot the dragged node's DOM as
+              // the drag image. For images that DOM includes the caption area and
+              // padding, which renders as a large white box around the image.
+              // Substitute the image element so the drag ghost is tight to it.
+              if (
+                !(event.target instanceof HTMLElement) ||
+                !event.dataTransfer
+              ) {
+                return false;
+              }
+              const image = event.target
+                .closest(`.component-${this.name}`)
+                ?.querySelector("img");
+              if (image) {
+                const rect = image.getBoundingClientRect();
+                event.dataTransfer.setDragImage(
+                  image,
+                  event.clientX - rect.left,
+                  event.clientY - rect.top
+                );
+              }
+              return false;
+            },
+          },
           handleKeyDown: (view, event) => {
             // prevent prosemirror's default spacebar behavior
             // & zoom in if the selected node is image

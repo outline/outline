@@ -46,9 +46,6 @@ function Caption({ placeholder, children, isSelected, width, ...rest }: Props) {
       tabIndex={-1}
       aria-label={t("Caption")}
       role="textbox"
-      // Keep the caption non-draggable so it remains editable in Firefox even
-      // though the parent image node is draggable.
-      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1289000
       draggable={false}
       contentEditable
       suppressContentEditableWarning

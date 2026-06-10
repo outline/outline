@@ -5,17 +5,12 @@ import { HTML5Backend } from "react-dnd-html5-backend";
  * react-dnd's HTML5 backend installs global capture-phase listeners on `window`
  * that call `preventDefault()` on drops whose dataTransfer resembles a native
  * item – including a dragged `<img>`, which is how ProseMirror serializes an
- * image drag. Since the DndProvider was lifted to wrap the whole app, this
- * cancels the editor's own drag-and-drop: ProseMirror bails when the drop event
- * is already default-prevented, so dragging an image (e.g. between table cells)
- * has no effect.
+ * image drag.
  *
  * These handlers run before ProseMirror's, and they live on `window`, so a
  * propagation-based guard can't stop react-dnd without also starving the editor
  * of the event. Instead we wrap the backend and make its top-level capture
- * handlers no-op for events that occur within the editor surface, leaving editor
- * drag-and-drop to ProseMirror while document list and sidebar dragging continue
- * to work everywhere else.
+ * handlers no-op for events that occur within the editor surface.
  */
 const captureHandlerNames = [
   "handleTopDragStartCapture",
@@ -59,7 +54,7 @@ export const EditorAwareHTML5Backend: BackendFactory = (
         if (isWithinEditor(event.target)) {
           return;
         }
-        original(event);
+        original.call(backend, event);
       };
     }
   }
