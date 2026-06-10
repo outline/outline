@@ -4,11 +4,7 @@ import { CellSelection } from "prosemirror-tables";
 import { isInCode } from "../queries/isInCode";
 import { isInList } from "../queries/isInList";
 import { isInNotice } from "../queries/isInNotice";
-import {
-  getColumnIndex,
-  getRowIndex,
-  isTableSelected,
-} from "../queries/table";
+import { getColumnIndex, getRowIndex, isTableSelected } from "../queries/table";
 import { isMobile as isMobileDevice, isTouchDevice } from "../../utils/browser";
 import type { SelectionContext } from "../types";
 
@@ -44,9 +40,7 @@ export function buildSelectionContext(
     isTableCell: selection instanceof CellSelection,
     isTableSelected: isTableSelected(state),
     selectedNodeType:
-      selection instanceof NodeSelection
-        ? selection.node.type.name
-        : undefined,
+      selection instanceof NodeSelection ? selection.node.type.name : undefined,
     colIndex: getColumnIndex(state),
     rowIndex: getRowIndex(state),
   };

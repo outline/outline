@@ -341,7 +341,8 @@ export function useDocumentSave({
     () => () => {
       autosave.cancel();
       const currentDoc = editorRef.current?.view.state.doc;
-      const isEditorEmpty = !currentDoc || ProsemirrorHelper.isEmpty(currentDoc);
+      const isEditorEmpty =
+        !currentDoc || ProsemirrorHelper.isEmpty(currentDoc);
 
       if (
         shouldAutoDeleteDraftOnUnmount({

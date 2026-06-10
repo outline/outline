@@ -9,9 +9,7 @@ import type { MenuItem, SelectionContext } from "@shared/editor/types";
  * @param ctx - the current selection context.
  * @returns an array of menu items.
  */
-export default function attachmentMenuItems(
-  ctx: SelectionContext
-): MenuItem[] {
+export default function attachmentMenuItems(ctx: SelectionContext): MenuItem[] {
   if (ctx.readOnly) {
     return [];
   }

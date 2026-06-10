@@ -95,10 +95,7 @@ export default class SelectionToolbarExtension extends Extension {
         priority: 30,
         matches: (ctx) => ctx.readOnly,
         getItems: (ctx) =>
-          getReadOnlyMenuItems(
-            ctx,
-            this.editor.props.canUpdate ?? false
-          ),
+          getReadOnlyMenuItems(ctx, this.editor.props.canUpdate ?? false),
       },
       {
         priority: 20,
