@@ -51,6 +51,16 @@ export default defineConfig({
     pool: "threads",
     // Unhandled promise rejections are logged but don't fail tests on their own.
     dangerouslyIgnoreUnhandledErrors: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["lcov", "text", "json-summary"],
+      reportsDirectory: "./coverage",
+      include: [
+        "server/routes/api/revisions/**",
+        "server/presenters/revision.ts",
+      ],
+      exclude: ["**/*.test.{ts,tsx}"],
+    },
     projects: [
       {
         ...sharedConfig,

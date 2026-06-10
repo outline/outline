@@ -140,9 +140,13 @@ export class PluginManager {
       return;
     }
     const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
+    // Use forward slashes explicitly to avoid Windows path separator breaking glob
+    const pattern = [rootDir, "plugins/*/server/!(*.test|schema).[jt]s"]
+      .filter(Boolean)
+      .join("/");
 
     glob
-      .sync(path.join(rootDir, "plugins/*/server/!(*.test|schema).[jt]s"))
+      .sync(pattern)
       .forEach((filePath: string) =>
         require(path.join(process.cwd(), filePath))
       );

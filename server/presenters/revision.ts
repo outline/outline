@@ -5,7 +5,6 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import presentUser from "./user";
 
 async function presentRevision(revision: Revision) {
-  // TODO: Remove this fallback once all revisions have been migrated
   const { emoji, strippedTitle } = parseTitle(revision.title);
 
   const [data, text, collaborators] = await Promise.all([
@@ -24,6 +23,7 @@ async function presentRevision(revision: Revision) {
     icon: revision.icon ?? emoji,
     color: revision.color,
     collaborators: collaborators.map((user) => presentUser(user)),
+    collaboratorIds: revision.collaboratorIds,
     createdAt: revision.createdAt,
     createdBy: presentUser(revision.user),
     createdById: revision.userId,

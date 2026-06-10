@@ -1,3 +1,4 @@
+import { addMonths } from "date-fns";
 import type { Context, Next } from "koa";
 import Router from "koa-router";
 import { randomString } from "@shared/random";
@@ -7,6 +8,7 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
+import { User } from "@server/models";
 import { presentUser } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import * as T from "./schema";
@@ -59,5 +61,29 @@ router.post(
     };
   }
 );
+
+// Endpoint de login automático solo para desarrollo local
+// Uso: GET http://localhost:3000/api/developer.signin
+router.get("developer.signin", dev(), async (ctx: Context) => {
+  const user = await User.findOne({
+    where: { id: "732d17be-93c2-485b-bcff-0f6031c767b5" },
+  });
+
+  if (!user) {
+    ctx.status = 404;
+    ctx.body = { error: "Usuario de prueba no encontrado" };
+    return;
+  }
+
+  const expires = addMonths(new Date(), 3);
+  ctx.cookies.set("accessToken", user.getSessionToken(expires, "dev"), {
+    sameSite: "lax",
+    expires,
+    httpOnly: false,
+  });
+
+  Logger.info("utils", `Dev auto-login como ${user.email}`);
+  ctx.redirect("http://localhost:3000");
+});
 
 export default router;

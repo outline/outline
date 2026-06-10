@@ -32,21 +32,33 @@ export const RevisionsUpdateSchema = BaseSchema.extend({
 export type RevisionsUpdateReq = z.infer<typeof RevisionsUpdateSchema>;
 
 export const RevisionsListSchema = z.object({
-  body: z.object({
-    direction: z
-      .string()
-      .optional()
-      .transform((val) => (val !== "ASC" ? "DESC" : val)),
+  body: z
+    .object({
+      direction: z
+        .string()
+        .optional()
+        .transform((val) => (val !== "ASC" ? "DESC" : val)),
 
-    sort: z
-      .string()
-      .refine((val) => Object.keys(Revision.getAttributes()).includes(val), {
-        error: "Invalid sort parameter",
-      })
-      .prefault("createdAt"),
+      sort: z
+        .string()
+        .refine((val) => Object.keys(Revision.getAttributes()).includes(val), {
+          error: "Invalid sort parameter",
+        })
+        .prefault("createdAt"),
 
-    documentId: z.uuid(),
-  }),
+      documentId: z.uuid(),
+
+      userId: z.uuid().optional(),
+
+      dateFrom: z.coerce.date().optional(),
+
+      dateTo: z.coerce.date().optional(),
+    })
+    .refine(
+      (data) =>
+        !data.dateFrom || !data.dateTo || data.dateFrom <= data.dateTo,
+      { error: "dateFrom must be before or equal to dateTo" }
+    ),
 });
 
 export type RevisionsListReq = z.infer<typeof RevisionsListSchema>;

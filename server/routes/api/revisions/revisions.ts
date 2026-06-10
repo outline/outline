@@ -21,6 +21,7 @@ import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { streamZipResponse } from "@server/utils/koa";
 import pagination from "../middlewares/pagination";
+import { buildRevisionWhereClause } from "./revisions-filters";
 import * as T from "./schema";
 
 const router = new Router();
@@ -232,7 +233,8 @@ router.post(
   pagination(),
   validate(T.RevisionsListSchema),
   async (ctx: APIContext<T.RevisionsListReq>) => {
-    const { direction, documentId, sort } = ctx.input.body;
+    const { direction, documentId, sort, userId, dateFrom, dateTo } =
+      ctx.input.body;
     const { user } = ctx.state.auth;
 
     const document = await Document.findByPk(documentId, {
@@ -241,10 +243,10 @@ router.post(
     });
     authorize(user, "listRevisions", document);
 
+    const where = buildRevisionWhereClause(document.id, userId, dateFrom, dateTo);
+
     const revisions = await Revision.findAll({
-      where: {
-        documentId: document.id,
-      },
+      where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,

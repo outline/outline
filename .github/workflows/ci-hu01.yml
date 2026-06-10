@@ -1,0 +1,114 @@
+name: CI/CD Pipeline — HU-01 Outline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: outlineuser
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: outlinetest
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgres://outlineuser:pass@localhost:5433/outlinetest
+      REDIS_URL: redis://localhost:6379
+      SECRET_KEY: F0E5AD933D7F6FD8F4DBB3E038C501C052DC0593C686D21ACB30AE205D2F634B
+      URL: http://localhost:3000
+      SMTP_HOST: smtp.example.com
+      SMTP_USERNAME: test
+      SMTP_FROM_EMAIL: hello@example.com
+      SMTP_REPLY_EMAIL: hello@example.com
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run DB migrations
+        run: yarn db:migrate
+
+      - name: Unit Tests HU-01
+        run: TZ=UTC npx vitest run --project server "revisions"
+
+      - name: Generate coverage (LCOV)
+        run: TZ=UTC npx vitest run --project server --coverage "revisions"
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+  sonarqube:
+    name: SonarCloud Analysis
+    needs: build-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download coverage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  deploy:
+    name: Docker Build & Deploy
+    needs: sonarqube
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t outline-hu01:${{ github.sha }} .
+
+      - name: Tag as latest
+        run: docker tag outline-hu01:${{ github.sha }} outline-hu01:latest
+
+      - name: Verify image
+        run: docker image ls outline-hu01
