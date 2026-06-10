@@ -410,8 +410,8 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
             continue;
           }
 
-          // Check if already exists in results, possible due to duplicated
-          // search string on L257
+          // Check if already exists in results, possible because we search
+          // over `deburr(text) + text`
           const key = `${from}:${to}`;
           if (seen.has(key)) {
             continue;
