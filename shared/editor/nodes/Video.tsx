@@ -56,13 +56,18 @@ export default class Video extends Node {
         {
           priority: 100,
           tag: "video",
-          getAttrs: (dom: HTMLAnchorElement) => ({
-            id: dom.id,
-            title: dom.getAttribute("title"),
-            src: dom.getAttribute("src"),
-            width: parseInt(dom.getAttribute("width") ?? "", 10),
-            height: parseInt(dom.getAttribute("height") ?? "", 10),
-          }),
+          getAttrs: (dom: HTMLVideoElement) => {
+            const width = dom.getAttribute("width");
+            const height = dom.getAttribute("height");
+
+            return {
+              id: dom.id,
+              title: dom.getAttribute("title"),
+              src: dom.getAttribute("src"),
+              width: width ? parseInt(width, 10) : null,
+              height: height ? parseInt(height, 10) : null,
+            };
+          },
         },
       ],
       toDOM: (node) => [
@@ -192,12 +197,17 @@ export default class Video extends Node {
   parseMarkdown() {
     return {
       node: "video",
-      getAttrs: (tok: Token) => ({
-        src: tok.attrGet("src"),
-        title: tok.attrGet("title"),
-        width: parseInt(tok.attrGet("width") ?? "", 10),
-        height: parseInt(tok.attrGet("height") ?? "", 10),
-      }),
+      getAttrs: (tok: Token) => {
+        const width = tok.attrGet("width");
+        const height = tok.attrGet("height");
+
+        return {
+          src: tok.attrGet("src"),
+          title: tok.attrGet("title"),
+          width: width ? parseInt(width, 10) : null,
+          height: height ? parseInt(height, 10) : null,
+        };
+      },
     };
   }
 }
