@@ -22,6 +22,14 @@ export class EditorStyleHelper {
 
   static readonly comment = "comment-marker";
 
+  // Multiplayer
+
+  /** Remote collaborator's cursor */
+  static readonly multiplayerCursor = "ProseMirror-yjs-cursor";
+
+  /** Remote collaborator's selection */
+  static readonly multiplayerSelection = "ProseMirror-yjs-selection";
+
   // Code
 
   static readonly codeBlock = "code-block";

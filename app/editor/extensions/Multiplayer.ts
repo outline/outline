@@ -13,6 +13,7 @@ import {
 import * as Y from "yjs";
 import Extension from "@shared/editor/lib/Extension";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { Second } from "@shared/utils/time";
 
 type UserAwareness = {
@@ -107,7 +108,7 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
 
       return {
         style: `background-color: ${u.color}${opacity}`,
-        class: "ProseMirror-yjs-selection",
+        class: EditorStyleHelper.multiplayerSelection,
       };
     };
 

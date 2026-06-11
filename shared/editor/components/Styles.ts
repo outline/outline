@@ -596,7 +596,7 @@ width: 100%;
   padding: ${props.editorStyle?.padding ?? "initial"};
   margin: ${props.editorStyle?.margin ?? "initial"};
 
-  & > .ProseMirror-yjs-cursor {
+  & > .${EditorStyleHelper.multiplayerCursor} {
     display: none;
   }
 
@@ -670,11 +670,11 @@ width: 100%;
   h5 { font-size: var(--font-size-h5); }
   h6 { font-size: var(--font-size-h6); }
 
-  .ProseMirror-yjs-selection {
+  .${EditorStyleHelper.multiplayerSelection} {
     transition: background-color 500ms ease-in-out;
   }
 
-  .ProseMirror-yjs-cursor {
+  .${EditorStyleHelper.multiplayerCursor} {
     position: relative;
     margin-left: -1px;
     margin-right: -1px;
@@ -682,6 +682,7 @@ width: 100%;
     border-right: 1px solid black;
     height: 1em;
     word-break: normal;
+    user-select: none;
 
     &::after {
       content: "";
@@ -719,7 +720,7 @@ width: 100%;
   }
 }
 
-&.show-cursor-names .ProseMirror-yjs-cursor > div {
+&.show-cursor-names .${EditorStyleHelper.multiplayerCursor} > div {
   opacity: 1;
 }
 
@@ -998,7 +999,7 @@ img.ProseMirror-separator {
 
 .${EditorStyleHelper.headingPositionAnchor}:first-child,
 // Edge case where multiplayer cursor is between start of cell and heading
-.${EditorStyleHelper.headingPositionAnchor}:first-child + .ProseMirror-yjs-cursor,
+.${EditorStyleHelper.headingPositionAnchor}:first-child + .${EditorStyleHelper.multiplayerCursor},
 // Edge case where table grips are between start of cell and heading
 .${EditorStyleHelper.headingPositionAnchor}:first-child + [role=button] + [role=button] {
   & + h1,
