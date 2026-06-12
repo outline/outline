@@ -594,6 +594,18 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen."
             ),
+          append: z
+            .boolean()
+            .optional()
+            .describe(
+              'Deprecated alias for editMode="append". When true and editMode is not set, text is added to the end of the document instead of replacing it. Prefer editMode="append" in new code.'
+            ),
+          prepend: z
+            .boolean()
+            .optional()
+            .describe(
+              'Deprecated alias for editMode="prepend". When true and editMode is not set, text is added to the beginning of the document instead of replacing it. Prefer editMode="prepend" in new code.'
+            ),
         },
       },
       withTracing("update_document", async (input, context) => {
@@ -606,6 +618,23 @@ export function documentTools(server: McpServer, scopes: string[]) {
             includeState: true,
             rejectOnEmpty: true,
           });
+
+          // Resolve the legacy boolean aliases (`append: true`, `prepend: true`)
+          // into the canonical `editMode` value. The REST API has historically
+          // accepted these (see server/routes/api/documents/schema.ts) and LLM
+          // clients reaching for the MCP tool sometimes infer the same shape;
+          // without this translation the boolean is silently ignored, the
+          // editMode defaults to "replace", and the document body is overwritten
+          // instead of appended — the silent data loss reported in #12672.
+          const { append, prepend, editMode: rawEditMode, ...rest } = input;
+          let editMode = rawEditMode;
+          if (editMode === undefined) {
+            if (append) {
+              editMode = TextEditMode.Append;
+            } else if (prepend) {
+              editMode = TextEditMode.Prepend;
+            }
+          }
 
           let updated;
 
@@ -624,7 +653,8 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             updated = await documentUpdater(ctx, {
               document,
-              ...input,
+              ...rest,
+              editMode,
             });
           }
 

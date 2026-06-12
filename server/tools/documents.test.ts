@@ -394,6 +394,90 @@ describe("update_document", () => {
     expect(res?.result?.isError).toBe(true);
   });
 
+  it("appends text instead of replacing when the legacy append:true alias is set", async () => {
+    // Regression for #12672. The REST API silently accepts `append: true` and
+    // translates it to editMode="append" — the MCP tool used to drop the flag,
+    // collapse to editMode="replace", and overwrite the document body.
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "Existing content",
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      text: "Added content",
+      append: true,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const reloaded = await Document.findByPk(document.id);
+    expect(reloaded?.text).toContain("Existing content");
+    expect(reloaded?.text).toContain("Added content");
+  });
+
+  it("prepends text instead of replacing when the legacy prepend:true alias is set", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "Existing content",
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      text: "Prepended content",
+      prepend: true,
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const reloaded = await Document.findByPk(document.id);
+    expect(reloaded?.text).toContain("Existing content");
+    expect(reloaded?.text).toContain("Prepended content");
+    expect(reloaded?.text?.indexOf("Prepended content")).toBeLessThan(
+      reloaded?.text?.indexOf("Existing content") ?? -1
+    );
+  });
+
+  it("prefers an explicit editMode over the legacy append:true alias", async () => {
+    // When both are supplied, editMode wins — the legacy alias is a fallback
+    // only when editMode is omitted, never an override.
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "Existing content",
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      text: "Replacement content",
+      append: true,
+      editMode: "replace",
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    const reloaded = await Document.findByPk(document.id);
+    expect(reloaded?.text).not.toContain("Existing content");
+    expect(reloaded?.text).toContain("Replacement content");
+  });
+
   it("does not allow a viewer to publish their draft into a restricted collection", async () => {
     const viewer = await buildViewer();
     const collection = await buildCollection({
