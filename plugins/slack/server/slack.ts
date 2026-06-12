@@ -1,4 +1,5 @@
 import querystring, { type ParsedUrlQueryInput } from "node:querystring";
+import { createSlackAdapter } from "@chat-adapter/slack";
 import { InvalidRequestError } from "@server/errors";
 import fetch from "@server/utils/fetch";
 import { SlackUtils } from "../shared/SlackUtils";

@@ -31,6 +31,7 @@ import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { settingsPath } from "~/utils/routeHelpers";
@@ -40,6 +41,12 @@ import SettingRow from "./components/SettingRow";
 function Notifications() {
   const user = useCurrentUser();
   const { t } = useTranslation();
+  const { integrations } = useStores();
+
+  const hasSlackLinked = !!integrations.find({
+    type: IntegrationType.LinkedAccount,
+    service: IntegrationService.Slack,
+  });
 
   const options = [
     {
@@ -246,6 +253,19 @@ function Notifications() {
           onChange={handleToggleAll}
         />
       </SettingRow>
+
+      {!hasSlackLinked && (
+        <Notice>
+          <Trans
+            defaults="To receive Slack notifications, <link>link your Slack account</link> in the integrations settings."
+            components={{
+              link: <Link to={settingsPath("slack")} />,
+            }}
+          />
+        </Notice>
+      )}
+
+      <h2>{t("Notification Channels")}</h2>
 
       {options.map((option) => {
         const emailSetting = user.subscribedToEventType(

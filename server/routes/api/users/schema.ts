@@ -68,6 +68,7 @@ export type UsersListReq = z.infer<typeof UsersListSchema>;
 export const UsersNotificationsSubscribeSchema = z.object({
   body: z.object({
     eventType: z.enum(NotificationEventType).optional(),
+    channel: z.enum(NotificationChannelType).optional(),
   }),
 });
 
@@ -78,6 +79,7 @@ export type UsersNotificationsSubscribeReq = z.infer<
 export const UsersNotificationsUnsubscribeSchema = z.object({
   body: z.object({
     eventType: z.enum(NotificationEventType).optional(),
+    channel: z.enum(NotificationChannelType).optional(),
   }),
 });
 
