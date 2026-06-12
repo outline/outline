@@ -373,6 +373,16 @@ export class Environment {
   public PROXY_IP_HEADER = this.toOptionalString(environment.PROXY_IP_HEADER);
 
   /**
+   * Whether to trust the X-Forwarded-* headers (e.g. X-Forwarded-For,
+   * X-Forwarded-Proto) set by an upstream proxy or load balancer. Defaults to
+   * true for backwards compat. Set to false if not running behind a proxy in production.
+   */
+  @IsBoolean()
+  public PROXY_HEADERS_TRUSTED = this.toBoolean(
+    environment.PROXY_HEADERS_TRUSTED ?? "true"
+  );
+
+  /**
    * Should the installation send anonymized statistics to the maintainers.
    * Defaults to true.
    */
