@@ -116,11 +116,11 @@ export default class CheckboxItem extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.out += node.attrs.checked ? "[x] " : "[ ] ";
+    state.append(node.attrs.checked ? "[x] " : "[ ] ");
     if (state.inTable) {
       node.forEach((block, _, i) => {
         if (i > 0) {
-          state.out += " ";
+          state.append(" ");
         }
         state.renderInline(block);
       });
