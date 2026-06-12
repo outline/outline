@@ -19,6 +19,8 @@ function li(content: Node[]) {
 
 /**
  * Returns a position inside the first text node matching the given text.
+ *
+ * @throws if no matching text node exists in the document.
  */
 function posOfText(node: Node, text: string) {
   let found = -1;
@@ -28,6 +30,9 @@ function posOfText(node: Node, text: string) {
     }
     return found === -1;
   });
+  if (found === -1) {
+    throw new Error(`Text "${text}" not found in document`);
+  }
   return found + 1;
 }
 
