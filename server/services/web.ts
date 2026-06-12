@@ -47,7 +47,10 @@ export default function init(app: Koa = new Koa(), server?: Server) {
             if (httpsResolver(ctx)) {
               return true;
             }
-            return xForwardedProtoResolver(ctx);
+            // Only honor X-Forwarded-Proto when proxy headers are trusted
+            return env.PROXY_HEADERS_TRUSTED
+              ? xForwardedProtoResolver(ctx)
+              : false;
           },
         })
       );
