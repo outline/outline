@@ -1,4 +1,4 @@
-import { extensionManager, schema } from "../../test/editor";
+import { extensionManager, findNodes, schema } from "../../test/editor";
 
 const serializer = extensionManager.serializer();
 const parser = extensionManager.parser({
@@ -6,29 +6,19 @@ const parser = extensionManager.parser({
   plugins: extensionManager.rulePlugins,
 });
 
-interface ProsemirrorNode {
-  type: string;
-  content?: ProsemirrorNode[];
-  attrs?: Record<string, unknown>;
-}
-
 it("preserves mixed checkbox and regular items in a list", () => {
   const markdown = `- [x] Checked item
 - Regular item
 - [ ] Unchecked item`;
 
   const ast = parser.parse(markdown);
-  const json = ast?.toJSON();
-
-  const checkboxList = json?.content?.find(
-    (node: ProsemirrorNode) => node.type === "checkbox_list"
-  );
+  const [checkboxList] = findNodes(ast?.toJSON(), "checkbox_list");
 
   expect(checkboxList).toBeDefined();
   expect(checkboxList?.content).toHaveLength(3);
-  expect(checkboxList?.content[0].type).toBe("checkbox_item");
-  expect(checkboxList?.content[1].type).toBe("checkbox_item");
-  expect(checkboxList?.content[2].type).toBe("checkbox_item");
+  expect(checkboxList?.content?.[0].type).toBe("checkbox_item");
+  expect(checkboxList?.content?.[1].type).toBe("checkbox_item");
+  expect(checkboxList?.content?.[2].type).toBe("checkbox_item");
 });
 
 it("round-trips mixed checkbox lists through serializer", () => {
@@ -52,22 +42,15 @@ it("does not convert nested bullet list items inside checkbox lists", () => {
 - [ ] Second checkbox`;
 
   const ast = parser.parse(markdown);
-  const json = ast?.toJSON();
-
-  const checkboxList = json?.content?.find(
-    (node: ProsemirrorNode) => node.type === "checkbox_list"
-  );
+  const [checkboxList] = findNodes(ast?.toJSON(), "checkbox_list");
 
   expect(checkboxList).toBeDefined();
   expect(checkboxList?.content).toHaveLength(2);
-  expect(checkboxList?.content[0].type).toBe("checkbox_item");
-  expect(checkboxList?.content[1].type).toBe("checkbox_item");
+  expect(checkboxList?.content?.[0].type).toBe("checkbox_item");
+  expect(checkboxList?.content?.[1].type).toBe("checkbox_item");
 
   // Nested list should remain a bullet_list, not a checkbox_list
-  const nestedContent = checkboxList?.content[0].content;
-  const nestedList = nestedContent?.find(
-    (node: ProsemirrorNode) => node.type === "bullet_list"
-  );
+  const [nestedList] = findNodes(checkboxList?.content?.[0], "bullet_list");
   expect(nestedList).toBeDefined();
   expect(nestedList?.content?.[0].type).toBe("list_item");
 });

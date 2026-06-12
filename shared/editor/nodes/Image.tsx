@@ -52,8 +52,8 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
 
   const match = tokenTitle.match(imageSizeRegex);
   if (match) {
-    attributes.width = parseInt(match[1], 10);
-    attributes.height = parseInt(match[2], 10);
+    attributes.width = match[1] ? parseInt(match[1], 10) : undefined;
+    attributes.height = match[2] ? parseInt(match[2], 10) : undefined;
     tokenTitle = tokenTitle.replace(imageSizeRegex, "");
   }
 
