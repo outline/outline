@@ -54,7 +54,14 @@ export default function toggleList(
           parentList.pos,
           parentList.pos + parentList.node.nodeSize,
           (node, pos) => {
-            if (isList(node, schema)) {
+            // nodesBetween also visits the ancestors of the given range, these
+            // must be skipped so that toggling a nested list does not convert
+            // the lists it is nested within.
+            if (
+              pos >= parentList.pos &&
+              isList(node, schema) &&
+              listType.validContent(node.content)
+            ) {
               tr.setNodeMarkup(pos, listType, listStyle ? { listStyle } : {});
             }
           }
