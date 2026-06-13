@@ -18,6 +18,7 @@ export class CheckboxItemView implements NodeView {
   private view: EditorView;
   private getPos: () => number | undefined;
   private checkbox: HTMLElement;
+  private wrapper: HTMLElement;
 
   constructor(
     node: ProsemirrorNode,
@@ -39,17 +40,17 @@ export class CheckboxItemView implements NodeView {
     this.checkbox.setAttribute("role", "checkbox");
     this.checkbox.innerHTML = checkboxSVG;
 
-    const wrapper = document.createElement("span");
-    wrapper.contentEditable = "false";
-    wrapper.appendChild(this.checkbox);
+    this.wrapper = document.createElement("span");
+    this.wrapper.contentEditable = "false";
+    this.wrapper.appendChild(this.checkbox);
     if (isBrowser) {
-      wrapper.addEventListener("click", this.handleClick);
+      this.wrapper.addEventListener("click", this.handleClick);
     }
 
     this.contentDOM = document.createElement("div");
     this.contentDOM.id = id;
 
-    this.dom.appendChild(wrapper);
+    this.dom.appendChild(this.wrapper);
     this.dom.appendChild(this.contentDOM);
 
     this.updateChecked(node);
@@ -67,6 +68,12 @@ export class CheckboxItemView implements NodeView {
     // Only mutations within the editable content should be read by the editor;
     // the checkbox chrome is managed here.
     return !this.contentDOM.contains(mutation.target);
+  }
+
+  destroy() {
+    if (isBrowser) {
+      this.wrapper.removeEventListener("click", this.handleClick);
+    }
   }
 
   private updateChecked(node: ProsemirrorNode) {
