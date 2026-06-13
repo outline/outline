@@ -188,6 +188,7 @@
   "Collection": "Koleksi",
   "Collections": "Koleksi",
   "Debug": "Debug",
+  "Date": "Date",
   "Document": "Dokumen",
   "Search results": "Search results",
   "Documents": "Dokumen",
@@ -616,8 +617,6 @@
   "Divider": "Pemisah",
   "Page break": "Halaman Pemisah",
   "Current date": "Tanggal saat ini",
-  "Current time": "Waktu saat ini",
-  "Current date and time": "Tanggal dan waktu saat ini",
   "Info notice": "Pemberitahuan info",
   "Success notice": "Pemberitahuan sukses",
   "Warning notice": "Pemberitahuan peringatan",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Hide completed",
   "Write a caption": "Tulis keterangan",
   "Add title": "Add title",
-  "Add content": "Add content"
+  "Add content": "Add content",
+  "Tomorrow": "Tomorrow"
 }
