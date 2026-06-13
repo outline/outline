@@ -79,10 +79,6 @@ export default class SlackNotificationProcessor extends BaseProcessor {
         message,
       });
 
-      await notification.update({
-        slackSentAt: new Date(),
-      });
-
       Logger.info(
         "processor",
         `Slack DM sent for notification ${notification.id}`
