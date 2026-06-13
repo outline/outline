@@ -146,7 +146,12 @@ function CommentForm({
         toast.error(t("Error creating comment"));
       });
 
-    // optimistically update the comment model
+    // optimistically update the comment model. Setting the data here, rather
+    // than waiting for save() to resolve, avoids a frame where the rendered
+    // comment is empty before the saved data is applied.
+    if (draft) {
+      comment.data = draft;
+    }
     comment.isNew = false;
     comment.createdById = user.id;
     comment.createdBy = user;
@@ -303,20 +308,23 @@ function CommentForm({
     ? {
         initial: {
           opacity: 0,
-          marginBottom: -100,
+          y: 10,
         },
         animate: {
           opacity: 1,
-          marginBottom: 0,
+          y: 0,
           transition: {
-            type: "spring",
-            bounce: 0.1,
+            duration: 0.2,
+            ease: "easeOut",
           },
         },
         exit: {
           opacity: 0,
-          marginBottom: -100,
-          scale: 0.98,
+          y: 10,
+          transition: {
+            duration: 0.2,
+            ease: "easeOut",
+          },
         },
       }
     : {};
@@ -338,7 +346,18 @@ function CommentForm({
         />
       </VisuallyHidden.Root>
       <Flex gap={8} align="flex-start">
-        <Avatar model={user} size={24} style={{ marginTop: 8 }} />
+        {standalone ? (
+          <m.div
+            style={{ marginTop: 8 }}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <Avatar model={user} size={24} />
+          </m.div>
+        ) : (
+          <Avatar model={user} size={24} style={{ marginTop: 8 }} />
+        )}
         <Bubble
           gap={10}
           onClick={handleClickPadding}
