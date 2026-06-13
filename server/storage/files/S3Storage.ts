@@ -9,7 +9,6 @@ import {
   CopyObjectCommand,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import "@aws-sdk/signature-v4-crt"; // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
 import type { PresignedPostOptions } from "@aws-sdk/s3-presigned-post";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -25,6 +24,11 @@ import type { AppContext } from "@server/types";
 export default class S3Storage extends BaseStorage {
   constructor() {
     super();
+
+    // Loaded here rather than at module top-level so the native CRT binding
+    // only loads when S3 storage is actually used, keeping it off startup.
+    // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
+    require("@aws-sdk/signature-v4-crt");
 
     this.client = new S3Client({
       bucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : false,
