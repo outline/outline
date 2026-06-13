@@ -188,6 +188,7 @@
   "Collection": "Collectie",
   "Collections": "Collecties",
   "Debug": "Fout opsporen",
+  "Date": "Date",
   "Document": "Document",
   "Search results": "Zoekresultaten",
   "Documents": "Documenten",
@@ -616,8 +617,6 @@
   "Divider": "Scheidingslijn",
   "Page break": "Pagina-einde",
   "Current date": "Huidige datum",
-  "Current time": "Huidige tijd",
-  "Current date and time": "Huidige datum en tijd",
   "Info notice": "Informatie opmerking",
   "Success notice": "Succes bericht",
   "Warning notice": "Waarschuwing opmerking",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Verbergen voltooid",
   "Write a caption": "Schrijf een onderschrift",
   "Add title": "Titel toevoegen",
-  "Add content": "Inhoud toevoegen"
+  "Add content": "Inhoud toevoegen",
+  "Tomorrow": "Tomorrow"
 }
