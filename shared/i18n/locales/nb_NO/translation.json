@@ -188,6 +188,7 @@
   "Collection": "Samling",
   "Collections": "Samlinger",
   "Debug": "Feilsøk",
+  "Date": "Date",
   "Document": "Dokument",
   "Search results": "Search results",
   "Documents": "Dokumenter",
@@ -616,8 +617,6 @@
   "Divider": "Skillelinje",
   "Page break": "Sideskift",
   "Current date": "Nåværende dato",
-  "Current time": "Nåværende tid",
-  "Current date and time": "Nåværende dato og tid",
   "Info notice": "Infovarsel",
   "Success notice": "Suksessvarsel",
   "Warning notice": "Advarselvarsel",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Hide completed",
   "Write a caption": "Skriv en bildetekst",
   "Add title": "Add title",
-  "Add content": "Add content"
+  "Add content": "Add content",
+  "Tomorrow": "Tomorrow"
 }
