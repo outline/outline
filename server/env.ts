@@ -651,24 +651,19 @@ export class Environment {
    * private key when AWS_CLOUDFRONT_URL is set.
    */
   @IsOptional()
-  public AWS_CLOUDFRONT_KEY_PAIR_ID =
-    environment.AWS_CLOUDFRONT_KEY_PAIR_ID ?? "";
+  public AWS_CLOUDFRONT_KEY_PAIR_ID = this.toOptionalString(
+    environment.AWS_CLOUDFRONT_KEY_PAIR_ID
+  );
 
   /**
-   * PEM-encoded RSA private key for CloudFront signed URLs. Use a YAML block
-   * scalar in docker-compose for multi-line values.
+   * PEM-encoded RSA private key for CloudFront signed URLs, or a base64-encoded
+   * PEM string on a single line. Use a YAML block scalar in docker-compose for
+   * multi-line PEM values.
    */
   @IsOptional()
-  public AWS_CLOUDFRONT_PRIVATE_KEY =
-    environment.AWS_CLOUDFRONT_PRIVATE_KEY ?? "";
-
-  /**
-   * Base64-encoded CloudFront private key. Takes precedence over
-   * AWS_CLOUDFRONT_PRIVATE_KEY when set.
-   */
-  @IsOptional()
-  public AWS_CLOUDFRONT_PRIVATE_KEY_BASE64 =
-    environment.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64 ?? "";
+  public AWS_CLOUDFRONT_PRIVATE_KEY = this.toOptionalString(
+    environment.AWS_CLOUDFRONT_PRIVATE_KEY
+  );
 
   /**
    * Optional AWS S3 endpoint URL for file attachments.

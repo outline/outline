@@ -148,7 +148,8 @@ export default class S3Storage extends BaseStorage {
     expiresIn = S3Storage.defaultSignedUrlExpires
   ) => {
     if (env.AWS_CLOUDFRONT_URL) {
-      if (!this.hasCloudFrontSigningConfig()) {
+      const privateKey = this.getCloudFrontPrivateKey();
+      if (!env.AWS_CLOUDFRONT_KEY_PAIR_ID || !privateKey) {
         Logger.warn(
           "AWS_CLOUDFRONT_URL is set but signing credentials are missing, falling back to S3 presigned URLs",
           { key }
@@ -162,7 +163,7 @@ export default class S3Storage extends BaseStorage {
         return getCloudFrontSignedUrl({
           url: cfUrl,
           keyPairId: env.AWS_CLOUDFRONT_KEY_PAIR_ID,
-          privateKey: this.getCloudFrontPrivateKey(),
+          privateKey,
           dateLessThan: new Date(Date.now() + expiresIn * 1000).toISOString(),
         });
       } catch (err) {
@@ -262,26 +263,24 @@ export default class S3Storage extends BaseStorage {
   private client: S3Client;
 
   private getCloudFrontUrlForKey(key: string): string {
+    if (!env.AWS_CLOUDFRONT_URL) {
+      throw new Error("CloudFront URL is not configured");
+    }
     const base = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
     return `${base}/${encodeURI(key)}`;
   }
 
-  private getCloudFrontPrivateKey(): string {
-    if (env.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64) {
-      return Buffer.from(
-        env.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64,
-        "base64"
-      ).toString("utf-8");
+  private getCloudFrontPrivateKey(): string | undefined {
+    const key = env.AWS_CLOUDFRONT_PRIVATE_KEY;
+    if (!key) {
+      return undefined;
     }
 
-    return env.AWS_CLOUDFRONT_PRIVATE_KEY;
-  }
+    if (key.includes("BEGIN")) {
+      return key;
+    }
 
-  private hasCloudFrontSigningConfig(): boolean {
-    return Boolean(
-      env.AWS_CLOUDFRONT_KEY_PAIR_ID &&
-        (env.AWS_CLOUDFRONT_PRIVATE_KEY || env.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64)
-    );
+    return Buffer.from(key, "base64").toString("utf-8");
   }
 
   private getS3PresignedUrl = async (
