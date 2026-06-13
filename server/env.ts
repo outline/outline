@@ -644,7 +644,7 @@ export class Environment {
    * Example: https://d1a2b3c4d5e6f.cloudfront.net (no trailing slash)
    */
   @IsOptional()
-  public AWS_CLOUDFRONT_URL = environment.AWS_CLOUDFRONT_URL ?? "";
+  public AWS_CLOUDFRONT_URL = this.toOptionalString(environment.AWS_CLOUDFRONT_URL);
 
   /**
    * CloudFront key pair ID for signed download URLs. Required together with a
