@@ -40,7 +40,7 @@ function posAfterText(node: Node, text: string) {
 /**
  * Simulates typing the trigger character of an input rule, mirroring the way
  * prosemirror-inputrules invokes a rule's handler, and returns the resulting
- * document (or the unchanged document when the rule does not fire).
+ * editor state (unchanged when the rule does not fire).
  */
 function typeTrigger(
   rule: InputRule,
@@ -64,7 +64,7 @@ function typeTrigger(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const match = (rule as any).match.exec(textBefore) as RegExpMatchArray | null;
   if (!match) {
-    return state.doc;
+    return state;
   }
   const startPos = from - (match[0].length - triggerChar.length);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -72,7 +72,7 @@ function typeTrigger(
   if (tr) {
     state = state.apply(tr);
   }
-  return state.doc;
+  return state;
 }
 
 const rule = checkboxListInputRule(
@@ -89,12 +89,28 @@ describe("checkboxListInputRule", () => {
 
     const result = typeTrigger(rule, testDoc, "[ ]", " ");
 
-    const list = result.firstChild;
+    const list = result.doc.firstChild;
     expect(list?.type.name).toBe("checkbox_list");
     expect(list?.childCount).toBe(2);
     expect(list?.child(0).type.name).toBe("checkbox_item");
     expect(list?.child(0).textContent).toBe("");
     expect(list?.child(1).textContent).toBe("two");
+  });
+
+  it("places the cursor at the start of the converted item", () => {
+    const testDoc = doc([
+      bullet_list.create(null, [li([p("[ ]")]), li([p("two")])]),
+    ]);
+
+    const result = typeTrigger(rule, testDoc, "[ ]", " ");
+
+    // The selection should sit empty at the start of the first item's content.
+    const { selection } = result;
+    expect(selection.empty).toBe(true);
+    const $from = result.doc.resolve(selection.from);
+    expect($from.parent.type.name).toBe("paragraph");
+    expect($from.parentOffset).toBe(0);
+    expect($from.node(-1).type.name).toBe("checkbox_item");
   });
 
   it("converts a plain ordered list to a checklist", () => {
@@ -104,7 +120,7 @@ describe("checkboxListInputRule", () => {
 
     const result = typeTrigger(rule, testDoc, "[ ]", " ");
 
-    expect(result.firstChild?.type.name).toBe("checkbox_list");
+    expect(result.doc.firstChild?.type.name).toBe("checkbox_list");
   });
 
   it("preserves nesting when converting a list with a nested list", () => {
@@ -117,7 +133,7 @@ describe("checkboxListInputRule", () => {
 
     const result = typeTrigger(rule, testDoc, "[ ]", " ");
 
-    const list = result.firstChild;
+    const list = result.doc.firstChild;
     expect(list?.type.name).toBe("checkbox_list");
     const nested = list?.child(1).child(1);
     expect(nested?.type.name).toBe("checkbox_list");
@@ -136,8 +152,8 @@ describe("checkboxListInputRule", () => {
     const result = typeTrigger(rule, testDoc, "[ ]", " ");
 
     // The rule should not fire; the marker text is left untouched.
-    expect(result.firstChild?.type.name).toBe("checkbox_list");
-    expect(result.firstChild?.child(0).textContent).toBe("[ ]");
+    expect(result.doc.firstChild?.type.name).toBe("checkbox_list");
+    expect(result.doc.firstChild?.child(0).textContent).toBe("[ ]");
   });
 
   it("does nothing when not inside a list", () => {
@@ -145,7 +161,7 @@ describe("checkboxListInputRule", () => {
 
     const result = typeTrigger(rule, testDoc, "[ ]", " ");
 
-    expect(result.firstChild?.type.name).toBe("paragraph");
-    expect(result.firstChild?.textContent).toBe("[ ]");
+    expect(result.doc.firstChild?.type.name).toBe("paragraph");
+    expect(result.doc.firstChild?.textContent).toBe("[ ]");
   });
 });

@@ -4,6 +4,7 @@ import type {
   Node as ProsemirrorNode,
   Attrs,
 } from "prosemirror-model";
+import { TextSelection } from "prosemirror-state";
 import toggleList from "../commands/toggleList";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { isInHeading } from "../queries/isInHeading";
@@ -68,6 +69,10 @@ export function checkboxListInputRule(
     toggleList(listType, itemType)(after, (toggleTr) => {
       toggleTr.steps.forEach((step) => tr.step(step));
     });
+
+    // Place the cursor at the start of the converted item, where the marker
+    // was, so the user can continue typing.
+    tr.setSelection(TextSelection.near(tr.doc.resolve(start)));
     return tr;
   });
 }
