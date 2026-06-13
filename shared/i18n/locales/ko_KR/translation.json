@@ -188,6 +188,7 @@
   "Collection": "컬렉션",
   "Collections": "컬렉션",
   "Debug": "디버그",
+  "Date": "Date",
   "Document": "문서",
   "Search results": "검색 결과",
   "Documents": "문서",
@@ -616,8 +617,6 @@
   "Divider": "구분선",
   "Page break": "페이지 나누기",
   "Current date": "현재 날짜",
-  "Current time": "현재 시간",
-  "Current date and time": "현재 날짜 및 시간",
   "Info notice": "정보 공지",
   "Success notice": "성공 안내",
   "Warning notice": "주의 공지",
@@ -1781,5 +1780,6 @@
   "Hide completed": "완료 숨기기",
   "Write a caption": "캡션 입력",
   "Add title": "제목 추가",
-  "Add content": "콘텐츠 추가"
+  "Add content": "콘텐츠 추가",
+  "Tomorrow": "Tomorrow"
 }
