@@ -188,6 +188,7 @@
   "Collection": "אוסף",
   "Collections": "אוספים",
   "Debug": "לְנַפּוֹת",
+  "Date": "Date",
   "Document": "מִסְמָך",
   "Search results": "תוצאות חיפוש",
   "Documents": "מסמכים",
@@ -616,8 +617,6 @@
   "Divider": "מְחַלֵק",
   "Page break": "מעבר עמוד",
   "Current date": "תאריך נוכחי",
-  "Current time": "זמן נוכחי",
-  "Current date and time": "תאריך ושעה נוכחיים",
   "Info notice": "הודעת מידע",
   "Success notice": "הודעת הצלחה",
   "Warning notice": "הערת אזהרה",
@@ -1781,5 +1780,6 @@
   "Hide completed": "הסתרה הושלמה",
   "Write a caption": "כתוב כיתוב",
   "Add title": "הוסף כותרת",
-  "Add content": "הוסף תוכן"
+  "Add content": "הוסף תוכן",
+  "Tomorrow": "Tomorrow"
 }
