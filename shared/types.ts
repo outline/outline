@@ -121,6 +121,7 @@ export enum MentionType {
   PullRequest = "pull_request",
   Project = "project",
   URL = "url",
+  Date = "date",
 }
 
 export type PublicEnv = {
