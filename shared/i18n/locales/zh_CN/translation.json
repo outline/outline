@@ -188,6 +188,7 @@
   "Collection": "文档集",
   "Collections": "文档集",
   "Debug": "调试",
+  "Date": "Date",
   "Document": "文档",
   "Search results": "搜索结果",
   "Documents": "文档",
@@ -616,8 +617,6 @@
   "Divider": "分割线",
   "Page break": "分页符",
   "Current date": "当前日期",
-  "Current time": "当前时间",
-  "Current date and time": "当前日期和时间",
   "Info notice": "提示信息",
   "Success notice": "成功通知",
   "Warning notice": "警告信息",
@@ -1781,5 +1780,6 @@
   "Hide completed": "隐藏已完成",
   "Write a caption": "撰写一个标题",
   "Add title": "添加标题",
-  "Add content": "添加内容"
+  "Add content": "添加内容",
+  "Tomorrow": "Tomorrow"
 }
