@@ -25,6 +25,7 @@ import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
 import InlineMenu from "./InlineMenu";
+import StickyBlockToolbar from "./StickyBlockToolbar";
 import { isModKey } from "@shared/utils/keyboard";
 
 type Props = {
@@ -273,6 +274,18 @@ export function SelectionToolbar(props: Props) {
     items.length
   ) {
     return <InlineMenu items={items} rtl={rtl} />;
+  }
+
+  // Block toolbars (code, notice) stick to the top of the viewport as the block
+  // scrolls instead of floating at a position fixed on selection. On mobile the
+  // floating toolbar renders as a bottom bar, so the sticky path is desktop only.
+  if (
+    matched?.sticky &&
+    !isMobile &&
+    activeToolbar === Toolbar.Menu &&
+    items.length
+  ) {
+    return <StickyBlockToolbar ref={menuRef} items={items} rtl={rtl} />;
   }
 
   return (
