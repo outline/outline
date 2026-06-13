@@ -188,6 +188,7 @@
   "Collection": "Gyűjtemény",
   "Collections": "Gyűjtemények",
   "Debug": "Hibakeresés",
+  "Date": "Date",
   "Document": "Dokumentum",
   "Search results": "Search results",
   "Documents": "Dokumentumok",
@@ -616,8 +617,6 @@
   "Divider": "Elválasztó",
   "Page break": "Oldaltörés",
   "Current date": "Jelenlegi dátum",
-  "Current time": "Jelenlegi idő",
-  "Current date and time": "Jelenlegi dátum és idő",
   "Info notice": "Információs értesítés",
   "Success notice": "Siker értesítés",
   "Warning notice": "Figyelmeztető értesítés",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Hide completed",
   "Write a caption": "Írjon egy elnevezést",
   "Add title": "Add title",
-  "Add content": "Add content"
+  "Add content": "Add content",
+  "Tomorrow": "Tomorrow"
 }
