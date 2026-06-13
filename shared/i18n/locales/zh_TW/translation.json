@@ -188,6 +188,7 @@
   "Collection": "文件集",
   "Collections": "文件集",
   "Debug": "除錯",
+  "Date": "Date",
   "Document": "文件",
   "Search results": "搜尋結果",
   "Documents": "所有文件",
@@ -616,8 +617,6 @@
   "Divider": "分隔線",
   "Page break": "分頁符號",
   "Current date": "目前日期",
-  "Current time": "目前時間",
-  "Current date and time": "目前日期與時間",
   "Info notice": "訊息通知",
   "Success notice": "成功通知",
   "Warning notice": "警告",
@@ -1781,5 +1780,6 @@
   "Hide completed": "隱藏已完成項目",
   "Write a caption": "撰寫說明文字",
   "Add title": "加入標題",
-  "Add content": "新增內容"
+  "Add content": "新增內容",
+  "Tomorrow": "Tomorrow"
 }
