@@ -149,6 +149,14 @@ export interface SelectionToolbarMenuDescriptor {
   /** Toolbar alignment when this menu is active. Defaults to "center". */
   align?: "center" | "start" | "end";
   /**
+   * Whether the toolbar is anchored to a block rather than a transient text
+   * selection. Block toolbars (code, notice) stay visible while the caret sits
+   * in the block, so on desktop they are rendered as a sticky element that pins
+   * to the top of the viewport as the block scrolls, instead of a floating
+   * toolbar positioned once and left behind on scroll.
+   */
+  sticky?: boolean;
+  /**
    * How the menu is presented. "toolbar" (default) renders a horizontal strip
    * of buttons; "inline" renders a vertical menu anchored to the selection
    * without requiring a trigger button.

@@ -58,6 +58,7 @@ export default class SelectionToolbarExtension extends Extension {
       {
         priority: 100,
         align: "end",
+        sticky: true,
         matches: (ctx) =>
           ctx.isInCodeBlock &&
           (ctx.isEmpty || ctx.selectedNodeType !== undefined),
@@ -95,14 +96,12 @@ export default class SelectionToolbarExtension extends Extension {
         priority: 30,
         matches: (ctx) => ctx.readOnly,
         getItems: (ctx) =>
-          getReadOnlyMenuItems(
-            ctx,
-            this.editor.props.canUpdate ?? false
-          ),
+          getReadOnlyMenuItems(ctx, this.editor.props.canUpdate ?? false),
       },
       {
         priority: 20,
         align: "end",
+        sticky: true,
         matches: (ctx) => ctx.isInNotice && ctx.isEmpty,
         getItems: (ctx) => getNoticeMenuItems(ctx),
       },
