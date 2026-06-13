@@ -8,13 +8,21 @@ import {
 } from "@shared/test/editor";
 import toggleList from "./toggleList";
 
-const { bullet_list, ordered_list, list_item } = schema.nodes;
+const { bullet_list, ordered_list, list_item, checkbox_list, checkbox_item } =
+  schema.nodes;
 
 /**
  * Creates a list item node with the given block content.
  */
 function li(content: Node[]) {
   return list_item.create(null, content);
+}
+
+/**
+ * Creates a checkbox item node with the given block content.
+ */
+function cli(content: Node[], checked = false) {
+  return checkbox_item.create({ checked }, content);
 }
 
 /**
@@ -95,6 +103,116 @@ describe("toggleList", () => {
     const outer = result.firstChild;
     expect(outer?.type.name).toBe("bullet_list");
     expect(outer?.child(1).child(1).type.name).toBe("bullet_list");
+  });
+
+  it("preserves nesting when converting a bullet list with a nested list to a checklist", () => {
+    const testDoc = doc([
+      bullet_list.create(null, [
+        li([p("one")]),
+        li([p("two"), bullet_list.create(null, [li([p("nested")])])]),
+      ]),
+    ]);
+
+    const result = run(
+      testDoc,
+      "two",
+      toggleList(checkbox_list, checkbox_item)
+    );
+
+    const outer = result.firstChild;
+    expect(outer?.type.name).toBe("checkbox_list");
+    expect(outer?.childCount).toBe(2);
+    expect(outer?.child(0).type.name).toBe("checkbox_item");
+    expect(outer?.child(1).type.name).toBe("checkbox_item");
+
+    const nested = outer?.child(1).child(1);
+    expect(nested?.type.name).toBe("checkbox_list");
+    expect(nested?.child(0).type.name).toBe("checkbox_item");
+    expect(nested?.child(0).textContent).toBe("nested");
+  });
+
+  it("preserves nesting when converting a checklist with a nested checklist to a bullet list", () => {
+    const testDoc = doc([
+      checkbox_list.create(null, [
+        cli([p("one")]),
+        cli([p("two"), checkbox_list.create(null, [cli([p("nested")])])]),
+      ]),
+    ]);
+
+    const result = run(testDoc, "two", toggleList(bullet_list, list_item));
+
+    const outer = result.firstChild;
+    expect(outer?.type.name).toBe("bullet_list");
+    expect(outer?.childCount).toBe(2);
+    expect(outer?.child(0).type.name).toBe("list_item");
+    expect(outer?.child(1).type.name).toBe("list_item");
+
+    const nested = outer?.child(1).child(1);
+    expect(nested?.type.name).toBe("bullet_list");
+    expect(nested?.child(0).type.name).toBe("list_item");
+    expect(nested?.child(0).textContent).toBe("nested");
+  });
+
+  it("converts a checklist nested in a bullet list without changing the parent list", () => {
+    const testDoc = doc([
+      bullet_list.create(null, [
+        li([p("one")]),
+        li([p("two"), checkbox_list.create(null, [cli([p("nested")])])]),
+      ]),
+    ]);
+
+    const result = run(testDoc, "nested", toggleList(bullet_list, list_item));
+
+    const outer = result.firstChild;
+    expect(outer?.type.name).toBe("bullet_list");
+    expect(outer?.child(1).type.name).toBe("list_item");
+
+    const nested = outer?.child(1).child(1);
+    expect(nested?.type.name).toBe("bullet_list");
+    expect(nested?.child(0).type.name).toBe("list_item");
+    expect(nested?.child(0).textContent).toBe("nested");
+  });
+
+  it("converts a bullet list nested in a checklist to a checklist without changing the parent list", () => {
+    const testDoc = doc([
+      checkbox_list.create(null, [
+        cli([p("one")]),
+        cli([p("two"), bullet_list.create(null, [li([p("nested")])])]),
+      ]),
+    ]);
+
+    const result = run(
+      testDoc,
+      "nested",
+      toggleList(checkbox_list, checkbox_item)
+    );
+
+    const outer = result.firstChild;
+    expect(outer?.type.name).toBe("checkbox_list");
+    expect(outer?.child(1).type.name).toBe("checkbox_item");
+
+    const nested = outer?.child(1).child(1);
+    expect(nested?.type.name).toBe("checkbox_list");
+    expect(nested?.child(0).type.name).toBe("checkbox_item");
+    expect(nested?.child(0).textContent).toBe("nested");
+  });
+
+  it("preserves the checked state of items already part of a nested checklist", () => {
+    const testDoc = doc([
+      bullet_list.create(null, [
+        li([p("one"), checkbox_list.create(null, [cli([p("nested")], true)])]),
+      ]),
+    ]);
+
+    const result = run(
+      testDoc,
+      "one",
+      toggleList(checkbox_list, checkbox_item)
+    );
+
+    const outer = result.firstChild;
+    expect(outer?.type.name).toBe("checkbox_list");
+    expect(outer?.child(0).child(1).child(0).attrs.checked).toBe(true);
   });
 
   it("lifts the item out of the list when toggling the same list type", () => {
