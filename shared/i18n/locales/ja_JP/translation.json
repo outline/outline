@@ -188,6 +188,7 @@
   "Collection": "コレクション",
   "Collections": "コレクション",
   "Debug": "デバッグ",
+  "Date": "Date",
   "Document": "ドキュメント",
   "Search results": "Search results",
   "Documents": "ドキュメント",
@@ -616,8 +617,6 @@
   "Divider": "区切り線",
   "Page break": "ページ区切り",
   "Current date": "現在の日付",
-  "Current time": "現在の時刻",
-  "Current date and time": "現在の日時",
   "Info notice": "アラート - INFO",
   "Success notice": "アラート - SUCCESS",
   "Warning notice": "アラート - WARNING",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Hide completed",
   "Write a caption": "脚注を書く",
   "Add title": "タイトルを追加",
-  "Add content": "コンテンツを追加"
+  "Add content": "コンテンツを追加",
+  "Tomorrow": "Tomorrow"
 }
