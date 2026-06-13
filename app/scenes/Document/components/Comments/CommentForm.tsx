@@ -303,20 +303,23 @@ function CommentForm({
     ? {
         initial: {
           opacity: 0,
-          marginBottom: -100,
+          y: 10,
         },
         animate: {
           opacity: 1,
-          marginBottom: 0,
+          y: 0,
           transition: {
-            type: "spring",
-            bounce: 0.1,
+            duration: 0.2,
+            ease: "easeOut",
           },
         },
         exit: {
           opacity: 0,
-          marginBottom: -100,
-          scale: 0.98,
+          y: 10,
+          transition: {
+            duration: 0.2,
+            ease: "easeOut",
+          },
         },
       }
     : {};

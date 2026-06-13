@@ -1,3 +1,4 @@
+import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import { darken } from "polished";
 import * as React from "react";
@@ -217,9 +218,21 @@ function CommentThread({
   return (
     <Thread
       ref={topRef}
+      layout="position"
+      transition={{ layout: { duration: 0.2, ease: "easeOut" } }}
       $focused={focused}
       $recessed={recessed}
       onClick={handleClickThread}
+      {...(thread.isNew
+        ? {
+            initial: { opacity: 0, y: 10 },
+            animate: {
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.2, ease: "easeOut" },
+            },
+          }
+        : {})}
     >
       {commentsInThread.map((comment, index) => {
         if (collapse !== null) {
@@ -327,7 +340,7 @@ const ShowMore = styled.div`
   }
 `;
 
-const Thread = styled.div<{
+const Thread = styled(m.div)<{
   $focused: boolean;
   $recessed: boolean;
 }>`
