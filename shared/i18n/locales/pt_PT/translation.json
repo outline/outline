@@ -188,6 +188,7 @@
   "Collection": "Coleção",
   "Collections": "Coleções",
   "Debug": "Depurar",
+  "Date": "Date",
   "Document": "Documento",
   "Search results": "Search results",
   "Documents": "Documentos",
@@ -616,8 +617,6 @@
   "Divider": "Separador",
   "Page break": "Quebra de página",
   "Current date": "Data atual",
-  "Current time": "Hora atual",
-  "Current date and time": "Data e hora atual",
   "Info notice": "Aviso de informação",
   "Success notice": "Notificação de sucesso",
   "Warning notice": "Aviso de alerta",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Hide completed",
   "Write a caption": "Escreva uma legenda",
   "Add title": "Add title",
-  "Add content": "Add content"
+  "Add content": "Add content",
+  "Tomorrow": "Tomorrow"
 }
