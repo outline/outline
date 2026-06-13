@@ -1306,7 +1306,7 @@ describe("#shares.revoke", () => {
 });
 
 describe("#shares.subscribe", () => {
-  it.only("should create a subscription for a published share", async () => {
+  it("should create a subscription for a published share", async () => {
     const share = await buildShare();
     const res = await server.post("/api/shares.subscribe", {
       body: {

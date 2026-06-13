@@ -716,7 +716,9 @@ describe("#notifications.unsubscribe", () => {
     );
 
     const events = (await user.reload()).notificationSettings;
-    expect(events["documents.update"]).toBe(false);
+    expect(events["documents.update"]).toStrictEqual({
+      email: false,
+    });
   });
 
   it("should not allow unsubscribe with invalid token", async () => {
