@@ -1,5 +1,6 @@
 import type { NodeType } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
+import { NodeSelection } from "prosemirror-state";
 import { findParentNode } from "./findParentNode";
 import { isList } from "./isList";
 
@@ -15,8 +16,19 @@ import { isList } from "./isList";
 export const isListActive =
   (type: NodeType) =>
   (state: EditorState): boolean => {
+    const { selection } = state;
+
+    // When the list node itself is selected via a NodeSelection, consider that
+    // node directly — findParentNode would otherwise report its parent list.
+    if (
+      selection instanceof NodeSelection &&
+      isList(selection.node, state.schema)
+    ) {
+      return selection.node.type === type;
+    }
+
     const closestList = findParentNode((node) => isList(node, state.schema))(
-      state.selection
+      selection
     );
     return closestList?.node.type === type;
   };

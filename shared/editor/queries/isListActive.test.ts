@@ -1,5 +1,7 @@
 import type { Node } from "prosemirror-model";
+import { NodeSelection } from "prosemirror-state";
 import {
+  createEditorState,
   createEditorStateWithSelection,
   doc,
   p,
@@ -53,6 +55,38 @@ function stateAt(testDoc: Node, selectionText: string) {
   );
 }
 
+/**
+ * Returns the position directly before the first node of the given type.
+ *
+ * @throws if no matching node exists in the document.
+ */
+function posOfNode(node: Node, typeName: string) {
+  let found = -1;
+  node.descendants((child, pos) => {
+    if (found === -1 && child.type.name === typeName) {
+      found = pos;
+    }
+    return found === -1;
+  });
+  if (found === -1) {
+    throw new Error(`Node "${typeName}" not found in document`);
+  }
+  return found;
+}
+
+/**
+ * Builds an editor state with a NodeSelection on the first node of the given
+ * type.
+ */
+function nodeSelectionStateAt(testDoc: Node, typeName: string) {
+  const state = createEditorState(testDoc);
+  const selection = NodeSelection.create(
+    state.doc,
+    posOfNode(testDoc, typeName)
+  );
+  return state.apply(state.tr.setSelection(selection));
+}
+
 describe("isListActive", () => {
   it("matches the closest list type", () => {
     const testDoc = doc([
@@ -93,6 +127,30 @@ describe("isListActive", () => {
 
     expect(isListActive(checkbox_list)(state)).toBe(true);
     expect(isListActive(ordered_list)(state)).toBe(false);
+  });
+
+  it("matches a list selected directly via a NodeSelection", () => {
+    const testDoc = doc([
+      bullet_list.create(null, [li([p("one")]), li([p("two")])]),
+    ]);
+    const state = nodeSelectionStateAt(testDoc, "bullet_list");
+
+    expect(isListActive(bullet_list)(state)).toBe(true);
+    expect(isListActive(ordered_list)(state)).toBe(false);
+    expect(isListActive(checkbox_list)(state)).toBe(false);
+  });
+
+  it("matches the selected nested list, not its parent, via a NodeSelection", () => {
+    const testDoc = doc([
+      checkbox_list.create(null, [
+        cli([p("moo"), ordered_list.create(null, [li([p("dfsdf")])])]),
+      ]),
+    ]);
+    const state = nodeSelectionStateAt(testDoc, "ordered_list");
+
+    expect(isListActive(ordered_list)(state)).toBe(true);
+    expect(isListActive(checkbox_list)(state)).toBe(false);
+    expect(isListActive(bullet_list)(state)).toBe(false);
   });
 
   it("returns false when the selection is not in a list", () => {
