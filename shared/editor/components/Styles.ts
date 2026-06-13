@@ -1622,6 +1622,10 @@ ul.checkbox_list > li {
 }
 
 ul.checkbox_list {
+  & > li > span[contenteditable="false"] {
+    cursor: text;
+  }
+
   .checkbox {
     display: inline-block;
     cursor: var(--pointer);

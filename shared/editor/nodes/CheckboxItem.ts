@@ -9,6 +9,7 @@ import {
   sinkListItem,
   liftListItem,
 } from "prosemirror-schema-list";
+import { TextSelection } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
 import { toggleCheckboxItems } from "../commands/toggleCheckboxItems";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -41,15 +42,19 @@ export default class CheckboxItem extends Node {
       toDOM: (node) => {
         const id = `checkbox-${uuidv4()}`;
         const checked = node.attrs.checked.toString();
-        let input;
+        let wrapper;
         if (typeof document !== "undefined") {
-          input = document.createElement("span");
+          const input = document.createElement("span");
           input.tabIndex = -1;
           input.className = "checkbox";
           input.setAttribute("aria-checked", checked);
           input.setAttribute("aria-labelledby", id);
           input.setAttribute("role", "checkbox");
-          input.addEventListener("click", this.handleClick);
+
+          wrapper = document.createElement("span");
+          wrapper.contentEditable = "false";
+          wrapper.appendChild(input);
+          wrapper.addEventListener("click", this.handleClick);
         }
 
         return [
@@ -58,14 +63,12 @@ export default class CheckboxItem extends Node {
             "data-type": this.name,
             class: node.attrs.checked ? "checked" : undefined,
           },
-          [
+          wrapper ?? [
             "span",
             {
               contentEditable: "false",
             },
-            ...(input
-              ? [input]
-              : [["span", { class: "checkbox", "aria-checked": checked }]]),
+            ["span", { class: "checkbox", "aria-checked": checked }],
           ],
           ["div", { id }, 0],
         ];
@@ -78,20 +81,40 @@ export default class CheckboxItem extends Node {
   }
 
   handleClick = (event: Event) => {
-    if (!(event.target instanceof HTMLSpanElement)) {
+    if (!(event.target instanceof HTMLElement)) {
+      return;
+    }
+
+    const isCheckbox = event.target.classList.contains("checkbox");
+    const checkbox = isCheckbox
+      ? event.target
+      : event.target.querySelector(".checkbox");
+    if (!checkbox) {
       return;
     }
 
     const { view } = this.editor;
     const { tr } = view.state;
-    const { top, left } = event.target.getBoundingClientRect();
+    const { top, left } = checkbox.getBoundingClientRect();
     const result = view.posAtCoords({ top, left });
+    if (!result) {
+      return;
+    }
 
-    if (result) {
-      const transaction = tr.setNodeMarkup(result.inside, undefined, {
-        checked: event.target.getAttribute("aria-checked") !== "true",
-      });
-      view.dispatch(transaction);
+    if (isCheckbox) {
+      // Clicking the checkbox itself toggles its checked state.
+      view.dispatch(
+        tr.setNodeMarkup(result.inside, undefined, {
+          checked: checkbox.getAttribute("aria-checked") !== "true",
+        })
+      );
+    } else {
+      // Clicking the margin beside the checkbox focuses the start of the item.
+      const selection = TextSelection.near(
+        view.state.doc.resolve(result.inside + 1)
+      );
+      view.dispatch(tr.setSelection(selection));
+      view.focus();
     }
   };
 
