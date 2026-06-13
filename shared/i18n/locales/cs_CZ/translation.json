@@ -188,6 +188,7 @@
   "Collection": "Kolekce",
   "Collections": "Kolekce",
   "Debug": "Ladění",
+  "Date": "Date",
   "Document": "Dokument",
   "Search results": "Výsledky vyhledávání",
   "Documents": "Dokumenty",
@@ -616,8 +617,6 @@
   "Divider": "Oddělovač",
   "Page break": "Konec stránky",
   "Current date": "Aktuální datum",
-  "Current time": "Aktuální čas",
-  "Current date and time": "Aktuální datum a čas",
   "Info notice": "Informační upozornění",
   "Success notice": "Úspěch",
   "Warning notice": "Varování",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Skrýt dokončené",
   "Write a caption": "Napsat popisek",
   "Add title": "Přidat titulek",
-  "Add content": "Přidat obsah"
+  "Add content": "Přidat obsah",
+  "Tomorrow": "Tomorrow"
 }
