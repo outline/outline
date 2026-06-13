@@ -188,6 +188,7 @@
   "Collection": "مجموعه",
   "Collections": "مجموعه‌ها",
   "Debug": "دیباگ",
+  "Date": "Date",
   "Document": "سند",
   "Search results": "Search results",
   "Documents": "اسناد",
@@ -616,8 +617,6 @@
   "Divider": "جدا کننده",
   "Page break": "جداکننده صفحه",
   "Current date": "تاریخ فعلی",
-  "Current time": "زمان فعلی",
-  "Current date and time": "تاریخ و زمان فعلی",
   "Info notice": "اخطار اطلاع‌رسانی",
   "Success notice": "اعلان موفقیت",
   "Warning notice": "بلوک هشدار",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Hide completed",
   "Write a caption": "عنوانی بنویسید",
   "Add title": "Add title",
-  "Add content": "Add content"
+  "Add content": "Add content",
+  "Tomorrow": "Tomorrow"
 }
