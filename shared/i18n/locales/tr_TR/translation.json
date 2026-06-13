@@ -188,6 +188,7 @@
   "Collection": "Koleksiyon",
   "Collections": "Koleksiyonlar",
   "Debug": "Hata ayıklama",
+  "Date": "Date",
   "Document": "Belge",
   "Search results": "Arama sonuçları",
   "Documents": "Belgeler",
@@ -616,8 +617,6 @@
   "Divider": "Ayırıcı",
   "Page break": "Sayfa sonu",
   "Current date": "Şimdiki tarih",
-  "Current time": "Şimdiki saat",
-  "Current date and time": "Şimdiki tarih ve saat",
   "Info notice": "Bilgi bildirimi",
   "Success notice": "Başarı bildirimi",
   "Warning notice": "Uyarı bildirimi",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Tamamlananları gizle",
   "Write a caption": "Bir başlık yazın",
   "Add title": "Add title",
-  "Add content": "Add content"
+  "Add content": "Add content",
+  "Tomorrow": "Tomorrow"
 }
