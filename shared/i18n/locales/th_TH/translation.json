@@ -188,6 +188,7 @@
   "Collection": "คอลเลคชั่น",
   "Collections": "คอลเลคชั่น",
   "Debug": "ดีบัก",
+  "Date": "Date",
   "Document": "เอกสาร",
   "Search results": "Search results",
   "Documents": "เอกสาร",
@@ -616,8 +617,6 @@
   "Divider": "ตัวแบ่ง",
   "Page break": "แบ่งหน้า",
   "Current date": "วันที่ปัจจุบัน",
-  "Current time": "เวลาปัจจุบัน",
-  "Current date and time": "วันที่และเวลาปัจจุบัน",
   "Info notice": "ประกาศข้อมูล",
   "Success notice": "Success notice",
   "Warning notice": "คำเตือน",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Hide completed",
   "Write a caption": "เขียนแคปชั่น",
   "Add title": "Add title",
-  "Add content": "Add content"
+  "Add content": "Add content",
+  "Tomorrow": "Tomorrow"
 }
