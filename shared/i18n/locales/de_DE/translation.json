@@ -188,6 +188,7 @@
   "Collection": "Sammlung",
   "Collections": "Sammlungen",
   "Debug": "Testen",
+  "Date": "Date",
   "Document": "Dokument",
   "Search results": "Suchergebnisse",
   "Documents": "Dokumente",
@@ -616,8 +617,6 @@
   "Divider": "Trennlinie",
   "Page break": "Seitenumbruch",
   "Current date": "Aktuelles Datum",
-  "Current time": "Aktuelle Zeit",
-  "Current date and time": "Aktuelles Datum & Zeit",
   "Info notice": "Info-Hinweis",
   "Success notice": "Erfolgsmitteilung",
   "Warning notice": "Warnhinweis",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Abgeschlossene ausblenden",
   "Write a caption": "Untertitel schreiben",
   "Add title": "Titel hinzufügen",
-  "Add content": "Inhalte hinzufügen"
+  "Add content": "Inhalte hinzufügen",
+  "Tomorrow": "Tomorrow"
 }
