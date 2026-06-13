@@ -244,39 +244,40 @@ class User extends ParanoidModel implements Searchable {
   @action
   setNotificationEventType = async (
     eventType: NotificationEventType,
-    value: boolean | Record<NotificationChannelType, boolean>,
-    channel?: NotificationChannelType
+    value = true,
+    channels?: NotificationChannelType[]
   ) => {
-    if (channel !== undefined) {
-      // Setting a specific channel preference
-      const currentSetting = this.notificationSettings[eventType];
-      const channelSettings =
-        typeof currentSetting === "object" ? currentSetting : {};
-
-      this.notificationSettings = {
-        ...this.notificationSettings,
-        [eventType]: {
-          ...channelSettings,
-          [channel]: value,
-        },
-      };
-    } else {
-      // Setting all channels or simple boolean
-      this.notificationSettings = {
-        ...this.notificationSettings,
-        [eventType]: value,
-      };
+    if (!channels?.length) {
+      // use email as default
+      channels = [NotificationChannelType.Email];
     }
+
+    const currentSetting = this.notificationSettings[eventType];
+    const channelSettings =
+      typeof currentSetting === "object" ? currentSetting : {};
+
+    const updatedChannelSettings = {
+      ...channelSettings,
+    };
+
+    for (const channel of channels) {
+      updatedChannelSettings[channel] = value;
+    }
+
+    this.notificationSettings = {
+      ...this.notificationSettings,
+      [eventType]: updatedChannelSettings,
+    };
 
     if (value) {
       await client.post(`/users.notificationsSubscribe`, {
         eventType,
-        channel,
+        channels,
       });
     } else {
       await client.post(`/users.notificationsUnsubscribe`, {
         eventType,
-        channel,
+        channels,
       });
     }
   };

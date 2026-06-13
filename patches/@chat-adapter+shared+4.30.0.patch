@@ -1,0 +1,15 @@
+diff --git a/node_modules/@chat-adapter/shared/package.json b/node_modules/@chat-adapter/shared/package.json
+index 3015551..e0d3d11 100644
+--- a/node_modules/@chat-adapter/shared/package.json
++++ b/node_modules/@chat-adapter/shared/package.json
+@@ -6,7 +6,9 @@
+   "exports": {
+     ".": {
+       "types": "./dist/index.d.ts",
+-      "import": "./dist/index.js"
++      "import": "./dist/index.js",
++      "require": "./dist/index.js",
++      "default": "./dist/index.js"
+     }
+   },
+   "main": "./dist/index.js",

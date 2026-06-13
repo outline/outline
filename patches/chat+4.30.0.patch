@@ -1,0 +1,15 @@
+diff --git a/node_modules/chat/package.json b/node_modules/chat/package.json
+index cfa6e7f..7f2b9b5 100644
+--- a/node_modules/chat/package.json
++++ b/node_modules/chat/package.json
+@@ -9,7 +9,9 @@
+   "exports": {
+     ".": {
+       "types": "./dist/index.d.ts",
+-      "import": "./dist/index.js"
++      "import": "./dist/index.js",
++      "require": "./dist/index.js",
++      "default": "./dist/index.js"
+     },
+     "./ai": {
+       "types": "./dist/ai/index.d.ts",

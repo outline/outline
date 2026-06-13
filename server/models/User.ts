@@ -357,29 +357,30 @@ class User extends ParanoidModel<
    */
   public setNotificationEventType = (
     type: NotificationEventType,
-    value: boolean | Record<NotificationChannelType, boolean> = true,
-    channel?: NotificationChannelType
+    value = true,
+    channels?: NotificationChannelType[]
   ) => {
-    if (channel !== undefined) {
-      // Setting a specific channel preference
-      const currentSetting = this.notificationSettings[type];
-      const channelSettings =
-        typeof currentSetting === "object" ? currentSetting : {};
-
-      this.notificationSettings = {
-        ...this.notificationSettings,
-        [type]: {
-          ...channelSettings,
-          [channel]: value,
-        },
-      };
-    } else {
-      // Setting all channels or simple boolean
-      this.notificationSettings = {
-        ...this.notificationSettings,
-        [type]: value,
-      };
+    if (!channels?.length) {
+      // use the email channel as default
+      channels = [NotificationChannelType.Email];
     }
+
+    const currentSetting = this.notificationSettings[type];
+    const channelSettings =
+      typeof currentSetting === "object" ? currentSetting : {};
+
+    const updatedChannelSettings = {
+      ...channelSettings,
+    };
+
+    for (const channel of channels) {
+      updatedChannelSettings[channel] = value;
+    }
+
+    this.notificationSettings = {
+      ...this.notificationSettings,
+      [type]: updatedChannelSettings,
+    };
   };
 
   /**

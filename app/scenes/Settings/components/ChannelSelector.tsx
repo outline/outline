@@ -8,7 +8,7 @@ import FilterOptions from "~/components/FilterOptions";
 
 type Props = {
   value: NotificationChannelType[];
-  onChange: (channels: NotificationChannelType[]) => void;
+  onChange: (key: string | undefined | null) => void;
   slackDisabled?: boolean;
 };
 
@@ -40,13 +40,10 @@ function ChannelSelector({ value, onChange, slackDisabled = false }: Props) {
   }, [t, slackDisabled]);
 
   const handleToggle = React.useCallback(
-    (channelType: NotificationChannelType) => {
-      const newValue = value.includes(channelType)
-        ? value.filter((c) => c !== channelType)
-        : [...value, channelType];
-      onChange(newValue);
+    (key: string | undefined | null) => {
+      onChange(key);
     },
-    [value, onChange]
+    [onChange]
   );
 
   return (

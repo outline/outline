@@ -1,0 +1,15 @@
+diff --git a/node_modules/@chat-adapter/slack/package.json b/node_modules/@chat-adapter/slack/package.json
+index 871fe33..b6f0c9b 100644
+--- a/node_modules/@chat-adapter/slack/package.json
++++ b/node_modules/@chat-adapter/slack/package.json
+@@ -9,7 +9,9 @@
+   "exports": {
+     ".": {
+       "types": "./dist/index.d.ts",
+-      "import": "./dist/index.js"
++      "import": "./dist/index.js",
++      "require": "./dist/index.js",
++      "default": "./dist/index.js"
+     },
+     "./webhook": {
+       "types": "./dist/webhook.d.ts",

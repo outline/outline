@@ -37,6 +37,7 @@ import isCloudHosted from "~/utils/isCloudHosted";
 import { settingsPath } from "~/utils/routeHelpers";
 import ChannelSelector from "./components/ChannelSelector";
 import SettingRow from "./components/SettingRow";
+import Switch from "~/components/Switch";
 
 function Notifications() {
   const user = useCurrentUser();
@@ -177,22 +178,21 @@ function Notifications() {
 
   const handleChannelsChange = React.useCallback(
     (eventType: NotificationEventType) =>
-      async (channels: NotificationChannelType[]) => {
-        for (const channel of [
+      async (key: string | undefined | null) => {
+        const currentChannels = [
           NotificationChannelType.Email,
           NotificationChannelType.Slack,
-        ]) {
-          const shouldEnable = channels.includes(channel);
-          const enabled = user.subscribedToEventType(eventType, channel);
+        ].filter((channel) => user.subscribedToEventType(eventType, channel));
 
-          if (shouldEnable !== enabled) {
-            await user.setNotificationEventType(
-              eventType,
-              shouldEnable,
-              channel
-            );
-          }
+        const enabled = currentChannels.some((c) => c === key);
+        const channelKey = key as NotificationChannelType;
+
+        if (enabled) {
+          await user.setNotificationEventType(eventType, false, [channelKey]);
+        } else {
+          await user.setNotificationEventType(eventType, true, [channelKey]);
         }
+
         showSuccessMessage();
       },
     [user, showSuccessMessage]
@@ -210,7 +210,13 @@ function Notifications() {
       await client.post(
         checked
           ? `/users.notificationsSubscribe`
-          : `/users.notificationsUnsubscribe`
+          : `/users.notificationsUnsubscribe`,
+        {
+          channels: [
+            NotificationChannelType.Email,
+            NotificationChannelType.Slack,
+          ],
+        }
       );
       showSuccessMessage();
     },
