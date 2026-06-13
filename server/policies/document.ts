@@ -107,7 +107,6 @@ allow(User, "publish", Document, (actor, document) =>
 
 allow(User, "manageUsers", Document, (actor, document) =>
   and(
-    !!document?.isActive,
     isTeamMutable(actor),
     can(actor, "read", document),
     or(

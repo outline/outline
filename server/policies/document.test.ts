@@ -355,7 +355,7 @@ describe("archived document", () => {
     expect(abilities.unarchive).toBeTruthy();
     expect(abilities.update).toEqual(false);
     expect(abilities.createChildDocument).toEqual(false);
-    expect(abilities.manageUsers).toEqual(false);
+    expect(abilities.manageUsers).toBeTruthy();
     expect(abilities.archive).toEqual(false);
     expect(abilities.share).toEqual(false);
     expect(abilities.move).toEqual(false);
