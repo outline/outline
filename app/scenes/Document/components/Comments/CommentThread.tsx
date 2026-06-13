@@ -96,9 +96,14 @@ function CommentThread({
   });
 
   useOnClickOutside(topRef, (event) => {
+    const target = event.target as HTMLElement;
     if (
       focused &&
-      !(event.target as HTMLElement).classList.contains("comment") &&
+      !target.classList.contains("comment") &&
+      // Clicking another thread switches focus to it directly via its own
+      // click handler, so skip deselecting here to avoid a flash of the
+      // deselected state (and the new comment form) in between.
+      !target.closest("[data-comment-thread]") &&
       event.defaultPrevented === false
     ) {
       setFocusedCommentId(null);
@@ -221,6 +226,7 @@ function CommentThread({
   return (
     <Thread
       ref={topRef}
+      data-comment-thread
       layout="position"
       transition={{ layout: { duration: 0.2, ease: "easeOut" } }}
       $focused={focused}
