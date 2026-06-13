@@ -188,7 +188,7 @@
   "Collection": "Raccolta",
   "Collections": "Raccolta",
   "Debug": "Debug",
-  "Date": "Date",
+  "Date": "Data",
   "Document": "Documento",
   "Search results": "Risultati della ricerca",
   "Documents": "Documenti",
@@ -1781,5 +1781,5 @@
   "Write a caption": "Scrivi una descrizione",
   "Add title": "Aggiungi titolo",
   "Add content": "Aggiungi contenuto",
-  "Tomorrow": "Tomorrow"
+  "Tomorrow": "Domani"
 }
