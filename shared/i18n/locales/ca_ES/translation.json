@@ -188,6 +188,7 @@
   "Collection": "Col·lecció",
   "Collections": "Col·leccions",
   "Debug": "Depuració",
+  "Date": "Date",
   "Document": "Document",
   "Search results": "Resultats de cerca",
   "Documents": "Documents",
@@ -616,8 +617,6 @@
   "Divider": "Divisor",
   "Page break": "Salt de pàgina",
   "Current date": "Data actual",
-  "Current time": "Hora actual",
-  "Current date and time": "Data i hora actuals",
   "Info notice": "Avís d'informació",
   "Success notice": "Avís d'èxit",
   "Warning notice": "Avís d'alerta",
@@ -1781,5 +1780,6 @@
   "Hide completed": "Amaga els completats",
   "Write a caption": "Escriu una llegenda",
   "Add title": "Afegeix un títol",
-  "Add content": "Afegeix contingut"
+  "Add content": "Afegeix contingut",
+  "Tomorrow": "Tomorrow"
 }
