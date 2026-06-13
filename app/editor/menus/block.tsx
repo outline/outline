@@ -193,11 +193,15 @@ export default function blockMenuItems(
       keywords: "clock today date time now",
       icon: <CalendarIcon />,
       appendSpace: true,
-      attrs: () => ({
-        id: uuidv4(),
-        type: MentionType.Date,
-        modelId: toISODate(new Date()),
-      }),
+      attrs: () => {
+        const modelId = toISODate(new Date());
+        return {
+          id: uuidv4(),
+          type: MentionType.Date,
+          modelId,
+          label: modelId,
+        };
+      },
     },
     {
       name: "separator",
