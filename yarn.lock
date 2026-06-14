@@ -136,6 +136,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@aws-sdk/cloudfront-signer@npm:^3.1053.0":
+  version: 3.1063.0
+  resolution: "@aws-sdk/cloudfront-signer@npm:3.1063.0"
+  dependencies:
+    "@smithy/core": "npm:^3.24.6"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/1215bf0910da66d41863e4ab6fc22cc9db6366c4f1411583978ef9ba5215286278279a32b586a69ee3344d5d028752441fd149d9cfa3c5b9cb06c52b424a01e8
+  languageName: node
+  linkType: hard
+
 "@aws-sdk/core@npm:^3.974.13":
   version: 3.974.13
   resolution: "@aws-sdk/core@npm:3.974.13"
@@ -5914,6 +5924,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@smithy/core@npm:^3.24.6":
+  version: 3.24.6
+  resolution: "@smithy/core@npm:3.24.6"
+  dependencies:
+    "@aws-crypto/crc32": "npm:5.2.0"
+    "@smithy/types": "npm:^4.14.3"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/4d3db2296a99a4bcb17007b8276a243930f63c3169b9b86b973a2d1422e8dee7e95e3b98eea115e2759b989b23db1ff89ca505bddbacb7391ca3fe4e222b84ff
+  languageName: node
+  linkType: hard
+
 "@smithy/credential-provider-imds@npm:^4.3.2":
   version: 4.3.4
   resolution: "@smithy/credential-provider-imds@npm:4.3.4"
@@ -5973,6 +5994,15 @@ __metadata:
   dependencies:
     tslib: "npm:^2.6.2"
   checksum: 10c0/8bdad874d9e47233c6f2f74ac001e810b87b0a7c6504b9a9490536c9733ffec36b7b2a73010b31044f22553819a8d1e8bb9b2310f09257b1278a048a5f9679f8
+  languageName: node
+  linkType: hard
+
+"@smithy/types@npm:^4.14.3":
+  version: 4.14.3
+  resolution: "@smithy/types@npm:4.14.3"
+  dependencies:
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/c80244d5ca88992e5609e372eaf2441497d36063688af44e9f0e81ab0ee8d5a4cbdb644822243e4cdfad2dd6484c6274e618dc2a9e91b3b9befe7c7b55e09ddc
   languageName: node
   linkType: hard
 
@@ -15044,6 +15074,7 @@ __metadata:
   resolution: "outline@workspace:."
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.1053.0"
+    "@aws-sdk/cloudfront-signer": "npm:^3.1053.0"
     "@aws-sdk/lib-storage": "npm:^3.1053.0"
     "@aws-sdk/s3-presigned-post": "npm:^3.1053.0"
     "@aws-sdk/s3-request-presigner": "npm:^3.1053.0"

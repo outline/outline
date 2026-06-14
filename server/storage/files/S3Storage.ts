@@ -12,6 +12,7 @@ import { Upload } from "@aws-sdk/lib-storage";
 import type { PresignedPostOptions } from "@aws-sdk/s3-presigned-post";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getSignedUrl as getCloudFrontSignedUrl } from "@aws-sdk/cloudfront-signer";
 import fs from "fs-extra";
 import invariant from "invariant";
 import { compact } from "es-toolkit/compat";
@@ -100,6 +101,10 @@ export default class S3Storage extends BaseStorage {
   }
 
   public getUrlForKey(key: string): string {
+    if (env.AWS_CLOUDFRONT_URL) {
+      const base = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
+      return `${base}/${key}`;
+    }
     return `${this.getPublicEndpoint()}/${key}`;
   }
 
@@ -146,35 +151,35 @@ export default class S3Storage extends BaseStorage {
     key: string,
     expiresIn = S3Storage.defaultSignedUrlExpires
   ) => {
-    const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
-    const params = {
-      Bucket: this.getBucket(),
-      Key: key,
-    };
-
-    if (isDocker) {
-      return `${this.getPublicEndpoint()}/${key}`;
-    } else {
-      // Ensure expiration does not exceed AWS S3 Signature V4 limit of 7 days
-      const clampedExpiresIn = Math.min(
-        expiresIn,
-        S3Storage.maxSignedUrlExpires
-      );
-
-      const command = new GetObjectCommand(params);
-      const url = await getSignedUrl(this.client, command, {
-        expiresIn: clampedExpiresIn,
-      });
-
-      if (env.AWS_S3_ACCELERATE_URL) {
-        return url.replace(
-          env.AWS_S3_UPLOAD_BUCKET_URL,
-          env.AWS_S3_ACCELERATE_URL
+    if (env.AWS_CLOUDFRONT_URL) {
+      const privateKey = this.getCloudFrontPrivateKey();
+      if (!env.AWS_CLOUDFRONT_KEY_PAIR_ID || !privateKey) {
+        Logger.warn(
+          "AWS_CLOUDFRONT_URL is set but signing credentials are missing, falling back to S3 presigned URLs",
+          { key }
         );
+        return this.getS3PresignedUrl(key, expiresIn);
       }
 
-      return url;
+      const cfUrl = this.getCloudFrontUrlForKey(key);
+
+      try {
+        return getCloudFrontSignedUrl({
+          url: cfUrl,
+          keyPairId: env.AWS_CLOUDFRONT_KEY_PAIR_ID,
+          privateKey,
+          dateLessThan: new Date(Date.now() + expiresIn * 1000).toISOString(),
+        });
+      } catch (err) {
+        Logger.error("Failed to sign CloudFront URL, falling back to S3", err, {
+          key,
+          cfUrl,
+        });
+        return this.getS3PresignedUrl(key, expiresIn);
+      }
     }
+
+    return this.getS3PresignedUrl(key, expiresIn);
   };
 
   public getFileHandle(key: string): Promise<{
@@ -260,6 +265,62 @@ export default class S3Storage extends BaseStorage {
   }
 
   private client: S3Client;
+
+  private getCloudFrontUrlForKey(key: string): string {
+    if (!env.AWS_CLOUDFRONT_URL) {
+      throw new Error("CloudFront URL is not configured");
+    }
+    const base = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
+    return `${base}/${encodeURI(key)}`;
+  }
+
+  private getCloudFrontPrivateKey(): string | undefined {
+    const key = env.AWS_CLOUDFRONT_PRIVATE_KEY;
+    if (!key) {
+      return undefined;
+    }
+
+    if (key.includes("BEGIN")) {
+      return key;
+    }
+
+    return Buffer.from(key, "base64").toString("utf-8");
+  }
+
+  private getS3PresignedUrl = async (
+    key: string,
+    expiresIn = S3Storage.defaultSignedUrlExpires
+  ) => {
+    const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
+    const params = {
+      Bucket: this.getBucket(),
+      Key: key,
+    };
+
+    if (isDocker) {
+      return `${this.getPublicEndpoint()}/${key}`;
+    }
+
+    // Ensure expiration does not exceed AWS S3 Signature V4 limit of 7 days
+    const clampedExpiresIn = Math.min(
+      expiresIn,
+      S3Storage.maxSignedUrlExpires
+    );
+
+    const command = new GetObjectCommand(params);
+    const url = await getSignedUrl(this.client, command, {
+      expiresIn: clampedExpiresIn,
+    });
+
+    if (env.AWS_S3_ACCELERATE_URL) {
+      return url.replace(
+        env.AWS_S3_UPLOAD_BUCKET_URL,
+        env.AWS_S3_ACCELERATE_URL
+      );
+    }
+
+    return url;
+  };
 
   private getEndpoint() {
     if (env.AWS_S3_ACCELERATE_URL) {
