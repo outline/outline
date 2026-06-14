@@ -383,6 +383,93 @@ export function getAllSelectedColumns(state: EditorState): number[] {
 }
 
 /**
+ * Get the indices of all currently selected rows.
+ *
+ * @param state The editor state
+ * @returns Array of selected row indices
+ */
+export function getAllSelectedRows(state: EditorState): number[] {
+  const rect = selectedRect(state);
+
+  const selectedRows: number[] = [];
+  for (let row = rect.top; row < rect.bottom; row++) {
+    selectedRows.push(row);
+  }
+
+  return selectedRows;
+}
+
+/**
+ * Get the positions of every unique cell across all selected columns, falling
+ * back to a single column when it is not part of the selection.
+ *
+ * Operating on the full selection ensures column operations affect all selected
+ * columns – including columns spanned by a merged (colspan) header cell, which a
+ * single-column lookup would miss.
+ *
+ * @param state The editor state
+ * @param fallbackIndex The column index to use when nothing is selected
+ * @returns Array of unique cell positions
+ */
+export function getCellsInSelectedColumns(
+  state: EditorState,
+  fallbackIndex: number
+): number[] {
+  const selectedColumns = getAllSelectedColumns(state);
+  const columns = selectedColumns.includes(fallbackIndex)
+    ? selectedColumns
+    : [fallbackIndex];
+
+  const seen = new Set<number>();
+  const cells: number[] = [];
+  columns.forEach((index) => {
+    getCellsInColumn(index)(state).forEach((pos) => {
+      if (!seen.has(pos)) {
+        seen.add(pos);
+        cells.push(pos);
+      }
+    });
+  });
+
+  return cells;
+}
+
+/**
+ * Get the positions of every unique cell across all selected rows, falling back
+ * to a single row when it is not part of the selection.
+ *
+ * Operating on the full selection ensures row operations affect all selected
+ * rows – including rows spanned by a merged (rowspan) cell, which a single-row
+ * lookup would miss.
+ *
+ * @param state The editor state
+ * @param fallbackIndex The row index to use when nothing is selected
+ * @returns Array of unique cell positions
+ */
+export function getCellsInSelectedRows(
+  state: EditorState,
+  fallbackIndex: number
+): number[] {
+  const selectedRows = getAllSelectedRows(state);
+  const rows = selectedRows.includes(fallbackIndex)
+    ? selectedRows
+    : [fallbackIndex];
+
+  const seen = new Set<number>();
+  const cells: number[] = [];
+  rows.forEach((index) => {
+    getCellsInRow(index)(state).forEach((pos) => {
+      if (!seen.has(pos)) {
+        seen.add(pos);
+        cells.push(pos);
+      }
+    });
+  });
+
+  return cells;
+}
+
+/**
  * Get the total width of selected columns by measuring DOM elements.
  * Uses getBoundingClientRect to get precise rendered widths including decimals.
  *
