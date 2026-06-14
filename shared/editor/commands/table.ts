@@ -28,6 +28,8 @@ import {
   getAllSelectedColumns,
   getCellsInColumn,
   getCellsInRow,
+  getCellsInSelectedColumns,
+  getCellsInSelectedRows,
   isHeaderEnabled,
   isTableSelected,
   getWidthFromDom,
@@ -752,7 +754,10 @@ export function setColumnAttr({
 
     if (dispatch) {
       const rect = selectedRect(state);
-      const cells = getCellsInColumn(index)(state) || [];
+      // Apply to every selected column so that aligning a span of columns – or a
+      // column whose header cell spans multiple columns – affects all of them,
+      // not just the first.
+      const cells = getCellsInSelectedColumns(state, index);
       let tr = state.tr;
       cells.forEach((pos) => {
         const node = state.doc.nodeAt(pos);
@@ -1157,7 +1162,9 @@ export function toggleRowBackground({
     }
 
     if (dispatch) {
-      const cells = getCellsInRow(rowIndex)(state) || [];
+      // Apply to every selected row so that coloring a span of rows – or a row
+      // whose cell spans multiple rows – affects all of them, not just the first.
+      const cells = getCellsInSelectedRows(state, rowIndex);
       let tr = state.tr;
 
       cells.forEach((pos) => {
@@ -1211,7 +1218,10 @@ export function toggleColumnBackground({
 
     if (dispatch) {
       const rect = selectedRect(state);
-      const cells = getCellsInColumn(colIndex)(state) || [];
+      // Apply to every selected column so that coloring a span of columns – or a
+      // column whose header cell spans multiple columns – affects all of them,
+      // not just the first.
+      const cells = getCellsInSelectedColumns(state, colIndex);
       let tr = state.tr;
 
       cells.forEach((pos) => {
