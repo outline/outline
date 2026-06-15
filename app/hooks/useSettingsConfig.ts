@@ -194,7 +194,7 @@ const useSettingsConfig = () => {
         path: settingsPath("api-keys"),
         component: ApiKeys.Component,
         preload: ApiKeys.preload,
-        enabled: can.listApiKeys,
+        enabled: true,
         group: t("Workspace"),
         icon: CodeIcon,
       },

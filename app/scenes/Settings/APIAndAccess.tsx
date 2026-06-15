@@ -32,7 +32,7 @@ function APIAndAccess() {
       icon={<PadlockIcon />}
       actions={
         <>
-          {can.createApiKey && (
+          {true && (
             <Action>
               <Button
                 type="submit"
@@ -46,7 +46,7 @@ function APIAndAccess() {
     >
       <Heading>{t("API & Access")}</Heading>
       <h2>{t("Personal keys")}</h2>
-      {can.createApiKey ? (
+      {true ? (
         <Text as="p" type="secondary">
           <Trans
             defaults="Create personal API keys to authenticate with the API and programatically control

@@ -24,7 +24,6 @@ allow(User, "createApiKey", Team, (actor, team) =>
 allow(User, "listApiKeys", Team, (actor, team) =>
   and(
     //
-    isCloudHosted(),
     isTeamModel(actor, team),
     actor.isAdmin
   )
