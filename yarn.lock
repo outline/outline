@@ -11324,7 +11324,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fs-extra@npm:^11.2.0, fs-extra@npm:^11.3.4":
+"fs-extra@npm:^11.2.0":
   version: 11.3.4
   resolution: "fs-extra@npm:11.3.4"
   dependencies:
@@ -11332,6 +11332,17 @@ __metadata:
     jsonfile: "npm:^6.0.1"
     universalify: "npm:^2.0.0"
   checksum: 10c0/e08276f767a62496ae97d711aaa692c6a478177f24a85979b6a2881c9db9c68b8c2ad5da0bcf92c0b2a474cea6e935ec245656441527958fd8372cb647087df0
+  languageName: node
+  linkType: hard
+
+"fs-extra@npm:^11.3.5":
+  version: 11.3.5
+  resolution: "fs-extra@npm:11.3.5"
+  dependencies:
+    graceful-fs: "npm:^4.2.0"
+    jsonfile: "npm:^6.0.1"
+    universalify: "npm:^2.0.0"
+  checksum: 10c0/33e80bad6b5d17308faa197e5ede99ecba4b6f6cb4aa4645d52745476c75afc57665bdf39ec75b2ebb38b97b7110f634a8dcc0a546e248eb4de059275cf5ac90
   languageName: node
   linkType: hard
 
@@ -15241,7 +15252,7 @@ __metadata:
     fractional-index: "npm:^1.0.0"
     framer-motion: "npm:^6.5.1"
     franc: "npm:^6.2.0"
-    fs-extra: "npm:^11.3.4"
+    fs-extra: "npm:^11.3.5"
     fuzzy-search: "npm:^3.2.1"
     glob: "npm:^11.1.0"
     hot-shots: "npm:^12.1.0"
