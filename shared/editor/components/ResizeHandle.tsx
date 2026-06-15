@@ -61,3 +61,45 @@ export const ResizeBottom = styled(ResizeLeft)`
     min-height: 0;
   }
 `;
+
+export const ResizeCorner = styled.div<{ $dragging: boolean }>`
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${s("selected")};
+  border: 1.5px solid ${s("background")};
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  user-select: none;
+  opacity: ${(props) => (props.$dragging ? 1 : 0)};
+  transition: opacity 150ms ease-in-out;
+
+  @media print {
+    display: none;
+  }
+`;
+
+export const ResizeTopLeft = styled(ResizeCorner)`
+  cursor: nwse-resize;
+  top: -4px;
+  left: -4px;
+`;
+
+export const ResizeTopRight = styled(ResizeCorner)`
+  cursor: nesw-resize;
+  top: -4px;
+  right: -4px;
+`;
+
+export const ResizeBottomLeft = styled(ResizeCorner)`
+  cursor: nesw-resize;
+  bottom: -4px;
+  left: -4px;
+`;
+
+export const ResizeBottomRight = styled(ResizeCorner)`
+  cursor: nwse-resize;
+  bottom: -4px;
+  right: -4px;
+`;

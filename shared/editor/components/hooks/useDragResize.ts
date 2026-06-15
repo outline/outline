@@ -1,7 +1,14 @@
 import * as React from "react";
 import { EditorStyleHelper } from "../../styles/EditorStyleHelper";
 
-type DragDirection = "left" | "right" | "bottom";
+type DragDirection =
+  | "left"
+  | "right"
+  | "bottom"
+  | "topLeft"
+  | "topRight"
+  | "bottomLeft"
+  | "bottomRight";
 
 type SizeState = { width: number; height?: number };
 
@@ -62,7 +69,7 @@ export default function useDragResize(props: Params): ReturnValue {
     height: props.height,
   });
   const [maxWidth, setMaxWidth] = React.useState(Infinity);
-  const [offset, setOffset] = React.useState(0);
+  const [offset, setOffset] = React.useState({ x: 0, y: 0 });
   const [sizeAtDragStart, setSizeAtDragStart] = React.useState(size);
   const [dragging, setDragging] = React.useState<DragDirection>();
   const isResizable = !!onChangeSize;
@@ -84,13 +91,40 @@ export default function useDragResize(props: Params): ReturnValue {
     (event: PointerEvent) => {
       event.preventDefault();
 
-      let diffX, diffY;
+      let diffX = 0;
+      let diffY = 0;
       if (dragging === "left") {
-        diffX = offset - event.pageX;
+        diffX = offset.x - event.pageX;
       } else if (dragging === "right") {
-        diffX = event.pageX - offset;
-      } else {
-        diffY = event.pageY - offset;
+        diffX = event.pageX - offset.x;
+      } else if (dragging === "bottom") {
+        diffY = event.pageY - offset.y;
+      } else if (dragging === "topLeft") {
+        diffX = offset.x - event.pageX;
+        diffY = offset.y - event.pageY;
+      } else if (dragging === "topRight") {
+        diffX = event.pageX - offset.x;
+        diffY = offset.y - event.pageY;
+      } else if (dragging === "bottomLeft") {
+        diffX = offset.x - event.pageX;
+        diffY = event.pageY - offset.y;
+      } else if (dragging === "bottomRight") {
+        diffX = event.pageX - offset.x;
+        diffY = event.pageY - offset.y;
+      }
+
+      const isCorner = [
+        "topLeft",
+        "topRight",
+        "bottomLeft",
+        "bottomRight",
+      ].includes(dragging || "");
+
+      if (isCorner && naturalHeight && naturalWidth) {
+        const equivalentDiffX = diffY * (naturalWidth / naturalHeight);
+        if (Math.abs(diffX) < Math.abs(equivalentDiffX)) {
+          diffX = equivalentDiffX;
+        }
       }
 
       if (diffX && sizeAtDragStart.width) {
@@ -114,7 +148,7 @@ export default function useDragResize(props: Params): ReturnValue {
         });
       }
 
-      if (diffY && sizeAtDragStart.height) {
+      if (diffY && sizeAtDragStart.height && !isCorner) {
         const gridHeight = gridHeightSnap ?? 10;
         const newHeight = sizeAtDragStart.height + diffY;
         const heightOnGrid = Math.round(newHeight / gridHeight) * gridHeight;
@@ -143,7 +177,7 @@ export default function useDragResize(props: Params): ReturnValue {
       event.preventDefault();
       event.stopPropagation();
 
-      setOffset(0);
+      setOffset({ x: 0, y: 0 });
       setDragging(undefined);
       onChangeSize?.(sizeRef.current);
     },
@@ -197,11 +231,10 @@ export default function useDragResize(props: Params): ReturnValue {
         width: constrainWidth(size.width || max, max),
         height: size.height,
       });
-      setOffset(
-        dragDirection === "left" || dragDirection === "right"
-          ? event.pageX
-          : event.pageY
-      );
+      setOffset({
+        x: event.pageX,
+        y: event.pageY,
+      });
       setDragging(dragDirection);
     };
 
@@ -211,8 +244,15 @@ export default function useDragResize(props: Params): ReturnValue {
     }
 
     if (dragging) {
-      document.body.style.cursor =
-        dragging === "left" || dragging === "right" ? "ew-resize" : "ns-resize";
+      if (dragging === "left" || dragging === "right") {
+        document.body.style.cursor = "ew-resize";
+      } else if (dragging === "bottom") {
+        document.body.style.cursor = "ns-resize";
+      } else if (dragging === "topLeft" || dragging === "bottomRight") {
+        document.body.style.cursor = "nwse-resize";
+      } else if (dragging === "topRight" || dragging === "bottomLeft") {
+        document.body.style.cursor = "nesw-resize";
+      }
       document.addEventListener("keydown", handleKeyDown);
       document.addEventListener("pointermove", handlePointerMove);
       document.addEventListener("pointerup", handlePointerUp);
