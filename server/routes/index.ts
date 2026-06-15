@@ -124,17 +124,18 @@ router.get(
     const origin = env.isCloudHosted
       ? ctx.request.URL.origin
       : new URL(env.URL).origin;
+    const base = `${origin}${env.basePath}`;
     const team = await getTeamFromContext(ctx, { includeOAuthState: false });
     const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
 
     ctx.body = {
-      issuer: origin,
-      authorization_endpoint: `${origin}/oauth/authorize`,
-      token_endpoint: `${origin}/oauth/token`,
-      revocation_endpoint: `${origin}/oauth/revoke`,
+      issuer: base,
+      authorization_endpoint: `${base}/oauth/authorize`,
+      token_endpoint: `${base}/oauth/token`,
+      revocation_endpoint: `${base}/oauth/revoke`,
       ...(!env.OAUTH_DISABLE_DCR &&
         mcpEnabled && {
-          registration_endpoint: `${origin}/oauth/register`,
+          registration_endpoint: `${base}/oauth/register`,
         }),
       response_types_supported: ["code"],
       grant_types_supported: ["authorization_code", "refresh_token"],
@@ -164,10 +165,11 @@ router.get(
     const origin = env.isCloudHosted
       ? ctx.request.URL.origin
       : new URL(env.URL).origin;
+    const base = `${origin}${env.basePath}`;
 
     ctx.body = {
-      resource: `${origin}/mcp`,
-      authorization_servers: [origin],
+      resource: `${base}/mcp`,
+      authorization_servers: [base],
       scopes_supported: ["read", "write"],
       bearer_methods_supported: ["header"],
     };
@@ -181,7 +183,7 @@ router.get("/robots.txt", (ctx) => {
 router.get("/opensearch.xml", (ctx) => {
   ctx.type = "text/xml";
   ctx.response.set("Cache-Control", `public, max-age=${7 * Day.seconds}`);
-  ctx.body = opensearchResponse(ctx.request.URL.origin);
+  ctx.body = opensearchResponse(`${ctx.request.URL.origin}${env.basePath}`);
 });
 
 router.get("/s/:shareId.:format", shareDomains(), renderShare);
@@ -210,7 +212,7 @@ router.get("/doc/:documentSlug", async (ctx, next) => {
 
 router.get("/sitemap.xml", async (ctx) => {
   if (ctx.state?.rootShare) {
-    ctx.redirect(`/api/shares.sitemap?id=${ctx.state?.rootShare.id}`);
+    ctx.redirect(`${env.basePath}/api/shares.sitemap?id=${ctx.state?.rootShare.id}`);
   } else {
     ctx.status = 404;
   }

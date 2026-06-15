@@ -9,6 +9,7 @@ import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
 import PluginIcon from "~/components/PluginIcon";
 import Tooltip from "~/components/Tooltip";
+import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import { getRedirectUrl } from "~/utils/urls";
@@ -82,7 +83,7 @@ function AuthenticationProvider(props: Props) {
           "/passkeys.generateAuthenticationOptions",
           undefined,
           {
-            baseUrl: "/auth",
+            baseUrl: `${env.BASE_PATH}/auth`,
           }
         );
         const { challengeId, ...optionsData } = resp.data;
@@ -144,7 +145,7 @@ function AuthenticationProvider(props: Props) {
         <Form
           ref={formRef}
           method="POST"
-          action="/auth/passkeys.verifyAuthentication"
+          action={`${env.BASE_PATH}/auth/passkeys.verifyAuthentication`}
           onSubmit={handleSubmitPasskey}
         >
           {isDesktop ? (
@@ -168,7 +169,11 @@ function AuthenticationProvider(props: Props) {
 
     return (
       <Wrapper>
-        <Form method="POST" action="/auth/email" onSubmit={handleSubmitEmail}>
+        <Form
+          method="POST"
+          action={`${env.BASE_PATH}/auth/email`}
+          onSubmit={handleSubmitEmail}
+        >
           {authState === "email" ? (
             <>
               <InputLarge

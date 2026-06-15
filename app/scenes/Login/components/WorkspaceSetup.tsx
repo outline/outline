@@ -8,6 +8,7 @@ import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
+import env from "~/env";
 import { detectLanguage } from "~/utils/language";
 import { BackButton } from "./BackButton";
 import { Background } from "./Background";
@@ -23,7 +24,7 @@ const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
       <ChangeLanguage locale={detectLanguage()} />
       <Centered
         as={Form}
-        action="/api/installation.create"
+        action={`${env.BASE_PATH}/api/installation.create`}
         method="POST"
         gap={12}
       >

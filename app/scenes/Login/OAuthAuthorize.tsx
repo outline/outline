@@ -107,7 +107,7 @@ function Authorize() {
     if (window.history.length) {
       window.history.back();
     } else {
-      window.location.href = "/";
+      window.location.href = `${env.BASE_PATH}/`;
     }
   };
 
@@ -256,7 +256,7 @@ function Authorize() {
         </Text>
         <Form
           method="POST"
-          action="/oauth/authorize"
+          action={`${env.BASE_PATH}/oauth/authorize`}
           style={{ width: "100%" }}
           onSubmit={handleSubmit}
         >

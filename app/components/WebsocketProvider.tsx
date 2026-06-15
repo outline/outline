@@ -38,6 +38,7 @@ import type {
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
 } from "~/types";
+import env from "~/env";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import Logger from "~/utils/Logger";
 import { getVisibilityListener, getPageVisible } from "~/utils/pageVisibility";
@@ -791,7 +792,7 @@ function WebsocketProvider({ children }: React.PropsWithChildren<object>) {
 
     function createConnection() {
       currentSocket = io(window.location.origin, {
-        path: "/realtime",
+        path: `${env.BASE_PATH}/realtime`,
         transports: ["websocket"],
         reconnectionDelay: 1000,
         reconnectionDelayMax: 30000,

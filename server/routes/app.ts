@@ -86,12 +86,15 @@ export const renderApp = async (
     allowIndexing?: boolean;
   } = {}
 ) => {
+  // When a CDN is configured assets are served from it, otherwise they are
+  // served by this app under its (possibly sub-path) base path.
+  const assetBase = env.CDN_URL || env.basePath;
   const {
     title = env.APP_NAME,
     description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
     canonical = "",
     content = "",
-    shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
+    shortcutIcon = `${assetBase}/images/favicon-32.png`,
     allowIndexing = true,
   } = options;
 
@@ -125,7 +128,7 @@ export const renderApp = async (
 
   const scriptTags = env.isProduction
     ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
-        env.CDN_URL || ""
+        env.CDN_URL || env.basePath
       }/static/${readManifestFile()[entry]["file"]}"></script>`
     : `<script type="module" nonce="${ctx.state.cspNonce}">
         import RefreshRuntime from "${viteHost}/static/@react-refresh"
@@ -151,34 +154,34 @@ export const renderApp = async (
 
   if (options.isShare) {
     headTags += `
-    <link rel="sitemap" type="application/xml" href="/api/shares.sitemap?id=${escape(options.rootShareId || shareId)}">
+    <link rel="sitemap" type="application/xml" href="${env.basePath}/api/shares.sitemap?id=${escape(options.rootShareId || shareId)}">
     `;
   } else {
     headTags += prefetchTags;
     headTags += `
-    <link rel="manifest" href="/static/manifest.webmanifest" />
+    <link rel="manifest" href="${env.basePath}/static/manifest.webmanifest" />
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="${env.CDN_URL ?? ""}/images/icon-maskable-192.png"
+      href="${assetBase}/images/icon-maskable-192.png"
       sizes="192x192"
     />
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="${env.CDN_URL ?? ""}/images/icon-maskable-512.png"
+      href="${assetBase}/images/icon-maskable-512.png"
       sizes="512x512"
     />
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="${env.CDN_URL ?? ""}/images/icon-maskable-1024.png"
+      href="${assetBase}/images/icon-maskable-1024.png"
       sizes="1024x1024"
     />
     <link
       rel="search"
       type="application/opensearchdescription+xml"
-      href="/opensearch.xml"
+      href="${env.basePath}/opensearch.xml"
       title="Outline"
     />
     `;
@@ -196,6 +199,8 @@ export const renderApp = async (
     .replace(/\{description\}/g, escape(description))
     .replace(/\{content\}/g, content)
     .replace(/\{cdn-url\}/g, env.CDN_URL || "")
+    .replace(/\{asset-base\}/g, assetBase)
+    .replace(/\{base-path\}/g, env.basePath)
     .replace(/\{head-tags\}/g, headTags)
     .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{script-tags\}/g, scriptTags)

@@ -46,10 +46,15 @@ interface CSPOptions {
  */
 export default function createCSPMiddleware(options?: CSPOptions) {
   // Construct scripts CSP based on options in use
+  // Use the origin (without any base path) as a CSP source. A source that
+  // includes a path without a trailing slash only matches that exact path, so
+  // a sub-path deployment (env.URL = https://host/outline) would otherwise
+  // block assets served from https://host/outline/static/*.
+  const origin = new URL(env.URL).origin;
   const defaultSrc: string[] = ["'self'"];
   const scriptSrc: string[] = [];
   const styleSrc: string[] = ["'self'", "'unsafe-inline'"];
-  const objectSrc: string[] = [env.URL, "'self'"];
+  const objectSrc: string[] = [origin, "'self'"];
 
   if (env.isCloudHosted) {
     scriptSrc.push("www.googletagmanager.com");
@@ -59,10 +64,10 @@ export default function createCSPMiddleware(options?: CSPOptions) {
 
   // Allow to load assets from Vite
   if (!env.isProduction) {
-    scriptSrc.push(env.URL.replace(`:${env.PORT}`, ":3001"));
+    scriptSrc.push(origin.replace(`:${env.PORT}`, ":3001"));
     scriptSrc.push("localhost:3001");
   } else {
-    scriptSrc.push(env.URL);
+    scriptSrc.push(origin);
   }
 
   if (env.GOOGLE_ANALYTICS_ID) {

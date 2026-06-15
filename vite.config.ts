@@ -54,9 +54,13 @@ export default () =>
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           globPatterns: ["**/*.{js,css,ico,png,svg}"],
           navigateFallback: null,
-          modifyURLPrefix: {
-            "": `${environment.CDN_URL ?? ""}/static/`,
-          },
+          // With a CDN, precache from its absolute URL. Otherwise leave precache
+          // URLs relative so they resolve against the service worker's own
+          // location (`<base-path>/static/sw.js`) — this keeps offline caching
+          // working when the app is served from a sub-path set at runtime.
+          modifyURLPrefix: environment.CDN_URL
+            ? { "": `${environment.CDN_URL}/static/` }
+            : { "": "" },
           skipWaiting: true,
           clientsClaim: true,
           cleanupOutdatedCaches: true,
@@ -97,8 +101,10 @@ export default () =>
           short_name: "Outline",
           theme_color: "#fff",
           background_color: "#fff",
-          start_url: "/",
-          scope: ".",
+          // Relative to the manifest location (`<base-path>/static/manifest.webmanifest`)
+          // so install scope resolves to `<base-path>/` under any sub-path.
+          start_url: "../",
+          scope: "../",
           display: "standalone",
           // For Chrome, you must provide at least a 192x192 pixel icon, and a 512x512 pixel icon.
           // If only those two icon sizes are provided, Chrome will automatically scale the icons
@@ -106,41 +112,41 @@ export default () =>
           // pixel-perfection, provide icons in increments of 48dp.
           icons: [
             {
-              src: "/images/icon-192.png",
+              src: "../images/icon-192.png",
               sizes: "192x192",
               type: "image/png",
             },
             {
-              src: "/images/icon-512.png",
+              src: "../images/icon-512.png",
               sizes: "512x512",
               type: "image/png",
             },
             {
-              src: "/images/icon-maskable-192.png",
+              src: "../images/icon-maskable-192.png",
               sizes: "192x192",
               type: "image/png",
               purpose: "maskable",
             },
             {
-              src: "/images/icon-maskable-512.png",
+              src: "../images/icon-maskable-512.png",
               sizes: "512x512",
               type: "image/png",
               purpose: "maskable",
             },
             {
-              src: "/images/icon-maskable-1024.png",
+              src: "../images/icon-maskable-1024.png",
               sizes: "1024x1024",
               type: "image/png",
               purpose: "maskable",
             },
             {
-              src: "/images/icon-monochrome-512.png",
+              src: "../images/icon-monochrome-512.png",
               sizes: "512x512",
               type: "image/png",
               purpose: "monochrome",
             },
             {
-              src: "/images/icon-monochrome-1024.png",
+              src: "../images/icon-monochrome-1024.png",
               sizes: "1024x1024",
               type: "image/png",
               purpose: "monochrome",
@@ -153,6 +159,17 @@ export default () =>
     ],
     experimental: {
       enableNativePlugin: true,
+      // Resolve bundle-internal asset URLs at runtime via `window.__assetUrl`
+      // (defined in server/static/index.html). This lets the prebuilt image be
+      // served from a sub-path (BASE_PATH) or CDN set at container start without
+      // rebuilding. CSS/HTML references stay relative to their own file, which
+      // already resolves correctly under any prefix.
+      renderBuiltUrl(filename, { hostType }) {
+        if (hostType === "js") {
+          return { runtime: `window.__assetUrl(${JSON.stringify(filename)})` };
+        }
+        return { relative: true };
+      },
     },
     resolve: {
       alias: {

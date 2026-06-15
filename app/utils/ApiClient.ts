@@ -51,7 +51,7 @@ class ApiClient {
   private inflightRequests = new Map<string, Promise<any>>();
 
   constructor(options: Options = {}) {
-    this.baseUrl = options.baseUrl || "/api";
+    this.baseUrl = options.baseUrl || `${env.BASE_PATH}/api`;
   }
 
   setShareId = (shareId: string | undefined) => {

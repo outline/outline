@@ -15,7 +15,9 @@ import Desktop from "~/utils/Desktop";
 export function getRedirectUrl(authUrl: string) {
   const { custom, teamSubdomain, host } = parseDomain(window.location.origin);
   const url = new URL(env.URL);
-  url.pathname = authUrl;
+  // env.URL already carries the base path; prefix it so the auth endpoint is
+  // reachable when the app is served from a sub-path.
+  url.pathname = `${env.BASE_PATH}${authUrl}`;
 
   if (custom || teamSubdomain) {
     url.searchParams.set("host", host);

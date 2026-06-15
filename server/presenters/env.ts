@@ -13,6 +13,7 @@ export default function present(
 ): PublicEnv {
   return {
     ROOT_SHARE_ID: options.rootShareId || undefined,
+    BASE_PATH: env.basePath,
     analytics: (options.analytics ?? []).map((integration) => ({
       service: integration?.service,
       settings: integration?.settings,

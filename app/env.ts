@@ -12,10 +12,13 @@ if (!window.env) {
 }
 
 const env: Record<string, any> & {
+  /** Path under which the app is served, e.g. "/outline". Empty when at root. */
+  BASE_PATH: string;
   isDevelopment: boolean;
   isTest: boolean;
   isProduction: boolean;
 } = {
+  BASE_PATH: "",
   ...window.env,
   isDevelopment: window.env.ENVIRONMENT === "development",
   isTest: window.env.ENVIRONMENT === "test",

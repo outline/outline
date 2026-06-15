@@ -80,8 +80,10 @@ export default function init(app: Koa = new Koa(), server?: Server) {
     Metrics.gaugePerInstance("connections.count", 0);
   });
 
-  app.use(mount("/api", api));
-  app.use(mount("/mcp", mcp));
+  const basePath = env.basePath;
+
+  app.use(mount(`${basePath}/api`, api));
+  app.use(mount(`${basePath}/mcp`, mcp));
 
   // Generate and attach a CSRF token to the session on non-API requests
   app.use(attachCSRFToken());
@@ -102,9 +104,9 @@ export default function init(app: Koa = new Koa(), server?: Server) {
     })
   );
 
-  app.use(mount("/auth", auth));
-  app.use(mount("/oauth", oauth));
-  app.use(mount(routes));
+  app.use(mount(`${basePath}/auth`, auth));
+  app.use(mount(`${basePath}/oauth`, oauth));
+  app.use(basePath ? mount(basePath, routes) : mount(routes));
 
   return app;
 }

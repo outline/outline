@@ -126,6 +126,8 @@ export enum MentionType {
 
 export type PublicEnv = {
   ROOT_SHARE_ID?: string;
+  /** Path under which the app is served, e.g. "/outline". Empty when at root. */
+  BASE_PATH: string;
   analytics: {
     service: IntegrationService;
     settings: IntegrationSettings<IntegrationType.Analytics>;
