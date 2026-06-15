@@ -389,7 +389,11 @@ describe("NotificationHelper", () => {
       });
       const notificationEnabledUser = await buildUser({
         teamId: document.teamId,
-        notificationSettings: { [NotificationEventType.PublishDocument]: true },
+        notificationSettings: {
+          [NotificationEventType.PublishDocument]: {
+            email: true,
+          },
+        },
       });
       // suspended user
       await buildUser({

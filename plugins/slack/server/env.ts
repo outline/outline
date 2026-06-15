@@ -37,6 +37,12 @@ class SlackPluginEnvironment extends Environment {
     environment.SLACK_CLIENT_SECRET ?? environment.SLACK_SECRET
   );
 
+  @IsOptional()
+  @CannotUseWithout("SLACK_CLIENT_ID")
+  public SLACK_SIGNING_SECRET = this.toOptionalString(
+    environment.SLACK_SIGNING_SECRET
+  );
+
   /**
    * Secret to verify webhook requests received from Slack.
    */

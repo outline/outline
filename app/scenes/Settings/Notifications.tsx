@@ -18,21 +18,36 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { NotificationEventType } from "@shared/types";
+import {
+  NotificationEventType,
+  NotificationChannelType,
+  IntegrationService,
+  IntegrationType,
+} from "@shared/types";
 import Heading from "~/components/Heading";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
-import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { settingsPath } from "~/utils/routeHelpers";
+import ChannelSelector from "./components/ChannelSelector";
 import SettingRow from "./components/SettingRow";
+import Switch from "~/components/Switch";
 
 function Notifications() {
   const user = useCurrentUser();
   const { t } = useTranslation();
+  const { integrations } = useStores();
+
+  const hasSlackLinked = !!integrations.find({
+    type: IntegrationType.LinkedAccount,
+    service: IntegrationService.Slack,
+  });
 
   const options = [
     {
@@ -161,11 +176,25 @@ function Notifications() {
     toast.success(t("Notifications saved"));
   }, 500);
 
-  const handleChange = React.useCallback(
-    (eventType: NotificationEventType) => async (checked: boolean) => {
-      await user.setNotificationEventType(eventType, checked);
-      showSuccessMessage();
-    },
+  const handleChannelsChange = React.useCallback(
+    (eventType: NotificationEventType) =>
+      async (key: string | undefined | null) => {
+        const currentChannels = [
+          NotificationChannelType.Email,
+          NotificationChannelType.Slack,
+        ].filter((channel) => user.subscribedToEventType(eventType, channel));
+
+        const enabled = currentChannels.some((c) => c === key);
+        const channelKey = key as NotificationChannelType;
+
+        if (enabled) {
+          await user.setNotificationEventType(eventType, false, [channelKey]);
+        } else {
+          await user.setNotificationEventType(eventType, true, [channelKey]);
+        }
+
+        showSuccessMessage();
+      },
     [user, showSuccessMessage]
   );
 
@@ -181,7 +210,13 @@ function Notifications() {
       await client.post(
         checked
           ? `/users.notificationsSubscribe`
-          : `/users.notificationsUnsubscribe`
+          : `/users.notificationsUnsubscribe`,
+        {
+          channels: [
+            NotificationChannelType.Email,
+            NotificationChannelType.Slack,
+          ],
+        }
       );
       showSuccessMessage();
     },
@@ -206,7 +241,10 @@ function Notifications() {
         </Notice>
       )}
       <Text as="p" type="secondary">
-        <Trans>Manage when and where you receive email notifications.</Trans>
+        <Trans>
+          Manage when and where you receive notifications. Choose to receive
+          notifications via email, Slack, or both.
+        </Trans>
       </Text>
 
       <SettingRow
@@ -222,8 +260,36 @@ function Notifications() {
         />
       </SettingRow>
 
+      {!hasSlackLinked && (
+        <Notice>
+          <Trans
+            defaults="To receive Slack notifications, <link>link your Slack account</link> in the integrations settings."
+            components={{
+              link: <Link to={settingsPath("slack")} />,
+            }}
+          />
+        </Notice>
+      )}
+
+      <h2>{t("Notification Channels")}</h2>
+
       {options.map((option) => {
-        const setting = user.subscribedToEventType(option.event);
+        const emailSetting = user.subscribedToEventType(
+          option.event,
+          NotificationChannelType.Email
+        );
+        const slackSetting = user.subscribedToEventType(
+          option.event,
+          NotificationChannelType.Slack
+        );
+
+        const enabledChannels: NotificationChannelType[] = [];
+        if (emailSetting) {
+          enabledChannels.push(NotificationChannelType.Email);
+        }
+        if (slackSetting) {
+          enabledChannels.push(NotificationChannelType.Slack);
+        }
 
         return (
           <SettingRow
@@ -238,12 +304,10 @@ function Notifications() {
             }
             compact
           >
-            <Switch
-              key={option.event}
-              id={option.event}
-              name={option.event}
-              checked={!!setting}
-              onChange={handleChange(option.event)}
+            <ChannelSelector
+              value={enabledChannels}
+              onChange={handleChannelsChange(option.event)}
+              slackDisabled={!hasSlackLinked}
             />
           </SettingRow>
         );
