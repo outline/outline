@@ -22,9 +22,46 @@ import {
 import config from "../../plugin.json";
 import env from "../env";
 import { createContext } from "@server/context";
+import fetch from "@server/utils/fetch";
+import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
 
 const router = new Router();
 const scopes: string[] = [];
+
+/**
+ * Loads the user's profile photo from the Microsoft Graph API and encodes it as
+ * a data URL. Entra ID does not emit a `picture` claim in the ID token, so the
+ * photo is only available via Graph. Requires no additional permissions beyond
+ * the delegated `User.Read` already used to load the profile.
+ *
+ * @param accessToken The delegated access token for the Microsoft Graph API.
+ * @returns A base64 encoded data URL for the photo, or undefined if not set.
+ */
+async function requestPhoto(accessToken: string): Promise<string | undefined> {
+  try {
+    const response = await fetch(
+      "https://graph.microsoft.com/v1.0/me/photo/$value",
+      {
+        method: "GET",
+        allowPrivateIPAddress: true,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    // A missing photo returns 404, which we can safely ignore.
+    if (!response.ok) {
+      return undefined;
+    }
+
+    const contentType = response.headers.get("content-type") ?? "image/jpeg";
+    const buffer = await response.buffer();
+    return `data:${contentType};base64,${buffer.toString("base64")}`;
+  } catch (_err) {
+    return undefined;
+  }
+}
 
 if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
   const strategy = new AzureStrategy(
@@ -162,6 +199,19 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
             scopes,
           },
         });
+        // Entra ID does not include the photo in the token, so it must be
+        // fetched separately from Graph. To avoid the extra round-trip on every
+        // sign-in we only do so when provisioning a new account.
+        if (result.isNewUser) {
+          const avatarUrl = await requestPhoto(accessToken);
+          if (avatarUrl) {
+            await new UploadUserAvatarTask().schedule({
+              userId: result.user.id,
+              avatarUrl,
+            });
+          }
+        }
+
         return done(null, result.user, { ...result, client });
       } catch (err) {
         return done(err, null);
