@@ -33,12 +33,59 @@ describe("read_write collection", () => {
     expect(abilities.download).toBeTruthy();
     expect(abilities.update).toBeTruthy();
     expect(abilities.createChildDocument).toBeTruthy();
-    expect(abilities.manageUsers).toBeTruthy();
+    expect(abilities.manageUsers).toEqual(false);
     expect(abilities.archive).toBeTruthy();
     expect(abilities.delete).toBeTruthy();
     expect(abilities.share).toBeTruthy();
     expect(abilities.move).toBeTruthy();
     expect(abilities.comment).toBeTruthy();
+  });
+
+  it("should allow user management for collection admins", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await collection.$add("user", user, {
+      through: {
+        permission: CollectionPermission.Admin,
+        createdById: admin.id,
+      },
+    });
+
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.update).toBeTruthy();
+    expect(abilities.manageUsers).toBeTruthy();
+  });
+
+  it("should allow user management for workspace admins with read access", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.Read,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.update).toEqual(false);
+    expect(abilities.manageUsers).toBeTruthy();
   });
 
   it("should allow read permissions for viewer", async () => {
@@ -308,7 +355,7 @@ describe("archived document", () => {
     expect(abilities.unarchive).toBeTruthy();
     expect(abilities.update).toEqual(false);
     expect(abilities.createChildDocument).toEqual(false);
-    expect(abilities.manageUsers).toEqual(false);
+    expect(abilities.manageUsers).toBeTruthy();
     expect(abilities.archive).toEqual(false);
     expect(abilities.share).toEqual(false);
     expect(abilities.move).toEqual(false);
