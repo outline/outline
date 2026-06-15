@@ -2,21 +2,26 @@ import type { BackendFactory } from "dnd-core";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
 /**
- * react-dnd's HTML5 backend installs global capture-phase listeners on `window`
- * that call `preventDefault()` on drops whose dataTransfer resembles a native
- * item – including a dragged `<img>`, which is how ProseMirror serializes an
- * image drag.
+ * react-dnd's HTML5 backend installs global drag listeners on `window` in both
+ * the capture and bubble phases. The bubble-phase `dragover` handler runs after
+ * ProseMirror's and, when react-dnd isn't tracking a drag, forces
+ * `dataTransfer.dropEffect = "none"` – which tells the browser the drop is
+ * disallowed and silently rejects images dragged into the editor.
  *
- * These handlers run before ProseMirror's, and they live on `window`, so a
- * propagation-based guard can't stop react-dnd without also starving the editor
- * of the event. Instead we wrap the backend and make its top-level capture
- * handlers no-op for events that occur within the editor surface.
+ * These handlers live on `window`, so a propagation-based guard can't stop
+ * react-dnd without also starving the editor of the event. Instead we wrap the
+ * backend and make all of its top-level handlers no-op for events that occur
+ * within the editor surface, leaving ProseMirror to handle them itself.
  */
-const captureHandlerNames = [
+const topHandlerNames = [
+  "handleTopDragStart",
   "handleTopDragStartCapture",
+  "handleTopDragEnter",
   "handleTopDragEnterCapture",
-  "handleTopDragOverCapture",
   "handleTopDragLeaveCapture",
+  "handleTopDragOver",
+  "handleTopDragOverCapture",
+  "handleTopDrop",
   "handleTopDropCapture",
   "handleTopDragEndCapture",
 ] as const;
@@ -40,14 +45,14 @@ export const EditorAwareHTML5Backend: BackendFactory = (
 ) => {
   const backend = HTML5Backend(manager, context, options);
 
-  // The capture handlers are private instance fields on the backend, so reach
+  // The top-level handlers are private instance fields on the backend, so reach
   // for them through an index signature view of the instance.
   const handlers = backend as unknown as Record<
     string,
     (event: DragEvent) => void
   >;
 
-  for (const name of captureHandlerNames) {
+  for (const name of topHandlerNames) {
     const original = handlers[name];
     if (typeof original === "function") {
       handlers[name] = (event: DragEvent) => {
