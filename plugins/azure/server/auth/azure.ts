@@ -24,6 +24,9 @@ import env from "../env";
 import { createContext } from "@server/context";
 import fetch from "@server/utils/fetch";
 import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
+import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
+import { AttachmentPreset } from "@shared/types";
+import { UserFlag } from "@server/models/User";
 
 const router = new Router();
 const scopes: string[] = [];
@@ -44,6 +47,10 @@ async function requestPhoto(accessToken: string): Promise<string | undefined> {
       {
         method: "GET",
         allowPrivateIPAddress: true,
+        // Cap how long we'll wait and how many bytes we'll buffer so a slow or
+        // oversized response can never stall the login callback.
+        timeout: 10000,
+        size: AttachmentHelper.presetToMaxUploadSize(AttachmentPreset.Avatar),
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -201,8 +208,13 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         });
         // Entra ID does not include the photo in the token, so it must be
         // fetched separately from Graph. To avoid the extra round-trip on every
-        // sign-in we only do so when provisioning a new account.
-        if (result.isNewUser) {
+        // sign-in we only do so when the user has no avatar yet and hasn't set
+        // one manually — this also backfills accounts created before avatar
+        // syncing was supported, and stops once an avatar is stored.
+        if (
+          !result.user.avatarUrl &&
+          !result.user.getFlag(UserFlag.AvatarUpdated)
+        ) {
           const avatarUrl = await requestPhoto(accessToken);
           if (avatarUrl) {
             await new UploadUserAvatarTask().schedule({
