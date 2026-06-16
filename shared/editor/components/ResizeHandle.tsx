@@ -67,9 +67,6 @@ export const ResizeCorner = styled.div<{ $dragging: boolean }>`
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: ${s("selected")};
-  border: 1.5px solid ${s("background")};
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   z-index: 10;
   user-select: none;
   opacity: ${(props) => (props.$dragging ? 1 : 0)};
