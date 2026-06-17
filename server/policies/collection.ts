@@ -158,10 +158,12 @@ allow(
         includesMembership(collection, [CollectionPermission.Admin]),
         and(
           collection?.templateManagement === CollectionPermission.ReadWrite,
-          !user.isViewer,
           !user.isGuest,
           or(
-            collection?.permission === CollectionPermission.ReadWrite,
+            and(
+              collection?.permission === CollectionPermission.ReadWrite,
+              !user.isViewer
+            ),
             includesMembership(collection, [
               CollectionPermission.ReadWrite,
               CollectionPermission.Admin,
