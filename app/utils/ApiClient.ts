@@ -31,7 +31,7 @@ type Options = {
 };
 
 /** An HTTP method supported by the API client. */
-type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+type Method = "GET" | "POST" | "PUT";
 
 /** Shape of an error payload returned by the API. */
 interface ApiErrorResponse {
@@ -168,9 +168,7 @@ class ApiClient {
     };
 
     // Add CSRF token to headers for mutating requests
-    const isModifyingRequest = ["POST", "PUT", "PATCH", "DELETE"].includes(
-      method
-    );
+    const isModifyingRequest = method === "POST" || method === "PUT";
     const canAccessWithReadOnly = AuthenticationHelper.canAccess(path, [
       Scope.Read,
     ]);
