@@ -8,7 +8,6 @@ import documentCreator, {
 import documentMover from "@server/commands/documentMover";
 import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
-import { Op } from "sequelize";
 import { Collection, Document, Template } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { authorize, can } from "@server/policies";
@@ -30,7 +29,7 @@ import {
   pathToUrl,
   withTracing,
 } from "./util";
-import { TextEditMode } from "@shared/types";
+import { StatusFilter, TextEditMode } from "@shared/types";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 /**
@@ -201,21 +200,19 @@ export function documentTools(server: McpServer, scopes: string[]) {
               return success(presented);
             }
 
-            const collectionIds = collectionId
-              ? [collectionId]
-              : await user.collectionIds();
-
-            const documents = await Document.findAll({
-              where: {
-                teamId: user.teamId,
-                collectionId: collectionIds,
-                archivedAt: { [Op.eq]: null },
-                deletedAt: { [Op.eq]: null },
-              },
-              order: [["updatedAt", "DESC"]],
+            // List recent documents via the search provider (with no query) so
+            // access control matches the search path exactly — this includes
+            // documents shared directly or via a group (the "Shared with me"
+            // section), not just documents in collections the user belongs to.
+            const searchProvider = SearchProviderManager.getProvider();
+            const { results } = await searchProvider.searchForUser(user, {
+              collectionId,
               offset: effectiveOffset,
               limit: effectiveLimit,
+              statusFilter: [StatusFilter.Published],
             });
+
+            const documents = results.map((result) => result.document);
 
             const breadcrumbs = await getBreadcrumbsForDocuments(
               documents,
