@@ -123,6 +123,10 @@ describe("#webhookSubscriptions.list", () => {
 });
 
 describe("#webhookSubscriptions.create", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("should fail with status 401 unauthorized when user token is missing", async () => {
     const res = await server.post("/api/webhookSubscriptions.create", {
       body: {},
