@@ -7382,15 +7382,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/nodemailer@npm:^6.4.23":
-  version: 6.4.23
-  resolution: "@types/nodemailer@npm:6.4.23"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/86a456eb387d685d7713d56576147315fff03b0868fbde1b12291ab11df4df5c07c87010bd31ce10da16dfdad5d21ecc7d2ea4487e42706795f612865e1c564e
-  languageName: node
-  linkType: hard
-
 "@types/oauth@npm:*":
   version: 0.9.6
   resolution: "@types/oauth@npm:0.9.6"
@@ -15081,13 +15072,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:^8.0.9":
-  version: 8.0.9
-  resolution: "nodemailer@npm:8.0.9"
-  checksum: 10c0/f5c671ed1c28b27fc997416be70c41aa068ea7540feebc8aca1d0c4f18ac1017d05d74d08218b5aa13206d2639d6a4605f9f3b2acbcb84d20b9cc89d50c5ab5a
-  languageName: node
-  linkType: hard
-
 "nodemon@npm:^3.1.14":
   version: 3.1.14
   resolution: "nodemon@npm:3.1.14"
@@ -15454,7 +15438,6 @@ __metadata:
     "@types/natural-sort": "npm:^0.0.24"
     "@types/node": "npm:20.19.39"
     "@types/node-fetch": "npm:^2.6.13"
-    "@types/nodemailer": "npm:^6.4.23"
     "@types/pako": "npm:^2.0.4"
     "@types/passport-oauth2": "npm:^1.8.0"
     "@types/pluralize": "npm:^0.0.33"
@@ -15566,7 +15549,6 @@ __metadata:
     msw: "npm:^2.14.2"
     natural-sort: "npm:^1.0.0"
     node-fetch: "npm:2.7.0"
-    nodemailer: "npm:^8.0.9"
     nodemon: "npm:^3.1.14"
     octokit: "npm:^5.0.5"
     outline-icons: "npm:^4.3.0"
