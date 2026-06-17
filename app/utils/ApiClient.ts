@@ -30,6 +30,16 @@ type Options = {
   baseUrl?: string;
 };
 
+/** An HTTP method supported by the API client. */
+type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+/** Shape of an error payload returned by the API. */
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+  data?: Record<string, unknown>;
+}
+
 /** Reason the server rejected a request as unauthenticated. */
 export type UnauthorizedReason = "unauthorized" | "user_suspended";
 
@@ -97,14 +107,14 @@ class ApiClient {
   // oxlint-disable-next-line no-explicit-any
   fetch = async <T = any>(
     path: string,
-    method: string,
+    method: Method,
     data: JSONObject | FormData | undefined,
     options: FetchOptions = {}
   ): Promise<T> => {
     let body: string | FormData | undefined;
-    let modifiedPath;
-    let urlToFetch;
-    let isJson;
+    let modifiedPath: string | undefined;
+    let urlToFetch: string;
+    let isJson = false;
 
     if (this.shareId) {
       if (data instanceof FormData) {
@@ -240,14 +250,10 @@ class ApiClient {
     }
 
     // Handle failed responses
-    const error: {
-      message?: string;
-      error?: string;
-      data?: Record<string, unknown>;
-    } = {};
+    const error: ApiErrorResponse = {};
 
     try {
-      const parsed = await response.json();
+      const parsed: ApiErrorResponse = await response.json();
       error.message = parsed.message || "";
       error.error = parsed.error;
       error.data = parsed.data;
@@ -370,7 +376,7 @@ class ApiClient {
   // oxlint-disable-next-line no-explicit-any
   private deduplicate = <T = any>(
     path: string,
-    method: string,
+    method: Method,
     data?: JSONObject | FormData,
     options?: FetchOptions
   ): Promise<T> => {
