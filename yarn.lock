@@ -14369,7 +14369,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"markdown-it@npm:^14.0.0":
+"markdown-it@npm:^14.0.0, markdown-it@npm:^14.2.0":
   version: 14.2.0
   resolution: "markdown-it@npm:14.2.0"
   dependencies:
@@ -15431,6 +15431,7 @@ __metadata:
     "@types/koa-sslify": "npm:^4.0.6"
     "@types/koa-useragent": "npm:^2.1.2"
     "@types/mailparser": "npm:^3.4.6"
+    "@types/markdown-it": "npm:14.1.2"
     "@types/markdown-it-container": "npm:^2.0.11"
     "@types/markdown-it-emoji": "npm:^3.0.1"
     "@types/mime-types": "npm:^3.0.1"
@@ -15538,6 +15539,7 @@ __metadata:
     lint-staged: "npm:^16.4.0"
     mailparser: "npm:^3.7.5"
     mammoth: "npm:^1.11.0"
+    markdown-it: "npm:^14.2.0"
     markdown-it-container: "npm:^3.0.0"
     markdown-it-emoji: "npm:^3.0.0"
     mermaid: "npm:11.15.0"
