@@ -23,7 +23,7 @@ describe("IsUrl", () => {
     });
   });
 
-  describe("when not cloud hosted", () => {
+  describe("self hosted", () => {
     beforeEach(() => {
       vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(false);
     });
