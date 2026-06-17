@@ -51,7 +51,7 @@ class ApiClient {
 
   shareId?: string;
 
-  /** Map of in-flight POST requests for deduplication, keyed by path + body. */
+  /** Map of in-flight requests for deduplication, keyed by method + path + body. */
   // oxlint-disable-next-line no-explicit-any
   private inflightRequests = new Map<string, Promise<any>>();
 
@@ -339,18 +339,54 @@ class ApiClient {
     path: string,
     data?: JSONObject | FormData,
     options?: FetchOptions
+  ): Promise<T> => this.deduplicate<T>(path, "POST", data, options);
+
+  /**
+   * Performs a PUT request against the API. Identical in-flight requests are
+   * deduplicated and share a single response, except for multipart uploads.
+   *
+   * @param path the request path, relative to the base URL or an absolute URL.
+   * @param data the request payload, sent as a JSON or multipart body.
+   * @param options additional request options.
+   * @returns the parsed JSON response.
+   */
+  // oxlint-disable-next-line no-explicit-any
+  put = <T = any>(
+    path: string,
+    data?: JSONObject | FormData,
+    options?: FetchOptions
+  ): Promise<T> => this.deduplicate<T>(path, "PUT", data, options);
+
+  /**
+   * Sends a request, deduplicating identical in-flight requests so concurrent
+   * callers share a single response. Multipart uploads are never deduplicated.
+   *
+   * @param path the request path, relative to the base URL or an absolute URL.
+   * @param method the HTTP method to use.
+   * @param data the request payload.
+   * @param options additional request options.
+   * @returns the parsed JSON response.
+   */
+  // oxlint-disable-next-line no-explicit-any
+  private deduplicate = <T = any>(
+    path: string,
+    method: string,
+    data?: JSONObject | FormData,
+    options?: FetchOptions
   ): Promise<T> => {
     if (data instanceof FormData) {
-      return this.fetch<T>(path, "POST", data, options);
+      return this.fetch<T>(path, method, data, options);
     }
 
-    const key = `${path}:${JSON.stringify(data)}:${JSON.stringify(options)}`;
+    const key = `${method}:${path}:${JSON.stringify(data)}:${JSON.stringify(
+      options
+    )}`;
     const inflight = this.inflightRequests.get(key);
     if (inflight) {
       return inflight;
     }
 
-    const promise = this.fetch<T>(path, "POST", data, options).finally(() => {
+    const promise = this.fetch<T>(path, method, data, options).finally(() => {
       this.inflightRequests.delete(key);
     });
     this.inflightRequests.set(key, promise);
