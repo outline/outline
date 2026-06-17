@@ -94,6 +94,14 @@ export default class AuthStore extends Store<Team> {
     this.rehydrate(data);
     void this.fetchAuth();
 
+    // own the logout policy for unauthenticated responses surfaced by the
+    // API client, keeping that concern out of the transport layer.
+    client.setUnauthorizedHandler((reason) =>
+      reason === "user_suspended"
+        ? this.logout({ savePath: false, revokeToken: false, clearCache: true })
+        : this.logout({ savePath: true, revokeToken: false, clearCache: false })
+    );
+
     // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
       Storage.set(this.name, this.asJson);
