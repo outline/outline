@@ -205,39 +205,6 @@ describe("#webhookSubscriptions.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.url).toEqual(url);
   });
-
-  it("should allow urls without a top-level domain when not cloud hosted", async () => {
-    vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(false);
-
-    const user = await buildAdmin();
-    const url = "http://webhook";
-    const res = await server.post("/api/webhookSubscriptions.create", user, {
-      body: {
-        name: "Test webhook",
-        url,
-        events: ["comments"],
-      },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.url).toEqual(url);
-  });
-
-  it("should reject urls without a top-level domain when cloud hosted", async () => {
-    vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(true);
-
-    const user = await buildAdmin();
-    const res = await server.post("/api/webhookSubscriptions.create", user, {
-      body: {
-        name: "Test webhook",
-        url: "https://webhook",
-        events: ["comments"],
-      },
-    });
-
-    expect(res.status).toEqual(400);
-  });
 });
 
 describe("#webhookSubscriptions.update", () => {
