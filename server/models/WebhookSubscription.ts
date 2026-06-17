@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { isNil } from "es-toolkit/compat";
+import { isURL } from "validator";
 import type {
   InferAttributes,
   InferCreationAttributes,
@@ -13,7 +14,7 @@ import {
   ForeignKey,
   NotEmpty,
   DataType,
-  IsUrl,
+  Is,
   BeforeCreate,
   AfterCreate,
   AfterUpdate,
@@ -24,6 +25,7 @@ import {
 } from "sequelize-typescript";
 import { Hour } from "@shared/utils/time";
 import { WebhookSubscriptionValidation } from "@shared/validations";
+import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import type { Event } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
@@ -117,7 +119,13 @@ class WebhookSubscription extends ParanoidModel<
   @Column
   name: string;
 
-  @IsUrl
+  @Is(function isValidUrl(value: string) {
+    // A top-level domain is only required when cloud hosted, allowing
+    // self-hosted installations to use internal hostnames.
+    if (!isURL(value, { require_tld: env.isCloudHosted })) {
+      throw new Error("Must be a valid url");
+    }
+  })
   @NotEmpty
   @Length({
     max: WebhookSubscriptionValidation.maxUrlLength,
