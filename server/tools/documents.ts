@@ -201,9 +201,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             }
 
             // List recent documents via the search provider (with no query) so
-            // access control matches the search path exactly — this includes
-            // documents shared directly or via a group (the "Shared with me"
-            // section), not just documents in collections the user belongs to.
+            // access control matches the search path exactly.
             const searchProvider = SearchProviderManager.getProvider();
             const { results } = await searchProvider.searchForUser(user, {
               collectionId,

@@ -44,6 +44,33 @@ describe("list_documents", () => {
     ).toBeUndefined();
   });
 
+  it("does not return templates in recent documents", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents");
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+
+    const ids = data.map((d: { document: { id: string } }) => d.document.id);
+    expect(ids).toContain(document.id);
+    expect(ids).not.toContain(template.id);
+  });
+
   it("filters by collection", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection1 = await buildCollection({
