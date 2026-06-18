@@ -1752,11 +1752,14 @@ code {
   font-family: ${props.theme.fontFamilyMono};
   font-size: 90%;
 
+  &.inline {
+    color: ${props.theme.codeKeyword};
+  }
+
   .${EditorStyleHelper.codeWord} {
     @media (min-width: ${breakpoints.tablet}px) {
       white-space: nowrap;
     }
-    color: ${props.theme.codeKeyword};
   }
 }
 
