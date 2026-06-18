@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { ThemeProvider, useTheme } from "styled-components";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import type { CustomTheme } from "@shared/types";
-import { CommentingAccess, TOCPosition, TeamPreference } from "@shared/types";
+import { TOCPosition, TeamPreference } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import { TeamValidation } from "@shared/validations";
 import Button from "~/components/Button";
@@ -89,28 +89,6 @@ function Details() {
     setTocPosition(position as TOCPosition);
   }, []);
 
-  const commentingOptions: Option[] = React.useMemo(
-    () =>
-      [
-        {
-          type: "item",
-          label: t("Members"),
-          value: CommentingAccess.Members,
-        },
-        {
-          type: "item",
-          label: t("Members and guests"),
-          value: CommentingAccess.Everyone,
-        },
-        {
-          type: "item",
-          label: t("No one"),
-          value: CommentingAccess.None,
-        },
-      ] satisfies Option[],
-    [t]
-  );
-
   const handleSubmit = React.useCallback(
     async (event?: React.SyntheticEvent) => {
       if (event) {
@@ -189,15 +167,6 @@ function Details() {
   const handleSeamlessEditChange = React.useCallback(
     async (checked: boolean) => {
       team.setPreference(TeamPreference.SeamlessEdit, !checked);
-      await team.save();
-      toast.success(t("Settings saved"));
-    },
-    [team, t]
-  );
-
-  const handleCommentingChange = React.useCallback(
-    async (value: string) => {
-      team.setPreference(TeamPreference.Commenting, value as CommentingAccess);
       await team.save();
       toast.success(t("Settings saved"));
     },
@@ -390,6 +359,7 @@ function Details() {
             />
           </SettingRow>
           <SettingRow
+            border={false}
             name={TeamPreference.SeamlessEdit}
             label={t("Separate editing")}
             description={t(
@@ -401,23 +371,6 @@ function Details() {
               name={TeamPreference.SeamlessEdit}
               checked={!team.getPreference(TeamPreference.SeamlessEdit)}
               onChange={handleSeamlessEditChange}
-            />
-          </SettingRow>
-          <SettingRow
-            border={false}
-            name={TeamPreference.Commenting}
-            label={t("Commenting")}
-            description={t("Controls who can add comments to documents.")}
-          >
-            <InputSelect
-              options={commentingOptions}
-              value={
-                team.getPreference(TeamPreference.Commenting) ||
-                CommentingAccess.Members
-              }
-              onChange={handleCommentingChange}
-              label={t("Commenting")}
-              labelHidden
             />
           </SettingRow>
 
