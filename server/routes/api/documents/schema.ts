@@ -8,6 +8,7 @@ import {
   TextEditMode,
   SortFilter,
 } from "@shared/types";
+import { DocumentInsightPeriod } from "@server/models/DocumentInsight";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
@@ -160,6 +161,10 @@ export const DocumentsInsightsSchema = BaseSchema.extend({
     startDate: z.coerce.date().optional(),
     /** End of the insights window (inclusive). Defaults to today. */
     endDate: z.coerce.date().optional(),
+    /** The granularity of the returned data points. Defaults to daily. */
+    period: z
+      .nativeEnum(DocumentInsightPeriod)
+      .default(DocumentInsightPeriod.Day),
   }),
 }).refine(
   (req) =>

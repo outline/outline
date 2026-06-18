@@ -16,6 +16,7 @@ import type Document from "~/models/Document";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import { useLayoutEffect, useRef } from "react";
+import InsightsChart from "./InsightsChart";
 
 type Props = {
   document: Document;
@@ -35,19 +36,14 @@ function Insights({ document }: Props) {
   }, []);
 
   return (
-    <div ref={wrapperRef} tabIndex={-1}>
+    <div ref={wrapperRef} tabIndex={-1} style={{ outline: "none" }}>
       {document ? (
-        <Flex
-          column
-          shrink={false}
-          style={{ minHeight: "100%" }}
-          justify="space-between"
-        >
-          <div>
-            <Flex column>
-              <Text as="h2" size="large">
-                {t("Source")}
-              </Text>
+        <Flex column shrink={false}>
+          <Columns>
+            <Column column>
+              <Heading as="h3" type="tertiary">
+                {t("Information")}
+              </Heading>
               <Text as="p" type="secondary" size="small">
                 <List>
                   <li>
@@ -71,9 +67,9 @@ function Insights({ document }: Props) {
                 </List>
               </Text>
 
-              <Text as="h2" size="large">
-                {t("Stats")}
-              </Text>
+              <Heading as="h3" type="tertiary">
+                {t("Statistics")}
+              </Heading>
               <Text as="p" type="secondary" size="small">
                 <List>
                   {stats.total.words > 0 && (
@@ -100,9 +96,7 @@ function Insights({ document }: Props) {
                       number: formatNumber(stats.total.emoji),
                     })}
                   </li>
-                  {stats.selected.characters === 0 ? (
-                    <li>{t("No text selected")}</li>
-                  ) : (
+                  {stats.selected.characters > 0 && (
                     <>
                       <li>
                         {t(`{{ number }} words selected`, {
@@ -120,12 +114,12 @@ function Insights({ document }: Props) {
                   )}
                 </List>
               </Text>
-            </Flex>
+            </Column>
 
-            <Flex column>
-              <Text as="h2" size="large">
+            <Column column>
+              <Heading as="h3" type="tertiary">
                 {t("Contributors")}
-              </Text>
+              </Heading>
               <ListSpacing>
                 {document.sourceMetadata?.createdByName && (
                   <ListItem
@@ -170,13 +164,34 @@ function Insights({ document }: Props) {
                   )}
                 />
               </ListSpacing>
-            </Flex>
-          </div>
+            </Column>
+          </Columns>
+
+          <InsightsChart document={document} />
         </Flex>
       ) : null}
     </div>
   );
 }
+
+const Columns = styled("div")`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 16px;
+`;
+
+const Column = styled(Flex)`
+  min-width: 0;
+`;
+
+const Heading = styled(Text)`
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+`;
 
 const ListSpacing = styled("div")`
   margin-top: -0.5em;
