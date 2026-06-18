@@ -9,12 +9,15 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 interface CodeWordDecorationsConfig {
   /** CSS class to apply to word decorations */
   className?: string;
+  /** Tokens longer than this many characters are left unwrapped so they break */
+  maxWordLength?: number;
 }
 
 class CodeWordDecorationsPlugin extends Plugin {
   constructor(config: CodeWordDecorationsConfig = {}) {
     const defaultConfig: Required<CodeWordDecorationsConfig> = {
       className: EditorStyleHelper.codeWord,
+      maxWordLength: 40,
     };
 
     const finalConfig = { ...defaultConfig, ...config };
@@ -102,7 +105,10 @@ class CodeWordDecorationsPlugin extends Plugin {
           for (let i = 0; i < words.length; i++) {
             const word = words[i];
 
-            if (word.length > 0) {
+            // Tokens longer than a line cannot move to the next line as a unit,
+            // so leave them unwrapped to inherit the editor's default breaking
+            // rather than overflow.
+            if (word.length > 0 && word.length <= config.maxWordLength) {
               const wordStart = currentPos;
               const wordEnd = wordStart + word.length;
 
