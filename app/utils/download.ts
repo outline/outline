@@ -5,6 +5,7 @@
 // v3 added dataURL and Blob Input, bind-toggle arity, and legacy dataURL fallback was improved with force-download mime and base64 support
 // data can be a string, Blob, File, or dataURL
 export default function download(
+  this: unknown,
   data: Blob | string | File,
   strFileName: string,
   strMimeType?: string
