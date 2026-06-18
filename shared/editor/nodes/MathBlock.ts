@@ -11,6 +11,7 @@ import type {
 import type { Command } from "prosemirror-state";
 import { TextSelection } from "prosemirror-state";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { escapeRawTableCell } from "../lib/markdown/tableCell";
 import mathRule, { REGEX_BLOCK_MATH_DOLLARS } from "../rules/math";
 import Node from "./Node";
 
@@ -46,19 +47,14 @@ export default class MathBlock extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    // Inside table cells literal newlines break the row structure, so encode
-    // the block on a single line using <br> for line breaks. Backslashes and
-    // pipes are escaped so the cell content cannot break out of the column.
-    if (state.inTable) {
-      const math = node.textContent
-        .replace(/[\\|]/g, "\\$&")
-        .replace(/\n/g, "<br>");
-      state.write("$$<br>" + math + "<br>$$");
-      return;
-    }
+    // Block content bypasses esc(), so when inside a table cell escape it here
+    // so it cannot break out of the column.
+    const content = state.inTable
+      ? escapeRawTableCell(node.textContent)
+      : node.textContent;
 
     state.write("$$\n");
-    state.text(node.textContent, false);
+    state.text(content, false);
     state.ensureNewLine();
     state.write("$$");
     state.closeBlock(node);

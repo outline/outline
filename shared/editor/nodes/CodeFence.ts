@@ -45,6 +45,7 @@ import { isCode, isMermaid } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { escapeRawTableCell } from "../lib/markdown/tableCell";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
 import {
   findParentNode,
@@ -698,21 +699,14 @@ export default class CodeFence extends Node<CodeFenceOptions> {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    // Inside table cells literal newlines break the row structure, so encode
-    // the fence on a single line using <br> for line breaks. Backslashes and
-    // pipes are escaped so the cell content cannot break out of the column.
-    if (state.inTable) {
-      const code = node.textContent
-        .replace(/[\\|]/g, "\\$&")
-        .replace(/\n/g, "<br>");
-      state.write(
-        "```" + (node.attrs.language || "") + "<br>" + code + "<br>```"
-      );
-      return;
-    }
+    // Fence content bypasses esc(), so when inside a table cell escape it here
+    // so it cannot break out of the column.
+    const content = state.inTable
+      ? escapeRawTableCell(node.textContent)
+      : node.textContent;
 
     state.write("```" + (node.attrs.language || "") + "\n");
-    state.text(node.textContent, false);
+    state.text(content, false);
     state.ensureNewLine();
     state.write("```");
     state.closeBlock(node);

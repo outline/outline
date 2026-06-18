@@ -750,6 +750,72 @@ This is a [test paragraph](https://example.net)`,
       expect(result).not.toMatch(/\$\$\n/);
     });
 
+    it("should export notice blocks inside table cells on a single line", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "table",
+              content: [
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "th",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "Header" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "td",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "container_notice",
+                          attrs: { style: "warning" },
+                          content: [
+                            {
+                              type: "paragraph",
+                              content: [{ type: "text", text: "First | line" }],
+                            },
+                            {
+                              type: "paragraph",
+                              content: [{ type: "text", text: "Second line" }],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Notice blocks inside tables should use <br> tags rather than literal
+      // newlines that would break the table row structure, with pipes escaped
+      // so the content cannot break out of the column.
+      expect(result).toContain(
+        ":::warning<br>First \\| line<br><br>Second line<br><br>:::"
+      );
+      // The notice must not introduce raw newlines inside the table.
+      expect(result).not.toMatch(/:::warning\n/);
+    });
+
     it("should include collection title by default", async () => {
       const collection = await buildCollection({
         name: "Test Collection",
