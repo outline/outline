@@ -1,4 +1,4 @@
-import { CollectionPermission, Scope } from "@shared/types";
+import { CollectionPermission, DocumentPermission, Scope } from "@shared/types";
 import {
   buildUser,
   buildViewer,
@@ -6,8 +6,9 @@ import {
   buildDocument,
   buildTemplate,
   buildOAuthAuthentication,
+  buildGroup,
 } from "@server/test/factories";
-import { Document } from "@server/models";
+import { Document, GroupMembership, UserMembership } from "@server/models";
 import { getTestServer } from "@server/test/support";
 import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
 
@@ -41,6 +42,33 @@ describe("list_documents", () => {
     expect(
       (match.document as { commentCount?: number }).commentCount
     ).toBeUndefined();
+  });
+
+  it("does not return templates in recent documents", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents");
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+
+    const ids = data.map((d: { document: { id: string } }) => d.document.id);
+    expect(ids).toContain(document.id);
+    expect(ids).not.toContain(template.id);
   });
 
   it("filters by collection", async () => {
@@ -79,6 +107,70 @@ describe("list_documents", () => {
           d.document.collectionId === collection1.id
       )
     ).toBe(true);
+  });
+
+  it("returns documents shared directly with the user", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const author = await buildUser({ teamId: user.teamId });
+    // A document in a private collection the user is not a member of, shared
+    // directly with the user via a membership ("Shared with me").
+    const collection = await buildCollection({
+      teamId: author.teamId,
+      userId: author.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: collection.id,
+      title: "Metaphysics",
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: user.id,
+      createdById: author.id,
+      permission: DocumentPermission.Read,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents");
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+
+    const ids = data.map((d: { document: { id: string } }) => d.document.id);
+    expect(ids).toContain(document.id);
+  });
+
+  it("returns documents shared with the user via a group", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const author = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: author.teamId,
+      userId: author.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: author.teamId,
+      userId: author.id,
+      collectionId: collection.id,
+      title: "Metaphysics",
+    });
+
+    const group = await buildGroup({ teamId: user.teamId });
+    await group.$add("user", user, { through: { createdById: author.id } });
+    await GroupMembership.create({
+      createdById: author.id,
+      groupId: group.id,
+      documentId: document.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_documents");
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+
+    const ids = data.map((d: { document: { id: string } }) => d.document.id);
+    expect(ids).toContain(document.id);
   });
 
   it("does not return private documents via exact urlId match", async () => {
