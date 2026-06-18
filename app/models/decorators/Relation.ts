@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import { singular } from "pluralize";
+import { toError } from "@shared/utils/error";
 import type Model from "../base/Model";
 import Logger from "~/utils/Logger";
 
@@ -61,7 +62,7 @@ export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
       } catch (error) {
         Logger.error(
           `Error resolving relation ${modelName}.${propertyName} for target ${targetClass.modelName}:`,
-          error instanceof Error ? error : new Error(String(error))
+          toError(error)
         );
       }
     });

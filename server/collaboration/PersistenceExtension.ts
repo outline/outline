@@ -5,6 +5,7 @@ import type {
   Extension,
 } from "@hocuspocus/server";
 import * as Y from "yjs";
+import { toError } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
@@ -135,14 +136,10 @@ export default class PersistenceExtension implements Extension {
         clientVersion,
       });
     } catch (err) {
-      Logger.error(
-        "Unable to persist document",
-        err instanceof Error ? err : new Error(String(err)),
-        {
-          documentId,
-          userId: context.user?.id,
-        }
-      );
+      Logger.error("Unable to persist document", toError(err), {
+        documentId,
+        userId: context.user?.id,
+      });
     }
   }
 }

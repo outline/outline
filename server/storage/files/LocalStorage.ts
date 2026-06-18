@@ -7,6 +7,7 @@ import fs from "fs-extra";
 import invariant from "invariant";
 import JWT from "jsonwebtoken";
 import safeResolvePath from "resolve-path";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -160,11 +161,7 @@ export default class LocalStorage extends BaseStorage {
     try {
       return fs.createReadStream(filePath, range);
     } catch (err) {
-      Logger.error(
-        `Failed to create read stream`,
-        err instanceof Error ? err : new Error(String(err)),
-        { filePath }
-      );
+      Logger.error(`Failed to create read stream`, toError(err), { filePath });
       throw ValidationError("Unable to read file");
     }
   }

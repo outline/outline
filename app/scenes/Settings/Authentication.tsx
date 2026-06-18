@@ -3,6 +3,7 @@ import { EmailIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -52,7 +53,7 @@ function Authentication() {
         await team.save({ guestSignin: checked });
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     },
     [team, t]
@@ -64,7 +65,7 @@ function Authentication() {
         await provider.save({ isEnabled });
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     },
     [t]
@@ -114,7 +115,7 @@ function Authentication() {
             });
             toast.success(t("Settings saved"));
           } catch (err) {
-            toast.error(err instanceof Error ? err.message : String(err));
+            toast.error(errToString(err));
           }
         })();
       } else {
@@ -143,7 +144,7 @@ function Authentication() {
         });
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     },
     [t]
@@ -308,7 +309,7 @@ function Authentication() {
               await team.save({ passkeysEnabled: checked });
               toast.success(t("Settings saved"));
             } catch (err) {
-              toast.error(err instanceof Error ? err.message : String(err));
+              toast.error(errToString(err));
             }
           }}
         />
@@ -370,7 +371,7 @@ const DisableGroupSyncDialog = observer(function DisableGroupSyncDialog({
         toast.success(t("Settings saved"));
         onSubmit();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       } finally {
         setIsSaving(false);
       }

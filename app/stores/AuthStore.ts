@@ -3,6 +3,7 @@ import invariant from "invariant";
 import { isNil } from "es-toolkit/compat";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie } from "tiny-cookie";
+import { toError } from "@shared/utils/error";
 import type { CustomTheme } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
@@ -353,10 +354,7 @@ export default class AuthStore extends Store<Team> {
         // invalidate authentication token on server and unset auth cookie
         await client.post(`/auth.delete`);
       } catch (err) {
-        Logger.error(
-          "Failed to delete authentication",
-          err instanceof Error ? err : new Error(String(err))
-        );
+        Logger.error("Failed to delete authentication", toError(err));
       }
     }
 

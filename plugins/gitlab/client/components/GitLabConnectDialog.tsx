@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import { s } from "@shared/styles";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -39,7 +40,7 @@ function GitLabConnectDialog() {
         dialogs.closeAllModals();
         redirectTo(res.data.redirectUrl);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       } finally {
         setSaving(false);
       }

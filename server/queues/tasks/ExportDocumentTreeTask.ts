@@ -1,6 +1,7 @@
 import path from "node:path";
 import { escapeRegExp } from "es-toolkit/compat";
 import type { ZipFile } from "yazl";
+import { errToString } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationFormat } from "@shared/types";
 import Logger from "@server/logging/Logger";
@@ -89,7 +90,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         Logger.warn(`Failed to read attachment from storage`, {
           attachmentId: attachment.id,
           teamId: attachment.teamId,
-          error: err instanceof Error ? err.message : String(err),
+          error: errToString(err),
         });
         buffer = Buffer.from("");
       }

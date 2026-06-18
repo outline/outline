@@ -20,6 +20,7 @@ import {
   UnsubscribeIcon,
 } from "outline-icons";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
@@ -173,7 +174,7 @@ export const importDocument = createAction({
         });
         history.push(document.path);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       } finally {
         toast.dismiss(toastId);
       }

@@ -1,5 +1,6 @@
 import { styleText } from "node:util";
 import { isEmpty } from "es-toolkit/compat";
+import { toError, errToString } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
@@ -33,8 +34,8 @@ export async function checkPendingMigrations() {
     }
     await checkDataMigrations();
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    const error = err instanceof Error ? err : new Error(String(err));
+    const message = errToString(err);
+    const error = toError(err);
     if (message.includes("ECONNREFUSED")) {
       Logger.fatal(
         styleText(

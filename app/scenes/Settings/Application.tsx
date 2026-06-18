@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
+import { errToString } from "@shared/utils/error";
 import { OAuthClientValidation } from "@shared/validations";
 import type OAuthClient from "~/models/oauth/OAuthClient";
 import Breadcrumb from "~/components/Breadcrumb";
@@ -103,7 +104,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
             : t("Application updated")
         );
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : String(error));
+        toast.error(errToString(error));
       }
     },
     [oauthClient, t]
@@ -115,7 +116,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
         await oauthClient.rotateClientSecret();
         toast.success(t("Client secret rotated"));
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     };
 

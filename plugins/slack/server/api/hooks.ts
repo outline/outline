@@ -3,6 +3,7 @@ import Router from "koa-router";
 import { escapeRegExp } from "es-toolkit/compat";
 import queryString from "query-string";
 import { z } from "zod";
+import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import {
@@ -155,13 +156,9 @@ router.post(
       callback_id = parsed.callback_id;
       token = parsed.token;
     } catch (err) {
-      Logger.error(
-        "Failed to parse Slack interactive payload",
-        err instanceof Error ? err : new Error(String(err)),
-        {
-          payload,
-        }
-      );
+      Logger.error("Failed to parse Slack interactive payload", toError(err), {
+        payload,
+      });
       throw ValidationError("Invalid payload");
     }
 

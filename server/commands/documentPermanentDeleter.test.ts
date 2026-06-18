@@ -1,4 +1,5 @@
 import { subDays } from "date-fns";
+import { errToString } from "@shared/utils/error";
 import { Attachment, Document } from "@server/models";
 import { buildAttachment, buildDocument } from "@server/test/factories";
 import { mockTaskSchedule } from "@server/test/support";
@@ -33,7 +34,7 @@ describe("documentPermanentDeleter", () => {
     try {
       await documentPermanentDeleter([document]);
     } catch (err) {
-      error = err instanceof Error ? err.message : String(err);
+      error = errToString(err);
     }
 
     expect(error).toEqual(

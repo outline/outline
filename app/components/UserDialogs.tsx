@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import { UserRole } from "@shared/types";
 import { UserValidation } from "@shared/validations";
 import type User from "~/models/User";
@@ -157,7 +158,7 @@ export const UserChangeAvatarDialog = observer(function UserChangeAvatarDialog({
       await user.save({ avatarUrl });
       toast.success(t("Profile picture updated"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast.error(errToString(err));
     }
   };
 
@@ -205,7 +206,7 @@ export function UserChangeEmailDialog({ user, onSubmit }: Props) {
       );
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(errToString(err));
       return false;
     }
   };

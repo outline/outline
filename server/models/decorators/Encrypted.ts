@@ -1,5 +1,6 @@
 import { isEmpty, isNil } from "es-toolkit/compat";
 import { getAttributes } from "sequelize-typescript";
+import { toError, errToString } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import vaults from "@server/storage/vaults";
 
@@ -41,14 +42,14 @@ export default function Encrypted(target: object, propertyKey: string) {
           ? defaultValue
           : value;
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
+        const message = errToString(err);
         if (message.includes("Unexpected end of JSON input")) {
           return defaultValue;
         }
         if (message.includes("bad decrypt")) {
           Logger.fatal(
             `Failed to decrypt database column (${propertyKey}). The SECRET_KEY environment variable may have changed since installation.`,
-            err instanceof Error ? err : new Error(String(err))
+            toError(err)
           );
         }
         throw err;

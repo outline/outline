@@ -20,6 +20,7 @@ import {
   ImportTaskPhase,
   ImportTaskState,
 } from "@shared/types";
+import { toError } from "@shared/utils/error";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -410,7 +411,7 @@ export default abstract class APIImportTask<
       // upload attachments failure is not critical enough to fail the whole import.
       Logger.error(
         `upload attachment task failed for externalId ${externalId}`,
-        err instanceof Error ? err : new Error(String(err))
+        toError(err)
       );
     }
 

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import useStores from "~/hooks/useStores";
 import WebhookSubscriptionForm from "./WebhookSubscriptionForm";
 
@@ -32,7 +33,7 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
         toast.success(t("Webhook created"));
         onSubmit();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     },
     [t, onSubmit, webhookSubscriptions]

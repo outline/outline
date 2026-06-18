@@ -5,6 +5,7 @@ import { useDrag, useDrop } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import type Collection from "~/models/Collection";
@@ -275,7 +276,7 @@ export function useDropToChangeCollection(
               )
             );
           } else {
-            toast.error(err instanceof Error ? err.message : String(err));
+            toast.error(errToString(err));
           }
         }
       }
@@ -370,7 +371,7 @@ export function useDropToReparentDocument(
               )
             );
           } else {
-            toast.error(err instanceof Error ? err.message : String(err));
+            toast.error(errToString(err));
           }
         }
       }
@@ -483,7 +484,7 @@ export function useDropToReorderDocument(
                 })
               );
             } else {
-              toast.error(err instanceof Error ? err.message : String(err));
+              toast.error(errToString(err));
             }
           }
         }
@@ -620,7 +621,7 @@ export function useDropToUnpublish() {
           })
         );
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     },
     canDrop: (item) => {

@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import type Document from "~/models/Document";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -64,7 +65,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
 
         onSubmit();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       } finally {
         setDeleting(false);
       }
@@ -90,7 +91,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
         await document.archive();
         onSubmit();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       } finally {
         setArchiving(false);
       }

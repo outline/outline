@@ -1,3 +1,4 @@
+import { toError, errToString } from "@shared/utils/error";
 import type { JSONObject } from "@shared/types";
 import { UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
@@ -31,11 +32,10 @@ class Iframely {
     } catch (err) {
       Logger.error(
         `Error fetching data from Iframely for url: ${url}`,
-        err instanceof Error ? err : new Error(String(err))
+        toError(err)
       );
       return {
-        error:
-          (err instanceof Error ? err.message : String(err)) || "Unknown error",
+        error: errToString(err) || "Unknown error",
       };
     }
   }

@@ -1,6 +1,7 @@
 import type { Next } from "koa";
 import type { z } from "zod";
 import { ZodError } from "zod";
+import { toError } from "@shared/utils/error";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
 
@@ -22,7 +23,7 @@ export default function validate<T extends z.ZodType<Record<string, unknown>>>(
             : message;
         throw ValidationError(errMessage);
       }
-      ctx.throw(err instanceof Error ? err : new Error(String(err)));
+      ctx.throw(toError(err));
     }
     return next();
   };

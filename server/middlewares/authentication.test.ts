@@ -1,4 +1,5 @@
 import type { DefaultState } from "koa";
+import { errToString } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { Scope } from "@shared/types";
 import {
@@ -49,9 +50,7 @@ describe("Authentication middleware", () => {
           vi.fn()
         );
       } catch (e) {
-        expect(e instanceof Error ? e.message : String(e)).toBe(
-          "Invalid token"
-        );
+        expect(errToString(e)).toBe("Invalid token");
       }
     });
 
@@ -75,9 +74,7 @@ describe("Authentication middleware", () => {
           vi.fn()
         );
       } catch (e) {
-        expect(e instanceof Error ? e.message : String(e)).toBe(
-          "Invalid authentication type"
-        );
+        expect(errToString(e)).toBe("Invalid authentication type");
       }
     });
   });
@@ -153,7 +150,7 @@ describe("Authentication middleware", () => {
       } catch (e) {
         expect(e).toHaveProperty("status", 403);
         expect(e).toHaveProperty("id", "authorization_error");
-        expect(e instanceof Error ? e.message : String(e)).toContain(
+        expect(errToString(e)).toContain(
           "does not have access to this resource"
         );
       }
@@ -176,9 +173,7 @@ describe("Authentication middleware", () => {
           vi.fn()
         );
       } catch (e) {
-        expect(e instanceof Error ? e.message : String(e)).toBe(
-          "Invalid API key"
-        );
+        expect(errToString(e)).toBe("Invalid API key");
       }
     });
   });
@@ -233,7 +228,7 @@ describe("Authentication middleware", () => {
           vi.fn()
         );
       } catch (e) {
-        expect(e instanceof Error ? e.message : String(e)).toContain(
+        expect(errToString(e)).toContain(
           "does not have access to this resource"
         );
       }
@@ -265,7 +260,7 @@ describe("Authentication middleware", () => {
           vi.fn()
         );
       } catch (e) {
-        expect(e instanceof Error ? e.message : String(e)).toContain(
+        expect(errToString(e)).toContain(
           "must be passed in the Authorization header"
         );
       }
@@ -289,7 +284,7 @@ describe("Authentication middleware", () => {
         vi.fn()
       );
     } catch (e) {
-      expect(e instanceof Error ? e.message : String(e)).toBe(
+      expect(errToString(e)).toBe(
         'Bad Authorization header format. Format is "Authorization: Bearer <token>"'
       );
     }
@@ -363,7 +358,7 @@ describe("Authentication middleware", () => {
       error = err;
     }
 
-    expect(error instanceof Error ? error.message : String(error)).toEqual(
+    expect(errToString(error)).toEqual(
       "Your access has been suspended by a workspace admin"
     );
     expect(error).toHaveProperty("errorData.adminEmail", admin.email);
@@ -393,8 +388,6 @@ describe("Authentication middleware", () => {
       error = err;
     }
 
-    expect(error instanceof Error ? error.message : String(error)).toEqual(
-      "Invalid token"
-    );
+    expect(errToString(error)).toEqual("Invalid token");
   });
 });

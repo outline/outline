@@ -3,6 +3,7 @@ import { ProfileIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
@@ -30,7 +31,7 @@ const Profile = () => {
       await user.save({ name });
       toast.success(t("Profile saved"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast.error(errToString(err));
     }
   };
 

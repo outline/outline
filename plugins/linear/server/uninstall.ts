@@ -1,3 +1,4 @@
+import { toError } from "@shared/utils/error";
 import type { IntegrationType } from "@shared/types";
 import { IntegrationService } from "@shared/types";
 import Logger from "@server/logging/Logger";
@@ -21,9 +22,6 @@ export async function uninstall(
     await Linear.revokeAccess(authentication.token);
   } catch (err) {
     // suppress error since this is a best-effort operation.
-    Logger.error(
-      "Failed to revoke Linear access token",
-      err instanceof Error ? err : new Error(String(err))
-    );
+    Logger.error("Failed to revoke Linear access token", toError(err));
   }
 }

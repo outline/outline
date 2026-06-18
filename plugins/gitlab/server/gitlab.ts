@@ -11,6 +11,7 @@ import {
   IntegrationService,
   UnfurlResourceType,
 } from "@shared/types";
+import { toError, errToString } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import type { User } from "@server/models";
 import { Integration, IntegrationAuthentication } from "@server/models";
@@ -267,13 +268,9 @@ export class GitLab {
 
       return { error: "Resource not found" };
     } catch (err) {
-      Logger.warn(
-        "Failed to fetch resource from GitLab",
-        err instanceof Error ? err : new Error(String(err))
-      );
+      Logger.warn("Failed to fetch resource from GitLab", toError(err));
       return {
-        error:
-          (err instanceof Error ? err.message : String(err)) || "Unknown error",
+        error: errToString(err) || "Unknown error",
       };
     }
   };

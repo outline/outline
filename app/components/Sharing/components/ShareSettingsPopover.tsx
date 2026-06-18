@@ -10,6 +10,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { s } from "@shared/styles";
 import { HStack } from "~/components/primitives/HStack";
 import { AttachmentPreset } from "@shared/types";
@@ -70,7 +71,7 @@ function ShareSettingsPopover({ share, children }: Props) {
           await share.save({ title: val || null });
           hasChangesRef.current = true;
         } catch (err) {
-          toast.error(err instanceof Error ? err.message : String(err));
+          toast.error(errToString(err));
         }
       }, 500),
     [share]
@@ -100,7 +101,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ iconUrl: attachment.url });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       } finally {
         setIsUploading(false);
         if (fileInputRef.current) {
@@ -116,7 +117,7 @@ function ShareSettingsPopover({ share, children }: Props) {
       await share.save({ iconUrl: null });
       hasChangesRef.current = true;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast.error(errToString(err));
     }
   }, [share]);
 
@@ -126,7 +127,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ allowIndexing: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     },
     [share]
@@ -138,7 +139,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ allowSubscriptions: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     },
     [share]
@@ -150,7 +151,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ showLastUpdated: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     },
     [share]
@@ -162,7 +163,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         await share.save({ showTOC: checked });
         hasChangesRef.current = true;
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     },
     [share]

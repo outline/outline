@@ -17,6 +17,7 @@ import fs from "fs-extra";
 import invariant from "invariant";
 import { compact } from "es-toolkit/compat";
 import tmp from "tmp";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
@@ -173,7 +174,7 @@ export default class S3Storage extends BaseStorage {
       } catch (err) {
         Logger.error(
           "Failed to sign CloudFront URL, falling back to S3",
-          err instanceof Error ? err : new Error(String(err)),
+          toError(err),
           {
             key,
             cfUrl,

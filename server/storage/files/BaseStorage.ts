@@ -2,6 +2,7 @@ import type { Blob } from "node:buffer";
 import type { Readable } from "node:stream";
 import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import { omit } from "es-toolkit/compat";
+import { toError, errToString } from "@shared/utils/error";
 import FileHelper from "@shared/editor/lib/FileHelper";
 import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
 import { Week } from "@shared/utils/time";
@@ -217,7 +218,7 @@ export default abstract class BaseStorage {
           res.headers.get("content-type") ?? "application/octet-stream";
       } catch (err) {
         Logger.warn("Error fetching URL to upload", {
-          error: err instanceof Error ? err.message : String(err),
+          error: errToString(err),
           url,
           key,
           acl,
@@ -247,15 +248,11 @@ export default abstract class BaseStorage {
           }
         : undefined;
     } catch (err) {
-      Logger.error(
-        "Error uploading to file storage from URL",
-        err instanceof Error ? err : new Error(String(err)),
-        {
-          url,
-          key,
-          acl,
-        }
-      );
+      Logger.error("Error uploading to file storage from URL", toError(err), {
+        url,
+        key,
+        acl,
+      });
       return;
     }
   }

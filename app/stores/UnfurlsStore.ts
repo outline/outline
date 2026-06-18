@@ -1,5 +1,6 @@
 import { subMinutes } from "date-fns";
 import { action } from "mobx";
+import { errToString } from "@shared/utils/error";
 import type { UnfurlResourceType } from "@shared/types";
 import Unfurl from "~/models/Unfurl";
 import { client } from "~/utils/ApiClient";
@@ -89,7 +90,7 @@ class UnfurlsStore extends Store<Unfurl<any>> {
     } catch (err) {
       Logger.warn("Failed to unfurl url", {
         url,
-        message: err instanceof Error ? err.message : String(err),
+        message: errToString(err),
       });
       return;
     } finally {

@@ -1,5 +1,6 @@
 import { ZipFile } from "yazl";
 import { omit } from "es-toolkit/compat";
+import { errToString } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -95,7 +96,7 @@ export default class ExportJSONTask extends ExportTask {
           Logger.warn(`Failed to read attachment from storage`, {
             attachmentId: attachment.id,
             teamId: attachment.teamId,
-            error: err instanceof Error ? err.message : String(err),
+            error: errToString(err),
           });
           buffer = Buffer.from("");
         }

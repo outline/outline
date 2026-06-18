@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import { truncate } from "es-toolkit/compat";
+import { toError } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationState, NotificationEventType } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -93,7 +94,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
     } catch (error) {
       await this.updateFileOperation(fileOperation, {
         state: FileOperationState.Error,
-        error: error instanceof Error ? error : new Error(String(error)),
+        error: toError(error),
       });
       if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
         await new ExportFailureEmail({

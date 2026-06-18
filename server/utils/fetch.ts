@@ -10,6 +10,7 @@ import nodeFetch, {
 } from "node-fetch";
 import { getProxyForUrl } from "proxy-from-env";
 import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
+import { errToString } from "@shared/utils/error";
 import env from "@server/env";
 import { InvalidRequestError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -184,7 +185,7 @@ export default async function fetch(
     if (err instanceof Error && "name" in err && err.name === "AbortError") {
       throw new Error(`Request timeout after ${timeout}ms`);
     }
-    const message = err instanceof Error ? err.message : String(err);
+    const message = errToString(err);
     if (message.startsWith("DNS lookup")) {
       throw InvalidRequestError(
         env.isCloudHosted

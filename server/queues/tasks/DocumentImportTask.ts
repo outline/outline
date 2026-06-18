@@ -1,3 +1,4 @@
+import { errToString } from "@shared/utils/error";
 import type { SourceMetadata } from "@shared/types";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
@@ -73,7 +74,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
       );
       return { documentId: document.id };
     } catch (err) {
-      return { error: err instanceof Error ? err.message : String(err) };
+      return { error: errToString(err) };
     } finally {
       await FileStorage.deleteFile(key);
     }

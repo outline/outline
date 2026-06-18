@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import { useSidebarContext } from "~/components/Sidebar/components/SidebarContext";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
@@ -61,17 +62,13 @@ export default function useImportDocument(
               });
             }
           } catch (err) {
-            toast.error(err instanceof Error ? err.message : String(err));
+            toast.error(errToString(err));
           } finally {
             toast.dismiss(toastId);
           }
         }
       } catch (err) {
-        toast.error(
-          `${t("Could not import file")}. ${
-            err instanceof Error ? err.message : String(err)
-          }`
-        );
+        toast.error(`${t("Could not import file")}. ${errToString(err)}`);
       } finally {
         setImporting(false);
         importingLock = false;

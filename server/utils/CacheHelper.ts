@@ -1,3 +1,4 @@
+import { toError } from "@shared/utils/error";
 import { Day } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
@@ -54,10 +55,7 @@ export class CacheHelper {
       try {
         lock = await MutexLock.acquire(lockKey, lockTimeout);
       } catch (err) {
-        Logger.error(
-          `Could not acquire lock for ${key}`,
-          err instanceof Error ? err : new Error(String(err))
-        );
+        Logger.error(`Could not acquire lock for ${key}`, toError(err));
       }
       cache = await this.getData<T>(key);
       if (cache) {
@@ -105,7 +103,7 @@ export class CacheHelper {
       // just log it, response can still be obtained using the fetch call
       Logger.error(
         `Could not fetch cached response against ${key}`,
-        err instanceof Error ? err : new Error(String(err))
+        toError(err)
       );
     }
     return;
@@ -128,10 +126,7 @@ export class CacheHelper {
       );
     } catch (err) {
       // just log it, can skip caching and directly return response
-      Logger.error(
-        `Could not cache response against ${key}`,
-        err instanceof Error ? err : new Error(String(err))
-      );
+      Logger.error(`Could not cache response against ${key}`, toError(err));
     }
   }
 
@@ -146,7 +141,7 @@ export class CacheHelper {
     } catch (err) {
       Logger.error(
         `Could not remove cached entry against ${key}`,
-        err instanceof Error ? err : new Error(String(err))
+        toError(err)
       );
     }
   }

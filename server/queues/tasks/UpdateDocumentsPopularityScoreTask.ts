@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { setTimeout } from "node:timers/promises";
 import { subDays } from "date-fns";
 import { QueryTypes } from "sequelize";
+import { toError } from "@shared/utils/error";
 import { Minute } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -130,7 +131,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
           totalErrors++;
           Logger.error(
             `Batch ${batchNumber} failed after retries`,
-            error instanceof Error ? error : new Error(String(error))
+            toError(error)
           );
 
           // Remove failed batch from working table to prevent infinite loop
@@ -145,7 +146,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     } catch (error) {
       Logger.error(
         "Failed to update document popularity scores",
-        error instanceof Error ? error : new Error(String(error))
+        toError(error)
       );
       throw error;
     } finally {

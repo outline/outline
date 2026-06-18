@@ -1,5 +1,6 @@
 import type { Issue, WorkflowState } from "@linear/sdk";
 import { LinearClient } from "@linear/sdk";
+import { toError } from "@shared/utils/error";
 import fetch from "@server/utils/fetch";
 import { sortBy } from "es-toolkit/compat";
 import { z } from "zod";
@@ -155,7 +156,7 @@ export class Linear {
           return;
       }
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
+      const error = toError(err);
       Logger.warn("Failed to fetch resource from Linear", error);
       return { error: error.message || "Unknown error" };
     }

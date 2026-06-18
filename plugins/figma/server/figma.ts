@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { toError } from "@shared/utils/error";
 import fetch from "@server/utils/fetch";
 import env from "./env";
 import { FigmaUtils } from "../shared/FigmaUtils";
@@ -173,7 +174,7 @@ export class Figma {
       } catch (err) {
         Logger.error(
           `Error fetching Figma file metadata for integration ${integration.id}`,
-          err instanceof Error ? err : new Error(String(err))
+          toError(err)
         );
       }
     }

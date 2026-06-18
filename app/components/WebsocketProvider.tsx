@@ -13,6 +13,7 @@ import {
   FileOperationType,
   ImportState,
 } from "@shared/types";
+import { toError } from "@shared/utils/error";
 import type RootStore from "~/stores/RootStore";
 import type Collection from "~/models/Collection";
 import type Comment from "~/models/Comment";
@@ -340,10 +341,7 @@ function useDocumentHandlers() {
             force: event.userId === currentUserId,
           });
         } catch (err) {
-          Logger.error(
-            "Failed to fetch document after add_user",
-            err instanceof Error ? err : new Error(String(err))
-          );
+          Logger.error("Failed to fetch document after add_user", toError(err));
         }
       }
     );
@@ -444,7 +442,7 @@ function useCollectionHandlers() {
         } catch (err) {
           Logger.error(
             "Failed to fetch collection after archive",
-            err instanceof Error ? err : new Error(String(err))
+            toError(err)
           );
         }
 
@@ -483,7 +481,7 @@ function useCollectionHandlers() {
         } catch (err) {
           Logger.error(
             "Failed to fetch collection after restore",
-            err instanceof Error ? err : new Error(String(err))
+            toError(err)
           );
         }
       }
@@ -496,10 +494,7 @@ function useCollectionHandlers() {
           force: event.userId === currentUserId,
         });
       } catch (err) {
-        Logger.error(
-          "Failed to fetch collection after add_user",
-          err instanceof Error ? err : new Error(String(err))
-        );
+        Logger.error("Failed to fetch collection after add_user", toError(err));
       }
     });
 
@@ -519,7 +514,7 @@ function useCollectionHandlers() {
       } catch (err) {
         Logger.error(
           "Failed to fetch collection after add_group",
-          err instanceof Error ? err : new Error(String(err))
+          toError(err)
         );
       }
     });
@@ -654,7 +649,7 @@ function useUserHandlers() {
         } catch (err) {
           Logger.error(
             "Failed to fetch collections after demote",
-            err instanceof Error ? err : new Error(String(err))
+            toError(err)
           );
         }
       }

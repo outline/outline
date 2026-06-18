@@ -1,4 +1,5 @@
 import querystring, { type ParsedUrlQueryInput } from "node:querystring";
+import { errToString } from "@shared/utils/error";
 import { InvalidRequestError } from "@server/errors";
 import fetch from "@server/utils/fetch";
 import { SlackUtils } from "../shared/SlackUtils";
@@ -31,7 +32,7 @@ export async function post(
     });
     data = await response.json();
   } catch (err) {
-    throw InvalidRequestError(err instanceof Error ? err.message : String(err));
+    throw InvalidRequestError(errToString(err));
   }
 
   if (!data.ok) {
@@ -76,7 +77,7 @@ export async function request(
     });
     data = await response.json();
   } catch (err) {
-    throw InvalidRequestError(err instanceof Error ? err.message : String(err));
+    throw InvalidRequestError(errToString(err));
   }
 
   if (!data.ok) {

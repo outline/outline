@@ -4,6 +4,7 @@ import Router from "koa-router";
 import { capitalize } from "es-toolkit/compat";
 import type { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
+import { toError } from "@shared/utils/error";
 import { languages } from "@shared/i18n";
 import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";
@@ -159,10 +160,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
 
           return done(null, result.user, { ...result, client });
         } catch (err) {
-          return done(
-            err instanceof Error ? err : new Error(String(err)),
-            null
-          );
+          return done(toError(err), null);
         }
       }
     )

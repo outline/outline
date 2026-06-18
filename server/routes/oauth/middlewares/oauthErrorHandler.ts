@@ -3,6 +3,7 @@ import {
   ValidationError as SequelizeValidationError,
   EmptyResultError as SequelizeEmptyResultError,
 } from "sequelize";
+import { errToString } from "@shared/utils/error";
 
 /** Extract the first numeric status-like property from an unknown error. */
 function statusCodeFromError(err: unknown): number {
@@ -58,7 +59,7 @@ export default function oauthErrorHandler() {
 
       ctx.body = {
         error: errorType,
-        error_description: err instanceof Error ? err.message : String(err),
+        error_description: errToString(err),
       };
     }
   };

@@ -14,6 +14,7 @@ import {
   buildDocument,
   buildImport,
 } from "@server/test/factories";
+import { errToString } from "@shared/utils/error";
 import teamPermanentDeleter from "./teamPermanentDeleter";
 
 describe("teamPermanentDeleter", () => {
@@ -207,7 +208,7 @@ describe("teamPermanentDeleter", () => {
     try {
       await teamPermanentDeleter(team);
     } catch (err) {
-      error = err instanceof Error ? err.message : String(err);
+      error = errToString(err);
     }
 
     expect(error).toEqual(

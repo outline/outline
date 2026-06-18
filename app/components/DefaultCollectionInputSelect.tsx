@@ -8,6 +8,7 @@ import { getLuminance } from "polished";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { toError } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
 import { colorPalette } from "@shared/utils/collections";
 import type { Option } from "~/components/InputSelect";
@@ -41,9 +42,7 @@ const DefaultCollectionInputSelect = observer(
             toast.error(
               t("Collections could not be loaded, please reload the app")
             );
-            setFetchError(
-              error instanceof Error ? error : new Error(String(error))
-            );
+            setFetchError(toError(error));
           } finally {
             setFetching(false);
           }

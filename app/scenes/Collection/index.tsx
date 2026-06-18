@@ -11,6 +11,7 @@ import {
   Redirect,
 } from "react-router-dom";
 import styled from "styled-components";
+import { toError } from "@shared/utils/error";
 import { s } from "@shared/styles";
 import { StatusFilter } from "@shared/types";
 import type Collection from "~/models/Collection";
@@ -109,7 +110,7 @@ const CollectionScene = observer(function CollectionScene_() {
         setError(undefined);
         await collections.fetch(id);
       } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)));
+        setError(toError(err));
       }
     }
 

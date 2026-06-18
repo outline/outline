@@ -1,5 +1,6 @@
 import { find } from "es-toolkit/compat";
 import { useEffect, useMemo } from "react";
+import { toError } from "@shared/utils/error";
 import embeds from "@shared/editor/embeds";
 import { IntegrationType, TeamPreference } from "@shared/types";
 import type Integration from "~/models/Integration";
@@ -24,10 +25,7 @@ export default function useEmbeds(loadIfMissing = false) {
           type: IntegrationType.Embed,
         });
       } catch (err) {
-        Logger.error(
-          "Failed to fetch embed integrations",
-          err instanceof Error ? err : new Error(String(err))
-        );
+        Logger.error("Failed to fetch embed integrations", toError(err));
       }
     }
 

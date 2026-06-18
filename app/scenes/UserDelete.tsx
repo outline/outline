@@ -3,6 +3,7 @@ import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import { OneTimePasswordInput } from "~/components/OneTimePasswordInput";
@@ -37,7 +38,7 @@ function UserDelete({ onSubmit }: Props) {
         await auth.requestDeleteUser();
         setWaitingCode(true);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     },
     [auth]
@@ -55,7 +56,7 @@ function UserDelete({ onSubmit }: Props) {
         });
         onSubmit();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       }
     },
     [auth, onSubmit]

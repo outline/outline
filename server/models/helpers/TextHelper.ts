@@ -1,4 +1,5 @@
 import { chunk, escapeRegExp } from "es-toolkit/compat";
+import { errToString } from "@shared/utils/error";
 import { AttachmentPreset } from "@shared/types";
 import { isInternalUrl } from "@shared/utils/urls";
 import attachmentCreator from "@server/commands/attachmentCreator";
@@ -117,7 +118,7 @@ export class TextHelper {
             }
           } catch (err) {
             Logger.warn("Failed to download image for attachment", {
-              error: err instanceof Error ? err.message : String(err),
+              error: errToString(err),
               src: image.src,
             });
           }

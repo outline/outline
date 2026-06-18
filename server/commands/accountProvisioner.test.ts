@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
+import { errToString } from "@shared/utils/error";
 import { TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
@@ -535,9 +536,7 @@ describe("accountProvisioner", () => {
         error = err;
       }
 
-      expect(error instanceof Error ? error.message : String(error)).toEqual(
-        "Invalid authentication"
-      );
+      expect(errToString(error)).toEqual("Invalid authentication");
     });
 
     it("should always use existing team if self-hosted", async () => {

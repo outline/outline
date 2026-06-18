@@ -11,6 +11,7 @@ import type { SequelizeOptions } from "sequelize-typescript";
 import { Sequelize } from "sequelize-typescript";
 import type { MigrationError } from "umzug";
 import { Umzug, SequelizeStorage } from "umzug";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import { ClientClosedRequestError } from "@server/errors";
 import type Model from "@server/models/base/Model";
@@ -205,10 +206,7 @@ export const checkConnection = async (db: Sequelize) => {
         error
       );
     } else {
-      Logger.fatal(
-        "Failed to connect to database",
-        error instanceof Error ? error : new Error(String(error))
-      );
+      Logger.fatal("Failed to connect to database", toError(error));
     }
   }
 };

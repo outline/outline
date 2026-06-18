@@ -5,6 +5,7 @@ import invariant from "invariant";
 import { t as i18nT } from "i18next";
 import { subMinutes } from "date-fns";
 import type { Node } from "prosemirror-model";
+import { toError } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
@@ -196,7 +197,7 @@ export default abstract class BaseEmail<
       } catch (err) {
         Logger.error(
           `Failed to update notification`,
-          err instanceof Error ? err : new Error(String(err)),
+          toError(err),
           this.metadata
         );
       }

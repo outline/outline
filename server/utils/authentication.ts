@@ -2,6 +2,7 @@ import querystring from "node:querystring";
 import { addMonths } from "date-fns";
 import type { Context } from "koa";
 import { pick } from "es-toolkit/compat";
+import { toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
 import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
@@ -62,10 +63,7 @@ export async function signIn(
           }
         );
       } catch (error) {
-        Logger.error(
-          `Error persisting signup query params`,
-          error instanceof Error ? error : new Error(String(error))
-        );
+        Logger.error(`Error persisting signup query params`, toError(error));
       }
     }
   }

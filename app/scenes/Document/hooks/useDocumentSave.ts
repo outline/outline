@@ -5,6 +5,7 @@ import { AllSelection, TextSelection } from "prosemirror-state";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
 import type Document from "~/models/Document";
@@ -182,7 +183,7 @@ export function useDocumentSave({
           ui.setActiveDocument(savedDocument);
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : String(err));
+        toast.error(errToString(err));
       } finally {
         setIsSaving(false);
         setIsPublishing(false);
