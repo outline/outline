@@ -22,7 +22,7 @@ export default function validate<T extends z.ZodType<Record<string, unknown>>>(
             : message;
         throw ValidationError(errMessage);
       }
-      ctx.throw(err);
+      ctx.throw(err instanceof Error ? err : new Error(String(err)));
     }
     return next();
   };

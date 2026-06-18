@@ -21,7 +21,7 @@ function CommentDeleteDialog({ comment, onSubmit }: Props) {
       await comment.delete();
       onSubmit?.();
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 

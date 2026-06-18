@@ -37,7 +37,7 @@ function UserDelete({ onSubmit }: Props) {
         await auth.requestDeleteUser();
         setWaitingCode(true);
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     },
     [auth]
@@ -55,7 +55,7 @@ function UserDelete({ onSubmit }: Props) {
         });
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     },
     [auth, onSubmit]

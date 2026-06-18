@@ -159,7 +159,10 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
 
           return done(null, result.user, { ...result, client });
         } catch (err) {
-          return done(err, null);
+          return done(
+            err instanceof Error ? err : new Error(String(err)),
+            null
+          );
         }
       }
     )

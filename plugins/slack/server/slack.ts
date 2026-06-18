@@ -31,7 +31,7 @@ export async function post(
     });
     data = await response.json();
   } catch (err) {
-    throw InvalidRequestError(err.message);
+    throw InvalidRequestError(err instanceof Error ? err.message : String(err));
   }
 
   if (!data.ok) {
@@ -76,7 +76,7 @@ export async function request(
     });
     data = await response.json();
   } catch (err) {
-    throw InvalidRequestError(err.message);
+    throw InvalidRequestError(err instanceof Error ? err.message : String(err));
   }
 
   if (!data.ok) {

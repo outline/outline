@@ -44,7 +44,8 @@ function RenamePasskeyDialog({
       onSuccess();
     } catch (err) {
       toast.error(
-        err.message || t("Failed to update passkey. Please try again.")
+        (err instanceof Error ? err.message : String(err)) ||
+          t("Failed to update passkey. Please try again.")
       );
     } finally {
       setIsSaving(false);

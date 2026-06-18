@@ -72,7 +72,7 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
         toast.success(t("Export deleted"));
       }
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   }, [fileOperation, fileOperations, t]);
 

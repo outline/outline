@@ -216,7 +216,10 @@ export class Mailer {
         );
       }
     } catch (err) {
-      Logger.error(`Error sending email to ${data.to}`, err);
+      Logger.error(
+        `Error sending email to ${data.to}`,
+        err instanceof Error ? err : new Error(String(err))
+      );
       throw err; // Re-throw for queue to re-try
     }
   };

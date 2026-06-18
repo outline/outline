@@ -102,7 +102,10 @@ router.get(
 
       ctx.redirect(FigmaUtils.successUrl());
     } catch (err) {
-      Logger.error("Encountered error during Figma OAuth callback", err);
+      Logger.error(
+        "Encountered error during Figma OAuth callback",
+        err instanceof Error ? err : new Error(String(err))
+      );
       ctx.redirect(FigmaUtils.errorUrl("unknown"));
     }
   }

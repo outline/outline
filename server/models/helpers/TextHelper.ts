@@ -117,7 +117,7 @@ export class TextHelper {
             }
           } catch (err) {
             Logger.warn("Failed to download image for attachment", {
-              error: err.message,
+              error: err instanceof Error ? err.message : String(err),
               src: image.src,
             });
           }

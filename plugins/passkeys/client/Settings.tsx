@@ -78,7 +78,8 @@ function PasskeysSettings() {
       await loadPasskeys();
     } catch (err) {
       toast.error(
-        err.message || t("Failed to register passkey. Please try again.")
+        (err instanceof Error ? err.message : String(err)) ||
+          t("Failed to register passkey. Please try again.")
       );
     } finally {
       setIsRegistering(false);
@@ -113,7 +114,8 @@ function PasskeysSettings() {
               await loadPasskeys();
             } catch (err) {
               toast.error(
-                err.message || t("Failed to delete passkey. Please try again.")
+                (err instanceof Error ? err.message : String(err)) ||
+                  t("Failed to delete passkey. Please try again.")
               );
             }
           }}

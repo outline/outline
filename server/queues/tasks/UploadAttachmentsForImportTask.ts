@@ -54,7 +54,10 @@ export default class UploadAttachmentsForImportTask extends BaseTask<Item[]> {
           });
         }
       } catch (err) {
-        Logger.error("error uploading attachments for import", err);
+        Logger.error(
+          "error uploading attachments for import",
+          err instanceof Error ? err : new Error(String(err))
+        );
         throw err;
       } finally {
         sema.release();

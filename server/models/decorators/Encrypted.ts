@@ -41,13 +41,14 @@ export default function Encrypted(target: object, propertyKey: string) {
           ? defaultValue
           : value;
       } catch (err) {
-        if (err.message.includes("Unexpected end of JSON input")) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (message.includes("Unexpected end of JSON input")) {
           return defaultValue;
         }
-        if (err.message.includes("bad decrypt")) {
+        if (message.includes("bad decrypt")) {
           Logger.fatal(
             `Failed to decrypt database column (${propertyKey}). The SECRET_KEY environment variable may have changed since installation.`,
-            err
+            err instanceof Error ? err : new Error(String(err))
           );
         }
         throw err;
@@ -61,7 +62,10 @@ export default function Encrypted(target: object, propertyKey: string) {
           Reflect.getMetadata(key, this, propertyKey).set.call(this, value);
         }
       } catch (err) {
-        if (err.message.includes("Invalid key length")) {
+        if (
+          err instanceof Error &&
+          err.message.includes("Invalid key length")
+        ) {
           Logger.fatal(
             `Failed to encrypt database column (${propertyKey}). The SECRET_KEY environment variable is not the correct length.`,
             err

@@ -69,7 +69,10 @@ export default class RateLimiter {
         this.TOKEN_CACHE_TTL_SECONDS
       );
     } catch (err) {
-      Logger.warn("Failed to cache user for rate limiter token", err);
+      Logger.warn(
+        "Failed to cache user for rate limiter token",
+        err instanceof Error ? err : new Error(String(err))
+      );
     }
   }
 
@@ -84,7 +87,10 @@ export default class RateLimiter {
     try {
       return await Redis.defaultClient.get(this.tokenCacheKey(token));
     } catch (err) {
-      Logger.warn("Failed to read cached user for rate limiter token", err);
+      Logger.warn(
+        "Failed to read cached user for rate limiter token",
+        err instanceof Error ? err : new Error(String(err))
+      );
       return null;
     }
   }
@@ -99,7 +105,10 @@ export default class RateLimiter {
     try {
       await Redis.defaultClient.del(this.tokenCacheKey(token));
     } catch (err) {
-      Logger.warn("Failed to clear cached rate limiter token", err);
+      Logger.warn(
+        "Failed to clear cached rate limiter token",
+        err instanceof Error ? err : new Error(String(err))
+      );
     }
   }
 

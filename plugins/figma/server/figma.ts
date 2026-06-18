@@ -173,7 +173,7 @@ export class Figma {
       } catch (err) {
         Logger.error(
           `Error fetching Figma file metadata for integration ${integration.id}`,
-          err
+          err instanceof Error ? err : new Error(String(err))
         );
       }
     }

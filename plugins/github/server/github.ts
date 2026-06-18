@@ -385,8 +385,14 @@ export class GitHub {
 
       return GitHub.transformData(res.data, resource.type);
     } catch (err) {
-      Logger.warn("Failed to fetch resource from GitHub", err);
-      return { error: err.message || "Unknown error" };
+      Logger.warn(
+        "Failed to fetch resource from GitHub",
+        err instanceof Error ? err : new Error(String(err))
+      );
+      return {
+        error:
+          (err instanceof Error ? err.message : String(err)) || "Unknown error",
+      };
     }
   };
 
@@ -398,7 +404,10 @@ export class GitHub {
     try {
       project = await client.requestProject(resource);
     } catch (err) {
-      Logger.warn("Failed to fetch project from GitHub", err);
+      Logger.warn(
+        "Failed to fetch project from GitHub",
+        err instanceof Error ? err : new Error(String(err))
+      );
       return { error: "Resource not found" };
     }
 

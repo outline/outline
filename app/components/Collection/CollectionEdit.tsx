@@ -23,7 +23,7 @@ export const CollectionEdit = observer(function CollectionEdit_({
         await collection?.save(data);
         onSubmit?.();
       } catch (error) {
-        toast.error(error.message);
+        toast.error(error instanceof Error ? error.message : String(error));
       }
     },
     [collection, onSubmit]

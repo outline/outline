@@ -69,7 +69,10 @@ export class GitLabIssueProvider extends BaseIssueProvider {
         }))
       );
     } catch (err) {
-      Logger.warn("Failed to fetch projects from GitLab", err);
+      Logger.warn(
+        "Failed to fetch projects from GitLab",
+        err instanceof Error ? err : new Error(String(err))
+      );
     }
 
     return sources;

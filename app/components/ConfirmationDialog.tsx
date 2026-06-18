@@ -44,7 +44,7 @@ const ConfirmationDialog: React.FC<Props> = ({
         }
         dialogs.closeAllModals();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         setIsSaving(false);
       }

@@ -186,7 +186,11 @@ export const AccessControlList = observer(
                                   });
                                 }
                               } catch (err) {
-                                toast.error(err.message);
+                                toast.error(
+                                  err instanceof Error
+                                    ? err.message
+                                    : String(err)
+                                );
                                 return false;
                               }
                               return true;
@@ -240,7 +244,11 @@ export const AccessControlList = observer(
                                   });
                                 }
                               } catch (err) {
-                                toast.error(err.message);
+                                toast.error(
+                                  err instanceof Error
+                                    ? err.message
+                                    : String(err)
+                                );
                                 return false;
                               }
                               return true;

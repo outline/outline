@@ -20,7 +20,10 @@ export default function Version() {
           setVersionsBehind(res.data.versionsBehind);
         }
       } catch (error) {
-        Logger.error("Failed to load version info", error);
+        Logger.error(
+          "Failed to load version info",
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     }
 

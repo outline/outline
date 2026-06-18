@@ -306,7 +306,10 @@ router.post(
         },
       });
     } catch (err) {
-      Logger.error("passkeys: Authentication verification failed", err);
+      Logger.error(
+        "passkeys: Authentication verification failed",
+        err instanceof Error ? err : new Error(String(err))
+      );
       throw ValidationError("Passkey authentication failed. Please try again.");
     }
 

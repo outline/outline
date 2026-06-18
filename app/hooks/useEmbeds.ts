@@ -24,7 +24,10 @@ export default function useEmbeds(loadIfMissing = false) {
           type: IntegrationType.Embed,
         });
       } catch (err) {
-        Logger.error("Failed to fetch embed integrations", err);
+        Logger.error(
+          "Failed to fetch embed integrations",
+          err instanceof Error ? err : new Error(String(err))
+        );
       }
     }
 

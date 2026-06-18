@@ -157,7 +157,7 @@ export const UserChangeAvatarDialog = observer(function UserChangeAvatarDialog({
       await user.save({ avatarUrl });
       toast.success(t("Profile picture updated"));
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -205,7 +205,7 @@ export function UserChangeEmailDialog({ user, onSubmit }: Props) {
       );
       return true;
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : String(err));
       return false;
     }
   };

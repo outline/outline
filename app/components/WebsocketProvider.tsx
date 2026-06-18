@@ -340,7 +340,10 @@ function useDocumentHandlers() {
             force: event.userId === currentUserId,
           });
         } catch (err) {
-          Logger.error("Failed to fetch document after add_user", err);
+          Logger.error(
+            "Failed to fetch document after add_user",
+            err instanceof Error ? err : new Error(String(err))
+          );
         }
       }
     );
@@ -439,7 +442,10 @@ function useCollectionHandlers() {
         try {
           await collections.fetch(collectionId, { force: true });
         } catch (err) {
-          Logger.error("Failed to fetch collection after archive", err);
+          Logger.error(
+            "Failed to fetch collection after archive",
+            err instanceof Error ? err : new Error(String(err))
+          );
         }
 
         documents.unarchivedInCollection(collectionId).forEach(
@@ -475,7 +481,10 @@ function useCollectionHandlers() {
         try {
           await collections.fetch(collectionId, { force: true });
         } catch (err) {
-          Logger.error("Failed to fetch collection after restore", err);
+          Logger.error(
+            "Failed to fetch collection after restore",
+            err instanceof Error ? err : new Error(String(err))
+          );
         }
       }
     );
@@ -487,7 +496,10 @@ function useCollectionHandlers() {
           force: event.userId === currentUserId,
         });
       } catch (err) {
-        Logger.error("Failed to fetch collection after add_user", err);
+        Logger.error(
+          "Failed to fetch collection after add_user",
+          err instanceof Error ? err : new Error(String(err))
+        );
       }
     });
 
@@ -505,7 +517,10 @@ function useCollectionHandlers() {
       try {
         await collections.fetch(event.collectionId!);
       } catch (err) {
-        Logger.error("Failed to fetch collection after add_group", err);
+        Logger.error(
+          "Failed to fetch collection after add_group",
+          err instanceof Error ? err : new Error(String(err))
+        );
       }
     });
 
@@ -637,7 +652,10 @@ function useUserHandlers() {
         try {
           await collections.fetchAll();
         } catch (err) {
-          Logger.error("Failed to fetch collections after demote", err);
+          Logger.error(
+            "Failed to fetch collections after demote",
+            err instanceof Error ? err : new Error(String(err))
+          );
         }
       }
     });

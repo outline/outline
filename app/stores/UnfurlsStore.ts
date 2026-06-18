@@ -89,7 +89,7 @@ class UnfurlsStore extends Store<Unfurl<any>> {
     } catch (err) {
       Logger.warn("Failed to unfurl url", {
         url,
-        message: err.message,
+        message: err instanceof Error ? err.message : String(err),
       });
       return;
     } finally {

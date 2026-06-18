@@ -18,6 +18,7 @@
     "noImplicitOverride": false,
     "noImplicitReturns": true,
     "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
     "sourceMap": true,
     "resolveJsonModule": true,
     "strictNullChecks": true,

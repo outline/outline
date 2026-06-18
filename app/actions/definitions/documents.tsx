@@ -1123,7 +1123,7 @@ export const importDocument = createAction({
         );
         history.push(document.url);
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         toast.dismiss(toastId);
       }

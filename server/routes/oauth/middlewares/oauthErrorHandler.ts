@@ -4,6 +4,22 @@ import {
   EmptyResultError as SequelizeEmptyResultError,
 } from "sequelize";
 
+/** Extract the first numeric status-like property from an unknown error. */
+function statusCodeFromError(err: unknown): number {
+  if (err instanceof Error) {
+    if ("status" in err && typeof err.status === "number") {
+      return err.status;
+    }
+    if ("statusCode" in err && typeof err.statusCode === "number") {
+      return err.statusCode;
+    }
+    if ("code" in err && typeof err.code === "number") {
+      return err.code;
+    }
+  }
+  return 500;
+}
+
 /**
  * To adhere to the OAuth 2.0 specification, errors from the /token and /authorize routes
  * follow the snake_case convention with `error` and `error_description` keys, rather than
@@ -31,7 +47,7 @@ export default function oauthErrorHandler() {
         return;
       }
 
-      ctx.status = err.status || err.statusCode || err.code || 500;
+      ctx.status = statusCodeFromError(err);
       // Map common HTTP status codes to OAuth error types
       let errorType = "server_error";
       if (ctx.status === 400) {
@@ -42,7 +58,7 @@ export default function oauthErrorHandler() {
 
       ctx.body = {
         error: errorType,
-        error_description: err.message,
+        error_description: err instanceof Error ? err.message : String(err),
       };
     }
   };

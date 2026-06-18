@@ -183,7 +183,7 @@ class Attachment extends IdModel<
         {
           id: model.id,
           teamId: model.teamId,
-          message: err.message,
+          message: err instanceof Error ? err.message : String(err),
         }
       );
     }

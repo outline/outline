@@ -217,7 +217,7 @@ export default abstract class BaseStorage {
           res.headers.get("content-type") ?? "application/octet-stream";
       } catch (err) {
         Logger.warn("Error fetching URL to upload", {
-          error: err.message,
+          error: err instanceof Error ? err.message : String(err),
           url,
           key,
           acl,
@@ -247,11 +247,15 @@ export default abstract class BaseStorage {
           }
         : undefined;
     } catch (err) {
-      Logger.error("Error uploading to file storage from URL", err, {
-        url,
-        key,
-        acl,
-      });
+      Logger.error(
+        "Error uploading to file storage from URL",
+        err instanceof Error ? err : new Error(String(err)),
+        {
+          url,
+          key,
+          acl,
+        }
+      );
       return;
     }
   }

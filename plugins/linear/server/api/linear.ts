@@ -107,7 +107,10 @@ router.get(
 
       ctx.redirect(LinearUtils.successUrl());
     } catch (err) {
-      Logger.error("Encountered error during Linear OAuth callback", err);
+      Logger.error(
+        "Encountered error during Linear OAuth callback",
+        err instanceof Error ? err : new Error(String(err))
+      );
       ctx.redirect(LinearUtils.errorUrl("unknown"));
     }
   }

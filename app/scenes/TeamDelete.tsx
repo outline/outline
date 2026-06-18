@@ -38,7 +38,7 @@ function TeamDelete({ onSubmit }: Props) {
         await auth.requestDeleteTeam();
         setWaitingCode(true);
       } catch (error) {
-        toast.error(error.message);
+        toast.error(error instanceof Error ? error.message : String(error));
       }
     },
     [auth]
@@ -56,7 +56,7 @@ function TeamDelete({ onSubmit }: Props) {
         });
         onSubmit();
       } catch (error) {
-        toast.error(error.message);
+        toast.error(error instanceof Error ? error.message : String(error));
       }
     },
     [auth, onSubmit]

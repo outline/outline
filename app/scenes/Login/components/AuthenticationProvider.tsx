@@ -122,7 +122,7 @@ function AuthenticationProvider(props: Props) {
         // Submit form natively to let browser handle redirect and cookies
         formRef.current?.submit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     };
 

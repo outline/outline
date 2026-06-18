@@ -85,7 +85,7 @@ function ApiKeyNew({ onSubmit }: Props) {
         );
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         setIsSaving(false);
       }

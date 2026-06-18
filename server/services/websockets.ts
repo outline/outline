@@ -133,10 +133,11 @@ export default function init(
       socket.emit("authenticated", true);
       void authenticated(io, socket);
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
       Logger.debug("websockets", `Authentication error socket ${socket.id}`, {
-        error: err.message,
+        error: message,
       });
-      socket.emit("unauthorized", { message: err.message }, function () {
+      socket.emit("unauthorized", { message }, function () {
         socket.disconnect();
       });
     }

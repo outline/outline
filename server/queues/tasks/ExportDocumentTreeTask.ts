@@ -89,7 +89,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         Logger.warn(`Failed to read attachment from storage`, {
           attachmentId: attachment.id,
           teamId: attachment.teamId,
-          error: err.message,
+          error: err instanceof Error ? err.message : String(err),
         });
         buffer = Buffer.from("");
       }

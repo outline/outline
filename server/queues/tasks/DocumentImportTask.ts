@@ -73,7 +73,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
       );
       return { documentId: document.id };
     } catch (err) {
-      return { error: err.message };
+      return { error: err instanceof Error ? err.message : String(err) };
     } finally {
       await FileStorage.deleteFile(key);
     }

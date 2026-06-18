@@ -57,7 +57,7 @@ const Error403 = ({ documentId }: Props) => {
       setRequested(true);
       toast.success(t("Access request sent"));
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err instanceof Error ? err.message : String(err));
     } finally {
       setRequesting(false);
     }

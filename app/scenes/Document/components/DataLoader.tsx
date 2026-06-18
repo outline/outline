@@ -105,7 +105,7 @@ function DataLoader({ match, children }: Props) {
           force: missingPolicy,
         });
       } catch (err) {
-        setError(err);
+        setError(err instanceof Error ? err : new Error(String(err)));
       }
     }
     void fetchDocument();
@@ -152,7 +152,10 @@ function DataLoader({ match, children }: Props) {
             documentId: document.id,
           });
         } catch (err) {
-          Logger.error("Failed to fetch views", err);
+          Logger.error(
+            "Failed to fetch views",
+            err instanceof Error ? err : new Error(String(err))
+          );
         }
       }
     }

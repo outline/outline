@@ -63,7 +63,7 @@ function GoogleAnalytics() {
 
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     },
     [integrations, integration, t]

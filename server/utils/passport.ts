@@ -173,7 +173,11 @@ export class StateStore {
     try {
       state = verifyOAuthState(providedToken);
     } catch (err) {
-      return callback(err, false, providedToken);
+      return callback(
+        err instanceof Error ? err : new Error(String(err)),
+        false,
+        providedToken
+      );
     }
 
     if (!safeEqual(hashOAuthStateNonce(csrfNonce ?? ""), state.nonceHash)) {

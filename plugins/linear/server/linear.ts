@@ -155,8 +155,9 @@ export class Linear {
           return;
       }
     } catch (err) {
-      Logger.warn("Failed to fetch resource from Linear", err);
-      return { error: err.message || "Unknown error" };
+      const error = err instanceof Error ? err : new Error(String(err));
+      Logger.warn("Failed to fetch resource from Linear", error);
+      return { error: error.message || "Unknown error" };
     }
   };
 

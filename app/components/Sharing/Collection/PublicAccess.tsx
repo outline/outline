@@ -71,7 +71,7 @@ function InnerPublicAccess(
           }
         }
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         setCreating(false);
       }
@@ -100,7 +100,8 @@ function InnerPublicAccess(
                 urlId: isEmpty(val) ? null : val,
               });
             } catch (err) {
-              if (err.message.includes("must be unique")) {
+              const message = err instanceof Error ? err.message : String(err);
+              if (message.includes("must be unique")) {
                 setValidationError(t("Sorry, this link has already been used"));
               }
             }

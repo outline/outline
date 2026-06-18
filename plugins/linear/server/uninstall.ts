@@ -21,6 +21,9 @@ export async function uninstall(
     await Linear.revokeAccess(authentication.token);
   } catch (err) {
     // suppress error since this is a best-effort operation.
-    Logger.error("Failed to revoke Linear access token", err);
+    Logger.error(
+      "Failed to revoke Linear access token",
+      err instanceof Error ? err : new Error(String(err))
+    );
   }
 }

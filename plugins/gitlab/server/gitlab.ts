@@ -267,8 +267,14 @@ export class GitLab {
 
       return { error: "Resource not found" };
     } catch (err) {
-      Logger.warn("Failed to fetch resource from GitLab", err);
-      return { error: err.message || "Unknown error" };
+      Logger.warn(
+        "Failed to fetch resource from GitLab",
+        err instanceof Error ? err : new Error(String(err))
+      );
+      return {
+        error:
+          (err instanceof Error ? err.message : String(err)) || "Unknown error",
+      };
     }
   };
 

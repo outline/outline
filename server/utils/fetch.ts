@@ -181,14 +181,15 @@ export default async function fetch(
 
     return response;
   } catch (err) {
-    if (err.name === "AbortError") {
+    if (err instanceof Error && "name" in err && err.name === "AbortError") {
       throw new Error(`Request timeout after ${timeout}ms`);
     }
-    if (err.message?.startsWith("DNS lookup")) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.startsWith("DNS lookup")) {
       throw InvalidRequestError(
         env.isCloudHosted
-          ? err.message
-          : `${err.message}\n\nTo allow this request, add the IP address or CIDR range to the ALLOWED_PRIVATE_IP_ADDRESSES environment variable.`
+          ? message
+          : `${message}\n\nTo allow this request, add the IP address or CIDR range to the ALLOWED_PRIVATE_IP_ADDRESSES environment variable.`
       );
     }
     throw err;

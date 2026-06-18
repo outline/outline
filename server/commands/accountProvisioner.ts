@@ -136,7 +136,11 @@ async function accountProvisioner(
   } catch (err) {
     // The account could not be provisioned for the provided teamId
     // check to see if we can try authentication using email matching only
-    if (err.id === "invalid_authentication") {
+    if (
+      err instanceof Error &&
+      "id" in err &&
+      err.id === "invalid_authentication"
+    ) {
       const authProvider = await AuthenticationProvider.findOne({
         where: {
           name: authenticationProviderParams.name,
@@ -163,10 +167,12 @@ async function accountProvisioner(
     }
 
     if (!result) {
-      if (err.id) {
+      if (err instanceof Error && "id" in err && err.id) {
         throw err;
       } else {
-        throw InvalidAuthenticationError(err.message);
+        throw InvalidAuthenticationError(
+          err instanceof Error ? err.message : String(err)
+        );
       }
     }
   }
@@ -260,10 +266,14 @@ async function accountProvisioner(
           });
         } catch (err) {
           // Group sync failure should never block login
-          Logger.error("Group sync failed during login", err, {
-            userId: user.id,
-            provider: authenticationProviderParams.name,
-          });
+          Logger.error(
+            "Group sync failed during login",
+            err instanceof Error ? err : new Error(String(err)),
+            {
+              userId: user.id,
+              provider: authenticationProviderParams.name,
+            }
+          );
         }
       }
     }

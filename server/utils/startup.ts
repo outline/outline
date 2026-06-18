@@ -33,16 +33,18 @@ export async function checkPendingMigrations() {
     }
     await checkDataMigrations();
   } catch (err) {
-    if (err.message.includes("ECONNREFUSED")) {
+    const message = err instanceof Error ? err.message : String(err);
+    const error = err instanceof Error ? err : new Error(String(err));
+    if (message.includes("ECONNREFUSED")) {
       Logger.fatal(
         styleText(
           "red",
           `Could not connect to the database. Please check your connection settings.`
         ),
-        err
+        error
       );
     } else {
-      Logger.fatal(styleText("red", err.message), err);
+      Logger.fatal(styleText("red", message), error);
     }
   } finally {
     if (lock) {

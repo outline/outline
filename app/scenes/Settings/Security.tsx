@@ -86,7 +86,7 @@ function Security() {
         await team.save(newData);
         showSuccessMessage();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     },
     [team, showSuccessMessage]

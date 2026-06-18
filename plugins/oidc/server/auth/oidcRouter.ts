@@ -110,7 +110,10 @@ export function createOIDCRouter(
                 sub?: string;
               };
             } catch (err) {
-              Logger.error("id_token decode threw error: ", err);
+              Logger.error(
+                "id_token decode threw error: ",
+                err instanceof Error ? err : new Error(String(err))
+              );
               return {};
             }
           })();
@@ -233,7 +236,10 @@ export function createOIDCRouter(
           });
           return done(null, result.user, { ...result, client });
         } catch (err) {
-          return done(err, null);
+          return done(
+            err instanceof Error ? err : new Error(String(err)),
+            null
+          );
         }
       }
     )

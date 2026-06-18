@@ -18,7 +18,7 @@ if (env.FILE_STORAGE === "local") {
   } catch (err) {
     Logger.fatal(
       `Failed to create directory for local file storage at ${env.FILE_STORAGE_LOCAL_ROOT_DIR}`,
-      err
+      err instanceof Error ? err : new Error(String(err))
     );
   }
 }

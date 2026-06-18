@@ -63,7 +63,7 @@ function TemplateNewScene() {
       await template.save();
       history.push(settingsPath("templates"));
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error instanceof Error ? error.message : String(error));
     } finally {
       setSaving(false);
     }

@@ -61,13 +61,17 @@ export default function useImportDocument(
               });
             }
           } catch (err) {
-            toast.error(err.message);
+            toast.error(err instanceof Error ? err.message : String(err));
           } finally {
             toast.dismiss(toastId);
           }
         }
       } catch (err) {
-        toast.error(`${t("Could not import file")}. ${err.message}`);
+        toast.error(
+          `${t("Could not import file")}. ${
+            err instanceof Error ? err.message : String(err)
+          }`
+        );
       } finally {
         setImporting(false);
         importingLock = false;

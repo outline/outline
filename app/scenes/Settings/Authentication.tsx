@@ -52,7 +52,7 @@ function Authentication() {
         await team.save({ guestSignin: checked });
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     },
     [team, t]
@@ -64,7 +64,7 @@ function Authentication() {
         await provider.save({ isEnabled });
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     },
     [t]
@@ -114,7 +114,7 @@ function Authentication() {
             });
             toast.success(t("Settings saved"));
           } catch (err) {
-            toast.error(err.message);
+            toast.error(err instanceof Error ? err.message : String(err));
           }
         })();
       } else {
@@ -143,7 +143,7 @@ function Authentication() {
         });
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     },
     [t]
@@ -308,7 +308,7 @@ function Authentication() {
               await team.save({ passkeysEnabled: checked });
               toast.success(t("Settings saved"));
             } catch (err) {
-              toast.error(err.message);
+              toast.error(err instanceof Error ? err.message : String(err));
             }
           }}
         />
@@ -370,7 +370,7 @@ const DisableGroupSyncDialog = observer(function DisableGroupSyncDialog({
         toast.success(t("Settings saved"));
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         setIsSaving(false);
       }

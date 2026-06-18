@@ -50,7 +50,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
 
       onSubmit();
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err instanceof Error ? err.message : String(err));
       resetSubmitting();
     }
   }, [

@@ -66,7 +66,7 @@ function Invite({ onSubmit }: Props) {
           toast.message(t("Those email addresses are already invited"));
         }
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         setIsSaving(false);
       }

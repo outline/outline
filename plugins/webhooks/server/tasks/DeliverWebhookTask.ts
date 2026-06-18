@@ -815,13 +815,14 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
       if (isExpectedNetworkError(err) && env.isCloudHosted) {
-        Logger.warn(`Failed to send webhook: ${err.message}`, {
+        Logger.warn(`Failed to send webhook: ${error.message}`, {
           event,
           deliveryId: delivery.id,
         });
       } else {
-        Logger.error("Failed to send webhook", err, {
+        Logger.error("Failed to send webhook", error, {
           event,
           deliveryId: delivery.id,
         });
@@ -857,10 +858,14 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       try {
         await this.checkAndDisableSubscription(subscription);
       } catch (err) {
-        Logger.error("Failed to check and disable recent deliveries", err, {
-          event,
-          deliveryId: delivery.id,
-        });
+        Logger.error(
+          "Failed to check and disable recent deliveries",
+          err instanceof Error ? err : new Error(String(err)),
+          {
+            event,
+            deliveryId: delivery.id,
+          }
+        );
       }
     }
   }

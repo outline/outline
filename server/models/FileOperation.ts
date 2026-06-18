@@ -96,7 +96,7 @@ class FileOperation extends ParanoidModel<
     try {
       await FileStorage.deleteFile(this.key);
     } catch (err) {
-      if (err.retryable) {
+      if (err instanceof Error && "retryable" in err && err.retryable) {
         throw err;
       }
     }

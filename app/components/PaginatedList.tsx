@@ -176,7 +176,7 @@ const PaginatedList = <T extends PaginatedItem>({
 
       setIsFetchingInitial(false);
     } catch (err) {
-      setError(err);
+      setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       // only the most recent fetch should end the loading state
       if (counter >= fetchCounter) {

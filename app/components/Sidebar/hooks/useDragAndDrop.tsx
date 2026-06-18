@@ -275,7 +275,7 @@ export function useDropToChangeCollection(
               )
             );
           } else {
-            toast.error(err.message);
+            toast.error(err instanceof Error ? err.message : String(err));
           }
         }
       }
@@ -370,7 +370,7 @@ export function useDropToReparentDocument(
               )
             );
           } else {
-            toast.error(err.message);
+            toast.error(err instanceof Error ? err.message : String(err));
           }
         }
       }
@@ -483,7 +483,7 @@ export function useDropToReorderDocument(
                 })
               );
             } else {
-              toast.error(err.message);
+              toast.error(err instanceof Error ? err.message : String(err));
             }
           }
         }
@@ -620,7 +620,7 @@ export function useDropToUnpublish() {
           })
         );
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     },
     canDrop: (item) => {

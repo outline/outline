@@ -32,7 +32,7 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
         toast.success(t("Webhook created"));
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     },
     [t, onSubmit, webhookSubscriptions]

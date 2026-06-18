@@ -50,7 +50,7 @@ function ConfirmMoveDialog({ collection, item, ...rest }: Props) {
           )
         );
       } else {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     } finally {
       dialogs.closeAllModals();

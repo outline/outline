@@ -159,7 +159,10 @@ async function start(_id: number, disconnect: () => void) {
     try {
       await sequelize.query("SELECT 1");
     } catch (err) {
-      Logger.error("Database connection failed", err);
+      Logger.error(
+        "Database connection failed",
+        err instanceof Error ? err : new Error(String(err))
+      );
       ctx.status = 500;
       return;
     }
@@ -167,7 +170,10 @@ async function start(_id: number, disconnect: () => void) {
     try {
       await Redis.defaultClient.ping();
     } catch (err) {
-      Logger.error("Redis ping failed", err);
+      Logger.error(
+        "Redis ping failed",
+        err instanceof Error ? err : new Error(String(err))
+      );
       ctx.status = 500;
       return;
     }

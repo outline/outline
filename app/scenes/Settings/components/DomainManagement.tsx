@@ -37,7 +37,7 @@ function DomainManagement({ onSuccess }: Props) {
       setExistingDomainsTouched(false);
       updateLastKnownDomainCount(allowedDomains.length);
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   }, [team, allowedDomains, onSuccess]);
 

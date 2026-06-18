@@ -262,7 +262,8 @@ class MermaidRenderer {
         element.innerText = "Empty diagram";
         element.classList.add("empty");
       } else {
-        element.innerText = error;
+        element.innerText =
+          error instanceof Error ? error.message : String(error);
         element.classList.add("parse-error");
       }
     } finally {

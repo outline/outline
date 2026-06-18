@@ -49,7 +49,7 @@ const ImageUpload: React.FC<Props> = ({
         });
         void onSuccess(attachment.url);
       } catch (err) {
-        onError(err.message);
+        onError(err instanceof Error ? err.message : String(err));
       } finally {
         setIsUploading(false);
         setIsCropping(false);

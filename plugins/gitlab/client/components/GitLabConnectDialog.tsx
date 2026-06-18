@@ -39,7 +39,7 @@ function GitLabConnectDialog() {
         dialogs.closeAllModals();
         redirectTo(res.data.redirectUrl);
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         setSaving(false);
       }

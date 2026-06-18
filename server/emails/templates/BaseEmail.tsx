@@ -194,7 +194,11 @@ export default abstract class BaseEmail<
         notification.emailedAt = new Date();
         await notification.save();
       } catch (err) {
-        Logger.error(`Failed to update notification`, err, this.metadata);
+        Logger.error(
+          `Failed to update notification`,
+          err instanceof Error ? err : new Error(String(err)),
+          this.metadata
+        );
       }
     }
   }

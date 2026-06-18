@@ -128,7 +128,10 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
           }
         } catch (error) {
           totalErrors++;
-          Logger.error(`Batch ${batchNumber} failed after retries`, error);
+          Logger.error(
+            `Batch ${batchNumber} failed after retries`,
+            error instanceof Error ? error : new Error(String(error))
+          );
 
           // Remove failed batch from working table to prevent infinite loop
           await this.skipCurrentBatch();
@@ -140,7 +143,10 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
         `Completed updating popularity scores: ${totalUpdated} documents updated, ${totalErrors} batch errors`
       );
     } catch (error) {
-      Logger.error("Failed to update document popularity scores", error);
+      Logger.error(
+        "Failed to update document popularity scores",
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     } finally {
       // Always clean up the working table

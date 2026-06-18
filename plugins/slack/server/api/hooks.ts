@@ -155,9 +155,13 @@ router.post(
       callback_id = parsed.callback_id;
       token = parsed.token;
     } catch (err) {
-      Logger.error("Failed to parse Slack interactive payload", err, {
-        payload,
-      });
+      Logger.error(
+        "Failed to parse Slack interactive payload",
+        err instanceof Error ? err : new Error(String(err)),
+        {
+          payload,
+        }
+      );
       throw ValidationError("Invalid payload");
     }
 

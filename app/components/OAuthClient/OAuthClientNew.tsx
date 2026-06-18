@@ -24,7 +24,7 @@ export const OAuthClientNew = observer(function OAuthClientNew_({
         onSubmit?.();
         history.push(settingsPath("applications", oauthClient.id));
       } catch (error) {
-        toast.error(error.message);
+        toast.error(error instanceof Error ? error.message : String(error));
       }
     },
     [oauthClients, history, onSubmit]

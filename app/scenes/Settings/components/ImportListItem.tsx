@@ -61,7 +61,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
         await importModel.cancel();
         toast.success(t("Import canceled"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     };
 
@@ -88,7 +88,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
         await importModel.delete();
         toast.success(t("Import deleted"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     };
 

@@ -29,8 +29,14 @@ class Iframely {
       );
       return await res.json();
     } catch (err) {
-      Logger.error(`Error fetching data from Iframely for url: ${url}`, err);
-      return { error: err.message || "Unknown error" };
+      Logger.error(
+        `Error fetching data from Iframely for url: ${url}`,
+        err instanceof Error ? err : new Error(String(err))
+      );
+      return {
+        error:
+          (err instanceof Error ? err.message : String(err)) || "Unknown error",
+      };
     }
   }
 

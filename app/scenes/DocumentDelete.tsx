@@ -64,7 +64,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
 
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         setDeleting(false);
       }
@@ -90,7 +90,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
         await document.archive();
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         setArchiving(false);
       }

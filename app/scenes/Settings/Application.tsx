@@ -103,7 +103,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
             : t("Application updated")
         );
       } catch (error) {
-        toast.error(error.message);
+        toast.error(error instanceof Error ? error.message : String(error));
       }
     },
     [oauthClient, t]
@@ -115,7 +115,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
         await oauthClient.rotateClientSecret();
         toast.success(t("Client secret rotated"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       }
     };
 

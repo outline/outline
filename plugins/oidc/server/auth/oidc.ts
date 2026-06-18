@@ -63,7 +63,10 @@ if (hasManualConfig) {
 
       return router;
     } catch (error) {
-      Logger.fatal("Failed to discover OIDC configuration", error);
+      Logger.fatal(
+        "Failed to discover OIDC configuration",
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     }
   })();

@@ -161,7 +161,10 @@ class IntegrationAuthentication extends IdModel<
 
       return refreshedToken;
     } catch (err) {
-      Logger.warn(`Failed to refresh ${this.service} access token`, err);
+      Logger.warn(
+        `Failed to refresh ${this.service} access token`,
+        err instanceof Error ? err : new Error(String(err))
+      );
       // Continue with existing token - it might still work
       return this.token;
     }

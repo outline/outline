@@ -139,7 +139,7 @@ router.post(
         policies: presentPolicies(user, shares),
       };
     } catch (err) {
-      if (err.id === "not_found") {
+      if (err instanceof Error && "id" in err && err.id === "not_found") {
         ctx.response.status = 204;
         return;
       }

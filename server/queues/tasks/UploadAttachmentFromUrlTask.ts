@@ -39,7 +39,7 @@ export default class UploadAttachmentFromUrlTask extends BaseTask<Props> {
         });
       }
     } catch (err) {
-      return { error: err.message };
+      return { error: err instanceof Error ? err.message : String(err) };
     }
 
     return {};

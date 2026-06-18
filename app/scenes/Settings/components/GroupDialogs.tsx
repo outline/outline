@@ -64,7 +64,7 @@ export function CreateGroupDialog() {
         dialogs.closeAllModals();
         history.push(settingsPath("groups", group.id, "members"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         setIsSaving(false);
       }
@@ -135,7 +135,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         });
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         setIsSaving(false);
       }
@@ -434,7 +434,9 @@ const GroupMemberListItem = observer(function ({
                       });
                     }
                   } catch (err) {
-                    toast.error(err.message);
+                    toast.error(
+                      err instanceof Error ? err.message : String(err)
+                    );
                     return false;
                   }
                   return true;

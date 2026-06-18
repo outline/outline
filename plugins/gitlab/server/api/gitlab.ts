@@ -284,7 +284,10 @@ router.get(
 
       ctx.redirect(GitLabUtils.url);
     } catch (err) {
-      Logger.error("Encountered error during Gitlab OAuth callback", err);
+      Logger.error(
+        "Encountered error during Gitlab OAuth callback",
+        err instanceof Error ? err : new Error(String(err))
+      );
       ctx.redirect(GitLabUtils.errorUrl("unauthenticated"));
     }
   }

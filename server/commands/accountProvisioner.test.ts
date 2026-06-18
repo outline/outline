@@ -184,7 +184,9 @@ describe("accountProvisioner", () => {
       }
 
       expect(error).toBeTruthy();
-      expect(error.id).toEqual("invalid_authentication");
+      expect(
+        error instanceof Error && "id" in error ? error.id : undefined
+      ).toEqual("invalid_authentication");
     });
 
     it("should throw an error when authentication provider is disabled", async () => {
@@ -533,7 +535,9 @@ describe("accountProvisioner", () => {
         error = err;
       }
 
-      expect(error.message).toEqual("Invalid authentication");
+      expect(error instanceof Error ? error.message : String(error)).toEqual(
+        "Invalid authentication"
+      );
     });
 
     it("should always use existing team if self-hosted", async () => {

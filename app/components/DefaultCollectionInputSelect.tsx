@@ -27,7 +27,7 @@ const DefaultCollectionInputSelect = observer(
     const { t } = useTranslation();
     const { collections, ui } = useStores();
     const [fetching, setFetching] = useState(false);
-    const [fetchError, setFetchError] = useState();
+    const [fetchError, setFetchError] = useState<Error>();
 
     React.useEffect(() => {
       async function fetchData() {
@@ -41,7 +41,9 @@ const DefaultCollectionInputSelect = observer(
             toast.error(
               t("Collections could not be loaded, please reload the app")
             );
-            setFetchError(error);
+            setFetchError(
+              error instanceof Error ? error : new Error(String(error))
+            );
           } finally {
             setFetching(false);
           }

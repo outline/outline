@@ -30,7 +30,7 @@ const Profile = () => {
       await user.save({ name });
       toast.success(t("Profile saved"));
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 

@@ -26,7 +26,7 @@ export const CollectionNew = observer(function CollectionNew_({
         onSubmit?.();
         history.push(collection.path);
       } catch (error) {
-        toast.error(error.message);
+        toast.error(error instanceof Error ? error.message : String(error));
       }
     },
     [collections, onSubmit]

@@ -93,7 +93,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
     } catch (error) {
       await this.updateFileOperation(fileOperation, {
         state: FileOperationState.Error,
-        error,
+        error: error instanceof Error ? error : new Error(String(error)),
       });
       if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
         await new ExportFailureEmail({
@@ -223,7 +223,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
    */
   private async updateFileOperation(
     fileOperation: FileOperation,
-    options: Partial<FileOperation> & { error?: Error }
+    options: Omit<Partial<FileOperation>, "error"> & { error?: Error }
   ) {
     await fileOperation.update(
       {

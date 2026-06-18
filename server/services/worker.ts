@@ -69,7 +69,7 @@ export default async function init() {
           } catch (error) {
             Logger.error(
               `Error adding ${event.name} to ${name} queue`,
-              error,
+              error instanceof Error ? error : new Error(String(error)),
               event
             );
             err = error;
@@ -125,7 +125,7 @@ export default async function init() {
 
             Logger.error(
               `Error processing ${event.name} in ${name}`,
-              err,
+              err instanceof Error ? err : new Error(String(err)),
               event
             );
             throw err;
@@ -171,7 +171,11 @@ export default async function init() {
             await task.onFailed(props).catch(); // suppress exception from 'onFailed'.
           }
 
-          Logger.error(`Error processing task in ${name}`, err, props);
+          Logger.error(
+            `Error processing task in ${name}`,
+            err instanceof Error ? err : new Error(String(err)),
+            props
+          );
           throw err;
         }
       })

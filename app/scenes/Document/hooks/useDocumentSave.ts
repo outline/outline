@@ -182,7 +182,7 @@ export function useDocumentSave({
           ui.setActiveDocument(savedDocument);
         }
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err instanceof Error ? err.message : String(err));
       } finally {
         setIsSaving(false);
         setIsPublishing(false);
@@ -341,7 +341,8 @@ export function useDocumentSave({
     () => () => {
       autosave.cancel();
       const currentDoc = editorRef.current?.view.state.doc;
-      const isEditorEmpty = !currentDoc || ProsemirrorHelper.isEmpty(currentDoc);
+      const isEditorEmpty =
+        !currentDoc || ProsemirrorHelper.isEmpty(currentDoc);
 
       if (
         shouldAutoDeleteDraftOnUnmount({

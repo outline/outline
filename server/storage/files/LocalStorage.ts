@@ -95,7 +95,7 @@ export default class LocalStorage extends BaseStorage {
     try {
       await unlink(filePath);
     } catch (err) {
-      Logger.warn(`Couldn't delete ${filePath}`, err);
+      Logger.warn(`Couldn't delete ${filePath}`, { error: err });
       return;
     }
 
@@ -103,10 +103,10 @@ export default class LocalStorage extends BaseStorage {
     try {
       await rmdir(directory);
     } catch (err) {
-      if (err.code === "ENOTEMPTY") {
+      if (err instanceof Error && "code" in err && err.code === "ENOTEMPTY") {
         return;
       }
-      Logger.warn(`Couldn't delete directory ${directory}`, err);
+      Logger.warn(`Couldn't delete directory ${directory}`, { error: err });
     }
   }
 
@@ -160,7 +160,11 @@ export default class LocalStorage extends BaseStorage {
     try {
       return fs.createReadStream(filePath, range);
     } catch (err) {
-      Logger.error(`Failed to create read stream`, err, { filePath });
+      Logger.error(
+        `Failed to create read stream`,
+        err instanceof Error ? err : new Error(String(err)),
+        { filePath }
+      );
       throw ValidationError("Unable to read file");
     }
   }

@@ -89,7 +89,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
         ),
       });
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err instanceof Error ? err.message : String(err));
     } finally {
       setImporting(false);
       setUploadProgress(0);

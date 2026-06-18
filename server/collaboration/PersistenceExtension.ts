@@ -135,10 +135,14 @@ export default class PersistenceExtension implements Extension {
         clientVersion,
       });
     } catch (err) {
-      Logger.error("Unable to persist document", err, {
-        documentId,
-        userId: context.user?.id,
-      });
+      Logger.error(
+        "Unable to persist document",
+        err instanceof Error ? err : new Error(String(err)),
+        {
+          documentId,
+          userId: context.user?.id,
+        }
+      );
     }
   }
 }

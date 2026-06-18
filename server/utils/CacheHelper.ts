@@ -54,7 +54,10 @@ export class CacheHelper {
       try {
         lock = await MutexLock.acquire(lockKey, lockTimeout);
       } catch (err) {
-        Logger.error(`Could not acquire lock for ${key}`, err);
+        Logger.error(
+          `Could not acquire lock for ${key}`,
+          err instanceof Error ? err : new Error(String(err))
+        );
       }
       cache = await this.getData<T>(key);
       if (cache) {
@@ -100,7 +103,10 @@ export class CacheHelper {
       }
     } catch (err) {
       // just log it, response can still be obtained using the fetch call
-      Logger.error(`Could not fetch cached response against ${key}`, err);
+      Logger.error(
+        `Could not fetch cached response against ${key}`,
+        err instanceof Error ? err : new Error(String(err))
+      );
     }
     return;
   }
@@ -122,7 +128,10 @@ export class CacheHelper {
       );
     } catch (err) {
       // just log it, can skip caching and directly return response
-      Logger.error(`Could not cache response against ${key}`, err);
+      Logger.error(
+        `Could not cache response against ${key}`,
+        err instanceof Error ? err : new Error(String(err))
+      );
     }
   }
 
@@ -135,7 +144,10 @@ export class CacheHelper {
     try {
       await Redis.defaultClient.del(key);
     } catch (err) {
-      Logger.error(`Could not remove cached entry against ${key}`, err);
+      Logger.error(
+        `Could not remove cached entry against ${key}`,
+        err instanceof Error ? err : new Error(String(err))
+      );
     }
   }
 

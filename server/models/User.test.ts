@@ -123,7 +123,9 @@ describe("user model", () => {
         error = err;
       }
 
-      expect(error && error.message).toContain("Cannot delete last user");
+      expect(error instanceof Error ? error.message : String(error)).toContain(
+        "Cannot delete last user"
+      );
     });
 
     it("should prevent last admin from deleting account", async () => {
@@ -139,7 +141,9 @@ describe("user model", () => {
         error = err;
       }
 
-      expect(error && error.message).toContain("Cannot delete account");
+      expect(error instanceof Error ? error.message : String(error)).toContain(
+        "Cannot delete account"
+      );
     });
 
     it("should not prevent multiple admin from deleting account", async () => {

@@ -196,13 +196,19 @@ export const checkConnection = async (db: Sequelize) => {
   try {
     await db.authenticate();
   } catch (error) {
-    if (error.message.includes("does not support SSL")) {
+    if (
+      error instanceof Error &&
+      error.message.includes("does not support SSL")
+    ) {
       Logger.fatal(
         "The database does not support SSL connections. Set the `PGSSLMODE` environment variable to `disable` or enable SSL on your database server.",
         error
       );
     } else {
-      Logger.fatal("Failed to connect to database", error);
+      Logger.fatal(
+        "Failed to connect to database",
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }
 };

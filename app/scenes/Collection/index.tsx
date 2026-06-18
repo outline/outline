@@ -109,7 +109,7 @@ const CollectionScene = observer(function CollectionScene_() {
         setError(undefined);
         await collections.fetch(id);
       } catch (err) {
-        setError(err);
+        setError(err instanceof Error ? err : new Error(String(err)));
       }
     }
 

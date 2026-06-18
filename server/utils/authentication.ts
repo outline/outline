@@ -62,7 +62,10 @@ export async function signIn(
           }
         );
       } catch (error) {
-        Logger.error(`Error persisting signup query params`, error);
+        Logger.error(
+          `Error persisting signup query params`,
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     }
   }

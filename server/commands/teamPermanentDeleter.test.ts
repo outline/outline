@@ -207,7 +207,7 @@ describe("teamPermanentDeleter", () => {
     try {
       await teamPermanentDeleter(team);
     } catch (err) {
-      error = err.message;
+      error = err instanceof Error ? err.message : String(err);
     }
 
     expect(error).toEqual(

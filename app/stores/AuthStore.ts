@@ -255,9 +255,20 @@ export default class AuthStore extends Store<Team> {
         }
       });
     } catch (err) {
-      if (err.error === "user_suspended") {
+      if (
+        err instanceof Error &&
+        "error" in err &&
+        err.error === "user_suspended"
+      ) {
         this.isSuspended = true;
-        this.suspendedContactEmail = err.data.adminEmail;
+        if (
+          "data" in err &&
+          err.data instanceof Object &&
+          "adminEmail" in err.data &&
+          typeof err.data.adminEmail === "string"
+        ) {
+          this.suspendedContactEmail = err.data.adminEmail;
+        }
         return;
       }
       throw err;
@@ -342,7 +353,10 @@ export default class AuthStore extends Store<Team> {
         // invalidate authentication token on server and unset auth cookie
         await client.post(`/auth.delete`);
       } catch (err) {
-        Logger.error("Failed to delete authentication", err);
+        Logger.error(
+          "Failed to delete authentication",
+          err instanceof Error ? err : new Error(String(err))
+        );
       }
     }
 

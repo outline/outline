@@ -410,7 +410,7 @@ export default abstract class APIImportTask<
       // upload attachments failure is not critical enough to fail the whole import.
       Logger.error(
         `upload attachment task failed for externalId ${externalId}`,
-        err
+        err instanceof Error ? err : new Error(String(err))
       );
     }
 

@@ -49,7 +49,10 @@ export default function apexAuthRedirect<T>({
           ? ctx.redirect("/")
           : ctx.redirectOnClient(getRedirectPath(ctx, team));
       } catch (err) {
-        Logger.error("Error fetching team", err);
+        Logger.error(
+          "Error fetching team",
+          err instanceof Error ? err : new Error(String(err))
+        );
         return ctx.redirect(getErrorPath(ctx));
       }
     } else {

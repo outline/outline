@@ -31,7 +31,7 @@ function TeamNew({ user }: Props) {
         });
       }
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err instanceof Error ? err.message : String(err));
     } finally {
       setIsSaving(false);
     }

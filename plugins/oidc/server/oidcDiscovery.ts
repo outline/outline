@@ -85,7 +85,10 @@ export async function fetchOIDCConfiguration(
 
     return config;
   } catch (error) {
-    Logger.error("Failed to fetch OIDC configuration", error);
+    Logger.error(
+      "Failed to fetch OIDC configuration",
+      error instanceof Error ? error : new Error(String(error))
+    );
     throw error;
   }
 }

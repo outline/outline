@@ -61,7 +61,7 @@ export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
       } catch (error) {
         Logger.error(
           `Error resolving relation ${modelName}.${propertyName} for target ${targetClass.modelName}:`,
-          error
+          error instanceof Error ? error : new Error(String(error))
         );
       }
     });

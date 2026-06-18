@@ -150,7 +150,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
       } catch (error) {
         Logger.error(
           `ImportTask failed to persist data for ${fileOperationId}`,
-          error
+          error instanceof Error ? error : new Error(String(error))
         );
         throw new Error("Sorry, an internal error occurred during import");
       }
@@ -162,12 +162,15 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       return result;
     } catch (error) {
-      Logger.error(`ImportTask failed for ${fileOperationId}`, error);
+      Logger.error(
+        `ImportTask failed for ${fileOperationId}`,
+        error instanceof Error ? error : new Error(String(error))
+      );
 
       await this.updateFileOperation(
         fileOperation,
         FileOperationState.Error,
-        error
+        error instanceof Error ? error : new Error(String(error))
       );
       throw error;
     } finally {
@@ -269,7 +272,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
     } catch (error) {
       Logger.error(
         `ImportTask failed to cleanup extracted data for ${fileOperation.id}`,
-        error
+        error instanceof Error ? error : new Error(String(error))
       );
     }
   }

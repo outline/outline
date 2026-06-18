@@ -1,5 +1,6 @@
 import type { Next } from "koa";
 import { defaults } from "es-toolkit/compat";
+import { RateLimiterRes } from "rate-limiter-flexible";
 import env from "@server/env";
 import { RateLimitExceededError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -69,8 +70,16 @@ export function defaultRateLimiter() {
     try {
       await limiter.consume(key);
     } catch (rateLimiterRes) {
-      if (rateLimiterRes instanceof Error) {
-        Logger.error("Rate limiter error", rateLimiterRes);
+      if (
+        rateLimiterRes instanceof Error ||
+        !(rateLimiterRes instanceof RateLimiterRes)
+      ) {
+        Logger.error(
+          "Rate limiter error",
+          rateLimiterRes instanceof Error
+            ? rateLimiterRes
+            : new Error(String(rateLimiterRes))
+        );
         return next();
       }
 
