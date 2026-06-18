@@ -180,7 +180,7 @@
     "mobx-utils": "^4.0.1",
     "natural-sort": "^1.0.0",
     "node-fetch": "2.7.0",
-    "nodemailer": "^8.0.9",
+    "nodemailer": "^9.0.1",
     "octokit": "^5.0.5",
     "outline-icons": "^4.3.0",
     "oy-vey": "^0.12.1",
@@ -393,7 +393,8 @@
     "lodash@npm:4.17.21": "^4.18.1",
     "i18next-parser/i18next": "^23.16.8",
     "ws@npm:~8.17.1": "^8.21.0",
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "nodemailer@npm:9.0.0": "^9.0.1"
   },
   "version": "1.8.1",
   "packageManager": "yarn@4.11.0"
