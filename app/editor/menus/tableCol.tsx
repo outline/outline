@@ -5,7 +5,6 @@ import {
   AlignCenterIcon,
   InsertLeftIcon,
   InsertRightIcon,
-  MoreIcon,
   PaletteIcon,
   TableHeaderColumnIcon,
   TableMergeCellsIcon,
@@ -24,7 +23,11 @@ import {
   tableHasRowspan,
 } from "@shared/editor/queries/table";
 import { t } from "i18next";
-import type { MenuItem, NodeAttrMark, SelectionContext } from "@shared/editor/types";
+import type {
+  MenuItem,
+  NodeAttrMark,
+  SelectionContext,
+} from "@shared/editor/types";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
@@ -65,9 +68,7 @@ function getColumnColors(state: EditorState, colIndex: number): Set<string> {
  * @param ctx - the current selection context.
  * @returns an array of menu items.
  */
-export default function tableColMenuItems(
-  ctx: SelectionContext
-): MenuItem[] {
+export default function tableColMenuItems(ctx: SelectionContext): MenuItem[] {
   if (ctx.readOnly) {
     return [];
   }
@@ -94,60 +95,65 @@ export default function tableColMenuItems(
 
   return [
     {
-      name: "setColumnAttr",
-      tooltip: t("Align left"),
-      icon: <AlignLeftIcon />,
-      attrs: { index, alignment: "left" },
-      active: isNodeActive(schema.nodes.th, {
-        colspan: 1,
-        rowspan: 1,
-        alignment: "left",
-      }),
-    },
-    {
-      name: "setColumnAttr",
-      tooltip: t("Align center"),
+      label: t("Align"),
       icon: <AlignCenterIcon />,
-      attrs: { index, alignment: "center" },
-      active: isNodeActive(schema.nodes.th, {
-        colspan: 1,
-        rowspan: 1,
-        alignment: "center",
-      }),
+      children: [
+        {
+          name: "setColumnAttr",
+          label: t("Align left"),
+          icon: <AlignLeftIcon />,
+          attrs: { index, alignment: "left" },
+          active: isNodeActive(schema.nodes.th, {
+            colspan: 1,
+            rowspan: 1,
+            alignment: "left",
+          }),
+        },
+        {
+          name: "setColumnAttr",
+          label: t("Align center"),
+          icon: <AlignCenterIcon />,
+          attrs: { index, alignment: "center" },
+          active: isNodeActive(schema.nodes.th, {
+            colspan: 1,
+            rowspan: 1,
+            alignment: "center",
+          }),
+        },
+        {
+          name: "setColumnAttr",
+          label: t("Align right"),
+          icon: <AlignRightIcon />,
+          attrs: { index, alignment: "right" },
+          active: isNodeActive(schema.nodes.th, {
+            colspan: 1,
+            rowspan: 1,
+            alignment: "right",
+          }),
+        },
+      ],
     },
     {
-      name: "setColumnAttr",
-      tooltip: t("Align right"),
-      icon: <AlignRightIcon />,
-      attrs: { index, alignment: "right" },
-      active: isNodeActive(schema.nodes.th, {
-        colspan: 1,
-        rowspan: 1,
-        alignment: "right",
-      }),
-    },
-    {
-      name: "separator",
-    },
-    {
-      name: "sortTable",
-      tooltip: t("Sort ascending"),
-      attrs: { index, direction: "asc" },
+      label: t("Sort"),
       icon: <SortAscendingIcon />,
       disabled: tableHasRowspan(state),
+      children: [
+        {
+          name: "sortTable",
+          label: t("Sort ascending"),
+          attrs: { index, direction: "asc" },
+          icon: <SortAscendingIcon />,
+        },
+        {
+          name: "sortTable",
+          label: t("Sort descending"),
+          attrs: { index, direction: "desc" },
+          icon: <SortDescendingIcon />,
+        },
+      ],
     },
     {
-      name: "sortTable",
-      tooltip: t("Sort descending"),
-      attrs: { index, direction: "desc" },
-      icon: <SortDescendingIcon />,
-      disabled: tableHasRowspan(state),
-    },
-    {
-      name: "separator",
-    },
-    {
-      tooltip: t("Background color"),
+      label: t("Background"),
       icon:
         colColors.size > 1 ? (
           <CircleIcon color="rainbow" />
@@ -161,7 +167,7 @@ export default function tableColMenuItems(
           {
             name: "toggleColumnBackgroundAndCollapseSelection",
             label: t("None"),
-            icon: <DottedCircleIcon retainColor color="transparent" />,
+            icon: <DottedCircleIcon color="transparent" />,
             active: () => (hasBackground ? false : true),
             attrs: { color: null },
           },
@@ -205,71 +211,69 @@ export default function tableColMenuItems(
       ],
     },
     {
-      icon: <MoreIcon />,
-      children: [
-        {
-          name: "toggleHeaderColumn",
-          label: t("Toggle header"),
-          icon: <TableHeaderColumnIcon />,
-          visible: index === 0,
-        },
-        {
-          name: rtl ? "addColumnAfter" : "addColumnBefore",
-          label: rtl ? t("Insert after") : t("Insert before"),
-          icon: <InsertLeftIcon />,
-          attrs: { index },
-        },
-        {
-          name: rtl ? "addColumnBefore" : "addColumnAfter",
-          label: rtl ? t("Insert before") : t("Insert after"),
-          icon: <InsertRightIcon />,
-          attrs: { index },
-        },
-        {
-          name: "moveTableColumn",
-          label: t("Move left"),
-          icon: <ArrowLeftIcon />,
-          attrs: { from: index, to: index - 1 },
-          visible: index > 0,
-        },
-        {
-          name: "moveTableColumn",
-          label: t("Move right"),
-          icon: <ArrowRightIcon />,
-          attrs: { from: index, to: index + 1 },
-          visible: index < tableMap.map.width - 1,
-        },
-        {
-          name: "separator",
-        },
-        {
-          name: "mergeCells",
-          label: t("Merge cells"),
-          icon: <TableMergeCellsIcon />,
-          visible: isMultipleCellSelection(state),
-        },
-        {
-          name: "splitCell",
-          label: t("Split cell"),
-          icon: <TableSplitCellsIcon />,
-          visible: isMergedCellSelection(state),
-        },
-        {
-          name: "distributeColumns",
-          visible: selectedCols.length > 1,
-          label: t("Distribute columns"),
-          icon: <TableColumnsDistributeIcon />,
-        },
-        {
-          name: "separator",
-        },
-        {
-          name: "deleteColumn",
-          dangerous: true,
-          label: t("Delete"),
-          icon: <TrashIcon />,
-        },
-      ],
+      name: "separator",
+    },
+    {
+      name: "toggleHeaderColumn",
+      label: t("Toggle header"),
+      icon: <TableHeaderColumnIcon />,
+      visible: index === 0,
+    },
+    {
+      name: rtl ? "addColumnAfter" : "addColumnBefore",
+      label: rtl ? t("Insert after") : t("Insert before"),
+      icon: <InsertLeftIcon />,
+      attrs: { index },
+    },
+    {
+      name: rtl ? "addColumnBefore" : "addColumnAfter",
+      label: rtl ? t("Insert before") : t("Insert after"),
+      icon: <InsertRightIcon />,
+      attrs: { index },
+    },
+    {
+      name: "moveTableColumn",
+      label: t("Move left"),
+      icon: <ArrowLeftIcon />,
+      attrs: { from: index, to: index - 1 },
+      visible: index > 0,
+    },
+    {
+      name: "moveTableColumn",
+      label: t("Move right"),
+      icon: <ArrowRightIcon />,
+      attrs: { from: index, to: index + 1 },
+      visible: index < tableMap.map.width - 1,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "mergeCells",
+      label: t("Merge cells"),
+      icon: <TableMergeCellsIcon />,
+      visible: isMultipleCellSelection(state),
+    },
+    {
+      name: "splitCell",
+      label: t("Split cell"),
+      icon: <TableSplitCellsIcon />,
+      visible: isMergedCellSelection(state),
+    },
+    {
+      name: "distributeColumns",
+      visible: selectedCols.length > 1,
+      label: t("Distribute columns"),
+      icon: <TableColumnsDistributeIcon />,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "deleteColumn",
+      dangerous: true,
+      label: t("Delete"),
+      icon: <TrashIcon />,
     },
   ];
 }

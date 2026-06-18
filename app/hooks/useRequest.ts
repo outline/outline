@@ -29,7 +29,7 @@ export default function useRequest<T = unknown>(
   const [data, setData] = useState<T>();
   const [loading, setLoading] = useState<boolean>(false);
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [error, setError] = useState();
+  const [error, setError] = useState<unknown>();
 
   const request = useCallback(async () => {
     setLoading(true);

@@ -29,6 +29,7 @@ import HighlightColorPicker from "../components/HighlightColorPicker";
 import { getDocumentHighlightColors } from "@shared/editor/queries/getDocumentHighlightColors";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInList } from "@shared/editor/queries/isInList";
+import { isListActive } from "@shared/editor/queries/isListActive";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
@@ -384,7 +385,7 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
       shortcut: `⇧+Ctrl+7`,
       icon: <TodoListIcon />,
       keywords: "checklist checkbox task",
-      active: isNodeActive(schema.nodes.checkbox_list),
+      active: isListActive(schema.nodes.checkbox_list),
       visible: !isInCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
@@ -392,7 +393,7 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
       tooltip: t("Bulleted list"),
       shortcut: `⇧+Ctrl+8`,
       icon: <BulletedListIcon />,
-      active: isNodeActive(schema.nodes.bullet_list),
+      active: isListActive(schema.nodes.bullet_list),
       visible: !isInCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
@@ -400,7 +401,7 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
       tooltip: t("Ordered list"),
       shortcut: `⇧+Ctrl+9`,
       icon: <OrderedListIcon />,
-      active: isNodeActive(schema.nodes.ordered_list),
+      active: isListActive(schema.nodes.ordered_list),
       visible: !isInCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {

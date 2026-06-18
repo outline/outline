@@ -17,6 +17,14 @@ export enum TableLayout {
   fullWidth = "full-width",
 }
 
+/** How a selection toolbar menu is presented. */
+export enum MenuType {
+  /** A horizontal strip of buttons; nested options open behind a trigger. */
+  toolbar = "toolbar",
+  /** A vertical menu rendered directly, anchored to the selection. */
+  inline = "inline",
+}
+
 type Section = ({ t }: { t: TFunction }) => string;
 
 export type MenuItem = {
@@ -140,6 +148,20 @@ export interface SelectionToolbarMenuDescriptor {
   priority: number;
   /** Toolbar alignment when this menu is active. Defaults to "center". */
   align?: "center" | "start" | "end";
+  /**
+   * Whether the toolbar is anchored to a block rather than a transient text
+   * selection. Block toolbars (code, notice) stay visible while the caret sits
+   * in the block, so on desktop they are rendered as a sticky element that pins
+   * to the top of the viewport as the block scrolls, instead of a floating
+   * toolbar positioned once and left behind on scroll.
+   */
+  sticky?: boolean;
+  /**
+   * How the menu is presented. "toolbar" (default) renders a horizontal strip
+   * of buttons; "inline" renders a vertical menu anchored to the selection
+   * without requiring a trigger button.
+   */
+  variant?: MenuType;
   /**
    * Returns the menu items to display for the current selection.
    *

@@ -3,6 +3,7 @@ import {
   buildComment,
   buildDocument,
   buildResolvedComment,
+  buildTemplate,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
@@ -93,5 +94,33 @@ describe("fetch", () => {
 
     const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
     expect(metadata.document.commentCount).toEqual(2);
+  });
+
+  it("returns template metadata and markdown", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "Body of the template",
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "template",
+      id: template.id,
+    });
+
+    expect(res?.result?.isError).not.toBe(true);
+    expect(res!.result!.content!.length).toEqual(2);
+
+    const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
+    expect(metadata.id).toEqual(template.id);
+    expect(metadata.url).toMatch(/^https?:\/\//);
+
+    expect(res!.result!.content![1].text).toContain("Body of the template");
   });
 });

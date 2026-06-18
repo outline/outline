@@ -937,6 +937,41 @@ describe("ProsemirrorHelper", () => {
       expect(result.emoji).toBe("🇺🇸");
       expect(result.doc.content.child(0).textContent).toBe(" United States");
     });
+
+    it("should extract emoji when the text node is only the emoji", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "🎯" },
+            { type: "text", text: "Overview" },
+          ],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBe("🎯");
+      // The emoji-only text node is dropped rather than left empty.
+      expect(result.doc.content.child(0).textContent).toBe("Overview");
+    });
+
+    it("should extract a marked emoji-only text node without throwing", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "🎯", marks: [{ type: "strong" }] },
+            { type: "text", text: "Overview" },
+          ],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBe("🎯");
+      expect(result.doc.content.child(0).textContent).toBe("Overview");
+    });
   });
 
   describe("replaceImagesWithAttachments", () => {

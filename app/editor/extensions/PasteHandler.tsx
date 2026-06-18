@@ -55,15 +55,11 @@ export default class PasteHandler extends Extension {
           },
           handleDOMEvents: {
             keydown: (_, event) => {
-              if (event.key === "Shift") {
-                this.shiftKey = true;
-              }
+              this.shiftKey = event.shiftKey;
               return false;
             },
             keyup: (_, event) => {
-              if (event.key === "Shift") {
-                this.shiftKey = false;
-              }
+              this.shiftKey = event.shiftKey;
               return false;
             },
           },

@@ -5,6 +5,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { ErrorCode } from "@modelcontextprotocol/sdk/types.js";
+import { toError } from "@shared/utils/error";
 import { TeamPreference } from "@shared/types";
 import { NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -19,6 +20,7 @@ import { collectionTools } from "@server/tools/collections";
 import { commentTools } from "@server/tools/comments";
 import { documentTools } from "@server/tools/documents";
 import { fetchTool } from "@server/tools/fetch";
+import { templateTools } from "@server/tools/templates";
 import { userTools } from "@server/tools/users";
 import { version } from "../../../package.json";
 
@@ -29,7 +31,9 @@ const defaultInstructions = `Document markdown content must not begin with a top
 
 Document and collection markdown support @mentions using the syntax: @[Display Name](mention://user/userId). For example: @[John Doe](mention://user/c9a1b2e3-...). Use the "list_users" tool to find user IDs.
 
-Read images and attachments with the "fetch" tool by setting resource to "attachment" and passing either the attachment ID or an /api/attachments.redirect?id=... URL; the tool will return a signed URL for download.`;
+Read images and attachments with the "fetch" tool by setting resource to "attachment" and passing either the attachment ID or an /api/attachments.redirect?id=... URL; the tool will return a signed URL for download.
+
+When asked to create a document that follows a template, use the "list_templates" tool to find a matching template; each result already includes the template body as markdown. To use it unchanged, pass its ID as templateId to "create_document" and the new document is pre-filled from it. To adapt it first, modify the returned body and pass the result as the text parameter to "create_document". Either way no separate fetch is needed.`;
 
 /**
  * Creates a fresh MCP server instance with tools filtered by the OAuth
@@ -62,6 +66,7 @@ function createMcpServer(scopes: string[], guidance?: string): McpServer {
   commentTools(server, scopes);
   documentTools(server, scopes);
   fetchTool(server, scopes);
+  templateTools(server, scopes);
   userTools(server, scopes);
 
   return server;
@@ -122,7 +127,7 @@ router.post(
     } catch (error) {
       Logger.error(
         "MCP request handling failed",
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         undefined,
         ctx.req
       );

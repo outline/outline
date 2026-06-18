@@ -17,6 +17,11 @@ import attachmentsRule from "../rules/links";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
 
+const parseDimension = (value: string | null): number | null => {
+  const parsed = parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 export default class Video extends Node {
   get name() {
     return "video";
@@ -56,12 +61,12 @@ export default class Video extends Node {
         {
           priority: 100,
           tag: "video",
-          getAttrs: (dom: HTMLAnchorElement) => ({
+          getAttrs: (dom: HTMLVideoElement) => ({
             id: dom.id,
             title: dom.getAttribute("title"),
             src: dom.getAttribute("src"),
-            width: parseInt(dom.getAttribute("width") ?? "", 10),
-            height: parseInt(dom.getAttribute("height") ?? "", 10),
+            width: parseDimension(dom.getAttribute("width")),
+            height: parseDimension(dom.getAttribute("height")),
           }),
         },
       ],
@@ -184,7 +189,9 @@ export default class Video extends Node {
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.ensureNewLine();
     state.write(
-      `[${node.attrs.title} ${node.attrs.width}x${node.attrs.height}](${node.attrs.src})\n\n`
+      `[${node.attrs.title} ${node.attrs.width ?? ""}x${
+        node.attrs.height ?? ""
+      }](${node.attrs.src})\n\n`
     );
     state.ensureNewLine();
   }
@@ -195,8 +202,8 @@ export default class Video extends Node {
       getAttrs: (tok: Token) => ({
         src: tok.attrGet("src"),
         title: tok.attrGet("title"),
-        width: parseInt(tok.attrGet("width") ?? "", 10),
-        height: parseInt(tok.attrGet("height") ?? "", 10),
+        width: parseDimension(tok.attrGet("width")),
+        height: parseDimension(tok.attrGet("height")),
       }),
     };
   }

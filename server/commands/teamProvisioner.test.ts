@@ -151,7 +151,9 @@ describe("teamProvisioner", () => {
       } catch (e) {
         error = e;
       }
-      expect(error.id).toEqual("invalid_authentication");
+      expect(
+        error instanceof Error && "id" in error ? error.id : undefined
+      ).toEqual("invalid_authentication");
     });
   });
 

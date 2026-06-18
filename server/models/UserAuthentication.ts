@@ -124,7 +124,11 @@ class UserAuthentication extends IdModel<
 
       return true;
     } catch (error) {
-      if (error.id === "authentication_required") {
+      if (
+        error instanceof Error &&
+        "id" in error &&
+        error.id === "authentication_required"
+      ) {
         return false;
       }
 

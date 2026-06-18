@@ -9,6 +9,7 @@ import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
+import { errToString } from "@shared/utils/error";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
@@ -29,6 +30,7 @@ import documentDuplicator from "@server/commands/documentDuplicator";
 import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
+import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
 import env from "@server/env";
 import {
@@ -51,7 +53,6 @@ import {
   Document,
   DocumentInsight,
   Event,
-  Revision,
   SearchQuery,
   Template,
   User,
@@ -89,7 +90,6 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { convertBareUrlsToEmbedMarkdown } from "@server/utils/embeds";
 import { streamZipResponse } from "@server/utils/koa";
 import { getTeamFromContext } from "@server/utils/passport";
-import { assertPresent } from "@server/validation";
 import pagination, { paginateQuery } from "../middlewares/pagination";
 import * as T from "./schema";
 import {
@@ -933,7 +933,7 @@ router.post(
           Logger.warn(`Failed to read attachment from storage`, {
             attachmentId: attachment.id,
             teamId: attachment.teamId,
-            error: err.message,
+            error: errToString(err),
           });
           buffer = Buffer.from("");
         }
@@ -968,63 +968,7 @@ router.post(
       transaction,
     });
 
-    const sourceCollectionId = document.collectionId;
-    const destCollectionId = collectionId ?? sourceCollectionId;
-
-    const srcCollection = sourceCollectionId
-      ? await Collection.findByPk(sourceCollectionId, {
-          userId: user.id,
-          includeDocumentStructure: true,
-          paranoid: false,
-          transaction,
-        })
-      : undefined;
-
-    const destCollection = destCollectionId
-      ? await Collection.findByPk(destCollectionId, {
-          userId: user.id,
-          includeDocumentStructure: true,
-          transaction,
-        })
-      : undefined;
-
-    if (!destCollection?.isActive) {
-      throw ValidationError(
-        "Unable to restore, the collection may have been deleted or archived"
-      );
-    }
-
-    if (sourceCollectionId && sourceCollectionId !== destCollectionId) {
-      authorize(user, "updateDocument", srcCollection);
-      await srcCollection?.removeDocumentInStructure(document, {
-        save: true,
-        transaction,
-      });
-    }
-
-    if (document.deletedAt) {
-      authorize(user, "restore", document);
-      authorize(user, "updateDocument", destCollection);
-
-      // restore a previously deleted document
-      await document.restoreTo(ctx, { collectionId: destCollectionId! }); // destCollectionId is guaranteed to be defined here
-    } else if (document.archivedAt) {
-      authorize(user, "unarchive", document);
-      authorize(user, "updateDocument", destCollection);
-
-      // restore a previously archived document
-      await document.restoreTo(ctx, { collectionId: destCollectionId! }); // destCollectionId is guaranteed to be defined here
-    } else if (revisionId) {
-      // restore a document to a specific revision
-      authorize(user, "update", document);
-      const revision = await Revision.findByPk(revisionId, { transaction });
-      authorize(document, "restore", revision);
-
-      await document.restoreFromRevision(revision);
-      await document.saveWithCtx(ctx, undefined, { name: "restore" });
-    } else {
-      assertPresent(revisionId, "revisionId is required");
-    }
+    await documentRestorer(ctx, { document, collectionId, revisionId });
 
     ctx.body = {
       data: await presentDocument(ctx, document),

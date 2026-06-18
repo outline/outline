@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { toError } from "@shared/utils/error";
 import Badge from "~/components/Badge";
 import { client } from "~/utils/ApiClient";
 import Logger from "~/utils/Logger";
@@ -20,7 +21,7 @@ export default function Version() {
           setVersionsBehind(res.data.versionsBehind);
         }
       } catch (error) {
-        Logger.error("Failed to load version info", error);
+        Logger.error("Failed to load version info", toError(error));
       }
     }
 

@@ -21,6 +21,7 @@ import {
   BeforeCreate,
   BeforeUpdate,
 } from "sequelize-typescript";
+import { errToString } from "@shared/utils/error";
 import { ValidationError } from "@server/errors";
 import FileStorage from "@server/storage/files";
 import { ValidateKey } from "@server/validation";
@@ -183,7 +184,7 @@ class Attachment extends IdModel<
         {
           id: model.id,
           teamId: model.teamId,
-          message: err.message,
+          message: errToString(err),
         }
       );
     }

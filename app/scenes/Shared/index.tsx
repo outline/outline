@@ -49,7 +49,7 @@ const canonicalOrigin = canonicalUrl
   : window.location.origin;
 
 type PathParams = {
-  shareId: string;
+  shareId?: string;
   collectionSlug?: string;
   documentSlug?: string;
 };

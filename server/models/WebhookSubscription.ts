@@ -13,7 +13,6 @@ import {
   ForeignKey,
   NotEmpty,
   DataType,
-  IsUrl,
   BeforeCreate,
   AfterCreate,
   AfterUpdate,
@@ -33,6 +32,7 @@ import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
+import IsUrl from "./validators/IsUrl";
 import Length from "./validators/Length";
 import { randomString } from "@shared/random";
 

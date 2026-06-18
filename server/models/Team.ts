@@ -408,7 +408,7 @@ class Team extends ParanoidModel<
     });
   };
 
-  public collectionIds = async function (paranoid = true) {
+  public collectionIds = async (paranoid = true) => {
     const models = await Collection.findAll({
       attributes: ["id"],
       where: {

@@ -1,6 +1,7 @@
 import path from "node:path";
 import { escapeRegExp } from "es-toolkit/compat";
 import type { ZipFile } from "yazl";
+import { errToString } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationFormat } from "@shared/types";
 import Logger from "@server/logging/Logger";
@@ -26,7 +27,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     zip,
     pathInZip,
     documentId,
-    format = FileOperationFormat.MarkdownZip,
+    format,
     includeAttachments,
     pathMap,
   }: {
@@ -89,7 +90,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         Logger.warn(`Failed to read attachment from storage`, {
           attachmentId: attachment.id,
           teamId: attachment.teamId,
-          error: err.message,
+          error: errToString(err),
         });
         buffer = Buffer.from("");
       }
@@ -150,26 +151,12 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     includeAttachments = true
   ) {
     const pathMap = this.createPathMap(collections, format);
-    Logger.debug(
-      "task",
-      `Start adding ${Object.values(pathMap).length} documents to archive`
-    );
-
-    for (const path of pathMap) {
-      const documentId = path[0].replace("/doc/", "");
-      const pathInZip = path[1];
-
-      await this.processDocument({
-        zip,
-        pathInZip,
-        documentId,
-        includeAttachments,
-        format,
-        pathMap,
-      });
-    }
-
-    Logger.debug("task", "Completed adding documents to archive");
+    await this.addDocumentsToArchive({
+      zip,
+      pathMap,
+      format,
+      includeAttachments,
+    });
 
     return await ZipHelper.toTmpFile(zip);
   }
@@ -200,28 +187,58 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       format
     );
 
-    Logger.debug(
-      "task",
-      `Start adding ${Object.values(pathMap).length} documents to archive`
-    );
+    await this.addDocumentsToArchive({
+      zip,
+      pathMap,
+      format,
+      includeAttachments: true,
+    });
 
-    for (const entry of pathMap) {
-      const documentId = entry[0].replace("/doc/", "");
-      const pathInZip = entry[1];
+    return await ZipHelper.toTmpFile(zip);
+  }
+
+  /**
+   * Processes each unique document in the path map and adds it to the zip.
+   *
+   * @param zip The yazl ZipFile to add files to
+   * @param pathMap Map of document urls to their path in the zip
+   * @param format The format to export in
+   * @param includeAttachments Whether to include attachments in the export
+   */
+  private async addDocumentsToArchive({
+    zip,
+    pathMap,
+    format,
+    includeAttachments,
+  }: {
+    zip: ZipFile;
+    pathMap: Map<string, string>;
+    format: FileOperationFormat;
+    includeAttachments: boolean;
+  }) {
+    const processedPaths = new Set<string>();
+
+    Logger.debug("task", `Start adding documents to archive`);
+
+    for (const [url, pathInZip] of pathMap) {
+      // A document may be keyed by multiple urls in the path map, only
+      // process each file in the zip once.
+      if (processedPaths.has(pathInZip)) {
+        continue;
+      }
+      processedPaths.add(pathInZip);
 
       await this.processDocument({
         zip,
         pathInZip,
-        documentId,
-        includeAttachments: true,
+        documentId: url.replace("/doc/", ""),
+        includeAttachments,
         format,
         pathMap,
       });
     }
 
     Logger.debug("task", "Completed adding documents to archive");
-
-    return await ZipHelper.toTmpFile(zip);
   }
 
   /**

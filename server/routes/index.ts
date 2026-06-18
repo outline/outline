@@ -39,7 +39,7 @@ router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
         },
       });
     } catch (err) {
-      if (err.status !== 404) {
+      if (!(err instanceof Error && "status" in err && err.status === 404)) {
         throw err;
       }
     }
@@ -78,7 +78,7 @@ if (env.isProduction) {
         },
       });
     } catch (err) {
-      if (err.status === 404) {
+      if (err instanceof Error && "status" in err && err.status === 404) {
         // Serve a bad request instead of not found if the file doesn't exist
         // This prevents CDN's from caching the response, allowing them to continue
         // serving old file versions

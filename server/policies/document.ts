@@ -111,11 +111,12 @@ allow(User, "publish", Document, (actor, document) =>
 
 allow(User, "manageUsers", Document, (actor, document) =>
   and(
-    can(actor, "update", document),
+    isTeamMutable(actor),
+    can(actor, "read", document),
     or(
       includesMembership(document, [DocumentPermission.Admin]),
-      and(isTeamAdmin(actor, document), can(actor, "read", document)),
-      can(actor, "updateDocument", document?.collection),
+      isTeamAdmin(actor, document),
+      can(actor, "update", document?.collection),
       !!document?.isDraft && actor.id === document?.createdById
     )
   )

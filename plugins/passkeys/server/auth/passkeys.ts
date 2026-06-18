@@ -8,6 +8,7 @@ import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
 import Router from "koa-router";
 import { randomBytes } from "node:crypto";
+import { toError } from "@shared/utils/error";
 import { User, UserPasskey, Team } from "@server/models";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
@@ -156,7 +157,7 @@ router.post(
         expectedRPID: getRpID(ctx),
       });
     } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
+      const err = toError(error);
       Logger.error("passkeys: Registration verification failed", err);
       throw ValidationError(err.message);
     }
@@ -306,7 +307,10 @@ router.post(
         },
       });
     } catch (err) {
-      Logger.error("passkeys: Authentication verification failed", err);
+      Logger.error(
+        "passkeys: Authentication verification failed",
+        toError(err)
+      );
       throw ValidationError("Passkey authentication failed. Please try again.");
     }
 

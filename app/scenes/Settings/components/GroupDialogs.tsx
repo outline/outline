@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import Group from "~/models/Group";
 import type User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -64,7 +65,7 @@ export function CreateGroupDialog() {
         dialogs.closeAllModals();
         history.push(settingsPath("groups", group.id, "members"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       } finally {
         setIsSaving(false);
       }
@@ -135,7 +136,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         });
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       } finally {
         setIsSaving(false);
       }
@@ -434,7 +435,7 @@ const GroupMemberListItem = observer(function ({
                       });
                     }
                   } catch (err) {
-                    toast.error(err.message);
+                    toast.error(errToString(err));
                     return false;
                   }
                   return true;

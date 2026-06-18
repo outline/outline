@@ -70,7 +70,7 @@ router.post(
     try {
       await attachment.writeFile(file);
     } catch (err) {
-      if (err.message.includes("permission denied")) {
+      if (err instanceof Error && err.message.includes("permission denied")) {
         throw Error(
           `Permission denied writing to "${key}". Check the host machine file system permissions.`
         );

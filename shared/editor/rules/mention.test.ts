@@ -98,6 +98,21 @@ describe("mention rule", () => {
     });
   });
 
+  describe("date format", () => {
+    it("should parse a date mention with an ISO date modelId", () => {
+      const result = md.parse(
+        "@[February 3rd, 2024](mention://a1b2c3d4-e5f6-7890-abcd-ef1234567890/date/2024-02-03)",
+        {}
+      );
+      const mentions = findMentionTokens(result);
+
+      expect(mentions).toHaveLength(1);
+      expect(mentions[0].type).toBe("date");
+      expect(mentions[0].modelId).toBe("2024-02-03");
+      expect(mentions[0].label).toBe("February 3rd, 2024");
+    });
+  });
+
   describe("mixed content", () => {
     it("should parse mention within text", () => {
       const result = md.parse(

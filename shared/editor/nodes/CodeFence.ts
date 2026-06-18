@@ -42,8 +42,10 @@ import {
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
 import { isCode, isMermaid } from "../lib/isCode";
+import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { escapeRawTableCell } from "../lib/markdown/tableCell";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
 import {
   findParentNode,
@@ -447,17 +449,20 @@ export default class CodeFence extends Node<CodeFenceOptions> {
               return prev;
             }
 
-            // Recompute tall blocks on doc changes, preserving
-            // user collapse/expand choices where possible.
+            // Recompute tall blocks on doc changes. Newly tall blocks are only
+            // auto-collapsed when content arrives via load/remote sync — never
+            // while the user is typing, which would collapse the block under
+            // the cursor.
             if (tr.docChanged) {
               const tallBlocks = findTallBlocks(newState.doc);
               const collapsedBlocks = new Set<number>();
+              const isRemote = isRemoteTransaction(tr);
 
               const inverse = tr.mapping.invert();
               for (const pos of tallBlocks) {
                 const oldPos = inverse.map(pos);
-                if (!prev.tallBlocks.has(oldPos)) {
-                  // Newly tall blocks start collapsed
+                if (isRemote && !prev.tallBlocks.has(oldPos)) {
+                  // Newly tall blocks start collapsed on load
                   collapsedBlocks.add(pos);
                 } else if (prev.collapsedBlocks.has(oldPos)) {
                   // Preserve previous collapsed state
@@ -694,8 +699,14 @@ export default class CodeFence extends Node<CodeFenceOptions> {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
+    // Fence content bypasses esc(), so when inside a table cell escape it here
+    // so it cannot break out of the column.
+    const content = state.inTable
+      ? escapeRawTableCell(node.textContent)
+      : node.textContent;
+
     state.write("```" + (node.attrs.language || "") + "\n");
-    state.text(node.textContent, false);
+    state.text(content, false);
     state.ensureNewLine();
     state.write("```");
     state.closeBlock(node);

@@ -9,12 +9,12 @@ import type {
 import type { Command } from "prosemirror-state";
 import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import * as React from "react";
-import { sanitizeImageSrc } from "../../utils/urls";
+import { sanitizeImageSrc, sanitizeUrl } from "../../utils/urls";
 import Caption from "../components/Caption";
 import ImageComponent from "../components/Image";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import type { ComponentProps } from "../types";
+import type { ComponentProps, NodeAttrMark } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import { ImageSource } from "../lib/FileHelper";
@@ -52,8 +52,8 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
 
   const match = tokenTitle.match(imageSizeRegex);
   if (match) {
-    attributes.width = parseInt(match[1], 10);
-    attributes.height = parseInt(match[2], 10);
+    attributes.width = match[1] ? parseInt(match[1], 10) : undefined;
+    attributes.height = match[2] ? parseInt(match[2], 10) : undefined;
     tokenTitle = tokenTitle.replace(imageSizeRegex, "");
   }
 
@@ -132,8 +132,7 @@ export default class Image extends SimpleImage {
       marks: "",
       group: "inline",
       selectable: true,
-      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1289000
-      draggable: false,
+      draggable: true,
       atom: true,
       parseDOM: [
         {
@@ -151,6 +150,12 @@ export default class Image extends SimpleImage {
 
             const width = img?.getAttribute("width");
             const height = img?.getAttribute("height");
+
+            // A link wrapping the image is stored as a node attribute rather
+            // than a mark, parse it back so it survives copy/paste. Sanitize
+            // the href as it is rendered directly into the DOM by the view.
+            const href = sanitizeUrl(img?.closest("a")?.getAttribute("href"));
+
             return {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
@@ -159,17 +164,16 @@ export default class Image extends SimpleImage {
               width: width ? parseInt(width, 10) : undefined,
               height: height ? parseInt(height, 10) : undefined,
               layoutClass,
+              marks: href ? [{ type: "link", attrs: { href } }] : undefined,
             };
           },
         },
         {
           tag: "img",
           getAttrs: (dom: HTMLImageElement) => {
-            // Don't parse images from our own editor with this rule.
-            if (
-              dom.parentElement?.classList.contains("image") ||
-              dom.parentElement?.classList.contains("emoji")
-            ) {
+            // Don't parse images from our own editor with this rule. A linked
+            // image nests the <img> inside an <a>, so check ancestors too.
+            if (dom.closest(".image") || dom.closest(".emoji")) {
               return false;
             }
 
@@ -206,18 +210,27 @@ export default class Image extends SimpleImage {
           ? `image image-${node.attrs.layoutClass}`
           : "image";
 
-        const children = [
-          [
-            "img",
-            {
-              ...node.attrs,
-              src: sanitizeImageSrc(node.attrs.src),
-              width: node.attrs.width,
-              height: node.attrs.height,
-              contentEditable: "false",
-            },
-          ],
+        // `marks` is held separately below and is not a valid DOM attribute.
+        const { marks, ...attrs } = node.attrs;
+        const img = [
+          "img",
+          {
+            ...attrs,
+            src: sanitizeImageSrc(node.attrs.src),
+            width: node.attrs.width,
+            height: node.attrs.height,
+            contentEditable: "false",
+          },
         ];
+
+        // A link applied to an image is held as a node attribute rather than a
+        // mark, so it must be written into the DOM explicitly here.
+        const linkHref = (marks as NodeAttrMark[] | undefined)?.find(
+          (mark) => mark.type === "link"
+        )?.attrs?.href;
+        const href = typeof linkHref === "string" ? linkHref : undefined;
+
+        const children = [href ? ["a", { href: sanitizeUrl(href) }, img] : img];
 
         if (node.attrs.alt) {
           children.push([
@@ -246,6 +259,32 @@ export default class Image extends SimpleImage {
       commentedImagePlugin(),
       new Plugin({
         props: {
+          handleDOMEvents: {
+            dragstart: (_view, event) => {
+              // ProseMirror lets the browser snapshot the dragged node's DOM as
+              // the drag image. For images that DOM includes the caption area and
+              // padding, which renders as a large white box around the image.
+              // Substitute the image element so the drag ghost is tight to it.
+              if (
+                !(event.target instanceof HTMLElement) ||
+                !event.dataTransfer
+              ) {
+                return false;
+              }
+              const image = event.target
+                .closest(`.component-${this.name}`)
+                ?.querySelector("img");
+              if (image) {
+                const rect = image.getBoundingClientRect();
+                event.dataTransfer.setDragImage(
+                  image,
+                  event.clientX - rect.left,
+                  event.clientY - rect.top
+                );
+              }
+              return false;
+            },
+          },
           handleKeyDown: (view, event) => {
             // prevent prosemirror's default spacebar behavior
             // & zoom in if the selected node is image

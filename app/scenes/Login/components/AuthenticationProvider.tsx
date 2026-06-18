@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { Client } from "@shared/types";
 import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
@@ -122,7 +123,7 @@ function AuthenticationProvider(props: Props) {
         // Submit form natively to let browser handle redirect and cookies
         formRef.current?.submit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     };
 

@@ -35,7 +35,7 @@ import { MenuHeader } from "~/components/primitives/components/Menu";
 export type Props<T extends MenuItem = MenuItem> = {
   rtl: boolean;
   isActive: boolean;
-  search: string;
+  search?: string;
   trigger: string | string[];
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
@@ -108,7 +108,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       const right = Math.max(fromPos.right, toPos.right);
       return new DOMRect(left, top, right - left, bottom - top);
     } catch (err) {
-      Logger.warn("Unable to calculate caret position", err);
+      Logger.warn("Unable to calculate caret position", { err });
       return new DOMRect();
     }
   }, [props.isActive, view]);

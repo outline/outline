@@ -83,6 +83,10 @@ export class MarkdownSerializer {
   }
 }
 
+// Tracks whether we have already warned about direct assignment to `out`,
+// so a hot loop cannot flood the console.
+let warnedDirectOutAssignment = false;
+
 export interface BlockMapEntry {
   /** Start position in the ProseMirror document (offset within parent content). */
   pmFrom: number;
@@ -103,14 +107,36 @@ export class MarkdownSerializerState {
   inTightList = false;
   closed = false;
   delim = "";
-  out = "";
+  _out = "";
+  lastChar = "";
   options: Options;
   blockMap = null;
+
+  // The serialized output so far. Use `append` to add to it — direct
+  // assignment still works but reads the last character back out of the
+  // string, which forces V8 to flatten the internal rope and is slow when
+  // done repeatedly on large documents.
+  get out() {
+    return this._out;
+  }
+
+  set out(value) {
+    if (!warnedDirectOutAssignment) {
+      warnedDirectOutAssignment = true;
+      // eslint-disable-next-line no-console
+      console.warn(
+        "MarkdownSerializerState: assigning `out` directly is slow on large documents, use append() instead."
+      );
+    }
+    this._out = value;
+    this.lastChar = value === "" ? "" : value.charAt(value.length - 1);
+  }
 
   constructor(nodes, marks, options) {
     this.nodes = nodes;
     this.marks = marks;
-    this.delim = this.out = "";
+    this.delim = this._out = "";
+    this.lastChar = "";
     this.closed = false;
     this.inTightList = false;
     this.inTable = false;
@@ -126,10 +152,21 @@ export class MarkdownSerializerState {
     }
   }
 
+  // :: (string)
+  // Append a string to the output, tracking `lastChar` without reading
+  // characters back out of `out` — that would force V8 to flatten the
+  // internal rope, which is quadratic on large documents.
+  append(content) {
+    if (content) {
+      this._out += content;
+      this.lastChar = content.charAt(content.length - 1);
+    }
+  }
+
   flushClose(size) {
     if (this.closed) {
       if (!this.atBlank()) {
-        this.out += "\n";
+        this.append("\n");
       }
       if (size === null || size === undefined) {
         size = 2;
@@ -141,7 +178,7 @@ export class MarkdownSerializerState {
           delimMin = delimMin.slice(0, delimMin.length - trim[0].length);
         }
         for (let i = 1; i < size; i++) {
-          this.out += delimMin + "\n";
+          this.append(delimMin + "\n");
         }
       }
       this.closed = false;
@@ -163,14 +200,14 @@ export class MarkdownSerializerState {
   }
 
   atBlank() {
-    return /(^|\n)$/.test(this.out);
+    return this.lastChar === "" || this.lastChar === "\n";
   }
 
   // :: ()
   // Ensure the current content ends with a newline.
   ensureNewLine() {
     if (!this.atBlank()) {
-      this.out += "\n";
+      this.append("\n");
     }
   }
 
@@ -181,10 +218,10 @@ export class MarkdownSerializerState {
   write(content) {
     this.flushClose();
     if (this.delim && this.atBlank()) {
-      this.out += this.delim;
+      this.append(this.delim);
     }
     if (content) {
-      this.out += content;
+      this.append(content);
     }
   }
 
@@ -202,9 +239,11 @@ export class MarkdownSerializerState {
     for (let i = 0; i < lines.length; i++) {
       const startOfLine = this.atBlank() || this.closed;
       this.write();
-      this.out += escape !== false ? this.esc(lines[i], startOfLine) : lines[i];
+      this.append(
+        escape !== false ? this.esc(lines[i], startOfLine) : lines[i]
+      );
       if (i !== lines.length - 1) {
-        this.out += "\n";
+        this.append("\n");
       }
     }
   }
@@ -389,9 +428,9 @@ export class MarkdownSerializerState {
     if (this.inTable) {
       node.forEach((child, _, i) => {
         if (i > 0) {
-          this.out += " <br> ";
+          this.append(" <br> ");
         }
-        this.out += firstDelim(i).trim() + " ";
+        this.append(firstDelim(i).trim() + " ");
         this.render(child, node, i);
       });
       return;
@@ -438,14 +477,24 @@ export class MarkdownSerializerState {
     });
 
     // Ensure there is an empty newline above all tables
-    this.out += "\n";
+    this.append("\n");
 
     // Render rows
     node.forEach((row, _, i) => {
       row.forEach((cell, _, j) => {
-        this.out += j === 0 ? "| " : " | ";
+        this.append(j === 0 ? "| " : " | ");
 
-        const startPos = this.out.length;
+        // A table row is a single line of Markdown, so render the cell into an
+        // isolated buffer and flatten any newlines its block content (notices,
+        // code fences, blockquotes, …) produced into <br>.
+        const cellState = new MarkdownSerializerState(
+          this.nodes,
+          this.marks,
+          this.options
+        );
+        cellState.inTable = true;
+        cellState.inList = this.inList;
+        cellState.inTightList = this.inTightList;
 
         cell.forEach((cellNode) => {
           if (
@@ -455,34 +504,38 @@ export class MarkdownSerializerState {
               cellNode.type.name === "paragraph"
             )
           ) {
-            this.closed = false;
-            this.render(cellNode, row, j);
+            cellState.closed = false;
+            cellState.render(cellNode, row, j);
           }
         });
 
+        const content = cellState.out
+          .replace(/^\n+|\n+$/g, "")
+          .replace(/\n/g, "<br>");
+        this.append(content);
+
         // Pad to column width
-        const contentLength = this.out.length - startPos;
-        const padding = Math.max(0, columnWidths[j] - contentLength);
-        this.out += " ".repeat(padding);
+        const padding = Math.max(0, columnWidths[j] - content.length);
+        this.append(" ".repeat(padding));
       });
 
-      this.out += " |\n";
+      this.append(" |\n");
 
       // Header separator after first row
       if (i === 0) {
         headerRow.forEach((cell, _, j) => {
           const width = columnWidths[j];
           if (cell.attrs.alignment === "center") {
-            this.out += "|:" + "-".repeat(width) + ":";
+            this.append("|:" + "-".repeat(width) + ":");
           } else if (cell.attrs.alignment === "left") {
-            this.out += "|:" + "-".repeat(width + 1);
+            this.append("|:" + "-".repeat(width + 1));
           } else if (cell.attrs.alignment === "right") {
-            this.out += "|" + "-".repeat(width + 1) + ":";
+            this.append("|" + "-".repeat(width + 1) + ":");
           } else {
-            this.out += "|" + "-".repeat(width + 2);
+            this.append("|" + "-".repeat(width + 2));
           }
         });
-        this.out += "|\n";
+        this.append("|\n");
       }
     });
 

@@ -7,7 +7,10 @@ import Extension from "@shared/editor/lib/Extension";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import type { SelectionToolbarMenuDescriptor } from "@shared/editor/types";
+import {
+  MenuType,
+  type SelectionToolbarMenuDescriptor,
+} from "@shared/editor/types";
 import { SelectionToolbar } from "../components/SelectionToolbar";
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
@@ -55,6 +58,7 @@ export default class SelectionToolbarExtension extends Extension {
       {
         priority: 100,
         align: "end",
+        sticky: true,
         matches: (ctx) =>
           ctx.isInCodeBlock &&
           (ctx.isEmpty || ctx.selectedNodeType !== undefined),
@@ -62,16 +66,19 @@ export default class SelectionToolbarExtension extends Extension {
       },
       {
         priority: 90,
+        variant: MenuType.inline,
         matches: (ctx) => ctx.isTableSelected,
         getItems: (ctx) => getTableMenuItems(ctx),
       },
       {
         priority: 85,
+        variant: MenuType.inline,
         matches: (ctx) => ctx.colIndex !== undefined,
         getItems: (ctx) => getTableColMenuItems(ctx),
       },
       {
         priority: 80,
+        variant: MenuType.inline,
         matches: (ctx) => ctx.rowIndex !== undefined,
         getItems: (ctx) => getTableRowMenuItems(ctx),
       },
@@ -89,14 +96,12 @@ export default class SelectionToolbarExtension extends Extension {
         priority: 30,
         matches: (ctx) => ctx.readOnly,
         getItems: (ctx) =>
-          getReadOnlyMenuItems(
-            ctx,
-            this.editor.props.canUpdate ?? false
-          ),
+          getReadOnlyMenuItems(ctx, this.editor.props.canUpdate ?? false),
       },
       {
         priority: 20,
         align: "end",
+        sticky: true,
         matches: (ctx) => ctx.isInNotice && ctx.isEmpty,
         getItems: (ctx) => getNoticeMenuItems(ctx),
       },

@@ -2,7 +2,6 @@ import {
   TrashIcon,
   InsertAboveIcon,
   InsertBelowIcon,
-  MoreIcon,
   PaletteIcon,
   TableHeaderRowIcon,
   TableSplitCellsIcon,
@@ -16,7 +15,11 @@ import {
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
 import { t } from "i18next";
-import type { MenuItem, NodeAttrMark, SelectionContext } from "@shared/editor/types";
+import type {
+  MenuItem,
+  NodeAttrMark,
+  SelectionContext,
+} from "@shared/editor/types";
 import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
@@ -56,9 +59,7 @@ function getRowColors(state: EditorState, rowIndex: number): Set<string> {
  * @param ctx - the current selection context.
  * @returns an array of menu items.
  */
-export default function tableRowMenuItems(
-  ctx: SelectionContext
-): MenuItem[] {
+export default function tableRowMenuItems(ctx: SelectionContext): MenuItem[] {
   if (ctx.readOnly) {
     return [];
   }
@@ -83,7 +84,42 @@ export default function tableRowMenuItems(
 
   return [
     {
-      tooltip: t("Background color"),
+      name: "toggleHeaderRow",
+      label: t("Toggle header"),
+      icon: <TableHeaderRowIcon />,
+      visible: index === 0,
+    },
+    {
+      name: "addRowBefore",
+      label: t("Insert before"),
+      icon: <InsertAboveIcon />,
+      attrs: { index },
+    },
+    {
+      name: "addRowAfter",
+      label: t("Insert after"),
+      icon: <InsertBelowIcon />,
+      attrs: { index },
+    },
+    {
+      name: "moveTableRow",
+      label: t("Move up"),
+      icon: <ArrowUpIcon />,
+      attrs: { from: index, to: index - 1 },
+      visible: index > 0,
+    },
+    {
+      name: "moveTableRow",
+      label: t("Move down"),
+      icon: <ArrowDownIcon />,
+      attrs: { from: index, to: index + 1 },
+      visible: index < tableMap.map.height - 1,
+    },
+    {
+      name: "separator",
+    },
+    {
+      label: t("Background"),
       icon:
         rowColors.size > 1 ? (
           <CircleIcon color="rainbow" />
@@ -97,7 +133,7 @@ export default function tableRowMenuItems(
           {
             name: "toggleRowBackgroundAndCollapseSelection",
             label: t("None"),
-            icon: <DottedCircleIcon retainColor color="transparent" />,
+            icon: <DottedCircleIcon color="transparent" />,
             active: () => (hasBackground ? false : true),
             attrs: { color: null },
           },
@@ -141,65 +177,28 @@ export default function tableRowMenuItems(
       ],
     },
     {
-      icon: <MoreIcon />,
-      children: [
-        {
-          name: "toggleHeaderRow",
-          label: t("Toggle header"),
-          icon: <TableHeaderRowIcon />,
-          visible: index === 0,
-        },
-        {
-          name: "addRowBefore",
-          label: t("Insert before"),
-          icon: <InsertAboveIcon />,
-          attrs: { index },
-        },
-        {
-          name: "addRowAfter",
-          label: t("Insert after"),
-          icon: <InsertBelowIcon />,
-          attrs: { index },
-        },
-        {
-          name: "moveTableRow",
-          label: t("Move up"),
-          icon: <ArrowUpIcon />,
-          attrs: { from: index, to: index - 1 },
-          visible: index > 0,
-        },
-        {
-          name: "moveTableRow",
-          label: t("Move down"),
-          icon: <ArrowDownIcon />,
-          attrs: { from: index, to: index + 1 },
-          visible: index < tableMap.map.height - 1,
-        },
-        {
-          name: "separator",
-        },
-        {
-          name: "mergeCells",
-          label: t("Merge cells"),
-          icon: <TableMergeCellsIcon />,
-          visible: isMultipleCellSelection(state),
-        },
-        {
-          name: "splitCell",
-          label: t("Split cell"),
-          icon: <TableSplitCellsIcon />,
-          visible: isMergedCellSelection(state),
-        },
-        {
-          name: "separator",
-        },
-        {
-          name: "deleteRow",
-          label: t("Delete"),
-          dangerous: true,
-          icon: <TrashIcon />,
-        },
-      ],
+      name: "separator",
+    },
+    {
+      name: "mergeCells",
+      label: t("Merge cells"),
+      icon: <TableMergeCellsIcon />,
+      visible: isMultipleCellSelection(state),
+    },
+    {
+      name: "splitCell",
+      label: t("Split cell"),
+      icon: <TableSplitCellsIcon />,
+      visible: isMergedCellSelection(state),
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "deleteRow",
+      label: t("Delete"),
+      dangerous: true,
+      icon: <TrashIcon />,
     },
   ];
 }

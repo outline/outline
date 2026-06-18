@@ -91,12 +91,12 @@ class FileOperation extends ParanoidModel<
   /**
    * Mark the current file operation as expired and remove the file from storage.
    */
-  expire = async function () {
+  expire = async () => {
     this.state = FileOperationState.Expired;
     try {
       await FileStorage.deleteFile(this.key);
     } catch (err) {
-      if (err.retryable) {
+      if (err instanceof Error && "retryable" in err && err.retryable) {
         throw err;
       }
     }

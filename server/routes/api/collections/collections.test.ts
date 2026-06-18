@@ -1241,6 +1241,7 @@ describe("#collections.create", () => {
     expect(body.data.name).toBe("Test");
     expect(body.data.sort.field).toBe("index");
     expect(body.data.sort.direction).toBe("asc");
+    expect(body.data.permission).toBe(null);
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
   });
@@ -1251,6 +1252,23 @@ describe("#collections.create", () => {
       body: {
         name: "Test",
         index: "يونيكود",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("rejects providing both description and data", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/collections.create", user, {
+      body: {
+        name: "Test",
+        description: "Test",
+        data: {
+          type: "doc",
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "Test" }] },
+          ],
+        },
       },
     });
     expect(res.status).toEqual(400);
@@ -1445,6 +1463,50 @@ describe("#collections.update", () => {
 
     expect(collection.description).toBe("Test");
     expect(collection.content).toBeTruthy();
+  });
+
+  it("replaces rendered content when description is updated post-create", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+
+    const createRes = await server.post("/api/collections.create", admin, {
+      headers: { "x-api-version": "3" },
+      body: { name: "Foo", description: "Original" },
+    });
+    const { id } = (await createRes.json()).data;
+
+    const updateRes = await server.post("/api/collections.update", admin, {
+      headers: { "x-api-version": "3" },
+      body: { id, description: "Replaced" },
+    });
+    expect(updateRes.status).toEqual(200);
+
+    const infoRes = await server.post("/api/collections.info", admin, {
+      headers: { "x-api-version": "3" },
+      body: { id },
+    });
+    const content = JSON.stringify((await infoRes.json()).data.data);
+    expect(content).toContain("Replaced");
+    expect(content).not.toContain("Original");
+  });
+
+  it("rejects providing both description and data", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        description: "Test",
+        data: {
+          type: "doc",
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "Test" }] },
+          ],
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("allows editing data", async () => {

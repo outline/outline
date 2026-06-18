@@ -5,6 +5,7 @@ import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import { CommentingAccess, TeamPreference, EmailDisplay } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
@@ -108,7 +109,7 @@ function Security() {
         await team.save(newData);
         showSuccessMessage();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [team, showSuccessMessage]
