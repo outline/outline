@@ -9,18 +9,14 @@ import type {
   Schema,
 } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
-import { Plugin, Selection, TextSelection } from "prosemirror-state";
+import { Plugin, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Primitive } from "utility-types";
 import { isSafari } from "../../utils/browser";
-import Storage from "../../utils/Storage";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
-import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
-import { headingToPersistenceKey } from "../lib/headingToSlug";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 import Node from "./Node";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
@@ -102,56 +98,6 @@ export default class Heading extends Node<HeadingOptions> {
       toggleBlockType(type, schema.nodes.paragraph, attrs);
   }
 
-  handleFoldContent = (event: MouseEvent) => {
-    event.preventDefault();
-    if (
-      !(event.currentTarget instanceof HTMLButtonElement) ||
-      event.button !== 0
-    ) {
-      return;
-    }
-
-    const { view } = this.editor;
-    const hadFocus = view.hasFocus();
-    const { tr } = view.state;
-    const { top, left } = event.currentTarget.getBoundingClientRect();
-    const result = view.posAtCoords({ top, left });
-
-    if (result) {
-      const node = view.state.doc.nodeAt(result.inside);
-
-      if (node) {
-        const endOfHeadingPos = result.inside + node.nodeSize;
-        const $pos = view.state.doc.resolve(endOfHeadingPos);
-        const collapsed = !node.attrs.collapsed;
-
-        if (collapsed && view.state.selection.to > endOfHeadingPos) {
-          // move selection to the end of the collapsed heading
-          tr.setSelection(Selection.near($pos, -1));
-        }
-
-        const transaction = tr.setNodeMarkup(result.inside, undefined, {
-          ...node.attrs,
-          collapsed,
-        });
-
-        const persistKey = headingToPersistenceKey(node, this.editor.props.id);
-
-        if (collapsed) {
-          Storage.set(persistKey, "collapsed");
-        } else {
-          Storage.remove(persistKey);
-        }
-
-        view.dispatch(transaction);
-
-        if (hadFocus) {
-          view.focus();
-        }
-      }
-    }
-  };
-
   handleCopyLink = (event: MouseEvent) => {
     if (!(event.currentTarget instanceof HTMLButtonElement)) {
       return;
@@ -206,7 +152,6 @@ export default class Heading extends Node<HeadingOptions> {
     return {
       ...options,
       Backspace: backspaceToParagraph(type),
-      Enter: splitHeading(type),
       ArrowLeft: ((state, dispatch) => {
         if (!isSafari) {
           return false;
@@ -273,35 +218,11 @@ export default class Heading extends Node<HeadingOptions> {
             this.handleCopyLink(event)
           );
 
-          // Create fold button
-          const fold = document.createElement("button");
-          fold.innerText = "";
-          fold.innerHTML =
-            '<svg fill="currentColor" width="12" height="24" viewBox="6 0 12 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.23823905,10.6097108 L11.207376,14.4695888 L11.207376,14.4695888 C11.54411,14.907343 12.1719566,14.989236 12.6097108,14.652502 C12.6783439,14.5997073 12.7398293,14.538222 12.792624,14.4695888 L15.761761,10.6097108 L15.761761,10.6097108 C16.0984949,10.1719566 16.0166019,9.54410997 15.5788477,9.20737601 C15.4040391,9.07290785 15.1896811,9 14.969137,9 L9.03086304,9 L9.03086304,9 C8.47857829,9 8.03086304,9.44771525 8.03086304,10 C8.03086304,10.2205442 8.10377089,10.4349022 8.23823905,10.6097108 Z" /></svg>';
-          fold.type = "button";
-          fold.className = `heading-fold ${
-            node.attrs.collapsed ? "collapsed" : ""
-          }`;
-          fold.setAttribute(
-            "aria-label",
-            node.attrs.collapsed ? "Expand section" : "Collapse section"
-          );
-          fold.setAttribute(
-            "aria-expanded",
-            (!node.attrs.collapsed).toString()
-          );
-          fold.addEventListener("click", (event) =>
-            this.handleFoldContent(event)
-          );
-
           // Create container span
           const container = document.createElement("span");
           container.contentEditable = "false";
-          container.className = `heading-actions ${
-            node.attrs.collapsed ? "collapsed" : ""
-          }`;
+          container.className = "heading-actions";
           container.appendChild(anchor);
-          container.appendChild(fold);
 
           decorations.push(
             // Contains the heading actions
@@ -362,38 +283,7 @@ export default class Heading extends Node<HeadingOptions> {
       },
     });
 
-    const foldPlugin: Plugin = new Plugin({
-      state: {
-        init(_, { doc }) {
-          const decorations: Decoration[] = findCollapsedNodes(doc).map(
-            (block) =>
-              Decoration.node(block.pos, block.pos + block.node.nodeSize, {
-                class: "folded-content",
-              })
-          );
-          return DecorationSet.create(doc, decorations);
-        },
-        apply(tr, oldDecoSet) {
-          if (tr.docChanged) {
-            const decorations: Decoration[] = findCollapsedNodes(tr.doc).map(
-              (block) =>
-                Decoration.node(block.pos, block.pos + block.node.nodeSize, {
-                  class: "folded-content",
-                })
-            );
-            return DecorationSet.create(tr.doc, decorations);
-          }
-          return oldDecoSet.map(tr.mapping, tr.doc);
-        },
-      },
-      props: {
-        decorations(state) {
-          return this.getState(state);
-        },
-      },
-    });
-
-    return [widgetsPlugin, foldPlugin];
+    return [widgetsPlugin];
   }
 
   inputRules({ type }: { type: NodeType }) {
