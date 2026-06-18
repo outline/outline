@@ -17,6 +17,7 @@ type Dimension = {
 
 export function MediaDimension() {
   const ref = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
   const boundsRef = useRef<{
     width: { min: number; max: number };
     height: { min: number; max: number };
@@ -190,13 +191,47 @@ export function MediaDimension() {
 
   // Sync dimension changes from outside.
   useEffect(() => {
+    if (isDraggingRef.current) {
+      return;
+    }
     if (
       width !== Number(localDimension.width) ||
       height !== Number(localDimension.height)
     ) {
       reset();
     }
-  }, [width, height, reset]);
+  }, [width, height, reset, localDimension.width, localDimension.height]);
+
+  // Listen to drag resize updates in real-time.
+  useEffect(() => {
+    const handleDragResize = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        width: number;
+        height?: number;
+        isDragging?: boolean;
+      }>;
+      const {
+        width: newWidth,
+        height: newHeight,
+        isDragging,
+      } = customEvent.detail;
+
+      if (isDragging !== undefined) {
+        isDraggingRef.current = isDragging;
+      }
+
+      setLocalDimension({
+        width: newWidth ? String(newWidth) : "",
+        height: newHeight ? String(newHeight) : "",
+        changed: "none",
+      });
+    };
+
+    window.addEventListener("media-drag-resize", handleDragResize);
+    return () => {
+      window.removeEventListener("media-drag-resize", handleDragResize);
+    };
+  }, []);
 
   // hacky debounce for checking error.
   useEffect(() => {
