@@ -3,6 +3,7 @@ import fs from "fs-extra";
 import { chunk, truncate } from "es-toolkit/compat";
 import type { InferCreationAttributes } from "sequelize";
 import tmp from "tmp";
+import { toError } from "@shared/utils/error";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";
 import {
   AttachmentPreset,
@@ -150,7 +151,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
       } catch (error) {
         Logger.error(
           `ImportTask failed to persist data for ${fileOperationId}`,
-          error
+          toError(error)
         );
         throw new Error("Sorry, an internal error occurred during import");
       }
@@ -162,12 +163,12 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       return result;
     } catch (error) {
-      Logger.error(`ImportTask failed for ${fileOperationId}`, error);
+      Logger.error(`ImportTask failed for ${fileOperationId}`, toError(error));
 
       await this.updateFileOperation(
         fileOperation,
         FileOperationState.Error,
-        error
+        toError(error)
       );
       throw error;
     } finally {
@@ -269,7 +270,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
     } catch (error) {
       Logger.error(
         `ImportTask failed to cleanup extracted data for ${fileOperation.id}`,
-        error
+        toError(error)
       );
     }
   }

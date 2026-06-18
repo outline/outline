@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import type { Context } from "koa";
 import Router from "koa-router";
 import type { Profile } from "passport";
+import { toError } from "@shared/utils/error";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import accountProvisioner from "@server/commands/accountProvisioner";
@@ -226,7 +227,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
 
         return done(null, result.user, { ...result, client });
       } catch (err) {
-        return done(err, null);
+        return done(toError(err), null);
       }
     }
   );

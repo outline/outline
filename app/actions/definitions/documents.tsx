@@ -36,6 +36,7 @@ import {
   OpenIcon,
 } from "outline-icons";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import { ExportContentType, TeamPreference } from "@shared/types";
@@ -1123,7 +1124,7 @@ export const importDocument = createAction({
         );
         history.push(document.url);
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       } finally {
         toast.dismiss(toastId);
       }

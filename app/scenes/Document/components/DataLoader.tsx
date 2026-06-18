@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import type { RouteComponentProps, StaticContext } from "react-router";
 import { Redirect, useLocation } from "react-router";
+import { toError } from "@shared/utils/error";
 import { TeamPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
@@ -105,7 +106,7 @@ function DataLoader({ match, children }: Props) {
           force: missingPolicy,
         });
       } catch (err) {
-        setError(err);
+        setError(toError(err));
       }
     }
     void fetchDocument();
@@ -152,7 +153,7 @@ function DataLoader({ match, children }: Props) {
             documentId: document.id,
           });
         } catch (err) {
-          Logger.error("Failed to fetch views", err);
+          Logger.error("Failed to fetch views", toError(err));
         }
       }
     }

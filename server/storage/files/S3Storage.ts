@@ -17,6 +17,7 @@ import fs from "fs-extra";
 import invariant from "invariant";
 import { compact } from "es-toolkit/compat";
 import tmp from "tmp";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
@@ -171,10 +172,14 @@ export default class S3Storage extends BaseStorage {
           dateLessThan: new Date(Date.now() + expiresIn * 1000).toISOString(),
         });
       } catch (err) {
-        Logger.error("Failed to sign CloudFront URL, falling back to S3", err, {
-          key,
-          cfUrl,
-        });
+        Logger.error(
+          "Failed to sign CloudFront URL, falling back to S3",
+          toError(err),
+          {
+            key,
+            cfUrl,
+          }
+        );
         return this.getS3PresignedUrl(key, expiresIn);
       }
     }
@@ -302,10 +307,7 @@ export default class S3Storage extends BaseStorage {
     }
 
     // Ensure expiration does not exceed AWS S3 Signature V4 limit of 7 days
-    const clampedExpiresIn = Math.min(
-      expiresIn,
-      S3Storage.maxSignedUrlExpires
-    );
+    const clampedExpiresIn = Math.min(expiresIn, S3Storage.maxSignedUrlExpires);
 
     const command = new GetObjectCommand(params);
     const url = await getSignedUrl(this.client, command, {

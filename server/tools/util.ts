@@ -1,6 +1,7 @@
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
+import { errToString } from "@shared/utils/error";
 import { Collection, type Team, type User } from "@server/models";
 import { addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
@@ -88,7 +89,7 @@ export function success<T>(data: T | T[]): CallToolResult {
  * @returns a formatted error response object for MCP tools.
  */
 export function error(err: unknown): CallToolResult {
-  const message = err instanceof Error ? err.message : String(err);
+  const message = errToString(err);
 
   return {
     content: [{ type: "text" as const, text: message }],

@@ -3,6 +3,7 @@ import { ShapesIcon } from "outline-icons";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import Template from "~/models/Template";
 import { Action } from "~/components/Actions";
@@ -63,7 +64,7 @@ function TemplateNewScene() {
       await template.save();
       history.push(settingsPath("templates"));
     } catch (error) {
-      toast.error(error.message);
+      toast.error(errToString(error));
     } finally {
       setSaving(false);
     }

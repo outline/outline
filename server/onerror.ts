@@ -7,12 +7,13 @@ import { escape, isNil, snakeCase } from "es-toolkit/compat";
 import env from "@server/env";
 import { ClientClosedRequestError, InternalError } from "@server/errors";
 import { requestErrorHandler } from "@server/logging/sentry";
+import type { AppContext } from "@server/types";
 
 let errorHtmlCache: Buffer | undefined;
 
 export default function onerror(app: Koa) {
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-  app.context.onerror = function (err: any) {
+  app.context.onerror = function (this: AppContext, err: any) {
     // Don't do anything if there is no error, this allows you to pass `this.onerror` to node-style callbacks.
     if (isNil(err)) {
       return;

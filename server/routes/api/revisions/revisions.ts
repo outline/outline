@@ -3,6 +3,7 @@ import Router from "koa-router";
 import contentDisposition from "content-disposition";
 import { escapeRegExp } from "es-toolkit/compat";
 import mime from "mime-types";
+import { errToString } from "@shared/utils/error";
 import { UserRole } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import slugify from "@shared/utils/slugify";
@@ -207,7 +208,7 @@ router.post(
           Logger.warn(`Failed to read attachment from storage`, {
             attachmentId: attachment.id,
             teamId: attachment.teamId,
-            error: err.message,
+            error: errToString(err),
           });
           buffer = Buffer.from("");
         }

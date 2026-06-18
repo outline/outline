@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
+import { errToString } from "@shared/utils/error";
 import { TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
@@ -184,7 +185,9 @@ describe("accountProvisioner", () => {
       }
 
       expect(error).toBeTruthy();
-      expect(error.id).toEqual("invalid_authentication");
+      expect(
+        error instanceof Error && "id" in error ? error.id : undefined
+      ).toEqual("invalid_authentication");
     });
 
     it("should throw an error when authentication provider is disabled", async () => {
@@ -533,7 +536,7 @@ describe("accountProvisioner", () => {
         error = err;
       }
 
-      expect(error.message).toEqual("Invalid authentication");
+      expect(errToString(error)).toEqual("Invalid authentication");
     });
 
     it("should always use existing team if self-hosted", async () => {

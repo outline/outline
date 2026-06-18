@@ -5,6 +5,7 @@ import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { s } from "@shared/styles";
 import {
   AttachmentPreset,
@@ -89,7 +90,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
         ),
       });
     } catch (err) {
-      toast.error(err.message);
+      toast.error(errToString(err));
     } finally {
       setImporting(false);
       setUploadProgress(0);

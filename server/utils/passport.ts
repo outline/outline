@@ -6,6 +6,7 @@ import type {
   StateStoreVerifyCallback,
 } from "passport-oauth2";
 import type { Primitive } from "utility-types";
+import { toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
@@ -173,7 +174,7 @@ export class StateStore {
     try {
       state = verifyOAuthState(providedToken);
     } catch (err) {
-      return callback(err, false, providedToken);
+      return callback(toError(err), false, providedToken);
     }
 
     if (!safeEqual(hashOAuthStateNonce(csrfNonce ?? ""), state.nonceHash)) {

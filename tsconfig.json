@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "strict": false,
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "esModuleInterop": true,
@@ -16,11 +17,13 @@
     "noImplicitAny": true,
     "noImplicitOverride": false,
     "noImplicitReturns": true,
-    "noImplicitThis": false,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
     "sourceMap": true,
     "resolveJsonModule": true,
     "strictNullChecks": true,
     "noEmit": true,
+    "strictBindCallApply": true,
     "skipLibCheck": true,
     "ignoreDeprecations": "5.0",
     "target": "es2020",

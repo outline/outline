@@ -16,6 +16,7 @@ import {
   yDocToProsemirrorJSON,
 } from "y-prosemirror";
 import * as Y from "yjs";
+import { toError, errToString } from "@shared/utils/error";
 import Diff from "@shared/editor/extensions/Diff";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { ExtendedChange } from "@shared/editor/lib/ChangesetHelper";
@@ -532,7 +533,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
         );
         styleTags = sheet.getStyleTags();
       } catch (error) {
-        Logger.error("Failed to render styles on node HTML conversion", error);
+        Logger.error(
+          "Failed to render styles on node HTML conversion",
+          toError(error)
+        );
       } finally {
         sheet.seal();
       }
@@ -671,7 +675,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       try {
         view?.destroy();
       } catch (err) {
-        Logger.error("Error destroying ProseMirror view", err);
+        Logger.error("Error destroying ProseMirror view", toError(err));
       }
       cleanupEnv?.();
     }
@@ -990,7 +994,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
             }
           } catch (err) {
             Logger.warn("Failed to download image for attachment", {
-              error: err.message,
+              error: errToString(err),
               src,
             });
           }

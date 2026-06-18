@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { ApiKeyValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -85,7 +86,7 @@ function ApiKeyNew({ onSubmit }: Props) {
         );
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       } finally {
         setIsSaving(false);
       }

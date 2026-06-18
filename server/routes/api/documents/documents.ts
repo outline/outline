@@ -9,6 +9,7 @@ import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
+import { errToString } from "@shared/utils/error";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
@@ -932,7 +933,7 @@ router.post(
           Logger.warn(`Failed to read attachment from storage`, {
             attachmentId: attachment.id,
             teamId: attachment.teamId,
-            error: err.message,
+            error: errToString(err),
           });
           buffer = Buffer.from("");
         }

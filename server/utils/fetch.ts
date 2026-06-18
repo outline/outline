@@ -10,6 +10,7 @@ import nodeFetch, {
 } from "node-fetch";
 import { getProxyForUrl } from "proxy-from-env";
 import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
+import { errToString } from "@shared/utils/error";
 import env from "@server/env";
 import { InvalidRequestError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -181,14 +182,15 @@ export default async function fetch(
 
     return response;
   } catch (err) {
-    if (err.name === "AbortError") {
+    if (err instanceof Error && "name" in err && err.name === "AbortError") {
       throw new Error(`Request timeout after ${timeout}ms`);
     }
-    if (err.message?.startsWith("DNS lookup")) {
+    const message = errToString(err);
+    if (message.startsWith("DNS lookup")) {
       throw InvalidRequestError(
         env.isCloudHosted
-          ? err.message
-          : `${err.message}\n\nTo allow this request, add the IP address or CIDR range to the ALLOWED_PRIVATE_IP_ADDRESSES environment variable.`
+          ? message
+          : `${message}\n\nTo allow this request, add the IP address or CIDR range to the ALLOWED_PRIVATE_IP_ADDRESSES environment variable.`
       );
     }
     throw err;

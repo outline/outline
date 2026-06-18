@@ -68,7 +68,7 @@ function usePosition({
     fromPos = view.coordsAtPos(selection.from);
     toPos = view.coordsAtPos(selection.to, -1);
   } catch (err) {
-    Logger.warn("Unable to calculate selection position", err);
+    Logger.warn("Unable to calculate selection position", { err });
     return defaultPosition;
   }
 

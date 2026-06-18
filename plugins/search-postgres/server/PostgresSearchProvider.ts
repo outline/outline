@@ -264,7 +264,10 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         count,
       });
     } catch (err) {
-      if (err.message.includes("syntax error in tsquery")) {
+      if (
+        err instanceof Error &&
+        err.message.includes("syntax error in tsquery")
+      ) {
         throw ValidationError("Invalid search query");
       }
       throw err;
@@ -456,7 +459,10 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         count,
       });
     } catch (err) {
-      if (err.message.includes("syntax error in tsquery")) {
+      if (
+        err instanceof Error &&
+        err.message.includes("syntax error in tsquery")
+      ) {
         throw ValidationError("Invalid search query");
       }
       throw err;

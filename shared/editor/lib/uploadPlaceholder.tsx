@@ -11,7 +11,7 @@ const uploadPlaceholder = new Plugin({
     init() {
       return DecorationSet.empty;
     },
-    apply(tr, set: DecorationSet) {
+    apply(this: Plugin, tr, set: DecorationSet) {
       // See if the transaction adds or removes any placeholders – the placeholder display is
       // different depending on if we're uploading an image, video or plain file
       const action = tr.getMeta(this);
