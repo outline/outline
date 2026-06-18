@@ -11,6 +11,7 @@ import type {
 import type { Command } from "prosemirror-state";
 import { TextSelection } from "prosemirror-state";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { escapeRawTableCell } from "../lib/markdown/tableCell";
 import mathRule, { REGEX_BLOCK_MATH_DOLLARS } from "../rules/math";
 import Node from "./Node";
 
@@ -46,10 +47,10 @@ export default class MathBlock extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    // Block content bypasses esc(), so when inside a table cell escape
-    // backslashes and pipes here so it cannot break out of the column.
+    // Block content bypasses esc(), so when inside a table cell escape it here
+    // so it cannot break out of the column.
     const content = state.inTable
-      ? node.textContent.replace(/[\\|]/g, "\\$&")
+      ? escapeRawTableCell(node.textContent)
       : node.textContent;
 
     state.write("$$\n");

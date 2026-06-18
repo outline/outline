@@ -45,6 +45,7 @@ import { isCode, isMermaid } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { escapeRawTableCell } from "../lib/markdown/tableCell";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
 import {
   findParentNode,
@@ -698,10 +699,10 @@ export default class CodeFence extends Node<CodeFenceOptions> {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    // Fence content bypasses esc(), so when inside a table cell escape
-    // backslashes and pipes here so it cannot break out of the column.
+    // Fence content bypasses esc(), so when inside a table cell escape it here
+    // so it cannot break out of the column.
     const content = state.inTable
-      ? node.textContent.replace(/[\\|]/g, "\\$&")
+      ? escapeRawTableCell(node.textContent)
       : node.textContent;
 
     state.write("```" + (node.attrs.language || "") + "\n");
