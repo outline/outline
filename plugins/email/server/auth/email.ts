@@ -164,7 +164,9 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   } catch (err) {
     const message = errToString(err);
     Logger.debug("authentication", message);
-    return ctx.redirect(`/?notice=auth-error&description=${message}`);
+    return ctx.redirect(
+      `/?notice=auth-error&description=${encodeURIComponent(message)}`
+    );
   }
 
   if (!user) {
