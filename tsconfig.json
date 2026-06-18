@@ -22,7 +22,7 @@
     "resolveJsonModule": true,
     "strictNullChecks": true,
     "noEmit": true,
-    "noUncheckedSideEffectImports": false,
+    "strictBindCallApply": true,
     "skipLibCheck": true,
     "ignoreDeprecations": "5.0",
     "target": "es2020",
