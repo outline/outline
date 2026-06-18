@@ -824,27 +824,41 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     // Create a new document with the emoji removed from the text
     const json = doc.toJSON();
 
-    function removeEmojiFromNode(node: ProsemirrorData): ProsemirrorData {
+    function removeEmojiFromNode(
+      node: ProsemirrorData
+    ): ProsemirrorData | null {
       if (node.type === "text" && node.text && node.text.startsWith(emoji)) {
+        const text = node.text.slice(emoji.length);
+        // Removing the emoji can leave an empty text node (e.g. when the text
+        // node contained only the emoji). Prosemirror disallows empty text
+        // nodes, so drop the node entirely in that case.
+        if (!text) {
+          return null;
+        }
         return {
           ...node,
-          text: node.text.slice(emoji.length),
+          text,
         };
       }
       if (node.content) {
         let found = false;
+        const content: ProsemirrorData[] = [];
+        for (const child of node.content) {
+          if (found) {
+            content.push(child);
+            continue;
+          }
+          const result = removeEmojiFromNode(child);
+          if (result !== child) {
+            found = true;
+          }
+          if (result !== null) {
+            content.push(result);
+          }
+        }
         return {
           ...node,
-          content: node.content.map((child) => {
-            if (found) {
-              return child;
-            }
-            const result = removeEmojiFromNode(child);
-            if (result !== child) {
-              found = true;
-            }
-            return result;
-          }),
+          content,
         };
       }
       return node;
@@ -853,7 +867,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const modifiedJson = removeEmojiFromNode(json as ProsemirrorData);
     return {
       emoji,
-      doc: Node.fromJSON(schema, modifiedJson),
+      doc: modifiedJson ? Node.fromJSON(schema, modifiedJson) : doc,
     };
   }
 
