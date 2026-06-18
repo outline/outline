@@ -1,5 +1,5 @@
 import * as React from "react";
-import { EditorStyleHelper } from "../../styles/EditorStyleHelper";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 
 type DragDirection =
   | "left"
@@ -145,9 +145,13 @@ export default function useDragResize(props: Params): ReturnValue {
       ].includes(dragging || "");
 
       if (isCorner && naturalHeight && naturalWidth) {
-        if (naturalWidth < naturalHeight) {
-          diffX = diffY * (naturalWidth / naturalHeight);
-        }
+        const aspectRatio = naturalHeight / naturalWidth;
+        const hFactor = isCentered ? 0.5 : 1;
+        const factor = isCentered ? 2 : 1;
+        const dW =
+          (diffX * hFactor + diffY * aspectRatio) /
+          (hFactor * hFactor + aspectRatio * aspectRatio);
+        diffX = dW / factor;
       }
 
       if (diffX && sizeAtDragStart.width) {
