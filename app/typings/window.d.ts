@@ -1,3 +1,4 @@
+/// <reference types="google.analytics" />
 import type RootStore from "~/stores/RootStore";
 
 declare global {

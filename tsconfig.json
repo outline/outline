@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "strict": false,
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "esModuleInterop": true,
@@ -21,6 +22,7 @@
     "resolveJsonModule": true,
     "strictNullChecks": true,
     "noEmit": true,
+    "noUncheckedSideEffectImports": false,
     "skipLibCheck": true,
     "ignoreDeprecations": "5.0",
     "target": "es2020",
