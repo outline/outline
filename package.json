@@ -242,7 +242,6 @@
     "semver": "^7.8.1",
     "sequelize": "^6.37.8",
     "sequelize-cli": "^6.6.5",
-    "sequelize-encrypted": "^1.0.0",
     "sequelize-strict-attributes": "^1.0.2",
     "sequelize-typescript": "^2.1.6",
     "slug": "^5.3.0",
