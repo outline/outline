@@ -54,7 +54,9 @@ const Image = (props: Props) => {
   });
 
   const isFullWidth = layoutClass === "full-width";
-  const isIconLike = width > 0 && width <= EditorStyleHelper.imageIconSize;
+  const isFloated = layoutClass === "left-50" || layoutClass === "right-50";
+  const isIconLike =
+    isFloated && width > 0 && width <= EditorStyleHelper.imageIconSize;
   const className = [
     "image",
     layoutClass && `image-${layoutClass}`,
