@@ -48,6 +48,12 @@ class SearchQuery extends Model<
   results: number;
 
   /**
+   * How long the search took to execute, in milliseconds.
+   */
+  @Column
+  duration: number;
+
+  /**
    * User score for the results for this query, -1 for negative, 1 for positive, null for neutral.
    */
   @Column

@@ -1951,6 +1951,8 @@ describe("#documents.search", () => {
     expect(searchQuery.length).toBe(1);
     expect(searchQuery[0].results).toBe(0);
     expect(searchQuery[0].source).toBe("app");
+    expect(Number.isInteger(searchQuery[0].duration)).toBe(true);
+    expect(searchQuery[0].duration).toBeGreaterThanOrEqual(0);
   });
 
   it("should include individually shared docs with a user in search results", async () => {
