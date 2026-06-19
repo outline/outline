@@ -2,6 +2,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import commandScore from "command-score";
 import { capitalize, orderBy } from "es-toolkit/compat";
 import { TextSelection } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -59,6 +60,123 @@ export type Props<T extends MenuItem = MenuItem> = {
   items: T[];
 };
 
+/** Incrementing counter used to generate unique, stable ids per menu instance. */
+let menuInstanceCounter = 0;
+
+interface SubmenuState {
+  index: number;
+  items: MenuItem[];
+  selectedIndex: number;
+}
+
+interface UseSuggestionsMenuAriaProps {
+  view: EditorView;
+  isActive: boolean;
+  isMobile: boolean;
+  selectedIndex: number;
+  activeItem?: MenuItem | EmbedDescriptor;
+  submenu: SubmenuState | null;
+}
+
+function useSuggestionsMenuAria({
+  view,
+  isActive,
+  isMobile,
+  selectedIndex,
+  activeItem,
+  submenu,
+}: UseSuggestionsMenuAriaProps) {
+  // Stable ids for the WAI-ARIA editable-combobox-with-listbox pattern. The
+  // editor keeps real DOM focus while the active option is exposed virtually
+  // via aria-activedescendant (see effect below).
+  const instanceIdRef = React.useRef<number>();
+  if (instanceIdRef.current === undefined) {
+    instanceIdRef.current = menuInstanceCounter++;
+  }
+  const listboxId = `suggestions-menu-${instanceIdRef.current}`;
+  const submenuListboxId = `${listboxId}-submenu`;
+  const optionId = React.useCallback(
+    (index: number) => `${listboxId}-option-${index}`,
+    [listboxId]
+  );
+  const submenuOptionId = React.useCallback(
+    (index: number) => `${submenuListboxId}-option-${index}`,
+    [submenuListboxId]
+  );
+
+  // Expose the suggestion list to assistive technology using the editable
+  // combobox pattern: DOM focus stays in the editor while the active option is
+  // communicated via aria-activedescendant. aria-owns associates the portaled
+  // listbox with the editor so the referenced option ids resolve.
+  React.useEffect(() => {
+    const dom = view.dom;
+    const removeOwnedAttributes = () => {
+      const owns = dom.getAttribute("aria-owns");
+      if (!owns?.split(" ").includes(listboxId)) {
+        return;
+      }
+
+      dom.removeAttribute("aria-owns");
+      dom.removeAttribute("aria-controls");
+      dom.removeAttribute("aria-activedescendant");
+      dom.removeAttribute("aria-expanded");
+      dom.removeAttribute("aria-haspopup");
+      dom.removeAttribute("aria-autocomplete");
+      dom.setAttribute("role", "textbox");
+    };
+
+    if (!isActive || isMobile) {
+      removeOwnedAttributes();
+      return;
+    }
+
+    dom.setAttribute("role", "combobox");
+    dom.setAttribute("aria-expanded", "true");
+    dom.setAttribute("aria-haspopup", "listbox");
+    dom.setAttribute("aria-autocomplete", "list");
+
+    if (submenu) {
+      const owns = `${listboxId} ${submenuListboxId}`;
+      dom.setAttribute("aria-owns", owns);
+      dom.setAttribute("aria-controls", owns);
+      dom.setAttribute(
+        "aria-activedescendant",
+        submenuOptionId(submenu.selectedIndex)
+      );
+    } else {
+      dom.setAttribute("aria-owns", listboxId);
+      dom.setAttribute("aria-controls", listboxId);
+      if (activeItem && activeItem.name !== "separator") {
+        dom.setAttribute("aria-activedescendant", optionId(selectedIndex));
+      } else {
+        dom.removeAttribute("aria-activedescendant");
+      }
+    }
+
+    return () => {
+      removeOwnedAttributes();
+    };
+  }, [
+    activeItem,
+    isActive,
+    isMobile,
+    listboxId,
+    optionId,
+    selectedIndex,
+    submenu,
+    submenuListboxId,
+    submenuOptionId,
+    view,
+  ]);
+
+  return {
+    listboxId,
+    submenuListboxId,
+    optionId,
+    submenuOptionId,
+  };
+}
+
 function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const { view, commands, props: editorProps } = useEditor();
   const { t } = useTranslation();
@@ -73,11 +191,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     MenuItem | EmbedDescriptor
   >();
   const [selectedIndex, setSelectedIndex] = React.useState(0);
-  const [submenu, setSubmenu] = React.useState<{
-    index: number;
-    items: MenuItem[];
-    selectedIndex: number;
-  } | null>(null);
+  const [submenu, setSubmenu] = React.useState<SubmenuState | null>(null);
   const itemRefs = React.useRef<Map<number, HTMLElement>>(new Map());
   const submenuContentRef = React.useRef<HTMLDivElement>(null);
   const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
@@ -744,6 +858,15 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const { isActive, uploadFile } = props;
   const items = filtered;
+  const { listboxId, submenuListboxId, optionId, submenuOptionId } =
+    useSuggestionsMenuAria({
+      view,
+      isActive,
+      isMobile,
+      selectedIndex,
+      activeItem: filtered[selectedIndex],
+      submenu,
+    });
 
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
@@ -793,7 +916,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         {items.map((item, index) => {
           if (item.name === "separator") {
             return (
-              <ListItem key={index}>
+              <ListItem key={index} role="presentation">
                 <hr />
               </ListItem>
             );
@@ -873,10 +996,18 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           const response = (
             <React.Fragment key={`${index}-${item.name}`}>
               {currentHeading !== prevHeading && (
-                <MenuHeader key={currentHeading}>{currentHeading}</MenuHeader>
+                <MenuHeader key={currentHeading} role="presentation">
+                  {currentHeading}
+                </MenuHeader>
               )}
               <ListItem
                 ref={itemRef}
+                role="option"
+                id={optionId(index)}
+                aria-selected={index === selectedIndex}
+                aria-disabled={
+                  ("disabled" in item && item.disabled) || undefined
+                }
                 onPointerMove={handlePointerMove}
                 onPointerDown={handlePointerDown}
               >
@@ -893,7 +1024,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           return response;
         })}
         {items.length === 0 && (
-          <ListItem>
+          <ListItem role="presentation">
             <Empty>{t("No results")}</Empty>
           </ListItem>
         )}
@@ -929,7 +1060,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                   />
                 </LinkInputWrapper>
               ) : (
-                <List>{renderItems()}</List>
+                <List
+                  role="listbox"
+                  id={listboxId}
+                  aria-label={t("Suggestions")}
+                >
+                  {renderItems()}
+                </List>
               )}
             </MobileScrollable>
           </DrawerContent>
@@ -981,7 +1118,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               />
             </LinkInputWrapper>
           ) : (
-            <List>{renderItems()}</List>
+            <List role="listbox" id={listboxId} aria-label={t("Suggestions")}>
+              {renderItems()}
+            </List>
           )}
         </BouncyPopoverContent>
       </Popover>
@@ -1009,11 +1148,15 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
             onPointerLeave={() => setSubmenu(null)}
           >
             <MouseSafeArea parentRef={submenuContentRef} />
-            <List>
+            <List
+              role="listbox"
+              id={submenuListboxId}
+              aria-label={t("Suggestions")}
+            >
               {submenu.items.map((child, childIndex) => {
                 if (child.name === "separator") {
                   return (
-                    <ListItem key={childIndex}>
+                    <ListItem key={childIndex} role="presentation">
                       <hr />
                     </ListItem>
                   );
@@ -1048,6 +1191,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                 return (
                   <ListItem
                     key={`sub-${childIndex}-${child.name}`}
+                    role="option"
+                    id={submenuOptionId(childIndex)}
+                    aria-selected={childIndex === submenu.selectedIndex}
+                    aria-disabled={
+                      ("disabled" in child && child.disabled) || undefined
+                    }
                     onPointerMove={handleChildPointerMove}
                   >
                     {props.renderMenuItem(child as unknown as T, childIndex, {
