@@ -117,8 +117,11 @@ function useSuggestionsMenuAria({
       }
 
       dom.removeAttribute("aria-owns");
+      dom.removeAttribute("aria-controls");
       dom.removeAttribute("aria-activedescendant");
       dom.removeAttribute("aria-expanded");
+      dom.removeAttribute("aria-haspopup");
+      dom.removeAttribute("aria-autocomplete");
       dom.setAttribute("role", "textbox");
     };
 
@@ -129,15 +132,20 @@ function useSuggestionsMenuAria({
 
     dom.setAttribute("role", "combobox");
     dom.setAttribute("aria-expanded", "true");
+    dom.setAttribute("aria-haspopup", "listbox");
+    dom.setAttribute("aria-autocomplete", "list");
 
     if (submenu) {
-      dom.setAttribute("aria-owns", `${listboxId} ${submenuListboxId}`);
+      const owns = `${listboxId} ${submenuListboxId}`;
+      dom.setAttribute("aria-owns", owns);
+      dom.setAttribute("aria-controls", owns);
       dom.setAttribute(
         "aria-activedescendant",
         submenuOptionId(submenu.selectedIndex)
       );
     } else {
       dom.setAttribute("aria-owns", listboxId);
+      dom.setAttribute("aria-controls", listboxId);
       if (activeItem && activeItem.name !== "separator") {
         dom.setAttribute("aria-activedescendant", optionId(selectedIndex));
       } else {
@@ -997,6 +1005,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                 role="option"
                 id={optionId(index)}
                 aria-selected={index === selectedIndex}
+                aria-disabled={
+                  ("disabled" in item && item.disabled) || undefined
+                }
                 onPointerMove={handlePointerMove}
                 onPointerDown={handlePointerDown}
               >
@@ -1183,6 +1194,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                     role="option"
                     id={submenuOptionId(childIndex)}
                     aria-selected={childIndex === submenu.selectedIndex}
+                    aria-disabled={
+                      ("disabled" in child && child.disabled) || undefined
+                    }
                     onPointerMove={handleChildPointerMove}
                   >
                     {props.renderMenuItem(child as unknown as T, childIndex, {
