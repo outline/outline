@@ -64,6 +64,7 @@ import { HStack } from "./primitives/HStack";
 import { useDocumentContext } from "./DocumentContext";
 import LightboxComments from "~/scenes/Document/components/Comments/LightboxComments";
 import { PortalContext } from "./Portal";
+import useHideOriginElement from "~/hooks/useHideOriginElement";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -363,27 +364,16 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
 
   // Hide the inline image in the editor while the lightbox zoom transition is
   // active, otherwise a duplicate is visible behind the fading overlay.
-  useEffect(() => {
-    if (
-      status.lightbox === null ||
-      status.lightbox === LightboxStatus.READY_TO_OPEN ||
-      status.lightbox === LightboxStatus.CLOSED
-    ) {
-      return;
-    }
-    const editorImageEl = activeImage.getElement();
-    if (
-      !(editorImageEl instanceof HTMLElement) &&
-      !(editorImageEl instanceof SVGElement)
-    ) {
-      return;
-    }
-    const previousVisibility = editorImageEl.style.visibility;
-    editorImageEl.style.visibility = "hidden";
-    return () => {
-      editorImageEl.style.visibility = previousVisibility;
-    };
-  }, [activeImage, status.lightbox]);
+  const getOriginElement = useCallback(
+    () => activeImage.getElement(),
+    [activeImage]
+  );
+  useHideOriginElement(
+    getOriginElement,
+    status.lightbox !== null &&
+      status.lightbox !== LightboxStatus.READY_TO_OPEN &&
+      status.lightbox !== LightboxStatus.CLOSED
+  );
 
   const rememberImagePosition = () => {
     if (imgRef.current) {
