@@ -6,8 +6,6 @@ declare module "emoji-mart";
 
 declare module "string-replace-to-array";
 
-declare module "sequelize-encrypted";
-
 declare module "styled-components-breakpoint";
 
 declare module "command-score";

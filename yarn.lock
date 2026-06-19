@@ -15241,7 +15241,6 @@ __metadata:
     semver: "npm:^7.8.1"
     sequelize: "npm:^6.37.8"
     sequelize-cli: "npm:^6.6.5"
-    sequelize-encrypted: "npm:^1.0.0"
     sequelize-strict-attributes: "npm:^1.0.2"
     sequelize-typescript: "npm:^2.1.6"
     slug: "npm:^5.3.0"
@@ -17829,13 +17828,6 @@ __metadata:
     sequelize: lib/sequelize
     sequelize-cli: lib/sequelize
   checksum: 10c0/345ca3073f9f32533ef69a4ce8aaa30e0af51685547d32b42b616a2847e934ec201ad7b0d8bc61a7390550ffb73260b43688cbe608db4d289fc697a625edb8af
-  languageName: node
-  linkType: hard
-
-"sequelize-encrypted@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "sequelize-encrypted@npm:1.0.0"
-  checksum: 10c0/be6861ac71a6986ec3a06d3b41056ceff6f9a2a258d7954e38bf82be327d61b1d67d34bb303296f1b0e43e9c117f86dfbc20ac2b85450c715beaa1cdf36ad503
   languageName: node
   linkType: hard
 
