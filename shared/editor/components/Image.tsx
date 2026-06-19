@@ -149,15 +149,17 @@ const Image = (props: Props) => {
                 <Separator height={24} />
               </>
             )}
-            <Button
-              onClick={handleDownload}
-              // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
-              onMouseDown={(e) => e.stopPropagation()}
-              aria-label={t("Download")}
-              disabled={isDownloading}
-            >
-              <DownloadIcon />
-            </Button>
+            {!isEditable && (
+              <Button
+                onClick={handleDownload}
+                // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
+                onMouseDown={(e) => e.stopPropagation()}
+                aria-label={t("Download")}
+                disabled={isDownloading}
+              >
+                <DownloadIcon />
+              </Button>
+            )}
           </Actions>
         )}
         {error ? (
