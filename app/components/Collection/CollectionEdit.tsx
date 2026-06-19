@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import useStores from "~/hooks/useStores";
 import type { FormData } from "./CollectionForm";
 import { CollectionForm } from "./CollectionForm";
@@ -23,7 +24,7 @@ export const CollectionEdit = observer(function CollectionEdit_({
         await collection?.save(data);
         onSubmit?.();
       } catch (error) {
-        toast.error(error.message);
+        toast.error(errToString(error));
       }
     },
     [collection, onSubmit]

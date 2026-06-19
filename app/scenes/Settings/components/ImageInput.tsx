@@ -11,11 +11,24 @@ import type { Props as ImageUploadProps } from "./ImageUpload";
 import ImageUpload from "./ImageUpload";
 
 type Props = ImageUploadProps & {
+  /** The model whose avatar is displayed and updated by this input. */
   model: IAvatar;
+  /** Alt text for the avatar image. */
   alt: string;
+  /**
+   * Whether to render the inline "Remove" button when the model has an
+   * existing avatar. Defaults to true.
+   */
+  showRemoveOption?: boolean;
 };
 
-export default function ImageInput({ model, onSuccess, alt, ...rest }: Props) {
+export default function ImageInput({
+  model,
+  onSuccess,
+  alt,
+  showRemoveOption = true,
+  ...rest
+}: Props) {
   const { t } = useTranslation();
 
   return (
@@ -29,7 +42,7 @@ export default function ImageInput({ model, onSuccess, alt, ...rest }: Props) {
           <Avatar
             model={model}
             size={AvatarSize.Upload}
-            variant={AvatarVariant.Square}
+            variant={AvatarVariant.Round}
             alt={alt}
           />
           <Flex auto align="center" justify="center" className="upload">
@@ -37,7 +50,7 @@ export default function ImageInput({ model, onSuccess, alt, ...rest }: Props) {
           </Flex>
         </ImageUpload>
       </ImageBox>
-      {model.avatarUrl && (
+      {model.avatarUrl && showRemoveOption && (
         <Button onClick={() => onSuccess(null)} neutral>
           {t("Remove")}
         </Button>
@@ -55,7 +68,7 @@ const ImageBox = styled(Flex)`
   ${avatarStyles};
   position: relative;
   font-size: 14px;
-  border-radius: 8px;
+  border-radius: 50%;
   box-shadow: 0 0 0 1px ${s("backgroundSecondary")};
   background: ${s("background")};
   overflow: hidden;

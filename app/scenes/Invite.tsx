@@ -6,6 +6,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { UserRole } from "@shared/types";
 import { parseEmail } from "@shared/utils/email";
 import { UserValidation } from "@shared/validations";
@@ -66,7 +67,7 @@ function Invite({ onSubmit }: Props) {
           toast.message(t("Those email addresses are already invited"));
         }
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       } finally {
         setIsSaving(false);
       }

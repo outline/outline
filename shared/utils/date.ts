@@ -2,7 +2,13 @@
 import type { Locale } from "date-fns";
 import {
   addSeconds,
+  format,
   formatDistanceToNow,
+  isSameYear,
+  isToday,
+  isTomorrow,
+  isYesterday,
+  parseISO,
   subDays,
   subMonths,
   subWeeks,
@@ -11,6 +17,7 @@ import {
   parse,
 } from "date-fns";
 import {
+  ca,
   cs,
   de,
   enGB,
@@ -259,6 +266,7 @@ export function getCurrentDateTimeAsString(locale?: Intl.LocalesArgument) {
 }
 
 const locales = {
+  ca_ES: ca,
   cs_CZ: cs,
   de_DE: de,
   en_GB: enGB,
@@ -295,3 +303,94 @@ export function dateLocale(language: keyof typeof locales | undefined | null) {
 }
 
 export { locales };
+
+/**
+ * Formats a Date into a date-only ISO string (yyyy-MM-dd) in the local
+ * timezone. Used as the stored value for date mentions.
+ *
+ * @param date The date to format.
+ * @returns the date-only ISO string.
+ */
+export function toISODate(date: Date): string {
+  return format(date, "yyyy-MM-dd");
+}
+
+/**
+ * Parses a date-only ISO string (yyyy-MM-dd) into a Date at local midnight.
+ * Strings carrying a time component are rejected so the date-only contract
+ * (and the day-granular comparisons that depend on it) cannot be violated.
+ *
+ * @param iso The date-only ISO string.
+ * @returns the parsed Date at local midnight, or null when the string is not a
+ * valid date-only value.
+ */
+export function parseISODate(iso: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    return null;
+  }
+  const date = parseISO(iso);
+  return isValid(date) ? date : null;
+}
+
+/**
+ * Formats a date mention's stored ISO value into an absolute, localized,
+ * human-readable label. The year is omitted within the current year (e.g.
+ * "January 2nd") and included otherwise (e.g. "February 3rd, 2024"). Suitable
+ * for plaintext and markdown serialization.
+ *
+ * @param iso The date-only ISO string.
+ * @param language The user's language preference.
+ * @returns the absolute human-readable date, or the original string when invalid.
+ */
+export function dateToReadable(
+  iso: string,
+  language?: keyof typeof locales | null
+): string {
+  const date = parseISODate(iso);
+  if (!date) {
+    return iso;
+  }
+  const locale = dateLocale(language);
+  if (isSameYear(date, new Date())) {
+    return format(date, "MMMM do", { locale });
+  }
+  return format(date, "MMMM do, yyyy", { locale });
+}
+
+/**
+ * Formats a date mention's stored ISO value into a relative, localized,
+ * human-readable label with increasing granularity. Returns "Today",
+ * "Tomorrow" or "Yesterday" where applicable, "January 2nd" within the
+ * current year, and "February 3rd, 2024" otherwise.
+ *
+ * @param iso The date-only ISO string.
+ * @param t The translation function.
+ * @param language The user's language preference.
+ * @returns the relative human-readable date, or the original string when invalid.
+ */
+export function dateToRelativeReadable(
+  iso: string,
+  t: (key: string) => string,
+  language?: keyof typeof locales | null
+): string {
+  const date = parseISODate(iso);
+  if (!date) {
+    return iso;
+  }
+
+  if (isToday(date)) {
+    return t("Today");
+  }
+  if (isTomorrow(date)) {
+    return t("Tomorrow");
+  }
+  if (isYesterday(date)) {
+    return t("Yesterday");
+  }
+
+  const locale = dateLocale(language);
+  if (isSameYear(date, new Date())) {
+    return format(date, "MMMM do", { locale });
+  }
+  return format(date, "MMMM do, yyyy", { locale });
+}

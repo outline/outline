@@ -17,7 +17,7 @@ export default function Length({
     addAttributeOptions(target, propertyName, {
       validate: {
         validLength(value: string | null | undefined) {
-          const length = value ? [...value].length : 0;
+          const length = value ? Array.from(value).length : 0;
           if (length > max || length < min) {
             throw new Error(msg);
           }

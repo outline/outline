@@ -97,6 +97,21 @@ export enum ImportTaskState {
   Canceled = "canceled",
 }
 
+/**
+ * Classifies the work an `ImportTask` row represents. Set when the task is
+ * created and used by `APIImportTask` to dispatch to the right handler.
+ *
+ * - `Bootstrap` runs once per import on a worker that owns the source
+ *   artifact (e.g. extracts a zip, discovers structure, schedules child
+ *   tasks). Subclasses without a bootstrap step never produce these.
+ * - `Page` is the per-document work that the bootstrap (or `ImportsProcessor`
+ *   for sources without a bootstrap, like Notion) fans out into.
+ */
+export enum ImportTaskPhase {
+  Bootstrap = "bootstrap",
+  Page = "page",
+}
+
 export enum MentionType {
   User = "user",
   Document = "document",
@@ -106,6 +121,7 @@ export enum MentionType {
   PullRequest = "pull_request",
   Project = "project",
   URL = "url",
+  Date = "date",
 }
 
 export type PublicEnv = {
@@ -151,15 +167,21 @@ export enum IntegrationService {
   Linear = "linear",
   Figma = "figma",
   Notion = "notion",
+  Markdown = "markdown",
+  JSON = "json",
 }
 
 export type ImportableIntegrationService = Extract<
   IntegrationService,
-  IntegrationService.Notion
+  | IntegrationService.Notion
+  | IntegrationService.Markdown
+  | IntegrationService.JSON
 >;
 
 export const ImportableIntegrationService = {
   Notion: IntegrationService.Notion,
+  Markdown: IntegrationService.Markdown,
+  JSON: IntegrationService.JSON,
 } as const;
 
 export type IssueTrackerIntegrationService = Extract<
@@ -481,6 +503,7 @@ export enum NotificationEventType {
   Onboarding = "emails.onboarding",
   Features = "emails.features",
   ExportCompleted = "emails.export_completed",
+  RequestDocumentAccess = "access_requests.create",
 }
 
 export enum NotificationChannelType {
@@ -520,6 +543,7 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
     [NotificationEventType.ExportCompleted]: true,
     [NotificationEventType.AddUserToDocument]: true,
     [NotificationEventType.AddUserToCollection]: true,
+    [NotificationEventType.RequestDocumentAccess]: true,
   };
 
 export enum UnfurlResourceType {

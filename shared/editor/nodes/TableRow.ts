@@ -8,6 +8,7 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import type { EditorView } from "prosemirror-view";
 import { Plugin } from "prosemirror-state";
 import { addRowBefore, selectRow, selectTable } from "../commands/table";
+import { isMobile } from "../../utils/browser";
 import {
   getCellsInRow,
   getRowsInTable,
@@ -120,13 +121,24 @@ function setupRowDragTracking(
     document.body.classList.remove(EditorStyleHelper.tableDragging);
 
     if (isDragging && currentToIndex !== fromIndex && isInTable(view.state)) {
-      const moved = moveTableRow({ from: fromIndex, to: currentToIndex })(
-        view.state,
-        view.dispatch
-      );
-      if (moved) {
-        // Select the row at its new position
-        selectRow(currentToIndex)(view.state, view.dispatch);
+      // Verify both indices are still valid for the current table. The document
+      // may have changed during the drag (e.g. collaborative editing)
+      const currentRows = getRowsInTable(view.state);
+      const inBounds =
+        fromIndex >= 0 &&
+        fromIndex < currentRows.length &&
+        currentToIndex >= 0 &&
+        currentToIndex < currentRows.length;
+
+      if (inBounds) {
+        const moved = moveTableRow({ from: fromIndex, to: currentToIndex })(
+          view.state,
+          view.dispatch
+        );
+        if (moved) {
+          // Select the row at its new position
+          selectRow(currentToIndex)(view.state, view.dispatch);
+        }
       }
     }
 
@@ -328,7 +340,9 @@ export default class TableRow extends Node {
                   )
                 );
 
-                if (!isDragging) {
+                // The add-row affordance is too small to tap on mobile, where
+                // rows can be added via the inline menu instead.
+                if (!isDragging && !isMobile()) {
                   if (index === 0) {
                     decorations.push(buildAddRowDecoration(pos, index));
                   }

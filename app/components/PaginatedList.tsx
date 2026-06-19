@@ -2,6 +2,7 @@ import { isEqual } from "es-toolkit/compat";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
+import { toError } from "@shared/utils/error";
 import { Pagination } from "@shared/constants";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DelayedMount from "~/components/DelayedMount";
@@ -176,7 +177,7 @@ const PaginatedList = <T extends PaginatedItem>({
 
       setIsFetchingInitial(false);
     } catch (err) {
-      setError(err);
+      setError(toError(err));
     } finally {
       // only the most recent fetch should end the loading state
       if (counter >= fetchCounter) {

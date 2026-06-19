@@ -25,7 +25,7 @@ async function documentMover(
   ctx: APIContext,
   {
     document,
-    collectionId = null,
+    collectionId,
     parentDocumentId = null,
     // convert undefined to null so parentId comparison treats them as equal
     index,

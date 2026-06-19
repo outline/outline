@@ -1,7 +1,7 @@
 import dns from "node:dns";
 import type { MockInstance } from "vitest";
 import env from "@server/env";
-import { validateUrlNotPrivate } from "./url";
+import { isInvalidAppPath, validateUrlNotPrivate } from "./url";
 
 describe("validateUrlNotPrivate", () => {
   let lookupSpy: MockInstance;
@@ -47,6 +47,41 @@ describe("validateUrlNotPrivate", () => {
     lookupSpy.mockResolvedValue({ address: "169.254.169.254", family: 4 });
     await expect(
       validateUrlNotPrivate("https://metadata.internal")
+    ).rejects.toThrow("is not allowed");
+  });
+
+  it.each([
+    ["::ffff:169.254.169.254", "metadata via IPv4-mapped IPv6"],
+    ["::ffff:127.0.0.1", "loopback via IPv4-mapped IPv6"],
+    ["::ffff:10.0.0.1", "RFC1918 via IPv4-mapped IPv6"],
+    ["::ffff:192.168.1.1", "RFC1918 via IPv4-mapped IPv6"],
+    ["64:ff9b::a9fe:a9fe", "metadata via NAT64"],
+    ["2002:a9fe:a9fe::", "metadata via 6to4"],
+  ])("should reject %s in URL (%s)", async (address) => {
+    await expect(
+      validateUrlNotPrivate(`https://[${address}]/api`)
+    ).rejects.toThrow("is not allowed");
+  });
+
+  it("should reject IPv4-mapped IPv6 address resolved via DNS", async () => {
+    lookupSpy.mockResolvedValue({
+      address: "::ffff:169.254.169.254",
+      family: 6,
+    });
+    await expect(
+      validateUrlNotPrivate("https://metadata.example.com")
+    ).rejects.toThrow("is not allowed");
+  });
+
+  it("should reject carrier-grade NAT address", async () => {
+    await expect(
+      validateUrlNotPrivate("https://100.64.0.1/api")
+    ).rejects.toThrow("is not allowed");
+  });
+
+  it("should reject IPv4-mapped IPv6 addresses outright", async () => {
+    await expect(
+      validateUrlNotPrivate("https://[::ffff:8.8.8.8]/")
     ).rejects.toThrow("is not allowed");
   });
 
@@ -96,5 +131,38 @@ describe("validateUrlNotPrivate", () => {
         validateUrlNotPrivate("https://gitlab.internal")
       ).resolves.toBeUndefined();
     });
+  });
+});
+
+describe("isInvalidAppPath", () => {
+  it.each([
+    "/.well-known/gpc.json",
+    "/.env",
+    "/.env.production",
+    "/.git/config",
+    "/.DS_Store",
+    "/cgi-bin/test.cgi",
+    "/wp-admin/setup-config.php",
+    "/wp-login.php",
+    "/wp-content/plugins/foo",
+    "/xmlrpc.php",
+    "/admin.php",
+    "/phpmyadmin/index.php",
+    "/actuator/health",
+    "/HNAP1/",
+    "/index.php",
+  ])("returns true for scanner path %s", (path) => {
+    expect(isInvalidAppPath(path)).toBe(true);
+  });
+
+  it.each([
+    "/",
+    "/home",
+    "/doc/document-slug",
+    "/collection/abc123",
+    "/settings/account",
+    "/api/documents.list",
+  ])("returns false for legitimate path %s", (path) => {
+    expect(isInvalidAppPath(path)).toBe(false);
   });
 });

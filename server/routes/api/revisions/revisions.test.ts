@@ -21,9 +21,8 @@ describe("#revisions.info", () => {
       createContext({ user }),
       document
     );
-    const res = await server.post("/api/revisions.info", {
+    const res = await server.post("/api/revisions.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: revision.id,
       },
     });
@@ -44,9 +43,8 @@ describe("#revisions.info", () => {
       document
     );
     const user = await buildUser();
-    const res = await server.post("/api/revisions.info", {
+    const res = await server.post("/api/revisions.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: revision.id,
       },
     });
@@ -66,9 +64,8 @@ describe("#revisions.update", () => {
       document
     );
 
-    const res = await server.post("/api/revisions.update", {
+    const res = await server.post("/api/revisions.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: revision.id,
         name: "new name",
       },
@@ -89,9 +86,8 @@ describe("#revisions.update", () => {
       document
     );
 
-    const res = await server.post("/api/revisions.update", {
+    const res = await server.post("/api/revisions.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: revision.id,
         name: null,
       },
@@ -112,9 +108,8 @@ describe("#revisions.update", () => {
       document
     );
 
-    const res = await server.post("/api/revisions.update", {
+    const res = await server.post("/api/revisions.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: revision.id,
         name: "",
       },
@@ -133,9 +128,8 @@ describe("#revisions.update", () => {
       document
     );
 
-    const res = await server.post("/api/revisions.update", {
+    const res = await server.post("/api/revisions.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: revision.id,
         name: "new name",
       },
@@ -156,9 +150,8 @@ describe("#revisions.update", () => {
       document
     );
     const user = await buildUser();
-    const res = await server.post("/api/revisions.update", {
+    const res = await server.post("/api/revisions.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: revision.id,
         name: "new name",
       },
@@ -175,9 +168,8 @@ describe("#revisions.list", () => {
       teamId: user.teamId,
     });
     await Revision.createFromDocument(createContext({ user }), document);
-    const res = await server.post("/api/revisions.list", {
+    const res = await server.post("/api/revisions.list", user, {
       body: {
-        token: user.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -208,9 +200,8 @@ describe("#revisions.list", () => {
         collectionId: collection.id,
       },
     });
-    const res = await server.post("/api/revisions.list", {
+    const res = await server.post("/api/revisions.list", user, {
       body: {
-        token: user.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -220,9 +211,8 @@ describe("#revisions.list", () => {
   it("should require authorization", async () => {
     const document = await buildDocument();
     const user = await buildUser();
-    const res = await server.post("/api/revisions.list", {
+    const res = await server.post("/api/revisions.list", user, {
       body: {
-        token: user.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -241,9 +231,8 @@ describe("#revisions.export", () => {
       createContext({ user }),
       document
     );
-    const res = await server.post("/api/revisions.export", {
+    const res = await server.post("/api/revisions.export", user, {
       body: {
-        token: user.getJwtToken(),
         id: revision.id,
       },
     });
@@ -262,9 +251,8 @@ describe("#revisions.export", () => {
       createContext({ user }),
       document
     );
-    const res = await server.post("/api/revisions.export", {
+    const res = await server.post("/api/revisions.export", user, {
       body: {
-        token: user.getJwtToken(),
         id: revision.id,
       },
       headers: {
@@ -286,9 +274,8 @@ describe("#revisions.export", () => {
       createContext({ user }),
       document
     );
-    const res = await server.post("/api/revisions.export", {
+    const res = await server.post("/api/revisions.export", user, {
       body: {
-        token: user.getJwtToken(),
         id: revision.id,
       },
       headers: {
@@ -330,9 +317,8 @@ describe("#revisions.export", () => {
       document
     );
     const user = await buildUser();
-    const res = await server.post("/api/revisions.export", {
+    const res = await server.post("/api/revisions.export", user, {
       body: {
-        token: user.getJwtToken(),
         id: revision.id,
       },
     });

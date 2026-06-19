@@ -1,9 +1,8 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { QueryNotices } from "@shared/types";
-import useQuery from "./useQuery";
+import useConsumeQueryParam from "./useConsumeQueryParam";
 
 /**
  * Display a toast message based on a notice in the query string. This is usually
@@ -11,10 +10,8 @@ import useQuery from "./useQuery";
  * or emails.
  */
 export default function useQueryNotices() {
-  const query = useQuery();
-  const history = useHistory();
   const { t } = useTranslation();
-  const notice = query.get("notice") as QueryNotices;
+  const notice = useConsumeQueryParam("notice") as QueryNotices;
 
   useEffect(() => {
     let message: string | undefined;
@@ -40,16 +37,7 @@ export default function useQueryNotices() {
     }
 
     if (message) {
-      // Remove the notice param from the URL to prevent duplicate toasts
-      const params = new URLSearchParams(window.location.search);
-      params.delete("notice");
-      const search = params.toString();
-      history.replace({
-        pathname: window.location.pathname,
-        search: search ? `?${search}` : "",
-      });
-
       setTimeout(() => toast.success(message), 0);
     }
-  }, [t, notice, history]);
+  }, [t, notice]);
 }

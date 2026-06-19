@@ -215,7 +215,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
 
   let sharedTree;
   try {
-    team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    team = await getTeamFromContext(ctx, { includeOAuthState: false });
     const result = await loadPublicShare({
       id: shareId,
       collectionId: collectionSlug,

@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import type Comment from "~/models/Comment";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Text from "~/components/Text";
@@ -21,7 +22,7 @@ function CommentDeleteDialog({ comment, onSubmit }: Props) {
       await comment.delete();
       onSubmit?.();
     } catch (err) {
-      toast.error(err.message);
+      toast.error(errToString(err));
     }
   };
 

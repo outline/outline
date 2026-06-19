@@ -1,6 +1,7 @@
 import path from "node:path";
-import type JSZip from "jszip";
 import { escapeRegExp } from "es-toolkit/compat";
+import type { ZipFile } from "yazl";
+import { errToString } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationFormat } from "@shared/types";
 import Logger from "@server/logging/Logger";
@@ -17,7 +18,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
   /**
    * Exports the document tree to the given zip instance.
    *
-   * @param zip The JSZip instance to add files to
+   * @param zip The yazl ZipFile to add files to
    * @param documentId The document ID to export
    * @param pathInZip The path in the zip to add the document to
    * @param format The format to export in
@@ -26,11 +27,11 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     zip,
     pathInZip,
     documentId,
-    format = FileOperationFormat.MarkdownZip,
+    format,
     includeAttachments,
     pathMap,
   }: {
-    zip: JSZip;
+    zip: ZipFile;
     pathInZip: string;
     documentId: string;
     format: FileOperationFormat;
@@ -64,38 +65,44 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
 
     // Add any referenced attachments to the zip file and replace the
     // reference in the document with the path to the attachment in the zip
-    await Promise.all(
-      attachments.map(async (attachment) => {
-        Logger.debug("task", `Adding attachment to archive`, {
-          documentId,
+    for (const attachment of attachments) {
+      Logger.debug("task", `Adding attachment to archive`, {
+        documentId,
+        key: attachment.key,
+      });
+
+      // Skip attachments with a malformed key that has no filename component,
+      // as yazl rejects entries whose path ends with a slash.
+      if (!attachment.key || attachment.key.endsWith("/")) {
+        Logger.warn(`Skipping attachment with invalid key`, {
+          attachmentId: attachment.id,
+          teamId: attachment.teamId,
           key: attachment.key,
         });
+        continue;
+      }
 
-        const dir = path.dirname(pathInZip);
-        zip.file(
-          path.join(dir, attachment.key),
-          new Promise<Buffer>((resolve) => {
-            attachment.buffer.then(resolve).catch((err) => {
-              Logger.warn(`Failed to read attachment from storage`, {
-                attachmentId: attachment.id,
-                teamId: attachment.teamId,
-                error: err.message,
-              });
-              resolve(Buffer.from(""));
-            });
-          }),
-          {
-            date: attachment.updatedAt,
-            createFolders: true,
-          }
-        );
+      const dir = path.dirname(pathInZip);
+      let buffer: Buffer;
+      try {
+        buffer = await attachment.buffer;
+      } catch (err) {
+        Logger.warn(`Failed to read attachment from storage`, {
+          attachmentId: attachment.id,
+          teamId: attachment.teamId,
+          error: errToString(err),
+        });
+        buffer = Buffer.from("");
+      }
+      zip.addBuffer(buffer, path.join(dir, attachment.key), {
+        mtime: attachment.updatedAt,
+      });
 
-        text = text.replace(
-          new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
-          encodeURI(attachment.key)
-        );
-      })
-    );
+      text = text.replace(
+        new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+        encodeURI(attachment.key)
+      );
+    }
 
     // Replace any internal links with relative paths to the document in the zip
     const internalLinks = [
@@ -117,10 +124,9 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     });
 
     // Finally, add the document to the zip file
-    zip.file(pathInZip, text, {
-      date: document.updatedAt,
-      createFolders: true,
-      comment: JSON.stringify({
+    zip.addBuffer(Buffer.from(text), pathInZip, {
+      mtime: document.updatedAt,
+      fileComment: JSON.stringify({
         createdAt: document.createdAt,
         updatedAt: document.updatedAt,
       }),
@@ -131,7 +137,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
    * Exports the documents and attachments in the given collections to a zip file
    * and returns the path to the zip file in tmp.
    *
-   * @param zip The JSZip instance to add files to
+   * @param zip The yazl ZipFile to add files to
    * @param collections The collections to export
    * @param format The format to export in
    * @param includeAttachments Whether to include attachments in the export
@@ -139,32 +145,18 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
    * @returns The path to the zip file in tmp.
    */
   protected async addCollectionsToArchive(
-    zip: JSZip,
+    zip: ZipFile,
     collections: Collection[],
     format: FileOperationFormat,
     includeAttachments = true
   ) {
     const pathMap = this.createPathMap(collections, format);
-    Logger.debug(
-      "task",
-      `Start adding ${Object.values(pathMap).length} documents to archive`
-    );
-
-    for (const path of pathMap) {
-      const documentId = path[0].replace("/doc/", "");
-      const pathInZip = path[1];
-
-      await this.processDocument({
-        zip,
-        pathInZip,
-        documentId,
-        includeAttachments,
-        format,
-        pathMap,
-      });
-    }
-
-    Logger.debug("task", "Completed adding documents to archive");
+    await this.addDocumentsToArchive({
+      zip,
+      pathMap,
+      format,
+      includeAttachments,
+    });
 
     return await ZipHelper.toTmpFile(zip);
   }
@@ -178,7 +170,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     document: Document;
     format: FileOperationFormat;
     documentStructure: NavigationNode[];
-    zip: JSZip;
+    zip: ZipFile;
   }) {
     const pathMap = new Map<string, string>();
 
@@ -195,28 +187,58 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       format
     );
 
-    Logger.debug(
-      "task",
-      `Start adding ${Object.values(pathMap).length} documents to archive`
-    );
+    await this.addDocumentsToArchive({
+      zip,
+      pathMap,
+      format,
+      includeAttachments: true,
+    });
 
-    for (const entry of pathMap) {
-      const documentId = entry[0].replace("/doc/", "");
-      const pathInZip = entry[1];
+    return await ZipHelper.toTmpFile(zip);
+  }
+
+  /**
+   * Processes each unique document in the path map and adds it to the zip.
+   *
+   * @param zip The yazl ZipFile to add files to
+   * @param pathMap Map of document urls to their path in the zip
+   * @param format The format to export in
+   * @param includeAttachments Whether to include attachments in the export
+   */
+  private async addDocumentsToArchive({
+    zip,
+    pathMap,
+    format,
+    includeAttachments,
+  }: {
+    zip: ZipFile;
+    pathMap: Map<string, string>;
+    format: FileOperationFormat;
+    includeAttachments: boolean;
+  }) {
+    const processedPaths = new Set<string>();
+
+    Logger.debug("task", `Start adding documents to archive`);
+
+    for (const [url, pathInZip] of pathMap) {
+      // A document may be keyed by multiple urls in the path map, only
+      // process each file in the zip once.
+      if (processedPaths.has(pathInZip)) {
+        continue;
+      }
+      processedPaths.add(pathInZip);
 
       await this.processDocument({
         zip,
         pathInZip,
-        documentId,
-        includeAttachments: true,
+        documentId: url.replace("/doc/", ""),
+        includeAttachments,
         format,
         pathMap,
       });
     }
 
     Logger.debug("task", "Completed adding documents to archive");
-
-    return await ZipHelper.toTmpFile(zip);
   }
 
   /**

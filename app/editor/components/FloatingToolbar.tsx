@@ -68,7 +68,7 @@ function usePosition({
     fromPos = view.coordsAtPos(selection.from);
     toPos = view.coordsAtPos(selection.to, -1);
   } catch (err) {
-    Logger.warn("Unable to calculate selection position", err);
+    Logger.warn("Unable to calculate selection position", { err });
     return defaultPosition;
   }
 
@@ -420,11 +420,24 @@ const Wrapper = styled.div<WrapperProps>`
     box-sizing: border-box;
   }
 
+  & button,
+  & a,
+  & input {
+    pointer-events: none;
+  }
+
   ${({ active }) =>
     active &&
     `
     transform: translateY(-6px) scale(1);
     opacity: 1;
+
+    & button,
+    & a,
+    & input {
+      pointer-events: auto;
+      transition: pointer-events 0s 300ms;
+    }
   `};
 
   @media print {

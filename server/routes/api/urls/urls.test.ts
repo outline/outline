@@ -53,9 +53,8 @@ describe("#urls.unfurl", () => {
   });
 
   it("should fail with status 400 bad request when url is invalid", async () => {
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: "/doc/foo-bar",
       },
     });
@@ -66,9 +65,8 @@ describe("#urls.unfurl", () => {
   });
 
   it("should fail with status 400 bad request when mention url is invalid", async () => {
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: "mention://1/foo/1",
       },
     });
@@ -79,9 +77,8 @@ describe("#urls.unfurl", () => {
   });
 
   it("should fail with status 400 bad request when mention url is supplied without documentId", async () => {
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: "mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/34095ac1-c808-45c0-8c6e-6c554497de64",
       },
     });
@@ -92,9 +89,8 @@ describe("#urls.unfurl", () => {
   });
 
   it("should fail with status 404 not found when mention user does not exist", async () => {
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: "mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/34095ac1-c808-45c0-8c6e-6c554497de64",
         documentId: "2767ba0e-ac5c-4533-b9cf-4f5fc456600e",
       },
@@ -110,9 +106,8 @@ describe("#urls.unfurl", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
         documentId: "2767ba0e-ac5c-4533-b9cf-4f5fc456600e",
       },
@@ -129,9 +124,8 @@ describe("#urls.unfurl", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
         documentId: document.id,
       },
@@ -147,9 +141,8 @@ describe("#urls.unfurl", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
         documentId: document.id,
       },
@@ -161,9 +154,8 @@ describe("#urls.unfurl", () => {
   });
 
   it("should return 204 when internal document url points to non-existent document", async () => {
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: `${env.URL}/doc/non-existent-doc-abc123`,
       },
     });
@@ -175,9 +167,8 @@ describe("#urls.unfurl", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: `${env.URL}/${document.url}`,
         documentId: document.id,
       },
@@ -200,9 +191,8 @@ describe("#urls.unfurl", () => {
       published: true,
     });
 
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
       },
     });
@@ -225,9 +215,8 @@ describe("#urls.unfurl", () => {
       published: true,
     });
 
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: `${env.URL}/s/${share.urlId}/doc/${document.urlId}`,
       },
     });
@@ -272,9 +261,8 @@ describe("#urls.unfurl", () => {
       published: true,
     });
 
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
       },
     });
@@ -294,9 +282,8 @@ describe("#urls.unfurl", () => {
       published: true,
     });
 
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: `${env.URL}/s/${share.id}`,
       },
     });
@@ -337,9 +324,8 @@ describe("#urls.unfurl", () => {
       })
     );
 
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: "https://www.flickr.com",
       },
     });
@@ -368,9 +354,8 @@ describe("#urls.unfurl", () => {
       })
     );
 
-    const res = await server.post("/api/urls.unfurl", {
+    const res = await server.post("/api/urls.unfurl", user, {
       body: {
-        token: user.getJwtToken(),
         url: "https://random.url",
       },
     });
@@ -386,19 +371,14 @@ describe("#urls.checkEmbed", () => {
   });
 
   it("should fail with status 400 bad request when url is missing", async () => {
-    const res = await server.post("/api/urls.checkEmbed", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/urls.checkEmbed", user);
 
     expect(res.status).toEqual(400);
   });
 
   it("should fail with status 400 bad request when url is not a valid URL", async () => {
-    const res = await server.post("/api/urls.checkEmbed", {
+    const res = await server.post("/api/urls.checkEmbed", user, {
       body: {
-        token: user.getJwtToken(),
         url: "not-a-url",
       },
     });
@@ -408,9 +388,8 @@ describe("#urls.checkEmbed", () => {
 
   it("should return a result for valid URLs", async () => {
     // Use a YouTube URL which matches a known embed pattern
-    const res = await server.post("/api/urls.checkEmbed", {
+    const res = await server.post("/api/urls.checkEmbed", user, {
       body: {
-        token: user.getJwtToken(),
         url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       },
     });
@@ -425,9 +404,8 @@ describe("#urls.checkEmbed", () => {
 describe("#urls.validateCustomDomain", () => {
   it("should succeed with custom domain pointing at server", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/urls.validateCustomDomain", {
+    const res = await server.post("/api/urls.validateCustomDomain", user, {
       body: {
-        token: user.getJwtToken(),
         hostname: "valid.custom.domain",
       },
     });
@@ -436,9 +414,8 @@ describe("#urls.validateCustomDomain", () => {
 
   it("should fail with another domain", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/urls.validateCustomDomain", {
+    const res = await server.post("/api/urls.validateCustomDomain", user, {
       body: {
-        token: user.getJwtToken(),
         hostname: "google.com",
       },
     });

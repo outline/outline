@@ -1,16 +1,19 @@
 import Router from "koa-router";
+import { randomUUID } from "node:crypto";
+import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
 import {
   CollectionPermission,
   CollectionStatusFilter,
-  FileOperationState,
-  FileOperationType,
+  FileOperationFormat,
+  ImportState,
+  IntegrationService,
   UserRole,
 } from "@shared/types";
+import { ImportValidation } from "@shared/validations";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
-import { parser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -23,10 +26,9 @@ import {
   User,
   Group,
   Attachment,
-  FileOperation,
   Document,
+  Import,
 } from "@server/models";
-import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
 import {
   presentCollection,
@@ -86,12 +88,6 @@ router.post(
       commenting,
       templateManagement,
     });
-
-    if (data) {
-      collection.description = await DocumentHelper.toMarkdown(collection, {
-        includeTitle: false,
-      });
-    }
 
     await collection.saveWithCtx(ctx);
 
@@ -177,17 +173,27 @@ router.post(
     });
     authorize(user, "read", attachment);
 
-    await FileOperation.createWithCtx(ctx, {
-      type: FileOperationType.Import,
-      state: FileOperationState.Creating,
-      format,
-      size: attachment.size,
-      key: attachment.key,
-      userId: user.id,
+    const service =
+      format === FileOperationFormat.MarkdownZip
+        ? IntegrationService.Markdown
+        : IntegrationService.JSON;
+
+    await Import.createWithCtx(ctx, {
+      name: truncate(attachment.name, {
+        length: ImportValidation.maxNameLength,
+      }),
+      service,
+      state: ImportState.Created,
+      input: [
+        {
+          externalId: randomUUID(),
+          permission: permission ?? undefined,
+        },
+      ],
+      scratch: { storageKey: attachment.key },
+      integrationId: null,
+      createdById: user.id,
       teamId: user.teamId,
-      options: {
-        permission,
-      },
     });
 
     ctx.body = {
@@ -636,16 +642,10 @@ router.post(
 
     if (description !== undefined) {
       collection.description = description;
-      collection.content = description
-        ? parser.parse(description)?.toJSON()
-        : null;
     }
 
     if (data !== undefined) {
       collection.content = data;
-      collection.description = await DocumentHelper.toMarkdown(collection, {
-        includeTitle: false,
-      });
     }
 
     if (icon !== undefined) {

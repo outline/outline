@@ -18,6 +18,9 @@ type Options = {
   includeData?: boolean;
   /** Include the updatedAt timestamp for public documents. */
   includeUpdatedAt?: boolean;
+  /** Include the unresolved comment count. Each call triggers a Redis lookup
+   * so only enable when the consumer needs the signal (e.g. MCP). */
+  includeCommentCount?: boolean;
   /** Array of backlink document IDs to include in the response. */
   backlinkIds?: string[];
 };
@@ -100,8 +103,6 @@ async function presentDocument(
   }
 
   if (!options.isPublic) {
-    const source = document.import ?? (await document.$get("import"));
-
     res.tasks = document.tasks;
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.isPrivate = document.isPrivate;
@@ -109,19 +110,23 @@ async function presentDocument(
     res.parentDocumentId = document.parentDocumentId;
     res.createdBy = presentUser(document.createdBy);
     res.updatedBy = presentUser(document.updatedBy);
-    res.collaboratorIds = document.collaboratorIds;
+    res.collaboratorIds = document.collaboratorIds ?? [];
     res.templateId = document.templateId;
     res.insightsEnabled = document.insightsEnabled;
     res.popularityScore = document.popularityScore;
-    res.sourceMetadata = document.sourceMetadata
-      ? {
-          importedAt: source?.createdAt ?? document.createdAt,
-          importType: source?.format,
-          createdByName: document.sourceMetadata.createdByName,
-          fileName: document.sourceMetadata?.fileName,
-          originalDocumentId: document.sourceMetadata?.originalDocumentId,
-        }
-      : undefined;
+    if (options.includeCommentCount) {
+      res.commentCount = await document.commentCount;
+    }
+    if (document.sourceMetadata) {
+      const source = document.import ?? (await document.$get("import"));
+      res.sourceMetadata = {
+        importedAt: source?.createdAt ?? document.createdAt,
+        importType: source?.format,
+        createdByName: document.sourceMetadata.createdByName,
+        fileName: document.sourceMetadata?.fileName,
+        originalDocumentId: document.sourceMetadata?.originalDocumentId,
+      };
+    }
   }
 
   return res;

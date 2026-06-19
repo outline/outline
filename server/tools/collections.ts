@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { CollectionPermission } from "@shared/types";
 import { Collection, Team } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { authorize } from "@server/policies";
@@ -13,6 +12,7 @@ import {
   error,
   getActorFromContext,
   buildAPIContext,
+  optionalString,
   pathToUrl,
   withTracing,
 } from "./util";
@@ -37,12 +37,9 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           readOnlyHint: true,
         },
         inputSchema: {
-          query: z
-            .string()
-            .optional()
-            .describe(
-              "An optional search query to filter collections by name."
-            ),
+          query: optionalString().describe(
+            "An optional search query to filter collections by name."
+          ),
           offset: z.coerce
             .number()
             .int()
@@ -157,14 +154,12 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .string()
             .optional()
             .describe("A markdown description for the collection."),
-          icon: z
-            .string()
-            .optional()
-            .describe("An icon for the collection, e.g. an emoji."),
-          color: z
-            .string()
-            .optional()
-            .describe("The hex color for the collection icon, e.g. #FF0000."),
+          icon: optionalString().describe(
+            "An icon for the collection, e.g. an emoji."
+          ),
+          color: optionalString().describe(
+            "The hex color for the collection icon, e.g. #FF0000."
+          ),
         },
       },
       withTracing("create_collection", async (input, context) => {
@@ -183,7 +178,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             color: input.color,
             teamId: user.teamId,
             createdById: user.id,
-            permission: CollectionPermission.ReadWrite,
+            permission: null,
           });
 
           await collection.saveWithCtx(ctx);
@@ -220,10 +215,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           id: z
             .string()
             .describe("The unique identifier of the collection to update."),
-          name: z
-            .string()
-            .optional()
-            .describe("The new name for the collection."),
+          name: optionalString().describe("The new name for the collection."),
           description: z
             .string()
             .optional()

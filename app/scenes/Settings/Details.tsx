@@ -7,6 +7,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { ThemeProvider, useTheme } from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import type { CustomTheme } from "@shared/types";
 import { TOCPosition, TeamPreference } from "@shared/types";
@@ -110,7 +111,7 @@ function Details() {
         });
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [

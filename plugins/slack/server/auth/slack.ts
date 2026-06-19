@@ -3,6 +3,7 @@ import type { Context } from "koa";
 import Router from "koa-router";
 import type { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
+import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import { ValidationError } from "@server/errors";
@@ -25,6 +26,7 @@ import {
   getTeamFromContext,
   getUserFromOAuthState,
   StateStore,
+  startOAuthFlow,
 } from "@server/utils/passport";
 import { parseEmail } from "@shared/utils/email";
 import env from "../env";
@@ -109,6 +111,8 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           user: {
             name: profile.user.name,
             email: profile.user.email,
+            // Slack only returns confirmed workspace email addresses.
+            emailVerified: true,
             avatarUrl: profile.user.image_192,
           },
           authenticationProvider: {
@@ -125,7 +129,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         });
         return done(null, result.user, { ...result, client });
       } catch (err) {
-        return done(err, null);
+        return done(toError(err), null);
       }
     }
   );
@@ -134,7 +138,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   strategy.name = providerName;
   passport.use(strategy);
 
-  router.get("slack", passport.authenticate(providerName));
+  router.get("slack", startOAuthFlow, passport.authenticate(providerName));
   router.get("slack.callback", passportMiddleware(providerName));
 
   router.get(

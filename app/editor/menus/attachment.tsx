@@ -1,24 +1,23 @@
-import type { TFunction } from "i18next";
+import { t } from "i18next";
 import { TrashIcon, DownloadIcon, ReplaceIcon, PDFIcon } from "outline-icons";
-import type { EditorState } from "prosemirror-state";
-import type { MenuItem } from "@shared/editor/types";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
+import { isPDFAttachmentActive } from "@shared/editor/queries/isPDFAttachment";
+import type { MenuItem, SelectionContext } from "@shared/editor/types";
 
-export default function attachmentMenuItems(
-  state: EditorState,
-  readOnly: boolean,
-  t: TFunction
-): MenuItem[] {
-  if (readOnly) {
+/**
+ * Returns menu items for the attachment selection toolbar.
+ *
+ * @param ctx - the current selection context.
+ * @returns an array of menu items.
+ */
+export default function attachmentMenuItems(ctx: SelectionContext): MenuItem[] {
+  if (ctx.readOnly) {
     return [];
   }
 
-  const { schema } = state;
+  const { schema, state } = ctx;
   const isAttachmentWithPreview = isNodeActive(schema.nodes.attachment, {
     preview: true,
-  });
-  const isPdfAttachment = isNodeActive(schema.nodes.attachment, {
-    contentType: "application/pdf",
   });
 
   return [
@@ -37,7 +36,7 @@ export default function attachmentMenuItems(
       tooltip: t("Show preview"),
       icon: <PDFIcon />,
       active: isAttachmentWithPreview,
-      visible: isPdfAttachment(state),
+      visible: isPDFAttachmentActive(state),
     },
     {
       name: "separator",

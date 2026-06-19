@@ -5,6 +5,9 @@ type DragDirection = "left" | "right" | "bottom";
 
 type SizeState = { width: number; height?: number };
 
+/** The minimum width an element can be resized to, as a fraction of the maximum width. */
+const minWidthRatio = 0.05;
+
 /**
  * Hook for resizing an element by dragging its sides.
  */
@@ -36,8 +39,6 @@ type Params = {
   naturalWidth: number;
   /** The natural height of the element. */
   naturalHeight: number;
-  /** The percentage of the grid to snap the element to. */
-  gridSnap: 5;
   /** The pixel increment to snap vertical resizing to. */
   gridHeightSnap?: number;
   /** The minimum height in pixels when resizing vertically. */
@@ -51,7 +52,6 @@ export default function useDragResize(props: Params): ReturnValue {
     onChangeSize,
     naturalWidth,
     naturalHeight,
-    gridSnap,
     gridHeightSnap,
     minHeight,
     ref,
@@ -74,10 +74,10 @@ export default function useDragResize(props: Params): ReturnValue {
 
   const constrainWidth = React.useCallback(
     (width: number, max: number) => {
-      const minWidth = Math.min(naturalWidth, (gridSnap / 100) * max);
+      const minWidth = Math.min(naturalWidth, minWidthRatio * max);
       return Math.round(Math.min(max, Math.max(width, minWidth)));
     },
-    [naturalWidth, gridSnap]
+    [naturalWidth]
   );
 
   const handlePointerMove = React.useCallback(
@@ -94,17 +94,18 @@ export default function useDragResize(props: Params): ReturnValue {
       }
 
       if (diffX && sizeAtDragStart.width) {
-        const gridWidth = (gridSnap / 100) * maxWidth;
         const newWidth = sizeAtDragStart.width + diffX * 2;
-        const widthOnGrid = Math.round(newWidth / gridWidth) * gridWidth;
-        const constrainedWidth = constrainWidth(widthOnGrid, maxWidth);
+        const constrainedWidth = constrainWidth(newWidth, maxWidth);
         const aspectRatio = naturalHeight / naturalWidth;
 
         setSize({
+          // When dragged to or beyond the editor edge, store the natural width as a
+          // sentinel for "full width" so the element stays responsive. Only do this
+          // when the natural width actually exceeds the editor — otherwise constrain
+          // to the editor edge rather than snapping a smaller image back down to its
+          // natural size.
           width:
-            // If the natural width is the same as the constrained width, use the natural width -
-            // special case for images resized to the full width of the editor.
-            constrainedWidth === Math.min(newWidth, maxWidth)
+            newWidth >= maxWidth && naturalWidth >= maxWidth
               ? naturalWidth
               : constrainedWidth,
           height: naturalWidth
@@ -129,7 +130,6 @@ export default function useDragResize(props: Params): ReturnValue {
       offset,
       sizeAtDragStart,
       maxWidth,
-      gridSnap,
       gridHeightSnap,
       naturalWidth,
       naturalHeight,
@@ -192,7 +192,9 @@ export default function useDragResize(props: Params): ReturnValue {
         : Infinity;
       setMaxWidth(max);
       setSizeAtDragStart({
-        width: constrainWidth(size.width, max),
+        // When no width has been set yet the element is displayed at full width,
+        // so begin resizing from the maximum width rather than the minimum.
+        width: constrainWidth(size.width || max, max),
         height: size.height,
       });
       setOffset(

@@ -55,6 +55,7 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
+import { parser } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
@@ -321,10 +322,28 @@ class Collection extends ParanoidModel<
 
   /** The frontend path to this collection. */
   get path(): string {
-    if (!this.name) {
-      return `/collection/untitled-${this.urlId}`;
+    return Collection.getPath({
+      name: this.name,
+      urlId: this.urlId,
+    });
+  }
+
+  /**
+   * Returns the frontend path for a collection.
+   *
+   * @param name The collection name.
+   * @param urlId The collection URL ID.
+   * @returns the frontend path for the collection.
+   */
+  static getPath({ name, urlId }: { name: string; urlId: string }): string {
+    if (!name) {
+      return `/collection/untitled-${urlId}`;
     }
-    return `/collection/${slugify(this.name)}-${this.urlId}`;
+    const slugifiedName = slugify(name);
+    if (!slugifiedName) {
+      return `/collection/untitled-${urlId}`;
+    }
+    return `/collection/${slugifiedName}-${urlId}`;
   }
 
   /**
@@ -346,9 +365,21 @@ class Collection extends ParanoidModel<
 
   @BeforeSave
   static async onBeforeSave(model: Collection) {
-    if (!model.content) {
+    const descriptionChanged = model.changed("description");
+    const contentChanged = model.changed("content");
+
+    if (descriptionChanged && !contentChanged) {
+      model.content = model.description
+        ? (parser.parse(model.description)?.toJSON() ?? null)
+        : null;
+    } else if (contentChanged && !descriptionChanged) {
+      model.description = model.content
+        ? await DocumentHelper.toMarkdown(model, { includeTitle: false })
+        : null;
+    } else if (!model.content) {
       model.content = await DocumentHelper.toJSON(model);
     }
+
     if (model.changed("documentStructure")) {
       await CacheHelper.clearData(
         RedisPrefixHelper.getCollectionDocumentsKey(model.id)
@@ -563,12 +594,32 @@ class Collection extends ParanoidModel<
    * either via group or direct membership.
    *
    * @param collectionId
+   * @param permission optional permission filter
+   *
    * @returns userIds
    */
-  static async membershipUserIds(collectionId: string) {
+  static async membershipUserIds(
+    collectionId: string,
+    permission?: CollectionPermission
+  ) {
     const collection = await this.scope("withAllMemberships").findOne({
       where: { id: collectionId },
+      include: [
+        {
+          association: "memberships",
+          required: false,
+          ...(permission ? { where: { permission } } : {}),
+          separate: true,
+        },
+        {
+          association: "groupMemberships",
+          required: false,
+          ...(permission ? { where: { permission } } : {}),
+          separate: true,
+        },
+      ],
     });
+
     if (!collection) {
       return [];
     }
@@ -804,7 +855,7 @@ class Collection extends ParanoidModel<
     return this;
   };
 
-  deleteDocument = async function (document: Document, options?: FindOptions) {
+  deleteDocument = async (document: Document, options?: FindOptions) => {
     await this.removeDocumentInStructure(document, options);
 
     // Helper to destroy all child documents for a document
@@ -828,12 +879,12 @@ class Collection extends ParanoidModel<
     await document.destroy(options);
   };
 
-  removeDocumentInStructure = async function (
+  removeDocumentInStructure = async (
     document: Document,
     options?: FindOptions & {
       save?: boolean;
     }
-  ) {
+  ) => {
     if (!this.documentStructure) {
       return;
     }
@@ -891,7 +942,7 @@ class Collection extends ParanoidModel<
     return result;
   };
 
-  getDocumentParents = function (documentId: string): string[] | void {
+  getDocumentParents = (documentId: string): string[] | void => {
     let result!: string[];
 
     const loopChildren = (documents: NavigationNode[], path: string[] = []) => {
@@ -918,10 +969,10 @@ class Collection extends ParanoidModel<
   /**
    * Update document's title and url in the documentStructure
    */
-  updateDocument = async function (
+  updateDocument = async (
     updatedDocument: Document,
     options?: { transaction?: Transaction | null | undefined }
-  ) {
+  ) => {
     if (!this.documentStructure) {
       return;
     }
@@ -956,7 +1007,7 @@ class Collection extends ParanoidModel<
     return this;
   };
 
-  addDocumentToStructure = async function (
+  addDocumentToStructure = async (
     document: Document,
     index?: number,
     options: FindOptions & {
@@ -966,7 +1017,7 @@ class Collection extends ParanoidModel<
       includeArchived?: boolean;
       insertOrder?: "prepend" | "append";
     } = {}
-  ) {
+  ) => {
     if (!this.documentStructure) {
       this.documentStructure = [];
     }

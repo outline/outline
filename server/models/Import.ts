@@ -1,5 +1,11 @@
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  SaveOptions,
+} from "sequelize";
 import {
+  AllowNull,
+  BeforeCreate,
   BelongsTo,
   Column,
   DataType,
@@ -10,9 +16,10 @@ import {
   IsNumeric,
   Table,
 } from "sequelize-typescript";
-import { type ImportInput } from "@shared/schema";
+import { type ImportInput, type ImportScratch } from "@shared/schema";
 import { ImportableIntegrationService, ImportState } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
+import { UnprocessableEntityError } from "@server/errors";
 import Integration from "./Integration";
 import Team from "./Team";
 import User from "./User";
@@ -55,6 +62,10 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   @Column(DataType.JSONB)
   input: ImportInput<T>;
 
+  @AllowNull
+  @Column(DataType.JSONB)
+  scratch: ImportScratch<T> | null;
+
   @IsNumeric
   @Default(0)
   @Column(DataType.INTEGER)
@@ -66,11 +77,12 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   // associations
 
   @BelongsTo(() => Integration, "integrationId")
-  integration: Integration;
+  integration: Integration | null;
 
+  @AllowNull
   @ForeignKey(() => Integration)
   @Column(DataType.UUID)
-  integrationId: string;
+  integrationId: string | null;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;
@@ -85,6 +97,31 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   @ForeignKey(() => Team)
   @Column(DataType.UUID)
   teamId: string;
+
+  /**
+   * Serializes imports per team — blocks creation while another import is
+   * already in flight. Centralizing the check here lets every code path that
+   * creates an Import (route handlers, integrations) share one definition of
+   * "in progress" without duplicating the count query.
+   */
+  @BeforeCreate
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+  static async checkInProgress(model: Import<any>, options: SaveOptions) {
+    const inProgress = await this.count({
+      where: {
+        teamId: model.teamId,
+        state: [
+          ImportState.Created,
+          ImportState.InProgress,
+          ImportState.Processed,
+        ],
+      },
+      transaction: options.transaction,
+    });
+    if (inProgress) {
+      throw UnprocessableEntityError("An import is already in progress");
+    }
+  }
 }
 
 export default Import;

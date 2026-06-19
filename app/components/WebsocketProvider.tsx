@@ -13,6 +13,7 @@ import {
   FileOperationType,
   ImportState,
 } from "@shared/types";
+import { toError } from "@shared/utils/error";
 import type RootStore from "~/stores/RootStore";
 import type Collection from "~/models/Collection";
 import type Comment from "~/models/Comment";
@@ -95,6 +96,10 @@ function useConnectionHandlers() {
             : "Socket unauthorized";
 
       toast.error(message);
+
+      if (message === "No access token") {
+        return;
+      }
 
       if (err instanceof Error) {
         Sentry.captureException(err);
@@ -336,7 +341,7 @@ function useDocumentHandlers() {
             force: event.userId === currentUserId,
           });
         } catch (err) {
-          Logger.error("Failed to fetch document after add_user", err);
+          Logger.error("Failed to fetch document after add_user", toError(err));
         }
       }
     );
@@ -435,7 +440,10 @@ function useCollectionHandlers() {
         try {
           await collections.fetch(collectionId, { force: true });
         } catch (err) {
-          Logger.error("Failed to fetch collection after archive", err);
+          Logger.error(
+            "Failed to fetch collection after archive",
+            toError(err)
+          );
         }
 
         documents.unarchivedInCollection(collectionId).forEach(
@@ -471,7 +479,10 @@ function useCollectionHandlers() {
         try {
           await collections.fetch(collectionId, { force: true });
         } catch (err) {
-          Logger.error("Failed to fetch collection after restore", err);
+          Logger.error(
+            "Failed to fetch collection after restore",
+            toError(err)
+          );
         }
       }
     );
@@ -483,7 +494,7 @@ function useCollectionHandlers() {
           force: event.userId === currentUserId,
         });
       } catch (err) {
-        Logger.error("Failed to fetch collection after add_user", err);
+        Logger.error("Failed to fetch collection after add_user", toError(err));
       }
     });
 
@@ -501,7 +512,10 @@ function useCollectionHandlers() {
       try {
         await collections.fetch(event.collectionId!);
       } catch (err) {
-        Logger.error("Failed to fetch collection after add_group", err);
+        Logger.error(
+          "Failed to fetch collection after add_group",
+          toError(err)
+        );
       }
     });
 
@@ -633,7 +647,10 @@ function useUserHandlers() {
         try {
           await collections.fetchAll();
         } catch (err) {
-          Logger.error("Failed to fetch collections after demote", err);
+          Logger.error(
+            "Failed to fetch collections after demote",
+            toError(err)
+          );
         }
       }
     });

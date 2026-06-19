@@ -54,6 +54,7 @@ import type { APIContext } from "@server/types";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { CacheHelper } from "@server/utils/CacheHelper";
+import { normalizeIp } from "@server/utils/ip";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { ValidationError } from "../errors";
 import Attachment from "./Attachment";
@@ -169,9 +170,15 @@ class User extends ParanoidModel<
   lastActiveAt: Date | null;
 
   @IsIP
-  @Column
   @SkipChangeset
-  lastActiveIp: string | null;
+  @Column(DataType.STRING)
+  get lastActiveIp(): string | null {
+    return this.getDataValue("lastActiveIp");
+  }
+
+  set lastActiveIp(value: string | null) {
+    this.setDataValue("lastActiveIp", normalizeIp(value));
+  }
 
   @IsDate
   @Column
@@ -179,9 +186,15 @@ class User extends ParanoidModel<
   lastSignedInAt: Date | null;
 
   @IsIP
-  @Column
   @SkipChangeset
-  lastSignedInIp: string | null;
+  @Column(DataType.STRING)
+  get lastSignedInIp(): string | null {
+    return this.getDataValue("lastSignedInIp");
+  }
+
+  set lastSignedInIp(value: string | null) {
+    this.setDataValue("lastSignedInIp", normalizeIp(value));
+  }
 
   @IsDate
   @Column
@@ -608,7 +621,7 @@ class User extends ParanoidModel<
    * @param service The authentication service used to generate the token, if applicable
    * @returns The session token
    */
-  getJwtToken = (expiresAt?: Date, service?: string) =>
+  getSessionToken = (expiresAt?: Date, service?: string) =>
     JWT.sign(
       {
         id: this.id,
@@ -922,7 +935,11 @@ class User extends ParanoidModel<
     }
   };
 
-  static findByEmail = async function (ctx: APIContext, email: string) {
+  static findByEmail = async function (
+    this: typeof User,
+    ctx: APIContext,
+    email: string
+  ) {
     return this.findOne({
       where: {
         teamId: ctx.state.auth.user.teamId,
@@ -932,7 +949,7 @@ class User extends ParanoidModel<
     });
   };
 
-  static getCounts = async function (teamId: string) {
+  static getCounts = async function (this: typeof User, teamId: string) {
     const countSql = `
       SELECT
         COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
@@ -945,7 +962,14 @@ class User extends ParanoidModel<
       WHERE "deletedAt" IS NULL
       AND "teamId" = :teamId
     `;
-    const [results] = await this.sequelize.query(countSql, {
+    const [counts] = await this.sequelize!.query<{
+      activeCount: string;
+      adminCount: string;
+      invitedCount: string;
+      suspendedCount: string;
+      viewerCount: string;
+      count: string;
+    }>(countSql, {
       type: QueryTypes.SELECT,
       replacements: {
         teamId,
@@ -953,15 +977,6 @@ class User extends ParanoidModel<
         roleViewer: UserRole.Viewer,
       },
     });
-
-    const counts: {
-      activeCount: string;
-      adminCount: string;
-      invitedCount: string;
-      suspendedCount: string;
-      viewerCount: string;
-      count: string;
-    } = results;
 
     return {
       active: parseInt(counts.activeCount),

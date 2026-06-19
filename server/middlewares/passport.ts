@@ -1,6 +1,10 @@
 import passport from "@outlinewiki/koa-passport";
 import type { Context } from "koa";
-import { InternalOAuthError } from "passport-oauth2";
+import {
+  AuthorizationError,
+  InternalOAuthError,
+  TokenError,
+} from "passport-oauth2";
 import { Client } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
@@ -56,10 +60,20 @@ export default function createMiddleware(providerName: string) {
       },
       async (err, user, result: AuthenticationResult) => {
         if (err) {
-          Logger.error(
-            "Error during authentication",
-            err instanceof InternalOAuthError ? err.oauthError : err
-          );
+          // TokenError / AuthorizationError surface input problems reported by
+          // the upstream OAuth provider (expired or already-redeemed codes,
+          // access_denied, etc). They are not server bugs, so log at warn
+          // level and skip the error reporter.
+          if (err instanceof TokenError || err instanceof AuthorizationError) {
+            Logger.warn(`OAuth error during authentication: ${err.message}`, {
+              code: err.code,
+            });
+          } else {
+            Logger.error(
+              "Error during authentication",
+              err instanceof InternalOAuthError ? err.oauthError : err
+            );
+          }
 
           if (err.id) {
             const notice = err.id.replace(/_/g, "-");
@@ -71,15 +85,17 @@ export default function createMiddleware(providerName: string) {
             // same domain or subdomain that they originated from (found in state).
 
             // get original host
-            const stateString = ctx.cookies.get("state");
+            const stateString =
+              typeof ctx.query.state === "string" ? ctx.query.state : undefined;
             const state = stateString ? parseState(stateString) : undefined;
+            const oauthState = ctx.state.oauthState ?? state;
 
             // form a URL object with the err.redirectPath and replace the host
             const reqProtocol =
-              state?.client === Client.Desktop ? "outline" : ctx.protocol;
+              oauthState?.client === Client.Desktop ? "outline" : ctx.protocol;
 
             const requestHost = await getValidatedHost(
-              state?.host ?? ctx.hostname
+              oauthState?.host ?? ctx.hostname
             );
             const url = new URL(
               env.isCloudHosted

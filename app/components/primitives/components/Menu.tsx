@@ -108,6 +108,9 @@ export const MenuExternalLink = styled.a`
 
 export const MenuSubTrigger = styled.div<BaseMenuItemProps>`
   ${BaseMenuItemCSS}
+  // Reserve space for the absolutely-positioned disclosure arrow so long
+  // labels truncate before it rather than overlapping.
+  padding-inline-end: 32px;
 `;
 
 export const MenuSeparator = styled.hr`

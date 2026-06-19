@@ -6,7 +6,6 @@ import type { JSONObject } from "@shared/types";
 import { Scope } from "@shared/types";
 import { version } from "../../package.json";
 import env from "~/env";
-import stores from "~/stores";
 import Logger from "./Logger";
 import download from "./download";
 import {
@@ -31,6 +30,22 @@ type Options = {
   baseUrl?: string;
 };
 
+/** An HTTP method supported by the API client. */
+type Method = "GET" | "POST" | "PUT";
+
+/** Shape of an error payload returned by the API. */
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+  data?: Record<string, unknown>;
+}
+
+/** Reason the server rejected a request as unauthenticated. */
+export type UnauthorizedReason = "unauthorized" | "user_suspended";
+
+/** Handler invoked when a request is rejected as unauthenticated. */
+type UnauthorizedHandler = (reason: UnauthorizedReason) => void | Promise<void>;
+
 interface FetchOptions {
   download?: boolean;
   retry?: boolean;
@@ -46,36 +61,70 @@ class ApiClient {
 
   shareId?: string;
 
-  /** Map of in-flight POST requests for deduplication, keyed by path + body. */
+  /** Map of in-flight requests for deduplication, keyed by method + path + body. */
   // oxlint-disable-next-line no-explicit-any
   private inflightRequests = new Map<string, Promise<any>>();
+
+  private onUnauthorized?: UnauthorizedHandler;
 
   constructor(options: Options = {}) {
     this.baseUrl = options.baseUrl || "/api";
   }
 
+  /**
+   * Sets the share identifier appended to subsequent requests, used to
+   * authenticate access to publicly shared documents.
+   *
+   * @param shareId the share identifier, or undefined to clear it.
+   */
   setShareId = (shareId: string | undefined) => {
     this.shareId = shareId;
   };
 
+  /**
+   * Registers a handler invoked when a request is rejected as unauthenticated
+   * (a 401, or a 403 indicating the user was suspended). Used to keep
+   * session/logout policy out of the transport layer.
+   *
+   * @param handler the handler to invoke.
+   */
+  setUnauthorizedHandler = (handler: UnauthorizedHandler) => {
+    this.onUnauthorized = handler;
+  };
+
+  /**
+   * Performs an HTTP request against the API, handling serialization, headers,
+   * CSRF, retries, and error mapping.
+   *
+   * @param path the request path, relative to the base URL or an absolute URL.
+   * @param method the HTTP method to use.
+   * @param data the request payload, sent as a query string for GET requests
+   * and as a JSON or multipart body otherwise.
+   * @param options additional request options.
+   * @returns the parsed JSON response, or undefined for downloads and empty responses.
+   * @throws {RequestError} if the response status indicates failure.
+   */
   // oxlint-disable-next-line no-explicit-any
   fetch = async <T = any>(
     path: string,
-    method: string,
+    method: Method,
     data: JSONObject | FormData | undefined,
     options: FetchOptions = {}
   ): Promise<T> => {
     let body: string | FormData | undefined;
-    let modifiedPath;
-    let urlToFetch;
-    let isJson;
+    let modifiedPath: string | undefined;
+    let urlToFetch: string;
+    let isJson = false;
 
     if (this.shareId) {
-      // add to data
-      data = {
-        ...(data || {}),
-        shareId: this.shareId,
-      };
+      if (data instanceof FormData) {
+        data.append("shareId", this.shareId);
+      } else {
+        data = {
+          ...(data || {}),
+          shareId: this.shareId,
+        };
+      }
     }
 
     if (method === "GET") {
@@ -119,9 +168,7 @@ class ApiClient {
     };
 
     // Add CSRF token to headers for mutating requests
-    const isModifyingRequest = ["POST", "PUT", "PATCH", "DELETE"].includes(
-      method
-    );
+    const isModifyingRequest = method === "POST" || method === "PUT";
     const canAccessWithReadOnly = AuthenticationHelper.canAccess(path, [
       Scope.Read,
     ]);
@@ -179,14 +226,10 @@ class ApiClient {
       return response.json();
     }
 
-    // Handle 401, log out user
+    // Handle 401, notify session owner to log out
     if (response.status === 401) {
       if (!this.shareId) {
-        await stores.auth.logout({
-          savePath: true,
-          clearCache: false,
-          revokeToken: false,
-        });
+        await this.onUnauthorized?.("unauthorized");
       }
       throw new AuthorizationError();
     }
@@ -205,14 +248,10 @@ class ApiClient {
     }
 
     // Handle failed responses
-    const error: {
-      message?: string;
-      error?: string;
-      data?: Record<string, unknown>;
-    } = {};
+    const error: ApiErrorResponse = {};
 
     try {
-      const parsed = await response.json();
+      const parsed: ApiErrorResponse = await response.json();
       error.message = parsed.message || "";
       error.error = parsed.error;
       error.data = parsed.data;
@@ -235,11 +274,7 @@ class ApiClient {
 
     if (response.status === 403) {
       if (error.error === "user_suspended") {
-        await stores.auth.logout({
-          savePath: false,
-          revokeToken: false,
-          clearCache: true,
-        });
+        await this.onUnauthorized?.("user_suspended");
       }
 
       if (error.error === "csrf_error") {
@@ -279,6 +314,14 @@ class ApiClient {
     throw err;
   };
 
+  /**
+   * Performs a GET request against the API.
+   *
+   * @param path the request path, relative to the base URL or an absolute URL.
+   * @param data the data serialized into the query string.
+   * @param options additional request options.
+   * @returns the parsed JSON response.
+   */
   // oxlint-disable-next-line no-explicit-any
   get = <T = any>(
     path: string,
@@ -286,23 +329,68 @@ class ApiClient {
     options?: FetchOptions
   ) => this.fetch<T>(path, "GET", data, options);
 
+  /**
+   * Performs a POST request against the API. Identical in-flight requests are
+   * deduplicated and share a single response, except for multipart uploads.
+   *
+   * @param path the request path, relative to the base URL or an absolute URL.
+   * @param data the request payload, sent as a JSON or multipart body.
+   * @param options additional request options.
+   * @returns the parsed JSON response.
+   */
   // oxlint-disable-next-line no-explicit-any
   post = <T = any>(
     path: string,
     data?: JSONObject | FormData,
     options?: FetchOptions
+  ): Promise<T> => this.deduplicate<T>(path, "POST", data, options);
+
+  /**
+   * Performs a PUT request against the API. Identical in-flight requests are
+   * deduplicated and share a single response, except for multipart uploads.
+   *
+   * @param path the request path, relative to the base URL or an absolute URL.
+   * @param data the request payload, sent as a JSON or multipart body.
+   * @param options additional request options.
+   * @returns the parsed JSON response.
+   */
+  // oxlint-disable-next-line no-explicit-any
+  put = <T = any>(
+    path: string,
+    data?: JSONObject | FormData,
+    options?: FetchOptions
+  ): Promise<T> => this.deduplicate<T>(path, "PUT", data, options);
+
+  /**
+   * Sends a request, deduplicating identical in-flight requests so concurrent
+   * callers share a single response. Multipart uploads are never deduplicated.
+   *
+   * @param path the request path, relative to the base URL or an absolute URL.
+   * @param method the HTTP method to use.
+   * @param data the request payload.
+   * @param options additional request options.
+   * @returns the parsed JSON response.
+   */
+  // oxlint-disable-next-line no-explicit-any
+  private deduplicate = <T = any>(
+    path: string,
+    method: Method,
+    data?: JSONObject | FormData,
+    options?: FetchOptions
   ): Promise<T> => {
     if (data instanceof FormData) {
-      return this.fetch<T>(path, "POST", data, options);
+      return this.fetch<T>(path, method, data, options);
     }
 
-    const key = `${path}:${JSON.stringify(data)}:${JSON.stringify(options)}`;
+    const key = `${method}:${path}:${JSON.stringify(data)}:${JSON.stringify(
+      options
+    )}`;
     const inflight = this.inflightRequests.get(key);
     if (inflight) {
       return inflight;
     }
 
-    const promise = this.fetch<T>(path, "POST", data, options).finally(() => {
+    const promise = this.fetch<T>(path, method, data, options).finally(() => {
       this.inflightRequests.delete(key);
     });
     this.inflightRequests.set(key, promise);
@@ -310,4 +398,5 @@ class ApiClient {
   };
 }
 
+/** Shared API client instance configured against the default base URL. */
 export const client = new ApiClient();

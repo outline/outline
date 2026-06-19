@@ -7,11 +7,7 @@ describe("#stars.create", () => {
   it("should fail with status 400 bad request when both documentId and collectionId are missing", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/stars.create", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/stars.create", user);
 
     const body = await res.json();
     expect(res.status).toEqual(400);
@@ -27,9 +23,8 @@ describe("#stars.create", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/stars.create", {
+    const res = await server.post("/api/stars.create", user, {
       body: {
-        token: user.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -55,11 +50,7 @@ describe("#stars.list", () => {
       userId: user.id,
     });
 
-    const res = await server.post("/api/stars.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/stars.list", user);
 
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -76,11 +67,7 @@ describe("#stars.list", () => {
 describe("#stars.update", () => {
   it("should fail with status 400 bad request when id is missing", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/stars.update", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/stars.update", user);
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
@@ -93,9 +80,8 @@ describe("#stars.update", () => {
     const star = await buildStar({
       userId: user.id,
     });
-    const res = await server.post("/api/stars.update", {
+    const res = await server.post("/api/stars.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: star.id,
         index: "i",
       },
@@ -111,11 +97,7 @@ describe("#stars.update", () => {
 describe("#stars.delete", () => {
   it("should fail with status 400 bad request when id is missing", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/stars.delete", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/stars.delete", user);
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
@@ -129,10 +111,9 @@ describe("#stars.delete", () => {
       userId: user.id,
     });
 
-    const res = await server.post("/api/stars.delete", {
+    const res = await server.post("/api/stars.delete", user, {
       body: {
         id: star.id,
-        token: user.getJwtToken(),
       },
     });
 

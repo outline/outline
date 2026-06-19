@@ -408,7 +408,7 @@ class Team extends ParanoidModel<
     });
   };
 
-  public collectionIds = async function (paranoid = true) {
+  public collectionIds = async (paranoid = true) => {
     const models = await Collection.findAll({
       attributes: ["id"],
       where: {
@@ -560,7 +560,7 @@ class Team extends ParanoidModel<
 
     return this.findOne({
       ...options,
-      where: { ...options?.where, domain: normalized },
+      where: Object.assign({}, options?.where, { domain: normalized }),
     });
   }
 

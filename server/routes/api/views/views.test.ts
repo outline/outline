@@ -23,9 +23,8 @@ describe("#views.list", () => {
       documentId: document.id,
       userId: user.id,
     });
-    const res = await server.post("/api/views.list", {
+    const res = await server.post("/api/views.list", user, {
       body: {
-        token: user.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -47,9 +46,8 @@ describe("#views.list", () => {
 
     await user.update({ suspendedAt: new Date() });
 
-    const res = await server.post("/api/views.list", {
+    const res = await server.post("/api/views.list", admin, {
       body: {
-        token: admin.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -82,9 +80,8 @@ describe("#views.list", () => {
       documentId: document.id,
       userId: user.id,
     });
-    const res = await server.post("/api/views.list", {
+    const res = await server.post("/api/views.list", user, {
       body: {
-        token: user.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -109,9 +106,8 @@ describe("#views.list", () => {
   it("should require authorization", async () => {
     const document = await buildDocument();
     const user = await buildUser();
-    const res = await server.post("/api/views.list", {
+    const res = await server.post("/api/views.list", user, {
       body: {
-        token: user.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -126,9 +122,8 @@ describe("#views.create", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    const res = await server.post("/api/views.create", {
+    const res = await server.post("/api/views.create", user, {
       body: {
-        token: user.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -157,9 +152,8 @@ describe("#views.create", () => {
       userId: user.id,
       permission: CollectionPermission.Read,
     });
-    const res = await server.post("/api/views.create", {
+    const res = await server.post("/api/views.create", user, {
       body: {
-        token: user.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -183,9 +177,8 @@ describe("#views.create", () => {
   it("should require authorization", async () => {
     const document = await buildDocument();
     const user = await buildUser();
-    const res = await server.post("/api/views.create", {
+    const res = await server.post("/api/views.create", user, {
       body: {
-        token: user.getJwtToken(),
         documentId: document.id,
       },
     });

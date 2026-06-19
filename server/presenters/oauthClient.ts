@@ -17,7 +17,7 @@ export function presentDCRClient(
   baseUrl: string,
   oauthClient: OAuthClient,
   {
-    includeRegistrationAccessToken = false,
+    includeRegistrationAccessToken,
     includeCredentials = false,
   }: {
     includeRegistrationAccessToken: boolean;

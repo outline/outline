@@ -23,6 +23,22 @@ describe("#url", () => {
     });
     expect(collection.path).toBe(`/collection/untitled-${collection.urlId}`);
   });
+
+  it("should return correct url with slugified collection name", () => {
+    const path = Collection.getPath({
+      name: "Test Collection",
+      urlId: "abcdefghij",
+    });
+    expect(path).toBe("/collection/test-collection-abcdefghij");
+  });
+
+  it("should return untitled when collection name is empty", () => {
+    const path = Collection.getPath({
+      name: "",
+      urlId: "abcdefghij",
+    });
+    expect(path).toBe("/collection/untitled-abcdefghij");
+  });
 });
 
 describe("getDocumentParents", () => {

@@ -58,12 +58,13 @@ function Insights({ document }: Props) {
                     {t(`Last updated`)}{" "}
                     <Time dateTime={document.updatedAt} addSuffix />
                   </li>
-                  {document.sourceMetadata && (
+                  {(document.sourceName ||
+                    document.sourceMetadata?.fileName) && (
                     <li>
                       {t("Imported from {{ source }}", {
                         source:
                           document.sourceName ??
-                          `“${document.sourceMetadata.fileName}”`,
+                          `“${document.sourceMetadata?.fileName}”`,
                       })}
                     </li>
                   )}

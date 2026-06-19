@@ -4,8 +4,6 @@ import type { Event as TEvent, FileOperationEvent } from "@server/types";
 import ExportHTMLZipTask from "../tasks/ExportHTMLZipTask";
 import ExportJSONTask from "../tasks/ExportJSONTask";
 import ExportMarkdownZipTask from "../tasks/ExportMarkdownZipTask";
-import ImportJSONTask from "../tasks/ImportJSONTask";
-import ImportMarkdownZipTask from "../tasks/ImportMarkdownZipTask";
 import BaseProcessor from "./BaseProcessor";
 
 export default class FileOperationCreatedProcessor extends BaseProcessor {
@@ -19,23 +17,9 @@ export default class FileOperationCreatedProcessor extends BaseProcessor {
       }
     );
 
-    // map file operation type and format to the appropriate task
-    if (fileOperation.type === FileOperationType.Import) {
-      switch (fileOperation.format) {
-        case FileOperationFormat.MarkdownZip:
-          await new ImportMarkdownZipTask().schedule({
-            fileOperationId: event.modelId,
-          });
-          break;
-        case FileOperationFormat.JSON:
-          await new ImportJSONTask().schedule({
-            fileOperationId: event.modelId,
-          });
-          break;
-        default:
-      }
-    }
-
+    // Imports no longer flow through FileOperation — both JSON and Markdown
+    // zip imports run through the API-import pipeline (`imports.create` →
+    // {Markdown,JSON}APIImportTask). This dispatcher only handles exports.
     if (fileOperation.type === FileOperationType.Export) {
       switch (fileOperation.format) {
         case FileOperationFormat.HTMLZip:

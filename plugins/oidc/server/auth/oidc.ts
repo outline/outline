@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { toError } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import env from "../env";
 import { fetchOIDCConfiguration } from "../oidcDiscovery";
@@ -63,7 +64,7 @@ if (hasManualConfig) {
 
       return router;
     } catch (error) {
-      Logger.fatal("Failed to discover OIDC configuration", error);
+      Logger.fatal("Failed to discover OIDC configuration", toError(error));
       throw error;
     }
   })();

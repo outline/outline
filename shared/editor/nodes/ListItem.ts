@@ -291,7 +291,7 @@ export default class ListItem extends Node {
     if (state.inTable) {
       node.forEach((block, _, i) => {
         if (i > 0) {
-          state.out += " ";
+          state.append(" ");
         }
         state.renderInline(block);
       });

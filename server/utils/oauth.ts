@@ -1,5 +1,6 @@
 import { addMinutes, subMinutes } from "date-fns";
 import type { Context } from "koa";
+import { errToString } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
@@ -95,7 +96,7 @@ export default abstract class OAuthClient {
         },
       });
     } catch (err) {
-      throw InvalidRequestError(err.message);
+      throw InvalidRequestError(errToString(err));
     }
 
     const success = response.status >= 200 && response.status < 300;
@@ -106,7 +107,7 @@ export default abstract class OAuthClient {
     try {
       data = await response.json();
     } catch (err) {
-      throw InvalidRequestError(err.message);
+      throw InvalidRequestError(errToString(err));
     }
 
     return data;
@@ -142,7 +143,7 @@ export default abstract class OAuthClient {
       });
       data = await response.json();
     } catch (err) {
-      throw InvalidRequestError(err.message);
+      throw InvalidRequestError(errToString(err));
     }
 
     const success = response.status >= 200 && response.status < 300;

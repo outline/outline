@@ -22,7 +22,7 @@ export function presentMessageAttachment(
 
   return {
     color: collection?.color,
-    title: document.title,
+    title: document.titleWithDefault,
     title_link: `${team.url}${document.url}`,
     footer: collection?.name,
     callback_id: document.id,

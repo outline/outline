@@ -30,6 +30,10 @@ export class NotionImportsProcessor extends ImportsProcessor<IntegrationService.
     importModel: Import<IntegrationService.Notion>,
     transaction: Transaction
   ): Promise<NotionImportTaskInput> {
+    if (!importModel.integrationId) {
+      throw new Error("Notion import is missing integrationId");
+    }
+
     const integration = await Integration.scope("withAuthentication").findByPk(
       importModel.integrationId,
       { rejectOnEmpty: true }

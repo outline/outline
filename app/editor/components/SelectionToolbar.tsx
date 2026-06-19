@@ -2,34 +2,19 @@ import type { EditorState, Selection } from "prosemirror-state";
 import Suggestion from "~/editor/extensions/Suggestion";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
+import { buildSelectionContext } from "@shared/editor/lib/buildSelectionContext";
 import {
   getMarkRange,
   getMarkRangeNodeSelection,
 } from "@shared/editor/queries/getMarkRange";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
-import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import {
-  getColumnIndex,
-  getRowIndex,
-  isTableSelected,
-} from "@shared/editor/queries/table";
-import type { MenuItem } from "@shared/editor/types";
+import { MenuType, type MenuItem } from "@shared/editor/types";
 import useBoolean from "~/hooks/useBoolean";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
-import getAttachmentMenuItems from "../menus/attachment";
-import getCodeMenuItems from "../menus/code";
-import getDividerMenuItems from "../menus/divider";
-import getFormattingMenuItems from "../menus/formatting";
-import getImageMenuItems from "../menus/image";
-import getNoticeMenuItems from "../menus/notice";
-import getReadOnlyMenuItems from "../menus/readOnly";
-import getTableMenuItems from "../menus/table";
-import getTableColMenuItems from "../menus/tableCol";
-import getTableRowMenuItems from "../menus/tableRow";
 import {
   columnDragPluginKey,
   rowDragPluginKey,
@@ -39,6 +24,8 @@ import { MediaLinkEditor } from "./MediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
+import InlineMenu from "./InlineMenu";
+import StickyBlockToolbar from "./StickyBlockToolbar";
 import { isModKey } from "@shared/utils/keyboard";
 
 type Props = {
@@ -64,7 +51,6 @@ function useIsDragging(state: EditorState) {
   useEventListener("dragend", setNotDragging);
   useEventListener("drop", setNotDragging);
 
-  // Check if table row or column is being dragged
   const columnDragState = columnDragPluginKey.getState(state);
   const rowDragState = rowDragPluginKey.getState(state);
   const isTableDragging =
@@ -81,8 +67,7 @@ enum Toolbar {
 
 export function SelectionToolbar(props: Props) {
   const { readOnly = false } = props;
-  const { view, extensions, commands } = useEditor();
-  const { t } = useTranslation();
+  const { view, extensions, commands, selectionToolbarMenus } = useEditor();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isMobile = useMobile();
   const isActive = props.isActive || isMobile;
@@ -144,7 +129,6 @@ export function SelectionToolbar(props: Props) {
     }
   }, [activeToolbar]);
 
-  // Refocus the editor when the link toolbar closes to prevent focus loss
   const prevActiveToolbar = React.useRef(activeToolbar);
   React.useLayoutEffect(() => {
     if (
@@ -175,7 +159,6 @@ export function SelectionToolbar(props: Props) {
         return;
       }
 
-      // Don't collapse selection if any suggestion menu is open
       const isSuggestionMenuOpen = extensions.extensions.some(
         (ext) => ext instanceof Suggestion && ext.isOpen
       );
@@ -228,51 +211,16 @@ export function SelectionToolbar(props: Props) {
 
   const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
 
-  const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
-  const colIndex = getColumnIndex(state);
-  const rowIndex = getRowIndex(state);
-  const isImageSelection =
-    selection instanceof NodeSelection && selection.node.type.name === "image";
-  const isAttachmentSelection =
-    selection instanceof NodeSelection &&
-    selection.node.type.name === "attachment";
+  // Build selection context once, shared across all menu matchers
+  const ctx = buildSelectionContext(state, { readOnly, isTemplate, rtl });
 
-  let items: MenuItem[] = [];
-  let align: "center" | "start" | "end" = "center";
+  // Find the first matching menu from the registry (sorted by priority)
+  const matched = selectionToolbarMenus.find((menu) => menu.matches(ctx));
 
-  if (
-    isCodeSelection &&
-    (selection.empty || selection instanceof NodeSelection)
-  ) {
-    items = getCodeMenuItems(state, readOnly, t);
-    align = "end";
-  } else if (isTableSelected(state)) {
-    items = getTableMenuItems(state, readOnly, t);
-  } else if (colIndex !== undefined) {
-    items = getTableColMenuItems(state, readOnly, t, {
-      index: colIndex,
-      rtl,
-    });
-  } else if (rowIndex !== undefined) {
-    items = getTableRowMenuItems(state, readOnly, t, {
-      index: rowIndex,
-    });
-  } else if (isImageSelection) {
-    items = getImageMenuItems(state, readOnly, t);
-  } else if (isAttachmentSelection) {
-    items = getAttachmentMenuItems(state, readOnly, t);
-  } else if (isDividerSelection) {
-    items = getDividerMenuItems(state, readOnly, t);
-  } else if (readOnly) {
-    items = getReadOnlyMenuItems(state, !!canUpdate, t);
-  } else if (isNoticeSelection && selection.empty) {
-    items = getNoticeMenuItems(state, readOnly, t);
-    align = "end";
-  } else {
-    items = getFormattingMenuItems(state, isTemplate, t);
-  }
+  let items: MenuItem[] = matched ? matched.getItems(ctx) : [];
+  const align = matched?.align ?? "center";
 
-  // Some extensions may be disabled, remove corresponding items
+  // Filter out items for disabled extensions or invisible items
   items = items.filter((item) => {
     if (item.name === "separator") {
       return true;
@@ -317,6 +265,28 @@ export function SelectionToolbar(props: Props) {
     }
     setActiveToolbar(null);
   };
+
+  // Inline menus render as a vertical menu anchored to the selection rather
+  // than as a horizontal toolbar with trigger buttons.
+  if (
+    matched?.variant === MenuType.inline &&
+    activeToolbar === Toolbar.Menu &&
+    items.length
+  ) {
+    return <InlineMenu items={items} rtl={rtl} />;
+  }
+
+  // Block toolbars (code, notice) stick to the top of the viewport as the block
+  // scrolls instead of floating at a position fixed on selection. On mobile the
+  // floating toolbar renders as a bottom bar, so the sticky path is desktop only.
+  if (
+    matched?.sticky &&
+    !isMobile &&
+    activeToolbar === Toolbar.Menu &&
+    items.length
+  ) {
+    return <StickyBlockToolbar ref={menuRef} items={items} rtl={rtl} />;
+  }
 
   return (
     <FloatingToolbar

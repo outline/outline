@@ -1,7 +1,7 @@
 import { isHexColor } from "class-validator";
 import { parseToRgb, rgba } from "polished";
-import { toggleMark } from "prosemirror-commands";
 import type { MarkSpec, MarkType } from "prosemirror-model";
+import { toggleMark } from "../commands/toggleMark";
 import { markInputRuleForPattern } from "../lib/markInputRule";
 import markRule from "../rules/mark";
 import Mark from "./Mark";

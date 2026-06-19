@@ -93,7 +93,6 @@ allow(User, "update", Document, (actor, document) =>
         DocumentPermission.ReadWrite,
         DocumentPermission.Admin,
       ]),
-      and(isTeamAdmin(actor, document), can(actor, "read", document)),
       and(!!document?.isDraft && actor.id === document?.createdById),
       and(
         !document?.isPrivate,
@@ -113,14 +112,12 @@ allow(User, "publish", Document, (actor, document) =>
 
 allow(User, "manageUsers", Document, (actor, document) =>
   and(
-    can(actor, "update", document),
+    isTeamMutable(actor),
+    can(actor, "read", document),
     or(
       includesMembership(document, [DocumentPermission.Admin]),
-      and(isTeamAdmin(actor, document), can(actor, "read", document)),
-      and(
-        !document?.isPrivate,
-        can(actor, "updateDocument", document?.collection)
-      ),
+      isTeamAdmin(actor, document),
+      and(!document?.isPrivate, can(actor, "update", document?.collection)),
       !!document?.isDraft && actor.id === document?.createdById
     )
   )

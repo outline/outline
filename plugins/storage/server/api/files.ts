@@ -44,6 +44,10 @@ router.post(
     const { key } = ctx.input.body;
     const file = ctx.input.file;
 
+    if (!file) {
+      throw ValidationError("Request must include a file parameter");
+    }
+
     const attachment = await Attachment.findOne({
       where: { key },
       rejectOnEmpty: true,
@@ -66,7 +70,7 @@ router.post(
     try {
       await attachment.writeFile(file);
     } catch (err) {
-      if (err.message.includes("permission denied")) {
+      if (err instanceof Error && err.message.includes("permission denied")) {
         throw Error(
           `Permission denied writing to "${key}". Check the host machine file system permissions.`
         );

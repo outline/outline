@@ -29,7 +29,7 @@ export default function TextLength({
             throw new Error("Invalid data");
           }
 
-          const length = text ? [...text].length : 0;
+          const length = text ? Array.from(text).length : 0;
           if (length > max || length < min) {
             throw new Error(msg);
           }

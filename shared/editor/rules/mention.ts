@@ -1,5 +1,6 @@
-import type { Token, StateCore } from "markdown-it";
 import type MarkdownIt from "markdown-it";
+import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
+import type Token from "markdown-it/lib/token.mjs";
 import { v4 as uuidv4 } from "uuid";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 

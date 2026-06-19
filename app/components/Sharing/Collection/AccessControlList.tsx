@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
+import { errToString } from "@shared/utils/error";
 import Squircle from "@shared/components/Squircle";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
@@ -257,7 +258,7 @@ export const AccessControlList = observer(
                                   });
                                 }
                               } catch (err) {
-                                toast.error(err.message);
+                                toast.error(errToString(err));
                                 return false;
                               }
                               return true;
@@ -311,7 +312,7 @@ export const AccessControlList = observer(
                                   });
                                 }
                               } catch (err) {
-                                toast.error(err.message);
+                                toast.error(errToString(err));
                                 return false;
                               }
                               return true;

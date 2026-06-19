@@ -1,3 +1,4 @@
+import { errToString } from "@shared/utils/error";
 import { version } from "../../package.json";
 import Logger from "@server/logging/Logger";
 import fetch from "./fetch";
@@ -65,7 +66,7 @@ export async function getVersionInfo(currentVersion: string): Promise<{
       "Failed to fetch version information from Docker Hub. This is expected in isolated environments.",
       {
         currentVersion,
-        error: error instanceof Error ? error.message : String(error),
+        error: errToString(error),
       }
     );
 

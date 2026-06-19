@@ -33,6 +33,7 @@ import Team from "./Team";
 import User from "./User";
 import Group from "./Group";
 import Fix from "./decorators/Fix";
+import AccessRequest from "./AccessRequest";
 
 let baseDomain;
 
@@ -88,6 +89,10 @@ let baseDomain;
     },
     {
       association: "actor",
+      required: false,
+    },
+    {
+      association: "accessRequest",
       required: false,
     },
   ],
@@ -195,6 +200,14 @@ class Notification extends Model<
   @AllowNull
   @Column(DataType.UUID)
   membershipId: string;
+
+  @BelongsTo(() => AccessRequest, "accessRequestId")
+  accessRequest: AccessRequest;
+
+  @AllowNull
+  @ForeignKey(() => AccessRequest)
+  @Column(DataType.UUID)
+  accessRequestId: string;
 
   @AfterCreate
   static async createEvent(

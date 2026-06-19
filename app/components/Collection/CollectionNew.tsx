@@ -2,6 +2,7 @@ import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import type { FormData } from "./CollectionForm";
@@ -26,7 +27,7 @@ export const CollectionNew = observer(function CollectionNew_({
         onSubmit?.();
         history.push(collection.path);
       } catch (error) {
-        toast.error(error.message);
+        toast.error(errToString(error));
       }
     },
     [collections, onSubmit]

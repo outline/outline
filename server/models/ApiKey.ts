@@ -54,8 +54,9 @@ class ApiKey extends ParanoidModel<
   name: string;
 
   /** A list of scopes that this API key has access to */
-  @Matches(/[/.\w\s]*/, {
+  @Matches(AuthenticationHelper.scopeGrammarRegex, {
     each: true,
+    message: "Scope must be a valid API scope",
   })
   @Column(DataType.ARRAY(DataType.STRING))
   scope: string[] | null;

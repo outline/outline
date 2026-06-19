@@ -29,7 +29,7 @@ router.post(
   auth(),
   validate(T.CreateTestUsersSchema),
   async (ctx: APIContext<T.CreateTestUsersReq>) => {
-    const { count = 10 } = ctx.input.body;
+    const { count } = ctx.input.body;
     const invites = Array(Math.min(count, 100))
       .fill(0)
       .map(() => {

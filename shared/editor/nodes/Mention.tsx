@@ -1,6 +1,6 @@
 import { isMatch } from "es-toolkit/compat";
 import { sanitizeUrl } from "../../utils/urls";
-import type { Token } from "markdown-it";
+import type Token from "markdown-it/lib/token.mjs";
 import type {
   NodeSpec,
   Node as ProsemirrorNode,
@@ -21,6 +21,7 @@ import {
   MentionIssue,
   MentionProject,
   MentionPullRequest,
+  MentionDate,
   MentionURL,
   MentionUser,
 } from "../components/Mentions";
@@ -95,12 +96,21 @@ export default class Mention extends Node {
         },
       ],
       toDOM: (node) => [
-        node.attrs.type === MentionType.User ? "span" : "a",
+        node.attrs.type === MentionType.User ||
+        node.attrs.type === MentionType.Date
+          ? "span"
+          : "a",
         {
-          class: `${node.type.name} use-hover-preview`,
+          // Date mentions are self-contained and have nothing to unfurl, so
+          // they opt out of the hover preview behaviour.
+          class:
+            node.attrs.type === MentionType.Date
+              ? node.type.name
+              : `${node.type.name} use-hover-preview`,
           id: node.attrs.id,
           href:
-            node.attrs.type === MentionType.User
+            node.attrs.type === MentionType.User ||
+            node.attrs.type === MentionType.Date
               ? undefined
               : node.attrs.type === MentionType.Document
                 ? `${env.URL}/doc/${node.attrs.modelId}`
@@ -161,6 +171,10 @@ export default class Mention extends Node {
             {...props}
             onChangeUnfurl={this.handleChangeUnfurl(props)}
           />
+        );
+      case MentionType.Date:
+        return (
+          <MentionDate {...props} onChangeDate={this.handleChangeDate(props)} />
         );
       default:
         return null;
@@ -340,6 +354,25 @@ export default class Mention extends Node {
       }),
     };
   }
+
+  handleChangeDate =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    (modelId: string) => {
+      const { view } = this.editor;
+      const { tr } = view.state;
+      const pos = getPos();
+
+      if (node.attrs.modelId === modelId) {
+        return;
+      }
+
+      const transaction = tr.setNodeMarkup(pos, undefined, {
+        ...node.attrs,
+        modelId,
+        label: modelId,
+      });
+      view.dispatch(transaction);
+    };
 
   handleChangeUnfurl =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>

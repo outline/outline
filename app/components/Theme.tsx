@@ -31,6 +31,26 @@ const Theme: React.FC = ({ children }: Props) => {
     );
   }, [ui.resolvedTheme]);
 
+  // Some editor elements such as Mermaid diagrams rely on theme-changed event
+  // to render the correct color.
+  // Listen on the print media query, which fires consistently for both the
+  // print dialog and print preview.
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia("print");
+    const handleChange = (event: MediaQueryListEvent) => {
+      window.dispatchEvent(
+        new CustomEvent("theme-changed", {
+          detail: {
+            isDark: event.matches ? false : ui.resolvedTheme === "dark",
+          },
+        })
+      );
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [ui.resolvedTheme]);
+
   return (
     <DirectionProvider dir={direction}>
       <ThemeProvider theme={theme}>

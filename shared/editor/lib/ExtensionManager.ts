@@ -8,6 +8,7 @@ import type { Primitive } from "utility-types";
 import type { Editor } from "~/editor";
 import type Mark from "../marks/Mark";
 import type Node from "../nodes/Node";
+import type { SelectionToolbarMenuDescriptor } from "../types";
 import type { CommandFactory, WidgetProps } from "./Extension";
 import type Extension from "./Extension";
 import type { AnyExtension, AnyExtensionClass } from "./types";
@@ -62,28 +63,25 @@ export default class ExtensionManager {
   }
 
   get widgets() {
-    return this.extensions
-      .filter((extension) => extension.widget({ rtl: false, readOnly: false }))
-      .reduce(
-        (memo, node: Node) => ({
-          ...memo,
-          [node.name]: observer(((props: WidgetProps) =>
+    return Object.fromEntries(
+      this.extensions
+        .filter((extension) =>
+          extension.widget({ rtl: false, readOnly: false })
+        )
+        .map((node: Node) => [
+          node.name,
+          observer(((props: WidgetProps) =>
             node.widget(props)) as React.FC<WidgetProps>),
-        }),
-        {}
-      );
+        ])
+    );
   }
 
   get nodes() {
-    const nodes: Record<string, NodeSpec> = this.extensions
-      .filter((extension) => extension.type === "node")
-      .reduce(
-        (memo, node: Node) => ({
-          ...memo,
-          [node.name]: node.schema,
-        }),
-        {}
-      );
+    const nodes: Record<string, NodeSpec> = Object.fromEntries(
+      this.extensions
+        .filter((extension) => extension.type === "node")
+        .map((node: Node) => [node.name, node.schema])
+    );
 
     for (const i in nodes) {
       const { marks } = nodes[i];
@@ -101,15 +99,11 @@ export default class ExtensionManager {
   }
 
   get marks() {
-    const marks: Record<string, MarkSpec> = this.extensions
-      .filter((extension) => extension.type === "mark")
-      .reduce(
-        (memo, mark: Mark) => ({
-          ...memo,
-          [mark.name]: mark.schema,
-        }),
-        {}
-      );
+    const marks: Record<string, MarkSpec> = Object.fromEntries(
+      this.extensions
+        .filter((extension) => extension.type === "mark")
+        .map((mark: Mark) => [mark.name, mark.schema])
+    );
 
     for (const i in marks) {
       const { excludes } = marks[i];
@@ -127,27 +121,25 @@ export default class ExtensionManager {
   }
 
   serializer() {
-    const nodes = this.extensions
-      .filter((extension) => extension.type === "node")
-      .reduce(
-        (memo, extension: Node) => ({
-          ...memo,
-          [extension.name]: (...args: Parameters<Node["toMarkdown"]>) =>
+    const nodes = Object.fromEntries(
+      this.extensions
+        .filter((extension) => extension.type === "node")
+        .map((extension: Node) => [
+          extension.name,
+          (...args: Parameters<Node["toMarkdown"]>) =>
             extension.toMarkdown(...args),
-        }),
-        {}
-      );
+        ])
+    );
 
-    const marks = this.extensions
-      .filter((extension) => extension.type === "mark")
-      .reduce(
-        (memo, extension: Mark) => ({
-          ...memo,
-          [extension.name]: (...args: Parameters<Mark["toMarkdown"]>) =>
+    const marks = Object.fromEntries(
+      this.extensions
+        .filter((extension) => extension.type === "mark")
+        .map((extension: Mark) => [
+          extension.name,
+          (...args: Parameters<Mark["toMarkdown"]>) =>
             extension.toMarkdown(...args),
-        }),
-        {}
-      );
+        ])
+    );
 
     return new MarkdownSerializer(nodes, marks);
   }
@@ -161,21 +153,19 @@ export default class ExtensionManager {
     rules?: Options;
     plugins?: PluginSimple[];
   }): MarkdownParser {
-    const tokens = this.extensions
-      .filter(
-        (extension) => extension.type === "mark" || extension.type === "node"
-      )
-      .reduce((nodes, extension: Node | Mark) => {
-        const parseSpec = extension.parseMarkdown();
-        if (!parseSpec) {
-          return nodes;
-        }
-
-        return {
-          ...nodes,
-          [extension.markdownToken || extension.name]: parseSpec,
-        };
-      }, {});
+    const tokens = Object.fromEntries(
+      this.extensions
+        .filter(
+          (extension) => extension.type === "mark" || extension.type === "node"
+        )
+        .flatMap((extension: Node | Mark) => {
+          const parseSpec = extension.parseMarkdown();
+          if (!parseSpec) {
+            return [];
+          }
+          return [[extension.markdownToken || extension.name, parseSpec]];
+        })
+    );
 
     return new MarkdownParser(
       schema,
@@ -246,6 +236,17 @@ export default class ExtensionManager {
     );
   }
 
+  /**
+   * Collects selection toolbar menu descriptors from all extensions and returns
+   * them sorted by priority (highest first). The toolbar evaluates these in
+   * order and displays the first match.
+   */
+  get selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return this.extensions
+      .flatMap((extension) => extension.selectionToolbarMenus())
+      .sort((a, b) => b.priority - a.priority);
+  }
+
   commands({ schema, view }: { schema: Schema; view: EditorView }) {
     return this.extensions
       .filter((extension) => extension.commands)
@@ -272,7 +273,19 @@ export default class ExtensionManager {
             return;
           }
           if (extension.focusAfterExecution) {
+            // Focusing a blurred editor (e.g. when the command is run from a
+            // menu that holds focus) can collapse a non-text selection such as
+            // a table cell selection. Restore it so selection-based commands
+            // operate on the intended selection.
+            const { selection } = view.state;
             view.focus();
+            if (!view.state.selection.eq(selection)) {
+              view.dispatch(
+                view.state.tr
+                  .setSelection(selection)
+                  .setMeta("addToHistory", false)
+              );
+            }
           }
           return callback(attrs)?.(view.state, view.dispatch, view);
         };

@@ -9,6 +9,13 @@ import { s } from "../../styles";
 import { Preview, Subtitle, Title } from "./Widget";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
+/**
+ * Default dimensions for the PDF preview – approximately the width of a standard
+ * document with an A4 portrait aspect ratio.
+ */
+const naturalWidth = 768;
+const naturalHeight = 1086;
+
 type Props = ComponentProps & {
   /** Icon to display on the left side of the widget */
   icon: React.ReactNode;
@@ -27,17 +34,14 @@ export default function PdfViewer(props: Props) {
   const embedRef = useRef<HTMLEmbedElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
-    {
-      width: node.attrs.width,
-      height: node.attrs.height,
-      naturalWidth: 300,
-      naturalHeight: 424,
-      gridSnap: 5,
-      onChangeSize,
-      ref,
-    }
-  );
+  const { width, setSize, handlePointerDown, dragging } = useDragResize({
+    width: node.attrs.width,
+    height: node.attrs.height,
+    naturalWidth,
+    naturalHeight,
+    onChangeSize,
+    ref,
+  });
 
   useEffect(() => {
     if (node.attrs.width && node.attrs.width !== width) {
@@ -97,7 +101,7 @@ export default function PdfViewer(props: Props) {
           ? "pdf-wrapper ProseMirror-selectednode"
           : "pdf-wrapper"
       }
-      style={{ width: width ?? "auto" }}
+      style={{ width: width ?? "100%" }}
       $dragging={dragging}
     >
       <Flex gap={6} align="center">
@@ -111,12 +115,10 @@ export default function PdfViewer(props: Props) {
         title={name}
         src={href}
         ref={embedRef}
-        width={
-          // subtract padding and borders from width
-          width - 24
-        }
-        height={height}
         style={{
+          width: "100%",
+          height: "auto",
+          aspectRatio: `${naturalWidth} / ${naturalHeight}`,
           pointerEvents:
             !isEditable || (isSelected && !dragging) ? "initial" : "none",
           marginTop: 6,
@@ -145,7 +147,7 @@ const PDFWrapper = styled.div<{ $dragging: boolean }>`
   margin-right: auto;
   max-width: 100%;
   transition-property: width, height;
-  transition-duration: 120ms;
+  transition-duration: ${(props) => (props.$dragging ? "0ms" : "120ms")};
   transition-timing-function: ease-in-out;
   overflow: hidden;
   will-change: ${(props) => (props.$dragging ? "width, height" : "auto")};
@@ -154,8 +156,10 @@ const PDFWrapper = styled.div<{ $dragging: boolean }>`
   padding: ${EditorStyleHelper.blockRadius};
 
   embed {
+    display: block;
+    max-width: 100%;
     transition-property: width, height;
-    transition-duration: 120ms;
+    transition-duration: ${(props) => (props.$dragging ? "0ms" : "120ms")};
     transition-timing-function: ease-in-out;
     will-change: ${(props) => (props.$dragging ? "width, height" : "auto")};
   }

@@ -1,3 +1,4 @@
+import env from "@server/env";
 import {
   buildAdmin,
   buildUser,
@@ -21,9 +22,7 @@ describe("#webhookSubscriptions.list", () => {
   it("should fail with status 403 forbidden for non-admin user", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/webhookSubscriptions.list", {
-      body: { token: user.getJwtToken() },
-    });
+    const res = await server.post("/api/webhookSubscriptions.list", user);
     const body = await res.json();
 
     expect(res.status).toEqual(403);
@@ -43,9 +42,7 @@ describe("#webhookSubscriptions.list", () => {
         )
     );
 
-    const res = await server.post("/api/webhookSubscriptions.list", {
-      body: { token: user.getJwtToken() },
-    });
+    const res = await server.post("/api/webhookSubscriptions.list", user);
     const body = await res.json();
 
     expect(res.status).toEqual(200);
@@ -70,8 +67,8 @@ describe("#webhookSubscriptions.list", () => {
       name: "Development Hook",
     });
 
-    const res = await server.post("/api/webhookSubscriptions.list", {
-      body: { token: user.getJwtToken(), query: "webhook" },
+    const res = await server.post("/api/webhookSubscriptions.list", user, {
+      body: { query: "webhook" },
     });
     const body = await res.json();
 
@@ -97,8 +94,8 @@ describe("#webhookSubscriptions.list", () => {
       name: "Staging Webhook",
     });
 
-    const res = await server.post("/api/webhookSubscriptions.list", {
-      body: { token: user.getJwtToken(), query: "PRODUCTION" },
+    const res = await server.post("/api/webhookSubscriptions.list", user, {
+      body: { query: "PRODUCTION" },
     });
     const body = await res.json();
 
@@ -115,8 +112,8 @@ describe("#webhookSubscriptions.list", () => {
       name: "Production Webhook",
     });
 
-    const res = await server.post("/api/webhookSubscriptions.list", {
-      body: { token: user.getJwtToken(), query: "nonexistent" },
+    const res = await server.post("/api/webhookSubscriptions.list", user, {
+      body: { query: "nonexistent" },
     });
     const body = await res.json();
 
@@ -139,9 +136,7 @@ describe("#webhookSubscriptions.create", () => {
   it("should fail with status 403 forbidden for non-admin user", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/webhookSubscriptions.create", {
-      body: { token: user.getJwtToken() },
-    });
+    const res = await server.post("/api/webhookSubscriptions.create", user);
     const body = await res.json();
 
     expect(res.status).toEqual(403);
@@ -155,9 +150,8 @@ describe("#webhookSubscriptions.create", () => {
     const events = ["comments"];
     const secret = "Test secret";
 
-    const res = await server.post("/api/webhookSubscriptions.create", {
+    const res = await server.post("/api/webhookSubscriptions.create", user, {
       body: {
-        token: user.getJwtToken(),
         name,
         url,
         events,
@@ -173,6 +167,39 @@ describe("#webhookSubscriptions.create", () => {
     expect(webhook.events).toEqual(events);
     expect(webhook.secret).toEqual(secret);
     expect(webhook.enabled).toEqual(true);
+  });
+
+  it("should reject http urls when cloud hosted", async () => {
+    vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(true);
+
+    const user = await buildAdmin();
+    const res = await server.post("/api/webhookSubscriptions.create", user, {
+      body: {
+        name: "Test webhook",
+        url: "http://www.example.com",
+        events: ["comments"],
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should allow http urls when not cloud hosted", async () => {
+    vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(false);
+
+    const user = await buildAdmin();
+    const url = "http://www.example.com";
+    const res = await server.post("/api/webhookSubscriptions.create", user, {
+      body: {
+        name: "Test webhook",
+        url,
+        events: ["comments"],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.url).toEqual(url);
   });
 });
 
@@ -190,9 +217,7 @@ describe("#webhookSubscriptions.update", () => {
   it("should fail with status 403 forbidden for non-admin user", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/webhookSubscriptions.update", {
-      body: { token: user.getJwtToken() },
-    });
+    const res = await server.post("/api/webhookSubscriptions.update", user);
     const body = await res.json();
 
     expect(res.status).toEqual(403);
@@ -213,9 +238,8 @@ describe("#webhookSubscriptions.update", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/webhookSubscriptions.update", {
+    const res = await server.post("/api/webhookSubscriptions.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: existingWebhook.id,
         name,
         url,
@@ -247,9 +271,8 @@ describe("#webhookSubscriptions.update", () => {
       enabled: false,
     });
 
-    const res = await server.post("/api/webhookSubscriptions.update", {
+    const res = await server.post("/api/webhookSubscriptions.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: disabledWebhook.id,
         name,
         url,
@@ -281,9 +304,7 @@ describe("#webhookSubscriptions.delete", () => {
   it("should fail with status 403 forbidden for non-admin user", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/webhookSubscriptions.delete", {
-      body: { token: user.getJwtToken() },
-    });
+    const res = await server.post("/api/webhookSubscriptions.delete", user);
     const body = await res.json();
 
     expect(res.status).toEqual(403);
@@ -300,8 +321,8 @@ describe("#webhookSubscriptions.delete", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/webhookSubscriptions.delete", {
-      body: { token: user.getJwtToken(), id: createdWebhook.id },
+    const res = await server.post("/api/webhookSubscriptions.delete", user, {
+      body: { id: createdWebhook.id },
     });
     const body = await res.json();
 

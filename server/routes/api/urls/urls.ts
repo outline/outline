@@ -55,7 +55,7 @@ router.post(
         let teamId: string | undefined = actor?.teamId;
         if (!teamId && !isUUID(shareId)) {
           const teamFromCtx = await getTeamFromContext(ctx, {
-            includeStateCookie: false,
+            includeOAuthState: false,
           });
           teamId = teamFromCtx?.id;
         }
@@ -278,7 +278,7 @@ router.post(
         });
       });
     } catch (err) {
-      if (err.code === "ENOTFOUND") {
+      if (err instanceof Error && "code" in err && err.code === "ENOTFOUND") {
         throw NotFoundError("No CNAME record found");
       }
 

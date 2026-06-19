@@ -31,6 +31,10 @@ class DocumentContext {
 
   @action
   setDocument = (document: Document) => {
+    // Reset the focused comment when navigating between documents
+    if (this.document && this.document.id !== document.id) {
+      this.focusedCommentId = null;
+    }
     this.document = document;
     this.updateState();
   };

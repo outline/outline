@@ -11,6 +11,34 @@ type TestRequestOptions = Omit<RequestInit, "body" | "headers"> & {
   headers?: Record<string, string>;
 };
 
+interface Authable {
+  getSessionToken(): string;
+}
+
+const tokenCache = new WeakMap<Authable, string>();
+
+function getCachedSessionToken(user: Authable): string {
+  let token = tokenCache.get(user);
+  if (!token) {
+    token = user.getSessionToken();
+    tokenCache.set(user, token);
+  }
+  return token;
+}
+
+function normalizeArgs(
+  userOrOpts?: Authable | TestRequestOptions,
+  maybeOpts?: TestRequestOptions
+): { user?: Authable; opts: TestRequestOptions } {
+  if (
+    userOrOpts &&
+    typeof (userOrOpts as Authable).getSessionToken === "function"
+  ) {
+    return { user: userOrOpts as Authable, opts: maybeOpts ?? {} };
+  }
+  return { opts: (userOrOpts as TestRequestOptions) ?? {} };
+}
+
 class TestServer {
   private server: http.Server;
   private listener?: Promise<void> | null;
@@ -36,10 +64,24 @@ class TestServer {
     return this.listener;
   }
 
-  fetch(path: string, opts: TestRequestOptions) {
+  fetch(path: string, opts?: TestRequestOptions): ReturnType<typeof nodeFetch>;
+  fetch(
+    path: string,
+    user: Authable,
+    opts?: TestRequestOptions
+  ): ReturnType<typeof nodeFetch>;
+  fetch(
+    path: string,
+    userOrOpts?: Authable | TestRequestOptions,
+    maybeOpts?: TestRequestOptions
+  ) {
+    const { user, opts } = normalizeArgs(userOrOpts, maybeOpts);
     return this.listen().then(() => {
       const url = `${this.address}${path}`;
       const headers: Record<string, string> = { ...opts.headers };
+      if (user && !headers.Authorization && !headers.authorization) {
+        headers.Authorization = `Bearer ${getCachedSessionToken(user)}`;
+      }
       let body = opts.body;
       const contentType = headers["Content-Type"] ?? headers["content-type"];
       // automatic JSON encoding
@@ -62,32 +104,126 @@ class TestServer {
     this.server.close();
   }
 
-  delete(path: string, options?: TestRequestOptions) {
-    return this.fetch(path, { ...options, method: "DELETE" });
+  delete(path: string, opts?: TestRequestOptions): ReturnType<typeof nodeFetch>;
+  delete(
+    path: string,
+    user: Authable,
+    opts?: TestRequestOptions
+  ): ReturnType<typeof nodeFetch>;
+  delete(
+    path: string,
+    userOrOpts?: Authable | TestRequestOptions,
+    maybeOpts?: TestRequestOptions
+  ) {
+    const { user, opts } = normalizeArgs(userOrOpts, maybeOpts);
+    return user
+      ? this.fetch(path, user, { ...opts, method: "DELETE" })
+      : this.fetch(path, { ...opts, method: "DELETE" });
   }
 
-  get(path: string, options?: TestRequestOptions) {
-    return this.fetch(path, { ...options, method: "GET" });
+  get(path: string, opts?: TestRequestOptions): ReturnType<typeof nodeFetch>;
+  get(
+    path: string,
+    user: Authable,
+    opts?: TestRequestOptions
+  ): ReturnType<typeof nodeFetch>;
+  get(
+    path: string,
+    userOrOpts?: Authable | TestRequestOptions,
+    maybeOpts?: TestRequestOptions
+  ) {
+    const { user, opts } = normalizeArgs(userOrOpts, maybeOpts);
+    return user
+      ? this.fetch(path, user, { ...opts, method: "GET" })
+      : this.fetch(path, { ...opts, method: "GET" });
   }
 
-  head(path: string, options?: TestRequestOptions) {
-    return this.fetch(path, { ...options, method: "HEAD" });
+  head(path: string, opts?: TestRequestOptions): ReturnType<typeof nodeFetch>;
+  head(
+    path: string,
+    user: Authable,
+    opts?: TestRequestOptions
+  ): ReturnType<typeof nodeFetch>;
+  head(
+    path: string,
+    userOrOpts?: Authable | TestRequestOptions,
+    maybeOpts?: TestRequestOptions
+  ) {
+    const { user, opts } = normalizeArgs(userOrOpts, maybeOpts);
+    return user
+      ? this.fetch(path, user, { ...opts, method: "HEAD" })
+      : this.fetch(path, { ...opts, method: "HEAD" });
   }
 
-  options(path: string, options?: TestRequestOptions) {
-    return this.fetch(path, { ...options, method: "OPTIONS" });
+  options(
+    path: string,
+    opts?: TestRequestOptions
+  ): ReturnType<typeof nodeFetch>;
+  options(
+    path: string,
+    user: Authable,
+    opts?: TestRequestOptions
+  ): ReturnType<typeof nodeFetch>;
+  options(
+    path: string,
+    userOrOpts?: Authable | TestRequestOptions,
+    maybeOpts?: TestRequestOptions
+  ) {
+    const { user, opts } = normalizeArgs(userOrOpts, maybeOpts);
+    return user
+      ? this.fetch(path, user, { ...opts, method: "OPTIONS" })
+      : this.fetch(path, { ...opts, method: "OPTIONS" });
   }
 
-  patch(path: string, options?: TestRequestOptions) {
-    return this.fetch(path, { ...options, method: "PATCH" });
+  patch(path: string, opts?: TestRequestOptions): ReturnType<typeof nodeFetch>;
+  patch(
+    path: string,
+    user: Authable,
+    opts?: TestRequestOptions
+  ): ReturnType<typeof nodeFetch>;
+  patch(
+    path: string,
+    userOrOpts?: Authable | TestRequestOptions,
+    maybeOpts?: TestRequestOptions
+  ) {
+    const { user, opts } = normalizeArgs(userOrOpts, maybeOpts);
+    return user
+      ? this.fetch(path, user, { ...opts, method: "PATCH" })
+      : this.fetch(path, { ...opts, method: "PATCH" });
   }
 
-  post(path: string, options?: TestRequestOptions) {
-    return this.fetch(path, { ...options, method: "POST" });
+  post(path: string, opts?: TestRequestOptions): ReturnType<typeof nodeFetch>;
+  post(
+    path: string,
+    user: Authable,
+    opts?: TestRequestOptions
+  ): ReturnType<typeof nodeFetch>;
+  post(
+    path: string,
+    userOrOpts?: Authable | TestRequestOptions,
+    maybeOpts?: TestRequestOptions
+  ) {
+    const { user, opts } = normalizeArgs(userOrOpts, maybeOpts);
+    return user
+      ? this.fetch(path, user, { ...opts, method: "POST" })
+      : this.fetch(path, { ...opts, method: "POST" });
   }
 
-  put(path: string, options?: TestRequestOptions) {
-    return this.fetch(path, { ...options, method: "PUT" });
+  put(path: string, opts?: TestRequestOptions): ReturnType<typeof nodeFetch>;
+  put(
+    path: string,
+    user: Authable,
+    opts?: TestRequestOptions
+  ): ReturnType<typeof nodeFetch>;
+  put(
+    path: string,
+    userOrOpts?: Authable | TestRequestOptions,
+    maybeOpts?: TestRequestOptions
+  ) {
+    const { user, opts } = normalizeArgs(userOrOpts, maybeOpts);
+    return user
+      ? this.fetch(path, user, { ...opts, method: "PUT" })
+      : this.fetch(path, { ...opts, method: "PUT" });
   }
 }
 

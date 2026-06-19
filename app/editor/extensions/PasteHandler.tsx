@@ -55,15 +55,11 @@ export default class PasteHandler extends Extension {
           },
           handleDOMEvents: {
             keydown: (_, event) => {
-              if (event.key === "Shift") {
-                this.shiftKey = true;
-              }
+              this.shiftKey = event.shiftKey;
               return false;
             },
             keyup: (_, event) => {
-              if (event.key === "Shift") {
-                this.shiftKey = false;
-              }
+              this.shiftKey = event.shiftKey;
               return false;
             },
           },
@@ -108,22 +104,31 @@ export default class PasteHandler extends Extension {
                 return false;
               }
 
-              // Check if the clipboard contents can be parsed as a single url
-              if (isUrl(text)) {
+              // If the HTML on the clipboard is from Claude then the best
+              // compatability is to just use the HTML parser.
+              if (html?.includes("font-claude-response-body")) {
+                return false;
+              }
+
+              // Check if the clipboard contents can be parsed as a single url.
+              // Trim first so surrounding whitespace from the clipboard (e.g. a
+              // trailing newline appended by the source) doesn't prevent URL
+              // detection and skip the paste menu.
+              const trimmedText = text.trim();
+              if (isUrl(trimmedText)) {
                 // If there is selected text then we want to wrap it in a link to the url
                 if (!state.selection.empty) {
-                  toggleMark(this.editor.schema.marks.link, { href: text })(
-                    state,
-                    dispatch
-                  );
+                  toggleMark(this.editor.schema.marks.link, {
+                    href: trimmedText,
+                  })(state, dispatch);
                   return true;
                 }
 
                 // Is the link a link to a document? If so, we can grab the title and insert it.
-                const containsHash = text.includes("#");
+                const containsHash = trimmedText.includes("#");
 
-                if (isDocumentUrl(text)) {
-                  const slug = parseDocumentSlug(text);
+                if (isDocumentUrl(trimmedText)) {
+                  const slug = parseDocumentSlug(trimmedText);
 
                   if (slug) {
                     void stores.documents
@@ -147,7 +152,7 @@ export default class PasteHandler extends Extension {
                               )
                             );
                           } else {
-                            const { hash } = new URL(text);
+                            const { hash } = new URL(trimmedText);
                             const hasEmoji =
                               determineIconType(document.icon) ===
                               IconType.Emoji;
@@ -164,11 +169,11 @@ export default class PasteHandler extends Extension {
                         if (view.isDestroyed) {
                           return;
                         }
-                        this.insertLink(text);
+                        this.insertLink(trimmedText);
                       });
                   }
-                } else if (isCollectionUrl(text)) {
-                  const slug = parseCollectionSlug(text);
+                } else if (isCollectionUrl(trimmedText)) {
+                  const slug = parseCollectionSlug(trimmedText);
 
                   if (slug) {
                     stores.collections
@@ -192,7 +197,7 @@ export default class PasteHandler extends Extension {
                               )
                             );
                           } else {
-                            const { hash } = new URL(text);
+                            const { hash } = new URL(trimmedText);
                             const hasEmoji =
                               determineIconType(collection.icon) ===
                               IconType.Emoji;
@@ -209,11 +214,11 @@ export default class PasteHandler extends Extension {
                         if (view.isDestroyed) {
                           return;
                         }
-                        this.insertLink(text);
+                        this.insertLink(trimmedText);
                       });
                   }
                 } else {
-                  this.insertLink(text);
+                  this.insertLink(trimmedText);
                 }
 
                 return true;

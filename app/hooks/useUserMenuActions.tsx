@@ -20,6 +20,7 @@ import {
   UserSuspendDialog,
   UserChangeNameDialog,
   UserChangeEmailDialog,
+  UserChangeAvatarDialog,
 } from "~/components/UserDialogs";
 
 /**
@@ -32,6 +33,21 @@ export function useUserMenuActions(targetUser: User | null) {
   const { users, dialogs } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(targetUser ?? ({} as User));
+
+  const openAvatarDialog = React.useCallback(() => {
+    if (!targetUser) {
+      return;
+    }
+    dialogs.openModal({
+      title: t("Change profile picture"),
+      content: (
+        <UserChangeAvatarDialog
+          user={targetUser}
+          onSubmit={dialogs.closeAllModals}
+        />
+      ),
+    });
+  }, [dialogs, t, targetUser]);
 
   const openNameDialog = React.useCallback(() => {
     if (!targetUser) {
@@ -94,7 +110,9 @@ export function useUserMenuActions(targetUser: User | null) {
       toast.success(t(`Invite was resent to ${targetUser.name}`));
     } catch (err) {
       toast.error(
-        err.message ?? t(`An error occurred while sending the invite`)
+        err instanceof Error
+          ? err.message
+          : t(`An error occurred while sending the invite`)
       );
     }
   }, [users, targetUser, t]);
@@ -126,6 +144,12 @@ export function useUserMenuActions(targetUser: User | null) {
               section: UserSection,
               visible: can.demote || can.promote,
               children: roleChangeActions,
+            }),
+            createAction({
+              name: `${t("Change profile picture")}…`,
+              section: UserSection,
+              visible: can.update,
+              perform: openAvatarDialog,
             }),
             createAction({
               name: `${t("Change name")}…`,
@@ -177,6 +201,7 @@ export function useUserMenuActions(targetUser: User | null) {
       can.update,
       can.resendInvite,
       roleChangeActions,
+      openAvatarDialog,
       openNameDialog,
       openEmailDialog,
       resendInvitation,

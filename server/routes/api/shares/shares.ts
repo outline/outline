@@ -56,7 +56,7 @@ router.post(
     const { id, collectionId, documentId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const teamFromCtx = await getTeamFromContext(ctx, {
-      includeStateCookie: false,
+      includeOAuthState: false,
     });
 
     // only public link loads will send "id".
@@ -80,27 +80,26 @@ router.post(
 
       const team = teamFromCtx?.id === share.teamId ? teamFromCtx : share.team;
 
-      const [serializedCollection, serializedDocument, serializedTeam] =
-        await Promise.all([
-          collection
-            ? await presentCollection(ctx, collection, {
-                isPublic: cannot(user, "read", collection),
-                shareId: share.id,
-                includeUpdatedAt: share.showLastUpdated,
-              })
-            : null,
-          document
-            ? await presentDocument(ctx, document, {
-                isPublic: cannot(user, "read", document),
-                shareId: share.id,
-                includeUpdatedAt: share.showLastUpdated,
-              })
-            : null,
-          presentPublicTeam(
-            team,
-            !!team.getPreference(TeamPreference.PublicBranding)
-          ),
-        ]);
+      const [serializedCollection, serializedDocument] = await Promise.all([
+        collection
+          ? presentCollection(ctx, collection, {
+              isPublic: cannot(user, "read", collection),
+              shareId: share.id,
+              includeUpdatedAt: share.showLastUpdated,
+            })
+          : Promise.resolve(null),
+        document
+          ? presentDocument(ctx, document, {
+              isPublic: cannot(user, "read", document),
+              shareId: share.id,
+              includeUpdatedAt: share.showLastUpdated,
+            })
+          : Promise.resolve(null),
+      ]);
+      const serializedTeam = presentPublicTeam(
+        team,
+        !!team.getPreference(TeamPreference.PublicBranding)
+      );
 
       ctx.body = {
         data: {
@@ -140,7 +139,7 @@ router.post(
         policies: presentPolicies(user, shares),
       };
     } catch (err) {
-      if (err.id === "not_found") {
+      if (err instanceof Error && "id" in err && err.id === "not_found") {
         ctx.response.status = 204;
         return;
       }
@@ -441,7 +440,7 @@ router.get(
   validate(T.SharesSitemapSchema),
   async (ctx: APIContext<T.SharesSitemapReq>) => {
     const { id } = ctx.input.query;
-    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
 
     const { share, sharedTree } = await loadPublicShare({
       id,
@@ -474,7 +473,7 @@ router.post(
 
     const { shareId, documentId, email } = ctx.input.body;
     const { transaction } = ctx.state;
-    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
 
     // Validate the share exists and is published
     const { share, document } = await loadPublicShare({

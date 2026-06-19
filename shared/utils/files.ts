@@ -104,7 +104,7 @@ export function getDataTransferFiles(
             .call(dt.items)
             .filter((dti: DataTransferItem) => dti.kind !== "string")
             .map((dti: DataTransferItem) => dti.getAsFile())
-            .filter(Boolean)
+            .filter((file: File | null): file is File => file !== null)
         : [];
     }
   }

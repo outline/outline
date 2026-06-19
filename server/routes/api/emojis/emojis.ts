@@ -85,7 +85,7 @@ router.get(
 
     if (shareId) {
       const teamFromCtx = await getTeamFromContext(ctx, {
-        includeStateCookie: false,
+        includeOAuthState: false,
       });
       const { share } = await loadPublicShare({
         id: shareId,

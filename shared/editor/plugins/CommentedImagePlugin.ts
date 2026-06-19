@@ -1,6 +1,9 @@
-import type { EditorState } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { EditorState, Transaction } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { changedDescendants } from "../lib/changedDescendants";
+import { isRemoteTransaction } from "../lib/multiplayer";
 
 /**
  * Plugin that applies a light outline decoration to image nodes that have
@@ -15,10 +18,17 @@ export class CommentedImagePlugin extends Plugin {
           decorations: this.createDecorations(state),
         }),
         apply: (tr, pluginState, _oldState, newState) => {
-          if (tr.docChanged) {
+          if (!tr.docChanged) {
+            return pluginState;
+          }
+
+          if (isRemoteTransaction(tr) || this.hasImageChange(tr)) {
             return { decorations: this.createDecorations(newState) };
           }
-          return pluginState;
+
+          return {
+            decorations: pluginState.decorations.map(tr.mapping, tr.doc),
+          };
         },
       },
       props: {
@@ -28,6 +38,24 @@ export class CommentedImagePlugin extends Plugin {
         },
       },
     });
+  }
+
+  /**
+   * Check if the transaction added, removed, or modified any image nodes.
+   */
+  private hasImageChange(tr: Transaction): boolean {
+    let found = false;
+    const check = (node: Node) => {
+      if (!found && node.type.name === "image") {
+        found = true;
+      }
+    };
+
+    changedDescendants(tr.before, tr.doc, 0, check);
+    if (!found) {
+      changedDescendants(tr.doc, tr.before, 0, check);
+    }
+    return found;
   }
 
   private createDecorations(state: EditorState) {

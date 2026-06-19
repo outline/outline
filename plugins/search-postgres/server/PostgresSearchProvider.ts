@@ -264,7 +264,10 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         count,
       });
     } catch (err) {
-      if (err.message.includes("syntax error in tsquery")) {
+      if (
+        err instanceof Error &&
+        err.message.includes("syntax error in tsquery")
+      ) {
         throw ValidationError("Invalid search query");
       }
       throw err;
@@ -456,7 +459,10 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         count,
       });
     } catch (err) {
-      if (err.message.includes("syntax error in tsquery")) {
+      if (
+        err instanceof Error &&
+        err.message.includes("syntax error in tsquery")
+      ) {
         throw ValidationError("Invalid search query");
       }
       throw err;
@@ -616,6 +622,12 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         {
           deletedAt: {
             [Op.eq]: null,
+          },
+          template: false,
+          sourceMetadata: {
+            trial: {
+              [Op.is]: null,
+            },
           },
         },
       ],
@@ -863,10 +875,10 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         // spaces. Ref: https://github.com/caub/pg-tsquery/issues/27
         quotedSearch ? limitedQuery.trim() : `${limitedQuery.trim()}*`
       )
-        // Remove any trailing join characters
-        .replace(/&$/, "")
-        // Remove any trailing escape characters
-        .replace(/\\$/, "")
+        // Strip any trailing join (&) or escape (\) characters, in any
+        // combination, so we never hand to_tsquery an operator with no
+        // operand (e.g. a tail of "&\" would leave a dangling "&").
+        .replace(/[&\\]+$/, "")
     );
   }
 

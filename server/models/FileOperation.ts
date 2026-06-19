@@ -91,12 +91,12 @@ class FileOperation extends ParanoidModel<
   /**
    * Mark the current file operation as expired and remove the file from storage.
    */
-  expire = async function () {
+  expire = async () => {
     this.state = FileOperationState.Expired;
     try {
       await FileStorage.deleteFile(this.key);
     } catch (err) {
-      if (err.retryable) {
+      if (err instanceof Error && "retryable" in err && err.retryable) {
         throw err;
       }
     }
@@ -168,13 +168,15 @@ class FileOperation extends ParanoidModel<
     where: WhereOptions<FileOperation> = {}
   ): Promise<number> {
     return this.count({
-      where: {
-        teamId,
-        createdAt: {
-          [Op.gt]: startDate,
+      where: Object.assign(
+        {
+          teamId,
+          createdAt: {
+            [Op.gt]: startDate,
+          },
         },
-        ...where,
-      },
+        where
+      ),
     });
   }
 

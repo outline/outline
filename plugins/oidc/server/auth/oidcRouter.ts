@@ -3,6 +3,7 @@ import JWT from "jsonwebtoken";
 import type { Context } from "koa";
 import type Router from "koa-router";
 import { get } from "es-toolkit/compat";
+import { toError } from "@shared/utils/error";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import { isBase64Url } from "@shared/utils/urls";
@@ -22,6 +23,7 @@ import {
   getClientFromOAuthState,
   getUserFromOAuthState,
   request,
+  startOAuthFlow,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -104,11 +106,12 @@ export function createOIDCRouter(
 
               return decoded as {
                 email?: string;
+                email_verified?: boolean | string;
                 preferred_username?: string;
                 sub?: string;
               };
             } catch (err) {
-              Logger.error("id_token decode threw error: ", err);
+              Logger.error("id_token decode threw error: ", toError(err));
               return {};
             }
           })();
@@ -120,6 +123,15 @@ export function createOIDCRouter(
               `An email field was not returned in the profile or id_token parameter, but is required.`
             );
           }
+
+          // The email_verified claim is part of the OIDC standard claims.
+          // https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+          const emailVerifiedClaim =
+            profile.email_verified ?? token.email_verified;
+          const emailVerified =
+            emailVerifiedClaim === undefined
+              ? undefined
+              : emailVerifiedClaim === true || emailVerifiedClaim === "true";
 
           const team = await getTeamFromContext(context);
           const client = getClientFromOAuthState(context);
@@ -205,6 +217,7 @@ export function createOIDCRouter(
             user: {
               name,
               email,
+              emailVerified,
               avatarUrl,
             },
             authenticationProvider: {
@@ -221,13 +234,13 @@ export function createOIDCRouter(
           });
           return done(null, result.user, { ...result, client });
         } catch (err) {
-          return done(err, null);
+          return done(toError(err), null);
         }
       }
     )
   );
 
-  router.get(config.id, passport.authenticate(config.id));
+  router.get(config.id, startOAuthFlow, passport.authenticate(config.id));
   router.get(`${config.id}.callback`, passportMiddleware(config.id));
   router.post(`${config.id}.callback`, passportMiddleware(config.id));
 }

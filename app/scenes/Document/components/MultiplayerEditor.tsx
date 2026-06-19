@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
+import History from "@shared/editor/extensions/History";
 import EDITOR_VERSION from "@shared/editor/version";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import type { Props as EditorProps } from "~/components/Editor";
@@ -130,7 +131,7 @@ function MultiplayerEditor(
           .fetchAuth()
           .then(() => {
             provider.setConfiguration({ token: auth.collaborationToken });
-            provider.connect();
+            void provider.connect();
             provider.shouldConnect = true;
           })
           .catch(() => {
@@ -256,8 +257,12 @@ function MultiplayerEditor(
       return props.extensions;
     }
 
+    // The Yjs undo manager (added by the Multiplayer extension below) is the
+    // sole source of undo/redo history when collaborating.
     return [
-      ...(props.extensions || []),
+      ...(props.extensions || []).filter(
+        (extension) => extension !== History && !(extension instanceof History)
+      ),
       new MultiplayerExtension({
         user,
         provider: remoteProvider,
@@ -284,7 +289,7 @@ function MultiplayerEditor(
       !isVisible &&
       remoteProvider.status === WebSocketStatus.Connected
     ) {
-      void remoteProvider.disconnect();
+      remoteProvider.disconnect();
     }
 
     if (

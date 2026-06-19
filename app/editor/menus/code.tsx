@@ -1,7 +1,6 @@
 import { CopyIcon, EditIcon, ExpandedIcon, TextWrapIcon } from "outline-icons";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { NodeSelection } from "prosemirror-state";
-import type { EditorState } from "prosemirror-state";
 import {
   pluginKey as mermaidPluginKey,
   type MermaidState,
@@ -12,15 +11,18 @@ import {
   getLabelForLanguage,
 } from "@shared/editor/lib/code";
 import { isMermaid } from "@shared/editor/lib/isCode";
-import type { TFunction } from "i18next";
-import type { MenuItem } from "@shared/editor/types";
+import { t } from "i18next";
+import type { MenuItem, SelectionContext } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 
-export default function codeMenuItems(
-  state: EditorState,
-  readOnly: boolean | undefined,
-  t: TFunction
-): MenuItem[] {
+/**
+ * Returns menu items for the code block selection toolbar.
+ *
+ * @param ctx - the current selection context.
+ * @returns an array of menu items.
+ */
+export default function codeMenuItems(ctx: SelectionContext): MenuItem[] {
+  const { state, readOnly } = ctx;
   const node =
     state.selection instanceof NodeSelection
       ? state.selection.node

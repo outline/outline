@@ -301,6 +301,27 @@ export class ProsemirrorHelper {
   }
 
   /**
+   * Returns the ids of comment marks attached to the node at the given position.
+   *
+   * @param doc Prosemirror document node.
+   * @param pos Position of the node within the document.
+   * @returns array of comment ids anchored to the node.
+   */
+  static getCommentIdsAtPos(doc: Node, pos: number): string[] {
+    const node = doc.nodeAt(pos);
+    if (!node || !Array.isArray(node.attrs?.marks)) {
+      return [];
+    }
+
+    return (node.attrs.marks as { type?: string; attrs?: { id?: string } }[])
+      .filter(
+        (mark): mark is { type: "comment"; attrs: { id: string } } =>
+          mark?.type === "comment" && !!mark?.attrs?.id
+      )
+      .map((mark) => mark.attrs.id);
+  }
+
+  /**
    * Builds the consolidated anchor text for the given comment-id.
    *
    * @param marks all available comment marks in a document.

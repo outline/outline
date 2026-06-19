@@ -19,7 +19,8 @@ const layerStyles: React.CSSProperties = {
 function getItemStyles(
   initialOffset: XYCoord | null,
   currentOffset: XYCoord | null,
-  sidebarWidth: number
+  sidebarWidth: number,
+  constrainToSidebar: boolean
 ) {
   if (!initialOffset || !currentOffset) {
     return {
@@ -27,10 +28,14 @@ function getItemStyles(
     };
   }
   const { y } = currentOffset;
-  const x = Math.max(
-    initialOffset.x,
-    Math.min(initialOffset.x + sidebarWidth / 4, currentOffset.x)
-  );
+  // Sidebar drags keep the ghost tethered near its origin, but drags from
+  // outside the sidebar should follow the cursor freely.
+  const x = constrainToSidebar
+    ? Math.max(
+        initialOffset.x,
+        Math.min(initialOffset.x + sidebarWidth / 4, currentOffset.x)
+      )
+    : currentOffset.x;
 
   const transform = `translate(${x}px, ${y}px)`;
   return {
@@ -60,7 +65,14 @@ const DragPlaceholder = () => {
 
   return (
     <div style={layerStyles}>
-      <div style={getItemStyles(initialOffset, currentOffset, ui.sidebarWidth)}>
+      <div
+        style={getItemStyles(
+          initialOffset,
+          currentOffset,
+          ui.sidebarWidth,
+          item.constrainToSidebar !== false
+        )}
+      >
         <GhostLink
           icon={item.icon}
           label={item.title || t("Untitled")}

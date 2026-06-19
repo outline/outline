@@ -1,13 +1,18 @@
+import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import { UserRole } from "@shared/types";
 import { UserValidation } from "@shared/validations";
 import type User from "~/models/User";
+import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import ImageInput from "~/scenes/Settings/components/ImageInput";
 import { client } from "~/utils/ApiClient";
 import Text from "./Text";
 
@@ -71,7 +76,7 @@ export function UserDeleteDialog({ user, onSubmit }: Props) {
       danger
     >
       {t(
-        "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.",
+        "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending the user instead.",
         {
           userName: user.name,
         }
@@ -142,6 +147,48 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
   );
 }
 
+export const UserChangeAvatarDialog = observer(function UserChangeAvatarDialog({
+  user,
+  onSubmit,
+}: Props) {
+  const { t } = useTranslation();
+
+  const handleAvatarChange = async (avatarUrl: string | null) => {
+    try {
+      await user.save({ avatarUrl });
+      toast.success(t("Profile picture updated"));
+    } catch (err) {
+      toast.error(errToString(err));
+    }
+  };
+
+  const handleAvatarError = (error: string | null | undefined) => {
+    toast.error(error || t("Unable to upload new profile picture"));
+  };
+
+  return (
+    <Flex column gap={16}>
+      <Flex justify="center">
+        <ImageInput
+          alt={t("Profile picture")}
+          onSuccess={handleAvatarChange}
+          onError={handleAvatarError}
+          model={user}
+          showRemoveOption={false}
+        />
+      </Flex>
+      <Flex justify="flex-end" gap={8}>
+        {user.avatarUrl && (
+          <Button onClick={() => handleAvatarChange(null)} neutral>
+            {t("Remove")}
+          </Button>
+        )}
+        <Button onClick={onSubmit}>{t("Done")}</Button>
+      </Flex>
+    </Flex>
+  );
+});
+
 export function UserChangeEmailDialog({ user, onSubmit }: Props) {
   const { t } = useTranslation();
   const actor = useCurrentUser();
@@ -159,7 +206,7 @@ export function UserChangeEmailDialog({ user, onSubmit }: Props) {
       );
       return true;
     } catch (err) {
-      setError(err.message);
+      setError(errToString(err));
       return false;
     }
   };
