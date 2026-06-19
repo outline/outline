@@ -138,13 +138,10 @@ router.post(
       userId: user.id,
     });
 
-    const presignedPost = await FileStorage.getPresignedPost(
-      ctx,
-      key,
-      acl,
-      maxUploadSize,
-      contentType
-    );
+    const [presignedPost, presignedPutUrl] = await Promise.all([
+      FileStorage.getPresignedPost(ctx, key, acl, maxUploadSize, contentType),
+      FileStorage.getPresignedPutUrl(key, acl, maxUploadSize, contentType),
+    ]);
 
     ctx.body = {
       data: {
@@ -154,6 +151,7 @@ router.post(
           "Content-Type": contentType,
           ...presignedPost.fields,
         },
+        presignedPutUrl,
         attachment: {
           ...presentAttachment(attachment),
           url: attachment.redirectUrl,

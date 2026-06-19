@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
 import { UserMembership } from "@server/models";
 import Attachment from "@server/models/Attachment";
+import FileStorage from "@server/storage/files";
 import {
   buildUser,
   buildAdmin,
@@ -163,6 +164,48 @@ describe("#attachments.create", () => {
         },
       });
       expect(res.status).toEqual(200);
+    });
+
+    it("should return presignedPutUrl alongside POST form data", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", user, {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          preset: AttachmentPreset.Avatar,
+        },
+      });
+      expect(res.status).toEqual(200);
+
+      const body = await res.json();
+      expect(body.data.presignedPutUrl).toBeDefined();
+      expect(body.data.uploadUrl).toBeDefined();
+      expect(body.data.form).toBeDefined();
+      expect(body.data.attachment).toBeDefined();
+    });
+
+    it("should return undefined presignedPutUrl when storage does not support PUT", async () => {
+      vi.mocked(FileStorage.getPresignedPutUrl).mockResolvedValueOnce(
+        // @ts-expect-error testing undefined return for LocalStorage fallback
+        undefined
+      );
+
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", user, {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          preset: AttachmentPreset.Avatar,
+        },
+      });
+      expect(res.status).toEqual(200);
+
+      const body = await res.json();
+      expect(body.data.presignedPutUrl).toBeUndefined();
+      expect(body.data.uploadUrl).toBeDefined();
+      expect(body.data.form).toBeDefined();
     });
 
     it("should create expiring attachment using import preset", async () => {

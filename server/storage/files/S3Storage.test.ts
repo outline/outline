@@ -2,6 +2,18 @@ import { Week, Day } from "@shared/utils/time";
 import BaseStorage from "./BaseStorage";
 
 describe("S3Storage", () => {
+  describe("getPresignedPutUrl", () => {
+    it("should return undefined from BaseStorage default implementation", async () => {
+      const result = await BaseStorage.prototype.getPresignedPutUrl(
+        "uploads/test/key",
+        "private",
+        1000000,
+        "image/png"
+      );
+      expect(result).toBeUndefined();
+    });
+  });
+
   describe("getSignedUrl expiration limits", () => {
     it("should define maximum expiration as 7 days for AWS S3 Signature V4", () => {
       // AWS S3 Signature V4 presigned URLs have a maximum expiration of 7 days

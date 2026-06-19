@@ -41,6 +41,26 @@ export default abstract class BaseStorage {
   ): Promise<Partial<PresignedPost>>;
 
   /**
+   * Returns a presigned PUT URL for direct file upload. Subclasses that support
+   * PUT-based uploads (e.g. S3) should override this method. Returns undefined
+   * by default, signalling the client should fall back to the POST flow.
+   *
+   * @param key The path to store the file at.
+   * @param acl The ACL to use.
+   * @param maxUploadSize The maximum upload size in bytes.
+   * @param contentType The content type of the file.
+   * @returns A presigned PUT URL, or undefined if not supported.
+   */
+  public getPresignedPutUrl(
+    _key: string,
+    _acl: string,
+    _maxUploadSize: number,
+    _contentType: string
+  ): Promise<string | undefined> {
+    return Promise.resolve(undefined);
+  }
+
+  /**
    * Returns a promise that resolves with a stream for reading a file from the storage provider.
    *
    * @param key The path to the file

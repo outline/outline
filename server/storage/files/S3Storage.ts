@@ -7,6 +7,7 @@ import {
   GetObjectCommand,
   HeadObjectCommand,
   CopyObjectCommand,
+  PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import type { PresignedPostOptions } from "@aws-sdk/s3-presigned-post";
@@ -64,6 +65,35 @@ export default class S3Storage extends BaseStorage {
     };
 
     return createPresignedPost(this.client, params);
+  }
+
+  public async getPresignedPutUrl(
+    key: string,
+    _acl: string,
+    _maxUploadSize: number,
+    contentType: string
+  ): Promise<string> {
+    const command = new PutObjectCommand({
+      Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME as string,
+      Key: key,
+      ContentType: contentType,
+      ContentDisposition: this.getContentDisposition(contentType),
+      CacheControl: "max-age=31557600",
+      ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
+    });
+
+    const url = await getSignedUrl(this.client, command, {
+      expiresIn: 3600,
+    });
+
+    if (env.AWS_S3_ACCELERATE_URL) {
+      return url.replace(
+        env.AWS_S3_UPLOAD_BUCKET_URL,
+        env.AWS_S3_ACCELERATE_URL
+      );
+    }
+
+    return url;
   }
 
   private getPublicEndpoint(isServerUpload?: boolean) {

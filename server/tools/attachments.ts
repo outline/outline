@@ -93,13 +93,21 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
               userId: user.id,
             });
 
-            const presignedPost = await FileStorage.getPresignedPost(
-              ctx,
-              key,
-              acl,
-              maxUploadSize,
-              contentType
-            );
+            const [presignedPost, presignedPutUrl] = await Promise.all([
+              FileStorage.getPresignedPost(
+                ctx,
+                key,
+                acl,
+                maxUploadSize,
+                contentType
+              ),
+              FileStorage.getPresignedPutUrl(
+                key,
+                acl,
+                maxUploadSize,
+                contentType
+              ),
+            ]);
 
             const uploadUrl = new URL(FileStorage.getUploadUrl(), team.url)
               .href;
@@ -109,17 +117,22 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
               ...presignedPost.fields,
             };
 
-            // Build a ready-to-use curl command for the MCP client
+            // Build ready-to-use curl commands for the MCP client
             const formArgs = Object.entries(form)
               .map(([k, v]) => `-F '${k}=${v}'`)
               .join(" ");
             const curlCommand = `curl -X POST ${formArgs} -F 'file=@/path/to/file' '${uploadUrl}'`;
+            const curlPutCommand = presignedPutUrl
+              ? `curl -X PUT -H 'Content-Type: ${contentType}' --data-binary '@/path/to/file' '${presignedPutUrl}'`
+              : undefined;
 
             return success({
               uploadUrl,
               form,
+              presignedPutUrl,
               maxUploadSize,
               curlCommand,
+              curlPutCommand,
               attachment: pathToUrl(team, {
                 ...presentAttachment(attachment),
                 url: attachment.redirectUrl,
