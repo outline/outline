@@ -225,6 +225,31 @@ router.post(
   }
 );
 
+/**
+ * Resolves the login screen redirect for the desktop passkey entrypoint,
+ * normalizing an untrusted client query parameter to a known value.
+ *
+ * @param client - the raw client value from the request query.
+ * @returns the relative path to redirect the browser to.
+ */
+export const getPasskeyLoginRedirect = (
+  client: string | string[] | undefined
+): string => {
+  const normalized = client === Client.Desktop ? Client.Desktop : Client.Web;
+  return `/?method=passkey&client=${normalized}`;
+};
+
+/**
+ * Entry point for passkey login from the desktop app. The WebAuthn ceremony
+ * cannot run inside Electron's Chromium, so the desktop client opens this URL
+ * in the system browser. We forward to the login screen, which auto-starts the
+ * ceremony and returns the authenticated session via the outline:// deep link,
+ * mirroring the existing SSO desktop flow.
+ */
+router.get("passkey", (ctx: APIContext) => {
+  ctx.redirect(getPasskeyLoginRedirect(ctx.query.client));
+});
+
 router.post(
   "passkeys.generateAuthenticationOptions",
   validate(T.PasskeysGenerateAuthenticationOptionsSchema),

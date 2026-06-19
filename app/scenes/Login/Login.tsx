@@ -118,7 +118,11 @@ function Login({ children, onBack }: Props) {
     }
   }, [query]);
 
-  if (auth.authenticated) {
+  // A passkey login initiated from the desktop app must complete the login
+  // ceremony even when this browser already has a session.
+  const isPasskeyLogin = query.get("method") === "passkey";
+
+  if (auth.authenticated && !isPasskeyLogin) {
     const postLoginPath = spendPostLoginPath();
     if (postLoginPath) {
       return <Redirect to={postLoginPath} />;
