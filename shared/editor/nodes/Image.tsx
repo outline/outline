@@ -346,6 +346,18 @@ export default class Image extends SimpleImage {
         return;
       }
 
+      // Cmd/Ctrl-A should select the caption text, not the whole document.
+      if ((event.metaKey || event.ctrlKey) && event.key === "a") {
+        event.preventDefault();
+        event.stopPropagation();
+        const selection = window.getSelection();
+        const range = window.document.createRange();
+        range.selectNodeContents(event.currentTarget);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        return;
+      }
+
       // Pressing Backspace in an empty caption field focused the image.
       if (event.key === "Backspace" && event.currentTarget.innerText === "") {
         event.preventDefault();
