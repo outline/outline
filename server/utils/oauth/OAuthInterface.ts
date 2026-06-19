@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { subSeconds } from "date-fns";
 import type {
   RefreshTokenModel,
   AuthorizationCodeModel,
@@ -13,6 +14,14 @@ import {
   OAuthAuthorizationCode,
 } from "@server/models";
 import { hash, safeEqual } from "@server/utils/crypto";
+
+/**
+ * The number of seconds during which a rotated refresh token may be replayed
+ * without triggering reuse detection. This provides a grace window for clients
+ * that issue concurrent refresh requests, preventing the entire grant from being
+ * revoked due to a benign race.
+ */
+const refreshTokenReuseInterval = 10;
 
 /**
  * Additional configuration for the OAuthInterface, not part of the
@@ -127,7 +136,19 @@ export const OAuthInterface: RefreshTokenModel &
         paranoid: false,
       });
 
-      if (authentication?.grantId) {
+      // A recently rotated token may be replayed by a client that issued
+      // concurrent refresh requests. Treat replays within the reuse interval as
+      // benign and skip revocation, so the grant won by the parallel request
+      // survives. Replays outside the window are treated as genuine reuse.
+      const reuseWindowStart = subSeconds(
+        new Date(),
+        refreshTokenReuseInterval
+      );
+      const withinReuseInterval =
+        authentication?.deletedAt &&
+        authentication.deletedAt > reuseWindowStart;
+
+      if (authentication?.grantId && !withinReuseInterval) {
         await Promise.all([
           OAuthAuthentication.destroy({
             where: {
