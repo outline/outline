@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 /**
  * Temporarily hides a DOM element while `enabled` is true, restoring its
@@ -13,7 +13,7 @@ export default function useHideElement(
   element: Element | null | undefined,
   enabled: boolean
 ) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (
       !enabled ||
       (!(element instanceof HTMLElement) && !(element instanceof SVGElement))
