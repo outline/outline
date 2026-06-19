@@ -65,7 +65,10 @@ export function SwitchHostDialog() {
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setHost(event.target.value);
+      const value = event.target.value;
+      setHost(value);
+      setValidatedUrl(null);
+      setStatus(value.trim() ? "checking" : "idle");
     },
     []
   );
