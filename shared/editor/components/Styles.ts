@@ -849,6 +849,13 @@ iframe.embed {
   clear: initial;
 }
 
+.image-right-50.${EditorStyleHelper.imageIcon},
+.image-left-50.${EditorStyleHelper.imageIcon} {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+}
+
 .image-full-width {
   width: initial;
   max-width: 100vw;

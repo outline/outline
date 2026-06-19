@@ -30,7 +30,6 @@ const Image = (props: Props) => {
   const { isSelected, node, isEditable, onChangeSize, onClick } = props;
   const { src, layoutClass } = node.attrs;
   const { t } = useTranslation();
-  const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [loaded, setLoaded] = React.useState(false);
   const [error, setError] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
@@ -55,6 +54,14 @@ const Image = (props: Props) => {
   });
 
   const isFullWidth = layoutClass === "full-width";
+  const isIconLike = width > 0 && width <= EditorStyleHelper.imageIconSize;
+  const className = [
+    "image",
+    layoutClass && `image-${layoutClass}`,
+    isIconLike && EditorStyleHelper.imageIcon,
+  ]
+    .filter(Boolean)
+    .join(" ");
   const isResizable = !!props.onChangeSize && !error;
   const isDownloadable = !!props.onDownload && !error;
 

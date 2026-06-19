@@ -14,6 +14,12 @@ export class EditorStyleHelper {
 
   static readonly imagePositionAnchor = "image-position-anchor";
 
+  /** Class added to images that are small enough to be considered an icon */
+  static readonly imageIcon = "image-icon";
+
+  /** Maximum width (px) at which a floated image is treated as an icon */
+  static readonly imageIconSize = 48;
+
   // Headings
 
   static readonly headingPositionAnchor = "heading-position-anchor";
