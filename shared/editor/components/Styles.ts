@@ -1107,8 +1107,7 @@ h6:not(.placeholder)::before {
   top: -0.1em;
 }
 
-.heading-anchor,
-.heading-fold {
+.heading-anchor {
   display: inline-block;
   color: ${props.theme.text};
   opacity: .75;
@@ -1125,21 +1124,12 @@ h6:not(.placeholder)::before {
   line-height: 0;
   width: 12px;
   height: 24px;
+  box-sizing: border-box;
 
   &:focus,
   &:hover {
     opacity: 1;
   }
-}
-
-.ProseMirror.exported {
-  .heading-fold {
-    display: none;
-  }
-}
-
-.heading-anchor {
-  box-sizing: border-box;
 }
 
 .heading-actions {
@@ -1158,18 +1148,6 @@ h6:not(.placeholder)::before {
   &:dir(rtl) {
     margin-left: 0;
     margin-right: -26px;
-  }
-
-  &.collapsed {
-    opacity: 1;
-  }
-
-  &.collapsed .heading-anchor {
-    opacity: 0;
-  }
-
-  &.collapsed .heading-fold {
-    opacity: 1;
   }
 }
 
@@ -1202,25 +1180,6 @@ h6 {
     &:not(.placeholder)::before {
       display: ${props.readOnly ? "none" : "inline-block"};
     }
-  }
-}
-
-.heading-fold {
-  display: inline-block;
-  transform-origin: center;
-  padding: 0;
-
-  &.collapsed {
-    svg {
-      transform: rotate(-90deg);
-      pointer-events: none;
-    }
-    transition-delay: 0.1s;
-    opacity: 1;
-  }
-
-  &:dir(rtl).collapsed svg {
-    transform: rotate(90deg);
   }
 }
 
@@ -2617,12 +2576,6 @@ table {
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
 }
 
-.folded-content,
-.folded-content + .mermaid-diagram-wrapper {
-  display: none;
-  user-select: none;
-}
-
 @keyframes ProseMirror-cursor-blink {
   to {
     visibility: hidden;
@@ -2685,12 +2638,6 @@ li > .${EditorStyleHelper.toggleBlock} {
 
 .${EditorStyleHelper.toggleBlock} {
   display: flex;
-
-  /* When a toggle block is inside a collapsed heading it receives the
-     folded-content decoration; ensure it stays hidden despite display: flex. */
-  &.folded-content {
-    display: none;
-  }
 
   &:focus-within {
     transition-delay: 0.1s;
