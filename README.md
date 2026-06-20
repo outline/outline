@@ -10,6 +10,9 @@
 
 > ### 🔷 Prism — a themeable fork of Outline
 >
+> Prism is **the Outline documentation and knowledge base system, forked to add a custom
+> theme system** — nothing else here diverges from upstream.
+>
 > **What Prism adds:** workspace-wide, full-surface UI **themes**. An admin picks a theme in
 > **Settings → Details**, and the entire workspace is reskinned — background, sidebar, text,
 > code blocks, tables, callouts, and more — going well beyond Outline's built-in light/dark
