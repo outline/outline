@@ -1,3 +1,32 @@
+```
+  ███████╗ ██████╗  ██████╗ ██╗  ██╗
+  ██╔════╝ ██╔═══██╗██╔══██╗██║ ██╔╝
+  █████╗   ██║   ██║██████╔╝█████╔╝
+  ██╔══╝   ██║   ██║██╔══██╗██╔═██╗
+  ██║      ╚██████╔╝██║  ██║██║  ██╗
+  ╚═╝       ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
+        O U T L I N E  ·  T H E M E S   — an independent fork
+```
+
+> ### ⑂ This is a fork of Outline.
+>
+> **Single purpose:** add a user-selectable **theme** option, so you can customize the
+> look of the document library Outline builds for you. That's the whole feature — nothing
+> else here diverges from upstream.
+>
+> I don't intend to push this upstream unless the maintainers want it. Feel free to clone,
+> build on it, and send me ideas. I love the original product — I just wanted more control
+> over the styling.
+>
+> **All credit for Outline goes to the original team** who created it. See the upstream
+> README below, unchanged.
+
+---
+
+
+
+
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./public/logos/outline-logo-dark.png" height="29">

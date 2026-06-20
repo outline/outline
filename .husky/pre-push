@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+# GUARD: this is a sovereign fork (JR91387/outline_themes). Never push to upstream outline/outline.
+remote_url="$2"
+if printf '%s\n' "$remote_url" | grep -qiE 'outline/outline(\.git)?$|[:/]+outline/outline([/.]|$)'; then
+  echo "ABORTED: push target '$remote_url' is upstream outline/outline." >&2
+  echo "This fork must never push upstream." >&2
+  exit 1
+fi
+exit 0
