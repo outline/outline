@@ -17,12 +17,17 @@ export const flash: ThemeDefinition = {
     border: "#ead7a5",
     codeBackground: "#fff0c7",
     tableHeader: "#f9e4aa",
-    calloutBackground: "#fff5db"
+    calloutBackground: "#fff5db",
   },
   typography: {
     ui: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
     content: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
-    mono: "SFMono-Regular, Consolas, Liberation Mono, monospace"
+    mono: "SFMono-Regular, Consolas, Liberation Mono, monospace",
   },
-  layout: { density: 0.9, contentWidth: "760px", sidebarWidth: "258px", radius: "6px" }
+  layout: {
+    density: 0.9,
+    contentWidth: "760px",
+    sidebarWidth: "258px",
+    radius: "6px",
+  },
 };

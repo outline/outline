@@ -17,12 +17,17 @@ export const atomLight: ThemeDefinition = {
     border: "#d7d7d7",
     codeBackground: "#f3f3f3",
     tableHeader: "#e9e9e9",
-    calloutBackground: "#f6f6f6"
+    calloutBackground: "#f6f6f6",
   },
   typography: {
     ui: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
     content: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
-    mono: "SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace"
+    mono: "SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace",
   },
-  layout: { density: 0.92, contentWidth: "760px", sidebarWidth: "260px", radius: "4px" }
+  layout: {
+    density: 0.92,
+    contentWidth: "760px",
+    sidebarWidth: "260px",
+    radius: "4px",
+  },
 };

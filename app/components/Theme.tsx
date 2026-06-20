@@ -8,6 +8,8 @@ import { TeamPreference, UserPreference } from "@shared/types";
 import { isRTLLanguage } from "@shared/utils/rtl";
 import useBuildTheme from "~/hooks/useBuildTheme";
 import useStores from "~/hooks/useStores";
+import { Theme as ColorMode } from "~/stores/UiStore";
+import { buildThemeFromDefinition, useSelectedTheme } from "~/themes";
 
 type Props = {
   children?: React.ReactNode;
@@ -16,11 +18,24 @@ type Props = {
 const Theme: React.FC = ({ children }: Props) => {
   const { auth, ui } = useStores();
   const { i18n } = useTranslation();
-  const theme = useBuildTheme(
+  // Fork: a user-selected custom theme (app/themes) overrides the stock look.
+  // useBuildTheme is always called (Rules of Hooks); passing the selected
+  // theme's mode preserves upstream mobile/print handling on the right base,
+  // then buildThemeFromDefinition overlays the full palette.
+  const selectedTheme = useSelectedTheme();
+  const baseTheme = useBuildTheme(
     auth.team?.getPreference(TeamPreference.CustomTheme) ||
       auth.config?.customTheme ||
-      undefined
+      undefined,
+    selectedTheme
+      ? selectedTheme.mode === "dark"
+        ? ColorMode.Dark
+        : ColorMode.Light
+      : undefined
   );
+  const theme = selectedTheme
+    ? buildThemeFromDefinition(selectedTheme, baseTheme)
+    : baseTheme;
   const direction = isRTLLanguage(i18n.language) ? "rtl" : "ltr";
 
   React.useEffect(() => {

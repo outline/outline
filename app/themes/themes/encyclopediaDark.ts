@@ -17,12 +17,17 @@ export const encyclopediaDark: ThemeDefinition = {
     border: "#4a5058",
     codeBackground: "#11161b",
     tableHeader: "#252b31",
-    calloutBackground: "#1c2228"
+    calloutBackground: "#1c2228",
   },
   typography: {
     ui: "Arial, Helvetica, sans-serif",
     content: "Linux Libertine, Georgia, Times New Roman, serif",
-    mono: "Menlo, Consolas, Liberation Mono, monospace"
+    mono: "Menlo, Consolas, Liberation Mono, monospace",
   },
-  layout: { density: 0.9, contentWidth: "80ch", sidebarWidth: "272px", radius: "2px" }
+  layout: {
+    density: 0.9,
+    contentWidth: "80ch",
+    sidebarWidth: "272px",
+    radius: "2px",
+  },
 };

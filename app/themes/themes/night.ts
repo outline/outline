@@ -17,12 +17,17 @@ export const night: ThemeDefinition = {
     border: "#3b4261",
     codeBackground: "#11121a",
     tableHeader: "#292e42",
-    calloutBackground: "#202436"
+    calloutBackground: "#202436",
   },
   typography: {
     ui: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
     content: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
-    mono: "JetBrains Mono, SFMono-Regular, Consolas, monospace"
+    mono: "JetBrains Mono, SFMono-Regular, Consolas, monospace",
   },
-  layout: { density: 0.94, contentWidth: "760px", sidebarWidth: "270px", radius: "5px" }
+  layout: {
+    density: 0.94,
+    contentWidth: "760px",
+    sidebarWidth: "270px",
+    radius: "5px",
+  },
 };

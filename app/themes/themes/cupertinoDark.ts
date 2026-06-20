@@ -17,12 +17,18 @@ export const cupertinoDark: ThemeDefinition = {
     border: "#38383a",
     codeBackground: "#151517",
     tableHeader: "#2a2a2c",
-    calloutBackground: "#202022"
+    calloutBackground: "#202022",
   },
   typography: {
     ui: "-apple-system, BlinkMacSystemFont, SF Pro Text, Segoe UI, sans-serif",
-    content: "-apple-system, BlinkMacSystemFont, SF Pro Display, Segoe UI, sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+    content:
+      "-apple-system, BlinkMacSystemFont, SF Pro Display, Segoe UI, sans-serif",
+    mono: "SFMono-Regular, Menlo, Monaco, Consolas, monospace",
   },
-  layout: { density: 0.94, contentWidth: "740px", sidebarWidth: "264px", radius: "10px" }
+  layout: {
+    density: 0.94,
+    contentWidth: "740px",
+    sidebarWidth: "264px",
+    radius: "10px",
+  },
 };

@@ -17,12 +17,17 @@ export const hacker: ThemeDefinition = {
     border: "#1f3a1f",
     codeBackground: "#020402",
     tableHeader: "#102010",
-    calloutBackground: "#0d160d"
+    calloutBackground: "#0d160d",
   },
   typography: {
     ui: "SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace",
     content: "SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace",
-    mono: "SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace"
+    mono: "SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace",
   },
-  layout: { density: 0.86, contentWidth: "78ch", sidebarWidth: "250px", radius: "0px" }
+  layout: {
+    density: 0.86,
+    contentWidth: "78ch",
+    sidebarWidth: "250px",
+    radius: "0px",
+  },
 };

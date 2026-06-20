@@ -17,12 +17,17 @@ export const notationPaper: ThemeDefinition = {
     border: "#e2e2df",
     codeBackground: "#f1f1ef",
     tableHeader: "#eeeeec",
-    calloutBackground: "#f7f7f5"
+    calloutBackground: "#f7f7f5",
   },
   typography: {
     ui: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
     content: "Georgia, Times New Roman, serif",
-    mono: "SFMono-Regular, Consolas, Liberation Mono, monospace"
+    mono: "SFMono-Regular, Consolas, Liberation Mono, monospace",
   },
-  layout: { density: 0.96, contentWidth: "760px", sidebarWidth: "260px", radius: "3px" }
+  layout: {
+    density: 0.96,
+    contentWidth: "760px",
+    sidebarWidth: "260px",
+    radius: "3px",
+  },
 };

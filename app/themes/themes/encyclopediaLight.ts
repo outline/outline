@@ -17,12 +17,17 @@ export const encyclopediaLight: ThemeDefinition = {
     border: "#a2a9b1",
     codeBackground: "#f8f9fa",
     tableHeader: "#eaecf0",
-    calloutBackground: "#f8f9fa"
+    calloutBackground: "#f8f9fa",
   },
   typography: {
     ui: "Arial, Helvetica, sans-serif",
     content: "Linux Libertine, Georgia, Times New Roman, serif",
-    mono: "Menlo, Consolas, Liberation Mono, monospace"
+    mono: "Menlo, Consolas, Liberation Mono, monospace",
   },
-  layout: { density: 0.9, contentWidth: "80ch", sidebarWidth: "272px", radius: "2px" }
+  layout: {
+    density: 0.9,
+    contentWidth: "80ch",
+    sidebarWidth: "272px",
+    radius: "2px",
+  },
 };
