@@ -174,15 +174,6 @@ function Details() {
     [team, t]
   );
 
-  const handleCommentingChange = React.useCallback(
-    async (checked: boolean) => {
-      team.setPreference(TeamPreference.Commenting, checked);
-      await team.save();
-      toast.success(t("Settings saved"));
-    },
-    [team, t]
-  );
-
   const isValid = form.current?.checkValidity();
 
   const newTheme = React.useMemo(
@@ -369,6 +360,7 @@ function Details() {
             />
           </SettingRow>
           <SettingRow
+            border={false}
             name={TeamPreference.SeamlessEdit}
             label={t("Separate editing")}
             description={t(
@@ -380,21 +372,6 @@ function Details() {
               name={TeamPreference.SeamlessEdit}
               checked={!team.getPreference(TeamPreference.SeamlessEdit)}
               onChange={handleSeamlessEditChange}
-            />
-          </SettingRow>
-          <SettingRow
-            border={false}
-            name={TeamPreference.Commenting}
-            label={t("Commenting")}
-            description={t(
-              "When enabled team members can add comments to documents."
-            )}
-          >
-            <Switch
-              id={TeamPreference.Commenting}
-              name={TeamPreference.Commenting}
-              checked={team.getPreference(TeamPreference.Commenting)}
-              onChange={handleCommentingChange}
             />
           </SettingRow>
 

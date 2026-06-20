@@ -1,5 +1,9 @@
 import invariant from "invariant";
-import { DocumentPermission, TeamPreference } from "@shared/types";
+import {
+  CommentingAccess,
+  DocumentPermission,
+  TeamPreference,
+} from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, cannot, can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
@@ -46,18 +50,18 @@ allow(User, "download", Document, (actor, document) =>
   )
 );
 
-allow(User, "comment", Document, (actor, document) =>
-  and(
+allow(User, "comment", Document, (actor, document) => {
+  const commenting = actor.team.getPreference(TeamPreference.Commenting);
+  return and(
     !!document?.isActive,
     isTeamMutable(actor),
-    // TODO: We'll introduce a separate permission for commenting
-    or(
-      and(!actor.isGuest, can(actor, "read", document)),
-      and(actor.isGuest, can(actor, "update", document))
-    ),
+    can(actor, "read", document),
+    // A legacy boolean `false` (team not yet migrated) means disabled.
+    commenting !== CommentingAccess.None && commenting !== false,
+    or(!actor.isGuest, commenting === CommentingAccess.Everyone),
     or(!document?.collection, document?.collection?.commenting !== false)
-  )
-);
+  );
+});
 
 allow(
   User,

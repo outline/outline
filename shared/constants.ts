@@ -4,6 +4,7 @@ import {
   TeamPreference,
   UserPreference,
   EmailDisplay,
+  CommentingAccess,
   NotificationBadgeType,
 } from "./types";
 
@@ -30,7 +31,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.MembersCanDeleteAccount]: true,
   [TeamPreference.PreviewsInEmails]: true,
   [TeamPreference.PublicBranding]: false,
-  [TeamPreference.Commenting]: true,
+  [TeamPreference.Commenting]: CommentingAccess.Members,
   [TeamPreference.CustomTheme]: undefined,
   [TeamPreference.TocPosition]: TOCPosition.Left,
   [TeamPreference.PreventDocumentEmbedding]: false,

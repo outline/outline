@@ -39,7 +39,7 @@ import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import { ExportContentType, TeamPreference } from "@shared/types";
+import { ExportContentType } from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
 import { getEventFiles } from "@shared/utils/files";
 import { Week } from "@shared/utils/time";
@@ -1470,9 +1470,7 @@ export const openDocumentComments = createAction({
     const can = stores.policies.abilities(activeDocumentId ?? "");
 
     return (
-      !!activeDocumentId &&
-      can.comment &&
-      !!stores.auth.team?.getPreference(TeamPreference.Commenting)
+      !!activeDocumentId && can.comment && !!stores.auth.team?.commentingEnabled
     );
   },
   perform: ({ activeDocumentId, stores }) => {

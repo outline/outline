@@ -3,7 +3,6 @@ import * as React from "react";
 import type { RouteComponentProps, StaticContext } from "react-router";
 import { Redirect, useLocation } from "react-router";
 import { toError } from "@shared/utils/error";
-import { TeamPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import type Document from "~/models/Document";
@@ -198,7 +197,7 @@ function DataLoader({ match, children }: Props) {
       // Prevents unauthorized request to load share information for the document
       // when viewing a public share link
       if (can.read && !document.isDeleted && !revisionId) {
-        if (team.getPreference(TeamPreference.Commenting)) {
+        if (team.commentingEnabled) {
           void comments.fetchAll({
             documentId: document.id,
             limit: 100,
