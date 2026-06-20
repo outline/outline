@@ -17,9 +17,16 @@ import type { ThemeDefinition } from "./types";
  * misspelled or non-existent key fails the type-check rather than silently
  * producing an `undefined` at runtime.
  *
+ * The palette fields `header`, `tableHeader`, and `calloutBackground` are
+ * reserved for a future revision — Outline has no single clean `DefaultTheme`
+ * target for them yet — and are intentionally not applied here.
+ *
+ * Fails safe: if a palette value is malformed and a `polished` transform throws,
+ * the unmodified base theme is returned so the app never fails to render.
+ *
  * @param def the custom theme definition to apply.
  * @param base the resolved base theme to compose over (from `useBuildTheme`).
- * @returns a complete `DefaultTheme` with the palette applied.
+ * @returns a complete `DefaultTheme` with the palette applied, or `base` on error.
  */
 export function buildThemeFromDefinition(
   def: ThemeDefinition,
@@ -38,74 +45,78 @@ export function buildThemeFromDefinition(
   const dim = (amount: number, color: string) =>
     isDark ? darken(amount, color) : lighten(amount, color);
 
-  const overrides = {
-    isDark,
+  try {
+    const overrides = {
+      isDark,
 
-    // Background layers
-    background: c.canvas,
-    backgroundSecondary: c.surface,
-    backgroundTertiary: c.surfaceMuted,
-    backgroundQuaternary: raise(0.05, c.surfaceMuted),
+      // Background layers
+      background: c.canvas,
+      backgroundSecondary: c.surface,
+      backgroundTertiary: c.surfaceMuted,
+      backgroundQuaternary: raise(0.05, c.surfaceMuted),
 
-    // Text layers
-    text: c.text,
-    cursor: c.text,
-    textSecondary: c.textMuted,
-    textTertiary: dim(0.12, c.textMuted),
-    placeholder: c.textMuted,
+      // Text layers
+      text: c.text,
+      cursor: c.text,
+      textSecondary: c.textMuted,
+      textTertiary: dim(0.12, c.textMuted),
+      placeholder: c.textMuted,
 
-    // Accent, links, selection
-    accent: c.accent,
-    accentText: readableColor(c.accent),
-    link: c.accent,
-    selected: c.accent,
-    tableSelected: c.accent,
-    tableSelectedBackground: transparentize(0.9, c.accent),
-    inputBorderFocused: c.accent,
+      // Accent, links, selection
+      accent: c.accent,
+      accentText: readableColor(c.accent),
+      link: c.accent,
+      selected: c.accent,
+      tableSelected: c.accent,
+      tableSelectedBackground: transparentize(0.9, c.accent),
+      inputBorderFocused: c.accent,
 
-    // Sidebar
-    sidebarBackground: c.sidebar,
-    sidebarText: c.textMuted,
-    sidebarHoverBackground: raise(0.05, c.sidebar),
-    sidebarActiveBackground: raise(0.09, c.sidebar),
-    sidebarControlHoverBackground: transparentize(0.8, c.text),
-    sidebarDraftBorder: raise(0.2, c.sidebar),
+      // Sidebar
+      sidebarBackground: c.sidebar,
+      sidebarText: c.textMuted,
+      sidebarHoverBackground: raise(0.05, c.sidebar),
+      sidebarActiveBackground: raise(0.09, c.sidebar),
+      sidebarControlHoverBackground: transparentize(0.8, c.text),
+      sidebarDraftBorder: raise(0.2, c.sidebar),
 
-    // Borders, dividers, rules
-    divider: c.border,
-    titleBarDivider: c.border,
-    inputBorder: c.border,
-    codeBorder: c.border,
-    embedBorder: c.border,
-    horizontalRule: c.border,
-    quote: c.border,
-    progressBarBackground: c.border,
-    scrollbarThumb: c.border,
+      // Borders, dividers, rules
+      divider: c.border,
+      titleBarDivider: c.border,
+      inputBorder: c.border,
+      codeBorder: c.border,
+      embedBorder: c.border,
+      horizontalRule: c.border,
+      quote: c.border,
+      progressBarBackground: c.border,
+      scrollbarThumb: c.border,
 
-    // Elevated surfaces: inputs, lists, menus, modals, toasts, buttons, tooltips
-    inputBackground: c.surfaceMuted,
-    listItemHoverBackground: c.surfaceMuted,
-    mentionBackground: c.surfaceMuted,
-    mentionHoverBackground: c.surface,
-    menuBackground: c.surface,
-    menuItemSelected: c.surfaceMuted,
-    modalBackground: c.surface,
-    toastBackground: c.surface,
-    toastText: c.text,
-    buttonNeutralBackground: c.surface,
-    buttonNeutralText: c.text,
-    buttonNeutralBorder: c.border,
-    tooltipBackground: c.text,
-    tooltipText: c.canvas,
-    scrollbarBackground: c.surfaceMuted,
+      // Elevated surfaces: inputs, lists, menus, modals, toasts, buttons, tooltips
+      inputBackground: c.surfaceMuted,
+      listItemHoverBackground: c.surfaceMuted,
+      mentionBackground: c.surfaceMuted,
+      mentionHoverBackground: c.surface,
+      menuBackground: c.surface,
+      menuItemSelected: c.surfaceMuted,
+      modalBackground: c.surface,
+      toastBackground: c.surface,
+      toastText: c.text,
+      buttonNeutralBackground: c.surface,
+      buttonNeutralText: c.text,
+      buttonNeutralBorder: c.border,
+      tooltipBackground: c.text,
+      tooltipText: c.canvas,
+      scrollbarBackground: c.surfaceMuted,
 
-    // Code surface (syntax-highlight token colors intentionally inherit base)
-    codeBackground: c.codeBackground,
+      // Code surface (syntax-highlight token colors intentionally inherit base)
+      codeBackground: c.codeBackground,
 
-    // Typography (content/serif font deferred to CSS custom props in v1.1)
-    fontFamily: t.ui,
-    fontFamilyMono: t.mono,
-  } satisfies Partial<DefaultTheme>;
+      // Typography (content/serif font deferred to CSS custom props in v1.1)
+      fontFamily: t.ui,
+      fontFamilyMono: t.mono,
+    } satisfies Partial<DefaultTheme>;
 
-  return { ...base, ...overrides };
+    return { ...base, ...overrides };
+  } catch {
+    return base;
+  }
 }

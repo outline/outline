@@ -1,15 +1,22 @@
 import type { ThemeDefinition } from "./types";
 import * as presets from "../themes";
 
-const all: ThemeDefinition[] = Object.values(presets);
+const themes: Record<string, ThemeDefinition> = {};
+const themeList: ThemeDefinition[] = [];
 
-/** Runtime map of theme id -> ThemeDefinition, built from the palette exports. */
-export const themes: Record<string, ThemeDefinition> = Object.fromEntries(
-  all.map((theme) => [theme.id, theme])
-);
+// Build the id -> definition map from the palette exports. Entries without an
+// id are skipped, and the first definition for a given id wins (ids are
+// expected to be unique) — so a stray export can never register undefined.
+for (const theme of Object.values(presets)) {
+  if (!theme.id || themes[theme.id]) {
+    continue;
+  }
+  themes[theme.id] = theme;
+  themeList.push(theme);
+}
 
-/** Ordered list of all registered themes, for selection UIs. */
-export const themeList: ThemeDefinition[] = all;
+/** Runtime map of theme id -> ThemeDefinition, and the ordered list for UIs. */
+export { themes, themeList };
 
 /**
  * Resolves a theme id to its definition.

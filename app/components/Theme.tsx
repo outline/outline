@@ -33,9 +33,13 @@ const Theme: React.FC = ({ children }: Props) => {
         : ColorMode.Light
       : undefined
   );
-  const theme = selectedTheme
-    ? buildThemeFromDefinition(selectedTheme, baseTheme)
-    : baseTheme;
+  const theme = React.useMemo(
+    () =>
+      selectedTheme
+        ? buildThemeFromDefinition(selectedTheme, baseTheme)
+        : baseTheme,
+    [selectedTheme, baseTheme]
+  );
   const direction = isRTLLanguage(i18n.language) ? "rtl" : "ltr";
 
   React.useEffect(() => {
