@@ -1,6 +1,6 @@
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { CheckmarkIcon, ExpandedIcon } from "outline-icons";
-import { darken, transparentize } from "polished";
+import { transparentize } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
@@ -185,7 +185,7 @@ const MainButton = styled.button<{ $neutral?: boolean }>`
   &:hover:not(:disabled) {
     background: ${(props) =>
       props.$neutral
-        ? darken(0.05, props.theme.buttonNeutralBackground)
+        ? props.theme.buttonNeutralHoverBackground
         : "rgba(0, 0, 0, 0.1)"};
     transition: background 0s;
   }
@@ -204,7 +204,7 @@ const DisclosureButton = styled.button<{ $neutral?: boolean }>`
   &[data-state="open"] {
     background: ${(props) =>
       props.$neutral
-        ? darken(0.05, props.theme.buttonNeutralBackground)
+        ? props.theme.buttonNeutralHoverBackground
         : "rgba(0, 0, 0, 0.1)"};
     transition: background 0s;
   }
