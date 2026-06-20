@@ -1,25 +1,34 @@
 ```
-  ███████╗ ██████╗  ██████╗ ██╗  ██╗
-  ██╔════╝ ██╔═══██╗██╔══██╗██║ ██╔╝
-  █████╗   ██║   ██║██████╔╝█████╔╝
-  ██╔══╝   ██║   ██║██╔══██╗██╔═██╗
-  ██║      ╚██████╔╝██║  ██║██║  ██╗
-  ╚═╝       ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
-        O U T L I N E  ·  T H E M E S   — an independent fork
+  ██████╗ ██████╗ ██╗███████╗███╗   ███╗
+  ██╔══██╗██╔══██╗██║██╔════╝████╗ ████║
+  ██████╔╝██████╔╝██║███████╗██╔████╔██║
+  ██╔═══╝ ██╔══██╗██║╚════██║██║╚██╔╝██║
+  ██║     ██║  ██║██║███████║██║ ╚═╝ ██║
+  ╚═╝     ╚═╝  ╚═╝╚═╝╚══════╝╚═╝     ╚═╝
+        Refract your workspace — a themeable fork of Outline.
 ```
 
-> ### ⑂ This is a fork of Outline.
+> ### 🔷 Prism — a themeable fork of Outline
 >
-> **Single purpose:** add a user-selectable **theme** option, so you can customize the
-> look of the document library Outline builds for you. That's the whole feature — nothing
-> else here diverges from upstream.
+> **What Prism adds:** workspace-wide, full-surface UI **themes**. An admin picks a theme in
+> **Settings → Details**, and the entire workspace is reskinned — background, sidebar, text,
+> code blocks, tables, callouts, and more — going well beyond Outline's built-in light/dark
+> and accent colors. Everything else is stock Outline.
 >
-> I don't intend to push this upstream unless the maintainers want it. Feel free to clone,
-> build on it, and send me ideas. I love the original product — I just wanted more control
-> over the styling.
+> **Status:** an independent fork. I don't intend to push this upstream unless the
+> maintainers want it — clone it, build on it, send ideas. I love the original product; I
+> just wanted deeper control over the look.
 >
-> **All credit for Outline goes to the original team** who created it. See the upstream
-> README below, unchanged.
+> ### License &amp; attribution
+>
+> Prism is a fork of **[Outline](https://github.com/outline/outline)** by **General Outline, Inc.**,
+> and is distributed under the same **[Business Source License 1.1](LICENSE)** (which converts
+> to Apache&nbsp;2.0 on 2030-06-06). All credit for Outline goes to its original authors; the
+> upstream README is preserved below, unchanged.
+>
+> **Prism is an independent fork and is not affiliated with, sponsored by, or endorsed by
+> General Outline, Inc. "Outline" is a trademark of General Outline, Inc.; it is used here
+> only to describe Prism's origin.**
 
 ---
 
