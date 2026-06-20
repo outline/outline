@@ -224,11 +224,10 @@ export default class AuthStore extends Store<Team> {
         this.collaborationToken = res.data.collaborationToken;
 
         if (env.SENTRY_DSN) {
-          Sentry.configureScope((scope) => {
-            scope.setUser({ id: this.currentUserId! });
-            scope.setExtra("team", this.team?.name);
-            scope.setExtra("teamId", this.currentTeamId);
-          });
+          const scope = Sentry.getCurrentScope();
+          scope.setUser({ id: this.currentUserId! });
+          scope.setExtra("team", this.team?.name);
+          scope.setExtra("teamId", this.currentTeamId);
         }
 
         // Redirect to the correct custom domain or team subdomain if needed
