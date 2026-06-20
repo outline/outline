@@ -1,4 +1,3 @@
-import { BrowserTracing } from "@sentry/browser";
 import * as Sentry from "@sentry/react";
 import type { History } from "history";
 import env from "~/env";
@@ -33,11 +32,7 @@ export function initSentry(history: History) {
     release: env.VERSION,
     tunnel: env.SENTRY_TUNNEL,
     allowUrls: [env.URL, env.CDN_URL, env.COLLABORATION_URL],
-    integrations: [
-      new BrowserTracing({
-        routingInstrumentation: Sentry.reactRouterV5Instrumentation(history),
-      }),
-    ],
+    integrations: [Sentry.reactRouterV5BrowserTracingIntegration({ history })],
     tracesSampleRate: env.ENVIRONMENT === "production" ? 0.1 : 1,
     ignoreErrors: [
       "Failed to fetch dynamically imported module",
