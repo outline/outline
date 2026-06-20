@@ -1,12 +1,6 @@
-```
-  ██████╗ ██████╗ ██╗███████╗███╗   ███╗
-  ██╔══██╗██╔══██╗██║██╔════╝████╗ ████║
-  ██████╔╝██████╔╝██║███████╗██╔████╔██║
-  ██╔═══╝ ██╔══██╗██║╚════██║██║╚██╔╝██║
-  ██║     ██║  ██║██║███████║██║ ╚═╝ ██║
-  ╚═╝     ╚═╝  ╚═╝╚═╝╚══════╝╚═╝     ╚═╝
-        Refract your workspace — a themeable fork of Outline.
-```
+<p align="center">
+  <img src="./public/prism-banner.svg" alt="Prism — refract your workspace, a themeable fork of Outline" width="620">
+</p>
 
 > ### 🔷 Prism — a themeable fork of Outline
 >
