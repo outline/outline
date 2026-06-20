@@ -70,6 +70,10 @@ function Details() {
     team.getPreference(TeamPreference.TocPosition) as TOCPosition
   );
 
+  const [presetTheme, setPresetTheme] = useState<string | null>(
+    team.preferences?.theme ?? null
+  );
+
   const tocPositionOptions: Option[] = React.useMemo(
     () =>
       [
@@ -108,6 +112,7 @@ function Details() {
             publicBranding,
             customTheme,
             tocPosition,
+            theme: presetTheme ?? undefined,
           },
         });
         toast.success(t("Settings saved"));
@@ -117,6 +122,7 @@ function Details() {
     },
     [
       tocPosition,
+      presetTheme,
       team,
       name,
       description,
@@ -276,6 +282,8 @@ function Details() {
             }
           >
             <ThemePicker
+              value={presetTheme}
+              onChange={setPresetTheme}
               defaultSlot={
                 <>
                   <InputColor

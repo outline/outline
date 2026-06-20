@@ -2,35 +2,38 @@ import * as React from "react";
 import styled from "styled-components";
 import { themeList } from "./core/registry";
 import { ThemePreview } from "./ThemePreview";
-import { setTheme, useSelectedTheme } from "./useSelectedTheme";
 
 type Mode = "default" | "advanced";
 
 type Props = {
+  /** The currently selected theme id (a team preference), or null for stock. */
+  value: string | null | undefined;
+  /** Called when the selection changes; null clears back to stock Outline. */
+  onChange: (id: string | null) => void;
   /** The stock Outline appearance controls, shown in "Default" mode. */
   defaultSlot: React.ReactNode;
 };
 
 /**
- * Theme section control with two modes: "Default" renders the stock Outline
+ * Controlled theme section with two modes: "Default" renders the stock Outline
  * appearance controls (light/dark + accent colors) unchanged, while "Advanced"
  * shows a grid of selectable full-surface themes with live previews.
  *
- * Selecting a custom theme persists it via setTheme(); switching back to
- * "Default" clears the selection, restoring stock behavior exactly.
+ * The selection is a workspace (team) setting; the parent persists `value` and
+ * receives changes via `onChange`. Switching to "Default" clears the selection,
+ * restoring stock behavior exactly.
  *
+ * @param value the currently selected theme id, or null/undefined for stock.
+ * @param onChange invoked with the chosen theme id, or null to clear.
  * @param defaultSlot the stock appearance controls to render in Default mode.
  * @returns the theme picker element.
  */
-export function ThemePicker({ defaultSlot }: Props) {
-  const selected = useSelectedTheme();
-  const [mode, setMode] = React.useState<Mode>(
-    selected ? "advanced" : "default"
-  );
+export function ThemePicker({ value, onChange, defaultSlot }: Props) {
+  const [mode, setMode] = React.useState<Mode>(value ? "advanced" : "default");
 
   const chooseDefault = () => {
     setMode("default");
-    setTheme(null);
+    onChange(null);
   };
 
   return (
@@ -61,16 +64,16 @@ export function ThemePicker({ defaultSlot }: Props) {
       ) : (
         <>
           <Hint>
-            Choose a full-surface theme. It applies instantly across the app and
-            is remembered on this device.
+            Choose a full-surface theme for the whole workspace. Press Save to
+            apply it for everyone.
           </Hint>
           <Grid>
             {themeList.map((theme) => (
               <ThemePreview
                 key={theme.id}
                 theme={theme}
-                selected={selected?.id === theme.id}
-                onSelect={() => setTheme(theme.id)}
+                selected={value === theme.id}
+                onSelect={() => onChange(theme.id)}
               />
             ))}
           </Grid>

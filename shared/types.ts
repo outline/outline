@@ -434,6 +434,8 @@ export enum TeamPreference {
   MCP = "mcp",
   /** List of disabled embed provider titles. */
   DisabledEmbeds = "disabledEmbeds",
+  /** The id of the team's selected full-surface theme preset (fork feature). */
+  Theme = "theme",
 }
 
 export type TeamPreferences = {
@@ -451,6 +453,7 @@ export type TeamPreferences = {
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];
+  [TeamPreference.Theme]?: string;
 };
 
 export enum NavigationNodeType {
