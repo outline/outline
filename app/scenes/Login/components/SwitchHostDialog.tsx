@@ -86,7 +86,7 @@ export function SwitchHostDialog() {
   return (
     <form onSubmit={handleSubmit}>
       <Text as="p">
-        {t("Enter the address of an Outline install to connect to")}
+        {t("Enter the address of an Outline workspace to connect")}
       </Text>
       <Input
         autoFocus
