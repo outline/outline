@@ -1,17 +1,12 @@
 import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
-import Heading from "~/components/Heading";
-import PageTitle from "~/components/PageTitle";
-import Text from "~/components/Text";
 import useQuery from "~/hooks/useQuery";
+import { SigningIn } from "./Login/components/SigningIn";
 
 const DesktopRedirect = () => {
   const params = useQuery();
   const token = params.get("token");
-  const { t } = useTranslation();
 
   useEffect(() => {
     if (token) {
@@ -28,29 +23,10 @@ const DesktopRedirect = () => {
 
   return (
     <Centered align="center" justify="center" column auto>
-      <PageTitle title={`${t("Signing in")}…`} />
-      <Heading centered>{t("Signing in")}…</Heading>
-      <Note>
-        {t(
-          "You can safely close this window once the Outline desktop app has opened"
-        )}
-        .
-      </Note>
+      <SigningIn />
     </Centered>
   );
 };
-
-const Note = styled(Text)`
-  color: ${s("textTertiary")};
-  text-align: center;
-  font-size: 14px;
-  margin-top: 8px;
-
-  em {
-    font-style: normal;
-    font-weight: 500;
-  }
-`;
 
 const Centered = styled(Flex)`
   user-select: none;
