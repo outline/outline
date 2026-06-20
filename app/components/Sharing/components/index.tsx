@@ -1,4 +1,3 @@
-import { darken } from "polished";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import { s, hover } from "@shared/styles";
@@ -13,7 +12,7 @@ export { GroupMembersPopover } from "./GroupMembersPopover";
 export const Wrapper = styled.div`
   ${NudeButton}:${hover},
   ${NudeButton}[aria-expanded="true"] {
-    background: ${(props) => darken(0.05, props.theme.buttonNeutralBackground)};
+    background: ${s("buttonNeutralHoverBackground")};
   }
 `;
 

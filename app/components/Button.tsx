@@ -76,7 +76,7 @@ const RealButton = styled(ActionButton)<RealProps>`
       background: ${
         props.$borderOnHover
           ? props.theme.buttonNeutralBackground
-          : darken(0.05, props.theme.buttonNeutralBackground)
+          : props.theme.buttonNeutralHoverBackground
       };
       box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${
         props.theme.buttonNeutralBorder
