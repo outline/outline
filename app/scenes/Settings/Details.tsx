@@ -32,6 +32,7 @@ import TeamDelete from "../TeamDelete";
 import { ActionRow } from "./components/ActionRow";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
+import { ThemePicker } from "~/themes";
 
 function Details() {
   const { dialogs, ui } = useStores();
@@ -274,19 +275,25 @@ function Details() {
               </>
             }
           >
-            <InputColor
-              id="accent"
-              value={accent ?? theme.accent}
-              label={t("Accent color")}
-              onChange={setAccent}
-              flex
-            />
-            <InputColor
-              id="accentText"
-              value={accentText ?? theme.accentText}
-              label={t("Accent text color")}
-              onChange={setAccentText}
-              flex
+            <ThemePicker
+              defaultSlot={
+                <>
+                  <InputColor
+                    id="accent"
+                    value={accent ?? theme.accent}
+                    label={t("Accent color")}
+                    onChange={setAccent}
+                    flex
+                  />
+                  <InputColor
+                    id="accentText"
+                    value={accentText ?? theme.accentText}
+                    label={t("Accent text color")}
+                    onChange={setAccentText}
+                    flex
+                  />
+                </>
+              }
             />
           </SettingRow>
           {(team.avatarUrl || team.description) && (
