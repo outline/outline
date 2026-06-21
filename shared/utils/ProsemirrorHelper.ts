@@ -313,9 +313,7 @@ export class ProsemirrorHelper {
       return [];
     }
 
-    return (
-      node.attrs.marks as { type?: string; attrs?: { id?: string } }[]
-    )
+    return (node.attrs.marks as { type?: string; attrs?: { id?: string } }[])
       .filter(
         (mark): mark is { type: "comment"; attrs: { id: string } } =>
           mark?.type === "comment" && !!mark?.attrs?.id

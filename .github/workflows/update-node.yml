@@ -64,11 +64,9 @@ jobs:
             # .nvmrc
             echo "$LATEST_MAJOR" > .nvmrc
 
-            # CI workflow: step name, node-version, and cache keys
-            sed -i "s/Use Node.js ${CURRENT_MAJOR}.x/Use Node.js ${LATEST_MAJOR}.x/g" .github/workflows/ci.yml
-            sed -i "s/node-version: ${CURRENT_MAJOR}.x/node-version: ${LATEST_MAJOR}.x/g" .github/workflows/ci.yml
-            # Update cache keys: replace node-modules-[optional old version] with new version
-            sed -i -E "s/node-modules-([0-9]+\.x-)?/node-modules-${LATEST_MAJOR}.x-/g" .github/workflows/ci.yml
+            # CI install action: step name and node-version
+            sed -i "s/Use Node.js ${CURRENT_MAJOR}.x/Use Node.js ${LATEST_MAJOR}.x/g" .github/actions/install/action.yml
+            sed -i "s/node-version: ${CURRENT_MAJOR}.x/node-version: ${LATEST_MAJOR}.x/g" .github/actions/install/action.yml
 
             # package.json engines field: append new major version
             sed -i "s/\"node\": \"\(.*\)\"/\"node\": \"\1 || ${LATEST_MAJOR}\"/" package.json

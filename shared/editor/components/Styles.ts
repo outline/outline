@@ -648,7 +648,6 @@ width: 100%;
         font-weight: 500;
         line-height: 0;
         margin-left: -24px;
-        transition: opacity 150ms ease-in-out;
         opacity: 0;
         width: 24px;
       }
@@ -659,10 +658,13 @@ width: 100%;
       }
     }
 
-    &:hover,
-    &:focus-within {
-      .heading-actions {
-        opacity: 1;
+    &:hover {
+      .heading-anchor {
+        opacity: 0.75;
+
+        &:hover {
+          opacity: 1;
+        }
       }
     }
   }
@@ -1039,6 +1041,9 @@ h6:not(.placeholder)::before {
     &:not(.placeholder)::before {
       opacity: 1;
     }
+    &:hover:not(.placeholder)::before {
+      opacity: 0;
+    }
   }
 }
 
@@ -1090,62 +1095,38 @@ h6:not(.placeholder)::before {
 }
 
 .heading-anchor {
-  display: inline-block;
-  color: ${props.theme.textTertiary};
-  opacity: 1;
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  /* Offset further left than the default so the anchor clears the block
+     drag handle, which occupies the gutter immediately left of the heading. */
+  margin-left: -52px;
+  width: 26px;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  user-select: none;
+  color: ${props.theme.text};
   cursor: var(--pointer);
   background: none;
   outline: none;
   border: 0;
-  margin: 0;
   padding: 0;
-  text-align: start;
   font-weight: 500;
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 14px;
-  line-height: 0;
-  width: 12px;
-  height: 24px;
+  font-size: 16px;
+  line-height: 1;
   box-sizing: border-box;
 
-  &:focus,
   &:hover {
-    color: ${props.theme.text};
+    opacity: 1;
   }
-}
-
-.heading-actions {
-  opacity: 0;
-  user-select: none;
-  background: ${props.theme.background};
-  margin-left: -52px;
-  flex-direction: row;
-  display: none;
-  position: absolute;
-  left: 0;
-  top: calc(.5em - 6px);
-  width: 26px;
-  height: 24px;
 
   &:dir(rtl) {
     margin-left: 0;
     margin-right: -52px;
-  }
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  &:hover {
-    .heading-anchor {
-      opacity: 0.75 !important;
-    }
-    .heading-anchor:hover {
-      opacity: 1 !important;
-    }
   }
 }
 
@@ -1156,7 +1137,7 @@ h6 {
   h4,
   h5,
   h6 {
-    .heading-actions {
+    .heading-anchor {
       display: inline-flex;
     }
     &:not(.placeholder)::before {
@@ -2524,7 +2505,7 @@ del {
 @media print {
   .placeholder::before,
   .block-menu-trigger,
-  .heading-actions,
+  .heading-anchor,
   button.show-source-button,
   h1:not(.placeholder)::before,
   h2:not(.placeholder)::before,

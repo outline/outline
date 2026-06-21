@@ -21,9 +21,7 @@ import { metaDisplay } from "@shared/utils/keyboard";
  * @param ctx - the current selection context.
  * @returns an array of menu items.
  */
-export default function codeMenuItems(
-  ctx: SelectionContext
-): MenuItem[] {
+export default function codeMenuItems(ctx: SelectionContext): MenuItem[] {
   const { state, readOnly } = ctx;
   const node =
     state.selection instanceof NodeSelection

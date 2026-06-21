@@ -5,10 +5,10 @@ const oxlint = (files) =>
   `bash -c 'out=$(oxlint ${files.join(" ")} --fix --type-aware 2>&1); rc=$?; printf "%s\\n" "$out"; if [ $rc -ne 0 ] && ! printf "%s" "$out" | grep -q "No files found to lint"; then exit $rc; fi'`;
 
 export default {
-  // Run prettier first for formatting, then oxlint for linting, and translation updates on changes to JS and
+  // Run oxfmt first for formatting, then oxlint for linting, and translation updates on changes to JS and
   // TypeScript files
   "**/*.[tj]s?(x)": [
-    (f) => `prettier --write ${f.join(" ")}`,
+    (f) => `oxfmt ${f.join(" ")}`,
     (f) => (f.length > 20 ? `yarn lint --fix` : oxlint(f)),
     () => `yarn build:i18n`,
     () => "git add shared/i18n/locales/en_US/translation.json",
