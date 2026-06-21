@@ -2735,6 +2735,43 @@ li > .${EditorStyleHelper.toggleBlock} {
     min-width: 0;
   }
 }
+
+.${EditorStyleHelper.layout} {
+  position: relative;
+
+  > .${EditorStyleHelper.layoutContent} {
+    display: flex;
+    gap: 1em;
+    align-items: flex-start;
+
+    > .${EditorStyleHelper.layoutSection} {
+      min-width: 0;
+      flex: 1 1 0;
+
+      > :first-child {
+        margin-top: 0;
+      }
+    }
+  }
+
+  > .${EditorStyleHelper.layoutResizeHandle} {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1em;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: col-resize;
+    user-select: none;
+
+    &:hover > div,
+    &:active > div {
+      opacity: 1;
+    }
+  }
+}
 `;
 
 const EditorContainer = styled.div<Props>`

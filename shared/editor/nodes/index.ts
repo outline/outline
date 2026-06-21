@@ -29,6 +29,8 @@ import HardBreak from "./HardBreak";
 import Heading from "./Heading";
 import HorizontalRule from "./HorizontalRule";
 import Image from "./Image";
+import Layout from "./Layout";
+import LayoutSection from "./LayoutSection";
 import ListItem from "./ListItem";
 import Math from "./Math";
 import MathBlock from "./MathBlock";
@@ -110,6 +112,10 @@ export const richExtensions: Nodes = [
   Embed,
   Attachment,
   Video,
+  // Layout extensions are registered before Notice so that their markdown
+  // container rules take precedence over the (greedy) notice container rule.
+  LayoutSection,
+  Layout,
   Notice,
   Heading,
   HorizontalRule,

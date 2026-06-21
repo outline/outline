@@ -78,6 +78,20 @@ export class EditorStyleHelper {
   /** Toggle block folded state */
   static readonly toggleBlockFolded = "folded";
 
+  // Layout (side-by-side columns)
+
+  /** Layout block wrapper */
+  static readonly layout = "layout";
+
+  /** Layout block content (flex row of sections) */
+  static readonly layoutContent = "layout-content";
+
+  /** A single column within a layout block */
+  static readonly layoutSection = "layout-section";
+
+  /** Draggable handle between two layout columns */
+  static readonly layoutResizeHandle = "layout-resize-handle";
+
   // Checkbox Lists
 
   /** Checkbox list wrapper */
