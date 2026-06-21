@@ -62,9 +62,7 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data: integrations.map((integration) =>
-        presentIntegration(ctx, integration)
-      ),
+      data: integrations.map(presentIntegration),
       policies: presentPolicies(user, integrations),
     };
   }
@@ -91,7 +89,7 @@ router.post(
     });
 
     ctx.body = {
-      data: presentIntegration(ctx, integration),
+      data: presentIntegration(integration),
       policies: presentPolicies(user, [integration]),
     };
   }
@@ -111,7 +109,7 @@ router.post(
     authorize(user, "read", integration);
 
     ctx.body = {
-      data: presentIntegration(ctx, integration),
+      data: presentIntegration(integration),
       policies: presentPolicies(user, [integration]),
     };
   }
@@ -144,7 +142,7 @@ router.post(
     await integration.saveWithCtx(ctx);
 
     ctx.body = {
-      data: presentIntegration(ctx, integration),
+      data: presentIntegration(integration),
       policies: presentPolicies(user, [integration]),
     };
   }

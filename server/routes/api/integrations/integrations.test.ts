@@ -1,3 +1,4 @@
+import type { IntegrationSettings } from "@shared/types";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import type { User } from "@server/models";
 import Integration from "@server/models/Integration";
@@ -213,26 +214,31 @@ describe("#integrations.delete", () => {
 });
 
 describe("#integrations.list", () => {
-  it("should redact settings for users without update permission", async () => {
-    const team = await buildTeam();
-    const member = await buildUser({ teamId: team.id });
+  it("should not expose the webhook url of post integrations", async () => {
+    const admin = await buildAdmin();
     await buildIntegration({
-      userId: member.id,
-      teamId: team.id,
+      userId: admin.id,
+      teamId: admin.teamId,
       service: IntegrationService.Slack,
       type: IntegrationType.Post,
-      settings: { url: "https://hooks.slack.com/services/secret" },
+      settings: {
+        url: "https://hooks.slack.com/services/secret",
+        channel: "#general",
+        channelId: "C123",
+      } as IntegrationSettings<IntegrationType.Post>,
     });
 
-    const res = await server.post("/api/integrations.list", member);
+    const res = await server.post("/api/integrations.list", admin);
     const body = await res.json();
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
-    expect(body.data[0].settings).toBeUndefined();
+    // Only the opted-in channel field is exposed, never the webhook url.
+    expect(body.data[0].settings.url).toBeUndefined();
+    expect(body.data[0].settings.channel).toEqual("#general");
   });
 
-  it("should expose settings of embed integrations to members", async () => {
+  it("should expose the public settings of embed integrations", async () => {
     const team = await buildTeam();
     const member = await buildUser({ teamId: team.id });
     await buildIntegration({
@@ -249,25 +255,5 @@ describe("#integrations.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].settings.url).toEqual("https://example.com");
-  });
-
-  it("should expose settings for admins", async () => {
-    const admin = await buildAdmin();
-    await buildIntegration({
-      userId: admin.id,
-      teamId: admin.teamId,
-      service: IntegrationService.Slack,
-      type: IntegrationType.Post,
-      settings: { url: "https://hooks.slack.com/services/secret" },
-    });
-
-    const res = await server.post("/api/integrations.list", admin);
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].settings.url).toEqual(
-      "https://hooks.slack.com/services/secret"
-    );
   });
 });
