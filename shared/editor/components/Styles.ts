@@ -1089,8 +1089,7 @@ h6:not(.placeholder)::before {
   top: -0.1em;
 }
 
-.heading-anchor,
-.heading-fold {
+.heading-anchor {
   display: inline-block;
   color: ${props.theme.textTertiary};
   opacity: 1;
@@ -1107,21 +1106,12 @@ h6:not(.placeholder)::before {
   line-height: 0;
   width: 12px;
   height: 24px;
+  box-sizing: border-box;
 
   &:focus,
   &:hover {
     color: ${props.theme.text};
   }
-}
-
-.ProseMirror.exported {
-  .heading-fold {
-    display: none;
-  }
-}
-
-.heading-anchor {
-  box-sizing: border-box;
 }
 
 .heading-actions {
@@ -1140,18 +1130,6 @@ h6:not(.placeholder)::before {
   &:dir(rtl) {
     margin-left: 0;
     margin-right: -52px;
-  }
-
-  &.collapsed {
-    opacity: 1;
-  }
-
-  &.collapsed .heading-anchor {
-    opacity: 0;
-  }
-
-  &.collapsed .heading-fold {
-    opacity: 1;
   }
 }
 
@@ -1184,25 +1162,6 @@ h6 {
     &:not(.placeholder)::before {
       display: ${props.readOnly ? "none" : "inline-block"};
     }
-  }
-}
-
-.heading-fold {
-  display: inline-block;
-  transform-origin: center;
-  padding: 0;
-
-  &.collapsed {
-    svg {
-      transform: rotate(-90deg);
-      pointer-events: none;
-    }
-    transition-delay: 0.1s;
-    opacity: 1;
-  }
-
-  &:dir(rtl).collapsed svg {
-    transform: rotate(90deg);
   }
 }
 
@@ -1466,11 +1425,11 @@ ol li {
 .${EditorStyleHelper.checklistWrapper} {
   position: relative;
   margin: 1em 0;
+}
 
-  .${EditorStyleHelper.checklistWrapper} {
-    position: static;
-    margin: 0;
-  }
+li .${EditorStyleHelper.checklistWrapper} {
+  position: static;
+  margin: 0;
 }
 
 .${EditorStyleHelper.checklistCompletedToggle} {
@@ -1550,13 +1509,16 @@ ol li.ProseMirror-selectednode::after {
 }
 
 ul.checkbox_list {
+  & > li > span[contenteditable="false"] {
+    cursor: text;
+  }
+
   .checkbox {
     display: inline-block;
     cursor: var(--pointer);
     pointer-events: ${
       props.readOnly && !props.readOnlyWriteCheckboxes ? "none" : "initial"
     };
-    opacity: ${props.readOnly && !props.readOnlyWriteCheckboxes ? 0.75 : 1};
     width: 14px;
     height: 14px;
     position: relative;
@@ -1565,23 +1527,65 @@ ul.checkbox_list {
     opacity: .8;
     margin: 0 0.5em 0 0;
 
-    background-image: ${`url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM3 2C2.44772 2 2 2.44772 2 3V11C2 11.5523 2.44772 12 3 12H11C11.5523 12 12 11.5523 12 11V3C12 2.44772 11.5523 2 11 2H3Z' fill='${props.theme.text.replace(
-      "#",
-      "%23"
-    )}' /%3E%3C/svg%3E%0A");`}
-
     &[aria-checked=true] {
-        opacity: 1;
-        background-image: ${`url(
-            "data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM4.26825 5.85982L5.95873 7.88839L9.70003 2.9C10.0314 2.45817 10.6582 2.36863 11.1 2.7C11.5419 3.03137 11.6314 3.65817 11.3 4.1L6.80002 10.1C6.41275 10.6164 5.64501 10.636 5.2318 10.1402L2.7318 7.14018C2.37824 6.71591 2.43556 6.08534 2.85984 5.73178C3.28412 5.37821 3.91468 5.43554 4.26825 5.85982Z' fill='${props.theme.accent.replace(
-              "#",
-              "%23"
-            )}' /%3E%3C/svg%3E%0A"
-        )`};
+      opacity: 1;
     }
 
     &:active {
       transform: scale(0.9);
+    }
+
+    svg {
+      display: block;
+      width: 14px;
+      height: 14px;
+      overflow: visible;
+    }
+
+    .checkbox-box {
+      fill: ${props.theme.accent};
+      fill-opacity: 0;
+      stroke: ${props.theme.text};
+      stroke-width: 2;
+      transition: fill-opacity 100ms ease-in-out, stroke 100ms ease-in-out;
+    }
+
+    .checkbox-tick {
+      fill: none;
+      stroke: ${props.theme.accentText};
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 14;
+      stroke-dashoffset: 14;
+      transition: stroke-dashoffset 200ms ease-in-out;
+    }
+
+    &[aria-checked=true] {
+      .checkbox-box {
+        fill-opacity: 1;
+        stroke: ${props.theme.accent};
+      }
+      .checkbox-tick {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    /* Static fallback for environments without inline SVG (e.g. SSR) */
+    &:not(:has(svg)) {
+      background-image: ${`url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM3 2C2.44772 2 2 2.44772 2 3V11C2 11.5523 2.44772 12 3 12H11C11.5523 12 12 11.5523 12 11V3C12 2.44772 11.5523 2 11 2H3Z' fill='${props.theme.text.replace(
+        /#/g,
+        "%23"
+      )}' /%3E%3C/svg%3E%0A");`}
+
+      &[aria-checked=true] {
+        background-image: ${`url(
+            "data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM4.26825 5.85982L5.95873 7.88839L9.70003 2.9C10.0314 2.45817 10.6582 2.36863 11.1 2.7C11.5419 3.03137 11.6314 3.65817 11.3 4.1L6.80002 10.1C6.41275 10.6164 5.64501 10.636 5.2318 10.1402L2.7318 7.14018C2.37824 6.71591 2.43556 6.08534 2.85984 5.73178C3.28412 5.37821 3.91468 5.43554 4.26825 5.85982Z' fill='${props.theme.accent.replace(
+              /#/g,
+              "%23"
+            )}' /%3E%3C/svg%3E%0A"
+        )`};
+      }
     }
   }
 
@@ -1635,11 +1639,14 @@ code {
   font-family: ${props.theme.fontFamilyMono};
   font-size: 90%;
 
+  &.inline {
+    color: ${props.theme.codeKeyword};
+  }
+
   .${EditorStyleHelper.codeWord} {
     @media (min-width: ${breakpoints.tablet}px) {
       white-space: nowrap;
     }
-    color: ${props.theme.codeKeyword};
   }
 }
 
@@ -2499,13 +2506,6 @@ table {
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
 }
 
-
-.folded-content,
-.folded-content + .mermaid-diagram-wrapper {
-  display: none;
-  user-select: none;
-}
-
 @keyframes ProseMirror-cursor-blink {
   to {
     visibility: hidden;
@@ -2568,12 +2568,6 @@ li > .${EditorStyleHelper.toggleBlock} {
 
 .${EditorStyleHelper.toggleBlock} {
   display: flex;
-
-  /* When a toggle block is inside a collapsed heading it receives the
-     folded-content decoration; ensure it stays hidden despite display: flex. */
-  &.folded-content {
-    display: none;
-  }
 
   &:focus-within {
     transition-delay: 0.1s;

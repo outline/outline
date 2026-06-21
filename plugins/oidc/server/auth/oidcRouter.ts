@@ -3,6 +3,7 @@ import JWT from "jsonwebtoken";
 import type { Context } from "koa";
 import type Router from "koa-router";
 import { get } from "es-toolkit/compat";
+import { toError } from "@shared/utils/error";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import { isBase64Url } from "@shared/utils/urls";
@@ -110,7 +111,7 @@ export function createOIDCRouter(
                 sub?: string;
               };
             } catch (err) {
-              Logger.error("id_token decode threw error: ", err);
+              Logger.error("id_token decode threw error: ", toError(err));
               return {};
             }
           })();
@@ -233,7 +234,7 @@ export function createOIDCRouter(
           });
           return done(null, result.user, { ...result, client });
         } catch (err) {
-          return done(err, null);
+          return done(toError(err), null);
         }
       }
     )

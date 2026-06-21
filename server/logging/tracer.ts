@@ -1,5 +1,4 @@
-import type { Span } from "dd-trace";
-import tracer from "dd-trace";
+import type { Span, Tracer } from "dd-trace";
 import env from "@server/env";
 
 interface ReportableError extends Error {
@@ -22,9 +21,25 @@ type PrivateDatadogContext = {
   };
 };
 
+// dd-trace patches Node internals on require and is comparatively expensive to
+// load, so it is kept off the startup path unless APM is actually enabled. When
+// disabled we fall back to a no-op tracer that satisfies the surface consumed by
+// callers (see tracing.ts) so they don't need to branch.
+const noopSpan = {
+  addTags: () => noopSpan,
+  setTag: () => noopSpan,
+  finish: () => undefined,
+} as unknown as Span;
+
+let tracer: Tracer;
+
 // If the DataDog agent is installed and the DD_API_KEY environment variable is
-// in the environment then we can safely attempt to start the DD tracer
+// in the environment then we can safely attempt to start the DD tracer. This
+// must happen before any instrumented module is imported.
 if (env.DD_API_KEY) {
+  const ddTrace = require("dd-trace") as { default?: Tracer };
+  tracer = ddTrace.default ?? (ddTrace as unknown as Tracer);
+
   tracer.init({
     version: env.VERSION,
     service: env.DD_SERVICE,
@@ -35,6 +50,14 @@ if (env.DD_API_KEY) {
   // Disable per-middleware spans so that non-reportable errors are not captured
   // This is also generally excessive noise
   tracer.use("koa", { middleware: false });
+} else {
+  tracer = {
+    scope: () => ({
+      active: () => null,
+      activate: <T>(_span: Span, fn: () => T) => fn(),
+    }),
+    startSpan: () => noopSpan,
+  } as unknown as Tracer;
 }
 
 const getCurrentSpan = (): Span | null => tracer.scope().active();

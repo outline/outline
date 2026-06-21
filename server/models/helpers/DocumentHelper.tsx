@@ -1,4 +1,3 @@
-import { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
@@ -367,6 +366,8 @@ export class DocumentHelper {
     }
 
     const html = await DocumentHelper.diff(before, after, options);
+    // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
+    const { JSDOM } = await import("jsdom");
     const dom = new JSDOM(html);
     const doc = dom.window.document;
 

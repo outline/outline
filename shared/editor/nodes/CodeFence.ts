@@ -45,6 +45,7 @@ import { isCode, isMermaid } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { escapeRawTableCell } from "../lib/markdown/tableCell";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
 import {
   findParentNode,
@@ -56,10 +57,15 @@ import { isInCode } from "../queries/isInCode";
 import Node from "./Node";
 
 const DEFAULT_LANGUAGE = "javascript";
-const COLLAPSE_LINE_THRESHOLD = 12;
+
+/** Fraction of the viewport height above which a code block is collapsible. */
+const COLLAPSE_HEIGHT_RATIO = 0.5;
+
+/** Approximate rendered line height of a code block, in pixels. */
+const CODE_LINE_HEIGHT = 20;
 
 interface CollapseState {
-  /** Positions of code blocks with more than COLLAPSE_LINE_THRESHOLD lines. */
+  /** Positions of code blocks taller than COLLAPSE_HEIGHT_RATIO of the viewport. */
   tallBlocks: Set<number>;
   /** Positions of code blocks currently collapsed by the user or auto-collapse. */
   collapsedBlocks: Set<number>;
@@ -68,17 +74,23 @@ interface CollapseState {
 }
 
 /**
- * Find all code block positions in the document that exceed the line threshold.
+ * Find all code block positions whose estimated height exceeds
+ * COLLAPSE_HEIGHT_RATIO of the viewport height.
  *
  * @param doc - the document to scan.
  * @returns set of positions of tall code blocks.
  */
 function findTallBlocks(doc: ProsemirrorNode): Set<number> {
   const tall = new Set<number>();
+  if (!isBrowser) {
+    return tall;
+  }
+  const maxLines =
+    (window.innerHeight * COLLAPSE_HEIGHT_RATIO) / CODE_LINE_HEIGHT;
   for (const block of findBlockNodes(doc, true)) {
     if (isCode(block.node)) {
       const lines = (block.node.textContent.match(/\n/g)?.length ?? 0) + 1;
-      if (lines > COLLAPSE_LINE_THRESHOLD) {
+      if (lines > maxLines) {
         tall.add(block.pos);
       }
     }
@@ -414,13 +426,6 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         key: collapseKey,
         state: {
           init: (_config, state) => {
-            if (!isBrowser) {
-              return {
-                tallBlocks: new Set<number>(),
-                collapsedBlocks: new Set<number>(),
-                decorations: DecorationSet.empty,
-              };
-            }
             const tallBlocks = findTallBlocks(state.doc);
             return build(state.doc, tallBlocks, new Set(tallBlocks));
           },
@@ -698,8 +703,14 @@ export default class CodeFence extends Node<CodeFenceOptions> {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
+    // Fence content bypasses esc(), so when inside a table cell escape it here
+    // so it cannot break out of the column.
+    const content = state.inTable
+      ? escapeRawTableCell(node.textContent)
+      : node.textContent;
+
     state.write("```" + (node.attrs.language || "") + "\n");
-    state.text(node.textContent, false);
+    state.text(content, false);
     state.ensureNewLine();
     state.write("```");
     state.closeBlock(node);

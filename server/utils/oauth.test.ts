@@ -25,7 +25,9 @@ describe("userInfo", () => {
       expect.assertions(1);
       await client.userInfo("token");
     } catch (e) {
-      expect(e.id).toBe("authentication_required");
+      expect(e instanceof Error && "id" in e ? e.id : undefined).toBe(
+        "authentication_required"
+      );
     }
   });
 });

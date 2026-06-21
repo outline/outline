@@ -1,4 +1,5 @@
 import { Sema } from "async-sema";
+import { toError } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import { Attachment } from "@server/models";
 import FileStorage from "@server/storage/files";
@@ -54,7 +55,7 @@ export default class UploadAttachmentsForImportTask extends BaseTask<Item[]> {
           });
         }
       } catch (err) {
-        Logger.error("error uploading attachments for import", err);
+        Logger.error("error uploading attachments for import", toError(err));
         throw err;
       } finally {
         sema.release();

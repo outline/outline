@@ -7,6 +7,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { ThemeProvider, useTheme } from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import type { CustomTheme } from "@shared/types";
 import { TOCPosition, TeamPreference } from "@shared/types";
@@ -110,7 +111,7 @@ function Details() {
         });
         toast.success(t("Settings saved"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [
@@ -167,15 +168,6 @@ function Details() {
   const handleSeamlessEditChange = React.useCallback(
     async (checked: boolean) => {
       team.setPreference(TeamPreference.SeamlessEdit, !checked);
-      await team.save();
-      toast.success(t("Settings saved"));
-    },
-    [team, t]
-  );
-
-  const handleCommentingChange = React.useCallback(
-    async (checked: boolean) => {
-      team.setPreference(TeamPreference.Commenting, checked);
       await team.save();
       toast.success(t("Settings saved"));
     },
@@ -368,6 +360,7 @@ function Details() {
             />
           </SettingRow>
           <SettingRow
+            border={false}
             name={TeamPreference.SeamlessEdit}
             label={t("Separate editing")}
             description={t(
@@ -379,21 +372,6 @@ function Details() {
               name={TeamPreference.SeamlessEdit}
               checked={!team.getPreference(TeamPreference.SeamlessEdit)}
               onChange={handleSeamlessEditChange}
-            />
-          </SettingRow>
-          <SettingRow
-            border={false}
-            name={TeamPreference.Commenting}
-            label={t("Commenting")}
-            description={t(
-              "When enabled team members can add comments to documents."
-            )}
-          >
-            <Switch
-              id={TeamPreference.Commenting}
-              name={TeamPreference.Commenting}
-              checked={team.getPreference(TeamPreference.Commenting)}
-              onChange={handleCommentingChange}
             />
           </SettingRow>
 

@@ -484,7 +484,17 @@ export class MarkdownSerializerState {
       row.forEach((cell, _, j) => {
         this.append(j === 0 ? "| " : " | ");
 
-        const startPos = this.out.length;
+        // A table row is a single line of Markdown, so render the cell into an
+        // isolated buffer and flatten any newlines its block content (notices,
+        // code fences, blockquotes, …) produced into <br>.
+        const cellState = new MarkdownSerializerState(
+          this.nodes,
+          this.marks,
+          this.options
+        );
+        cellState.inTable = true;
+        cellState.inList = this.inList;
+        cellState.inTightList = this.inTightList;
 
         cell.forEach((cellNode) => {
           if (
@@ -494,14 +504,18 @@ export class MarkdownSerializerState {
               cellNode.type.name === "paragraph"
             )
           ) {
-            this.closed = false;
-            this.render(cellNode, row, j);
+            cellState.closed = false;
+            cellState.render(cellNode, row, j);
           }
         });
 
+        const content = cellState.out
+          .replace(/^\n+|\n+$/g, "")
+          .replace(/\n/g, "<br>");
+        this.append(content);
+
         // Pad to column width
-        const contentLength = this.out.length - startPos;
-        const padding = Math.max(0, columnWidths[j] - contentLength);
+        const padding = Math.max(0, columnWidths[j] - content.length);
         this.append(" ".repeat(padding));
       });
 

@@ -68,7 +68,7 @@ const StyledMoreIcon = styled(MoreIcon)`
 const Container = styled(Flex)<{ $position: "top" | "bottom" }>`
   overflow: hidden;
   padding-top: ${(props) =>
-    props.$position === "top" && Desktop.hasInsetTitlebar() ? 36 : 0}px;
+    props.$position === "top" && Desktop.hasInsetTitlebar() ? 40 : 0}px;
   ${draggableOnDesktop()}
 `;
 
@@ -103,6 +103,7 @@ const Button = styled(Flex)<{
   text-align: start;
   user-select: none;
   position: relative;
+  cursor: var(--pointer);
 
   ${undraggableOnDesktop()}
   ${extraArea(4)}
@@ -119,7 +120,6 @@ const Button = styled(Flex)<{
     &[aria-expanded="true"] {
       color: ${s("sidebarText")};
       background: ${s("sidebarActiveBackground")};
-      cursor: var(--pointer);
     }
   }
 `;

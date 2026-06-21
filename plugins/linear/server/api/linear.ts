@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -107,7 +108,10 @@ router.get(
 
       ctx.redirect(LinearUtils.successUrl());
     } catch (err) {
-      Logger.error("Encountered error during Linear OAuth callback", err);
+      Logger.error(
+        "Encountered error during Linear OAuth callback",
+        toError(err)
+      );
       ctx.redirect(LinearUtils.errorUrl("unknown"));
     }
   }

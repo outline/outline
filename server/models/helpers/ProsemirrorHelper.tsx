@@ -16,6 +16,7 @@ import {
   yDocToProsemirrorJSON,
 } from "y-prosemirror";
 import * as Y from "yjs";
+import { toError, errToString } from "@shared/utils/error";
 import Diff from "@shared/editor/extensions/Diff";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { ExtendedChange } from "@shared/editor/lib/ChangesetHelper";
@@ -532,7 +533,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
         );
         styleTags = sheet.getStyleTags();
       } catch (error) {
-        Logger.error("Failed to render styles on node HTML conversion", error);
+        Logger.error(
+          "Failed to render styles on node HTML conversion",
+          toError(error)
+        );
       } finally {
         sheet.seal();
       }
@@ -671,7 +675,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       try {
         view?.destroy();
       } catch (err) {
-        Logger.error("Error destroying ProseMirror view", err);
+        Logger.error("Error destroying ProseMirror view", toError(err));
       }
       cleanupEnv?.();
     }
@@ -824,27 +828,41 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     // Create a new document with the emoji removed from the text
     const json = doc.toJSON();
 
-    function removeEmojiFromNode(node: ProsemirrorData): ProsemirrorData {
+    function removeEmojiFromNode(
+      node: ProsemirrorData
+    ): ProsemirrorData | null {
       if (node.type === "text" && node.text && node.text.startsWith(emoji)) {
+        const text = node.text.slice(emoji.length);
+        // Removing the emoji can leave an empty text node (e.g. when the text
+        // node contained only the emoji). Prosemirror disallows empty text
+        // nodes, so drop the node entirely in that case.
+        if (!text) {
+          return null;
+        }
         return {
           ...node,
-          text: node.text.slice(emoji.length),
+          text,
         };
       }
       if (node.content) {
         let found = false;
+        const content: ProsemirrorData[] = [];
+        for (const child of node.content) {
+          if (found) {
+            content.push(child);
+            continue;
+          }
+          const result = removeEmojiFromNode(child);
+          if (result !== child) {
+            found = true;
+          }
+          if (result !== null) {
+            content.push(result);
+          }
+        }
         return {
           ...node,
-          content: node.content.map((child) => {
-            if (found) {
-              return child;
-            }
-            const result = removeEmojiFromNode(child);
-            if (result !== child) {
-              found = true;
-            }
-            return result;
-          }),
+          content,
         };
       }
       return node;
@@ -853,7 +871,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const modifiedJson = removeEmojiFromNode(json as ProsemirrorData);
     return {
       emoji,
-      doc: Node.fromJSON(schema, modifiedJson),
+      doc: modifiedJson ? Node.fromJSON(schema, modifiedJson) : doc,
     };
   }
 
@@ -976,7 +994,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
             }
           } catch (err) {
             Logger.warn("Failed to download image for attachment", {
-              error: err.message,
+              error: errToString(err),
               src,
             });
           }

@@ -5,7 +5,8 @@ import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
-import { TeamPreference, EmailDisplay } from "@shared/types";
+import { errToString } from "@shared/utils/error";
+import { CommentingAccess, TeamPreference, EmailDisplay } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
 import type { Option } from "~/components/InputSelect";
@@ -71,6 +72,28 @@ function Security() {
     [t]
   );
 
+  const commentingOptions: Option[] = React.useMemo(
+    () =>
+      [
+        {
+          type: "item",
+          label: t("Members"),
+          value: CommentingAccess.Members,
+        },
+        {
+          type: "item",
+          label: t("Members and guests"),
+          value: CommentingAccess.Everyone,
+        },
+        {
+          type: "item",
+          label: t("No one"),
+          value: CommentingAccess.None,
+        },
+      ] satisfies Option[],
+    [t]
+  );
+
   const showSuccessMessage = React.useMemo(
     () =>
       debounce(() => {
@@ -86,7 +109,7 @@ function Security() {
         await team.save(newData);
         showSuccessMessage();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [team, showSuccessMessage]
@@ -165,6 +188,17 @@ function Security() {
       const preferences = {
         ...team.preferences,
         [TeamPreference.EmailDisplay]: emailDisplay,
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
+  );
+
+  const handleCommentingChange = React.useCallback(
+    async (commenting: string) => {
+      const preferences = {
+        ...team.preferences,
+        [TeamPreference.Commenting]: commenting,
       };
       await saveData({ preferences });
     },
@@ -331,6 +365,23 @@ function Security() {
           options={emailDisplayOptions}
           onChange={handleEmailDisplayChange}
           label={t("Email address visibility")}
+          labelHidden
+          short
+        />
+      </SettingRow>
+      <SettingRow
+        label={t("Commenting")}
+        name={TeamPreference.Commenting}
+        description={t("Controls who can add comments to documents")}
+      >
+        <InputSelect
+          value={
+            team.getPreference(TeamPreference.Commenting) ||
+            CommentingAccess.Members
+          }
+          options={commentingOptions}
+          onChange={handleCommentingChange}
+          label={t("Commenting")}
           labelHidden
           short
         />

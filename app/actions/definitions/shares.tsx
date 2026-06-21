@@ -1,4 +1,5 @@
 import copy from "copy-to-clipboard";
+import { errToString } from "@shared/utils/error";
 import type Share from "~/models/Share";
 import { createAction, createInternalLinkAction } from "..";
 import { ArrowIcon, CopyIcon, TrashIcon } from "outline-icons";
@@ -53,7 +54,7 @@ export const revokeShareFactory = ({
         await stores.shares.revoke(share);
         toast.message(t("Share link revoked"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
   });

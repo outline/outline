@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
+import { ellipsis } from "@shared/styles";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
@@ -124,12 +125,12 @@ function DocumentBreadcrumb(
       }),
       createInternalLinkAction({
         name: collection ? (
-          <CollectionName collection={collection} />
+          <CollectionName
+            collection={collection}
+            icon={<CollectionIcon collection={collection} expanded />}
+          />
         ) : undefined,
         section: ActiveDocumentSection,
-        icon: collection ? (
-          <CollectionIcon collection={collection} expanded />
-        ) : undefined,
         visible: !!(collection && can.readDocument),
         to: collection
           ? {
@@ -152,15 +153,17 @@ function DocumentBreadcrumb(
               documentId={node.id}
               collection={collection}
               title={title}
+              icon={
+                node.icon ? (
+                  <Icon
+                    value={node.icon}
+                    color={node.color}
+                    initial={title.charAt(0).toUpperCase()}
+                  />
+                ) : undefined
+              }
             />
           ),
-          icon: node.icon ? (
-            <Icon
-              value={node.icon}
-              color={node.color}
-              initial={title.charAt(0).toUpperCase()}
-            />
-          ) : undefined,
           section: ActiveDocumentSection,
           to: {
             pathname: node.url,
@@ -231,11 +234,13 @@ function DocumentBreadcrumb(
   );
 }
 
-/** Renders a collection name wrapped in a context menu. */
+/** Renders a collection name and icon wrapped in a context menu. */
 const CollectionName = observer(function CollectionName_({
   collection,
+  icon,
 }: {
   collection: Collection;
+  icon?: React.ReactNode;
 }) {
   const { t } = useTranslation();
   const menuAction = useCollectionMenuAction({
@@ -245,21 +250,26 @@ const CollectionName = observer(function CollectionName_({
   return (
     <ActionContextProvider value={{ activeModels: [collection] }}>
       <ContextMenu action={menuAction} ariaLabel={t("Collection options")}>
-        <span>{collection.name}</span>
+        <Name>
+          {icon}
+          <NameText>{collection.name}</NameText>
+        </Name>
       </ContextMenu>
     </ActionContextProvider>
   );
 });
 
-/** Renders a document name wrapped in a context menu. */
+/** Renders a document name and icon wrapped in a context menu. */
 const DocumentName = observer(function DocumentName_({
   documentId,
   collection,
   title,
+  icon,
 }: {
   documentId: string;
   collection: Collection | undefined;
   title: string;
+  icon?: React.ReactNode;
 }) {
   const { t } = useTranslation();
   const { documents } = useStores();
@@ -267,7 +277,12 @@ const DocumentName = observer(function DocumentName_({
   const menuAction = useDocumentMenuAction({ documentId });
 
   if (!doc) {
-    return <>{title}</>;
+    return (
+      <Name>
+        {icon}
+        <NameText>{title}</NameText>
+      </Name>
+    );
   }
 
   return (
@@ -277,11 +292,27 @@ const DocumentName = observer(function DocumentName_({
       }}
     >
       <ContextMenu action={menuAction} ariaLabel={t("Document options")}>
-        <span>{title}</span>
+        <Name>
+          {icon}
+          <NameText>{title}</NameText>
+        </Name>
       </ContextMenu>
     </ActionContextProvider>
   );
 });
+
+const Name = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+`;
+
+const NameText = styled.span`
+  ${ellipsis()}
+  min-width: 0;
+`;
 
 const SmallSlash = styled(GoToIcon)`
   width: 12px;

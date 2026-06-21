@@ -518,9 +518,10 @@ type EditorContainerProps = {
 
 const EditorContainer = styled.div<EditorContainerProps>`
   // Adds space to the gutter to make room for icon & heading annotations
-  padding: 0 44px;
+  padding: 0 32px;
 
   ${breakpoint("tablet")`
+    padding: 0 44px;
     grid-row: 1;
 
     // Decides the editor column position & span

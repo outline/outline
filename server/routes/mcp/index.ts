@@ -5,6 +5,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { ErrorCode } from "@modelcontextprotocol/sdk/types.js";
+import { toError } from "@shared/utils/error";
 import { TeamPreference } from "@shared/types";
 import { NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -126,7 +127,7 @@ router.post(
     } catch (error) {
       Logger.error(
         "MCP request handling failed",
-        error instanceof Error ? error : new Error(String(error)),
+        toError(error),
         undefined,
         ctx.req
       );

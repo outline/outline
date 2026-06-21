@@ -9,6 +9,7 @@ import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
+import { errToString } from "@shared/utils/error";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
@@ -932,7 +933,7 @@ router.post(
           Logger.warn(`Failed to read attachment from storage`, {
             attachmentId: attachment.id,
             teamId: attachment.teamId,
-            error: err.message,
+            error: errToString(err),
           });
           buffer = Buffer.from("");
         }
@@ -1057,6 +1058,7 @@ router.post(
     let response;
     let share;
     let isPublic = false;
+    const searchStartedAt = Date.now();
 
     if (shareId) {
       const teamFromCtx = await getTeamFromContext(ctx, {
@@ -1170,6 +1172,7 @@ router.post(
     // When requesting subsequent pages of search results we don't want to record
     // duplicate search query records
     if (query && offset === 0) {
+      const duration = Date.now() - searchStartedAt;
       await SearchQuery.create({
         userId: user?.id,
         teamId,
@@ -1177,6 +1180,7 @@ router.post(
         source: ctx.state.auth.type || "app", // we'll consider anything that isn't "api" to be "app"
         query,
         results: total,
+        duration,
       });
     }
 

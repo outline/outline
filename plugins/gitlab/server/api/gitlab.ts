@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { Op } from "sequelize";
+import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { createContext } from "@server/context";
 import { ValidationError } from "@server/errors";
@@ -284,7 +285,10 @@ router.get(
 
       ctx.redirect(GitLabUtils.url);
     } catch (err) {
-      Logger.error("Encountered error during Gitlab OAuth callback", err);
+      Logger.error(
+        "Encountered error during Gitlab OAuth callback",
+        toError(err)
+      );
       ctx.redirect(GitLabUtils.errorUrl("unauthenticated"));
     }
   }

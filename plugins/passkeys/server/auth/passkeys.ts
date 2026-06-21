@@ -8,6 +8,7 @@ import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
 import Router from "koa-router";
 import { randomBytes } from "node:crypto";
+import { toError } from "@shared/utils/error";
 import { User, UserPasskey, Team } from "@server/models";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
@@ -156,7 +157,7 @@ router.post(
         expectedRPID: getRpID(ctx),
       });
     } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
+      const err = toError(error);
       Logger.error("passkeys: Registration verification failed", err);
       throw ValidationError(err.message);
     }
@@ -223,6 +224,31 @@ router.post(
     }
   }
 );
+
+/**
+ * Resolves the login screen redirect for the desktop passkey entrypoint,
+ * normalizing an untrusted client query parameter to a known value.
+ *
+ * @param client - the raw client value from the request query.
+ * @returns the relative path to redirect the browser to.
+ */
+export const getPasskeyLoginRedirect = (
+  client: string | string[] | undefined
+): string => {
+  const normalized = client === Client.Desktop ? Client.Desktop : Client.Web;
+  return `/?method=passkey&client=${normalized}`;
+};
+
+/**
+ * Entry point for passkey login from the desktop app. The WebAuthn ceremony
+ * cannot run inside Electron's Chromium, so the desktop client opens this URL
+ * in the system browser. We forward to the login screen, which auto-starts the
+ * ceremony and returns the authenticated session via the outline:// deep link,
+ * mirroring the existing SSO desktop flow.
+ */
+router.get("passkey", (ctx: APIContext) => {
+  ctx.redirect(getPasskeyLoginRedirect(ctx.query.client));
+});
 
 router.post(
   "passkeys.generateAuthenticationOptions",
@@ -306,7 +332,10 @@ router.post(
         },
       });
     } catch (err) {
-      Logger.error("passkeys: Authentication verification failed", err);
+      Logger.error(
+        "passkeys: Authentication verification failed",
+        toError(err)
+      );
       throw ValidationError("Passkey authentication failed. Please try again.");
     }
 

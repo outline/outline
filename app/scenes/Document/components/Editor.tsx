@@ -6,7 +6,6 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
 import { richExtensions, withComments } from "@shared/editor/nodes";
-import { TeamPreference } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import Comment from "~/models/Comment";
 import type Document from "~/models/Document";
@@ -84,7 +83,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
     ...rest
   } = props;
   const can = usePolicy(document);
-  const commentingEnabled = !!team?.getPreference(TeamPreference.Commenting);
+  const commentingEnabled = !!team?.commentingEnabled;
 
   const iconColor = document.color ?? (first(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);

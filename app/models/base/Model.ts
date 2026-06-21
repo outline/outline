@@ -153,7 +153,7 @@ export default abstract class Model {
         // @ts-expect-error TODO
         this[key] = data[key];
       } catch (error) {
-        Logger.warn(`Error setting ${key} on model`, error);
+        Logger.warn(`Error setting ${key} on model`, { error });
       }
     }
 

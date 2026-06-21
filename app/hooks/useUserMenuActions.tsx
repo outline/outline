@@ -110,7 +110,9 @@ export function useUserMenuActions(targetUser: User | null) {
       toast.success(t(`Invite was resent to ${targetUser.name}`));
     } catch (err) {
       toast.error(
-        err.message ?? t(`An error occurred while sending the invite`)
+        err instanceof Error
+          ? err.message
+          : t(`An error occurred while sending the invite`)
       );
     }
   }, [users, targetUser, t]);

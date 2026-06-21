@@ -278,7 +278,7 @@ router.post(
         });
       });
     } catch (err) {
-      if (err.code === "ENOTFOUND") {
+      if (err instanceof Error && "code" in err && err.code === "ENOTFOUND") {
         throw NotFoundError("No CNAME record found");
       }
 

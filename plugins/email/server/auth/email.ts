@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { errToString } from "@shared/utils/error";
 import { Client, NotificationEventType } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
@@ -161,8 +162,11 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
       return;
     }
   } catch (err) {
-    Logger.debug("authentication", err);
-    return ctx.redirect(`/?notice=auth-error&description=${err.message}`);
+    const message = errToString(err);
+    Logger.debug("authentication", message);
+    return ctx.redirect(
+      `/?notice=auth-error&description=${encodeURIComponent(message)}`
+    );
   }
 
   if (!user) {
