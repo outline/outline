@@ -24,9 +24,7 @@ import { t } from "i18next";
  * @param ctx - the current selection context.
  * @returns an array of menu items.
  */
-export default function imageMenuItems(
-  ctx: SelectionContext
-): MenuItem[] {
+export default function imageMenuItems(ctx: SelectionContext): MenuItem[] {
   if (ctx.readOnly) {
     return [];
   }

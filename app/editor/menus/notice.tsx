@@ -15,9 +15,7 @@ import type { MenuItem, SelectionContext } from "@shared/editor/types";
  * @param ctx - the current selection context.
  * @returns an array of menu items.
  */
-export default function noticeMenuItems(
-  ctx: SelectionContext
-): MenuItem[] {
+export default function noticeMenuItems(ctx: SelectionContext): MenuItem[] {
   const node = ctx.selection.$from.node(-1);
   const currentStyle = node?.attrs.style as NoticeTypes;
 
