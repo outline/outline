@@ -211,3 +211,63 @@ describe("#integrations.delete", () => {
     expect(intg?.deletedAt).not.toBeNull();
   });
 });
+
+describe("#integrations.list", () => {
+  it("should redact settings for users without update permission", async () => {
+    const team = await buildTeam();
+    const member = await buildUser({ teamId: team.id });
+    await buildIntegration({
+      userId: member.id,
+      teamId: team.id,
+      service: IntegrationService.Slack,
+      type: IntegrationType.Post,
+      settings: { url: "https://hooks.slack.com/services/secret" },
+    });
+
+    const res = await server.post("/api/integrations.list", member);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].settings).toBeUndefined();
+  });
+
+  it("should expose settings of embed integrations to members", async () => {
+    const team = await buildTeam();
+    const member = await buildUser({ teamId: team.id });
+    await buildIntegration({
+      userId: member.id,
+      teamId: team.id,
+      service: IntegrationService.Diagrams,
+      type: IntegrationType.Embed,
+      settings: { url: "https://example.com" },
+    });
+
+    const res = await server.post("/api/integrations.list", member);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].settings.url).toEqual("https://example.com");
+  });
+
+  it("should expose settings for admins", async () => {
+    const admin = await buildAdmin();
+    await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+      service: IntegrationService.Slack,
+      type: IntegrationType.Post,
+      settings: { url: "https://hooks.slack.com/services/secret" },
+    });
+
+    const res = await server.post("/api/integrations.list", admin);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].settings.url).toEqual(
+      "https://hooks.slack.com/services/secret"
+    );
+  });
+});

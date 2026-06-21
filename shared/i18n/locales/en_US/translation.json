@@ -1582,6 +1582,7 @@
   "document published": "document published",
   "document updated": "document updated",
   "Posting to the <em>{{ channelName }}</em> channel on": "Posting to the <em>{{ channelName }}</em> channel on",
+  "Posting to Slack on": "Posting to Slack on",
   "These events should be posted to Slack": "These events should be posted to Slack",
   "This will prevent any future updates from being posted to this Slack channel. Are you sure?": "This will prevent any future updates from being posted to this Slack channel. Are you sure?",
   "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your workspace. Try again?": "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your workspace. Try again?",

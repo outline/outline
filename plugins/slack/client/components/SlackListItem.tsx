@@ -56,16 +56,20 @@ function SlackListItem({ integration, collection }: Props) {
       }
       subtitle={
         <>
-          <Trans
-            defaults={`Posting to the <em>{{ channelName }}</em> channel on`}
-            values={{
-              channelName: integration.settings.channel,
-              events: integration.events.map((ev) => mapping[ev]).join(", "),
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />{" "}
+          {integration.settings?.channel ? (
+            <Trans
+              defaults={`Posting to the <em>{{ channelName }}</em> channel on`}
+              values={{
+                channelName: integration.settings.channel,
+                events: integration.events.map((ev) => mapping[ev]).join(", "),
+              }}
+              components={{
+                em: <strong />,
+              }}
+            />
+          ) : (
+            t("Posting to Slack on")
+          )}{" "}
           <Popover>
             <PopoverTrigger>
               <ButtonLink>

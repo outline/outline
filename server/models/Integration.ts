@@ -84,6 +84,17 @@ class Integration<T = unknown> extends ParanoidModel<
   @Column(DataType.UUID)
   authenticationId: string;
 
+  // getters
+
+  /**
+   * Whether the integration's settings are required to expose to all team members.
+   */
+  get hasPublicSettings(): boolean {
+    return [IntegrationType.Embed, IntegrationType.Analytics].includes(
+      this.type
+    );
+  }
+
   // hooks
 
   @AfterDestroy

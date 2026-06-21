@@ -482,7 +482,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: event.modelId,
-        model: model && presentIntegration(model),
+        model: model && presentIntegration(undefined, model),
       },
     });
   }
