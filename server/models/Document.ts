@@ -27,6 +27,7 @@ import {
   BeforeValidate,
   BeforeCreate,
   BeforeUpdate,
+  BeforeRestore,
   HasMany,
   BeforeSave,
   DefaultScope,
@@ -423,6 +424,17 @@ class Document extends ArchivableModel<
   @IsDate
   @Column(DataType.DATE)
   publishedAt: Date | null;
+
+  /** Whether the document has been destroyed (hard deleted), and if so when. */
+  @AllowNull
+  @IsDate
+  @Column
+  destroyedAt: Date | null;
+
+  @BeforeRestore
+  static clearDestroyedAt(model: Document) {
+    model.destroyedAt = null;
+  }
 
   /** An array of user IDs that have edited this document. */
   @Column(DataType.ARRAY(DataType.UUID))

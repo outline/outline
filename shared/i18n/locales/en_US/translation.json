@@ -354,6 +354,8 @@
   "New": "New",
   "Only visible to you": "Only visible to you",
   "Draft": "Draft",
+  "Permanently deletes in {{ days }} days": "Permanently deletes in {{ days }} days",
+  "{{ days }} days": "{{ days }} days",
   "You updated": "You updated",
   "{{ userName }} updated": "{{ userName }} updated",
   "You deleted": "You deleted",
