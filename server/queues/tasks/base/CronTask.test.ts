@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { Minute } from "@shared/utils/time";
-import type { PartitionInfo } from "./CronTask";
+import type { PartitionInfo } from "./BaseTask";
 import { CronTask, TaskInterval } from "./CronTask";
 
 type RangeWhere = Record<string, { [Op.gte]: string; [Op.lte]: string }>;

@@ -1,3 +1,6 @@
+/** Allowed retention period in days. 0 means infinite (never delete). */
+export type RetentionPeriodPreset = 0 | 7 | 14 | 30 | 90 | 180 | 365;
+
 /** Available user roles. */
 export enum UserRole {
   Admin = "admin",
@@ -449,6 +452,10 @@ export enum TeamPreference {
   TocPosition = "tocPosition",
   /** Whether to prevent shared documents from being embedded in iframes on external websites. */
   PreventDocumentEmbedding = "preventDocumentEmbedding",
+  /** The number of days to keep documents in the trash before moving to the retention phase. */
+  TrashRetentionDays = "trashRetentionDays",
+  /** The number of days to keep documents in the retention phase before permanent deletion. */
+  DataRetentionDays = "dataRetentionDays",
   /** Who can see user email addresses. */
   EmailDisplay = "emailDisplay",
   /** Whether external MCP clients can connect to the workspace. */
@@ -469,6 +476,8 @@ export type TeamPreferences = {
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
   [TeamPreference.PreventDocumentEmbedding]?: boolean;
+  [TeamPreference.TrashRetentionDays]?: RetentionPeriodPreset;
+  [TeamPreference.DataRetentionDays]?: RetentionPeriodPreset;
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];

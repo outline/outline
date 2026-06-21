@@ -34,8 +34,13 @@ function Trash() {
       <PaginatedDocumentList
         documents={documents.deleted}
         fetch={documents.fetchDeleted}
+        options={{
+          direction: "asc",
+          sort: "deletedAt",
+        }}
         heading={<Subheading sticky>{t("Recently deleted")}</Subheading>}
         empty={<Empty>{t("Trash is empty at the moment.")}</Empty>}
+        showLastViewed={false}
         showCollection
         showTemplate
       />

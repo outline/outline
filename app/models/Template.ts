@@ -130,7 +130,7 @@ export default class Template extends ParanoidModel implements Searchable {
   }
 
   @computed
-  get permanentlyDeletedAt(): string | undefined {
+  get destroyedAt(): string | undefined {
     if (!this.deletedAt) {
       return undefined;
     }

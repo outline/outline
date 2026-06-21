@@ -44,6 +44,8 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
+  showLastViewed?: boolean;
+  showTemplate?: boolean;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -82,6 +84,8 @@ function DocumentListItem(
     showCollection,
     showPublished,
     showDraft = true,
+    showLastViewed = true,
+    showTemplate,
     highlight,
     context,
     ...rest
@@ -248,7 +252,7 @@ function DocumentListItem(
                 showCollection={showCollection}
                 showPublished={showPublished}
                 showParentDocuments={showParentDocuments}
-                showLastViewed
+                showLastViewed={showLastViewed}
               />
             </Content>
           </Flex>
@@ -259,6 +263,22 @@ function DocumentListItem(
               onClose={handleMenuClose}
             />
           </Actions>
+          {document.deletedAt &&
+            document.destroysInDays !== undefined &&
+            document.destroysInDays >= 0 && (
+              <Tooltip
+                content={t("Permanently deletes in {{ days }} days", {
+                  days: document.destroysInDays,
+                })}
+                placement="bottom"
+              >
+                <Badge>
+                  {t("{{ days }} days", {
+                    days: document.destroysInDays,
+                  })}
+                </Badge>
+              </Tooltip>
+            )}
         </DocumentLink>
       </ContextMenu>
     </ActionContextProvider>

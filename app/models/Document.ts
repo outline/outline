@@ -12,6 +12,7 @@ import {
   FileOperationFormat,
   NavigationNodeType,
   NotificationEventType,
+  TeamPreference,
 } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
@@ -196,6 +197,9 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @observable
   publishedAt: string | undefined;
+
+  @observable
+  destroyedAt: string | undefined;
 
   @observable
   popularityScore: number;
@@ -396,12 +400,33 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   @computed
-  get permanentlyDeletedAt(): string | undefined {
+  get willDestroyAt(): string | undefined {
     if (!this.deletedAt) {
       return undefined;
     }
 
-    return addDays(new Date(this.deletedAt), 30).toString();
+    const team = this.store.rootStore.auth.team;
+    if (!team) {
+      return undefined;
+    }
+    const retentionDays = team.getPreference(
+      TeamPreference.TrashRetentionDays,
+      30
+    );
+    if (!retentionDays) {
+      return undefined;
+    }
+
+    return addDays(new Date(this.deletedAt), retentionDays).toString();
+  }
+
+  @computed
+  get destroysInDays(): number | undefined {
+    if (!this.willDestroyAt) {
+      return undefined;
+    }
+
+    return differenceInDays(new Date(this.willDestroyAt), new Date());
   }
 
   @computed
