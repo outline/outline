@@ -548,11 +548,9 @@ export class MarkdownSerializerState {
   // has special meaning only at the start of the line.
   esc(str = "", startOfLine) {
     str = str.replace(/[`*\\~]/g, "\\$&");
-    // Only escape an opening square bracket when it would otherwise be parsed
-    // as an inline link or image (i.e. followed by a matching `](`). Standalone
-    // brackets render literally in Markdown, so escaping them is unnecessary and
-    // surprising to API consumers and AI agents.
-    str = str.replace(/\[(?=[^[\]]*\]\()/g, "\\$&");
+    // Only escape an opening square bracket when the same line later contains a
+    // `](`, meaning it could otherwise be parsed as an inline link or image
+    str = str.replace(/\[(?=[^\n]*\]\()/g, "\\$&");
     if (startOfLine) {
       str = str.replace(/^[:#\-*+]/, "\\$&").replace(/^(\d+)\./, "$1\\.");
     }

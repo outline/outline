@@ -378,6 +378,25 @@ This is a [test paragraph](https://example.net)`,
       expect(result).toBe("one [two] three");
     });
 
+    it("should escape literal inline-link syntax with nested brackets", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "nested [a[b]c](url) link" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Escaped so it is not re-parsed into a link on round-trip.
+      expect(result).toBe("nested \\[a\\[b]c](url) link");
+    });
+
     it("should export bullet lists inside table cells with br tags", async () => {
       // Create a document with a table containing a bullet list in a cell
       // This tests the renderList inTable handling
