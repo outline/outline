@@ -61,10 +61,7 @@ export default function (options: { delim: string; mark: string }) {
 
     // Walk through delimiter list and replace text tokens with tags
     //
-    function postProcess(
-      state: StateInline,
-      delimiters: Delimiter[]
-    ) {
+    function postProcess(state: StateInline, delimiters: Delimiter[]) {
       let i = 0,
         j,
         startDelim,
