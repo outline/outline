@@ -64,6 +64,7 @@ export function PasskeyAuthenticationProvider(props: Props) {
     null
   );
   const [isAuthenticating, setIsAuthenticating] = React.useState(false);
+  const [hasError, setHasError] = React.useState(false);
 
   // True when this page was opened in the system browser from the desktop app
   // to complete a passkey login (see the /auth/passkey route). In that case the
@@ -72,8 +73,14 @@ export function PasskeyAuthenticationProvider(props: Props) {
   const isDesktopRedirect =
     query.get("method") === "passkey" && query.get("client") === Client.Desktop;
 
+  // When returning to the system browser from the desktop app the ceremony is
+  // triggered automatically, so the button is hidden behind the "Signing in"
+  // screen. It is revealed again if the ceremony fails so the user can retry.
+  const autoStarting = isDesktopRedirect && !Desktop.isElectron();
+
   const runAuthentication = React.useCallback(async (verifyClient: Client) => {
     setIsAuthenticating(true);
+    setHasError(false);
     try {
       const resp = await client.post(
         "/passkeys.generateAuthenticationOptions",
@@ -101,6 +108,7 @@ export function PasskeyAuthenticationProvider(props: Props) {
       // Re-enable the button so the user can retry; on success the form submits
       // and navigates away, so there's no need to reset there.
       setIsAuthenticating(false);
+      setHasError(true);
     }
   }, []);
 
@@ -152,15 +160,17 @@ export function PasskeyAuthenticationProvider(props: Props) {
               readOnly
             />
           ))}
-        <ButtonLarge
-          type="submit"
-          icon={<PluginIcon id="passkeys" color="currentColor" />}
-          fullwidth
-          {...props}
-          disabled={isAuthenticating}
-        >
-          {t("Continue with Passkey")}
-        </ButtonLarge>
+        {(!autoStarting || hasError) && (
+          <ButtonLarge
+            type="submit"
+            icon={<PluginIcon id="passkeys" color="currentColor" />}
+            fullwidth
+            {...props}
+            disabled={isAuthenticating}
+          >
+            {t("Continue with Passkey")}
+          </ButtonLarge>
+        )}
       </Form>
     </Wrapper>
   );
