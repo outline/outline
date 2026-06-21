@@ -342,6 +342,42 @@ This is a [test paragraph](https://example.net)`,
   });
 
   describe("toMarkdown", () => {
+    it("should preserve smart quotes rather than flattening them", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "the cat’s “meow”" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(result).toBe("the cat’s “meow”");
+    });
+
+    it("should not escape standalone square brackets", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "one [two] three" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(result).toBe("one [two] three");
+    });
+
     it("should export bullet lists inside table cells with br tags", async () => {
       // Create a document with a table containing a bullet list in a cell
       // This tests the renderList inTable handling
