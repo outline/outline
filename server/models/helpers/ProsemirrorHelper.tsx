@@ -233,6 +233,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const potentialBlockNodes = [
       "table",
       "checkbox_list",
+      "bullet_list",
+      "ordered_list",
+      "blockquote",
+      "container_notice",
       "heading",
       "paragraph",
     ];

@@ -459,6 +459,141 @@ describe("ProsemirrorHelper", () => {
       expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
     });
 
+    it("should return the bullet list with the mentioned item only", () => {
+      const mentionAttrs: MentionAttrs = {
+        id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
+        type: MentionType.User,
+        label: "test.user",
+        actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
+        modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
+      };
+
+      const mentionedItem: DeepPartial<ProsemirrorData> = {
+        type: "list_item",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "item B ",
+              },
+              {
+                type: "mention",
+                attrs: mentionAttrs,
+              },
+            ],
+          },
+        ],
+      };
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "some content in a paragraph",
+            },
+          ],
+        },
+        {
+          type: "bullet_list",
+          content: [
+            {
+              type: "list_item",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "item A",
+                    },
+                  ],
+                },
+              ],
+            },
+            mentionedItem,
+          ],
+        },
+      ]);
+
+      const expectedDoc = buildProseMirrorDoc([
+        {
+          type: "bullet_list",
+          content: [mentionedItem],
+        },
+      ]);
+
+      const newDoc = ProsemirrorHelper.getNodeForMentionEmail(
+        doc,
+        mentionAttrs
+      );
+
+      expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
+    });
+
+    it("should return the blockquote with the mentioned paragraph only", () => {
+      const mentionAttrs: MentionAttrs = {
+        id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
+        type: MentionType.User,
+        label: "test.user",
+        actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
+        modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
+      };
+
+      const mentionedParagraph: DeepPartial<ProsemirrorData> = {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "a quote with ",
+          },
+          {
+            type: "mention",
+            attrs: mentionAttrs,
+          },
+          {
+            type: "text",
+            text: " mentioned",
+          },
+        ],
+      };
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "blockquote",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "some other line",
+                },
+              ],
+            },
+            mentionedParagraph,
+          ],
+        },
+      ]);
+
+      const expectedDoc = buildProseMirrorDoc([
+        {
+          type: "blockquote",
+          content: [mentionedParagraph],
+        },
+      ]);
+
+      const newDoc = ProsemirrorHelper.getNodeForMentionEmail(
+        doc,
+        mentionAttrs
+      );
+
+      expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
+    });
+
     it("should not return anything when the mention attrs could not be found", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
