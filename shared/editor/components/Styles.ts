@@ -2708,6 +2708,23 @@ li > .${EditorStyleHelper.toggleBlock} {
       > * {
         margin-top: 0;
       }
+
+      /* When the title is a heading, match the placeholder text to its size */
+      &.placeholder:has(> :is(h1, h2, h3, h4))::before {
+        font-weight: 600;
+      }
+      &.placeholder:has(> h1)::before {
+        font-size: var(--font-size-h1);
+      }
+      &.placeholder:has(> h2)::before {
+        font-size: var(--font-size-h2);
+      }
+      &.placeholder:has(> h3)::before {
+        font-size: var(--font-size-h3);
+      }
+      &.placeholder:has(> h4)::before {
+        font-size: var(--font-size-h4);
+      }
     }
     flex-grow: 1;
     overflow: unset;
