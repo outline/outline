@@ -13450,16 +13450,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"koa-compress@npm:^5.2.1":
-  version: 5.2.1
-  resolution: "koa-compress@npm:5.2.1"
+"koa-compress@npm:^5.2.2":
+  version: 5.2.2
+  resolution: "koa-compress@npm:5.2.2"
   dependencies:
     bytes: "npm:^3.1.2"
     compressible: "npm:^2.0.18"
     http-errors: "npm:^2.0.1"
     koa-is-json: "npm:^1.0.0"
     negotiator: "npm:^1.0.0"
-  checksum: 10c0/0fb075584b6be5f619a4de7c326f3f7cc503ba6dfeb40e4c714451d81c6358f14c60e2603f064528ffa25edac50ae7af040e8cac984a6e6d6e73b82a11e4f232
+  checksum: 10c0/270eca5fda9d89ad6582378a734128e0164eb8e9c11d353eb00ca4c05a9ee8324835b982a4363c2189231d83e8ba3d7a357c842378c27d61053d59f69e78d396
   languageName: node
   linkType: hard
 
@@ -15356,7 +15356,7 @@ __metadata:
     kbar: "npm:0.1.0-beta.48"
     koa: "npm:^3.0.3"
     koa-body: "npm:^6.0.1"
-    koa-compress: "npm:^5.2.1"
+    koa-compress: "npm:^5.2.2"
     koa-helmet: "npm:^6.1.0"
     koa-logger: "npm:^3.2.1"
     koa-mount: "npm:^4.2.0"
