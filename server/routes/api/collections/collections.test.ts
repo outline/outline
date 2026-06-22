@@ -1803,7 +1803,6 @@ describe("#collections.update", () => {
     await buildCollectionMaintainer({
       collectionId: collection.id,
       userId: maintainer.id,
-      createdById: admin.id,
     });
     const res = await server.post("/api/collections.update", admin, {
       body: {
@@ -1839,7 +1838,6 @@ describe("#collections.update", () => {
     await buildCollectionMaintainer({
       collectionId: collection.id,
       userId: maintainer.id,
-      createdById: admin.id,
     });
     const res = await server.post("/api/collections.info", admin, {
       body: {

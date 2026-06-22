@@ -345,10 +345,6 @@ export async function buildCollectionMaintainer(
     overrides.userId = user.id;
   }
 
-  if (!overrides.createdById) {
-    overrides.createdById = overrides.userId;
-  }
-
   return CollectionMaintainer.create({
     ...overrides,
   });

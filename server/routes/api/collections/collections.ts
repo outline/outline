@@ -108,7 +108,6 @@ async function syncCollectionMaintainers(
           {
             collectionId: collection.id,
             userId,
-            createdById: user.id,
           },
           { transaction }
         )
