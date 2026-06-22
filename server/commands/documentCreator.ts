@@ -5,6 +5,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
+import { InvalidRequestError } from "@server/errors";
 import { assertPresent } from "@server/validation";
 
 type Props = Optional<
@@ -131,6 +132,12 @@ export async function authorizeDocumentPublish(
     });
   }
 
+  if (collection?.maintainerApprovalRequired) {
+    throw InvalidRequestError(
+      "This collection requires approval before publishing"
+    );
+  }
+
   if (document.parentDocumentId) {
     const parentDocument = await Document.findByPk(document.parentDocumentId, {
       userId: user.id,
@@ -251,6 +258,17 @@ export default async function documentCreator(
   if (publish) {
     if (!collectionId) {
       throw new Error("Collection ID is required to publish");
+    }
+
+    const collection = await Collection.findByPk(collectionId, {
+      userId: user.id,
+      transaction,
+    });
+
+    if (collection?.maintainerApprovalRequired) {
+      throw InvalidRequestError(
+        "This collection requires approval before publishing"
+      );
     }
 
     await document.publish(ctx, {

@@ -100,6 +100,9 @@ class ChangeRequest extends IdModel<
   @IsIn([Object.values(ChangeRequestRejectionReason)])
   @Column(DataType.STRING)
   rejectionReason: ChangeRequestRejectionReason | null;
+
+  /** Non-persisted flag set by API routes for policy serialization. */
+  isMaintainer?: boolean;
 }
 
 export default ChangeRequest;
