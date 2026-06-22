@@ -103,7 +103,7 @@ function isDecorationSource(value: unknown): value is DecorationSource {
 export class ProsemirrorHelper extends SharedProsemirrorHelper {
   /**
    * Maximum amount of visible text, in characters, to grow a mention email
-   * snippet outward to when climbing toward surrounding context.
+   * snippet outward when climbing toward surrounding context.
    */
   static readonly mentionEmailMaxChars = 1000;
 
@@ -308,9 +308,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     let node = $pos.node($pos.depth);
     for (let d = $pos.depth - 1; d >= 1; d--) {
       const ancestor = $pos.node(d);
-      if (
-        ancestor.textContent.length > ProsemirrorHelper.mentionEmailMaxChars
-      ) {
+      // textBetween rather than textContent so leaf text (mentions, etc.) is
+      // counted towards the budget.
+      const length = textBetween(ancestor, 0, ancestor.content.size).length;
+      if (length > ProsemirrorHelper.mentionEmailMaxChars) {
         break;
       }
       node = ancestor;
