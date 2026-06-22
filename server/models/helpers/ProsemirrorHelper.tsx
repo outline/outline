@@ -229,73 +229,56 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * @returns A new top-level doc node with the ancestor node as the only child.
    */
   static getNodeForMentionEmail(doc: Node, mention: MentionAttrs) {
-    let blockNode: Node | undefined;
-    const potentialBlockNodes = [
+    // A mention is an inline node, so it always lives inside a textblock
+    // (paragraph or heading). Locate it once and resolve its position.
+    let mentionPos: number | undefined;
+    doc.descendants((node: Node, pos: number) => {
+      if (mentionPos !== undefined) {
+        return false;
+      }
+      if (node.type.name === "mention" && isMatch(node.attrs, mention)) {
+        mentionPos = pos;
+        return false;
+      }
+      return true;
+    });
+
+    if (mentionPos === undefined) {
+      return undefined;
+    }
+
+    const $pos = doc.resolve(mentionPos);
+
+    // Walk the ancestor chain outward and keep the outermost container worth
+    // showing as context, falling back to the textblock the mention sits in.
+    const minifiableContainers = [
       "table",
       "checkbox_list",
       "bullet_list",
       "ordered_list",
       "blockquote",
       "container_notice",
-      "heading",
-      "paragraph",
     ];
 
-    const isNodeContainingMention = (node: Node) => {
-      let foundMention = false;
-
-      node.descendants((childNode: Node) => {
-        if (
-          childNode.type.name === "mention" &&
-          isMatch(childNode.attrs, mention)
-        ) {
-          foundMention = true;
-          return false;
-        }
-
-        // No need to traverse other descendants once we find the mention.
-        if (foundMention) {
-          return false;
-        }
-
-        return true;
-      });
-
-      return foundMention;
-    };
-
-    doc.descendants((node: Node) => {
-      // No need to traverse other descendants once we find the containing block node.
-      if (blockNode) {
-        return false;
+    let depth = $pos.depth;
+    for (let d = 1; d < $pos.depth; d++) {
+      if (minifiableContainers.includes($pos.node(d).type.name)) {
+        depth = d;
+        break;
       }
-
-      if (potentialBlockNodes.includes(node.type.name)) {
-        if (isNodeContainingMention(node)) {
-          blockNode = node;
-        }
-        return false;
-      }
-
-      return true;
-    });
-
-    // Use the containing block node to maintain structure during serialization.
-    // Minify to include mentioned child only.
-    if (blockNode && !["heading", "paragraph"].includes(blockNode.type.name)) {
-      const children: Node[] = [];
-
-      blockNode.forEach((child: Node) => {
-        if (isNodeContainingMention(child)) {
-          children.push(child);
-        }
-      });
-
-      blockNode = blockNode.copy(Fragment.fromArray(children));
     }
 
+    const blockNode = $pos.node(depth);
+
+    // For a container, minify to just the child on the path to the mention so
+    // the snippet keeps its structure without unrelated siblings.
+    const node =
+      depth < $pos.depth
+        ? blockNode.copy(Fragment.fromArray([$pos.node(depth + 1)]))
+        : blockNode;
+
     // Return a new top-level "doc" node to maintain structure during serialization.
-    return blockNode ? doc.copy(Fragment.fromArray([blockNode])) : undefined;
+    return doc.copy(Fragment.fromArray([node]));
   }
 
   static async replaceInternalUrls(
