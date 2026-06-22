@@ -66,6 +66,7 @@ import { ValidateIndex } from "@server/validation";
 import Document from "./Document";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
+import CollectionMaintainer from "./CollectionMaintainer";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Import from "./Import";
@@ -560,6 +561,9 @@ class Collection extends ParanoidModel<
 
   @HasMany(() => GroupMembership, "collectionId")
   groupMemberships: GroupMembership[];
+
+  @HasMany(() => CollectionMaintainer, "collectionId")
+  maintainers: CollectionMaintainer[];
 
   @BelongsToMany(() => User, () => UserMembership)
   users: User[];

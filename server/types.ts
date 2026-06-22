@@ -17,6 +17,7 @@ import type { AccountProvisionerResult } from "./commands/accountProvisioner";
 import type { OAuthIntent, OAuthState } from "./utils/oauthState";
 import type {
   AccessRequest,
+  ChangeRequest,
   ApiKey,
   Attachment,
   AuthenticationProvider,
@@ -319,6 +320,16 @@ export type AccessRequestEvent = BaseEvent<AccessRequest> & {
   documentId: string;
 };
 
+export type ChangeRequestEvent = BaseEvent<ChangeRequest> & {
+  name:
+    | "change_requests.submit"
+    | "change_requests.approve"
+    | "change_requests.reject"
+    | "change_requests.withdraw";
+  modelId: string;
+  documentId?: string | null;
+};
+
 export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
   name: "documents.add_group" | "documents.remove_group";
   documentId: string;
@@ -495,6 +506,7 @@ export type Event =
   | DocumentEvent
   | DocumentUserEvent
   | AccessRequestEvent
+  | ChangeRequestEvent
   | DocumentMovedEvent
   | DocumentGroupEvent
   | PinEvent

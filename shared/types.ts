@@ -233,6 +233,20 @@ export enum GroupPermission {
   Admin = "admin",
 }
 
+export enum ChangeRequestStatus {
+  Draft = "draft",
+  Submitted = "submitted",
+  Approved = "approved",
+  Rejected = "rejected",
+  Withdrawn = "withdrawn",
+}
+
+export enum ChangeRequestRejectionReason {
+  Conflict = "conflict",
+  Maintainer = "maintainer",
+  Withdrawn = "withdrawn",
+}
+
 /** Settings stored on an AuthenticationProvider for group synchronization. */
 export interface AuthenticationProviderSettings {
   /** Whether group sync from this provider is enabled. */

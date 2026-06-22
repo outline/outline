@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { randomUUID } from "node:crypto";
-import { truncate } from "es-toolkit/compat";
+import { truncate, uniq } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
 import {
@@ -20,6 +20,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import {
   Collection,
+  CollectionMaintainer,
   UserMembership,
   GroupMembership,
   Team,
@@ -29,6 +30,7 @@ import {
   Document,
   Import,
 } from "@server/models";
+import type { HookContext } from "@server/models/base/Model";
 import { authorize } from "@server/policies";
 import {
   presentCollection,
@@ -47,6 +49,127 @@ import * as T from "./schema";
 import { InvalidRequestError } from "@server/errors";
 
 const router = new Router();
+
+/**
+ * Replace the maintainer list for a collection.
+ *
+ * @param ctx API context.
+ * @param collection Collection to update maintainers for.
+ * @param maintainerIds User ids to set as maintainers, if provided.
+ * @return Whether the maintainer list changed.
+ */
+async function syncCollectionMaintainers(
+  ctx: APIContext,
+  collection: Collection,
+  maintainerIds: string[] | undefined
+): Promise<boolean> {
+  if (maintainerIds === undefined) {
+    return false;
+  }
+
+  const { transaction } = ctx.state;
+  const { user } = ctx.state.auth;
+  const uniqueIds = uniq(maintainerIds);
+
+  if (uniqueIds.length) {
+    const users = await User.findAll({
+      where: {
+        id: {
+          [Op.in]: uniqueIds,
+        },
+        teamId: collection.teamId,
+      },
+      transaction,
+    });
+
+    if (users.length !== uniqueIds.length) {
+      throw InvalidRequestError("One or more maintainers are invalid");
+    }
+  }
+
+  const existing = await CollectionMaintainer.findAll({
+    where: {
+      collectionId: collection.id,
+    },
+    transaction,
+  });
+  const existingIds = new Set(existing.map((maintainer) => maintainer.userId));
+  const newIds = new Set(uniqueIds);
+  const maintainersChanged =
+    existing.some((maintainer) => !newIds.has(maintainer.userId)) ||
+    uniqueIds.some((userId) => !existingIds.has(userId));
+
+  if (!maintainersChanged) {
+    return false;
+  }
+
+  await Promise.all(
+    existing
+      .filter((maintainer) => !newIds.has(maintainer.userId))
+      .map((maintainer) => maintainer.destroy({ transaction }))
+  );
+
+  await Promise.all(
+    uniqueIds
+      .filter((userId) => !existingIds.has(userId))
+      .map((userId) =>
+        CollectionMaintainer.create(
+          {
+            collectionId: collection.id,
+            userId,
+          },
+          { transaction }
+        )
+      )
+  );
+
+  return true;
+}
+
+/**
+ * Publish a collections.update event for side-effect changes that do not update
+ * the collection row itself.
+ *
+ * @param ctx API context.
+ * @param collection Collection that changed.
+ */
+async function publishCollectionUpdateEvent(
+  ctx: APIContext,
+  collection: Collection
+) {
+  await Collection.insertEvent("update", collection, {
+    ...ctx.context,
+    event: { publish: true },
+  } as HookContext);
+}
+
+/**
+ * Ensure a collection with approval enabled has at least one maintainer.
+ *
+ * @param collection Collection to validate.
+ * @param transaction Database transaction.
+ */
+async function assertApprovalHasMaintainers(
+  collection: Collection,
+  transaction: APIContext["state"]["transaction"]
+) {
+  if (!collection.maintainerApprovalRequired) {
+    return;
+  }
+
+  const maintainerCount = await CollectionMaintainer.count({
+    where: {
+      collectionId: collection.id,
+    },
+    transaction,
+  });
+
+  if (maintainerCount === 0) {
+    throw InvalidRequestError(
+      "At least one maintainer is required when approval is enabled"
+    );
+  }
+}
 
 router.post(
   "collections.create",
@@ -68,6 +191,8 @@ router.post(
       index,
       commenting,
       templateManagement,
+      approvalRequired,
+      maintainerIds,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -87,9 +212,12 @@ router.post(
       index,
       commenting,
       templateManagement,
+      maintainerApprovalRequired: approvalRequired,
     });
 
     await collection.saveWithCtx(ctx);
+    await syncCollectionMaintainers(ctx, collection, maintainerIds);
+    await assertApprovalHasMaintainers(collection, transaction);
 
     // we must reload the collection to get memberships for policy presenter
     const reloaded = await Collection.findByPk(collection.id, {
@@ -586,6 +714,8 @@ router.post(
       sharing,
       commenting,
       templateManagement,
+      approvalRequired,
+      maintainerIds,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -670,7 +800,23 @@ router.post(
       collection.templateManagement = templateManagement;
     }
 
+    if (approvalRequired !== undefined) {
+      collection.maintainerApprovalRequired = approvalRequired;
+    }
+
+    const collectionChanged = !!collection.changed();
     await collection.saveWithCtx(ctx);
+    const maintainersChanged = await syncCollectionMaintainers(
+      ctx,
+      collection,
+      maintainerIds
+    );
+
+    if (maintainersChanged && !collectionChanged) {
+      await publishCollectionUpdateEvent(ctx, collection);
+    }
+
+    await assertApprovalHasMaintainers(collection, transaction);
 
     // must reload to update collection membership for correct policy calculation
     // if the privacy level has changed. Otherwise skip this query for speed.
@@ -800,10 +946,21 @@ router.post(
       });
     }
 
+    const maintainerIdsByCollectionId =
+      await CollectionMaintainer.maintainerIdsByCollectionIds(
+        collections.map((collection) => collection.id),
+        { transaction }
+      );
+
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: await Promise.all(
-        collections.map((collection) => presentCollection(ctx, collection))
+        collections.map((collection) =>
+          presentCollection(ctx, collection, {
+            maintainerIds:
+              maintainerIdsByCollectionId.get(collection.id) ?? [],
+          })
+        )
       ),
       policies: presentPolicies(user, collections),
     };
