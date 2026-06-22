@@ -30,6 +30,7 @@ import {
   Document,
   Import,
 } from "@server/models";
+import type { HookContext } from "@server/models/base/Model";
 import { authorize } from "@server/policies";
 import {
   presentCollection,
@@ -55,14 +56,15 @@ const router = new Router();
  * @param ctx API context.
  * @param collection Collection to update maintainers for.
  * @param maintainerIds User ids to set as maintainers, if provided.
+ * @return Whether the maintainer list changed.
  */
 async function syncCollectionMaintainers(
   ctx: APIContext,
   collection: Collection,
   maintainerIds: string[] | undefined
-) {
+): Promise<boolean> {
   if (maintainerIds === undefined) {
-    return;
+    return false;
   }
 
   const { transaction } = ctx.state;
@@ -93,6 +95,13 @@ async function syncCollectionMaintainers(
   });
   const existingIds = new Set(existing.map((maintainer) => maintainer.userId));
   const newIds = new Set(uniqueIds);
+  const maintainersChanged =
+    existing.some((maintainer) => !newIds.has(maintainer.userId)) ||
+    uniqueIds.some((userId) => !existingIds.has(userId));
+
+  if (!maintainersChanged) {
+    return false;
+  }
 
   await Promise.all(
     existing
@@ -113,6 +122,25 @@ async function syncCollectionMaintainers(
         )
       )
   );
+
+  return true;
+}
+
+/**
+ * Publish a collections.update event for side-effect changes that do not update
+ * the collection row itself.
+ *
+ * @param ctx API context.
+ * @param collection Collection that changed.
+ */
+async function publishCollectionUpdateEvent(
+  ctx: APIContext,
+  collection: Collection
+) {
+  await Collection.insertEvent("update", collection, {
+    ...ctx.context,
+    event: { publish: true },
+  } as HookContext);
 }
 
 /**
@@ -776,8 +804,18 @@ router.post(
       collection.maintainerApprovalRequired = approvalRequired;
     }
 
+    const collectionChanged = !!collection.changed();
     await collection.saveWithCtx(ctx);
-    await syncCollectionMaintainers(ctx, collection, maintainerIds);
+    const maintainersChanged = await syncCollectionMaintainers(
+      ctx,
+      collection,
+      maintainerIds
+    );
+
+    if (maintainersChanged && !collectionChanged) {
+      await publishCollectionUpdateEvent(ctx, collection);
+    }
+
     await assertApprovalHasMaintainers(collection, transaction);
 
     // must reload to update collection membership for correct policy calculation

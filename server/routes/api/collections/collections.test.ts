@@ -1,5 +1,5 @@
 import { CollectionPermission, CollectionStatusFilter } from "@shared/types";
-import { Document, UserMembership, GroupMembership } from "@server/models";
+import { Document, Event, UserMembership, GroupMembership } from "@server/models";
 import {
   buildUser,
   buildAdmin,
@@ -1798,6 +1798,63 @@ describe("#collections.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.approvalRequired).toBe(true);
     expect(body.data.maintainerIds).toEqual([maintainer.id]);
+  });
+
+  it("should emit collections.update when only maintainers change", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const maintainer = await buildUser({ teamId: team.id });
+    const newMaintainer = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      maintainerApprovalRequired: true,
+    });
+    await buildCollectionMaintainer({
+      collectionId: collection.id,
+      userId: maintainer.id,
+    });
+
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        maintainerIds: [maintainer.id, newMaintainer.id],
+      },
+    });
+    const body = await res.json();
+    const events = await Event.findAll({
+      where: {
+        name: "collections.update",
+        collectionId: collection.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(body.data.maintainerIds).toEqual([maintainer.id, newMaintainer.id]);
+    expect(events.length).toEqual(1);
+  });
+
+  it("should not emit duplicate collections.update when collection and maintainers change", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const maintainer = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        approvalRequired: true,
+        maintainerIds: [maintainer.id],
+      },
+    });
+    const events = await Event.findAll({
+      where: {
+        name: "collections.update",
+        collectionId: collection.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(events.length).toEqual(1);
   });
 
   it("should reject enabling approval without maintainers on update", async () => {
