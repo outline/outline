@@ -399,7 +399,7 @@ describe("ProsemirrorHelper", () => {
       expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
     });
 
-    it("should return the whole checkbox list containing the mention", () => {
+    it("should trim a checkbox list to the mentioned item and one either side", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
         type: MentionType.User,
@@ -408,25 +408,19 @@ describe("ProsemirrorHelper", () => {
         modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
       };
 
+      const checkboxItem = (text: string): DeepPartial<ProsemirrorData> => ({
+        type: "checkbox_item",
+        content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+      });
+
       const mentionedItem: DeepPartial<ProsemirrorData> = {
         type: "checkbox_item",
         content: [
           {
             type: "paragraph",
             content: [
-              {
-                type: "text",
-                text: "task B ",
-              },
-              {
-                type: "paragraph",
-                content: [
-                  {
-                    type: "mention",
-                    attrs: mentionAttrs,
-                  },
-                ],
-              },
+              { type: "text", text: "task C " },
+              { type: "mention", attrs: mentionAttrs },
             ],
           },
         ],
@@ -434,55 +428,26 @@ describe("ProsemirrorHelper", () => {
 
       const doc = buildProseMirrorDoc([
         {
-          type: "paragraph",
-          content: [
-            {
-              type: "text",
-              text: "some content in a paragraph",
-            },
-          ],
-        },
-        {
           type: "checkbox_list",
           content: [
-            {
-              type: "checkbox_item",
-              content: [
-                {
-                  type: "paragraph",
-                  content: [
-                    {
-                      type: "text",
-                      text: "task A",
-                    },
-                  ],
-                },
-              ],
-            },
+            checkboxItem("task A"),
+            checkboxItem("task B"),
             mentionedItem,
+            checkboxItem("task D"),
+            checkboxItem("task E"),
           ],
         },
       ]);
 
+      // The mention is in the third item, so the snippet keeps items two
+      // through four.
       const expectedDoc = buildProseMirrorDoc([
         {
           type: "checkbox_list",
           content: [
-            {
-              type: "checkbox_item",
-              content: [
-                {
-                  type: "paragraph",
-                  content: [
-                    {
-                      type: "text",
-                      text: "task A",
-                    },
-                  ],
-                },
-              ],
-            },
+            checkboxItem("task B"),
             mentionedItem,
+            checkboxItem("task D"),
           ],
         },
       ]);
@@ -495,7 +460,7 @@ describe("ProsemirrorHelper", () => {
       expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
     });
 
-    it("should return the whole bullet list containing the mention", () => {
+    it("should trim a bullet list to the mentioned item and one either side", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
         type: MentionType.User,
@@ -504,20 +469,19 @@ describe("ProsemirrorHelper", () => {
         modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
       };
 
+      const listItem = (text: string): DeepPartial<ProsemirrorData> => ({
+        type: "list_item",
+        content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+      });
+
       const mentionedItem: DeepPartial<ProsemirrorData> = {
         type: "list_item",
         content: [
           {
             type: "paragraph",
             content: [
-              {
-                type: "text",
-                text: "item B ",
-              },
-              {
-                type: "mention",
-                attrs: mentionAttrs,
-              },
+              { type: "text", text: "item A " },
+              { type: "mention", attrs: mentionAttrs },
             ],
           },
         ],
@@ -525,56 +489,17 @@ describe("ProsemirrorHelper", () => {
 
       const doc = buildProseMirrorDoc([
         {
-          type: "paragraph",
-          content: [
-            {
-              type: "text",
-              text: "some content in a paragraph",
-            },
-          ],
-        },
-        {
           type: "bullet_list",
-          content: [
-            {
-              type: "list_item",
-              content: [
-                {
-                  type: "paragraph",
-                  content: [
-                    {
-                      type: "text",
-                      text: "item A",
-                    },
-                  ],
-                },
-              ],
-            },
-            mentionedItem,
-          ],
+          content: [mentionedItem, listItem("item B"), listItem("item C")],
         },
       ]);
 
+      // The mention is in the first item, so the window is clamped to the
+      // mentioned item and the one that follows.
       const expectedDoc = buildProseMirrorDoc([
         {
           type: "bullet_list",
-          content: [
-            {
-              type: "list_item",
-              content: [
-                {
-                  type: "paragraph",
-                  content: [
-                    {
-                      type: "text",
-                      text: "item A",
-                    },
-                  ],
-                },
-              ],
-            },
-            mentionedItem,
-          ],
+          content: [mentionedItem, listItem("item B")],
         },
       ]);
 

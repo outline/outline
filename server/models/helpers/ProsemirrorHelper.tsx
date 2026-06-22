@@ -228,8 +228,9 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
   }
 
   /**
-   * Build an email snippet around a mention by keeping the largest complete
-   * block surrounding it that still fits within the size budget.
+   * Build an email snippet around a mention. A surrounding list is trimmed to
+   * the mentioned item plus one sibling on either side; otherwise the largest
+   * complete block that still fits the size budget is kept.
    *
    * @param doc The top-level doc node of a document / revision.
    * @param mention The mention to build the snippet around.
@@ -256,6 +257,26 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
 
     const $pos = doc.resolve(mentionPos);
+
+    // Lists can be long, so rather than show the whole list, trim it to the
+    // mentioned item plus one sibling on either side. Use the nearest list
+    // ancestor so nested lists show the items closest to the mention.
+    const listTypes = ["bullet_list", "ordered_list", "checkbox_list"];
+    for (let d = $pos.depth - 1; d >= 1; d--) {
+      const list = $pos.node(d);
+      if (listTypes.includes(list.type.name)) {
+        const index = $pos.index(d);
+        const start = Math.max(0, index - 1);
+        const end = Math.min(list.childCount, index + 2);
+        const items: Node[] = [];
+        for (let i = start; i < end; i++) {
+          items.push(list.child(i));
+        }
+        return doc.copy(
+          Fragment.fromArray([list.copy(Fragment.fromArray(items))])
+        );
+      }
+    }
 
     // Always include at least the textblock the mention sits in, then climb the
     // ancestor chain outward keeping the largest complete block that still fits
