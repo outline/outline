@@ -15313,7 +15313,7 @@ __metadata:
     refractor: "npm:^3.6.0"
     resolve-path: "npm:^1.4.0"
     rimraf: "npm:^6.1.3"
-    rollup-plugin-webpack-stats: "npm:2.1.11"
+    rollup-plugin-webpack-stats: "npm:^3.1.3"
     sanitize-filename: "npm:^1.6.4"
     scroll-into-view-if-needed: "npm:^3.1.0"
     semver: "npm:^7.8.1"
@@ -17551,13 +17551,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-stats@npm:1.5.6":
-  version: 1.5.6
-  resolution: "rollup-plugin-stats@npm:1.5.6"
+"rollup-plugin-stats@npm:2.1.3":
+  version: 2.1.3
+  resolution: "rollup-plugin-stats@npm:2.1.3"
   peerDependencies:
     rolldown: ^1.0.0-beta.0
     rollup: ^3.0.0 || ^4.0.0
-    vite: ^5.0.0 || ^6.0.0 || ^7.0.0
+    vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
   peerDependenciesMeta:
     rolldown:
       optional: true
@@ -17565,19 +17565,19 @@ __metadata:
       optional: true
     vite:
       optional: true
-  checksum: 10c0/205516f590fa8ccbe8d1a979d35f4215e2d9a5182849210ce99d6cbcc4b5654324a1d9611985e6429a667b9725a609914c1bd3f45cd4f5559e83cf995b289855
+  checksum: 10c0/f9f6fbfadb36f8ed224969700aebb61f7a3f3cf3046c0a8f0e3494fd5b5688a57346bccce2db2f4132bc4d3d8609491c0b85dfb46b90f2570b3c7217f697e1f2
   languageName: node
   linkType: hard
 
-"rollup-plugin-webpack-stats@npm:2.1.11":
-  version: 2.1.11
-  resolution: "rollup-plugin-webpack-stats@npm:2.1.11"
+"rollup-plugin-webpack-stats@npm:^3.1.3":
+  version: 3.1.3
+  resolution: "rollup-plugin-webpack-stats@npm:3.1.3"
   dependencies:
-    rollup-plugin-stats: "npm:1.5.6"
+    rollup-plugin-stats: "npm:2.1.3"
   peerDependencies:
     rolldown: ^1.0.0-beta.0
     rollup: ^3.0.0 || ^4.0.0
-    vite: ^5.0.0 || ^6.0.0 || ^7.0.0
+    vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
   peerDependenciesMeta:
     rolldown:
       optional: true
@@ -17585,7 +17585,7 @@ __metadata:
       optional: true
     vite:
       optional: true
-  checksum: 10c0/373e90a2f4fdb4d9469523afbbf4cce291b72fb128ec17219f62ca618087d982bb07fe78b0232c60f002e065c018dc6eed8d6ba07f1962b604d0da39db5c0a0a
+  checksum: 10c0/e6c76f30f15377f5c501b292b84d869f2592233a893369bddde6cefcee88cbb43ad9c9122e56ee5eec033e2dccc852f7ad3062c95afdb56ada1564d360b4f85a
   languageName: node
   linkType: hard
 
