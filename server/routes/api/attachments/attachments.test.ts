@@ -183,14 +183,13 @@ describe("#attachments.create", () => {
         expect(res.status).toEqual(200);
 
         const body = await res.json();
-        expect(body.data.presignedPutUrl).toBeDefined();
-        expect(body.data.presignedPutHeaders).toBeDefined();
-        expect(body.data.presignedPutHeaders["Content-Type"]).toBeDefined();
-        expect(body.data.presignedPutHeaders["Content-Length"]).toBe("1000");
-        expect(body.data.presignedPutHeaders["Content-Disposition"]).toBeDefined();
-        expect(body.data.presignedPutHeaders["Cache-Control"]).toBe(
-          "max-age=31557600"
-        );
+        expect(body.data.mode).toBe("put");
+        expect(body.data.url).toBeDefined();
+        expect(body.data.headers).toBeDefined();
+        expect(body.data.headers["Content-Type"]).toBeDefined();
+        expect(body.data.headers["Content-Length"]).toBe("1000");
+        expect(body.data.headers["Content-Disposition"]).toBeDefined();
+        expect(body.data.headers["Cache-Control"]).toBe("max-age=31557600");
         expect(body.data.uploadUrl).toBeUndefined();
         expect(body.data.form).toBeUndefined();
         expect(body.data.attachment).toBeDefined();
@@ -216,8 +215,9 @@ describe("#attachments.create", () => {
         expect(res.status).toEqual(200);
 
         const body = await res.json();
-        expect(body.data.presignedPutUrl).toBeUndefined();
-        expect(body.data.presignedPutHeaders).toBeUndefined();
+        expect(body.data.mode).toBe("post");
+        expect(body.data.url).toBeUndefined();
+        expect(body.data.headers).toBeUndefined();
         expect(body.data.uploadUrl).toBeDefined();
         expect(body.data.form).toBeDefined();
         expect(body.data.attachment).toBeDefined();

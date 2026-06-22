@@ -62,7 +62,7 @@ export const uploadFile = async (
   invariant(response, "Response should be available");
   const data = response.data;
   const attachment = data.attachment;
-  const usePut = !!data.presignedPutUrl;
+  const usePut = data.mode === "put";
 
   // Using XMLHttpRequest instead of fetch because fetch doesn't support progress
   const xhr = new XMLHttpRequest();
@@ -96,10 +96,10 @@ export const uploadFile = async (
     });
 
     if (usePut) {
-      xhr.open("PUT", data.presignedPutUrl, true);
-      if (data.presignedPutHeaders) {
+      xhr.open("PUT", data.url, true);
+      if (data.headers) {
         for (const [key, value] of Object.entries(
-          data.presignedPutHeaders as Record<string, string>
+          data.headers as Record<string, string>
         )) {
           xhr.setRequestHeader(key, value);
         }

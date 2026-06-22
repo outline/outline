@@ -157,8 +157,9 @@ router.post(
 
       ctx.body = {
         data: {
-          presignedPutUrl: presignedPut.url,
-          presignedPutHeaders: presignedPut.headers,
+          mode: "put",
+          url: presignedPut.url,
+          headers: presignedPut.headers,
           attachment: {
             ...presentAttachment(attachment),
             url: attachment.redirectUrl,
@@ -176,6 +177,7 @@ router.post(
 
       ctx.body = {
         data: {
+          mode: "post",
           uploadUrl: FileStorage.getUploadUrl(),
           form: {
             "Cache-Control": "max-age=31557600",

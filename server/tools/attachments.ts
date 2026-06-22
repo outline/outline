@@ -115,8 +115,9 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
                 .join(" ")} --data-binary '@/path/to/file' '${presignedPut.url}'`;
 
               return success({
-                presignedPutUrl: presignedPut.url,
-                presignedPutHeaders: presignedPut.headers,
+                mode: "put",
+                url: presignedPut.url,
+                headers: presignedPut.headers,
                 maxUploadSize,
                 curlCommand,
                 attachment: pathToUrl(team, {
@@ -147,6 +148,7 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
               const curlCommand = `curl -X POST ${formArgs} -F 'file=@/path/to/file' '${uploadUrl}'`;
 
               return success({
+                mode: "post",
                 uploadUrl,
                 form,
                 maxUploadSize,

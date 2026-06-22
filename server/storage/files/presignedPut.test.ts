@@ -32,10 +32,9 @@ describe("AWS_S3_UPLOAD_METHOD config", () => {
       expect(res.status).toEqual(200);
       const body = await res.json();
 
-      expect(body.data.presignedPutUrl).toBe(
-        "http://s3mock/presigned-put-url"
-      );
-      expect(body.data.presignedPutHeaders).toEqual(
+      expect(body.data.mode).toBe("put");
+      expect(body.data.url).toBe("http://s3mock/presigned-put-url");
+      expect(body.data.headers).toEqual(
         expect.objectContaining({
           "Content-Type": expect.any(String),
           "Content-Length": "500000",
@@ -70,12 +69,13 @@ describe("AWS_S3_UPLOAD_METHOD config", () => {
       expect(res.status).toEqual(200);
       const body = await res.json();
 
+      expect(body.data.mode).toBe("post");
       expect(body.data.uploadUrl).toBeDefined();
       expect(body.data.form).toBeDefined();
       expect(body.data.form["Content-Type"]).toBe("image/jpeg");
       expect(body.data.form["Cache-Control"]).toBe("max-age=31557600");
-      expect(body.data.presignedPutUrl).toBeUndefined();
-      expect(body.data.presignedPutHeaders).toBeUndefined();
+      expect(body.data.url).toBeUndefined();
+      expect(body.data.headers).toBeUndefined();
       expect(body.data.attachment).toBeDefined();
     } finally {
       env.AWS_S3_UPLOAD_METHOD = original;
@@ -96,9 +96,10 @@ describe("AWS_S3_UPLOAD_METHOD config", () => {
     expect(res.status).toEqual(200);
     const body = await res.json();
 
+    expect(body.data.mode).toBe("post");
     expect(body.data.uploadUrl).toBeDefined();
     expect(body.data.form).toBeDefined();
-    expect(body.data.presignedPutUrl).toBeUndefined();
+    expect(body.data.url).toBeUndefined();
   });
 
   it("should return correct headers for PUT with various content types", async () => {
@@ -125,8 +126,9 @@ describe("AWS_S3_UPLOAD_METHOD config", () => {
       expect(res.status).toEqual(200);
       const body = await res.json();
 
-      expect(body.data.presignedPutUrl).toBeDefined();
-      expect(body.data.presignedPutHeaders).toEqual(
+      expect(body.data.mode).toBe("put");
+      expect(body.data.url).toBeDefined();
+      expect(body.data.headers).toEqual(
         expect.objectContaining({
           "Content-Type": expect.any(String),
           "Content-Length": "50000",
