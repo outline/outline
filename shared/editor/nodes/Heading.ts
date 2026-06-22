@@ -136,10 +136,12 @@ export default class Heading extends Node<HeadingOptions> {
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     const options = this.options.levels.reduce(
-      (items: Record<string, Command>, level: number) => (({
-	...items,
-	[`Shift-Ctrl-${level}`]: toggleBlockType(type, schema.nodes.paragraph, { level })
-})),
+      (items: Record<string, Command>, level: number) => ({
+        ...items,
+        [`Shift-Ctrl-${level}`]: toggleBlockType(type, schema.nodes.paragraph, {
+          level,
+        }),
+      }),
       {}
     );
 
