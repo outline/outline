@@ -32,12 +32,12 @@ module.exports = {
       },
       createdById: {
         type: Sequelize.UUID,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: "users",
           key: "id",
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE",
       },
       createdAt: {

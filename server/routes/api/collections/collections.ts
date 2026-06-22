@@ -116,6 +116,34 @@ async function syncCollectionMaintainers(
   );
 }
 
+/**
+ * Ensure a collection with approval enabled has at least one maintainer.
+ *
+ * @param collection Collection to validate.
+ * @param transaction Database transaction.
+ */
+async function assertApprovalHasMaintainers(
+  collection: Collection,
+  transaction: APIContext["state"]["transaction"]
+) {
+  if (!collection.maintainerApprovalRequired) {
+    return;
+  }
+
+  const maintainerCount = await CollectionMaintainer.count({
+    where: {
+      collectionId: collection.id,
+    },
+    transaction,
+  });
+
+  if (maintainerCount === 0) {
+    throw InvalidRequestError(
+      "At least one maintainer is required when approval is enabled"
+    );
+  }
+}
+
 router.post(
   "collections.create",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
@@ -162,6 +190,7 @@ router.post(
 
     await collection.saveWithCtx(ctx);
     await syncCollectionMaintainers(ctx, collection, maintainerIds);
+    await assertApprovalHasMaintainers(collection, transaction);
 
     // we must reload the collection to get memberships for policy presenter
     const reloaded = await Collection.findByPk(collection.id, {
@@ -750,6 +779,7 @@ router.post(
 
     await collection.saveWithCtx(ctx);
     await syncCollectionMaintainers(ctx, collection, maintainerIds);
+    await assertApprovalHasMaintainers(collection, transaction);
 
     // must reload to update collection membership for correct policy calculation
     // if the privacy level has changed. Otherwise skip this query for speed.

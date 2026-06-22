@@ -1,5 +1,6 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
+  AllowNull,
   BelongsTo,
   Column,
   DataType,
@@ -36,11 +37,12 @@ class CollectionMaintainer extends IdModel<
   userId: string;
 
   @BelongsTo(() => User, "createdById")
-  createdBy: User;
+  createdBy?: User | null;
 
+  @AllowNull
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  createdById: string;
+  createdById: string | null;
 }
 
 export default CollectionMaintainer;

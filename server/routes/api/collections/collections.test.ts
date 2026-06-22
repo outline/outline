@@ -1305,6 +1305,17 @@ describe("#collections.create", () => {
     expect(body.data.maintainerIds).toEqual([maintainer.id]);
   });
 
+  it("should reject approvalRequired without maintainers on create", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/collections.create", user, {
+      body: {
+        name: "Reviewed collection",
+        approvalRequired: true,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should return correct policies with private collection", async () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.create", user, {
@@ -1766,6 +1777,41 @@ describe("#collections.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.approvalRequired).toBe(true);
     expect(body.data.maintainerIds).toEqual([maintainer.id]);
+  });
+
+  it("should reject enabling approval without maintainers on update", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        approvalRequired: true,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject clearing maintainers while approval is enabled", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const maintainer = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      maintainerApprovalRequired: true,
+    });
+    await buildCollectionMaintainer({
+      collectionId: collection.id,
+      userId: maintainer.id,
+      createdById: admin.id,
+    });
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        maintainerIds: [],
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should reject invalid maintainer ids", async () => {
