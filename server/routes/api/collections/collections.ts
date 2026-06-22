@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { randomUUID } from "node:crypto";
-import { truncate } from "es-toolkit/compat";
+import { truncate, uniq } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Sequelize, Op } from "sequelize";
 import {
@@ -20,6 +20,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import {
   Collection,
+  CollectionMaintainer,
   UserMembership,
   GroupMembership,
   Team,
@@ -48,6 +49,73 @@ import { InvalidRequestError } from "@server/errors";
 
 const router = new Router();
 
+/**
+ * Replace the maintainer list for a collection.
+ *
+ * @param ctx API context.
+ * @param collection Collection to update maintainers for.
+ * @param maintainerIds User ids to set as maintainers, if provided.
+ */
+async function syncCollectionMaintainers(
+  ctx: APIContext,
+  collection: Collection,
+  maintainerIds: string[] | undefined
+) {
+  if (maintainerIds === undefined) {
+    return;
+  }
+
+  const { transaction } = ctx.state;
+  const { user } = ctx.state.auth;
+  const uniqueIds = uniq(maintainerIds);
+
+  if (uniqueIds.length) {
+    const users = await User.findAll({
+      where: {
+        id: {
+          [Op.in]: uniqueIds,
+        },
+        teamId: collection.teamId,
+      },
+      transaction,
+    });
+
+    if (users.length !== uniqueIds.length) {
+      throw InvalidRequestError("One or more maintainers are invalid");
+    }
+  }
+
+  const existing = await CollectionMaintainer.findAll({
+    where: {
+      collectionId: collection.id,
+    },
+    transaction,
+  });
+  const existingIds = new Set(existing.map((maintainer) => maintainer.userId));
+  const newIds = new Set(uniqueIds);
+
+  await Promise.all(
+    existing
+      .filter((maintainer) => !newIds.has(maintainer.userId))
+      .map((maintainer) => maintainer.destroy({ transaction }))
+  );
+
+  await Promise.all(
+    uniqueIds
+      .filter((userId) => !existingIds.has(userId))
+      .map((userId) =>
+        CollectionMaintainer.create(
+          {
+            collectionId: collection.id,
+            userId,
+            createdById: user.id,
+          },
+          { transaction }
+        )
+      )
+  );
+}
+
 router.post(
   "collections.create",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
@@ -68,6 +136,8 @@ router.post(
       index,
       commenting,
       templateManagement,
+      approvalRequired,
+      maintainerIds,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -87,9 +157,11 @@ router.post(
       index,
       commenting,
       templateManagement,
+      maintainerApprovalRequired: approvalRequired,
     });
 
     await collection.saveWithCtx(ctx);
+    await syncCollectionMaintainers(ctx, collection, maintainerIds);
 
     // we must reload the collection to get memberships for policy presenter
     const reloaded = await Collection.findByPk(collection.id, {
@@ -586,6 +658,8 @@ router.post(
       sharing,
       commenting,
       templateManagement,
+      approvalRequired,
+      maintainerIds,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -670,7 +744,12 @@ router.post(
       collection.templateManagement = templateManagement;
     }
 
+    if (approvalRequired !== undefined) {
+      collection.maintainerApprovalRequired = approvalRequired;
+    }
+
     await collection.saveWithCtx(ctx);
+    await syncCollectionMaintainers(ctx, collection, maintainerIds);
 
     // must reload to update collection membership for correct policy calculation
     // if the privacy level has changed. Otherwise skip this query for speed.

@@ -1,6 +1,7 @@
 import { Hour } from "@shared/utils/time";
 import type Collection from "@server/models/Collection";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import CollectionMaintainer from "@server/models/CollectionMaintainer";
 import type { APIContext } from "@server/types";
 import presentUser from "./user";
 
@@ -56,6 +57,12 @@ export default async function presentCollection(
     res.commenting = collection.commenting;
     res.templateManagement = collection.templateManagement;
     res.permission = collection.permission;
+    res.approvalRequired = collection.maintainerApprovalRequired;
+    const maintainers = await CollectionMaintainer.findAll({
+      where: { collectionId: collection.id },
+      transaction: ctx?.state.transaction,
+    });
+    res.maintainerIds = maintainers.map((maintainer) => maintainer.userId);
     res.deletedAt = collection.deletedAt;
     res.archivedAt = collection.archivedAt;
     res.archivedBy =

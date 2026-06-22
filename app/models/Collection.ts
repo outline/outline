@@ -79,6 +79,18 @@ export default class Collection extends ParanoidModel {
   @observable
   commenting?: boolean | null;
 
+  /**
+   * Whether pages in this collection require maintainer approval before publishing.
+   */
+  @Field
+  @observable
+  approvalRequired: boolean;
+
+  /** User ids designated as maintainers who can approve change requests. */
+  @Field
+  @observable
+  maintainerIds: string[];
+
   /** The child documents of the collection. */
   @observable
   documents?: NavigationNode[];

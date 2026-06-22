@@ -7,6 +7,7 @@ import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import {
+  ChangeRequestStatus,
   CollectionPermission,
   FileOperationState,
   FileOperationType,
@@ -30,6 +31,8 @@ import {
   Emoji,
   Star,
   Collection,
+  ChangeRequest,
+  CollectionMaintainer,
   Group,
   GroupUser,
   Attachment,
@@ -319,6 +322,55 @@ export async function buildCollection(
     name: faker.lorem.words(2),
     description: faker.lorem.words(4),
     createdById: overrides.userId,
+    ...overrides,
+  });
+}
+
+export async function buildCollectionMaintainer(
+  overrides: Partial<CollectionMaintainer> & {
+    userId?: string;
+    collectionId?: string;
+  } = {}
+) {
+  if (!overrides.collectionId) {
+    const collection = await buildCollection();
+    overrides.collectionId = collection.id;
+  }
+
+  if (!overrides.userId) {
+    const collection = await Collection.findByPk(overrides.collectionId, {
+      rejectOnEmpty: true,
+    });
+    const user = await buildUser({ teamId: collection.teamId });
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.createdById) {
+    overrides.createdById = overrides.userId;
+  }
+
+  return CollectionMaintainer.create({
+    ...overrides,
+  });
+}
+
+export async function buildChangeRequest(
+  overrides: Partial<ChangeRequest> & {
+    userId?: string;
+    collectionId?: string;
+  } = {}
+) {
+  const document = await buildDraftDocument({
+    userId: overrides.userId,
+    collectionId: overrides.collectionId,
+    teamId: overrides.teamId,
+  });
+
+  return ChangeRequest.create({
+    teamId: document.teamId,
+    documentId: null,
+    draftDocumentId: document.id,
+    status: ChangeRequestStatus.Draft,
     ...overrides,
   });
 }

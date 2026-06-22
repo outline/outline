@@ -170,6 +170,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "notifications.create":
       case "notifications.update":
       case "access_requests.create":
+      case "change_requests.submit":
+      case "change_requests.approve":
+      case "change_requests.reject":
+      case "change_requests.withdraw":
         // Ignored
         return;
       case "users.create":

@@ -5,6 +5,7 @@ import {
   buildAdmin,
   buildGroup,
   buildCollection,
+  buildCollectionMaintainer,
   buildDocument,
   buildTeam,
 } from "@server/test/factories";
@@ -1288,6 +1289,22 @@ describe("#collections.create", () => {
     expect(body.data.sharing).toBe(false);
   });
 
+  it("should allow setting approvalRequired and maintainers on create", async () => {
+    const user = await buildUser();
+    const maintainer = await buildUser({ teamId: user.teamId });
+    const res = await server.post("/api/collections.create", user, {
+      body: {
+        name: "Reviewed collection",
+        approvalRequired: true,
+        maintainerIds: [maintainer.id],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.approvalRequired).toBe(true);
+    expect(body.data.maintainerIds).toEqual([maintainer.id]);
+  });
+
   it("should return correct policies with private collection", async () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.create", user, {
@@ -1731,6 +1748,62 @@ describe("#collections.update", () => {
       },
     });
     expect(res.status).toEqual(400);
+  });
+
+  it("should allow updating approvalRequired and maintainers", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const maintainer = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        approvalRequired: true,
+        maintainerIds: [maintainer.id],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.approvalRequired).toBe(true);
+    expect(body.data.maintainerIds).toEqual([maintainer.id]);
+  });
+
+  it("should reject invalid maintainer ids", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const otherTeamUser = await buildUser();
+    const collection = await buildCollection({ teamId: team.id });
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        maintainerIds: [otherTeamUser.id],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should return approval settings from collections.info", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const maintainer = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      maintainerApprovalRequired: true,
+    });
+    await buildCollectionMaintainer({
+      collectionId: collection.id,
+      userId: maintainer.id,
+      createdById: admin.id,
+    });
+    const res = await server.post("/api/collections.info", admin, {
+      body: {
+        id: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.approvalRequired).toBe(true);
+    expect(body.data.maintainerIds).toEqual([maintainer.id]);
   });
 });
 
