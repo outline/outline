@@ -295,7 +295,7 @@ describe("ProsemirrorHelper", () => {
       expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
     });
 
-    it("should return the whole table containing the mention", () => {
+    it("should trim a table to the mentioned row", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
         type: MentionType.User,
@@ -304,23 +304,29 @@ describe("ProsemirrorHelper", () => {
         modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
       };
 
+      const row = (text: string): DeepPartial<ProsemirrorData> => ({
+        type: "tr",
+        content: [
+          {
+            type: "td",
+            attrs: { colspan: 1, rowspan: 1 },
+            content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+          },
+        ],
+      });
+
       const mentionedRow: DeepPartial<ProsemirrorData> = {
         type: "tr",
         content: [
           {
             type: "td",
-            attrs: {
-              colspan: 1,
-              rowspan: 1,
-            },
+            attrs: { colspan: 1, rowspan: 1 },
             content: [
               {
                 type: "paragraph",
                 content: [
-                  {
-                    type: "mention",
-                    attrs: mentionAttrs,
-                  },
+                  { type: "text", text: "row B " },
+                  { type: "mention", attrs: mentionAttrs },
                 ],
               },
             ],
@@ -330,64 +336,15 @@ describe("ProsemirrorHelper", () => {
 
       const doc = buildProseMirrorDoc([
         {
-          type: "paragraph",
-          content: [
-            {
-              type: "text",
-              text: "some content in a paragraph",
-            },
-          ],
-        },
-        {
           type: "table",
-          content: [
-            {
-              type: "td",
-              attrs: {
-                colspan: 1,
-                rowspan: 1,
-              },
-              content: [
-                {
-                  type: "paragraph",
-                  content: [
-                    {
-                      type: "text",
-                      text: "cell content",
-                    },
-                  ],
-                },
-              ],
-            },
-            mentionedRow,
-          ],
+          content: [row("row A"), mentionedRow, row("row C")],
         },
       ]);
 
       const expectedDoc = buildProseMirrorDoc([
         {
           type: "table",
-          content: [
-            {
-              type: "td",
-              attrs: {
-                colspan: 1,
-                rowspan: 1,
-              },
-              content: [
-                {
-                  type: "paragraph",
-                  content: [
-                    {
-                      type: "text",
-                      text: "cell content",
-                    },
-                  ],
-                },
-              ],
-            },
-            mentionedRow,
-          ],
+          content: [mentionedRow],
         },
       ]);
 
@@ -500,6 +457,65 @@ describe("ProsemirrorHelper", () => {
         {
           type: "bullet_list",
           content: [mentionedItem, listItem("item B")],
+        },
+      ]);
+
+      const newDoc = ProsemirrorHelper.getNodeForMentionEmail(
+        doc,
+        mentionAttrs
+      );
+
+      expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
+    });
+
+    it("should advance an ordered list's start to keep numbering aligned", () => {
+      const mentionAttrs: MentionAttrs = {
+        id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
+        type: MentionType.User,
+        label: "test.user",
+        actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
+        modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
+      };
+
+      const listItem = (text: string): DeepPartial<ProsemirrorData> => ({
+        type: "list_item",
+        content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+      });
+
+      const mentionedItem: DeepPartial<ProsemirrorData> = {
+        type: "list_item",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "item D " },
+              { type: "mention", attrs: mentionAttrs },
+            ],
+          },
+        ],
+      };
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "ordered_list",
+          attrs: { order: 1, listStyle: "number" },
+          content: [
+            listItem("item A"),
+            listItem("item B"),
+            listItem("item C"),
+            mentionedItem,
+            listItem("item E"),
+          ],
+        },
+      ]);
+
+      // The mention is in the fourth item, so items three through five are kept
+      // and the list starts at three to preserve the original numbering.
+      const expectedDoc = buildProseMirrorDoc([
+        {
+          type: "ordered_list",
+          attrs: { order: 3, listStyle: "number" },
+          content: [listItem("item C"), mentionedItem, listItem("item E")],
         },
       ]);
 

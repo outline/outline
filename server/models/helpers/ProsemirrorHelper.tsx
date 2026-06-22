@@ -105,7 +105,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * Maximum amount of visible text, in characters, to grow a mention email
    * snippet outward to when climbing toward surrounding context.
    */
-  static mentionEmailMaxChars = 1000;
+  static readonly mentionEmailMaxChars = 1000;
 
   /**
    * Returns the input text as a Y.Doc.
@@ -229,8 +229,9 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
   /**
    * Build an email snippet around a mention. A surrounding list is trimmed to
-   * the mentioned item plus one sibling on either side; otherwise the largest
-   * complete block that still fits the size budget is kept.
+   * the mentioned item plus one sibling on either side, a table to the
+   * mentioned row; otherwise the largest complete block that still fits the
+   * size budget is kept.
    *
    * @param doc The top-level doc node of a document / revision.
    * @param mention The mention to build the snippet around.
@@ -258,22 +259,44 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
     const $pos = doc.resolve(mentionPos);
 
-    // Lists can be long, so rather than show the whole list, trim it to the
-    // mentioned item plus one sibling on either side. Use the nearest list
-    // ancestor so nested lists show the items closest to the mention.
+    // Lists and tables can be long, so rather than show the whole container,
+    // trim a list to the mentioned item plus one sibling on either side, and a
+    // table to the mentioned row. Use the nearest such ancestor so nested
+    // structures show the content closest to the mention.
     const listTypes = ["bullet_list", "ordered_list", "checkbox_list"];
     for (let d = $pos.depth - 1; d >= 1; d--) {
-      const list = $pos.node(d);
-      if (listTypes.includes(list.type.name)) {
+      const container = $pos.node(d);
+      const name = container.type.name;
+
+      if (listTypes.includes(name)) {
         const index = $pos.index(d);
         const start = Math.max(0, index - 1);
-        const end = Math.min(list.childCount, index + 2);
+        const end = Math.min(container.childCount, index + 2);
         const items: Node[] = [];
         for (let i = start; i < end; i++) {
-          items.push(list.child(i));
+          items.push(container.child(i));
         }
+        // Keep an ordered list's numbering aligned with the original document
+        // by advancing its start to match the first item shown.
+        const attrs =
+          name === "ordered_list" && start > 0
+            ? {
+                ...container.attrs,
+                order: (container.attrs.order ?? 1) + start,
+              }
+            : container.attrs;
+        const trimmed = container.type.create(
+          attrs,
+          Fragment.fromArray(items),
+          container.marks
+        );
+        return doc.copy(Fragment.fromArray([trimmed]));
+      }
+
+      if (name === "table") {
+        const row = container.child($pos.index(d));
         return doc.copy(
-          Fragment.fromArray([list.copy(Fragment.fromArray(items))])
+          Fragment.fromArray([container.copy(Fragment.fromArray([row]))])
         );
       }
     }
