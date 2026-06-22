@@ -86,7 +86,7 @@ const Modal: React.FC<Props> = ({
               <Centered
                 onClick={(ev) => ev.stopPropagation()}
                 // maxHeight needed for proper overflow behavior in Safari
-                style={{ maxHeight: "65vh" }}
+                style={{ maxHeight: "70vh" }}
                 column
                 reverse
               >
@@ -137,7 +137,7 @@ const StyledContent = styled(Dialog.Content)`
   z-index: ${depths.modal};
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   outline: none;
 `;
 
@@ -233,11 +233,11 @@ const Wrapper = styled.div<{
 }>`
   animation: ${fadeAndScaleIn} 250ms ease;
 
-  margin: 25vh auto auto auto;
+  margin: auto;
   width: 75vw;
   min-width: 350px;
   max-width: ${(props) => props.$width || "450px"};
-  max-height: ${(props) => props.$height || "70vh"};
+  max-height: ${(props) => props.$height || "75vh"};
   z-index: ${depths.modal};
   display: flex;
   justify-content: center;

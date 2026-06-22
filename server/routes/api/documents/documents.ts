@@ -656,7 +656,7 @@ router.post(
   auth(),
   validate(T.DocumentsInsightsSchema),
   async (ctx: APIContext<T.DocumentsInsightsReq>) => {
-    const { id, startDate, endDate } = ctx.input.body;
+    const { id, startDate, endDate, period } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const document = await Document.findByPk(id, { userId: user.id });
@@ -672,6 +672,7 @@ router.post(
     const insights = await DocumentInsight.findAll({
       where: {
         documentId: document.id,
+        period,
         date: {
           [Op.gte]: start.toISOString().slice(0, 10),
           [Op.lte]: end.toISOString().slice(0, 10),
