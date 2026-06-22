@@ -102,6 +102,12 @@ function isDecorationSource(value: unknown): value is DecorationSource {
 @trace()
 export class ProsemirrorHelper extends SharedProsemirrorHelper {
   /**
+   * Maximum amount of visible text, in characters, to grow a mention email
+   * snippet outward to when climbing toward surrounding context.
+   */
+  static mentionEmailMaxChars = 1000;
+
+  /**
    * Returns the input text as a Y.Doc.
    *
    * @param markdown The text to parse
@@ -222,11 +228,13 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
   }
 
   /**
-   * Find the nearest ancestor block node which contains the mention.
+   * Build an email snippet around a mention by keeping the largest complete
+   * block surrounding it that still fits within the size budget.
    *
    * @param doc The top-level doc node of a document / revision.
-   * @param mention The mention for which the ancestor node is needed.
-   * @returns A new top-level doc node with the ancestor node as the only child.
+   * @param mention The mention to build the snippet around.
+   * @returns A new top-level doc node with the chosen block as its only child,
+   * or undefined if the mention could not be found.
    */
   static getNodeForMentionEmail(doc: Node, mention: MentionAttrs) {
     // A mention is an inline node, so it always lives inside a textblock
@@ -249,33 +257,20 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
     const $pos = doc.resolve(mentionPos);
 
-    // Walk the ancestor chain outward and keep the outermost container worth
-    // showing as context, falling back to the textblock the mention sits in.
-    const minifiableContainers = [
-      "table",
-      "checkbox_list",
-      "bullet_list",
-      "ordered_list",
-      "blockquote",
-      "container_notice",
-    ];
-
-    let depth = $pos.depth;
-    for (let d = 1; d < $pos.depth; d++) {
-      if (minifiableContainers.includes($pos.node(d).type.name)) {
-        depth = d;
+    // Always include at least the textblock the mention sits in, then climb the
+    // ancestor chain outward keeping the largest complete block that still fits
+    // the size budget. Each ancestor strictly contains the previous, so sizes
+    // grow monotonically and we can stop at the first that overflows.
+    let node = $pos.node($pos.depth);
+    for (let d = $pos.depth - 1; d >= 1; d--) {
+      const ancestor = $pos.node(d);
+      if (
+        ancestor.textContent.length > ProsemirrorHelper.mentionEmailMaxChars
+      ) {
         break;
       }
+      node = ancestor;
     }
-
-    const blockNode = $pos.node(depth);
-
-    // For a container, minify to just the child on the path to the mention so
-    // the snippet keeps its structure without unrelated siblings.
-    const node =
-      depth < $pos.depth
-        ? blockNode.copy(Fragment.fromArray([$pos.node(depth + 1)]))
-        : blockNode;
 
     // Return a new top-level "doc" node to maintain structure during serialization.
     return doc.copy(Fragment.fromArray([node]));

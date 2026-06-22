@@ -295,7 +295,7 @@ describe("ProsemirrorHelper", () => {
       expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
     });
 
-    it("should return the table node with the mentioned row only", () => {
+    it("should return the whole table containing the mention", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
         type: MentionType.User,
@@ -367,7 +367,27 @@ describe("ProsemirrorHelper", () => {
       const expectedDoc = buildProseMirrorDoc([
         {
           type: "table",
-          content: [mentionedRow],
+          content: [
+            {
+              type: "td",
+              attrs: {
+                colspan: 1,
+                rowspan: 1,
+              },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "cell content",
+                    },
+                  ],
+                },
+              ],
+            },
+            mentionedRow,
+          ],
         },
       ]);
 
@@ -379,7 +399,7 @@ describe("ProsemirrorHelper", () => {
       expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
     });
 
-    it("should return the checkbox list with the mentioned item only", () => {
+    it("should return the whole checkbox list containing the mention", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
         type: MentionType.User,
@@ -447,7 +467,23 @@ describe("ProsemirrorHelper", () => {
       const expectedDoc = buildProseMirrorDoc([
         {
           type: "checkbox_list",
-          content: [mentionedItem],
+          content: [
+            {
+              type: "checkbox_item",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "task A",
+                    },
+                  ],
+                },
+              ],
+            },
+            mentionedItem,
+          ],
         },
       ]);
 
@@ -459,7 +495,7 @@ describe("ProsemirrorHelper", () => {
       expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
     });
 
-    it("should return the bullet list with the mentioned item only", () => {
+    it("should return the whole bullet list containing the mention", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
         type: MentionType.User,
@@ -522,7 +558,23 @@ describe("ProsemirrorHelper", () => {
       const expectedDoc = buildProseMirrorDoc([
         {
           type: "bullet_list",
-          content: [mentionedItem],
+          content: [
+            {
+              type: "list_item",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: "item A",
+                    },
+                  ],
+                },
+              ],
+            },
+            mentionedItem,
+          ],
         },
       ]);
 
@@ -534,7 +586,7 @@ describe("ProsemirrorHelper", () => {
       expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
     });
 
-    it("should return the blockquote with the mentioned paragraph only", () => {
+    it("should return the whole blockquote containing the mention", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
         type: MentionType.User,
@@ -582,9 +634,77 @@ describe("ProsemirrorHelper", () => {
       const expectedDoc = buildProseMirrorDoc([
         {
           type: "blockquote",
-          content: [mentionedParagraph],
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "some other line",
+                },
+              ],
+            },
+            mentionedParagraph,
+          ],
         },
       ]);
+
+      const newDoc = ProsemirrorHelper.getNodeForMentionEmail(
+        doc,
+        mentionAttrs
+      );
+
+      expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
+    });
+
+    it("should stop climbing when the container exceeds the size budget", () => {
+      const mentionAttrs: MentionAttrs = {
+        id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
+        type: MentionType.User,
+        label: "test.user",
+        actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
+        modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
+      };
+
+      const mentionedParagraph: DeepPartial<ProsemirrorData> = {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "a quote with ",
+          },
+          {
+            type: "mention",
+            attrs: mentionAttrs,
+          },
+          {
+            type: "text",
+            text: " mentioned",
+          },
+        ],
+      };
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "blockquote",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "x".repeat(ProsemirrorHelper.mentionEmailMaxChars + 1),
+                },
+              ],
+            },
+            mentionedParagraph,
+          ],
+        },
+      ]);
+
+      // The blockquote overflows the budget, so the snippet falls back to the
+      // mention's own paragraph rather than the surrounding container.
+      const expectedDoc = buildProseMirrorDoc([mentionedParagraph]);
 
       const newDoc = ProsemirrorHelper.getNodeForMentionEmail(
         doc,
