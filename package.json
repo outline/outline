@@ -354,7 +354,7 @@
     "@types/yazl": "^2.4.6",
     "@vitest/ui": "^4.1.8",
     "babel-plugin-module-resolver": "^5.0.3",
-    "babel-plugin-styled-components": "^2.1.4",
+    "babel-plugin-styled-components": "^2.3.0",
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-typescript-metadata": "^0.4.0",
     "browserslist-to-esbuild": "^1.2.0",
