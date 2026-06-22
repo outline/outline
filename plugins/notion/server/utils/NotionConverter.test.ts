@@ -37,7 +37,7 @@ describe("NotionConverter", () => {
     expect(ProsemirrorHelper.toProsemirror(response)).toBeInstanceOf(Node);
   });
 
-  it("converts a page with an empty table", () => {
+  it("drops an empty table", () => {
     const response = NotionConverter.page({
       children: [
         {
@@ -54,7 +54,7 @@ describe("NotionConverter", () => {
       ],
     } as unknown as NotionPage);
 
-    expect(response.content).toEqual([{ type: "table", content: [] }]);
+    expect(response.content).toEqual([]);
     expect(ProsemirrorHelper.toProsemirror(response)).toBeInstanceOf(Node);
   });
 });

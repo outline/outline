@@ -463,6 +463,11 @@ export class MarkdownSerializerState {
   }
 
   renderTable(node) {
+    // A table with no rows is not valid Markdown and has nothing to serialize.
+    if (node.childCount === 0) {
+      return;
+    }
+
     this.flushClose(1);
 
     const prevTable = this.inTable;
