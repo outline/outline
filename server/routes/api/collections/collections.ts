@@ -908,10 +908,21 @@ router.post(
       });
     }
 
+    const maintainerIdsByCollectionId =
+      await CollectionMaintainer.maintainerIdsByCollectionIds(
+        collections.map((collection) => collection.id),
+        { transaction }
+      );
+
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: await Promise.all(
-        collections.map((collection) => presentCollection(ctx, collection))
+        collections.map((collection) =>
+          presentCollection(ctx, collection, {
+            maintainerIds:
+              maintainerIdsByCollectionId.get(collection.id) ?? [],
+          })
+        )
       ),
       policies: presentPolicies(user, collections),
     };

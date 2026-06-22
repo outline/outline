@@ -1,4 +1,5 @@
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type { InferAttributes, InferCreationAttributes, Transaction } from "sequelize";
+import { Op } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -34,6 +35,47 @@ class CollectionMaintainer extends IdModel<
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   userId: string;
+
+  /**
+   * Load maintainer user ids for multiple collections in a single query.
+   *
+   * @param collectionIds Collection ids to load maintainers for.
+   * @param options Optional query options.
+   * @return Map of collection id to maintainer user ids.
+   */
+  static async maintainerIdsByCollectionIds(
+    collectionIds: string[],
+    options: { transaction?: Transaction } = {}
+  ): Promise<Map<string, string[]>> {
+    if (!collectionIds.length) {
+      return new Map();
+    }
+
+    const maintainers = await this.findAll({
+      attributes: ["collectionId", "userId"],
+      where: {
+        collectionId: {
+          [Op.in]: collectionIds,
+        },
+      },
+      transaction: options.transaction,
+    });
+
+    const maintainerIdsByCollectionId = new Map<string, string[]>();
+
+    for (const maintainer of maintainers) {
+      const existing = maintainerIdsByCollectionId.get(maintainer.collectionId);
+      if (existing) {
+        existing.push(maintainer.userId);
+      } else {
+        maintainerIdsByCollectionId.set(maintainer.collectionId, [
+          maintainer.userId,
+        ]);
+      }
+    }
+
+    return maintainerIdsByCollectionId;
+  }
 }
 
 export default CollectionMaintainer;

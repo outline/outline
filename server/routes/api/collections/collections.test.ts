@@ -183,6 +183,27 @@ describe("#collections.list", () => {
     expect(afterArchiveRes.status).toEqual(200);
     expect(afterArchiveBody.data).toHaveLength(0);
   });
+
+  it("should return maintainerIds for collections", async () => {
+    const user = await buildUser();
+    const maintainer = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+      maintainerApprovalRequired: true,
+    });
+    await buildCollectionMaintainer({
+      collectionId: collection.id,
+      userId: maintainer.id,
+    });
+
+    const res = await server.post("/api/collections.list", user);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data[0].maintainerIds).toEqual([maintainer.id]);
+    expect(body.data[0].approvalRequired).toBe(true);
+  });
 });
 
 describe("#collections.import", () => {

@@ -12,6 +12,8 @@ type Options = {
   shareId?: string;
   /** Whether to include the updatedAt timestamp. */
   includeUpdatedAt?: boolean;
+  /** Preloaded maintainer user ids; skips a per-collection query when provided. */
+  maintainerIds?: string[];
 };
 
 export default async function presentCollection(
@@ -58,11 +60,15 @@ export default async function presentCollection(
     res.templateManagement = collection.templateManagement;
     res.permission = collection.permission;
     res.approvalRequired = collection.maintainerApprovalRequired;
-    const maintainers = await CollectionMaintainer.findAll({
-      where: { collectionId: collection.id },
-      transaction: ctx?.state.transaction,
-    });
-    res.maintainerIds = maintainers.map((maintainer) => maintainer.userId);
+    if (options.maintainerIds) {
+      res.maintainerIds = options.maintainerIds;
+    } else {
+      const maintainers = await CollectionMaintainer.findAll({
+        where: { collectionId: collection.id },
+        transaction: ctx?.state.transaction,
+      });
+      res.maintainerIds = maintainers.map((maintainer) => maintainer.userId);
+    }
     res.deletedAt = collection.deletedAt;
     res.archivedAt = collection.archivedAt;
     res.archivedBy =
