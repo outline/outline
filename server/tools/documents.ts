@@ -620,6 +620,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
             updated = await documentUpdater(ctx, {
               document,
               ...input,
+              // An MCP edit is a discrete, complete editing session — unlike
+              // collaborative editing there is no live session that ends. Mark
+              // it done so a revision is created promptly (and attributed to the
+              // actor) rather than relying on the debounced revision path.
+              done: true,
             });
           }
 

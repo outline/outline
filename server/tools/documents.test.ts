@@ -8,7 +8,14 @@ import {
   buildOAuthAuthentication,
   buildGroup,
 } from "@server/test/factories";
-import { Document, GroupMembership, UserMembership } from "@server/models";
+import {
+  Document,
+  Event,
+  GroupMembership,
+  Revision,
+  UserMembership,
+} from "@server/models";
+import RevisionsProcessor from "@server/queues/processors/RevisionsProcessor";
 import { getTestServer } from "@server/test/support";
 import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
 
@@ -436,6 +443,49 @@ describe("update_document", () => {
 
     expect(data.document.title).toEqual("Updated Title");
     expect(data.document.url).toMatch(/^https?:\/\//);
+  });
+
+  it("creates a revision for the content update", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      text: "Updated content",
+    });
+    expect(res?.result?.isError).toBeUndefined();
+
+    // The update should mark the editing session as done so a revision is
+    // created promptly rather than waiting on the debounced revision path.
+    const event = await Event.findOne({
+      where: { name: "documents.update", documentId: document.id },
+      order: [["createdAt", "DESC"]],
+    });
+    expect(event?.data?.done).toBe(true);
+
+    await new RevisionsProcessor().perform({
+      name: "documents.update",
+      documentId: document.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      createdAt: new Date().toISOString(),
+      data: { done: true },
+      ip: "127.0.0.1",
+    });
+
+    const revisions = await Revision.count({
+      where: { documentId: document.id },
+    });
+    expect(revisions).toBe(1);
   });
 
   it("unpublishes a document", async () => {
