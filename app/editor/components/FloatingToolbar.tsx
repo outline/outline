@@ -2,7 +2,7 @@ import { NodeSelection } from "prosemirror-state";
 import { selectedRect } from "prosemirror-tables";
 import * as React from "react";
 import { Portal as ReactPortal } from "react-portal";
-import styled, { css } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
@@ -397,6 +397,15 @@ const Background = styled.div<{ align: Props["align"] }>`
   `}
 `;
 
+// pointer-events is a discrete property and cannot be transitioned, so a
+// delayed animation is used to re-enable interaction once the open animation
+// has finished
+const enableInteraction = keyframes`
+  to {
+    pointer-events: auto;
+  }
+`;
+
 const Wrapper = styled.div<WrapperProps>`
   will-change: opacity, transform;
   position: absolute;
@@ -426,17 +435,16 @@ const Wrapper = styled.div<WrapperProps>`
 
   ${({ active }) =>
     active &&
-    `
-    transform: translateY(-6px) scale(1);
-    opacity: 1;
+    css`
+      transform: translateY(-6px) scale(1);
+      opacity: 1;
 
-    & button,
-    & a,
-    & input {
-      pointer-events: auto;
-      transition: pointer-events 0s 300ms;
-    }
-  `};
+      & button,
+      & a,
+      & input {
+        animation: ${enableInteraction} 0s 300ms forwards;
+      }
+    `};
 
   @media print {
     display: none;
