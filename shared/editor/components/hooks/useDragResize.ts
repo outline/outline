@@ -1,5 +1,5 @@
 import * as React from "react";
-import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import { EditorStyleHelper } from "../../styles/EditorStyleHelper";
 
 type DragDirection =
   | "left"
