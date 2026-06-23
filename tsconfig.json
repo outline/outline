@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsc/tsconfig.tsbuildinfo",
     "strict": false,
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
