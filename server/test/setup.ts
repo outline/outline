@@ -47,8 +47,10 @@ await import("@server/storage/database");
 // files with bare imports (e.g. `@server/...`), so we use Vite's
 // import.meta.glob to load them through the Vite resolver instead.
 const { PluginManager } = await import("@server/utils/PluginManager");
+// Vite 8 dropped support for extglob negation (`!(...)`) in glob patterns, so
+// exclude test and schema files via separate negative patterns instead.
 const pluginModules = import.meta.glob(
-  "../../plugins/*/server/!(*.test|schema).{js,ts}",
+  ["../../plugins/*/server/*.{js,ts}", "!**/*.test.*", "!**/schema.*"],
   { eager: true }
 );
 void pluginModules;
