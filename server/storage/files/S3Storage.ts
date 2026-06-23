@@ -49,7 +49,7 @@ export default class S3Storage extends BaseStorage {
     contentType = "image"
   ) {
     const params: PresignedPostOptions = {
-      Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME as string,
+      Bucket: this.getBucket(),
       Key: key,
       Conditions: compact([
         ["content-length-range", 0, maxUploadSize],
@@ -87,7 +87,7 @@ export default class S3Storage extends BaseStorage {
     const cacheControl = "max-age=31557600";
 
     const command = new PutObjectCommand({
-      Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME as string,
+      Bucket: this.getBucket(),
       Key: key,
       ContentType: contentType,
       ContentLength: contentLength,
