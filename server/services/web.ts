@@ -15,6 +15,7 @@ import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import csp from "@server/middlewares/csp";
 import { attachCSRFToken } from "@server/middlewares/csrf";
+import oauthAliases from "@server/middlewares/oauthAliases";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
@@ -103,6 +104,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   );
 
   app.use(mount("/auth", auth));
+  app.use(oauthAliases());
   app.use(mount("/oauth", oauth));
   app.use(mount(routes));
 
