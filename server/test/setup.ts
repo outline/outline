@@ -48,7 +48,7 @@ await import("@server/storage/database");
 // import.meta.glob to load them through the Vite resolver instead.
 const { PluginManager } = await import("@server/utils/PluginManager");
 const pluginModules = import.meta.glob(
-  "../../plugins/*/server/!(*.test|schema).{js,ts}",
+  ["../../plugins/*/server/*.{js,ts}", "!**/*.test.*", "!**/schema.*"],
   { eager: true }
 );
 void pluginModules;
