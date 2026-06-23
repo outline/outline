@@ -2430,10 +2430,12 @@ table {
 
   > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
     transform: translateY(calc(var(--header-offset, 64px) + var(--sticky-scroll-offset, 0px)));
-    border-bottom: 1px solid ${props.theme.divider};
 
-    // Mask content scrolling past the top of the header
-    box-shadow: 0 -1px 0 ${props.theme.divider};
+    // Mask content scrolling past the top of the header (first shadow) and draw
+    // the divider below it (second shadow). Using box-shadow rather than a real
+    // border avoids changing the row height when the sticky class toggles, which
+    // otherwise causes a flicker loop at the bottom of the table via scroll anchoring.
+    box-shadow: 0 -1px 0 ${props.theme.divider}, 0 1px 0 ${props.theme.divider};
     border-radius: 0 !important;
 
     .${EditorStyleHelper.tableGripColumn},
@@ -2456,6 +2458,7 @@ table {
   scrollbar-color: transparent transparent;
   overflow-y: hidden;
   overflow-x: auto;
+  overflow-anchor: none;
   padding-top: 1em;
   padding-bottom: .5em;
   padding-left: ${EditorStyleHelper.padding}px;
