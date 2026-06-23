@@ -539,11 +539,15 @@ describe("OAuth path aliases", () => {
       body: { grant_type: "invalid_grant_type" },
     });
 
-    // The request reaches /oauth/token's handler, which rejects unknown grant
-    // types with the same OAuth2 error response a direct /oauth/token call
-    // would produce.
+    // The request must reach the OAuth handler stack (not fall through to a
+    // generic 404). The OAuth error handler always wraps failures in an
+    // `error` + `error_description` body, so asserting that shape proves the
+    // alias delivered to /oauth/token specifically.
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
+    const body = await res.json();
+    expect(body.error).toBeTruthy();
+    expect(body.error_description).toBeTruthy();
   });
 
   it("should register an OAuth client via POST /register without /oauth prefix", async () => {
