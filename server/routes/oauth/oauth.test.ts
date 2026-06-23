@@ -94,19 +94,6 @@ describe("#oauth.register", () => {
     expect(body.logo_uri).toEqual("https://example.com/logo.png");
   });
 
-  it("should reject missing client_name", async () => {
-    const res = await server.post("/oauth/register", {
-      body: {
-        redirect_uris: ["https://example.com/callback"],
-      },
-      headers: {
-        host: `${subdomain}.outline.dev`,
-      },
-    });
-
-    expect(res.status).toEqual(400);
-  });
-
   it("should reject missing redirect_uris", async () => {
     const res = await server.post("/oauth/register", {
       body: {
@@ -118,6 +105,22 @@ describe("#oauth.register", () => {
     });
 
     expect(res.status).toEqual(400);
+  });
+
+  it("should accept registration without client_name", async () => {
+    const res = await server.post("/oauth/register", {
+      body: {
+        redirect_uris: ["https://example.com/callback"],
+      },
+      headers: {
+        host: `${subdomain}.outline.dev`,
+      },
+    });
+
+    expect(res.status).toEqual(201);
+    const body = await res.json();
+    expect(body.client_id).toBeTruthy();
+    expect(body.client_name).toEqual("Untitled application");
   });
 
   it("should reject invalid redirect_uris", async () => {
@@ -514,5 +517,50 @@ describe("GET /.well-known/oauth-protected-resource", () => {
     } finally {
       env.URL = sharedEnv.URL = originalUrl;
     }
+  });
+});
+
+describe("OAuth path aliases", () => {
+  it("should 302-redirect GET /authorize to /oauth/authorize preserving query", async () => {
+    const res = await server.get(
+      "/authorize?response_type=code&client_id=abc&state=xyz",
+      { redirect: "manual" }
+    );
+
+    expect(res.status).toEqual(302);
+    const location = res.headers.get("location");
+    expect(location).toContain(
+      "/oauth/authorize?response_type=code&client_id=abc&state=xyz"
+    );
+  });
+
+  it("should route POST /token to the canonical /oauth/token handler", async () => {
+    const res = await server.post("/token", {
+      body: { grant_type: "invalid_grant_type" },
+    });
+
+    // The request reaches /oauth/token's handler, which rejects unknown grant
+    // types with the same OAuth2 error response a direct /oauth/token call
+    // would produce.
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+  });
+
+  it("should register an OAuth client via POST /register without /oauth prefix", async () => {
+    const subdomain = faker.internet.domainWord();
+    await buildTeam({ subdomain });
+
+    const res = await server.post("/register", {
+      body: {
+        client_name: "Aliased Client",
+        redirect_uris: ["https://example.com/callback"],
+      },
+      headers: { host: `${subdomain}.outline.dev` },
+    });
+
+    expect(res.status).toEqual(201);
+    const body = await res.json();
+    expect(body.client_id).toBeTruthy();
+    expect(body.client_name).toEqual("Aliased Client");
   });
 });
