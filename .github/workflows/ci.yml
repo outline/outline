@@ -126,7 +126,9 @@ jobs:
         run: echo "NODE_ENV=production" >> $GITHUB_ENV
       - run: yarn vite:build
       - name: Send bundle stats to RelativeCI
-        if: ${{ secrets.RELATIVE_CI_KEY != '' }}
+        if: ${{ env.RELATIVE_CI_KEY != '' }}
+        env:
+          RELATIVE_CI_KEY: ${{ secrets.RELATIVE_CI_KEY }}
         uses: relative-ci/agent-action@38328454d6a23942175eba485fca4fbb807b1f03 # v2
         with:
           key: ${{ secrets.RELATIVE_CI_KEY }}
