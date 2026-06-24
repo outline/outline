@@ -429,16 +429,19 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         }
       };
 
-      // Search the diacritics-stripped text so that, for example, "cafe"
+      // Search the original text so that queries containing diacritics (e.g.
+      // "café") match, and to cover any text that deburring alters.
+      collect(text, (index) => index);
+
+      // Also search the diacritics-stripped text so that, for example, "cafe"
       // matches "café". Because deburring can change the string length (e.g. it
       // decomposes CJK/Hangul characters), match indices are translated back to
-      // the original text through the index map rather than assumed equal.
-      const { deburred, map } = deburrWithMap(text);
-      collect(deburred, (index) => map[index]);
-
-      // Also search the original text so that queries containing diacritics
-      // (e.g. "café") still match, and to cover any text that deburring alters.
-      collect(text, (index) => index);
+      // the original text rather than assumed equal. Skip it when deburring was
+      // a no-op, since it would only re-find the matches already collected.
+      const { deburred, toOriginalIndex } = deburrWithMap(text);
+      if (deburred !== text) {
+        collect(deburred, toOriginalIndex);
+      }
     });
   }
 
