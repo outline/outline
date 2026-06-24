@@ -28,7 +28,7 @@ describe("oidc", () => {
       );
       expect(
         redirectLocation.searchParams.get("post_logout_redirect_uri")
-      ).not.toBeNull();
+      ).toEqual("http://localhost:3000");
     });
 
     it("should include the id_token_hint when present", async () => {
