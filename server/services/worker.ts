@@ -27,8 +27,18 @@ export default async function init() {
         spanName: "process",
         isRoot: true,
       })(async function (job) {
-        const event = job.data as Event;
+        const event = job.data as Event | undefined;
         let err;
+
+        // Bull can hand us an orphaned job whose hash was already deleted by
+        // removeOnComplete/removeOnFail (data deserializes to `{}`). Discard it
+        // rather than crashing.
+        if (!event?.name) {
+          Logger.warn("Discarding malformed job in globalEventQueue", {
+            data: job.data,
+          });
+          return;
+        }
 
         setResource(`Event.${event.name}`);
 
@@ -96,7 +106,18 @@ export default async function init() {
         spanName: "process",
         isRoot: true,
       })(async function (job) {
-        const { event, name } = job.data;
+        const { event, name } = job.data ?? {};
+
+        // Bull can hand us an orphaned job whose hash was already deleted by
+        // removeOnComplete/removeOnFail (data deserializes to `{}`). Discard it
+        // rather than crashing.
+        if (!event || !name) {
+          Logger.warn("Discarding malformed job in processorEventQueue", {
+            data: job.data,
+          });
+          return;
+        }
+
         const ProcessorClass = processors[name];
 
         setResource(`Processor.${name}`);

@@ -1,8 +1,10 @@
 /* oxlint-disable @typescript-eslint/no-misused-promises */
 import Queue from "bull";
 import { snakeCase } from "es-toolkit/compat";
+import { toError } from "@shared/utils/error";
 import { Second } from "@shared/utils/time";
 import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
@@ -49,8 +51,18 @@ export function createQueue(
   queue.on("error", () => {
     Metrics.increment(`${prefix}.jobs.errored`);
   });
-  queue.on("failed", () => {
+  queue.on("failed", (job, err) => {
     Metrics.increment(`${prefix}.jobs.failed`);
+
+    // Report on the final attempt to avoid noise from intermediate retries.
+    const attempts = job?.opts?.attempts ?? 1;
+    if ((job?.attemptsMade ?? 0) + 1 >= attempts) {
+      Logger.error(`Job failed in ${name} queue`, toError(err), {
+        jobId: job?.id,
+        attemptsMade: job?.attemptsMade,
+        data: job?.data,
+      });
+    }
   });
 
   if (env.ENVIRONMENT !== "test") {
