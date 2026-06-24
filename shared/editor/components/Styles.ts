@@ -920,37 +920,19 @@ iframe.embed {
   caret-color: transparent;
 }
 
-.ProseMirror-selectednode {
-  outline: 2px solid
-    ${props.readOnly ? "transparent" : props.theme.selected};
-
-  @media print {
-    outline: none;
-  }
+.ProseMirror.dragging .ProseMirror-selectednode,
+.ProseMirror .dragging-source {
+  opacity: 0.25;
 }
 
-/* Make sure li selections wrap around markers */
-
-li.ProseMirror-selectednode {
-  outline: none;
+.ProseMirror.dragging *::selection {
+  background: transparent;
 }
-
-li.ProseMirror-selectednode {
-  &::after {
-    content: "";
-    position: absolute;
-    left: -32px;
-    right: -2px;
-    top: -2px;
-    bottom: -2px;
-    border: 2px solid ${props.theme.selected};
-    pointer-events: none;
-  }
-
-  &:dir(rtl)::after {
-    left: -2px;
-    right: -32px;
-  }
+.ProseMirror.dragging *::-moz-selection {
+  background: transparent;
+}
+.ProseMirror.dragging .selectedCell::after {
+  display: none;
 }
 
 img.ProseMirror-separator {
@@ -1134,7 +1116,9 @@ h6:not(.placeholder)::before {
   left: 0;
   top: 0;
   bottom: 0;
-  margin-left: -26px;
+  /* Offset further left than the default so the anchor clears the block
+     drag handle, which occupies the gutter immediately left of the heading. */
+  margin-left: -52px;
   width: 26px;
   align-items: center;
   justify-content: center;
@@ -1158,7 +1142,7 @@ h6:not(.placeholder)::before {
 
   &:dir(rtl) {
     margin-left: 0;
-    margin-right: -26px;
+    margin-right: -52px;
   }
 }
 
@@ -1516,63 +1500,9 @@ ul.checkbox_list > li.checked > div > p {
   color: ${props.theme.textTertiary};
 }
 
-ul li,
-ol li {
-  &::before {
-    background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOCIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iOCIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+CjxyZWN0IHg9IjgiIHk9IjE1IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iMTMiIHk9IjExIiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+Cjwvc3ZnPgo=") no-repeat;
-    background-position: 0 2px;
-    content: "";
-    display: ${props.readOnly ? "none" : "inline-block"};
-    cursor: grab;
-    width: 24px;
-    height: 24px;
-    position: absolute;
-    left: -40px;
-    opacity: 0;
-    transition: opacity 200ms ease-in-out;
-  }
-
-  &:dir(rtl)::before {
-    left: auto;
-    right: -40px;
-  }
-}
-
-ul li[draggable=true]::before,
-ol li[draggable=true]::before {
-  cursor: grabbing;
-}
-
-ul > li.counter-2,
-ol li.counter-2 {
-  &::before {
-    left: -50px;
-  }
-  &:dir(rtl)::before {
-    left: auto;
-    right: -50px;
-  }
-}
-
-ul > li.hovering::before,
-ol li.hovering::before {
-  opacity: 0.5;
-}
-
 ul li.ProseMirror-selectednode::after,
 ol li.ProseMirror-selectednode::after {
   display: none;
-}
-
-ul.checkbox_list > li {
-  &::before {
-    left: 0;
-  }
-
-  &:dir(rtl)::before {
-    left: auto;
-    right: 0;
-  }
 }
 
 ul.checkbox_list {
@@ -2570,7 +2500,9 @@ table {
   position: absolute;
   top: -2px;
   width: 20px;
-  border-top: 1px solid ${props.theme.cursor};
+  height: 2px;
+  background: ${props.theme.accent};
+  border-radius: 1px;
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
 }
 
