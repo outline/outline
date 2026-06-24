@@ -31,6 +31,8 @@ import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
 import { createContext } from "@server/context";
 
+const OIDC_LOGOUT_PATH = "/auth/oidc.logout";
+
 export interface OIDCEndpoints {
   authorizationURL: string;
   tokenURL: string;
@@ -240,6 +242,8 @@ export function createOIDCRouter(
             context.cookies.set("oidcIdToken", params.id_token, {
               httpOnly: true,
               sameSite: "lax",
+              secure: env.isProduction,
+              path: OIDC_LOGOUT_PATH,
               domain: getCookieDomain(
                 context.request.hostname,
                 env.isCloudHosted
@@ -272,6 +276,8 @@ export function createOIDCRouter(
     ctx.cookies.set("oidcIdToken", "", {
       httpOnly: true,
       sameSite: "lax",
+      secure: env.isProduction,
+      path: OIDC_LOGOUT_PATH,
       domain: getCookieDomain(ctx.request.hostname, env.isCloudHosted),
       expires: subMinutes(new Date(), 1),
     });

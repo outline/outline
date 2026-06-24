@@ -43,6 +43,9 @@ describe("oidc", () => {
       expect(redirectLocation.searchParams.get("id_token_hint")).toEqual(
         "fake-id-token"
       );
+      expect(res.headers.get("set-cookie")).toContain(
+        "oidcIdToken=; path=/auth/oidc.logout;"
+      );
     });
   });
 });
