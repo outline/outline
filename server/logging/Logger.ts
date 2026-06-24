@@ -146,9 +146,7 @@ class Logger {
         }
 
         if (request) {
-          scope.addEventProcessor((event) =>
-            Sentry.Handlers.parseRequest(event, request)
-          );
+          scope.setSDKProcessingMetadata({ request });
         }
 
         Sentry.captureException(error);

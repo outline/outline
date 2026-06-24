@@ -161,7 +161,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
       backdrop-filter: blur(20px);
       `};
 
-  padding: 12px;
+  padding: 12px 16px;
   transform: translate3d(0, 0, 0);
   min-height: ${HEADER_HEIGHT}px;
   justify-content: flex-start;

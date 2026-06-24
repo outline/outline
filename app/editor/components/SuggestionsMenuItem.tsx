@@ -63,6 +63,9 @@ function SuggestionsMenuItem({
   return (
     <MenuButton
       ref={ref}
+      // Virtual focus stays in the editor (see SuggestionsMenu); the wrapping
+      // element carries the listbox option role, so keep this out of tab order.
+      tabIndex={-1}
       disabled={disabled}
       onClick={onClick}
       onPointerMove={disabled ? undefined : onPointerMove}

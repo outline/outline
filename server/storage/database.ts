@@ -11,6 +11,7 @@ import type { SequelizeOptions } from "sequelize-typescript";
 import { Sequelize } from "sequelize-typescript";
 import type { MigrationError } from "umzug";
 import { Umzug, SequelizeStorage } from "umzug";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import { ClientClosedRequestError } from "@server/errors";
 import type Model from "@server/models/base/Model";
@@ -196,13 +197,16 @@ export const checkConnection = async (db: Sequelize) => {
   try {
     await db.authenticate();
   } catch (error) {
-    if (error.message.includes("does not support SSL")) {
+    if (
+      error instanceof Error &&
+      error.message.includes("does not support SSL")
+    ) {
       Logger.fatal(
         "The database does not support SSL connections. Set the `PGSSLMODE` environment variable to `disable` or enable SSL on your database server.",
         error
       );
     } else {
-      Logger.fatal("Failed to connect to database", error);
+      Logger.fatal("Failed to connect to database", toError(error));
     }
   }
 };

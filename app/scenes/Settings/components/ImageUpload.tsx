@@ -6,6 +6,7 @@ import AvatarEditor from "react-avatar-editor";
 import { useDropzone } from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { errToString } from "@shared/utils/error";
 import { s } from "@shared/styles";
 import { AttachmentPreset } from "@shared/types";
 import { AttachmentValidation } from "@shared/validations";
@@ -49,7 +50,7 @@ const ImageUpload: React.FC<Props> = ({
         });
         void onSuccess(attachment.url);
       } catch (err) {
-        onError(err.message);
+        onError(errToString(err));
       } finally {
         setIsUploading(false);
         setIsCropping(false);

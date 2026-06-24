@@ -8,6 +8,7 @@ import {
   buildDocument,
   buildShare,
   buildAdmin,
+  buildViewer,
   buildCollection,
   buildTeam,
 } from "@server/test/factories";
@@ -448,6 +449,31 @@ describe("#shares.create", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.id).toBe(share.id);
+  });
+
+  it("should not disclose an existing published share to a user without share permission", async () => {
+    const admin = await buildAdmin();
+    const viewer = await buildViewer({ teamId: admin.teamId });
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+      userId: admin.id,
+      published: true,
+    });
+    const res = await server.post("/api/shares.create", viewer, {
+      body: {
+        documentId: document.id,
+        published: false,
+      },
+    });
+    expect(res.status).toEqual(403);
+    // The existing public share must remain untouched.
+    await share.reload();
+    expect(share.published).toBe(true);
   });
 
   it("should allow creating a share record if team sharing disabled but not publishing", async () => {

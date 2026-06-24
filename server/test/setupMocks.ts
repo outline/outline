@@ -14,21 +14,24 @@ import { __setRequireDirectoryCache } from "@server/utils/fs";
 // they live in.
 __setRequireDirectoryCache(
   "emails/templates",
-  import.meta.glob("../emails/templates/!(index|*.test).{js,ts}", {
-    eager: true,
-  })
+  import.meta.glob(
+    ["../emails/templates/*.{js,ts,tsx}", "!**/index.*", "!**/*.test.*"],
+    { eager: true }
+  )
 );
 __setRequireDirectoryCache(
   "queues/processors",
-  import.meta.glob("../queues/processors/!(index|*.test).{js,ts}", {
-    eager: true,
-  })
+  import.meta.glob(
+    ["../queues/processors/*.{js,ts,tsx}", "!**/index.*", "!**/*.test.*"],
+    { eager: true }
+  )
 );
 __setRequireDirectoryCache(
   "queues/tasks",
-  import.meta.glob("../queues/tasks/!(index|*.test).{js,ts}", {
-    eager: true,
-  })
+  import.meta.glob(
+    ["../queues/tasks/*.{js,ts,tsx}", "!**/index.*", "!**/*.test.*"],
+    { eager: true }
+  )
 );
 
 vi.mock("ioredis", async () => {

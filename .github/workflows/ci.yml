@@ -27,7 +27,7 @@ jobs:
       deps: ${{ steps.filter.outputs.deps }}
     steps:
       - uses: actions/checkout@v5
-      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50  # v2
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # v2
         id: filter
         with:
           filters: |
@@ -126,7 +126,10 @@ jobs:
         run: echo "NODE_ENV=production" >> $GITHUB_ENV
       - run: yarn vite:build
       - name: Send bundle stats to RelativeCI
-        uses: relative-ci/agent-action@38328454d6a23942175eba485fca4fbb807b1f03  # v2
+        if: ${{ env.RELATIVE_CI_KEY != '' }}
+        env:
+          RELATIVE_CI_KEY: ${{ secrets.RELATIVE_CI_KEY }}
+        uses: relative-ci/agent-action@38328454d6a23942175eba485fca4fbb807b1f03 # v2
         with:
           key: ${{ secrets.RELATIVE_CI_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}

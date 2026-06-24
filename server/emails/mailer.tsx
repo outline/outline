@@ -3,6 +3,7 @@ import type { Transporter } from "nodemailer";
 import nodemailer from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import Oy from "oy-vey";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -216,7 +217,7 @@ export class Mailer {
         );
       }
     } catch (err) {
-      Logger.error(`Error sending email to ${data.to}`, err);
+      Logger.error(`Error sending email to ${data.to}`, toError(err));
       throw err; // Re-throw for queue to re-try
     }
   };

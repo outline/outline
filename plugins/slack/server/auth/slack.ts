@@ -3,6 +3,7 @@ import type { Context } from "koa";
 import Router from "koa-router";
 import type { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
+import { toError } from "@shared/utils/error";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import { ValidationError } from "@server/errors";
@@ -128,7 +129,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         });
         return done(null, result.user, { ...result, client });
       } catch (err) {
-        return done(err, null);
+        return done(toError(err), null);
       }
     }
   );

@@ -1,3 +1,4 @@
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { setResource, addTags } from "@server/logging/tracer";
@@ -69,7 +70,7 @@ export default async function init() {
           } catch (error) {
             Logger.error(
               `Error adding ${event.name} to ${name} queue`,
-              error,
+              toError(error),
               event
             );
             err = error;
@@ -125,7 +126,7 @@ export default async function init() {
 
             Logger.error(
               `Error processing ${event.name} in ${name}`,
-              err,
+              toError(err),
               event
             );
             throw err;
@@ -171,7 +172,7 @@ export default async function init() {
             await task.onFailed(props).catch(); // suppress exception from 'onFailed'.
           }
 
-          Logger.error(`Error processing task in ${name}`, err, props);
+          Logger.error(`Error processing task in ${name}`, toError(err), props);
           throw err;
         }
       })

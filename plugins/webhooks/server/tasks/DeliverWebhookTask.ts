@@ -1,5 +1,6 @@
 import { FetchError } from "node-fetch";
 import { Op } from "sequelize";
+import { toError } from "@shared/utils/error";
 import { colorPalette } from "@shared/utils/collections";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
 import env from "@server/env";
@@ -815,13 +816,14 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
+      const error = toError(err);
       if (isExpectedNetworkError(err) && env.isCloudHosted) {
-        Logger.warn(`Failed to send webhook: ${err.message}`, {
+        Logger.warn(`Failed to send webhook: ${error.message}`, {
           event,
           deliveryId: delivery.id,
         });
       } else {
-        Logger.error("Failed to send webhook", err, {
+        Logger.error("Failed to send webhook", error, {
           event,
           deliveryId: delivery.id,
         });
@@ -857,10 +859,14 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       try {
         await this.checkAndDisableSubscription(subscription);
       } catch (err) {
-        Logger.error("Failed to check and disable recent deliveries", err, {
-          event,
-          deliveryId: delivery.id,
-        });
+        Logger.error(
+          "Failed to check and disable recent deliveries",
+          toError(err),
+          {
+            event,
+            deliveryId: delivery.id,
+          }
+        );
       }
     }
   }

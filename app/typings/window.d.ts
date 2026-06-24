@@ -1,3 +1,4 @@
+/// <reference types="google.analytics" />
 import type RootStore from "~/stores/RootStore";
 
 declare global {
@@ -5,7 +6,16 @@ declare global {
     /**
      * A special feature that allows you to get all matching modules starting from some base directory.
      */
-    glob: (pattern: string, option?: { eager: boolean }) => any;
+    glob: {
+      (
+        pattern: string | string[],
+        option: { eager: true }
+      ): Record<string, unknown>;
+      (
+        pattern: string | string[],
+        option?: { eager?: false }
+      ): Record<string, () => Promise<unknown>>;
+    };
   }
 
   interface Window {
@@ -54,6 +64,19 @@ declare global {
        * Adds a custom host to config
        */
       addCustomHost: (host: string) => Promise<void>;
+
+      /**
+       * Loads the authentication configuration for the given host from the main
+       * process, bypassing renderer CORS restrictions. Used to verify a host is
+       * a reachable Outline installation before switching to it.
+       */
+      loadAuthConfig: (host: string) => Promise<{ providers: unknown[] }>;
+
+      /**
+       * Clears the desktop configuration, removing any custom hosts. Intended
+       * for debugging use.
+       */
+      clearConfig: () => Promise<void>;
 
       /**
        * Set the language used by the spellchecker on Windows/Linux.

@@ -268,7 +268,7 @@ const StyledInput = styled(Input)<{ $error?: boolean }>`
   }
 
   ${NativeInput} {
-    height: 24px;
+    height: 22px;
     padding: 0;
     text-align: center;
 

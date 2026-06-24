@@ -3,6 +3,7 @@ import invariant from "invariant";
 import { isNil } from "es-toolkit/compat";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie } from "tiny-cookie";
+import { toError } from "@shared/utils/error";
 import type { CustomTheme } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
@@ -92,6 +93,13 @@ export default class AuthStore extends Store<Team> {
     const data: PersistedData = Storage.get(this.name) || {};
 
     this.rehydrate(data);
+
+    client.setUnauthorizedHandler((reason) =>
+      reason === "user_suspended"
+        ? this.logout({ savePath: false, revokeToken: false, clearCache: true })
+        : this.logout({ savePath: true, revokeToken: false, clearCache: false })
+    );
+
     void this.fetchAuth();
 
     // persists this entire store to localstorage whenever any keys are changed
@@ -216,11 +224,10 @@ export default class AuthStore extends Store<Team> {
         this.collaborationToken = res.data.collaborationToken;
 
         if (env.SENTRY_DSN) {
-          Sentry.configureScope((scope) => {
-            scope.setUser({ id: this.currentUserId! });
-            scope.setExtra("team", this.team?.name);
-            scope.setExtra("teamId", this.currentTeamId);
-          });
+          const scope = Sentry.getCurrentScope();
+          scope.setUser({ id: this.currentUserId! });
+          scope.setExtra("team", this.team?.name);
+          scope.setExtra("teamId", this.currentTeamId);
         }
 
         // Redirect to the correct custom domain or team subdomain if needed
@@ -248,9 +255,20 @@ export default class AuthStore extends Store<Team> {
         }
       });
     } catch (err) {
-      if (err.error === "user_suspended") {
+      if (
+        err instanceof Error &&
+        "error" in err &&
+        err.error === "user_suspended"
+      ) {
         this.isSuspended = true;
-        this.suspendedContactEmail = err.data.adminEmail;
+        if (
+          "data" in err &&
+          err.data instanceof Object &&
+          "adminEmail" in err.data &&
+          typeof err.data.adminEmail === "string"
+        ) {
+          this.suspendedContactEmail = err.data.adminEmail;
+        }
         return;
       }
       throw err;
@@ -335,7 +353,7 @@ export default class AuthStore extends Store<Team> {
         // invalidate authentication token on server and unset auth cookie
         await client.post(`/auth.delete`);
       } catch (err) {
-        Logger.error("Failed to delete authentication", err);
+        Logger.error("Failed to delete authentication", toError(err));
       }
     }
 

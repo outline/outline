@@ -855,7 +855,7 @@ class Collection extends ParanoidModel<
     return this;
   };
 
-  deleteDocument = async function (document: Document, options?: FindOptions) {
+  deleteDocument = async (document: Document, options?: FindOptions) => {
     await this.removeDocumentInStructure(document, options);
 
     // Helper to destroy all child documents for a document
@@ -879,12 +879,12 @@ class Collection extends ParanoidModel<
     await document.destroy(options);
   };
 
-  removeDocumentInStructure = async function (
+  removeDocumentInStructure = async (
     document: Document,
     options?: FindOptions & {
       save?: boolean;
     }
-  ) {
+  ) => {
     if (!this.documentStructure) {
       return;
     }
@@ -942,7 +942,7 @@ class Collection extends ParanoidModel<
     return result;
   };
 
-  getDocumentParents = function (documentId: string): string[] | void {
+  getDocumentParents = (documentId: string): string[] | void => {
     let result!: string[];
 
     const loopChildren = (documents: NavigationNode[], path: string[] = []) => {
@@ -969,10 +969,10 @@ class Collection extends ParanoidModel<
   /**
    * Update document's title and url in the documentStructure
    */
-  updateDocument = async function (
+  updateDocument = async (
     updatedDocument: Document,
     options?: { transaction?: Transaction | null | undefined }
-  ) {
+  ) => {
     if (!this.documentStructure) {
       return;
     }
@@ -1007,7 +1007,7 @@ class Collection extends ParanoidModel<
     return this;
   };
 
-  addDocumentToStructure = async function (
+  addDocumentToStructure = async (
     document: Document,
     index?: number,
     options: FindOptions & {
@@ -1017,7 +1017,7 @@ class Collection extends ParanoidModel<
       includeArchived?: boolean;
       insertOrder?: "prepend" | "append";
     } = {}
-  ) {
+  ) => {
     if (!this.documentStructure) {
       this.documentStructure = [];
     }

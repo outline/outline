@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import react from "@vitejs/plugin-react-oxc";
+import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import webpackStats from "rollup-plugin-webpack-stats";
 import type { ServerOptions } from "vite";
@@ -151,9 +151,6 @@ export default () =>
       // Generate a stats.json file for webpack that will be consumed by RelativeCI
       webpackStats(),
     ],
-    experimental: {
-      enableNativePlugin: true,
-    },
     resolve: {
       alias: {
         "~": path.resolve(__dirname, "./app"),
@@ -184,7 +181,7 @@ export default () =>
           assetFileNames: "assets/[name].[hash][extname]",
           chunkFileNames: "assets/[name].[hash].js",
           entryFileNames: "assets/[name].[hash].js",
-          advancedChunks: {
+          codeSplitting: {
             groups: [
               // Shared utilities used across the app — higher priority
               // prevents them being absorbed into lazy vendor chunks

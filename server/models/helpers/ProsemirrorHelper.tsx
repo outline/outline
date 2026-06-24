@@ -16,6 +16,7 @@ import {
   yDocToProsemirrorJSON,
 } from "y-prosemirror";
 import * as Y from "yjs";
+import { toError, errToString } from "@shared/utils/error";
 import Diff from "@shared/editor/extensions/Diff";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { ExtendedChange } from "@shared/editor/lib/ChangesetHelper";
@@ -100,6 +101,12 @@ function isDecorationSource(value: unknown): value is DecorationSource {
 
 @trace()
 export class ProsemirrorHelper extends SharedProsemirrorHelper {
+  /**
+   * Maximum amount of visible text, in characters, to grow a mention email
+   * snippet outward when climbing toward surrounding context.
+   */
+  static readonly mentionEmailMaxChars = 1000;
+
   /**
    * Returns the input text as a Y.Doc.
    *
@@ -221,76 +228,97 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
   }
 
   /**
-   * Find the nearest ancestor block node which contains the mention.
+   * Build an email snippet around a mention. A surrounding list is trimmed to
+   * the mentioned item plus one sibling on either side, a table to the
+   * mentioned row; otherwise the largest complete block that still fits the
+   * size budget is kept.
    *
    * @param doc The top-level doc node of a document / revision.
-   * @param mention The mention for which the ancestor node is needed.
-   * @returns A new top-level doc node with the ancestor node as the only child.
+   * @param mention The mention to build the snippet around.
+   * @returns A new top-level doc node with the chosen block as its only child,
+   * or undefined if the mention could not be found.
    */
   static getNodeForMentionEmail(doc: Node, mention: MentionAttrs) {
-    let blockNode: Node | undefined;
-    const potentialBlockNodes = [
-      "table",
-      "checkbox_list",
-      "heading",
-      "paragraph",
-    ];
-
-    const isNodeContainingMention = (node: Node) => {
-      let foundMention = false;
-
-      node.descendants((childNode: Node) => {
-        if (
-          childNode.type.name === "mention" &&
-          isMatch(childNode.attrs, mention)
-        ) {
-          foundMention = true;
-          return false;
-        }
-
-        // No need to traverse other descendants once we find the mention.
-        if (foundMention) {
-          return false;
-        }
-
-        return true;
-      });
-
-      return foundMention;
-    };
-
-    doc.descendants((node: Node) => {
-      // No need to traverse other descendants once we find the containing block node.
-      if (blockNode) {
+    // A mention is an inline node, so it always lives inside a textblock
+    // (paragraph or heading). Locate it once and resolve its position.
+    let mentionPos: number | undefined;
+    doc.descendants((node: Node, pos: number) => {
+      if (mentionPos !== undefined) {
         return false;
       }
-
-      if (potentialBlockNodes.includes(node.type.name)) {
-        if (isNodeContainingMention(node)) {
-          blockNode = node;
-        }
+      if (node.type.name === "mention" && isMatch(node.attrs, mention)) {
+        mentionPos = pos;
         return false;
       }
-
       return true;
     });
 
-    // Use the containing block node to maintain structure during serialization.
-    // Minify to include mentioned child only.
-    if (blockNode && !["heading", "paragraph"].includes(blockNode.type.name)) {
-      const children: Node[] = [];
+    if (mentionPos === undefined) {
+      return undefined;
+    }
 
-      blockNode.forEach((child: Node) => {
-        if (isNodeContainingMention(child)) {
-          children.push(child);
+    const $pos = doc.resolve(mentionPos);
+
+    // Lists and tables can be long, so rather than show the whole container,
+    // trim a list to the mentioned item plus one sibling on either side, and a
+    // table to the mentioned row. Use the nearest such ancestor so nested
+    // structures show the content closest to the mention.
+    const listTypes = ["bullet_list", "ordered_list", "checkbox_list"];
+    for (let d = $pos.depth - 1; d >= 1; d--) {
+      const container = $pos.node(d);
+      const name = container.type.name;
+
+      if (listTypes.includes(name)) {
+        const index = $pos.index(d);
+        const start = Math.max(0, index - 1);
+        const end = Math.min(container.childCount, index + 2);
+        const items: Node[] = [];
+        for (let i = start; i < end; i++) {
+          items.push(container.child(i));
         }
-      });
+        // Keep an ordered list's numbering aligned with the original document
+        // by advancing its start to match the first item shown.
+        const attrs =
+          name === "ordered_list" && start > 0
+            ? {
+                ...container.attrs,
+                order: (container.attrs.order ?? 1) + start,
+              }
+            : container.attrs;
+        const trimmed = container.type.create(
+          attrs,
+          Fragment.fromArray(items),
+          container.marks
+        );
+        return doc.copy(Fragment.fromArray([trimmed]));
+      }
 
-      blockNode = blockNode.copy(Fragment.fromArray(children));
+      if (name === "table") {
+        const row = container.child($pos.index(d));
+        return doc.copy(
+          Fragment.fromArray([container.copy(Fragment.fromArray([row]))])
+        );
+      }
+    }
+
+    // Always include at least the textblock the mention sits in, then climb the
+    // ancestor chain outward keeping the largest complete block that still fits
+    // the size budget. Each ancestor strictly contains the previous, so sizes
+    // grow monotonically and we can stop at the first that overflows.
+    let node = $pos.node($pos.depth);
+    for (let d = $pos.depth - 1; d >= 1; d--) {
+      const ancestor = $pos.node(d);
+      // textBetween rather than textContent so leaf text (mentions, etc.) is
+      // counted towards the budget.
+      const length = textBetween(ancestor, 0, ancestor.content.size).length;
+      if (length > ProsemirrorHelper.mentionEmailMaxChars) {
+        break;
+      }
+      node = ancestor;
     }
 
     // Return a new top-level "doc" node to maintain structure during serialization.
-    return blockNode ? doc.copy(Fragment.fromArray([blockNode])) : undefined;
+    return doc.copy(Fragment.fromArray([node]));
   }
 
   static async replaceInternalUrls(
@@ -532,7 +560,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
         );
         styleTags = sheet.getStyleTags();
       } catch (error) {
-        Logger.error("Failed to render styles on node HTML conversion", error);
+        Logger.error(
+          "Failed to render styles on node HTML conversion",
+          toError(error)
+        );
       } finally {
         sheet.seal();
       }
@@ -671,7 +702,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       try {
         view?.destroy();
       } catch (err) {
-        Logger.error("Error destroying ProseMirror view", err);
+        Logger.error("Error destroying ProseMirror view", toError(err));
       }
       cleanupEnv?.();
     }
@@ -824,27 +855,41 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     // Create a new document with the emoji removed from the text
     const json = doc.toJSON();
 
-    function removeEmojiFromNode(node: ProsemirrorData): ProsemirrorData {
+    function removeEmojiFromNode(
+      node: ProsemirrorData
+    ): ProsemirrorData | null {
       if (node.type === "text" && node.text && node.text.startsWith(emoji)) {
+        const text = node.text.slice(emoji.length);
+        // Removing the emoji can leave an empty text node (e.g. when the text
+        // node contained only the emoji). Prosemirror disallows empty text
+        // nodes, so drop the node entirely in that case.
+        if (!text) {
+          return null;
+        }
         return {
           ...node,
-          text: node.text.slice(emoji.length),
+          text,
         };
       }
       if (node.content) {
         let found = false;
+        const content: ProsemirrorData[] = [];
+        for (const child of node.content) {
+          if (found) {
+            content.push(child);
+            continue;
+          }
+          const result = removeEmojiFromNode(child);
+          if (result !== child) {
+            found = true;
+          }
+          if (result !== null) {
+            content.push(result);
+          }
+        }
         return {
           ...node,
-          content: node.content.map((child) => {
-            if (found) {
-              return child;
-            }
-            const result = removeEmojiFromNode(child);
-            if (result !== child) {
-              found = true;
-            }
-            return result;
-          }),
+          content,
         };
       }
       return node;
@@ -853,7 +898,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const modifiedJson = removeEmojiFromNode(json as ProsemirrorData);
     return {
       emoji,
-      doc: Node.fromJSON(schema, modifiedJson),
+      doc: modifiedJson ? Node.fromJSON(schema, modifiedJson) : doc,
     };
   }
 
@@ -976,7 +1021,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
             }
           } catch (err) {
             Logger.warn("Failed to download image for attachment", {
-              error: err.message,
+              error: errToString(err),
               src,
             });
           }

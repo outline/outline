@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { errToString } from "@shared/utils/error";
 import { CollectionPermission, UserRole } from "@shared/types";
 import { createContext } from "@server/context";
 import { Event } from "@server/models";
@@ -123,7 +124,7 @@ describe("user model", () => {
         error = err;
       }
 
-      expect(error && error.message).toContain("Cannot delete last user");
+      expect(errToString(error)).toContain("Cannot delete last user");
     });
 
     it("should prevent last admin from deleting account", async () => {
@@ -139,7 +140,7 @@ describe("user model", () => {
         error = err;
       }
 
-      expect(error && error.message).toContain("Cannot delete account");
+      expect(errToString(error)).toContain("Cannot delete account");
     });
 
     it("should not prevent multiple admin from deleting account", async () => {

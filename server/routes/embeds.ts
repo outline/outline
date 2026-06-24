@@ -153,7 +153,8 @@ ${resizeObserverScript(ctx)}
   }
 
   if (
-    parsed.host.endsWith("pinterest.com") &&
+    (parsed.host === "pinterest.com" ||
+      parsed.host.endsWith(".pinterest.com")) &&
     parsed.protocol === "https:" &&
     ctx.path === "/embeds/pinterest"
   ) {
