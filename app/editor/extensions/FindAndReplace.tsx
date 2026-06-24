@@ -414,6 +414,14 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
             const from = type === "inline" ? pos + start : pos;
             const to = type === "inline" ? pos + end : pos + node.nodeSize;
 
+            // A match against the deburred text can cover only part of a
+            // decomposed sequence (e.g. a single jamo of a Hangul syllable),
+            // which maps back to a zero-length range in the original text.
+            // Skip these so replace operations don't degenerate into inserts.
+            if (to <= from) {
+              continue;
+            }
+
             // Check if already exists in results, possible because we search
             // over both the deburred and the original text.
             const key = `${from}:${to}`;

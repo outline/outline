@@ -78,6 +78,22 @@ describe("deburrWithMap", () => {
     expect(toOriginalIndex(deburred.length)).toBe(text.length);
   });
 
+  it("maps a partial decomposed sequence to a zero-length original range", () => {
+    // A precomposed Hangul syllable decomposes into multiple jamo that all
+    // originate from the same single original code unit. Matching only part of
+    // that sequence therefore collapses to an empty range in the original text,
+    // which consumers must detect and skip.
+    const text = "강";
+    const { deburred, toOriginalIndex } = deburrWithMap(text);
+
+    expect(deburred.length).toBeGreaterThan(1);
+    // The first jamo alone maps back to a zero-length range (start === end).
+    expect(toOriginalIndex(0)).toBe(toOriginalIndex(1));
+    // The full sequence still spans the whole original character.
+    expect(toOriginalIndex(0)).toBe(0);
+    expect(toOriginalIndex(deburred.length)).toBe(text.length);
+  });
+
   it("handles surrogate pairs without splitting them", () => {
     const text = "a😀b";
     const { deburred, toOriginalIndex } = deburrWithMap(text);

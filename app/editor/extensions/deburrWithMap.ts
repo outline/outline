@@ -35,7 +35,7 @@ export function deburrWithMap(text: string): {
   // syllable or expanded a ligature). Rebuild the deburred string per code
   // point so it stays consistent with the index map, recording the original
   // index of every emitted code unit plus a sentinel for the end position.
-  let rebuilt = "";
+  const parts: string[] = [];
   const map: number[] = [];
   let originalIndex = 0;
 
@@ -45,7 +45,7 @@ export function deburrWithMap(text: string): {
     // directly and skip the comparatively expensive normalization.
     if (char.charCodeAt(0) < 0x80) {
       map.push(originalIndex);
-      rebuilt += char;
+      parts.push(char);
       originalIndex += 1;
       continue;
     }
@@ -54,10 +54,10 @@ export function deburrWithMap(text: string): {
     for (let i = 0; i < stripped.length; i++) {
       map.push(originalIndex);
     }
-    rebuilt += stripped;
+    parts.push(stripped);
     originalIndex += char.length;
   }
   map.push(text.length);
 
-  return { deburred: rebuilt, toOriginalIndex: (index) => map[index] };
+  return { deburred: parts.join(""), toOriginalIndex: (index) => map[index] };
 }
