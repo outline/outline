@@ -2,7 +2,6 @@ import { chunk, snakeCase } from "es-toolkit/compat";
 import type { Middleware } from "koa";
 import compose from "koa-compose";
 import Router from "koa-router";
-import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import {
   defaultRateLimiter,
@@ -212,10 +211,10 @@ router.post(
   async (ctx: APIContext<T.BatchReq>) => {
     const { requests } = ctx.input.body;
 
-    // Allow 1s per sub-request, capped at the default request timeout.
+    // Allow 1s per sub-request, clamped between a 15s floor and 25s ceiling.
     const originalTimeout = ctx.req.socket.timeout || 0;
     ctx.req.socket.setTimeout(
-      Math.min(env.REQUEST_TIMEOUT, requests.length * 1000)
+      Math.min(25000, Math.max(15000, requests.length * 1000))
     );
 
     try {
