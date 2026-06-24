@@ -286,15 +286,22 @@ export function createOIDCRouter(
       return ctx.redirect("/");
     }
 
-    const url = new URL(endpoints.logoutURL);
-    if (idToken) {
-      url.searchParams.set("id_token_hint", idToken);
-    }
-    if (env.OIDC_CLIENT_ID) {
-      url.searchParams.set("client_id", env.OIDC_CLIENT_ID);
-    }
-    url.searchParams.set("post_logout_redirect_uri", env.URL);
+    try {
+      const url = new URL(endpoints.logoutURL);
+      if (idToken) {
+        url.searchParams.set("id_token_hint", idToken);
+      }
+      if (env.OIDC_CLIENT_ID) {
+        url.searchParams.set("client_id", env.OIDC_CLIENT_ID);
+      }
+      url.searchParams.set("post_logout_redirect_uri", env.URL);
 
-    return ctx.redirect(url.toString());
+      return ctx.redirect(url.toString());
+    } catch (err) {
+      Logger.warn("Invalid OIDC logout URL", {
+        error: toError(err).message,
+      });
+      return ctx.redirect("/");
+    }
   });
 }
