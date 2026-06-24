@@ -1,4 +1,4 @@
-import { deburrWithMap } from "./FindAndReplace";
+import { deburrWithMap } from "./deburrWithMap";
 
 describe("deburrWithMap", () => {
   it("leaves plain ASCII text unchanged and maps indices 1:1", () => {
