@@ -21,10 +21,17 @@ export default function useEditorClickHandlers({ shareId }: Params) {
       if (isHash(href)) {
         // Navigate via history rather than assigning window.location so the
         // current location state (e.g. the active sidebar context) is retained
-        // when scrolling to an anchor within the same document.
+        // when scrolling to an anchor within the same document. The hash (and
+        // search, for an absolute link) come from the href; everything else
+        // stays as the current location.
+        const target = href.startsWith("#")
+          ? { hash: href, search: history.location.search }
+          : new URL(href);
         history.push({
-          ...history.location,
-          hash: href.startsWith("#") ? href : new URL(href).hash,
+          pathname: history.location.pathname,
+          search: target.search,
+          hash: target.hash,
+          state: history.location.state,
         });
         return;
       }

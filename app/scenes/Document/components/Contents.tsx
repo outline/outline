@@ -39,7 +39,12 @@ function Contents() {
       // Navigate via history so the location state (active sidebar context) is
       // retained rather than dropped by a native hash navigation.
       event.preventDefault();
-      history.push({ ...history.location, hash: `#${id}` });
+      history.push({
+        pathname: history.location.pathname,
+        search: history.location.search,
+        hash: `#${id}`,
+        state: history.location.state,
+      });
     },
     [history]
   );

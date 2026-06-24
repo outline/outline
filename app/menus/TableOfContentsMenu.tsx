@@ -37,7 +37,12 @@ function TableOfContentsMenu() {
                 requestAnimationFrame(() =>
                   // Navigate via history so the location state (active sidebar
                   // context) is retained when scrolling to the heading.
-                  history.push({ ...history.location, hash: `#${heading.id}` })
+                  history.push({
+                    pathname: history.location.pathname,
+                    search: history.location.search,
+                    hash: `#${heading.id}`,
+                    state: history.location.state,
+                  })
                 )
               ),
           })
