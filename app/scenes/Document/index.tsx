@@ -5,6 +5,7 @@ import type { RouteComponentProps } from "react-router-dom";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { useTrackLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import useStores from "~/hooks/useStores";
+import { patchLocation } from "~/utils/history";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
 import { Footer } from "./components/Footer";
@@ -35,10 +36,11 @@ export default function DocumentScene(props: Props) {
   useEffect(() => {
     // When opening a document directly on app load, sidebarContext will not be set.
     if (!props.location.state?.sidebarContext) {
-      history.replace({
-        ...props.location,
-        state: { ...props.location.state, sidebarContext: "collections" }, // optimistic preference of "collections"
-      });
+      history.replace(
+        patchLocation(props.location, {
+          state: { ...props.location.state, sidebarContext: "collections" }, // optimistic preference of "collections"
+        })
+      );
     }
   }, [props.location, history]);
 

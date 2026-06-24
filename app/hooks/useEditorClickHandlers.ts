@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import { isModKey } from "@shared/utils/keyboard";
 import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
+import { patchLocation } from "~/utils/history";
 import { sharedModelPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import useStores from "./useStores";
@@ -27,12 +28,12 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         const target = href.startsWith("#")
           ? { hash: href, search: history.location.search }
           : new URL(href);
-        history.push({
-          pathname: history.location.pathname,
-          search: target.search,
-          hash: target.hash,
-          state: history.location.state,
-        });
+        history.push(
+          patchLocation(history.location, {
+            search: target.search,
+            hash: target.hash,
+          })
+        );
         return;
       }
 

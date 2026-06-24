@@ -10,7 +10,7 @@ import Button from "~/components/Button";
 import { useDocumentContext } from "~/components/DocumentContext";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { useMenuAction } from "~/hooks/useMenuAction";
-import history from "~/utils/history";
+import history, { patchLocation } from "~/utils/history";
 
 function TableOfContentsMenu() {
   const { headings } = useDocumentContext();
@@ -37,12 +37,9 @@ function TableOfContentsMenu() {
                 requestAnimationFrame(() =>
                   // Navigate via history so the location state (active sidebar
                   // context) is retained when scrolling to the heading.
-                  history.push({
-                    pathname: history.location.pathname,
-                    search: history.location.search,
-                    hash: `#${heading.id}`,
-                    state: history.location.state,
-                  })
+                  history.push(
+                    patchLocation(history.location, { hash: `#${heading.id}` })
+                  )
                 )
               ),
           })

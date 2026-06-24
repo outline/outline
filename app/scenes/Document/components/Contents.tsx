@@ -10,6 +10,7 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, hideScrollbars, s } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
+import { patchLocation } from "~/utils/history";
 import { decodeURIComponentSafe } from "~/utils/urls";
 
 const HEADING_OFFSET = 20;
@@ -39,12 +40,7 @@ function Contents() {
       // Navigate via history so the location state (active sidebar context) is
       // retained rather than dropped by a native hash navigation.
       event.preventDefault();
-      history.push({
-        pathname: history.location.pathname,
-        search: history.location.search,
-        hash: `#${id}`,
-        state: history.location.state,
-      });
+      history.push(patchLocation(history.location, { hash: `#${id}` }));
     },
     [history]
   );
