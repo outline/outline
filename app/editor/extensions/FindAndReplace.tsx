@@ -18,6 +18,44 @@ const supportsHighlightAPI =
   typeof CSS !== "undefined" && CSS.highlights !== undefined;
 
 /**
+ * Build a diacritics-stripped version of a string together with a mapping from
+ * each index in the stripped string back to the corresponding index in the
+ * original string.
+ *
+ * `deburr` normalizes to NFD form, which can change the length of the string –
+ * most notably it decomposes precomposed CJK/Hangul syllables (e.g. "강" is a
+ * single UTF-16 code unit but decomposes into three jamo). Because of this the
+ * stripped string cannot be aligned to the original by assuming equal lengths,
+ * so we record the source index of every emitted code unit instead.
+ *
+ * @param text The original text to deburr.
+ * @returns the deburred text and an index map of length `deburred.length + 1`,
+ * where `map[i]` is the original index of the deburred code unit at `i` and the
+ * final entry is the original text length (a sentinel for end positions).
+ */
+export function deburrWithMap(text: string): {
+  deburred: string;
+  map: number[];
+} {
+  let deburred = "";
+  const map: number[] = [];
+  let originalIndex = 0;
+
+  // Iterate by code point so surrogate pairs are deburred as a unit.
+  for (const char of text) {
+    const stripped = deburr(char);
+    for (let i = 0; i < stripped.length; i++) {
+      map.push(originalIndex);
+    }
+    deburred += stripped;
+    originalIndex += char.length;
+  }
+
+  map.push(text.length);
+  return { deburred, map };
+}
+
+/**
  * Options for the FindAndReplace extension.
  */
 type FindAndReplaceOptions = {
@@ -382,47 +420,62 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
     });
 
     // Tracks already-seen match positions so duplicate matches (possible because
-    // we search the deburred text concatenated with the original) can be skipped
-    // in constant time rather than rescanning the entire results array.
+    // we search both the deburred and the original text) can be skipped in
+    // constant time rather than rescanning the entire results array.
     const seen = new Set<string>();
 
     mergedTextNodes.forEach((node) => {
       const { text = "", pos, type } = node;
-      try {
-        let m;
-        const search = this.findRegExp;
 
-        // We construct a string with the text stripped of diacritics plus the original text for
-        // search  allowing to search for diacritics-insensitive matches easily.
-        while ((m = search.exec(deburr(text) + text))) {
-          if (m[0] === "") {
-            break;
+      // Collects matches found in `haystack`, translating string indices into
+      // original-text indices via `toOriginalIndex`.
+      const collect = (
+        haystack: string,
+        toOriginalIndex: (index: number) => number | undefined
+      ) => {
+        try {
+          let m;
+          const search = this.findRegExp;
+
+          while ((m = search.exec(haystack))) {
+            if (m[0] === "") {
+              break;
+            }
+
+            const start = toOriginalIndex(m.index);
+            const end = toOriginalIndex(m.index + m[0].length);
+            if (start === undefined || end === undefined) {
+              continue;
+            }
+
+            const from = type === "inline" ? pos + start : pos;
+            const to = type === "inline" ? pos + end : pos + node.nodeSize;
+
+            // Check if already exists in results, possible because we search
+            // over both the deburred and the original text.
+            const key = `${from}:${to}`;
+            if (seen.has(key)) {
+              continue;
+            }
+            seen.add(key);
+
+            this.results.push({ from, to, type });
           }
-
-          // Reconstruct the correct match position
-          const i = m.index >= text.length ? m.index - text.length : m.index;
-          const from = type === "inline" ? pos + i : pos;
-          const to = from + (type === "inline" ? m[0].length : node.nodeSize);
-
-          // Prevent wrap around matches when the regex matches at the end of the deburred
-          // string and continues matching at the start of the original string
-          if (i + m[0].length > text.length) {
-            continue;
-          }
-
-          // Check if already exists in results, possible because we search
-          // over `deburr(text) + text`
-          const key = `${from}:${to}`;
-          if (seen.has(key)) {
-            continue;
-          }
-          seen.add(key);
-
-          this.results.push({ from, to, type });
+        } catch (_err) {
+          // Invalid RegExp
         }
-      } catch (_err) {
-        // Invalid RegExp
-      }
+      };
+
+      // Search the diacritics-stripped text so that, for example, "cafe"
+      // matches "café". Because deburring can change the string length (e.g. it
+      // decomposes CJK/Hangul characters), match indices are translated back to
+      // the original text through the index map rather than assumed equal.
+      const { deburred, map } = deburrWithMap(text);
+      collect(deburred, (index) => map[index]);
+
+      // Also search the original text so that queries containing diacritics
+      // (e.g. "café") still match, and to cover any text that deburring alters.
+      collect(text, (index) => index);
     });
   }
 
