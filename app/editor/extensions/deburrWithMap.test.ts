@@ -58,6 +58,26 @@ describe("deburrWithMap", () => {
     expect(text.slice(toOriginalIndex(0), toOriginalIndex(3))).toBe("abc");
   });
 
+  it("keeps the map consistent across interleaved ASCII and Hangul", () => {
+    const text = "a강b의c";
+    const { deburred, toOriginalIndex } = deburrWithMap(text);
+
+    // Every ASCII character must still resolve to its exact original code unit,
+    // even though the Hangul characters between them expand under NFD.
+    for (const ascii of ["a", "b", "c"]) {
+      const index = deburred.indexOf(ascii);
+      expect(text.slice(toOriginalIndex(index), toOriginalIndex(index + 1))).toBe(
+        ascii
+      );
+    }
+
+    // Indices are non-decreasing and the end maps to the original length.
+    for (let i = 0; i < deburred.length; i++) {
+      expect(toOriginalIndex(i + 1)).toBeGreaterThanOrEqual(toOriginalIndex(i));
+    }
+    expect(toOriginalIndex(deburred.length)).toBe(text.length);
+  });
+
   it("handles surrogate pairs without splitting them", () => {
     const text = "a😀b";
     const { deburred, toOriginalIndex } = deburrWithMap(text);
