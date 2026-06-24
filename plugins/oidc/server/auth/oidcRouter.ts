@@ -1,10 +1,11 @@
 import passport from "@outlinewiki/koa-passport";
+import { addMonths, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import type { Context } from "koa";
 import type Router from "koa-router";
 import { get } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
-import { slugifyDomain } from "@shared/utils/domains";
+import { getCookieDomain, slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import { isBase64Url } from "@shared/utils/urls";
 import accountProvisioner from "@server/commands/accountProvisioner";
@@ -29,6 +30,8 @@ import config from "../../plugin.json";
 import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
 import { createContext } from "@server/context";
+
+const OIDC_LOGOUT_PATH = "/auth/oidc.logout";
 
 export interface OIDCEndpoints {
   authorizationURL: string;
@@ -232,6 +235,23 @@ export function createOIDCRouter(
               scopes: params.scope ? params.scope.split(" ") : scopes,
             },
           });
+          // Persist the id_token so a later RP-initiated logout can pass it as
+          // the `id_token_hint`, allowing the provider to scope the logout to
+          // this session rather than terminating its global SSO session.
+          if (endpoints.logoutURL && params.id_token) {
+            context.cookies.set("oidcIdToken", params.id_token, {
+              httpOnly: true,
+              sameSite: "lax",
+              secure: env.isProduction,
+              path: OIDC_LOGOUT_PATH,
+              domain: getCookieDomain(
+                context.request.hostname,
+                env.isCloudHosted
+              ),
+              expires: addMonths(new Date(), 3),
+            });
+          }
+
           return done(null, result.user, { ...result, client });
         } catch (err) {
           return done(toError(err), null);
@@ -243,4 +263,45 @@ export function createOIDCRouter(
   router.get(config.id, startOAuthFlow, passport.authenticate(config.id));
   router.get(`${config.id}.callback`, passportMiddleware(config.id));
   router.post(`${config.id}.callback`, passportMiddleware(config.id));
+
+  // Performs a spec-compliant RP-initiated logout against the provider's end
+  // session endpoint. Passing `id_token_hint` identifies the session being
+  // ended so the provider can scope the logout and skip a confirmation prompt,
+  // while `post_logout_redirect_uri` returns the user to Outline afterwards.
+  // https://openid.net/specs/openid-connect-rpinitiated-1_0.html
+  router.get(`${config.id}.logout`, (ctx: Context) => {
+    const idToken = ctx.cookies.get("oidcIdToken");
+
+    // Always discard our copy of the id_token, regardless of where we redirect.
+    ctx.cookies.set("oidcIdToken", "", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: env.isProduction,
+      path: OIDC_LOGOUT_PATH,
+      domain: getCookieDomain(ctx.request.hostname, env.isCloudHosted),
+      expires: subMinutes(new Date(), 1),
+    });
+
+    if (!endpoints.logoutURL) {
+      return ctx.redirect("/");
+    }
+
+    try {
+      const url = new URL(endpoints.logoutURL);
+      if (idToken) {
+        url.searchParams.set("id_token_hint", idToken);
+      }
+      if (env.OIDC_CLIENT_ID) {
+        url.searchParams.set("client_id", env.OIDC_CLIENT_ID);
+      }
+      url.searchParams.set("post_logout_redirect_uri", env.URL);
+
+      return ctx.redirect(url.toString());
+    } catch (err) {
+      Logger.warn("Invalid OIDC logout URL", {
+        error: toError(err).message,
+      });
+      return ctx.redirect("/");
+    }
+  });
 }
