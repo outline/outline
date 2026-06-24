@@ -251,8 +251,14 @@ router.post(
       limit: ctx.state.pagination.limit,
       paranoid: false,
     });
+    // Avoid serializing the (potentially very large) document content for every
+    // revision in the list as this can result in a response large enough to
+    // fail mid-stream for big documents. The content is loaded on demand when a
+    // single revision is opened via revisions.info.
     const data = await Promise.all(
-      revisions.map((revision) => presentRevision(revision))
+      revisions.map((revision) =>
+        presentRevision(revision, { includeContent: false })
+      )
     );
 
     ctx.body = {

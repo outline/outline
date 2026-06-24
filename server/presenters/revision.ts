@@ -4,13 +4,28 @@ import type { Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import presentUser from "./user";
 
-async function presentRevision(revision: Revision) {
+type PresentRevisionOptions = {
+  /**
+   * Whether to include the (potentially large) document content, both as
+   * Prosemirror `data` and Markdown `text`. Defaults to true. This should be
+   * disabled when presenting many revisions at once (e.g. in a list) to avoid
+   * generating an excessively large response.
+   */
+  includeContent?: boolean;
+};
+
+async function presentRevision(
+  revision: Revision,
+  options: PresentRevisionOptions = {}
+) {
+  const { includeContent = true } = options;
+
   // TODO: Remove this fallback once all revisions have been migrated
   const { emoji, strippedTitle } = parseTitle(revision.title);
 
   const [data, text, collaborators] = await Promise.all([
-    DocumentHelper.toJSON(revision),
-    DocumentHelper.toMarkdown(revision),
+    includeContent ? DocumentHelper.toJSON(revision) : undefined,
+    includeContent ? DocumentHelper.toMarkdown(revision) : undefined,
     revision.collaborators,
   ]);
 

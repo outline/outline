@@ -173,6 +173,16 @@ function History() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [document, revisions.orderedData, revisionsOffset]);
 
+  // The revisions list is lightweight and omits document content, so load the
+  // content of the latest revision on demand to compare it against the current
+  // document below.
+  const latestRevisionEvent = revisionEvents[0];
+  React.useEffect(() => {
+    if (latestRevisionEvent && !latestRevisionEvent.data) {
+      void revisions.fetch(latestRevisionEvent.id);
+    }
+  }, [revisions, latestRevisionEvent]);
+
   const nonRevisionEvents = React.useMemo(
     () =>
       document
@@ -188,8 +198,6 @@ function History() {
       "createdAt",
       "desc"
     );
-
-    const latestRevisionEvent = revisionEvents[0];
 
     if (latestRevisionEvent && document) {
       const latestRevision = revisions.get(latestRevisionEvent.id);
@@ -215,7 +223,13 @@ function History() {
     }
 
     return merged;
-  }, [revisions, document, revisionEvents, nonRevisionEvents]);
+  }, [
+    revisions,
+    document,
+    revisionEvents,
+    nonRevisionEvents,
+    latestRevisionEvent,
+  ]);
 
   const onCloseHistory = React.useCallback(() => {
     if (isMobile) {
