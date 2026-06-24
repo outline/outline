@@ -52,7 +52,7 @@ class OAuthClient extends ParanoidModel<
     max: OAuthClientValidation.maxNameLength,
     msg: `name must be ${OAuthClientValidation.maxNameLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   @AllowNull
@@ -61,7 +61,7 @@ class OAuthClient extends ParanoidModel<
     max: OAuthClientValidation.maxDescriptionLength,
     msg: `description must be ${OAuthClientValidation.maxDescriptionLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   description: string | null;
 
   @AllowNull
@@ -70,7 +70,7 @@ class OAuthClient extends ParanoidModel<
     max: OAuthClientValidation.maxDeveloperNameLength,
     msg: `developerName must be ${OAuthClientValidation.maxDeveloperNameLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   developerName: string | null;
 
   @AllowNull
@@ -79,7 +79,7 @@ class OAuthClient extends ParanoidModel<
     max: OAuthClientValidation.maxDeveloperUrlLength,
     msg: `developerUrl must be ${OAuthClientValidation.maxDeveloperUrlLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   developerUrl: string | null;
 
   @AllowNull
@@ -88,10 +88,10 @@ class OAuthClient extends ParanoidModel<
     max: OAuthClientValidation.maxAvatarUrlLength,
     msg: `avatarUrl must be ${OAuthClientValidation.maxAvatarUrlLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   avatarUrl: string | null;
 
-  @Column
+  @Column(DataType.STRING)
   clientId: string;
 
   @IsIn([Array.from(OAuthClientValidation.clientTypes)])
@@ -102,7 +102,7 @@ class OAuthClient extends ParanoidModel<
   @Encrypted
   clientSecret: string;
 
-  @Column
+  @Column(DataType.BOOLEAN)
   published: boolean;
 
   @ArrayNotEmpty()
@@ -124,14 +124,14 @@ class OAuthClient extends ParanoidModel<
   /** The last time this client was used to make an API request. */
   @AllowNull
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastActiveAt: Date | null;
 
   /** SHA-256 hash of the registration access token (RFC 7592). */
   @AllowNull
   @Unique
-  @Column
+  @Column(DataType.STRING)
   registrationAccessTokenHash: string | null;
 
   /** The cached registration access token. Only available during creation. */

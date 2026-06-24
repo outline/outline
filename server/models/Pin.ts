@@ -24,7 +24,7 @@ class Pin extends IdModel<
     max: 256,
     msg: `index must be 256 characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   index: string | null;
 
   // associations

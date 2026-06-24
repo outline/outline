@@ -68,18 +68,18 @@ class AuthenticationProvider extends Model<
     max: 255,
     msg: "name must be 255 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   enabled: boolean;
 
   @Length({
     max: 255,
     msg: "providerId must be 255 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   providerId: string;
 
   /** Provider-specific settings such as group sync configuration. */

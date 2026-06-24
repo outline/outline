@@ -1,5 +1,5 @@
 import path from "node:path";
-import babel from "vite-plugin-babel";
+import swc from "unplugin-swc";
 import { defineConfig } from "vitest/config";
 
 const aliases = {
@@ -11,28 +11,32 @@ const aliases = {
 
 const fileMock = path.resolve(__dirname, "./__mocks__/fileMock.js");
 
-const babelPlugin = () =>
-  babel({
-    include: /\.(t|j)sx?$/,
-    babelConfig: {
-      babelrc: false,
-      configFile: false,
-      sourceMaps: "inline",
-      presets: [
-        ["@babel/preset-react", { runtime: "automatic" }],
-        ["@babel/preset-typescript", { allowDeclareFields: true }],
-      ],
-      plugins: [
-        "babel-plugin-transform-typescript-metadata",
-        ["@babel/plugin-proposal-decorators", { legacy: true }],
-        "@babel/plugin-transform-class-properties",
-      ],
+// Mirrors the server build's SWC config (.swcrc). `decoratorMetadata` stays off
+// because every @Column has an explicit DataType, and emitting it would throw
+// on the circular model graph; `useDefineForClassFields:false` keeps bare class
+// fields from shadowing MobX observables. `tsconfigFile:false` stops the plugin
+// re-deriving (and re-enabling metadata) from tsconfig.json.
+const swcPlugin = () =>
+  swc.vite({
+    tsconfigFile: false,
+    jsc: {
+      parser: { syntax: "typescript", tsx: true, decorators: true },
+      transform: {
+        legacyDecorator: true,
+        decoratorMetadata: false,
+        useDefineForClassFields: false,
+        react: { runtime: "automatic" },
+      },
+      keepClassNames: true,
+      target: "es2020",
     },
+    // Preserve ES module syntax so Vite resolves imports (e.g. ./rules → .ts).
+    module: { type: "es6" },
   });
 
 const sharedConfig = {
   resolve: { alias: aliases },
-  plugins: [babelPlugin()],
+  plugins: [swcPlugin()],
   esbuild: false as const,
   oxc: false as const,
 };

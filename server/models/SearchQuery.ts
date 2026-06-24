@@ -44,25 +44,25 @@ class SearchQuery extends Model<
   /**
    * The number of results returned for this query.
    */
-  @Column
+  @Column(DataType.INTEGER)
   results: number;
 
   /**
    * How long the search took to execute, in milliseconds.
    */
-  @Column
+  @Column(DataType.INTEGER)
   duration: number;
 
   /**
    * User score for the results for this query, -1 for negative, 1 for positive, null for neutral.
    */
-  @Column
+  @Column(DataType.INTEGER)
   score: number;
 
   /**
    * The generated answer to the query, if any.
    */
-  @Column
+  @Column(DataType.STRING)
   answer: string;
 
   /**

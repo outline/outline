@@ -144,7 +144,7 @@ class User extends ParanoidModel<
     max: UserValidation.maxEmailLength,
     msg: `User email must be between 1 and ${UserValidation.maxEmailLength} characters`,
   })
-  @Column
+  @Column(DataType.STRING)
   email: string | null;
 
   @NotContainsUrl
@@ -153,7 +153,7 @@ class User extends ParanoidModel<
     max: UserValidation.maxNameLength,
     msg: `User name must be between 1 and ${UserValidation.maxNameLength} characters`,
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   @Default(UserRole.Member)
@@ -165,7 +165,7 @@ class User extends ParanoidModel<
   jwtSecret: string;
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastActiveAt: Date | null;
 
@@ -181,7 +181,7 @@ class User extends ParanoidModel<
   }
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastSignedInAt: Date | null;
 
@@ -197,12 +197,12 @@ class User extends ParanoidModel<
   }
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastSigninEmailSentAt: Date | null;
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   suspendedAt: Date | null;
 
   @Column(DataType.JSONB)

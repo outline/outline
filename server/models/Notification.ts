@@ -114,15 +114,15 @@ class Notification extends Model<
   id: string;
 
   @AllowNull
-  @Column
+  @Column(DataType.DATE)
   emailedAt?: Date | null;
 
   @AllowNull
-  @Column
+  @Column(DataType.DATE)
   viewedAt: Date | null;
 
   @AllowNull
-  @Column
+  @Column(DataType.DATE)
   archivedAt: Date | null;
 
   @CreatedAt

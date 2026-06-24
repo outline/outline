@@ -85,7 +85,7 @@ class Team extends ParanoidModel<
     max: TeamValidation.maxNameLength,
     msg: `Team name must be between 1 and ${TeamValidation.maxNameLength} characters`,
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   @AllowNull
@@ -117,7 +117,7 @@ class Team extends ParanoidModel<
     args: [RESERVED_SUBDOMAINS],
     msg: "You chose a restricted word, please try another.",
   })
-  @Column
+  @Column(DataType.STRING)
   subdomain: string | null;
 
   @Unique
@@ -126,7 +126,7 @@ class Team extends ParanoidModel<
     msg: `domain must be ${TeamValidation.maxDomainLength} characters or less`,
   })
   @IsFQDN
-  @Column
+  @Column(DataType.STRING)
   domain: string | null;
 
   @IsUUID(4)
@@ -183,34 +183,34 @@ class Team extends ParanoidModel<
   }
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   sharing: boolean;
 
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   inviteRequired: boolean;
 
   @Column(DataType.JSONB)
   signupQueryParams: { [key: string]: string } | null;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   guestSignin: boolean;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   passkeysEnabled: boolean;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   documentEmbeds: boolean;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   memberCollectionCreate: boolean;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   memberTeamCreate: boolean;
 
   @Default(UserRole.Member)
@@ -237,14 +237,14 @@ class Team extends ParanoidModel<
   preferences: TeamPreferences | null;
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   suspendedAt: Date | null;
 
   @Column(DataType.JSONB)
   flags: { [key in TeamFlag]?: number } | null;
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastActiveAt: Date | null;
 

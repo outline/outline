@@ -45,14 +45,14 @@ class Attachment extends IdModel<
     max: 4096,
     msg: "key must be 4096 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   key: string;
 
   @Length({
     max: 255,
     msg: "contentType must be 255 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   contentType: string;
 
   @IsNumeric
@@ -61,14 +61,14 @@ class Attachment extends IdModel<
 
   @Default("public-read")
   @IsIn([["private", "public-read"]])
-  @Column
+  @Column(DataType.STRING)
   acl: string;
 
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastAccessedAt: Date | null;
 
-  @Column
+  @Column(DataType.DATE)
   expiresAt: Date | null;
 
   // getters
