@@ -23,6 +23,26 @@ export const CSRF = {
   fieldName: "_csrf",
 };
 
+/**
+ * RPC methods that may be coalesced into a single `/batch` request. Deliberately
+ * curated to simple JSON mutations — no reads, redirects, file responses, or
+ * endpoints that set response headers. Shared by the client (which collects
+ * these into a batch) and the server (which only dispatches allowlisted methods).
+ */
+export const BatchableApiMethods = [
+  "documents.update",
+  "documents.move",
+  "documents.archive",
+  "documents.restore",
+  "documents.unpublish",
+  "documents.delete",
+  "collections.update",
+  "collections.move",
+  "collections.archive",
+  "collections.restore",
+  "collections.delete",
+] as const;
+
 export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.SeamlessEdit]: true,
   [TeamPreference.ViewersCanExport]: true,

@@ -7,13 +7,12 @@ import type { ModelSelectionAction } from "~/components/ModelSelectionToolbar";
 import ModelSelectionToolbar from "~/components/ModelSelectionToolbar";
 import type Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
-
-/** The batch methods a bulk document action may invoke. */
-type DocumentMethod = "archive" | "delete" | "restore";
+import { client } from "~/utils/ApiClient";
 
 /**
- * Configures the generic selection toolbar with bulk actions for documents,
- * dispatching them through the documents batch endpoint.
+ * Configures the generic selection toolbar with bulk actions for documents.
+ * Each action reuses the per-document model operation, dispatching the whole
+ * selection as a single request via the API client's batching.
  *
  * @returns the toolbar element, or null when no list selection is in scope.
  */
@@ -30,34 +29,42 @@ function DocumentSelectionToolbar() {
     .map((id) => documents.get(id))
     .filter((document): document is Document => !!document);
 
-  const can = (ability: DocumentMethod) =>
+  const every = (predicate: (abilities: Record<string, boolean>) => boolean) =>
     selectedDocuments.length > 0 &&
-    selectedDocuments.every(
-      (document) => policies.abilities(document.id)[ability]
+    selectedDocuments.every((document) =>
+      predicate(policies.abilities(document.id))
     );
 
   const perform =
-    (method: DocumentMethod, message: (count: number) => string) =>
+    (
+      operation: (document: Document) => Promise<unknown>,
+      message: (count: number) => string
+    ) =>
     async () => {
       const targets = selectedDocuments;
       if (!targets.length) {
         return;
       }
 
-      try {
-        const { succeeded, failed } = await documents.batch(method, targets);
-        selection.clear();
+      // Reuse the per-document operations, coalescing their requests into a
+      // single batch dispatched once the synchronous map has fired them all.
+      const results = await Promise.allSettled(
+        client.batch(() => targets.map(operation))
+      );
+      selection.clear();
 
-        if (succeeded > 0) {
-          toast.success(message(succeeded));
-        }
-        if (failed > 0) {
-          toast.error(
-            t("{{ count }} document could not be updated", { count: failed })
-          );
-        }
-      } catch (_err) {
-        toast.error(t("Could not complete the action, please try again"));
+      const succeeded = results.filter(
+        (result) => result.status === "fulfilled"
+      ).length;
+      const failed = results.length - succeeded;
+
+      if (succeeded > 0) {
+        toast.success(message(succeeded));
+      }
+      if (failed > 0) {
+        toast.error(
+          t("{{ count }} document could not be updated", { count: failed })
+        );
       }
     };
 
@@ -66,18 +73,22 @@ function DocumentSelectionToolbar() {
       key: "archive",
       label: t("Archive"),
       icon: <ArchiveIcon />,
-      visible: can("archive"),
-      perform: perform("archive", (count) =>
-        t("{{ count }} document archived", { count })
+      visible: every((abilities) => !!abilities.archive),
+      perform: perform(
+        (document) => document.archive(),
+        (count) => t("{{ count }} document archived", { count })
       ),
     },
     {
       key: "restore",
       label: t("Restore"),
       icon: <RestoreIcon />,
-      visible: can("restore"),
-      perform: perform("restore", (count) =>
-        t("{{ count }} document restored", { count })
+      visible: every(
+        (abilities) => !!(abilities.restore || abilities.unarchive)
+      ),
+      perform: perform(
+        (document) => document.restore(),
+        (count) => t("{{ count }} document restored", { count })
       ),
     },
     {
@@ -85,9 +96,10 @@ function DocumentSelectionToolbar() {
       label: t("Delete"),
       icon: <TrashIcon />,
       dangerous: true,
-      visible: can("delete"),
-      perform: perform("delete", (count) =>
-        t("{{ count }} document moved to trash", { count })
+      visible: every((abilities) => !!abilities.delete),
+      perform: perform(
+        (document) => document.delete(),
+        (count) => t("{{ count }} document moved to trash", { count })
       ),
     },
   ];

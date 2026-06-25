@@ -14,7 +14,6 @@ import naturalSort from "@shared/utils/naturalSort";
 import type RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Document from "~/models/Document";
-import type Policy from "~/models/Policy";
 import env from "~/env";
 import type {
   FetchOptions,
@@ -46,16 +45,6 @@ export type SearchParams = {
 type ImportOptions = {
   publish?: boolean;
 };
-
-/** A single sub-request result returned by the batch endpoint. */
-interface BatchResult {
-  /** Whether the sub-request completed successfully. */
-  ok: boolean;
-  /** The presented model returned by the sub-request, if any. */
-  data?: Record<string, unknown>;
-  /** The policies returned alongside the model, if any. */
-  policies?: Policy[];
-}
 
 export default class DocumentsStore extends Store<Document> {
   @observable
@@ -638,72 +627,6 @@ export default class DocumentsStore extends Store<Document> {
     if (collection) {
       collection.removeDocument(document.id);
     }
-  };
-
-  /**
-   * Perform a bulk action against multiple documents in a single request via
-   * the batch endpoint, applying the same local state updates as the
-   * equivalent individual endpoints.
-   *
-   * @param method The action to perform on each of the documents.
-   * @param documents The documents to perform the action on.
-   * @returns the number of sub-requests that succeeded and failed.
-   */
-  @action
-  batch = async (
-    method: "archive" | "delete" | "restore",
-    documents: Document[]
-  ): Promise<{ succeeded: number; failed: number }> => {
-    const res = await client.post("/batch", {
-      requests: documents.map((document) => ({
-        method: `documents.${method}`,
-        body: { id: document.id },
-      })),
-    });
-    invariant(res?.data, "Data should be available");
-
-    let succeeded = 0;
-    let failed = 0;
-
-    runInAction("Document#batch", () => {
-      (res.data as BatchResult[]).forEach((result, index) => {
-        const document = documents[index];
-        if (!document) {
-          return;
-        }
-        if (!result.ok) {
-          failed++;
-          return;
-        }
-        succeeded++;
-
-        if (method === "delete") {
-          this.remove(document.id);
-          const share = this.rootStore.shares.getByDocumentId(document.id);
-          if (share) {
-            this.rootStore.shares.remove(share.id);
-          }
-        } else {
-          if (result.data) {
-            document.updateData(result.data);
-          }
-          if (result.policies) {
-            this.addPolicies(result.policies);
-          }
-        }
-
-        const collection = this.getCollectionForDocument(document);
-        if (collection) {
-          if (method === "archive") {
-            collection.removeDocument(document.id);
-          } else if (method === "restore") {
-            void collection.refresh();
-          }
-        }
-      });
-    });
-
-    return { succeeded, failed };
   };
 
   @action
