@@ -447,7 +447,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
         `;
       };
       animation.current = {
-        ...(animation.current ?? {}),
+        ...animation.current,
         zoomOut: undefined,
         zoomIn: { apply: zoomIn, duration: ANIMATION_DURATION },
       };
@@ -460,7 +460,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                     to { opacity: 1; }
                     `;
     animation.current = {
-      ...(animation.current ?? {}),
+      ...animation.current,
       fadeIn: { apply: fadeIn, duration: ANIMATION_DURATION },
       fadeOut: undefined,
     };
@@ -472,7 +472,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
               to { opacity: 0; }
               `;
     animation.current = {
-      ...(animation.current ?? {}),
+      ...animation.current,
       fadeIn: undefined,
       fadeOut: {
         apply: fadeOut,
@@ -574,7 +574,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
         `;
       };
       animation.current = {
-        ...(animation.current ?? {}),
+        ...animation.current,
         zoomIn: undefined,
         zoomOut: {
           apply: zoomOut,
@@ -719,7 +719,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   const handleFadeStart = () => {
     if (animation.current?.fadeIn) {
       animation.current = {
-        ...(animation.current ?? {}),
+        ...animation.current,
         startTime: Date.now(),
       };
     }
@@ -728,7 +728,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   const handleFadeEnd = () => {
     if (animation.current?.fadeIn) {
       animation.current = {
-        ...(animation.current ?? {}),
+        ...animation.current,
         zoomIn: undefined,
         fadeIn: undefined,
         startTime: undefined,

@@ -160,7 +160,7 @@ const insertFiles = async function (
                   schema.nodes.image.create({
                     src,
                     source: upload.source,
-                    ...(upload.dimensions ?? {}),
+                    ...upload.dimensions,
                     ...options.attrs,
                   })
                 )

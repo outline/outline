@@ -11,7 +11,7 @@ export default function validate<T extends z.ZodType<Record<string, unknown>>>(
   return async function validateMiddleware(ctx: APIContext, next: Next) {
     try {
       ctx.input = {
-        ...(ctx.input ?? {}),
+        ...ctx.input,
         ...schema.parse(ctx.request),
       };
     } catch (err) {

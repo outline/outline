@@ -42,13 +42,11 @@ export default class ClipboardTextSerializer extends Extension {
               .filter((node) => node.content.content.length > 1)
               .some((node) => isList(node, view.state.schema));
             const hasSingleBlockType =
-              [
-                ...new Set(
-                  slice.content.content
-                    .filter((node) => node.content.content.length > 1)
-                    .map((node) => node.type.name)
-                ),
-              ].length <= 1;
+              new Set(
+                slice.content.content
+                  .filter((node) => node.content.content.length > 1)
+                  .map((node) => node.type.name)
+              ).size <= 1;
 
             // Use plain text serializer only for "simple" content
             const usePlainText =

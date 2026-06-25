@@ -121,7 +121,7 @@ class ApiClient {
         data.append("shareId", this.shareId);
       } else {
         data = {
-          ...(data || {}),
+          ...data,
           shareId: this.shareId,
         };
       }
