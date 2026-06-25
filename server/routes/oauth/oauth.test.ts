@@ -516,3 +516,52 @@ describe("GET /.well-known/oauth-protected-resource", () => {
     }
   });
 });
+
+describe("OAuth path aliases", () => {
+  it("should 302-redirect GET /authorize to /oauth/authorize preserving query", async () => {
+    const res = await server.get(
+      "/authorize?response_type=code&client_id=abc&state=xyz",
+      { redirect: "manual" }
+    );
+
+    expect(res.status).toEqual(302);
+    const location = res.headers.get("location");
+    expect(location).toContain(
+      "/oauth/authorize?response_type=code&client_id=abc&state=xyz"
+    );
+  });
+
+  it("should route POST /token to the canonical /oauth/token handler", async () => {
+    const res = await server.post("/token", {
+      body: { grant_type: "invalid_grant_type" },
+    });
+
+    // The request must reach the OAuth handler stack (not fall through to a
+    // generic 404). The OAuth error handler always wraps failures in an
+    // `error` + `error_description` body, so asserting that shape proves the
+    // alias delivered to /oauth/token specifically.
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+    const body = await res.json();
+    expect(body.error).toBeTruthy();
+    expect(body.error_description).toBeTruthy();
+  });
+
+  it("should register an OAuth client via POST /register without /oauth prefix", async () => {
+    const subdomain = faker.internet.domainWord();
+    await buildTeam({ subdomain });
+
+    const res = await server.post("/register", {
+      body: {
+        client_name: "Aliased Client",
+        redirect_uris: ["https://example.com/callback"],
+      },
+      headers: { host: `${subdomain}.outline.dev` },
+    });
+
+    expect(res.status).toEqual(201);
+    const body = await res.json();
+    expect(body.client_id).toBeTruthy();
+    expect(body.client_name).toEqual("Aliased Client");
+  });
+});
