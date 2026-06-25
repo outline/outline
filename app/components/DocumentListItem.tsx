@@ -15,7 +15,7 @@ import Icon from "@shared/components/Icon";
 import { s, hover } from "@shared/styles";
 import type Document from "~/models/Document";
 import Badge from "~/components/Badge";
-import { useDocumentSelection } from "~/components/DocumentSelectionContext";
+import { useModelSelection } from "~/components/ModelSelectionContext";
 import DocumentMeta from "~/components/DocumentMeta";
 import Flex from "~/components/Flex";
 import Highlight from "~/components/Highlight";
@@ -63,7 +63,7 @@ function DocumentListItem(
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMobile = useMobile();
-  const selection = useDocumentSelection();
+  const selection = useModelSelection();
   const iconRef = React.useRef<HTMLDivElement>(null);
 
   let itemRef: React.Ref<HTMLAnchorElement> =
@@ -93,14 +93,28 @@ function DocumentListItem(
   const isSelected = selection?.isSelected(document.id) ?? false;
   const isSelecting = (selection?.isActive ?? false) || isSelected;
 
+  const inSelectArea = (event: React.MouseEvent) =>
+    !!selection && !!iconRef.current?.contains(event.target as Node);
+
   // Handled on the link so preventDefault reliably suppresses navigation.
   const handleLinkClick = (event: React.MouseEvent) => {
-    if (selection && iconRef.current?.contains(event.target as Node)) {
+    if (selection && inSelectArea(event)) {
       event.preventDefault();
-      selection.toggle(document.id);
+      if (event.shiftKey) {
+        selection.selectRange(document.id);
+      } else {
+        selection.toggle(document.id);
+      }
       return;
     }
     rovingTabIndex.onClick?.(event);
+  };
+
+  // Suppress the browser's text selection when shift-clicking to select a range.
+  const handleLinkMouseDown = (event: React.MouseEvent) => {
+    if (event.shiftKey && inSelectArea(event)) {
+      event.preventDefault();
+    }
   };
 
   const isShared = !!(
@@ -168,6 +182,7 @@ function DocumentListItem(
           {...rest}
           {...rovingTabIndex}
           onClick={handleLinkClick}
+          onMouseDown={handleLinkMouseDown}
         >
           <Flex gap={4} auto>
             <IconWrapper ref={iconRef}>

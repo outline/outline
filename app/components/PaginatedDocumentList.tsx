@@ -1,9 +1,10 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import type Document from "~/models/Document";
-import { DocumentSelectionProvider } from "~/components/DocumentSelectionContext";
 import DocumentListItem from "~/components/DocumentListItem";
+import DocumentSelectionToolbar from "~/components/DocumentSelectionToolbar";
 import Error from "~/components/List/Error";
+import { ModelSelectionProvider } from "~/components/ModelSelectionContext";
 import PaginatedList from "~/components/PaginatedList";
 
 type Props = {
@@ -35,9 +36,16 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
   ...rest
 }: Props) {
   const { t } = useTranslation();
+  const itemIds = React.useMemo(
+    () => documents.map((document) => document.id),
+    [documents]
+  );
 
   return (
-    <DocumentSelectionProvider>
+    <ModelSelectionProvider
+      items={itemIds}
+      toolbar={<DocumentSelectionToolbar />}
+    >
       <PaginatedList<Document>
         aria-label={t("Documents")}
         items={documents}
@@ -58,7 +66,7 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
         )}
         {...rest}
       />
-    </DocumentSelectionProvider>
+    </ModelSelectionProvider>
   );
 });
 
