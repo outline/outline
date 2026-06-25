@@ -564,4 +564,16 @@ describe("OAuth path aliases", () => {
     expect(body.client_id).toBeTruthy();
     expect(body.client_name).toEqual("Aliased Client");
   });
+
+  it("should route POST /revoke to the canonical /oauth/revoke handler", async () => {
+    const res = await server.post("/revoke", {
+      body: { token: "ol_at_unknown_token_value" },
+    });
+
+    // /oauth/revoke is spec'd (RFC 7009) to return 200 regardless of token
+    // validity. Reaching the handler proves the alias delivered correctly.
+    expect(res.status).toEqual(200);
+    const body = await res.json();
+    expect(body.success).toEqual(true);
+  });
 });

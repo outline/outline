@@ -16,6 +16,9 @@ const ALIASES: Record<string, string> = {
  * GET requests are 302-redirected so the browser's URL bar reflects the
  * canonical path and the consent SPA route matches. Other methods rewrite
  * `ctx.url` in place so existing handlers serve them transparently.
+ *
+ * @returns Koa middleware that rewrites or redirects unprefixed OAuth
+ * paths to their canonical `/oauth/*` counterparts.
  */
 export default function oauthAliases() {
   return async function oauthAliasesMiddleware(ctx: Context, next: Next) {
