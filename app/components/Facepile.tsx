@@ -37,10 +37,14 @@ function Facepile({
   ...rest
 }: Props) {
   const { t } = useTranslation();
-  const filtered = users.filter(Boolean).slice(-limit);
+  // A "+1" badge takes up the same space as an avatar, so when there is only a
+  // single overflowing user show their avatar instead.
+  const filtered = users
+    .filter(Boolean)
+    .slice(-(overflow === 1 ? limit + 1 : limit));
   const Component = renderAvatar;
 
-  if (overflow > 0) {
+  if (overflow > 1) {
     filtered.unshift({
       id: "overflow",
       initial: `${users.length ? "+" : ""}${overflow}`,
