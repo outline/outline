@@ -1,6 +1,7 @@
 import * as React from "react";
 import { ModelSelection } from "~/components/ModelSelection";
 import useEventListener from "~/hooks/useEventListener";
+import isTextInput from "~/utils/isTextInput";
 
 const ModelSelectionContext = React.createContext<ModelSelection | null>(null);
 
@@ -25,8 +26,8 @@ type Props = {
 
 /**
  * Provides multi-selection state to a list of models, keeps the selection's
- * ordering in sync for shift-click ranges, clears the selection on Escape, and
- * renders the supplied toolbar of bulk actions.
+ * ordering in sync for shift-click ranges, selects all on meta/ctrl+a, clears
+ * the selection on Escape, and renders the supplied toolbar of bulk actions.
  *
  * @param props The component props.
  * @returns the provider element.
@@ -39,6 +40,21 @@ export function ModelSelectionProvider({ items, toolbar, children }: Props) {
   useEventListener("keydown", (event: KeyboardEvent) => {
     if (event.key === "Escape" && selection.isActive) {
       selection.clear();
+      return;
+    }
+
+    // Select every item on meta/ctrl+a, unless the user is editing text where
+    // the browser's own select-all should win.
+    const target = event.target;
+    if (
+      event.key === "a" &&
+      (event.metaKey || event.ctrlKey) &&
+      !event.altKey &&
+      items.length > 0 &&
+      !(target instanceof Element && isTextInput(target))
+    ) {
+      event.preventDefault();
+      selection.selectAll();
     }
   });
 

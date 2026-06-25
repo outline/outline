@@ -96,6 +96,12 @@ export class ModelSelection {
     // Keep the anchor so consecutive shift-clicks extend from the same origin.
   };
 
+  /** Select every model currently in the list. */
+  @action
+  selectAll = (): void => {
+    this.order.forEach((id) => this.ids.add(id));
+  };
+
   /** Deselect all models. */
   @action
   clear = (): void => {

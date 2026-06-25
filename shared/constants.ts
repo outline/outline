@@ -29,6 +29,9 @@ export const CSRF = {
  * endpoints that set response headers. Shared by the client (which collects
  * these into a batch) and the server (which only dispatches allowlisted methods).
  */
+/** The maximum number of sub-requests permitted in a single `/batch` request. */
+export const BatchMaxRequests = 25;
+
 export const BatchableApiMethods = [
   "documents.update",
   "documents.move",
@@ -41,6 +44,10 @@ export const BatchableApiMethods = [
   "collections.archive",
   "collections.restore",
   "collections.delete",
+  "stars.create",
+  "stars.delete",
+  "pins.create",
+  "pins.delete",
 ] as const;
 
 export const TeamPreferenceDefaults: TeamPreferences = {

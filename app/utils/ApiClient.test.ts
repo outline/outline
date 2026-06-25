@@ -91,4 +91,31 @@ describe("ApiClient#batch", () => {
       expect(results[1].status).toBe("rejected");
     });
   });
+
+  it("splits batches larger than the limit into serial requests", async () => {
+    const callSizes: number[] = [];
+    const fetchMock = vi.fn((...args: unknown[]) => {
+      const data = args[2] as { requests: unknown[] };
+      callSizes.push(data.requests.length);
+      return Promise.resolve({
+        data: data.requests.map(() => ({ ok: true, status: 200, data: {} })),
+      });
+    });
+
+    await withFetch(fetchMock as unknown as typeof client.fetch, async () => {
+      const ids = Array.from({ length: 30 }, (_, index) => String(index));
+      const results = await Promise.allSettled(
+        client.batch(() =>
+          ids.map((id) => client.post("/documents.archive", { id }))
+        )
+      );
+
+      expect(results).toHaveLength(30);
+      expect(results.every((result) => result.status === "fulfilled")).toBe(
+        true
+      );
+      // 30 requests dispatched as serial /batch calls of at most 25.
+      expect(callSizes).toEqual([25, 5]);
+    });
+  });
 });
