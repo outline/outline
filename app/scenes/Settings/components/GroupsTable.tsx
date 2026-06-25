@@ -126,17 +126,7 @@ export function GroupsTable(props: Props) {
           header: t("Members"),
           accessor: (group) => `${group.memberCount} members`,
           component: (group) => {
-            const initialOverflow =
-              group.memberCount -
-              Math.min(group.users.length, MAX_AVATAR_DISPLAY);
-            // Show one extra avatar rather than a "+1" badge when there's a
-            // single overflowing member.
-            const users = group.users.slice(
-              0,
-              initialOverflow === 1
-                ? MAX_AVATAR_DISPLAY + 1
-                : MAX_AVATAR_DISPLAY
-            );
+            const users = group.users.slice(0, MAX_AVATAR_DISPLAY);
             const overflow = group.memberCount - users.length;
 
             if (users.length === 0) {
@@ -147,7 +137,7 @@ export function GroupsTable(props: Props) {
               <GroupMembers
                 onClick={() => handleViewMembers(group)}
                 width={
-                  (users.length + (overflow > 1 ? 1 : 0)) * AvatarSize.Large
+                  (users.length + (overflow > 0 ? 1 : 0)) * AvatarSize.Large
                 }
               >
                 <Facepile users={users} overflow={overflow} />
