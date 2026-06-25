@@ -280,7 +280,7 @@ const SelectButton = styled(NudeButton)<{
   $visible: boolean;
 }>`
   position: absolute;
-  top: 1px;
+  top: 2px;
   left: 1px;
   width: 18px;
   height: 18px;

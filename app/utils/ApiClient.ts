@@ -1,5 +1,5 @@
 import retry from "fetch-retry";
-import { trim } from "es-toolkit/compat";
+import { chunk, trim } from "es-toolkit/compat";
 import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import type { JSONObject } from "@shared/types";
@@ -23,7 +23,7 @@ import {
   UpdateRequiredError,
 } from "./errors";
 import { getCookie } from "tiny-cookie";
-import { BatchableApiMethods, CSRF } from "@shared/constants";
+import { BatchableApiMethods, BatchMaxRequests, CSRF } from "@shared/constants";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 
 type Options = {
@@ -462,33 +462,34 @@ class ApiClient {
   };
 
   /**
-   * Dispatches the requests collected during a batch as a single `/batch` call
-   * and settles each caller's promise with its corresponding sub-response,
-   * shaped like a standard API envelope so callers need no special handling.
+   * Dispatches the requests collected during a batch, splitting them into
+   * serial `/batch` calls that respect the server's per-batch limit, and
+   * settles each caller's promise with its corresponding sub-response — shaped
+   * like a standard API envelope so callers need no special handling.
    *
    * @param queue The requests collected during a batch.
    */
   private flushBatch = async (queue: BatchedRequest[]): Promise<void> => {
-    if (queue.length === 0) {
-      return;
-    }
-
-    try {
-      const res = await this.fetch<{ data: BatchSubResponse[] }>(
-        "/batch",
-        "POST",
-        { requests: queue.map(({ method, body }) => ({ method, body })) }
-      );
-      queue.forEach((request, index) => {
-        const result = res?.data?.[index];
-        if (result?.ok) {
-          request.resolve({ data: result.data, policies: result.policies });
-        } else {
-          request.reject(new RequestError(result?.message || "Request failed"));
-        }
-      });
-    } catch (err) {
-      queue.forEach((request) => request.reject(err));
+    for (const group of chunk(queue, BatchMaxRequests)) {
+      try {
+        const res = await this.fetch<{ data: BatchSubResponse[] }>(
+          "/batch",
+          "POST",
+          { requests: group.map(({ method, body }) => ({ method, body })) }
+        );
+        group.forEach((request, index) => {
+          const result = res?.data?.[index];
+          if (result?.ok) {
+            request.resolve({ data: result.data, policies: result.policies });
+          } else {
+            request.reject(
+              new RequestError(result?.message || "Request failed")
+            );
+          }
+        });
+      } catch (err) {
+        group.forEach((request) => request.reject(err));
+      }
     }
   };
 }

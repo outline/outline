@@ -17,6 +17,8 @@ import { toError } from "@shared/utils/error";
 import collections from "../collections";
 import documents from "../documents";
 import apiErrorHandler from "../middlewares/apiErrorHandler";
+import pins from "../pins";
+import stars from "../stars";
 import * as T from "./schema";
 
 const router = new Router();
@@ -42,7 +44,7 @@ const enforceRateLimit = defaultRateLimiter();
 const allowedMethods = new Set<string>(BatchableApiMethods);
 
 /** Routers searched for an allowed method's middleware stack. */
-const dispatchableRouters: Router[] = [documents, collections];
+const dispatchableRouters: Router[] = [documents, collections, stars, pins];
 
 /** The number of sub-requests dispatched in parallel, to limit pool pressure. */
 const BatchConcurrency = 2;

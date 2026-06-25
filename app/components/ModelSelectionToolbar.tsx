@@ -37,24 +37,33 @@ type Props = {
 function ModelSelectionToolbar({ selection, actions }: Props) {
   const { t } = useTranslation();
   const [isProcessing, setProcessing] = React.useState(false);
-  const [lastSize, setLastSize] = React.useState(selection.size);
+  const [isWorking, setWorking] = React.useState(false);
 
-  // Retain the last non-zero count so the toolbar does not flash "0 selected"
-  // while it animates away after the selection is cleared.
-  React.useEffect(() => {
-    if (selection.size > 0) {
-      setLastSize(selection.size);
-    }
-  }, [selection.size]);
-  const displaySize = selection.size || lastSize;
-
-  const visibleActions = actions.filter((action) => action.visible);
+  // Snapshot the count and available actions while the selection is active and
+  // hold them through the exit animation, so the toolbar does not shrink or
+  // flash an empty state as it animates away after being cleared.
+  const snapshot = React.useRef({
+    size: selection.size,
+    actions: [] as ModelSelectionAction[],
+  });
+  if (selection.isActive) {
+    snapshot.current = {
+      size: selection.size,
+      actions: actions.filter((action) => action.visible),
+    };
+  }
+  const { size: displaySize, actions: visibleActions } = snapshot.current;
 
   const handlePerform = async (action: ModelSelectionAction) => {
     setProcessing(true);
+    // Only surface a "Working…" state if the action is slow, to avoid a flash
+    // on quick operations.
+    const workingTimer = setTimeout(() => setWorking(true), 1000);
     try {
       await action.perform();
     } finally {
+      clearTimeout(workingTimer);
+      setWorking(false);
       setProcessing(false);
     }
   };
@@ -64,7 +73,9 @@ function ModelSelectionToolbar({ selection, actions }: Props) {
       <Wrapper $active={selection.isActive} aria-hidden={!selection.isActive}>
         <Background align="center" gap={4}>
           <Count type="secondary" size="small">
-            {t("{{ count }} selected", { count: displaySize })}
+            {isWorking
+              ? t("Working…")
+              : t("{{ count }} selected", { count: displaySize })}
           </Count>
           {visibleActions.length > 0 && (
             <>
@@ -135,6 +146,7 @@ const Background = styled(Flex)`
 const Count = styled(Text)`
   margin: 0 4px;
   white-space: nowrap;
+  font-weight: 500;
 `;
 
 const Divider = styled.div`

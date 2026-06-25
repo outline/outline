@@ -32,6 +32,17 @@ describe("ModelSelection", () => {
     expect(selection.selectedIds).toEqual(["a", "b"]);
   });
 
+  it("selects every model in the list order", () => {
+    const selection = new ModelSelection();
+    selection.setOrder(["a", "b", "c"]);
+
+    selection.toggle("b");
+    selection.selectAll();
+
+    expect(selection.size).toBe(3);
+    expect(selection.selectedIds.sort()).toEqual(["a", "b", "c"]);
+  });
+
   it("clears all selected models", () => {
     const selection = new ModelSelection();
 
