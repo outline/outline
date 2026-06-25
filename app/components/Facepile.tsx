@@ -37,14 +37,16 @@ function Facepile({
   ...rest
 }: Props) {
   const { t } = useTranslation();
-  // A "+1" badge takes up the same space as an avatar, so when there is only a
-  // single overflowing user show their avatar instead.
-  const filtered = users
-    .filter(Boolean)
-    .slice(-(overflow === 1 ? limit + 1 : limit));
+  const present = users.filter(Boolean);
+  // A "+1" badge takes up the same space as an avatar, so when the single
+  // overflowing user is actually present in the list, show their avatar
+  // instead. Fall back to the badge when the overflow comes from a separate
+  // total count and the extra user isn't available to render.
+  const showLastInsteadOfBadge = overflow === 1 && present.length - limit === 1;
+  const filtered = present.slice(-(showLastInsteadOfBadge ? limit + 1 : limit));
   const Component = renderAvatar;
 
-  if (overflow > 1) {
+  if (overflow > 0 && !showLastInsteadOfBadge) {
     filtered.unshift({
       id: "overflow",
       initial: `${users.length ? "+" : ""}${overflow}`,
