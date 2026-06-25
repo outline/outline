@@ -23,7 +23,7 @@ import {
   UpdateRequiredError,
 } from "./errors";
 import { getCookie } from "tiny-cookie";
-import { CSRF } from "@shared/constants";
+import { BatchableApiMethods, CSRF } from "@shared/constants";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 
 type Options = {
@@ -54,7 +54,27 @@ interface FetchOptions {
   baseUrl?: string;
 }
 
+/** A request captured during a batch, awaiting dispatch in a `/batch` call. */
+interface BatchedRequest {
+  method: string;
+  body?: JSONObject;
+  resolve: (value: unknown) => void;
+  reject: (reason: unknown) => void;
+}
+
+/** A single sub-response within a `/batch` response. */
+interface BatchSubResponse {
+  ok: boolean;
+  status: number;
+  data?: unknown;
+  policies?: unknown;
+  message?: string;
+}
+
 const fetchWithRetry = retry(fetch);
+
+/** Methods that may be collected into a single `/batch` request. */
+const batchableMethods = new Set<string>(BatchableApiMethods);
 
 class ApiClient {
   baseUrl: string;
@@ -64,6 +84,9 @@ class ApiClient {
   /** Map of in-flight requests for deduplication, keyed by method + path + body. */
   // oxlint-disable-next-line no-explicit-any
   private inflightRequests = new Map<string, Promise<any>>();
+
+  /** Requests collected while a batch is open, or undefined when not batching. */
+  private batchQueue?: BatchedRequest[];
 
   private onUnauthorized?: UnauthorizedHandler;
 
@@ -121,7 +144,7 @@ class ApiClient {
         data.append("shareId", this.shareId);
       } else {
         data = {
-          ...(data || {}),
+          ...data,
           shareId: this.shareId,
         };
       }
@@ -343,7 +366,48 @@ class ApiClient {
     path: string,
     data?: JSONObject | FormData,
     options?: FetchOptions
-  ): Promise<T> => this.deduplicate<T>(path, "POST", data, options);
+  ): Promise<T> => {
+    const method = path.replace(/^\//, "");
+    if (
+      this.batchQueue &&
+      !(data instanceof FormData) &&
+      batchableMethods.has(method)
+    ) {
+      return new Promise<T>((resolve, reject) => {
+        this.batchQueue!.push({
+          method,
+          body: data,
+          resolve: resolve as (value: unknown) => void,
+          reject,
+        });
+      });
+    }
+    return this.deduplicate<T>(path, "POST", data, options);
+  };
+
+  /**
+   * Collects every batchable POST request issued during the synchronous
+   * execution of `fn` and dispatches them as a single `/batch` request once
+   * `fn` returns. Non-batchable requests, and requests made after `fn` returns,
+   * are sent normally; nested calls join the enclosing batch.
+   *
+   * @param fn A function that issues the requests to be batched.
+   * @returns whatever `fn` returns.
+   */
+  batch = <T>(fn: () => T): T => {
+    if (this.batchQueue) {
+      return fn();
+    }
+
+    const queue: BatchedRequest[] = [];
+    this.batchQueue = queue;
+    try {
+      return fn();
+    } finally {
+      this.batchQueue = undefined;
+      void this.flushBatch(queue);
+    }
+  };
 
   /**
    * Performs a PUT request against the API. Identical in-flight requests are
@@ -395,6 +459,37 @@ class ApiClient {
     });
     this.inflightRequests.set(key, promise);
     return promise;
+  };
+
+  /**
+   * Dispatches the requests collected during a batch as a single `/batch` call
+   * and settles each caller's promise with its corresponding sub-response,
+   * shaped like a standard API envelope so callers need no special handling.
+   *
+   * @param queue The requests collected during a batch.
+   */
+  private flushBatch = async (queue: BatchedRequest[]): Promise<void> => {
+    if (queue.length === 0) {
+      return;
+    }
+
+    try {
+      const res = await this.fetch<{ data: BatchSubResponse[] }>(
+        "/batch",
+        "POST",
+        { requests: queue.map(({ method, body }) => ({ method, body })) }
+      );
+      queue.forEach((request, index) => {
+        const result = res?.data?.[index];
+        if (result?.ok) {
+          request.resolve({ data: result.data, policies: result.policies });
+        } else {
+          request.reject(new RequestError(result?.message || "Request failed"));
+        }
+      });
+    } catch (err) {
+      queue.forEach((request) => request.reject(err));
+    }
   };
 }
 

@@ -12,6 +12,7 @@ import validate from "@server/middlewares/validate";
 import type { APIContext, AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { BatchableApiMethods } from "@shared/constants";
 import { toError } from "@shared/utils/error";
 import collections from "../collections";
 import documents from "../documents";
@@ -38,19 +39,7 @@ const enforceRateLimit = defaultRateLimiter();
  * curated to simple JSON mutations — no reads (pagination), redirects, file
  * responses, or endpoints that set response headers.
  */
-const allowedMethods = new Set<string>([
-  "documents.update",
-  "documents.move",
-  "documents.archive",
-  "documents.restore",
-  "documents.unpublish",
-  "documents.delete",
-  "collections.update",
-  "collections.move",
-  "collections.archive",
-  "collections.restore",
-  "collections.delete",
-]);
+const allowedMethods = new Set<string>(BatchableApiMethods);
 
 /** Routers searched for an allowed method's middleware stack. */
 const dispatchableRouters: Router[] = [documents, collections];
