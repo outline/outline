@@ -143,14 +143,14 @@ class WebhookSubscription extends ParanoidModel<
   createdBy: User;
 
   @ForeignKey(() => User)
-  @Column(DataType.STRING)
+  @Column(DataType.UUID)
   createdById: string;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column(DataType.STRING)
+  @Column(DataType.UUID)
   teamId: string;
 
   // hooks

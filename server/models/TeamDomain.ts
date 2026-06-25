@@ -46,14 +46,14 @@ class TeamDomain extends IdModel<
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column(DataType.STRING)
+  @Column(DataType.UUID)
   teamId: string;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;
 
   @ForeignKey(() => User)
-  @Column(DataType.STRING)
+  @Column(DataType.UUID)
   createdById: string;
 
   // hooks

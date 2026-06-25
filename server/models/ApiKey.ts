@@ -154,7 +154,7 @@ class ApiKey extends ParanoidModel<
   user: User;
 
   @ForeignKey(() => User)
-  @Column(DataType.STRING)
+  @Column(DataType.UUID)
   userId: string;
 
   // methods
