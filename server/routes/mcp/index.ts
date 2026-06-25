@@ -35,15 +35,25 @@ app.use(async (ctx, next) => {
   try {
     await next();
   } catch (err: unknown) {
-    const error = err as { status?: number };
-    if (error?.status === 401) {
-      const origin = env.isCloudHosted
-        ? ctx.request.URL.origin
-        : new URL(env.URL).origin;
-      (err as { headers?: Record<string, string> }).headers = {
-        ...((err as { headers?: Record<string, string> }).headers ?? {}),
-        "WWW-Authenticate": `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`,
-      };
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      (err as { status?: number }).status === 401
+    ) {
+      const headersHost = err as { headers?: Record<string, string> };
+      const existingHeaders = headersHost.headers ?? {};
+      const hasWwwAuth = Object.keys(existingHeaders).some(
+        (k) => k.toLowerCase() === "www-authenticate"
+      );
+      if (!hasWwwAuth) {
+        const origin = env.isCloudHosted
+          ? ctx.request.URL.origin
+          : new URL(env.URL).origin;
+        headersHost.headers = {
+          ...existingHeaders,
+          "WWW-Authenticate": `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`,
+        };
+      }
     }
     throw err;
   }
