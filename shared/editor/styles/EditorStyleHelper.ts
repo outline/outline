@@ -25,6 +25,9 @@ export class EditorStyleHelper {
 
   static readonly comment = "comment-marker";
 
+  /** Applied to a comment mark to force its hover state (e.g. from the gutter) */
+  static readonly commentHovered = "comment-marker-hovered";
+
   // Multiplayer
 
   /** Remote collaborator's cursor */

@@ -1205,7 +1205,7 @@ ${
     text-decoration: underline 2px ${props.theme.commentMarkBackground};
     transition: background 100ms ease-in-out;
 
-    &:hover {
+    &:hover, &.${EditorStyleHelper.commentHovered} {
       ${props.readOnly ? "cursor: var(--pointer);" : ""}
       background: ${props.theme.commentMarkBackground};
 
@@ -1214,6 +1214,10 @@ ${
       }
     }
   }
+}
+
+a.${EditorStyleHelper.commentHovered} ~ span.component-image div.image-wrapper {
+  outline: ${props.theme.commentedImageOutlineDark} solid 2px;
 }
 `
     : `
