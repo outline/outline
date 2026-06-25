@@ -3,6 +3,7 @@ import type { WhereOptions } from "sequelize";
 import { randomUUID } from "node:crypto";
 import { AttachmentPreset } from "@shared/types";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
+import env from "@server/env";
 import { AttachmentValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import {
@@ -138,28 +139,58 @@ router.post(
       userId: user.id,
     });
 
-    const presignedPost = await FileStorage.getPresignedPost(
-      ctx,
-      key,
-      acl,
-      maxUploadSize,
-      contentType
-    );
+    const usePut = env.AWS_S3_UPLOAD_METHOD === "put";
 
-    ctx.body = {
-      data: {
-        uploadUrl: FileStorage.getUploadUrl(),
-        form: {
-          "Cache-Control": "max-age=31557600",
-          "Content-Type": contentType,
-          ...presignedPost.fields,
+    if (usePut) {
+      const presignedPut = await FileStorage.getPresignedPut(
+        key,
+        acl,
+        size,
+        contentType
+      );
+
+      if (!presignedPut) {
+        throw InvalidRequestError(
+          `The current storage backend does not support PUT uploads. Set AWS_S3_UPLOAD_METHOD to "post" or use an S3-compatible storage provider.`
+        );
+      }
+
+      ctx.body = {
+        data: {
+          mode: "put",
+          url: presignedPut.url,
+          headers: presignedPut.headers,
+          attachment: {
+            ...presentAttachment(attachment),
+            url: attachment.redirectUrl,
+          },
         },
-        attachment: {
-          ...presentAttachment(attachment),
-          url: attachment.redirectUrl,
+      };
+    } else {
+      const presignedPost = await FileStorage.getPresignedPost(
+        ctx,
+        key,
+        acl,
+        maxUploadSize,
+        contentType
+      );
+
+      ctx.body = {
+        data: {
+          mode: "post",
+          uploadUrl: FileStorage.getUploadUrl(),
+          form: {
+            "Cache-Control": "max-age=31557600",
+            "Content-Type": contentType,
+            ...presignedPost.fields,
+          },
+          attachment: {
+            ...presentAttachment(attachment),
+            url: attachment.redirectUrl,
+          },
         },
-      },
-    };
+      };
+    }
   }
 );
 
