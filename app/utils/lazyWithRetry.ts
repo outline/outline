@@ -73,8 +73,9 @@ function reloadIfStaleChunk(error: unknown): boolean {
     }
     sessionStorage.setItem(reloadSessionKey, "1");
   } catch {
-    // sessionStorage may be unavailable (e.g. Safari private mode); reload
-    // anyway, accepting the small risk of a single extra reload.
+    // sessionStorage may be unavailable (e.g. Safari private mode). Without it
+    // we can't guard against a reload loop, so fail safe and don't reload.
+    return false;
   }
 
   window.location.reload();
