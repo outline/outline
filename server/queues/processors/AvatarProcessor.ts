@@ -12,11 +12,10 @@ export default class AvatarProcessor extends BaseProcessor {
     // case of failures as it involves network calls to third party services.
 
     if (event.name === "users.create") {
-      const user = await User.findByPk(event.userId, {
-        rejectOnEmpty: true,
-      });
+      // The user may have been deleted before this processor runs.
+      const user = await User.findByPk(event.userId);
 
-      if (user.avatarUrl) {
+      if (user?.avatarUrl) {
         await new UploadUserAvatarTask().schedule({
           userId: event.userId,
           avatarUrl: user.avatarUrl,
@@ -25,11 +24,10 @@ export default class AvatarProcessor extends BaseProcessor {
     }
 
     if (event.name === "teams.create") {
-      const team = await Team.findByPk(event.teamId, {
-        rejectOnEmpty: true,
-      });
+      // The team may have been deleted before this processor runs.
+      const team = await Team.findByPk(event.teamId);
 
-      if (team.avatarUrl) {
+      if (team?.avatarUrl) {
         await new UploadTeamAvatarTask().schedule({
           teamId: event.teamId,
           avatarUrl: team.avatarUrl,
