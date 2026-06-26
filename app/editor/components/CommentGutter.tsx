@@ -1,7 +1,6 @@
 import { t } from "i18next";
 import { observer } from "mobx-react";
 import { CommentIcon } from "outline-icons";
-import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
@@ -23,31 +22,16 @@ const CommentGutterIcon = observer(function CommentGutterIcon({
 }: IconProps) {
   const count = stores.comments.inThread(commentId).length;
 
-  const handleClick = React.useCallback(
-    (event: React.MouseEvent) => {
-      event.preventDefault();
-      onClick?.(commentId);
-    },
-    [commentId, onClick]
-  );
-
-  const handleMouseEnter = React.useCallback(
-    () => onHover?.(commentId, true),
-    [commentId, onHover]
-  );
-
-  const handleMouseLeave = React.useCallback(
-    () => onHover?.(commentId, false),
-    [commentId, onHover]
-  );
-
   return (
     <Icon
       type="button"
       aria-label={t("View comment thread")}
-      onClick={handleClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onClick={(event) => {
+        event.preventDefault();
+        onClick?.(commentId);
+      }}
+      onMouseEnter={() => onHover?.(commentId, true)}
+      onMouseLeave={() => onHover?.(commentId, false)}
     >
       <CommentIcon size={18} />
       {count > 0 && <span>{count}</span>}
