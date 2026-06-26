@@ -36,6 +36,7 @@ export function initSentry(history: History) {
     tracesSampleRate: env.ENVIRONMENT === "production" ? 0.1 : 1,
     ignoreErrors: [
       "Failed to fetch dynamically imported module",
+      "Importing a module script failed",
       "ResizeObserver loop completed with undelivered notifications",
       "ResizeObserver loop limit exceeded",
       "Object Not Found Matching Id",
