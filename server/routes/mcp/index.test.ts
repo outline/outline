@@ -29,6 +29,20 @@ describe("POST /mcp/", () => {
       expect(res.status).toEqual(401);
     });
 
+    it("should include WWW-Authenticate header on 401 responses", async () => {
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: { Accept: "application/json, text/event-stream" },
+        body,
+      });
+      expect(res.status).toEqual(401);
+      const wwwAuth = res.headers.get("www-authenticate");
+      expect(wwwAuth).toBeTruthy();
+      expect(wwwAuth).toContain("Bearer");
+      expect(wwwAuth).toContain("resource_metadata=");
+      expect(wwwAuth).toContain("/.well-known/oauth-protected-resource/mcp");
+    });
+
     it("should reject JWT authentication", async () => {
       const user = await buildUser();
       const { body } = mcpRequest("tools/list");
