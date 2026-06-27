@@ -91,7 +91,7 @@ export function useDocumentMenuAction({
         name: `${t("Rename")}…`,
         section: ActiveDocumentSection,
         icon: <InputIcon />,
-        visible: !!can.update && !user.separateEditMode && !!onRename,
+        visible: !!can.update && !!onRename,
         perform: () => requestAnimationFrame(() => onRename?.()),
       }),
       shareDocument,
