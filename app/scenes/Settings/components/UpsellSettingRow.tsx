@@ -2,8 +2,8 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Switch from "~/components/Switch";
-import SettingRow from "~/scenes/Settings/components/SettingRow";
 import { EnterpriseBadge } from "./EnterpriseBadge";
+import SettingRow from "./SettingRow";
 
 type Props = {
   /** A unique name for the row, used to associate the label. */

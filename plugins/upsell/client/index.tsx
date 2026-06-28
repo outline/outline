@@ -1,4 +1,9 @@
-import { BuildingBlocksIcon, HistoryIcon, SearchIcon } from "outline-icons";
+import {
+  BuildingBlocksIcon,
+  CollectionIcon,
+  HistoryIcon,
+  SearchIcon,
+} from "outline-icons";
 import { createLazyComponent } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import config from "../plugin.json";
@@ -16,6 +21,20 @@ PluginManager.add([
       description:
         "Track security and activity events across your workspace. Available in the Enterprise edition.",
       component: createLazyComponent(() => import("./AuditLog")),
+    },
+  },
+  {
+    ...config,
+    id: "upsell-collections",
+    name: "Collections",
+    type: Hook.Settings,
+    value: {
+      group: "Workspace",
+      after: "Groups",
+      icon: CollectionIcon,
+      description:
+        "Manage permissions and settings for every collection, including private ones. Available in the Enterprise edition.",
+      component: createLazyComponent(() => import("./Collections")),
     },
   },
   {

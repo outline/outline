@@ -10,8 +10,8 @@ import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import env from "~/env";
-import { EnterpriseBadge } from "./EnterpriseBadge";
-import { UpsellSettingRow } from "./UpsellSettingRow";
+import { EnterpriseBadge } from "~/scenes/Settings/components/EnterpriseBadge";
+import { UpsellSettingRow } from "~/scenes/Settings/components/UpsellSettingRow";
 
 /** A single Enterprise-only setting to preview within an upsell page. */
 export type UpsellFeature = {
