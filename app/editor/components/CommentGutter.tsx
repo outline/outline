@@ -21,6 +21,7 @@ const CommentGutterIcon = observer(function CommentGutterIcon({
   onHover,
 }: IconProps) {
   const count = stores.comments.inThread(commentId).length;
+  const setHovered = (hovered: boolean) => onHover?.(commentId, hovered);
 
   return (
     <Icon
@@ -30,8 +31,10 @@ const CommentGutterIcon = observer(function CommentGutterIcon({
         event.preventDefault();
         onClick?.(commentId);
       }}
-      onMouseEnter={() => onHover?.(commentId, true)}
-      onMouseLeave={() => onHover?.(commentId, false)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
     >
       <CommentIcon size={18} />
       {count > 0 && <span>{count}</span>}

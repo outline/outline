@@ -197,6 +197,10 @@ export default class CommentGutter extends Extension {
             side: -1,
             ignoreSelection: true,
             destroy: (node: HTMLElement) => {
+              // Clear any forced hover state, otherwise it can remain stuck
+              commentIds.forEach((commentId) =>
+                handlers.onHoverCommentMark(commentId, false)
+              );
               ReactDOM.unmountComponentAtNode(node);
             },
           }
