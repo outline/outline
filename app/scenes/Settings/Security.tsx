@@ -18,6 +18,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
+import { UpsellSettingRow } from "./components/UpsellSettingRow";
 
 function Security() {
   const { dialogs } = useStores();
@@ -312,6 +313,24 @@ function Security() {
           onChange={handlePasskeysEnabledChange}
         />
       </SettingRow>
+      {!isCloudHosted && (
+        <>
+          <UpsellSettingRow
+            name="twoFactorRequired"
+            label={t("Two-factor authentication")}
+            description={t(
+              "Require members to configure two-factor authentication to access the workspace."
+            )}
+          />
+          <UpsellSettingRow
+            name="sessionTimeout"
+            label={t("Automatic sign-out")}
+            description={t(
+              "Automatically sign out members after a configurable period of inactivity."
+            )}
+          />
+        </>
+      )}
 
       <Heading as="h2">{t("Behavior")}</Heading>
       <SettingRow
@@ -411,6 +430,15 @@ function Security() {
             onChange={handleMemberTeamCreateChange}
           />
         </SettingRow>
+      )}
+      {!isCloudHosted && (
+        <UpsellSettingRow
+          name="ipAllowlist"
+          label={t("IP allowlist")}
+          description={t(
+            "Restrict workspace access to an approved list of IP addresses or ranges."
+          )}
+        />
       )}
     </Scene>
   );
