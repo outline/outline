@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import stores from "~/stores";
 
 type IconProps = {
@@ -93,7 +92,7 @@ const Icon = styled.button`
   margin: 0;
   padding: 2px 6px;
   border: 0;
-  border-radius: ${EditorStyleHelper.blockRadius};
+  border-radius: 6px;
   background: none;
   color: ${s("textTertiary")};
   cursor: var(--pointer);
