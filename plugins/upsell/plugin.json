@@ -1,0 +1,7 @@
+{
+  "id": "upsell",
+  "name": "Enterprise",
+  "priority": 1000,
+  "description": "Adds placeholder settings pages that highlight features available in the Enterprise edition.",
+  "deployments": ["community"]
+}
