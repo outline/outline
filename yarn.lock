@@ -12221,10 +12221,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18next-fs-backend@npm:^2.6.5":
-  version: 2.6.5
-  resolution: "i18next-fs-backend@npm:2.6.5"
-  checksum: 10c0/650061345ca206c070d409565ee418056f87aa55a112ab669a128d2de77bea7c9aadd36987180185a48a603f9db3a008d7c424ae75689ac61c547c5b74d77f2f
+"i18next-fs-backend@npm:^2.6.6":
+  version: 2.6.6
+  resolution: "i18next-fs-backend@npm:2.6.6"
+  checksum: 10c0/aa409fb486eb6d3929a413703a0ba2b5c1e0e4e9923cc2e31371a3ae683b5fa9ceaaa608e9610cc911cb0a053139f8b123f4cda85e3e694ae2fcc5aa5fdd8bea
   languageName: node
   linkType: hard
 
@@ -15316,7 +15316,7 @@ __metadata:
     https-proxy-agent: "npm:^7.0.6"
     husky: "npm:^8.0.3"
     i18next: "npm:^22.5.1"
-    i18next-fs-backend: "npm:^2.6.5"
+    i18next-fs-backend: "npm:^2.6.6"
     i18next-http-backend: "npm:^3.0.6"
     i18next-parser: "npm:^9.4.0"
     invariant: "npm:^2.2.4"
