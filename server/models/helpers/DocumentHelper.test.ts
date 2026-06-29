@@ -1007,4 +1007,108 @@ In a cell
 `);
     });
   });
+
+  describe("getAnchorContent", () => {
+    it("should return the section content for a matching heading anchor", async () => {
+      const document = await buildDocument({
+        text: `Intro paragraph.
+
+## Installation
+
+Install instructions here.
+
+More install detail.
+
+## Usage
+
+Usage instructions here.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(document, "h-installation");
+      expect(result).toBe(
+        `## Installation
+
+Install instructions here.
+
+More install detail.`
+      );
+    });
+
+    it("should accept an anchor with a leading hash", async () => {
+      const document = await buildDocument({
+        text: `## Installation
+
+Install instructions here.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(
+        document,
+        "#h-installation"
+      );
+      expect(result).toBe(
+        `## Installation
+
+Install instructions here.`
+      );
+    });
+
+    it("should stop at the next heading of the same or higher level", async () => {
+      const document = await buildDocument({
+        text: `## Section
+
+Section body.
+
+### Subsection
+
+Subsection body.
+
+## Other
+
+Other body.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(document, "h-section");
+      expect(result).toBe(
+        `## Section
+
+Section body.
+
+### Subsection
+
+Subsection body.`
+      );
+    });
+
+    it("should resolve anchors for duplicate headings", async () => {
+      const document = await buildDocument({
+        text: `## Notes
+
+First notes.
+
+## Notes
+
+Second notes.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(document, "h-notes-1");
+      expect(result).toBe(
+        `## Notes
+
+Second notes.`
+      );
+    });
+
+    it("should return undefined when no heading matches", async () => {
+      const document = await buildDocument({
+        text: `## Installation
+
+Install instructions here.`,
+      });
+
+      expect(
+        DocumentHelper.getAnchorContent(document, "h-missing")
+      ).toBeUndefined();
+      expect(DocumentHelper.getAnchorContent(document, "")).toBeUndefined();
+    });
+  });
 });

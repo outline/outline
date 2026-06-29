@@ -6,6 +6,7 @@ import {
   ChangesetHelper,
   type ExtendedChange,
 } from "@shared/editor/lib/ChangesetHelper";
+import headingToSlug from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
@@ -177,6 +178,86 @@ export class DocumentHelper {
   static toPlainText(document: Document | Revision | ProsemirrorData) {
     const node = DocumentHelper.toProsemirror(document);
     return textBetween(node, 0, node.content.size);
+  }
+
+  /**
+   * Returns the Markdown content of the section beginning at the heading that
+   * matches the given anchor. A section spans from the matched heading up to
+   * (but not including) the next heading of the same or higher level.
+   *
+   * @param document The document or revision or prosemirror data to extract from
+   * @param anchor The heading anchor to locate, with or without a leading "#"
+   * @returns the section content as Markdown, or undefined if no heading matches.
+   */
+  static getAnchorContent(
+    document: Document | Revision | ProsemirrorData,
+    anchor: string
+  ): string | undefined {
+    let id = anchor.replace(/^#/, "");
+    try {
+      id = decodeURIComponent(id);
+    } catch {
+      // Keep the raw anchor if it cannot be decoded.
+    }
+    if (!id) {
+      return undefined;
+    }
+
+    const node = DocumentHelper.toProsemirror(document);
+
+    // Headings are always top-level nodes, so iterating the document's direct
+    // children is sufficient to locate the section.
+    const children: Node[] = [];
+    node.content.forEach((child) => children.push(child));
+
+    const previouslySeen: Record<string, number> = {};
+    let startIndex = -1;
+    let level = 0;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      if (child.type.name !== "heading") {
+        continue;
+      }
+
+      // Calculate the heading id using the same de-duplication logic as the
+      // editor so that anchors to repeated headings resolve correctly.
+      const slug = headingToSlug(child);
+      const headingId =
+        previouslySeen[slug] > 0
+          ? headingToSlug(child, previouslySeen[slug])
+          : slug;
+      previouslySeen[slug] =
+        previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
+
+      if (startIndex === -1 && headingId === id) {
+        startIndex = i;
+        level = child.attrs.level;
+      }
+    }
+
+    if (startIndex === -1) {
+      return undefined;
+    }
+
+    const sectionNodes: Node[] = [children[startIndex]];
+    for (let i = startIndex + 1; i < children.length; i++) {
+      const child = children[i];
+      if (child.type.name === "heading" && child.attrs.level <= level) {
+        break;
+      }
+      sectionNodes.push(child);
+    }
+
+    const sectionDoc = schema.topNodeType.create(
+      null,
+      Fragment.fromArray(sectionNodes)
+    );
+
+    return serializer
+      .serialize(sectionDoc)
+      .replace(/(^|\n)\\(\n|$)/g, "\n\n")
+      .trim();
   }
 
   /**
