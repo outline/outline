@@ -166,6 +166,19 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     return true;
   }
 
+  /**
+   * Whether a document's leading H1 heading should be lifted out as its title
+   * (and removed from the body). Outline's own Markdown export writes the
+   * title as a leading H1, so this defaults to true. Sources where the
+   * filename is authoritative and the first heading is real content (e.g.
+   * Slab) override this to keep the heading in the body.
+   *
+   * @returns true to derive the title from a leading H1 heading.
+   */
+  protected shouldExtractTitleFromHeading(): boolean {
+    return true;
+  }
+
   protected async scheduleNextTask(importTask: ImportTask<Markdown>) {
     await new MarkdownAPIImportTask().schedule({ importTaskId: importTask.id });
   }
@@ -432,7 +445,8 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         const { doc, title, icon } = await DocumentConverter.convert(
           transformedMarkdown,
           path.basename(item.path),
-          "text/markdown"
+          "text/markdown",
+          { extractTitle: this.shouldExtractTitleFromHeading() }
         );
 
         taskOutput.push({

@@ -40,4 +40,14 @@ export default class SlabAPIImportTask extends MarkdownAPIImportTask {
     }
     return nodes;
   }
+
+  /**
+   * Slab does not treat a document's first heading as its title — the
+   * filename is authoritative. Keep the leading heading as body content.
+   *
+   * @returns false so the leading heading is preserved in the document body.
+   */
+  protected shouldExtractTitleFromHeading(): boolean {
+    return false;
+  }
 }

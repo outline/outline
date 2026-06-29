@@ -5,6 +5,10 @@ class TestSlabAPIImportTask extends SlabAPIImportTask {
   public resolve(nodes: ZipTreeNode[]): ZipTreeNode[] {
     return this.resolveCollectionRootNodes(nodes);
   }
+
+  public extractsTitleFromHeading(): boolean {
+    return this.shouldExtractTitleFromHeading();
+  }
 }
 
 const dir = (
@@ -68,5 +72,9 @@ describe("SlabAPIImportTask#resolveCollectionRootNodes", () => {
     const root = dir("slab", []);
 
     expect(task.resolve([root])).toEqual([root]);
+  });
+
+  it("does not derive the title from a document's leading heading", () => {
+    expect(task.extractsTitleFromHeading()).toBe(false);
   });
 });

@@ -26,13 +26,20 @@ export class DocumentConverter {
    * @param content The content of the file.
    * @param fileName The name of the file, including extension.
    * @param mimeType The mime type of the file.
+   * @param options Conversion options.
+   * @param options.extractTitle Whether a leading H1 heading should be lifted
+   *   out as the document title and removed from the body. Defaults to true;
+   *   set false for sources where the filename is authoritative and the first
+   *   heading must remain part of the content (e.g. Slab).
    * @returns The converted document with text, data, title, and icon.
    */
   public static async convert(
     content: Buffer | string,
     fileName: string,
-    mimeType: string
+    mimeType: string,
+    options: { extractTitle?: boolean } = {}
   ): Promise<ConvertResult> {
+    const { extractTitle = true } = options;
     let doc: Node;
 
     // Route to appropriate conversion method
@@ -50,10 +57,12 @@ export class DocumentConverter {
 
     // Extract title from first H1 heading
     let title = "";
-    const headings = ProsemirrorHelper.getHeadings(doc);
-    if (headings.length > 0 && headings[0].level === 1) {
-      title = headings[0].title;
-      doc = ProsemirrorHelper.removeFirstHeading(doc);
+    if (extractTitle) {
+      const headings = ProsemirrorHelper.getHeadings(doc);
+      if (headings.length > 0 && headings[0].level === 1) {
+        title = headings[0].title;
+        doc = ProsemirrorHelper.removeFirstHeading(doc);
+      }
     }
 
     // Extract emoji from start of document
