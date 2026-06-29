@@ -30,11 +30,7 @@ import type { ProcessOutput } from "./APIImportTask";
 import APIImportTask from "./APIImportTask";
 import { DocumentConverter } from "@server/utils/DocumentConverter";
 
-// The Markdown task backs both the Outline Markdown zip importer and the
-// Slab importer — they share an identical zip-of-markdown shape, differing
-// only in that Slab references images as remote signed URLs (downloaded via
-// the base class's per-page attachment upload) rather than local files.
-type Markdown = IntegrationService.Markdown | IntegrationService.Slab;
+type Markdown = IntegrationService.Markdown;
 
 interface DiscoveredDocument {
   id: string;
