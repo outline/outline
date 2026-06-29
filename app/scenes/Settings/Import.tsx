@@ -23,6 +23,7 @@ import FileOperationListItem from "./components/FileOperationListItem";
 import ImportJSONDialog from "./components/ImportJSONDialog";
 import { ImportListItem } from "./components/ImportListItem";
 import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
+import ImportSlabDialog from "./components/ImportSlabDialog";
 
 type Config = {
   /** The title of the import. */
@@ -88,6 +89,26 @@ function useImportsConfig() {
         ),
       },
     ];
+
+    items.push({
+      title: "Slab",
+      subtitle: t("Import a zip file of Markdown documents exported from Slab"),
+      icon: <img src={cdnPath("/images/slab.png")} alt="" width={28} />,
+      action: (
+        <Button
+          type="submit"
+          onClick={() => {
+            dialogs.openModal({
+              title: t("Import data"),
+              content: <ImportSlabDialog />,
+            });
+          }}
+          neutral
+        >
+          {t("Import")}…
+        </Button>
+      ),
+    });
 
     PluginManager.getHooks(Hook.Imports).forEach((plugin) => {
       items.push({ ...plugin.value });

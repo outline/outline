@@ -30,7 +30,11 @@ import type { ProcessOutput } from "./APIImportTask";
 import APIImportTask from "./APIImportTask";
 import { DocumentConverter } from "@server/utils/DocumentConverter";
 
-type Markdown = IntegrationService.Markdown;
+// The Markdown task backs both the Outline Markdown zip importer and the
+// Slab importer — they share an identical zip-of-markdown shape, differing
+// only in that Slab references images as remote signed URLs (downloaded via
+// the base class's per-page attachment upload) rather than local files.
+type Markdown = IntegrationService.Markdown | IntegrationService.Slab;
 
 interface DiscoveredDocument {
   id: string;
@@ -153,7 +157,13 @@ export function rewriteInternalLinks(
 
 export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
   protected shouldUploadAttachmentsPerPage(): boolean {
-    return false;
+    // Per-page upload downloads remote image/attachment URLs referenced in
+    // the markdown (e.g. Slab's signed export URLs) and rewrites them to
+    // internal redirect URLs. The base step skips URLs that are already
+    // internal, so local zip attachments — rewritten to redirect URLs during
+    // `rewriteMarkdown` and uploaded from the archive in
+    // `onAllTasksCompleted` — pass through untouched.
+    return true;
   }
 
   protected async scheduleNextTask(importTask: ImportTask<Markdown>) {
