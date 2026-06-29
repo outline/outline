@@ -90,6 +90,21 @@ function useImportsConfig() {
       },
     ];
 
+    PluginManager.getHooks(Hook.Imports).forEach((plugin) => {
+      items.push({ ...plugin.value });
+    });
+
+    items.push({
+      title: "Confluence",
+      subtitle: t("Import pages from a Confluence instance"),
+      icon: <img src={cdnPath("/images/confluence.png")} alt="" width={28} />,
+      action: (
+        <Button type="submit" disabled neutral>
+          {t("Enterprise")}
+        </Button>
+      ),
+    });
+
     items.push({
       title: "Slab",
       subtitle: t("Import a zip file of Markdown documents exported from Slab"),
@@ -106,21 +121,6 @@ function useImportsConfig() {
           neutral
         >
           {t("Import")}…
-        </Button>
-      ),
-    });
-
-    PluginManager.getHooks(Hook.Imports).forEach((plugin) => {
-      items.push({ ...plugin.value });
-    });
-
-    items.push({
-      title: "Confluence",
-      subtitle: t("Import pages from a Confluence instance"),
-      icon: <img src={cdnPath("/images/confluence.png")} alt="" width={28} />,
-      action: (
-        <Button type="submit" disabled neutral>
-          {t("Enterprise")}
         </Button>
       ),
     });
