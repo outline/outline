@@ -146,7 +146,7 @@
     "http-errors": "2.0.1",
     "https-proxy-agent": "^7.0.6",
     "i18next": "^22.5.1",
-    "i18next-fs-backend": "^2.6.5",
+    "i18next-fs-backend": "^2.6.6",
     "i18next-http-backend": "^3.0.6",
     "invariant": "^2.2.4",
     "ioredis": "^5.10.1",
@@ -390,7 +390,6 @@
     "ip-address@npm:10.1.0": "^10.2.0",
     "minimatch@npm:9.0.1": "9.0.9",
     "lodash@npm:4.17.21": "^4.18.1",
-    "i18next-parser/i18next": "^23.16.8",
     "ws@npm:~8.17.1": "^8.21.0",
     "uuid": "^11.1.1",
     "nodemailer@npm:9.0.0": "^9.0.1"
