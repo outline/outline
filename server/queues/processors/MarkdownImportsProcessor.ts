@@ -1,8 +1,10 @@
 import type { Transaction } from "sequelize";
 import type { ImportTaskInput } from "@shared/schema";
 import { ImportTaskPhase, IntegrationService } from "@shared/types";
-import type { Import, ImportTask } from "@server/models";
+import { Import } from "@server/models";
+import type { ImportTask } from "@server/models";
 import MarkdownAPIImportTask from "../tasks/MarkdownAPIImportTask";
+import SlabAPIImportTask from "../tasks/SlabAPIImportTask";
 import ImportsProcessor from "./ImportsProcessor";
 
 type Markdown = IntegrationService.Markdown | IntegrationService.Slab;
@@ -35,6 +37,20 @@ export default class MarkdownImportsProcessor extends ImportsProcessor<Markdown>
   protected async scheduleTask(
     importTask: ImportTask<Markdown>
   ): Promise<void> {
-    await new MarkdownAPIImportTask().schedule({ importTaskId: importTask.id });
+    // `importTask.import` isn't loaded here (the row was just created), so read
+    // the service directly to pick the matching task implementation. Slab
+    // reuses the Markdown pipeline through a dedicated subclass; subsequent
+    // task waves keep that class via the task's own `scheduleNextTask`.
+    const { service } = await Import.findByPk(importTask.importId, {
+      attributes: ["id", "service"],
+      rejectOnEmpty: true,
+    });
+
+    const TaskClass =
+      service === IntegrationService.Slab
+        ? SlabAPIImportTask
+        : MarkdownAPIImportTask;
+
+    await new TaskClass().schedule({ importTaskId: importTask.id });
   }
 }
