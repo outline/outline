@@ -670,7 +670,7 @@ export const shareDocument = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Share this document"),
+      title: t(`Share "{{ itemName }}"`, { itemName: document.title }),
       content: (
         <SharePopover
           document={document}

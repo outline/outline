@@ -13,6 +13,7 @@ import { errToString } from "@shared/utils/error";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
+  DocumentPermission,
   FileOperationFormat,
   FileOperationState,
   FileOperationType,
@@ -162,12 +163,43 @@ router.post(
           .slice(offset, offset + limit)
           .map((node) => node.id);
         where[Op.and].push({ id: documentIds });
-      } // if it's not a backlink request, filter by all collections the user has access to
+      }
+
+      // Filter restricted documents for non-admin users
+      if (!user.isAdmin) {
+        const restrictedDocIds = await accessibleRestrictedDocIds(user.id);
+        where[Op.and].push({
+          [Op.or]: [
+            { isPrivate: false },
+            ...(restrictedDocIds.length
+              ? [{ [Op.and]: [{ isPrivate: true }, { id: restrictedDocIds }] }]
+              : []),
+          ],
+        });
+      }
     } else if (!backlinkDocumentId) {
+      // if it's not a backlink request, filter by all collections the user has access to
       const collectionIds = await user.collectionIds();
-      where[Op.and].push({
-        collectionId: collectionIds,
-      });
+
+      if (user.isAdmin) {
+        // Admins can see all documents in their accessible collections
+        where[Op.and].push({ collectionId: collectionIds });
+      } else {
+        // Non-admin users: collection access only for non-restricted docs.
+        // Restricted docs with direct membership are included via subquery.
+        const restrictedDocIds = await accessibleRestrictedDocIds(user.id);
+
+        where[Op.and].push({
+          [Op.or]: [
+            {
+              [Op.and]: [{ collectionId: collectionIds }, { isPrivate: false }],
+            },
+            ...(restrictedDocIds.length
+              ? [{ [Op.and]: [{ isPrivate: true }, { id: restrictedDocIds }] }]
+              : []),
+          ],
+        });
+      }
     }
 
     if (parentDocumentId) {
@@ -789,6 +821,15 @@ router.post(
         includeDocumentStructure: true,
       });
       documentTree = collection?.getDocumentTree(document.id) ?? undefined;
+
+      // Filter restricted subtrees for non-admin users
+      if (documentTree && !user.isAdmin) {
+        const [filtered] = await Collection.filterRestrictedNodes(
+          [documentTree],
+          user.id
+        );
+        documentTree = filtered;
+      }
     }
 
     ctx.body = {
@@ -1254,7 +1295,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, insightsEnabled, publish, collectionId, ...input } =
+    const { id, insightsEnabled, publish, collectionId, isPrivate, ...input } =
       ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
@@ -1271,6 +1312,36 @@ router.post(
 
     if (collection && insightsEnabled !== undefined) {
       authorize(user, "updateInsights", document);
+    }
+
+    // Handle restrict/unrestrict toggle — validation and descendant cascade
+    // are enforced by Document model hooks (@BeforeUpdate and @AfterUpdate)
+    if (isPrivate !== undefined && isPrivate !== document.isPrivate) {
+      authorize(user, "manageUsers", document);
+      document.isPrivate = isPrivate;
+
+      if (isPrivate) {
+        // Ensure the acting user has direct admin access
+        const existingMembership = await UserMembership.findOne({
+          where: {
+            documentId: document.id,
+            userId: user.id,
+            sourceId: null,
+          },
+          transaction,
+        });
+        if (!existingMembership) {
+          await UserMembership.create(
+            {
+              documentId: document.id,
+              userId: user.id,
+              permission: DocumentPermission.Admin,
+              createdById: user.id,
+            },
+            { transaction }
+          );
+        }
+      }
     }
 
     if (publish) {
@@ -2101,6 +2172,65 @@ function getAPIVersion(ctx: APIContext) {
         ctx.input.body.apiVersion) ??
       0
   );
+}
+
+/**
+ * Find IDs of restricted documents the given user can access via direct or group membership.
+ *
+ * @param userId the user to check memberships for.
+ * @return restricted document IDs accessible to the user.
+ */
+async function accessibleRestrictedDocIds(userId: string): Promise<string[]> {
+  const [userMemberships, groupMemberships] = await Promise.all([
+    UserMembership.findAll({
+      attributes: ["documentId"],
+      where: { userId, documentId: { [Op.ne]: null } },
+      include: [
+        {
+          model: Document.unscoped(),
+          required: true,
+          attributes: [],
+          where: { isPrivate: true },
+        },
+      ],
+    }),
+    GroupMembership.findAll({
+      attributes: ["documentId"],
+      where: { documentId: { [Op.ne]: null } },
+      include: [
+        {
+          model: Document.unscoped(),
+          required: true,
+          attributes: [],
+          where: { isPrivate: true },
+        },
+        {
+          model: Group,
+          required: true,
+          include: [
+            {
+              model: GroupUser,
+              required: true,
+              where: { userId },
+            },
+          ],
+        },
+      ],
+    }),
+  ]);
+
+  const ids = new Set<string>();
+  for (const m of userMemberships) {
+    if (m.documentId) {
+      ids.add(m.documentId);
+    }
+  }
+  for (const m of groupMemberships) {
+    if (m.documentId) {
+      ids.add(m.documentId);
+    }
+  }
+  return [...ids];
 }
 
 export default router;

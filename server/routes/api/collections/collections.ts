@@ -142,8 +142,16 @@ router.post(
 
     const documentStructure = await collection.getCachedDocumentStructure();
 
+    // Filter restricted subtrees for non-admin users
+    const filteredStructure = user.isAdmin
+      ? documentStructure || []
+      : await Collection.filterRestrictedNodes(
+          documentStructure || [],
+          user.id
+        );
+
     ctx.body = {
-      data: documentStructure || [],
+      data: filteredStructure,
     };
   }
 );

@@ -231,6 +231,10 @@ export default class WebsocketsProcessor {
           },
           paranoid: false,
         });
+        // Emit to collection channels for all moved documents, including
+        // those that became private during the move. Clients subscribed to
+        // the collection need the event to remove newly-private documents
+        // from their view and invalidate policies.
         documents.forEach((document) => {
           socketio.to(`collection-${document.collectionId}`).emit("entities", {
             event: event.name,
@@ -967,7 +971,15 @@ export default class WebsocketsProcessor {
       channels.push(`user-${event.actorId}`);
     }
 
-    if (document.publishedAt) {
+    // Include collection/team channels for published documents that are not
+    // restricted. Also include them when the privacy state just changed so that
+    // clients can react to the transition (e.g. remove from or add to their view).
+    const changes = (
+      event as { changes?: { attributes?: Record<string, unknown> } }
+    ).changes;
+    const privacyChanged = changes?.attributes?.isPrivate !== undefined;
+
+    if (document.publishedAt && (!document.isPrivate || privacyChanged)) {
       if (document.collection) {
         channels.push(
           ...this.getCollectionEventChannels(event, document.collection)

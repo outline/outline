@@ -1123,6 +1123,88 @@ class Collection extends ParanoidModel<
     color: isNil(this.color) ? undefined : this.color,
     children: sortNavigationNodes(this.documentStructure ?? [], this.sort),
   });
+
+  /**
+   * Filter restricted (private) nodes from a navigation tree for a given user.
+   * Prunes entire subtrees rooted at private nodes the user cannot access.
+   *
+   * @param nodes - the navigation tree to filter.
+   * @param userId - the user requesting the tree.
+   * @returns filtered navigation tree.
+   */
+  static async filterRestrictedNodes(
+    nodes: NavigationNode[],
+    userId: string
+  ): Promise<NavigationNode[]> {
+    const restrictedIds: string[] = [];
+    const collectRestricted = (items: NavigationNode[]) => {
+      for (const node of items) {
+        if (node.isPrivate) {
+          restrictedIds.push(node.id);
+        }
+        collectRestricted(node.children);
+      }
+    };
+    collectRestricted(nodes);
+
+    if (restrictedIds.length === 0) {
+      return nodes;
+    }
+
+    const [userMemberships, groupMemberships] = await Promise.all([
+      UserMembership.findAll({
+        attributes: ["documentId"],
+        where: {
+          userId,
+          documentId: { [Op.in]: restrictedIds },
+        },
+      }),
+      GroupMembership.findAll({
+        attributes: ["documentId"],
+        where: {
+          documentId: { [Op.in]: restrictedIds },
+        },
+        include: [
+          {
+            model: Group,
+            required: true,
+            include: [
+              {
+                model: GroupUser,
+                required: true,
+                where: { userId },
+              },
+            ],
+          },
+        ],
+      }),
+    ]);
+
+    const accessibleRestrictedIds = new Set([
+      ...userMemberships
+        .map((m) => m.documentId)
+        .filter((id): id is string => id !== null),
+      ...groupMemberships
+        .map((m) => m.documentId)
+        .filter((id): id is string => id !== null),
+    ]);
+
+    const filterNodes = (items: NavigationNode[]): NavigationNode[] => {
+      const result: NavigationNode[] = [];
+      for (const node of items) {
+        if (node.isPrivate && !accessibleRestrictedIds.has(node.id)) {
+          continue;
+        }
+        result.push({
+          ...node,
+          children: filterNodes(node.children),
+        });
+      }
+      return result;
+    };
+
+    return filterNodes(nodes);
+  }
 }
 
 export default Collection;
