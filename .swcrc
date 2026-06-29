@@ -1,0 +1,35 @@
+{
+  "$schema": "https://swc.rs/schema.json",
+  "jsc": {
+    "parser": {
+      "syntax": "typescript",
+      "tsx": true,
+      "decorators": true
+    },
+    "transform": {
+      "legacyDecorator": true,
+      "useDefineForClassFields": false,
+      "react": {
+        "runtime": "automatic"
+      },
+      "optimizer": {
+        "globals": {
+          "envs": ["SOURCE_COMMIT", "SOURCE_VERSION"]
+        }
+      }
+    },
+    "target": "es2020",
+    "keepClassNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@server/*": ["server/*"],
+      "@shared/*": ["shared/*"],
+      "~/*": ["app/*"],
+      "plugins/*": ["plugins/*"]
+    }
+  },
+  "module": {
+    "type": "commonjs"
+  },
+  "sourceMaps": false
+}

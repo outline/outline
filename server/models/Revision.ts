@@ -47,7 +47,7 @@ class Revision extends ParanoidModel<
     max: 255,
     msg: `editorVersion must be 255 characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   editorVersion: string | null;
 
@@ -56,7 +56,7 @@ class Revision extends ParanoidModel<
     max: DocumentValidation.maxTitleLength,
     msg: `Revision title must be ${DocumentValidation.maxTitleLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   title: string;
 
@@ -65,7 +65,7 @@ class Revision extends ParanoidModel<
     max: RevisionValidation.maxNameLength,
     msg: `Revision name must be ${RevisionValidation.maxNameLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   name: string | null;
 
@@ -86,13 +86,13 @@ class Revision extends ParanoidModel<
   content: ProsemirrorData | null;
 
   /** The icon at the time of the revision. */
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   icon: string | null;
 
   /** The color at the time of the revision. */
   @IsHexColor
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   color: string | null;
 
@@ -115,7 +115,7 @@ class Revision extends ParanoidModel<
   /** Array of user IDs who collaborated on this revision */
   @Column(DataType.ARRAY(DataType.UUID))
   @SkipChangeset
-  collaboratorIds: string[] = [];
+  collaboratorIds: string[];
 
   /**
    * Get the collaborators for this revision.

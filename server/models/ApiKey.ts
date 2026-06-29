@@ -50,7 +50,7 @@ class ApiKey extends ParanoidModel<
     max: ApiKeyValidation.maxNameLength,
     msg: `Name must be between ${ApiKeyValidation.minNameLength} and ${ApiKeyValidation.maxNameLength} characters`,
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   /** A list of scopes that this API key has access to */
@@ -63,7 +63,7 @@ class ApiKey extends ParanoidModel<
 
   /** @deprecated The plain text value of the API key, removed soon. */
   @Unique
-  @Column
+  @Column(DataType.STRING)
   secret: string;
 
   /** The cached plain text value. Only available when creating the API key */
@@ -72,23 +72,23 @@ class ApiKey extends ParanoidModel<
 
   /** The hashed value of the API key */
   @Unique
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   hash: string;
 
   /** The last 4 characters of the API key */
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   last4: string;
 
   /** The date and time when this API key will expire */
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   expiresAt: Date | null;
 
   /** The date and time when this API key was last used */
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastActiveAt: Date | null;
 
@@ -154,7 +154,7 @@ class ApiKey extends ParanoidModel<
   user: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   userId: string;
 
   // methods

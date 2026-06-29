@@ -9,6 +9,11 @@ class Storage {
 
   public constructor() {
     try {
+      // Avoid touching the `localStorage` global outside the browser; in Node it
+      // resolves to an experimental Web Storage API that emits a warning on access.
+      if (typeof window === "undefined") {
+        throw new Error("localStorage is not available");
+      }
       localStorage.setItem("test", "test");
       localStorage.removeItem("test");
       this.interface = localStorage;

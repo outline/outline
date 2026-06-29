@@ -279,40 +279,40 @@ class Document extends ArchivableModel<
     msg: `urlId must be 10 characters`,
   })
   @Unique
-  @Column
+  @Column(DataType.STRING)
   urlId: string;
 
   @Length({
     max: DocumentValidation.maxTitleLength,
     msg: `Document title must be ${DocumentValidation.maxTitleLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   title: string;
 
   @Length({
     max: DocumentValidation.maxSummaryLength,
     msg: `Document summary must be ${DocumentValidation.maxSummaryLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   summary: string;
 
   @Column(DataType.ARRAY(DataType.STRING))
-  previousTitles: string[] = [];
+  previousTitles: string[];
 
   @IsNumeric
   @Column(DataType.SMALLINT)
   version?: number | null;
 
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   fullWidth: boolean;
 
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   template: boolean;
 
-  @Column
+  @Column(DataType.BOOLEAN)
   insightsEnabled: boolean;
 
   /** The version of the editor last used to edit this document. */
@@ -320,16 +320,16 @@ class Document extends ArchivableModel<
     max: 255,
     msg: `editorVersion must be 255 characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   editorVersion: string | null;
 
   /** An icon to use as the document icon. */
-  @Column
+  @Column(DataType.STRING)
   icon: string | null;
 
   /** The color of the icon. */
   @IsHexColor
-  @Column
+  @Column(DataType.STRING)
   color: string | null;
 
   /**
@@ -368,7 +368,7 @@ class Document extends ArchivableModel<
 
   /** Whether this document is part of onboarding. */
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   isWelcome: boolean;
 
   /** How many versions there are in the history of this document. */
@@ -386,12 +386,12 @@ class Document extends ArchivableModel<
 
   /** Whether the document is published, and if so when. */
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   publishedAt: Date | null;
 
   /** An array of user IDs that have edited this document. */
   @Column(DataType.ARRAY(DataType.UUID))
-  collaboratorIds: string[] = [];
+  collaboratorIds: string[];
 
   // getters
 

@@ -31,6 +31,11 @@ export default function Fix(target: any): void {
         }
 
         Object.defineProperty(this, propertyKey, {
+          // Keep configurable/enumerable so consumers (e.g. sequelize-strict-attributes)
+          // can re-define these accessors; with non-define class fields the property
+          // would otherwise default to non-configurable.
+          configurable: true,
+          enumerable: true,
           get() {
             // Safety check for test serialization - getDataValue may not be available
             // during serialization for inter-process communication
@@ -55,6 +60,8 @@ export default function Fix(target: any): void {
 
       associations.forEach((propertyKey) => {
         Object.defineProperty(this, propertyKey, {
+          configurable: true,
+          enumerable: true,
           get() {
             return this.dataValues[propertyKey];
           },

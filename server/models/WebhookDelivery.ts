@@ -51,7 +51,7 @@ class WebhookDelivery extends IdModel<
   webhookSubscription: WebhookSubscription;
 
   @ForeignKey(() => WebhookSubscription)
-  @Column
+  @Column(DataType.UUID)
   webhookSubscriptionId: string;
 }
 

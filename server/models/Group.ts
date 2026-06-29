@@ -69,7 +69,7 @@ class Group extends ParanoidModel<
     msg: `name must be ${GroupValidation.maxNameLength} characters or less`,
   })
   @NotContainsUrl
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   @Length({
@@ -80,7 +80,7 @@ class Group extends ParanoidModel<
   @Column(DataType.TEXT)
   description: string;
 
-  @Column
+  @Column(DataType.STRING)
   externalId: string;
 
   @Column(DataType.BOOLEAN)

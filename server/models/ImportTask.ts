@@ -51,7 +51,7 @@ class ImportTask<T extends ImportableIntegrationService> extends IdModel<
   @Column(DataType.JSONB)
   output: ImportTaskOutput | null;
 
-  @Column
+  @Column(DataType.STRING)
   error: string | null;
 
   // associations

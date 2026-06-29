@@ -110,21 +110,21 @@ class Share extends IdModel<
   InferAttributes<Share>,
   Partial<InferCreationAttributes<Share>>
 > {
-  @Column
+  @Column(DataType.BOOLEAN)
   published: boolean;
 
-  @Column
+  @Column(DataType.BOOLEAN)
   includeChildDocuments: boolean;
 
-  @Column
+  @Column(DataType.DATE)
   revokedAt: Date | null;
 
-  @Column
+  @Column(DataType.DATE)
   lastAccessedAt: Date | null;
 
   /** Total count of times the shared link has been accessed */
   @Default(0)
-  @Column
+  @Column(DataType.INTEGER)
   views: number;
 
   @AllowNull
@@ -132,29 +132,29 @@ class Share extends IdModel<
     args: UrlHelper.SHARE_URL_SLUG_REGEX,
     msg: "Must be only alphanumeric and dashes",
   })
-  @Column
+  @Column(DataType.STRING)
   urlId: string | null | undefined;
 
   @Unique
   @Length({ max: 255, msg: "domain must be 255 characters or less" })
   @IsFQDN
-  @Column
+  @Column(DataType.STRING)
   domain: string | null;
 
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   allowIndexing: boolean;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   allowSubscriptions: boolean;
 
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   showLastUpdated: boolean;
 
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   showTOC: boolean;
 
   @AllowNull
@@ -162,7 +162,7 @@ class Share extends IdModel<
     max: ShareValidation.maxTitleLength,
     msg: `title must be ${ShareValidation.maxTitleLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   title: string | null;
 
   @AllowNull
@@ -171,7 +171,7 @@ class Share extends IdModel<
     max: ShareValidation.maxIconUrlLength,
     msg: `iconUrl must be ${ShareValidation.maxIconUrlLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   iconUrl: string | null;
 
   // hooks

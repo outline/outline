@@ -110,9 +110,13 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
                 );
               }
 
-              const curlCommand = `curl -X PUT ${Object.entries(presignedPut.headers)
+              const curlCommand = `curl -X PUT ${Object.entries(
+                presignedPut.headers
+              )
                 .map(([k, v]) => `-H '${k}: ${v}'`)
-                .join(" ")} --data-binary '@/path/to/file' '${presignedPut.url}'`;
+                .join(
+                  " "
+                )} --data-binary '@/path/to/file' '${presignedPut.url}'`;
 
               return success({
                 mode: "put",

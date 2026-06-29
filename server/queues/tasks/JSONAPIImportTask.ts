@@ -78,7 +78,7 @@ export function rewriteAttachmentReferences(
 
   const transformAttachmentNode = (node: Node): Node => {
     const json = node.toJSON() as ProsemirrorData;
-    const attrs = { ...(json.attrs ?? {}) };
+    const attrs = { ...json.attrs };
 
     if (node.type.name === "attachment") {
       const href = attrs.href as string | undefined;

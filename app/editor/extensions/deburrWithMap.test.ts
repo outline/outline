@@ -66,9 +66,9 @@ describe("deburrWithMap", () => {
     // even though the Hangul characters between them expand under NFD.
     for (const ascii of ["a", "b", "c"]) {
       const index = deburred.indexOf(ascii);
-      expect(text.slice(toOriginalIndex(index), toOriginalIndex(index + 1))).toBe(
-        ascii
-      );
+      expect(
+        text.slice(toOriginalIndex(index), toOriginalIndex(index + 1))
+      ).toBe(ascii);
     }
 
     // Indices are non-decreasing and the end maps to the original length.
