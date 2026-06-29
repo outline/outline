@@ -1,5 +1,6 @@
 import type { IntegrationService } from "@shared/types";
 import type { ImportTask } from "@server/models";
+import type { ZipTreeNode } from "@server/utils/ZipHelper";
 import MarkdownAPIImportTask from "./MarkdownAPIImportTask";
 
 type Service = IntegrationService.Markdown | IntegrationService.Slab;
@@ -19,5 +20,24 @@ export default class SlabAPIImportTask extends MarkdownAPIImportTask {
     importTask: ImportTask<Service>
   ): Promise<void> {
     await new SlabAPIImportTask().schedule({ importTaskId: importTask.id });
+  }
+
+  /**
+   * Slab exports wrap the entire workspace in a single root directory named
+   * "slab". When present, descend into it so the directories one level down
+   * are imported as collections rather than a single "slab" collection.
+   *
+   * @param nodes The archive's top-level tree nodes.
+   * @returns The nodes to import as collections.
+   */
+  protected resolveCollectionRootNodes(nodes: ZipTreeNode[]): ZipTreeNode[] {
+    if (
+      nodes.length === 1 &&
+      nodes[0].children.length > 0 &&
+      nodes[0].title.toLowerCase() === "slab"
+    ) {
+      return nodes[0].children;
+    }
+    return nodes;
   }
 }

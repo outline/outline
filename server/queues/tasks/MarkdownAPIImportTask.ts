@@ -272,14 +272,16 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         }
       );
 
-      if (tree.children.length === 0) {
+      const rootNodes = this.resolveCollectionRootNodes(tree.children);
+
+      if (rootNodes.length === 0) {
         throw new Error("Could not find valid content in zip file");
       }
 
       const collections: DiscoveredCollection[] = [];
       const manifest: MarkdownAttachmentManifestItem[] = [];
 
-      for (const node of tree.children) {
+      for (const node of rootNodes) {
         if (node.children.length === 0) {
           Logger.debug("task", `Unhandled file in zip: ${node.pathInZip}`, {
             importTaskId: importTask.id,
@@ -507,6 +509,19 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         markdown.includes(fileName) || markdown.includes(encodeURI(fileName))
       );
     });
+  }
+
+  /**
+   * Resolves the archive's top-level entries into the nodes that should be
+   * treated as collections. The base implementation uses the entries as-is;
+   * subclasses can override to unwrap a known wrapper directory before the
+   * bootstrap phase maps each node to a collection.
+   *
+   * @param nodes The archive's top-level tree nodes.
+   * @returns The nodes to import as collections.
+   */
+  protected resolveCollectionRootNodes(nodes: ZipTreeNode[]): ZipTreeNode[] {
+    return nodes;
   }
 
   /**
