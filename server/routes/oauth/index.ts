@@ -209,7 +209,9 @@ router.post(
         : "public";
 
     const client = await OAuthClient.createWithCtx(ctx, {
-      name: client_name,
+      // RFC 7591 makes client_name optional; fall back to a generic label so
+      // dynamic-registration clients that omit it still register cleanly.
+      name: client_name ?? "Untitled application",
       redirectUris: redirect_uris,
       clientType,
       developerUrl: client_uri ?? null,

@@ -9,7 +9,14 @@ import { s } from "../../styles";
 import { isExternalUrl, sanitizeImageSrc } from "../../utils/urls";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
-import { ResizeLeft, ResizeRight } from "./ResizeHandle";
+import {
+  ResizeLeft,
+  ResizeRight,
+  ResizeTopLeft,
+  ResizeTopRight,
+  ResizeBottomLeft,
+  ResizeBottomRight,
+} from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 
 type Props = ComponentProps & {
@@ -252,6 +259,26 @@ const Image = (props: Props) => {
               onDoubleClick={handleDoubleClick}
               $dragging={!!dragging}
             />
+            <ResizeTopLeft
+              onPointerDown={handlePointerDown("topLeft")}
+              onDoubleClick={handleDoubleClick}
+              $dragging={!!dragging}
+            />
+            <ResizeTopRight
+              onPointerDown={handlePointerDown("topRight")}
+              onDoubleClick={handleDoubleClick}
+              $dragging={!!dragging}
+            />
+            <ResizeBottomLeft
+              onPointerDown={handlePointerDown("bottomLeft")}
+              onDoubleClick={handleDoubleClick}
+              $dragging={!!dragging}
+            />
+            <ResizeBottomRight
+              onPointerDown={handlePointerDown("bottomRight")}
+              onDoubleClick={handleDoubleClick}
+              $dragging={!!dragging}
+            />
           </>
         )}
       </ImageWrapper>
@@ -350,7 +377,7 @@ const ImageWrapper = styled.div<{ isFullWidth: boolean; $dragging: boolean }>`
   transition-duration: ${(props) =>
     props.isFullWidth || props.$dragging ? "0ms" : "150ms"};
   transition-timing-function: ease-in-out;
-  overflow: hidden;
+  overflow: visible;
 
   img {
     transition-property: width, height;
@@ -364,7 +391,8 @@ const ImageWrapper = styled.div<{ isFullWidth: boolean; $dragging: boolean }>`
       opacity: 0.9;
     }
 
-    ${ResizeLeft}, ${ResizeRight} {
+    ${ResizeLeft}, ${ResizeRight},
+    ${ResizeTopLeft}, ${ResizeTopRight}, ${ResizeBottomLeft}, ${ResizeBottomRight} {
       opacity: 1;
     }
   }

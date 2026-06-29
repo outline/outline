@@ -11,9 +11,14 @@ export default class UserCreatedProcessor extends BaseProcessor {
 
   async perform(event: UserEvent) {
     const [user, team] = await Promise.all([
-      User.findByPk(event.userId, { rejectOnEmpty: true }),
-      Team.findByPk(event.teamId, { rejectOnEmpty: true }),
+      User.findByPk(event.userId),
+      Team.findByPk(event.teamId),
     ]);
+
+    // The user or team may have been deleted before this event is processed.
+    if (!user || !team) {
+      return;
+    }
 
     // Invited users receive an InviteEmail at invite time, and a WelcomeEmail
     // when they accept the invite and sign in for the first time.

@@ -21,14 +21,17 @@ type Props = {
   title?: string;
   /** Left sidebar content. */
   sidebar?: React.ReactNode;
+  /** Whether the sidebar can be collapsed, defaults to true. */
+  sidebarCanCollapse?: boolean;
 };
 
 const Layout = React.forwardRef(function Layout_(
-  { title, children, sidebar }: Props,
+  { title, children, sidebar, sidebarCanCollapse = true }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const { ui } = useStores();
-  const sidebarCollapsed = !sidebar || ui.sidebarIsClosed;
+  const sidebarCollapsed =
+    !sidebar || (ui.sidebarIsClosed && sidebarCanCollapse);
   const sidebarRight = useRightSidebarContent();
 
   return (
