@@ -19,7 +19,7 @@ export function ImportSlabDialog() {
       </Text>
       <DropToImport
         onSubmit={dialogs.closeAllModals}
-        format={IntegrationService.Slab}
+        service={IntegrationService.Slab}
       >
         <Trans>
           Drag and drop the zip file exported from Slab, or click to upload
