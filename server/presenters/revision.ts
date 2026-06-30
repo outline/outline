@@ -6,10 +6,7 @@ import presentUser from "./user";
 
 type PresentRevisionOptions = {
   /**
-   * Whether to include the (potentially large) document content, both as
-   * Prosemirror `data` and Markdown `text`. Defaults to true. This should be
-   * disabled when presenting many revisions at once (e.g. in a list) to avoid
-   * generating an excessively large response.
+   * Whether to include the document content. Defaults to true.
    */
   includeContent?: boolean;
 };

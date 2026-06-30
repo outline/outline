@@ -12,10 +12,6 @@ export default class RevisionsStore extends Store<Revision> {
   /**
    * Fetches a single revision by ID, including its full document content.
    *
-   * Revisions returned by `revisions.list` are lightweight and omit the
-   * document content to keep the response small, so this forces a fetch when
-   * the cached revision is missing its content.
-   *
    * @param id - The ID of the revision to fetch.
    * @param options - Options to pass through to the underlying fetch.
    * @returns A promise that resolves to the fetched revision.
