@@ -1,6 +1,6 @@
 import { buildCollection, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
+import { buildOAuthUser, callMcpTool, parseMcpListContent } from "@server/test/McpHelper";
 
 const server = getTestServer();
 
@@ -13,9 +13,7 @@ describe("collection tools", () => {
     });
 
     const res = await callMcpTool(server, accessToken, "list_collections");
-    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-      JSON.parse(c.text)
-    );
+    const data = parseMcpListContent<{ id: string }>(res?.result?.content);
 
     expect(data.length).toBeGreaterThanOrEqual(1);
     const ids = data.map((c: { id: string }) => c.id);
@@ -36,9 +34,7 @@ describe("collection tools", () => {
     });
 
     const res = await callMcpTool(server, accessToken, "list_collections");
-    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-      JSON.parse(c.text)
-    );
+    const data = parseMcpListContent<{ id: string }>(res?.result?.content);
 
     const ids = data.map((c: { id: string }) => c.id);
     expect(ids).not.toContain(otherCollection.id);
