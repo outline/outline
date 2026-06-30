@@ -169,6 +169,7 @@ export enum IntegrationService {
   Notion = "notion",
   Markdown = "markdown",
   Slab = "slab",
+  Obsidian = "obsidian",
   JSON = "json",
 }
 
@@ -177,6 +178,7 @@ export type ImportableIntegrationService = Extract<
   | IntegrationService.Notion
   | IntegrationService.Markdown
   | IntegrationService.Slab
+  | IntegrationService.Obsidian
   | IntegrationService.JSON
 >;
 
@@ -184,6 +186,7 @@ export const ImportableIntegrationService = {
   Notion: IntegrationService.Notion,
   Markdown: IntegrationService.Markdown,
   Slab: IntegrationService.Slab,
+  Obsidian: IntegrationService.Obsidian,
   JSON: IntegrationService.JSON,
 } as const;
 

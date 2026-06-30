@@ -32,7 +32,7 @@ import { DocumentConverter } from "@server/utils/DocumentConverter";
 
 type Markdown = IntegrationService.Markdown;
 
-interface DiscoveredDocument {
+export interface DiscoveredDocument {
   id: string;
   title: string;
   pathInZip: string;
@@ -42,7 +42,7 @@ interface DiscoveredDocument {
   children: DiscoveredDocument[];
 }
 
-interface DiscoveredCollection {
+export interface DiscoveredCollection {
   id: string;
   title: string;
   children: DiscoveredDocument[];
@@ -173,6 +173,36 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
    */
   protected shouldExtractTitleFromHeading(): boolean {
     return true;
+  }
+
+  /**
+   * Whether `[[wikilink]]` / `![[embed]]` syntax in the source should be parsed
+   * into mention/image/link nodes. Defaults to false; importers whose source
+   * uses Obsidian-style links (e.g. Obsidian) override this to true and resolve
+   * the parsed targets in {@link transformContent}.
+   *
+   * @returns true to enable wikilink/embed parsing.
+   */
+  protected shouldParseWikiLinks(): boolean {
+    return false;
+  }
+
+  /**
+   * Hook to post-process a converted page's Prosemirror content before it is
+   * stored on the import task output. The base implementation returns the
+   * content unchanged; subclasses can override to resolve placeholders the
+   * converter could not (e.g. wikilink targets that need the full set of
+   * imported documents and attachments to resolve).
+   *
+   * @param content The converted Prosemirror document.
+   * @param _page The per-page task input that produced it.
+   * @returns The content to store.
+   */
+  protected transformContent(
+    content: ProsemirrorDoc,
+    _page: MarkdownPageImportTaskInputItem
+  ): ProsemirrorDoc {
+    return content;
   }
 
   protected async scheduleNextTask(importTask: ImportTask<Markdown>) {
@@ -320,18 +350,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       }
 
       // Build docMap (pathInZip -> externalId) for internal-link resolution.
-      // Walk the full document tree to collect every doc id, since internal
-      // markdown links can target any document regardless of depth.
-      const docMap: Record<string, string> = {};
-      const collectDocMap = (docs: DiscoveredDocument[]) => {
-        for (const d of docs) {
-          docMap[d.pathInZip] = d.id;
-          collectDocMap(d.children);
-        }
-      };
-      for (const c of collections) {
-        collectDocMap(c.children);
-      }
+      const docMap = this.buildDocMap(collections);
 
       // Replace (not append) anything past the create-time placeholder with
       // the freshly discovered collections so a retried bootstrap doesn't
@@ -442,14 +461,17 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           transformedMarkdown,
           path.basename(item.path),
           "text/markdown",
-          { extractTitle: this.shouldExtractTitleFromHeading() }
+          {
+            extractTitle: this.shouldExtractTitleFromHeading(),
+            parseWikiLinks: this.shouldParseWikiLinks(),
+          }
         );
 
         taskOutput.push({
           externalId: item.externalId,
           title: title || item.title,
           icon,
-          content: doc.toJSON() as ProsemirrorDoc,
+          content: this.transformContent(doc.toJSON() as ProsemirrorDoc, item),
         });
       }
 
@@ -519,6 +541,34 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         markdown.includes(fileName) || markdown.includes(encodeURI(fileName))
       );
     });
+  }
+
+  /**
+   * Builds the map used to resolve internal links to document externalIds.
+   * The base implementation keys every document by its `pathInZip`, since
+   * Outline/Slab/Markdown exports reference documents by relative file path.
+   * Subclasses whose links resolve differently (e.g. Obsidian wikilinks,
+   * which target a note by name) can override to add additional keys.
+   *
+   * @param collections The discovered collection tree.
+   * @returns A map of link target (as written in source) to document externalId.
+   */
+  protected buildDocMap(
+    collections: DiscoveredCollection[]
+  ): Record<string, string> {
+    // Walk the full document tree to collect every doc id, since internal
+    // links can target any document regardless of depth.
+    const docMap: Record<string, string> = {};
+    const collect = (docs: DiscoveredDocument[]) => {
+      for (const d of docs) {
+        docMap[d.pathInZip] = d.id;
+        collect(d.children);
+      }
+    };
+    for (const c of collections) {
+      collect(c.children);
+    }
+    return docMap;
   }
 
   /**
