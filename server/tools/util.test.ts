@@ -9,6 +9,7 @@ import {
   buildBreadcrumb,
   getBreadcrumbsForDocuments,
   optionalString,
+  success,
 } from "./util";
 
 const node = (
@@ -20,6 +21,29 @@ const node = (
   title,
   url: `/doc/${id}`,
   children,
+});
+
+describe("success", () => {
+  it("returns a text block for empty list results", () => {
+    expect(success([])).toEqual({
+      content: [{ type: "text", text: "[]" }],
+    });
+  });
+
+  it("returns one text block per list item", () => {
+    expect(success([{ id: "a" }, { id: "b" }])).toEqual({
+      content: [
+        { type: "text", text: JSON.stringify({ id: "a" }) },
+        { type: "text", text: JSON.stringify({ id: "b" }) },
+      ],
+    });
+  });
+
+  it("wraps a single object in one text block", () => {
+    expect(success({ success: true })).toEqual({
+      content: [{ type: "text", text: JSON.stringify({ success: true }) }],
+    });
+  });
 });
 
 describe("buildBreadcrumb", () => {

@@ -74,6 +74,12 @@ export function optionalString() {
 export function success<T>(data: T | T[]): CallToolResult {
   const payload = Array.isArray(data) ? data : [data];
 
+  if (payload.length === 0) {
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify([]) }],
+    };
+  }
+
   return {
     content: payload.map((item) => ({
       type: "text" as const,
