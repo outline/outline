@@ -2,9 +2,9 @@ import { Trans } from "react-i18next";
 import { IntegrationService } from "@shared/types";
 import Text from "@shared/components/Text";
 import useStores from "~/hooks/useStores";
-import DropToImport from "./DropToImport";
+import DropToImport from "~/scenes/Settings/components/DropToImport";
 
-function ImportSlabDialog() {
+export function ImportSlabDialog() {
   const { dialogs } = useStores();
 
   return (
@@ -28,5 +28,3 @@ function ImportSlabDialog() {
     </>
   );
 }
-
-export default ImportSlabDialog;

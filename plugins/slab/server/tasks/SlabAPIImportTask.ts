@@ -1,7 +1,7 @@
 import type { IntegrationService } from "@shared/types";
 import type { ImportTask } from "@server/models";
+import MarkdownAPIImportTask from "@server/queues/tasks/MarkdownAPIImportTask";
 import type { ZipTreeNode } from "@server/utils/ZipHelper";
-import MarkdownAPIImportTask from "./MarkdownAPIImportTask";
 
 // Supertype of the base task's generic so the `scheduleNextTask` override
 // remains a valid override of MarkdownAPIImportTask's Markdown-typed method.
