@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isISO8601Duration } from "../utils/date";
 import { FilterValidation } from "../validations";
 
 export const ComparisonOperator = z.enum([
@@ -49,6 +50,52 @@ export type Filter<F extends string = string> =
   | FilterCondition<F>
   | FilterGroup<F>;
 
+/** The column type a filterable field maps to, used to validate values. */
+export type FieldKind = "uuid" | "string" | "number" | "boolean" | "date";
+
+const uuidSchema = z.uuid();
+
+// Accept a full ISO 8601 datetime (with `Z` or an offset) or a bare ISO date.
+const dateSchema = z.union([z.iso.datetime({ offset: true }), z.iso.date()]);
+
+// Relative durations (e.g. `-P1D`) are only meaningful for range comparisons.
+const RANGE_OPERATORS = new Set<ComparisonOperator>(["gt", "gte", "lt", "lte"]);
+
+/**
+ * Check whether a single scalar value is compatible with a field's column type.
+ *
+ * @param kind the field's column type.
+ * @param value the candidate value.
+ * @param operator the operator the value is used with.
+ * @returns true if the value is a valid input for the field.
+ */
+function scalarMatchesKind(
+  kind: FieldKind,
+  value: unknown,
+  operator: ComparisonOperator
+): boolean {
+  switch (kind) {
+    case "uuid":
+      return uuidSchema.safeParse(value).success;
+    case "string":
+      return typeof value === "string";
+    case "number":
+      return typeof value === "number";
+    case "boolean":
+      return typeof value === "boolean";
+    case "date":
+      if (typeof value !== "string") {
+        return false;
+      }
+      if (RANGE_OPERATORS.has(operator) && isISO8601Duration(value)) {
+        return true;
+      }
+      return dateSchema.safeParse(value).success;
+    default:
+      return false;
+  }
+}
+
 function isGroup(filter: Filter): filter is FilterGroup {
   return "filters" in filter;
 }
@@ -63,13 +110,23 @@ function depthOf(filter: Filter): number {
 /**
  * Build a zod schema for a typed filter DSL constrained to a field allowlist.
  *
- * @param fields list of allowed field names for this entity.
+ * Each field maps to a column type ({@link FieldKind}) so that values are
+ * validated against the field at the input layer, returning a clean 400 rather
+ * than letting malformed input (e.g. a non-uuid id, an invalid date) reach the
+ * database.
+ *
+ * @param fields map of allowed field name to its column type.
  * @returns the composed FilterSchema along with its FilterCondition / FilterGroup parts.
  */
-export function createFilterSchema<F extends readonly [string, ...string[]]>(
-  fields: F
+export function createFilterSchema<S extends Record<string, FieldKind>>(
+  fields: S
 ) {
-  const FieldEnum = z.enum(fields);
+  const FieldEnum = z.enum(
+    Object.keys(fields) as [
+      Extract<keyof S, string>,
+      ...Extract<keyof S, string>[],
+    ]
+  );
 
   const FilterConditionSchema = z
     .object({
@@ -78,7 +135,8 @@ export function createFilterSchema<F extends readonly [string, ...string[]]>(
       value: FilterValue.optional(),
     })
     .superRefine((data, ctx) => {
-      const { operator, value } = data;
+      const { field, operator, value } = data;
+      const kind = fields[field];
       const isArrayOp = operator === "in" || operator === "notIn";
       const isNullOp = operator === "isNull" || operator === "isNotNull";
       const isStringOp =
@@ -125,6 +183,13 @@ export function createFilterSchema<F extends readonly [string, ...string[]]>(
             path: ["value"],
           });
         }
+        if (value.some((entry) => !scalarMatchesKind(kind, entry, operator))) {
+          ctx.addIssue({
+            code: "custom",
+            message: `value must contain only valid ${kind} entries for field '${field}'`,
+            path: ["value"],
+          });
+        }
         return;
       }
 
@@ -137,10 +202,31 @@ export function createFilterSchema<F extends readonly [string, ...string[]]>(
         return;
       }
 
-      if (isStringOp && typeof value !== "string") {
+      if (isStringOp) {
+        if (typeof value !== "string") {
+          ctx.addIssue({
+            code: "custom",
+            message: `value must be a string for operator '${operator}'`,
+            path: ["value"],
+          });
+          return;
+        }
+        // Pattern matching (iLike/like) only applies to text columns; running
+        // it against a uuid/date/etc. column would error at the database.
+        if (kind !== "string") {
+          ctx.addIssue({
+            code: "custom",
+            message: `operator '${operator}' is only valid for text fields, not field '${field}'`,
+            path: ["operator"],
+          });
+        }
+        return;
+      }
+
+      if (!scalarMatchesKind(kind, value, operator)) {
         ctx.addIssue({
           code: "custom",
-          message: `value must be a string for operator '${operator}'`,
+          message: `value must be a valid ${kind} for field '${field}'`,
           path: ["value"],
         });
       }

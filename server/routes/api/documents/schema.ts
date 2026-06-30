@@ -14,18 +14,18 @@ import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
 
-const documentFilter = createFilterSchema([
-  "createdAt",
-  "updatedAt",
-  "publishedAt",
-  "archivedAt",
-  "title",
-  "templateId",
-  "collectionId",
-  "userId",
-  "documentId",
-  "parentDocumentId",
-] as const);
+const documentFilter = createFilterSchema({
+  createdAt: "date",
+  updatedAt: "date",
+  publishedAt: "date",
+  archivedAt: "date",
+  title: "string",
+  templateId: "uuid",
+  collectionId: "uuid",
+  userId: "uuid",
+  documentId: "uuid",
+  parentDocumentId: "uuid",
+} as const);
 
 const DocumentsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */
