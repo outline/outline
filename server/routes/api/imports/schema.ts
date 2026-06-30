@@ -49,6 +49,11 @@ export const ImportsCreateSchema = BaseSchema.extend({
       permission: z.enum(CollectionPermission).optional(),
     }),
     z.object({
+      service: z.literal(IntegrationService.Obsidian),
+      attachmentId: z.uuid(),
+      permission: z.enum(CollectionPermission).optional(),
+    }),
+    z.object({
       service: z.literal(IntegrationService.JSON),
       attachmentId: z.uuid(),
       permission: z.enum(CollectionPermission).optional(),

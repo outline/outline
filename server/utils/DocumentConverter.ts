@@ -2,7 +2,7 @@ import { escapeRegExp } from "es-toolkit/compat";
 import type { Node } from "prosemirror-model";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import yaml from "js-yaml";
-import { schema, serializer } from "@server/editor";
+import { importParser, schema, serializer } from "@server/editor";
 import { FileImportError } from "@server/errors";
 import { trace, traceFunction } from "@server/logging/tracing";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
@@ -31,15 +31,18 @@ export class DocumentConverter {
    *   out as the document title and removed from the body. Defaults to true;
    *   set false for sources where the filename is authoritative and the first
    *   heading must remain part of the content (e.g. Slab).
+   * @param options.parseWikiLinks Whether to parse Obsidian-style wikilinks and
+   *   embeds (`[[Note]]`, `![[file]]`) into mention/image/link nodes. Defaults
+   *   to false.
    * @returns The converted document with text, data, title, and icon.
    */
   public static async convert(
     content: Buffer | string,
     fileName: string,
     mimeType: string,
-    options: { extractTitle?: boolean } = {}
+    options: { extractTitle?: boolean; parseWikiLinks?: boolean } = {}
   ): Promise<ConvertResult> {
-    const { extractTitle = true } = options;
+    const { extractTitle = true, parseWikiLinks = false } = options;
     let doc: Node;
 
     // Route to appropriate conversion method
@@ -52,7 +55,9 @@ export class DocumentConverter {
         fileName,
         mimeType
       );
-      doc = ProsemirrorHelper.toProsemirror(markdown);
+      doc = parseWikiLinks
+        ? importParser.parse(markdown)
+        : ProsemirrorHelper.toProsemirror(markdown);
     }
 
     // Extract title from first H1 heading

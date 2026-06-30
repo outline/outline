@@ -12,6 +12,7 @@ import {
 import CodeBlock from "@shared/editor/nodes/CodeBlock";
 import CodeFence from "@shared/editor/nodes/CodeFence";
 import Mention from "@shared/editor/nodes/Mention";
+import wikiLinks from "@shared/editor/rules/wikiLinks";
 
 populateEmojiData(data as EmojiMartData);
 
@@ -36,6 +37,16 @@ for (const extension of extensionManager.extensions) {
 export const parser = extensionManager.parser({
   schema,
   plugins: extensionManager.rulePlugins,
+});
+
+/**
+ * Parser variant used by document imports. Identical to {@link parser} but with
+ * Obsidian-style wikilink/embed parsing enabled, so importers can opt into it
+ * without affecting normal document parsing.
+ */
+export const importParser = extensionManager.parser({
+  schema,
+  plugins: [...extensionManager.rulePlugins, wikiLinks],
 });
 
 export const serializer = extensionManager.serializer();
