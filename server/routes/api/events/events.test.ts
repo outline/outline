@@ -37,9 +37,8 @@ describe("#events.list", () => {
       teamId: user.teamId,
       actorId: admin.id,
     });
-    const res = await server.post("/api/events.list", {
+    const res = await server.post("/api/events.list", user, {
       body: {
-        token: user.getJwtToken(),
         collectionId: collection.id,
       },
     });
@@ -76,9 +75,8 @@ describe("#events.list", () => {
       teamId: user.teamId,
       actorId: admin.id,
     });
-    const res = await server.post("/api/events.list", {
+    const res = await server.post("/api/events.list", admin, {
       body: {
-        token: admin.getJwtToken(),
         auditLog: true,
       },
     });
@@ -116,9 +114,8 @@ describe("#events.list", () => {
       teamId: user.teamId,
       actorId: user.id,
     });
-    const res = await server.post("/api/events.list", {
+    const res = await server.post("/api/events.list", admin, {
       body: {
-        token: admin.getJwtToken(),
         auditLog: true,
         actorId: admin.id,
       },
@@ -156,9 +153,8 @@ describe("#events.list", () => {
       teamId: user.teamId,
       actorId: user.id,
     });
-    const res = await server.post("/api/events.list", {
+    const res = await server.post("/api/events.list", user, {
       body: {
-        token: user.getJwtToken(),
         actorId: admin.id,
       },
     });
@@ -193,9 +189,8 @@ describe("#events.list", () => {
       teamId: user.teamId,
       actorId: user.id,
     });
-    const res = await server.post("/api/events.list", {
+    const res = await server.post("/api/events.list", user, {
       body: {
-        token: user.getJwtToken(),
         actorId: user.id,
         collectionId: collection.id,
       },
@@ -225,9 +220,8 @@ describe("#events.list", () => {
       teamId: user.teamId,
       actorId: user.id,
     });
-    const res = await server.post("/api/events.list", {
+    const res = await server.post("/api/events.list", admin, {
       body: {
-        token: admin.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -256,9 +250,8 @@ describe("#events.list", () => {
       teamId: user.teamId,
       actorId: user.id,
     });
-    const res = await server.post("/api/events.list", {
+    const res = await server.post("/api/events.list", actor, {
       body: {
-        token: actor.getJwtToken(),
         documentId: document.id,
       },
     });
@@ -292,9 +285,8 @@ describe("#events.list", () => {
       teamId: user.teamId,
       actorId: user.id,
     });
-    const res = await server.post("/api/events.list", {
+    const res = await server.post("/api/events.list", user, {
       body: {
-        token: user.getJwtToken(),
         name: "documents.publish",
         collectionId: collection.id,
       },
@@ -332,9 +324,8 @@ describe("#events.list", () => {
       teamId: user.teamId,
       actorId: user.id,
     });
-    const res = await server.post("/api/events.list", {
+    const res = await server.post("/api/events.list", user, {
       body: {
-        token: user.getJwtToken(),
         events: ["documents.publish"],
         collectionId: collection.id,
       },
@@ -366,11 +357,7 @@ describe("#events.list", () => {
       actorId: user.id,
     });
     await user.destroy({ hooks: false });
-    const res = await server.post("/api/events.list", {
-      body: {
-        token: admin.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/events.list", admin);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
@@ -379,9 +366,8 @@ describe("#events.list", () => {
 
   it("should require authorization for audit events", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/events.list", {
+    const res = await server.post("/api/events.list", user, {
       body: {
-        token: user.getJwtToken(),
         auditLog: true,
       },
     });
@@ -421,19 +407,14 @@ describe("#events.list", () => {
     });
 
     // user2 tries to list events without specifying documentId/collectionId
-    const res = await server.post("/api/events.list", {
-      body: {
-        token: user2.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/events.list", user2);
 
     // Non-admins cannot list events without documentId or collectionId
     expect(res.status).toEqual(403);
 
     // Also verify user2 cannot see the draft when filtering by documentId
-    const res2 = await server.post("/api/events.list", {
+    const res2 = await server.post("/api/events.list", user2, {
       body: {
-        token: user2.getJwtToken(),
         documentId: privateDraft.id,
       },
     });
@@ -462,17 +443,13 @@ describe("#events.list", () => {
     });
 
     // admin lists events
-    const res = await server.post("/api/events.list", {
-      body: {
-        token: admin.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/events.list", admin);
 
     const body = await res.json();
     expect(res.status).toEqual(200);
 
     // admin SHOULD see events for documents without a collection
-    const eventIds = body.data.map((e: any) => e.id);
+    const eventIds = body.data.map((e: { id: string }) => e.id);
     expect(eventIds).toContain(draftEvent.id);
   });
 
@@ -497,9 +474,8 @@ describe("#events.list", () => {
     });
 
     // user lists events for their collection
-    const res = await server.post("/api/events.list", {
+    const res = await server.post("/api/events.list", user, {
       body: {
-        token: user.getJwtToken(),
         collectionId: collection.id,
       },
     });

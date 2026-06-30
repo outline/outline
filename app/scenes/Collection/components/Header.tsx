@@ -1,6 +1,6 @@
 import { IconTitleWrapper } from "@shared/components/Icon";
 import breakpoint from "styled-components-breakpoint";
-import first from "lodash/first";
+import { first } from "es-toolkit/compat";
 import { Suspense, useCallback } from "react";
 import styled from "styled-components";
 import { CollectionValidation } from "@shared/validations";
@@ -90,7 +90,7 @@ const StyledHeading = styled(Heading)`
   display: flex;
   align-items: center;
   position: relative;
-  margin-left: 40px;
+  margin-left: 16px;
 
   ${breakpoint("tablet")`
     margin-left: 0;

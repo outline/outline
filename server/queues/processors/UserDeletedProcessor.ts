@@ -6,6 +6,7 @@ import {
   Subscription,
   UserAuthentication,
   UserMembership,
+  WebhookSubscription,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import type { Event as TEvent, UserEvent } from "@server/types";
@@ -59,6 +60,16 @@ export default class UserDeletedProcessor extends BaseProcessor {
         },
         transaction,
       });
+      await WebhookSubscription.update(
+        { enabled: false },
+        {
+          where: {
+            createdById: event.userId,
+            enabled: true,
+          },
+          transaction,
+        }
+      );
     });
   }
 }

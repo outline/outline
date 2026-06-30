@@ -1,5 +1,5 @@
 import type { APIContext } from "@server/types";
-import { getExpectedOrigin } from "./passkeys";
+import { getExpectedOrigin, getPasskeyLoginRedirect } from "./passkeys";
 
 describe("getExpectedOrigin", () => {
   // Helper to mock APIContext for testing
@@ -8,19 +8,20 @@ describe("getExpectedOrigin", () => {
     hostname: string;
     host: string;
     forwardedPort?: string;
-  }): APIContext => ({
-    protocol: options.protocol,
-    request: {
-      hostname: options.hostname,
-      host: options.host,
-      get: (header: string) => {
-        if (header === "X-Forwarded-Port" && options.forwardedPort) {
-          return options.forwardedPort;
-        }
-        return undefined;
-      },
-    } as unknown,
-  }) as unknown as APIContext;
+  }): APIContext =>
+    ({
+      protocol: options.protocol,
+      request: {
+        hostname: options.hostname,
+        host: options.host,
+        get: (header: string) => {
+          if (header === "X-Forwarded-Port" && options.forwardedPort) {
+            return options.forwardedPort;
+          }
+          return undefined;
+        },
+      } as unknown,
+    }) as unknown as APIContext;
 
   it("should construct origin with non-standard HTTPS port from X-Forwarded-Port", () => {
     const ctx = createMockContext({
@@ -84,5 +85,31 @@ describe("getExpectedOrigin", () => {
     });
 
     expect(getExpectedOrigin(ctx)).toBe("http://outline.example.com:8080");
+  });
+});
+
+describe("getPasskeyLoginRedirect", () => {
+  it("should redirect to the desktop passkey flow when client=desktop", () => {
+    expect(getPasskeyLoginRedirect("desktop")).toBe(
+      "/?method=passkey&client=desktop"
+    );
+  });
+
+  it("should default to the web client when client is missing", () => {
+    expect(getPasskeyLoginRedirect(undefined)).toBe(
+      "/?method=passkey&client=web"
+    );
+  });
+
+  it("should default to the web client when client is invalid", () => {
+    expect(getPasskeyLoginRedirect("bogus")).toBe(
+      "/?method=passkey&client=web"
+    );
+  });
+
+  it("should default to the web client when client is an array", () => {
+    expect(getPasskeyLoginRedirect(["desktop", "web"])).toBe(
+      "/?method=passkey&client=web"
+    );
   });
 });

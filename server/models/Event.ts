@@ -20,6 +20,7 @@ import {
 import { globalEventQueue } from "../queues";
 import type { APIContext } from "../types";
 import { AuthenticationType } from "../types";
+import { normalizeIp } from "../utils/ip";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -48,7 +49,7 @@ class Event extends IdModel<
 
   /** The originating IP address of the event. */
   @IsIP
-  @Column
+  @Column(DataType.STRING)
   ip: string | null;
 
   /** The type of authentication used to create the event. */
@@ -60,6 +61,7 @@ class Event extends IdModel<
    * Note that the `data` column will be visible to the client and API requests.
    */
   @Column(DataType.JSONB)
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   data: Record<string, any> | null;
 
   /**
@@ -67,16 +69,14 @@ class Event extends IdModel<
    * used for arbitrary data associated with the event.
    */
   @Column(DataType.JSONB)
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   changes: Record<string, any> | null;
 
   // hooks
 
   @BeforeCreate
   static cleanupIp(model: Event) {
-    if (model.ip) {
-      // cleanup IPV6 representations of IPV4 addresses
-      model.ip = model.ip.replace(/^::ffff:/, "");
-    }
+    model.ip = normalizeIp(model.ip);
   }
 
   @AfterSave

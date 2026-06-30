@@ -34,7 +34,7 @@ const Scene: React.FC<Props> = ({
   wide,
 }: Props) => (
   <FillWidth>
-    <PageTitle title={textTitle || title} />
+    <PageTitle title={textTitle ?? (typeof title === "string" ? title : "")} />
     <Header
       hasSidebar
       title={

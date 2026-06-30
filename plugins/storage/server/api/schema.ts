@@ -1,5 +1,5 @@
 import type formidable from "formidable";
-import isEmpty from "lodash/isEmpty";
+import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
 import { ValidateKey } from "@server/validation";
 
@@ -10,7 +10,7 @@ export const FilesCreateSchema = z.object({
       .refine(ValidateKey.isValid, { message: ValidateKey.message })
       .transform(ValidateKey.sanitize),
   }),
-  file: z.custom<formidable.File>(),
+  file: z.custom<formidable.File>().optional(),
 });
 
 export type FilesCreateReq = z.infer<typeof FilesCreateSchema>;

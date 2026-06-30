@@ -160,4 +160,12 @@ export default createGlobalStyle<Props>`
   &.${EditorStyleHelper.tableDragging} *::after {
     cursor: grabbing !important;
   }
+
+  /* Image/media resize drag cursor */
+  &.${EditorStyleHelper.resizeDragging},
+  &.${EditorStyleHelper.resizeDragging} *,
+  &.${EditorStyleHelper.resizeDragging} *::before,
+  &.${EditorStyleHelper.resizeDragging} *::after {
+    cursor: var(--resize-drag-cursor) !important;
+  }
 `;

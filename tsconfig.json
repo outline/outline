@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsc/tsconfig.tsbuildinfo",
+    "strict": false,
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "esModuleInterop": true,
@@ -7,27 +10,34 @@
     "emitDecoratorMetadata": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "baseUrl": ".",
     "jsx": "react-jsx",
     "lib": ["dom", "es2020", "dom.iterable", "esnext.asynciterable"],
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "resolvePackageJsonExports": false,
     "noErrorTruncation": true,
     "noImplicitAny": true,
     "noImplicitOverride": false,
     "noImplicitReturns": true,
-    "noImplicitThis": false,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
     "sourceMap": true,
     "resolveJsonModule": true,
     "strictNullChecks": true,
     "noEmit": true,
+    "strictBindCallApply": true,
     "skipLibCheck": true,
     "ignoreDeprecations": "5.0",
     "target": "es2020",
     "paths": {
       "@server/*": ["./server/*"],
       "@shared/*": ["./shared/*"],
-      "~/*": ["./app/*"]
+      "~/*": ["./app/*"],
+      "plugins/*": ["./plugins/*"],
+      // Vite 8 and its plugins ship types only via their exports map, which
+      // resolvePackageJsonExports disables; point tsc at their declaration entries.
+      "vite": ["./node_modules/vite/dist/node/index.d.ts"],
+      "@vitejs/plugin-react": ["./node_modules/@vitejs/plugin-react/dist/index.d.ts"]
     }
   },
   "exclude": ["node_modules", "build", "server/migrations"]

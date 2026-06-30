@@ -2,6 +2,15 @@ import env from "@shared/env";
 import type { IntegrationType } from "@shared/types";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
+export const SlackOAuthNonceCookie = "slackOAuthNonce";
+
+export type OAuthState = {
+  teamId: string;
+  type: IntegrationType;
+  nonce: string;
+  collectionId?: string;
+};
+
 export class SlackUtils {
   private static authBaseUrl = "https://slack.com/oauth/authorize";
 
@@ -16,7 +25,7 @@ export class SlackUtils {
   static createState(
     teamId: string,
     type: IntegrationType,
-    data?: Record<string, any>
+    data?: Record<string, unknown>
   ) {
     return JSON.stringify({ type, teamId, ...data });
   }
@@ -27,10 +36,12 @@ export class SlackUtils {
    * @param state The state string
    * @returns The parsed state
    */
-  static parseState<T>(
-    state: string
-  ): { teamId: string; type: IntegrationType } & T {
-    return JSON.parse(state);
+  static parseState(state: string): OAuthState | undefined {
+    try {
+      return JSON.parse(state);
+    } catch {
+      return undefined;
+    }
   }
 
   static callbackUrl(

@@ -2,7 +2,6 @@ import {
   TrashIcon,
   InsertAboveIcon,
   InsertBelowIcon,
-  MoreIcon,
   PaletteIcon,
   TableHeaderRowIcon,
   TableSplitCellsIcon,
@@ -15,8 +14,12 @@ import {
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
-import type { Dictionary } from "~/hooks/useDictionary";
+import { t } from "i18next";
+import type {
+  MenuItem,
+  NodeAttrMark,
+  SelectionContext,
+} from "@shared/editor/types";
 import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
@@ -24,7 +27,11 @@ import TableCell from "@shared/editor/nodes/TableCell";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 
 /**
- * Get the set of background colors used in a row
+ * Get the set of background colors used in a row.
+ *
+ * @param state - the current editor state.
+ * @param rowIndex - the row index.
+ * @returns a set of hex color strings.
  */
 function getRowColors(state: EditorState, rowIndex: number): Set<string> {
   const colors = new Set<string>();
@@ -46,19 +53,19 @@ function getRowColors(state: EditorState, rowIndex: number): Set<string> {
   return colors;
 }
 
-export default function tableRowMenuItems(
-  state: EditorState,
-  readOnly: boolean,
-  dictionary: Dictionary,
-  options: {
-    index: number;
-  }
-): MenuItem[] {
-  if (readOnly) {
+/**
+ * Returns menu items for the table row selection toolbar.
+ *
+ * @param ctx - the current selection context.
+ * @returns an array of menu items.
+ */
+export default function tableRowMenuItems(ctx: SelectionContext): MenuItem[] {
+  if (ctx.readOnly) {
     return [];
   }
 
-  const { index } = options;
+  const index = ctx.rowIndex!;
+  const { state } = ctx;
   const { selection } = state;
 
   if (!(selection instanceof CellSelection)) {
@@ -77,7 +84,42 @@ export default function tableRowMenuItems(
 
   return [
     {
-      tooltip: dictionary.background,
+      name: "toggleHeaderRow",
+      label: t("Toggle header"),
+      icon: <TableHeaderRowIcon />,
+      visible: index === 0,
+    },
+    {
+      name: "addRowBefore",
+      label: t("Insert before"),
+      icon: <InsertAboveIcon />,
+      attrs: { index },
+    },
+    {
+      name: "addRowAfter",
+      label: t("Insert after"),
+      icon: <InsertBelowIcon />,
+      attrs: { index },
+    },
+    {
+      name: "moveTableRow",
+      label: t("Move up"),
+      icon: <ArrowUpIcon />,
+      attrs: { from: index, to: index - 1 },
+      visible: index > 0,
+    },
+    {
+      name: "moveTableRow",
+      label: t("Move down"),
+      icon: <ArrowDownIcon />,
+      attrs: { from: index, to: index + 1 },
+      visible: index < tableMap.map.height - 1,
+    },
+    {
+      name: "separator",
+    },
+    {
+      label: t("Background"),
       icon:
         rowColors.size > 1 ? (
           <CircleIcon color="rainbow" />
@@ -90,8 +132,8 @@ export default function tableRowMenuItems(
         ...[
           {
             name: "toggleRowBackgroundAndCollapseSelection",
-            label: dictionary.none,
-            icon: <DottedCircleIcon retainColor color="transparent" />,
+            label: t("None"),
+            icon: <DottedCircleIcon color="transparent" />,
             active: () => (hasBackground ? false : true),
             attrs: { color: null },
           },
@@ -135,65 +177,28 @@ export default function tableRowMenuItems(
       ],
     },
     {
-      icon: <MoreIcon />,
-      children: [
-        {
-          name: "toggleHeaderRow",
-          label: dictionary.toggleHeader,
-          icon: <TableHeaderRowIcon />,
-          visible: index === 0,
-        },
-        {
-          name: "addRowBefore",
-          label: dictionary.addRowBefore,
-          icon: <InsertAboveIcon />,
-          attrs: { index },
-        },
-        {
-          name: "addRowAfter",
-          label: dictionary.addRowAfter,
-          icon: <InsertBelowIcon />,
-          attrs: { index },
-        },
-        {
-          name: "moveTableRow",
-          label: dictionary.moveRowUp,
-          icon: <ArrowUpIcon />,
-          attrs: { from: index, to: index - 1 },
-          visible: index > 0,
-        },
-        {
-          name: "moveTableRow",
-          label: dictionary.moveRowDown,
-          icon: <ArrowDownIcon />,
-          attrs: { from: index, to: index + 1 },
-          visible: index < tableMap.map.height - 1,
-        },
-        {
-          name: "separator",
-        },
-        {
-          name: "mergeCells",
-          label: dictionary.mergeCells,
-          icon: <TableMergeCellsIcon />,
-          visible: isMultipleCellSelection(state),
-        },
-        {
-          name: "splitCell",
-          label: dictionary.splitCell,
-          icon: <TableSplitCellsIcon />,
-          visible: isMergedCellSelection(state),
-        },
-        {
-          name: "separator",
-        },
-        {
-          name: "deleteRow",
-          label: dictionary.deleteRow,
-          dangerous: true,
-          icon: <TrashIcon />,
-        },
-      ],
+      name: "separator",
+    },
+    {
+      name: "mergeCells",
+      label: t("Merge cells"),
+      icon: <TableMergeCellsIcon />,
+      visible: isMultipleCellSelection(state),
+    },
+    {
+      name: "splitCell",
+      label: t("Split cell"),
+      icon: <TableSplitCellsIcon />,
+      visible: isMergedCellSelection(state),
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "deleteRow",
+      label: t("Delete"),
+      dangerous: true,
+      icon: <TrashIcon />,
     },
   ];
 }

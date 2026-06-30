@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { s, hover } from "@shared/styles";
 import Notification, { type NotificationFilter } from "~/models/Notification";
 import { markNotificationsAsRead } from "~/actions/definitions/notifications";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import NotificationMenu from "~/menus/NotificationMenu";
 import Empty from "../Empty";
@@ -83,6 +84,7 @@ function Notifications(
 ) {
   const { notifications } = useStores();
   const { t } = useTranslation();
+  const isMobile = useMobile();
   const [filter, setFilter] = React.useState<NotificationFilter>("all");
 
   const filterOptions = React.useMemo<Option[]>(
@@ -110,9 +112,9 @@ function Notifications(
       <Flex
         style={{
           width: "100%",
-          minHeight: "300px",
+          minHeight: isMobile ? "75vh" : "300px",
           maxHeight:
-            "min(75vh, calc(var(--radix-popover-content-available-height) - 44px))",
+            "min(75vh, calc(var(--radix-popover-content-available-height, 75vh) - 44px))",
         }}
         column
       >
@@ -143,7 +145,7 @@ function Notifications(
             <NotificationMenu />
           </HStack>
         </Header>
-        <Scrollable ref={ref} flex topShadow hiddenScrollbars>
+        <StyledScrollable ref={ref} flex topShadow hiddenScrollbars>
           <React.Suspense fallback={null}>
             <PaginatedList<Notification>
               fetch={notifications.fetchPage}
@@ -163,7 +165,7 @@ function Notifications(
               )}
             />
           </React.Suspense>
-        </Scrollable>
+        </StyledScrollable>
       </Flex>
     </ErrorBoundary>
   );
@@ -181,11 +183,16 @@ const StyledInputSelect = styled(InputSelect)`
   }
 `;
 
+const StyledScrollable = styled(Scrollable)`
+  flex: 1;
+  min-height: 0;
+`;
+
 const EmptyNotifications = styled(Empty)`
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  flex: 1;
 `;
 
 const Button = styled(NudeButton)`

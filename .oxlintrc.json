@@ -31,7 +31,7 @@
     "no-empty-pattern": "error",
     "no-empty-static-block": "error",
     "no-ex-assign": "error",
-    "no-explicit-any": "warn",
+    "no-explicit-any": "error",
     "no-extra-boolean-cast": "error",
     "no-fallthrough": "error",
     "no-func-assign": "error",
@@ -73,9 +73,30 @@
         "eqeqeq": "error",
         "curly": "error",
         "no-console": "error",
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "prosemirror-tables",
+                "importNames": [
+                  "addRowBefore",
+                  "addRowAfter",
+                  "addColumnBefore",
+                  "addColumnAfter"
+                ],
+                "message": "Use the wrappers from shared/editor/commands/table instead, which respect the target index and place the cursor in the inserted cell."
+              }
+            ]
+          }
+        ],
+        "no-unused-expressions": "error",
         "arrow-body-style": ["error", "as-needed"],
-        "no-useless-escape": "off",
         "react/react-in-jsx-scope": "off",
+        "typescript/await-thenable": "error",
+        "typescript/no-duplicate-type-constituents": "error",
+        "typescript/no-meaningless-void-operator": "error",
+        "typescript/require-array-sort-compare": "error",
         "react/self-closing-comp": [
           "error",
           {
@@ -87,6 +108,9 @@
         "import/no-named-as-default": "off",
         "import/no-named-as-default-member": "off",
         "typescript/consistent-type-imports": "error",
+        "typescript/restrict-template-expressions": "error",
+        "typescript/no-floating-promises": "error",
+        "typescript/no-useless-default-assignment": "error",
         "no-unused-vars": [
           "error",
           {

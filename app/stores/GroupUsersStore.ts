@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import filter from "lodash/filter";
+import { filter } from "es-toolkit/compat";
 import { action, runInAction } from "mobx";
 import GroupUser from "~/models/GroupUser";
 import type { PaginationParams } from "~/types";

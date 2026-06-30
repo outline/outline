@@ -6,11 +6,15 @@ import { getTestServer } from "@server/test/support";
 import env from "../env";
 import * as Slack from "../slack";
 
-jest.mock("../slack", () => ({
-  post: jest.fn(),
-}));
-
 const server = getTestServer();
+
+beforeEach(() => {
+  vi.spyOn(Slack, "post").mockResolvedValue({ ok: true });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("#hooks.unfurl", () => {
   it("should return documents with matching SSO user", async () => {
@@ -30,7 +34,7 @@ describe("#hooks.unfurl", () => {
     const res = await server.post("/api/hooks.unfurl", {
       body: {
         token: env.SLACK_VERIFICATION_TOKEN,
-        team_id: `T${randomString(8)}`,
+        team_id: user.team.authenticationProviders[0].providerId,
         api_app_id: `A${randomString(8)}`,
         event: {
           type: "link_shared",

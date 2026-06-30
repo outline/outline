@@ -1,21 +1,35 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import type { IntegrationType } from "@shared/types";
 import Button from "~/components/Button";
-import { SlackUtils } from "../../shared/SlackUtils";
+import { generateOAuthStateNonce } from "~/utils/oauth";
+import { redirectTo } from "~/utils/urls";
+import { SlackOAuthNonceCookie, SlackUtils } from "../../shared/SlackUtils";
 
 type Props = {
+  type: IntegrationType;
   scopes?: string[];
-  redirectUri: string;
+  state: { teamId: string; collectionId?: string };
+  redirectUri?: string;
   icon?: React.ReactNode;
-  state?: string;
   label?: string;
 };
 
-function SlackButton({ state = "", scopes, redirectUri, label, icon }: Props) {
+function SlackButton({
+  type,
+  scopes,
+  state: stateData,
+  redirectUri,
+  label,
+  icon,
+}: Props) {
   const { t } = useTranslation();
 
   const handleClick = () => {
-    window.location.href = SlackUtils.authUrl(state, scopes, redirectUri);
+    const nonce = generateOAuthStateNonce(SlackOAuthNonceCookie);
+    const { teamId, ...rest } = stateData;
+    const state = SlackUtils.createState(teamId, type, { nonce, ...rest });
+    redirectTo(SlackUtils.authUrl(state, scopes, redirectUri));
   };
 
   return (

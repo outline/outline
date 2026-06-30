@@ -1,5 +1,7 @@
 import type { Next } from "koa";
-import defaults from "lodash/defaults";
+import { defaults } from "es-toolkit/compat";
+import { RateLimiterRes } from "rate-limiter-flexible";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import { RateLimitExceededError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -69,23 +71,27 @@ export function defaultRateLimiter() {
     try {
       await limiter.consume(key);
     } catch (rateLimiterRes) {
-      if (rateLimiterRes.msBeforeNext) {
-        ctx.set("Retry-After", `${rateLimiterRes.msBeforeNext / 1000}`);
-        ctx.set("RateLimit-Limit", `${limiter.points}`);
-        ctx.set("RateLimit-Remaining", `${rateLimiterRes.remainingPoints}`);
-        ctx.set(
-          "RateLimit-Reset",
-          `${new Date(Date.now() + rateLimiterRes.msBeforeNext)}`
-        );
-
-        Metrics.increment("rate_limit.exceeded", {
-          path: fullPath,
-        });
-
-        throw RateLimitExceededError();
-      } else {
-        Logger.error("Rate limiter error", rateLimiterRes);
+      if (
+        rateLimiterRes instanceof Error ||
+        !(rateLimiterRes instanceof RateLimiterRes)
+      ) {
+        Logger.error("Rate limiter error", toError(rateLimiterRes));
+        return next();
       }
+
+      ctx.set("Retry-After", `${rateLimiterRes.msBeforeNext / 1000}`);
+      ctx.set("RateLimit-Limit", `${limiter.points}`);
+      ctx.set("RateLimit-Remaining", `${rateLimiterRes.remainingPoints}`);
+      ctx.set(
+        "RateLimit-Reset",
+        new Date(Date.now() + rateLimiterRes.msBeforeNext).toString()
+      );
+
+      Metrics.increment("rate_limit.exceeded", {
+        path: fullPath,
+      });
+
+      throw RateLimitExceededError();
     }
 
     return next();
@@ -118,12 +124,17 @@ export function rateLimiter(config: RateLimiterConfig) {
     const fullPath = `${ctx.mountPath ?? ""}${ctx.path}`;
 
     if (!RateLimiter.hasRateLimiter(fullPath)) {
+      const points = Math.max(
+        1,
+        Math.round(config.requests * env.RATE_LIMITER_MULTIPLIER)
+      );
+
       RateLimiter.setRateLimiter(
         fullPath,
         defaults(
           {
             ...config,
-            points: config.requests,
+            points,
           },
           {
             duration: 60,

@@ -12,7 +12,7 @@ import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
-jest.mock("@server/storage/files");
+vi.mock("@server/storage/files");
 
 describe("#fileOperations.info", () => {
   it("should return fileOperation", async () => {
@@ -25,10 +25,9 @@ describe("#fileOperations.info", () => {
       teamId: team.id,
       userId: admin.id,
     });
-    const res = await server.post("/api/fileOperations.info", {
+    const res = await server.post("/api/fileOperations.info", admin, {
       body: {
         id: exportData.id,
-        token: admin.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -45,10 +44,9 @@ describe("#fileOperations.info", () => {
       teamId: team.id,
       userId: user.id,
     });
-    const res = await server.post("/api/fileOperations.info", {
+    const res = await server.post("/api/fileOperations.info", user, {
       body: {
         id: exportData.id,
-        token: user.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -65,10 +63,9 @@ describe("#fileOperations.info", () => {
       teamId: team.id,
       userId: admin.id,
     });
-    const res = await server.post("/api/fileOperations.info", {
+    const res = await server.post("/api/fileOperations.info", user, {
       body: {
         id: exportData.id,
-        token: user.getJwtToken(),
       },
     });
     expect(res.status).toEqual(403);
@@ -83,10 +80,9 @@ describe("#fileOperations.info", () => {
       teamId: team.id,
       userId: admin1.id,
     });
-    const res = await server.post("/api/fileOperations.info", {
+    const res = await server.post("/api/fileOperations.info", admin2, {
       body: {
         id: exportData.id,
-        token: admin2.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -103,10 +99,9 @@ describe("#fileOperations.info", () => {
       teamId: team.id,
       userId: admin1.id,
     });
-    const res = await server.post("/api/fileOperations.info", {
+    const res = await server.post("/api/fileOperations.info", admin2, {
       body: {
         id: importOp.id,
-        token: admin2.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -125,10 +120,9 @@ describe("#fileOperations.info", () => {
       teamId: team.id,
       userId: admin.id,
     });
-    const res = await server.post("/api/fileOperations.info", {
+    const res = await server.post("/api/fileOperations.info", admin, {
       body: {
         id: exportData.id,
-        token: admin.getJwtToken(),
       },
     });
     expect(res.status).toEqual(403);
@@ -146,9 +140,8 @@ describe("#fileOperations.list", () => {
       teamId: team.id,
       userId: admin.id,
     });
-    const res = await server.post("/api/fileOperations.list", {
+    const res = await server.post("/api/fileOperations.list", admin, {
       body: {
-        token: admin.getJwtToken(),
         type: FileOperationType.Export,
       },
     });
@@ -176,9 +169,8 @@ describe("#fileOperations.list", () => {
       userId: admin.id,
       collectionId: collection.id,
     });
-    const res = await server.post("/api/fileOperations.list", {
+    const res = await server.post("/api/fileOperations.list", admin, {
       body: {
-        token: admin.getJwtToken(),
         type: FileOperationType.Export,
       },
     });
@@ -210,9 +202,8 @@ describe("#fileOperations.list", () => {
     await collection.destroy({ hooks: false });
     const isCollectionPresent = await Collection.findByPk(collection.id);
     expect(isCollectionPresent).toBe(null);
-    const res = await server.post("/api/fileOperations.list", {
+    const res = await server.post("/api/fileOperations.list", admin, {
       body: {
-        token: admin.getJwtToken(),
         type: FileOperationType.Export,
       },
     });
@@ -247,9 +238,8 @@ describe("#fileOperations.list", () => {
     await admin.destroy();
     const isAdminPresent = await User.findByPk(admin.id);
     expect(isAdminPresent).toBe(null);
-    const res = await server.post("/api/fileOperations.list", {
+    const res = await server.post("/api/fileOperations.list", admin2, {
       body: {
-        token: admin2.getJwtToken(),
         type: FileOperationType.Export,
       },
     });
@@ -265,9 +255,8 @@ describe("#fileOperations.list", () => {
 
   it("should require admin", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/fileOperations.list", {
+    const res = await server.post("/api/fileOperations.list", user, {
       body: {
-        token: user.getJwtToken(),
         type: FileOperationType.Export,
       },
     });
@@ -286,9 +275,8 @@ describe("#fileOperations.redirect", () => {
       teamId: team.id,
       userId: admin.id,
     });
-    const res = await server.post("/api/fileOperations.redirect", {
+    const res = await server.post("/api/fileOperations.redirect", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: exportData.id,
       },
     });
@@ -307,9 +295,8 @@ describe("#fileOperations.redirect", () => {
       teamId: team.id,
       userId: admin1.id,
     });
-    const res = await server.post("/api/fileOperations.redirect", {
+    const res = await server.post("/api/fileOperations.redirect", admin2, {
       body: {
-        token: admin2.getJwtToken(),
         id: exportData.id,
       },
       redirect: "manual",
@@ -326,9 +313,8 @@ describe("#fileOperations.redirect", () => {
       teamId: team.id,
       userId: user.id,
     });
-    const res = await server.post("/api/fileOperations.redirect", {
+    const res = await server.post("/api/fileOperations.redirect", user, {
       body: {
-        token: user.getJwtToken(),
         id: exportData.id,
       },
       redirect: "manual",
@@ -346,9 +332,8 @@ describe("#fileOperations.redirect", () => {
       teamId: team.id,
       userId: admin.id,
     });
-    const res = await server.post("/api/fileOperations.redirect", {
+    const res = await server.post("/api/fileOperations.redirect", user, {
       body: {
-        token: user.getJwtToken(),
         id: exportData.id,
       },
     });
@@ -365,9 +350,8 @@ describe("#fileOperations.redirect", () => {
       teamId: team.id,
       userId: user.id,
     });
-    const res = await server.post("/api/fileOperations.redirect", {
+    const res = await server.post("/api/fileOperations.redirect", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: exportData.id,
       },
     });
@@ -387,12 +371,15 @@ describe("#fileOperations.delete", () => {
       userId: admin.id,
       state: FileOperationState.Complete,
     });
-    const deleteResponse = await server.post("/api/fileOperations.delete", {
-      body: {
-        token: admin.getJwtToken(),
-        id: exportData.id,
-      },
-    });
+    const deleteResponse = await server.post(
+      "/api/fileOperations.delete",
+      admin,
+      {
+        body: {
+          id: exportData.id,
+        },
+      }
+    );
     expect(deleteResponse.status).toBe(200);
     expect(
       await Event.count({
@@ -420,9 +407,8 @@ describe("#fileOperations.delete", () => {
       teamId: team.id,
       userId: user.id,
     });
-    const res = await server.post("/api/fileOperations.delete", {
+    const res = await server.post("/api/fileOperations.delete", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: exportData.id,
       },
     });

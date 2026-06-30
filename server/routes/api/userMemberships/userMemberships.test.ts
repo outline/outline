@@ -30,20 +30,15 @@ describe("#userMemberships.list", () => {
     const member = await buildUser({
       teamId: user.teamId,
     });
-    await server.post("/api/documents.add_user", {
+    await server.post("/api/documents.add_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: document.id,
         userId: member.id,
       },
     });
     const users = await document.$get("users");
     expect(users.length).toEqual(1);
-    const res = await server.post("/api/userMemberships.list", {
-      body: {
-        token: member.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/userMemberships.list", member);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data).not.toBeFalsy();
@@ -79,9 +74,8 @@ describe("#userMemberships.update", () => {
     const member = await buildUser({
       teamId: user.teamId,
     });
-    const resp = await server.post("/api/documents.add_user", {
+    const resp = await server.post("/api/documents.add_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: document.id,
         userId: member.id,
       },
@@ -93,9 +87,8 @@ describe("#userMemberships.update", () => {
 
     const users = await document.$get("users");
     expect(users.length).toEqual(1);
-    const res = await server.post("/api/userMemberships.update", {
+    const res = await server.post("/api/userMemberships.update", member, {
       body: {
-        token: member.getJwtToken(),
         id: respBody.data.memberships[0].id,
         index: "V",
       },

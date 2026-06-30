@@ -3,6 +3,7 @@ import { LinkIcon, RestoreIcon, TrashIcon, DownloadIcon } from "outline-icons";
 import { matchPath } from "react-router-dom";
 import { toast } from "sonner";
 import { ExportContentType } from "@shared/types";
+import Revision from "~/models/Revision";
 import stores from "~/stores";
 import { createAction, createActionWithChildren } from "~/actions";
 import { RevisionSection } from "~/actions/sections";
@@ -21,7 +22,7 @@ export const restoreRevision = createAction({
   section: RevisionSection,
   visible: ({ activeDocumentId }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).update,
-  perform: async ({ event, location, activeDocumentId }) => {
+  perform: async ({ event, location, activeDocumentId, getActiveModel }) => {
     event?.preventDefault();
     if (!activeDocumentId) {
       return;
@@ -30,7 +31,10 @@ export const restoreRevision = createAction({
     const match = matchPath<{ revisionId: string }>(location.pathname, {
       path: matchDocumentHistory,
     });
-    const revisionId = match?.params.revisionId;
+    const revisionId = getActiveModel(Revision)?.id ?? match?.params.revisionId;
+    if (!revisionId) {
+      return;
+    }
 
     const document = stores.documents.get(activeDocumentId);
     if (!document) {

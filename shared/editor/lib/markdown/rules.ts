@@ -1,10 +1,12 @@
-import type { PluginSimple } from "markdown-it";
-import markdownit from "markdown-it";
+import markdownit, {
+  type Options as MarkdownItOptions,
+  type PluginSimple,
+} from "markdown-it";
 import type { Schema } from "prosemirror-model";
 
 type Options = {
   /** Markdown-it options. */
-  rules?: markdownit.Options;
+  rules?: MarkdownItOptions;
   /** Markdown-it plugins. */
   plugins?: PluginSimple[];
   /** The schema for associated editor. */
@@ -34,7 +36,15 @@ export default function makeRules({
     markdownIt.disable("hr");
   }
   if (!schema?.nodes.heading) {
-    markdownIt.disable("heading");
+    // "heading" is ATX (# Title), "lheading" is setext (Title\n=====).
+    markdownIt.disable(["heading", "lheading"]);
+  }
+  if (!schema?.nodes.table) {
+    markdownIt.disable("table");
+  }
+  if (!schema?.nodes.code_block) {
+    // "code" is indented code blocks, "fence" is ``` delimited blocks.
+    markdownIt.disable(["code", "fence"]);
   }
 
   plugins.forEach((plugin) => markdownIt.use(plugin));

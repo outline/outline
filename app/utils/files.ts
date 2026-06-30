@@ -62,19 +62,7 @@ export const uploadFile = async (
   invariant(response, "Response should be available");
   const data = response.data;
   const attachment = data.attachment;
-  const formData = new FormData();
-
-  for (const key in data.form) {
-    formData.append(key, data.form[key]);
-  }
-
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'blob' does not exist on type 'File | Blo... Remove this comment to see the full error message
-  if (file.blob) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'file' does not exist on type 'File | Blo... Remove this comment to see the full error message
-    formData.append("file", file.file);
-  } else {
-    formData.append("file", file);
-  }
+  const usePut = data.mode === "put";
 
   // Using XMLHttpRequest instead of fetch because fetch doesn't support progress
   const xhr = new XMLHttpRequest();
@@ -92,8 +80,6 @@ export const uploadFile = async (
         size: file.size,
       };
 
-      // Status 0 means the request never reached the server (network drop,
-      // CORS, abort) — log as a warning rather than an unhelpful "Error: 0".
       if (xhr.status === 0) {
         Logger.warn("File upload failed before response", extra);
         return;
@@ -109,19 +95,45 @@ export const uploadFile = async (
       resolve(xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400);
     });
 
-    // Do not send credentials if uploading to a different origin, as the combination
-    // of CORS and cookies will cause preflight request failure. However S3-like storage
-    // on the same host can work with credentials.
-    if (data.uploadUrl.startsWith("/")) {
-      xhr.withCredentials = true;
+    if (usePut) {
+      xhr.open("PUT", data.url, true);
+      if (data.headers) {
+        for (const [key, value] of Object.entries(
+          data.headers as Record<string, string>
+        )) {
+          xhr.setRequestHeader(key, value);
+        }
+      }
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'blob' does not exist on type 'File | Blo...
+      xhr.send(file.blob ? file.file : file);
     } else {
-      const parsed = new URL(data.uploadUrl);
-      const requiresPreflightRequest = parsed.origin !== window.location.origin;
-      xhr.withCredentials = !requiresPreflightRequest;
-    }
+      const formData = new FormData();
+      for (const key in data.form) {
+        formData.append(key, data.form[key]);
+      }
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'blob' does not exist on type 'File | Blo...
+      if (file.blob) {
+        // @ts-expect-error ts-migrate(2339) FIXME: Property 'file' does not exist on type 'File | Blo...
+        formData.append("file", file.file);
+      } else {
+        formData.append("file", file);
+      }
 
-    xhr.open("POST", data.uploadUrl, true);
-    xhr.send(formData);
+      // Do not send credentials if uploading to a different origin, as the
+      // combination of CORS and cookies will cause preflight request failure.
+      // However S3-like storage on the same host can work with credentials.
+      if (data.uploadUrl.startsWith("/")) {
+        xhr.withCredentials = true;
+      } else {
+        const parsed = new URL(data.uploadUrl);
+        const requiresPreflightRequest =
+          parsed.origin !== window.location.origin;
+        xhr.withCredentials = !requiresPreflightRequest;
+      }
+
+      xhr.open("POST", data.uploadUrl, true);
+      xhr.send(formData);
+    }
   });
 
   if (!success) {

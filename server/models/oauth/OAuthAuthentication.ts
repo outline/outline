@@ -49,7 +49,7 @@ class OAuthAuthentication extends ParanoidModel<
   public static refreshTokenPrefix = "ol_rt_";
 
   @Unique
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   accessTokenHash: string;
 
@@ -58,11 +58,11 @@ class OAuthAuthentication extends ParanoidModel<
   accessToken: string | null;
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   accessTokenExpiresAt: Date;
 
   @Unique
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   refreshTokenHash: string;
 
@@ -71,7 +71,7 @@ class OAuthAuthentication extends ParanoidModel<
   refreshToken: string | null;
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   refreshTokenExpiresAt: Date;
 
   /**
@@ -83,14 +83,15 @@ class OAuthAuthentication extends ParanoidModel<
   grantId: string | null;
 
   /** A list of scopes that this authentication has access to */
-  @Matches(/[\/\.\w\s]*/, {
+  @Matches(AuthenticationHelper.scopeGrammarRegex, {
     each: true,
+    message: "Scope must be a valid API scope",
   })
   @Column(DataType.ARRAY(DataType.STRING))
   scope: string[];
 
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   @SkipChangeset
   lastActiveAt: Date;
 

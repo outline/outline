@@ -8,6 +8,7 @@ import {
   Table,
   Length,
 } from "sequelize-typescript";
+import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { OAuthClientValidation } from "@shared/validations";
 import env from "@server/env";
 import User from "@server/models/User";
@@ -36,15 +37,15 @@ class OAuthAuthorizationCode extends IdModel<
   /** A recognizable prefix for authorization codes. */
   public static authorizationCodePrefix = "ol_ac_";
 
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   authorizationCodeHash: string;
 
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   codeChallenge?: string;
 
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   codeChallengeMethod?: string;
 
@@ -57,14 +58,15 @@ class OAuthAuthorizationCode extends IdModel<
   grantId: string | null;
 
   /** A list of scopes that this authorization code has access to */
-  @Matches(/[\/\.\w\s]*/, {
+  @Matches(AuthenticationHelper.scopeGrammarRegex, {
     each: true,
+    message: "Scope must be a valid API scope",
   })
   @Column(DataType.ARRAY(DataType.STRING))
   scope: string[];
 
   @Length({ max: OAuthClientValidation.maxRedirectUriLength })
-  @Column
+  @Column(DataType.STRING)
   redirectUri: string;
 
   @Column(DataType.DATE)

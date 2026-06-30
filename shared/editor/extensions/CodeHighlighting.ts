@@ -1,5 +1,4 @@
-import flattenDeep from "lodash/flattenDeep";
-import padStart from "lodash/padStart";
+import { flattenDeep, padStart } from "es-toolkit/compat";
 import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
@@ -222,6 +221,16 @@ export function CodeHighlighting({
           langLoaded ||
           isRemoteTransaction(transaction)
         ) {
+          // Invalidate cached entries for blocks whose language just loaded
+          // so getDecorations rebuilds them with syntax highlighting applied.
+          if (Array.isArray(langLoaded)) {
+            for (const key of Object.keys(cache)) {
+              const pos = Number(key);
+              if (langLoaded.includes(cache[pos]?.node.attrs.language)) {
+                delete cache[pos];
+              }
+            }
+          }
           highlighted = true;
           return getDecorations({ doc: transaction.doc, name, lineNumbers });
         }
@@ -248,11 +257,12 @@ export function CodeHighlighting({
           }
 
           void Promise.all([...languagesToImport].map(loadLanguage)).then(
-            (language) => {
-              if (language && languagesToImport.size && !view.isDestroyed) {
+            (results) => {
+              const loaded = results.filter((lang): lang is string => !!lang);
+              if (loaded.length && !view.isDestroyed) {
                 view.dispatch(
                   view.state.tr.setMeta("codeHighlighting", {
-                    langLoaded: language,
+                    langLoaded: loaded,
                   })
                 );
               }

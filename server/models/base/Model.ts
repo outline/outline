@@ -1,7 +1,5 @@
 import isEqual from "fast-deep-equal";
-import isArray from "lodash/isArray";
-import isObject from "lodash/isObject";
-import pick from "lodash/pick";
+import { isArray, isObject, pick } from "es-toolkit/compat";
 import type {
   Attributes,
   CreateOptions,
@@ -24,10 +22,10 @@ import {
 } from "sequelize-typescript";
 import Logger from "@server/logging/Logger";
 import type { Replace, APIContext } from "@server/types";
-import { getChangsetSkipped } from "../decorators/Changeset";
+import { getChangesetSkipped } from "../decorators/Changeset";
 import { InternalError } from "@server/errors";
 
-type EventOverrideOptions = {
+export type EventOverrideOptions = {
   /** Override the default event name. */
   name?: string;
   /** Additional data to publish in the event. */
@@ -48,6 +46,7 @@ type EventOptions = EventOverrideOptions & {
 export type HookContext = APIContext["context"] & { event?: EventOptions };
 
 class Model<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Sequelize's Attributes<M> resolves to never under object default; load-bearing for static helpers like saveWithCtx<M extends Model>.
   TModelAttributes extends object = any,
   TCreationAttributes extends object = TModelAttributes,
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
@@ -159,7 +158,11 @@ class Model<
     // Record not found, try to create it
     try {
       const created = await this.create(
-        { ...options.defaults, ...options.where } as CreationAttributes<M>,
+        Object.assign(
+          {},
+          options.defaults,
+          options.where
+        ) as CreationAttributes<M>,
         { ...hookContext, transaction }
       );
       return [created as M, true];
@@ -392,7 +395,7 @@ class Model<
 
     const virtualFields = (this.constructor as typeof Model).virtualFields;
     const blobFields = (this.constructor as typeof Model).blobFields;
-    const skippedFields = getChangsetSkipped(this);
+    const skippedFields = getChangesetSkipped(this);
 
     for (const change of changes) {
       const previous = this.previous(change);

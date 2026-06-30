@@ -1,11 +1,12 @@
 import crypto from "node:crypto";
+import { subSeconds } from "date-fns";
 import type {
   RefreshTokenModel,
   AuthorizationCodeModel,
   User as OAuthUser,
 } from "@node-oauth/oauth2-server";
 import type { Required } from "utility-types";
-import { Scope } from "@shared/types";
+import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { isUrl } from "@shared/utils/urls";
 import {
   OAuthClient,
@@ -13,6 +14,14 @@ import {
   OAuthAuthorizationCode,
 } from "@server/models";
 import { hash, safeEqual } from "@server/utils/crypto";
+
+/**
+ * The number of seconds during which a rotated refresh token may be replayed
+ * without triggering reuse detection. This provides a grace window for clients
+ * that issue concurrent refresh requests, preventing the entire grant from being
+ * revoked due to a benign race.
+ */
+const refreshTokenReuseInterval = 10;
 
 /**
  * Additional configuration for the OAuthInterface, not part of the
@@ -127,7 +136,19 @@ export const OAuthInterface: RefreshTokenModel &
         paranoid: false,
       });
 
-      if (authentication?.grantId) {
+      // A recently rotated token may be replayed by a client that issued
+      // concurrent refresh requests. Treat replays within the reuse interval as
+      // benign and skip revocation, so the grant won by the parallel request
+      // survives. Replays outside the window are treated as genuine reuse.
+      const reuseWindowStart = subSeconds(
+        new Date(),
+        refreshTokenReuseInterval
+      );
+      const withinReuseInterval =
+        authentication?.deletedAt &&
+        authentication.deletedAt > reuseWindowStart;
+
+      if (authentication?.grantId && !withinReuseInterval) {
         await Promise.all([
           OAuthAuthentication.destroy({
             where: {
@@ -393,29 +414,11 @@ export const OAuthInterface: RefreshTokenModel &
     }
 
     const scopes = Array.isArray(scope) ? scope : [scope];
-    const validAccessScopes = Object.values(Scope);
 
-    return scopes.every((s: string) => {
-      if (validAccessScopes.includes(s as Scope)) {
-        return true;
-      }
-
-      const periodCount = (s.match(/\./g) || []).length;
-      const colonCount = (s.match(/:/g) || []).length;
-
-      if (periodCount === 1 && colonCount === 0) {
-        return true;
-      }
-
-      if (
-        colonCount === 1 &&
-        validAccessScopes.includes(s.split(":")[1] as Scope)
-      ) {
-        return true;
-      }
-
-      return false;
-    })
+    // OAuth clients cannot request scopes that grant unrestricted access.
+    return scopes.every((s: string) =>
+      AuthenticationHelper.isValidScope(s, { allowRootWildcard: false })
+    )
       ? scopes
       : false;
   },

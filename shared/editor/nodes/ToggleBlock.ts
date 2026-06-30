@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { chainCommands, newlineInCode } from "prosemirror-commands";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import type { ParseSpec } from "prosemirror-markdown";
@@ -333,35 +334,38 @@ export default class ToggleBlock extends Node {
       plugin,
       foldPlugin,
       eventPlugin,
-      new PlaceholderPlugin([
-        {
-          condition: ({ node, $start, parent }) =>
-            parent !== null &&
-            parent.type.name === "container_toggle" &&
-            $start.index($start.depth - 1) === 0 &&
-            node.textContent === "",
-          text: this.options.dictionary?.emptyToggleBlockHead,
-        },
-        {
-          condition: ({ parent, $start, state }) =>
-            parent !== null &&
-            parent.type.name === "container_toggle" &&
-            $start.index($start.depth - 1) === 1 &&
-            ToggleBlock.isBodyEmpty(parent) &&
-            (state.selection.$from.pos < $start.pos ||
-              state.selection.$from.pos > $start.end($start.depth - 1)),
-          text: this.options.dictionary?.emptyToggleBlockBody,
-        },
-        {
-          condition: ({ node, parent, $start, state }) =>
-            parent !== null &&
-            parent.type.name === "container_toggle" &&
-            node.isTextblock &&
-            node.textContent === "" &&
-            (state.selection as TextSelection).$cursor?.pos === $start.pos,
-          text: this.options.dictionary?.newLineEmpty,
-        },
-      ]),
+      new PlaceholderPlugin(
+        [
+          {
+            condition: ({ node, $start, parent }) =>
+              parent !== null &&
+              parent.type.name === "container_toggle" &&
+              $start.index($start.depth - 1) === 0 &&
+              node.textContent === "",
+            text: `${t("Add title")}…`,
+          },
+          {
+            condition: ({ parent, $start, state }) =>
+              parent !== null &&
+              parent.type.name === "container_toggle" &&
+              $start.index($start.depth - 1) === 1 &&
+              ToggleBlock.isBodyEmpty(parent) &&
+              (state.selection.$from.pos < $start.pos ||
+                state.selection.$from.pos > $start.end($start.depth - 1)),
+            text: `${t("Add content")}…`,
+          },
+          {
+            condition: ({ node, parent, $start, state }) =>
+              parent !== null &&
+              parent.type.name === "container_toggle" &&
+              node.isTextblock &&
+              node.textContent === "" &&
+              (state.selection as TextSelection).$cursor?.pos === $start.pos,
+            text: `${t("Type '/' to insert")}…`,
+          },
+        ],
+        ["paragraph", "heading"]
+      ),
     ];
   }
 
@@ -415,8 +419,16 @@ export default class ToggleBlock extends Node {
     type: NodeType;
     schema: Schema;
   }): CommandFactory {
-    return () => (state, dispatch) => {
+    return (attrs) => (state, dispatch) => {
       const { $from, $to } = state.selection;
+      const level =
+        attrs &&
+        typeof attrs === "object" &&
+        "level" in attrs &&
+        typeof attrs.level === "number"
+          ? attrs.level
+          : undefined;
+
       if (isNodeActive(type)(state)) {
         dispatch?.(liftChildrenOfNodeAt($from.before(-1), state.tr));
         return true;
@@ -447,6 +459,15 @@ export default class ToggleBlock extends Node {
 
         Storage.set(toggleStorageKey(id), { fold: false });
         const tr = state.tr.wrap(range!, wrapping);
+
+        // When a heading level is provided, make the toggle's title a heading
+        // rather than a paragraph (a collapsible heading).
+        if (level) {
+          tr.setNodeMarkup(tr.selection.$from.before(), schema.nodes.heading, {
+            level,
+          });
+        }
+
         dispatch?.(
           tr.insert(
             tr.selection.$from.after(),

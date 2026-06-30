@@ -1,3 +1,4 @@
+import { errToString } from "@shared/utils/error";
 import { version } from "../../package.json";
 import Logger from "@server/logging/Logger";
 import fetch from "./fetch";
@@ -23,11 +24,14 @@ export async function getVersionInfo(currentVersion: string): Promise<{
     // Continue fetching pages until the required versions are found or no more pages
     while (nextUrl) {
       const response = await fetch(nextUrl);
-      const data = await response.json();
+      const data = (await response.json()) as {
+        results: { name: string }[];
+        next?: string | null;
+      };
 
       // Map and filter the versions to keep only full releases
       const pageVersions = data.results
-        .map((result: any) => result.name)
+        .map((result) => result.name)
         .filter(isFullReleaseVersion);
 
       allVersions = allVersions.concat(pageVersions);
@@ -62,7 +66,7 @@ export async function getVersionInfo(currentVersion: string): Promise<{
       "Failed to fetch version information from Docker Hub. This is expected in isolated environments.",
       {
         currentVersion,
-        error: error instanceof Error ? error.message : String(error),
+        error: errToString(error),
       }
     );
 

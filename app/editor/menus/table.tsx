@@ -4,21 +4,22 @@ import {
   TableColumnsDistributeIcon,
   TrashIcon,
 } from "outline-icons";
-import type { EditorState } from "prosemirror-state";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import type { MenuItem } from "@shared/editor/types";
+import { t } from "i18next";
+import type { MenuItem, SelectionContext } from "@shared/editor/types";
 import { TableLayout } from "@shared/editor/types";
-import type { Dictionary } from "~/hooks/useDictionary";
 
-export default function tableMenuItems(
-  state: EditorState,
-  readOnly: boolean,
-  dictionary: Dictionary
-): MenuItem[] {
-  if (readOnly) {
+/**
+ * Returns menu items for the table selection toolbar (full table selected).
+ *
+ * @param ctx - the current selection context.
+ * @returns an array of menu items.
+ */
+export default function tableMenuItems(ctx: SelectionContext): MenuItem[] {
+  if (ctx.readOnly) {
     return [];
   }
-  const { schema } = state;
+  const { schema, state } = ctx;
 
   const isFullWidth = isNodeActive(schema.nodes.table, {
     layout: TableLayout.fullWidth,
@@ -27,35 +28,32 @@ export default function tableMenuItems(
   return [
     {
       name: "setTableAttr",
-      tooltip: isFullWidth
-        ? dictionary.alignDefaultWidth
-        : dictionary.alignFullWidth,
+      label: isFullWidth ? t("Default width") : t("Full width"),
       icon: <AlignFullWidthIcon />,
       attrs: isFullWidth ? { layout: null } : { layout: TableLayout.fullWidth },
-      active: () => isFullWidth,
     },
     {
       name: "distributeColumns",
-      tooltip: dictionary.distributeColumns,
+      label: t("Distribute columns"),
       icon: <TableColumnsDistributeIcon />,
     },
     {
       name: "separator",
     },
     {
-      name: "deleteTable",
-      tooltip: dictionary.deleteTable,
-      icon: <TrashIcon />,
+      name: "exportTable",
+      label: t("Export as CSV"),
+      attrs: { format: "csv", fileName: `${window.document.title}.csv` },
+      icon: <DownloadIcon />,
     },
     {
       name: "separator",
     },
     {
-      name: "exportTable",
-      tooltip: dictionary.exportAsCSV,
-      label: "CSV",
-      attrs: { format: "csv", fileName: `${window.document.title}.csv` },
-      icon: <DownloadIcon />,
+      name: "deleteTable",
+      label: t("Delete table"),
+      dangerous: true,
+      icon: <TrashIcon />,
     },
   ];
 }

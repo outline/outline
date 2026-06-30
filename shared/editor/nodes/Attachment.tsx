@@ -1,4 +1,4 @@
-import type { Token } from "markdown-it";
+import type Token from "markdown-it/lib/token.mjs";
 import { DownloadIcon } from "outline-icons";
 import type {
   NodeSpec,
@@ -16,6 +16,7 @@ import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { isPDFAttachment } from "../queries/isPDFAttachment";
 import attachmentsRule from "../rules/links";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
@@ -127,9 +128,7 @@ export default class Attachment extends Node {
       </>
     );
 
-    return node.attrs.preview &&
-      !embedsDisabled &&
-      node.attrs.contentType === "application/pdf" ? (
+    return node.attrs.preview && !embedsDisabled && isPDFAttachment(node) ? (
       <PdfViewer
         icon={<FileExtension title={node.attrs.title} />}
         title={node.attrs.title}
@@ -185,12 +184,11 @@ export default class Attachment extends Node {
           throw new Error("uploadFile prop is required to replace attachments");
         }
 
-        const accept =
-          node.attrs.contentType === "application/pdf"
-            ? ".pdf"
-            : node.type.name === "attachment"
-              ? "*"
-              : null;
+        const accept = isPDFAttachment(node)
+          ? ".pdf"
+          : node.type.name === "attachment"
+            ? "*"
+            : null;
 
         if (accept === null) {
           return false;
@@ -207,7 +205,6 @@ export default class Attachment extends Node {
             onFileUploadStart,
             onFileUploadStop,
             onFileUploadProgress,
-            dictionary: this.options.dictionary,
             replaceExisting: true,
             attrs: {
               preview: node.attrs.preview,
@@ -240,7 +237,7 @@ export default class Attachment extends Node {
         }
         const { node } = state.selection;
 
-        if (node.attrs.contentType !== "application/pdf") {
+        if (!isPDFAttachment(node)) {
           return false;
         }
 

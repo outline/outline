@@ -147,10 +147,10 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
       if (/\/date\s$/.test(input)) {
         value = getCurrentDateAsString();
         ref?.current?.focusAtEnd();
-      } else if (/\/time$/.test(input)) {
+      } else if (input.endsWith("/time")) {
         value = getCurrentTimeAsString();
         ref?.current?.focusAtEnd();
-      } else if (/\/datetime$/.test(input)) {
+      } else if (input.endsWith("/datetime")) {
         value = getCurrentDateTimeAsString();
         ref?.current?.focusAtEnd();
       }
@@ -297,7 +297,7 @@ const StyledIconPicker = styled(IconPicker)`
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: 3vh;
+  margin-top: 8vh;
   margin-bottom: 0.5em;
   font-size: ${fontSize};
   font-weight: 600;

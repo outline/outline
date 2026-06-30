@@ -1,4 +1,4 @@
-import debounce from "lodash/debounce";
+import { debounce } from "es-toolkit/compat";
 import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import {
@@ -129,6 +129,14 @@ function Notifications() {
       title: t("Export completed"),
       description: t(
         "Receive a notification when an export you requested has been completed"
+      ),
+    },
+    {
+      event: NotificationEventType.RequestDocumentAccess,
+      icon: <CheckboxIcon checked />,
+      title: t("Document access requested"),
+      description: t(
+        "Receive a notification when a user requests access to a document you manage"
       ),
     },
     {

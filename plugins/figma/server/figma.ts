@@ -1,9 +1,10 @@
 import { z } from "zod";
+import { toError } from "@shared/utils/error";
 import fetch from "@server/utils/fetch";
 import env from "./env";
 import { FigmaUtils } from "../shared/FigmaUtils";
 import type { UnfurlSignature } from "@server/types";
-import isEmpty from "lodash/isEmpty";
+import { isEmpty } from "es-toolkit/compat";
 import type { User } from "@server/models";
 import { Integration } from "@server/models";
 import { IntegrationType } from "@shared/types";
@@ -173,7 +174,7 @@ export class Figma {
       } catch (err) {
         Logger.error(
           `Error fetching Figma file metadata for integration ${integration.id}`,
-          err
+          toError(err)
         );
       }
     }

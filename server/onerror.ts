@@ -3,19 +3,17 @@ import http from "node:http";
 import path from "node:path";
 import formidable from "formidable";
 import type Koa from "koa";
-import escape from "lodash/escape";
-import isNil from "lodash/isNil";
-import snakeCase from "lodash/snakeCase";
+import { escape, isNil, snakeCase } from "es-toolkit/compat";
 import env from "@server/env";
 import { ClientClosedRequestError, InternalError } from "@server/errors";
 import { requestErrorHandler } from "@server/logging/sentry";
-import { addTags, getRootSpanFromRequestContext } from "@server/logging/tracer";
+import type { AppContext } from "@server/types";
 
 let errorHtmlCache: Buffer | undefined;
 
 export default function onerror(app: Koa) {
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-  app.context.onerror = function (err: any) {
+  app.context.onerror = function (this: AppContext, err: any) {
     // Don't do anything if there is no error, this allows you to pass `this.onerror` to node-style callbacks.
     if (isNil(err)) {
       return;
@@ -28,6 +26,12 @@ export default function onerror(app: Koa) {
       if (err.internalCode === 1002) {
         err = ClientClosedRequestError();
       }
+    } else if (
+      err.code === "HPE_INVALID_EOF_STATE" ||
+      err.code === "ECONNRESET" ||
+      err.code === "EPIPE"
+    ) {
+      err = ClientClosedRequestError();
     }
 
     // Push only errors explicitly marked for Sentry reporting.
@@ -49,14 +53,6 @@ export default function onerror(app: Koa) {
           console.error(err);
         }
         err = InternalError();
-      }
-    } else {
-      // Clear error tags that dd-trace's Koa plugin sets automatically
-      // when an exception propagates through middleware, so that
-      // non-reportable errors are not flagged as errors in DataDog.
-      const span = getRootSpanFromRequestContext(this);
-      if (span) {
-        addTags({ error: false }, span);
       }
     }
 
@@ -100,7 +96,6 @@ export default function onerror(app: Koa) {
 function wrapInNativeError(err: any): Error {
   // When dealing with cross-globals a normal `instanceof` check doesn't work properly.
   // See https://github.com/koajs/koa/issues/1466
-  // We can probably remove it once jest fixes https://github.com/facebook/jest/issues/2549.
   const isNativeError =
     Object.prototype.toString.call(err) === "[object Error]" ||
     err instanceof Error;

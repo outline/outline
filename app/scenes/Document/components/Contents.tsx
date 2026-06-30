@@ -1,7 +1,8 @@
 import { observer } from "mobx-react";
 import { transparentize } from "polished";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EmojiText } from "@shared/components/EmojiText";
@@ -9,17 +10,40 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, hideScrollbars, s } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
+import { patchLocation } from "~/utils/history";
 import { decodeURIComponentSafe } from "~/utils/urls";
 
 const HEADING_OFFSET = 20;
 
 function Contents() {
+  const history = useHistory();
   const [activeSlug, setActiveSlug] = useState<string>();
   const scrollPosition = useWindowScrollPosition({
     throttle: 100,
   });
   const { headings } = useDocumentContext();
   const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
+
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+      // Let modified clicks (open in new tab, copy link, etc.) fall through to
+      // the native anchor behavior.
+      if (
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+      // Navigate via history so the location state (active sidebar context) is
+      // retained rather than dropped by a native hash navigation.
+      event.preventDefault();
+      history.push(patchLocation(history.location, { hash: `#${id}` }));
+    },
+    [history]
+  );
 
   useEffect(() => {
     let activeId = headings.length > 0 ? headings[0].id : undefined;
@@ -81,7 +105,10 @@ function Contents() {
               level={heading.level - headingAdjustment}
               active={activeSlug === heading.id}
             >
-              <Link href={`#${heading.id}`}>
+              <Link
+                href={`#${heading.id}`}
+                onClick={(event) => handleClick(event, heading.id)}
+              >
                 <EmojiText>{heading.title}</EmojiText>
               </Link>
             </ListItem>

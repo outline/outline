@@ -1,10 +1,11 @@
-import capitalize from "lodash/capitalize";
+import { capitalize } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { CrossIcon, DoneIcon, WarningIcon } from "outline-icons";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
+import { errToString } from "@shared/utils/error";
 import Spinner from "@shared/components/Spinner";
 import { ImportState } from "@shared/types";
 import type Import from "~/models/Import";
@@ -61,7 +62,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
         await importModel.cancel();
         toast.success(t("Import canceled"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     };
 
@@ -88,7 +89,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
         await importModel.delete();
         toast.success(t("Import deleted"));
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     };
 

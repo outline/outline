@@ -16,7 +16,7 @@ import PostgresSearchProvider from "./PostgresSearchProvider";
 const provider = SearchProviderManager.getProvider();
 
 beforeEach(async () => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
   await buildDocument();
 });
 
@@ -1541,6 +1541,14 @@ describe("PostgresSearchProvider", () => {
     it("should not wildcard quoted queries", () => {
       expect(PostgresSearchProvider.webSearchQuery(`"this is a test"`)).toBe(
         `"this<->is<->a<->test"`
+      );
+    });
+    it("should strip interleaved trailing operator and escape characters", () => {
+      // pg-tsquery reorders trailing operators and may emit a tail like
+      // `&\` that, if stripped one character at a time in the wrong order,
+      // leaves a dangling `&` and triggers "no operand in tsquery".
+      expect(PostgresSearchProvider.webSearchQuery(`"plugins"\\&`)).toBe(
+        `"plugins"`
       );
     });
   });

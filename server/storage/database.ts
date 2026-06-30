@@ -1,10 +1,17 @@
+import cluster from "node:cluster";
 import path from "node:path";
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  Transaction,
+  TransactionOptions,
+} from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
 import type { SequelizeOptions } from "sequelize-typescript";
 import { Sequelize } from "sequelize-typescript";
 import type { MigrationError } from "umzug";
 import { Umzug, SequelizeStorage } from "umzug";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import { ClientClosedRequestError } from "@server/errors";
 import type Model from "@server/models/base/Model";
@@ -44,6 +51,21 @@ const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
 const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
 const databaseConfig = env.DATABASE_CONNECTION_POOL_URL || getDatabaseConfig();
 const schema = env.DATABASE_SCHEMA;
+
+const isApiProcess =
+  (env.SERVICES.includes("web") ||
+    env.SERVICES.includes("collaboration") ||
+    env.SERVICES.includes("websockets") ||
+    env.SERVICES.includes("admin")) &&
+  !env.SERVICES.includes("worker") &&
+  !env.SERVICES.includes("cron");
+
+// Request-handling processes get a Postgres `statement_timeout` matching the
+// HTTP request timeout, so a single slow query cannot hold a connection past
+// the point at which its response could be delivered. Applied as `SET LOCAL`
+// inside each transaction so the value is scoped to the transaction.
+const statementTimeout =
+  isApiProcess && cluster.isWorker ? env.REQUEST_TIMEOUT : undefined;
 
 export function createDatabaseInstance(
   databaseConfig: string | object,
@@ -105,8 +127,15 @@ export function createDatabaseInstance(
 
     sequelizeStrictAttributes(instance);
 
+    if (statementTimeout) {
+      instance = applyStatementTimeoutToTransactions(
+        instance,
+        Number(statementTimeout)
+      );
+    }
+
     if (env.isTest) {
-      instance = monkeyPatchSequelizeErrorsForJest(instance);
+      instance = monkeyPatchSequelizeErrorsForTests(instance);
     }
 
     // Skip queries when the originating HTTP request socket has been destroyed
@@ -168,13 +197,16 @@ export const checkConnection = async (db: Sequelize) => {
   try {
     await db.authenticate();
   } catch (error) {
-    if (error.message.includes("does not support SSL")) {
+    if (
+      error instanceof Error &&
+      error.message.includes("does not support SSL")
+    ) {
       Logger.fatal(
         "The database does not support SSL connections. Set the `PGSSLMODE` environment variable to `disable` or enable SSL on your database server.",
         error
       );
     } else {
-      Logger.fatal("Failed to connect to database", error);
+      Logger.fatal("Failed to connect to database", toError(error));
     }
   }
 };
@@ -214,30 +246,86 @@ export function createMigrationRunner(
         Logger.info(
           "database",
           params.event === "migrating"
-            ? `Migrating ${params.name}…`
-            : `Migrated ${params.name} in ${params.durationSeconds}s`
+            ? `Migrating ${String(params.name)}…`
+            : `Migrated ${String(params.name)} in ${String(params.durationSeconds)}s`
         ),
       debug: (params) =>
         Logger.debug(
           "database",
           params.event === "migrating"
-            ? `Migrating ${params.name}…`
-            : `Migrated ${params.name} in ${params.durationSeconds}s`
+            ? `Migrating ${String(params.name)}…`
+            : `Migrated ${String(params.name)} in ${String(params.durationSeconds)}s`
         ),
     },
   });
 }
 
 /**
+ * Wraps `sequelize.transaction()` so that every transaction issues
+ * `SET LOCAL statement_timeout` immediately after it begins. Using `SET LOCAL`
+ * scopes the value to the transaction, preventing it from leaking to other
+ * consumers (e.g. background workers) sharing the same underlying connection
+ * via pgbouncer's transaction pooling.
+ */
+export function applyStatementTimeoutToTransactions(
+  instance: Sequelize,
+  timeoutMs: number
+) {
+  const origTransaction = instance.transaction.bind(
+    instance
+  ) as Sequelize["transaction"];
+
+  const setLocalTimeout = (t: Transaction) =>
+    instance.query(`SET LOCAL statement_timeout = ${timeoutMs}`, {
+      transaction: t,
+    });
+
+  instance.transaction = (async (
+    optionsOrCallback?:
+      | TransactionOptions
+      | ((t: Transaction) => PromiseLike<unknown>),
+    maybeCallback?: (t: Transaction) => PromiseLike<unknown>
+  ) => {
+    const autoCallback =
+      typeof optionsOrCallback === "function"
+        ? optionsOrCallback
+        : maybeCallback;
+    const options =
+      typeof optionsOrCallback === "function" ? undefined : optionsOrCallback;
+
+    if (autoCallback) {
+      return origTransaction(options as TransactionOptions, async (t) => {
+        await setLocalTimeout(t);
+        return autoCallback(t);
+      });
+    }
+
+    const t = await origTransaction(options);
+    try {
+      await setLocalTimeout(t);
+    } catch (err) {
+      // Roll back so the started transaction does not linger on the pooled
+      // connection until idle-in-transaction timeout closes it.
+      try {
+        await t.rollback();
+      } catch {
+        // Ignore rollback failure; the original error is more informative.
+      }
+      throw err;
+    }
+    return t;
+  }) as typeof instance.transaction;
+
+  return instance;
+}
+
+/**
  * Fixed in Sequelize v7, but hasn't been back-ported to Sequelize v6.
  * See https://github.com/sequelize/sequelize/issues/14807#issuecomment-1854398131
  */
-export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
-  if (typeof jest === "undefined") {
-    return instance;
-  }
-
-  const sequelizeVersion = (Sequelize as any).version;
+export function monkeyPatchSequelizeErrorsForTests(instance: Sequelize) {
+  const sequelizeVersion = (Sequelize as unknown as { version: string })
+    .version;
   const major = sequelizeVersion.split(".").map(Number)[0];
 
   if (major >= 7) {
@@ -249,18 +337,17 @@ export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
     );
   }
 
-  const origQueryFunc = instance.query;
-  instance.query = async function query(this: Sequelize, ...args: any[]) {
-    let result;
+  const origQueryFunc = instance.query.bind(instance);
+  instance.query = (async (...args: Parameters<typeof origQueryFunc>) => {
     try {
-      result = await origQueryFunc.apply(this, args as any);
-    } catch (err: any) {
-      // Ensure error appears in Jest output, not swallowed by Sequelize internals
-      Logger.error(err.message, err.parent);
+      return await origQueryFunc(...args);
+    } catch (err) {
+      // Ensure error appears in test output, not swallowed by Sequelize internals
+      const error = err as Error & { parent?: Error };
+      Logger.error(error.message, error.parent ?? error);
       throw err;
     }
-    return result;
-  } as typeof origQueryFunc;
+  }) as typeof instance.query;
 
   return instance;
 }

@@ -8,28 +8,25 @@ import type { Primitive } from "utility-types";
 import type { Editor } from "~/editor";
 import type Mark from "../marks/Mark";
 import type Node from "../nodes/Node";
-import type { CommandFactory } from "./Extension";
+import type { SelectionToolbarMenuDescriptor } from "../types";
+import type { CommandFactory, WidgetProps } from "./Extension";
 import type Extension from "./Extension";
+import type { AnyExtension, AnyExtensionClass } from "./types";
 import makeRules from "./markdown/rules";
 import { MarkdownSerializer } from "./markdown/serializer";
 
 export default class ExtensionManager {
-  extensions: (Node | Mark | Extension)[] = [];
+  extensions: AnyExtension[] = [];
   readOnly: boolean;
 
   constructor(
-    extensions: (
-      | Extension
-      | typeof Node
-      | typeof Mark
-      | typeof Extension
-    )[] = [],
+    extensions: (AnyExtensionClass | AnyExtension)[] = [],
     editor?: Editor
   ) {
     this.readOnly = editor?.props.readOnly ?? false;
 
     extensions.forEach((ext) => {
-      let extension;
+      let extension: AnyExtension;
 
       if (typeof ext === "function") {
         // Check the prototype before instantiation to avoid constructor cost
@@ -42,8 +39,12 @@ export default class ExtensionManager {
           return;
         }
 
-        // @ts-expect-error We won't instantiate an abstract class
-        extension = new ext(editor?.props);
+        // Cast away abstract: registration treats all classes uniformly and
+        // concrete subclasses are required at the public boundary.
+        const Ctor = ext as new (
+          options?: Record<string, unknown>
+        ) => AnyExtension;
+        extension = new Ctor(editor?.props);
       } else {
         // For already-instantiated extensions, check the instance.
         if (this.readOnly && ext.type === "extension" && !ext.allowInReadOnly) {
@@ -62,27 +63,25 @@ export default class ExtensionManager {
   }
 
   get widgets() {
-    return this.extensions
-      .filter((extension) => extension.widget({ rtl: false, readOnly: false }))
-      .reduce(
-        (memo, node: Node) => ({
-          ...memo,
-          [node.name]: observer(node.widget as any),
-        }),
-        {}
-      );
+    return Object.fromEntries(
+      this.extensions
+        .filter((extension) =>
+          extension.widget({ rtl: false, readOnly: false })
+        )
+        .map((node: Node) => [
+          node.name,
+          observer(((props: WidgetProps) =>
+            node.widget(props)) as React.FC<WidgetProps>),
+        ])
+    );
   }
 
   get nodes() {
-    const nodes: Record<string, NodeSpec> = this.extensions
-      .filter((extension) => extension.type === "node")
-      .reduce(
-        (memo, node: Node) => ({
-          ...memo,
-          [node.name]: node.schema,
-        }),
-        {}
-      );
+    const nodes: Record<string, NodeSpec> = Object.fromEntries(
+      this.extensions
+        .filter((extension) => extension.type === "node")
+        .map((node: Node) => [node.name, node.schema])
+    );
 
     for (const i in nodes) {
       const { marks } = nodes[i];
@@ -100,15 +99,11 @@ export default class ExtensionManager {
   }
 
   get marks() {
-    const marks: Record<string, MarkSpec> = this.extensions
-      .filter((extension) => extension.type === "mark")
-      .reduce(
-        (memo, mark: Mark) => ({
-          ...memo,
-          [mark.name]: mark.schema,
-        }),
-        {}
-      );
+    const marks: Record<string, MarkSpec> = Object.fromEntries(
+      this.extensions
+        .filter((extension) => extension.type === "mark")
+        .map((mark: Mark) => [mark.name, mark.schema])
+    );
 
     for (const i in marks) {
       const { excludes } = marks[i];
@@ -126,25 +121,25 @@ export default class ExtensionManager {
   }
 
   serializer() {
-    const nodes = this.extensions
-      .filter((extension) => extension.type === "node")
-      .reduce(
-        (memo, extension: Node) => ({
-          ...memo,
-          [extension.name]: extension.toMarkdown,
-        }),
-        {}
-      );
+    const nodes = Object.fromEntries(
+      this.extensions
+        .filter((extension) => extension.type === "node")
+        .map((extension: Node) => [
+          extension.name,
+          (...args: Parameters<Node["toMarkdown"]>) =>
+            extension.toMarkdown(...args),
+        ])
+    );
 
-    const marks = this.extensions
-      .filter((extension) => extension.type === "mark")
-      .reduce(
-        (memo, extension: Mark) => ({
-          ...memo,
-          [extension.name]: extension.toMarkdown,
-        }),
-        {}
-      );
+    const marks = Object.fromEntries(
+      this.extensions
+        .filter((extension) => extension.type === "mark")
+        .map((extension: Mark) => [
+          extension.name,
+          (...args: Parameters<Mark["toMarkdown"]>) =>
+            extension.toMarkdown(...args),
+        ])
+    );
 
     return new MarkdownSerializer(nodes, marks);
   }
@@ -158,21 +153,19 @@ export default class ExtensionManager {
     rules?: Options;
     plugins?: PluginSimple[];
   }): MarkdownParser {
-    const tokens = this.extensions
-      .filter(
-        (extension) => extension.type === "mark" || extension.type === "node"
-      )
-      .reduce((nodes, extension: Node | Mark) => {
-        const parseSpec = extension.parseMarkdown();
-        if (!parseSpec) {
-          return nodes;
-        }
-
-        return {
-          ...nodes,
-          [extension.markdownToken || extension.name]: parseSpec,
-        };
-      }, {});
+    const tokens = Object.fromEntries(
+      this.extensions
+        .filter(
+          (extension) => extension.type === "mark" || extension.type === "node"
+        )
+        .flatMap((extension: Node | Mark) => {
+          const parseSpec = extension.parseMarkdown();
+          if (!parseSpec) {
+            return [];
+          }
+          return [[extension.markdownToken || extension.name, parseSpec]];
+        })
+    );
 
     return new MarkdownParser(
       schema,
@@ -202,35 +195,40 @@ export default class ExtensionManager {
   keymaps({ schema }: { schema: Schema }) {
     const keymaps = this.extensions
       .filter((extension) => extension.keys)
-      .map((extension) =>
-        ["node", "mark"].includes(extension.type)
-          ? extension.keys({
-              // @ts-expect-error TODO
-              type: schema[`${extension.type}s`][extension.name],
-              schema,
-            })
-          : (extension as Extension).keys({ schema })
-      );
+      .map((extension) => {
+        if (extension.type === "node") {
+          const node = extension as Node;
+          return node.keys({ type: schema.nodes[node.name], schema });
+        }
+        if (extension.type === "mark") {
+          const mark = extension as Mark;
+          return mark.keys({ type: schema.marks[mark.name], schema });
+        }
+        return (extension as Extension).keys({ schema });
+      });
 
     return keymaps.map(keymap);
   }
 
   inputRules({ schema }: { schema: Schema }) {
     const extensionInputRules = this.extensions
-      .filter((extension) => ["extension"].includes(extension.type))
+      .filter((extension) => extension.type === "extension")
       .filter((extension) => extension.inputRules)
       .map((extension: Extension) => extension.inputRules({ schema }));
 
     const nodeMarkInputRules = this.extensions
-      .filter((extension) => ["node", "mark"].includes(extension.type))
+      .filter(
+        (extension) => extension.type === "node" || extension.type === "mark"
+      )
       .filter((extension) => extension.inputRules)
-      .map((extension) =>
-        extension.inputRules({
-          // @ts-expect-error TODO
-          type: schema[`${extension.type}s`][extension.name],
-          schema,
-        })
-      );
+      .map((extension) => {
+        if (extension.type === "node") {
+          const node = extension as Node;
+          return node.inputRules({ type: schema.nodes[node.name], schema });
+        }
+        const mark = extension as Mark;
+        return mark.inputRules({ type: schema.marks[mark.name], schema });
+      });
 
     return [...extensionInputRules, ...nodeMarkInputRules].reduce(
       (allInputRules, inputRules) => [...allInputRules, ...inputRules],
@@ -238,23 +236,34 @@ export default class ExtensionManager {
     );
   }
 
+  /**
+   * Collects selection toolbar menu descriptors from all extensions and returns
+   * them sorted by priority (highest first). The toolbar evaluates these in
+   * order and displays the first match.
+   */
+  get selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return this.extensions
+      .flatMap((extension) => extension.selectionToolbarMenus())
+      .sort((a, b) => b.priority - a.priority);
+  }
+
   commands({ schema, view }: { schema: Schema; view: EditorView }) {
     return this.extensions
       .filter((extension) => extension.commands)
       .reduce((allCommands, extension) => {
-        const { name, type } = extension;
+        const { name } = extension;
         const commands: Record<string, CommandFactory> = {};
 
-        // @ts-expect-error FIXME
-        const value = extension.commands({
-          schema,
-          ...(["node", "mark"].includes(type)
-            ? {
-                // @ts-expect-error TODO
-                type: schema[`${type}s`][name],
-              }
-            : {}),
-        });
+        let value: ReturnType<Extension["commands"]>;
+        if (extension.type === "node") {
+          const node = extension as Node;
+          value = node.commands({ schema, type: schema.nodes[node.name] });
+        } else if (extension.type === "mark") {
+          const mark = extension as Mark;
+          value = mark.commands({ schema, type: schema.marks[mark.name] });
+        } else {
+          value = (extension as Extension).commands({ schema });
+        }
 
         const apply = (
           callback: CommandFactory,
@@ -264,7 +273,19 @@ export default class ExtensionManager {
             return;
           }
           if (extension.focusAfterExecution) {
+            // Focusing a blurred editor (e.g. when the command is run from a
+            // menu that holds focus) can collapse a non-text selection such as
+            // a table cell selection. Restore it so selection-based commands
+            // operate on the intended selection.
+            const { selection } = view.state;
             view.focus();
+            if (!view.state.selection.eq(selection)) {
+              view.dispatch(
+                view.state.tr
+                  .setSelection(selection)
+                  .setMeta("addToHistory", false)
+              );
+            }
           }
           return callback(attrs)?.(view.state, view.dispatch, view);
         };

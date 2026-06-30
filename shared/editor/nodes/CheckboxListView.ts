@@ -1,6 +1,6 @@
+import { t } from "i18next";
 import type { Node as ProsemirrorNode } from "prosemirror-model";
 import type { EditorView, NodeView } from "prosemirror-view";
-import type { Dictionary } from "../../../app/hooks/useDictionary";
 import { isBrowser } from "../../utils/browser";
 import Storage from "../../utils/Storage";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
@@ -16,19 +16,16 @@ export class CheckboxListView implements NodeView {
   private toggleControl: HTMLButtonElement;
   private node: ProsemirrorNode;
   private userIdentifier: string;
-  private dictionary: Dictionary;
   private isNested: boolean;
 
   constructor(
     node: ProsemirrorNode,
     _view: EditorView,
     _getPos: () => number | undefined,
-    userIdentifier: string,
-    dictionary: Dictionary
+    userIdentifier: string
   ) {
     this.node = node;
     this.userIdentifier = userIdentifier;
-    this.dictionary = dictionary;
 
     // Detect if this is a nested checkbox list (inside a checkbox_item)
     const pos = _getPos();
@@ -100,15 +97,24 @@ export class CheckboxListView implements NodeView {
     const storageKey = `checklist-${listId}-${this.userIdentifier}-hidden`;
     const shouldCollapse = !!Storage.get(storageKey);
 
-    // Count completed items, including nested checkbox lists
+    // Count completed items, including checkbox lists nested directly within a
+    // checkbox_item (which are toggle-less). Skip checkbox lists nested via a
+    // non-checkbox list, as those manage their own toggle.
     let completedItemsCount = 0;
-    this.node.descendants((childNode) => {
+    this.node.descendants((childNode, _pos, parent) => {
+      if (
+        childNode.type.name === "checkbox_list" &&
+        parent?.type.name !== "checkbox_item"
+      ) {
+        return false;
+      }
       if (
         childNode.type.name === "checkbox_item" &&
         childNode.attrs.checked === true
       ) {
         completedItemsCount++;
       }
+      return undefined;
     });
 
     // Show/hide button based on completed count
@@ -118,8 +124,8 @@ export class CheckboxListView implements NodeView {
     } else {
       this.toggleControl.style.display = "inline-block";
       this.toggleControl.textContent = shouldCollapse
-        ? this.dictionary.showCompleted(completedItemsCount)
-        : this.dictionary.hideCompleted;
+        ? t("Show {{ count }} completed", { count: completedItemsCount })
+        : t("Hide completed");
 
       if (shouldCollapse) {
         this.dom.classList.add(EditorStyleHelper.checklistCompletedHidden);

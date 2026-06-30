@@ -13,6 +13,7 @@ type LogCategory =
   | "plugins"
   | "policies";
 
+// oxlint-disable-next-line no-explicit-any
 type Extra = Record<string, any>;
 
 class Logger {

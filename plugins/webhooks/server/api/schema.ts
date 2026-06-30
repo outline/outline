@@ -1,6 +1,17 @@
 import { z } from "zod";
+import { WebhookSubscriptionValidation } from "@shared/validations";
+import env from "@server/env";
 import { WebhookSubscription } from "@server/models";
 import { BaseSchema } from "@server/routes/api/schema";
+
+const webhookUrl = z
+  .url()
+  .max(WebhookSubscriptionValidation.maxUrlLength, {
+    error: `Webhook url must be ${WebhookSubscriptionValidation.maxUrlLength} characters or less`,
+  })
+  .refine((val) => !env.isCloudHosted || val.startsWith("https://"), {
+    error: "Webhook url must use https",
+  });
 
 export const WebhookSubscriptionsListSchema = BaseSchema.extend({
   body: z.object({
@@ -33,7 +44,7 @@ export type WebhookSubscriptionsListReq = z.infer<
 export const WebhookSubscriptionsCreateSchema = z.object({
   body: z.object({
     name: z.string(),
-    url: z.url(),
+    url: webhookUrl,
     secret: z.string().optional(),
     events: z.array(z.string()),
   }),
@@ -47,7 +58,7 @@ export const WebhookSubscriptionsUpdateSchema = z.object({
   body: z.object({
     id: z.uuid(),
     name: z.string(),
-    url: z.url(),
+    url: webhookUrl,
     secret: z.string().optional(),
     events: z.array(z.string()),
   }),

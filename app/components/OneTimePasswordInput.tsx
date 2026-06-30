@@ -6,15 +6,30 @@ import { s } from "@shared/styles";
 type Props = React.ComponentProps<typeof OneTimePasswordRoot> & {
   /** The length of the OTP */
   length?: number;
+  /**
+   * Whether to accept uppercase letters in addition to digits. Lowercase input
+   * is normalized to uppercase. Defaults to numeric only.
+   */
+  alphanumeric?: boolean;
 };
+
+const sanitizeAlphanumeric = (value: string) =>
+  value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 
 export const OneTimePasswordInput = React.forwardRef(
   function OneTimePasswordInput_(
-    { length = 6, ...rest }: Props,
+    { length = 6, alphanumeric, ...rest }: Props,
     ref: React.RefObject<HTMLInputElement>
   ) {
+    const alphanumericProps = alphanumeric
+      ? {
+          validationType: "none" as const,
+          sanitizeValue: sanitizeAlphanumeric,
+        }
+      : undefined;
+
     return (
-      <OneTimePasswordRoot {...rest}>
+      <OneTimePasswordRoot {...alphanumericProps} {...rest}>
         {Array.from({ length }, (_, i) => (
           <OneTimePasswordInputField key={i} />
         ))}

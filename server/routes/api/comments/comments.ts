@@ -1,20 +1,17 @@
 import Router from "koa-router";
-import difference from "lodash/difference";
+import { difference } from "es-toolkit/compat";
 import type { FindOptions, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
-import {
-  CommentStatusFilter,
-  TeamPreference,
-  MentionType,
-  IconType,
-} from "@shared/types";
+import { v4 as uuidv4 } from "uuid";
+import { CommentStatusFilter, MentionType, IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { commentParser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
-import { feature } from "@server/middlewares/feature";
+import { commentingEnabled } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
+import { ValidationError } from "@server/errors";
 import { Document, Comment, Collection, Reaction, Emoji } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -29,19 +26,39 @@ const router = new Router();
 
 router.post(
   "comments.create",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
-    const { id, documentId, parentCommentId } = ctx.input.body;
+    const {
+      id,
+      documentId,
+      parentCommentId,
+      anchorText,
+      anchorPrefix,
+      anchorSuffix,
+    } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
+
+    if (anchorText) {
+      // Acquire the row lock on the document directly when anchoring so a
+      // concurrent inline comment can't overwrite our state update.
+      await Document.unscoped().findOne({
+        where: { id: documentId },
+        attributes: ["id"],
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+    }
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
       transaction,
+      // We only need to load the state binary if applying a comment mark
+      includeState: !!anchorText,
     });
     authorize(user, "comment", document);
 
@@ -56,8 +73,36 @@ router.post(
       ? commentParser.parse(text).toJSON()
       : ctx.input.body.data;
 
+    const commentId = id || uuidv4();
+
+    if (anchorText) {
+      if (!document.state) {
+        throw ValidationError("Cannot inline comment on this document");
+      }
+
+      const updatedState = ProsemirrorHelper.applyCommentMarkByText({
+        docState: document.state,
+        anchorText,
+        commentId,
+        userId: user.id,
+        prefix: anchorPrefix,
+        suffix: anchorSuffix,
+      });
+
+      if (!updatedState) {
+        throw ValidationError(
+          "Could not anchor comment to the provided text in the document"
+        );
+      }
+
+      await document.update(
+        { state: updatedState },
+        { transaction, hooks: false, silent: true }
+      );
+    }
+
     const comment = await Comment.createWithCtx(ctx, {
-      id,
+      id: commentId,
       data,
       createdById: user.id,
       documentId,
@@ -76,7 +121,7 @@ router.post(
 router.post(
   "comments.info",
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsInfoSchema),
   async (ctx: APIContext<T.CommentsInfoReq>) => {
     const { id, includeAnchorText } = ctx.input.body;
@@ -104,7 +149,7 @@ router.post(
   "comments.list",
   auth(),
   pagination(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsListSchema),
   async (ctx: APIContext<T.CommentsListReq>) => {
     const {
@@ -220,7 +265,7 @@ router.post(
 router.post(
   "comments.update",
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsUpdateReq>) => {
@@ -284,7 +329,7 @@ router.post(
 router.post(
   "comments.delete",
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsDeleteReq>) => {
@@ -317,7 +362,7 @@ router.post(
 router.post(
   "comments.resolve",
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsResolveSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsResolveReq>) => {
@@ -352,7 +397,7 @@ router.post(
 router.post(
   "comments.unresolve",
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsUnresolveSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsUnresolveReq>) => {
@@ -388,7 +433,7 @@ router.post(
   "comments.add_reaction",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsReactionSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsReactionReq>) => {
@@ -443,7 +488,7 @@ router.post(
   "comments.remove_reaction",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsReactionSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsReactionReq>) => {

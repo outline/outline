@@ -5,6 +5,7 @@
 // v3 added dataURL and Blob Input, bind-toggle arity, and legacy dataURL fallback was improved with force-download mime and base64 support
 // data can be a string, Blob, File, or dataURL
 export default function download(
+  this: unknown,
   data: Blob | string | File,
   strFileName: string,
   strMimeType?: string
@@ -41,9 +42,8 @@ export default function download(
   }
 
   // go ahead and download dataURLs right away
-  if (String(x).match(/^data:[\w+-]+\/[\w+-]+[,;]/)) {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-    return saver(x); // everyone else can save dataURLs un-processed
+  if (typeof x === "string" && x.match(/^data:[\w+-]+\/[\w+-]+[,;]/)) {
+    return saver(x);
   }
 
   // end if dataURL passed?

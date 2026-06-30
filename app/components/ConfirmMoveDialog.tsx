@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { CollectionPermission } from "@shared/types";
 import type Collection from "~/models/Collection";
@@ -50,7 +51,7 @@ function ConfirmMoveDialog({ collection, item, ...rest }: Props) {
           )
         );
       } else {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     } finally {
       dialogs.closeAllModals();

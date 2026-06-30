@@ -16,7 +16,7 @@ type Props = ComponentProps & {
 };
 
 const Embed = (props: Props) => {
-  const ref = React.useRef<HTMLIFrameElement>(null);
+  const ref = React.useRef<HTMLDivElement>(null);
   const { node, isEditable, embedsDisabled, onChangeSize } = props;
   const naturalWidth = 0;
   const naturalHeight = 400;
@@ -28,7 +28,6 @@ const Embed = (props: Props) => {
       height: node.attrs.height ?? naturalHeight,
       naturalWidth,
       naturalHeight,
-      gridSnap: 5,
       onChangeSize,
       ref,
     }
@@ -51,8 +50,8 @@ const Embed = (props: Props) => {
   };
 
   return (
-    <FrameWrapper ref={ref}>
-      <InnerEmbed ref={ref} style={style} {...props} />
+    <FrameWrapper ref={ref} $dragging={!!dragging}>
+      <InnerEmbed style={style} {...props} />
       {isEditable && isResizable && (
         <>
           <ResizeBottom
@@ -65,69 +64,69 @@ const Embed = (props: Props) => {
   );
 };
 
-const InnerEmbed = React.forwardRef<HTMLIFrameElement, Props>(
-  function InnerEmbed_(
-    { isEditable, isSelected, node, embeds, embedsDisabled, style },
-    ref
-  ) {
-    const cache = React.useMemo(
-      () => getMatchingEmbed(embeds, node.attrs.href),
-      [embeds, node.attrs.href]
-    );
+function InnerEmbed({
+  isEditable,
+  isSelected,
+  node,
+  embeds,
+  embedsDisabled,
+  style,
+}: Props) {
+  const cache = React.useMemo(
+    () => getMatchingEmbed(embeds, node.attrs.href),
+    [embeds, node.attrs.href]
+  );
 
-    if (!cache) {
-      return null;
-    }
-
-    const { embed, matches } = cache;
-
-    if (embedsDisabled) {
-      return (
-        <DisabledEmbed
-          href={node.attrs.href}
-          embed={embed}
-          isEditable={isEditable}
-          isSelected={isSelected}
-        />
-      );
-    }
-
-    if (embed.transformMatch) {
-      const src = embed.transformMatch(matches);
-      return (
-        <Frame
-          ref={ref}
-          src={src}
-          style={style}
-          isSelected={isSelected}
-          canonicalUrl={embed.hideToolbar ? undefined : node.attrs.href}
-          title={embed.title}
-          referrerPolicy="strict-origin-when-cross-origin"
-          border
-        />
-      );
-    }
-
-    if ("component" in embed) {
-      return (
-        // @ts-expect-error Component type
-        <embed.component
-          ref={ref}
-          attrs={node.attrs}
-          style={style}
-          matches={matches}
-          isEditable={isEditable}
-          isSelected={isSelected}
-          embed={embed}
-        />
-      );
-    }
-
+  if (!cache) {
     return null;
   }
-);
 
-const FrameWrapper = styled.div`
+  const { embed, matches } = cache;
+
+  if (embedsDisabled) {
+    return (
+      <DisabledEmbed
+        href={node.attrs.href}
+        embed={embed}
+        isEditable={isEditable}
+        isSelected={isSelected}
+      />
+    );
+  }
+
+  if (embed.transformMatch) {
+    const src = embed.transformMatch(matches);
+    return (
+      <Frame
+        src={src}
+        style={style}
+        isSelected={isSelected}
+        canonicalUrl={embed.hideToolbar ? undefined : node.attrs.href}
+        title={embed.title}
+        referrerPolicy="strict-origin-when-cross-origin"
+        border
+      />
+    );
+  }
+
+  if ("component" in embed) {
+    return (
+      // @ts-expect-error Component type
+      <embed.component
+        attrs={node.attrs}
+        style={style}
+        matches={matches}
+        isEditable={isEditable}
+        isSelected={isSelected}
+        embed={embed}
+      />
+    );
+  }
+
+  return null;
+}
+
+const FrameWrapper = styled.div<{ $dragging: boolean }>`
   line-height: 0;
   position: relative;
   margin-left: auto;
@@ -139,7 +138,7 @@ const FrameWrapper = styled.div`
   max-width: 100%;
 
   transition-property: width, max-height;
-  transition-duration: 150ms;
+  transition-duration: ${(props) => (props.$dragging ? "0ms" : "150ms")};
   transition-timing-function: ease-in-out;
 
   &:hover {

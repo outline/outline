@@ -192,7 +192,7 @@ class GroupMembership extends ParanoidModel<
       memberships.map((membership) =>
         membership?.sourceId
           ? this.findByPk(membership.sourceId, options)
-          : membership
+          : Promise.resolve(membership)
       )
     );
 

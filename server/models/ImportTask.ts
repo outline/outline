@@ -11,7 +11,7 @@ import {
 import type { ImportTaskOutput } from "@shared/schema";
 import { type ImportTaskInput } from "@shared/schema";
 import type { ImportableIntegrationService } from "@shared/types";
-import { ImportTaskState } from "@shared/types";
+import { ImportTaskPhase, ImportTaskState } from "@shared/types";
 import Import from "./Import";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
@@ -40,6 +40,10 @@ class ImportTask<T extends ImportableIntegrationService> extends IdModel<
   @Column(DataType.STRING)
   state: ImportTaskState;
 
+  @IsIn([Object.values(ImportTaskPhase)])
+  @Column(DataType.STRING)
+  phase: ImportTaskPhase;
+
   @Column(DataType.JSONB)
   input: ImportTaskInput<T>;
 
@@ -47,7 +51,7 @@ class ImportTask<T extends ImportableIntegrationService> extends IdModel<
   @Column(DataType.JSONB)
   output: ImportTaskOutput | null;
 
-  @Column
+  @Column(DataType.STRING)
   error: string | null;
 
   // associations

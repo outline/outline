@@ -41,19 +41,14 @@ describe("groupMemberships.list", () => {
       createdById: user.id,
     });
 
-    await server.post("/api/documents.add_group", {
+    await server.post("/api/documents.add_group", user, {
       body: {
-        token: user.getJwtToken(),
         id: document.id,
         groupId: group.id,
       },
     });
 
-    const res = await server.post("/api/groupMemberships.list", {
-      body: {
-        token: member.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/groupMemberships.list", member);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data).not.toBeFalsy();
@@ -107,20 +102,15 @@ describe("groupMemberships.list", () => {
     ]);
 
     for (const document of documents) {
-      await server.post("/api/documents.add_group", {
+      await server.post("/api/documents.add_group", user, {
         body: {
-          token: user.getJwtToken(),
           id: document.id,
           groupId: group.id,
         },
       });
     }
 
-    const res = await server.post("/api/groupMemberships.list", {
-      body: {
-        token: member.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/groupMemberships.list", member);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.pagination).not.toBeFalsy();

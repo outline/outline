@@ -1,7 +1,8 @@
 import querystring from "node:querystring";
 import { addMonths } from "date-fns";
 import type { Context } from "koa";
-import pick from "lodash/pick";
+import { pick } from "es-toolkit/compat";
+import { toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
 import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
@@ -62,7 +63,7 @@ export async function signIn(
           }
         );
       } catch (error) {
-        Logger.error(`Error persisting signup query params`, error);
+        Logger.error(`Error persisting signup query params`, toError(error));
       }
     }
   }
@@ -134,7 +135,7 @@ export async function signIn(
       );
     }
   } else {
-    ctx.cookies.set("accessToken", user.getJwtToken(expires, service), {
+    ctx.cookies.set("accessToken", user.getSessionToken(expires, service), {
       sameSite: "lax",
       expires,
     });

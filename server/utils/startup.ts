@@ -1,5 +1,6 @@
 import { styleText } from "node:util";
-import isEmpty from "lodash/isEmpty";
+import { isEmpty } from "es-toolkit/compat";
+import { toError, errToString } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
@@ -33,16 +34,18 @@ export async function checkPendingMigrations() {
     }
     await checkDataMigrations();
   } catch (err) {
-    if (err.message.includes("ECONNREFUSED")) {
+    const message = errToString(err);
+    const error = toError(err);
+    if (message.includes("ECONNREFUSED")) {
       Logger.fatal(
         styleText(
           "red",
           `Could not connect to the database. Please check your connection settings.`
         ),
-        err
+        error
       );
     } else {
-      Logger.fatal(styleText("red", err.message), err);
+      Logger.fatal(styleText("red", message), error);
     }
   } finally {
     if (lock) {

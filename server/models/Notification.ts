@@ -33,6 +33,7 @@ import Team from "./Team";
 import User from "./User";
 import Group from "./Group";
 import Fix from "./decorators/Fix";
+import AccessRequest from "./AccessRequest";
 
 let baseDomain;
 
@@ -90,6 +91,10 @@ let baseDomain;
       association: "actor",
       required: false,
     },
+    {
+      association: "accessRequest",
+      required: false,
+    },
   ],
 }))
 @Table({
@@ -109,15 +114,15 @@ class Notification extends Model<
   id: string;
 
   @AllowNull
-  @Column
+  @Column(DataType.DATE)
   emailedAt?: Date | null;
 
   @AllowNull
-  @Column
+  @Column(DataType.DATE)
   viewedAt: Date | null;
 
   @AllowNull
-  @Column
+  @Column(DataType.DATE)
   archivedAt: Date | null;
 
   @CreatedAt
@@ -195,6 +200,14 @@ class Notification extends Model<
   @AllowNull
   @Column(DataType.UUID)
   membershipId: string;
+
+  @BelongsTo(() => AccessRequest, "accessRequestId")
+  accessRequest: AccessRequest;
+
+  @AllowNull
+  @ForeignKey(() => AccessRequest)
+  @Column(DataType.UUID)
+  accessRequestId: string;
 
   @AfterCreate
   static async createEvent(

@@ -11,6 +11,7 @@ import Route from "~/components/ProfiledRoute";
 import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
+import useQueryNotices from "~/hooks/useQueryNotices";
 import lazy from "~/utils/lazyWithRetry";
 import {
   archivePath,
@@ -53,6 +54,7 @@ const RedirectDocument = ({
  * the user to be logged in.
  */
 function AuthenticatedRoutes() {
+  useQueryNotices();
   const team = useCurrentTeam();
   const can = usePolicy(team);
 

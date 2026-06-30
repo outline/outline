@@ -1,7 +1,6 @@
 import copy from "copy-to-clipboard";
-import debounce from "lodash/debounce";
 import { CheckmarkIcon, CopyIcon } from "outline-icons";
-import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   HexColorInput,
   HexAlphaColorPicker,
@@ -41,23 +40,6 @@ function ColorPicker({ activeColor, onSelect, alpha }: Props) {
     [onSelect]
   );
 
-  const debouncedApplyColor = useMemo(
-    () => debounce(applyColor, 250),
-    [applyColor]
-  );
-
-  useEffect(
-    () => () => {
-      debouncedApplyColor.cancel();
-    },
-    [debouncedApplyColor]
-  );
-
-  const handleColorChangePicker = (newColor: string) => {
-    setColor(newColor);
-    debouncedApplyColor(newColor);
-  };
-
   const handleColorChangeInput = (newColor: string) => {
     setColor(newColor);
     applyColor(newColor);
@@ -75,12 +57,14 @@ function ColorPicker({ activeColor, onSelect, alpha }: Props) {
       {alpha ? (
         <StyledHexAlphaColorPicker
           color={color}
-          onChange={handleColorChangePicker}
+          onChange={setColor}
+          onChangeEnd={applyColor}
         />
       ) : (
         <StyledHexNonAlphaColorPicker
           color={color}
-          onChange={handleColorChangePicker}
+          onChange={setColor}
+          onChangeEnd={applyColor}
         />
       )}
 

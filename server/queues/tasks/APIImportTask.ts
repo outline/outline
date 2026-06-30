@@ -1,18 +1,26 @@
 import type { JobOptions } from "bull";
-import chunk from "lodash/chunk";
-import truncate from "lodash/truncate";
-import uniqBy from "lodash/uniqBy";
+import { chunk, truncate, uniqBy } from "es-toolkit/compat";
 import { Fragment, Node } from "prosemirror-model";
 import type { WhereOptions } from "sequelize";
 import { Transaction } from "sequelize";
 import { randomUUID } from "node:crypto";
-import type { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
+import type {
+  BaseImportTaskInput,
+  ImportTaskInput,
+  ImportTaskOutput,
+} from "@shared/schema";
 import type {
   ImportableIntegrationService,
   ProsemirrorData,
   ProsemirrorDoc,
 } from "@shared/types";
-import { AttachmentPreset, ImportState, ImportTaskState } from "@shared/types";
+import {
+  AttachmentPreset,
+  ImportState,
+  ImportTaskPhase,
+  ImportTaskState,
+} from "@shared/types";
+import { toError } from "@shared/utils/error";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -46,7 +54,6 @@ export default abstract class APIImportTask<
    */
   public async perform({ importTaskId }: Props) {
     let importTask = await ImportTask.findByPk<ImportTask<T>>(importTaskId, {
-      rejectOnEmpty: true,
       include: [
         {
           model: Import,
@@ -55,6 +62,12 @@ export default abstract class APIImportTask<
         },
       ],
     });
+
+    // The import_task row may have been deleted (e.g. its Import was removed)
+    // between the job being enqueued and the worker picking it up. Nothing to do.
+    if (!importTask) {
+      return;
+    }
 
     // Don't process any further when the associated import is canceled by the user.
     if (importTask.import.state === ImportState.Canceled) {
@@ -100,7 +113,6 @@ export default abstract class APIImportTask<
       const importTask = await ImportTask.findByPk<ImportTask<T>>(
         importTaskId,
         {
-          rejectOnEmpty: true,
           include: [
             {
               model: Import,
@@ -112,6 +124,10 @@ export default abstract class APIImportTask<
           lock: Transaction.LOCK.UPDATE,
         }
       );
+
+      if (!importTask) {
+        return;
+      }
 
       importTask.state = ImportTaskState.Errored;
       await importTask.save({ transaction });
@@ -136,31 +152,39 @@ export default abstract class APIImportTask<
    * @returns Promise that resolves once processing has completed.
    */
   private async onProcess(importTask: ImportTask<T>) {
-    const { taskOutput, childTasksInput } = await this.process(importTask);
+    const { taskOutput, childTasksInput } =
+      importTask.phase === ImportTaskPhase.Bootstrap
+        ? await this.processBootstrap(importTask)
+        : await this.processPage(importTask);
 
-    const taskOutputWithReplacements = await Promise.all(
-      taskOutput.map(async (item) => ({
-        ...item,
-        content: await this.uploadAttachments({
-          doc: item.content,
-          externalId: item.externalId,
-          createdBy: importTask.import.createdBy,
-        }),
-      }))
-    );
+    const taskOutputWithReplacements = this.shouldUploadAttachmentsPerPage()
+      ? await Promise.all(
+          taskOutput.map(async (item) => ({
+            ...item,
+            content: await this.uploadAttachments({
+              doc: item.content,
+              externalId: item.externalId,
+              createdBy: importTask.import.createdBy,
+            }),
+          }))
+        )
+      : taskOutput;
 
     await sequelize.transaction(async (transaction) => {
       await Promise.all(
-        chunk(childTasksInput, PagePerImportTask).map(async (input) => {
-          await ImportTask.create(
-            {
-              state: ImportTaskState.Created,
-              input,
-              importId: importTask.importId,
-            },
-            { transaction }
-          );
-        })
+        chunk(childTasksInput as BaseImportTaskInput, PagePerImportTask).map(
+          async (input) => {
+            await ImportTask.create(
+              {
+                state: ImportTaskState.Created,
+                phase: ImportTaskPhase.Page,
+                input: input as ImportTaskInput<T>,
+                importId: importTask.importId,
+              },
+              { transaction }
+            );
+          }
+        )
       );
 
       importTask.output = taskOutputWithReplacements;
@@ -208,10 +232,16 @@ export default abstract class APIImportTask<
       return await this.scheduleNextTask(nextImportTask);
     }
 
-    // All tasks for this import have been processed.
+    // All tasks for this import have been processed. Run the post-completion
+    // hook before flipping state so subclasses can perform work that must
+    // happen before "imports.processed" downstream handlers fire.
+    await this.onAllTasksCompleted(importTask);
+
     await sequelize.transaction(async (transaction) => {
       const associatedImport = importTask.import;
       associatedImport.state = ImportState.Processed;
+      // Release any cross-phase scratch state — the import is done with it.
+      associatedImport.scratch = null;
       await associatedImport.saveWithCtx(
         createContext({
           user: associatedImport.createdBy,
@@ -224,13 +254,63 @@ export default abstract class APIImportTask<
   }
 
   /**
-   * Process the import task.
-   * This fetches data from external source and converts it to task output.
+   * Whether the base class should create Attachment rows and upload S3 blobs
+   * per page during `onProcess`. Defaults to `true` for sources whose
+   * attachments are addressable by per-task URLs (e.g. Notion). Sources where
+   * attachments are shared across pages or live in a single archive may
+   * override this and handle attachment persistence in `onAllTasksCompleted`.
+   *
+   * @returns true to enable the per-page attachment upload step.
+   */
+  protected shouldUploadAttachmentsPerPage(): boolean {
+    return true;
+  }
+
+  /**
+   * Hook invoked after the final import task has been processed but before the
+   * associated `Import` state transitions to `Processed`. Subclasses can
+   * override to perform cross-task finalization (e.g. uploading shared
+   * attachments) that must happen before the persistence pass.
+   *
+   * @param lastImportTask The most recently completed ImportTask for the import.
+   * @returns Promise that resolves when finalization is complete.
+   */
+  protected async onAllTasksCompleted(
+    // oxlint-disable-next-line @typescript-eslint/no-unused-vars
+    lastImportTask: ImportTask<T>
+  ): Promise<void> {
+    return;
+  }
+
+  /**
+   * Bootstrap phase. Runs once per import on a worker that owns the source
+   * artifact (e.g. extracts a zip, walks the file tree, schedules child page
+   * tasks). Subclasses without a bootstrap step leave this unimplemented; the
+   * base only invokes it when an `ImportTask` is created with
+   * `phase === ImportTaskPhase.Bootstrap`.
    *
    * @param importTask ImportTask model to process.
    * @returns Promise with output that resolves once processing has completed.
    */
-  protected abstract process(
+  protected processBootstrap(
+    // oxlint-disable-next-line @typescript-eslint/no-unused-vars
+    importTask: ImportTask<T>
+  ): Promise<ProcessOutput<T>> {
+    throw new Error(
+      `${this.constructor.name} does not implement processBootstrap()`
+    );
+  }
+
+  /**
+   * Page phase. Runs for every `ImportTask` row with
+   * `phase === ImportTaskPhase.Page`, transforming a batch of source pages
+   * into ProseMirror output and optionally cascading descendants as the next
+   * wave of child tasks.
+   *
+   * @param importTask ImportTask model to process.
+   * @returns Promise with output that resolves once processing has completed.
+   */
+  protected abstract processPage(
     importTask: ImportTask<T>
   ): Promise<ProcessOutput<T>>;
 
@@ -331,7 +411,7 @@ export default abstract class APIImportTask<
       // upload attachments failure is not critical enough to fail the whole import.
       Logger.error(
         `upload attachment task failed for externalId ${externalId}`,
-        err
+        toError(err)
       );
     }
 

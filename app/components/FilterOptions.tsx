@@ -1,16 +1,26 @@
-import deburr from "lodash/deburr";
+import { deburr } from "es-toolkit/compat";
+import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import type { FetchPageParams } from "~/stores/base/Store";
 import Button, { Inner } from "~/components/Button";
+import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
+import useMobile from "~/hooks/useMobile";
 import Input, { NativeInput, Outline } from "./Input";
 import type { PaginatedItem } from "./PaginatedList";
 import PaginatedList from "./PaginatedList";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerTrigger,
+} from "./primitives/Drawer";
 import { MenuProvider } from "./primitives/Menu/MenuContext";
 import { Menu, MenuContent, MenuTrigger, MenuButton } from "./primitives/Menu";
+import * as MenuComponents from "./primitives/components/Menu";
 import { MenuIconWrapper } from "./primitives/components/Menu";
 
 interface TFilterOption extends PaginatedItem {
@@ -34,7 +44,7 @@ type Props = {
 
 const FilterOptions = ({
   options,
-  selectedKeys = [],
+  selectedKeys,
   className,
   onSelect,
   showFilter,
@@ -45,6 +55,7 @@ const FilterOptions = ({
   ...rest
 }: Props) => {
   const { t } = useTranslation();
+  const isMobile = useMobile();
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = React.useState(false);
@@ -58,23 +69,45 @@ const FilterOptions = ({
     : "";
 
   const renderItem = React.useCallback(
-    (option) => (
-      <MenuButton
-        key={option.key}
-        icon={
-          option.icon && showIcons ? (
-            <MenuIconWrapper aria-hidden>{option.icon}</MenuIconWrapper>
-          ) : undefined
-        }
-        label={option.label}
-        onClick={() => {
-          onSelect(option.key);
-          setOpen(false);
-        }}
-        selected={selectedKeys.includes(option.key)}
-      />
-    ),
-    [onSelect, showIcons, selectedKeys]
+    (option) => {
+      const handleClick = () => {
+        onSelect(option.key);
+        setOpen(false);
+      };
+
+      const icon =
+        option.icon && showIcons ? (
+          <MenuIconWrapper aria-hidden>{option.icon}</MenuIconWrapper>
+        ) : undefined;
+
+      // On mobile the options render inside a Drawer (bottom sheet) rather than
+      // a Radix dropdown menu, so use the raw menu components directly instead
+      // of the dropdown-bound MenuButton which expects a menu root context.
+      if (isMobile) {
+        return (
+          <MenuComponents.MenuButton key={option.key} onClick={handleClick}>
+            {icon}
+            <MenuComponents.MenuLabel>{option.label}</MenuComponents.MenuLabel>
+            <MenuComponents.SelectedIconWrapper aria-hidden>
+              {selectedKeys.includes(option.key) ? (
+                <CheckmarkIcon size={18} />
+              ) : null}
+            </MenuComponents.SelectedIconWrapper>
+          </MenuComponents.MenuButton>
+        );
+      }
+
+      return (
+        <MenuButton
+          key={option.key}
+          icon={icon}
+          label={option.label}
+          onClick={handleClick}
+          selected={selectedKeys.includes(option.key)}
+        />
+      );
+    },
+    [onSelect, showIcons, selectedKeys, isMobile]
   );
 
   const handleFilter = React.useCallback(
@@ -169,39 +202,73 @@ const FilterOptions = ({
 
   React.useEffect(() => {
     if (open) {
-      searchInputRef.current?.focus();
+      // Avoid auto-focusing on mobile as it immediately pops the on-screen
+      // keyboard over the drawer.
+      if (!isMobile) {
+        searchInputRef.current?.focus();
+      }
     } else {
       setQuery("");
     }
-  }, [open]);
+  }, [open, isMobile]);
 
   const showFilterInput = showFilter || options.length > 10;
   const defaultLabel = rest.defaultLabel || t("Filter options");
 
+  const trigger = (
+    <StyledButton
+      className={className}
+      icon={selectedItems[0]?.key && selectedItems[0]?.icon}
+      disclosure={disclosure}
+      neutral
+    >
+      {selectedItems.length ? selectedLabel : defaultLabel}
+    </StyledButton>
+  );
+
+  const list = (
+    <PaginatedList<TFilterOption>
+      listRef={listRef}
+      options={{ query, ...fetchQueryOptions }}
+      items={filteredOptions}
+      fetch={fetchQuery}
+      renderItem={renderItem}
+      onEscape={handleEscapeFromList}
+      heading={showFilterInput && !isMobile ? <Spacer /> : undefined}
+      empty={<Empty />}
+    />
+  );
+
+  // On mobile render the options inside a Drawer (bottom sheet) to match the
+  // popover style used by context menus across the app.
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+        <DrawerContent aria-label={defaultLabel} aria-describedby={undefined}>
+          <DrawerTitle>{defaultLabel}</DrawerTitle>
+          {showFilterInput && (
+            <MobileSearchInput
+              ref={searchInputRef}
+              value={query}
+              onChange={handleFilter}
+              onKeyDown={handleKeyDown}
+              placeholder={`${t("Filter")}…`}
+              margin={0}
+            />
+          )}
+          <StyledScrollable hiddenScrollbars>{list}</StyledScrollable>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <MenuProvider variant="dropdown">
       <Menu open={open} onOpenChange={setOpen}>
-        <MenuTrigger>
-          <StyledButton
-            className={className}
-            icon={selectedItems[0]?.key && selectedItems[0]?.icon}
-            disclosure={disclosure}
-            neutral
-          >
-            {selectedItems.length ? selectedLabel : defaultLabel}
-          </StyledButton>
-        </MenuTrigger>
+        <MenuTrigger>{trigger}</MenuTrigger>
         <MenuContent aria-label={defaultLabel} align="start">
-          <PaginatedList<TFilterOption>
-            listRef={listRef}
-            options={{ query, ...fetchQueryOptions }}
-            items={filteredOptions}
-            fetch={fetchQuery}
-            renderItem={renderItem}
-            onEscape={handleEscapeFromList}
-            heading={showFilterInput ? <Spacer /> : undefined}
-            empty={<Empty />}
-          />
+          {list}
           {showFilterInput && (
             <SearchInput
               ref={searchInputRef}
@@ -258,6 +325,22 @@ const SearchInput = styled(Input)`
   ${NativeInput} {
     font-size: 14px;
   }
+`;
+
+const MobileSearchInput = styled(Input)`
+  /* "none" keeps an auto basis so the input retains its natural height; a
+     flexible/0% basis would collapse it and overlap the list below. */
+  flex: none;
+  margin: 0 6px 6px;
+
+  ${NativeInput} {
+    /* 16px avoids iOS zooming the viewport when the input is focused. */
+    font-size: 16px;
+  }
+`;
+
+const StyledScrollable = styled(Scrollable)`
+  max-height: 75vh;
 `;
 
 export const StyledButton = styled(Button)`

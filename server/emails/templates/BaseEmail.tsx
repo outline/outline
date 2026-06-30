@@ -5,6 +5,7 @@ import invariant from "invariant";
 import { t as i18nT } from "i18next";
 import { subMinutes } from "date-fns";
 import type { Node } from "prosemirror-model";
+import { toError } from "@shared/utils/error";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
@@ -177,6 +178,7 @@ export default abstract class BaseEmail<
         text: this.renderAsText(data),
         headCSS: this.headCSS?.(data),
         unsubscribeUrl: this.unsubscribeUrl?.(data),
+        tags: { category: this.category, template: templateName },
       });
       Metrics.increment("email.sent", {
         templateName,
@@ -193,7 +195,11 @@ export default abstract class BaseEmail<
         notification.emailedAt = new Date();
         await notification.save();
       } catch (err) {
-        Logger.error(`Failed to update notification`, err, this.metadata);
+        Logger.error(
+          `Failed to update notification`,
+          toError(err),
+          this.metadata
+        );
       }
     }
   }
@@ -334,7 +340,7 @@ export default abstract class BaseEmail<
       await ProsemirrorHelper.processMentions(node)
     );
 
-    let content = ProsemirrorHelper.toHTML(processedNode, {
+    let content = await ProsemirrorHelper.toHTML(processedNode, {
       centered: false,
     });
 

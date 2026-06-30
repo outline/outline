@@ -1,4 +1,5 @@
-import type { Token } from "markdown-it";
+import { t } from "i18next";
+import type Token from "markdown-it/lib/token.mjs";
 import { InputRule } from "prosemirror-inputrules";
 import type { MarkdownSerializerState } from "prosemirror-markdown";
 import type {
@@ -53,7 +54,18 @@ function isPlainURL(
   return !link.isInSet(next.marks);
 }
 
-export default class Link extends Mark {
+/**
+ * Options for the Link mark.
+ */
+type LinkOptions = {
+  /** Callback invoked when the user clicks any link in the document. */
+  onClickLink?: (
+    href: string,
+    event?: MouseEvent | React.MouseEvent<HTMLButtonElement>
+  ) => void;
+};
+
+export default class Link extends Mark<LinkOptions> {
   get name() {
     return "link";
   }
@@ -114,7 +126,7 @@ export default class Link extends Mark {
 
   keys(): Record<string, Command> {
     return {
-      "Mod-Enter": openLink(this.options.onClickLink, this.options.dictionary),
+      "Mod-Enter": openLink(this.options.onClickLink),
     };
   }
 
@@ -123,8 +135,7 @@ export default class Link extends Mark {
       link: (attrs: Attrs) => toggleLink(attrs),
       addLink,
       updateLink,
-      openLink: (): Command =>
-        openLink(this.options.onClickLink, this.options.dictionary),
+      openLink: (): Command => openLink(this.options.onClickLink),
       removeLink,
     };
   }
@@ -208,13 +219,14 @@ export default class Link extends Mark {
                   : "");
 
               try {
-                if (this.options.onClickLink && href) {
+                const sanitized = sanitizeUrl(href);
+                if (this.options.onClickLink && sanitized) {
                   event.stopPropagation();
                   event.preventDefault();
-                  this.options.onClickLink(sanitizeUrl(href), event);
+                  this.options.onClickLink(sanitized, event);
                 }
               } catch (_err) {
-                toast.error(this.options.dictionary.openLinkError);
+                toast.error(t("Sorry, that type of link is not supported"));
               }
 
               return true;

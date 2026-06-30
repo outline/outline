@@ -17,8 +17,12 @@ import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
 import type { Action as KbarAction } from "kbar";
 
-export function resolve<T>(value: any, context: ActionContext): T {
-  return typeof value === "function" ? value(context) : value;
+export function resolve<T>(value: unknown, context: ActionContext): T {
+  return (
+    typeof value === "function"
+      ? (value as (context: ActionContext) => T)(context)
+      : value
+  ) as T;
 }
 
 export const ActionSeparator: TActionSeparator = {

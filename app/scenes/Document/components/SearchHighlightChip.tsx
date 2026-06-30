@@ -6,6 +6,8 @@ import styled from "styled-components";
 import { ellipsis } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Tooltip from "~/components/Tooltip";
+import { patchLocation } from "~/utils/history";
+import { undraggableOnDesktop } from "~/styles";
 
 export function SearchHighlightChip() {
   const { t } = useTranslation();
@@ -19,12 +21,9 @@ export function SearchHighlightChip() {
     const params = new URLSearchParams(location.search);
     params.delete("q");
     const search = params.toString();
-    history.replace({
-      pathname: location.pathname,
-      search: search ? `?${search}` : "",
-      hash: location.hash,
-      state: location.state,
-    });
+    history.replace(
+      patchLocation(location, { search: search ? `?${search}` : "" })
+    );
   }, [editor, history, location]);
 
   if (!searchHighlight) {
@@ -50,6 +49,7 @@ export function SearchHighlightChip() {
 }
 
 const Chip = styled.button`
+  ${undraggableOnDesktop()}
   display: inline-flex;
   align-items: center;
   gap: 2px;

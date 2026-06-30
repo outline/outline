@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import filter from "lodash/filter";
+import { filter } from "es-toolkit/compat";
 import { action, runInAction, computed } from "mobx";
 import naturalSort from "@shared/utils/naturalSort";
 import Group from "~/models/Group";

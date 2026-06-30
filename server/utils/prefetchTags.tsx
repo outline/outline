@@ -6,22 +6,24 @@ import readManifestFile from "./readManifestFile";
 
 const prefetchTags = [];
 
-if (env.AWS_S3_ACCELERATE_URL) {
-  prefetchTags.push(
-    <link
-      rel="preconnect"
-      href={env.AWS_S3_ACCELERATE_URL}
-      key={env.AWS_S3_ACCELERATE_URL}
-    />
-  );
-} else if (env.AWS_S3_UPLOAD_BUCKET_URL) {
-  prefetchTags.push(
-    <link
-      rel="preconnect"
-      href={env.AWS_S3_UPLOAD_BUCKET_URL}
-      key={env.AWS_S3_UPLOAD_BUCKET_URL}
-    />
-  );
+if (env.FILE_STORAGE === "s3") {
+  if (env.AWS_S3_ACCELERATE_URL) {
+    prefetchTags.push(
+      <link
+        rel="preconnect"
+        href={env.AWS_S3_ACCELERATE_URL}
+        key={env.AWS_S3_ACCELERATE_URL}
+      />
+    );
+  } else if (env.AWS_S3_UPLOAD_BUCKET_URL) {
+    prefetchTags.push(
+      <link
+        rel="preconnect"
+        href={env.AWS_S3_UPLOAD_BUCKET_URL}
+        key={env.AWS_S3_UPLOAD_BUCKET_URL}
+      />
+    );
+  }
 }
 if (env.CDN_URL) {
   prefetchTags.push(
@@ -35,12 +37,18 @@ if (env.isProduction) {
   const returnFileAndImportsFromManifest = (
     manifestStructure: ManifestStructure,
     file: string
-  ): string[] => [
-    manifestStructure[file]["file"],
-    ...(manifestStructure[file]["imports"] ?? []).map(
-      (entry: string) => manifestStructure[entry]["file"]
-    ),
-  ];
+  ): string[] => {
+    const chunk = manifestStructure[file];
+    if (!chunk) {
+      return [];
+    }
+    return [
+      chunk.file,
+      ...(chunk.imports ?? [])
+        .map((entry) => manifestStructure[entry]?.file)
+        .filter((entry): entry is string => Boolean(entry)),
+    ];
+  };
 
   Array.from([
     ...returnFileAndImportsFromManifest(manifest, "app/index.tsx"),

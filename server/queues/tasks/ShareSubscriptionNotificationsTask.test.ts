@@ -8,12 +8,12 @@ import ShareSubscriptionNotificationsTask from "./ShareSubscriptionNotifications
 const ip = "127.0.0.1";
 
 beforeEach(() => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe("ShareSubscriptionNotificationsTask", () => {
   it("should send email to confirmed subscriber", async () => {
-    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
 
     const document = await buildDocument();
     const share = await buildShare({
@@ -43,7 +43,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
   });
 
   it("should not send email to unconfirmed subscriber", async () => {
-    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
 
     const document = await buildDocument();
     const share = await buildShare({
@@ -72,7 +72,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
   });
 
   it("should not send email to unsubscribed subscriber", async () => {
-    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
 
     const document = await buildDocument();
     const share = await buildShare({
@@ -103,7 +103,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
   });
 
   it("should throttle notifications to once per 6 hours", async () => {
-    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
 
     const document = await buildDocument();
     const share = await buildShare({
@@ -134,7 +134,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
   });
 
   it("should send if last notified more than 6 hours ago", async () => {
-    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
 
     const document = await buildDocument();
     const share = await buildShare({
@@ -165,7 +165,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
   });
 
   it("should not send for unpublished shares", async () => {
-    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
 
     const document = await buildDocument();
     const share = await buildShare({
@@ -196,7 +196,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
   });
 
   it("should update lastNotifiedAt after sending", async () => {
-    jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+    vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
 
     const document = await buildDocument();
     const share = await buildShare({
@@ -229,7 +229,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
   });
 
   it("should send to multiple subscribers", async () => {
-    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
 
     const document = await buildDocument();
     const share = await buildShare({
@@ -268,7 +268,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
   });
 
   it("should not send if document has no shares", async () => {
-    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
     const document = await buildDocument();
 
     const task = new ShareSubscriptionNotificationsTask();
@@ -285,7 +285,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
   });
 
   it("should send when child document is updated and subscription is scoped to parent", async () => {
-    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
 
     const parent = await buildDocument();
     const child = await buildDocument({
@@ -321,7 +321,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
   });
 
   it("should not send when updated document is outside subscription scope", async () => {
-    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+    const spy = vi.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
 
     const parent = await buildDocument();
     const sibling = await buildDocument({

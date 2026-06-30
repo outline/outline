@@ -3,6 +3,7 @@ import type { InputRule } from "prosemirror-inputrules";
 import type { NodeType, MarkType, Schema } from "prosemirror-model";
 import type { Command, Plugin, Selection } from "prosemirror-state";
 import type { Editor } from "../../../app/editor";
+import type { SelectionToolbarMenuDescriptor } from "../types";
 
 export type CommandFactory = (attrs?: unknown, options?: unknown) => Command;
 
@@ -12,15 +13,15 @@ export type WidgetProps = {
   selection?: Selection;
 };
 
-export default class Extension {
-  options: any;
+export default class Extension<TOptions extends object = object> {
+  options: TOptions;
   editor: Editor;
 
-  constructor(options: Record<string, any> = {}) {
+  constructor(options: Partial<TOptions> = {}) {
     this.options = {
       ...this.defaultOptions,
       ...options,
-    };
+    } as TOptions;
   }
 
   bindEditor(editor: Editor) {
@@ -43,7 +44,7 @@ export default class Extension {
     return [];
   }
 
-  get defaultOptions() {
+  get defaultOptions(): Partial<TOptions> {
     return {};
   }
 
@@ -107,5 +108,16 @@ export default class Extension {
     schema: Schema;
   }): Record<string, CommandFactory> | CommandFactory | undefined {
     return {};
+  }
+
+  /**
+   * Declares selection toolbar menus contributed by this extension. When
+   * the user selects content or clicks a node, the toolbar evaluates all
+   * registered menus in priority order and displays the first match.
+   *
+   * @returns an array of menu descriptors, or an empty array if this extension does not contribute menus.
+   */
+  selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
+    return [];
   }
 }

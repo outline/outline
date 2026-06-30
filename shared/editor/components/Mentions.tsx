@@ -10,6 +10,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { dateToRelativeReadable, parseISODate } from "../../utils/date";
 import { Backticks } from "../../components/Backticks";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
@@ -37,7 +38,7 @@ type Attrs = {
 } & Record<string, JSONValue>;
 
 const getAttributesFromNode = (node: Node): Attrs => {
-  const spec = node.type.spec.toDOM?.(node) as any as Record<
+  const spec = node.type.spec.toDOM?.(node) as unknown as Record<
     string,
     JSONValue
   >[];
@@ -45,7 +46,9 @@ const getAttributesFromNode = (node: Node): Attrs => {
 
   return {
     className: className as Attrs["className"],
-    unfurl: unfurl ? (JSON.parse(unfurl as any) as Attrs["unfurl"]) : undefined,
+    unfurl: unfurl
+      ? (JSON.parse(unfurl as string) as Attrs["unfurl"])
+      : undefined,
     ...attrs,
   };
 };
@@ -193,10 +196,15 @@ export const MentionURL = (props: IssueUrlProps) => {
     ...attrs
   } = getAttributesFromNode(node);
 
-  const url = String(attrs.href);
-  const unfurl = unfurls.get(url)?.data ?? unfurlAttr;
+  const url = typeof attrs.href === "string" ? attrs.href : undefined;
+  const unfurl = url ? (unfurls.get(url)?.data ?? unfurlAttr) : undefined;
 
   React.useEffect(() => {
+    if (!url) {
+      setLoaded(true);
+      return;
+    }
+
     const fetchUnfurl = async () => {
       try {
         const unfurlModel = await unfurls.fetchUnfurl({ url });
@@ -237,7 +245,7 @@ export const MentionURL = (props: IssueUrlProps) => {
     };
 
     void fetchUnfurl();
-  }, [unfurls, url, node, isMounted]);
+  }, [unfurls, url, node, isMounted, onChangeUnfurl]);
 
   if (!unfurl) {
     return !loaded ? (
@@ -503,6 +511,55 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
   );
 });
 
+type DateProps = ComponentProps & {
+  onChangeDate: (modelId: string) => void;
+};
+
+// Loaded lazily so its browser-only dependencies (Radix, react-day-picker)
+// don't enter the editor schema's static import graph, which is also used on
+// the server.
+const DateMentionPicker = React.lazy(() => import("./DateMentionPicker"));
+
+export const MentionDate = observer(function MentionDate_(props: DateProps) {
+  const { isSelected, isEditable, node, onChangeDate } = props;
+  const { t } = useTranslation();
+  const { auth } = useStores();
+  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
+
+  const language = auth.user?.language;
+  const iso = typeof node.attrs.modelId === "string" ? node.attrs.modelId : "";
+  const display = dateToRelativeReadable(iso, t, language);
+  const selectedDate = parseISODate(iso) ?? undefined;
+
+  const content = (
+    <DateMention
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      $editable={isEditable}
+    >
+      {display}
+    </DateMention>
+  );
+
+  if (!isEditable) {
+    return content;
+  }
+
+  return (
+    <React.Suspense fallback={content}>
+      <DateMentionPicker
+        selectedDate={selectedDate}
+        language={language}
+        onChange={onChangeDate}
+      >
+        {content}
+      </DateMentionPicker>
+    </React.Suspense>
+  );
+});
+
 const MentionLoading = ({ className }: { className: string }) => {
   const { t } = useTranslation();
 
@@ -524,6 +581,11 @@ const MentionError = ({ className }: { className: string }) => {
     </span>
   );
 };
+
+const DateMention = styled.span<{ $editable: boolean }>`
+  cursor: ${(props) => (props.$editable ? "pointer" : "default")};
+  user-select: none;
+`;
 
 const StyledWarningIcon = styled(WarningIcon)`
   margin: 0 -2px;

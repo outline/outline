@@ -1,6 +1,7 @@
 import type { RedisOptions } from "ioredis";
 import Redis from "ioredis";
-import defaults from "lodash/defaults";
+import { defaults } from "es-toolkit/compat";
+import { errToString } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { getConnectionName } from "./utils";
@@ -56,7 +57,7 @@ export default class RedisAdapter extends Redis {
         const decodedString = Buffer.from(url.slice(10), "base64").toString();
         customOptions = JSON.parse(decodedString);
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const message = errToString(error);
         throw new Error(`Failed to decode redis adapter options: ${message}`);
       }
 
@@ -65,7 +66,7 @@ export default class RedisAdapter extends Redis {
           defaults(options, { connectionName }, customOptions, defaultOptions)
         );
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const message = errToString(error);
         throw new Error(`Failed to initialize redis client: ${message}`);
       }
     }
@@ -114,6 +115,9 @@ export default class RedisAdapter extends Redis {
             }
           });
       }, env.REDIS_HEALTHCHECK_INTERVAL);
+
+      // Don't keep the Node event loop alive solely for the healthcheck.
+      healthcheck.unref();
 
       this.on("end", () => clearInterval(healthcheck));
     }

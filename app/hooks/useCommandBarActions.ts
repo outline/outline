@@ -1,5 +1,5 @@
 import { useRegisterActions } from "kbar";
-import flattenDeep from "lodash/flattenDeep";
+import { flattenDeep } from "es-toolkit/compat";
 import { useLocation } from "react-router-dom";
 import { actionToKBar } from "~/actions";
 import type { ActionVariant } from "~/types";

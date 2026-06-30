@@ -15,6 +15,7 @@ import { useTextStats } from "~/hooks/useTextStats";
 import type Document from "~/models/Document";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
+import { useLayoutEffect, useRef } from "react";
 
 type Props = {
   document: Document;
@@ -22,13 +23,19 @@ type Props = {
 
 function Insights({ document }: Props) {
   const { t } = useTranslation();
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const selectedText = useTextSelection();
   const text = ProsemirrorHelper.toPlainText(document);
   const stats = useTextStats(text ?? "", selectedText);
   const formatNumber = useFormatNumber();
 
+  // Move focus into the modal to account for lazy-loading
+  useLayoutEffect(() => {
+    wrapperRef.current?.focus();
+  }, []);
+
   return (
-    <div>
+    <div ref={wrapperRef} tabIndex={-1}>
       {document ? (
         <Flex
           column
@@ -51,12 +58,13 @@ function Insights({ document }: Props) {
                     {t(`Last updated`)}{" "}
                     <Time dateTime={document.updatedAt} addSuffix />
                   </li>
-                  {document.sourceMetadata && (
+                  {(document.sourceName ||
+                    document.sourceMetadata?.fileName) && (
                     <li>
                       {t("Imported from {{ source }}", {
                         source:
                           document.sourceName ??
-                          `“${document.sourceMetadata.fileName}”`,
+                          `“${document.sourceMetadata?.fileName}”`,
                       })}
                     </li>
                   )}

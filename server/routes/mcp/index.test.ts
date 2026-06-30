@@ -1,37 +1,22 @@
 import { Scope, TeamPreference } from "@shared/types";
-import type { ProsemirrorData } from "@shared/types";
+import { UserFlag } from "@server/models/User";
 import {
   buildUser,
-  buildAdmin,
   buildCollection,
   buildDocument,
   buildComment,
-  buildCommentMark,
   buildOAuthAuthentication,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import {
+  buildOAuthUser,
+  callMcpTool,
   mcpHeaders,
   mcpRequest,
   parseMcpResponse,
-  callMcpTool,
 } from "@server/test/McpHelper";
 
 const server = getTestServer();
-
-async function buildOAuthUser(
-  overrides: { teamId?: string; role?: string } = {}
-) {
-  const user =
-    overrides.role === "admin"
-      ? await buildAdmin(overrides.teamId ? { teamId: overrides.teamId } : {})
-      : await buildUser(overrides.teamId ? { teamId: overrides.teamId } : {});
-  const auth = await buildOAuthAuthentication({
-    user,
-    scope: [Scope.Read, Scope.Write, Scope.Create],
-  });
-  return { user, accessToken: auth.accessToken! };
-}
 
 describe("POST /mcp/", () => {
   describe("protocol", () => {
@@ -44,12 +29,26 @@ describe("POST /mcp/", () => {
       expect(res.status).toEqual(401);
     });
 
+    it("should include WWW-Authenticate header on 401 responses", async () => {
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: { Accept: "application/json, text/event-stream" },
+        body,
+      });
+      expect(res.status).toEqual(401);
+      const wwwAuth = res.headers.get("www-authenticate");
+      expect(wwwAuth).toBeTruthy();
+      expect(wwwAuth).toContain("Bearer");
+      expect(wwwAuth).toContain("resource_metadata=");
+      expect(wwwAuth).toContain("/.well-known/oauth-protected-resource/mcp");
+    });
+
     it("should reject JWT authentication", async () => {
       const user = await buildUser();
       const { body } = mcpRequest("tools/list");
       const res = await server.post("/mcp/", {
         headers: {
-          Authorization: `Bearer ${user.getJwtToken()}`,
+          Authorization: `Bearer ${user.getSessionToken()}`,
           Accept: "application/json, text/event-stream",
         },
         body,
@@ -106,719 +105,40 @@ describe("POST /mcp/", () => {
       expect(result?.capabilities).toBeDefined();
       expect(result?.serverInfo?.name).toEqual("outline");
     });
-  });
 
-  describe("collection tools", () => {
-    it("list_collections returns user collections", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "list_collections");
-      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-        JSON.parse(c.text)
-      );
-
-      expect(data.length).toBeGreaterThanOrEqual(1);
-      const ids = data.map((c: { id: string }) => c.id);
-      expect(ids).toContain(collection.id);
-
-      const match = data.find(
-        (c: { id: string }) => c.id === collection.id
-      ) as { url: string };
-      expect(match.url).toMatch(/^https?:\/\//);
-    });
-
-    it("list_collections does not return collections from another team", async () => {
-      const { accessToken } = await buildOAuthUser();
-      const otherUser = await buildUser();
-      const otherCollection = await buildCollection({
-        teamId: otherUser.teamId,
-        userId: otherUser.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "list_collections");
-      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-        JSON.parse(c.text)
-      );
-
-      const ids = data.map((c: { id: string }) => c.id);
-      expect(ids).not.toContain(otherCollection.id);
-    });
-
-    it("create_collection creates with name, description, icon, color", async () => {
+    it("should return 202 for the notifications/initialized lifecycle message", async () => {
       const { accessToken } = await buildOAuthUser();
 
-      const res = await callMcpTool(server, accessToken, "create_collection", {
-        name: "Test Collection",
-        description: "A test description",
-        icon: "rocket",
-        color: "#FF0000",
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body: { jsonrpc: "2.0", method: "notifications/initialized" },
       });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-      expect(data.name).toEqual("Test Collection");
-      expect(data.icon).toEqual("rocket");
-      expect(data.color).toEqual("#FF0000");
-      expect(data.id).toBeDefined();
-      expect(data.url).toMatch(/^https?:\/\//);
+      expect(res.status).toEqual(202);
     });
 
-    it("update_collection updates fields on existing collection", async () => {
+    it("should set the MCP flag on the user after a successful request", async () => {
       const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "update_collection", {
-        id: collection.id,
-        name: "Updated Name",
-        description: "Updated description",
-      });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
-      expect(data.name).toEqual("Updated Name");
-      expect(data.url).toMatch(/^https?:\/\//);
-    });
-
-    it("fetch collection returns collection details", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "fetch", {
-        resource: "collection",
-        id: collection.id,
-      });
-
-      expect(res?.result?.content).toBeDefined();
-      expect(res!.result!.content!.length).toBeGreaterThanOrEqual(1);
-
-      const data = JSON.parse(res!.result!.content![0].text ?? "{}");
-      expect(data.id).toEqual(collection.id);
-      expect(data.url).toMatch(/^https?:\/\//);
-    });
-  });
-
-  describe("document tools", () => {
-    it("list_documents returns recent documents", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "list_documents");
-      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-        JSON.parse(c.text)
-      );
-
-      const ids = data.map((d: { id: string }) => d.id);
-      expect(ids).toContain(document.id);
-
-      const match = data.find((d: { id: string }) => d.id === document.id) as {
-        url: string;
-      };
-      expect(match.url).toMatch(/^https?:\/\//);
-    });
-
-    it("list_documents filters by collection", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection1 = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const collection2 = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const doc1 = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection1.id,
-      });
-      await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection2.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "list_documents", {
-        collectionId: collection1.id,
-      });
-      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-        JSON.parse(c.text)
-      );
-
-      const ids = data.map((d: { id: string }) => d.id);
-      expect(ids).toContain(doc1.id);
-      expect(
-        data.every(
-          (d: { collectionId: string }) => d.collectionId === collection1.id
-        )
-      ).toBe(true);
-    });
-
-    it("create_document creates in a collection", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "create_document", {
-        title: "New Document",
-        text: "Hello world",
-        collectionId: collection.id,
-      });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
-      expect(data.title).toEqual("New Document");
-      expect(data.collectionId).toEqual(collection.id);
-      expect(data.id).toBeDefined();
-      expect(data.url).toMatch(/^https?:\/\//);
-    });
-
-    it("create_document creates nested under parent document", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const parent = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "create_document", {
-        title: "Child Document",
-        text: "Nested content",
-        parentDocumentId: parent.id,
-      });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
-      expect(data.title).toEqual("Child Document");
-      expect(data.parentDocumentId).toEqual(parent.id);
-    });
-
-    it("update_document updates title and text", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "update_document", {
-        id: document.id,
-        title: "Updated Title",
-        text: "Updated content",
-      });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
-      expect(data.title).toEqual("Updated Title");
-      expect(data.url).toMatch(/^https?:\/\//);
-    });
-
-    it("update_document unpublishes a document", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "update_document", {
-        id: document.id,
-        publish: false,
-      });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
-      expect(data.id).toEqual(document.id);
-      expect(res?.result?.isError).toBeUndefined();
-    });
-
-    it("update_document fails to unpublish a document with children", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-      await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-        parentDocumentId: document.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "update_document", {
-        id: document.id,
-        publish: false,
-      });
-
-      expect(res?.result?.isError).toBe(true);
-    });
-
-    it("move_document moves to a different collection", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection1 = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const collection2 = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection1.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "move_document", {
-        id: document.id,
-        collectionId: collection2.id,
-      });
-      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-        JSON.parse(c.text)
-      );
-
-      expect(res?.result?.isError).toBeUndefined();
-      const moved = data.find((d: { id: string }) => d.id === document.id) as {
-        collectionId: string;
-      };
-      expect(moved).toBeDefined();
-      expect(moved.collectionId).toEqual(collection2.id);
-    });
-
-    it("move_document moves under a parent document", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const parent = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-      const child = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "move_document", {
-        id: child.id,
-        parentDocumentId: parent.id,
-      });
-      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-        JSON.parse(c.text)
-      );
-
-      expect(res?.result?.isError).toBeUndefined();
-      const moved = data.find((d: { id: string }) => d.id === child.id) as {
-        parentDocumentId: string;
-      };
-      expect(moved).toBeDefined();
-      expect(moved.parentDocumentId).toEqual(parent.id);
-    });
-
-    it("move_document fails without collectionId or parentDocumentId", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "move_document", {
-        id: document.id,
-      });
-
-      expect(res?.result?.isError).toBe(true);
-    });
-
-    it("move_document fails when nesting a document inside itself", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "move_document", {
-        id: document.id,
-        parentDocumentId: document.id,
-      });
-
-      expect(res?.result?.isError).toBe(true);
-    });
-
-    it("fetch document returns metadata and markdown", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-        text: "# Hello\n\nWorld",
-      });
-
-      const res = await callMcpTool(server, accessToken, "fetch", {
-        resource: "document",
-        id: document.id,
-      });
-
-      expect(res?.result?.content).toBeDefined();
-      expect(res!.result!.content!.length).toEqual(2);
-
-      // First content is JSON metadata
-      const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
-      expect(metadata.id).toEqual(document.id);
-      expect(metadata.title).toEqual(document.title);
-      expect(metadata.url).toMatch(/^https?:\/\//);
-
-      // Second content is markdown text
-      expect(res!.result!.content![1].text).toContain("Hello");
-    });
-  });
-
-  describe("comment tools", () => {
-    it("list_comments returns comments on a document", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-      const comment = await buildComment({
-        userId: user.id,
-        documentId: document.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "list_comments", {
-        documentId: document.id,
-      });
-      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-        JSON.parse(c.text)
-      );
-
-      const ids = data.map((c: { id: string }) => c.id);
-      expect(ids).toContain(comment.id);
-    });
-
-    it("create_comment creates a comment on a document", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "create_comment", {
-        documentId: document.id,
-        text: "This is a test comment",
-      });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
-      expect(data.id).toBeDefined();
-      expect(data.documentId).toEqual(document.id);
-    });
-
-    it("create_comment creates a reply to an existing comment", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-      const parentComment = await buildComment({
-        userId: user.id,
-        documentId: document.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "create_comment", {
-        documentId: document.id,
-        text: "This is a reply",
-        parentCommentId: parentComment.id,
-      });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
-      expect(data.id).toBeDefined();
-      expect(data.parentCommentId).toEqual(parentComment.id);
-    });
-
-    it("update_comment updates text", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-      const comment = await buildComment({
-        userId: user.id,
-        documentId: document.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "update_comment", {
-        id: comment.id,
-        text: "Updated comment text",
-      });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+      expect(user.getFlag(UserFlag.MCP)).toEqual(0);
 
-      expect(data.id).toEqual(comment.id);
-      expect(data.text).toContain("Updated comment text");
-    });
-
-    it("list_comments includes anchorText when comment is anchored", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-      const comment = await buildComment({
-        userId: user.id,
-        documentId: document.id,
-      });
-
-      const anchorText = "highlighted text";
-      const content = {
-        type: "doc",
-        content: [
-          {
-            type: "paragraph",
-            content: [
-              {
-                type: "text",
-                text: anchorText,
-                marks: [buildCommentMark({ id: comment.id, userId: user.id })],
-              },
-            ],
-          },
-        ],
-      } as ProsemirrorData;
-      await document.update({ content });
-
-      const res = await callMcpTool(server, accessToken, "list_comments", {
-        documentId: document.id,
-      });
-      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-        JSON.parse(c.text)
-      );
-
-      const match = data.find((c: { id: string }) => c.id === comment.id) as {
-        anchorText: string;
-      };
-      expect(match).toBeDefined();
-      expect(match.anchorText).toEqual(anchorText);
-    });
-
-    it("list_comments returns undefined anchorText for non-anchored comment", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-      await buildComment({
-        userId: user.id,
-        documentId: document.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "list_comments", {
-        documentId: document.id,
-      });
-      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-        JSON.parse(c.text)
-      );
-
-      expect(data.length).toBeGreaterThanOrEqual(1);
-      expect(data[0].anchorText).toBeUndefined();
-    });
-
-    it("create_comment includes anchorText in response", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "create_comment", {
-        documentId: document.id,
-        text: "A new comment",
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body,
       });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+      expect(res.status).toEqual(200);
 
-      // New comments have no anchor mark in the document, so anchorText is undefined
-      expect(data.id).toBeDefined();
-      expect(data.anchorText).toBeUndefined();
-    });
+      await user.reload();
+      expect(user.getFlag(UserFlag.MCP)).toEqual(1);
 
-    it("update_comment includes anchorText in response", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
+      const second = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body,
       });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-      const comment = await buildComment({
-        userId: user.id,
-        documentId: document.id,
-      });
-
-      const anchorText = "anchored content";
-      const content = {
-        type: "doc",
-        content: [
-          {
-            type: "paragraph",
-            content: [
-              {
-                type: "text",
-                text: anchorText,
-                marks: [buildCommentMark({ id: comment.id, userId: user.id })],
-              },
-            ],
-          },
-        ],
-      } as ProsemirrorData;
-      await document.update({ content });
-
-      const res = await callMcpTool(server, accessToken, "update_comment", {
-        id: comment.id,
-        text: "Updated text",
-      });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
-      expect(data.id).toEqual(comment.id);
-      expect(data.anchorText).toEqual(anchorText);
-    });
-
-    it("delete_comment deletes own comment", async () => {
-      const { user, accessToken } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-      const comment = await buildComment({
-        userId: user.id,
-        documentId: document.id,
-      });
-
-      const res = await callMcpTool(server, accessToken, "delete_comment", {
-        id: comment.id,
-      });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
-      expect(data.success).toBe(true);
-    });
-
-    it("delete_comment fails for non-author non-admin", async () => {
-      const { user } = await buildOAuthUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        userId: user.id,
-        collectionId: collection.id,
-      });
-      const comment = await buildComment({
-        userId: user.id,
-        documentId: document.id,
-      });
-
-      // Create a different non-admin user on the same team
-      const otherUser = await buildUser({ teamId: user.teamId });
-      const otherAuth = await buildOAuthAuthentication({
-        user: otherUser,
-        scope: [Scope.Read, Scope.Write, Scope.Create],
-      });
-
-      const res = await callMcpTool(
-        server,
-        otherAuth.accessToken!,
-        "delete_comment",
-        { id: comment.id }
-      );
+      expect(second.status).toEqual(200);
 
-      expect(res?.result?.isError).toBe(true);
+      await user.reload();
+      expect(user.getFlag(UserFlag.MCP)).toEqual(1);
     });
   });
 
@@ -909,7 +229,7 @@ describe("POST /mcp/", () => {
       });
       expect(res?.result?.isError).toBeUndefined();
       const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-      expect(data.title).toEqual("Created Document");
+      expect(data.document.title).toEqual("Created Document");
     });
 
     it("create-scoped token does not have update_document tool", async () => {
@@ -966,7 +286,7 @@ describe("POST /mcp/", () => {
         accessToken,
         "update_document",
         {
-          id: created.id,
+          id: created.document.id,
           title: "Updated by Write Token",
         }
       );

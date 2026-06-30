@@ -5,6 +5,7 @@ import cookie from "cookie";
 import type Koa from "koa";
 import IO from "socket.io";
 import { createAdapter } from "socket.io-redis";
+import { errToString } from "@shared/utils/error";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -56,7 +57,7 @@ export default function init(
   if (ioHandleUpgrade) {
     server.removeListener(
       "upgrade",
-      ioHandleUpgrade as (...args: any[]) => void
+      ioHandleUpgrade as (...args: unknown[]) => void
     );
   }
 
@@ -133,10 +134,11 @@ export default function init(
       socket.emit("authenticated", true);
       void authenticated(io, socket);
     } catch (err) {
+      const message = errToString(err);
       Logger.debug("websockets", `Authentication error socket ${socket.id}`, {
-        error: err.message,
+        error: message,
       });
-      socket.emit("unauthorized", { message: err.message }, function () {
+      socket.emit("unauthorized", { message }, function () {
         socket.disconnect();
       });
     }

@@ -1,8 +1,5 @@
 import invariant from "invariant";
-import compact from "lodash/compact";
-import filter from "lodash/filter";
-import omitBy from "lodash/omitBy";
-import orderBy from "lodash/orderBy";
+import { compact, filter, omitBy, orderBy } from "es-toolkit/compat";
 import { observable, action, computed, runInAction } from "mobx";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import {
@@ -504,6 +501,16 @@ export default class DocumentsStore extends Store<Document> {
       invariant(res?.data, "Data not available");
       res.data.documents.forEach(this.add);
       this.addPolicies(res.policies);
+
+      // The websocket "documents.move" event is only broadcast to the
+      // collection channel, so users with document-only access never receive
+      // it. Refresh the affected membership tree locally so the sidebar
+      // reflects the new structure.
+      const membership =
+        this.rootStore.userMemberships.getByDocumentId(documentId);
+      if (membership) {
+        await membership.fetchDocuments({ force: true });
+      }
     } finally {
       this.movingDocumentId = undefined;
     }

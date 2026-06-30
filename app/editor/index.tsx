@@ -29,22 +29,26 @@ import insertFiles from "@shared/editor/commands/insertFiles";
 import Styles from "@shared/editor/components/Styles";
 import type { EmbedDescriptor } from "@shared/editor/embeds";
 import type { CommandFactory, WidgetProps } from "@shared/editor/lib/Extension";
-import type Extension from "@shared/editor/lib/Extension";
+import type { AnyExtension, AnyExtensionClass } from "@shared/editor/lib/types";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import type { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
-import type Mark from "@shared/editor/marks/Mark";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
-import type Node from "@shared/editor/nodes/Node";
 import type ReactNode from "@shared/editor/nodes/ReactNode";
-import type { ComponentProps } from "@shared/editor/types";
-import type { ProsemirrorData, UserPreferences } from "@shared/types";
+import type {
+  ComponentProps,
+  SelectionToolbarMenuDescriptor,
+} from "@shared/editor/types";
+import type {
+  ProsemirrorData,
+  ProsemirrorMark,
+  UserPreferences,
+} from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
 import type Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
-import type { Dictionary } from "~/hooks/useDictionary";
 import type { Properties } from "~/types";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
@@ -52,8 +56,7 @@ import EditorContext from "./components/EditorContext";
 import type { NodeViewRenderer } from "./components/NodeViewRenderer";
 
 import WithTheme from "./components/WithTheme";
-import isNull from "lodash/isNull";
-import { isArray, map } from "lodash";
+import { isArray, isNull, map } from "es-toolkit/compat";
 import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
@@ -71,7 +74,7 @@ export type Props = {
   /** Placeholder displayed when the editor is empty */
   placeholder: string;
   /** Extensions to load into the editor */
-  extensions?: (typeof Node | typeof Mark | typeof Extension | Extension)[];
+  extensions?: (AnyExtensionClass | AnyExtension)[];
   /** If the editor should be focused on mount */
   autoFocus?: boolean;
   /** The focused comment, if any */
@@ -87,8 +90,6 @@ export type Props = {
   canUpdate?: boolean;
   /** If the editor should still allow commenting when it is readOnly */
   canComment?: boolean;
-  /** A dictionary of translated strings used in the editor */
-  dictionary: Dictionary;
   /** The reading direction of the text content, if known */
   dir?: "rtl" | "ltr";
   /** If the editor should vertically grow to fill available space */
@@ -117,7 +118,8 @@ export type Props = {
   /** Callback when user uses cancel key combo */
   onCancel?: () => void;
   /** Callback when user changes editor content */
-  onChange?: (value: () => any) => void;
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+  onChange?: (value: (asString?: boolean, trim?: boolean) => any) => void;
   /** Callback when a comment mark is clicked */
   onClickCommentMark?: (commentId: string) => void;
   /**
@@ -224,11 +226,12 @@ export class Editor extends React.PureComponent<
     [name: string]: NodeViewConstructor;
   };
 
-  widgets: { [name: string]: (props: WidgetProps) => React.ReactElement };
+  widgets: { [name: string]: React.FC<WidgetProps> };
   renderers = observable.set<NodeViewRenderer<ComponentProps>>();
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
+  selectionToolbarMenus: SelectionToolbarMenuDescriptor[];
   rulePlugins: PluginSimple[];
   events = new EventEmitter();
   mutationObserver?: MutationObserver;
@@ -342,6 +345,7 @@ export class Editor extends React.PureComponent<
 
     this.view = this.createView();
     this.commands = this.createCommands();
+    this.selectionToolbarMenus = this.extensions.selectionToolbarMenus;
   }
 
   private createExtensions() {
@@ -368,13 +372,13 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  private createNodeViews() {
-    return this.extensions.extensions
-      .filter((extension: ReactNode) => extension.component)
-      .reduce(
-        (nodeViews, extension: ReactNode) => ({
-          ...nodeViews,
-          [extension.name]: (
+  private createNodeViews(): { [name: string]: NodeViewConstructor } {
+    return Object.fromEntries(
+      this.extensions.extensions
+        .filter((extension: ReactNode) => extension.component)
+        .map((extension: ReactNode) => [
+          extension.name,
+          (
             node: ProsemirrorNode,
             view: EditorView,
             getPos: () => number,
@@ -388,9 +392,8 @@ export class Editor extends React.PureComponent<
               getPos,
               decorations,
             }),
-        }),
-        {}
-      );
+        ])
+    ) as { [name: string]: NodeViewConstructor };
   }
 
   private createCommands() {
@@ -574,12 +577,18 @@ export class Editor extends React.PureComponent<
       this.mutationObserver = observe(
         hash,
         (element) => {
-          const pos = this.view.posAtDOM(element, 0, 1);
-          this.view.dispatch(
-            this.view.state.tr.setSelection(
-              TextSelection.near(this.view.state.doc.resolve(pos), 1)
-            )
-          );
+          try {
+            const pos = this.view.posAtDOM(element, 0, 1);
+            if (pos >= 0 && pos <= this.view.state.doc.content.size) {
+              this.view.dispatch(
+                this.view.state.tr.setSelection(
+                  TextSelection.near(this.view.state.doc.resolve(pos), 1)
+                )
+              );
+            }
+          } catch (_err) {
+            // posAtDOM may throw if the element is not part of the editor doc
+          }
 
           if (isVisible(element)) {
             element.scrollIntoView();
@@ -755,9 +764,9 @@ export class Editor extends React.PureComponent<
       }
 
       if (isArray(node.attrs?.marks)) {
-        const existingMarks = node.attrs.marks;
+        const existingMarks = node.attrs.marks as ProsemirrorMark[];
         const updatedMarks = existingMarks.filter(
-          (mark: any) => mark.attrs.id !== commentId
+          (mark) => mark.attrs?.id !== commentId
         );
         const attrs = {
           ...node.attrs,
@@ -800,9 +809,9 @@ export class Editor extends React.PureComponent<
       }
 
       if (isArray(node.attrs?.marks)) {
-        const existingMarks = node.attrs.marks;
-        const updatedMarks = existingMarks.map((mark: any) =>
-          mark.type === "comment" && mark.attrs.id === commentId
+        const existingMarks = node.attrs.marks as ProsemirrorMark[];
+        const updatedMarks = existingMarks.map((mark) =>
+          mark.type === "comment" && mark.attrs?.id === commentId
             ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
             : mark
         );

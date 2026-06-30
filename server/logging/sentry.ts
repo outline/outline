@@ -25,6 +25,9 @@ if (env.SENTRY_DSN) {
       "AuthRedirectError",
       "UserSuspendedError",
       "TooManyRequestsError",
+
+      // Client disconnects
+      "Premature close",
     ],
     beforeSend(event) {
       try {
@@ -76,9 +79,7 @@ export function requestErrorHandler(error: any, ctx: AppContext) {
         });
       }
 
-      scope.addEventProcessor(function (event) {
-        return Sentry.Handlers.parseRequest(event, ctx.request);
-      });
+      scope.setSDKProcessingMetadata({ request: ctx.req });
       Sentry.captureException(error);
     });
   } else if (env.ENVIRONMENT !== "test") {

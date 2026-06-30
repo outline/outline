@@ -16,15 +16,13 @@ const props = {
   },
 };
 
+vi.setConfig({ testTimeout: 30000 });
+
 const daysAgo = (n: number) => subDays(new Date(), n);
 const dayStr = (d: Date) => format(d, "yyyy-MM-dd");
 
 describe("RollupDocumentInsightsTask", () => {
   let task: RollupDocumentInsightsTask;
-
-  beforeAll(() => {
-    jest.setTimeout(30000);
-  });
 
   beforeEach(() => {
     task = new RollupDocumentInsightsTask();

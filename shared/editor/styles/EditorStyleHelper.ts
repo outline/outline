@@ -14,6 +14,9 @@ export class EditorStyleHelper {
 
   static readonly imagePositionAnchor = "image-position-anchor";
 
+  /** Class added to body when resizing images/media */
+  static readonly resizeDragging = "resize-dragging";
+
   // Headings
 
   static readonly headingPositionAnchor = "heading-position-anchor";
@@ -21,6 +24,14 @@ export class EditorStyleHelper {
   // Comments
 
   static readonly comment = "comment-marker";
+
+  // Multiplayer
+
+  /** Remote collaborator's cursor */
+  static readonly multiplayerCursor = "ProseMirror-yjs-cursor";
+
+  /** Remote collaborator's selection */
+  static readonly multiplayerSelection = "ProseMirror-yjs-selection";
 
   // Code
 

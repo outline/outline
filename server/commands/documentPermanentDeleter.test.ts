@@ -1,14 +1,11 @@
 import { subDays } from "date-fns";
+import { errToString } from "@shared/utils/error";
 import { Attachment, Document } from "@server/models";
-import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { buildAttachment, buildDocument } from "@server/test/factories";
+import { mockTaskSchedule } from "@server/test/support";
 import documentPermanentDeleter from "./documentPermanentDeleter";
 
-jest.mock("@server/queues/tasks/DeleteAttachmentTask");
-
-beforeEach(() => {
-  jest.resetAllMocks();
-});
+const schedule = mockTaskSchedule();
 
 describe("documentPermanentDeleter", () => {
   it("should destroy documents", async () => {
@@ -37,7 +34,7 @@ describe("documentPermanentDeleter", () => {
     try {
       await documentPermanentDeleter([document]);
     } catch (err) {
-      error = err.message;
+      error = errToString(err);
     }
 
     expect(error).toEqual(
@@ -62,9 +59,7 @@ describe("documentPermanentDeleter", () => {
     await document.save();
     const countDeletedDoc = await documentPermanentDeleter([document]);
     expect(countDeletedDoc).toEqual(1);
-    expect(
-      jest.mocked(DeleteAttachmentTask.prototype.schedule)
-    ).toHaveBeenCalledTimes(2);
+    expect(schedule).toHaveBeenCalledTimes(2);
     expect(
       await Document.unscoped().count({
         where: {
@@ -136,6 +131,27 @@ describe("documentPermanentDeleter", () => {
         paranoid: false,
       })
     ).toEqual(1);
+  });
+
+  it("should not detach children of a document restored between query and destroy", async () => {
+    const parent = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+    const child = await buildDocument({
+      teamId: parent.teamId,
+      parentDocumentId: parent.id,
+    });
+
+    await Document.unscoped().update(
+      { deletedAt: null },
+      { where: { id: parent.id }, paranoid: false }
+    );
+
+    await documentPermanentDeleter([parent]);
+
+    await child.reload();
+    expect(child.parentDocumentId).toEqual(parent.id);
   });
 
   it("should not destroy attachments referenced in other documents", async () => {

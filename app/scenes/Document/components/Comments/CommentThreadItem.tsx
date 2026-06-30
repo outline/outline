@@ -20,6 +20,7 @@ import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import ReactionList from "~/components/Reactions/ReactionList";
 import ReactionPicker from "~/components/Reactions/ReactionPicker";
+import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import Tooltip from "~/components/Tooltip";
@@ -158,7 +159,7 @@ function CommentThreadItem({
         setFocusedCommentId(null);
       }
     },
-    [comment.id, onUpdate]
+    [comment.id, onUpdate, setFocusedCommentId]
   );
 
   const handleDelete = React.useCallback(() => {
@@ -251,25 +252,27 @@ function CommentThreadItem({
               </ButtonSmall>
             </Flex>
           )}
-          {!!comment.reactions.length && (
-            <ReactionListContainer gap={6} align="center">
-              <ReactionList
-                model={comment}
-                onAddReaction={handleAddReaction}
-                onRemoveReaction={handleRemoveReaction}
-                picker={
-                  !comment.isResolved ? (
-                    <Action
-                      as={ReactionPicker}
-                      onSelect={handleAddReaction}
-                      size={28}
-                      $rounded
-                    />
-                  ) : undefined
-                }
-              />
-            </ReactionListContainer>
-          )}
+          <ResizingHeightContainer hideOverflow>
+            {!!comment.reactions.length && (
+              <ReactionListContainer gap={6} align="center">
+                <ReactionList
+                  model={comment}
+                  onAddReaction={handleAddReaction}
+                  onRemoveReaction={handleRemoveReaction}
+                  picker={
+                    !comment.isResolved ? (
+                      <Action
+                        as={ReactionPicker}
+                        onSelect={handleAddReaction}
+                        size={28}
+                        $rounded
+                      />
+                    ) : undefined
+                  }
+                />
+              </ReactionListContainer>
+            )}
+          </ResizingHeightContainer>
         </Body>
         <EventBoundary>
           {!isEditing && (
@@ -400,7 +403,7 @@ const Actions = styled(Flex)`
 `;
 
 const ReactionListContainer = styled(Flex)`
-  margin-top: 6px;
+  padding-top: 6px;
 `;
 
 const Meta = styled(Text)`

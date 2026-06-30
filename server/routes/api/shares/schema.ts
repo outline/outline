@@ -1,5 +1,5 @@
 import { isURL } from "class-validator";
-import isEmpty from "lodash/isEmpty";
+import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { ShareValidation } from "@shared/validations";

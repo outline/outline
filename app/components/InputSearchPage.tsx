@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import {
   isModKey,
@@ -117,6 +118,12 @@ function InputSearchPage({
 
 const InputMaxWidth = styled(Input).attrs({ round: true })`
   max-width: min(calc(30vw + 20px), 100%);
+
+  /* On mobile the input grows to fill the header, so add a gap before the
+   * adjacent action button (e.g. "New doc"). */
+  ${breakpoint("mobile", "tablet")`
+    margin-inline-end: 8px;
+  `}
 `;
 
 const Shortcut = styled.span<{ $visible: boolean }>`

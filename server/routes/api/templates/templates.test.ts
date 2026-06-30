@@ -20,11 +20,7 @@ describe("#templates.list", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/templates.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/templates.list", user);
 
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -45,9 +41,8 @@ describe("#templates.list", () => {
       collectionId: collection.id,
     });
 
-    const res = await server.post("/api/templates.list", {
+    const res = await server.post("/api/templates.list", user, {
       body: {
-        token: user.getJwtToken(),
         collectionId: collection.id,
       },
     });
@@ -72,9 +67,8 @@ describe("#templates.info", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/templates.info", {
+    const res = await server.post("/api/templates.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: template.id,
       },
     });
@@ -92,9 +86,8 @@ describe("#templates.info", () => {
 
   it("should fail for invalid template id", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/templates.info", {
+    const res = await server.post("/api/templates.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: "invalid",
       },
     });
@@ -112,9 +105,8 @@ describe("#templates.update", () => {
       title: "Original title",
     });
 
-    const res = await server.post("/api/templates.update", {
+    const res = await server.post("/api/templates.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: template.id,
         title: "New title",
       },
@@ -148,9 +140,8 @@ describe("#templates.update", () => {
       ],
     };
 
-    const res = await server.post("/api/templates.update", {
+    const res = await server.post("/api/templates.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: template.id,
         data,
       },
@@ -173,9 +164,8 @@ describe("#templates.update", () => {
       teamId: admin.teamId,
     });
 
-    const res = await server.post("/api/templates.update", {
+    const res = await server.post("/api/templates.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: template.id,
         collectionId: targetCollection.id,
       },
@@ -199,9 +189,8 @@ describe("#templates.update", () => {
       permission: null,
     });
 
-    const res = await server.post("/api/templates.update", {
+    const res = await server.post("/api/templates.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: template.id,
         collectionId: inaccessibleCollection.id,
       },
@@ -222,9 +211,8 @@ describe("#templates.update", () => {
     // but is not a team admin
     const user = await buildUser({ teamId: admin.teamId });
 
-    const res = await server.post("/api/templates.update", {
+    const res = await server.post("/api/templates.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: template.id,
         collectionId: null,
       },
@@ -240,9 +228,8 @@ describe("#templates.update", () => {
       teamId: admin.teamId,
     });
 
-    const res = await server.post("/api/templates.update", {
+    const res = await server.post("/api/templates.update", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: template.id,
         collectionId: null,
       },
@@ -255,9 +242,8 @@ describe("#templates.update", () => {
 
   it("should fail with status 400 bad request when id is missing", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/templates.update", {
+    const res = await server.post("/api/templates.update", user, {
       body: {
-        token: user.getJwtToken(),
         title: "New title",
       },
     });
@@ -281,9 +267,8 @@ describe("#templates.duplicate", () => {
       title: "test",
     });
 
-    const res = await server.post("/api/templates.duplicate", {
+    const res = await server.post("/api/templates.duplicate", user, {
       body: {
-        token: user.getJwtToken(),
         id: template.id,
       },
     });
@@ -302,9 +287,8 @@ describe("#templates.duplicate", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/templates.duplicate", {
+    const res = await server.post("/api/templates.duplicate", user, {
       body: {
-        token: user.getJwtToken(),
         id: template.id,
         title: "New title",
       },
@@ -329,9 +313,8 @@ describe("#templates.duplicate", () => {
       teamId: admin.teamId,
     });
 
-    const res = await server.post("/api/templates.duplicate", {
+    const res = await server.post("/api/templates.duplicate", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: template.id,
         collectionId: targetCollection.id,
       },
@@ -355,9 +338,8 @@ describe("#templates.duplicate", () => {
       permission: null,
     });
 
-    const res = await server.post("/api/templates.duplicate", {
+    const res = await server.post("/api/templates.duplicate", user, {
       body: {
-        token: user.getJwtToken(),
         id: template.id,
         collectionId: inaccessibleCollection.id,
       },
@@ -376,9 +358,8 @@ describe("#templates.duplicate", () => {
     // Non-admin member on the same team
     const user = await buildUser({ teamId: admin.teamId });
 
-    const res = await server.post("/api/templates.duplicate", {
+    const res = await server.post("/api/templates.duplicate", user, {
       body: {
-        token: user.getJwtToken(),
         id: template.id,
         collectionId: null,
       },
@@ -394,9 +375,8 @@ describe("#templates.duplicate", () => {
       teamId: admin.teamId,
     });
 
-    const res = await server.post("/api/templates.duplicate", {
+    const res = await server.post("/api/templates.duplicate", admin, {
       body: {
-        token: admin.getJwtToken(),
         id: template.id,
         collectionId: null,
       },
@@ -414,9 +394,8 @@ describe("#templates.duplicate", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/templates.duplicate", {
+    const res = await server.post("/api/templates.duplicate", user, {
       body: {
-        token: user.getJwtToken(),
         id: template.id,
       },
     });
@@ -433,9 +412,8 @@ describe("#templates.duplicate", () => {
 
   it("should fail for invalid template id", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/templates.duplicate", {
+    const res = await server.post("/api/templates.duplicate", user, {
       body: {
-        token: user.getJwtToken(),
         id: "invalid",
       },
     });
@@ -452,9 +430,8 @@ describe("#templates.delete", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/templates.delete", {
+    const res = await server.post("/api/templates.delete", user, {
       body: {
-        token: user.getJwtToken(),
         id: template.id,
       },
     });
@@ -466,11 +443,7 @@ describe("#templates.delete", () => {
 
   it("should fail with status 400 bad request when id is missing", async () => {
     const user = await buildUser();
-    const res = await server.post("/api/templates.delete", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/templates.delete", user);
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("id: Must be a valid UUID or slug");
@@ -494,9 +467,8 @@ describe("templateManagement", () => {
 
       const member = await buildUser({ teamId: admin.teamId });
 
-      const res = await server.post("/api/templates.create", {
+      const res = await server.post("/api/templates.create", member, {
         body: {
-          token: member.getJwtToken(),
           collectionId: collection.id,
           title: "Member template",
           data: {
@@ -527,9 +499,8 @@ describe("templateManagement", () => {
 
       const member = await buildUser({ teamId: admin.teamId });
 
-      const res = await server.post("/api/templates.create", {
+      const res = await server.post("/api/templates.create", member, {
         body: {
-          token: member.getJwtToken(),
           collectionId: collection.id,
           title: "Member template",
           data: {
@@ -564,9 +535,8 @@ describe("templateManagement", () => {
         permission: CollectionPermission.ReadWrite,
       });
 
-      const res = await server.post("/api/templates.create", {
+      const res = await server.post("/api/templates.create", member, {
         body: {
-          token: member.getJwtToken(),
           collectionId: collection.id,
           title: "Member template",
           data: {
@@ -603,9 +573,8 @@ describe("templateManagement", () => {
         permission: CollectionPermission.Read,
       });
 
-      const res = await server.post("/api/templates.create", {
+      const res = await server.post("/api/templates.create", member, {
         body: {
-          token: member.getJwtToken(),
           collectionId: collection.id,
           title: "Member template",
           data: {
@@ -640,9 +609,8 @@ describe("templateManagement", () => {
         collectionId: collection.id,
       });
 
-      const res = await server.post("/api/templates.update", {
+      const res = await server.post("/api/templates.update", member, {
         body: {
-          token: member.getJwtToken(),
           id: template.id,
           title: "Updated by member",
         },
@@ -668,9 +636,8 @@ describe("templateManagement", () => {
         collectionId: collection.id,
       });
 
-      const res = await server.post("/api/templates.update", {
+      const res = await server.post("/api/templates.update", member, {
         body: {
-          token: member.getJwtToken(),
           id: template.id,
           title: "Updated by member",
         },
@@ -696,9 +663,8 @@ describe("templateManagement", () => {
         collectionId: collection.id,
       });
 
-      const res = await server.post("/api/templates.duplicate", {
+      const res = await server.post("/api/templates.duplicate", member, {
         body: {
-          token: member.getJwtToken(),
           id: template.id,
         },
       });
@@ -723,9 +689,8 @@ describe("templateManagement", () => {
         collectionId: collection.id,
       });
 
-      const res = await server.post("/api/templates.duplicate", {
+      const res = await server.post("/api/templates.duplicate", member, {
         body: {
-          token: member.getJwtToken(),
           id: template.id,
         },
       });
@@ -751,9 +716,8 @@ describe("templateManagement", () => {
       });
       await template.destroy();
 
-      const res = await server.post("/api/templates.restore", {
+      const res = await server.post("/api/templates.restore", member, {
         body: {
-          token: member.getJwtToken(),
           id: template.id,
         },
       });
@@ -779,9 +743,8 @@ describe("templateManagement", () => {
       });
       await template.destroy();
 
-      const res = await server.post("/api/templates.restore", {
+      const res = await server.post("/api/templates.restore", member, {
         body: {
-          token: member.getJwtToken(),
           id: template.id,
         },
       });
@@ -806,9 +769,8 @@ describe("templateManagement", () => {
         collectionId: collection.id,
       });
 
-      const res = await server.post("/api/templates.delete", {
+      const res = await server.post("/api/templates.delete", member, {
         body: {
-          token: member.getJwtToken(),
           id: template.id,
         },
       });
@@ -833,9 +795,8 @@ describe("templateManagement", () => {
         collectionId: collection.id,
       });
 
-      const res = await server.post("/api/templates.delete", {
+      const res = await server.post("/api/templates.delete", member, {
         body: {
-          token: member.getJwtToken(),
           id: template.id,
         },
       });

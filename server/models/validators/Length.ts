@@ -1,9 +1,8 @@
-import size from "lodash/size";
 import { addAttributeOptions } from "sequelize-typescript";
 
 /**
- * A decorator that validates the size of a string based on lodash's size.
- * function. Useful for strings with unicode characters of variable lengths.
+ * A decorator that validates the length of a string by counting Unicode
+ * code points. Useful for strings with unicode characters of variable lengths.
  */
 export default function Length({
   msg,
@@ -13,12 +12,13 @@ export default function Length({
   msg?: string;
   min?: number;
   max: number;
-}): (target: any, propertyName: string) => void {
-  return (target: any, propertyName: string) =>
+}): (target: object, propertyName: string) => void {
+  return (target: object, propertyName: string) =>
     addAttributeOptions(target, propertyName, {
       validate: {
-        validLength(value: string) {
-          if (size(value) > max || size(value) < min) {
+        validLength(value: string | null | undefined) {
+          const length = value ? Array.from(value).length : 0;
+          if (length > max || length < min) {
             throw new Error(msg);
           }
         },

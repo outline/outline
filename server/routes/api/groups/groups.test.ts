@@ -15,9 +15,8 @@ describe("#groups.create", () => {
   it("should create a group", async () => {
     const name = "hello I am a group";
     const user = await buildAdmin();
-    const res = await server.post("/api/groups.create", {
+    const res = await server.post("/api/groups.create", user, {
       body: {
-        token: user.getJwtToken(),
         name,
         externalId: "123",
       },
@@ -46,9 +45,8 @@ describe("#groups.update", () => {
   it("should require admin", async () => {
     const group = await buildGroup();
     const user = await buildUser();
-    const res = await server.post("/api/groups.update", {
+    const res = await server.post("/api/groups.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         name: "Test",
       },
@@ -59,9 +57,8 @@ describe("#groups.update", () => {
   it("should require authorization", async () => {
     const group = await buildGroup();
     const user = await buildAdmin();
-    const res = await server.post("/api/groups.update", {
+    const res = await server.post("/api/groups.update", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         name: "Test",
       },
@@ -79,9 +76,8 @@ describe("#groups.update", () => {
     });
 
     it("allows admin to edit a group", async () => {
-      const res = await server.post("/api/groups.update", {
+      const res = await server.post("/api/groups.update", user, {
         body: {
-          token: user.getJwtToken(),
           id: group.id,
           name: "Test",
           externalId: "123",
@@ -113,9 +109,8 @@ describe("#groups.update", () => {
       const admin = await buildAdmin({
         teamId: user.teamId,
       });
-      await server.post("/api/groups.add_user", {
+      await server.post("/api/groups.add_user", admin, {
         body: {
-          token: admin.getJwtToken(),
           id: group.id,
           userId: user.id,
           permission: "admin",
@@ -124,9 +119,8 @@ describe("#groups.update", () => {
     });
 
     it("allows group admin to edit a group", async () => {
-      const res = await server.post("/api/groups.update", {
+      const res = await server.post("/api/groups.update", user, {
         body: {
-          token: user.getJwtToken(),
           id: group.id,
           name: "Test by Group Admin",
         },
@@ -147,9 +141,8 @@ describe("#groups.update", () => {
     });
 
     it("does not create an event if the update is a noop", async () => {
-      const res = await server.post("/api/groups.update", {
+      const res = await server.post("/api/groups.update", user, {
         body: {
-          token: user.getJwtToken(),
           id: group.id,
           name: group.name,
         },
@@ -171,9 +164,8 @@ describe("#groups.update", () => {
         teamId: user.teamId,
         name: "test",
       });
-      const res = await server.post("/api/groups.update", {
+      const res = await server.post("/api/groups.update", user, {
         body: {
-          token: user.getJwtToken(),
           id: group.id,
           name: "TEST",
         },
@@ -203,11 +195,7 @@ describe("#groups.list", () => {
         createdById: user.id,
       },
     });
-    const res = await server.post("/api/groups.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/groups.list", user);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.pagination.total).toEqual(1);
@@ -239,11 +227,7 @@ describe("#groups.list", () => {
       },
     });
     await user.destroy({ hooks: false });
-    const res = await server.post("/api/groups.list", {
-      body: {
-        token: me.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/groups.list", me);
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.groups.length).toEqual(1);
@@ -277,11 +261,7 @@ describe("#groups.list", () => {
         createdById: user.id,
       },
     });
-    const res = await server.post("/api/groups.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/groups.list", user);
     const body = await res.json();
 
     expect(res.status).toEqual(200);
@@ -293,19 +273,20 @@ describe("#groups.list", () => {
     expect(body.data.groupMemberships[0].groupId).toEqual(group.id);
     expect(body.data.groupMemberships[1].groupId).toEqual(group.id);
     expect(
-      body.data.groupMemberships.map((u: any) => u.user.id).includes(user.id)
+      body.data.groupMemberships
+        .map((u: { user: { id: string } }) => u.user.id)
+        .includes(user.id)
     ).toBe(true);
     expect(
       body.data.groupMemberships
-        .map((u: any) => u.user.id)
+        .map((u: { user: { id: string } }) => u.user.id)
         .includes(anotherUser.id)
     ).toBe(true);
     expect(body.policies.length).toEqual(2);
 
-    const anotherRes = await server.post("/api/groups.list", {
+    const anotherRes = await server.post("/api/groups.list", user, {
       body: {
         userId: user.id,
-        token: user.getJwtToken(),
       },
     });
     const anotherBody = await anotherRes.json();
@@ -317,11 +298,13 @@ describe("#groups.list", () => {
     expect(anotherBody.data.groupMemberships[0].groupId).toEqual(group.id);
     expect(anotherBody.data.groupMemberships[1].groupId).toEqual(group.id);
     expect(
-      body.data.groupMemberships.map((u: any) => u.user.id).includes(user.id)
+      anotherBody.data.groupMemberships
+        .map((u: { user: { id: string } }) => u.user.id)
+        .includes(user.id)
     ).toBe(true);
     expect(
-      body.data.groupMemberships
-        .map((u: any) => u.user.id)
+      anotherBody.data.groupMemberships
+        .map((u: { user: { id: string } }) => u.user.id)
         .includes(anotherUser.id)
     ).toBe(true);
   });
@@ -331,10 +314,9 @@ describe("#groups.list", () => {
     const group = await buildGroup({ teamId: user.teamId });
     await buildGroup({ teamId: user.teamId });
 
-    const res = await server.post("/api/groups.list", {
+    const res = await server.post("/api/groups.list", user, {
       body: {
         name: group.name,
-        token: user.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -349,10 +331,9 @@ describe("#groups.list", () => {
     const group = await buildGroup({ teamId: user.teamId, externalId: "123" });
     await buildGroup({ teamId: user.teamId });
 
-    const res = await server.post("/api/groups.list", {
+    const res = await server.post("/api/groups.list", user, {
       body: {
         externalId: "123",
-        token: user.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -367,10 +348,9 @@ describe("#groups.list", () => {
     await buildGroup({ teamId: user.teamId });
     await buildGroup({ teamId: user.teamId });
 
-    const res = await server.post("/api/groups.list", {
+    const res = await server.post("/api/groups.list", user, {
       body: {
         limit: 1,
-        token: user.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -410,10 +390,9 @@ describe("#groups.list", () => {
       teamId: otherUser.teamId,
     });
 
-    const res = await server.post("/api/groups.list", {
+    const res = await server.post("/api/groups.list", user, {
       body: {
         source: authProvider.name,
-        token: user.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -429,9 +408,8 @@ describe("#groups.info", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/groups.info", {
+    const res = await server.post("/api/groups.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
       },
     });
@@ -446,9 +424,8 @@ describe("#groups.info", () => {
       teamId: user.teamId,
       externalId: "456",
     });
-    const res = await server.post("/api/groups.info", {
+    const res = await server.post("/api/groups.info", user, {
       body: {
-        token: user.getJwtToken(),
         externalId: "456",
       },
     });
@@ -467,9 +444,8 @@ describe("#groups.info", () => {
         createdById: user.id,
       },
     });
-    const res = await server.post("/api/groups.info", {
+    const res = await server.post("/api/groups.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
       },
     });
@@ -483,9 +459,8 @@ describe("#groups.info", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/groups.info", {
+    const res = await server.post("/api/groups.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
       },
     });
@@ -506,9 +481,8 @@ describe("#groups.info", () => {
   it("should require authorization", async () => {
     const user = await buildUser();
     const group = await buildGroup();
-    const res = await server.post("/api/groups.info", {
+    const res = await server.post("/api/groups.info", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
       },
     });
@@ -532,9 +506,8 @@ describe("#groups.delete", () => {
   it("should require admin", async () => {
     const group = await buildGroup();
     const user = await buildUser();
-    const res = await server.post("/api/groups.delete", {
+    const res = await server.post("/api/groups.delete", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
       },
     });
@@ -544,9 +517,8 @@ describe("#groups.delete", () => {
   it("should require authorization", async () => {
     const group = await buildGroup();
     const user = await buildAdmin();
-    const res = await server.post("/api/groups.delete", {
+    const res = await server.post("/api/groups.delete", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
       },
     });
@@ -558,9 +530,8 @@ describe("#groups.delete", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/groups.delete", {
+    const res = await server.post("/api/groups.delete", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
       },
     });
@@ -581,9 +552,8 @@ describe("#groups.memberships", () => {
         createdById: user.id,
       },
     });
-    const res = await server.post("/api/groups.memberships", {
+    const res = await server.post("/api/groups.memberships", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
       },
     });
@@ -623,9 +593,8 @@ describe("#groups.memberships", () => {
       },
     });
     await user3.destroy();
-    const res = await server.post("/api/groups.memberships", {
+    const res = await server.post("/api/groups.memberships", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         query: user.name.slice(0, 3),
       },
@@ -646,9 +615,8 @@ describe("#groups.memberships", () => {
   it("should require authorization", async () => {
     const user = await buildUser();
     const group = await buildGroup();
-    const res = await server.post("/api/groups.memberships", {
+    const res = await server.post("/api/groups.memberships", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
       },
     });
@@ -662,9 +630,8 @@ describe("#groups.add_user", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/groups.add_user", {
+    const res = await server.post("/api/groups.add_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: user.id,
       },
@@ -682,9 +649,8 @@ describe("#groups.add_user", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/groups.add_user", {
+    const res = await server.post("/api/groups.add_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
         permission: GroupPermission.Admin,
@@ -708,9 +674,8 @@ describe("#groups.add_user", () => {
       teamId: user.teamId,
     });
     const anotherUser = await buildUser();
-    const res = await server.post("/api/groups.add_user", {
+    const res = await server.post("/api/groups.add_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
       },
@@ -728,9 +693,8 @@ describe("#groups.add_user", () => {
     const anotherUser = await buildUser({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/groups.add_user", {
+    const res = await server.post("/api/groups.add_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
       },
@@ -747,18 +711,16 @@ describe("#groups.remove_user", () => {
     const group = await buildGroup({
       teamId: user.teamId,
     });
-    await server.post("/api/groups.add_user", {
+    await server.post("/api/groups.add_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: user.id,
       },
     });
     const users = await group.$get("users");
     expect(users.length).toEqual(1);
-    const res = await server.post("/api/groups.remove_user", {
+    const res = await server.post("/api/groups.remove_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: user.id,
       },
@@ -779,9 +741,8 @@ describe("#groups.remove_user", () => {
       teamId: user.teamId,
     });
     const anotherUser = await buildUser();
-    const res = await server.post("/api/groups.remove_user", {
+    const res = await server.post("/api/groups.remove_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
       },
@@ -799,9 +760,8 @@ describe("#groups.remove_user", () => {
     const anotherUser = await buildUser({
       teamId: user.teamId,
     });
-    const res = await server.post("/api/groups.remove_user", {
+    const res = await server.post("/api/groups.remove_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
       },
@@ -829,9 +789,8 @@ describe("#groups.update_user", () => {
     });
 
     // Then update the user to be an admin
-    const res = await server.post("/api/groups.update_user", {
+    const res = await server.post("/api/groups.update_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
         permission: GroupPermission.Admin,
@@ -845,9 +804,8 @@ describe("#groups.update_user", () => {
     );
 
     // Update the user to not be an admin
-    const res2 = await server.post("/api/groups.update_user", {
+    const res2 = await server.post("/api/groups.update_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
         permission: "member",
@@ -887,9 +845,8 @@ describe("#groups.update_user", () => {
     });
 
     // Try to update as non-admin
-    const res = await server.post("/api/groups.update_user", {
+    const res = await server.post("/api/groups.update_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
         permission: GroupPermission.Admin,
@@ -908,9 +865,8 @@ describe("#groups.update_user", () => {
       teamId: user.teamId,
     });
 
-    const res = await server.post("/api/groups.update_user", {
+    const res = await server.post("/api/groups.update_user", user, {
       body: {
-        token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
         permission: GroupPermission.Admin,

@@ -6,6 +6,7 @@ import {
   isFullPageOrDatabase,
   isFullUser,
   RequestTimeoutError,
+  UnknownHTTPResponseError,
 } from "@notionhq/client";
 import type {
   BlockObjectResponse,
@@ -15,8 +16,7 @@ import type {
 } from "@notionhq/client/build/src/api-endpoints";
 import { RateLimit } from "async-sema";
 import emojiRegex from "emoji-regex";
-import compact from "lodash/compact";
-import truncate from "lodash/truncate";
+import { compact, truncate } from "es-toolkit/compat";
 import { z } from "zod";
 import { Second } from "@shared/utils/time";
 import { isUrl } from "@shared/utils/urls";
@@ -61,6 +61,7 @@ export class NotionClient {
   private limiter: ReturnType<typeof RateLimit>;
   private pageSize = 100;
   private maxRetries = 3;
+  private maxServerErrorRetries = 8;
   private retryDelay = 1000;
   private skipChildrenForBlock = [
     "unsupported",
@@ -95,6 +96,7 @@ export class NotionClient {
    */
   private async fetchWithRetry<T>(apiCall: () => Promise<T>): Promise<T> {
     let retries = 0;
+    let serverErrorRetries = 0;
 
     // oxlint-disable-next-line no-constant-condition
     while (true) {
@@ -146,6 +148,32 @@ export class NotionClient {
 
           Logger.warn(
             `Notion API rate limit exceeded after ${this.maxRetries} retries`,
+            { error: error.message }
+          );
+        }
+
+        // Check if this is a server-side error (5xx) — Notion's API can be
+        // unreliable, so retry these for longer with exponential backoff.
+        if (
+          (error instanceof APIResponseError ||
+            error instanceof UnknownHTTPResponseError) &&
+          error.status >= 500
+        ) {
+          if (serverErrorRetries < this.maxServerErrorRetries) {
+            serverErrorRetries++;
+            const delay = this.retryDelay * 2 ** (serverErrorRetries - 1);
+            Logger.info(
+              "task",
+              `Notion API returned ${error.status}, retrying in ${delay}ms (retry ${serverErrorRetries}/${this.maxServerErrorRetries})`
+            );
+
+            // Wait before retrying
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+          }
+
+          Logger.warn(
+            `Notion API returned ${error.status} after ${this.maxServerErrorRetries} retries`,
             { error: error.message }
           );
         }

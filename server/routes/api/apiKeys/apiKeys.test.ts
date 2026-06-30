@@ -1,4 +1,10 @@
-import { buildAdmin, buildApiKey, buildUser } from "@server/test/factories";
+import {
+  buildAdmin,
+  buildApiKey,
+  buildGuestUser,
+  buildUser,
+  buildViewer,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -8,9 +14,8 @@ describe("#apiKeys.create", () => {
     const now = new Date();
     const user = await buildUser();
 
-    const res = await server.post("/api/apiKeys.create", {
+    const res = await server.post("/api/apiKeys.create", user, {
       body: {
-        token: user.getJwtToken(),
         name: "My API Key",
         expiresAt: now.toISOString(),
       },
@@ -26,9 +31,8 @@ describe("#apiKeys.create", () => {
   it("should allow creating an api key without expiry", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/apiKeys.create", {
+    const res = await server.post("/api/apiKeys.create", user, {
       body: {
-        token: user.getJwtToken(),
         name: "My API Key",
       },
     });
@@ -43,9 +47,8 @@ describe("#apiKeys.create", () => {
   it("should allow creating an api key with scopes", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/apiKeys.create", {
+    const res = await server.post("/api/apiKeys.create", user, {
       body: {
-        token: user.getJwtToken(),
         name: "My API Key",
         scope: [
           "/api/documents.list",
@@ -53,6 +56,8 @@ describe("#apiKeys.create", () => {
           "*.info",
           "users.*",
           "collections:read",
+          "read",
+          "write",
         ],
       },
     });
@@ -66,7 +71,35 @@ describe("#apiKeys.create", () => {
       "/api/*.info",
       "/api/users.*",
       "collections:read",
+      "read",
+      "write",
     ]);
+  });
+
+  it("should allow viewers to create an api key", async () => {
+    const viewer = await buildViewer();
+
+    const res = await server.post("/api/apiKeys.create", viewer, {
+      body: {
+        name: "My API Key",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual("My API Key");
+  });
+
+  it("should not allow guests to create an api key", async () => {
+    const guest = await buildGuestUser();
+
+    const res = await server.post("/api/apiKeys.create", guest, {
+      body: {
+        name: "My API Key",
+      },
+    });
+
+    expect(res.status).toEqual(403);
   });
 
   it("should require authentication", async () => {
@@ -81,10 +114,9 @@ describe("#apiKeys.list", () => {
     const admin = await buildAdmin({ teamId: user.teamId });
     await buildApiKey({ userId: user.id });
 
-    const res = await server.post("/api/apiKeys.list", {
+    const res = await server.post("/api/apiKeys.list", admin, {
       body: {
         userId: user.id,
-        token: admin.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -99,10 +131,9 @@ describe("#apiKeys.list", () => {
     await buildApiKey({ userId: user.id });
     await buildApiKey({ userId: admin.id });
 
-    const res = await server.post("/api/apiKeys.list", {
+    const res = await server.post("/api/apiKeys.list", admin, {
       body: {
         userId: admin.id,
-        token: admin.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -118,11 +149,7 @@ describe("#apiKeys.list", () => {
     await buildApiKey({ userId: user.id });
     await buildApiKey();
 
-    const res = await server.post("/api/apiKeys.list", {
-      body: {
-        token: admin.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/apiKeys.list", admin);
 
     const body = await res.json();
 
@@ -136,9 +163,8 @@ describe("#apiKeys.list", () => {
     await buildApiKey({ userId: admin.id, name: "Staging Key" });
     await buildApiKey({ userId: admin.id, name: "Development Token" });
 
-    const res = await server.post("/api/apiKeys.list", {
+    const res = await server.post("/api/apiKeys.list", admin, {
       body: {
-        token: admin.getJwtToken(),
         query: "key",
       },
     });
@@ -158,9 +184,8 @@ describe("#apiKeys.list", () => {
     await buildApiKey({ userId: admin.id, name: "Production Key" });
     await buildApiKey({ userId: admin.id, name: "Staging Key" });
 
-    const res = await server.post("/api/apiKeys.list", {
+    const res = await server.post("/api/apiKeys.list", admin, {
       body: {
-        token: admin.getJwtToken(),
         query: "PRODUCTION",
       },
     });
@@ -175,9 +200,8 @@ describe("#apiKeys.list", () => {
     const admin = await buildAdmin();
     await buildApiKey({ userId: admin.id, name: "Production Key" });
 
-    const res = await server.post("/api/apiKeys.list", {
+    const res = await server.post("/api/apiKeys.list", admin, {
       body: {
-        token: admin.getJwtToken(),
         query: "nonexistent",
       },
     });
@@ -185,6 +209,21 @@ describe("#apiKeys.list", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
+  });
+
+  it("should allow viewers to list their own api keys", async () => {
+    const viewer = await buildViewer();
+    await buildApiKey({ userId: viewer.id });
+
+    const res = await server.post("/api/apiKeys.list", viewer, {
+      body: {
+        userId: viewer.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
   });
 
   it("should require authentication", async () => {
@@ -201,9 +240,8 @@ describe("#apiKeys.delete", () => {
       userId: user.id,
     });
 
-    const res = await server.post("/api/apiKeys.delete", {
+    const res = await server.post("/api/apiKeys.delete", user, {
       body: {
-        token: user.getJwtToken(),
         id: apiKey.id,
       },
     });
@@ -219,9 +257,8 @@ describe("#apiKeys.delete", () => {
       userId: otherUser.id,
     });
 
-    const res = await server.post("/api/apiKeys.delete", {
+    const res = await server.post("/api/apiKeys.delete", user, {
       body: {
-        token: user.getJwtToken(),
         id: apiKey.id,
       },
     });
@@ -237,9 +274,21 @@ describe("#apiKeys.delete", () => {
       userId: user.id,
     });
 
-    const res = await server.post("/api/apiKeys.delete", {
+    const res = await server.post("/api/apiKeys.delete", admin, {
       body: {
-        token: admin.getJwtToken(),
+        id: apiKey.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
+  it("should allow viewers to delete their own api key", async () => {
+    const viewer = await buildViewer();
+    const apiKey = await buildApiKey({ userId: viewer.id });
+
+    const res = await server.post("/api/apiKeys.delete", viewer, {
+      body: {
         id: apiKey.id,
       },
     });

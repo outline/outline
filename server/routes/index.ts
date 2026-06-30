@@ -15,6 +15,7 @@ import { Integration } from "@server/models";
 import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
+import { isInvalidAppPath } from "@server/utils/url";
 import apexRedirect from "../middlewares/apexRedirect";
 import { renderApp, renderShare } from "./app";
 import { renderEmbed } from "./embeds";
@@ -38,7 +39,7 @@ router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
         },
       });
     } catch (err) {
-      if (err.status !== 404) {
+      if (!(err instanceof Error && "status" in err && err.status === 404)) {
         throw err;
       }
     }
@@ -77,7 +78,7 @@ if (env.isProduction) {
         },
       });
     } catch (err) {
-      if (err.status === 404) {
+      if (err instanceof Error && "status" in err && err.status === 404) {
         // Serve a bad request instead of not found if the file doesn't exist
         // This prevents CDN's from caching the response, allowing them to continue
         // serving old file versions
@@ -123,7 +124,7 @@ router.get(
     const origin = env.isCloudHosted
       ? ctx.request.URL.origin
       : new URL(env.URL).origin;
-    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
     const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
 
     ctx.body = {
@@ -150,7 +151,7 @@ router.get(
     "/.well-known/oauth-protected-resource/mcp",
   ],
   async (ctx) => {
-    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
     const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
 
     if (!mcpEnabled) {
@@ -217,6 +218,11 @@ router.get("/sitemap.xml", async (ctx) => {
 
 // catch all for application
 router.get("*", async (ctx, next) => {
+  if (isInvalidAppPath(ctx.path)) {
+    ctx.status = 404;
+    return;
+  }
+
   if (ctx.state?.rootShare) {
     // Only allow root path for root share domains, return 404 for other paths.
     // Valid paths like /doc/:documentSlug and /sitemap.xml are handled above.

@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import type { Context, Next } from "koa";
 import { contentSecurityPolicy } from "koa-helmet";
-import uniq from "lodash/uniq";
+import { uniq } from "es-toolkit/compat";
 import env from "@server/env";
 
 const getBucketOrigin = () => {
@@ -84,26 +84,31 @@ export default function createCSPMiddleware(options?: CSPOptions) {
   return function cspMiddleware(ctx: Context, next: Next) {
     ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
 
-    return contentSecurityPolicy({
-      directives: {
-        baseUri: ["'none'"],
-        defaultSrc,
-        styleSrc,
-        scriptSrc: [
-          ...uniq(scriptSrc),
-          ...(options?.extraScriptSrc ?? []),
-          env.DEVELOPMENT_UNSAFE_INLINE_CSP
-            ? "'unsafe-inline'"
-            : `'nonce-${ctx.state.cspNonce}'`,
-        ],
-        mediaSrc: ["*", "data:", "blob:"],
-        imgSrc: ["*", "data:", "blob:"],
-        frameSrc: ["*", "data:"],
-        objectSrc,
-        // Do not use connect-src: because self + websockets does not work in
-        // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
-        connectSrc: ["*"],
-      },
-    })(ctx, next);
+    // Note: workerSrc is included even though it's missing from the koa-helmet
+    // type definitions — the underlying helmet supports it. The service worker
+    // is served from the same origin as the document, which may be a custom
+    // domain that is not present in scriptSrc.
+    const directives = {
+      baseUri: ["'none'"],
+      defaultSrc,
+      styleSrc,
+      scriptSrc: [
+        ...uniq(scriptSrc),
+        ...(options?.extraScriptSrc ?? []),
+        env.DEVELOPMENT_UNSAFE_INLINE_CSP
+          ? "'unsafe-inline'"
+          : `'nonce-${ctx.state.cspNonce}'`,
+      ],
+      mediaSrc: ["*", "data:", "blob:"],
+      imgSrc: ["*", "data:", "blob:"],
+      frameSrc: ["*", "data:"],
+      workerSrc: ["'self'"],
+      objectSrc,
+      // Do not use connect-src: because self + websockets does not work in
+      // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
+      connectSrc: ["*"],
+    };
+
+    return contentSecurityPolicy({ directives })(ctx, next);
   };
 }

@@ -7,16 +7,32 @@ import { InvalidRequestError } from "@server/errors";
 
 const UrlIdLength = 10;
 
-/** IP ranges that are not allowed for outbound requests. */
-const privateRanges = new Set([
-  "private",
-  "loopback",
-  "linkLocal",
-  "uniqueLocal",
-  "unspecified",
-]);
-
 export const generateUrlId = () => randomString(UrlIdLength);
+
+// Paths probed by vulnerability scanners.
+const scannerPathPattern = new RegExp(
+  [
+    // paths
+    "^\\/(?:cgi-bin|wp-admin|wp-content|wp-includes|wp-json|wp-login\\.php|wordpress|xmlrpc\\.php|phpmyadmin|pma|myadmin|owa|autodiscover|actuator|vendor|webdav|cms|drupal|joomla|magento|laravel|adminer|console|server-status|server-info|HNAP1|boaform|hudson|jenkins)(?:\\/|$)",
+    // file endings
+    "\\.(?:php|asp|aspx|jsp|cgi|env|sql|bak|swp|htaccess|htpasswd)(?:$|[/?])",
+    // dotfiles
+    "^\\/\\.(?:well-known|env|git|svn|aws|ssh|DS_Store)",
+  ].join("|"),
+  "i"
+);
+
+/**
+ * Checks whether a request path looks like an automated scanner probe rather
+ * than a legitimate application route, so the server can short-circuit with a
+ * 404 instead of rendering the SPA shell.
+ *
+ * @param path - the request path to check.
+ * @returns true if the path matches a known scanner pattern.
+ */
+export function isInvalidAppPath(path: string): boolean {
+  return scannerPathPattern.test(path);
+}
 
 /**
  * Checks if an IP address is private, loopback, or link-local.
@@ -28,7 +44,9 @@ export function isPrivateIP(ip: string): boolean {
   if (!ipaddr.isValid(ip)) {
     return false;
   }
-  return privateRanges.has(ipaddr.parse(ip).range());
+
+  // Only globally-routable unicast addresses are permitted
+  return ipaddr.parse(ip).range() !== "unicast";
 }
 
 /**
@@ -77,7 +95,9 @@ function isAllowedPrivateIP(ip: string): boolean {
  * @throws InternalError if the URL resolves to a private IP that is not allowed.
  */
 export async function validateUrlNotPrivate(url: string) {
-  const { hostname } = new URL(url);
+  // URL.hostname keeps the square brackets around IPv6 literals (e.g.
+  // "[::1]"), which net.isIP does not accept, so strip them before checking.
+  const hostname = new URL(url).hostname.replace(/^\[|\]$/g, "");
 
   if (net.isIP(hostname)) {
     if (isPrivateIP(hostname) && !isAllowedPrivateIP(hostname)) {

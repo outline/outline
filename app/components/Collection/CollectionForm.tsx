@@ -1,4 +1,4 @@
-import uniq from "lodash/uniq";
+import { uniq } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useMemo, useEffect, useCallback, Suspense } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -6,7 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { randomElement } from "@shared/random";
-import { CollectionPermission, TeamPreference } from "@shared/types";
+import { CollectionPermission } from "@shared/types";
 import type { Option } from "~/components/InputSelect";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
@@ -29,7 +29,7 @@ import { useDialogContext } from "~/components/DialogContext";
 
 const IconPicker = createLazyComponent(() => import("~/components/IconPicker"));
 
-export interface FormData {
+export type FormData = {
   name: string;
   icon: string;
   color: string | null;
@@ -37,7 +37,7 @@ export interface FormData {
   permission: CollectionPermission | undefined;
   commenting?: boolean | null;
   templateManagement: CollectionPermission;
-}
+};
 
 const useIconColor = (collection?: Collection) => {
   const { collections } = useStores();
@@ -204,7 +204,7 @@ export const CollectionForm = observer(function CollectionForm_({
         />
       )}
 
-      {team.getPreference(TeamPreference.Commenting) && (
+      {team.commentingEnabled && (
         <Controller
           control={control}
           name="commenting"

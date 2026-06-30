@@ -2,6 +2,13 @@ import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { UnfurlResourceType } from "@shared/types";
 
+export const GitLabOAuthNonceCookie = "gitlabOAuthNonce";
+
+export type OAuthState = {
+  teamId: string;
+  nonce: string;
+};
+
 export class GitLabUtils {
   public static defaultGitlabUrl = "https://gitlab.com";
 
@@ -67,13 +74,13 @@ export class GitLabUtils {
   /**
    * Generates the authorization URL for GitLab OAuth.
    *
-   * @param state - A unique state string to prevent CSRF attacks.
+   * @param state - The OAuth state with teamId for routing and nonce for CSRF.
    * @param customUrl - Optional custom GitLab URL from integration settings.
    * @param customClientId - Optional custom OAuth client ID from integration settings.
    * @returns The full URL to redirect the user to GitLab's OAuth authorization page.
    */
   public static authUrl(
-    state: string,
+    state: OAuthState,
     customUrl?: string,
     customClientId?: string
   ): string {
@@ -81,11 +88,25 @@ export class GitLabUtils {
       client_id: customClientId || env.GITLAB_CLIENT_ID,
       redirect_uri: this.callbackUrl(),
       response_type: "code",
-      state,
+      state: JSON.stringify(state),
       scope: "read_api read_user",
     });
 
     return `${this.getOauthUrl(customUrl)}/authorize?${params.toString()}`;
+  }
+
+  /**
+   * Parses an OAuth state string from a GitLab callback.
+   *
+   * @param state - The state string carried in the callback query.
+   * @returns The parsed OAuth state.
+   */
+  public static parseState(state: string): OAuthState | undefined {
+    try {
+      return JSON.parse(state);
+    } catch {
+      return undefined;
+    }
   }
 
   /**

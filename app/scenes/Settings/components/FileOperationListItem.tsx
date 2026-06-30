@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
+import { errToString } from "@shared/utils/error";
 import Spinner from "@shared/components/Spinner";
 import {
   FileOperationFormat,
@@ -72,7 +73,7 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
         toast.success(t("Export deleted"));
       }
     } catch (err) {
-      toast.error(err.message);
+      toast.error(errToString(err));
     }
   }, [fileOperation, fileOperations, t]);
 

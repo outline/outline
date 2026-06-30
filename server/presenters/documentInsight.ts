@@ -3,6 +3,7 @@ import type { DocumentInsight } from "@server/models";
 export default function presentDocumentInsight(insight: DocumentInsight) {
   return {
     date: insight.date,
+    period: insight.period,
     viewCount: insight.viewCount,
     viewerCount: insight.viewerCount,
     commentCount: insight.commentCount,

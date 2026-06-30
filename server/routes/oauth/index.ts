@@ -53,8 +53,13 @@ router.post(
     authorize(user, "read", client);
 
     // Note: These objects are mutated by the OAuth2Server library
-    const request = new OAuth2Server.Request(ctx.request as any);
-    const response = new OAuth2Server.Response(ctx.response as any);
+    const request = new OAuth2Server.Request({
+      headers: ctx.request.headers as Record<string, string>,
+      method: ctx.request.method,
+      query: ctx.request.query as Record<string, string>,
+      body: ctx.request.body,
+    });
+    const response = new OAuth2Server.Response();
 
     const authorizationCode = await oauth.authorize(request, response, {
       // Require state to prevent CSRF attacks
@@ -113,8 +118,13 @@ router.post(
     }
 
     // Note: These objects are mutated by the OAuth2Server library
-    const request = new OAuth2Server.Request(ctx.request as any);
-    const response = new OAuth2Server.Response(ctx.response as any);
+    const request = new OAuth2Server.Request({
+      headers: ctx.request.headers as Record<string, string>,
+      method: ctx.request.method,
+      query: ctx.request.query as Record<string, string>,
+      body: ctx.request.body,
+    });
+    const response = new OAuth2Server.Response();
     const token = await oauth.token(request, response, {
       accessTokenLifetime: OAuthAuthentication.accessTokenLifetime,
       refreshTokenLifetime: OAuthAuthentication.refreshTokenLifetime,
@@ -184,7 +194,7 @@ router.post(
     } = ctx.input.body;
 
     const team = await getTeamFromContext(ctx, {
-      includeStateCookie: false,
+      includeOAuthState: false,
     });
     if (!team) {
       throw NotFoundError();
@@ -199,7 +209,9 @@ router.post(
         : "public";
 
     const client = await OAuthClient.createWithCtx(ctx, {
-      name: client_name,
+      // RFC 7591 makes client_name optional; fall back to a generic label so
+      // dynamic-registration clients that omit it still register cleanly.
+      name: client_name ?? "Untitled application",
       redirectUris: redirect_uris,
       clientType,
       developerUrl: client_uri ?? null,

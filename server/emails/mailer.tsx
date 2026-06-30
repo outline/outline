@@ -3,6 +3,7 @@ import type { Transporter } from "nodemailer";
 import nodemailer from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import Oy from "oy-vey";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -12,17 +13,37 @@ import { baseStyles } from "./templates/components/EmailLayout";
 const useTestEmailService = env.isDevelopment && !env.SMTP_USERNAME;
 
 type SendMailOptions = {
+  /** The email address being sent to. */
   to: string;
+  /** The address the email is sent from. */
   from: EmailAddress;
+  /** An address to set as the reply-to for the email. */
   replyTo?: string;
+  /** A unique identifier for the message, used for threading. */
   messageId?: string;
+  /** Message IDs this email is a reply to, used for threading. */
   references?: string[];
+  /** The subject line of the email. */
   subject: string;
+  /** Preview text shown in email client list views. */
   previewText?: string;
+  /** The plain-text version of the email body. */
   text: string;
+  /** The React element rendered to produce the HTML body. */
   component: JSX.Element;
+  /** Additional CSS to inject into the head of the email. */
   headCSS?: string;
+  /** The URL used to unsubscribe from these emails. */
   unsubscribeUrl?: string;
+  /** Tags used for reporting, where supported by the email provider. */
+  tags?: EmailTags;
+};
+
+type EmailTags = {
+  /** The broad category of the email, e.g. "notification". */
+  category: string;
+  /** The specific template name, e.g. "InviteEmail". */
+  template: string;
 };
 
 /**
@@ -167,6 +188,7 @@ export class Mailer {
         references: data.references,
         inReplyTo: data.references?.at(-1),
         subject: data.subject,
+        headers: this.tagHeaders(data.tags),
         html,
         text: data.text,
         list: data.unsubscribeUrl
@@ -195,10 +217,73 @@ export class Mailer {
         );
       }
     } catch (err) {
-      Logger.error(`Error sending email to ${data.to}`, err);
+      Logger.error(`Error sending email to ${data.to}`, toError(err));
       throw err; // Re-throw for queue to re-try
     }
   };
+
+  /**
+   * Builds the provider-specific headers used to tag a message for reporting.
+   * Each supported provider expects a different header name and format; for
+   * providers that do not support tagging, or when no tags are given, no
+   * headers are returned.
+   *
+   * @param tags The tags to apply to the message.
+   * @returns A map of headers to set on the message, or undefined.
+   */
+  private tagHeaders(
+    tags?: EmailTags
+  ): Record<string, string | string[]> | undefined {
+    if (!tags) {
+      return undefined;
+    }
+
+    // Mailgun: up to three tags via repeated X-Mailgun-Tag headers.
+    // https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/#tagging
+    if (this.isMailgun) {
+      return { "X-Mailgun-Tag": Object.values(tags).slice(0, 3) };
+    }
+
+    // SES: comma-separated name=value pairs via X-SES-MESSAGE-TAGS.
+    // https://docs.aws.amazon.com/ses/latest/dg/event-publishing-send-email.html
+    if (this.isSES) {
+      return {
+        "X-SES-MESSAGE-TAGS": Object.entries(tags)
+          .map(([name, value]) => `${name}=${value}`)
+          .join(", "),
+      };
+    }
+
+    // Postmark: a single tag per message via X-PM-Tag.
+    // https://postmarkapp.com/support/article/1117-add-link-tracking-to-a-message
+    if (this.isPostmark) {
+      return { "X-PM-Tag": tags.template };
+    }
+
+    return undefined;
+  }
+
+  /** The configured SMTP host and service name, for provider detection. */
+  private get provider(): string {
+    return `${env.SMTP_HOST ?? ""} ${env.SMTP_SERVICE ?? ""}`;
+  }
+
+  /** Whether the configured SMTP provider is Mailgun. */
+  private get isMailgun(): boolean {
+    return /mailgun/i.test(this.provider);
+  }
+
+  /** Whether the configured SMTP provider is Amazon SES. */
+  private get isSES(): boolean {
+    // Detected by the SES SMTP host (email-smtp.<region>.amazonaws.com) or a
+    // well-known Nodemailer service key (SES, SES-US-EAST-1, etc.).
+    return /amazonaws|(?:^|\s)ses\b/i.test(this.provider);
+  }
+
+  /** Whether the configured SMTP provider is Postmark. */
+  private get isPostmark(): boolean {
+    return /postmark/i.test(this.provider);
+  }
 
   private getOptions(): SMTPTransport.Options {
     // nodemailer will use the service config to determine host/port

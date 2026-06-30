@@ -1,4 +1,3 @@
-import includes from "lodash/includes";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -8,11 +7,7 @@ import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import { descendants } from "@shared/utils/tree";
-import SidebarDisclosureContext, {
-  useSidebarDisclosure,
-  useSidebarDisclosureState,
-} from "./SidebarDisclosureContext";
+import { useSidebarExpansion } from "./SidebarExpansionContext";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
@@ -43,59 +38,46 @@ function DocumentLink(
 ) {
   const { documents } = useStores();
   const { t } = useTranslation();
+  const expansion = useSidebarExpansion();
 
   const isActiveDocument = activeDocumentId === node.id;
 
   const hasChildDocuments =
     !!node.children.length || activeDocument?.parentDocumentId === node.id;
   const document = documents.get(node.id);
-  const showChildren = React.useMemo(
-    () =>
-      !!(
-        hasChildDocuments &&
-        ((activeDocumentId &&
-          includes(
-            descendants(node).map((n) => n.id),
-            activeDocumentId
-          )) ||
-          isActiveDocument ||
-          depth <= 1)
-      ),
-    [hasChildDocuments, activeDocumentId, isActiveDocument, depth, node]
-  );
 
-  const [expanded, setExpanded] = React.useState(showChildren);
-
-  const { event: disclosureEvent, onDisclosureClick } =
-    useSidebarDisclosureState();
-
-  const handleExpand = React.useCallback(() => setExpanded(true), []);
-  const handleCollapse = React.useCallback(() => setExpanded(false), []);
-
-  useSidebarDisclosure(handleExpand, handleCollapse);
-
+  // Auto-expand top-level nodes (depth <= 1) on initial render
   React.useEffect(() => {
-    if (showChildren) {
-      setExpanded(showChildren);
+    if (hasChildDocuments && depth <= 1 && !expansion.isExpanded(node.id)) {
+      expansion.expand(node.id);
     }
-  }, [showChildren]);
+  }, [expansion, node.id, hasChildDocuments, depth]);
+
+  const expanded = expansion.isExpanded(node.id);
 
   const handleDisclosureClick = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
       ev.stopPropagation();
-      const willExpand = !expanded;
-      setExpanded(willExpand);
-      const altKey = "altKey" in ev && (ev as React.MouseEvent).altKey;
-      onDisclosureClick(willExpand, !!altKey);
+      if (expanded) {
+        const altKey = "altKey" in ev && (ev as React.MouseEvent).altKey;
+        if (altKey) {
+          expansion.collapseDescendants(node);
+        } else {
+          expansion.collapse(node.id);
+        }
+      } else {
+        const altKey = "altKey" in ev && (ev as React.MouseEvent).altKey;
+        if (altKey) {
+          expansion.expandDescendants(node);
+        } else {
+          expansion.expand(node.id);
+        }
+      }
     },
-    [expanded, onDisclosureClick]
+    [expanded, expansion, node]
   );
 
-  // since we don't have access to the collection sort here, we just put any
-  // drafts at the front of the list. this is slightly inconsistent with the
-  // logged-in behavior, but it's probably better to emphasize the draft state
-  // of the document in a shared context
   const nodeChildren = React.useMemo(() => {
     if (
       activeDocument?.isDraft &&
@@ -148,24 +130,22 @@ function DocumentLink(
         ref={ref}
         isActive={() => !!isActiveDocument}
       />
-      <SidebarDisclosureContext.Provider value={disclosureEvent}>
-        {expanded &&
-          nodeChildren.map((childNode, index) => (
-            <SharedDocumentLink
-              shareId={shareId}
-              key={childNode.id}
-              collection={collection}
-              node={childNode}
-              activeDocumentId={activeDocumentId}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              isDraft={childNode.isDraft}
-              depth={depth + 1}
-              index={index}
-              parentId={node.id}
-            />
-          ))}
-      </SidebarDisclosureContext.Provider>
+      {expanded &&
+        nodeChildren.map((childNode, index) => (
+          <SharedDocumentLink
+            shareId={shareId}
+            key={childNode.id}
+            collection={collection}
+            node={childNode}
+            activeDocumentId={activeDocumentId}
+            activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
+            isDraft={childNode.isDraft}
+            depth={depth + 1}
+            index={index}
+            parentId={node.id}
+          />
+        ))}
     </>
   );
 }

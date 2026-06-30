@@ -7,14 +7,17 @@ import {
   buildDocument,
   buildDraftDocument,
   buildCollection,
+  buildComment,
+  buildResolvedComment,
   buildTeam,
   buildUser,
   buildGuestUser,
 } from "@server/test/factories";
+import { withAPIContext } from "@server/test/support";
 import UserMembership from "./UserMembership";
 
 beforeEach(() => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
 });
 
 describe("#getSummary", () => {
@@ -39,11 +42,11 @@ paragraph 2`,
   });
 });
 
-describe("#delete", () => {
+describe("#destroyWithCtx", () => {
   test("should soft delete and set last modified", async () => {
     const document = await buildDocument();
     const user = await buildUser();
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
 
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
@@ -57,7 +60,7 @@ describe("#delete", () => {
       archivedAt: new Date(),
     });
     const user = await buildUser();
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -80,7 +83,7 @@ describe("#delete", () => {
     });
     await collection.addDocumentToStructure(document, 0);
 
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const [newDocument, newCollection] = await Promise.all([
       document.reload({ paranoid: false }),
       collection.reload(),
@@ -94,7 +97,7 @@ describe("#delete", () => {
   it("should delete draft without collection", async () => {
     const user = await buildUser();
     const document = await buildDraftDocument();
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const deletedDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -349,5 +352,102 @@ describe("tasks", () => {
     const newTasks = document.tasks;
     expect(newTasks.completed).toBe(1);
     expect(newTasks.total).toBe(3);
+  });
+});
+
+describe("commentCount", () => {
+  it("returns 0 for a document with no comments", async () => {
+    const document = await buildDocument();
+    expect(await document.commentCount).toEqual(0);
+  });
+
+  it("counts unresolved threads and their replies", async () => {
+    const document = await buildDocument();
+    const thread = await buildComment({
+      documentId: document.id,
+      userId: document.createdById,
+    });
+    await buildComment({
+      documentId: document.id,
+      userId: document.createdById,
+      parentCommentId: thread.id,
+    });
+    expect(await document.commentCount).toEqual(2);
+  });
+
+  it("excludes resolved threads and their replies", async () => {
+    const document = await buildDocument();
+    const user = await buildUser({ teamId: document.teamId });
+    const resolved = await buildResolvedComment(user, {
+      documentId: document.id,
+      userId: user.id,
+    });
+    await buildComment({
+      documentId: document.id,
+      userId: user.id,
+      parentCommentId: resolved.id,
+    });
+    await buildComment({
+      documentId: document.id,
+      userId: user.id,
+    });
+    expect(await document.commentCount).toEqual(1);
+  });
+
+  it("invalidates the cached count when a comment is destroyed", async () => {
+    const document = await buildDocument();
+    const comment = await buildComment({
+      documentId: document.id,
+      userId: document.createdById,
+    });
+    await buildComment({
+      documentId: document.id,
+      userId: document.createdById,
+    });
+
+    expect(await document.commentCount).toEqual(2);
+
+    await comment.destroy();
+
+    expect(await document.commentCount).toEqual(1);
+  });
+
+  it("invalidates the cached count when a thread is resolved", async () => {
+    const document = await buildDocument();
+    const user = await buildUser({ teamId: document.teamId });
+    const thread = await buildComment({
+      documentId: document.id,
+      userId: user.id,
+    });
+    await buildComment({
+      documentId: document.id,
+      userId: user.id,
+      parentCommentId: thread.id,
+    });
+
+    // Prime the cache.
+    expect(await document.commentCount).toEqual(2);
+
+    thread.resolve(user);
+    await thread.save();
+
+    expect(await document.commentCount).toEqual(0);
+  });
+
+  it("invalidates the cached count when a resolved thread is unresolved", async () => {
+    const document = await buildDocument();
+    const user = await buildUser({ teamId: document.teamId });
+    const thread = await buildResolvedComment(user, {
+      documentId: document.id,
+      userId: user.id,
+    });
+
+    // Prime the cache (resolved thread is excluded).
+    expect(await document.commentCount).toEqual(0);
+
+    thread.unresolve();
+    await thread.save();
+
+    expect(await document.commentCount).toEqual(1);
   });
 });

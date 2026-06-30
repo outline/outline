@@ -49,13 +49,15 @@ const useTooltipContent = ({
   );
 
   // If the emoji is a custom emoji ID, we need to get its short name for display
-  if (isUUID(emoji)) {
-    emojis.fetch(emoji).then((ce) => {
-      if (ce) {
-        setTransformedEmoji(ce.shortName);
-      }
-    });
-  }
+  React.useEffect(() => {
+    if (isUUID(emoji)) {
+      void emojis.fetch(emoji).then((ce) => {
+        if (ce) {
+          setTransformedEmoji(ce.shortName);
+        }
+      });
+    }
+  }, [emoji, emojis]);
 
   if (!reactedUsers.length) {
     return;

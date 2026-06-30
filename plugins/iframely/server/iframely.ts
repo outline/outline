@@ -1,3 +1,4 @@
+import { toError, errToString } from "@shared/utils/error";
 import type { JSONObject } from "@shared/types";
 import { UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
@@ -29,8 +30,13 @@ class Iframely {
       );
       return await res.json();
     } catch (err) {
-      Logger.error(`Error fetching data from Iframely for url: ${url}`, err);
-      return { error: err.message || "Unknown error" };
+      Logger.error(
+        `Error fetching data from Iframely for url: ${url}`,
+        toError(err)
+      );
+      return {
+        error: errToString(err) || "Unknown error",
+      };
     }
   }
 
@@ -46,7 +52,14 @@ class Iframely {
       return { error: data.error } as UnfurlError; // In addition to our custom UnfurlError, sometimes iframely returns error in the response body.
     }
 
-    const parsedData = data as Record<string, any>;
+    const parsedData = data as {
+      url: string;
+      meta: { title: string; description: string; site: string };
+      links: {
+        thumbnail?: { href: string }[];
+        icon?: { href: string }[];
+      };
+    };
 
     return {
       type: UnfurlResourceType.URL,

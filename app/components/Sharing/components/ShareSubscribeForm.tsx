@@ -40,7 +40,7 @@ export function ShareSubscribeForm({
         setStatus("error");
       }
     },
-    [shareId, documentId, email]
+    [shareId, documentId, email, t]
   );
 
   const handleChange = useCallback(

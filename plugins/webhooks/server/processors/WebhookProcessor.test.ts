@@ -1,14 +1,10 @@
 import { buildUser, buildWebhookSubscription } from "@server/test/factories";
+import { mockTaskSchedule } from "@server/test/support";
 import type { UserEvent } from "@server/types";
-import DeliverWebhookTask from "../tasks/DeliverWebhookTask";
 import WebhookProcessor from "./WebhookProcessor";
 
-jest.mock("../tasks/DeliverWebhookTask");
 const ip = "127.0.0.1";
-
-beforeEach(() => {
-  jest.resetAllMocks();
-});
+const schedule = mockTaskSchedule();
 
 describe("WebhookProcessor", () => {
   it("it schedules a delivery for the event", async () => {
@@ -29,12 +25,8 @@ describe("WebhookProcessor", () => {
 
     await processor.perform(event);
 
-    expect(
-      jest.mocked(DeliverWebhookTask.prototype.schedule)
-    ).toHaveBeenCalled();
-    expect(
-      jest.mocked(DeliverWebhookTask.prototype.schedule)
-    ).toHaveBeenCalledWith({
+    expect(schedule).toHaveBeenCalled();
+    expect(schedule).toHaveBeenCalledWith({
       event,
       subscriptionId: subscription.id,
     });
@@ -57,9 +49,7 @@ describe("WebhookProcessor", () => {
 
     await processor.perform(event);
 
-    expect(
-      jest.mocked(DeliverWebhookTask.prototype.schedule)
-    ).toHaveBeenCalledTimes(0);
+    expect(schedule).toHaveBeenCalledTimes(0);
   });
 
   it("it schedules a delivery for the event for each subscription", async () => {
@@ -85,23 +75,62 @@ describe("WebhookProcessor", () => {
 
     await processor.perform(event);
 
-    expect(
-      jest.mocked(DeliverWebhookTask.prototype.schedule)
-    ).toHaveBeenCalled();
-    expect(
-      jest.mocked(DeliverWebhookTask.prototype.schedule)
-    ).toHaveBeenCalledTimes(2);
-    expect(
-      jest.mocked(DeliverWebhookTask.prototype.schedule)
-    ).toHaveBeenCalledWith({
+    expect(schedule).toHaveBeenCalled();
+    expect(schedule).toHaveBeenCalledTimes(2);
+    expect(schedule).toHaveBeenCalledWith({
       event,
       subscriptionId: subscription.id,
     });
-    expect(
-      jest.mocked(DeliverWebhookTask.prototype.schedule)
-    ).toHaveBeenCalledWith({
+    expect(schedule).toHaveBeenCalledWith({
       event,
       subscriptionId: subscriptionTwo.id,
+    });
+  });
+
+  describe("shouldQueue", () => {
+    it("returns true when a matching subscription exists", async () => {
+      const subscription = await buildWebhookSubscription({
+        url: "http://example.com",
+        events: ["users"],
+      });
+      const event: UserEvent = {
+        name: "users.signin",
+        userId: subscription.createdById,
+        teamId: subscription.teamId,
+        actorId: subscription.createdById,
+        ip,
+      };
+
+      expect(await WebhookProcessor.shouldQueue(event)).toBe(true);
+    });
+
+    it("returns false when no subscription matches the event", async () => {
+      const subscription = await buildWebhookSubscription({
+        url: "http://example.com",
+        events: ["documents.create"],
+      });
+      const event: UserEvent = {
+        name: "users.signin",
+        userId: subscription.createdById,
+        teamId: subscription.teamId,
+        actorId: subscription.createdById,
+        ip,
+      };
+
+      expect(await WebhookProcessor.shouldQueue(event)).toBe(false);
+    });
+
+    it("returns false when the team has no subscriptions", async () => {
+      const user = await buildUser();
+      const event: UserEvent = {
+        name: "users.signin",
+        userId: user.id,
+        teamId: user.teamId,
+        actorId: user.id,
+        ip,
+      };
+
+      expect(await WebhookProcessor.shouldQueue(event)).toBe(false);
     });
   });
 });

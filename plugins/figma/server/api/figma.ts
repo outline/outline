@@ -1,14 +1,20 @@
+import { toError } from "@shared/utils/error";
 import auth from "@server/middlewares/authentication";
 import Router from "koa-router";
 import * as T from "./schema";
 import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import type { APIContext } from "@server/types";
 import validate from "@server/middlewares/validate";
-import { FigmaUtils } from "plugins/figma/shared/FigmaUtils";
+import {
+  FigmaOAuthNonceCookie,
+  FigmaUtils,
+} from "plugins/figma/shared/FigmaUtils";
 import { transaction } from "@server/middlewares/transaction";
 import Logger from "@server/logging/Logger";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { ValidationError } from "@server/errors";
 import { Integration, IntegrationAuthentication } from "@server/models";
+import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import { addSeconds } from "date-fns";
 import { Figma } from "../figma";
 import UploadIntegrationLogoTask from "@server/queues/tasks/UploadIntegrationLogoTask";
@@ -30,13 +36,20 @@ router.get(
   }),
   transaction(),
   async (ctx: APIContext<T.FigmaCallbackReq>) => {
-    const { code, error } = ctx.input.query;
+    const { code, error, state } = ctx.input.query;
 
     // Check error after any sub-domain redirection. Otherwise, the user will be redirected to the root domain.
     if (error) {
       ctx.redirect(FigmaUtils.errorUrl(error));
       return;
     }
+
+    const parsedState = FigmaUtils.parseState(state);
+    if (!parsedState) {
+      throw ValidationError("Invalid state");
+    }
+
+    verifyOAuthStateNonce(ctx, FigmaOAuthNonceCookie, parsedState.nonce);
 
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
@@ -90,7 +103,10 @@ router.get(
 
       ctx.redirect(FigmaUtils.successUrl());
     } catch (err) {
-      Logger.error("Encountered error during Figma OAuth callback", err);
+      Logger.error(
+        "Encountered error during Figma OAuth callback",
+        toError(err)
+      );
       ctx.redirect(FigmaUtils.errorUrl("unknown"));
     }
   }

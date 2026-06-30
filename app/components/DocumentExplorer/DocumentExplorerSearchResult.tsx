@@ -17,6 +17,7 @@ type Props = {
 
   onPointerMove: (ev: React.MouseEvent) => void;
   onClick: (ev: React.MouseEvent) => void;
+  onDoubleClick: (ev: React.MouseEvent) => void;
 };
 
 function DocumentExplorerSearchResult({
@@ -28,6 +29,7 @@ function DocumentExplorerSearchResult({
   path,
   onPointerMove,
   onClick,
+  onDoubleClick,
 }: Props) {
   const { t } = useTranslation();
 
@@ -36,6 +38,7 @@ function DocumentExplorerSearchResult({
       selected={selected}
       active={active}
       onClick={onClick}
+      onDoubleClick={onDoubleClick}
       style={style}
       onPointerMove={onPointerMove}
       role="option"

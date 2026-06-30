@@ -1,12 +1,11 @@
-import cloneDeep from "lodash/cloneDeep";
-import debounce from "lodash/debounce";
-import isEqual from "lodash/isEqual";
+import { cloneDeep, debounce, isEqual } from "es-toolkit/compat";
 import { Node } from "prosemirror-model";
 import type { Selection } from "prosemirror-state";
 import { AllSelection, TextSelection } from "prosemirror-state";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
 import type Document from "~/models/Document";
@@ -52,6 +51,36 @@ interface UseDocumentSaveResult {
   onFileUploadStop: () => void;
 }
 
+export function shouldAutoDeleteDraftOnUnmount({
+  isEditorEmpty,
+  title,
+  createdById,
+  currentUserId,
+  isDraft,
+  isActive,
+  hasEmptyTitle,
+  isPersistedOnce,
+}: {
+  isEditorEmpty: boolean;
+  title: string;
+  createdById?: string;
+  currentUserId?: string;
+  isDraft: boolean;
+  isActive: boolean;
+  hasEmptyTitle: boolean;
+  isPersistedOnce: boolean;
+}) {
+  return (
+    isEditorEmpty &&
+    title.trim() === "" &&
+    createdById === currentUserId &&
+    isDraft &&
+    isActive &&
+    hasEmptyTitle &&
+    isPersistedOnce
+  );
+}
+
 /**
  * Hook that encapsulates save, autosave, dirty-tracking, and template
  * insertion logic for the document editor scene.
@@ -79,8 +108,6 @@ export function useDocumentSave({
   // Companion refs for stale closure avoidance
   const isEditorDirtyRef = useRef(isEditorDirty);
   isEditorDirtyRef.current = isEditorDirty;
-  const isEmptyRef = useRef(isEmpty);
-  isEmptyRef.current = isEmpty;
   const titleRef = useRef(title);
   titleRef.current = title;
 
@@ -91,7 +118,6 @@ export function useDocumentSave({
     isEditorDirtyRef.current = dirty;
     const empty = (!doc || ProsemirrorHelper.isEmpty(doc)) && !titleRef.current;
     setIsEmpty(empty);
-    isEmptyRef.current = empty;
   }, [document, editorRef]);
 
   const updateIsDirtyRef = useRef(updateIsDirty);
@@ -157,7 +183,7 @@ export function useDocumentSave({
           ui.setActiveDocument(savedDocument);
         }
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       } finally {
         setIsSaving(false);
         setIsPublishing(false);
@@ -282,7 +308,7 @@ export function useDocumentSave({
       titleRef.current = value;
       document.title = value;
       updateIsDirtyRef.current();
-      void autosave();
+      autosave();
     },
     [document, autosave]
   );
@@ -315,14 +341,21 @@ export function useDocumentSave({
   useEffect(
     () => () => {
       autosave.cancel();
+      const currentDoc = editorRef.current?.view.state.doc;
+      const isEditorEmpty =
+        !currentDoc || ProsemirrorHelper.isEmpty(currentDoc);
 
       if (
-        isEmptyRef.current &&
-        document.createdBy?.id === auth.user?.id &&
-        document.isDraft &&
-        document.isActive &&
-        document.hasEmptyTitle &&
-        document.isPersistedOnce
+        shouldAutoDeleteDraftOnUnmount({
+          isEditorEmpty,
+          title: titleRef.current,
+          createdById: document.createdBy?.id,
+          currentUserId: auth.user?.id,
+          isDraft: document.isDraft,
+          isActive: document.isActive,
+          hasEmptyTitle: document.hasEmptyTitle,
+          isPersistedOnce: document.isPersistedOnce,
+        })
       ) {
         void document.delete();
       } else if (document.isDirty()) {

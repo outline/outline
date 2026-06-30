@@ -55,8 +55,10 @@ export default class HardBreak extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState) {
+    // Two trailing spaces is a CommonMark hard break that survives a
+    // copy/export round-trip, unlike a bare newline.
     state.write(
-      state.inTable ? "<br>" : state.options.softBreak ? "\n" : "\\n"
+      state.inTable ? "<br>" : state.options.commonMark ? "  \n" : "\\n"
     );
   }
 

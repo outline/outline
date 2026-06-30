@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { s, hover } from "@shared/styles";
+import { breakpoints, s, hover } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
 
 export const IconButton = styled(NudeButton)<{ delay?: number }>`
@@ -9,5 +9,10 @@ export const IconButton = styled(NudeButton)<{ delay?: number }>`
 
   &: ${hover} {
     background: ${s("listItemHoverBackground")};
+  }
+
+  @media (max-width: ${breakpoints.tablet - 1}px) {
+    width: 40px;
+    height: 40px;
   }
 `;

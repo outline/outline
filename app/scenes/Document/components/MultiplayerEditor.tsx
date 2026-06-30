@@ -1,5 +1,5 @@
 import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
-import throttle from "lodash/throttle";
+import { throttle } from "es-toolkit/compat";
 import {
   useState,
   useLayoutEffect,
@@ -7,6 +7,7 @@ import {
   useEffect,
   forwardRef,
   useRef,
+  type ForwardedRef,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -14,10 +15,12 @@ import { toast } from "sonner";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
+import History from "@shared/editor/extensions/History";
 import EDITOR_VERSION from "@shared/editor/version";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import type { Props as EditorProps } from "~/components/Editor";
 import Editor from "~/components/Editor";
+import type { Editor as SharedEditor } from "~/editor";
 import MultiplayerExtension from "~/editor/extensions/Multiplayer";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -50,7 +53,10 @@ type MessageEvent = {
   };
 };
 
-function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
+function MultiplayerEditor(
+  { onSynced, ...props }: Props,
+  ref: ForwardedRef<SharedEditor>
+) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
@@ -59,8 +65,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const { presence, auth, ui } = useStores();
   const [editorVersionBehind, setEditorVersionBehind] = useState(false);
   const [showCursorNames, setShowCursorNames] = useState(false);
-  const [remoteProvider, setRemoteProvider] =
-    useState<HocuspocusProvider | null>(null);
+  const [remoteProvider, setRemoteProvider] = useState<HocuspocusProvider>();
   const [hasLocalPersistence, setHasLocalPersistence] = useState(true);
   const [isLocalSynced, setLocalSynced] = useState(false);
   const [isRemoteSynced, setRemoteSynced] = useState(false);
@@ -121,12 +126,12 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       provider.shouldConnect = false;
       retryCount.current++;
 
-      sleep(retryCount.current * 1000 - 1000).then(() =>
+      void sleep(retryCount.current * 1000 - 1000).then(() =>
         auth
           .fetchAuth()
           .then(() => {
             provider.setConfiguration({ token: auth.collaborationToken });
-            provider.connect();
+            void provider.connect();
             provider.shouldConnect = true;
           })
           .catch(() => {
@@ -223,7 +228,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       window.removeEventListener("scroll", syncScrollPosition);
       provider?.destroy();
       void localProvider?.destroy();
-      setRemoteProvider(null);
+      setRemoteProvider(undefined);
       ui.setMultiplayerStatus(undefined, undefined);
     };
   }, [
@@ -252,8 +257,12 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       return props.extensions;
     }
 
+    // The Yjs undo manager (added by the Multiplayer extension below) is the
+    // sole source of undo/redo history when collaborating.
     return [
-      ...(props.extensions || []),
+      ...(props.extensions || []).filter(
+        (extension) => extension !== History && !(extension instanceof History)
+      ),
       new MultiplayerExtension({
         user,
         provider: remoteProvider,
@@ -280,7 +289,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       !isVisible &&
       remoteProvider.status === WebSocketStatus.Connected
     ) {
-      void remoteProvider.disconnect();
+      remoteProvider.disconnect();
     }
 
     if (
@@ -353,4 +362,4 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   );
 }
 
-export default forwardRef<typeof MultiplayerEditor, Props>(MultiplayerEditor);
+export default forwardRef<SharedEditor, Props>(MultiplayerEditor);

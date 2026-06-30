@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
 import type { ReactNode } from "react";
-import React, { createContext, useContext } from "react";
+import React, { createContext, useCallback, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router";
+import { useHistory } from "react-router";
 import useStores from "~/hooks/useStores";
 import type Model from "~/models/base/Model";
 import type Policy from "~/models/Policy";
@@ -55,98 +55,159 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
   const parentContext = useContext(ActionContext);
   const stores = useStores();
   const { t } = useTranslation();
-  const location = useLocation();
-  const { activeModels: valueModels, ...overrides } = value;
 
-  // Create the base context if we don't have a parent context
-  const baseContext: ActionContextType = parentContext ?? {
-    isMenu: false,
-    isCommandBar: false,
-    isButton: false,
+  // Use history (stable reference) and read location lazily via a getter so
+  // navigation does not invalidate the context value. Action perform/visible
+  // callbacks see the current location at call time via history.location,
+  // which react-router updates on every navigation.
+  const history = useHistory();
 
-    // Legacy (backward compatibility)
-    activeCollectionId: stores.ui.activeCollectionId ?? undefined,
-    activeDocumentId: stores.ui.activeDocumentId ?? undefined,
+  const {
+    activeModels: valueModels,
+    isMenu,
+    isCommandBar,
+    isButton,
+    sidebarContext,
+    event,
+  } = value;
 
-    getActiveModels: <T extends Model>(
-      modelClass: new (...args: any[]) => T
-    ): T[] => stores.ui.getActiveModels<T>(modelClass),
+  // Track membership of stores.ui.activeModels so memos invalidate when it changes.
+  // Reading inside the observer-wrapped render keeps MobX subscriptions intact.
+  const activeModelsKey = Array.from(stores.ui.activeModels.keys()).join(",");
+  const activeCollectionIdFromStore = stores.ui.activeCollectionId ?? undefined;
+  const activeDocumentIdFromStore = stores.ui.activeDocumentId ?? undefined;
+  const currentUserId = stores.auth.user?.id;
+  const currentTeamId = stores.auth.team?.id;
 
-    getActiveModel: <T extends Model>(
-      modelClass: new (...args: any[]) => T
-    ): T | undefined => stores.ui.getActiveModels<T>(modelClass)[0],
+  const getActiveModels = useCallback(
+    <T extends Model>(modelClass: new (...args: never[]) => T): T[] => {
+      if (valueModels && valueModels.length > 0) {
+        const matching = valueModels.filter(
+          (model): model is T => model instanceof modelClass
+        );
+        if (matching.length > 0) {
+          return matching;
+        }
+      }
+      if (parentContext) {
+        return parentContext.getActiveModels(modelClass);
+      }
+      return stores.ui.getActiveModels<T>(modelClass);
+    },
+    [valueModels, parentContext, stores]
+  );
 
-    getActivePolicies: <T extends Model>(
-      modelClass: new (...args: any[]) => T
-    ): Policy[] =>
-      stores.ui
-        .getActiveModels<T>(modelClass)
+  const getActiveModel = useCallback(
+    <T extends Model>(modelClass: new (...args: never[]) => T): T | undefined =>
+      getActiveModels(modelClass)[0],
+    [getActiveModels]
+  );
+
+  const getActivePolicies = useCallback(
+    <T extends Model>(modelClass: new (...args: never[]) => T): Policy[] =>
+      getActiveModels(modelClass)
         .map((node) => stores.policies.get(node.id))
         .filter((policy): policy is Policy => policy !== undefined),
+    [getActiveModels, stores]
+  );
 
-    isModelActive: (model: Model): boolean => stores.ui.isModelActive(model),
-    activeModels: new Set(stores.ui.activeModels.values()),
+  const allActiveModels = useMemo(() => {
+    const base = parentContext
+      ? parentContext.activeModels
+      : new Set(stores.ui.activeModels.values());
+    if (valueModels && valueModels.length > 0) {
+      return new Set([...base, ...valueModels]);
+    }
+    return base;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parentContext, stores, valueModels, activeModelsKey]);
 
-    currentUserId: stores.auth.user?.id,
-    currentTeamId: stores.auth.team?.id,
-    location,
+  const isModelActive = useCallback(
+    (model: Model): boolean => allActiveModels.has(model),
+    [allActiveModels]
+  );
+
+  const contextValue = useMemo<ActionContextType>(() => {
+    const baseContext: ActionContextType = parentContext ?? {
+      isMenu: false,
+      isCommandBar: false,
+      isButton: false,
+
+      // Legacy (backward compatibility)
+      activeCollectionId: activeCollectionIdFromStore,
+      activeDocumentId: activeDocumentIdFromStore,
+
+      getActiveModels,
+      getActiveModel,
+      getActivePolicies,
+      isModelActive,
+      activeModels: allActiveModels,
+
+      currentUserId,
+      currentTeamId,
+      // Consumers reading `ctx.location` get the current location at access time.
+      location: history.location,
+      stores,
+      t,
+    };
+
+    // Derive legacy IDs from value models, falling back to base context
+    const activeCollectionId =
+      valueModels?.find(
+        (m) => (m.constructor as typeof Model).modelName === "Collection"
+      )?.id ?? baseContext.activeCollectionId;
+
+    const activeDocumentId =
+      valueModels?.find(
+        (m) => (m.constructor as typeof Model).modelName === "Document"
+      )?.id ?? baseContext.activeDocumentId;
+
+    const result = {
+      ...baseContext,
+      ...(isMenu !== undefined ? { isMenu } : {}),
+      ...(isCommandBar !== undefined ? { isCommandBar } : {}),
+      ...(isButton !== undefined ? { isButton } : {}),
+      ...(sidebarContext !== undefined ? { sidebarContext } : {}),
+      ...(event !== undefined ? { event } : {}),
+      activeCollectionId,
+      activeDocumentId,
+      getActiveModels,
+      getActiveModel,
+      getActivePolicies,
+      isModelActive,
+      activeModels: allActiveModels,
+    };
+
+    // Define `location` as a getter so reads always return the current
+    // location without invalidating this memo on navigation.
+    Object.defineProperty(result, "location", {
+      get: () => history.location,
+      enumerable: true,
+      configurable: true,
+    });
+
+    return result;
+  }, [
+    parentContext,
     stores,
     t,
-  };
-
-  // Override model accessors when models are provided in value
-  const getActiveModels =
-    valueModels && valueModels.length > 0
-      ? <T extends Model>(modelClass: new (...args: any[]) => T): T[] => {
-          const matching = valueModels.filter(
-            (model): model is T => model instanceof modelClass
-          );
-          return matching.length > 0
-            ? matching
-            : baseContext.getActiveModels(modelClass);
-        }
-      : baseContext.getActiveModels;
-
-  const getActiveModel = <T extends Model>(
-    modelClass: new (...args: any[]) => T
-  ): T | undefined => getActiveModels(modelClass)[0];
-
-  const getActivePolicies = <T extends Model>(
-    modelClass: new (...args: any[]) => T
-  ): Policy[] =>
-    getActiveModels(modelClass)
-      .map((node) => stores.policies.get(node.id))
-      .filter((policy): policy is Policy => policy !== undefined);
-
-  const allActiveModels =
-    valueModels && valueModels.length > 0
-      ? new Set([...baseContext.activeModels, ...valueModels])
-      : baseContext.activeModels;
-
-  const isModelActive = (model: Model): boolean => allActiveModels.has(model);
-
-  // Derive legacy IDs from value models, falling back to base context
-  const activeCollectionId =
-    valueModels?.find(
-      (m) => (m.constructor as typeof Model).modelName === "Collection"
-    )?.id ?? baseContext.activeCollectionId;
-
-  const activeDocumentId =
-    valueModels?.find(
-      (m) => (m.constructor as typeof Model).modelName === "Document"
-    )?.id ?? baseContext.activeDocumentId;
-
-  const contextValue: ActionContextType = {
-    ...baseContext,
-    ...overrides,
-    activeCollectionId,
-    activeDocumentId,
+    history,
+    valueModels,
+    isMenu,
+    isCommandBar,
+    isButton,
+    sidebarContext,
+    event,
+    activeCollectionIdFromStore,
+    activeDocumentIdFromStore,
+    currentUserId,
+    currentTeamId,
     getActiveModels,
     getActiveModel,
     getActivePolicies,
     isModelActive,
-    activeModels: allActiveModels,
-  };
+    allActiveModels,
+  ]);
 
   return (
     <ActionContext.Provider value={contextValue}>
@@ -173,15 +234,20 @@ export default function useActionContext(
 ): ActionContextType {
   const contextValue = useContext(ActionContext);
 
-  // If we have a context value from a provider, use it as the base
-  if (contextValue) {
-    return {
-      ...contextValue,
-      ...overrides,
-    };
+  if (!contextValue) {
+    throw new Error(
+      "useActionContext must be used within an ActionContextProvider"
+    );
   }
 
-  throw new Error(
-    "useActionContext must be used within an ActionContextProvider"
-  );
+  // Short-circuit when no overrides are provided so consumers get a stable
+  // reference and don't re-render unnecessarily.
+  if (!overrides || Object.keys(overrides).length === 0) {
+    return contextValue;
+  }
+
+  return {
+    ...contextValue,
+    ...overrides,
+  };
 }

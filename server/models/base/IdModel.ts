@@ -10,6 +10,7 @@ import {
 import Model from "./Model";
 
 class IdModel<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors Model base; tightening to object resolves Attributes<M> to never inside Sequelize helpers.
   TModelAttributes extends object = any,
   TCreationAttributes extends object = TModelAttributes,
 > extends Model<TModelAttributes, TCreationAttributes> {

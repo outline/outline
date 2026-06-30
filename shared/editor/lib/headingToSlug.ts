@@ -1,4 +1,4 @@
-import escape from "lodash/escape";
+import { escape } from "es-toolkit/compat";
 import type { Node } from "prosemirror-model";
 import slugify from "slugify";
 
@@ -14,7 +14,7 @@ function safeSlugify(text: string) {
 
   const slug = `h-${escape(
     slugify(text, {
-      remove: /[!"#$%&'\.()*+,\/:;<=>?@\[\]\\^_`{|}~]/g,
+      remove: /[!"#$%&'.()*+,/:;<=>?@[\]\\^_`{|}~]/g,
       lower: true,
     })
   )}`;
@@ -31,9 +31,4 @@ export default function headingToSlug(node: Node, index = 0) {
     return slugified;
   }
   return `${slugified}-${index}`;
-}
-
-export function headingToPersistenceKey(node: Node, id?: string) {
-  const slug = headingToSlug(node);
-  return `rme-${id || window?.location.pathname}–${slug}`;
 }

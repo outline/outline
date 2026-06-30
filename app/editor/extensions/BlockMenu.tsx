@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { action } from "mobx";
 import { PlusIcon } from "outline-icons";
 import { Plugin } from "prosemirror-state";
@@ -16,6 +17,7 @@ export default class BlockMenuExtension extends Suggestion {
       allowSpaces: false,
       requireSearchTerm: false,
       enabledInCode: false,
+      enabledInMarks: false,
     };
   }
 
@@ -80,14 +82,15 @@ export default class BlockMenuExtension extends Suggestion {
             !!textContent &&
             node.childCount === 0 &&
             node.textContent === "",
-          text: this.options.dictionary.newLineEmpty,
+          text: `${t("Type '/' to insert")}…`,
         },
         {
           condition: ({ node, $start, state }) =>
             $start.depth === 1 &&
             state.selection.$from.pos === $start.pos + node.content.size &&
-            node.textContent === "/",
-          text: `  ${this.options.dictionary.newLineWithSlash}`,
+            node.textContent === "/" &&
+            node.firstChild?.marks.length === 0,
+          text: `  ${t("Keep typing to filter")}…`,
         },
       ]),
     ];

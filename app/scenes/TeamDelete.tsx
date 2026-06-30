@@ -1,11 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import Input from "~/components/Input";
+import { OneTimePasswordInput } from "~/components/OneTimePasswordInput";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -25,7 +26,7 @@ function TeamDelete({ onSubmit }: Props) {
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const { t } = useTranslation();
   const {
-    register,
+    control,
     handleSubmit: formHandleSubmit,
     formState,
   } = useForm<FormData>();
@@ -38,7 +39,7 @@ function TeamDelete({ onSubmit }: Props) {
         await auth.requestDeleteTeam();
         setWaitingCode(true);
       } catch (error) {
-        toast.error(error.message);
+        toast.error(errToString(error));
       }
     },
     [auth]
@@ -56,15 +57,12 @@ function TeamDelete({ onSubmit }: Props) {
         });
         onSubmit();
       } catch (error) {
-        toast.error(error.message);
+        toast.error(errToString(error));
       }
     },
     [auth, onSubmit]
   );
 
-  const inputProps = register("code", {
-    required: env.EMAIL_ENABLED,
-  });
   const appName = env.APP_NAME;
   const workspaceName = team?.name;
 
@@ -78,13 +76,27 @@ function TeamDelete({ onSubmit }: Props) {
               enter the code below to permanently destroy this workspace.
             </Trans>
           </Text>
-          <Input
-            placeholder={t("Confirmation code")}
-            autoComplete="off"
-            autoFocus
-            maxLength={8}
-            required
-            {...inputProps}
+          <Controller
+            control={control}
+            name="code"
+            rules={{
+              required: env.EMAIL_ENABLED,
+              minLength: 8,
+            }}
+            render={({ field }) => (
+              <OneTimePasswordInput
+                length={8}
+                alphanumeric
+                autoComplete="off"
+                autoFocus
+                name={field.name}
+                value={field.value ?? ""}
+                onValueChange={field.onChange}
+                onBlur={field.onBlur}
+                ref={field.ref}
+                style={{ marginBottom: "1em" }}
+              />
+            )}
           />
         </>
       ) : (

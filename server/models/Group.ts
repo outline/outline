@@ -39,7 +39,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   tableName: "groups",
   modelName: "group",
   validate: {
-    async isUniqueNameInTeam() {
+    async isUniqueNameInTeam(this: Group) {
       const foundItem = await Group.findOne({
         where: {
           teamId: this.teamId,
@@ -69,7 +69,7 @@ class Group extends ParanoidModel<
     msg: `name must be ${GroupValidation.maxNameLength} characters or less`,
   })
   @NotContainsUrl
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   @Length({
@@ -80,7 +80,7 @@ class Group extends ParanoidModel<
   @Column(DataType.TEXT)
   description: string;
 
-  @Column
+  @Column(DataType.STRING)
   externalId: string;
 
   @Column(DataType.BOOLEAN)
@@ -120,7 +120,20 @@ class Group extends ParanoidModel<
   @BelongsToMany(() => User, () => GroupUser)
   users: User[];
 
-  @CounterCache(() => GroupUser, { as: "members", foreignKey: "groupId" })
+  @CounterCache(() => GroupUser, {
+    as: "members",
+    foreignKey: "groupId",
+    include: [
+      {
+        association: "user",
+        required: true,
+        attributes: [],
+        where: {
+          suspendedAt: { [Op.is]: null },
+        },
+      },
+    ],
+  })
   memberCount: Promise<number>;
 }
 

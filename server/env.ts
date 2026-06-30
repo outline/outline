@@ -15,7 +15,7 @@ import {
   IsBoolean,
   Min,
 } from "class-validator";
-import uniq from "lodash/uniq";
+import { uniq } from "es-toolkit/compat";
 import { languages } from "@shared/i18n";
 import { Day, Hour } from "@shared/utils/time";
 import {
@@ -373,6 +373,16 @@ export class Environment {
   public PROXY_IP_HEADER = this.toOptionalString(environment.PROXY_IP_HEADER);
 
   /**
+   * Whether to trust the X-Forwarded-* headers (e.g. X-Forwarded-For,
+   * X-Forwarded-Proto) set by an upstream proxy or load balancer. Defaults to
+   * true for backwards compat. Set to false if not running behind a proxy in production.
+   */
+  @IsBoolean()
+  public PROXY_HEADERS_TRUSTED = this.toBoolean(
+    environment.PROXY_HEADERS_TRUSTED ?? "true"
+  );
+
+  /**
    * Should the installation send anonymized statistics to the maintainers.
    * Defaults to true.
    */
@@ -581,6 +591,20 @@ export class Environment {
     this.toOptionalNumber(environment.RATE_LIMITER_DURATION_WINDOW) ?? 60;
 
   /**
+   * Multiplier applied to the per-endpoint API rate limits. Allows operators to
+   * uniformly scale the hard-coded route-level limits up or down without
+   * touching code. A value of 1 (the default) preserves the built-in limits.
+   * Effective per-endpoint limits are scaled by this value, rounded to the
+   * nearest integer, and clamped to a minimum of 1.
+   */
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @CannotUseWithout("RATE_LIMITER_ENABLED")
+  public RATE_LIMITER_MULTIPLIER =
+    this.toOptionalFloat(environment.RATE_LIMITER_MULTIPLIER) ?? 1;
+
+  /**
    * Set max allowed upload size for file attachments.
    * @deprecated Use FILE_STORAGE_UPLOAD_MAX_SIZE instead
    */
@@ -622,6 +646,38 @@ export class Environment {
   public AWS_S3_ACCELERATE_URL = environment.AWS_S3_ACCELERATE_URL ?? "";
 
   /**
+   * Optional CloudFront distribution URL for serving attachment downloads.
+   * Uploads continue to use the S3 endpoint directly. When set together with
+   * AWS_CLOUDFRONT_KEY_PAIR_ID and a private key, signed CloudFront URLs are
+   * used for downloads. If signing credentials are missing, S3 presigned URLs
+   * are used instead.
+   * Example: https://d1a2b3c4d5e6f.cloudfront.net (no trailing slash)
+   */
+  @IsOptional()
+  public AWS_CLOUDFRONT_URL = this.toOptionalString(
+    environment.AWS_CLOUDFRONT_URL
+  );
+
+  /**
+   * CloudFront key pair ID for signed download URLs. Required together with a
+   * private key when AWS_CLOUDFRONT_URL is set.
+   */
+  @IsOptional()
+  public AWS_CLOUDFRONT_KEY_PAIR_ID = this.toOptionalString(
+    environment.AWS_CLOUDFRONT_KEY_PAIR_ID
+  );
+
+  /**
+   * PEM-encoded RSA private key for CloudFront signed URLs, or a base64-encoded
+   * PEM string on a single line. Use a YAML block scalar in docker-compose for
+   * multi-line PEM values.
+   */
+  @IsOptional()
+  public AWS_CLOUDFRONT_PRIVATE_KEY = this.toOptionalString(
+    environment.AWS_CLOUDFRONT_PRIVATE_KEY
+  );
+
+  /**
    * Optional AWS S3 endpoint URL for file attachments.
    */
   @Public
@@ -650,6 +706,16 @@ export class Environment {
    */
   @IsOptional()
   public AWS_S3_ACL = environment.AWS_S3_ACL ?? "private";
+
+  /**
+   * Which HTTP method to use for presigned uploads to S3-compatible storage.
+   * "post" uses multipart form upload (traditional S3 presigned POST).
+   * "put" uses a single PUT request with a presigned URL (required for
+   * providers like Cloudflare R2 that do not support presigned POST).
+   */
+  @IsIn(["put", "post"])
+  public AWS_S3_UPLOAD_METHOD =
+    this.toOptionalString(environment.AWS_S3_UPLOAD_METHOD) ?? "post";
 
   /**
    * Which file storage system to use
@@ -879,6 +945,10 @@ export class Environment {
 
   protected toOptionalNumber(value: string | undefined) {
     return value ? parseInt(value, 10) : undefined;
+  }
+
+  protected toOptionalFloat(value: string | undefined) {
+    return value ? parseFloat(value) : undefined;
   }
 
   /**

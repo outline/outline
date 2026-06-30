@@ -163,3 +163,36 @@ describe("/s/:id", () => {
     expect(body).not.toContain("[Child Document]");
   });
 });
+
+describe("scanner path 404s", () => {
+  it.each([
+    "/.well-known/gpc.json",
+    "/.env",
+    "/.git/config",
+    "/cgi-bin/test.cgi",
+    "/wp-admin/setup-config.php",
+    "/wp-login.php",
+    "/xmlrpc.php",
+    "/admin.php",
+    "/phpmyadmin/index.php",
+    "/actuator/health",
+    "/HNAP1/",
+  ])("returns 404 for %s without rendering the app shell", async (path) => {
+    const res = await server.get(path);
+    const body = await res.text();
+    expect(res.status).toEqual(404);
+    expect(body).not.toContain("<title>");
+  });
+
+  it("still serves the app shell for legitimate unknown paths", async () => {
+    const res = await server.get("/some-app-route");
+    expect(res.status).toEqual(200);
+  });
+
+  it("still serves the OAuth well-known endpoint", async () => {
+    const res = await server.get("/.well-known/oauth-authorization-server");
+    expect(res.status).toEqual(200);
+    const body = await res.json();
+    expect(body.issuer).toBeDefined();
+  });
+});

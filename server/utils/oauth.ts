@@ -1,6 +1,71 @@
+import { addMinutes, subMinutes } from "date-fns";
+import type { Context } from "koa";
+import { errToString } from "@shared/utils/error";
+import { randomString } from "@shared/random";
+import { getCookieDomain } from "@shared/utils/domains";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import { AuthenticationError, InvalidRequestError } from "../errors";
+import {
+  AuthenticationError,
+  InvalidRequestError,
+  OAuthStateMismatchError,
+} from "../errors";
+import { safeEqual } from "./crypto";
 import fetch from "./fetch";
+
+/**
+ * Generate a random nonce, persist it in a same-origin cookie, and return it
+ * for embedding in the `state` parameter of an outbound OAuth flow that is
+ * initiated server-side. The matching callback handler must read the same
+ * cookie via {@link verifyOAuthStateNonce}.
+ *
+ * @param ctx The Koa context for the request initiating the OAuth flow.
+ * @param cookieName The cookie used to persist the nonce, unique per provider.
+ * @returns The generated nonce.
+ */
+export function generateOAuthStateNonce(
+  ctx: Context,
+  cookieName: string
+): string {
+  const nonce = randomString(32);
+  ctx.cookies.set(cookieName, nonce, {
+    httpOnly: true,
+    sameSite: "lax",
+    expires: addMinutes(new Date(), 10),
+    domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
+  });
+  return nonce;
+}
+
+/**
+ * Read a one-time OAuth nonce cookie, clear it, and timing-safe-compare it
+ * against the nonce carried in the OAuth `state`. Throws when missing or
+ * mismatched, providing CSRF protection for OAuth callbacks that perform
+ * account-linking actions.
+ *
+ * @param ctx The Koa context for the callback request.
+ * @param cookieName The cookie used to persist the nonce, unique per provider.
+ * @param stateNonce The nonce extracted from the parsed OAuth state.
+ * @throws {OAuthStateMismatchError} When the cookie is missing or does not
+ *   match the supplied nonce.
+ */
+export function verifyOAuthStateNonce(
+  ctx: Context,
+  cookieName: string,
+  stateNonce: string | undefined
+): void {
+  const cookieNonce = ctx.cookies.get(cookieName);
+  ctx.cookies.set(cookieName, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    expires: subMinutes(new Date(), 1),
+    domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
+  });
+
+  if (!safeEqual(cookieNonce, stateNonce)) {
+    throw OAuthStateMismatchError();
+  }
+}
 
 export default abstract class OAuthClient {
   private clientId: string;
@@ -31,7 +96,7 @@ export default abstract class OAuthClient {
         },
       });
     } catch (err) {
-      throw InvalidRequestError(err.message);
+      throw InvalidRequestError(errToString(err));
     }
 
     const success = response.status >= 200 && response.status < 300;
@@ -42,7 +107,7 @@ export default abstract class OAuthClient {
     try {
       data = await response.json();
     } catch (err) {
-      throw InvalidRequestError(err.message);
+      throw InvalidRequestError(errToString(err));
     }
 
     return data;
@@ -78,7 +143,7 @@ export default abstract class OAuthClient {
       });
       data = await response.json();
     } catch (err) {
-      throw InvalidRequestError(err.message);
+      throw InvalidRequestError(errToString(err));
     }
 
     const success = response.status >= 200 && response.status < 300;

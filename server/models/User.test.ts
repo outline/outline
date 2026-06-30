@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { errToString } from "@shared/utils/error";
 import { CollectionPermission, UserRole } from "@shared/types";
 import { createContext } from "@server/context";
 import { Event } from "@server/models";
@@ -15,11 +16,12 @@ import User from "./User";
 import UserMembership from "./UserMembership";
 
 beforeAll(() => {
-  jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
 });
 
 afterAll(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 describe("user model", () => {
@@ -75,6 +77,30 @@ describe("user model", () => {
     });
   });
 
+  describe("ip setters", () => {
+    it("normalizes lastActiveIp and lastSignedInIp on assignment", async () => {
+      const user = await buildUser();
+
+      user.lastActiveIp = "::ffff:127.0.0.1";
+      user.lastSignedInIp = "203.0.113.1, 70.41.3.18";
+      await user.save({ hooks: false });
+
+      expect(user.lastActiveIp).toBe("127.0.0.1");
+      expect(user.lastSignedInIp).toBe("203.0.113.1");
+    });
+
+    it("nulls out invalid IP values without failing validation", async () => {
+      const user = await buildUser();
+
+      user.lastActiveIp = "unknown";
+      user.lastSignedInIp = "not-an-ip";
+      await expect(user.save({ hooks: false })).resolves.toBeDefined();
+
+      expect(user.lastActiveIp).toBeNull();
+      expect(user.lastSignedInIp).toBeNull();
+    });
+  });
+
   describe("destroy", () => {
     it("should clear PII", async () => {
       const user = await buildUser();
@@ -98,7 +124,7 @@ describe("user model", () => {
         error = err;
       }
 
-      expect(error && error.message).toContain("Cannot delete last user");
+      expect(errToString(error)).toContain("Cannot delete last user");
     });
 
     it("should prevent last admin from deleting account", async () => {
@@ -114,7 +140,7 @@ describe("user model", () => {
         error = err;
       }
 
-      expect(error && error.message).toContain("Cannot delete account");
+      expect(errToString(error)).toContain("Cannot delete account");
     });
 
     it("should not prevent multiple admin from deleting account", async () => {
@@ -152,10 +178,10 @@ describe("user model", () => {
     });
   });
 
-  describe("getJwtToken", () => {
+  describe("getSessionToken", () => {
     it("should set JWT secret", async () => {
       const user = await buildUser();
-      expect(user.getJwtToken()).toBeTruthy();
+      expect(user.getSessionToken()).toBeTruthy();
     });
   });
 

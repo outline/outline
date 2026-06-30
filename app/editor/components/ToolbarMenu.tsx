@@ -2,10 +2,12 @@ import { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
+import { closeHistory } from "@shared/editor/lib/closeHistory";
 import type { MenuItem } from "@shared/editor/types";
 import { hideScrollbars, s } from "@shared/styles";
 import { TooltipProvider } from "~/components/TooltipContext";
 import type { MenuItem as TMenuItem } from "~/types";
+import { mapMenuItems } from "../menus/mapMenuItems";
 import { useEditor } from "./EditorContext";
 import { MediaDimension } from "./MediaDimension";
 import ToolbarButton from "./ToolbarButton";
@@ -48,67 +50,11 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
       return [];
     }
 
-    const handleClick = (menuItem: MenuItem) => () => {
-      if (!menuItem.name) {
-        return;
-      }
-
-      if (commands[menuItem.name]) {
-        commands[menuItem.name](
-          typeof menuItem.attrs === "function"
-            ? menuItem.attrs(state)
-            : menuItem.attrs
-        );
-      } else if (menuItem.onClick) {
-        menuItem.onClick();
-      }
-    };
-
-    const resolveChildren = (
-      children: MenuItem[] | (() => MenuItem[]) | undefined
-    ): MenuItem[] | undefined =>
-      typeof children === "function" ? children() : children;
-
-    const mapChildren = (children: MenuItem[]): TMenuItem[] =>
-      children.map((child) => {
-        if (child.name === "separator") {
-          return { type: "separator", visible: child.visible };
-        }
-        if ("content" in child) {
-          return {
-            type: "custom",
-            visible: child.visible,
-            content: child.content,
-          };
-        }
-        const resolvedChildren = resolveChildren(child.children);
-        if (resolvedChildren) {
-          const childWithPreventClose = resolvedChildren.find(
-            (c) => "preventCloseCondition" in c
-          );
-          return {
-            type: "submenu",
-            title: child.label,
-            icon: child.icon,
-            visible: child.visible,
-            preventCloseCondition: childWithPreventClose?.preventCloseCondition,
-            items: mapChildren(resolvedChildren),
-          };
-        }
-        return {
-          type: "button",
-          title: child.label,
-          icon: child.icon,
-          dangerous: child.dangerous,
-          visible: child.visible,
-          selected:
-            child.active !== undefined ? child.active(state) : undefined,
-          onClick: handleClick(child),
-        };
-      });
-
-    const resolvedItemChildren = resolveChildren(item.children);
-    return resolvedItemChildren ? mapChildren(resolvedItemChildren) : [];
+    const resolvedItemChildren =
+      typeof item.children === "function" ? item.children() : item.children;
+    return resolvedItemChildren
+      ? mapMenuItems(resolvedItemChildren, commands, view, state)
+      : [];
   }, [isOpen, commands]);
 
   const handleCloseAutoFocus = useCallback((ev: Event) => {
@@ -158,9 +104,11 @@ function ToolbarMenu(props: Props) {
     }
 
     // otherwise, run the associated editor command
+    closeHistory(view);
     commands[item.name](
       typeof item.attrs === "function" ? item.attrs(state) : item.attrs
     );
+    closeHistory(view);
   };
 
   return (

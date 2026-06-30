@@ -3,8 +3,6 @@ import { InputRule } from "prosemirror-inputrules";
 import type { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import {
-  addColumnAfter,
-  addRowAfter,
   columnResizing,
   deleteColumn,
   deleteRow,
@@ -17,7 +15,9 @@ import {
 } from "prosemirror-tables";
 import {
   addRowBefore,
+  addRowAfter,
   addColumnBefore,
+  addColumnAfter,
   addRowAndMoveSelection,
   setColumnAttr,
   createTable,
@@ -92,10 +92,10 @@ export default class Table extends Node {
       setTableAttr,
       sortTable,
       addColumnBefore,
-      addColumnAfter: () => addColumnAfter,
+      addColumnAfter,
       deleteColumn: () => deleteColumn,
       addRowBefore,
-      addRowAfter: () => addRowAfter,
+      addRowAfter,
       moveTableRow,
       moveTableColumn,
       deleteRow: () => deleteRow,
@@ -163,6 +163,7 @@ export default class Table extends Node {
       // Note: Important to register columnResizing before tableEditing
       columnResizing({
         View: TableView,
+        defaultCellMinWidth: 25,
       }),
       tableEditing(),
       new FixTablesPlugin(),

@@ -7,16 +7,18 @@ import {
   GetObjectCommand,
   HeadObjectCommand,
   CopyObjectCommand,
+  PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import "@aws-sdk/signature-v4-crt"; // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
 import type { PresignedPostOptions } from "@aws-sdk/s3-presigned-post";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getSignedUrl as getCloudFrontSignedUrl } from "@aws-sdk/cloudfront-signer";
 import fs from "fs-extra";
 import invariant from "invariant";
-import compact from "lodash/compact";
+import { compact } from "es-toolkit/compat";
 import tmp from "tmp";
+import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
@@ -25,6 +27,11 @@ import type { AppContext } from "@server/types";
 export default class S3Storage extends BaseStorage {
   constructor() {
     super();
+
+    // Loaded here rather than at module top-level so the native CRT binding
+    // only loads when S3 storage is actually used, keeping it off startup.
+    // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
+    require("@aws-sdk/signature-v4-crt");
 
     this.client = new S3Client({
       bucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : false,
@@ -42,7 +49,7 @@ export default class S3Storage extends BaseStorage {
     contentType = "image"
   ) {
     const params: PresignedPostOptions = {
-      Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME as string,
+      Bucket: this.getBucket(),
       Key: key,
       Conditions: compact([
         ["content-length-range", 0, maxUploadSize],
@@ -58,6 +65,57 @@ export default class S3Storage extends BaseStorage {
     };
 
     return createPresignedPost(this.client, params);
+  }
+
+  /**
+   * Returns a presigned PUT URL with Content-Length signed into the request so
+   * S3 rejects uploads that do not match the declared size.
+   *
+   * @param key The path to store the file at.
+   * @param acl The ACL to use.
+   * @param contentLength The exact content length in bytes.
+   * @param contentType The content type of the file.
+   * @returns The presigned PUT URL and required headers.
+   */
+  public async getPresignedPut(
+    key: string,
+    _acl: string,
+    contentLength: number,
+    contentType: string
+  ): Promise<{ url: string; headers: Record<string, string> }> {
+    const contentDisposition = this.getContentDisposition(contentType);
+    const cacheControl = "max-age=31557600";
+
+    const command = new PutObjectCommand({
+      Bucket: this.getBucket(),
+      Key: key,
+      ContentType: contentType,
+      ContentLength: contentLength,
+      ContentDisposition: contentDisposition,
+      CacheControl: cacheControl,
+      ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
+    });
+
+    let url = await getSignedUrl(this.client, command, {
+      expiresIn: 3600,
+    });
+
+    if (env.AWS_S3_ACCELERATE_URL) {
+      url = url.replace(
+        env.AWS_S3_UPLOAD_BUCKET_URL,
+        env.AWS_S3_ACCELERATE_URL
+      );
+    }
+
+    return {
+      url,
+      headers: {
+        "Content-Type": contentType,
+        "Content-Length": String(contentLength),
+        "Content-Disposition": contentDisposition,
+        "Cache-Control": cacheControl,
+      },
+    };
   }
 
   private getPublicEndpoint(isServerUpload?: boolean) {
@@ -96,6 +154,10 @@ export default class S3Storage extends BaseStorage {
   }
 
   public getUrlForKey(key: string): string {
+    if (env.AWS_CLOUDFRONT_URL) {
+      const base = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
+      return `${base}/${key}`;
+    }
     return `${this.getPublicEndpoint()}/${key}`;
   }
 
@@ -142,35 +204,39 @@ export default class S3Storage extends BaseStorage {
     key: string,
     expiresIn = S3Storage.defaultSignedUrlExpires
   ) => {
-    const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
-    const params = {
-      Bucket: this.getBucket(),
-      Key: key,
-    };
-
-    if (isDocker) {
-      return `${this.getPublicEndpoint()}/${key}`;
-    } else {
-      // Ensure expiration does not exceed AWS S3 Signature V4 limit of 7 days
-      const clampedExpiresIn = Math.min(
-        expiresIn,
-        S3Storage.maxSignedUrlExpires
-      );
-
-      const command = new GetObjectCommand(params);
-      const url = await getSignedUrl(this.client, command, {
-        expiresIn: clampedExpiresIn,
-      });
-
-      if (env.AWS_S3_ACCELERATE_URL) {
-        return url.replace(
-          env.AWS_S3_UPLOAD_BUCKET_URL,
-          env.AWS_S3_ACCELERATE_URL
+    if (env.AWS_CLOUDFRONT_URL) {
+      const privateKey = this.getCloudFrontPrivateKey();
+      if (!env.AWS_CLOUDFRONT_KEY_PAIR_ID || !privateKey) {
+        Logger.warn(
+          "AWS_CLOUDFRONT_URL is set but signing credentials are missing, falling back to S3 presigned URLs",
+          { key }
         );
+        return this.getS3PresignedUrl(key, expiresIn);
       }
 
-      return url;
+      const cfUrl = this.getCloudFrontUrlForKey(key);
+
+      try {
+        return getCloudFrontSignedUrl({
+          url: cfUrl,
+          keyPairId: env.AWS_CLOUDFRONT_KEY_PAIR_ID,
+          privateKey,
+          dateLessThan: new Date(Date.now() + expiresIn * 1000).toISOString(),
+        });
+      } catch (err) {
+        Logger.error(
+          "Failed to sign CloudFront URL, falling back to S3",
+          toError(err),
+          {
+            key,
+            cfUrl,
+          }
+        );
+        return this.getS3PresignedUrl(key, expiresIn);
+      }
     }
+
+    return this.getS3PresignedUrl(key, expiresIn);
   };
 
   public getFileHandle(key: string): Promise<{
@@ -257,9 +323,66 @@ export default class S3Storage extends BaseStorage {
 
   private client: S3Client;
 
+  private getCloudFrontUrlForKey(key: string): string {
+    if (!env.AWS_CLOUDFRONT_URL) {
+      throw new Error("CloudFront URL is not configured");
+    }
+    const base = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
+    return `${base}/${encodeURI(key)}`;
+  }
+
+  private getCloudFrontPrivateKey(): string | undefined {
+    const key = env.AWS_CLOUDFRONT_PRIVATE_KEY;
+    if (!key) {
+      return undefined;
+    }
+
+    if (key.includes("BEGIN")) {
+      return key;
+    }
+
+    return Buffer.from(key, "base64").toString("utf-8");
+  }
+
+  private getS3PresignedUrl = async (
+    key: string,
+    expiresIn = S3Storage.defaultSignedUrlExpires
+  ) => {
+    const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
+    const params = {
+      Bucket: this.getBucket(),
+      Key: key,
+    };
+
+    if (isDocker) {
+      return `${this.getPublicEndpoint()}/${key}`;
+    }
+
+    // Ensure expiration does not exceed AWS S3 Signature V4 limit of 7 days
+    const clampedExpiresIn = Math.min(expiresIn, S3Storage.maxSignedUrlExpires);
+
+    const command = new GetObjectCommand(params);
+    const url = await getSignedUrl(this.client, command, {
+      expiresIn: clampedExpiresIn,
+    });
+
+    if (env.AWS_S3_ACCELERATE_URL) {
+      return url.replace(
+        env.AWS_S3_UPLOAD_BUCKET_URL,
+        env.AWS_S3_ACCELERATE_URL
+      );
+    }
+
+    return url;
+  };
+
   private getEndpoint() {
     if (env.AWS_S3_ACCELERATE_URL) {
       return env.AWS_S3_ACCELERATE_URL;
+    }
+
+    if (!env.AWS_S3_UPLOAD_BUCKET_URL) {
+      return undefined;
     }
 
     // support old path-style S3 uploads and new virtual host uploads by

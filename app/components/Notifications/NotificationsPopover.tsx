@@ -1,15 +1,21 @@
 import { observer } from "mobx-react";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerTrigger,
+} from "~/components/primitives/Drawer";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "~/components/primitives/Popover";
+import useConsumeQueryParam from "~/hooks/useConsumeQueryParam";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
-import lazyWithRetry from "~/utils/lazyWithRetry";
-
-const Notifications = lazyWithRetry(() => import("./Notifications"));
+import Notifications from "./Notifications";
 
 type Props = {
   children?: React.ReactNode;
@@ -18,8 +24,11 @@ type Props = {
 const NotificationsPopover: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
   const { notifications } = useStores();
-  const [open, setOpen] = useState(false);
+  const shouldOpen = useConsumeQueryParam("notifications") === "true";
+  const [open, setOpen] = useState(shouldOpen);
+  const isMobile = useMobile();
   const scrollableRef = useRef<HTMLDivElement>(null);
+  const drawerContentRef = useRef<React.ElementRef<typeof DrawerContent>>(null);
 
   useEffect(() => {
     void notifications.fetchPage({ archived: false });
@@ -40,6 +49,40 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
     }
   }, []);
 
+  const enablePointerEvents = useCallback(() => {
+    if (drawerContentRef.current) {
+      drawerContentRef.current.style.pointerEvents = "auto";
+    }
+  }, []);
+
+  const disablePointerEvents = useCallback(() => {
+    if (drawerContentRef.current) {
+      drawerContentRef.current.style.pointerEvents = "none";
+    }
+  }, []);
+
+  const notificationsList = (
+    <Notifications onRequestClose={handleRequestClose} ref={scrollableRef} />
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerTrigger asChild>{children}</DrawerTrigger>
+        <DrawerContent
+          ref={drawerContentRef}
+          aria-label={t("Notifications")}
+          aria-describedby={undefined}
+          onAnimationStart={disablePointerEvents}
+          onAnimationEnd={enablePointerEvents}
+        >
+          <DrawerTitle hidden>{t("Notifications")}</DrawerTitle>
+          {notificationsList}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>{children}</PopoverTrigger>
@@ -51,12 +94,7 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
         scrollable={false}
         shrink
       >
-        <Suspense fallback={null}>
-          <Notifications
-            onRequestClose={handleRequestClose}
-            ref={scrollableRef}
-          />
-        </Suspense>
+        {notificationsList}
       </PopoverContent>
     </Popover>
   );

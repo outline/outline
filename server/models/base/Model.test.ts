@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
-import { TeamPreference } from "@shared/types";
+import { CommentingAccess, TeamPreference } from "@shared/types";
 import { buildDocument, buildTeam } from "@server/test/factories";
 import User from "../User";
 
@@ -23,9 +23,9 @@ describe("Model", () => {
 
     it("should return partial of objects", async () => {
       const team = await buildTeam();
-      team.setPreference(TeamPreference.Commenting, false);
+      team.setPreference(TeamPreference.Commenting, CommentingAccess.None);
       expect(team.changeset.attributes.preferences).toEqual({
-        commenting: false,
+        commenting: CommentingAccess.None,
       });
       expect(team.changeset.previous.preferences).toEqual({});
     });

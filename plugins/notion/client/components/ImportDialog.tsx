@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import type { ImportInput } from "@shared/schema";
 import type { CollectionPermission } from "@shared/types";
 import { IntegrationService } from "@shared/types";
@@ -50,10 +51,18 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
 
       onSubmit();
     } catch (err) {
-      toast.error(err.message);
+      toast.error(errToString(err));
       resetSubmitting();
     }
-  }, [permission, onSubmit]);
+  }, [
+    permission,
+    onSubmit,
+    integrationId,
+    t,
+    imports,
+    resetSubmitting,
+    setSubmitting,
+  ]);
 
   return (
     <Flex column gap={12}>

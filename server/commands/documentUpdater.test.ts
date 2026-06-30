@@ -3,6 +3,7 @@ import * as Y from "yjs";
 import { TextEditMode } from "@shared/types";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { Event } from "@server/models";
+import { parser } from "@server/editor";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { buildDocument, buildUser } from "@server/test/factories";
@@ -31,6 +32,26 @@ describe("documentUpdater", () => {
     expect(event!.documentId).toEqual(document.id);
   });
 
+  it("should change lastModifiedById when republishing an already published document", async () => {
+    const user = await buildUser();
+    const creator = await buildUser({ teamId: user.teamId });
+    let document = await buildDocument({
+      teamId: user.teamId,
+      userId: creator.id,
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Changed",
+        publish: true,
+        document,
+      })
+    );
+
+    expect(document.createdById).toEqual(creator.id);
+    expect(document.lastModifiedById).toEqual(user.id);
+  });
+
   it("should not change lastModifiedById or generate event if nothing changed", async () => {
     const user = await buildUser();
     let document = await buildDocument({
@@ -48,7 +69,7 @@ describe("documentUpdater", () => {
   });
 
   it("should notify collaboration server when text changes", async () => {
-    const notifyUpdateSpy = jest
+    const notifyUpdateSpy = vi
       .spyOn(APIUpdateExtension, "notifyUpdate")
       .mockResolvedValue(undefined);
 
@@ -75,7 +96,7 @@ describe("documentUpdater", () => {
   });
 
   it("should not notify collaboration server when only title changes", async () => {
-    const notifyUpdateSpy = jest
+    const notifyUpdateSpy = vi
       .spyOn(APIUpdateExtension, "notifyUpdate")
       .mockResolvedValue(undefined);
 
@@ -395,6 +416,40 @@ describe("documentUpdater", () => {
       expect(content[1]).toMatchObject({
         type: "paragraph",
         content: [{ type: "text", text: "This is a test" }],
+      });
+    });
+
+    it("should patch text retrieved via toMarkdown containing smart quotes and brackets", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "the cat’s “meow” [loud]" }],
+            },
+          ],
+        },
+      });
+
+      // findText is the exact text a client receives from retrieval.
+      const findText = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(findText).toBe("the cat’s “meow” [loud]");
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "quiet",
+        TextEditMode.Patch,
+        findText
+      );
+
+      expect(result.content!.content![0]).toMatchObject({
+        type: "paragraph",
+        content: [{ type: "text", text: "quiet" }],
       });
     });
 
@@ -1460,6 +1515,83 @@ describe("documentUpdater", () => {
       expect(list.content![1].content![0].content![0].text).toEqual(
         "Second item"
       );
+    });
+
+    it("should apply a link when wrapping existing table cell text", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({ teamId: user.teamId });
+
+      document.content = parser
+        .parse("| Name | Notes |\n|------|-------|\n| Alpha | see |\n")
+        .toJSON();
+      await document.save();
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "[see](https://example.com/docs)",
+        TextEditMode.Patch,
+        "see"
+      );
+
+      // The cell text is unchanged but should now carry a link mark — it must
+      // not be silently dropped during the merge.
+      const cellText =
+        result.content!.content![0].content![1].content![1].content![0]
+          .content![0];
+      expect(cellText.text).toEqual("see");
+      expect(cellText.marks).toEqual([
+        expect.objectContaining({
+          type: "link",
+          attrs: expect.objectContaining({ href: "https://example.com/docs" }),
+        }),
+      ]);
+    });
+
+    it("should preserve other table cells when adding a link to one cell", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({ teamId: user.teamId });
+
+      document.content = parser
+        .parse(
+          "| Name | Notes |\n|------|-------|\n| Alpha | see |\n| Beta | other |\n"
+        )
+        .toJSON();
+      await document.save();
+
+      // Capture the untouched (Beta) row BEFORE patching so we can assert its
+      // structure and attrs are preserved exactly, not just its text.
+      const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+      const untouchedRow = beforeDoc.content[0].content[2];
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "see [docs](https://example.com/d)",
+        TextEditMode.Patch,
+        "see"
+      );
+
+      // The patched cell gained the link
+      expect(result.text).toContain("[docs](https://example.com/d)");
+      // The untouched row node must remain identical
+      expect(result.content!.content![0].content![2]).toEqual(untouchedRow);
+    });
+
+    it("should apply a mark when wrapping existing list item text", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({ teamId: user.teamId });
+
+      document.content = parser.parse("- clickme\n- other\n").toJSON();
+      await document.save();
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "[clickme](https://example.com)",
+        TextEditMode.Patch,
+        "clickme"
+      );
+
+      expect(result.text).toContain("[clickme](https://example.com)");
+      expect(result.text).toContain("other");
     });
   });
 });

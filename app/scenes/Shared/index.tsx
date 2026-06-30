@@ -49,7 +49,7 @@ const canonicalOrigin = canonicalUrl
   : window.location.origin;
 
 type PathParams = {
-  shareId: string;
+  shareId?: string;
   collectionSlug?: string;
   documentSlug?: string;
 };
@@ -266,6 +266,7 @@ function SharedScene() {
             <Layout
               title={pageTitle}
               sidebar={hasSidebar ? <Sidebar share={share} /> : null}
+              sidebarCanCollapse={false}
             >
               {model instanceof Document ? (
                 <DocumentScene document={model} />

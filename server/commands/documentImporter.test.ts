@@ -1,12 +1,13 @@
 import path from "node:path";
 import fs from "fs-extra";
+import { errToString } from "@shared/utils/error";
 import { createContext } from "@server/context";
 import Attachment from "@server/models/Attachment";
 import { sequelize } from "@server/storage/database";
 import { buildUser } from "@server/test/factories";
 import documentImporter from "./documentImporter";
 
-jest.mock("@server/storage/files");
+vi.mock("@server/storage/files");
 
 describe("documentImporter", () => {
   it("should convert Word Document to markdown", async () => {
@@ -103,7 +104,7 @@ describe("documentImporter", () => {
         })
       );
     } catch (err) {
-      error = err.message;
+      error = errToString(err);
     }
 
     expect(error).toEqual("File type application/octet-stream not supported");
@@ -278,7 +279,7 @@ describe("documentImporter", () => {
         })
       );
     } catch (err) {
-      error = err.message;
+      error = errToString(err);
     }
 
     expect(error).toEqual("File type executable/zip not supported");

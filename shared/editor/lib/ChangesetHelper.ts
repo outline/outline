@@ -9,6 +9,155 @@ import { richExtensions, withComments } from "../nodes";
 import type { ProsemirrorData } from "../../types";
 
 /**
+ * The structural subset of a changeset `Change` that this module reads and
+ * produces. Using a `Pick` rather than the `Change` class avoids requiring
+ * class-only members (such as `toJSON`) on the plain objects we build.
+ */
+type ChangeFields<T> = Pick<
+  Change<T>,
+  "fromA" | "toA" | "fromB" | "toB" | "deleted" | "inserted"
+>;
+
+/**
+ * The maximum number of unchanged characters allowed between two adjacent
+ * changes for them to still be merged into a single change. This is
+ * deliberately small: merging absorbs the gap into the diff, so any unchanged
+ * text within it is rendered as deleted/reinserted. A value of 3 is the
+ * minimum that rejoins hyphenated word fragments such as replacing
+ * "no-await-in-loop", where the differ aligns the shared "no" and leaves an
+ * unchanged "no-" (gap of 3) between fragments, without swallowing longer
+ * unchanged words.
+ */
+const MAX_UNCHANGED_GAP = 3;
+
+/**
+ * Merges adjacent Change objects that represent interleaved deletions/insertions.
+ *
+ * When word-level diffing is used, replacing "no-await-in-loop" with
+ * "jsx-no-jsx-as-prop" can produce multiple adjacent Change objects like:
+ *   Change1: delete "no", insert "jsx"
+ *   Change2: delete "await", insert "no"
+ *   ...
+ *
+ * This function merges such adjacent changes into a single change:
+ *   Change: delete "no-await-in-loop", insert "jsx-no-jsx-as-prop"
+ *
+ * @param changes - The changes from simplifyChanges
+ * @param docOld - The old document (to extract merged deletion content)
+ * @returns Changes with adjacent interleaved changes merged
+ */
+function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
+  changes: readonly ChangeFields<T>[],
+  docOld: Node
+): ChangeFields<T>[] {
+  if (changes.length <= 1) {
+    return [...changes];
+  }
+
+  const result: ChangeFields<T>[] = [];
+  let i = 0;
+
+  while (i < changes.length) {
+    const current = changes[i];
+
+    // Check if this change and subsequent changes form a contiguous replacement
+    // (i.e., they're adjacent in both old and new document positions)
+    let j = i + 1;
+    while (j < changes.length) {
+      const prev = changes[j - 1];
+      const next = changes[j];
+
+      // Check if changes are adjacent (toA of prev equals fromA of next, same for B)
+      // Allow gaps (like hyphens or other unchanged characters between changes)
+      const gapA = next.fromA - prev.toA;
+      const gapB = next.fromB - prev.toB;
+
+      // Check if changes are in the same parent node (e.g., same table cell, same paragraph)
+      // by verifying that the gap in the old document doesn't cross node boundaries
+      let crossesNodeBoundary = false;
+      if (gapA > 0) {
+        try {
+          // If the gap contains any non-text node, it crosses a boundary
+          const gap = docOld.slice(prev.toA, next.fromA).content;
+          for (let n = 0; n < gap.childCount; n++) {
+            if (!gap.child(n).isText) {
+              crossesNodeBoundary = true;
+              break;
+            }
+          }
+        } catch {
+          crossesNodeBoundary = true;
+        }
+      }
+
+      // If gaps are equal, reasonably small, and don't cross node boundaries,
+      // they're part of the same logical replacement
+      if (
+        gapA === gapB &&
+        gapA >= 0 &&
+        gapA <= MAX_UNCHANGED_GAP &&
+        !crossesNodeBoundary
+      ) {
+        j++;
+      } else {
+        break;
+      }
+    }
+
+    // The merged change only needs the first deletion/insertion in the window
+    // to carry forward the originating step; the spans themselves are
+    // recomputed from the window bounds below.
+    let firstDeleted: { length: number; data: T } | undefined;
+    let firstInserted: { length: number; data: T } | undefined;
+    for (let k = i; k < j; k++) {
+      firstDeleted ??= changes[k].deleted[0];
+      firstInserted ??= changes[k].inserted[0];
+    }
+
+    // Merge the window only when it is a genuine replacement — it must contain
+    // both a deletion and an insertion. Otherwise a cluster of pure insertions
+    // (or pure deletions) separated by a short unchanged gap would merge and
+    // render the unchanged text between them as inserted/deleted.
+    if (j > i + 1 && firstDeleted && firstInserted) {
+      const lastChange = changes[j - 1];
+
+      // Create merged change. The deletion slice holds the original (old) text
+      // spanning the whole window so it renders as one block; it is not treated
+      // as a modification downstream because its text differs from the insertion.
+      const mergedChange: ChangeFields<T> = {
+        fromA: current.fromA,
+        toA: lastChange.toA,
+        fromB: current.fromB,
+        toB: lastChange.toB,
+        deleted: [
+          {
+            length: lastChange.toA - current.fromA,
+            data: {
+              ...firstDeleted.data,
+              slice: docOld.slice(current.fromA, lastChange.toA),
+            } as T,
+          },
+        ],
+        inserted: [
+          {
+            length: lastChange.toB - current.fromB,
+            data: firstInserted.data,
+          },
+        ],
+      };
+
+      result.push(mergedChange);
+      i = j;
+    } else {
+      result.push(current);
+      i++;
+    }
+  }
+
+  return result;
+}
+
+/**
  * Represents a modification (attribute change) in the document.
  */
 export type Modification = {
@@ -24,7 +173,10 @@ export type Modification = {
 /**
  * Extended Change type that includes modifications.
  */
-export interface ExtendedChange extends Change {
+export interface ExtendedChange extends Pick<
+  Change,
+  "fromA" | "toA" | "fromB" | "toB" | "deleted" | "inserted"
+> {
   modified: readonly Modification[];
 }
 
@@ -144,7 +296,11 @@ export class ChangesetHelper {
         }))
       );
 
-      let changes = simplifyChanges(changeset.changes, docNew);
+      // Merge interleaved deletions/insertions into cleaner blocks
+      const changes = mergeInterleavedChanges(
+        simplifyChanges(changeset.changes, docNew),
+        docOld
+      );
 
       // Post-process changes to detect modifications (attribute-only changes)
       const extendedChanges: ExtendedChange[] = changes.map((change) => {
@@ -252,8 +408,7 @@ export class ChangesetHelper {
           }
         }
 
-        return {
-          ...change,
+        return Object.assign({}, change, {
           deleted: change.deleted.filter(
             (_, index) => !matchedDeletionIndices.has(index)
           ),
@@ -261,7 +416,7 @@ export class ChangesetHelper {
             (_, index) => !matchedInsertionIndices.has(index)
           ),
           modified,
-        };
+        });
       });
 
       return {

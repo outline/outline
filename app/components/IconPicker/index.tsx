@@ -79,7 +79,9 @@ const IconPicker = ({
 
   const [activeTab, setActiveTab] = React.useState<TabName>(defaultTab);
 
-  const popoverWidth = isMobile ? windowWidth : POPOVER_WIDTH;
+  // The Drawer's inner content has 6px padding on each side; subtract it
+  // so the panel doesn't overflow horizontally and itemsPerRow is correct.
+  const popoverWidth = isMobile ? windowWidth - 12 : POPOVER_WIDTH;
 
   const handleTabChange = React.useCallback((value: string) => {
     setActiveTab(value as TabName);
@@ -105,7 +107,6 @@ const IconPicker = ({
 
   const handleIconChange = React.useCallback(
     (ic: string) => {
-      setOpen(false);
       const icType = determineIconType(ic);
       const finalColor = icType === IconType.SVG ? chosenColor : null;
       onChange(ic, finalColor);

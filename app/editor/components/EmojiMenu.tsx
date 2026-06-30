@@ -1,4 +1,4 @@
-import capitalize from "lodash/capitalize";
+import { capitalize } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useCallback, useMemo, useEffect } from "react";
 import { emojiMartToGemoji, snakeCase } from "@shared/editor/lib/emoji";

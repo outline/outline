@@ -1,4 +1,11 @@
-import fetchMock from "jest-fetch-mock";
+import { FetchError } from "node-fetch";
+import {
+  http,
+  HttpResponse,
+  type DefaultBodyType,
+  type StrictRequest,
+} from "msw";
+import { server } from "@server/test/msw";
 import { WebhookDelivery } from "@server/models";
 import {
   buildUser,
@@ -6,15 +13,31 @@ import {
   buildWebhookSubscription,
 } from "@server/test/factories";
 import type { UserEvent } from "@server/types";
-import DeliverWebhookTask from "./DeliverWebhookTask";
-
-beforeEach(async () => {
-  jest.resetAllMocks();
-  fetchMock.resetMocks();
-  fetchMock.doMock();
-});
+import DeliverWebhookTask, {
+  isExpectedNetworkError,
+} from "./DeliverWebhookTask";
 
 const ip = "127.0.0.1";
+
+type CapturedRequest = {
+  request: StrictRequest<DefaultBodyType>;
+  body: string;
+};
+
+const captureWebhook = (
+  url: string,
+  response: () => Response = () => new HttpResponse(null, { status: 200 })
+) => {
+  const captured: CapturedRequest[] = [];
+  server.use(
+    http.post(url, async ({ request }) => {
+      const cloned = request.clone();
+      captured.push({ request, body: await cloned.text() });
+      return response();
+    })
+  );
+  return captured;
+};
 
 describe("DeliverWebhookTask", () => {
   test("should hit the subscription url and record a delivery", async () => {
@@ -25,7 +48,10 @@ describe("DeliverWebhookTask", () => {
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const processor = new DeliverWebhookTask();
 
-    fetchMock.mockResponse("SUCCESS", { status: 200 });
+    const captured = captureWebhook(
+      "http://example.com",
+      () => new HttpResponse("SUCCESS", { status: 200 })
+    );
 
     const event: UserEvent = {
       name: "users.signin",
@@ -39,14 +65,9 @@ describe("DeliverWebhookTask", () => {
       event,
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
-      "http://example.com",
-      expect.anything()
-    );
-    const parsedBody = JSON.parse(
-      fetchMock.mock.calls[0]![1]!.body!.toString()
-    );
+    expect(captured.length).toBe(1);
+    expect(captured[0].request.url).toBe("http://example.com/");
+    const parsedBody = JSON.parse(captured[0].body);
     expect(parsedBody.webhookSubscriptionId).toBe(subscription.id);
     expect(parsedBody.event).toBe("users.signin");
     expect(parsedBody.payload.id).toBe(signedInUser.id);
@@ -72,6 +93,8 @@ describe("DeliverWebhookTask", () => {
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const processor = new DeliverWebhookTask();
 
+    const captured = captureWebhook("http://example.com");
+
     const event: UserEvent = {
       name: "users.signin",
       userId: signedInUser.id,
@@ -84,13 +107,10 @@ describe("DeliverWebhookTask", () => {
       event,
     });
 
-    const headers = fetchMock.mock.calls[0]![1]!.headers! as Record<
-      string,
-      string
-    >;
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(headers["Outline-Signature"]).toMatch(/^t=[0-9]+,s=[a-z0-9]+$/);
+    expect(captured.length).toBe(1);
+    expect(captured[0].request.headers.get("Outline-Signature")).toMatch(
+      /^t=[0-9]+,s=[a-z0-9]+$/
+    );
   });
 
   test("should hit the subscription url when the eventing model doesn't exist", async () => {
@@ -110,19 +130,16 @@ describe("DeliverWebhookTask", () => {
       ip,
     };
 
+    const captured = captureWebhook("http://example.com");
+
     await task.perform({
       event,
       subscriptionId: subscription.id,
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
-      "http://example.com",
-      expect.anything()
-    );
-    const parsedBody = JSON.parse(
-      fetchMock.mock.calls[0]![1]!.body!.toString()
-    );
+    expect(captured.length).toBe(1);
+    expect(captured[0].request.url).toBe("http://example.com/");
+    const parsedBody = JSON.parse(captured[0].body);
     expect(parsedBody.webhookSubscriptionId).toBe(subscription.id);
     expect(parsedBody.event).toBe("users.delete");
     expect(parsedBody.payload.id).toBe(deletedUserId);
@@ -144,7 +161,10 @@ describe("DeliverWebhookTask", () => {
       events: ["*"],
     });
 
-    fetchMock.mockResponse("FAILED", { status: 500 });
+    captureWebhook(
+      "http://example.com",
+      () => new HttpResponse("FAILED", { status: 500 })
+    );
 
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const task = new DeliverWebhookTask();
@@ -190,9 +210,9 @@ describe("DeliverWebhookTask", () => {
       });
     }
 
-    fetchMock.mockResponse(JSON.stringify({ message: "Failure" }), {
-      status: 500,
-    });
+    captureWebhook("http://example.com", () =>
+      HttpResponse.json({ message: "Failure" }, { status: 500 })
+    );
 
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const task = new DeliverWebhookTask();
@@ -224,5 +244,65 @@ describe("DeliverWebhookTask", () => {
     expect(delivery.status).toBe("failed");
     expect(delivery.statusCode).toBe(500);
     expect(delivery.responseBody).toEqual('{"message":"Failure"}');
+  });
+});
+
+describe("isExpectedNetworkError", () => {
+  test("treats node-fetch FetchError as expected", () => {
+    expect(
+      isExpectedNetworkError(
+        new FetchError("request to https://example.com failed", "system")
+      )
+    ).toBe(true);
+  });
+
+  test("treats raw socket errors as expected", () => {
+    expect(isExpectedNetworkError(new Error("socket hang up"))).toBe(true);
+    expect(
+      isExpectedNetworkError(
+        Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" })
+      )
+    ).toBe(true);
+  });
+
+  test("treats connection error codes as expected", () => {
+    for (const code of [
+      "ECONNREFUSED",
+      "ETIMEDOUT",
+      "EHOSTUNREACH",
+      "ENOTFOUND",
+      "EAI_AGAIN",
+    ]) {
+      expect(
+        isExpectedNetworkError(Object.assign(new Error("boom"), { code }))
+      ).toBe(true);
+    }
+  });
+
+  test("treats invalid certificate errors as expected", () => {
+    expect(
+      isExpectedNetworkError(
+        Object.assign(new Error("self signed certificate"), {
+          code: "DEPTH_ZERO_SELF_SIGNED_CERT",
+        })
+      )
+    ).toBe(true);
+  });
+
+  test("treats the request timeout thrown by the fetch wrapper as expected", () => {
+    expect(
+      isExpectedNetworkError(new Error("Request timeout after 5000ms"))
+    ).toBe(true);
+  });
+
+  test("does not treat unrelated errors as expected", () => {
+    expect(
+      isExpectedNetworkError(new TypeError("undefined is not a function"))
+    ).toBe(false);
+    expect(
+      isExpectedNetworkError(new Error("Cannot read property foo of undefined"))
+    ).toBe(false);
+    expect(isExpectedNetworkError("socket hang up")).toBe(false);
+    expect(isExpectedNetworkError(undefined)).toBe(false);
   });
 });

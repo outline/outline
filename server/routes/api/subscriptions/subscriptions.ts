@@ -15,6 +15,7 @@ import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { safeEqual } from "@server/utils/crypto";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -114,6 +115,7 @@ router.post(
 
 router.post(
   "subscriptions.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.SubscriptionsCreateSchema),
   transaction(),
@@ -121,19 +123,20 @@ router.post(
     const { user } = ctx.state.auth;
     const { event, collectionId, documentId } = ctx.input.body;
 
+    if (documentId) {
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+      });
+
+      authorize(user, "subscribe", document);
+    }
+
     if (collectionId) {
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
 
       authorize(user, "subscribe", collection);
-    } else {
-      // documentId will be available here
-      const document = await Document.findByPk(documentId!, {
-        userId: user.id,
-      });
-
-      authorize(user, "subscribe", document);
     }
 
     const subscription = await subscriptionCreator({
@@ -169,7 +172,7 @@ router.get(
       documentId
     );
 
-    if (unsubscribeToken !== token) {
+    if (!safeEqual(unsubscribeToken, token)) {
       ctx.redirect(`${env.URL}?notice=invalid-auth`);
       return;
     }

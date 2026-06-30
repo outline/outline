@@ -1,5 +1,6 @@
-import uniq from "lodash/uniq";
+import { chunk, uniq } from "es-toolkit/compat";
 import { Op, QueryTypes } from "sequelize";
+import { sleep } from "@shared/utils/timers";
 import Logger from "@server/logging/Logger";
 import { Document, Attachment } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -77,25 +78,53 @@ export default async function documentPermanentDeleter(documents: Document[]) {
   }
 
   const documentIds = documents.map((document) => document.id);
-  await Document.update(
-    {
-      parentDocumentId: null,
-    },
-    {
-      where: {
-        parentDocumentId: {
-          [Op.in]: documentIds,
-        },
-      },
-      paranoid: false,
-    }
-  );
 
-  return Document.scope("withDrafts").destroy({
+  // Re-check deletedAt in the database to exclude documents that were restored
+  // between the caller's query and now. Otherwise the parentDocumentId clear
+  // below would detach children of a restored parent, breaking the hierarchy.
+  const stillDeleted = await Document.unscoped().findAll({
+    attributes: ["id"],
     where: {
       id: documentIds,
       deletedAt: { [Op.ne]: null },
     },
-    force: true,
+    paranoid: false,
   });
+  const deletedIds = stillDeleted.map((document) => document.id);
+
+  for (const batch of chunk(deletedIds, 100)) {
+    await Document.update(
+      {
+        parentDocumentId: null,
+      },
+      {
+        where: {
+          parentDocumentId: {
+            [Op.in]: batch,
+          },
+        },
+        paranoid: false,
+      }
+    );
+  }
+
+  // Small batch size and inter-batch sleep keep the exclusive lock window short
+  // enough to avoid blocking concurrent web requests, since each delete
+  // cascades into vectors, attachments, revisions, comments, and notifications.
+  const destroyBatches = chunk(deletedIds, 10);
+
+  let totalDeleted = 0;
+  for (let i = 0; i < destroyBatches.length; i++) {
+    totalDeleted += await Document.scope("withDrafts").destroy({
+      where: {
+        id: destroyBatches[i],
+        deletedAt: { [Op.ne]: null },
+      },
+      force: true,
+    });
+    if (i < destroyBatches.length - 1) {
+      await sleep(100);
+    }
+  }
+  return totalDeleted;
 }

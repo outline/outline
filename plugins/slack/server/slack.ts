@@ -1,4 +1,5 @@
-import querystring from "node:querystring";
+import querystring, { type ParsedUrlQueryInput } from "node:querystring";
+import { errToString } from "@shared/utils/error";
 import { InvalidRequestError } from "@server/errors";
 import fetch from "@server/utils/fetch";
 import { SlackUtils } from "../shared/SlackUtils";
@@ -13,7 +14,10 @@ const SLACK_API_URL = "https://slack.com/api";
  * @param body - the request body containing token and other parameters.
  * @returns the parsed JSON response from Slack.
  */
-export async function post(endpoint: string, body: Record<string, any>) {
+export async function post(
+  endpoint: string,
+  body: { token: string } & Record<string, unknown>
+) {
   let data;
   const { token, ...bodyWithoutToken } = body;
 
@@ -28,7 +32,7 @@ export async function post(endpoint: string, body: Record<string, any>) {
     });
     data = await response.json();
   } catch (err) {
-    throw InvalidRequestError(err.message);
+    throw InvalidRequestError(errToString(err));
   }
 
   if (!data.ok) {
@@ -44,7 +48,10 @@ export async function post(endpoint: string, body: Record<string, any>) {
  * @param body - the request parameters.
  * @returns the parsed JSON response from Slack.
  */
-export async function request(endpoint: string, body: Record<string, any>) {
+export async function request(
+  endpoint: string,
+  body: { client_id?: string; client_secret?: string } & ParsedUrlQueryInput
+) {
   let data;
   const { client_id, client_secret, ...params } = body;
 
@@ -70,7 +77,7 @@ export async function request(endpoint: string, body: Record<string, any>) {
     });
     data = await response.json();
   } catch (err) {
-    throw InvalidRequestError(err.message);
+    throw InvalidRequestError(errToString(err));
   }
 
   if (!data.ok) {

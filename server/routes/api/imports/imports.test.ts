@@ -37,12 +37,11 @@ describe("#imports.create", () => {
     });
     const input: NotionImportInput = [{ permission: undefined }];
 
-    const res = await server.post("/api/imports.create", {
+    const res = await server.post("/api/imports.create", admin, {
       body: {
         integrationId: integration.id,
         service: IntegrationService.Notion,
         input,
-        token: admin.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -60,6 +59,12 @@ describe("#imports.create", () => {
     const integration = await buildIntegration({
       userId: admin.id,
       teamId: admin.teamId,
+      service: IntegrationService.Notion,
+      type: IntegrationType.Import,
+      settings: {
+        externalWorkspace: { id: "ws-1", name: "Test Workspace" },
+        // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
     });
     const input: NotionImportInput = [
       { permission: CollectionPermission.Read },
@@ -70,12 +75,11 @@ describe("#imports.create", () => {
       integrationId: integration.id,
     });
 
-    const res = await server.post("/api/imports.create", {
+    const res = await server.post("/api/imports.create", admin, {
       body: {
         integrationId: integration.id,
         service: ImportableIntegrationService.Notion,
         input,
-        token: admin.getJwtToken(),
       },
     });
 
@@ -91,11 +95,7 @@ describe("#imports.create", () => {
   it("should require user to be admin", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/imports.create", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/imports.create", user);
 
     expect(res.status).toEqual(403);
   });
@@ -105,20 +105,19 @@ describe("#imports.list", () => {
   it("should list all imports", async () => {
     const admin = await buildAdmin();
     const [importOne, importTwo] = await Promise.all([
-      await buildImport({
+      buildImport({
         createdById: admin.id,
         teamId: admin.teamId,
       }),
-      await buildImport({
+      buildImport({
         createdById: admin.id,
         teamId: admin.teamId,
       }),
     ]);
 
-    const res = await server.post("/api/imports.list", {
+    const res = await server.post("/api/imports.list", admin, {
       body: {
         service: IntegrationService.Notion,
-        token: admin.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -143,11 +142,7 @@ describe("#imports.list", () => {
   it("should require user to be admin", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/imports.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/imports.list", user);
 
     expect(res.status).toEqual(403);
   });
@@ -161,10 +156,9 @@ describe("#imports.info", () => {
       teamId: admin.teamId,
     });
 
-    const res = await server.post("/api/imports.info", {
+    const res = await server.post("/api/imports.info", admin, {
       body: {
         id: importModel.id,
-        token: admin.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -182,36 +176,34 @@ describe("#imports.info", () => {
   it("should require user to be admin", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/imports.info", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/imports.info", user);
 
     expect(res.status).toEqual(403);
   });
 });
 
 describe("#imports.delete", () => {
-  it("should delete the import", async () => {
-    const admin = await buildAdmin();
-    const importModel = await buildImport({
-      state: ImportState.Completed,
-      createdById: admin.id,
-      teamId: admin.teamId,
-    });
+  it.each([ImportState.Completed, ImportState.Errored, ImportState.Canceled])(
+    "should delete the import when in %s state",
+    async (state) => {
+      const admin = await buildAdmin();
+      const importModel = await buildImport({
+        state,
+        createdById: admin.id,
+        teamId: admin.teamId,
+      });
 
-    const res = await server.post("/api/imports.delete", {
-      body: {
-        id: importModel.id,
-        token: admin.getJwtToken(),
-      },
-    });
-    const body = await res.json();
+      const res = await server.post("/api/imports.delete", admin, {
+        body: {
+          id: importModel.id,
+        },
+      });
+      const body = await res.json();
 
-    expect(res.status).toEqual(200);
-    expect(body.success).toEqual(true);
-  });
+      expect(res.status).toEqual(200);
+      expect(body.success).toEqual(true);
+    }
+  );
 
   it("should throw error when import is not in deletable state", async () => {
     const admin = await buildAdmin();
@@ -221,10 +213,9 @@ describe("#imports.delete", () => {
       teamId: admin.teamId,
     });
 
-    const res = await server.post("/api/imports.delete", {
+    const res = await server.post("/api/imports.delete", admin, {
       body: {
         id: importModel.id,
-        token: admin.getJwtToken(),
       },
     });
 
@@ -240,11 +231,7 @@ describe("#imports.delete", () => {
   it("should require user to be admin", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/imports.delete", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/imports.delete", user);
 
     expect(res.status).toEqual(403);
   });
@@ -258,10 +245,9 @@ describe("#imports.cancel", () => {
       teamId: admin.teamId,
     });
 
-    const res = await server.post("/api/imports.cancel", {
+    const res = await server.post("/api/imports.cancel", admin, {
       body: {
         id: importModel.id,
-        token: admin.getJwtToken(),
       },
     });
     const body = await res.json();
@@ -279,10 +265,9 @@ describe("#imports.cancel", () => {
       teamId: admin.teamId,
     });
 
-    const res = await server.post("/api/imports.cancel", {
+    const res = await server.post("/api/imports.cancel", admin, {
       body: {
         id: importModel.id,
-        token: admin.getJwtToken(),
       },
     });
 
@@ -298,11 +283,7 @@ describe("#imports.cancel", () => {
   it("should require user to be admin", async () => {
     const user = await buildUser();
 
-    const res = await server.post("/api/imports.cancel", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
+    const res = await server.post("/api/imports.cancel", user);
 
     expect(res.status).toEqual(403);
   });

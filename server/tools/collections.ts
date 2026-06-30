@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { CollectionPermission } from "@shared/types";
 import { Collection, Team } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import { authorize } from "@server/policies";
 import { presentCollection } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
@@ -12,6 +12,7 @@ import {
   error,
   getActorFromContext,
   buildAPIContext,
+  optionalString,
   pathToUrl,
   withTracing,
 } from "./util";
@@ -36,12 +37,9 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           readOnlyHint: true,
         },
         inputSchema: {
-          query: z
-            .string()
-            .optional()
-            .describe(
-              "An optional search query to filter collections by name."
-            ),
+          query: optionalString().describe(
+            "An optional search query to filter collections by name."
+          ),
           offset: z.coerce
             .number()
             .int()
@@ -156,14 +154,12 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .string()
             .optional()
             .describe("A markdown description for the collection."),
-          icon: z
-            .string()
-            .optional()
-            .describe("An icon for the collection, e.g. an emoji."),
-          color: z
-            .string()
-            .optional()
-            .describe("The hex color for the collection icon, e.g. #FF0000."),
+          icon: optionalString().describe(
+            "An icon for the collection, e.g. an emoji."
+          ),
+          color: optionalString().describe(
+            "The hex color for the collection icon, e.g. #FF0000."
+          ),
         },
       },
       withTracing("create_collection", async (input, context) => {
@@ -182,7 +178,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             color: input.color,
             teamId: user.teamId,
             createdById: user.id,
-            permission: CollectionPermission.ReadWrite,
+            permission: null,
           });
 
           await collection.saveWithCtx(ctx);
@@ -219,10 +215,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           id: z
             .string()
             .describe("The unique identifier of the collection to update."),
-          name: z
-            .string()
-            .optional()
-            .describe("The new name for the collection."),
+          name: optionalString().describe("The new name for the collection."),
           description: z
             .string()
             .optional()
@@ -274,6 +267,61 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             await presentCollection(undefined, collection)
           );
           return success(presented);
+        } catch (message) {
+          return error(message);
+        }
+      })
+    );
+  }
+
+  if (AuthenticationHelper.canAccess("collections.delete", scopes)) {
+    server.registerTool(
+      "delete_collection",
+      {
+        title: "Delete collection",
+        description:
+          "Deletes a collection by its ID. Non-archived documents within the collection will also be deleted. Set archive to true to archive the collection instead of deleting it.",
+        annotations: {
+          idempotentHint: false,
+          readOnlyHint: false,
+        },
+        inputSchema: {
+          id: z
+            .string()
+            .describe("The unique identifier of the collection to delete."),
+          archive: z
+            .boolean()
+            .optional()
+            .describe(
+              "Set to true to archive the collection instead of deleting it. All documents within the collection will also be archived."
+            ),
+        },
+      },
+      withTracing("delete_collection", async ({ id, archive }, context) => {
+        try {
+          const ctx = buildAPIContext(context);
+          const { user } = ctx.state.auth;
+
+          await sequelize.transaction(async (transaction) => {
+            ctx.state.transaction = transaction;
+            ctx.context.transaction = transaction;
+
+            const collection = await Collection.findByPk(id, {
+              userId: user.id,
+              rejectOnEmpty: true,
+              transaction,
+            });
+
+            if (archive) {
+              authorize(user, "archive", collection);
+              await collection.archiveWithCtx(ctx);
+            } else {
+              authorize(user, "delete", collection);
+              await collection.destroyWithCtx(ctx);
+            }
+          });
+
+          return success({ success: true });
         } catch (message) {
           return error(message);
         }

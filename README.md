@@ -61,7 +61,7 @@ can be enabled for all categories by setting `DEBUG=*` or for specific categorie
 
 We aim to have sufficient test coverage for critical parts of the application and aren't aiming for 100% unit test coverage. All API endpoints and anything authentication related should be thoroughly tested.
 
-To add new tests, write your tests with [Jest](https://facebook.github.io/jest/) and add a file with `.test.ts` extension next to the tested code.
+To add new tests, write your tests with [Vitest](https://vitest.dev/) and add a file with `.test.ts` extension next to the tested code.
 
 ```shell
 # To run all tests
@@ -72,7 +72,7 @@ make watch
 ```
 
 Once the test database is created with `make test` you may individually run
-frontend and backend tests directly with jest:
+frontend and backend tests directly with vitest:
 
 ```shell
 # To run backend tests

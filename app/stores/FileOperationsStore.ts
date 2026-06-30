@@ -1,4 +1,4 @@
-import orderBy from "lodash/orderBy";
+import { orderBy } from "es-toolkit/compat";
 import { computed } from "mobx";
 import { FileOperationType } from "@shared/types";
 import FileOperation from "~/models/FileOperation";

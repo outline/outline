@@ -29,6 +29,16 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   void initI18n();
 
   if (env.isProduction) {
+    // Trust the X-Forwarded-* headers set by an upstream proxy, eg
+    // X-Forwarded-For. Defaults to true, but can be disabled with
+    // PROXY_HEADERS_TRUSTED when the app is reachable directly.
+    if (env.PROXY_HEADERS_TRUSTED) {
+      app.proxy = true;
+      if (env.PROXY_IP_HEADER) {
+        app.proxyIpHeader = env.PROXY_IP_HEADER;
+      }
+    }
+
     // Force redirect to HTTPS protocol unless explicitly disabled
     if (env.FORCE_HTTPS) {
       app.use(
@@ -37,18 +47,15 @@ export default function init(app: Koa = new Koa(), server?: Server) {
             if (httpsResolver(ctx)) {
               return true;
             }
-            return xForwardedProtoResolver(ctx);
+            // Only honor X-Forwarded-Proto when proxy headers are trusted
+            return env.PROXY_HEADERS_TRUSTED
+              ? xForwardedProtoResolver(ctx)
+              : false;
           },
         })
       );
     } else {
       Logger.warn("Enforced https was disabled with FORCE_HTTPS env variable");
-    }
-
-    // trust header fields set by our proxy. eg X-Forwarded-For
-    app.proxy = true;
-    if (env.PROXY_IP_HEADER) {
-      app.proxyIpHeader = env.PROXY_IP_HEADER;
     }
   }
 

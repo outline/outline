@@ -1,19 +1,100 @@
 import crypto from "node:crypto";
 import { addMinutes, subMinutes } from "date-fns";
-import type { Context } from "koa";
+import type { Context, Next } from "koa";
 import type {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
 } from "passport-oauth2";
 import type { Primitive } from "utility-types";
+import { toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
-import { Team } from "@server/models";
+import { Team, User } from "@server/models";
+import Redis from "@server/storage/redis";
 import { InternalError, OAuthStateMismatchError } from "../errors";
+import { hash, safeEqual } from "./crypto";
 import fetch from "./fetch";
 import { getUserForJWT } from "./jwt";
+import {
+  hashOAuthStateNonce,
+  signOAuthIntent,
+  signOAuthState,
+  verifyOAuthIntent,
+  verifyOAuthState,
+} from "./oauthState";
 
+const FLOW_QUERY_PARAM = "flow";
+const OAUTH_CSRF_COOKIE = "oauth_csrf";
+const OAUTH_INTENT_PREFIX = "oauth:intent:";
+const OAUTH_INTENT_TTL_SECONDS = 10 * 60;
+const ACTOR_SESSION_HASH_KEYLEN = 64;
+
+/**
+ * Middleware for OAuth start routes that bridges cookie scopes between custom
+ * team domains and the apex (env.URL) where the OAuth callback always lands.
+ *
+ * The OAuth callback always lands on the apex domain, while a user's
+ * `accessToken` session cookie may be host-scoped to a custom team domain. To
+ * make the "connect a new auth provider while signed in" flow work from a
+ * custom domain:
+ *
+ *   1. On a custom team domain — create a short-lived signed intent containing
+ *      the original host and actor id, then bounce to the apex with it.
+ *   2. On the apex — verify the signed intent and stash it on `ctx.state` so
+ *      `StateStore.store` can fold it into the signed OAuth `state` parameter.
+ *
+ * Non-custom team subdomains skip the bounce because the start route can read
+ * the host-scoped session and set the OAuth CSRF cookie on the base domain for
+ * the apex callback. Self-hosted deployments have a single domain and pass
+ * through.
+ */
+export async function startOAuthFlow(ctx: Context, next: Next) {
+  if (!env.isCloudHosted) {
+    return next();
+  }
+
+  const apex = new URL(env.URL);
+  const onApex = ctx.hostname === apex.hostname;
+  const isCustom = parseDomain(ctx.hostname).custom;
+
+  if (isCustom && !onApex) {
+    const url = new URL(ctx.originalUrl, apex);
+    const client = getClientFromInput(ctx);
+    const actor = await getOAuthActor(ctx);
+    const flow = signOAuthIntent({
+      host: ctx.hostname,
+      actorId: actor?.id,
+      actorSessionHash: actor ? getActorSessionHash(actor) : undefined,
+      client,
+    });
+
+    url.searchParams.delete(FLOW_QUERY_PARAM);
+    url.searchParams.set(FLOW_QUERY_PARAM, flow);
+    await storeOAuthIntent(flow);
+
+    return ctx.redirect(url.toString());
+  }
+
+  const flow = ctx.query[FLOW_QUERY_PARAM];
+  if (onApex && typeof flow === "string" && flow) {
+    try {
+      const intent = verifyOAuthIntent(flow);
+      if (await consumeOAuthIntent(flow)) {
+        ctx.state.oauthIntent = intent;
+      }
+    } catch {
+      // Invalid or expired intent — proceed without an actor.
+      // The user can still complete the OAuth flow as a fresh sign-in.
+    }
+  }
+
+  return next();
+}
+
+/**
+ * Passport OAuth state store backed by signed state and a CSRF nonce cookie.
+ */
 export class StateStore {
   constructor(private pkce = false) {}
 
@@ -26,8 +107,8 @@ export class StateStore {
     _meta?: unknown,
     cb?: StateStoreStoreCallback
   ) => {
-    // token is a short lived one-time pad to prevent replay attacks
-    const token = crypto.randomBytes(8).toString("hex");
+    const context = getKoaContext(ctx);
+    const csrfNonce = crypto.randomBytes(16).toString("hex");
 
     // Note parameters are based on whether PKCE is in use or not, this is parameters
     // of how the underlying library is architected, see:
@@ -43,24 +124,35 @@ export class StateStore {
 
     // We expect host to be a team subdomain, custom domain, or apex domain
     // that is passed via query param from the auth provider component.
-    const clientInput = ctx.query.client?.toString();
-    const client = clientInput === Client.Desktop ? Client.Desktop : Client.Web;
-    const host = ctx.query.host?.toString() || parseDomain(ctx.hostname).host;
-    const accessToken = ctx.cookies.get("accessToken");
-    const state = buildState({
+    const client =
+      context.state.oauthIntent?.client ?? getClientFromInput(context);
+    const host =
+      context.state.oauthIntent?.host ??
+      context.query.host?.toString() ??
+      parseDomain(context.hostname).host;
+    const actorId =
+      context.state.oauthIntent?.actorId ?? getAuthenticatedUserId(context);
+    const actorSessionHash =
+      context.state.oauthIntent?.actorSessionHash ??
+      getAuthenticatedUserSessionHash(context);
+    const state = signOAuthState({
       host,
-      token,
+      actorId,
+      actorSessionHash,
       client,
       codeVerifier,
-      accessToken,
+      nonceHash: hashOAuthStateNonce(csrfNonce),
     });
 
-    ctx.cookies.set(this.key, state, {
+    context.cookies.set(OAUTH_CSRF_COOKIE, csrfNonce, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: env.isProduction,
       expires: addMinutes(new Date(), 10),
-      domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
+      domain: getCookieDomain(context.hostname, env.isCloudHosted),
     });
 
-    callback(null, token);
+    callback(null, state);
   };
 
   verify = (
@@ -68,34 +160,35 @@ export class StateStore {
     providedToken: string,
     callback: StateStoreVerifyCallback
   ) => {
-    const state = ctx.cookies.get(this.key);
-
-    if (!state) {
-      return callback(
-        OAuthStateMismatchError("No state was available after OAuth flow"),
-        false,
-        state
-      );
-    }
-
-    const { token, codeVerifier } = parseState(state);
-
-    // Destroy the one-time pad token and ensure it matches
-    ctx.cookies.set(this.key, "", {
+    const context = getKoaContext(ctx);
+    const csrfNonce = context.cookies.get(OAUTH_CSRF_COOKIE);
+    context.cookies.set(OAUTH_CSRF_COOKIE, "", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: env.isProduction,
       expires: subMinutes(new Date(), 1),
-      domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
+      domain: getCookieDomain(context.hostname, env.isCloudHosted),
     });
 
-    if (!token || token !== providedToken) {
+    let state;
+    try {
+      state = verifyOAuthState(providedToken);
+    } catch (err) {
+      return callback(toError(err), false, providedToken);
+    }
+
+    if (!safeEqual(hashOAuthStateNonce(csrfNonce ?? ""), state.nonceHash)) {
       return callback(
-        OAuthStateMismatchError("Token in state mismatched"),
+        OAuthStateMismatchError("OAuth CSRF nonce mismatched"),
         false,
-        token
+        providedToken
       );
     }
 
+    context.state.oauthState = state;
+
     // @ts-expect-error Type in library is wrong
-    callback(null, codeVerifier ?? true, state);
+    callback(null, state.codeVerifier ?? true, providedToken);
   };
 }
 
@@ -123,34 +216,18 @@ export async function request(
   }
 }
 
-function buildState({
-  host,
-  token,
-  client,
-  codeVerifier,
-  accessToken,
-}: {
-  host: string;
-  token: string;
-  client?: Client;
-  codeVerifier?: string;
-  accessToken?: string;
-}) {
-  return [host, token, client, codeVerifier, accessToken].join("|");
-}
-
 /**
  * Parses the state string into its components.
  *
  * @param state The state string
- * @returns An object containing the parsed components
+ * @returns An object containing the parsed components, if valid.
  */
 export function parseState(state: string) {
-  const [host, token, client, rawCodeVerifier, rawAccessToken] =
-    state.split("|");
-  const codeVerifier = rawCodeVerifier ? rawCodeVerifier : undefined;
-  const accessToken = rawAccessToken ? rawAccessToken : undefined;
-  return { host, token, client, codeVerifier, accessToken };
+  try {
+    return verifyOAuthState(state);
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -161,52 +238,45 @@ export function parseState(state: string) {
  * @returns The client type, defaults to Client.Web
  */
 export function getClientFromOAuthState(ctx: Context): Client {
-  const state = ctx.cookies.get("state");
-  const client = state ? parseState(state).client : undefined;
+  const context = getKoaContext(ctx);
+  const client = context.state.oauthState?.client;
   return client === Client.Desktop ? Client.Desktop : Client.Web;
 }
 
 /**
- * Returns the access token from the context if available. This is used
- * to restore the session during the OAuth flow when connecting additional
- * providers to an existing team.
+ * Returns the actor referenced by verified OAuth state, if available. This is
+ * used to restore the originating user during the OAuth flow when connecting
+ * additional providers to an existing team.
  *
  * @param ctx The Koa context
- * @returns The access token if available, otherwise undefined
- */
-export function getAccessTokenFromOAuthState(ctx: Context): string | undefined {
-  const state = ctx.cookies.get("state");
-  return state ? parseState(state).accessToken : undefined;
-}
-
-/**
- * Returns the user from the context if they are authenticated. This is used
- * to restore the session during the OAuth flow.
- *
- * @param ctx The Koa context
- * @returns The user if authenticated, otherwise undefined
+ * @returns The actor if available, otherwise undefined
  */
 export async function getUserFromOAuthState(ctx: Context) {
-  const token = getAccessTokenFromOAuthState(ctx);
-  if (!token) {
+  const context = getKoaContext(ctx);
+  const state = context.state.oauthState;
+  if (!state?.actorId || !state.actorSessionHash) {
     return undefined;
   }
 
-  try {
-    const { user } = await getUserForJWT(token);
-    return user;
-  } catch (_err) {
+  const user = await User.scope("withTeam").findByPk(state.actorId);
+  if (!user) {
     return undefined;
   }
+
+  if (!safeEqual(getActorSessionHash(user), state.actorSessionHash)) {
+    return undefined;
+  }
+
+  return user;
 }
 
 type TeamFromContextOptions = {
   /**
-   * Whether to consider the state cookie in the context when determining the team.
-   * If true, the state cookie will be parsed to determine the host and infer the team
+   * Whether to consider OAuth state in the context when determining the team.
+   * If true, OAuth state will be used to determine the host and infer the team
    * this should only be used in the authentication process.
    */
-  includeStateCookie?: boolean;
+  includeOAuthState?: boolean;
   /**
    * Whether to consider the host query parameter in the context when determining the team.
    * If true, the host query parameter will be used to determine the host and infer the team
@@ -215,7 +285,7 @@ type TeamFromContextOptions = {
 };
 
 /**
- * Infers the team from the context based on the hostname or state cookie.
+ * Infers the team from the context based on the hostname or OAuth state.
  *
  * @param ctx The Koa context
  * @param options Options for determining the team
@@ -223,18 +293,20 @@ type TeamFromContextOptions = {
  */
 export async function getTeamFromContext(
   ctx: Context,
-  options: TeamFromContextOptions = { includeStateCookie: true }
+  options: TeamFromContextOptions = { includeOAuthState: true }
 ) {
+  const context = getKoaContext(ctx);
   // "domain" is the domain the user came from when attempting auth
   // we use it to infer the team they intend on signing into
-  const state = options.includeStateCookie
-    ? ctx.cookies.get("state")
+  const includeOAuthState = options.includeOAuthState ?? true;
+  const state = includeOAuthState
+    ? (context.state.oauthState ?? context.state.oauthIntent)
     : undefined;
   const queryHost =
-    options.includeHostQueryParam && typeof ctx.query.host === "string"
-      ? ctx.query.host
+    options.includeHostQueryParam && typeof context.query.host === "string"
+      ? context.query.host
       : undefined;
-  const host = (state ? parseState(state).host : queryHost) || ctx.hostname;
+  const host = state?.host ?? queryHost ?? context.hostname;
   const domain = parseDomain(host);
 
   let team;
@@ -246,8 +318,8 @@ export async function getTeamFromContext(
         order: [["createdAt", "DESC"]],
       });
     }
-  } else if (ctx.state?.rootShare) {
-    team = await Team.findByPk(ctx.state.rootShare.teamId);
+  } else if (context.state?.rootShare) {
+    team = await Team.findByPk(context.state.rootShare.teamId);
   } else if (domain.custom) {
     team = await Team.findByDomain(domain.host);
   } else if (domain.teamSubdomain) {
@@ -255,4 +327,75 @@ export async function getTeamFromContext(
   }
 
   return team;
+}
+
+function getClientFromInput(ctx: Context): Client {
+  const clientInput = ctx.query.client?.toString();
+  return clientInput === Client.Desktop ? Client.Desktop : Client.Web;
+}
+
+function getAuthenticatedUser(ctx: Context): User | undefined {
+  return ctx.state.auth && "user" in ctx.state.auth
+    ? ctx.state.auth.user
+    : undefined;
+}
+
+function getAuthenticatedUserId(ctx: Context): string | undefined {
+  return getAuthenticatedUser(ctx)?.id;
+}
+
+function getAuthenticatedUserSessionHash(ctx: Context): string | undefined {
+  const user = getAuthenticatedUser(ctx);
+  return user ? getActorSessionHash(user) : undefined;
+}
+
+async function getOAuthActor(ctx: Context): Promise<User | undefined> {
+  const authenticatedUser = getAuthenticatedUser(ctx);
+  if (authenticatedUser) {
+    return authenticatedUser;
+  }
+
+  const accessToken = ctx.cookies.get("accessToken");
+  if (!accessToken) {
+    return undefined;
+  }
+
+  try {
+    const { user } = await getUserForJWT(accessToken);
+    return user;
+  } catch {
+    return undefined;
+  }
+}
+
+function getActorSessionHash(user: User): string {
+  return crypto
+    .scryptSync(
+      user.jwtSecret,
+      `oauth-actor-session:${env.SECRET_KEY}:${user.id}`,
+      ACTOR_SESSION_HASH_KEYLEN
+    )
+    .toString("hex");
+}
+
+async function storeOAuthIntent(token: string): Promise<void> {
+  await Redis.defaultClient.set(
+    getOAuthIntentKey(token),
+    "1",
+    "EX",
+    OAUTH_INTENT_TTL_SECONDS
+  );
+}
+
+async function consumeOAuthIntent(token: string): Promise<boolean> {
+  const result = await Redis.defaultClient.getdel(getOAuthIntentKey(token));
+  return result === "1";
+}
+
+function getOAuthIntentKey(token: string): string {
+  return `${OAUTH_INTENT_PREFIX}${hash(token)}`;
+}
+
+function getKoaContext(ctx: Context): Context {
+  return (ctx as Context & { ctx?: Context }).ctx ?? ctx;
 }

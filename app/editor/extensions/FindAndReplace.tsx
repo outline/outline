@@ -1,5 +1,4 @@
-import deburr from "lodash/deburr";
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import { observable } from "mobx";
 import type { Node } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
@@ -13,17 +12,28 @@ import { isToggleBlock } from "@shared/editor/queries/toggleBlock";
 import { ancestors } from "@shared/editor/utils";
 import isTextInput from "~/utils/isTextInput";
 import FindAndReplace from "../components/FindAndReplace";
+import { deburrWithMap } from "./deburrWithMap";
 
 const pluginKey = new PluginKey("find-and-replace");
 const supportsHighlightAPI =
   typeof CSS !== "undefined" && CSS.highlights !== undefined;
 
-export default class FindAndReplaceExtension extends Extension {
+/**
+ * Options for the FindAndReplace extension.
+ */
+type FindAndReplaceOptions = {
+  /** Whether the search should be case sensitive by default. */
+  caseSensitive: boolean;
+  /** Whether the search query should be interpreted as a regular expression by default. */
+  regexEnabled: boolean;
+};
+
+export default class FindAndReplaceExtension extends Extension<FindAndReplaceOptions> {
   public get name() {
     return "find-and-replace";
   }
 
-  public get defaultOptions() {
+  public get defaultOptions(): FindAndReplaceOptions {
     return {
       caseSensitive: false,
       regexEnabled: false,
@@ -154,6 +164,7 @@ export default class FindAndReplaceExtension extends Extension {
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
       this.expandFoldedTogglesForCurrentMatch();
+      this.expandCollapsedCodeBlockForCurrentMatch();
       this.scrollToCurrentMatch();
 
       return true;
@@ -204,6 +215,7 @@ export default class FindAndReplaceExtension extends Extension {
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
       this.expandFoldedTogglesForCurrentMatch();
+      this.expandCollapsedCodeBlockForCurrentMatch();
       this.scrollToCurrentMatch();
       return true;
     };
@@ -289,6 +301,18 @@ export default class FindAndReplaceExtension extends Extension {
     });
   }
 
+  /**
+   * Expand a collapsed code block if it contains the current match.
+   */
+  private expandCollapsedCodeBlockForCurrentMatch() {
+    const result = this.results[this.currentResultIndex];
+    if (!result) {
+      return;
+    }
+
+    this.editor.commands.expandCodeBlockAt(result.from);
+  }
+
   private rebaseNextResult(replace: string, index: number, lastOffset = 0) {
     const nextIndex = index + 1;
 
@@ -358,40 +382,73 @@ export default class FindAndReplaceExtension extends Extension {
       }
     });
 
+    // Tracks already-seen match positions so duplicate matches (possible because
+    // we search both the deburred and the original text) can be skipped in
+    // constant time rather than rescanning the entire results array.
+    const seen = new Set<string>();
+
     mergedTextNodes.forEach((node) => {
       const { text = "", pos, type } = node;
-      try {
-        let m;
-        const search = this.findRegExp;
 
-        // We construct a string with the text stripped of diacritics plus the original text for
-        // search  allowing to search for diacritics-insensitive matches easily.
-        while ((m = search.exec(deburr(text) + text))) {
-          if (m[0] === "") {
-            break;
+      // Collects matches found in `haystack`, translating string indices into
+      // original-text indices via `toOriginalIndex`.
+      const collect = (
+        haystack: string,
+        toOriginalIndex: (index: number) => number | undefined
+      ) => {
+        try {
+          let m;
+          const search = this.findRegExp;
+
+          while ((m = search.exec(haystack))) {
+            if (m[0] === "") {
+              break;
+            }
+
+            const start = toOriginalIndex(m.index);
+            const end = toOriginalIndex(m.index + m[0].length);
+            if (start === undefined || end === undefined) {
+              continue;
+            }
+
+            const from = type === "inline" ? pos + start : pos;
+            const to = type === "inline" ? pos + end : pos + node.nodeSize;
+
+            // A match against the deburred text can cover only part of a
+            // decomposed sequence (e.g. a single jamo of a Hangul syllable),
+            // which maps back to a zero-length range in the original text.
+            // Skip these so replace operations don't degenerate into inserts.
+            if (to <= from) {
+              continue;
+            }
+
+            // Check if already exists in results, possible because we search
+            // over both the deburred and the original text.
+            const key = `${from}:${to}`;
+            if (seen.has(key)) {
+              continue;
+            }
+            seen.add(key);
+
+            this.results.push({ from, to, type });
           }
-
-          // Reconstruct the correct match position
-          const i = m.index >= text.length ? m.index - text.length : m.index;
-          const from = type === "inline" ? pos + i : pos;
-          const to = from + (type === "inline" ? m[0].length : node.nodeSize);
-
-          // Prevent wrap around matches when the regex matches at the end of the deburred
-          // string and continues matching at the start of the original string
-          if (i + m[0].length > text.length) {
-            continue;
-          }
-
-          // Check if already exists in results, possible due to duplicated
-          // search string on L257
-          if (this.results.some((r) => r.from === from && r.to === to)) {
-            continue;
-          }
-
-          this.results.push({ from, to, type });
+        } catch (_err) {
+          // Invalid RegExp
         }
-      } catch (_err) {
-        // Invalid RegExp
+      };
+
+      // Search the original text so that queries containing diacritics (e.g.
+      // "café") match, and to cover any text that deburring alters.
+      collect(text, (index) => index);
+
+      // Also search the diacritics-stripped text so that, for example, "cafe"
+      // matches "café". Because deburring can change the string length (e.g. it
+      // decomposes CJK/Hangul characters), match indices are translated back to
+      // the original text rather than assumed equal. Skip it when deburring was
+      // a no-op, since it would only re-find the matches already collected.
+      const { deburred, toOriginalIndex } = deburrWithMap(text);
+      if (deburred !== text) {
+        collect(deburred, toOriginalIndex);
       }
     });
   }
@@ -402,13 +459,14 @@ export default class FindAndReplaceExtension extends Extension {
    */
   private get decorations() {
     return this.results.map((deco, index) => {
-      const decorationType =
-        deco.type === "node" ? Decoration.node : Decoration.inline;
-      return decorationType(deco.from, deco.to, {
+      const attrs = {
         class:
           "find-result" +
           (this.currentResultIndex === index ? " current-result" : ""),
-      });
+      };
+      return deco.type === "node"
+        ? Decoration.node(deco.from, deco.to, attrs)
+        : Decoration.inline(deco.from, deco.to, attrs);
     });
   }
 
@@ -459,6 +517,7 @@ export default class FindAndReplaceExtension extends Extension {
       }
     }
 
+    this.highlightRanges = allRanges;
     CSS.highlights.set("search-results", new Highlight(...allRanges));
     if (currentRanges.length) {
       CSS.highlights.set(
@@ -471,12 +530,32 @@ export default class FindAndReplaceExtension extends Extension {
   }
 
   private clearHighlights() {
+    this.highlightRanges = [];
     if (!supportsHighlightAPI) {
       return;
     }
     CSS.highlights.delete("search-results");
     CSS.highlights.delete("search-results-current");
     this.currentHighlightRange = undefined;
+  }
+
+  /**
+   * Determine whether the highlight ranges need to be rebuilt against the live
+   * DOM. The CSS Custom Highlight API holds static ranges that detach when the
+   * editor re-renders its DOM without changing the doc, so highlights are stale
+   * when a built range's nodes have disconnected, or when some matches have not
+   * yet been resolved to ranges (e.g. inside a node view that mounts later).
+   *
+   * @returns whether the highlights should be rebuilt.
+   */
+  private highlightsStale() {
+    if (this.highlightRanges.length < this.results.length) {
+      return true;
+    }
+    return this.highlightRanges.some(
+      (range) =>
+        !range.startContainer.isConnected || !range.endContainer.isConnected
+    );
   }
 
   private handleEscape = () => {
@@ -511,6 +590,8 @@ export default class FindAndReplaceExtension extends Extension {
   };
 
   private currentHighlightRange?: StaticRange;
+
+  private highlightRanges: StaticRange[] = [];
 
   get allowInReadOnly() {
     return true;
@@ -580,13 +661,27 @@ export default class FindAndReplaceExtension extends Extension {
         return {
           update: (view) => {
             const generation = pluginKey.getState(view.state) as number;
+            // The results changed (search ran, doc changed, fold toggled), so
+            // always rebuild.
             if (generation !== lastGeneration) {
               lastGeneration = generation;
+              this.updateHighlights();
+              return;
+            }
+            // Results unchanged: only rebuild when the static highlight ranges
+            // have detached from a DOM re-render that didn't bump the generation.
+            if (this.searchTerm && this.highlightsStale()) {
               this.updateHighlights();
             }
           },
           destroy: () => {
-            this.clearHighlights();
+            // The highlight registry is global and keyed by fixed names, so
+            // only tear down highlights when this editor actually owns an
+            // active search — otherwise an unmounting editor could wipe the
+            // highlights another editor just set during a route transition.
+            if (this.searchTerm) {
+              this.clearHighlights();
+            }
           },
         };
       },

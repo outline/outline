@@ -7,12 +7,15 @@ import stores from "~/stores";
 import HoverPreview from "~/components/HoverPreview";
 import env from "~/env";
 
+/**
+ * Options for the HoverPreviews extension.
+ */
 interface HoverPreviewsOptions {
-  /** Delay before the target is considered "hovered" and callback is triggered. */
+  /** Delay in milliseconds before the target is considered "hovered" and the preview is shown. */
   delay: number;
 }
 
-export default class HoverPreviews extends Extension {
+export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
   state: {
     activeLinkElement: HTMLElement | null;
     unfurlId: string | null;
@@ -38,10 +41,9 @@ export default class HoverPreviews extends Extension {
   }
 
   get plugins() {
-    const isHoverTarget = (target: Element | null, view: EditorView) =>
+    const isHoverTarget = (target: Element | null) =>
       target instanceof HTMLElement &&
-      this.editor.elementRef.current?.contains(target) &&
-      (!view.editable || (view.editable && !view.hasFocus()));
+      this.editor.elementRef.current?.contains(target);
 
     let hoveringTimeout: ReturnType<typeof setTimeout>;
 
@@ -49,11 +51,11 @@ export default class HoverPreviews extends Extension {
       new Plugin({
         props: {
           handleDOMEvents: {
-            mouseover: (view: EditorView, event: MouseEvent) => {
+            mouseover: (_view: EditorView, event: MouseEvent) => {
               const target = (event.target as HTMLElement)?.closest(
                 ".use-hover-preview"
               );
-              if (isHoverTarget(target, view)) {
+              if (isHoverTarget(target)) {
                 hoveringTimeout = setTimeout(
                   action(async () => {
                     const element = target as HTMLElement;
@@ -76,7 +78,15 @@ export default class HoverPreviews extends Extension {
                         documentId,
                       });
 
-                      if (unfurl) {
+                      // The fetch is async, so the pointer may have already
+                      // left the target (or the node may have been removed) by
+                      // the time it resolves – only show the preview if the
+                      // element is still hovered.
+                      if (
+                        unfurl &&
+                        element.isConnected &&
+                        element.matches(":hover")
+                      ) {
                         this.state.activeLinkElement = element;
                         this.state.unfurlId = transformedUrl;
                       } else {
@@ -91,11 +101,11 @@ export default class HoverPreviews extends Extension {
               }
               return false;
             },
-            mouseout: action((view: EditorView, event: MouseEvent) => {
+            mouseout: action((_view: EditorView, event: MouseEvent) => {
               const target = (event.target as HTMLElement)?.closest(
                 ".use-hover-preview"
               );
-              if (isHoverTarget(target, view)) {
+              if (isHoverTarget(target)) {
                 clearTimeout(hoveringTimeout);
                 this.state.activeLinkElement = null;
               }

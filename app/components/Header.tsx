@@ -1,4 +1,4 @@
-import throttle from "lodash/throttle";
+import { throttle } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { MenuIcon } from "outline-icons";
 import { transparentize } from "polished";
@@ -132,6 +132,7 @@ const Actions = styled(Flex)`
   min-width: auto;
   padding-inline: 8px 0;
   gap: 12px;
+  margin-inline-start: 8px;
 
   ${breakpoint("tablet")`
     position: unset;
@@ -160,7 +161,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
       backdrop-filter: blur(20px);
       `};
 
-  padding: 12px;
+  padding: 12px 16px;
   transform: translate3d(0, 0, 0);
   min-height: ${HEADER_HEIGHT}px;
   justify-content: flex-start;

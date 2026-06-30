@@ -1,3 +1,4 @@
+import { toError } from "@shared/utils/error";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import fetch from "@server/utils/fetch";
@@ -85,7 +86,7 @@ export async function fetchOIDCConfiguration(
 
     return config;
   } catch (error) {
-    Logger.error("Failed to fetch OIDC configuration", error);
+    Logger.error("Failed to fetch OIDC configuration", toError(error));
     throw error;
   }
 }

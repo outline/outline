@@ -1,7 +1,8 @@
 import type { Issue, WorkflowState } from "@linear/sdk";
 import { LinearClient } from "@linear/sdk";
+import { toError } from "@shared/utils/error";
 import fetch from "@server/utils/fetch";
-import sortBy from "lodash/sortBy";
+import { sortBy } from "es-toolkit/compat";
 import { z } from "zod";
 import type { IntegrationType } from "@shared/types";
 import { IntegrationService, UnfurlResourceType } from "@shared/types";
@@ -148,15 +149,16 @@ export class Linear {
 
       switch (resource.type) {
         case UnfurlResourceType.Issue:
-          return Linear.unfurlIssue(client, resource.id, actor);
+          return await Linear.unfurlIssue(client, resource.id, actor);
         case UnfurlResourceType.Project:
-          return Linear.unfurlProject(client, resource.id, actor);
+          return await Linear.unfurlProject(client, resource.id, actor);
         default:
           return;
       }
     } catch (err) {
-      Logger.warn("Failed to fetch resource from Linear", err);
-      return { error: err.message || "Unknown error" };
+      const error = toError(err);
+      Logger.warn("Failed to fetch resource from Linear", error);
+      return { error: error.message || "Unknown error" };
     }
   };
 
@@ -174,7 +176,7 @@ export class Linear {
     const [author, state, labels] = await Promise.all([
       issue.creator,
       issue.state,
-      issue.paginate(issue.labels, {}),
+      issue.paginate((args) => issue.labels(args), {}),
     ]);
 
     if (!state || !labels) {
@@ -229,7 +231,7 @@ export class Linear {
     const [lead, status, labels] = await Promise.all([
       project.lead,
       project.status,
-      project.paginate(project.labels, {}),
+      project.paginate((args) => project.labels(args), {}),
     ]);
 
     if (!status || !labels) {
@@ -280,12 +282,15 @@ export class Linear {
       return defaultCompletionPercentage;
     }
 
-    const allStates = await client.paginate(client.workflowStates, {
-      filter: {
-        team: { id: { eq: team.id } },
-        type: { eq: "started" },
-      },
-    });
+    const allStates = await client.paginate(
+      (args) => client.workflowStates(args),
+      {
+        filter: {
+          team: { id: { eq: team.id } },
+          type: { eq: "started" },
+        },
+      }
+    );
     const states = sortBy(
       allStates.map((s) => ({
         name: s.name,

@@ -1,11 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import Input from "~/components/Input";
+import { OneTimePasswordInput } from "~/components/OneTimePasswordInput";
 import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
@@ -24,7 +25,7 @@ function UserDelete({ onSubmit }: Props) {
   const { auth } = useStores();
   const { t } = useTranslation();
   const {
-    register,
+    control,
     handleSubmit: formHandleSubmit,
     formState,
   } = useForm<FormData>();
@@ -37,7 +38,7 @@ function UserDelete({ onSubmit }: Props) {
         await auth.requestDeleteUser();
         setWaitingCode(true);
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [auth]
@@ -55,15 +56,12 @@ function UserDelete({ onSubmit }: Props) {
         });
         onSubmit();
       } catch (err) {
-        toast.error(err.message);
+        toast.error(errToString(err));
       }
     },
     [auth, onSubmit]
   );
 
-  const inputProps = register("code", {
-    required: env.EMAIL_ENABLED,
-  });
   const appName = env.APP_NAME;
 
   return (
@@ -76,13 +74,27 @@ function UserDelete({ onSubmit }: Props) {
               enter the code below to permanently destroy your account.
             </Trans>
           </Text>
-          <Input
-            placeholder={t("Confirmation code")}
-            autoComplete="off"
-            autoFocus
-            maxLength={8}
-            required
-            {...inputProps}
+          <Controller
+            control={control}
+            name="code"
+            rules={{
+              required: env.EMAIL_ENABLED,
+              minLength: 8,
+            }}
+            render={({ field }) => (
+              <OneTimePasswordInput
+                length={8}
+                alphanumeric
+                autoComplete="off"
+                autoFocus
+                name={field.name}
+                value={field.value ?? ""}
+                onValueChange={field.onChange}
+                onBlur={field.onBlur}
+                ref={field.ref}
+                style={{ marginBottom: "1em" }}
+              />
+            )}
           />
         </>
       ) : (

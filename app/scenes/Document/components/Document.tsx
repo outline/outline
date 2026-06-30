@@ -27,6 +27,7 @@ import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
+import isTextInput from "~/utils/isTextInput";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
 import { documentHistoryPath, documentEditPath } from "~/utils/routeHelpers";
@@ -125,6 +126,16 @@ function DocumentScene({
       return;
     }
 
+    history.replace(document.url, {
+      ...location.state,
+      restore: undefined,
+      revisionId: undefined,
+    });
+
+    if (!revisionId) {
+      return;
+    }
+
     const response = await client.post("/revisions.info", {
       id: revisionId,
     });
@@ -135,22 +146,32 @@ function DocumentScene({
         new AllSelection(editor.view.state.doc)
       );
       toast.success(t("Document restored"));
-      history.replace(document.url, history.location.state);
     }
   }, [location, replaceSelection, t, history, document.url]);
 
   const onUndoRedo = useCallback(
     (event: KeyboardEvent) => {
       if (isModKey(event)) {
+        const target =
+          event.target instanceof Element ? event.target : undefined;
+
+        // The editor handles undo/redo through its own keymap when focused
+        if (
+          editorRef.current?.view?.hasFocus() ||
+          (target && (isTextInput(target) || !!target.closest(".ProseMirror")))
+        ) {
+          return;
+        }
+
         event.preventDefault();
 
         if (event.shiftKey) {
           if (!readOnly) {
-            editorRef.current?.commands.redo();
+            editorRef.current?.commands.redo?.();
           }
         } else {
           if (!readOnly) {
-            editorRef.current?.commands.undo();
+            editorRef.current?.commands.undo?.();
           }
         }
       }
@@ -497,9 +518,10 @@ type EditorContainerProps = {
 
 const EditorContainer = styled.div<EditorContainerProps>`
   // Adds space to the gutter to make room for icon & heading annotations
-  padding: 0 44px;
+  padding: 0 32px;
 
   ${breakpoint("tablet")`
+    padding: 0 44px;
     grid-row: 1;
 
     // Decides the editor column position & span

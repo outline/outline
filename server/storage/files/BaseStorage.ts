@@ -1,14 +1,15 @@
 import type { Blob } from "node:buffer";
 import type { Readable } from "node:stream";
 import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
-import omit from "lodash/omit";
+import { omit } from "es-toolkit/compat";
+import { toError, errToString } from "@shared/utils/error";
 import FileHelper from "@shared/editor/lib/FileHelper";
 import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
 import { Week } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type { RequestInit } from "@server/utils/fetch";
-import fetch, { chromeUserAgent } from "@server/utils/fetch";
+import fetch, { chromeUserAgent, Headers } from "@server/utils/fetch";
 import type { AppContext } from "@server/types";
 
 export default abstract class BaseStorage {
@@ -38,6 +39,27 @@ export default abstract class BaseStorage {
     maxUploadSize: number,
     contentType: string
   ): Promise<Partial<PresignedPost>>;
+
+  /**
+   * Returns a presigned PUT URL and the headers the client must send with the
+   * PUT request. Subclasses that support PUT-based uploads (e.g. S3) should
+   * override this method. Returns undefined by default, signalling the client
+   * should fall back to the POST flow.
+   *
+   * @param key The path to store the file at.
+   * @param acl The ACL to use.
+   * @param contentLength The exact content length in bytes, signed into the URL.
+   * @param contentType The content type of the file.
+   * @returns The presigned PUT URL and required headers, or undefined if not supported.
+   */
+  public getPresignedPut(
+    _key: string,
+    _acl: string,
+    _contentLength: number,
+    _contentType: string
+  ): Promise<{ url: string; headers: Record<string, string> } | undefined> {
+    return Promise.resolve(undefined);
+  }
 
   /**
    * Returns a promise that resolves with a stream for reading a file from the storage provider.
@@ -189,10 +211,10 @@ export default abstract class BaseStorage {
       }
     } else {
       try {
-        const headers = {
-          "User-Agent": chromeUserAgent,
-          ...init?.headers,
-        };
+        const headers = new Headers(init?.headers);
+        if (!headers.has("User-Agent")) {
+          headers.set("User-Agent", chromeUserAgent);
+        }
         const initWithoutHeaders = omit(init, ["headers"]);
 
         const res = await fetch(url, {
@@ -217,7 +239,7 @@ export default abstract class BaseStorage {
           res.headers.get("content-type") ?? "application/octet-stream";
       } catch (err) {
         Logger.warn("Error fetching URL to upload", {
-          error: err.message,
+          error: errToString(err),
           url,
           key,
           acl,
@@ -247,7 +269,7 @@ export default abstract class BaseStorage {
           }
         : undefined;
     } catch (err) {
-      Logger.error("Error uploading to file storage from URL", err, {
+      Logger.error("Error uploading to file storage from URL", toError(err), {
         url,
         key,
         acl,

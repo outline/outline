@@ -1,4 +1,3 @@
-import { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
@@ -212,10 +211,6 @@ export class DocumentHelper {
     const text = serializer
       .serialize(node)
       .replace(/(^|\n)\\(\n|$)/g, "\n\n")
-      .replace(/“/g, '"')
-      .replace(/”/g, '"')
-      .replace(/‘/g, "'")
-      .replace(/’/g, "'")
       .trim();
 
     if (
@@ -246,7 +241,7 @@ export class DocumentHelper {
     options?: HTMLOptions
   ) {
     const node = DocumentHelper.toProsemirror(model);
-    let output = ProsemirrorHelper.toHTML(node, {
+    let output = await ProsemirrorHelper.toHTML(node, {
       title:
         options?.includeTitle !== false
           ? model instanceof Collection
@@ -367,6 +362,8 @@ export class DocumentHelper {
     }
 
     const html = await DocumentHelper.diff(before, after, options);
+    // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
+    const { JSDOM } = await import("jsdom");
     const dom = new JSDOM(html);
     const doc = dom.window.document;
 
@@ -817,8 +814,18 @@ export class DocumentHelper {
       const textSame = oldChild.textContent === newChild.textContent;
 
       if (textSame && oldChild.sameMarkup(newChild)) {
-        // Fully unchanged — keep original with its rich content
-        merged.push(oldChild);
+        // Compare against the round-tripped baseline: when the
+        // updated child is identical to a plain round-trip of the original,
+        // the patch did not touch it
+        if (!rtChild || newChild.eq(rtChild)) {
+          merged.push(oldChild);
+        } else if (!oldChild.isTextblock && !oldChild.isLeaf) {
+          // Container child changed deeper down — recurse to preserve rich
+          // content in the parts that did not change.
+          merged.push(DocumentHelper.mergeNodes(oldChild, newChild, rtChild));
+        } else {
+          merged.push(newChild);
+        }
       } else if (textSame) {
         // Attrs changed (e.g. checked state) but content same — merge attrs
         // so that non-markdown-representable values (colwidth, highlight

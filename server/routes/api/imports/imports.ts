@@ -1,18 +1,20 @@
 import Router from "koa-router";
-import truncate from "lodash/truncate";
+import { randomUUID } from "node:crypto";
+import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import type { IntegrationType } from "@shared/types";
-import { ImportState, UserRole } from "@shared/types";
+import { ImportState, IntegrationService, UserRole } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
-import { UnprocessableEntityError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Integration } from "@server/models";
+import { Attachment, Integration } from "@server/models";
 import Import from "@server/models/Import";
 import { authorize } from "@server/policies";
 import { presentImport, presentPolicies } from "@server/presenters";
 import type { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -20,33 +22,54 @@ const router = new Router();
 
 router.post(
   "imports.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth({ role: UserRole.Admin }),
   validate(T.ImportsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.ImportsCreateReq>) => {
-    const { integrationId, service, input } = ctx.input.body;
+    const body = ctx.input.body;
     const { user } = ctx.state.auth;
 
     authorize(user, "createImport", user.team);
 
-    const importInProgress = await Import.count({
-      where: {
-        state: [
-          ImportState.Created,
-          ImportState.InProgress,
-          ImportState.Processed,
-        ],
-        teamId: user.teamId,
-      },
-    });
+    if (
+      body.service === IntegrationService.Markdown ||
+      body.service === IntegrationService.JSON
+    ) {
+      const attachment = await Attachment.findByPk(body.attachmentId, {
+        rejectOnEmpty: true,
+      });
+      authorize(user, "read", attachment);
 
-    if (importInProgress) {
-      throw UnprocessableEntityError("An import is already in progress");
+      const importModel = await Import.createWithCtx(ctx, {
+        name: truncate(attachment.name, {
+          length: ImportValidation.maxNameLength,
+        }),
+        service: body.service,
+        state: ImportState.Created,
+        input: [
+          {
+            externalId: randomUUID(),
+            permission: body.permission,
+          },
+        ],
+        scratch: { storageKey: attachment.key },
+        integrationId: null,
+        createdById: user.id,
+        teamId: user.teamId,
+      });
+      importModel.createdBy = user;
+
+      ctx.body = {
+        data: presentImport(importModel),
+        policies: presentPolicies(user, [importModel]),
+      };
+      return;
     }
 
     const integration = await Integration.findByPk<
       Integration<IntegrationType.Import>
-    >(integrationId, {
+    >(body.integrationId, {
       rejectOnEmpty: true,
     });
     authorize(user, "read", integration);
@@ -55,10 +78,10 @@ router.post(
 
     const importModel = await Import.createWithCtx(ctx, {
       name: truncate(name, { length: ImportValidation.maxNameLength }),
-      service,
+      service: body.service,
       state: ImportState.Created,
-      input,
-      integrationId,
+      input: body.input,
+      integrationId: body.integrationId,
       createdById: user.id,
       teamId: user.teamId,
     });

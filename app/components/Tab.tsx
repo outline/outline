@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
 import type { LocationDescriptor } from "history";
-import isEqual from "lodash/isEqual";
+import { isEqual } from "es-toolkit/compat";
 import queryString from "query-string";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";

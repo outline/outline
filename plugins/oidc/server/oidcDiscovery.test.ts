@@ -1,9 +1,22 @@
-import fetchMock from "jest-fetch-mock";
+import {
+  http,
+  HttpResponse,
+  type DefaultBodyType,
+  type StrictRequest,
+} from "msw";
+import { server } from "@server/test/msw";
 import { fetchOIDCConfiguration } from "./oidcDiscovery";
 
-beforeEach(() => {
-  fetchMock.resetMocks();
-});
+const captureRequest = (url: string, response: Response | (() => Response)) => {
+  const captured: { request?: StrictRequest<DefaultBodyType> } = {};
+  server.use(
+    http.get(url, ({ request }) => {
+      captured.request = request;
+      return typeof response === "function" ? response() : response;
+    })
+  );
+  return captured;
+};
 
 describe("fetchOIDCConfiguration", () => {
   it("should fetch and parse OIDC configuration successfully", async () => {
@@ -19,20 +32,18 @@ describe("fetchOIDCConfiguration", () => {
       grant_types_supported: ["authorization_code"],
     };
 
-    fetchMock.mockResponseOnce(JSON.stringify(mockConfig));
+    const captured = captureRequest(
+      "https://example.com/.well-known/openid-configuration",
+      () => HttpResponse.json(mockConfig)
+    );
 
     const result = await fetchOIDCConfiguration("https://example.com");
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://example.com/.well-known/openid-configuration",
-      expect.objectContaining({
-        method: "GET",
-        headers: expect.objectContaining({
-          Accept: "application/json",
-        }),
-      })
+    expect(captured.request?.url).toBe(
+      "https://example.com/.well-known/openid-configuration"
     );
-
+    expect(captured.request?.method).toBe("GET");
+    expect(captured.request?.headers.get("Accept")).toBe("application/json");
     expect(result).toEqual(mockConfig);
   });
 
@@ -44,26 +55,37 @@ describe("fetchOIDCConfiguration", () => {
       userinfo_endpoint: "https://example.com/userinfo",
     };
 
-    fetchMock.mockResponseOnce(JSON.stringify(mockConfig));
+    const captured = captureRequest(
+      "https://example.com/.well-known/openid-configuration",
+      () => HttpResponse.json(mockConfig)
+    );
 
     await fetchOIDCConfiguration("https://example.com/");
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://example.com/.well-known/openid-configuration",
-      expect.any(Object)
+    expect(captured.request?.url).toBe(
+      "https://example.com/.well-known/openid-configuration"
     );
   });
 
   it("should throw error when HTTP request fails", async () => {
-    fetchMock.mockRejectOnce(new Error("Network error"));
-
-    await expect(fetchOIDCConfiguration("https://example.com")).rejects.toThrow(
-      "Network error"
+    server.use(
+      http.get("https://example.com/.well-known/openid-configuration", () =>
+        HttpResponse.error()
+      )
     );
+
+    await expect(
+      fetchOIDCConfiguration("https://example.com")
+    ).rejects.toThrow();
   });
 
   it("should throw error when response is not ok", async () => {
-    fetchMock.mockResponseOnce("Not Found", { status: 404 });
+    server.use(
+      http.get(
+        "https://example.com/.well-known/openid-configuration",
+        () => new HttpResponse("Not Found", { status: 404 })
+      )
+    );
 
     await expect(fetchOIDCConfiguration("https://example.com")).rejects.toThrow(
       "Failed to fetch OIDC configuration: 404 Not Found"
@@ -77,7 +99,11 @@ describe("fetchOIDCConfiguration", () => {
       // Missing token_endpoint and userinfo_endpoint
     };
 
-    fetchMock.mockResponseOnce(JSON.stringify(incompleteConfig));
+    server.use(
+      http.get("https://example.com/.well-known/openid-configuration", () =>
+        HttpResponse.json(incompleteConfig)
+      )
+    );
 
     await expect(fetchOIDCConfiguration("https://example.com")).rejects.toThrow(
       "Missing token_endpoint in OIDC configuration"
@@ -91,7 +117,11 @@ describe("fetchOIDCConfiguration", () => {
       userinfo_endpoint: "https://example.com/userinfo",
     };
 
-    fetchMock.mockResponseOnce(JSON.stringify(configMissingAuth));
+    server.use(
+      http.get("https://example.com/.well-known/openid-configuration", () =>
+        HttpResponse.json(configMissingAuth)
+      )
+    );
 
     await expect(fetchOIDCConfiguration("https://example.com")).rejects.toThrow(
       "Missing authorization_endpoint in OIDC configuration"
@@ -108,22 +138,20 @@ describe("fetchOIDCConfiguration", () => {
         "https://auth.example.com/application/o/outline/userinfo",
     };
 
-    fetchMock.mockResponseOnce(JSON.stringify(mockConfig));
+    const captured = captureRequest(
+      "https://auth.example.com/application/o/outline/.well-known/openid-configuration",
+      () => HttpResponse.json(mockConfig)
+    );
 
     const result = await fetchOIDCConfiguration(
       "https://auth.example.com/application/o/outline/"
     );
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://auth.example.com/application/o/outline/.well-known/openid-configuration",
-      expect.objectContaining({
-        method: "GET",
-        headers: expect.objectContaining({
-          Accept: "application/json",
-        }),
-      })
+    expect(captured.request?.url).toBe(
+      "https://auth.example.com/application/o/outline/.well-known/openid-configuration"
     );
-
+    expect(captured.request?.method).toBe("GET");
+    expect(captured.request?.headers.get("Accept")).toBe("application/json");
     expect(result).toEqual(mockConfig);
   });
 
@@ -137,22 +165,20 @@ describe("fetchOIDCConfiguration", () => {
         "https://auth.example.com/application/o/outline/userinfo",
     };
 
-    fetchMock.mockResponseOnce(JSON.stringify(mockConfig));
+    const captured = captureRequest(
+      "https://auth.example.com/application/o/outline/.well-known/openid-configuration",
+      () => HttpResponse.json(mockConfig)
+    );
 
     const result = await fetchOIDCConfiguration(
       "https://auth.example.com/application/o/outline"
     );
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://auth.example.com/application/o/outline/.well-known/openid-configuration",
-      expect.objectContaining({
-        method: "GET",
-        headers: expect.objectContaining({
-          Accept: "application/json",
-        }),
-      })
+    expect(captured.request?.url).toBe(
+      "https://auth.example.com/application/o/outline/.well-known/openid-configuration"
     );
-
+    expect(captured.request?.method).toBe("GET");
+    expect(captured.request?.headers.get("Accept")).toBe("application/json");
     expect(result).toEqual(mockConfig);
   });
 
@@ -164,17 +190,18 @@ describe("fetchOIDCConfiguration", () => {
       userinfo_endpoint: "https://example.com/userinfo",
     };
 
-    fetchMock.mockResponseOnce(JSON.stringify(mockConfig));
+    const captured = captureRequest(
+      "https://example.com/.well-known/openid-configuration",
+      () => HttpResponse.json(mockConfig)
+    );
 
     const result = await fetchOIDCConfiguration(
       "https://example.com/.well-known/openid-configuration"
     );
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://example.com/.well-known/openid-configuration",
-      expect.any(Object)
+    expect(captured.request?.url).toBe(
+      "https://example.com/.well-known/openid-configuration"
     );
-
     expect(result).toEqual(mockConfig);
   });
 });

@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { EmailDisplay, TOCPosition, UserRole } from "@shared/types";
+import {
+  CommentingAccess,
+  EmailDisplay,
+  TOCPosition,
+  UserRole,
+} from "@shared/types";
 import { TeamValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 
@@ -52,8 +57,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         membersCanDeleteAccount: z.boolean().optional(),
         /** Whether notification emails include document and comment content. */
         previewsInEmails: z.boolean().optional(),
-        /** Whether commenting is enabled */
-        commenting: z.boolean().optional(),
+        /** Who can comment on documents. */
+        commenting: z.enum(CommentingAccess).optional(),
         /** The custom theme for the team. */
         customTheme: z
           .object({

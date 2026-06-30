@@ -39,7 +39,7 @@ class UserAuthentication extends IdModel<
   @Encrypted
   refreshToken: string;
 
-  @Column
+  @Column(DataType.STRING)
   providerId: string;
 
   @Column(DataType.DATE)
@@ -124,7 +124,11 @@ class UserAuthentication extends IdModel<
 
       return true;
     } catch (error) {
-      if (error.id === "authentication_required") {
+      if (
+        error instanceof Error &&
+        "id" in error &&
+        error.id === "authentication_required"
+      ) {
         return false;
       }
 
