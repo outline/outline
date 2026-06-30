@@ -33,12 +33,24 @@ export default class S3Storage extends BaseStorage {
     // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
     require("@aws-sdk/signature-v4-crt");
 
+    const bucketBound = env.AWS_S3_BUCKET_BOUND_ENDPOINT;
+
     this.client = new S3Client({
-      bucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : false,
-      forcePathStyle: env.AWS_S3_FORCE_PATH_STYLE,
+      bucketEndpoint: !!env.AWS_S3_ACCELERATE_URL,
+      forcePathStyle: bucketBound ? true : env.AWS_S3_FORCE_PATH_STYLE,
       region: env.AWS_REGION,
       endpoint: this.getEndpoint(),
     });
+
+    // bucket-bound custom domains need bucketEndpoint for presigned GET URLs
+    if (bucketBound) {
+      this.downloadSigningClient = new S3Client({
+        bucketEndpoint: true,
+        forcePathStyle: false,
+        region: env.AWS_REGION,
+        endpoint: this.getEndpoint(),
+      });
+    }
   }
 
   public async getPresignedPost(
@@ -127,6 +139,10 @@ export default class S3Storage extends BaseStorage {
       "AWS_S3_UPLOAD_BUCKET_NAME is required"
     );
 
+    if (env.AWS_S3_BUCKET_BOUND_ENDPOINT) {
+      return this.getBucketUrl().base;
+    }
+
     // lose trailing slash if there is one and convert fake-s3 url to localhost
     // for access outside of docker containers in local development
     const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
@@ -138,9 +154,10 @@ export default class S3Storage extends BaseStorage {
 
     // support old path-style S3 uploads and new virtual host uploads by checking
     // for the bucket name in the endpoint url before appending.
-    const isVirtualHost = host.includes(env.AWS_S3_UPLOAD_BUCKET_NAME);
+    const hostname = new URL(host.startsWith("http") ? host : `https://${host}`)
+      .hostname;
 
-    if (isVirtualHost) {
+    if (this.isVirtualHostBucketUrl(hostname)) {
       return host;
     }
 
@@ -150,6 +167,10 @@ export default class S3Storage extends BaseStorage {
   }
 
   public getUploadUrl(isServerUpload?: boolean) {
+    if (env.AWS_S3_BUCKET_BOUND_ENDPOINT) {
+      return `${this.getBucketUrl().base}/${env.AWS_S3_UPLOAD_BUCKET_NAME}`;
+    }
+
     return this.getPublicEndpoint(isServerUpload);
   }
 
@@ -323,6 +344,8 @@ export default class S3Storage extends BaseStorage {
 
   private client: S3Client;
 
+  private downloadSigningClient?: S3Client;
+
   private getCloudFrontUrlForKey(key: string): string {
     if (!env.AWS_CLOUDFRONT_URL) {
       throw new Error("CloudFront URL is not configured");
@@ -350,7 +373,7 @@ export default class S3Storage extends BaseStorage {
   ) => {
     const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
     const params = {
-      Bucket: this.getBucket(),
+      Bucket: this.getBucket({ forSigning: true }),
       Key: key,
     };
 
@@ -362,9 +385,13 @@ export default class S3Storage extends BaseStorage {
     const clampedExpiresIn = Math.min(expiresIn, S3Storage.maxSignedUrlExpires);
 
     const command = new GetObjectCommand(params);
-    const url = await getSignedUrl(this.client, command, {
-      expiresIn: clampedExpiresIn,
-    });
+    const url = await getSignedUrl(
+      this.downloadSigningClient ?? this.client,
+      command,
+      {
+        expiresIn: clampedExpiresIn,
+      }
+    );
 
     if (env.AWS_S3_ACCELERATE_URL) {
       return url.replace(
@@ -400,7 +427,27 @@ export default class S3Storage extends BaseStorage {
     return env.AWS_S3_UPLOAD_BUCKET_URL;
   }
 
-  private getBucket() {
-    return env.AWS_S3_ACCELERATE_URL || env.AWS_S3_UPLOAD_BUCKET_NAME || "";
+  private getBucket(options?: { forSigning?: boolean }) {
+    if (env.AWS_S3_ACCELERATE_URL) {
+      return env.AWS_S3_ACCELERATE_URL;
+    }
+
+    if (options?.forSigning && env.AWS_S3_BUCKET_BOUND_ENDPOINT) {
+      return this.getBucketUrl().base;
+    }
+
+    return env.AWS_S3_UPLOAD_BUCKET_NAME || "";
+  }
+
+  private getBucketUrl() {
+    const base = env.AWS_S3_UPLOAD_BUCKET_URL.replace(/\/$/, "");
+    return { base, hostname: new URL(base).hostname };
+  }
+
+  private isVirtualHostBucketUrl(hostname: string) {
+    return (
+      !!env.AWS_S3_UPLOAD_BUCKET_NAME &&
+      hostname.startsWith(`${env.AWS_S3_UPLOAD_BUCKET_NAME}.`)
+    );
   }
 }
