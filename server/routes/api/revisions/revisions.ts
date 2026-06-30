@@ -251,8 +251,11 @@ router.post(
       limit: ctx.state.pagination.limit,
       paranoid: false,
     });
+
     const data = await Promise.all(
-      revisions.map((revision) => presentRevision(revision))
+      revisions.map((revision) =>
+        presentRevision(revision, { includeContent: false })
+      )
     );
 
     ctx.body = {

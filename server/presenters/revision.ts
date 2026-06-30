@@ -4,13 +4,25 @@ import type { Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import presentUser from "./user";
 
-async function presentRevision(revision: Revision) {
+type PresentRevisionOptions = {
+  /**
+   * Whether to include the document content. Defaults to true.
+   */
+  includeContent?: boolean;
+};
+
+async function presentRevision(
+  revision: Revision,
+  options: PresentRevisionOptions = {}
+) {
+  const { includeContent = true } = options;
+
   // TODO: Remove this fallback once all revisions have been migrated
   const { emoji, strippedTitle } = parseTitle(revision.title);
 
   const [data, text, collaborators] = await Promise.all([
-    DocumentHelper.toJSON(revision),
-    DocumentHelper.toMarkdown(revision),
+    includeContent ? DocumentHelper.toJSON(revision) : undefined,
+    includeContent ? DocumentHelper.toMarkdown(revision) : undefined,
     revision.collaborators,
   ]);
 
