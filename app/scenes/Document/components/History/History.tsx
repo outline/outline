@@ -177,11 +177,27 @@ function History() {
   // content of the latest revision on demand to compare it against the current
   // document below.
   const latestRevisionEvent = revisionEvents[0];
+  const latestRevision = latestRevisionEvent
+    ? revisions.get(latestRevisionEvent.id)
+    : undefined;
+
   React.useEffect(() => {
-    if (latestRevisionEvent && !latestRevisionEvent.data) {
-      void revisions.fetch(latestRevisionEvent.id);
+    if (latestRevision && !latestRevision.data) {
+      void revisions.fetch(latestRevision.id);
     }
-  }, [revisions, latestRevisionEvent]);
+  }, [revisions, latestRevision]);
+
+  // Whether the current document has unsaved changes beyond its latest
+  // revision, in which case a "Current version" entry is shown. Computed in the
+  // render body (rather than the memo below) so the observer re-evaluates it
+  // once the lazily-loaded revision content arrives. The content-aware check is
+  // deferred until the content has loaded to avoid showing an entry that would
+  // then vanish.
+  const isDocUpdated =
+    !!latestRevision &&
+    !!document &&
+    (latestRevision.title !== document.title ||
+      (!!latestRevision.data && !isEqual(latestRevision.data, document.data)));
 
   const nonRevisionEvents = React.useMemo(
     () =>
@@ -199,37 +215,23 @@ function History() {
       "desc"
     );
 
-    if (latestRevisionEvent && document) {
-      const latestRevision = revisions.get(latestRevisionEvent.id);
-
-      const isDocUpdated =
-        latestRevision?.title !== document.title ||
-        !isEqual(latestRevision.data, document.data);
-
-      if (isDocUpdated) {
-        const createdById = document.updatedBy?.id ?? "";
-        merged.unshift(
-          new Revision(
-            {
-              id: RevisionHelper.latestId(document.id),
-              createdAt: document.updatedAt,
-              createdById,
-              collaboratorIds: [createdById],
-            },
-            revisions
-          )
-        );
-      }
+    if (isDocUpdated && document) {
+      const createdById = document.updatedBy?.id ?? "";
+      merged.unshift(
+        new Revision(
+          {
+            id: RevisionHelper.latestId(document.id),
+            createdAt: document.updatedAt,
+            createdById,
+            collaboratorIds: [createdById],
+          },
+          revisions
+        )
+      );
     }
 
     return merged;
-  }, [
-    revisions,
-    document,
-    revisionEvents,
-    nonRevisionEvents,
-    latestRevisionEvent,
-  ]);
+  }, [revisions, document, revisionEvents, nonRevisionEvents, isDocUpdated]);
 
   const onCloseHistory = React.useCallback(() => {
     if (isMobile) {
