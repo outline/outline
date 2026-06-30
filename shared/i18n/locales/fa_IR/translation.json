@@ -175,7 +175,7 @@
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.",
   "Move to workspace": "وارد شدن به workspace",
   "Template moved": "قالب منتقل شد",
-  "Couldn't move the template, try again?": "Couldn't move the template, try again?",
+  "Couldn't move the template, try again?": "انتقال قالب انجام نشد. دوباره تلاش می‌کنید؟",
   "Move to collection": "سنجاق کردن به مجموعه",
   "Move template": "انتقال قالب",
   "Print template": "چاپ قالب",
