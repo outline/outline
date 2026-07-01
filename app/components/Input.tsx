@@ -296,6 +296,16 @@ function Input(
 
   const wrappedLabel = <LabelText>{label}</LabelText>;
 
+  // Ensure the control always has an accessible name. When no visible or
+  // visually-hidden label is provided, fall back to the placeholder text so
+  // that screen readers announce a persistent name for the field. A caller
+  // supplied aria-label/aria-labelledby (spread via rest) still takes
+  // precedence over this fallback.
+  const fallbackAriaLabel =
+    !label && typeof props.placeholder === "string"
+      ? props.placeholder
+      : undefined;
+
   return (
     <Wrapper className={className} short={short} flex={flex}>
       <label>
@@ -321,6 +331,7 @@ function Input(
               $autoSize={autoSize}
               $minHeight={minHeight}
               $maxHeight={maxHeight}
+              aria-label={fallbackAriaLabel}
               {...rest}
               // set it after "rest" to override props from spread.
               maxLength={maxLength}
@@ -338,6 +349,7 @@ function Input(
               hasIcon={!!icon}
               hasPrefix={!!prefix}
               type={type}
+              aria-label={fallbackAriaLabel}
               {...rest}
               // set it after "rest" to override "onKeyDown" and "onChange" from prop.
               maxLength={maxLength}

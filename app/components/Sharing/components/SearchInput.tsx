@@ -60,6 +60,7 @@ export const SearchInput = React.forwardRef(function SearchInput_(
         <NativeInput
           key="input"
           ref={mergeRefs([inputRef, ref])}
+          aria-label={`${t("Add or invite")}…`}
           placeholder={`${t("Add or invite")}…`}
           value={query}
           onChange={onChange}
