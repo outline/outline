@@ -153,7 +153,26 @@ export function rewriteInternalLinks(
 
 export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
   protected shouldUploadAttachmentsPerPage(): boolean {
-    return false;
+    // Per-page upload downloads remote image/attachment URLs referenced in
+    // the markdown (e.g. Slab's signed export URLs) and rewrites them to
+    // internal redirect URLs. The base step skips URLs that are already
+    // internal, so local zip attachments — rewritten to redirect URLs during
+    // `rewriteMarkdown` and uploaded from the archive in
+    // `onAllTasksCompleted` — pass through untouched.
+    return true;
+  }
+
+  /**
+   * Whether a document's leading H1 heading should be lifted out as its title
+   * (and removed from the body). Outline's own Markdown export writes the
+   * title as a leading H1, so this defaults to true. Sources where the
+   * filename is authoritative and the first heading is real content (e.g.
+   * Slab) override this to keep the heading in the body.
+   *
+   * @returns true to derive the title from a leading H1 heading.
+   */
+  protected shouldExtractTitleFromHeading(): boolean {
+    return true;
   }
 
   protected async scheduleNextTask(importTask: ImportTask<Markdown>) {
@@ -262,14 +281,16 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         }
       );
 
-      if (tree.children.length === 0) {
+      const rootNodes = this.resolveCollectionRootNodes(tree.children);
+
+      if (rootNodes.length === 0) {
         throw new Error("Could not find valid content in zip file");
       }
 
       const collections: DiscoveredCollection[] = [];
       const manifest: MarkdownAttachmentManifestItem[] = [];
 
-      for (const node of tree.children) {
+      for (const node of rootNodes) {
         if (node.children.length === 0) {
           Logger.debug("task", `Unhandled file in zip: ${node.pathInZip}`, {
             importTaskId: importTask.id,
@@ -420,7 +441,8 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         const { doc, title, icon } = await DocumentConverter.convert(
           transformedMarkdown,
           path.basename(item.path),
-          "text/markdown"
+          "text/markdown",
+          { extractTitle: this.shouldExtractTitleFromHeading() }
         );
 
         taskOutput.push({
@@ -497,6 +519,19 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         markdown.includes(fileName) || markdown.includes(encodeURI(fileName))
       );
     });
+  }
+
+  /**
+   * Resolves the archive's top-level entries into the nodes that should be
+   * treated as collections. The base implementation uses the entries as-is;
+   * subclasses can override to unwrap a known wrapper directory before the
+   * bootstrap phase maps each node to a collection.
+   *
+   * @param nodes The archive's top-level tree nodes.
+   * @returns The nodes to import as collections.
+   */
+  protected resolveCollectionRootNodes(nodes: ZipTreeNode[]): ZipTreeNode[] {
+    return nodes;
   }
 
   /**

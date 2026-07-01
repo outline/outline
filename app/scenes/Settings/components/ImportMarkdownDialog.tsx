@@ -1,5 +1,5 @@
 import { Trans } from "react-i18next";
-import { FileOperationFormat } from "@shared/types";
+import { IntegrationService } from "@shared/types";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 import DropToImport from "./DropToImport";
@@ -21,7 +21,7 @@ function ImportMarkdownDialog() {
       </Text>
       <DropToImport
         onSubmit={dialogs.closeAllModals}
-        format={FileOperationFormat.MarkdownZip}
+        service={IntegrationService.Markdown}
       >
         <Trans>
           Drag and drop the zip file from the Markdown export option in{" "}

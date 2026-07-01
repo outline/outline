@@ -1,5 +1,5 @@
 import { Trans } from "react-i18next";
-import { FileOperationFormat } from "@shared/types";
+import { IntegrationService } from "@shared/types";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 import DropToImport from "./DropToImport";
@@ -22,7 +22,7 @@ function ImportJSONDialog() {
       </Text>
       <DropToImport
         onSubmit={dialogs.closeAllModals}
-        format={FileOperationFormat.JSON}
+        service={IntegrationService.JSON}
       >
         <Trans>
           Drag and drop the zip file from the JSON export option in{" "}

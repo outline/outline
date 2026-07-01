@@ -10,8 +10,7 @@ import { s } from "@shared/styles";
 import {
   AttachmentPreset,
   CollectionPermission,
-  FileOperationFormat,
-  IntegrationService,
+  type ImportableIntegrationService,
 } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Button from "~/components/Button";
@@ -25,15 +24,16 @@ import { uploadFile } from "~/utils/files";
 
 type Props = {
   children: JSX.Element;
-  format?: string;
+  /** The importable service to create an import for. */
+  service: ImportableIntegrationService;
   disabled?: boolean;
   activeClassName?: string;
   onSubmit: () => void;
 };
 
-function DropToImport({ disabled, onSubmit, children, format }: Props) {
+function DropToImport({ disabled, onSubmit, children, service }: Props) {
   const { t } = useTranslation();
-  const { collections, imports } = useStores();
+  const { imports } = useStores();
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setImporting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -63,25 +63,13 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
         onProgress: (progress) => setUploadProgress(progress),
       });
 
-      if (format === FileOperationFormat.MarkdownZip) {
-        await imports.create(
-          { service: IntegrationService.Markdown },
-          {
-            attachmentId: attachment.id,
-            permission: permission ?? undefined,
-          }
-        );
-      } else if (format === FileOperationFormat.JSON) {
-        await imports.create(
-          { service: IntegrationService.JSON },
-          {
-            attachmentId: attachment.id,
-            permission: permission ?? undefined,
-          }
-        );
-      } else {
-        await collections.import(attachment.id, { format, permission });
-      }
+      await imports.create(
+        { service },
+        {
+          attachmentId: attachment.id,
+          permission: permission ?? undefined,
+        }
+      );
 
       onSubmit();
       toast.message(file.name, {
