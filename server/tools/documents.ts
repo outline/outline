@@ -29,7 +29,8 @@ import {
   pathToUrl,
   withTracing,
 } from "./util";
-import { StatusFilter, TextEditMode } from "@shared/types";
+import { TextEditMode } from "@shared/types";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 /**
@@ -141,7 +142,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
               const { results } = await searchProvider.searchForUser(user, {
                 query,
-                collectionId,
+                filter: collectionId
+                  ? {
+                      field: "collectionId",
+                      operator: "eq",
+                      value: collectionId,
+                    }
+                  : undefined,
                 offset: effectiveOffset,
                 limit: effectiveLimit,
               });
@@ -203,11 +210,21 @@ export function documentTools(server: McpServer, scopes: string[]) {
             // List recent documents via the search provider (with no query) so
             // access control matches the search path exactly.
             const searchProvider = SearchProviderManager.getProvider();
+            const filters: Filter[] = [
+              { field: "archivedAt", operator: "isNull" },
+              { field: "publishedAt", operator: "isNotNull" },
+            ];
+            if (collectionId) {
+              filters.push({
+                field: "collectionId",
+                operator: "eq",
+                value: collectionId,
+              });
+            }
             const { results } = await searchProvider.searchForUser(user, {
-              collectionId,
+              filter: { operator: "AND", filters },
               offset: effectiveOffset,
               limit: effectiveLimit,
-              statusFilter: [StatusFilter.Published],
             });
 
             const documents = results.map((result) => result.document);

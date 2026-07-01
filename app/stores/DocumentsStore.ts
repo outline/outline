@@ -6,11 +6,12 @@ import {
   AttachmentPreset,
   SubscriptionType,
   type DateFilter,
-  type StatusFilter,
 } from "@shared/types";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
+import type { JSONObject } from "@shared/types";
 import type RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Document from "~/models/Document";
@@ -33,13 +34,10 @@ export type SearchParams = {
   query?: string;
   offset?: number;
   limit?: number;
-  dateFilter?: DateFilter;
-  statusFilter?: StatusFilter[];
-  collectionId?: string;
-  userId?: string;
   shareId?: string;
   sort?: SortFilter;
   direction?: DirectionFilter;
+  filters?: Filter[];
 };
 
 type ImportOptions = {
@@ -398,7 +396,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   searchTitles = async (options?: SearchParams): Promise<SearchResult[]> => {
-    const compactedOptions = omitBy(options, (o) => !o);
+    const compactedOptions = omitBy(options, (o) => !o) as JSONObject;
     const res = await client.post("/documents.search_titles", {
       ...compactedOptions,
     });
@@ -429,7 +427,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   search = async (options: SearchParams): Promise<SearchResult[]> => {
-    const compactedOptions = omitBy(options, (o) => !o);
+    const compactedOptions = omitBy(options, (o) => !o) as JSONObject;
     const res = await client.post("/documents.search", {
       ...compactedOptions,
     });

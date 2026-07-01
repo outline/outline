@@ -13,6 +13,8 @@ import { isUrl } from "@shared/utils/urls";
 import { ParamRequiredError, ValidationError } from "./errors";
 import { Buckets } from "./models/helpers/AttachmentHelper";
 
+export { isISO8601Duration } from "@shared/utils/date";
+
 type IncomingValue = Primitive | string[];
 
 export const assertPresent = (value: IncomingValue, message: string) => {
