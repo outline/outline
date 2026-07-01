@@ -2083,6 +2083,25 @@ table {
     padding: 4px 0;
   }
 
+  // Images inserted or pasted into a table cell carry an explicit inline pixel
+  // width (the image's own resolution). Because the table uses auto layout that
+  // fixed width would force the column to grow to the full image size and
+  // overflow the cell. Neutralize the inline width inside cells so the image
+  // scales down to the available column width, while `fit-content` keeps the
+  // wrapper hugging the image so smaller images are never upscaled.
+  td,
+  th {
+    .image-wrapper {
+      max-width: 100%;
+      width: fit-content !important;
+    }
+
+    .${EditorStyleHelper.imageHandle} {
+      max-width: 100%;
+      width: auto !important;
+    }
+  }
+
   td[data-bgcolor],
   th[data-bgcolor] {
     color: var(--cell-text-color);
