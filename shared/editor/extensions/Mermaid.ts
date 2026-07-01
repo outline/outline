@@ -18,6 +18,7 @@ import type { Editor } from "../../../app/editor";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import { hashString } from "../../utils/string";
 import { sanitizeUrl } from "../../utils/urls";
+import { isModKey } from "../../utils/keyboard";
 
 export const pluginKey = new PluginKey("mermaid");
 
@@ -523,7 +524,7 @@ export default function Mermaid({
         return this.getState(state)?.decorationSet;
       },
       handleKeyDown(view, event) {
-        if (event.key === "Enter" && event.metaKey && !editor.props.readOnly) {
+        if (event.key === "Enter" && isModKey(event) && !editor.props.readOnly) {
           const { selection } = view.state;
           const isNodeSel = selection instanceof NodeSelection;
           const isMermaidNode =
