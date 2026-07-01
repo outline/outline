@@ -13,16 +13,17 @@ describe("collection tools", () => {
     });
 
     const res = await callMcpTool(server, accessToken, "list_collections");
-    const data = parseMcpListContent<{ id: string }>(res?.result?.content);
+    const data = parseMcpListContent<{ id: string; url: string }>(
+      res?.result?.content
+    );
 
     expect(data.length).toBeGreaterThanOrEqual(1);
-    const ids = data.map((c: { id: string }) => c.id);
+    const ids = data.map((c) => c.id);
     expect(ids).toContain(collection.id);
 
-    const match = data.find((c: { id: string }) => c.id === collection.id) as {
-      url: string;
-    };
-    expect(match.url).toMatch(/^https?:\/\//);
+    const match = data.find((c) => c.id === collection.id);
+    expect(match).toBeDefined();
+    expect(match!.url).toMatch(/^https?:\/\//);
   });
 
   it("list_collections does not return collections from another team", async () => {
