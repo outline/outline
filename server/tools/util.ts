@@ -68,11 +68,20 @@ export function optionalString() {
 /**
  * Helper function to format successful MCP tool responses.
  *
+ * Empty arrays return a single `[]` text block so MCP clients that reject
+ * `content: []` can still distinguish zero results from a broken response.
+ *
  * @param data - the data to include in the response.
  * @returns a formatted response object for MCP tools.
  */
 export function success<T>(data: T | T[]): CallToolResult {
   const payload = Array.isArray(data) ? data : [data];
+
+  if (payload.length === 0) {
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify([]) }],
+    };
+  }
 
   return {
     content: payload.map((item) => ({
