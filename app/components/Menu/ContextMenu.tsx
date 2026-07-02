@@ -25,22 +25,26 @@ type Props = {
 
 export const ContextMenu = observer(
   ({ action, children, ariaLabel, onOpen, onClose }: Props) => {
+    const [open, setOpen] = React.useState(false);
     const isMobile = useMobile();
     const contentRef = React.useRef<React.ElementRef<typeof MenuContent>>(null);
     const actionContext = useActionContext({
       isMenu: true,
     });
 
-    const menuItems = useComputed(
-      () =>
-        ((action?.children as ActionVariant[]) ?? []).map((childAction) =>
-          actionToMenuItem(childAction, actionContext)
-        ),
-      [action?.children, actionContext]
-    );
+    const menuItems = useComputed(() => {
+      if (!open) {
+        return [];
+      }
+
+      return ((action?.children as ActionVariant[]) ?? []).map((childAction) =>
+        actionToMenuItem(childAction, actionContext)
+      );
+    }, [open, action?.children, actionContext]);
 
     const handleOpenChange = React.useCallback(
       (open: boolean) => {
+        setOpen(open);
         if (open) {
           onOpen?.();
         } else {
@@ -62,15 +66,15 @@ export const ContextMenu = observer(
       }
     }, []);
 
-    if (isMobile || !action || menuItems.length === 0) {
+    if (isMobile || !action) {
       return <>{children}</>;
     }
 
-    const content = toMenuItems(menuItems);
+    const content = open ? toMenuItems(menuItems) : null;
 
     return (
       <MenuProvider variant="context">
-        <Menu onOpenChange={handleOpenChange}>
+        <Menu open={open} onOpenChange={handleOpenChange}>
           <MenuTrigger aria-label={ariaLabel}>{children}</MenuTrigger>
           <MenuContent
             aria-label={ariaLabel}

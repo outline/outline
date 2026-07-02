@@ -99,6 +99,10 @@ export type DocumentRowProps = {
 
   /** Context menu action for the row. */
   contextAction?: ActionWithChildren;
+  /** Callback when the context menu is opened. */
+  onContextMenuOpen?: () => void;
+  /** Callback when the context menu is closed. */
+  onContextMenuClose?: () => void;
 
   /** Optional override for the active-match function. */
   isActiveOverride?: (
@@ -147,6 +151,8 @@ function DocumentRow({
   onCreateChild,
   newChildDepth,
   contextAction,
+  onContextMenuOpen,
+  onContextMenuClose,
   isActiveOverride,
   children,
   onClickIntent,
@@ -260,6 +266,8 @@ function DocumentRow({
       onDisclosureClick={onDisclosureClick}
       onClickIntent={onClickIntent}
       contextAction={contextAction}
+      onContextMenuOpen={onContextMenuOpen}
+      onContextMenuClose={onContextMenuClose}
       icon={icon}
       isActive={isActiveOverride ?? defaultIsActive}
       isActiveDrop={isActiveDropTarget}

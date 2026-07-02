@@ -59,6 +59,10 @@ type Props = Omit<NavLinkProps, "to"> & {
   scrollIntoViewIfNeeded?: boolean;
   /** Optional context menu action to display */
   contextAction?: ActionWithChildren;
+  /** Callback when the context menu is opened */
+  onContextMenuOpen?: () => void;
+  /** Callback when the context menu is closed */
+  onContextMenuClose?: () => void;
 };
 
 const activeDropStyle = {
@@ -93,6 +97,8 @@ function SidebarLink(
     disabled,
     unreadBadge,
     contextAction,
+    onContextMenuOpen,
+    onContextMenuClose,
     ellipsis = true,
     ...rest
   }: Props,
@@ -151,7 +157,12 @@ function SidebarLink(
 
   const innerContent = (
     <>
-      <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
+      <ContextMenu
+        action={contextAction}
+        ariaLabel={t("Link options")}
+        onOpen={onContextMenuOpen}
+        onClose={onContextMenuClose}
+      >
         <Content>
           {hasDisclosure && (
             <DisclosureComponent
