@@ -207,24 +207,52 @@ export class NotionClient {
 
   async fetchRootPages() {
     const pages: Page[] = [];
+    const seen = new Set<string>();
+    const maxRestarts = 3;
 
     let cursor: string | undefined;
     let hasMore = true;
+    let restarts = 0;
 
     while (hasMore) {
-      const response = await this.fetchWithRetry(() =>
-        this.client.search({
-          start_cursor: cursor,
-          page_size: this.pageSize,
-        })
-      );
+      let response;
+      try {
+        response = await this.fetchWithRetry(() =>
+          this.client.search({
+            start_cursor: cursor,
+            page_size: this.pageSize,
+          })
+        );
+      } catch (error) {
+        // The Notion search cursor has an undocumented TTL. For large workspaces
+        // (10 000+ pages) pagination can take long enough that the cursor expires
+        // mid-way through, producing a ValidationError. Restart from the
+        // beginning and skip IDs we have already collected.
+        if (
+          error instanceof APIResponseError &&
+          error.code === APIErrorCode.ValidationError &&
+          cursor !== undefined &&
+          restarts < maxRestarts
+        ) {
+          restarts++;
+          Logger.info(
+            "task",
+            `Notion search cursor expired, restarting from the beginning (restart ${restarts}/${maxRestarts})`
+          );
+          cursor = undefined;
+          hasMore = true;
+          continue;
+        }
+        throw error;
+      }
 
       response.results.forEach((item) => {
         if (!isFullPageOrDatabase(item)) {
           return;
         }
 
-        if (item.parent.type === "workspace") {
+        if (item.parent.type === "workspace" && !seen.has(item.id)) {
+          seen.add(item.id);
           pages.push({
             type: item.object === "page" ? PageType.Page : PageType.Database,
             id: item.id,
