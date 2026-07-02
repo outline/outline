@@ -3,9 +3,7 @@ import type { MarkType } from "prosemirror-model";
 import type { Command, EditorState } from "prosemirror-state";
 import { TextSelection } from "prosemirror-state";
 import type { Primitive } from "utility-types";
-import { chainTransactions } from "../lib/chainTransactions";
 import { getMarksBetween } from "../queries/getMarksBetween";
-import { isMarkActive } from "../queries/isMarkActive";
 
 const wordCharRegex = /[\p{L}\p{N}_]/u;
 
@@ -100,6 +98,9 @@ export function toggleMark(
   attrs?: Record<string, Primitive>
 ): Command {
   return (state, dispatch) => {
+    const shouldRemoveOnly =
+      !!attrs && Object.values(attrs).every((value) => value === null || value === undefined);
+
     const wordRange = findWordRangeAtCursor(state, type);
     if (wordRange) {
       const { from, to } = wordRange;
@@ -107,7 +108,7 @@ export function toggleMark(
 
       if (dispatch) {
         const tr = state.tr.removeMark(from, to, type);
-        if (!hasMatching) {
+        if (!hasMatching && !shouldRemoveOnly) {
           tr.addMark(from, to, type.create(attrs));
         }
         dispatch(tr);
@@ -115,17 +116,22 @@ export function toggleMark(
       return true;
     }
 
-    if (isMarkActive(type, attrs)(state)) {
-      return pmToggleMark(type)(state, dispatch);
+    const { $from, $to, empty } = state.selection;
+    if (empty) {
+      if (shouldRemoveOnly) {
+        return pmToggleMark(type)(state, dispatch);
+      }
+      return pmToggleMark(type, attrs)(state, dispatch);
     }
 
-    if (isMarkActive(type)(state)) {
-      return chainTransactions(pmToggleMark(type), pmToggleMark(type, attrs))(
-        state,
-        dispatch
-      );
+    if (dispatch) {
+      const hasMatching = rangeHasMarkWithAttrs(state, type, attrs, $from.pos, $to.pos);
+      const tr = state.tr.removeMark($from.pos, $to.pos, type);
+      if (!hasMatching && !shouldRemoveOnly) {
+        tr.addMark($from.pos, $to.pos, type.create(attrs));
+      }
+      dispatch(tr);
     }
-
-    return pmToggleMark(type, attrs)(state, dispatch);
+    return true;
   };
 }
