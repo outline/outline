@@ -702,6 +702,16 @@ export class Environment {
   );
 
   /**
+   * Whether AWS_S3_UPLOAD_BUCKET_URL is a custom domain bound to a single bucket.
+   * When true, public URLs omit the bucket path prefix and presigned GET URLs are
+   * signed against the domain root.
+   */
+  @IsOptional()
+  public AWS_S3_BUCKET_BOUND_ENDPOINT = this.toBoolean(
+    environment.AWS_S3_BUCKET_BOUND_ENDPOINT ?? "false"
+  );
+
+  /**
    * Set default AWS S3 ACL for file attachments.
    */
   @IsOptional()
