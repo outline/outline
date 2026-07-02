@@ -49,6 +49,29 @@ export default abstract class NavigableModel extends Model {
     return this.node?.children;
   }
 
+  /**
+   * Returns a lookup from document id to child documents.
+   *
+   * @returns a map of document id to child document nodes.
+   */
+  @computed({ keepAlive: true })
+  get childrenByDocumentId(): Map<string, NavigationNode[]> {
+    const childrenByDocumentId = new Map<string, NavigationNode[]>();
+
+    const travelNodes = (nodes: NavigationNode[]) => {
+      for (const node of nodes) {
+        childrenByDocumentId.set(node.id, node.children);
+        travelNodes(node.children);
+      }
+    };
+
+    if (this.node) {
+      travelNodes([this.node]);
+    }
+
+    return childrenByDocumentId;
+  }
+
   @action
   setDocuments(value: NavigationNode[] | undefined) {
     if (this.node && value) {
@@ -101,24 +124,7 @@ export default abstract class NavigableModel extends Model {
    * Returns the child documents structure for the document.
    */
   getChildrenForDocument(documentId: string) {
-    let result: NavigationNode[] = [];
-
-    const travelNodes = (nodes: NavigationNode[]) => {
-      nodes.forEach((node) => {
-        if (node.id === documentId) {
-          result = node.children;
-          return;
-        }
-
-        return travelNodes(node.children);
-      });
-    };
-
-    if (this.node) {
-      travelNodes([this.node]);
-    }
-
-    return result;
+    return this.childrenByDocumentId.get(documentId) ?? [];
   }
 
   /**

@@ -282,6 +282,8 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
   );
 
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+  const [contextMenuOpen, handleContextMenuOpen, handleContextMenuClose] =
+    useBoolean();
   const isMoving = documents.movingDocumentId === node.id;
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
@@ -378,6 +380,7 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
 
   const contextMenuAction = useDocumentMenuAction({
     documentId: node.id,
+    enabled: contextMenuOpen,
     onRename: handleRename,
   });
 
@@ -445,6 +448,8 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
       canCreateChild={showMenuActions && can.createChildDocument}
       onCreateChild={handleNewDoc}
       contextAction={contextMenuAction}
+      onContextMenuOpen={handleContextMenuOpen}
+      onContextMenuClose={handleContextMenuClose}
       isActiveOverride={isActiveCheck}
       onClickIntent={handlePrefetch}
     />
