@@ -5,7 +5,7 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
-import { UserPreference } from "@shared/types";
+import { type NavigationNode, UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
@@ -75,6 +75,8 @@ type StarredCollectionLinkProps = {
   isDraggingAnyStar: boolean;
 };
 
+const emptyChildDocuments: NavigationNode[] = [];
+
 const StarredDocumentLink = observer(function StarredDocumentLink({
   star,
   document,
@@ -96,13 +98,15 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   const can = usePolicy(document);
   const editableTitleRef = React.useRef<RefHandle>(null);
   const [{ isDragging }, draggableRef] = useDragStar(star);
+  const [contextMenuOpen, handleContextMenuOpen, handleContextMenuClose] =
+    useBoolean();
 
   const documentCollection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
   const childDocuments = documentCollection
     ? documentCollection.getChildrenForDocument(document.id)
-    : [];
+    : emptyChildDocuments;
   const hasChildDocuments = childDocuments.length > 0;
   const displayChildDocuments = expanded && !isDragging;
   const expansion = useSidebarExpansionState(
@@ -167,6 +171,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
 
   const contextMenuAction = useDocumentMenuAction({
     documentId: document.id,
+    enabled: contextMenuOpen,
     onRename: handleRename,
   });
 
@@ -215,6 +220,8 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         onCreateChild={handleNewDoc}
         newChildDepth={2}
         contextAction={contextMenuAction}
+        onContextMenuOpen={handleContextMenuOpen}
+        onContextMenuClose={handleContextMenuClose}
         isActiveOverride={isActive}
         onClickIntent={handlePrefetch}
       >

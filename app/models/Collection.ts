@@ -162,6 +162,29 @@ export default class Collection extends ParanoidModel {
     return sortNavigationNodes(this.documents, this.sort);
   }
 
+  /**
+   * Returns a lookup from document id to child documents.
+   *
+   * @returns a map of document id to child document nodes.
+   */
+  @computed({ keepAlive: true })
+  get childrenByDocumentId(): Map<string, NavigationNode[]> {
+    const childrenByDocumentId = new Map<string, NavigationNode[]>();
+
+    const travelNodes = (nodes: NavigationNode[]) => {
+      for (const node of nodes) {
+        childrenByDocumentId.set(node.id, node.children);
+        travelNodes(node.children);
+      }
+    };
+
+    if (this.sortedDocuments) {
+      travelNodes(this.sortedDocuments);
+    }
+
+    return childrenByDocumentId;
+  }
+
   /** The initial letter of the collection name as a string. */
   @computed
   get initial() {
@@ -319,24 +342,7 @@ export default class Collection extends ParanoidModel {
   }
 
   getChildrenForDocument(documentId: string) {
-    let result: NavigationNode[] = [];
-
-    const travelNodes = (nodes: NavigationNode[]) => {
-      nodes.forEach((node) => {
-        if (node.id === documentId) {
-          result = node.children;
-          return;
-        }
-
-        return travelNodes(node.children);
-      });
-    };
-
-    if (this.sortedDocuments) {
-      travelNodes(this.sortedDocuments);
-    }
-
-    return result;
+    return this.childrenByDocumentId.get(documentId) ?? [];
   }
 
   @computed

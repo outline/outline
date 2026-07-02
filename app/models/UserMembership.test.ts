@@ -1,11 +1,11 @@
 /* oxlint-disable */
 import type { NavigationNode } from "@shared/types";
-import { NavigationNodeType } from "@shared/types";
+import { DocumentPermission, NavigationNodeType } from "@shared/types";
 import stores from "~/stores";
 
-type ReadCounter = {
+interface ReadCounter {
   count: number;
-};
+}
 
 function documentNode(
   id: string,
@@ -32,33 +32,23 @@ function documentNode(
   return node;
 }
 
-describe("Collection model", () => {
-  test("should initialize with data", () => {
-    const collection = stores.collections.add({
-      id: "123",
-      name: "Engineering",
-    });
-    expect(collection.name).toBe("Engineering");
-  });
-
+describe("UserMembership model", () => {
   test("should cache children by document id", () => {
     const readCounter = { count: 0 };
     const child = documentNode("child");
     const target = documentNode("target", [child], readCounter);
-    const collection = stores.collections.add({
-      id: "children-index",
-      name: "Engineering",
-      sort: {
-        field: "index",
-        direction: "asc",
-      },
-      documents: [documentNode("root", [target])],
+    const membership = stores.userMemberships.add({
+      id: "membership-children-index",
+      userId: "user",
+      documentId: "root",
+      permission: DocumentPermission.Read,
+      node: documentNode("root", [target]),
     });
 
-    expect(collection.getChildrenForDocument("target")).toEqual([child]);
+    expect(membership.getChildrenForDocument("target")).toEqual([child]);
     const readsAfterFirstLookup = readCounter.count;
 
-    expect(collection.getChildrenForDocument("target")).toEqual([child]);
+    expect(membership.getChildrenForDocument("target")).toEqual([child]);
     expect(readCounter.count).toBe(readsAfterFirstLookup);
   });
 });

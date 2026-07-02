@@ -39,13 +39,14 @@ import { ActiveDocumentSection } from "~/actions/sections";
 import useMobile from "./useMobile";
 import type Template from "~/models/Template";
 import usePolicy from "./usePolicy";
-import useCurrentUser from "./useCurrentUser";
 import { useTemplateMenuActions } from "./useTemplateMenuActions";
 import { useMenuAction } from "./useMenuAction";
 
 type Props = {
   /** Document ID for which the actions are generated */
   documentId: string;
+  /** Whether the full set of actions should be generated */
+  enabled?: boolean;
   /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
   /** Invoked when the "Rename" menu item is clicked */
@@ -56,22 +57,26 @@ type Props = {
 
 export function useDocumentMenuAction({
   documentId,
+  enabled = true,
   onFindAndReplace,
   onRename,
   onSelectTemplate,
 }: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
-  const user = useCurrentUser();
   const can = usePolicy(documentId);
 
   const templateMenuActions = useTemplateMenuActions({
     documentId,
-    onSelectTemplate,
+    onSelectTemplate: enabled ? onSelectTemplate : undefined,
   });
 
-  const actions = useMemo(
-    () => [
+  const actions = useMemo(() => {
+    if (!enabled) {
+      return [];
+    }
+
+    return [
       restoreDocument,
       restoreDocumentToCollection,
       starDocument,
@@ -120,17 +125,16 @@ export function useDocumentMenuAction({
       deleteDocument,
       permanentlyDeleteDocument,
       leaveDocument,
-    ],
-    [
-      t,
-      isMobile,
-      templateMenuActions,
-      can.update,
-      user.separateEditMode,
-      onFindAndReplace,
-      onRename,
-    ]
-  );
+    ];
+  }, [
+    enabled,
+    t,
+    isMobile,
+    templateMenuActions,
+    can.update,
+    onFindAndReplace,
+    onRename,
+  ]);
 
   return useMenuAction(actions);
 }
