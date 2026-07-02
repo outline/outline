@@ -28,9 +28,9 @@ export type MermaidState = {
   editingId?: string;
 };
 
-// The `v2` namespace discards entries cached before the #11782 fix, so
+// The `v3` namespace discards entries cached before the foreignObject fix, so
 // previously mis-sized diagrams are re-rendered instead of served from cache.
-const STORAGE_PREFIX = "mermaid:v2:";
+const STORAGE_PREFIX = "mermaid:v3:";
 const MAX_STORAGE_ENTRIES = 20;
 
 class Cache {
@@ -160,16 +160,22 @@ class MermaidRenderer {
       return;
     }
 
-    // Create a temporary element for rendering. We use visibility:hidden instead of
-    // offscreen positioning so the browser computes correct bounding boxes for SVG
-    // elements — offscreen elements can produce incorrect getBBox() results, leading
-    // to wrong viewBox dimensions (see mermaid-js/mermaid#6146).
+    // Create a temporary element for rendering. We use opacity:0 instead of
+    // visibility:hidden because browsers skip layout of <foreignObject> content
+    // inside visibility:hidden SVGs, causing mermaid's layout engine to measure
+    // zero-size nodes and produce inflated viewBox dimensions for diagram types
+    // that use foreignObject-based text (classDiagram, erDiagram,
+    // requirementDiagram). opacity:0 keeps the element in the render tree and
+    // fully laid out without being visible to the user. We previously used
+    // offscreen positioning (left:-9999px) which broke getBBox() in Chromium
+    // (mermaid-js/mermaid#6146); opacity:0 avoids both problems.
     const renderElement = document.createElement("div");
     const tempId =
       "offscreen-mermaid-" + Math.random().toString(36).substr(2, 9);
     renderElement.id = tempId;
     renderElement.style.position = "fixed";
-    renderElement.style.visibility = "hidden";
+    renderElement.style.opacity = "0";
+    renderElement.style.pointerEvents = "none";
     renderElement.style.top = "0";
     renderElement.style.left = "0";
     const width = this.editor.view?.dom.clientWidth ?? window.innerWidth;
