@@ -4,12 +4,19 @@ import {
   buildViewer,
   buildCollection,
   buildDocument,
+  buildAttachment,
   buildTemplate,
   buildOAuthAuthentication,
   buildGroup,
 } from "@server/test/factories";
-import { Document, GroupMembership, UserMembership } from "@server/models";
+import {
+  Attachment,
+  Document,
+  GroupMembership,
+  UserMembership,
+} from "@server/models";
 import { getTestServer } from "@server/test/support";
+import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
 
 const server = getTestServer();
@@ -411,6 +418,285 @@ describe("create_document", () => {
       where: { createdById: user.id },
     });
     expect(documents.length).toEqual(0);
+  });
+});
+
+describe("prepare_document_file_upload", () => {
+  it("creates a temporary upload for a source file", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+
+    const res = await callMcpTool(
+      server,
+      accessToken,
+      "prepare_document_file_upload",
+      {
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        name: "proposal.docx",
+        size: 1000,
+      }
+    );
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+    expect(res?.result?.isError).toBeUndefined();
+    expect(data.uploadUrl).toMatch(/^https?:\/\//);
+    expect(data.form["Content-Type"]).toEqual(
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    expect(data.attachment.id).toBeDefined();
+    expect(data.attachment.url).toMatch(/^https?:\/\//);
+    expect(data.curlCommand).toContain(data.uploadUrl);
+
+    const attachment = await Attachment.findByPk(data.attachment.id, {
+      rejectOnEmpty: true,
+    });
+    expect(attachment.name).toEqual("proposal.docx");
+    expect(attachment.contentType).toEqual(
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    expect(attachment.teamId).toEqual(user.teamId);
+    expect(attachment.userId).toEqual(user.id);
+    expect(attachment.expiresAt).toBeTruthy();
+  });
+
+  it("read-only token does not have document file upload tool", async () => {
+    const user = await buildUser();
+    const auth = await buildOAuthAuthentication({
+      user,
+      scope: [Scope.Read],
+    });
+
+    const res = await callMcpTool(
+      server,
+      auth.accessToken!,
+      "prepare_document_file_upload",
+      {
+        contentType: "text/html",
+        name: "webpage.html",
+        size: 1000,
+      }
+    );
+
+    expect(res?.result?.isError).toBe(true);
+  });
+});
+
+describe("create_document_from_uploaded_file", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("does not expose legacy document file import tool names", async () => {
+    const { accessToken } = await buildOAuthUser();
+
+    const combinedToolRes = await callMcpTool(
+      server,
+      accessToken,
+      "create_document_from_file",
+      {
+        contentType: "text/html",
+        name: "webpage.html",
+        size: 1000,
+      }
+    );
+    const legacyImportRes = await callMcpTool(
+      server,
+      accessToken,
+      "import_document",
+      {
+        contentType: "text/html",
+        name: "webpage.html",
+        size: 1000,
+      }
+    );
+    const uploadOnlyRes = await callMcpTool(
+      server,
+      accessToken,
+      "create_import_upload",
+      {
+        contentType: "text/html",
+        name: "webpage.html",
+        size: 1000,
+      }
+    );
+
+    expect(combinedToolRes?.result?.isError).toBe(true);
+    expect(legacyImportRes?.result?.isError).toBe(true);
+    expect(uploadOnlyRes?.result?.isError).toBe(true);
+  });
+
+  it("read-only token does not have uploaded file creation tool", async () => {
+    const user = await buildUser();
+    const auth = await buildOAuthAuthentication({
+      user,
+      scope: [Scope.Read],
+    });
+
+    const importRes = await callMcpTool(
+      server,
+      auth.accessToken!,
+      "create_document_from_uploaded_file",
+      {
+        attachmentId: "11111111-1111-4111-8111-111111111111",
+        collectionId: "22222222-2222-4222-8222-222222222222",
+      }
+    );
+
+    expect(importRes?.result?.isError).toBe(true);
+  });
+
+  it("creates a document from an uploaded HTML file in a collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Imported Title",
+      text: "Hello from HTML",
+    });
+    const uploadRes = await callMcpTool(
+      server,
+      accessToken,
+      "prepare_document_file_upload",
+      {
+        contentType: "text/html",
+        name: "webpage.html",
+        size: 1000,
+      }
+    );
+    const uploadData = JSON.parse(
+      uploadRes?.result?.content?.[0]?.text ?? "{}"
+    );
+    const attachment = await Attachment.findByPk(uploadData.attachment.id, {
+      rejectOnEmpty: true,
+    });
+    vi.spyOn(DocumentImportTask.prototype, "schedule").mockResolvedValue({
+      finished: vi.fn().mockResolvedValue({ documentId: document.id }),
+    } as unknown as Awaited<ReturnType<DocumentImportTask["schedule"]>>);
+
+    const res = await callMcpTool(
+      server,
+      accessToken,
+      "create_document_from_uploaded_file",
+      {
+        attachmentId: attachment.id,
+        collectionId: collection.id,
+        publish: true,
+      }
+    );
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+    expect(res?.result?.isError).toBeUndefined();
+    expect(data.document.title).toEqual("Imported Title");
+    expect(data.document.collectionId).toEqual(collection.id);
+    expect(data.document.url).toMatch(/^https?:\/\//);
+    expect(res?.result?.content?.[1]?.text).toContain("Hello from HTML");
+  });
+
+  it("queues import for an uploaded document source file", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Queued Import",
+    });
+    const uploadRes = await callMcpTool(
+      server,
+      accessToken,
+      "prepare_document_file_upload",
+      {
+        contentType: "text/html",
+        name: "webpage.html",
+        size: 1000,
+      }
+    );
+    const uploadData = JSON.parse(
+      uploadRes?.result?.content?.[0]?.text ?? "{}"
+    );
+    const attachment = await Attachment.findByPk(uploadData.attachment.id, {
+      rejectOnEmpty: true,
+    });
+    const finished = vi.fn().mockResolvedValue({ documentId: document.id });
+    const schedule = vi
+      .spyOn(DocumentImportTask.prototype, "schedule")
+      .mockResolvedValue({
+        finished,
+      } as unknown as Awaited<ReturnType<DocumentImportTask["schedule"]>>);
+
+    const res = await callMcpTool(
+      server,
+      accessToken,
+      "create_document_from_uploaded_file",
+      {
+        attachmentId: attachment.id,
+        collectionId: collection.id,
+        publish: true,
+      }
+    );
+
+    expect(res?.result?.isError).toBeUndefined();
+    expect(schedule).toHaveBeenCalledWith({
+      key: attachment.key,
+      sourceMetadata: {
+        fileName: attachment.name,
+        mimeType: attachment.contentType,
+      },
+      userId: user.id,
+      collectionId: collection.id,
+      parentDocumentId: undefined,
+      publish: true,
+      ip: expect.any(String),
+    });
+    expect(finished).toHaveBeenCalled();
+  });
+
+  it("rejects regular document attachments as import source files", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const sourceDocument = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        documentId: sourceDocument.id,
+        contentType: "text/html",
+        expiresAt: null,
+      },
+      "webpage.html"
+    );
+    const schedule = vi.spyOn(DocumentImportTask.prototype, "schedule");
+
+    const res = await callMcpTool(
+      server,
+      accessToken,
+      "create_document_from_uploaded_file",
+      {
+        attachmentId: attachment.id,
+        collectionId: collection.id,
+      }
+    );
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "must be uploaded with prepare_document_file_upload"
+    );
+    expect(schedule).not.toHaveBeenCalled();
   });
 });
 

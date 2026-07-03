@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
@@ -8,15 +9,28 @@ import documentCreator, {
 import documentMover from "@server/commands/documentMover";
 import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
-import { Collection, Document, Template } from "@server/models";
+import { ValidationError } from "@server/errors";
+import {
+  Attachment,
+  Collection,
+  Document,
+  Team,
+  Template,
+} from "@server/models";
+import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { sequelize } from "@server/storage/database";
+import FileStorage from "@server/storage/files";
 import { authorize, can } from "@server/policies";
+import presentAttachment from "@server/presenters/attachment";
 import {
   presentDocument as presentDocumentBase,
   presentNavigationNode,
 } from "@server/presenters";
+import type { DocumentImportTaskResponse } from "@server/queues/tasks/DocumentImportTask";
+import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
+import { bytesToHumanReadable } from "@shared/utils/files";
 import {
   error,
   success,
@@ -29,7 +43,7 @@ import {
   pathToUrl,
   withTracing,
 } from "./util";
-import { StatusFilter, TextEditMode } from "@shared/types";
+import { AttachmentPreset, StatusFilter, TextEditMode } from "@shared/types";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 /**
@@ -291,6 +305,227 @@ export function documentTools(server: McpServer, scopes: string[]) {
   }
 
   if (AuthenticationHelper.canAccess("documents.create", scopes)) {
+    server.registerTool(
+      "prepare_document_file_upload",
+      {
+        title: "Prepare document file upload",
+        description:
+          "Creates a temporary pre-signed upload target for a source file that will be imported into the document system. Supports the same file types as the built-in Import document flow.",
+        annotations: {
+          idempotentHint: false,
+          readOnlyHint: false,
+        },
+        inputSchema: {
+          contentType: z.string().describe("The MIME type of the source file."),
+          name: z
+            .string()
+            .describe("The source filename, including extension."),
+          size: z.coerce
+            .number()
+            .int()
+            .nonnegative()
+            .finite()
+            .describe("The source file size in bytes."),
+        },
+      },
+      withTracing(
+        "prepare_document_file_upload",
+        async ({ contentType, name, size }, context) => {
+          try {
+            const ctx = buildAPIContext(context);
+            const { user } = ctx.state.auth;
+            const team = await Team.findByPk(user.teamId, {
+              rejectOnEmpty: true,
+            });
+            authorize(user, "createAttachment", team);
+
+            const preset = AttachmentPreset.Import;
+            const maxUploadSize =
+              AttachmentHelper.presetToMaxUploadSize(preset);
+
+            if (size > maxUploadSize) {
+              throw ValidationError(
+                `Sorry, this file is too large – the maximum size is ${bytesToHumanReadable(
+                  maxUploadSize
+                )}`
+              );
+            }
+
+            const id = randomUUID();
+            const acl = AttachmentHelper.presetToAcl(preset);
+            const key = AttachmentHelper.getKey({
+              id,
+              name,
+              userId: user.id,
+            });
+
+            const attachment = await Attachment.createWithCtx(ctx, {
+              id,
+              key,
+              acl,
+              size,
+              expiresAt: AttachmentHelper.presetToExpiry(preset),
+              contentType,
+              teamId: user.teamId,
+              userId: user.id,
+            });
+
+            const presignedPost = await FileStorage.getPresignedPost(
+              ctx,
+              key,
+              acl,
+              maxUploadSize,
+              contentType
+            );
+
+            const uploadUrl = new URL(FileStorage.getUploadUrl(), team.url)
+              .href;
+            const form = {
+              "Cache-Control": "max-age=31557600",
+              "Content-Type": contentType,
+              ...presignedPost.fields,
+            };
+            const formArgs = Object.entries(form)
+              .map(([k, v]) => `-F '${k}=${v}'`)
+              .join(" ");
+            const curlCommand = `curl -X POST ${formArgs} -F 'file=@/path/to/file' '${uploadUrl}'`;
+
+            return success({
+              uploadUrl,
+              form,
+              maxUploadSize,
+              curlCommand,
+              attachment: pathToUrl(team, {
+                ...presentAttachment(attachment),
+                url: attachment.redirectUrl,
+              }),
+            });
+          } catch (message) {
+            return error(message);
+          }
+        }
+      )
+    );
+
+    server.registerTool(
+      "create_document_from_uploaded_file",
+      {
+        title: "Create document from uploaded file",
+        description:
+          "Creates a document in the document system from a source file uploaded with prepare_document_file_upload. Uses the same import pipeline as the built-in Import document flow.",
+        annotations: {
+          idempotentHint: false,
+          readOnlyHint: false,
+        },
+        inputSchema: {
+          attachmentId: z
+            .string()
+            .describe(
+              "The temporary upload attachment ID returned by prepare_document_file_upload."
+            ),
+          collectionId: optionalString().describe(
+            "The collection to create the document in."
+          ),
+          parentDocumentId: optionalString().describe(
+            "The parent document ID to nest the created document under."
+          ),
+          publish: z
+            .boolean()
+            .optional()
+            .describe(
+              "Whether to publish the created document. Defaults to true."
+            ),
+        },
+      },
+      withTracing(
+        "create_document_from_uploaded_file",
+        async (input, context) => {
+          try {
+            const ctx = buildAPIContext(context);
+            const { user } = ctx.state.auth;
+            const { attachmentId, collectionId, parentDocumentId } = input;
+
+            if (!collectionId && !parentDocumentId) {
+              return error(
+                "Either collectionId or parentDocumentId is required"
+              );
+            }
+
+            const { collection, parentDocument } =
+              await authorizeDocumentCreate(ctx, {
+                collectionId,
+                parentDocumentId,
+              });
+            const attachment = await Attachment.findByPk(attachmentId, {
+              rejectOnEmpty: true,
+            });
+            authorize(user, "read", attachment);
+
+            if (
+              attachment.userId !== user.id ||
+              attachment.documentId ||
+              !attachment.expiresAt ||
+              attachment.expiresAt <= new Date()
+            ) {
+              return error(
+                "attachmentId must be uploaded with prepare_document_file_upload"
+              );
+            }
+
+            const job = await new DocumentImportTask().schedule({
+              key: attachment.key,
+              sourceMetadata: {
+                fileName: attachment.name,
+                mimeType: attachment.contentType,
+              },
+              userId: user.id,
+              collectionId: collection?.id ?? parentDocument?.collectionId,
+              parentDocumentId,
+              publish: input.publish !== false,
+              ip: ctx.context.ip ?? "",
+            });
+            const taskResponse: DocumentImportTaskResponse =
+              await job.finished();
+
+            if ("error" in taskResponse) {
+              return error(taskResponse.error);
+            }
+
+            const document = await Document.findByPk(taskResponse.documentId, {
+              userId: user.id,
+              rejectOnEmpty: true,
+            });
+            const [{ text, ...attributes }, breadcrumb] = await Promise.all([
+              presentDocument(document, {
+                includeData: false,
+                includeText: true,
+                includeUpdatedAt: true,
+              }),
+              getDocumentBreadcrumb(document, user),
+            ]);
+
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: JSON.stringify({
+                    document: pathToUrl(user.team, attributes),
+                    ...(breadcrumb !== undefined && { breadcrumb }),
+                  }),
+                },
+                {
+                  type: "text" as const,
+                  text: typeof text === "string" ? text : "",
+                },
+              ],
+            } satisfies CallToolResult;
+          } catch (message) {
+            return error(message);
+          }
+        }
+      )
+    );
+
     server.registerTool(
       "create_document",
       {

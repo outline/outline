@@ -63,6 +63,8 @@ const defaultInstructions = `Document markdown content must not begin with a top
 
 Document and collection markdown support @mentions using the syntax: @[Display Name](mention://user/userId). For example: @[John Doe](mention://user/c9a1b2e3-...). Use the "list_users" tool to find user IDs.
 
+When the user wants to create a document in the document system from an AI-generated or local file, use the same file types accepted by the built-in Import document flow. Use "prepare_document_file_upload" to get a pre-signed upload target, upload the file with the returned uploadUrl and form fields, then use "create_document_from_uploaded_file" with the returned attachment ID and destination. Use "create_attachment" only for files that should be embedded as attachments in documents.
+
 Read images and attachments with the "fetch" tool by setting resource to "attachment" and passing either the attachment ID or an /api/attachments.redirect?id=... URL; the tool will return a signed URL for download.
 
 When asked to create a document that follows a template, use the "list_templates" tool to find a matching template; each result already includes the template body as markdown. To use it unchanged, pass its ID as templateId to "create_document" and the new document is pre-filled from it. To adapt it first, modify the returned body and pass the result as the text parameter to "create_document". Either way no separate fetch is needed.`;
