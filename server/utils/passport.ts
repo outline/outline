@@ -1,12 +1,13 @@
 import crypto from "node:crypto";
 import { addMinutes, subMinutes } from "date-fns";
+import type { JwtPayload } from "jsonwebtoken";
 import type { Context, Next } from "koa";
 import type {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
 } from "passport-oauth2";
 import type { Primitive } from "utility-types";
-import { toError } from "@shared/utils/error";
+import { errToString, toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
@@ -16,6 +17,7 @@ import { InternalError, OAuthStateMismatchError } from "../errors";
 import { hash, safeEqual } from "./crypto";
 import fetch from "./fetch";
 import { getUserForJWT } from "./jwt";
+import { parseUserInfoResponse } from "./oauth";
 import {
   hashOAuthStateNonce,
   signOAuthIntent,
@@ -192,11 +194,22 @@ export class StateStore {
   };
 }
 
-export async function request(
+/**
+ * Perform an authenticated request against an OAuth provider endpoint and
+ * parse the response body. Handles both JSON responses and, for OIDC userinfo
+ * endpoints configured for signed responses, `application/jwt` bodies.
+ *
+ * @param method The HTTP method to use.
+ * @param endpoint The endpoint to request.
+ * @param accessToken The access token to authenticate with.
+ * @returns The parsed response body.
+ * @throws {InternalError} When the response body cannot be parsed.
+ */
+export async function request<T = JwtPayload>(
   method: "GET" | "POST",
   endpoint: string,
   accessToken: string
-) {
+): Promise<T> {
   const response = await fetch(endpoint, {
     method,
     allowPrivateIPAddress: true,
@@ -205,13 +218,12 @@ export async function request(
       "Content-Type": "application/json",
     },
   });
-  const text = await response.text();
 
   try {
-    return JSON.parse(text);
-  } catch (_err) {
+    return await parseUserInfoResponse<T>(response);
+  } catch (err) {
     throw InternalError(
-      `Failed to parse response from ${endpoint}. Expected JSON, got: ${text}`
+      `Failed to parse response from ${endpoint}. ${errToString(err)}`
     );
   }
 }
