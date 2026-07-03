@@ -1,5 +1,5 @@
 import passport from "@outlinewiki/koa-passport";
-import type { Context } from "koa";
+import type { Request } from "koa";
 import Router from "koa-router";
 import type { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
@@ -76,7 +76,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       scope: scopes,
     },
     async function (
-      context: Context,
+      req: Request,
       accessToken: string,
       refreshToken: string,
       params: { expires_in: number },
@@ -87,6 +87,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         result?: AuthenticationResult
       ) => void
     ) {
+      const context = req.ctx;
       try {
         const team = await getTeamFromContext(context);
         const client = getClientFromOAuthState(context);
