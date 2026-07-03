@@ -83,9 +83,10 @@ export async function parseUserInfoResponse<T = JWT.JwtPayload>(
   response: Response
 ): Promise<T> {
   const contentType = response.headers.get("content-type") ?? "";
+  const mediaType = contentType.split(";")[0].trim().toLowerCase();
   const text = await response.text();
 
-  if (contentType.toLowerCase().startsWith("application/jwt")) {
+  if (mediaType === "application/jwt") {
     // The JWT arrives directly from the provider over TLS so, as with the
     // id_token, claims are read without local signature verification.
     const claims = JWT.decode(text.trim());
