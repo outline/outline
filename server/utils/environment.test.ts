@@ -86,19 +86,6 @@ describe("withFileSecrets", () => {
     ).toBe(false);
   });
 
-  it("should not resolve reserved third-party _FILE variables", () => {
-    const bundleFile = path.join(tmpDir, "ca-bundle.crt");
-    fs.writeFileSync(bundleFile, "-----BEGIN CERTIFICATE-----");
-
-    const record: Record<string, string | undefined> = {
-      SSL_CERT_FILE: bundleFile,
-    };
-    const env = withFileSecrets(record);
-
-    expect(env.SSL_CERT).toBeUndefined();
-    expect(record.SSL_CERT).toBeUndefined();
-  });
-
   it("should cache the resolved value on the underlying record", () => {
     const secretFile = path.join(tmpDir, "secret");
     fs.writeFileSync(secretFile, "first-value");

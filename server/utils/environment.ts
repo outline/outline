@@ -37,14 +37,6 @@ process.env = {
 };
 
 /**
- * `_FILE` environment variables that have a well-known meaning to other
- * software and so are never treated as Outline file secrets, even though the
- * base name matches a configuration variable. `SSL_CERT_FILE` is OpenSSL's
- * CA bundle path and is commonly present in container environments.
- */
-const RESERVED_FILE_VARIABLES = new Set(["SSL_CERT_FILE"]);
-
-/**
  * Wraps an environment record so that Docker-style file secrets are resolved
  * lazily. When a variable is read through the proxy and has no value, but a
  * corresponding `<NAME>_FILE` variable is set, the referenced file is read and
@@ -76,12 +68,7 @@ export function withFileSecrets(
         return value;
       }
 
-      const fileKey = `${prop}_FILE`;
-      if (RESERVED_FILE_VARIABLES.has(fileKey)) {
-        return undefined;
-      }
-
-      const filePath = target[fileKey];
+      const filePath = target[`${prop}_FILE`];
       if (!filePath) {
         return undefined;
       }
@@ -91,7 +78,7 @@ export function withFileSecrets(
       } catch (err) {
         // oxlint-disable-next-line no-console
         console.error(
-          `Failed to read file for ${fileKey} (${filePath}): ${(err as Error).message}`
+          `Failed to read file for ${prop}_FILE (${filePath}): ${(err as Error).message}`
         );
       }
       return target[prop];
