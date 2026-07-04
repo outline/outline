@@ -593,19 +593,6 @@ export function documentTools(server: McpServer, scopes: string[]) {
       },
       withTracing("update_document", async (input, context) => {
         try {
-          // Reject requests that cannot result in any update, otherwise a
-          // caller that intended a write but sent no recognized fields
-          // receives a success response and believes content was persisted
-          // when nothing changed.
-          const hasUpdates = Object.entries(input).some(
-            ([key, value]) => key !== "id" && value !== undefined
-          );
-          if (!hasUpdates) {
-            return error(
-              "No fields provided to update, the document was not changed"
-            );
-          }
-
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
@@ -630,10 +617,23 @@ export function documentTools(server: McpServer, scopes: string[]) {
               await authorizeDocumentPublish(ctx, document, input.collectionId);
             }
 
+            const { revisionCount } = document;
+
             updated = await documentUpdater(ctx, {
               document,
               ...input,
             });
+
+            // Every save increments revisionCount, so an unchanged count means
+            // nothing was persisted. Fail loud rather than return a success
+            // the caller would read as a completed write — the request either
+            // carried no recognized fields or values identical to the current
+            // document.
+            if (updated.revisionCount === revisionCount) {
+              return error(
+                "The update resulted in no changes to the document, ensure at least one field is provided and differs from the current document"
+              );
+            }
           }
 
           const [{ text, ...attributes }, breadcrumb] = await Promise.all([
