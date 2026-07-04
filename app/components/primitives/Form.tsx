@@ -4,9 +4,7 @@ import { CSRF } from "@shared/constants";
 
 /**
  * Form component that automatically includes a CSRF token as a hidden input
- * field. The token is re-read from the cookie when the form is submitted, as
- * the server rotates the token and a value captured at render time may have
- * become stale by submission.
+ * field, read from the cookie at submission time.
  */
 export const Form = ({
   children,

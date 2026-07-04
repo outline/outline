@@ -165,8 +165,7 @@ class ApiClient {
       ...options?.headers,
     };
 
-    // Mutating requests require a CSRF token, except those that only need
-    // read scope and are therefore exempt from CSRF protection server-side.
+    // Mutating requests require a CSRF token, unless exempt server-side.
     const isModifyingRequest = method === "POST" || method === "PUT";
     const canAccessWithReadOnly = AuthenticationHelper.canAccess(path, [
       Scope.Read,
@@ -182,10 +181,8 @@ class ApiClient {
 
     const headers = new Headers(headerOptions);
 
-    // The server rotates the CSRF token cookie on safe requests, so the
-    // token must be read immediately before each network attempt — a value
-    // captured when the request was prepared may no longer match the cookie
-    // by the time a retry is dispatched.
+    // The token is read before each attempt so that retries reflect any
+    // rotation of the cookie since the request was prepared.
     const fetchWithFreshCsrfToken: typeof fetch = (input, init) => {
       if (requiresCsrfToken) {
         const csrfToken = getCookie(CSRF.cookieName);

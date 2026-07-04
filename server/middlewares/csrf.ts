@@ -18,9 +18,7 @@ import { parseAuthentication } from "./authentication";
  */
 export function attachCSRFToken() {
   /**
-   * Determines if a fresh token should be set on the response. Routes may
-   * suppress rotation, in which case a token is only issued when the client
-   * does not already hold a valid one.
+   * Determines if a fresh token should be set on the response.
    */
   const shouldRotateToken = (ctx: AppContext): boolean => {
     if (!ctx.state.suppressCsrfTokenRotation) {
@@ -38,7 +36,7 @@ export function attachCSRFToken() {
     }
 
     // The cookie is set after downstream middleware has run so that routes
-    // can opt out of rotation, see `suppressCsrfTokenRotation`.
+    // can opt out of rotation.
     try {
       await next();
     } finally {
@@ -59,12 +57,8 @@ export function attachCSRFToken() {
 
 /**
  * Middleware that prevents `attachCSRFToken` from rotating the CSRF token
- * cookie on the response. Intended for high-frequency safe endpoints, such as
- * inline attachment redirects, where rotating the token on every request
- * races mutating requests that read the token before the rotation but are
- * sent after it — the browser attaches the new cookie while the request
- * still carries the previous token, failing the double-submit check.
- * A token is still issued when the client does not hold a valid one.
+ * cookie on the response. A token is still issued when the client does not
+ * hold a valid one.
  */
 export function suppressCsrfTokenRotation() {
   return function suppressCsrfTokenRotationMiddleware(
