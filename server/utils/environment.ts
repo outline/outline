@@ -44,13 +44,6 @@ process.env = {
  * underlying record and returned. If the base variable is already set, the
  * file is not read.
  *
- * Resolution only happens for variables that are actually read through the
- * proxy, which limits it to the variables declared on the Environment classes.
- * `_FILE` variables consumed directly by third-party libraries – such as the
- * AWS SDK's `AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE`, which must be re-read
- * from disk on every credential refresh – are never copied into their base
- * variable.
- *
  * @param env - the environment record to wrap.
  * @returns a proxy over the record that resolves `_FILE` secrets on read.
  */
