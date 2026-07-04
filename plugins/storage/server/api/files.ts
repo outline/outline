@@ -11,7 +11,6 @@ import {
   ValidationError,
 } from "@server/errors";
 import auth from "@server/middlewares/authentication";
-import { suppressCsrfTokenRotation } from "@server/middlewares/csrf";
 import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import timeout from "@server/middlewares/timeout";
@@ -91,7 +90,6 @@ router.post(
 
 router.get(
   "files.get",
-  suppressCsrfTokenRotation(),
   auth({ optional: true }),
   validate(T.FilesGetSchema),
   async (ctx: APIContext<T.FilesGetReq>) => {

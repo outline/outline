@@ -17,56 +17,21 @@ import { parseAuthentication } from "./authentication";
  * Middleware that generates and attaches CSRF tokens for safe methods
  */
 export function attachCSRFToken() {
-  /**
-   * Determines if a fresh token should be set on the response.
-   */
-  const shouldRotateToken = (ctx: AppContext): boolean => {
-    if (!ctx.state.suppressCsrfTokenRotation) {
-      return true;
-    }
-
-    const existing = ctx.cookies.get(CSRF.cookieName);
-    return !existing || !unbundleToken(existing, env.SECRET_KEY).valid;
-  };
-
   return async function attachCSRFTokenMiddleware(ctx: AppContext, next: Next) {
     // Only attach tokens for safe methods that don't mutate state
-    if (!["GET", "HEAD", "OPTIONS"].includes(ctx.method)) {
-      return next();
+    if (["GET", "HEAD", "OPTIONS"].includes(ctx.method)) {
+      const raw = generateRawToken(16);
+      const bundled = bundleToken(raw, env.SECRET_KEY);
+
+      // Set cookie that JavaScript can read (not HttpOnly)
+      ctx.cookies.set(CSRF.cookieName, bundled, {
+        httpOnly: false,
+        sameSite: "lax",
+        domain: getCookieDomain(ctx.request.hostname, env.isCloudHosted),
+      });
     }
 
-    // The cookie is set after downstream middleware has run so that routes
-    // can opt out of rotation.
-    try {
-      await next();
-    } finally {
-      if (!ctx.headerSent && shouldRotateToken(ctx)) {
-        const raw = generateRawToken(16);
-        const bundled = bundleToken(raw, env.SECRET_KEY);
-
-        // Set cookie that JavaScript can read (not HttpOnly)
-        ctx.cookies.set(CSRF.cookieName, bundled, {
-          httpOnly: false,
-          sameSite: "lax",
-          domain: getCookieDomain(ctx.request.hostname, env.isCloudHosted),
-        });
-      }
-    }
-  };
-}
-
-/**
- * Middleware that prevents `attachCSRFToken` from rotating the CSRF token
- * cookie on the response. A token is still issued when the client does not
- * hold a valid one.
- */
-export function suppressCsrfTokenRotation() {
-  return function suppressCsrfTokenRotationMiddleware(
-    ctx: AppContext,
-    next: Next
-  ) {
-    ctx.state.suppressCsrfTokenRotation = true;
-    return next();
+    await next();
   };
 }
 

@@ -77,8 +77,6 @@ export type AppState = {
   auth: Authentication | Record<string, never>;
   transaction: Transaction;
   pagination: Pagination;
-  /** When true, the CSRF token cookie is not rotated on the response. */
-  suppressCsrfTokenRotation?: boolean;
   oauthClient?: OAuthClient;
   oauthIntent?: OAuthIntent;
   oauthState?: OAuthState;
