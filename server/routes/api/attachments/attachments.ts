@@ -12,6 +12,7 @@ import {
   ValidationError,
 } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { suppressCsrfTokenRotation } from "@server/middlewares/csrf";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -339,6 +340,7 @@ const handleAttachmentsRedirect = async (
 
 router.get(
   "attachments.redirect",
+  suppressCsrfTokenRotation(),
   auth({ optional: true }),
   validate(T.AttachmentsRedirectSchema),
   handleAttachmentsRedirect
