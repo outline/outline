@@ -37,10 +37,10 @@ process.env = {
 };
 
 /**
- * Well-known `_FILE` environment variables consumed by third-party software,
- * where the suffix does not indicate an Outline file secret. `SSL_CERT_FILE`
- * is the standard OpenSSL variable pointing at a CA bundle and must not be
- * resolved into Outline's `SSL_CERT` setting.
+ * `_FILE` environment variables that have a well-known meaning to other
+ * software and so are never treated as Outline file secrets, even though the
+ * base name matches a configuration variable. `SSL_CERT_FILE` is OpenSSL's
+ * CA bundle path and is commonly present in container environments.
  */
 const RESERVED_FILE_VARIABLES = new Set(["SSL_CERT_FILE"]);
 
