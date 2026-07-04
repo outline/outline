@@ -52,6 +52,21 @@ describe("documentUpdater", () => {
     expect(document.lastModifiedById).toEqual(user.id);
   });
 
+  it("should throw when no updatable fields are provided", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+    });
+
+    await expect(
+      withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          document,
+        })
+      )
+    ).rejects.toThrow("No updatable fields were provided");
+  });
+
   it("should not change lastModifiedById or generate event if nothing changed", async () => {
     const user = await buildUser();
     let document = await buildDocument({
