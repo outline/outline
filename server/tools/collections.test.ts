@@ -80,4 +80,39 @@ describe("collection tools", () => {
     expect(data.name).toEqual("Updated Name");
     expect(data.url).toMatch(/^https?:\/\//);
   });
+
+  it("update_collection errors when no fields are provided to update", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_collection", {
+      id: collection.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "The update resulted in no changes to the collection"
+    );
+  });
+
+  it("update_collection errors when provided fields are identical to the current collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_collection", {
+      id: collection.id,
+      name: collection.name,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "The update resulted in no changes to the collection"
+    );
+  });
 });

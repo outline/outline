@@ -537,7 +537,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           'Updates an existing document by its ID. Only the fields provided will be updated. IMPORTANT: When editing an existing document\'s content, always prefer editMode "patch" with findText and text — this surgically replaces only the matched section and preserves all rich formatting (highlights, comments, table widths, etc) in the rest of the document. Using "replace" will overwrite the entire document and lose any formatting that cannot be represented in markdown.',
         annotations: {
-          idempotentHint: true,
+          idempotentHint: false,
           readOnlyHint: false,
         },
         inputSchema: {
