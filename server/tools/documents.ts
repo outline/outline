@@ -593,6 +593,19 @@ export function documentTools(server: McpServer, scopes: string[]) {
       },
       withTracing("update_document", async (input, context) => {
         try {
+          // Reject requests that cannot result in any update, otherwise a
+          // caller that intended a write but sent no recognized fields
+          // receives a success response and believes content was persisted
+          // when nothing changed.
+          const hasUpdates = Object.entries(input).some(
+            ([key, value]) => key !== "id" && value !== undefined
+          );
+          if (!hasUpdates) {
+            return error(
+              "No fields provided to update, the document was not changed"
+            );
+          }
+
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 

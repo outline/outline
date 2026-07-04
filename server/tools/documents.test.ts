@@ -438,6 +438,32 @@ describe("update_document", () => {
     expect(data.document.url).toMatch(/^https?:\/\//);
   });
 
+  it("errors when no fields are provided to update", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "original text",
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "No fields provided to update"
+    );
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.text).toEqual("original text");
+  });
+
   it("unpublishes a document", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({

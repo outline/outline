@@ -3766,68 +3766,6 @@ describe("#documents.create", () => {
 });
 
 describe("#documents.update", () => {
-  it("should error when no updatable fields are provided", async () => {
-    const user = await buildUser();
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-      text: "original text",
-    });
-    const revisionCount = document.revisionCount;
-
-    const res = await server.post("/api/documents.update", user, {
-      body: {
-        id: document.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(400);
-    expect(body.message).toContain("No updatable fields were provided");
-
-    await document.reload();
-    expect(document.text).toEqual("original text");
-    expect(document.revisionCount).toEqual(revisionCount);
-  });
-
-  it("should error when only unrecognized fields are provided", async () => {
-    const user = await buildUser();
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-      text: "original text",
-    });
-
-    const res = await server.post("/api/documents.update", user, {
-      body: {
-        id: document.id,
-        content: "this key is not recognized by the API",
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(400);
-    expect(body.message).toContain("No updatable fields were provided");
-
-    await document.reload();
-    expect(document.text).toEqual("original text");
-  });
-
-  it("should succeed when only done is provided", async () => {
-    const user = await buildUser();
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-      text: "original text",
-    });
-
-    const res = await server.post("/api/documents.update", user, {
-      body: {
-        id: document.id,
-        done: true,
-      },
-    });
-    expect(res.status).toEqual(200);
-  });
-
   it("should update document details in the root", async () => {
     const user = await buildUser();
     const document = await buildDocument({

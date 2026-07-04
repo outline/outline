@@ -1,5 +1,4 @@
 import type { TextEditMode } from "@shared/types";
-import { ValidationError } from "@server/errors";
 import { Event, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -42,7 +41,6 @@ type Props = {
  *
  * @param Props The properties of the document to update
  * @returns Document The updated document
- * @throws ValidationError When no updatable properties are provided.
  */
 export default async function documentUpdater(
   ctx: APIContext,
@@ -66,25 +64,6 @@ export default async function documentUpdater(
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
   const cId = collectionId || document.collectionId;
-
-  // Reject requests that cannot result in any update, otherwise a caller that
-  // intended a write but sent no recognized fields receives a success response
-  // and believes content was persisted when nothing changed.
-  if (
-    title === undefined &&
-    icon === undefined &&
-    color === undefined &&
-    text === undefined &&
-    fullWidth === undefined &&
-    insightsEnabled === undefined &&
-    templateId === undefined &&
-    !publish &&
-    !done
-  ) {
-    throw ValidationError(
-      "No updatable fields were provided, at least one of title, text, icon, color, fullWidth, insightsEnabled, templateId, publish, or done is required"
-    );
-  }
 
   if (title !== undefined) {
     document.title = title.trim();
