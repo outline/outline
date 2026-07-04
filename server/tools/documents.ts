@@ -631,7 +631,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             // document.
             if (updated.revisionCount === revisionCount) {
               return error(
-                "The update resulted in no changes to the document, ensure at least one field is provided and differs from the current document"
+                "The update resulted in no changes to the document. Ensure at least one field is provided and differs from the current document."
               );
             }
           }

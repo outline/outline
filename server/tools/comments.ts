@@ -413,7 +413,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
           // current comment.
           if (!comment.changed()) {
             return error(
-              "The update resulted in no changes to the comment, ensure at least one field is provided and differs from the current comment"
+              "The update resulted in no changes to the comment. Ensure at least one field is provided and differs from the current comment."
             );
           }
 

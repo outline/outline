@@ -266,7 +266,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           // current collection.
           if (!collection.changed()) {
             return error(
-              "The update resulted in no changes to the collection, ensure at least one field is provided and differs from the current collection"
+              "The update resulted in no changes to the collection. Ensure at least one field is provided and differs from the current collection."
             );
           }
 
