@@ -37,44 +37,66 @@ process.env = {
 };
 
 /**
- * Process environment variables with _FILE suffix by reading the referenced
- * file and setting the base variable. If the base variable is already set, the
- * file is not read. File contents are trimmed of leading/trailing whitespace.
- *
- * @param env - the environment record to process.
+ * Well-known `_FILE` environment variables consumed by third-party software,
+ * where the suffix does not indicate an Outline file secret. `SSL_CERT_FILE`
+ * is the standard OpenSSL variable pointing at a CA bundle and must not be
+ * resolved into Outline's `SSL_CERT` setting.
  */
-export function resolveFileSecrets(
+const RESERVED_FILE_VARIABLES = new Set(["SSL_CERT_FILE"]);
+
+/**
+ * Wraps an environment record so that Docker-style file secrets are resolved
+ * lazily. When a variable is read through the proxy and has no value, but a
+ * corresponding `<NAME>_FILE` variable is set, the referenced file is read and
+ * its contents – trimmed of leading/trailing whitespace – are cached on the
+ * underlying record and returned. If the base variable is already set, the
+ * file is not read.
+ *
+ * Resolution only happens for variables that are actually read through the
+ * proxy, which limits it to the variables declared on the Environment classes.
+ * `_FILE` variables consumed directly by third-party libraries – such as the
+ * AWS SDK's `AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE`, which must be re-read
+ * from disk on every credential refresh – are never copied into their base
+ * variable.
+ *
+ * @param env - the environment record to wrap.
+ * @returns a proxy over the record that resolves `_FILE` secrets on read.
+ */
+export function withFileSecrets(
   env: Record<string, string | undefined>
-): void {
-  for (const key of Object.keys(env)) {
-    if (key.endsWith("_FILE")) {
-      const baseKey = key.slice(0, -5);
-      if (!baseKey.length) {
-        continue;
+): Record<string, string | undefined> {
+  return new Proxy(env, {
+    get(target, prop, receiver) {
+      if (typeof prop !== "string" || !prop.length || prop.endsWith("_FILE")) {
+        return Reflect.get(target, prop, receiver);
       }
 
-      const filePath = env[key];
+      const value = target[prop];
+      if (value !== undefined) {
+        return value;
+      }
 
+      const fileKey = `${prop}_FILE`;
+      if (RESERVED_FILE_VARIABLES.has(fileKey)) {
+        return undefined;
+      }
+
+      const filePath = target[fileKey];
       if (!filePath) {
-        continue;
-      }
-
-      if (env[baseKey] !== undefined) {
-        continue;
+        return undefined;
       }
 
       try {
-        env[baseKey] = fs.readFileSync(filePath, "utf8").trim();
+        target[prop] = fs.readFileSync(filePath, "utf8").trim();
       } catch (err) {
         // oxlint-disable-next-line no-console
         console.error(
-          `Failed to read file for ${key} (${filePath}): ${(err as Error).message}`
+          `Failed to read file for ${fileKey} (${filePath}): ${(err as Error).message}`
         );
       }
-    }
-  }
+      return target[prop];
+    },
+  });
 }
 
-resolveFileSecrets(process.env);
-
-export default process.env;
+export default withFileSecrets(process.env);
