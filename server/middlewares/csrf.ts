@@ -61,8 +61,10 @@ export function attachCSRFToken() {
  * Middleware that prevents `attachCSRFToken` from rotating the CSRF token
  * cookie on the response. Intended for high-frequency safe endpoints, such as
  * inline attachment redirects, where rotating the token on every request
- * would invalidate in-flight mutating requests prepared with the previous
- * token. A token is still issued when the client does not hold a valid one.
+ * races mutating requests that read the token before the rotation but are
+ * sent after it — the browser attaches the new cookie while the request
+ * still carries the previous token, failing the double-submit check.
+ * A token is still issued when the client does not hold a valid one.
  */
 export function suppressCsrfTokenRotation() {
   return function suppressCsrfTokenRotationMiddleware(
