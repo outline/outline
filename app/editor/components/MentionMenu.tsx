@@ -7,6 +7,10 @@ import {
   PlusIcon,
   NewDocumentIcon,
   CollectionIcon,
+  Heading1Icon,
+  Heading2Icon,
+  Heading3Icon,
+  Heading4Icon,
 } from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -41,6 +45,8 @@ import { client } from "~/utils/ApiClient";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
+import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
+import type Document from "~/models/Document";
 
 interface MentionItem extends MenuItem {
   attrs: {
@@ -49,6 +55,7 @@ interface MentionItem extends MenuItem {
     modelId: string;
     label: string;
     actorId?: string;
+    anchorId?: string;
   };
 }
 
@@ -152,6 +159,28 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
     }
   }, [actorId, loading]);
 
+  const getHeadings = useCallback(
+    (doc: Document) => {
+      const headings = ProsemirrorHelper.getHeadings({ data: doc.data });
+
+      return headings.map((h) => ({
+        ...h,
+        icon:
+          h.level === 1 ? (
+            <Heading1Icon />
+          ) : h.level === 2 ? (
+            <Heading2Icon />
+          ) : h.level === 3 ? (
+            <Heading3Icon />
+          ) : (
+            <Heading4Icon />
+          ),
+      }));
+    },
+
+    []
+  );
+
   // Computed in the render body so MobX observer can track store access
   // (e.g. searchSuppressed). Previously this lived inside a useEffect which
   // runs outside the reactive context and triggered MobX warnings.
@@ -219,39 +248,81 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
         .concat(
           documents
             .findByQuery(search, { maxResults: maxResultsInSection })
-            .map(
-              (doc) =>
-                ({
-                  name: "mention",
-                  icon: doc.icon ? (
-                    <Icon
-                      value={doc.icon}
-                      initial={doc.initial}
-                      color={doc.color ?? undefined}
-                    />
-                  ) : (
-                    <DocumentIcon />
-                  ),
-                  title: doc.title,
-                  subtitle: doc.collectionId ? (
-                    <DocumentBreadcrumb
-                      document={doc}
-                      onlyText
-                      reverse
-                      maxDepth={2}
-                    />
-                  ) : undefined,
-                  section: DocumentsSection,
-                  appendSpace: true,
-                  attrs: {
-                    id: uuidv4(),
-                    type: MentionType.Document,
-                    modelId: doc.id,
-                    actorId,
-                    label: doc.title,
-                  },
-                }) as MentionItem
-            )
+            .map((doc) => {
+              const headings = getHeadings(doc);
+              const children = headings.length
+                ? [
+                    {
+                      name: "mention",
+                      title: doc.title,
+                      appendSpace: true,
+                      icon: doc.icon ? (
+                        <Icon
+                          value={doc.icon}
+                          initial={doc.initial}
+                          color={doc.color ?? undefined}
+                        />
+                      ) : (
+                        <DocumentIcon />
+                      ),
+                      attrs: {
+                        id: uuidv4(),
+                        type: MentionType.Document,
+                        modelId: doc.id,
+                        actorId,
+                        label: doc.title,
+                      },
+                    },
+                  ].concat(
+                    ...headings.map((h) => ({
+                      name: "mention",
+                      title: h.title,
+                      appendSpace: true,
+                      icon: h.icon,
+                      attrs: {
+                        id: uuidv4(),
+                        type: MentionType.Document,
+                        modelId: doc.id,
+                        actorId,
+                        anchorId: h.id,
+                        label: `${doc.title} > ${h.title}`,
+                      },
+                    }))
+                  )
+                : [];
+
+              return {
+                name: "mention",
+                icon: doc.icon ? (
+                  <Icon
+                    value={doc.icon}
+                    initial={doc.initial}
+                    color={doc.color ?? undefined}
+                  />
+                ) : (
+                  <DocumentIcon />
+                ),
+                title: doc.title,
+                subtitle: doc.collectionId ? (
+                  <DocumentBreadcrumb
+                    document={doc}
+                    onlyText
+                    reverse
+                    maxDepth={2}
+                  />
+                ) : undefined,
+                children: children.length ? children : undefined,
+                section: DocumentsSection,
+                appendSpace: true,
+                attrs: {
+                  id: uuidv4(),
+                  type: MentionType.Document,
+                  modelId: doc.id,
+                  actorId,
+                  label: doc.title,
+                },
+              } as MentionItem;
+            })
         )
         .concat(
           collections

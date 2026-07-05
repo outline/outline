@@ -1,7 +1,10 @@
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import type { ProsemirrorData } from "@shared/types";
-import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import {
+  type Heading,
+  ProsemirrorHelper as SharedProsemirrorHelper,
+} from "@shared/utils/ProsemirrorHelper";
 import { Schema } from "prosemirror-model";
 import { Node } from "prosemirror-model";
 
@@ -44,5 +47,10 @@ export class ProsemirrorHelper {
       Node.fromJSON(schema, document.data)
     );
     return text;
+  };
+
+  static getHeadings = (document: HasData): Heading[] => {
+    const doc = Node.fromJSON(schema, document.data);
+    return SharedProsemirrorHelper.getHeadings(doc);
   };
 }
