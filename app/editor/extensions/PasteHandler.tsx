@@ -1,28 +1,28 @@
-import { action, observable } from "mobx";
-import { v4 as uuidv4 } from "uuid";
-import { toggleMark } from "prosemirror-commands";
-import type { Node } from "prosemirror-model";
-import { Slice } from "prosemirror-model";
-import type { EditorState } from "prosemirror-state";
-import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
-import { Decoration, DecorationSet } from "prosemirror-view";
-import type { WidgetProps } from "@shared/editor/lib/Extension";
-import Extension from "@shared/editor/lib/Extension";
-import { codeLanguages } from "@shared/editor/lib/code";
-import isMarkdown from "@shared/editor/lib/isMarkdown";
-import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
-import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
-import { recreateTransform } from "@shared/editor/lib/prosemirror-recreate-transform";
-import { isInCode } from "@shared/editor/queries/isInCode";
-import { isList } from "@shared/editor/queries/isList";
-import type { MenuItem } from "@shared/editor/types";
-import { IconType, MentionType } from "@shared/types";
-import { determineIconType } from "@shared/utils/icon";
-import parseCollectionSlug from "@shared/utils/parseCollectionSlug";
-import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import { isCollectionUrl, isDocumentUrl, isUrl } from "@shared/utils/urls";
-import stores from "~/stores";
-import { PasteMenu } from "../components/PasteMenu";
+import { action, observable } from 'mobx';
+import { v4 as uuidv4 } from 'uuid';
+import { toggleMark } from 'prosemirror-commands';
+import type { Node } from 'prosemirror-model';
+import { Slice } from 'prosemirror-model';
+import type { EditorState } from 'prosemirror-state';
+import { Plugin, PluginKey, TextSelection } from 'prosemirror-state';
+import { Decoration, DecorationSet } from 'prosemirror-view';
+import type { WidgetProps } from '@shared/editor/lib/Extension';
+import Extension from '@shared/editor/lib/Extension';
+import { codeLanguages } from '@shared/editor/lib/code';
+import isMarkdown from '@shared/editor/lib/isMarkdown';
+import normalizePastedMarkdown from '@shared/editor/lib/markdown/normalize';
+import { isRemoteTransaction } from '@shared/editor/lib/multiplayer';
+import { recreateTransform } from '@shared/editor/lib/prosemirror-recreate-transform';
+import { isInCode } from '@shared/editor/queries/isInCode';
+import { isList } from '@shared/editor/queries/isList';
+import type { MenuItem } from '@shared/editor/types';
+import { IconType, MentionType } from '@shared/types';
+import { determineIconType } from '@shared/utils/icon';
+import parseCollectionSlug from '@shared/utils/parseCollectionSlug';
+import parseDocumentSlug from '@shared/utils/parseDocumentSlug';
+import { isCollectionUrl, isDocumentUrl, isUrl } from '@shared/utils/urls';
+import stores from '~/stores';
+import { PasteMenu } from '../components/PasteMenu';
 
 export default class PasteHandler extends Extension {
   state: {
@@ -31,12 +31,12 @@ export default class PasteHandler extends Extension {
     pastedText: string | string[];
   } = observable({
     open: false,
-    query: "",
-    pastedText: "",
+    query: '',
+    pastedText: '',
   });
 
   get name() {
-    return "paste-handler";
+    return 'paste-handler';
   }
 
   private key = new PluginKey(this.name);
@@ -49,7 +49,7 @@ export default class PasteHandler extends Extension {
           transformPastedHTML(html: string) {
             if (isDropboxPaper(html)) {
               // Fixes double paragraphs when pasting from Dropbox Paper
-              html = html.replace(/<div><br><\/div>/gi, "<p></p>");
+              html = html.replace(/<div><br><\/div>/gi, '<p></p>');
             }
             return html;
           },
@@ -71,14 +71,14 @@ export default class PasteHandler extends Extension {
 
             const { state, dispatch } = view;
             const iframeSrc = parseSingleIframeSrc(
-              event.clipboardData.getData("text/plain")
+              event.clipboardData.getData('text/plain')
             );
             const text =
               iframeSrc && !isInCode(state)
                 ? iframeSrc
-                : event.clipboardData.getData("text/plain");
-            const html = event.clipboardData.getData("text/html");
-            const vscode = event.clipboardData.getData("vscode-editor-data");
+                : event.clipboardData.getData('text/plain');
+            const html = event.clipboardData.getData('text/html');
+            const vscode = event.clipboardData.getData('vscode-editor-data');
 
             // If the users selection is currently in a code block then paste
             // as plain text, ignore all formatting and HTML content.
@@ -100,13 +100,13 @@ export default class PasteHandler extends Extension {
               // If the HTML on the clipboard is from Prosemirror then the best
               // compatability is to just use the HTML parser, regardless of
               // whether it "looks" like Markdown, see: outline/outline#2416
-              if (html?.includes("data-pm-slice")) {
+              if (html?.includes('data-pm-slice')) {
                 return false;
               }
 
               // If the HTML on the clipboard is from Claude then the best
               // compatability is to just use the HTML parser.
-              if (html?.includes("font-claude-response-body")) {
+              if (html?.includes('font-claude-response-body')) {
                 return false;
               }
 
@@ -125,7 +125,7 @@ export default class PasteHandler extends Extension {
                 }
 
                 // Is the link a link to a document? If so, we can grab the title and insert it.
-                const containsHash = trimmedText.includes("#");
+                const containsHash = trimmedText.includes('#');
 
                 if (isDocumentUrl(trimmedText)) {
                   const slug = parseDocumentSlug(trimmedText);
@@ -160,10 +160,9 @@ export default class PasteHandler extends Extension {
                           } else {
                             const { hash } = new URL(trimmedText);
                             const hasEmoji =
-                              determineIconType(document.icon) ===
-                              IconType.Emoji;
+                              determineIconType(document.icon) === IconType.Emoji;
 
-                            const title = `${hasEmoji ? document.icon + " " : ""}${
+                            const title = `${hasEmoji ? document.icon + ' ' : ''}${
                               document.titleWithDefault
                             }`;
 
@@ -205,10 +204,9 @@ export default class PasteHandler extends Extension {
                           } else {
                             const { hash } = new URL(trimmedText);
                             const hasEmoji =
-                              determineIconType(collection.icon) ===
-                              IconType.Emoji;
+                              determineIconType(collection.icon) === IconType.Emoji;
 
-                            const title = `${hasEmoji ? collection.icon + " " : ""}${
+                            const title = `${hasEmoji ? collection.icon + ' ' : ''}${
                               collection.name
                             }`;
 
@@ -230,8 +228,8 @@ export default class PasteHandler extends Extension {
                 return true;
               }
 
-              if (pasteCodeLanguage && pasteCodeLanguage !== "markdown") {
-                if (text.includes("\n") && supportsCodeBlock) {
+              if (pasteCodeLanguage && pasteCodeLanguage !== 'markdown') {
+                if (text.includes('\n') && supportsCodeBlock) {
                   event.preventDefault();
                   view.dispatch(
                     state.tr
@@ -253,11 +251,7 @@ export default class PasteHandler extends Extension {
                   event.preventDefault();
                   view.dispatch(
                     state.tr
-                      .insertText(
-                        text,
-                        state.selection.from,
-                        state.selection.to
-                      )
+                      .insertText(text, state.selection.from, state.selection.to)
                       .addMark(
                         state.selection.from,
                         state.selection.to + text.length,
@@ -275,7 +269,7 @@ export default class PasteHandler extends Extension {
               (isMarkdown(text) &&
                 !isDropboxPaper(html) &&
                 !isContainingImage(html)) ||
-              pasteCodeLanguage === "markdown" ||
+              pasteCodeLanguage === 'markdown' ||
               this.shiftKey ||
               !html
             ) {
@@ -312,8 +306,8 @@ export default class PasteHandler extends Extension {
               view.dispatch(
                 tr
                   .scrollIntoView()
-                  .setMeta("paste", true)
-                  .setMeta("uiEvent", "paste")
+                  .setMeta('paste', true)
+                  .setMeta('uiEvent', 'paste')
               );
               return true;
             }
@@ -341,7 +335,7 @@ export default class PasteHandler extends Extension {
                   from,
                   to,
                   {
-                    class: "paste-placeholder",
+                    class: 'paste-placeholder',
                   },
                   {
                     id,
@@ -360,7 +354,7 @@ export default class PasteHandler extends Extension {
                 }).mapping;
               } catch (err) {
                 // oxlint-disable-next-line no-console
-                console.warn("Failed to recreate transform: ", err);
+                console.warn('Failed to recreate transform: ', err);
               }
             }
 
@@ -415,9 +409,7 @@ export default class PasteHandler extends Extension {
 
     if (result) {
       const tr = state.tr.deleteRange(result[0], result[1]);
-      view.dispatch(
-        tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
-      );
+      view.dispatch(tr.setSelection(TextSelection.near(tr.doc.resolve(result[0]))));
     }
 
     this.editor.commands.embed({
@@ -434,9 +426,7 @@ export default class PasteHandler extends Extension {
     // Mention node will be created by SuggestionsMenu.
     if (result) {
       const tr = state.tr.deleteRange(result[0], result[1]);
-      view.dispatch(
-        tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
-      );
+      view.dispatch(tr.setSelection(TextSelection.near(tr.doc.resolve(result[0]))));
     }
   };
 
@@ -452,9 +442,7 @@ export default class PasteHandler extends Extension {
         remove: { id: this.placeholderId() },
       });
 
-      view.dispatch(
-        tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
-      );
+      view.dispatch(tr.setSelection(TextSelection.near(tr.doc.resolve(result[0]))));
     }
   };
 
@@ -471,9 +459,7 @@ export default class PasteHandler extends Extension {
         remove: { id: this.placeholderId() },
       });
 
-      view.dispatch(
-        tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
-      );
+      view.dispatch(tr.setSelection(TextSelection.near(tr.doc.resolve(result[0]))));
     }
   };
 
@@ -490,11 +476,11 @@ export default class PasteHandler extends Extension {
         return false;
       }
 
-      if (isList(node, schema) || node.type.name === "list_item") {
+      if (isList(node, schema) || node.type.name === 'list_item') {
         return true;
       }
 
-      if (node.type.name === "paragraph" && isUrl(node.textContent)) {
+      if (node.type.name === 'paragraph' && isUrl(node.textContent)) {
         links.push(node.textContent);
         return false;
       }
@@ -526,7 +512,7 @@ export default class PasteHandler extends Extension {
   }
 
   private placeholderId = () =>
-    typeof this.state.pastedText === "string"
+    typeof this.state.pastedText === 'string'
       ? this.state.pastedText
       : this.state.pastedText[0];
 
@@ -557,27 +543,27 @@ export default class PasteHandler extends Extension {
 
   private handleSelect = (item: MenuItem) => {
     switch (item.name) {
-      case "noop": {
+      case 'noop': {
         this.hidePasteMenu();
         this.removePlaceholder();
         break;
       }
-      case "embed": {
+      case 'embed': {
         this.hidePasteMenu();
         this.insertEmbed();
         break;
       }
-      case "mention": {
+      case 'mention': {
         this.hidePasteMenu();
         this.insertMention();
         break;
       }
-      case "mention_list": {
+      case 'mention_list': {
         this.hidePasteMenu();
         this.insertMentionList();
         break;
       }
-      case "embed_list": {
+      case 'embed_list': {
         this.hidePasteMenu();
         this.insertEmbedList();
         break;
@@ -593,7 +579,7 @@ export default class PasteHandler extends Extension {
         this.hidePasteMenu();
         return false;
       },
-      "Mod-z": () => {
+      'Mod-z': () => {
         this.hidePasteMenu();
         return false;
       },
@@ -620,7 +606,7 @@ export default class PasteHandler extends Extension {
  * @returns True if the HTML string is likely coming from Dropbox Paper.
  */
 function isDropboxPaper(html: string): boolean {
-  return html?.includes("usually-unique-id");
+  return html?.includes('usually-unique-id');
 }
 
 /**
@@ -630,7 +616,7 @@ function isDropboxPaper(html: string): boolean {
  * @returns True if the HTML string contains an image.
  */
 function isContainingImage(html: string): boolean {
-  return html?.includes("<img");
+  return html?.includes('<img');
 }
 
 function sliceSingleNode(slice: Slice) {
@@ -651,14 +637,14 @@ function sliceSingleNode(slice: Slice) {
 function parseSingleIframeSrc(html: string) {
   try {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
+    const doc = parser.parseFromString(html, 'text/html');
 
     if (
       doc.body.children.length === 1 &&
-      doc.body.firstElementChild?.tagName === "IFRAME"
+      doc.body.firstElementChild?.tagName === 'IFRAME'
     ) {
       const iframe = doc.body.firstElementChild;
-      const src = iframe.getAttribute("src");
+      const src = iframe.getAttribute('src');
       if (src) {
         return src;
       }
