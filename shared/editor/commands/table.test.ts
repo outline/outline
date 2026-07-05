@@ -1,4 +1,5 @@
 import type { Node } from "prosemirror-model";
+import { selectedRect } from "prosemirror-tables";
 import {
   createEditorStateWithSelection,
   doc,
@@ -6,7 +7,8 @@ import {
   tr,
   td,
 } from "@shared/test/editor";
-import { sortTable } from "./table";
+import { RowSelection } from "../selection/RowSelection";
+import { setRowAttr, sortTable } from "./table";
 
 /**
  * Builds a table document from a 2D array of cell strings (rows of columns),
@@ -98,6 +100,60 @@ describe("sortTable", () => {
       ["10", "192.168.10.20"],
       ["20", "192.168.20.2"],
       ["20", "192.168.20.10"],
+    ]);
+  });
+});
+
+/**
+ * Builds a two-column table, selects the given row, runs setRowAttr with the
+ * given alignment, and returns each row's cell alignments as a 2D array.
+ */
+function runSetRowAttr(
+  rowCount: number,
+  rowIndex: number,
+  alignment: string
+): (string | null)[][] {
+  const rows = Array.from({ length: rowCount }, (_, r) =>
+    tr([td(`a${r}`), td(`b${r}`)])
+  );
+  let state = createEditorStateWithSelection(doc([table(rows)]), 4);
+
+  // Select the target row.
+  const rect = selectedRect(state);
+  const pos = rect.map.positionAt(rowIndex, 0, rect.table);
+  const $pos = state.doc.resolve(rect.tableStart + pos);
+  state = state.apply(
+    state.tr.setSelection(RowSelection.rowSelection($pos, $pos, rowIndex))
+  );
+
+  setRowAttr({ index: rowIndex, alignment })(state, (tx) => {
+    state = state.apply(tx);
+  });
+
+  const resultTable = state.doc.firstChild as Node;
+  const result: (string | null)[][] = [];
+  resultTable.forEach((row) => {
+    const cells: (string | null)[] = [];
+    row.forEach((cell) => cells.push(cell.attrs.alignment ?? null));
+    result.push(cells);
+  });
+  return result;
+}
+
+describe("setRowAttr", () => {
+  it("aligns every cell in the selected row", () => {
+    expect(runSetRowAttr(3, 1, "center")).toEqual([
+      [null, null],
+      ["center", "center"],
+      [null, null],
+    ]);
+  });
+
+  it("leaves other rows untouched", () => {
+    expect(runSetRowAttr(3, 2, "right")).toEqual([
+      [null, null],
+      [null, null],
+      ["right", "right"],
     ]);
   });
 });

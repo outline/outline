@@ -779,6 +779,53 @@ export function setColumnAttr({
 }
 
 /**
+ * Set row attributes. Passed attributes will be merged with existing.
+ *
+ * Note: Cell alignment is a per-cell attribute, so aligning a row cannot be
+ * represented in the markdown serialization of the table (which only supports
+ * per-column alignment) – it is preserved in the collaborative document.
+ *
+ * @param attrs The attributes to set
+ * @returns The command
+ */
+export function setRowAttr({
+  index,
+  alignment,
+}: {
+  index: number;
+  alignment: string;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const rect = selectedRect(state);
+      // Apply to every selected row so that aligning a span of rows – or a row
+      // whose cell spans multiple rows – affects all of them, not just the first.
+      const cells = getCellsInSelectedRows(state, index);
+      let tr = state.tr;
+      cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
+        tr = tr.setNodeMarkup(pos, undefined, {
+          ...node?.attrs,
+          alignment,
+        });
+      });
+
+      // Preserve the original row selection after aligning.
+      const pos = rect.map.positionAt(index, 0, rect.table);
+      const $pos = tr.doc.resolve(rect.tableStart + pos);
+      tr.setSelection(RowSelection.rowSelection($pos, $pos, index));
+
+      dispatch(tr);
+    }
+    return true;
+  };
+}
+
+/**
  * Set table attributes. Passed attributes will be merged with existing.
  *
  * @param attrs The attributes to set
