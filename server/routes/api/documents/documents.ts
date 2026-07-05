@@ -310,7 +310,7 @@ router.post(
 
     const includeDrafts = !!statusFilter?.includes(StatusFilter.Draft);
 
-    // The withDrafts scope drops the defaultScope filters, so re-apply the
+    // Including drafts drops the defaultScope filters, so re-apply the
     // ones we still want — templates and trial-import documents should never
     // appear in this listing.
     if (includeDrafts) {
@@ -428,7 +428,6 @@ router.post(
     const documents = await Document.scope([
       membershipScope,
       viewScope,
-      "withDrafts",
     ]).findAll({
       where: {
         teamId: user.teamId,
@@ -482,10 +481,7 @@ router.post(
       order: [[sort, direction]],
       include: [
         {
-          model: Document.scope([
-            "withDrafts",
-            { method: ["withMembership", userId] },
-          ]),
+          model: Document.scope([{ method: ["withMembership", userId] }]),
           required: true,
           where: {
             teamId: user.teamId,
@@ -2052,7 +2048,7 @@ router.post(
     const collectionIds = await user.collectionIds({
       paranoid: false,
     });
-    const documents = await Document.scope("withDrafts").findAll({
+    const documents = await Document.unscoped().findAll({
       attributes: ["id"],
       where: {
         deletedAt: {

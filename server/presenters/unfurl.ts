@@ -172,10 +172,7 @@ const presentLastViewedInfoFor = async (user: User, document: Document) => {
   return info;
 };
 
-const presentLastActivityInfoFor = async (
-  document: Document,
-  viewer: User
-) => {
+const presentLastActivityInfoFor = async (document: Document, viewer: User) => {
   const locale = dateLocale(viewer.language);
   const wasUpdated = document.createdAt !== document.updatedAt;
 

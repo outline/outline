@@ -22,10 +22,7 @@ describe("loaders", () => {
 
   describe("users", () => {
     it("should batch concurrent loads into a single query", async () => {
-      const [userOne, userTwo] = await Promise.all([
-        buildUser(),
-        buildUser(),
-      ]);
+      const [userOne, userTwo] = await Promise.all([buildUser(), buildUser()]);
       const findAll = vi.spyOn(User, "findAll");
 
       const ctx = {} as APIContext;

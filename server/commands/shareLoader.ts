@@ -51,7 +51,7 @@ export async function loadPublicShare({
     where,
     include: [
       {
-        model: Document.scope("withDrafts"),
+        model: Document.unscoped(),
         as: "document",
         include: [
           {

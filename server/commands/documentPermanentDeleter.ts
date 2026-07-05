@@ -115,7 +115,7 @@ export default async function documentPermanentDeleter(documents: Document[]) {
 
   let totalDeleted = 0;
   for (let i = 0; i < destroyBatches.length; i++) {
-    totalDeleted += await Document.scope("withDrafts").destroy({
+    totalDeleted += await Document.unscoped().destroy({
       where: {
         id: destroyBatches[i],
         deletedAt: { [Op.ne]: null },

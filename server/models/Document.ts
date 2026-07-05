@@ -134,9 +134,6 @@ type AdditionalFindOptions = {
       include: [],
     },
   },
-  // an empty scope that overrides the default scope, allowing drafts to be
-  // included in queries.
-  withDrafts: {},
   withViews: (userId: string) => {
     if (!userId) {
       return {};
@@ -715,7 +712,9 @@ class Document extends ArchivableModel<
     options?: FindOptions<Document> & { includeDrafts?: boolean }
   ) {
     return this.scope([
-      options?.includeDrafts ? "withDrafts" : "defaultScope",
+      // scoped queries drop the default scope filters unless explicitly
+      // re-applied, which is what allows drafts to be included here.
+      ...(options?.includeDrafts ? [] : ["defaultScope"]),
       "withoutState",
       {
         method: ["withViews", userId],
@@ -760,8 +759,8 @@ class Document extends ArchivableModel<
 
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
+    // Note: any scoped query drops the default scope filters, so drafts are included.
     const scope = this.scope([
-      "withDrafts",
       includeState ? "withState" : "withoutState",
       ...((includeViews
         ? [
@@ -828,7 +827,6 @@ class Document extends ArchivableModel<
 
     const user = userId ? await User.findByPk(userId) : null;
     const documents = await this.scope([
-      "withDrafts",
       includeState ? "withState" : "withoutState",
       ...((includeViews
         ? [

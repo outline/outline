@@ -68,12 +68,9 @@ import Length from "./validators/Length";
         as: "collection",
       },
       {
-        model: Document.scope([
-          "withDrafts",
-          {
-            method: ["withMembership", userId],
-          },
-        ]),
+        model: Document.scope({
+          method: ["withMembership", userId],
+        }),
         paranoid: true,
         as: "document",
         include: [
