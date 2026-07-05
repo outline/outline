@@ -7,6 +7,7 @@ import { find } from "es-toolkit/compat";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { isExternalUrl, sanitizeImageSrc } from "../../utils/urls";
+import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import {
@@ -63,10 +64,32 @@ const Image = (props: Props) => {
     ref,
   });
 
+  // Images inside a table cell are scaled to the column width by CSS, so their
+  // rendered width no longer follows the resize handles — hide the handles to
+  // avoid offering a control that has no visible effect.
+  const isInTableCell = React.useMemo(() => {
+    try {
+      const pos = props.getPos();
+      if (typeof pos !== "number") {
+        return false;
+      }
+      const $pos = props.view.state.doc.resolve(pos);
+      return !!findParentNodeClosestToPos(
+        $pos,
+        (parent) =>
+          parent.type.spec.tableRole === "cell" ||
+          parent.type.spec.tableRole === "header_cell"
+      );
+    } catch {
+      return false;
+    }
+  }, [props.view.state, props.getPos]);
+
   const isFullWidth = layoutClass === "full-width";
   const isInlineIcon =
     !isFullWidth && !!width && width < InlineIconMaxWidth && !error;
-  const isResizable = !!props.onChangeSize && !error && !isInlineIcon;
+  const isResizable =
+    !!props.onChangeSize && !error && !isInlineIcon && !isInTableCell;
   const isDownloadable = !!props.onDownload && !error;
 
   const className = [
