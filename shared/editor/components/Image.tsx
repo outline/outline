@@ -7,7 +7,6 @@ import { find } from "es-toolkit/compat";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { isExternalUrl, sanitizeImageSrc } from "../../utils/urls";
-import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import {
@@ -48,6 +47,12 @@ const Image = (props: Props) => {
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const lastTapTimeRef = React.useRef(0);
   const ref = React.useRef<HTMLDivElement>(null);
+  // The usable content width of the containing table cell, if any. Constrains
+  // both the rendered width and how far the image can be resized so an image
+  // can never push its column wider than the space available to it.
+  const [cellMaxWidth, setCellMaxWidth] = React.useState(
+    Number.POSITIVE_INFINITY
+  );
   const {
     width,
     height,
@@ -61,35 +66,50 @@ const Image = (props: Props) => {
     naturalWidth,
     naturalHeight,
     onChangeSize,
+    maxWidth: cellMaxWidth,
     ref,
   });
 
-  // Images inside a table cell are scaled to the column width by CSS, so their
-  // rendered width no longer follows the resize handles — hide the handles to
-  // avoid offering a control that has no visible effect.
-  const isInTableCell = React.useMemo(() => {
-    try {
-      const pos = props.getPos();
-      if (typeof pos !== "number") {
-        return false;
-      }
-      const $pos = props.view.state.doc.resolve(pos);
-      return !!findParentNodeClosestToPos(
-        $pos,
-        (parent) =>
-          parent.type.spec.tableRole === "cell" ||
-          parent.type.spec.tableRole === "header_cell"
-      );
-    } catch {
-      return false;
+  // When rendered inside a table cell, measure the cell's usable content width
+  // so oversized images scale down to fit the column instead of overflowing it.
+  // The image is momentarily removed from layout during measurement so the cell
+  // reports its natural column width rather than the width the image forces.
+  React.useLayoutEffect(() => {
+    const element = ref.current;
+    const cell = element?.closest("td, th");
+    if (!element || !(cell instanceof HTMLElement)) {
+      setCellMaxWidth(Number.POSITIVE_INFINITY);
+      return;
     }
-  }, [props.view.state, props.getPos]);
+
+    const measure = () => {
+      const previousDisplay = element.style.display;
+      element.style.display = "none";
+      const style = getComputedStyle(cell);
+      const available =
+        cell.clientWidth -
+        parseFloat(style.paddingLeft) -
+        parseFloat(style.paddingRight);
+      element.style.display = previousDisplay;
+
+      setCellMaxWidth(available > 0 ? available : Number.POSITIVE_INFINITY);
+    };
+
+    measure();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(cell);
+    return () => observer.disconnect();
+  }, []);
 
   const isFullWidth = layoutClass === "full-width";
   const isInlineIcon =
     !isFullWidth && !!width && width < InlineIconMaxWidth && !error;
-  const isResizable =
-    !!props.onChangeSize && !error && !isInlineIcon && !isInTableCell;
+  const isResizable = !!props.onChangeSize && !error && !isInlineIcon;
   const isDownloadable = !!props.onDownload && !error;
 
   const className = [
@@ -123,7 +143,9 @@ const Image = (props: Props) => {
 
   const widthStyle = isFullWidth
     ? { width: "var(--container-width)" }
-    : { width: width || "auto" };
+    : Number.isFinite(cellMaxWidth)
+      ? { width: width || "auto", maxWidth: cellMaxWidth }
+      : { width: width || "auto" };
 
   const handleImageTouchStart = (ev: React.TouchEvent<HTMLDivElement>) => {
     const currentTime = Date.now();

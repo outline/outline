@@ -75,6 +75,12 @@ type Params = {
   ref: React.RefObject<HTMLDivElement>;
   /** Whether the element should scale symmetrically from the center. Defaults to true. */
   isCentered?: boolean;
+  /**
+   * An explicit upper bound for the width, in pixels. When provided (e.g. an
+   * image inside a table cell) it takes precedence over the editor content
+   * width so the element cannot be resized beyond its container.
+   */
+  maxWidth?: number;
 };
 
 export default function useDragResize(props: Params): ReturnValue {
@@ -291,12 +297,18 @@ export default function useDragResize(props: Params): ReturnValue {
       event.stopPropagation();
 
       // Calculate constraints once at the start of dragging as it's relatively expensive operation
-      const max = ref.current
+      const documentMax = ref.current
         ? parseInt(
             getComputedStyle(ref.current).getPropertyValue("--document-width")
           ) -
           EditorStyleHelper.padding * 2
         : Infinity;
+      // A container-provided bound (e.g. a table cell) always wins so the
+      // element cannot be dragged wider than the space available to it.
+      const max =
+        props.maxWidth !== undefined && Number.isFinite(props.maxWidth)
+          ? Math.min(documentMax, props.maxWidth)
+          : documentMax;
       setMaxWidth(max);
       setSizeAtDragStart({
         // When no width has been set yet the element is displayed at full width,
