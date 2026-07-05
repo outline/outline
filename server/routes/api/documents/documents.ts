@@ -1159,15 +1159,14 @@ router.post(
     const { results, total } = response;
     const documents = results.map((result) => result.document);
 
-    const data = await Promise.all(
-      results.map(async (result) => {
-        const document = await presentDocument(ctx, result.document, {
-          isPublic,
-          shareId,
-        });
-        return { ...result, document };
-      })
-    );
+    const presented = await presentDocuments(ctx, documents, {
+      isPublic,
+      shareId,
+    });
+    const data = results.map((result, index) => ({
+      ...result,
+      document: presented[index],
+    }));
 
     // When requesting subsequent pages of search results we don't want to record
     // duplicate search query records

@@ -107,26 +107,33 @@ export default class NotificationHelper {
       });
     }
 
+    const activeRecipients = recipients.filter(
+      (recipient) => !recipient.isSuspended
+    );
+
+    // If a recipient has viewed the document since the comment was made
+    // then we can avoid sending them a useless notification, yay. Load the
+    // views for all recipients in a single query.
+    const views = activeRecipients.length
+      ? await View.findAll({
+          attributes: ["userId"],
+          where: {
+            userId: {
+              [Op.in]: activeRecipients.map((recipient) => recipient.id),
+            },
+            documentId: document.id,
+            updatedAt: {
+              [Op.gt]: comment.createdAt,
+            },
+          },
+        })
+      : [];
+    const viewedUserIds = new Set(views.map((view) => view.userId));
+
     const filtered: User[] = [];
 
-    for (const recipient of recipients) {
-      if (recipient.isSuspended) {
-        continue;
-      }
-
-      // If this recipient has viewed the document since the comment was made
-      // then we can avoid sending them a useless notification, yay.
-      const view = await View.findOne({
-        where: {
-          userId: recipient.id,
-          documentId: document.id,
-          updatedAt: {
-            [Op.gt]: comment.createdAt,
-          },
-        },
-      });
-
-      if (view) {
+    for (const recipient of activeRecipients) {
+      if (viewedUserIds.has(recipient.id)) {
         Logger.info(
           "processor",
           `suppressing notification to ${recipient.id} because doc viewed`
