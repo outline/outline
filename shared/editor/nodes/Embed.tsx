@@ -21,6 +21,11 @@ import { isInList } from "../queries/isInList";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { isList } from "../queries/isList";
 
+const parseDimension = (value: string | null): number | null => {
+  const parsed = parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 export default class Embed extends Node {
   get name() {
     return "embed";
@@ -53,6 +58,8 @@ export default class Embed extends Node {
             if (response) {
               return {
                 href,
+                width: parseDimension(dom.getAttribute("width")),
+                height: parseDimension(dom.getAttribute("height")),
               };
             }
 
@@ -63,6 +70,8 @@ export default class Embed extends Node {
           tag: "a.embed",
           getAttrs: (dom: HTMLAnchorElement) => ({
             href: dom.getAttribute("href"),
+            width: parseDimension(dom.getAttribute("data-width")),
+            height: parseDimension(dom.getAttribute("data-height")),
           }),
         },
       ],
@@ -80,6 +89,8 @@ export default class Embed extends Node {
               src: sanitizeUrl(src),
               contentEditable: "false",
               allowfullscreen: "true",
+              width: node.attrs.width,
+              height: node.attrs.height,
               "data-canonical-url": sanitizeUrl(node.attrs.href),
             },
           ];
@@ -90,6 +101,8 @@ export default class Embed extends Node {
               class: "embed",
               href: sanitizeUrl(node.attrs.href),
               contentEditable: "false",
+              "data-width": node.attrs.width,
+              "data-height": node.attrs.height,
               "data-canonical-url": sanitizeUrl(node.attrs.href),
             },
             response?.embed.title ?? node.attrs.href,
@@ -133,6 +146,35 @@ export default class Embed extends Node {
 
   commands({ type }: { type: NodeType }) {
     return {
+      resizeEmbed:
+        ({ width, height }: { width?: number; height: number }): Command =>
+        (state, dispatch) => {
+          if (!(state.selection instanceof NodeSelection)) {
+            return false;
+          }
+
+          const { selection } = state;
+          const transformedAttrs = {
+            ...selection.node.attrs,
+            width: width ?? null,
+            height,
+          };
+
+          const tr = state.tr
+            .setNodeMarkup(selection.from, undefined, transformedAttrs)
+            .setMeta("addToHistory", true);
+
+          const $pos = tr.doc.resolve(selection.from);
+          dispatch?.(tr.setSelection(new NodeSelection($pos)));
+          return true;
+        },
+      deleteEmbed: (): Command => (state, dispatch) => {
+        if (!(state.selection instanceof NodeSelection)) {
+          return false;
+        }
+        dispatch?.(state.tr.deleteSelection().scrollIntoView());
+        return true;
+      },
       embed:
         (attrs: Record<string, Primitive>): Command =>
         (state, dispatch) => {
