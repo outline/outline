@@ -70,29 +70,42 @@ const Image = (props: Props) => {
     ref,
   });
 
-  // When rendered inside a table cell, measure the cell's usable content width
-  // so oversized images scale down to fit the column instead of overflowing it.
-  // The image is momentarily removed from layout during measurement so the cell
-  // reports its natural column width rather than the width the image forces.
+  // When rendered inside a table cell, constrain the image to the column so
+  // oversized images scale down to fit instead of overflowing it. The column's
+  // explicit width (from the table layout) is the authoritative bound and is
+  // cheap to read; when a column has no explicit width we fall back to half the
+  // document width. A ResizeObserver keeps the bound in sync as columns or the
+  // window are resized.
   React.useLayoutEffect(() => {
     const element = ref.current;
     const cell = element?.closest("td, th");
-    if (!element || !(cell instanceof HTMLElement)) {
+    if (!element || !(cell instanceof HTMLTableCellElement)) {
       setCellMaxWidth(Number.POSITIVE_INFINITY);
       return;
     }
 
     const measure = () => {
-      const previousDisplay = element.style.display;
-      element.style.display = "none";
-      const style = getComputedStyle(cell);
-      const available =
-        cell.clientWidth -
-        parseFloat(style.paddingLeft) -
-        parseFloat(style.paddingRight);
-      element.style.display = previousDisplay;
+      const columnsWidth = getCellColumnsWidth(cell);
+      if (columnsWidth !== null) {
+        const style = getComputedStyle(cell);
+        const inset =
+          parseFloat(style.paddingLeft) +
+          parseFloat(style.paddingRight) +
+          parseFloat(style.borderLeftWidth) +
+          parseFloat(style.borderRightWidth);
+        const inner = columnsWidth - inset;
+        setCellMaxWidth(inner > 0 ? inner : columnsWidth);
+        return;
+      }
 
-      setCellMaxWidth(available > 0 ? available : Number.POSITIVE_INFINITY);
+      const documentWidth = parseFloat(
+        getComputedStyle(element).getPropertyValue("--document-width")
+      );
+      setCellMaxWidth(
+        Number.isFinite(documentWidth)
+          ? documentWidth / 2
+          : Number.POSITIVE_INFINITY
+      );
     };
 
     measure();
@@ -338,6 +351,42 @@ const Image = (props: Props) => {
 
 function getPlaceholder(width: number, height: number) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" />`;
+}
+
+/**
+ * Returns the combined explicit width, in pixels, of the table columns that the
+ * given cell spans.
+ *
+ * @param cell the table cell to measure.
+ * @returns the total column width in pixels, or `null` when any spanned column
+ * has no explicit width (an auto-sized column).
+ */
+function getCellColumnsWidth(cell: HTMLTableCellElement): number | null {
+  const colgroup = cell.closest("table")?.querySelector("colgroup");
+  const row = cell.parentElement;
+  if (!colgroup || !row) {
+    return null;
+  }
+
+  let columnIndex = 0;
+  for (const sibling of Array.from(row.children)) {
+    if (sibling === cell) {
+      break;
+    }
+    columnIndex += sibling instanceof HTMLTableCellElement ? sibling.colSpan : 1;
+  }
+
+  let total = 0;
+  for (let index = columnIndex; index < columnIndex + cell.colSpan; index++) {
+    const col = colgroup.children[index];
+    const width =
+      col instanceof HTMLElement ? parseFloat(col.style.width) : Number.NaN;
+    if (!Number.isFinite(width)) {
+      return null;
+    }
+    total += width;
+  }
+  return total;
 }
 
 export const Error = styled(Flex)`
