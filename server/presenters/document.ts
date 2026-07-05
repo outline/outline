@@ -5,6 +5,7 @@ import type { Document } from "@server/models";
 import FileOperation from "@server/models/FileOperation";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import type { APIContext } from "@server/types";
+import { loaders } from "@server/utils/loaders";
 import presentUser from "./user";
 
 type Options = {
@@ -107,8 +108,17 @@ async function presentDocument(
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.collectionId = document.collectionId;
     res.parentDocumentId = document.parentDocumentId;
-    res.createdBy = presentUser(document.createdBy);
-    res.updatedBy = presentUser(document.updatedBy);
+    // The user associations are no longer eager-loaded with every document
+    // query; resolve them here through a request-scoped, batching loader so a
+    // page of documents results in a single users query.
+    const createdBy =
+      document.createdBy ??
+      (await loaders(ctx).users.load(document.createdById));
+    const updatedBy =
+      document.updatedBy ??
+      (await loaders(ctx).users.load(document.lastModifiedById));
+    res.createdBy = createdBy ? presentUser(createdBy) : undefined;
+    res.updatedBy = updatedBy ? presentUser(updatedBy) : undefined;
     res.collaboratorIds = document.collaboratorIds ?? [];
     res.templateId = document.templateId;
     res.insightsEnabled = document.insightsEnabled;

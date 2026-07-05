@@ -47,6 +47,12 @@ router.post(
     } else if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
+        include: [
+          {
+            association: "updatedBy",
+            paranoid: false,
+          },
+        ],
       });
       authorize(user, "listRevisions", document);
       revision = Revision.buildFromDocument(document);

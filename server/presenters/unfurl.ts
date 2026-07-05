@@ -91,9 +91,9 @@ const presentGroup = async (
   };
 };
 
-const presentDocument = (
+const presentDocument = async (
   data: UnfurlData
-): UnfurlResponse[UnfurlResourceType.Document] => {
+): Promise<UnfurlResponse[UnfurlResourceType.Document]> => {
   const document: Document = data.document;
   const viewer: User | undefined = data.viewer;
   const url: string | undefined = data.url;
@@ -104,7 +104,7 @@ const presentDocument = (
     title: document.titleWithDefault,
     summary: document.getSummary(),
     lastActivityByViewer: viewer
-      ? presentLastActivityInfoFor(document, viewer)
+      ? await presentLastActivityInfoFor(document, viewer)
       : undefined,
   };
 };
@@ -172,13 +172,16 @@ const presentLastViewedInfoFor = async (user: User, document: Document) => {
   return info;
 };
 
-const presentLastActivityInfoFor = (document: Document, viewer: User) => {
+const presentLastActivityInfoFor = async (
+  document: Document,
+  viewer: User
+) => {
   const locale = dateLocale(viewer.language);
   const wasUpdated = document.createdAt !== document.updatedAt;
 
   let info: string;
   if (wasUpdated) {
-    const lastUpdatedByViewer = document.updatedBy.id === viewer.id;
+    const lastUpdatedByViewer = document.lastModifiedById === viewer.id;
     if (lastUpdatedByViewer) {
       info = t("You updated {{ timeAgo }}", {
         timeAgo: formatDistanceToNowStrict(document.updatedAt, {
@@ -188,8 +191,11 @@ const presentLastActivityInfoFor = (document: Document, viewer: User) => {
         ...opts(viewer),
       });
     } else {
+      const updatedBy =
+        document.updatedBy ??
+        (await document.$get("updatedBy", { paranoid: false }));
       info = t("{{ user }} updated {{ timeAgo }}", {
-        user: document.updatedBy.name,
+        user: updatedBy?.name,
         timeAgo: formatDistanceToNowStrict(document.updatedAt, {
           addSuffix: true,
           locale,
@@ -208,8 +214,11 @@ const presentLastActivityInfoFor = (document: Document, viewer: User) => {
         ...opts(viewer),
       });
     } else {
+      const createdBy =
+        document.createdBy ??
+        (await document.$get("createdBy", { paranoid: false }));
       info = t("{{ user }} created {{ timeAgo }}", {
-        user: document.createdBy.name,
+        user: createdBy?.name,
         timeAgo: formatDistanceToNowStrict(document.createdAt, {
           addSuffix: true,
           locale,

@@ -115,6 +115,12 @@ export default class ExportJSONTask extends ExportTask {
       for (const node of nodes) {
         const document = await Document.findByPk(node.id, {
           includeState: true,
+          include: [
+            {
+              association: "createdBy",
+              paranoid: false,
+            },
+          ],
         });
 
         if (!document) {

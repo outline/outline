@@ -125,6 +125,7 @@
     "copy-to-clipboard": "^3.3.3",
     "core-js": "^3.49.0",
     "crypto-js": "^4.2.0",
+    "dataloader": "^2.2.3",
     "date-fns": "^3.6.0",
     "dd-trace": "^5.109.0",
     "diff": "^5.2.2",

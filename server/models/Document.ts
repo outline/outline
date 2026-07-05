@@ -98,18 +98,6 @@ type AdditionalFindOptions = {
 
 // @ts-expect-error Type 'Literal' is not assignable to type 'string | ProjectionAlias'.
 @DefaultScope(() => ({
-  include: [
-    {
-      model: User,
-      as: "createdBy",
-      paranoid: false,
-    },
-    {
-      model: User,
-      as: "updatedBy",
-      paranoid: false,
-    },
-  ],
   where: {
     publishedAt: {
       [Op.ne]: null,
@@ -146,18 +134,9 @@ type AdditionalFindOptions = {
       include: [],
     },
   },
-  withDrafts: {
-    include: [
-      {
-        association: "createdBy",
-        paranoid: false,
-      },
-      {
-        association: "updatedBy",
-        paranoid: false,
-      },
-    ],
-  },
+  // an empty scope that overrides the default scope, allowing drafts to be
+  // included in queries.
+  withDrafts: {},
   withViews: (userId: string) => {
     if (!userId) {
       return {};
