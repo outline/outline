@@ -453,6 +453,7 @@ router.post(
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
+    await Document.loadCollections(documents, { userId: user.id, ctx });
     const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
@@ -498,6 +499,7 @@ router.post(
       document.views = [view];
       return document;
     });
+    await Document.loadCollections(documents, { userId, ctx });
     const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 

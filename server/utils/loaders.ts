@@ -1,5 +1,6 @@
 import DataLoader from "dataloader";
-import { User } from "@server/models";
+import Collection from "@server/models/Collection";
+import User from "@server/models/User";
 import type { APIContext } from "@server/types";
 
 /**
@@ -24,6 +25,40 @@ async function batchUsers(
 }
 
 /**
+ * Batches collection lookups by primary key, optionally loading the given
+ * user's memberships alongside so the result can be used for policy checks.
+ *
+ * @param collectionIds the collection IDs to load.
+ * @param userId the user ID to load memberships for, if any.
+ * @param paranoid whether to exclude soft-deleted collections.
+ * @return an array of collections (or null for missing IDs) in the same order as the input.
+ */
+async function batchCollections(
+  collectionIds: readonly string[],
+  userId: string | undefined,
+  paranoid: boolean
+): Promise<Array<Collection | null>> {
+  const scoped = userId
+    ? Collection.scope([
+        "defaultScope",
+        {
+          method: ["withMembership", userId],
+        },
+      ])
+    : Collection;
+  const collections = await scoped.findAll({
+    where: {
+      id: [...collectionIds],
+    },
+    paranoid,
+  });
+  const collectionsById = new Map(
+    collections.map((collection) => [collection.id, collection])
+  );
+  return collectionIds.map((id) => collectionsById.get(id) ?? null);
+}
+
+/**
  * A set of DataLoader instances scoped to a single request. Loads made within
  * the same event loop frame are coalesced into one database query, and results
  * are memoized for the lifetime of the request.
@@ -32,8 +67,51 @@ export class RequestLoaders {
   /** Loads users by ID, including deleted users. */
   users: DataLoader<string, User | null>;
 
+  private cache: boolean;
+
+  private collectionLoaders = new Map<
+    string,
+    DataLoader<string, Collection | null>
+  >();
+
   constructor(options?: { cache?: boolean }) {
-    this.users = new DataLoader(batchUsers, { cache: options?.cache ?? true });
+    this.cache = options?.cache ?? true;
+    this.users = new DataLoader(batchUsers, { cache: this.cache });
+  }
+
+  /**
+   * Returns a loader for collections by ID, with the given user's memberships
+   * attached for policy checks. A separate loader is kept per (userId,
+   * paranoid) combination as both parameters change the shape of the result.
+   *
+   * @param userId the user ID to load memberships for, if any.
+   * @param paranoid whether to exclude soft-deleted collections (default: true).
+   * @return the collection loader for this combination.
+   */
+  collections(
+    userId?: string,
+    paranoid = true
+  ): DataLoader<string, Collection | null> {
+    const createLoader = () =>
+      new DataLoader(
+        (ids: readonly string[]) => batchCollections(ids, userId, paranoid),
+        { cache: this.cache }
+      );
+
+    // Without caching there is nothing to reuse between calls, and memoizing
+    // per user would grow unbounded on the shared instance — return a fresh
+    // loader that batches only the loads made against it.
+    if (!this.cache) {
+      return createLoader();
+    }
+
+    const key = `${userId ?? ""}:${paranoid}`;
+    let loader = this.collectionLoaders.get(key);
+    if (!loader) {
+      loader = createLoader();
+      this.collectionLoaders.set(key, loader);
+    }
+    return loader;
   }
 }
 

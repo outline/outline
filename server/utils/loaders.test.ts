@@ -1,6 +1,7 @@
-import { User } from "@server/models";
+import { CollectionPermission } from "@shared/types";
+import { Collection, User, UserMembership } from "@server/models";
 import type { APIContext } from "@server/types";
-import { buildUser } from "@server/test/factories";
+import { buildCollection, buildUser } from "@server/test/factories";
 import { loaders } from "./loaders";
 
 describe("loaders", () => {
@@ -66,6 +67,76 @@ describe("loaders", () => {
         "00000000-0000-0000-0000-000000000000"
       );
       expect(loaded).toBeNull();
+    });
+  });
+
+  describe("collections", () => {
+    it("should batch concurrent loads into a single query", async () => {
+      const user = await buildUser();
+      const [collectionOne, collectionTwo] = await Promise.all([
+        buildCollection({ teamId: user.teamId }),
+        buildCollection({ teamId: user.teamId }),
+      ]);
+      const findAll = vi.spyOn(Collection, "findAll");
+
+      const ctx = {} as APIContext;
+      const loader = loaders(ctx).collections(user.id);
+      const [loadedOne, loadedTwo] = await Promise.all([
+        loader.load(collectionOne.id),
+        loader.load(collectionTwo.id),
+      ]);
+
+      expect(findAll).toHaveBeenCalledTimes(1);
+      expect(loadedOne?.id).toEqual(collectionOne.id);
+      expect(loadedTwo?.id).toEqual(collectionTwo.id);
+      findAll.mockRestore();
+    });
+
+    it("should load the user's memberships", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      await UserMembership.create({
+        collectionId: collection.id,
+        userId: user.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      });
+
+      const ctx = {} as APIContext;
+      const loaded = await loaders(ctx)
+        .collections(user.id)
+        .load(collection.id);
+      expect(loaded?.memberships.length).toEqual(1);
+      expect(loaded?.memberships[0].userId).toEqual(user.id);
+    });
+
+    it("should respect the paranoid flag for deleted collections", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({ teamId: user.teamId });
+      await collection.destroy({ hooks: false });
+
+      const ctx = {} as APIContext;
+      expect(
+        await loaders(ctx).collections(user.id).load(collection.id)
+      ).toBeNull();
+      expect(
+        (await loaders(ctx).collections(user.id, false).load(collection.id))?.id
+      ).toEqual(collection.id);
+    });
+
+    it("should keep loaders separate per user", async () => {
+      const ctx = {} as APIContext;
+      const userOne = await buildUser();
+      const userTwo = await buildUser({ teamId: userOne.teamId });
+      expect(loaders(ctx).collections(userOne.id)).not.toBe(
+        loaders(ctx).collections(userTwo.id)
+      );
+      expect(loaders(ctx).collections(userOne.id)).toBe(
+        loaders(ctx).collections(userOne.id)
+      );
     });
   });
 });

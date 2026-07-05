@@ -318,16 +318,6 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
           },
         ],
       },
-      {
-        model: User,
-        as: "createdBy",
-        paranoid: false,
-      },
-      {
-        model: User,
-        as: "updatedBy",
-        paranoid: false,
-      },
     ];
 
     return Document.withMembershipScope(user.id, {

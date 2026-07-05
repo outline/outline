@@ -1,6 +1,7 @@
 /* oxlint-disable lines-between-class-members */
 import { compact, isNil, uniq } from "es-toolkit/compat";
 import type {
+  CountOptions,
   Identifier,
   InferAttributes,
   InferCreationAttributes,
@@ -49,6 +50,7 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
+import { loaders } from "@server/utils/loaders";
 import { generateUrlId } from "@server/utils/url";
 import Collection from "./Collection";
 import Comment from "./Comment";
@@ -152,23 +154,13 @@ type AdditionalFindOptions = {
       ],
     };
   },
-  withMembership: (userId: string, paranoid = true) => {
+  withMembership: (userId: string) => {
     if (!userId) {
       return {};
     }
 
     return {
       include: [
-        {
-          model: Collection.scope([
-            "defaultScope",
-            {
-              method: ["withMembership", userId],
-            },
-          ]),
-          as: "collection",
-          paranoid,
-        },
         {
           association: "memberships",
           where: {
@@ -707,11 +699,57 @@ class Document extends ArchivableModel<
     return uniq(membershipUserIds);
   }
 
+  /**
+   * Loads the collection association for the given documents, including the
+   * given user's memberships, through a request-scoped batching loader. This
+   * replaces eager-joining the collection on every membership-scoped query —
+   * a page of documents resolves its distinct collections in a single query.
+   *
+   * @param documents the documents to load collections for.
+   * @param options the user ID to load collection memberships for, an
+   *   optional API context for request-scoped memoization, and whether to
+   *   exclude soft-deleted collections (paranoid, default: true).
+   */
+  static async loadCollections(
+    documents: Document[],
+    options: { userId?: string; ctx?: APIContext; paranoid?: boolean }
+  ): Promise<void> {
+    if (!options.userId) {
+      return;
+    }
+
+    const loader = loaders(options.ctx).collections(
+      options.userId,
+      options.paranoid ?? true
+    );
+    await Promise.all(
+      documents.map(async (document) => {
+        // read through dataValues: documents fetched with a restricted
+        // attribute set would throw on the property getter.
+        const collectionId = document.dataValues.collectionId;
+        if (collectionId) {
+          document.collection = await loader.load(collectionId);
+        }
+      })
+    );
+  }
+
+  /**
+   * Returns query methods for documents scoped to the given user's
+   * memberships. The collection association (with the user's memberships) is
+   * resolved after the query through a batching loader rather than a join, so
+   * results are always safe to pass to policy checks.
+   *
+   * @param userId the user ID to scope queries to.
+   * @param options includeDrafts to skip the default published filter, and
+   *   paranoid to control whether soft-deleted collections are attached.
+   * @returns an object exposing findAll and count constrained to the scope.
+   */
   static withMembershipScope(
     userId: string,
     options?: FindOptions<Document> & { includeDrafts?: boolean }
   ) {
-    return this.scope([
+    const scope = this.scope([
       // scoped queries drop the default scope filters unless explicitly
       // re-applied, which is what allows drafts to be included here.
       ...(options?.includeDrafts ? [] : ["defaultScope"]),
@@ -720,9 +758,24 @@ class Document extends ArchivableModel<
         method: ["withViews", userId],
       },
       {
-        method: ["withMembership", userId, options?.paranoid],
+        method: ["withMembership", userId],
       },
     ]);
+
+    return {
+      findAll: async (
+        findOptions?: FindOptions<Document>
+      ): Promise<Document[]> => {
+        const documents = await scope.findAll(findOptions);
+        await this.loadCollections(documents, {
+          userId,
+          paranoid: options?.paranoid,
+        });
+        return documents;
+      },
+      count: (countOptions?: Omit<CountOptions<Document>, "group">) =>
+        scope.count(countOptions),
+    };
   }
 
   /**
@@ -770,7 +823,7 @@ class Document extends ArchivableModel<
           ]
         : []) as ScopeOptions[]),
       {
-        method: ["withMembership", userId, rest.paranoid],
+        method: ["withMembership", userId],
       },
     ]);
 
@@ -787,6 +840,12 @@ class Document extends ArchivableModel<
         throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
       }
 
+      if (document) {
+        await this.loadCollections([document], {
+          userId,
+          paranoid: rest.paranoid,
+        });
+      }
       return document;
     }
 
@@ -804,6 +863,12 @@ class Document extends ArchivableModel<
         throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
       }
 
+      if (document) {
+        await this.loadCollections([document], {
+          userId,
+          paranoid: rest.paranoid,
+        });
+      }
       return document;
     }
 
@@ -824,6 +889,15 @@ class Document extends ArchivableModel<
       Omit<AdditionalFindOptions, "rejectOnEmpty"> = {}
   ): Promise<Document[]> {
     const { userId, includeViews = true, includeState, ...rest } = options;
+
+    // The collection FK must be selected for post-query collection loading,
+    // which the access filter below depends on.
+    if (
+      Array.isArray(rest.attributes) &&
+      !rest.attributes.includes("collectionId")
+    ) {
+      rest.attributes = [...rest.attributes, "collectionId"];
+    }
 
     const user = userId ? await User.findByPk(userId) : null;
     const documents = await this.scope([
@@ -849,6 +923,8 @@ class Document extends ArchivableModel<
     if (!userId) {
       return documents;
     }
+
+    await this.loadCollections(documents, { userId });
 
     return documents.filter(
       (doc) =>
@@ -1074,10 +1150,9 @@ class Document extends ArchivableModel<
       if (this.collectionId) {
         const collection =
           this.collection ??
-          (await Collection.findByPk(this.collectionId, {
-            attributes: ["deletedAt"],
-            paranoid: false,
-          }));
+          (await loaders()
+            .collections(undefined, false)
+            .load(this.collectionId));
 
         return !!collection?.deletedAt;
       }
