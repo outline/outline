@@ -2,7 +2,6 @@ import { Op } from "sequelize";
 import { Hour } from "@shared/utils/time";
 import { traceFunction } from "@server/logging/tracing";
 import type { Document } from "@server/models";
-import Collection from "@server/models/Collection";
 import FileOperation from "@server/models/FileOperation";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import type { APIContext } from "@server/types";
@@ -137,8 +136,8 @@ export default traceFunction({
 })(presentDocument);
 
 /**
- * Batch-present multiple documents, fetching all related FileOperation and
- * Collection records in a single query each instead of one per document.
+ * Batch-present multiple documents, fetching all related FileOperation records
+ * in a single query instead of one per document.
  *
  * @param ctx the API context.
  * @param documents the documents to present.
@@ -166,40 +165,6 @@ export async function presentDocuments(
       for (const doc of documents) {
         if (doc.importId) {
           doc.import = sourceMap.get(doc.importId) ?? null;
-        }
-      }
-    }
-
-    // Preload the collections needed by isCollectionDeleted so that deleted
-    // and archived listings don't trigger one Collection query per document.
-    const collectionIds = [
-      ...new Set(
-        documents
-          .filter(
-            (doc) =>
-              (doc.deletedAt || doc.archivedAt) &&
-              doc.collectionId &&
-              !doc.collection
-          )
-          .map((doc) => doc.collectionId!)
-      ),
-    ];
-
-    if (collectionIds.length > 0) {
-      const collections = await Collection.unscoped().findAll({
-        attributes: ["id", "deletedAt"],
-        where: { id: { [Op.in]: collectionIds } },
-        paranoid: false,
-      });
-      const collectionMap = new Map(collections.map((c) => [c.id, c]));
-
-      for (const doc of documents) {
-        if (
-          (doc.deletedAt || doc.archivedAt) &&
-          doc.collectionId &&
-          !doc.collection
-        ) {
-          doc.collection = collectionMap.get(doc.collectionId) ?? null;
         }
       }
     }
