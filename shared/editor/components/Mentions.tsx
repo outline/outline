@@ -102,6 +102,7 @@ export const MentionDocument = observer(function MentionDocument_(
   const { documents } = useStores();
   const doc = documents.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
+  const anchorId = node.attrs.anchorId;
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   React.useEffect(() => {
@@ -110,13 +111,15 @@ export const MentionDocument = observer(function MentionDocument_(
     }
   }, [modelId, documents]);
 
+  const documentPath = doc?.path ?? `/doc/${node.attrs.modelId}`;
+
   return (
     <Link
       {...attrs}
       className={cn(className, {
         "ProseMirror-selectednode": isSelected,
       })}
-      to={doc?.path ?? `/doc/${node.attrs.modelId}`}
+      to={anchorId ? `${documentPath}#${anchorId}` : documentPath}
     >
       {doc?.icon ? (
         <Icon
@@ -128,7 +131,9 @@ export const MentionDocument = observer(function MentionDocument_(
       ) : (
         <DocumentIcon size={18} />
       )}
-      {doc?.title || node.attrs.label}
+      {anchorId && node.attrs.label
+        ? node.attrs.label
+        : doc?.title || node.attrs.label}
     </Link>
   );
 });
