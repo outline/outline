@@ -44,6 +44,8 @@ import type {
   ProsemirrorData,
   SourceMetadata,
 } from "@shared/types";
+import { TeamPreference } from "@shared/types";
+import { Day } from "@shared/utils/time";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
@@ -389,6 +391,24 @@ class Document extends ArchivableModel<
   @Column(DataType.DATE)
   publishedAt: Date | null;
 
+  /** When the document content was last verified as accurate, if ever. */
+  @IsDate
+  @AllowNull
+  @Column(DataType.DATE)
+  verifiedAt: Date | null;
+
+  /** When the current verification lapses. Null means it never expires. */
+  @IsDate
+  @AllowNull
+  @Column(DataType.DATE)
+  verificationExpiresAt: Date | null;
+
+  /** Per-document override of the re-verification cadence, in days. Null means inherit. */
+  @IsNumeric
+  @AllowNull
+  @Column(DataType.INTEGER)
+  verificationInterval: number | null;
+
   /** An array of user IDs that have edited this document. */
   @Column(DataType.ARRAY(DataType.UUID))
   collaboratorIds: string[];
@@ -641,6 +661,14 @@ class Document extends ArchivableModel<
   @Column(DataType.UUID)
   createdById: string;
 
+  @BelongsTo(() => User, "verifiedById")
+  verifiedBy: User | null;
+
+  @AllowNull
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  verifiedById: string | null;
+
   @ForeignKey(() => Template)
   @Column(DataType.UUID)
   templateId: string;
@@ -881,6 +909,55 @@ class Document extends ArchivableModel<
         doc.memberships.length > 0 ||
         doc.groupMemberships.length > 0
     );
+  }
+
+  /**
+   * Finds documents whose verification expired within the given time window,
+   * scoped to a UUID partition of the documents table. Archived and deleted
+   * documents are excluded.
+   *
+   * @param options.windowStart inclusive lower bound for the expiry time.
+   * @param options.windowEnd exclusive upper bound for the expiry time.
+   * @param options.startUuid inclusive lower bound of the document id partition.
+   * @param options.endUuid inclusive upper bound of the document id partition.
+   * @returns the matching documents with the verifier association loaded.
+   */
+  static findExpiredVerifications({
+    windowStart,
+    windowEnd,
+    startUuid,
+    endUuid,
+  }: {
+    windowStart: Date;
+    windowEnd: Date;
+    startUuid: string;
+    endUuid: string;
+  }): Promise<Document[]> {
+    return this.scope(["withDrafts", "withoutState"]).findAll({
+      where: {
+        verifiedAt: {
+          [Op.ne]: null,
+        },
+        verificationExpiresAt: {
+          [Op.gte]: windowStart,
+          [Op.lt]: windowEnd,
+        },
+        archivedAt: {
+          [Op.eq]: null,
+        },
+        id: {
+          [Op.gte]: startUuid,
+          [Op.lte]: endUuid,
+        },
+      },
+      include: [
+        {
+          model: User,
+          as: "verifiedBy",
+          required: false,
+        },
+      ],
+    });
   }
 
   // instance methods
@@ -1163,6 +1240,95 @@ class Document extends ArchivableModel<
     }
 
     return this.saveWithCtx(ctx, undefined, { name: "unpublish" });
+  };
+
+  /**
+   * Resolves the effective re-verification interval for this document by
+   * walking the inheritance chain: document override, then collection default,
+   * then team preference.
+   *
+   * @param options.transaction optional transaction to load associations with.
+   * @returns the interval in days, or null when verification never expires.
+   */
+  resolveVerificationInterval = async (options?: {
+    transaction?: Transaction | null;
+  }): Promise<number | null> => {
+    if (this.verificationInterval) {
+      return this.verificationInterval;
+    }
+
+    const collection = this.collectionId
+      ? (this.collection ??
+        (await this.$get("collection", {
+          transaction: options?.transaction,
+        })))
+      : null;
+    if (collection?.verificationInterval) {
+      return collection.verificationInterval;
+    }
+
+    const team =
+      this.team ??
+      (await this.$get("team", { transaction: options?.transaction }));
+    const preference = team?.getPreference(TeamPreference.VerificationInterval);
+    return typeof preference === "number" ? preference : null;
+  };
+
+  /**
+   * Marks the document as verified by the acting user, computing the expiry
+   * deadline from the re-verification interval resolved at the time of the
+   * call. Emits a "documents.verify" event. Calling this on an already
+   * verified document re-verifies it, overwriting the previous verification.
+   *
+   * @param ctx the API context of the request.
+   * @returns the updated document.
+   */
+  verifyWithCtx = async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const interval = await this.resolveVerificationInterval({ transaction });
+    this.verifiedAt = new Date();
+    this.verifiedById = user.id;
+    this.verifiedBy = user;
+    this.verificationExpiresAt = interval
+      ? new Date(this.verifiedAt.getTime() + interval * Day.ms)
+      : null;
+
+    // silent so that verifying does not count as an edit of the document
+    return this.saveWithCtx(
+      ctx,
+      { silent: true },
+      {
+        name: "verify",
+        data: {
+          expiresAt: this.verificationExpiresAt?.toISOString() ?? null,
+        },
+      }
+    );
+  };
+
+  /**
+   * Removes the current verification from the document and emits a
+   * "documents.unverify" event. The per-document interval override is
+   * intentionally preserved. Calling this on an unverified document is a
+   * no-op.
+   *
+   * @param ctx the API context of the request.
+   * @returns the updated document.
+   */
+  unverifyWithCtx = async (ctx: APIContext) => {
+    if (!this.verifiedAt) {
+      return this;
+    }
+
+    this.verifiedAt = null;
+    this.verifiedById = null;
+    this.verifiedBy = null;
+    this.verificationExpiresAt = null;
+
+    // silent so that unverifying does not count as an edit of the document
+    return this.saveWithCtx(ctx, { silent: true }, { name: "unverify" });
   };
 
   // Moves a document from being visible to the team within a collection

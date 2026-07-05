@@ -21,6 +21,13 @@ export enum StatusFilter {
   Draft = "draft",
 }
 
+export enum VerificationStatusFilter {
+  Verified = "verified",
+  Unverified = "unverified",
+  Expired = "expired",
+  Expiring = "expiring",
+}
+
 export enum SortFilter {
   CreatedAt = "createdAt",
   UpdatedAt = "updatedAt",
@@ -443,6 +450,8 @@ export enum TeamPreference {
   MCP = "mcp",
   /** List of disabled embed provider titles. */
   DisabledEmbeds = "disabledEmbeds",
+  /** Default re-verification cadence for documents, in days. */
+  VerificationInterval = "verificationInterval",
 }
 
 export type TeamPreferences = {
@@ -460,6 +469,7 @@ export type TeamPreferences = {
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];
+  [TeamPreference.VerificationInterval]?: number | null;
 };
 
 export enum NavigationNodeType {
@@ -512,6 +522,7 @@ export enum NotificationEventType {
   Features = "emails.features",
   ExportCompleted = "emails.export_completed",
   RequestDocumentAccess = "access_requests.create",
+  VerificationExpired = "documents.verification_expired",
 }
 
 export enum NotificationChannelType {
@@ -552,6 +563,7 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
     [NotificationEventType.AddUserToDocument]: true,
     [NotificationEventType.AddUserToCollection]: true,
     [NotificationEventType.RequestDocumentAccess]: true,
+    [NotificationEventType.VerificationExpired]: true,
   };
 
 export enum UnfurlResourceType {

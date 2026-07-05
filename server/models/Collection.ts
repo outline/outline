@@ -314,6 +314,11 @@ class Collection extends ParanoidModel<
   @Column(DataType.BOOLEAN)
   commenting: boolean | null;
 
+  /** Default re-verification cadence for documents in this collection, in days. Null means inherit the team preference. */
+  @AllowNull
+  @Column(DataType.INTEGER)
+  verificationInterval: number | null;
+
   @AllowNull
   @Column(DataType.JSONB)
   sourceMetadata: SourceMetadata | null;

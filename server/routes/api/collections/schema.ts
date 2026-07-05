@@ -199,6 +199,8 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
     templateManagement: z
       .enum([CollectionPermission.Admin, CollectionPermission.ReadWrite])
       .optional(),
+    /** Default re-verification cadence for documents in the collection, in days; null clears it */
+    verificationInterval: z.number().int().min(1).max(3650).nullish(),
   }).refine(refineBodyContent, bodyContentError),
 });
 

@@ -1944,3 +1944,50 @@ describe("#collections.restore", () => {
     expect(body.data.index).not.toBe("P");
   });
 });
+
+describe("#collections.update verificationInterval", () => {
+  it("should not allow a non-admin to change the collection cadence", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/collections.update", user, {
+      body: {
+        id: collection.id,
+        verificationInterval: 90,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow an admin to set and clear the collection cadence", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        verificationInterval: 90,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.verificationInterval).toEqual(90);
+
+    const cleared = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        verificationInterval: null,
+      },
+    });
+    const clearedBody = await cleared.json();
+    expect(cleared.status).toEqual(200);
+    expect(clearedBody.data.verificationInterval).toEqual(null);
+  });
+});

@@ -5911,3 +5911,392 @@ describe("#documents.documents", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
+describe("#documents.verify", () => {
+  it("should require authentication", async () => {
+    const document = await buildDocument();
+    const res = await server.post("/api/documents.verify", {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(401);
+  });
+
+  it("should not allow a member with write access to verify", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.verify", user, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow a team admin to verify", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+    });
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.verify", admin, {
+      body: {
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.verifiedAt).toBeTruthy();
+    expect(body.data.verifiedById).toEqual(admin.id);
+    expect(body.data.verificationExpiresAt).toEqual(null);
+    expect(body.data.editedSinceVerification).toEqual(false);
+    expect(body.policies[0].abilities.unverify).toEqual(true);
+
+    const event = await Event.findLatest({
+      name: "documents.verify",
+      documentId: document.id,
+    });
+    expect(event).toBeTruthy();
+    expect(event!.actorId).toEqual(admin.id);
+  });
+
+  it("should allow a member with document admin membership to verify", async () => {
+    const admin = await buildAdmin();
+    const user = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+    });
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: user.id,
+      permission: DocumentPermission.Admin,
+      createdById: admin.id,
+    });
+    const res = await server.post("/api/documents.verify", user, {
+      body: {
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.verifiedById).toEqual(user.id);
+  });
+
+  it("should compute the deadline from the collection default", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      verificationInterval: 90,
+    });
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.verify", admin, {
+      body: {
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.verificationExpiresAt).toBeTruthy();
+    expect(
+      new Date(body.data.verificationExpiresAt).getTime() -
+        new Date(body.data.verifiedAt).getTime()
+    ).toEqual(90 * 24 * 60 * 60 * 1000);
+  });
+
+  it("should not allow verifying a draft", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDraftDocument({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/documents.verify", admin, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow verifying an archived document", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+    });
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/documents.verify", admin, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#documents.unverify", () => {
+  it("should clear the verification state", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+    });
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+      verifiedAt: new Date(),
+      verifiedById: admin.id,
+      verificationExpiresAt: subDays(new Date(), -30),
+    });
+    const res = await server.post("/api/documents.unverify", admin, {
+      body: {
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.verifiedAt).toEqual(null);
+    expect(body.data.verifiedById).toEqual(null);
+    expect(body.data.verificationExpiresAt).toEqual(null);
+
+    const event = await Event.findLatest({
+      name: "documents.unverify",
+      documentId: document.id,
+    });
+    expect(event).toBeTruthy();
+  });
+
+  it("should be a no-op for an unverified document", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+    });
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.unverify", admin, {
+      body: {
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.verifiedAt).toEqual(null);
+  });
+
+  it("should not allow a member with write access to unverify", async () => {
+    const admin = await buildAdmin();
+    const user = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+    });
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+      verifiedAt: new Date(),
+      verifiedById: admin.id,
+    });
+    const res = await server.post("/api/documents.unverify", user, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#documents.update verificationInterval", () => {
+  it("should not allow a member with write access to change the interval", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        verificationInterval: 30,
+      },
+    });
+    expect(res.status).toEqual(403);
+
+    // the same request without the field is permitted
+    const allowed = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        title: "Updated",
+      },
+    });
+    expect(allowed.status).toEqual(200);
+  });
+
+  it("should recompute the deadline of a verified document", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+    });
+    const verifiedAt = subDays(new Date(), 10);
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+      verifiedAt,
+      verifiedById: admin.id,
+    });
+    const res = await server.post("/api/documents.update", admin, {
+      body: {
+        id: document.id,
+        verificationInterval: 30,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.verificationInterval).toEqual(30);
+    expect(new Date(body.data.verificationExpiresAt)).toEqual(
+      new Date(verifiedAt.getTime() + 30 * 24 * 60 * 60 * 1000)
+    );
+    // a cadence change is not a content edit
+    expect(body.data.updatedAt).toEqual(document.updatedAt.toISOString());
+  });
+
+  it("should fall back through the chain when the override is cleared", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      verificationInterval: 90,
+    });
+    const verifiedAt = subDays(new Date(), 10);
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+      verifiedAt,
+      verifiedById: admin.id,
+      verificationInterval: 30,
+      verificationExpiresAt: new Date(
+        verifiedAt.getTime() + 30 * 24 * 60 * 60 * 1000
+      ),
+    });
+    const res = await server.post("/api/documents.update", admin, {
+      body: {
+        id: document.id,
+        verificationInterval: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.verificationInterval).toEqual(null);
+    expect(new Date(body.data.verificationExpiresAt)).toEqual(
+      new Date(verifiedAt.getTime() + 90 * 24 * 60 * 60 * 1000)
+    );
+  });
+});
+
+describe("#documents.list verificationStatus", () => {
+  const buildVerificationFixtures = async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const unverified = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const verified = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      verifiedAt: new Date(),
+      verifiedById: user.id,
+    });
+    const expired = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      verifiedAt: subDays(new Date(), 30),
+      verifiedById: user.id,
+      verificationExpiresAt: subDays(new Date(), 1),
+    });
+    const expiring = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      verifiedAt: new Date(),
+      verifiedById: user.id,
+      verificationExpiresAt: subDays(new Date(), -7),
+    });
+    return { user, unverified, verified, expired, expiring };
+  };
+
+  it("should filter to verified documents", async () => {
+    const { user, verified, expiring } = await buildVerificationFixtures();
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        verificationStatus: "verified",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((d: { id: string }) => d.id).sort()).toEqual(
+      [verified.id, expiring.id].sort()
+    );
+  });
+
+  it("should filter to unverified documents", async () => {
+    const { user, unverified } = await buildVerificationFixtures();
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        verificationStatus: "unverified",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((d: { id: string }) => d.id)).toEqual([unverified.id]);
+  });
+
+  it("should filter to expired documents", async () => {
+    const { user, expired } = await buildVerificationFixtures();
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        verificationStatus: "expired",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((d: { id: string }) => d.id)).toEqual([expired.id]);
+  });
+
+  it("should filter to documents expiring soon", async () => {
+    const { user, expiring } = await buildVerificationFixtures();
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        verificationStatus: "expiring",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((d: { id: string }) => d.id)).toEqual([expiring.id]);
+  });
+});

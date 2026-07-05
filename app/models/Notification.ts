@@ -285,6 +285,9 @@ class Notification extends Model {
       case NotificationEventType.ExportCompleted: {
         return settingsPath("export");
       }
+      case NotificationEventType.VerificationExpired: {
+        return this.document?.path;
+      }
       default:
         this.event satisfies never;
         return;

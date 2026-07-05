@@ -44,7 +44,7 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
-import { InvalidRequestError } from "@server/errors";
+import { AuthorizationError, InvalidRequestError } from "@server/errors";
 
 const router = new Router();
 
@@ -586,6 +586,7 @@ router.post(
       sharing,
       commenting,
       templateManagement,
+      verificationInterval,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -594,6 +595,12 @@ router.post(
       transaction,
     });
     authorize(user, "update", collection);
+
+    // the verification cadence is policy for every document in the
+    // collection, so changing it additionally requires team admin access.
+    if (verificationInterval !== undefined && !user.isAdmin) {
+      throw AuthorizationError();
+    }
 
     // we're making this collection have no default access, ensure that the
     // current user has an admin membership so that at least they can manage it.
@@ -668,6 +675,10 @@ router.post(
 
     if (templateManagement !== undefined) {
       collection.templateManagement = templateManagement;
+    }
+
+    if (verificationInterval !== undefined) {
+      collection.verificationInterval = verificationInterval;
     }
 
     await collection.saveWithCtx(ctx);

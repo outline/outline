@@ -7,6 +7,7 @@ import {
   StatusFilter,
   TextEditMode,
   SortFilter,
+  VerificationStatusFilter,
 } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
@@ -97,6 +98,9 @@ export const DocumentsListSchema = BaseSchema.extend({
 
     /** Document statuses to include in results */
     statusFilter: z.enum(StatusFilter).array().optional(),
+
+    /** Verification state to filter results by */
+    verificationStatus: z.enum(VerificationStatusFilter).optional(),
   }),
   // Maintains backwards compatibility
 }).transform((req) => {
@@ -281,6 +285,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if insights should be visible on the doc */
     insightsEnabled: z.boolean().optional(),
 
+    /** Re-verification cadence override in days; null clears the override */
+    verificationInterval: z.number().int().min(1).max(3650).nullish(),
+
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
@@ -387,6 +394,18 @@ export const DocumentsUnpublishSchema = BaseSchema.extend({
 });
 
 export type DocumentsUnpublishReq = z.infer<typeof DocumentsUnpublishSchema>;
+
+export const DocumentsVerifySchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DocumentsVerifyReq = z.infer<typeof DocumentsVerifySchema>;
+
+export const DocumentsUnverifySchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DocumentsUnverifyReq = z.infer<typeof DocumentsUnverifySchema>;
 
 export const DocumentsImportSchema = BaseSchema.extend({
   body: z

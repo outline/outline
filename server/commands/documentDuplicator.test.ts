@@ -31,6 +31,31 @@ describe("documentDuplicator", () => {
     expect(response[0].publishedAt).toBeInstanceOf(Date);
   });
 
+  it("should not copy verification state, but keep the interval override", async () => {
+    const user = await buildUser();
+    const original = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      verifiedAt: new Date(),
+      verifiedById: user.id,
+      verificationExpiresAt: new Date(),
+      verificationInterval: 90,
+    });
+
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
+        document: original,
+        collection: original.collection,
+      })
+    );
+
+    expect(response).toHaveLength(1);
+    expect(response[0].verifiedAt).toEqual(null);
+    expect(response[0].verifiedById).toEqual(null);
+    expect(response[0].verificationExpiresAt).toEqual(null);
+    expect(response[0].verificationInterval).toEqual(90);
+  });
+
   it("should duplicate document with title override", async () => {
     const user = await buildUser();
     const original = await buildDocument({

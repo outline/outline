@@ -20,6 +20,7 @@ import DocumentAccessRequestNotificationsTask from "../tasks/DocumentAccessReque
 import DocumentAddGroupNotificationsTask from "../tasks/DocumentAddGroupNotificationsTask";
 import DocumentAddUserNotificationsTask from "../tasks/DocumentAddUserNotificationsTask";
 import DocumentPublishedNotificationsTask from "../tasks/DocumentPublishedNotificationsTask";
+import DocumentVerificationExpiredNotificationsTask from "../tasks/DocumentVerificationExpiredNotificationsTask";
 import RevisionCreatedNotificationsTask from "../tasks/RevisionCreatedNotificationsTask";
 import ShareSubscriptionNotificationsTask from "../tasks/ShareSubscriptionNotificationsTask";
 import BaseProcessor from "./BaseProcessor";
@@ -29,6 +30,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     "documents.publish",
     "documents.add_user",
     "documents.add_group",
+    "documents.verification_expired",
     "access_requests.create",
     "revisions.create",
     "collections.create",
@@ -47,6 +49,8 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.documentAddUser(event);
       case "documents.add_group":
         return this.documentAddGroup(event);
+      case "documents.verification_expired":
+        return this.documentVerificationExpired(event);
       case "access_requests.create":
         return this.documentAccessRequest(event);
       case "revisions.create":
@@ -92,6 +96,10 @@ export default class NotificationsProcessor extends BaseProcessor {
 
   async documentAccessRequest(event: AccessRequestEvent) {
     await new DocumentAccessRequestNotificationsTask().schedule(event);
+  }
+
+  async documentVerificationExpired(event: DocumentEvent) {
+    await new DocumentVerificationExpiredNotificationsTask().schedule(event);
   }
 
   async revisionCreated(event: RevisionEvent) {

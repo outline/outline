@@ -18,6 +18,7 @@ import {
   FileOperationType,
   StatusFilter,
   UserRole,
+  VerificationStatusFilter,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
@@ -113,6 +114,7 @@ router.post(
       parentDocumentId,
       userId: createdById,
       statusFilter,
+      verificationStatus,
     } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
 
@@ -290,6 +292,36 @@ router.post(
       where[Op.and].push({
         [Op.or]: statusQuery,
       });
+    }
+
+    if (verificationStatus) {
+      const now = new Date();
+
+      switch (verificationStatus) {
+        case VerificationStatusFilter.Verified:
+          where[Op.and].push({
+            verifiedAt: { [Op.ne]: null },
+            [Op.or]: [
+              { verificationExpiresAt: { [Op.is]: null } },
+              { verificationExpiresAt: { [Op.gte]: now } },
+            ],
+          });
+          break;
+        case VerificationStatusFilter.Unverified:
+          where[Op.and].push({ verifiedAt: { [Op.is]: null } });
+          break;
+        case VerificationStatusFilter.Expired:
+          where[Op.and].push({ verificationExpiresAt: { [Op.lt]: now } });
+          break;
+        case VerificationStatusFilter.Expiring:
+          where[Op.and].push({
+            verificationExpiresAt: {
+              [Op.gte]: now,
+              [Op.lt]: new Date(now.getTime() + 14 * Day.ms),
+            },
+          });
+          break;
+      }
     }
 
     // When sorting by index, use array_position to sort by the document order
@@ -1273,6 +1305,10 @@ router.post(
       authorize(user, "updateInsights", document);
     }
 
+    if (input.verificationInterval !== undefined) {
+      authorize(user, "verify", document);
+    }
+
     if (publish) {
       await authorizeDocumentPublish(ctx, document, collectionId);
     }
@@ -1424,6 +1460,58 @@ router.post(
     authorize(user, "archive", document);
 
     await document.archiveWithCtx(ctx);
+
+    ctx.body = {
+      data: await presentDocument(ctx, document),
+      policies: presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "documents.verify",
+  auth(),
+  validate(T.DocumentsVerifySchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsVerifyReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+      transaction,
+    });
+    authorize(user, "verify", document);
+
+    await document.verifyWithCtx(ctx);
+
+    ctx.body = {
+      data: await presentDocument(ctx, document),
+      policies: presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "documents.unverify",
+  auth(),
+  validate(T.DocumentsUnverifySchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsUnverifyReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+      transaction,
+    });
+    authorize(user, "unverify", document);
+
+    await document.unverifyWithCtx(ctx);
 
     ctx.body = {
       data: await presentDocument(ctx, document),

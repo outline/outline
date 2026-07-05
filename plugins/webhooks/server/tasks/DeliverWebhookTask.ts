@@ -196,6 +196,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "documents.move":
       case "documents.update":
       case "documents.title_change":
+      case "documents.verify":
+      case "documents.unverify":
+      case "documents.verification_expired":
         await this.handleDocumentEvent(subscription, event);
         return;
       case "documents.add_user":

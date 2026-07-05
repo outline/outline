@@ -109,6 +109,20 @@ allow(User, "publish", Document, (actor, document) =>
   )
 );
 
+allow(User, ["verify", "unverify"], Document, (actor, document) =>
+  and(
+    isTeamMutable(actor),
+    can(actor, "read", document),
+    !!document?.publishedAt,
+    !document?.template,
+    !!document?.isActive,
+    or(
+      includesMembership(document, [DocumentPermission.Admin]),
+      isTeamAdmin(actor, document)
+    )
+  )
+);
+
 allow(User, "manageUsers", Document, (actor, document) =>
   and(
     isTeamMutable(actor),

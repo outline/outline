@@ -9,6 +9,7 @@ import DocumentAccessRequestEmail from "@server/emails/templates/DocumentAccessR
 import DocumentMentionedEmail from "@server/emails/templates/DocumentMentionedEmail";
 import DocumentPublishedOrUpdatedEmail from "@server/emails/templates/DocumentPublishedOrUpdatedEmail";
 import DocumentSharedEmail from "@server/emails/templates/DocumentSharedEmail";
+import DocumentVerificationExpiredEmail from "@server/emails/templates/DocumentVerificationExpiredEmail";
 import { Notification } from "@server/models";
 import type { Event, NotificationEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
@@ -208,6 +209,20 @@ export default class EmailsProcessor extends BaseProcessor {
         ).schedule({
           delay: Minute.ms,
         });
+        return;
+      }
+
+      case NotificationEventType.VerificationExpired: {
+        await new DocumentVerificationExpiredEmail(
+          {
+            to: notification.user.email,
+            language: notification.user.language,
+            userId: notification.userId,
+            documentId: notification.documentId,
+            teamUrl: notification.team.url,
+          },
+          { notificationId }
+        ).schedule();
         return;
       }
 

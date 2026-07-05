@@ -234,6 +234,22 @@ export type DocumentEvent = BaseEvent<Document> &
         collectionId: string;
       }
     | {
+        name: "documents.verify" | "documents.unverify";
+        documentId: string;
+        collectionId?: string;
+        data?: {
+          expiresAt: string | null;
+        };
+      }
+    | {
+        name: "documents.verification_expired";
+        documentId: string;
+        collectionId?: string;
+        data: {
+          expiresAt: string;
+        };
+      }
+    | {
         name:
           | "documents.update"
           | "documents.update.delayed"

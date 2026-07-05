@@ -451,3 +451,116 @@ describe("commentCount", () => {
     expect(await document.commentCount).toEqual(1);
   });
 });
+
+describe("verification", () => {
+  describe("#resolveVerificationInterval", () => {
+    it("should prefer the document override over all other sources", async () => {
+      const team = await buildTeam({
+        preferences: { verificationInterval: 365 },
+      });
+      const collection = await buildCollection({
+        teamId: team.id,
+        verificationInterval: 180,
+      });
+      const document = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        verificationInterval: 30,
+      });
+
+      expect(await document.resolveVerificationInterval()).toEqual(30);
+    });
+
+    it("should fall back to the collection default", async () => {
+      const team = await buildTeam({
+        preferences: { verificationInterval: 365 },
+      });
+      const collection = await buildCollection({
+        teamId: team.id,
+        verificationInterval: 180,
+      });
+      const document = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+      });
+
+      expect(await document.resolveVerificationInterval()).toEqual(180);
+    });
+
+    it("should fall back to the team preference", async () => {
+      const team = await buildTeam({
+        preferences: { verificationInterval: 365 },
+      });
+      const collection = await buildCollection({ teamId: team.id });
+      const document = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+      });
+
+      expect(await document.resolveVerificationInterval()).toEqual(365);
+    });
+
+    it("should return null when no interval is configured anywhere", async () => {
+      const document = await buildDocument();
+
+      expect(await document.resolveVerificationInterval()).toEqual(null);
+    });
+  });
+
+  describe("#verifyWithCtx", () => {
+    it("should set the verification fields and compute the deadline", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        verificationInterval: 90,
+      });
+      const updatedAt = document.updatedAt;
+
+      await withAPIContext(user, (ctx) => document.verifyWithCtx(ctx));
+
+      expect(document.verifiedAt).toBeTruthy();
+      expect(document.verifiedById).toEqual(user.id);
+      expect(document.verificationExpiresAt).toEqual(
+        new Date(document.verifiedAt!.getTime() + 90 * 24 * 60 * 60 * 1000)
+      );
+      // verifying must not count as an edit of the document
+      expect(document.updatedAt).toEqual(updatedAt);
+    });
+
+    it("should leave the deadline empty when no interval is configured", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      await withAPIContext(user, (ctx) => document.verifyWithCtx(ctx));
+
+      expect(document.verifiedAt).toBeTruthy();
+      expect(document.verificationExpiresAt).toEqual(null);
+    });
+  });
+
+  describe("#unverifyWithCtx", () => {
+    it("should clear verification state but keep the interval override", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        verificationInterval: 90,
+      });
+
+      await withAPIContext(user, (ctx) => document.verifyWithCtx(ctx));
+      await withAPIContext(user, (ctx) => document.unverifyWithCtx(ctx));
+
+      expect(document.verifiedAt).toEqual(null);
+      expect(document.verifiedById).toEqual(null);
+      expect(document.verificationExpiresAt).toEqual(null);
+      expect(document.verificationInterval).toEqual(90);
+    });
+  });
+});
