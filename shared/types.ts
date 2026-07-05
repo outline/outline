@@ -21,13 +21,6 @@ export enum StatusFilter {
   Draft = "draft",
 }
 
-export enum VerificationStatusFilter {
-  Verified = "verified",
-  Unverified = "unverified",
-  Expired = "expired",
-  Expiring = "expiring",
-}
-
 export enum SortFilter {
   CreatedAt = "createdAt",
   UpdatedAt = "updatedAt",

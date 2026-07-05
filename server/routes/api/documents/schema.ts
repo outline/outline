@@ -7,7 +7,6 @@ import {
   StatusFilter,
   TextEditMode,
   SortFilter,
-  VerificationStatusFilter,
 } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
@@ -98,9 +97,6 @@ export const DocumentsListSchema = BaseSchema.extend({
 
     /** Document statuses to include in results */
     statusFilter: z.enum(StatusFilter).array().optional(),
-
-    /** Verification state to filter results by */
-    verificationStatus: z.enum(VerificationStatusFilter).optional(),
   }),
   // Maintains backwards compatibility
 }).transform((req) => {

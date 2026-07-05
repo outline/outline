@@ -117,8 +117,6 @@ async function presentDocument(
     res.verifiedById = document.verifiedById;
     res.verificationExpiresAt = document.verificationExpiresAt;
     res.verificationInterval = document.verificationInterval;
-    res.editedSinceVerification =
-      !!document.verifiedAt && document.updatedAt > document.verifiedAt;
     if (options.includeCommentCount) {
       res.commentCount = await document.commentCount;
     }

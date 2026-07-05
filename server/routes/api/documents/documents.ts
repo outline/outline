@@ -18,7 +18,6 @@ import {
   FileOperationType,
   StatusFilter,
   UserRole,
-  VerificationStatusFilter,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
@@ -114,7 +113,6 @@ router.post(
       parentDocumentId,
       userId: createdById,
       statusFilter,
-      verificationStatus,
     } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
 
@@ -292,36 +290,6 @@ router.post(
       where[Op.and].push({
         [Op.or]: statusQuery,
       });
-    }
-
-    if (verificationStatus) {
-      const now = new Date();
-
-      switch (verificationStatus) {
-        case VerificationStatusFilter.Verified:
-          where[Op.and].push({
-            verifiedAt: { [Op.ne]: null },
-            [Op.or]: [
-              { verificationExpiresAt: { [Op.is]: null } },
-              { verificationExpiresAt: { [Op.gte]: now } },
-            ],
-          });
-          break;
-        case VerificationStatusFilter.Unverified:
-          where[Op.and].push({ verifiedAt: { [Op.is]: null } });
-          break;
-        case VerificationStatusFilter.Expired:
-          where[Op.and].push({ verificationExpiresAt: { [Op.lt]: now } });
-          break;
-        case VerificationStatusFilter.Expiring:
-          where[Op.and].push({
-            verificationExpiresAt: {
-              [Op.gte]: now,
-              [Op.lt]: new Date(now.getTime() + 14 * Day.ms),
-            },
-          });
-          break;
-      }
     }
 
     // When sorting by index, use array_position to sort by the document order

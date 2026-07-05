@@ -5959,7 +5959,6 @@ describe("#documents.verify", () => {
     expect(body.data.verifiedAt).toBeTruthy();
     expect(body.data.verifiedById).toEqual(admin.id);
     expect(body.data.verificationExpiresAt).toEqual(null);
-    expect(body.data.editedSinceVerification).toEqual(false);
     expect(body.policies[0].abilities.unverify).toEqual(true);
 
     const event = await Event.findLatest({
@@ -6209,94 +6208,5 @@ describe("#documents.update verificationInterval", () => {
     expect(new Date(body.data.verificationExpiresAt)).toEqual(
       new Date(verifiedAt.getTime() + 90 * 24 * 60 * 60 * 1000)
     );
-  });
-});
-
-describe("#documents.list verificationStatus", () => {
-  const buildVerificationFixtures = async () => {
-    const user = await buildUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      userId: user.id,
-    });
-    const unverified = await buildDocument({
-      teamId: user.teamId,
-      userId: user.id,
-      collectionId: collection.id,
-    });
-    const verified = await buildDocument({
-      teamId: user.teamId,
-      userId: user.id,
-      collectionId: collection.id,
-      verifiedAt: new Date(),
-      verifiedById: user.id,
-    });
-    const expired = await buildDocument({
-      teamId: user.teamId,
-      userId: user.id,
-      collectionId: collection.id,
-      verifiedAt: subDays(new Date(), 30),
-      verifiedById: user.id,
-      verificationExpiresAt: subDays(new Date(), 1),
-    });
-    const expiring = await buildDocument({
-      teamId: user.teamId,
-      userId: user.id,
-      collectionId: collection.id,
-      verifiedAt: new Date(),
-      verifiedById: user.id,
-      verificationExpiresAt: subDays(new Date(), -7),
-    });
-    return { user, unverified, verified, expired, expiring };
-  };
-
-  it("should filter to verified documents", async () => {
-    const { user, verified, expiring } = await buildVerificationFixtures();
-    const res = await server.post("/api/documents.list", user, {
-      body: {
-        verificationStatus: "verified",
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.map((d: { id: string }) => d.id).sort()).toEqual(
-      [verified.id, expiring.id].sort()
-    );
-  });
-
-  it("should filter to unverified documents", async () => {
-    const { user, unverified } = await buildVerificationFixtures();
-    const res = await server.post("/api/documents.list", user, {
-      body: {
-        verificationStatus: "unverified",
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.map((d: { id: string }) => d.id)).toEqual([unverified.id]);
-  });
-
-  it("should filter to expired documents", async () => {
-    const { user, expired } = await buildVerificationFixtures();
-    const res = await server.post("/api/documents.list", user, {
-      body: {
-        verificationStatus: "expired",
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.map((d: { id: string }) => d.id)).toEqual([expired.id]);
-  });
-
-  it("should filter to documents expiring soon", async () => {
-    const { user, expiring } = await buildVerificationFixtures();
-    const res = await server.post("/api/documents.list", user, {
-      body: {
-        verificationStatus: "expiring",
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.map((d: { id: string }) => d.id)).toEqual([expiring.id]);
   });
 });
