@@ -6,7 +6,14 @@ import {
 } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, cannot, can } from "./cancan";
-import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
+import {
+  and,
+  isCloudHosted,
+  isTeamAdmin,
+  isTeamModel,
+  isTeamMutable,
+  or,
+} from "./utils";
 
 allow(User, "createDocument", Team, (actor, document) =>
   and(
@@ -111,6 +118,7 @@ allow(User, "publish", Document, (actor, document) =>
 
 allow(User, ["verify", "unverify"], Document, (actor, document) =>
   and(
+    isCloudHosted(),
     isTeamMutable(actor),
     can(actor, "read", document),
     !!document?.publishedAt,

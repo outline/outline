@@ -507,7 +507,7 @@ describe("verification", () => {
     });
   });
 
-  describe("#verifyWithCtx", () => {
+  describe("#verify", () => {
     it("should set the verification fields and compute the deadline", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
@@ -518,7 +518,7 @@ describe("verification", () => {
       });
       const updatedAt = document.updatedAt;
 
-      await withAPIContext(user, (ctx) => document.verifyWithCtx(ctx));
+      await withAPIContext(user, (ctx) => document.verify(ctx));
 
       expect(document.verifiedAt).toBeTruthy();
       expect(document.verifiedById).toEqual(user.id);
@@ -537,14 +537,14 @@ describe("verification", () => {
         userId: user.id,
       });
 
-      await withAPIContext(user, (ctx) => document.verifyWithCtx(ctx));
+      await withAPIContext(user, (ctx) => document.verify(ctx));
 
       expect(document.verifiedAt).toBeTruthy();
       expect(document.verificationExpiresAt).toEqual(null);
     });
   });
 
-  describe("#unverifyWithCtx", () => {
+  describe("#unverify", () => {
     it("should clear verification state but keep the interval override", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
@@ -554,8 +554,8 @@ describe("verification", () => {
         verificationInterval: 90,
       });
 
-      await withAPIContext(user, (ctx) => document.verifyWithCtx(ctx));
-      await withAPIContext(user, (ctx) => document.unverifyWithCtx(ctx));
+      await withAPIContext(user, (ctx) => document.verify(ctx));
+      await withAPIContext(user, (ctx) => document.unverify(ctx));
 
       expect(document.verifiedAt).toEqual(null);
       expect(document.verifiedById).toEqual(null);

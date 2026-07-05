@@ -1283,7 +1283,7 @@ class Document extends ArchivableModel<
    * @param ctx the API context of the request.
    * @returns the updated document.
    */
-  verifyWithCtx = async (ctx: APIContext) => {
+  verify = async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -1317,7 +1317,7 @@ class Document extends ArchivableModel<
    * @param ctx the API context of the request.
    * @returns the updated document.
    */
-  unverifyWithCtx = async (ctx: APIContext) => {
+  unverify = async (ctx: APIContext) => {
     if (!this.verifiedAt) {
       return this;
     }

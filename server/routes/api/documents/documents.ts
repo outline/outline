@@ -1453,7 +1453,7 @@ router.post(
     });
     authorize(user, "verify", document);
 
-    await document.verifyWithCtx(ctx);
+    await document.verify(ctx);
 
     ctx.body = {
       data: await presentDocument(ctx, document),
@@ -1479,7 +1479,7 @@ router.post(
     });
     authorize(user, "unverify", document);
 
-    await document.unverifyWithCtx(ctx);
+    await document.unverify(ctx);
 
     ctx.body = {
       data: await presentDocument(ctx, document),

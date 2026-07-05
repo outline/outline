@@ -39,7 +39,11 @@ import {
   buildAdmin,
   buildTemplate,
 } from "@server/test/factories";
-import { getTestServer, withAPIContext } from "@server/test/support";
+import {
+  getTestServer,
+  setSelfHosted,
+  withAPIContext,
+} from "@server/test/support";
 
 const server = getTestServer();
 
@@ -5921,6 +5925,25 @@ describe("#documents.verify", () => {
       },
     });
     expect(res.status).toEqual(401);
+  });
+
+  it("should not allow verifying on self-hosted installations", async () => {
+    setSelfHosted();
+
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+    });
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.verify", admin, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 
   it("should not allow a member with write access to verify", async () => {
