@@ -138,7 +138,8 @@ export default class PasteHandler extends Extension {
                           return;
                         }
                         if (document) {
-                          if (state.schema.nodes.mention && !containsHash) {
+                          if (state.schema.nodes.mention) {
+                            const { hash } = new URL(trimmedText);
                             view.dispatch(
                               view.state.tr.replaceWith(
                                 state.selection.from,
@@ -148,6 +149,9 @@ export default class PasteHandler extends Extension {
                                   modelId: document.id,
                                   label: document.titleWithDefault,
                                   id: uuidv4(),
+                                  anchorId: hash.length
+                                    ? hash.substring(1)
+                                    : undefined,
                                 })
                               )
                             );
