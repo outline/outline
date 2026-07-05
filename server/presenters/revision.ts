@@ -1,6 +1,6 @@
 import parseTitle from "@shared/utils/parseTitle";
 import { traceFunction } from "@server/logging/tracing";
-import type { Revision, User } from "@server/models";
+import type { Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import presentUser from "./user";
 
@@ -9,11 +9,6 @@ type PresentRevisionOptions = {
    * Whether to include the document content. Defaults to true.
    */
   includeContent?: boolean;
-  /**
-   * Preloaded collaborators for the revision. When presenting many revisions
-   * pass these to avoid one User query per revision.
-   */
-  collaborators?: User[];
 };
 
 async function presentRevision(
@@ -28,7 +23,7 @@ async function presentRevision(
   const [data, text, collaborators] = await Promise.all([
     includeContent ? DocumentHelper.toJSON(revision) : undefined,
     includeContent ? DocumentHelper.toMarkdown(revision) : undefined,
-    options.collaborators ?? revision.collaborators,
+    revision.collaborators,
   ]);
 
   return {

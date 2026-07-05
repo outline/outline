@@ -3,7 +3,6 @@ import Router from "koa-router";
 import contentDisposition from "content-disposition";
 import { escapeRegExp } from "es-toolkit/compat";
 import mime from "mime-types";
-import { Op } from "sequelize";
 import { errToString } from "@shared/utils/error";
 import { UserRole } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
@@ -14,7 +13,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Attachment, Document, Revision, User } from "@server/models";
+import { Attachment, Document, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { authorize } from "@server/policies";
@@ -256,40 +255,9 @@ router.post(
       paranoid: false,
     });
 
-    // Load the collaborators for the whole page of revisions in a single
-    // query rather than one query per revision.
-    const collaboratorIds = new Set<string>();
-    for (const revision of revisions) {
-      for (const collaboratorId of revision.collaboratorIds ?? []) {
-        if (collaboratorId !== revision.userId) {
-          collaboratorIds.add(collaboratorId);
-        }
-      }
-    }
-    const collaborators = collaboratorIds.size
-      ? await User.findAll({
-          where: {
-            id: {
-              [Op.in]: [...collaboratorIds],
-            },
-          },
-          paranoid: false,
-        })
-      : [];
-    const collaboratorMap = new Map(collaborators.map((u) => [u.id, u]));
-
     const data = await Promise.all(
       revisions.map((revision) =>
-        presentRevision(revision, {
-          includeContent: false,
-          collaborators: [
-            revision.user,
-            ...(revision.collaboratorIds ?? [])
-              .filter((collaboratorId) => collaboratorId !== revision.userId)
-              .map((collaboratorId) => collaboratorMap.get(collaboratorId))
-              .filter((u): u is User => !!u),
-          ],
-        })
+        presentRevision(revision, { includeContent: false })
       )
     );
 
