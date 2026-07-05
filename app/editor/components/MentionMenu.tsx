@@ -12,7 +12,7 @@ import {
   Heading3Icon,
   Heading4Icon,
 } from "outline-icons";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -66,6 +66,9 @@ type Props = Omit<
 
 function MentionMenu({ search = "", isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
+  const headingsCacheRef = useRef(
+    new Map<string, { revision: number; items: MentionItem[] }>()
+  );
   const { t } = useTranslation();
   const { auth, documents, users, collections, groups } = useStores();
   const actorId = auth.currentUserId;
@@ -159,26 +162,74 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
     }
   }, [actorId, loading]);
 
-  const getHeadings = useCallback(
-    (doc: Document) => {
+  const getHeadingChildren = useCallback(
+    (doc: Document): MentionItem[] => {
+      const cached = headingsCacheRef.current.get(doc.id);
+      if (cached && cached.revision === doc.revision) {
+        return cached.items;
+      }
+
       const headings = ProsemirrorHelper.getHeadings({ data: doc.data });
+      const items = headings.length
+        ? [
+            {
+              name: "mention",
+              title: doc.title,
+              appendSpace: true,
+              icon: doc.icon ? (
+                <Icon
+                  value={doc.icon}
+                  initial={doc.initial}
+                  color={doc.color ?? undefined}
+                />
+              ) : (
+                <DocumentIcon />
+              ),
+              attrs: {
+                id: uuidv4(),
+                type: MentionType.Document,
+                modelId: doc.id,
+                actorId,
+                label: doc.title,
+              },
+            } as MentionItem,
+            ...headings.map(
+              (h) =>
+                ({
+                  name: "mention",
+                  title: h.title,
+                  appendSpace: true,
+                  icon:
+                    h.level === 1 ? (
+                      <Heading1Icon />
+                    ) : h.level === 2 ? (
+                      <Heading2Icon />
+                    ) : h.level === 3 ? (
+                      <Heading3Icon />
+                    ) : (
+                      <Heading4Icon />
+                    ),
+                  attrs: {
+                    id: uuidv4(),
+                    type: MentionType.Document,
+                    modelId: doc.id,
+                    actorId,
+                    anchorId: h.id,
+                    label: `${doc.title} > ${h.title}`,
+                  },
+                }) as MentionItem
+            ),
+          ]
+        : [];
 
-      return headings.map((h) => ({
-        ...h,
-        icon:
-          h.level === 1 ? (
-            <Heading1Icon />
-          ) : h.level === 2 ? (
-            <Heading2Icon />
-          ) : h.level === 3 ? (
-            <Heading3Icon />
-          ) : (
-            <Heading4Icon />
-          ),
-      }));
+      headingsCacheRef.current.set(doc.id, {
+        revision: doc.revision,
+        items,
+      });
+
+      return items;
     },
-
-    []
+    [actorId]
   );
 
   // Computed in the render body so MobX observer can track store access
@@ -249,47 +300,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
           documents
             .findByQuery(search, { maxResults: maxResultsInSection })
             .map((doc) => {
-              const headings = getHeadings(doc);
-              const children = headings.length
-                ? [
-                    {
-                      name: "mention",
-                      title: doc.title,
-                      appendSpace: true,
-                      icon: doc.icon ? (
-                        <Icon
-                          value={doc.icon}
-                          initial={doc.initial}
-                          color={doc.color ?? undefined}
-                        />
-                      ) : (
-                        <DocumentIcon />
-                      ),
-                      attrs: {
-                        id: uuidv4(),
-                        type: MentionType.Document,
-                        modelId: doc.id,
-                        actorId,
-                        label: doc.title,
-                      },
-                    },
-                  ].concat(
-                    ...headings.map((h) => ({
-                      name: "mention",
-                      title: h.title,
-                      appendSpace: true,
-                      icon: h.icon,
-                      attrs: {
-                        id: uuidv4(),
-                        type: MentionType.Document,
-                        modelId: doc.id,
-                        actorId,
-                        anchorId: h.id,
-                        label: `${doc.title} > ${h.title}`,
-                      },
-                    }))
-                  )
-                : [];
+              const headingChildren = getHeadingChildren(doc);
 
               return {
                 name: "mention",
@@ -311,7 +322,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
                     maxDepth={2}
                   />
                 ) : undefined,
-                children: children.length ? children : undefined,
+                children: headingChildren.length ? headingChildren : undefined,
                 section: DocumentsSection,
                 appendSpace: true,
                 attrs: {
