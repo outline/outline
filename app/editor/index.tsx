@@ -32,6 +32,7 @@ import type { CommandFactory, WidgetProps } from "@shared/editor/lib/Extension";
 import type { AnyExtension, AnyExtensionClass } from "@shared/editor/lib/types";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import type { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
+import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
 import textBetween from "@shared/editor/lib/textBetween";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
 import type ReactNode from "@shared/editor/nodes/ReactNode";
@@ -118,8 +119,11 @@ export type Props = {
   /** Callback when user uses cancel key combo */
   onCancel?: () => void;
   /** Callback when user changes editor content */
-  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-  onChange?: (value: (asString?: boolean, trim?: boolean) => any) => void;
+  onChange?: (
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+    value: (asString?: boolean, trim?: boolean) => any,
+    event?: { remote: boolean }
+  ) => void;
   /** Callback when a comment mark is clicked */
   onClickCommentMark?: (commentId: string) => void;
   /**
@@ -537,7 +541,11 @@ export class Editor extends React.PureComponent<
             (self.props.canUpdate && transactions.some(isEditingCheckbox)) ||
             (self.props.canComment && transactions.some(isEditingComment)))
         ) {
-          self.handleChange();
+          self.handleChange({
+            remote: transactions.some(
+              (tr) => tr.docChanged && isRemoteTransaction(tr)
+            ),
+          });
         }
 
         self.handleEditorInit();
@@ -848,13 +856,15 @@ export class Editor extends React.PureComponent<
     this.view.dispatch(this.view.state.tr.setMeta("theme", event.detail));
   };
 
-  private handleChange = () => {
+  private handleChange = (event?: { remote: boolean }) => {
     if (!this.props.onChange) {
       return;
     }
 
-    this.props.onChange((asString = true, trim = false) =>
-      this.view ? this.value(asString, trim) : undefined
+    this.props.onChange(
+      (asString = true, trim = false) =>
+        this.view ? this.value(asString, trim) : undefined,
+      event
     );
   };
 

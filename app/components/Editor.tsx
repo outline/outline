@@ -199,42 +199,50 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     []
   );
 
-  const updateComments = React.useCallback(() => {
-    if (onCreateCommentMark && onDeleteCommentMark && localRef.current) {
-      const commentMarks = localRef.current.getComments();
-      const commentIds = comments.orderedData.map((c) => c.id);
-      const commentMarkIds = commentMarks?.map((c) => c.id);
-      const focus = previousCommentIds.current !== undefined;
-      const newCommentIds = difference(
-        commentMarkIds,
-        previousCommentIds.current ?? [],
-        commentIds
-      );
+  const updateComments = React.useCallback(
+    (event?: { remote: boolean }) => {
+      if (onCreateCommentMark && onDeleteCommentMark && localRef.current) {
+        const commentMarks = localRef.current.getComments();
+        const commentIds = comments.orderedData.map((c) => c.id);
+        const commentMarkIds = commentMarks?.map((c) => c.id);
 
-      newCommentIds.forEach((commentId) => {
-        const mark = commentMarks.find((c) => c.id === commentId);
-        if (mark) {
-          onCreateCommentMark(mark.id, mark.userId, { focus });
-        }
-      });
+        // Comment marks that arrive through a remote or sync transaction, such
+        // as the initial load of a collaborative document containing a draft
+        // comment, should not steal focus – only marks created locally should.
+        const focus =
+          previousCommentIds.current !== undefined && !event?.remote;
+        const newCommentIds = difference(
+          commentMarkIds,
+          previousCommentIds.current ?? [],
+          commentIds
+        );
 
-      const removedCommentIds = difference(
-        previousCommentIds.current ?? [],
-        commentMarkIds ?? []
-      );
+        newCommentIds.forEach((commentId) => {
+          const mark = commentMarks.find((c) => c.id === commentId);
+          if (mark) {
+            onCreateCommentMark(mark.id, mark.userId, { focus });
+          }
+        });
 
-      removedCommentIds.forEach((commentId) => {
-        onDeleteCommentMark(commentId);
-      });
+        const removedCommentIds = difference(
+          previousCommentIds.current ?? [],
+          commentMarkIds ?? []
+        );
 
-      previousCommentIds.current = commentMarkIds;
-    }
-  }, [onCreateCommentMark, onDeleteCommentMark, comments.orderedData]);
+        removedCommentIds.forEach((commentId) => {
+          onDeleteCommentMark(commentId);
+        });
 
-  const handleChange = React.useCallback(
-    (event) => {
-      onChange?.(event);
-      updateComments();
+        previousCommentIds.current = commentMarkIds;
+      }
+    },
+    [onCreateCommentMark, onDeleteCommentMark, comments.orderedData]
+  );
+
+  const handleChange = React.useCallback<NonNullable<EditorProps["onChange"]>>(
+    (value, event) => {
+      onChange?.(value, event);
+      updateComments(event);
     },
     [onChange, updateComments]
   );
