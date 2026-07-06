@@ -374,7 +374,7 @@ function ShareSettingsPopover({ share, children }: Props) {
                     "Allow viewers to subscribe and receive email notifications when documents are updated"
                   )}
                 >
-                  <NudeButton size={18}>
+                  <NudeButton size={18} aria-label={t("More information")}>
                     <QuestionMarkIcon size={18} />
                   </NudeButton>
                 </Tooltip>

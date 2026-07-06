@@ -183,7 +183,7 @@ function Table<TData>({
                 const handleSortKeyDown = (
                   ev: React.KeyboardEvent<HTMLDivElement>
                 ) => {
-                  if (ev.key === "Enter" || ev.key === " ") {
+                  if (!ev.repeat && (ev.key === "Enter" || ev.key === " ")) {
                     ev.preventDefault();
                     toggleSorting?.(ev);
                   }
