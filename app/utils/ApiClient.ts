@@ -7,7 +7,7 @@ import { Scope } from "@shared/types";
 import { version } from "../../package.json";
 import env from "~/env";
 import Logger from "./Logger";
-import download from "./download";
+import { download } from "./download";
 import {
   AuthorizationError,
   BadGatewayError,
