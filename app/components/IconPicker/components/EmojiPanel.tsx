@@ -184,7 +184,10 @@ const EmojiPanel = ({
         data={templateData}
         onIconSelect={handleEmojiSelection}
         empty={
-          <IconButton onClick={handleUploadClick}>
+          <IconButton
+            onClick={handleUploadClick}
+            aria-label={t("Upload emoji")}
+          >
             <PlusIcon />
           </IconButton>
         }
