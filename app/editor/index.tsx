@@ -138,6 +138,8 @@ export type Props = {
   onDeleteCommentMark?: (commentId: string) => void;
   /** Callback when comments sidebar should be opened */
   onOpenCommentsSidebar?: () => void;
+  /** Callback when the user types the "[[" document link syntax */
+  onShowDocumentLinkHint?: () => void;
   /** Callback when a file upload begins */
   onFileUploadStart?: () => void;
   /** Callback when a file upload ends */

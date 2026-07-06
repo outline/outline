@@ -2,6 +2,7 @@ import type { AnyExtensionClass } from "@shared/editor/lib/types";
 import BlockMenuExtension from "~/editor/extensions/BlockMenu";
 import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
 import DiagramsExtension from "@shared/editor/extensions/Diagrams";
+import DocumentLinkHint from "~/editor/extensions/DocumentLinkHint";
 import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
 import FindAndReplaceExtension from "~/editor/extensions/FindAndReplace";
 import HoverPreviewsExtension from "~/editor/extensions/HoverPreviews";
@@ -22,6 +23,7 @@ export const withUIExtensions = (nodes: Nodes) => [
   BlockMenuExtension,
   EmojiMenuExtension,
   MentionMenuExtension,
+  DocumentLinkHint,
   FindAndReplaceExtension,
   HoverPreviewsExtension,
   SelectionToolbarExtension,

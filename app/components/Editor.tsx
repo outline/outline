@@ -9,7 +9,7 @@ import { mergeRefs } from "react-merge-refs";
 import type { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import EditorContainer from "@shared/editor/components/Styles";
-import { AttachmentPreset } from "@shared/types";
+import { AttachmentPreset, UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { getDataTransferFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
@@ -50,7 +50,8 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { t } = useTranslation();
   const embeds = useEmbeds(!shareId);
   const localRef = React.useRef<SharedEditor>();
-  const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
+  const user = useCurrentUser({ rejectOnEmpty: false });
+  const preferences = user?.preferences;
   const previousCommentIds = React.useRef<string[]>();
 
   // Upload progress tracking for delayed toast
@@ -132,6 +133,17 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const focusAtEnd = React.useCallback(() => {
     localRef?.current?.focusAtEnd();
   }, [localRef]);
+
+  // Nudge the user towards the "@" mention menu the first time they type the
+  // "[[" document link syntax, then remember that we've done so.
+  const handleShowDocumentLinkHint = React.useCallback(() => {
+    if (!user || user.getPreference(UserPreference.SeenDocumentLinkHint)) {
+      return;
+    }
+    toast.message(t("Type @ to link to another document"));
+    user.setPreference(UserPreference.SeenDocumentLinkHint, true);
+    void user.save();
+  }, [user, t]);
 
   const handleDrop = React.useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
@@ -285,6 +297,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             {...props}
             onClickLink={handleClickLink}
             onChange={handleChange}
+            onShowDocumentLinkHint={handleShowDocumentLinkHint}
             onFileUploadStart={handleFileUploadStart}
             onFileUploadStop={handleFileUploadStop}
             onFileUploadProgress={handleFileUploadProgress}

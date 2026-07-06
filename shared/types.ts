@@ -343,6 +343,8 @@ export enum UserPreference {
   EnableSmartText = "enableSmartText",
   /** The style of notification badge to display. */
   NotificationBadge = "notificationBadge",
+  /** Whether the user has been shown the hint to use "@" for linking documents. */
+  SeenDocumentLinkHint = "seenDocumentLinkHint",
 }
 
 export enum NotificationBadgeType {
@@ -363,6 +365,7 @@ export type UserPreferences = {
   [UserPreference.SortCommentsByOrderInDocument]?: boolean;
   [UserPreference.EnableSmartText]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
+  [UserPreference.SeenDocumentLinkHint]?: boolean;
 };
 
 export type SourceMetadata = {
