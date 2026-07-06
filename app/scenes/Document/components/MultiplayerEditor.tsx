@@ -12,7 +12,6 @@ import {
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
-import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
 import History from "@shared/editor/extensions/History";
@@ -29,6 +28,7 @@ import useIsMounted from "~/hooks/useIsMounted";
 import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import type { AwarenessChangeEvent } from "~/types";
+import { IndexeddbPersistence } from "~/utils/IndexeddbPersistence";
 import Logger from "~/utils/Logger";
 import { homePath } from "~/utils/routeHelpers";
 import { sleep } from "@shared/utils/timers";
@@ -170,10 +170,18 @@ function MultiplayerEditor(
     };
 
     provider.on("awarenessChange", showCursorNames);
-    localProvider?.on("synced", () =>
-      // only set local storage to "synced" if it's loaded a non-empty doc
-      setLocalSynced(!!ydoc.get("default")._start)
-    );
+    localProvider?.whenSynced
+      .then(() => {
+        if (debug) {
+          Logger.debug("collaboration", "local synced");
+        }
+        // only set local storage to "synced" if it's loaded a non-empty doc
+        setLocalSynced(!!ydoc.get("default")._start);
+      })
+      .catch(() => {
+        // IndexedDB exists but is unusable, e.g. Firefox private browsing.
+        setHasLocalPersistence(false);
+      });
     provider.on("synced", () => {
       presence.touch(documentId, currentUser.id, false);
       setRemoteSynced(true);
@@ -208,9 +216,6 @@ function MultiplayerEditor(
         Logger.debug("collaboration", "outgoing", {
           message: ev.message,
         })
-      );
-      localProvider?.on("synced", () =>
-        Logger.debug("collaboration", "local synced")
       );
     }
 

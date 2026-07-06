@@ -11250,6 +11250,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fake-indexeddb@npm:^6.0.1":
+  version: 6.2.5
+  resolution: "fake-indexeddb@npm:6.2.5"
+  checksum: 10c0/6c5e2fe84a61daa06d7ad63699d1041fe61847f15f92db12415634b3db94f363a64be9e08a3c3c4434af9c3c0132086b85c4d5dc5e8e06edae1e7daf70ce1f3c
+  languageName: node
+  linkType: hard
+
 "fast-content-type-parse@npm:^3.0.0":
   version: 3.0.0
   resolution: "fast-content-type-parse@npm:3.0.0"
@@ -13945,7 +13952,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lib0@npm:^0.2.109, lib0@npm:^0.2.46, lib0@npm:^0.2.47, lib0@npm:^0.2.74, lib0@npm:^0.2.85, lib0@npm:^0.2.99":
+"lib0@npm:^0.2.109, lib0@npm:^0.2.46, lib0@npm:^0.2.47, lib0@npm:^0.2.85, lib0@npm:^0.2.99":
   version: 0.2.114
   resolution: "lib0@npm:0.2.114"
   dependencies:
@@ -15672,6 +15679,7 @@ __metadata:
     emoji-regex: "npm:^10.6.0"
     es-toolkit: "npm:^1.47.1"
     es6-error: "npm:^4.1.1"
+    fake-indexeddb: "npm:^6.0.1"
     fast-deep-equal: "npm:^3.1.3"
     fetch-retry: "npm:^5.0.6"
     form-data: "npm:^4.0.6"
@@ -15827,7 +15835,6 @@ __metadata:
     web-haptics: "npm:^0.0.6"
     winston: "npm:^3.17.0"
     ws: "npm:^7.5.11"
-    y-indexeddb: "npm:^9.0.12"
     y-prosemirror: "npm:^1.3.7"
     y-protocols: "npm:^1.0.7"
     yauzl: "npm:^3.3.1"
@@ -21342,17 +21349,6 @@ __metadata:
   version: 4.0.2
   resolution: "xtend@npm:4.0.2"
   checksum: 10c0/366ae4783eec6100f8a02dff02ac907bf29f9a00b82ac0264b4d8b832ead18306797e283cf19de776538babfdcb2101375ec5646b59f08c52128ac4ab812ed0e
-  languageName: node
-  linkType: hard
-
-"y-indexeddb@npm:^9.0.12":
-  version: 9.0.12
-  resolution: "y-indexeddb@npm:9.0.12"
-  dependencies:
-    lib0: "npm:^0.2.74"
-  peerDependencies:
-    yjs: ^13.0.0
-  checksum: 10c0/b31fbc12ef4a7d71f09212db02570af07c6a17b02537ce4cbb29f0549137adcbebf613cb2af63fa1d13e0932645be0293a4e7189cb5bf5dc6263cf2f72b65004
   languageName: node
   linkType: hard
 
