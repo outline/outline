@@ -133,7 +133,9 @@ export class PluginManager {
   }
 
   /**
-   * Load plugin server components (anything in the `/server/` directory of a plugin will be loaded)
+   * Load plugin server components. Each plugin registers itself from a single
+   * `server/index` entry point, which imports any other modules it needs, so
+   * only the entry point is loaded here.
    */
   public static loadPlugins() {
     if (this.loaded) {
@@ -142,10 +144,19 @@ export class PluginManager {
     const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
 
     glob
-      .sync(path.join(rootDir, "plugins/*/server/!(*.test|schema).[jt]s"))
-      .forEach((filePath: string) =>
-        require(path.join(process.cwd(), filePath))
-      );
+      .sync(path.join(rootDir, "plugins/*/server/index.[jt]s"))
+      .forEach((filePath: string) => {
+        try {
+          require(path.join(process.cwd(), filePath));
+        } catch (err) {
+          // Isolate failures so a single broken plugin cannot prevent the rest
+          // of the application from starting.
+          Logger.error(
+            `Failed to load plugin at ${filePath}`,
+            err instanceof Error ? err : new Error(String(err))
+          );
+        }
+      });
     this.loaded = true;
   }
 
