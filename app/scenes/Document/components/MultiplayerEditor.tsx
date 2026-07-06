@@ -80,6 +80,9 @@ function MultiplayerEditor(
   // an orphaned websocket connection.
   // see: https://github.com/facebook/react/issues/20090#issuecomment-715926549
   useLayoutEffect(() => {
+    // Tracks whether this effect has been cleaned up so async persistence
+    // callbacks below do not update state afterwards.
+    let isActive = true;
     const debug = env.ENVIRONMENT === "development";
     const name = `document.${documentId}`;
     const localProvider =
@@ -172,6 +175,9 @@ function MultiplayerEditor(
     provider.on("awarenessChange", showCursorNames);
     localProvider?.whenSynced
       .then(() => {
+        if (!isActive || !localProvider.synced) {
+          return;
+        }
         if (debug) {
           Logger.debug("collaboration", "local synced");
         }
@@ -180,7 +186,9 @@ function MultiplayerEditor(
       })
       .catch(() => {
         // IndexedDB exists but is unusable, e.g. Firefox private browsing.
-        setHasLocalPersistence(false);
+        if (isActive) {
+          setHasLocalPersistence(false);
+        }
       });
     provider.on("synced", () => {
       presence.touch(documentId, currentUser.id, false);
@@ -228,6 +236,7 @@ function MultiplayerEditor(
     setRemoteProvider(provider);
 
     return () => {
+      isActive = false;
       window.removeEventListener("click", finishObserving);
       window.removeEventListener("wheel", finishObserving);
       window.removeEventListener("scroll", syncScrollPosition);
