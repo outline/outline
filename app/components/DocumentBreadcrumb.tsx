@@ -9,6 +9,7 @@ import { ellipsis } from "@shared/styles";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
+import Tooltip from "~/components/Tooltip";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { ActionContextProvider } from "~/hooks/useActionContext";
@@ -75,17 +76,17 @@ type Props = {
   children?: React.ReactNode;
   document: Document;
   onlyText?: boolean;
-  reverse?: boolean;
   /**
-   * Maximum number of items to show in the breadcrumb.
-   * If value is less than or equals to 0, no items will be shown.
-   * If value is undefined, all items will be shown.
+   * Maximum number of ancestor documents to show, counted back from the
+   * document's immediate parent. Any ancestors beyond this depth are replaced
+   * with an ellipsis. The collection is always shown. If undefined, all
+   * ancestors are shown. If less than or equal to 0, no items are shown.
    */
   maxDepth?: number;
 };
 
 function DocumentBreadcrumb(
-  { document, children, onlyText, reverse = false, maxDepth }: Props,
+  { document, children, onlyText, maxDepth }: Props,
   ref: React.RefObject<HTMLDivElement> | null
 ) {
   const { collections } = useStores();
@@ -173,23 +174,8 @@ function DocumentBreadcrumb(
       }),
     ];
 
-    return reverse
-      ? depth !== undefined
-        ? outputActions.slice(-depth)
-        : outputActions
-      : depth !== undefined
-        ? outputActions.slice(0, depth)
-        : outputActions;
-  }, [
-    t,
-    document,
-    collection,
-    can.readDocument,
-    sidebarContext,
-    path,
-    reverse,
-    depth,
-  ]);
+    return depth !== undefined ? outputActions.slice(0, depth) : outputActions;
+  }, [t, document, collection, can.readDocument, sidebarContext, path, depth]);
 
   if (!collections.isLoaded) {
     return null;
@@ -203,24 +189,34 @@ function DocumentBreadcrumb(
     const { collection: collectionLabel, ancestors: ancestorLabels } =
       documentBreadcrumbParts(document, t);
 
-    const slicedAncestors = reverse
-      ? ancestorLabels.slice(depth && -depth)
-      : ancestorLabels.slice(0, depth);
+    // Depth is measured back from the document's parent, so keep the trailing
+    // ancestors nearest to the document and collapse anything beyond into an
+    // ellipsis. The collection is always shown.
+    const tail =
+      depth === undefined ? ancestorLabels : ancestorLabels.slice(-depth);
+    const omitted = ancestorLabels.slice(
+      0,
+      ancestorLabels.length - tail.length
+    );
 
-    const showCollection =
-      !!collectionLabel &&
-      (!reverse || depth === undefined || slicedAncestors.length < depth);
+    const segments: React.ReactNode[] = [
+      ...(collectionLabel ? [collectionLabel] : []),
+      ...(omitted.length
+        ? [
+            <Tooltip content={omitted.join(" / ")}>
+              <Ellipsis>…</Ellipsis>
+            </Tooltip>,
+          ]
+        : []),
+      ...tail,
+    ];
 
     return (
       <>
-        {showCollection && collectionLabel}
-        {slicedAncestors.map((label, index) => (
+        {segments.map((label, index) => (
           <React.Fragment key={index}>
-            {showCollection && <SmallSlash />}
+            {index !== 0 && <SmallSlash />}
             {label}
-            {!showCollection && index !== slicedAncestors.length - 1 && (
-              <SmallSlash />
-            )}
           </React.Fragment>
         ))}
       </>
@@ -312,6 +308,10 @@ const Name = styled.span`
 const NameText = styled.span`
   ${ellipsis()}
   min-width: 0;
+`;
+
+const Ellipsis = styled.span`
+  cursor: default;
 `;
 
 const SmallSlash = styled(GoToIcon)`
