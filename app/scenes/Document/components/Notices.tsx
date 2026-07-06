@@ -1,4 +1,5 @@
 import { differenceInDays } from "date-fns";
+import { observer } from "mobx-react";
 import { TrashIcon, ArchiveIcon } from "outline-icons";
 import { Trans, useTranslation } from "react-i18next";
 import type Document from "~/models/Document";
@@ -24,7 +25,7 @@ function Days(props: { dateTime: string }) {
   );
 }
 
-export default function Notices({ document }: Props) {
+function Notices({ document }: Props) {
   const { t } = useTranslation();
 
   function permanentlyDeletedDescription() {
@@ -74,3 +75,5 @@ export default function Notices({ document }: Props) {
     </ErrorBoundary>
   );
 }
+
+export default observer(Notices);

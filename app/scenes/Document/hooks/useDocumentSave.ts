@@ -1,4 +1,5 @@
 import { cloneDeep, debounce, isEqual } from "es-toolkit/compat";
+import { runInAction } from "mobx";
 import { Node } from "prosemirror-model";
 import type { Selection } from "prosemirror-state";
 import { AllSelection, TextSelection } from "prosemirror-state";
@@ -345,7 +346,9 @@ export function useDocumentSave({
       const isEditorEmpty =
         !currentDoc || ProsemirrorHelper.isEmpty(currentDoc);
 
-      if (
+      // Read computed values within a reaction to avoid MobX recomputing
+      // them outside a reactive context during teardown.
+      const shouldDelete = runInAction(() =>
         shouldAutoDeleteDraftOnUnmount({
           isEditorEmpty,
           title: titleRef.current,
@@ -356,7 +359,9 @@ export function useDocumentSave({
           hasEmptyTitle: document.hasEmptyTitle,
           isPersistedOnce: document.isPersistedOnce,
         })
-      ) {
+      );
+
+      if (shouldDelete) {
         void document.delete();
       } else if (document.isDirty()) {
         void document.save(undefined, {
