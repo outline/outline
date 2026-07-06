@@ -170,7 +170,7 @@
     "koa-useragent": "^4.1.0",
     "mailparser": "^3.9.10",
     "mammoth": "^1.11.0",
-    "markdown-it": "^14.2.0",
+    "markdown-it": "^14.3.0",
     "markdown-it-container": "^3.0.0",
     "markdown-it-emoji": "^3.0.0",
     "mermaid": "11.15.0",
