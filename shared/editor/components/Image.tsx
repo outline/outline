@@ -100,7 +100,7 @@ const Image = (props: Props) => {
 
   const widthStyle = isFullWidth
     ? { width: "var(--container-width)" }
-    : { width: width || "auto" };
+    : { width: width ? `min(${width}px, 100%)` : "auto" };
 
   const handleImageTouchStart = (ev: React.TouchEvent<HTMLDivElement>) => {
     const currentTime = Date.now();
