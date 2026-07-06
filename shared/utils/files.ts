@@ -157,7 +157,14 @@ export function getFileNameFromUrl(url: string) {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname;
     const filename = pathname.substring(pathname.lastIndexOf("/") + 1);
-    return filename;
+
+    try {
+      // Decode percent-encoding so the name is human readable (e.g. "My%20File.pdf" → "My File.pdf").
+      return decodeURIComponent(filename);
+    } catch (_err) {
+      // Malformed percent-encoding, fall back to the raw filename.
+      return filename;
+    }
   } catch (_err) {
     return null;
   }
