@@ -1,12 +1,6 @@
 import * as Y from "yjs";
 
 /**
- * Number of stored updates after which they are merged into a single database
- * row containing the entire document state, keeping loads fast.
- */
-export const PREFERRED_TRIM_SIZE = 500;
-
-/**
  * Persists a Y.Doc to IndexedDB so documents can be loaded instantly from the
  * local cache and edited offline.
  *
@@ -105,6 +99,12 @@ export class IndexeddbPersistence {
 
   private destroyed = false;
 
+  /**
+   * Number of stored updates after which they are merged into a single
+   * database row containing the entire document state, keeping loads fast.
+   */
+  private preferredTrimSize = 500;
+
   /** Time in ms to debounce compaction once the trim size is reached. */
   private storeTimeout = 1000;
 
@@ -112,7 +112,7 @@ export class IndexeddbPersistence {
 
   /**
    * Appends every local document update as a new row, and schedules a
-   * compaction once the number of rows grows beyond PREFERRED_TRIM_SIZE.
+   * compaction once the number of rows grows beyond the preferred trim size.
    */
   private handleDocUpdate = (update: Uint8Array, origin: unknown) => {
     if (!this.db || origin === this || this.destroyed) {
@@ -121,7 +121,7 @@ export class IndexeddbPersistence {
 
     this.updatesStore(this.db).add(update);
 
-    if (++this.dbsize >= PREFERRED_TRIM_SIZE) {
+    if (++this.dbsize >= this.preferredTrimSize) {
       if (this.storeTimeoutId !== undefined) {
         clearTimeout(this.storeTimeoutId);
       }
@@ -173,7 +173,7 @@ export class IndexeddbPersistence {
   /**
    * Writes the whole document state as a single row and deletes the rows it
    * replaces. Unless `force` is set, this only happens once the number of
-   * rows has grown beyond PREFERRED_TRIM_SIZE.
+   * rows has grown beyond the preferred trim size.
    */
   private async storeState(force: boolean): Promise<void> {
     const store = await this.fetchStoredUpdates();
@@ -181,7 +181,7 @@ export class IndexeddbPersistence {
     if (!store || this.destroyed) {
       return;
     }
-    if (force || this.dbsize >= PREFERRED_TRIM_SIZE) {
+    if (force || this.dbsize >= this.preferredTrimSize) {
       store.add(Y.encodeStateAsUpdate(this.doc));
       store.delete(IDBKeyRange.upperBound(this.dbref, true));
       this.dbsize = await requestToPromise(store.count());
@@ -197,10 +197,6 @@ export class IndexeddbPersistence {
 
 const updatesStoreName = "updates";
 
-// Unused, but created so the schema stays identical to databases created by
-// y-indexeddb, which older clients may still expect.
-const customStoreName = "custom";
-
 function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     request.onsuccess = () => resolve(request.result);
@@ -215,9 +211,6 @@ function openDatabase(name: string): Promise<IDBDatabase> {
       const db = request.result;
       if (!db.objectStoreNames.contains(updatesStoreName)) {
         db.createObjectStore(updatesStoreName, { autoIncrement: true });
-      }
-      if (!db.objectStoreNames.contains(customStoreName)) {
-        db.createObjectStore(customStoreName);
       }
     };
     request.onsuccess = () => resolve(request.result);
