@@ -349,7 +349,6 @@
     "browserslist-to-esbuild": "^1.2.0",
     "concurrently": "^8.2.2",
     "discord-api-types": "^0.38.48",
-    "fake-indexeddb": "^6.0.1",
     "husky": "^8.0.3",
     "i18next-parser": "^9.4.0",
     "ioredis-mock": "^8.13.1",
