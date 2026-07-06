@@ -55,7 +55,7 @@ async function master() {
 
   if (env.TELEMETRY && env.isProduction) {
     void checkUpdates();
-    setInterval(checkUpdates, 24 * 3600 * 1000);
+    setInterval(checkUpdates, 24 * 3600 * 1000).unref();
   }
 }
 
