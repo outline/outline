@@ -92,10 +92,9 @@ describe("#ancestors", () => {
     first.parent = second;
     second.parent = first;
 
-    expect(ancestors(first).map((node) => node.id)).toEqual([
-      "first",
-      "second",
-    ]);
+    // The node itself is never part of its own ancestors, even when the
+    // parent chain cycles back to it.
+    expect(ancestors(first).map((node) => node.id)).toEqual(["second"]);
   });
 });
 

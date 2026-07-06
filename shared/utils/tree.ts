@@ -5,9 +5,12 @@ import type { NavigationNode } from "../types";
  * starting with the root node itself.
  *
  * @param root The root node of the tree to flatten.
- * @returns the root node followed by all of its descendants.
+ * @returns the root node followed by all of its descendants, or an empty
+ *   list when no root is given.
  */
-export const flattenTree = (root: NavigationNode): NavigationNode[] => {
+export const flattenTree = (
+  root: NavigationNode | null | undefined
+): NavigationNode[] => {
   const flattened: NavigationNode[] = [];
 
   const visit = (node: NavigationNode) => {
@@ -35,6 +38,9 @@ export const ancestors = (
 ): NavigationNode[] => {
   const nodes: NavigationNode[] = [];
   const seen = new Set<NavigationNode>();
+  if (node) {
+    seen.add(node);
+  }
 
   let current = node?.parent;
   while (current && !seen.has(current)) {
