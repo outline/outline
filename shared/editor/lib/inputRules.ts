@@ -161,15 +161,21 @@ function matchAfterSoftBreak(
   const $from = state.doc.resolve(from);
   const parent = $from.parent;
 
-  // Locate the hard break immediately preceding the cursor within the block.
+  // Locate the hard break immediately preceding the cursor within the block,
+  // stopping at the cursor rather than scanning the rest of the block.
   let breakEnd = -1; // offset within the block just after the last hard break
   let breakPos = -1; // absolute position of the last hard break
-  parent.forEach((child, offset) => {
-    if (child.type === breakType && offset < $from.parentOffset) {
+  for (let i = 0, offset = 0; i < parent.childCount; i++) {
+    if (offset >= $from.parentOffset) {
+      break;
+    }
+    const child = parent.child(i);
+    if (child.type === breakType) {
       breakEnd = offset + child.nodeSize;
       breakPos = $from.start() + offset;
     }
-  });
+    offset += child.nodeSize;
+  }
   if (breakPos < 0) {
     return null;
   }
