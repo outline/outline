@@ -1,4 +1,5 @@
 import type { Node } from "prosemirror-model";
+import { Plugin } from "prosemirror-state";
 import {
   createEditorStateWithSelection,
   doc,
@@ -96,6 +97,16 @@ describe("applyInputRules", () => {
     expect(result.doc.child(1).attrs.level).toBe(1);
   });
 
+  it("creates a math block after a soft break", () => {
+    const testDoc = doc([softBreakParagraph("intro", "$$$")]);
+
+    const result = type(testDoc, "$$$", " ");
+
+    expect(result.doc.childCount).toBe(2);
+    expect(result.doc.child(0).textContent).toBe("intro");
+    expect(result.doc.child(1).type.name).toBe("math_block");
+  });
+
   it("only peels off the last soft line when several breaks exist", () => {
     const testDoc = doc([
       paragraph.create(null, [
@@ -116,6 +127,19 @@ describe("applyInputRules", () => {
     expect(result.doc.child(1).type.spec.code).toBe(true);
   });
 
+  it("preserves the selection set by a rule handler after a soft break", () => {
+    const testDoc = doc([softBreakParagraph("intro", "|-")]);
+
+    const result = type(testDoc, "|-", "-");
+
+    expect(result.doc.child(1).type.name).toBe("table");
+    // The cursor lands in the first header cell, as at a block start.
+    const { $from } = result.selection;
+    expect($from.node(3).type.name).toBe("th");
+    expect($from.index(1)).toBe(0);
+    expect($from.index(2)).toBe(0);
+  });
+
   it("still creates a code block at the start of an empty block", () => {
     const testDoc = doc([p("``")]);
 
@@ -123,6 +147,20 @@ describe("applyInputRules", () => {
 
     expect(result.doc.firstChild?.type.spec.code).toBe(true);
     expect(result.doc.firstChild?.textContent).toBe("");
+  });
+
+  it("does not fire when a plugin filters the intermediate transaction", () => {
+    const testDoc = doc([softBreakParagraph("intro", "``")]);
+    const base = createEditorStateWithSelection(
+      testDoc,
+      posAfterText(testDoc, "``")
+    );
+    const state = base.reconfigure({
+      plugins: [new Plugin({ filterTransaction: () => false })],
+    });
+    const { from, to } = state.selection;
+
+    expect(applyInputRules(state, from, to, "`", rules)).toBeNull();
   });
 
   it("does not fire when there is no preceding soft break", () => {

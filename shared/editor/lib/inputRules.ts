@@ -1,7 +1,7 @@
 import type { InputRule } from "prosemirror-inputrules";
 import type { ResolvedPos } from "prosemirror-model";
 import type { EditorState, Transaction } from "prosemirror-state";
-import { Plugin, TextSelection } from "prosemirror-state";
+import { Plugin, Selection, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 
 /**
@@ -197,8 +197,15 @@ function matchAfterSoftBreak(
     tr.delete(breakPos, breakPos + 1);
     tr.split(breakPos);
 
+    // Bail out if a plugin filters or appends to the intermediate transaction,
+    // as the handler's steps would then be computed against a different doc.
+    const applied = state.apply(tr);
+    if (applied.doc !== tr.doc) {
+      continue;
+    }
+
     const ruleTr = rule.handler(
-      state.apply(tr),
+      applied,
       match,
       tr.mapping.map(start),
       tr.mapping.map(to)
@@ -208,6 +215,15 @@ function matchAfterSoftBreak(
     }
 
     ruleTr.steps.forEach((step) => tr.step(step));
+
+    // Carry over a selection set by the handler, re-resolved as the docs are
+    // equal but not reference-equal.
+    if (ruleTr.selectionSet) {
+      tr.setSelection(Selection.fromJSON(tr.doc, ruleTr.selection.toJSON()));
+    }
+    if (ruleTr.scrolledIntoView) {
+      tr.scrollIntoView();
+    }
     return { tr, rule };
   }
 
