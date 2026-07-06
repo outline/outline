@@ -109,7 +109,9 @@ function DocumentBreadcrumb(
       return [];
     }
 
-    const outputActions = [
+    // Root items (trash / archive / collection) are always retained so the
+    // collection can still be shown when visible, even for small depths.
+    const rootActions = [
       createInternalLinkAction({
         name: t("Trash"),
         section: ActiveDocumentSection,
@@ -146,35 +148,43 @@ function DocumentBreadcrumb(
         visible: document.isCollectionDeleted,
         to: "",
       }),
-      ...path.map((node) => {
-        const title = node.title || t("Untitled");
-        return createInternalLinkAction({
-          name: (
-            <DocumentName
-              documentId={node.id}
-              collection={collection}
-              title={title}
-              icon={
-                node.icon ? (
-                  <Icon
-                    value={node.icon}
-                    color={node.color}
-                    initial={title.charAt(0).toUpperCase()}
-                  />
-                ) : undefined
-              }
-            />
-          ),
-          section: ActiveDocumentSection,
-          to: {
-            pathname: node.url,
-            state: { sidebarContext },
-          },
-        });
-      }),
     ];
 
-    return depth !== undefined ? outputActions.slice(0, depth) : outputActions;
+    const ancestorActions = path.map((node) => {
+      const title = node.title || t("Untitled");
+      return createInternalLinkAction({
+        name: (
+          <DocumentName
+            documentId={node.id}
+            collection={collection}
+            title={title}
+            icon={
+              node.icon ? (
+                <Icon
+                  value={node.icon}
+                  color={node.color}
+                  initial={title.charAt(0).toUpperCase()}
+                />
+              ) : undefined
+            }
+          />
+        ),
+        section: ActiveDocumentSection,
+        to: {
+          pathname: node.url,
+          state: { sidebarContext },
+        },
+      });
+    });
+
+    // Depth is counted back from the document's parent, so keep the ancestors
+    // nearest the document.
+    return [
+      ...rootActions,
+      ...(depth !== undefined
+        ? ancestorActions.slice(-depth)
+        : ancestorActions),
+    ];
   }, [t, document, collection, can.readDocument, sidebarContext, path, depth]);
 
   if (!collections.isLoaded) {
