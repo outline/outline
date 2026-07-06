@@ -18,6 +18,7 @@ import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import { HEADER_HEIGHT } from "~/components/Header";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
@@ -390,7 +391,7 @@ const Centered = styled(Flex)`
 
 const ResultsWrapper = styled(Flex)`
   ${breakpoint("tablet")`
-    margin-top: 40px;
+    margin-top: ${40 + HEADER_HEIGHT}px;
   `};
 `;
 
