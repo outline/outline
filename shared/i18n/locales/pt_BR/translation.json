@@ -272,7 +272,7 @@
   "Document moved": "Documento movido",
   "Couldn’t move the document, try again?": "Não foi possível mover o documento, tentar novamente?",
   "Move to <em>{{ location }}</em>": "Mover para <em>{{ location }}</em>",
-  "Couldn’t move the template, try again?": "Couldn’t move the template, try again?",
+  "Couldn’t move the template, try again?": "Não foi possível mover o template, tentar novamente?",
   "New": "Novo",
   "Only visible to you": "Visível apenas para você",
   "Draft": "Rascunho",
