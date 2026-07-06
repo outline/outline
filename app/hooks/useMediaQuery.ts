@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { isBrowser } from "@shared/utils/browser";
 
 const getMatches = (query: string): boolean =>
-  typeof window.matchMedia === "function"
+  isBrowser && typeof window.matchMedia === "function"
     ? window.matchMedia(query).matches
     : false;
 
@@ -17,7 +18,7 @@ export default function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState<boolean>(() => getMatches(query));
 
   useEffect(() => {
-    if (typeof window.matchMedia !== "function") {
+    if (!isBrowser || typeof window.matchMedia !== "function") {
       return undefined;
     }
 
