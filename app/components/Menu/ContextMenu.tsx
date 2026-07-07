@@ -31,17 +31,26 @@ export const ContextMenu = observer(
       isMenu: true,
     });
 
+    const [open, setOpen] = React.useState(false);
+
+    // Menu items must only be built while the menu is open. Resolving every
+    // action's title, icon and visibility (including translations) is
+    // expensive, and the closed branch reads no observables so store changes
+    // don't invalidate it.
     const menuItems = useComputed(
       () =>
-        ((action?.children as ActionVariant[]) ?? []).map((childAction) =>
-          actionToMenuItem(childAction, actionContext)
-        ),
-      [action?.children, actionContext]
+        open
+          ? ((action?.children as ActionVariant[]) ?? []).map((childAction) =>
+              actionToMenuItem(childAction, actionContext)
+            )
+          : [],
+      [open, action?.children, actionContext]
     );
 
     const handleOpenChange = React.useCallback(
-      (open: boolean) => {
-        if (open) {
+      (nextOpen: boolean) => {
+        setOpen(nextOpen);
+        if (nextOpen) {
           onOpen?.();
         } else {
           onClose?.();
@@ -62,7 +71,14 @@ export const ContextMenu = observer(
       }
     }, []);
 
-    if (isMobile || !action || menuItems.length === 0) {
+    // actionToMenuItem is length-preserving, so the raw children count decides
+    // emptiness without resolving any items.
+    const childActions = action?.children;
+    const isEmpty = Array.isArray(childActions)
+      ? childActions.length === 0
+      : !childActions;
+
+    if (isMobile || !action || isEmpty) {
       return <>{children}</>;
     }
 

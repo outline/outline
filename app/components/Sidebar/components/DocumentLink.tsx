@@ -15,6 +15,7 @@ import type GroupMembership from "~/models/GroupMembership";
 import type UserMembership from "~/models/UserMembership";
 import type { RefHandle } from "~/components/EditableTitle";
 import useBoolean from "~/hooks/useBoolean";
+import { useComputed } from "~/hooks/useComputed";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import useOnScreen from "~/hooks/useOnScreen";
@@ -282,7 +283,12 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
   );
 
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
-  const isMoving = documents.movingDocumentId === node.id;
+  // Computed so that a change to movingDocumentId only re-renders the rows
+  // whose boolean actually flips, not every observer of the store field.
+  const isMoving = useComputed(
+    () => documents.movingDocumentId === node.id,
+    [documents, node.id]
+  );
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
   const initial = document?.initial || node.title.charAt(0).toUpperCase();
@@ -301,8 +307,11 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
   );
 
   const parentRef = React.useRef<HTMLDivElement>(null);
-  const [{ isOverReparent, canDropToReparent }, dropToReparent] =
-    useDropToReparentDocument(node, handleExpand, parentRef);
+  const [{ isOverReparent }, dropToReparent] = useDropToReparentDocument(
+    node,
+    handleExpand,
+    parentRef
+  );
 
   // Fall back so document-only access (e.g. "Manage" on a parent) can reorder.
   const moveCollectionId = collection?.id ?? document?.collectionId;
@@ -320,7 +329,7 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
       };
     });
 
-  const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] =
+  const [{ isOverReorder }, dropToReorder] =
     useDropToReorderDocument(node, collection, (item) => {
       if (!moveCollectionId) {
         return;
@@ -381,16 +390,17 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
     onRename: handleRename,
   });
 
-  const showMenuActions = !isDraggingAnyDocument;
-  const menu =
-    showMenuActions && document ? (
-      <DocumentMenu
-        document={document}
-        onRename={handleRename}
-        onOpen={handleMenuOpen}
-        onClose={handleMenuClose}
-      />
-    ) : undefined;
+  // The menu must stay mounted during drags. Unmounting it for every row at
+  // drag start and remounting at drop is expensive. The actions slot is
+  // hidden via CSS (see Actions in SidebarLink) while a drag is active.
+  const menu = document ? (
+    <DocumentMenu
+      document={document}
+      onRename={handleRename}
+      onOpen={handleMenuOpen}
+      onClose={handleMenuClose}
+    />
+  ) : undefined;
 
   // Without a collection we can't read isManualSort; fall back to the shared
   // membership's permission, which is the same for every descendant.
@@ -399,8 +409,11 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
     : membership?.permission === DocumentPermission.Admin ||
       membership?.permission === DocumentPermission.ReadWrite;
 
+  // Cursors stay mounted between drags so that drag start/end doesn't change
+  // the tree for every row. DropCursor is inert and invisible while no drag
+  // is active.
   const cursorBefore =
-    isDraggingAnyDocument && canReorderHere && index === 0 ? (
+    canReorderHere && index === 0 ? (
       <DropCursor
         isActiveDrop={isOverReorderAbove}
         innerRef={dropToReorderAbove}
@@ -408,10 +421,9 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
       />
     ) : undefined;
 
-  const cursorAfter =
-    isDraggingAnyDocument && canReorderHere ? (
-      <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
-    ) : undefined;
+  const cursorAfter = canReorderHere ? (
+    <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+  ) : undefined;
 
   return (
     <DocumentRow
@@ -437,12 +449,12 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
       isMoving={isMoving}
       parentRef={parentRef}
       dropToReparentRef={dropToReparent}
-      isActiveDropTarget={isOverReparent && canDropToReparent}
+      isActiveDropTarget={isOverReparent}
       cursorBefore={cursorBefore}
       cursorAfter={cursorAfter}
       menu={menu}
       menuOpen={menuOpen}
-      canCreateChild={showMenuActions && can.createChildDocument}
+      canCreateChild={can.createChildDocument}
       onCreateChild={handleNewDoc}
       contextAction={contextMenuAction}
       isActiveOverride={isActiveCheck}
