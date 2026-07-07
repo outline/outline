@@ -41,19 +41,20 @@ export class TextHelper {
       },
     });
 
-    await Promise.all(
-      attachments.map(async (attachment) => {
-        const signedUrl = await FileStorage.getSignedUrl(
-          attachment.key,
-          expiresIn
-        );
-
-        text = text.replace(
-          new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
-          signedUrl
-        );
-      })
+    // Sign the urls in parallel, then apply the replacements sequentially.
+    const replacements = await Promise.all(
+      attachments.map(async (attachment) => ({
+        attachment,
+        signedUrl: await FileStorage.getSignedUrl(attachment.key, expiresIn),
+      }))
     );
+
+    for (const { attachment, signedUrl } of replacements) {
+      text = text.replace(
+        new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+        signedUrl
+      );
+    }
     return text;
   }
 
