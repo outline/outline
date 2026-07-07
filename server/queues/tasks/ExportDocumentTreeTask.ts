@@ -166,11 +166,13 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     format,
     documentStructure,
     zip,
+    includeAttachments = true,
   }: {
     document: Document;
     format: FileOperationFormat;
     documentStructure: NavigationNode[];
     zip: ZipFile;
+    includeAttachments?: boolean;
   }) {
     const pathMap = new Map<string, string>();
 
@@ -191,7 +193,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       zip,
       pathMap,
       format,
-      includeAttachments: true,
+      includeAttachments,
     });
 
     return await ZipHelper.toTmpFile(zip);
