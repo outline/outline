@@ -173,8 +173,12 @@ const Wrapper = styled(Flex)<WrapperProps>`
   }
 
   @supports (backdrop-filter: blur(20px)) {
-    backdrop-filter: blur(20px);
-    background: ${(props) => transparentize(0.2, props.theme.background)};
+    ${(props) =>
+      !props.$passThrough &&
+      `
+      backdrop-filter: blur(20px);
+      background: ${transparentize(0.2, props.theme.background)};
+      `}
   }
 
   @media print {
