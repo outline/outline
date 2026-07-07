@@ -32,6 +32,10 @@ export const ContextMenu = observer(
       isMenu: true,
     });
 
+    // Menu items must only be built while the menu is open. Resolving every
+    // action's title, icon and visibility (including translations) is
+    // expensive, and the closed branch reads no observables so store changes
+    // don't invalidate it.
     const menuItems = useComputed(() => {
       if (!open) {
         return [];
@@ -68,7 +72,15 @@ export const ContextMenu = observer(
       }
     }, []);
 
-    if (isMobile || !action) {
+    // For non-factory actions we can cheaply detect an empty menu without
+    // resolving any items (actionToMenuItem is length-preserving).
+    const childActions =
+      typeof action === "function" ? undefined : action?.children;
+    const isEmpty =
+      typeof action !== "function" &&
+      (Array.isArray(childActions) ? childActions.length === 0 : !childActions);
+
+    if (isMobile || !action || isEmpty) {
       return <>{children}</>;
     }
 

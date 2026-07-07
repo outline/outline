@@ -321,11 +321,7 @@ export function useDropToReparentDocument(
 
   const startHover = useHover(parentRef, setExpanded);
 
-  return useDrop<
-    DragObject,
-    Promise<void>,
-    { isOverReparent: boolean; canDropToReparent: boolean }
-  >({
+  return useDrop<DragObject, Promise<void>, { isOverReparent: boolean }>({
     accept: "document",
     drop: async (item, monitor) => {
       if (monitor.didDrop() || !node) {
@@ -400,9 +396,11 @@ export function useDropToReparentDocument(
         startHover();
       }
     },
+    // Collected values must stay unchanged while the target is not hovered.
+    // Collecting global drag state (e.g. a bare canDrop) re-renders every
+    // sidebar row at drag start and drop.
     collect: (monitor) => ({
-      isOverReparent: monitor.isOver({ shallow: true }),
-      canDropToReparent: monitor.canDrop(),
+      isOverReparent: monitor.isOver({ shallow: true }) && monitor.canDrop(),
     }),
   });
 }
@@ -431,11 +429,7 @@ export function useDropToReorderDocument(
 
   const document = documents.get(node.id);
 
-  return useDrop<
-    DragObject,
-    Promise<void>,
-    { isOverReorder: boolean; isDraggingAnyDocument: boolean }
-  >({
+  return useDrop<DragObject, Promise<void>, { isOverReorder: boolean }>({
     accept: "document",
     canDrop: (item: DragObject) => {
       if (item.id === node.id || (document && !document.isActive)) {
@@ -490,9 +484,11 @@ export function useDropToReorderDocument(
         }
       }
     },
+    // Collected values must stay unchanged while the target is not hovered.
+    // Collecting global drag state (e.g. a bare canDrop) re-renders every
+    // sidebar row at drag start and drop.
     collect: (monitor) => ({
-      isOverReorder: monitor.isOver(),
-      isDraggingAnyDocument: monitor.canDrop(),
+      isOverReorder: monitor.isOver() && monitor.canDrop(),
     }),
   });
 }

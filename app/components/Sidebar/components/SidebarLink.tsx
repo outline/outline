@@ -237,6 +237,12 @@ const Content = styled.span`
 const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
   display: inline-flex;
   visibility: ${(props) => (props.$showActions ? "visible" : "hidden")};
+
+  /* Hidden while a sidebar drag is in progress (attribute set by
+     DragActiveProvider) so action menus stay mounted but out of the way. */
+  [data-drag-active] & {
+    display: none;
+  }
   position: absolute;
   top: 3px;
   inset-inline-end: 4px;
