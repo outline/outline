@@ -34,11 +34,14 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
   );
   // Only prepare the dropzone for OS file drags. Internal react-dnd drags
   // fire native dragenter too, and prerendering a dropzone in every sidebar
-  // row at once is expensive.
+  // row at once is expensive. DragEvent may be undefined in test
+  // environments, and types is a DOMStringList in older browsers, hence the
+  // extra guards.
   useEventListener("dragenter", (event: Event) => {
     if (
+      typeof DragEvent !== "undefined" &&
       event instanceof DragEvent &&
-      event.dataTransfer?.types.includes("Files")
+      Array.from(event.dataTransfer?.types ?? []).includes("Files")
     ) {
       setPreRendered(true);
     }
