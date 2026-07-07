@@ -147,17 +147,36 @@ export class CacheHelper {
   }
 
   /**
-   * Clears all cache data with the given prefix
+   * Clears all cache data with the given prefix. Keys are discovered with an
+   * incremental SCAN rather than KEYS, and removed in batches with UNLINK, so
+   * neither discovery nor deletion blocks the Redis event loop.
    *
    * @param prefix Prefix to clear cache data
    */
   public static async clearData(prefix: string) {
-    const keys = await Redis.defaultClient.keys(`${prefix}*`);
+    const match = `${prefix}*`;
+    const keys: string[] = [];
+    let cursor = "0";
 
-    await Promise.all(
-      keys.map(async (key) => {
-        await Redis.defaultClient.del(key);
-      })
-    );
+    do {
+      const [nextCursor, batch] = await Redis.defaultClient.scan(
+        cursor,
+        "MATCH",
+        match,
+        "COUNT",
+        CacheHelper.scanPageSize
+      );
+      cursor = nextCursor;
+      keys.push(...batch);
+    } while (cursor !== "0");
+
+    for (let i = 0; i < keys.length; i += CacheHelper.scanPageSize) {
+      await Redis.defaultClient.unlink(
+        ...keys.slice(i, i + CacheHelper.scanPageSize)
+      );
+    }
   }
+
+  // Number of keys to request per SCAN iteration when clearing by prefix
+  private static scanPageSize = 1000;
 }
