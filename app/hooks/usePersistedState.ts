@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { Primitive } from "utility-types";
 import Storage from "@shared/utils/Storage";
 import { isBrowser } from "@shared/utils/browser";
@@ -41,7 +42,7 @@ export default function usePersistedState<T extends Primitive | object>(
   key: string,
   defaultValue: T,
   options?: Options
-): [T, (value: T) => void] {
+): [T, Dispatch<SetStateAction<T>>] {
   const previousKey = usePrevious(key);
   const [storedValue, setStoredValue] = useState(() => {
     if (!isBrowser) {
@@ -51,33 +52,42 @@ export default function usePersistedState<T extends Primitive | object>(
   });
 
   const setValue = useCallback(
-    (value: T | ((value: T) => void)) => {
-      try {
-        // Allow value to be a function so we have same API as useState
+    (value: SetStateAction<T>) => {
+      // Compute functional updates from the latest state rather than a value
+      // captured in this closure, and keep the setter's identity stable so it
+      // is safe to use in dependency arrays.
+      setStoredValue((previousValue: T) => {
         const valueToStore =
-          value instanceof Function ? value(storedValue) : value;
-
-        setStoredValue(valueToStore);
+          value instanceof Function ? value(previousValue) : value;
         Storage.set(key, valueToStore);
-      } catch (error) {
-        // A more advanced implementation would handle the error case
-        Logger.debug("misc", "Failed to persist state", { error });
-      }
+        return valueToStore;
+      });
     },
-    [key, storedValue]
+    [key]
   );
 
   // Sync state when key changes
   useEffect(() => {
-    if (previousKey !== key) {
+    if (previousKey !== undefined && previousKey !== key) {
       setStoredValue(Storage.get(key) ?? defaultValue);
     }
   }, [previousKey, key, defaultValue]);
 
   // Listen to the key changing in other tabs so we can keep UI in sync
   useEventListener("storage", (event: StorageEvent) => {
-    if (options?.listen !== false && event.key === key && event.newValue) {
+    if (options?.listen === false || event.key !== key) {
+      return;
+    }
+    if (event.newValue === null) {
+      setStoredValue(defaultValue);
+      return;
+    }
+    try {
       setStoredValue(JSON.parse(event.newValue));
+    } catch (error) {
+      // Another tab or unrelated code may have written a value under this key
+      // that is not valid JSON – never let that crash the listener.
+      Logger.debug("misc", "Failed to parse persisted state", { error });
     }
   });
 
