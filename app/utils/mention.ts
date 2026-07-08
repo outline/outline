@@ -20,7 +20,7 @@ const gitlabSystemPaths = new Set([
  * integration.
  *
  * @param options the URL and integration to check against.
- * @return true if the URL can be mentioned through the integration.
+ * @returns true if the URL can be mentioned through the integration.
  */
 export const isURLMentionable = ({
   url,
@@ -73,7 +73,7 @@ export const isURLMentionable = ({
  * such as an issue, pull request, or project.
  *
  * @param options the URL and integration to evaluate.
- * @return the mention type, or undefined if the URL is not recognized.
+ * @returns the mention type, or undefined if the URL is not recognized.
  */
 export const determineMentionType = ({
   url,

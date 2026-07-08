@@ -4,7 +4,7 @@ import env from "@server/env";
  * Returns the robots.txt content for the installation, allowing crawlers on
  * cloud-hosted installations and disallowing them when self-hosted.
  *
- * @return the robots.txt content.
+ * @returns the robots.txt content.
  */
 export const robotsResponse = () => {
   if (env.isCloudHosted) {

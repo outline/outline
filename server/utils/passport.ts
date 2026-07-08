@@ -198,7 +198,7 @@ export class StateStore {
  * @param method the HTTP method to use.
  * @param endpoint the URL to request.
  * @param accessToken the bearer token to authenticate with.
- * @return the parsed JSON response.
+ * @returns the parsed JSON response.
  * @throws InternalError if the response is not valid JSON.
  */
 export async function request(

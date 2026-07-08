@@ -52,7 +52,7 @@ export default class RateLimiter {
    * default rate limiter.
    *
    * @param path the request path to look up.
-   * @return the rate limiter for the path.
+   * @returns the rate limiter for the path.
    */
   static getRateLimiter(path: string): RateLimiterRedis {
     return this.rateLimiterMap.get(path) || this.defaultRateLimiter;
@@ -73,7 +73,7 @@ export default class RateLimiter {
    * Checks whether a custom rate limiter is registered for a path.
    *
    * @param path the request path to check.
-   * @return true if a custom rate limiter is registered.
+   * @returns true if a custom rate limiter is registered.
    */
   static hasRateLimiter(path: string): boolean {
     return this.rateLimiterMap.has(path);

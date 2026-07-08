@@ -7,7 +7,7 @@ import env from "~/env";
 /**
  * Returns the path to the home screen.
  *
- * @return the home path.
+ * @returns the home path.
  */
 export function homePath(): string {
   return env.ROOT_SHARE_ID ? "/" : "/home";
@@ -16,7 +16,7 @@ export function homePath(): string {
 /**
  * Returns the location descriptor used to trigger a logout.
  *
- * @return a location object with pathname and search.
+ * @returns a location object with pathname and search.
  */
 export function logoutPath() {
   return {
@@ -28,7 +28,7 @@ export function logoutPath() {
 /**
  * Returns the path to the drafts screen.
  *
- * @return the drafts path.
+ * @returns the drafts path.
  */
 export function draftsPath(): string {
   return "/drafts";
@@ -37,7 +37,7 @@ export function draftsPath(): string {
 /**
  * Returns the path to the archive screen.
  *
- * @return the archive path.
+ * @returns the archive path.
  */
 export function archivePath(): string {
   return "/archive";
@@ -46,7 +46,7 @@ export function archivePath(): string {
 /**
  * Returns the path to the trash screen.
  *
- * @return the trash path.
+ * @returns the trash path.
  */
 export function trashPath(): string {
   return "/trash";
@@ -55,7 +55,7 @@ export function trashPath(): string {
 /**
  * Returns the path to the debug screen.
  *
- * @return the debug path.
+ * @returns the debug path.
  */
 export function debugPath(): string {
   return "/debug";
@@ -64,7 +64,7 @@ export function debugPath(): string {
 /**
  * Returns the path to the changesets debug screen.
  *
- * @return the changesets debug path.
+ * @returns the changesets debug path.
  */
 export function debugChangesetsPath(): string {
   return "/debug/changesets";
@@ -74,7 +74,7 @@ export function debugChangesetsPath(): string {
  * Returns the path to a settings screen.
  *
  * @param args optional path segments appended to the settings path.
- * @return the settings path.
+ * @returns the settings path.
  */
 export function settingsPath(...args: string[]): string {
   return "/settings" + (args.length > 0 ? `/${args.join("/")}` : "");
@@ -85,7 +85,7 @@ export function settingsPath(...args: string[]): string {
  *
  * @param document the document the comment belongs to.
  * @param comment the comment to link to.
- * @return the path to the comment.
+ * @returns the path to the comment.
  */
 export function commentPath(document: Document, comment: Comment): string {
   return `${documentPath(document)}?commentId=${comment.id}${
@@ -98,7 +98,7 @@ export function commentPath(document: Document, comment: Comment): string {
  *
  * @param collection the collection to link to.
  * @param section an optional section within the collection.
- * @return the path to the collection.
+ * @returns the path to the collection.
  */
 export function collectionPath(
   collection: Collection,
@@ -114,7 +114,7 @@ export function collectionPath(
  * Returns the path to edit a collection's overview.
  *
  * @param collection the collection to edit.
- * @return the path to the collection edit screen.
+ * @returns the path to the collection edit screen.
  */
 export function collectionEditPath(collection: Collection): string {
   return collectionPath(collection, "overview/edit");
@@ -126,7 +126,7 @@ export function collectionEditPath(collection: Collection): string {
  *
  * @param oldUrl the URL to update.
  * @param collection the collection with the current path.
- * @return the updated URL.
+ * @returns the updated URL.
  */
 export function updateCollectionPath(
   oldUrl: string,
@@ -143,7 +143,7 @@ export function updateCollectionPath(
  * Returns the path to a document.
  *
  * @param doc the document to link to.
- * @return the path to the document.
+ * @returns the path to the document.
  */
 export function documentPath(doc: Document): string {
   return doc.path;
@@ -153,7 +153,7 @@ export function documentPath(doc: Document): string {
  * Returns the path to edit a document.
  *
  * @param doc the document to edit.
- * @return the path to the document edit screen.
+ * @returns the path to the document edit screen.
  */
 export function documentEditPath(doc: Document): string {
   return `${documentPath(doc)}/edit`;
@@ -165,7 +165,7 @@ export function documentEditPath(doc: Document): string {
  *
  * @param doc the document to link to.
  * @param revisionId an optional revision to link to.
- * @return the path to the document history screen.
+ * @returns the path to the document history screen.
  */
 export function documentHistoryPath(
   doc: Document,
@@ -195,7 +195,7 @@ export function updateDocumentPath(oldUrl: string, document: Document): string {
  * collection.
  *
  * @param collectionId an optional collection to associate the template with.
- * @return the path to the new template screen.
+ * @returns the path to the new template screen.
  */
 export function newTemplatePath(collectionId?: string) {
   return collectionId
@@ -209,7 +209,7 @@ export function newTemplatePath(collectionId?: string) {
  *
  * @param collectionId an optional collection to create the document in.
  * @param params optional parameters such as a template to base the document on.
- * @return the path to the new document screen.
+ * @returns the path to the new document screen.
  */
 export function newDocumentPath(
   collectionId?: string | null,
@@ -228,7 +228,7 @@ export function newDocumentPath(
  * Returns the path to create a new document nested under a parent document.
  *
  * @param parentDocumentId an optional parent document to nest under.
- * @return the path to the new nested document screen.
+ * @returns the path to the new nested document screen.
  */
 export function newNestedDocumentPath(parentDocumentId?: string): string {
   const search = parentDocumentId
@@ -243,7 +243,7 @@ export function newNestedDocumentPath(parentDocumentId?: string): string {
  * optionally within a collection or under a parent document.
  *
  * @param params the collection, parent document, and index for the new document.
- * @return the path to the new sibling document screen.
+ * @returns the path to the new sibling document screen.
  */
 export function newSiblingDocumentPath(params: {
   collectionId?: string | null;
@@ -267,7 +267,7 @@ export function newSiblingDocumentPath(params: {
  * Returns the path to the search screen, optionally with a query and filters.
  *
  * @param params the search query and optional filters.
- * @return the path to the search screen.
+ * @returns the path to the search screen.
  */
 export function searchPath({
   query,
@@ -295,7 +295,7 @@ export function searchPath({
  *
  * @param shareId the identifier of the share.
  * @param modelPath an optional path to the model within the share.
- * @return the path to the shared model.
+ * @returns the path to the shared model.
  */
 export function sharedModelPath(shareId: string, modelPath?: string) {
   if (shareId === env.ROOT_SHARE_ID) {
@@ -310,7 +310,7 @@ export function sharedModelPath(shareId: string, modelPath?: string) {
  *
  * @param path the path to convert.
  * @param origin optional origin to use instead of `window.location.origin`.
- * @return the full URL.
+ * @returns the full URL.
  */
 export function urlify(
   path: string,

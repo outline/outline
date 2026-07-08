@@ -5,7 +5,7 @@ const inputs = ["input", "select", "button", "textarea"]; // detect if node is a
  * select, or contenteditable element.
  *
  * @param element the element to check.
- * @return true if the element accepts text input.
+ * @returns true if the element accepts text input.
  */
 export default function isTextInput(element: Element): boolean {
   return !!(

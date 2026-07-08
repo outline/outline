@@ -155,7 +155,7 @@ const CHAR_DOT = 46; /* . */
  * character to the end of the string in the last portion of the path.
  *
  * @param path the path to evaluate.
- * @return the extension including the leading ".", or an empty string.
+ * @returns the extension including the leading ".", or an empty string.
  * @throws TypeError if path is not a string.
  */
 export const extname = (path: string) => {

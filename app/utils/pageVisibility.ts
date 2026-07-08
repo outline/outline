@@ -18,7 +18,7 @@ if ("hidden" in document) {
  * Returns the name of the visibility change event supported by the current
  * browser.
  *
- * @return the visibility change event name.
+ * @returns the visibility change event name.
  */
 export function getVisibilityListener(): string {
   return visibilityChange;
@@ -27,7 +27,7 @@ export function getVisibilityListener(): string {
 /**
  * Checks whether the page is currently visible to the user.
  *
- * @return true if the page is visible.
+ * @returns true if the page is visible.
  */
 export function getPageVisible(): boolean {
   return !document[hidden as keyof Document];

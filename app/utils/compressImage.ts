@@ -10,7 +10,7 @@ type Options = {
  *
  * @param file the image file or blob to compress.
  * @param options optional maximum width and height constraints.
- * @return a promise resolving to the compressed image blob.
+ * @returns a promise resolving to the compressed image blob.
  */
 export const compressImage = async (
   file: File | Blob,

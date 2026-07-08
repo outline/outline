@@ -9,7 +9,7 @@ import {
  *
  * @param text the text to parse.
  * @param includePublic whether to also include public attachment URLs.
- * @return an array of unique attachment ids.
+ * @returns an array of unique attachment ids.
  */
 export default function parseAttachmentIds(
   text: string,

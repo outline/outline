@@ -20,7 +20,7 @@ import { dateLocale } from "@shared/utils/date";
  * @param dateTime the date string to convert.
  * @param t the translation function.
  * @param userLocale the user's locale, if known.
- * @return a localized heading for the date.
+ * @returns a localized heading for the date.
  */
 export function dateToHeading(
   dateTime: string,

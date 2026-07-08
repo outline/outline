@@ -44,7 +44,7 @@ export class PublicEnvironmentRegister {
   /**
    * Returns the map of public environment variables.
    *
-   * @return the public environment variables.
+   * @returns the public environment variables.
    */
   static getEnv() {
     return this.publicEnv;

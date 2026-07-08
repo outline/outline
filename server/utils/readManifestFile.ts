@@ -16,7 +16,7 @@ export type ManifestStructure = Record<string, Chunk>;
  * manifest if the file cannot be found.
  *
  * @param file the path to the manifest file.
- * @return the parsed manifest structure.
+ * @returns the parsed manifest structure.
  */
 export const readManifestFile = (file = "./build/app/.vite/manifest.json") => {
   const absoluteFilePath = path.resolve(file);

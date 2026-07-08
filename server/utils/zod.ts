@@ -7,7 +7,7 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
  * Creates a zod enum schema from the keys of an object.
  *
  * @param input the object whose keys become the enum values.
- * @return a zod enum schema of the object's keys.
+ * @returns a zod enum schema of the object's keys.
  */
 export function zodEnumFromObjectKeys<
   TI extends Record<string, unknown>,
@@ -21,7 +21,7 @@ export function zodEnumFromObjectKeys<
  * Returns a zod schema that validates a model identifier, either a UUID or a
  * URL slug.
  *
- * @return a zod schema for identifiers.
+ * @returns a zod schema for identifiers.
  */
 export const zodIdType = () =>
   z.union([z.string().regex(UrlHelper.SLUG_URL_REGEX), z.uuid()], {
@@ -32,7 +32,7 @@ export const zodIdType = () =>
  * Returns a zod schema that validates an icon value, either an emoji, a named
  * icon from the icon library, or an attachment UUID.
  *
- * @return a zod schema for icons.
+ * @returns a zod schema for icons.
  */
 export const zodIconType = () =>
   z.union([
@@ -45,7 +45,7 @@ export const zodIconType = () =>
  * Returns a zod schema that validates an emoji value, either an emoji
  * character or a custom emoji UUID.
  *
- * @return a zod schema for emoji.
+ * @returns a zod schema for emoji.
  */
 export const zodEmojiType = () =>
   z.union([z.string().regex(emojiRegex()), z.uuid()]);
@@ -54,7 +54,7 @@ export const zodEmojiType = () =>
  * Returns a zod schema that validates a share identifier, either a UUID or a
  * share URL slug.
  *
- * @return a zod schema for share identifiers.
+ * @returns a zod schema for share identifiers.
  */
 export const zodShareIdType = () =>
   z.union([z.uuid(), z.string().regex(UrlHelper.SHARE_URL_SLUG_REGEX)]);
@@ -62,7 +62,7 @@ export const zodShareIdType = () =>
 /**
  * Returns a zod schema that validates an IANA timezone name.
  *
- * @return a zod schema for timezones.
+ * @returns a zod schema for timezones.
  */
 export const zodTimezone = () =>
   z.string().refine(

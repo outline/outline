@@ -113,7 +113,7 @@ export function isDatabaseUrl(
  *
  * @param property the name of the property that must also be set.
  * @param validationOptions options passed to the validator.
- * @return a property decorator.
+ * @returns a property decorator.
  */
 export function CannotUseWithout(
   property: string,
@@ -146,7 +146,7 @@ export function CannotUseWithout(
  *
  * @param property the name of the property that cannot be set at the same time.
  * @param validationOptions options passed to the validator.
- * @return a property decorator.
+ * @returns a property decorator.
  */
 export function CannotUseWith(
   property: string,
@@ -182,7 +182,7 @@ export function CannotUseWith(
  *
  * @param properties the names of the properties that cannot be set at the same time.
  * @param validationOptions options passed to the validator.
- * @return a property decorator.
+ * @returns a property decorator.
  */
 export function CannotUseWithAny(
   properties: string[],
@@ -220,7 +220,7 @@ export function CannotUseWithAny(
  *
  * @param allowedValues the values the property may take.
  * @param validationOptions options passed to the validator.
- * @return a property decorator.
+ * @returns a property decorator.
  */
 export function IsInCaseInsensitive(
   allowedValues: string[],

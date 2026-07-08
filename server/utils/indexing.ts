@@ -9,7 +9,7 @@ import { Collection, Document, Star } from "@server/models";
  *
  * @param teamId the team to index collections for.
  * @param options find options including an optional transaction.
- * @return a map of collection ids to their indexes.
+ * @returns a map of collection ids to their indexes.
  */
 export async function collectionIndexing(
   teamId: string,
@@ -53,7 +53,7 @@ export async function collectionIndexing(
  * indexes for any stars without one.
  *
  * @param userId the user to index stars for.
- * @return a map of star ids to their indexes.
+ * @returns a map of star ids to their indexes.
  */
 export async function starIndexing(userId: string) {
   const stars = await Star.findAll({

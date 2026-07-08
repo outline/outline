@@ -10,7 +10,7 @@ import type { Context } from "koa";
  * signature.
  *
  * @param token the JWT token to decode.
- * @return the decoded token payload.
+ * @returns the decoded token payload.
  * @throws AuthenticationError if the token is missing or cannot be decoded.
  */
 export function getJWTPayload(token: string) {
@@ -110,7 +110,7 @@ export async function getUserForJWT(
  *
  * @param ctx the Koa context of the current request.
  * @param token the email sign-in token to validate.
- * @return the user associated with the token.
+ * @returns the user associated with the token.
  * @throws AuthenticationError if the token is invalid, expired, or from a different IP.
  */
 export async function getUserForEmailSigninToken(
@@ -153,7 +153,7 @@ export async function getUserForEmailSigninToken(
  *
  * @param token the email update token to validate.
  * @param options find options passed when loading the user.
- * @return the user and the new email address.
+ * @returns the user and the new email address.
  * @throws AuthenticationError if the token is invalid or expired.
  */
 export async function getDetailsForEmailUpdateToken(

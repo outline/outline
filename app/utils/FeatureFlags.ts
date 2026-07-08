@@ -22,7 +22,7 @@ export class FeatureFlags {
    * Checks whether a feature flag is currently enabled.
    *
    * @param flag the feature flag to check.
-   * @return true if the flag is enabled.
+   * @returns true if the flag is enabled.
    */
   public static isEnabled(flag: Feature) {
     // init on first read

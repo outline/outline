@@ -5,7 +5,7 @@ import env from "@server/env";
  * register the installation as a search engine.
  *
  * @param baseUrl the base URL of the installation.
- * @return the OpenSearch description XML.
+ * @returns the OpenSearch description XML.
  */
 export const opensearchResponse = (baseUrl: string): string => `
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">

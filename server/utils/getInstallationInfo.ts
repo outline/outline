@@ -16,7 +16,7 @@ function isFullReleaseVersion(versionName: string): boolean {
  * versions behind the current installation is.
  *
  * @param currentVersion the currently installed version.
- * @return the latest version and the number of versions behind, or -1 if unknown.
+ * @returns the latest version and the number of versions behind, or -1 if unknown.
  */
 export async function getVersionInfo(currentVersion: string): Promise<{
   latestVersion: string;
@@ -88,7 +88,7 @@ export async function getVersionInfo(currentVersion: string): Promise<{
 /**
  * Returns the current version of the server from the package manifest.
  *
- * @return the current version.
+ * @returns the current version.
  */
 export function getVersion(): string {
   return version;
