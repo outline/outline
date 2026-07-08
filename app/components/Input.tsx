@@ -3,7 +3,7 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s, ellipsis } from "@shared/styles";
+import { s, ellipsis, space, spacing } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Fade from "~/components/Fade";
@@ -18,8 +18,13 @@ export const NativeTextarea = styled.textarea<{
 }>`
   border: 0;
   flex: 1;
-  padding: 8px 12px 8px
-    ${(props) => (props.hasPrefix ? 0 : props.hasIcon ? "8px" : "12px")};
+  padding: ${space("md", "lg", "md")}
+    ${(props) =>
+      props.hasPrefix
+        ? 0
+        : props.hasIcon
+          ? `${spacing.md}px`
+          : `${spacing.lg}px`};
   outline: none;
   background: none;
   color: ${s("text")};
@@ -41,8 +46,13 @@ export const NativeInput = styled.input<{
 }>`
   border: 0;
   flex: 1;
-  padding: 8px 12px 8px
-    ${(props) => (props.hasPrefix ? 0 : props.hasIcon ? "8px" : "12px")};
+  padding: ${space("md", "lg", "md")}
+    ${(props) =>
+      props.hasPrefix
+        ? 0
+        : props.hasIcon
+          ? `${spacing.md}px`
+          : `${spacing.lg}px`};
   outline: none;
   background: none;
   color: ${s("text")};
@@ -109,7 +119,7 @@ export const Outline = styled(Flex)<{
   position: relative;
   flex: 1;
   margin: ${(props) =>
-    props.margin !== undefined ? props.margin : "0 0 16px"};
+    props.margin !== undefined ? props.margin : space(0, 0, "xl")};
   color: inherit;
   border-width: 1px;
   border-style: solid;
@@ -135,7 +145,7 @@ const CharacterCount = styled.span<{ $warning?: boolean }>`
   inset-inline-end: 0;
   font-size: 11px;
   line-height: 1;
-  padding: 2px 4px;
+  padding: ${space("xxs", "xs")};
   border-start-start-radius: 0;
   border-start-end-radius: 0;
   border-end-end-radius: 0;
@@ -149,7 +159,7 @@ const CharacterCount = styled.span<{ $warning?: boolean }>`
 
 export const LabelText = styled.div`
   font-weight: 500;
-  padding-bottom: 4px;
+  padding-bottom: ${spacing.xs}px;
   display: inline-block;
 `;
 
@@ -381,7 +391,7 @@ function Input(
 export const TextWrapper = styled.span`
   min-height: 16px;
   display: block;
-  margin-top: -16px;
+  margin-top: -${spacing.xl}px;
 `;
 
 export default React.forwardRef(Input);
