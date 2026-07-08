@@ -3,7 +3,7 @@ import { CheckmarkIcon, ExpandedIcon } from "outline-icons";
 import { transparentize } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";
-import { s } from "@shared/styles";
+import { s, space, spacing } from "@shared/styles";
 import { fadeAndScaleIn } from "~/styles/animations";
 import { undraggableOnDesktop } from "~/styles";
 
@@ -177,7 +177,7 @@ const MainButton = styled.button<{ $neutral?: boolean }>`
   ${buttonReset}
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding: ${space(0, "md")};
   border-radius: 6px 0 0 6px;
   white-space: nowrap;
   transition: background 200ms ease-out;
@@ -196,7 +196,7 @@ const DisclosureButton = styled.button<{ $neutral?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
+  padding: ${space(0, "xs")};
   border-radius: 0 6px 6px 0;
   transition: background 200ms ease-out;
 
@@ -213,7 +213,7 @@ const DisclosureButton = styled.button<{ $neutral?: boolean }>`
 const Divider = styled.span<{ $neutral?: boolean }>`
   width: 1px;
   align-self: stretch;
-  margin: 6px 0;
+  margin: ${space("sm", 0)};
   background: ${(props) =>
     props.$neutral
       ? transparentize(0.7, props.theme.buttonNeutralText)
@@ -231,7 +231,7 @@ const MenuContent = styled.div`
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
   border-radius: 6px;
-  padding: 6px;
+  padding: ${spacing.sm}px;
   outline: none;
 
   transform-origin: var(--radix-dropdown-menu-content-transform-origin);
@@ -250,8 +250,8 @@ const MenuItem = styled.button`
   font-size: 14px;
   color: ${s("textSecondary")};
   border-radius: 4px;
-  padding: 4px 12px;
-  gap: 8px;
+  padding: ${space("xs", "lg")};
+  gap: ${spacing.md}px;
   user-select: none;
 
   &[data-highlighted] {

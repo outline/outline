@@ -6,7 +6,7 @@ import { CheckmarkIcon } from "outline-icons";
 import { forwardRef } from "react";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s } from "@shared/styles";
+import { s, spacing } from "@shared/styles";
 import Button, { Inner } from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
@@ -73,8 +73,8 @@ export const SelectButton = styled(Button)<{ $nude?: boolean }>`
 
   ${Inner} {
     line-height: 28px;
-    padding-inline-start: 12px;
-    padding-inline-end: 4px;
+    padding-inline-start: ${spacing.lg}px;
+    padding-inline-end: ${spacing.xs}px;
   }
 
   svg {
@@ -95,7 +95,7 @@ const ItemContainer = styled(Flex)`
   color: ${s("textSecondary")};
   background: none;
   margin: 0;
-  padding: 12px;
+  padding: ${spacing.lg}px;
   border: 0;
   border-radius: 4px;
   outline: 0;
@@ -131,8 +131,8 @@ const ItemContainer = styled(Flex)`
 
   ${breakpoint("tablet")`
     font-size: 14px;
-    padding: 4px;
-    padding-inline-start: 8px;
+    padding: ${spacing.xs}px;
+    padding-inline-start: ${spacing.md}px;
   `}
 `;
 

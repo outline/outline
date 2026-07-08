@@ -2,7 +2,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import * as React from "react";
 import styled from "styled-components";
 import { Drawer as DrawerPrimitive } from "vaul";
-import { depths, s } from "@shared/styles";
+import { depths, s, space, spacing } from "@shared/styles";
 import Flex from "../Flex";
 import Text from "../Text";
 import { Overlay } from "./components/Overlay";
@@ -101,13 +101,13 @@ const StyledContent = styled(m.div)`
 `;
 
 const StyledInnerContent = styled(Flex)`
-  padding: 6px;
-  padding-bottom: calc(6px + var(--sab, 0px));
+  padding: ${spacing.sm}px;
+  padding-bottom: calc(${spacing.sm}px + var(--sab, 0px));
   height: 100%;
 `;
 
 const TitleWrapper = styled(Flex)`
-  padding: 8px 0;
+  padding: ${space("md", 0)};
 `;
 
 export { Drawer, DrawerTrigger, DrawerHandle, DrawerContent, DrawerTitle };

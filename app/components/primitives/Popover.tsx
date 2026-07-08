@@ -2,7 +2,7 @@ import * as PopoverPrimitive from "@radix-ui/react-popover";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
-import { depths, s } from "@shared/styles";
+import { depths, s, space } from "@shared/styles";
 import { fadeAndScaleIn } from "~/styles/animations";
 import { usePortalContext } from "../Portal";
 
@@ -113,7 +113,7 @@ const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
   border-radius: 6px;
   outline: none;
 
-  padding: ${({ $shrink }) => ($shrink ? "6px 0" : "12px 24px")};
+  padding: ${({ $shrink }) => ($shrink ? space("sm", 0) : space("lg", "xxl"))};
 
   ${({ $width }) => $width && `width: ${$width}px`};
   ${({ $minWidth }) => $minWidth && `min-width: ${$minWidth}px`};

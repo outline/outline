@@ -2,7 +2,7 @@ import * as InputSelectPrimitive from "@radix-ui/react-select";
 import * as React from "react";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
-import { depths, s } from "@shared/styles";
+import { depths, s, space, spacing } from "@shared/styles";
 import type { Props as ButtonProps } from "~/components/Button";
 import { fadeAndSlideDown, fadeAndSlideUp } from "~/styles/animations";
 import {
@@ -108,7 +108,7 @@ const InputSelectSeparator = React.forwardRef<
 InputSelectSeparator.displayName = InputSelectPrimitive.Separator.displayName;
 
 const Separator = styled.hr`
-  margin: 6px 0;
+  margin: ${space("sm", 0)};
 `;
 
 /** Non-selectable heading rendered to group options in the menu. */
@@ -130,8 +130,8 @@ const Heading = styled(Text).attrs({
   weight: "bold",
 })`
   display: block;
-  padding-block: 8px 4px;
-  padding-inline: 8px;
+  padding-block: ${spacing.md}px ${spacing.xs}px;
+  padding-inline: ${spacing.md}px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 `;
@@ -144,7 +144,7 @@ const StyledContent = styled(InputSelectPrimitive.Content)`
   min-height: 44px;
   max-height: 350px;
 
-  padding: 4px;
+  padding: ${spacing.xs}px;
   border-radius: 6px;
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
