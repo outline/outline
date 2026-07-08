@@ -198,6 +198,55 @@ describe("DeliverWebhookTask", () => {
     expect(delivery.responseBody).toEqual("FAILED");
   });
 
+  test("should not disable the subscription when recent deliveries succeeded", async () => {
+    const subscription = await buildWebhookSubscription({
+      url: "http://example.com",
+      events: ["*"],
+    });
+    // Old failures dominate the analysis window…
+    for (let i = 0; i < 25; i++) {
+      await buildWebhookDelivery({
+        webhookSubscriptionId: subscription.id,
+        status: "failed",
+        createdAt: new Date(Date.now() - 60 * 60 * 1000),
+      });
+    }
+    // …but the endpoint has since recovered.
+    for (let i = 0; i < 3; i++) {
+      await buildWebhookDelivery({
+        webhookSubscriptionId: subscription.id,
+        status: "success",
+        createdAt: new Date(Date.now() - 60 * 1000),
+      });
+    }
+
+    captureWebhook("http://example.com", () =>
+      HttpResponse.json({ message: "Failure" }, { status: 500 })
+    );
+
+    const signedInUser = await buildUser({ teamId: subscription.teamId });
+    const task = new DeliverWebhookTask();
+
+    const event: UserEvent = {
+      name: "users.signin",
+      userId: signedInUser.id,
+      teamId: subscription.teamId,
+      actorId: signedInUser.id,
+      ip,
+    };
+
+    await task.perform({
+      event,
+      subscriptionId: subscription.id,
+    });
+
+    await subscription.reload();
+
+    // A single new failure must not disable the subscription while recent
+    // deliveries were successful.
+    expect(subscription.enabled).toBe(true);
+  });
+
   test("should disable the subscription if past deliveries failed", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",

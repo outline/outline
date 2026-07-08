@@ -147,6 +147,40 @@ export class CacheHelper {
   }
 
   /**
+   * Removes a single cached entry by key, coordinating with the lock used by
+   * `getDataOrSet` so that an in-flight cache fill – which may have read the
+   * source data before the change that triggered this invalidation was
+   * committed – cannot re-write a stale value after the removal. Prefer this
+   * over `removeData` when invalidating keys that are populated via
+   * `getDataOrSet`.
+   *
+   * @param key Cache key to remove.
+   * @param lockTimeout Lock timeout in milliseconds.
+   */
+  public static async removeDataWithLock(
+    key: string,
+    lockTimeout: number = MutexLock.defaultLockTimeout
+  ) {
+    let lock;
+    try {
+      lock = await MutexLock.acquire(`lock:${key}`, lockTimeout);
+    } catch (err) {
+      // Fall through to the removal below – deleting without the lock is
+      // strictly better than not deleting at all.
+      Logger.warn(`Could not acquire lock to invalidate ${key}`, {
+        error: toError(err).message,
+      });
+    }
+    try {
+      await this.removeData(key);
+    } finally {
+      if (lock) {
+        await MutexLock.release(lock);
+      }
+    }
+  }
+
+  /**
    * Clears all cache data with the given prefix. Keys are discovered with an
    * incremental SCAN rather than KEYS and each batch is removed with UNLINK
    * as the scan progresses, so neither discovery nor deletion blocks the

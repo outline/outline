@@ -900,6 +900,16 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     const failureRate =
       (failedDeliveries.length / deliveriesInWindow.length) * 100;
 
+    // The endpoint must be failing *now*, not just within the window – any
+    // recent success means the destination is reachable and the subscription
+    // must not be disabled. Without this, a new subscription can be killed by
+    // transient failures in its first few deliveries, and a re-enabled
+    // subscription is re-disabled by a single failure while old failures
+    // still dominate the window.
+    const recentDeliveriesAllFailed = deliveriesInWindow
+      .slice(0, DeliverWebhookTask.MIN_DELIVERIES_FOR_ANALYSIS)
+      .every((delivery) => delivery.status === "failed");
+
     // Only log analysis if there are failures to report
     if (failedDeliveries.length > 0) {
       Logger.info("task", "Webhook failure analysis", {
@@ -912,11 +922,13 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       });
     }
 
-    // Check if failure rate exceeds threshold and we have enough data points
+    // Check if failure rate exceeds threshold, we have enough data points, and
+    // the most recent deliveries are consecutive failures
     if (
       failureRate >= failureRateThreshold &&
       deliveriesInWindow.length >=
-        DeliverWebhookTask.MIN_DELIVERIES_FOR_ANALYSIS
+        DeliverWebhookTask.MIN_DELIVERIES_FOR_ANALYSIS &&
+      recentDeliveriesAllFailed
     ) {
       Logger.warn("Disabling webhook due to high failure rate", {
         subscriptionId: subscription.id,

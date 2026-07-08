@@ -176,7 +176,7 @@ class WebhookSubscription extends ParanoidModel<
     options: { transaction?: Transaction | null }
   ) {
     const invalidate = () =>
-      CacheHelper.removeData(
+      CacheHelper.removeDataWithLock(
         RedisPrefixHelper.getWebhookSubscriptionsKey(model.teamId)
       );
 

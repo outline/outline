@@ -68,6 +68,9 @@ export default class UserDeletedProcessor extends BaseProcessor {
             enabled: true,
           },
           transaction,
+          // Ensure per-instance hooks run so the cached subscription list for
+          // the team is invalidated.
+          individualHooks: true,
         }
       );
     });
