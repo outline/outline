@@ -126,7 +126,7 @@ export async function validateUrlNotPrivate(url: string) {
   // Resolve every record for the hostname — with multiple A/AAAA records the
   // connection may use any of them, so a single private record hidden among
   // public ones must still fail validation.
-  let addresses;
+  let addresses: dns.LookupAddress[];
   try {
     addresses = await dns.promises.lookup(hostname, { all: true });
   } catch {
