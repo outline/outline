@@ -80,7 +80,7 @@ const pluginsWithSafeDecorations = new WeakSet<Plugin>();
 // KaTeX renders math server-side during HTML export, but relies on this
 // stylesheet (loaded dynamically in the app) to position glyphs correctly.
 const katexStylesheetUrl =
-  "https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css";
+  "https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.min.css";
 
 function isDecorationSource(value: unknown): value is DecorationSource {
   if (typeof value !== "object" || value === null) {
