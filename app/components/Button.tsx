@@ -5,7 +5,7 @@ import * as React from "react";
 import styled from "styled-components";
 import type { HapticInput } from "web-haptics";
 import { useWebHaptics } from "web-haptics/react";
-import { s } from "@shared/styles";
+import { s, space, spacing } from "@shared/styles";
 import type { Props as ActionButtonProps } from "~/components/ActionButton";
 import ActionButton from "~/components/ActionButton";
 import { undraggableOnDesktop } from "~/styles";
@@ -125,7 +125,7 @@ const Label = styled.span<{ hasIcon?: boolean }>`
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  ${(props) => props.hasIcon && "padding-inline-start: 4px;"};
+  ${(props) => props.hasIcon && `padding-inline-start: ${spacing.xs}px;`};
 `;
 
 export const Inner = styled.span<{
@@ -134,15 +134,18 @@ export const Inner = styled.span<{
   hasText?: boolean;
 }>`
   display: flex;
-  padding: 0 8px;
-  padding-inline-end: ${(props) => (props.disclosure ? 2 : 8)}px;
+  padding: ${space(0, "md")};
+  padding-inline-end: ${(props) =>
+    props.disclosure ? spacing.xxs : spacing.md}px;
   line-height: ${(props) => (props.hasIcon ? 24 : 32)}px;
   justify-content: center;
   align-items: center;
   min-height: 32px;
 
-  ${(props) => props.hasIcon && props.hasText && "padding-inline-start: 4px;"};
-  ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
+  ${(props) =>
+    props.hasIcon && props.hasText && `padding-inline-start: ${spacing.xs}px;`};
+  ${(props) =>
+    props.hasIcon && !props.hasText && `padding: ${space(0, "xs")};`};
 `;
 
 export type Props<T> = ActionButtonProps & {
