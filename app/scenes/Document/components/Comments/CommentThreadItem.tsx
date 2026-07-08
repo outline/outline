@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { s, hover } from "@shared/styles";
 import type { ProsemirrorData } from "@shared/types";
 import { dateToRelative } from "@shared/utils/date";
@@ -345,6 +346,14 @@ const StyledCommentEditor = styled(CommentEditor)`
 
   .mention {
     background: ${(props) => darken(0.05, props.theme.mentionBackground)};
+  }
+
+  code.inline {
+    overflow-wrap: anywhere;
+
+    .${EditorStyleHelper.codeWord} {
+      white-space: inherit;
+    }
   }
 `;
 
