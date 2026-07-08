@@ -3,7 +3,7 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s, ellipsis, space, spacing } from "@shared/styles";
+import { s, ellipsis, spacing } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Fade from "~/components/Fade";
@@ -18,7 +18,7 @@ export const NativeTextarea = styled.textarea<{
 }>`
   border: 0;
   flex: 1;
-  padding: ${space("md", "lg", "md")}
+  padding: ${spacing.md}px ${spacing.lg}px ${spacing.md}px
     ${(props) =>
       props.hasPrefix
         ? 0
@@ -46,7 +46,7 @@ export const NativeInput = styled.input<{
 }>`
   border: 0;
   flex: 1;
-  padding: ${space("md", "lg", "md")}
+  padding: ${spacing.md}px ${spacing.lg}px ${spacing.md}px
     ${(props) =>
       props.hasPrefix
         ? 0
@@ -119,7 +119,7 @@ export const Outline = styled(Flex)<{
   position: relative;
   flex: 1;
   margin: ${(props) =>
-    props.margin !== undefined ? props.margin : space(0, 0, "xl")};
+    props.margin !== undefined ? props.margin : `0 0 ${spacing.xl}px`};
   color: inherit;
   border-width: 1px;
   border-style: solid;
@@ -145,7 +145,7 @@ const CharacterCount = styled.span<{ $warning?: boolean }>`
   inset-inline-end: 0;
   font-size: 11px;
   line-height: 1;
-  padding: ${space("xxs", "xs")};
+  padding: ${spacing.xxs}px ${spacing.xs}px;
   border-start-start-radius: 0;
   border-start-end-radius: 0;
   border-end-end-radius: 0;

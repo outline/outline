@@ -5,7 +5,7 @@ export { default as depths } from "./depths";
 
 export { default as breakpoints } from "./breakpoints";
 
-export { default as spacing, space, resolveSpacing } from "./spacing";
+export { default as spacing, resolveSpacing } from "./spacing";
 
 export type { SpacingToken, SpacingValue } from "./spacing";
 

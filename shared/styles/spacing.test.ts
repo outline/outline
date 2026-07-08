@@ -1,4 +1,4 @@
-import spacing, { resolveSpacing, space } from "./spacing";
+import spacing, { resolveSpacing } from "./spacing";
 
 describe("spacing", () => {
   it("matches the expected scale exactly", () => {
@@ -33,20 +33,5 @@ describe("resolveSpacing", () => {
   it("passes raw numbers through", () => {
     expect(resolveSpacing(10)).toBe(10);
     expect(resolveSpacing(0)).toBe(0);
-  });
-});
-
-describe("space", () => {
-  it("builds CSS shorthand values from tokens", () => {
-    expect(space("md", "xxl", "xxl")).toBe("8px 24px 24px");
-  });
-
-  it("renders zero without a unit", () => {
-    expect(space(0, "md")).toBe("0 8px");
-  });
-
-  it("accepts raw numbers", () => {
-    expect(space(10)).toBe("10px");
-    expect(space("xs", 10)).toBe("4px 10px");
   });
 });

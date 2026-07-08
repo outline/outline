@@ -5,7 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths, s, space, spacing } from "@shared/styles";
+import { depths, s, spacing } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";
@@ -167,7 +167,7 @@ const MobileContent = styled(Scrollable)`
 `;
 
 const DesktopContent = styled(Scrollable)`
-  padding: ${space("md", "xxl", "xxl")};
+  padding: ${spacing.md}px ${spacing.xxl}px ${spacing.xxl}px;
 `;
 
 const Centered = styled(Flex)`
@@ -223,7 +223,7 @@ const Header = styled(Flex)`
   align-items: center;
   justify-content: space-between;
   font-weight: 600;
-  padding: ${space("xxl", "xxl", "lg")};
+  padding: ${spacing.xxl}px ${spacing.xxl}px ${spacing.lg}px;
   flex-shrink: 0;
 `;
 

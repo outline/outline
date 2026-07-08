@@ -1,9 +1,9 @@
 /**
  * Spacing scale for margin, padding, and gap values, in pixels.
  *
- * Use in styled-components template literals as `${spacing.md}px`, via the
- * `space()` helper for shorthands, or by token name on layout primitives,
- * e.g. `<Flex gap="sm" p="md">` and `<HStack spacing="lg">`.
+ * Use in styled-components template literals as `${spacing.md}px`, or by
+ * token name on layout primitives, e.g. `<Flex gap="sm" p="md">` and
+ * `<HStack spacing="lg">`.
  *
  * Note: this is unrelated to the sidebar width values that are spread into
  * the theme from an internal `spacing` object in shared/styles/theme.ts.
@@ -41,20 +41,5 @@ export type SpacingValue = SpacingToken | number;
  */
 export const resolveSpacing = (value: SpacingValue): number =>
   typeof value === "number" ? value : spacing[value];
-
-/**
- * Builds a CSS shorthand value from spacing tokens or raw pixel numbers,
- * e.g. `padding: ${space(0, "md")};` becomes `padding: 0 8px;`.
- *
- * @param values spacing token names or raw pixel numbers.
- * @returns a space-separated CSS value string.
- */
-export const space = (...values: SpacingValue[]): string =>
-  values
-    .map((value) => {
-      const resolved = resolveSpacing(value);
-      return resolved === 0 ? "0" : `${resolved}px`;
-    })
-    .join(" ");
 
 export default spacing;

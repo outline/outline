@@ -3,7 +3,7 @@ import { CheckmarkIcon, ExpandedIcon } from "outline-icons";
 import { transparentize } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";
-import { s, space, spacing } from "@shared/styles";
+import { s, spacing } from "@shared/styles";
 import { fadeAndScaleIn } from "~/styles/animations";
 import { undraggableOnDesktop } from "~/styles";
 
@@ -177,7 +177,7 @@ const MainButton = styled.button<{ $neutral?: boolean }>`
   ${buttonReset}
   display: flex;
   align-items: center;
-  padding: ${space(0, "md")};
+  padding: 0 ${spacing.md}px;
   border-radius: 6px 0 0 6px;
   white-space: nowrap;
   transition: background 200ms ease-out;
@@ -196,7 +196,7 @@ const DisclosureButton = styled.button<{ $neutral?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: ${space(0, "xs")};
+  padding: 0 ${spacing.xs}px;
   border-radius: 0 6px 6px 0;
   transition: background 200ms ease-out;
 
@@ -213,7 +213,7 @@ const DisclosureButton = styled.button<{ $neutral?: boolean }>`
 const Divider = styled.span<{ $neutral?: boolean }>`
   width: 1px;
   align-self: stretch;
-  margin: ${space("sm", 0)};
+  margin: ${spacing.sm}px 0;
   background: ${(props) =>
     props.$neutral
       ? transparentize(0.7, props.theme.buttonNeutralText)
@@ -250,7 +250,7 @@ const MenuItem = styled.button`
   font-size: 14px;
   color: ${s("textSecondary")};
   border-radius: 4px;
-  padding: ${space("xs", "lg")};
+  padding: ${spacing.xs}px ${spacing.lg}px;
   gap: ${spacing.md}px;
   user-select: none;
 

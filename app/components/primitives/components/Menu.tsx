@@ -3,7 +3,7 @@ import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths, s, space, spacing } from "@shared/styles";
+import { depths, s, spacing } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import { fadeAndScaleIn } from "~/styles/animations";
 
@@ -85,7 +85,7 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
   `}
 
   ${breakpoint("tablet")`
-    padding: ${space("xs", "lg")};
+    padding: ${spacing.xs}px ${spacing.lg}px;
     font-size: 14px;
   `}
 `;
@@ -114,7 +114,7 @@ export const MenuSubTrigger = styled.div<BaseMenuItemProps>`
 `;
 
 export const MenuSeparator = styled.hr`
-  margin: ${space("sm", 0)};
+  margin: ${spacing.sm}px 0;
 `;
 
 export const MenuLabel = styled.div`

@@ -5,7 +5,7 @@ import * as React from "react";
 import styled from "styled-components";
 import type { HapticInput } from "web-haptics";
 import { useWebHaptics } from "web-haptics/react";
-import { s, space, spacing } from "@shared/styles";
+import { s, spacing } from "@shared/styles";
 import type { Props as ActionButtonProps } from "~/components/ActionButton";
 import ActionButton from "~/components/ActionButton";
 import { undraggableOnDesktop } from "~/styles";
@@ -134,7 +134,7 @@ export const Inner = styled.span<{
   hasText?: boolean;
 }>`
   display: flex;
-  padding: ${space(0, "md")};
+  padding: 0 ${spacing.md}px;
   padding-inline-end: ${(props) =>
     props.disclosure ? spacing.xxs : spacing.md}px;
   line-height: ${(props) => (props.hasIcon ? 24 : 32)}px;
@@ -145,7 +145,7 @@ export const Inner = styled.span<{
   ${(props) =>
     props.hasIcon && props.hasText && `padding-inline-start: ${spacing.xs}px;`};
   ${(props) =>
-    props.hasIcon && !props.hasText && `padding: ${space(0, "xs")};`};
+    props.hasIcon && !props.hasText && `padding: 0 ${spacing.xs}px;`};
 `;
 
 export type Props<T> = ActionButtonProps & {
