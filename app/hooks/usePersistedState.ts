@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { Primitive } from "utility-types";
 import Storage from "@shared/utils/Storage";
@@ -51,27 +51,32 @@ export default function usePersistedState<T extends Primitive | object>(
     return Storage.get(key) ?? defaultValue;
   });
 
+  // Mirrors the latest state so functional updates can be computed without
+  // capturing `storedValue` in the setter's closure, keeping its identity
+  // stable and safe to use in dependency arrays.
+  const storedValueRef = useRef<T>(storedValue);
+
+  const updateStoredValue = useCallback((value: T) => {
+    storedValueRef.current = value;
+    setStoredValue(value);
+  }, []);
+
   const setValue = useCallback(
     (value: SetStateAction<T>) => {
-      // Compute functional updates from the latest state rather than a value
-      // captured in this closure, and keep the setter's identity stable so it
-      // is safe to use in dependency arrays.
-      setStoredValue((previousValue: T) => {
-        const valueToStore =
-          value instanceof Function ? value(previousValue) : value;
-        Storage.set(key, valueToStore);
-        return valueToStore;
-      });
+      const valueToStore =
+        value instanceof Function ? value(storedValueRef.current) : value;
+      updateStoredValue(valueToStore);
+      Storage.set(key, valueToStore);
     },
-    [key]
+    [key, updateStoredValue]
   );
 
   // Sync state when key changes
   useEffect(() => {
     if (previousKey !== undefined && previousKey !== key) {
-      setStoredValue(Storage.get(key) ?? defaultValue);
+      updateStoredValue(Storage.get(key) ?? defaultValue);
     }
-  }, [previousKey, key, defaultValue]);
+  }, [previousKey, key, defaultValue, updateStoredValue]);
 
   // Listen to the key changing in other tabs so we can keep UI in sync
   useEventListener("storage", (event: StorageEvent) => {
@@ -79,11 +84,11 @@ export default function usePersistedState<T extends Primitive | object>(
       return;
     }
     if (event.newValue === null) {
-      setStoredValue(defaultValue);
+      updateStoredValue(defaultValue);
       return;
     }
     try {
-      setStoredValue(JSON.parse(event.newValue));
+      updateStoredValue(JSON.parse(event.newValue));
     } catch (error) {
       // Another tab or unrelated code may have written a value under this key
       // that is not valid JSON – never let that crash the listener.
