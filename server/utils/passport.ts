@@ -192,6 +192,15 @@ export class StateStore {
   };
 }
 
+/**
+ * Makes an authenticated JSON request to an OAuth provider endpoint.
+ *
+ * @param method the HTTP method to use.
+ * @param endpoint the URL to request.
+ * @param accessToken the bearer token to authenticate with.
+ * @return the parsed JSON response.
+ * @throws InternalError if the response is not valid JSON.
+ */
 export async function request(
   method: "GET" | "POST",
   endpoint: string,

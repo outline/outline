@@ -10,6 +10,10 @@ import { getArg } from "./args";
 import { MutexLock } from "./MutexLock";
 import { Minute } from "@shared/utils/time";
 
+/**
+ * Checks for pending database migrations on startup and runs them, unless the
+ * --no-migrate flag was passed in which case the process exits with an error.
+ */
 export async function checkPendingMigrations() {
   let lock;
   try {
@@ -54,6 +58,10 @@ export async function checkPendingMigrations() {
   }
 }
 
+/**
+ * Checks whether a required data migration has been completed for self-hosted
+ * installations, exiting the process with instructions if it has not.
+ */
 export async function checkDataMigrations() {
   if (env.isCloudHosted) {
     return;
@@ -81,6 +89,9 @@ $ node ./build/server/scripts/20210226232041-migrate-authentication.js
   }
 }
 
+/**
+ * Prints information about the current environment to the log on startup.
+ */
 export async function printEnv() {
   if (env.isProduction) {
     Logger.info(

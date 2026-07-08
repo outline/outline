@@ -14,10 +14,21 @@ if ("hidden" in document) {
   visibilityChange = "webkitvisibilitychange";
 }
 
+/**
+ * Returns the name of the visibility change event supported by the current
+ * browser.
+ *
+ * @return the visibility change event name.
+ */
 export function getVisibilityListener(): string {
   return visibilityChange;
 }
 
+/**
+ * Checks whether the page is currently visible to the user.
+ *
+ * @return true if the page is visible.
+ */
 export function getPageVisible(): boolean {
   return !document[hidden as keyof Document];
 }

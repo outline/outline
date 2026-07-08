@@ -12,6 +12,10 @@ import type { BaseIssueProvider } from "./BaseIssueProvider";
 import type { GroupSyncProvider } from "./GroupSyncProvider";
 import type { BaseSearchProvider } from "./BaseSearchProvider";
 
+/**
+ * The priority of a plugin, used to determine the order in which plugins of
+ * the same type are evaluated. Lower values are higher priority.
+ */
 export enum PluginPriority {
   VeryHigh = 0,
   High = 100,
