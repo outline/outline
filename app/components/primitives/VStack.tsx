@@ -1,10 +1,11 @@
 import type { CSSProperties } from "react";
 import styled from "styled-components";
+import type { SpacingValue } from "@shared/styles";
 import Flex from "~/components/Flex";
 
 interface VStackProps {
-  /** The spacing between children in pixels. Defaults to 8. */
-  spacing?: number;
+  /** The spacing between children — spacing token or raw pixels. Defaults to "md" (8px). */
+  spacing?: SpacingValue;
   /** The alignment of children along the cross axis. Defaults to "center". */
   align?: CSSProperties["alignItems"];
   /** The justification of children along the main axis. */
@@ -25,7 +26,7 @@ export const VStack = styled(Flex)
   .attrs<VStackProps>((props) => ({
     column: true,
     align: props.align ?? "center",
-    gap: props.spacing !== undefined ? props.spacing : 8,
+    gap: props.spacing !== undefined ? props.spacing : "md",
   }))<VStackProps>``;
 
 VStack.displayName = "VStack";

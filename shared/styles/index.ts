@@ -5,6 +5,10 @@ export { default as depths } from "./depths";
 
 export { default as breakpoints } from "./breakpoints";
 
+export { default as spacing, space, resolveSpacing } from "./spacing";
+
+export type { SpacingToken, SpacingValue } from "./spacing";
+
 /**
  * Returns "hover" on a non-touch device and "active" on a touch device. To
  * avoid "sticky" hover on mobile. Use `&:${hover} {...}` instead of

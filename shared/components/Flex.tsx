@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
 import styled from "styled-components";
+import type { SpacingValue } from "../styles/spacing";
+import { resolveSpacing } from "../styles/spacing";
 
 type JustifyValues = CSSProperties["justifyContent"];
 
@@ -20,6 +22,12 @@ const Flex = styled.div.withConfig({
       "shrink",
       "reverse",
       "gap",
+      "p",
+      "px",
+      "py",
+      "m",
+      "mx",
+      "my",
     ].includes(prop),
 })<{
   /** Makes the component grow to fill available space */
@@ -36,8 +44,20 @@ const Flex = styled.div.withConfig({
   shrink?: boolean;
   /** Reverses the direction (row-reverse or column-reverse) */
   reverse?: boolean;
-  /** Sets gap between flex items in pixels */
-  gap?: number;
+  /** Sets gap between flex items — spacing token or raw pixels */
+  gap?: SpacingValue;
+  /** Padding on all sides — spacing token or raw pixels */
+  p?: SpacingValue;
+  /** Inline-axis (horizontal in LTR) padding — spacing token or raw pixels */
+  px?: SpacingValue;
+  /** Block-axis (vertical) padding — spacing token or raw pixels */
+  py?: SpacingValue;
+  /** Margin on all sides — spacing token or raw pixels */
+  m?: SpacingValue;
+  /** Inline-axis (horizontal in LTR) margin — spacing token or raw pixels */
+  mx?: SpacingValue;
+  /** Block-axis (vertical) margin — spacing token or raw pixels */
+  my?: SpacingValue;
 }>`
   display: flex;
   flex: ${({ auto }) => (auto ? "1 1 auto" : "initial")};
@@ -54,7 +74,18 @@ const Flex = styled.div.withConfig({
   flex-wrap: ${({ wrap }) => (wrap ? "wrap" : "initial")};
   flex-shrink: ${({ shrink }) =>
     shrink === true ? 1 : shrink === false ? 0 : "initial"};
-  gap: ${({ gap }) => (gap !== undefined ? `${gap}px` : "initial")};
+  gap: ${({ gap }) =>
+    gap !== undefined ? `${resolveSpacing(gap)}px` : "initial"};
+  ${({ p }) => (p !== undefined ? `padding: ${resolveSpacing(p)}px;` : "")}
+  ${({ px }) =>
+    px !== undefined ? `padding-inline: ${resolveSpacing(px)}px;` : ""}
+  ${({ py }) =>
+    py !== undefined ? `padding-block: ${resolveSpacing(py)}px;` : ""}
+  ${({ m }) => (m !== undefined ? `margin: ${resolveSpacing(m)}px;` : "")}
+  ${({ mx }) =>
+    mx !== undefined ? `margin-inline: ${resolveSpacing(mx)}px;` : ""}
+  ${({ my }) =>
+    my !== undefined ? `margin-block: ${resolveSpacing(my)}px;` : ""}
   min-height: 0;
   min-width: 0;
 `;
