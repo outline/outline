@@ -148,35 +148,56 @@ export class CacheHelper {
 
   /**
    * Clears all cache data with the given prefix. Keys are discovered with an
-   * incremental SCAN rather than KEYS, and removed in batches with UNLINK, so
-   * neither discovery nor deletion blocks the Redis event loop.
+   * incremental SCAN rather than KEYS and each batch is removed with UNLINK
+   * as the scan progresses, so neither discovery nor deletion blocks the
+   * Redis event loop and matched keys are never buffered in full.
    *
    * @param prefix Prefix to clear cache data
    */
   public static async clearData(prefix: string) {
     const match = `${prefix}*`;
-    const keys: string[] = [];
-    let cursor = "0";
 
-    do {
-      const [nextCursor, batch] = await Redis.defaultClient.scan(
-        cursor,
-        "MATCH",
-        match,
-        "COUNT",
-        CacheHelper.scanPageSize
-      );
-      cursor = nextCursor;
-      keys.push(...batch);
-    } while (cursor !== "0");
+    try {
+      // Deleting keys while a scan is in progress can skip keys in some
+      // Redis-compatible implementations, so repeat until a full pass finds
+      // nothing to delete. With real Redis the final pass is a single
+      // confirming sweep.
+      for (let pass = 0; pass < CacheHelper.maxClearPasses; pass++) {
+        let deleted = 0;
+        let cursor = "0";
 
-    for (let i = 0; i < keys.length; i += CacheHelper.scanPageSize) {
-      await Redis.defaultClient.unlink(
-        ...keys.slice(i, i + CacheHelper.scanPageSize)
+        do {
+          const [nextCursor, keys] = await Redis.defaultClient.scan(
+            cursor,
+            "MATCH",
+            match,
+            "COUNT",
+            CacheHelper.scanPageSize
+          );
+          cursor = nextCursor;
+
+          if (keys.length > 0) {
+            await Redis.defaultClient.unlink(...keys);
+            deleted += keys.length;
+          }
+        } while (cursor !== "0");
+
+        if (deleted === 0) {
+          break;
+        }
+      }
+    } catch (err) {
+      Logger.error(
+        `Could not clear cached data for prefix ${prefix}`,
+        toError(err)
       );
     }
   }
 
   // Number of keys to request per SCAN iteration when clearing by prefix
-  private static scanPageSize = 1000;
+  private static readonly scanPageSize = 1000;
+
+  // Upper bound on full scan+delete passes in clearData, guarding against a
+  // pathological loop if matching keys are written as fast as they are cleared
+  private static readonly maxClearPasses = 10;
 }
