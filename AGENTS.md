@@ -95,6 +95,13 @@ This keeps overrides scoped to the affected dependents and avoids forcing unrela
 - Use styled-components for component styling.
 - Ensure high accessibility (a11y) standards using ARIA roles and semantic HTML.
 
+### Spacing
+
+- Use the spacing scale from `@shared/styles` for margin, padding, and gap values: `${spacing.md}px` in styled-components template literals, or token props on layout primitives (`<Flex gap="sm" p="md">`, `<HStack spacing="lg">`).
+- Scale: xxs=2, xs=4, sm=6, md=8, lg=12, xl=16, xxl=24, xxxl=32.
+- Values off the scale stay as raw px — do not round to the nearest token.
+- Text-relative spacing (`em`) in editor styles stays in `em`.
+
 ## MobX State Management
 
 - Use MobX stores for global state management.
