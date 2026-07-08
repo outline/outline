@@ -140,44 +140,6 @@ export default function tableRowMenuItems(ctx: SelectionContext): MenuItem[] {
       ],
     },
     {
-      name: "separator",
-    },
-    {
-      name: "toggleHeaderRow",
-      label: t("Toggle header"),
-      icon: <TableHeaderRowIcon />,
-      visible: index === 0,
-    },
-    {
-      name: "addRowBefore",
-      label: t("Insert before"),
-      icon: <InsertAboveIcon />,
-      attrs: { index },
-    },
-    {
-      name: "addRowAfter",
-      label: t("Insert after"),
-      icon: <InsertBelowIcon />,
-      attrs: { index },
-    },
-    {
-      name: "moveTableRow",
-      label: t("Move up"),
-      icon: <ArrowUpIcon />,
-      attrs: { from: index, to: index - 1 },
-      visible: index > 0,
-    },
-    {
-      name: "moveTableRow",
-      label: t("Move down"),
-      icon: <ArrowDownIcon />,
-      attrs: { from: index, to: index + 1 },
-      visible: index < tableMap.map.height - 1,
-    },
-    {
-      name: "separator",
-    },
-    {
       label: t("Background"),
       icon:
         rowColors.size > 1 ? (
@@ -234,6 +196,41 @@ export default function tableRowMenuItems(ctx: SelectionContext): MenuItem[] {
           ],
         },
       ],
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "toggleHeaderRow",
+      label: t("Toggle header"),
+      icon: <TableHeaderRowIcon />,
+      visible: index === 0,
+    },
+    {
+      name: "addRowBefore",
+      label: t("Insert before"),
+      icon: <InsertAboveIcon />,
+      attrs: { index },
+    },
+    {
+      name: "addRowAfter",
+      label: t("Insert after"),
+      icon: <InsertBelowIcon />,
+      attrs: { index },
+    },
+    {
+      name: "moveTableRow",
+      label: t("Move up"),
+      icon: <ArrowUpIcon />,
+      attrs: { from: index, to: index - 1 },
+      visible: index > 0,
+    },
+    {
+      name: "moveTableRow",
+      label: t("Move down"),
+      icon: <ArrowDownIcon />,
+      attrs: { from: index, to: index + 1 },
+      visible: index < tableMap.map.height - 1,
     },
     {
       name: "separator",
