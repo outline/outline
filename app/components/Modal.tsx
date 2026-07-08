@@ -5,7 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths, s } from "@shared/styles";
+import { depths, s, space, spacing } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";
@@ -159,7 +159,7 @@ const Mobile = styled.div`
 
 const MobileContent = styled(Scrollable)`
   width: 100%;
-  padding: 8vh 12px;
+  padding: 8vh ${spacing.lg}px;
 
   ${breakpoint("tablet")`
     padding: 13vh 2rem 2rem;
@@ -167,7 +167,7 @@ const MobileContent = styled(Scrollable)`
 `;
 
 const DesktopContent = styled(Scrollable)`
-  padding: 8px 24px 24px;
+  padding: ${space("md", "xxl", "xxl")};
 `;
 
 const Centered = styled(Flex)`
@@ -182,7 +182,7 @@ const Close = styled(NudeButton)`
   display: block;
   top: 0;
   right: 0;
-  margin: 12px;
+  margin: ${spacing.lg}px;
   opacity: 0.75;
   color: ${s("text")};
   width: auto;
@@ -223,7 +223,7 @@ const Header = styled(Flex)`
   align-items: center;
   justify-content: space-between;
   font-weight: 600;
-  padding: 24px 24px 12px;
+  padding: ${space("xxl", "xxl", "lg")};
   flex-shrink: 0;
 `;
 
