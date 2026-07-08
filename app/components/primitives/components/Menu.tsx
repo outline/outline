@@ -3,7 +3,7 @@ import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths, s } from "@shared/styles";
+import { depths, s, space, spacing } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import { fadeAndScaleIn } from "~/styles/animations";
 
@@ -32,7 +32,7 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
   margin: 0;
   border: 0;
   border-radius: 4px;
-  padding: 12px;
+  padding: ${spacing.lg}px;
 
   ${(props) => props.disabled && "pointer-events: none;"}
 
@@ -85,7 +85,7 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
   `}
 
   ${breakpoint("tablet")`
-    padding: 4px 12px;
+    padding: ${space("xs", "lg")};
     font-size: 14px;
   `}
 `;
@@ -110,11 +110,11 @@ export const MenuSubTrigger = styled.div<BaseMenuItemProps>`
   ${BaseMenuItemCSS}
   // Reserve space for the absolutely-positioned disclosure arrow so long
   // labels truncate before it rather than overlapping.
-  padding-inline-end: 32px;
+  padding-inline-end: ${spacing.xxxl}px;
 `;
 
 export const MenuSeparator = styled.hr`
-  margin: 6px 0;
+  margin: ${space("sm", 0)};
 `;
 
 export const MenuLabel = styled.div`
@@ -122,7 +122,7 @@ export const MenuLabel = styled.div`
   flex-grow: 1;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: ${spacing.xs}px;
 `;
 
 export const MenuHeader = styled.h3`
@@ -131,7 +131,7 @@ export const MenuHeader = styled.h3`
   text-transform: uppercase;
   color: ${s("sidebarText")};
   letter-spacing: 0.04em;
-  margin: 1em 12px 0.5em;
+  margin: 1em ${spacing.lg}px 0.5em;
   user-select: none;
 `;
 
@@ -149,8 +149,8 @@ export const MenuDisclosure = styled(ExpandedIcon)`
 export const MenuIconWrapper = styled.span`
   width: 24px;
   height: 24px;
-  margin-inline-end: 6px;
-  margin-inline-start: -4px;
+  margin-inline-end: ${spacing.sm}px;
+  margin-inline-start: -${spacing.xs}px;
   color: ${s("textSecondary")};
   flex-shrink: 0;
   display: flex;
@@ -161,7 +161,7 @@ export const MenuIconWrapper = styled.span`
 export const SelectedIconWrapper = styled.span`
   width: 24px;
   height: 24px;
-  margin-inline-end: -6px;
+  margin-inline-end: -${spacing.sm}px;
   color: ${s("textSecondary")};
   flex-shrink: 0;
   display: flex;
@@ -172,11 +172,11 @@ export const SelectedIconWrapper = styled.span`
 export const MenuShortcut = styled.span`
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: ${spacing.xxs}px;
   font-size: 12px;
   color: currentColor;
   opacity: 0.5;
-  margin-inline-start: 16px;
+  margin-inline-start: ${spacing.xl}px;
   flex-shrink: 0;
 `;
 
@@ -194,7 +194,7 @@ export const MenuContent = styled(Scrollable)<{
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
   border-radius: 6px;
-  padding: 6px;
+  padding: ${spacing.sm}px;
   outline: none;
 
   transform-origin: ${({ transformOriginVar }) => `var(${transformOriginVar})`};
