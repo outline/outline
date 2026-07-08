@@ -1,5 +1,5 @@
 import passport from "@outlinewiki/koa-passport";
-import type { Context } from "koa";
+import type { Request } from "koa";
 import Router from "koa-router";
 import { capitalize } from "es-toolkit/compat";
 import type { Profile } from "passport";
@@ -55,7 +55,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         scope: scopes,
       },
       async function (
-        context: Context,
+        req: Request,
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number; scope?: string },
@@ -66,6 +66,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           result?: AuthenticationResult
         ) => void
       ) {
+        const context = req.ctx;
         try {
           // "domain" is the Google Workspaces domain
           const domain = profile._json.hd;

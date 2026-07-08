@@ -1,3 +1,4 @@
+import { subYears } from "date-fns";
 import type { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -158,6 +159,11 @@ const DocumentMeta: React.FC<Props> = ({
           <Modified highlight>{t("Never viewed")}</Modified>
         </Viewed>
       );
+    }
+
+    // Hide the section entirely once the last view is over a year old.
+    if (new Date(lastViewedAt) < subYears(new Date(), 1)) {
+      return null;
     }
 
     return (

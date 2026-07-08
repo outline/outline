@@ -30,6 +30,12 @@ export function getRedirectUrl(authUrl: string) {
   return url.toString();
 }
 
+/**
+ * Checks whether a link is a hash link to an anchor on the current page.
+ *
+ * @param href the link to check.
+ * @returns true if the link points to a hash on the current page.
+ */
 export function isHash(href: string) {
   if (href[0] === "#") {
     return true;

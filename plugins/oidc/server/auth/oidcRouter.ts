@@ -1,7 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import { addMonths, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import type { Context } from "koa";
+import type { Context, Request } from "koa";
 import type Router from "koa-router";
 import { get } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
@@ -73,7 +73,7 @@ export function createOIDCRouter(
       // Any claim supplied in response to the userinfo request will be
       // available on the `profile` parameter
       async function (
-        context: Context,
+        req: Request,
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number; id_token: string; scope?: string },
@@ -84,6 +84,7 @@ export function createOIDCRouter(
           result?: AuthenticationResult
         ) => void
       ) {
+        const context = req.ctx;
         try {
           // Some providers require a POST request to the userinfo endpoint, add them as exceptions here.
           const usePostMethod = [

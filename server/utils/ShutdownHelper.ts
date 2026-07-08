@@ -2,6 +2,9 @@ import { groupBy } from "es-toolkit/compat";
 import Logger from "@server/logging/Logger";
 import { sleep } from "@shared/utils/timers";
 
+/**
+ * The order in which shutdown handlers are executed relative to each other.
+ */
 export enum ShutdownOrder {
   first = 0,
   normal = 1,
@@ -14,6 +17,10 @@ type Handler = {
   callback: () => Promise<unknown>;
 };
 
+/**
+ * Coordinates graceful shutdown of the process by executing registered
+ * handlers in order.
+ */
 export default class ShutdownHelper {
   /**
    * The amount of time to wait for connections to close before forcefully

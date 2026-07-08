@@ -18,6 +18,9 @@ export interface ConvertResult {
   icon?: string;
 }
 
+/**
+ * Converts incoming files of various formats to structured documents.
+ */
 @trace()
 export class DocumentConverter {
   /**

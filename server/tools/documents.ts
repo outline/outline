@@ -537,7 +537,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description:
           'Updates an existing document by its ID. Only the fields provided will be updated. IMPORTANT: When editing an existing document\'s content, always prefer editMode "patch" with findText and text — this surgically replaces only the matched section and preserves all rich formatting (highlights, comments, table widths, etc) in the rest of the document. Using "replace" will overwrite the entire document and lose any formatting that cannot be represented in markdown.',
         annotations: {
-          idempotentHint: true,
+          idempotentHint: false,
           readOnlyHint: false,
         },
         inputSchema: {
@@ -617,10 +617,23 @@ export function documentTools(server: McpServer, scopes: string[]) {
               await authorizeDocumentPublish(ctx, document, input.collectionId);
             }
 
+            const { revisionCount } = document;
+
             updated = await documentUpdater(ctx, {
               document,
               ...input,
             });
+
+            // Every save increments revisionCount, so an unchanged count means
+            // nothing was persisted. Fail loud rather than return a success
+            // the caller would read as a completed write — the request either
+            // carried no recognized fields or values identical to the current
+            // document.
+            if (updated.revisionCount === revisionCount) {
+              return error(
+                "The update resulted in no changes to the document. Ensure at least one field is provided and differs from the current document."
+              );
+            }
           }
 
           const [{ text, ...attributes }, breadcrumb] = await Promise.all([

@@ -234,12 +234,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
                   ),
                   title: doc.title,
                   subtitle: doc.collectionId ? (
-                    <DocumentBreadcrumb
-                      document={doc}
-                      onlyText
-                      reverse
-                      maxDepth={2}
-                    />
+                    <DocumentBreadcrumb document={doc} onlyText maxDepth={2} />
                   ) : undefined,
                   section: DocumentsSection,
                   appendSpace: true,

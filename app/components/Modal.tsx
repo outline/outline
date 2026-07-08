@@ -103,7 +103,7 @@ const Modal: React.FC<Props> = ({
                     <Text size="large">{resolvedTitle}</Text>
                   </Dialog.Title>
                   <Tooltip content={t("Close")} shortcut="Esc">
-                    <NudeButton onClick={onClose}>
+                    <NudeButton onClick={onClose} aria-label={t("Close")}>
                       <CloseIcon />
                     </NudeButton>
                   </Tooltip>

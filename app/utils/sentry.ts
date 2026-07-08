@@ -13,6 +13,11 @@ import {
   UpdateRequiredError,
 } from "./errors";
 
+/**
+ * Initializes the Sentry error tracking client for the browser.
+ *
+ * @param history the router history used for navigation instrumentation.
+ */
 export function initSentry(history: History) {
   const ignoredErrorTypes = [
     AuthorizationError,

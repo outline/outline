@@ -126,6 +126,23 @@ describe("DocumentHelper", () => {
       expect(result).not.toMatch(/<script[^>]*nonce="/);
     });
 
+    it("should render math and include the KaTeX stylesheet", async () => {
+      const document = await buildDocument({
+        text: "Inline $E=mc^2$ and block:\n\n$$\n\\frac{1}{2}\n$$\n",
+      });
+      const result = await DocumentHelper.toHTML(document);
+      expect(result).toContain('class="katex"');
+      expect(result).toContain("katex.min.css");
+    });
+
+    it("should not include the KaTeX stylesheet without math", async () => {
+      const document = await buildDocument({
+        text: "This is a test paragraph",
+      });
+      const result = await DocumentHelper.toHTML(document);
+      expect(result).not.toContain("katex.min.css");
+    });
+
     it("should render diff classes when changes provided", async () => {
       const doc1 = await buildDocument({ text: "Hello world" });
       const doc2 = await buildDocument({ text: "Hello modified world" });

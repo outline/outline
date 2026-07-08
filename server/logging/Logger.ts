@@ -225,14 +225,14 @@ class Logger {
       const output: Record<string, any> = { ...input };
 
       for (const key of Object.keys(output)) {
-        if (isObject(output[key])) {
+        if (sensitiveFields.includes(key)) {
+          output[key] = "[Filtered]";
+        } else if (isObject(output[key])) {
           output[key] = this.sanitize(output[key], level + 1);
         } else if (isArray(output[key])) {
           output[key] = output[key].map((value: unknown) =>
             this.sanitize(value, level + 1)
           );
-        } else if (sensitiveFields.includes(key)) {
-          output[key] = "[Filtered]";
         } else {
           output[key] = this.sanitize(output[key], level + 1);
         }

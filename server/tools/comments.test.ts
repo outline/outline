@@ -261,6 +261,65 @@ describe("update_comment", () => {
     expect(data.id).toEqual(comment.id);
     expect(data.anchorText).toEqual(anchorText);
   });
+
+  it("errors when no fields are provided to update", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_comment", {
+      id: comment.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "The update resulted in no changes to the comment"
+    );
+  });
+
+  it("errors when text is identical to the current comment", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const first = await callMcpTool(server, accessToken, "update_comment", {
+      id: comment.id,
+      text: "Same text",
+    });
+    expect(first?.result?.isError).toBeUndefined();
+
+    const second = await callMcpTool(server, accessToken, "update_comment", {
+      id: comment.id,
+      text: "Same text",
+    });
+
+    expect(second?.result?.isError).toBe(true);
+    expect(second?.result?.content?.[0]?.text).toContain(
+      "The update resulted in no changes to the comment"
+    );
+  });
 });
 
 describe("delete_comment", () => {

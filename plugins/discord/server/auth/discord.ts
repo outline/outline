@@ -5,7 +5,7 @@ import type {
   RESTGetAPICurrentUserResult,
   RESTGetCurrentUserGuildMemberResult,
 } from "discord-api-types/v10";
-import type { Context } from "koa";
+import type { Request } from "koa";
 import Router from "koa-router";
 
 import { Strategy } from "passport-oauth2";
@@ -59,7 +59,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
         pkce: false,
       },
       async function (
-        context: Context,
+        req: Request,
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number },
@@ -70,6 +70,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
           result?: AuthenticationResult
         ) => void
       ) {
+        const context = req.ctx;
         try {
           const team = await getTeamFromContext(context);
           const client = getClientFromOAuthState(context);

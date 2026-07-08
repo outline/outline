@@ -2,6 +2,12 @@ import path from "node:path";
 import swc from "unplugin-swc";
 import { defineConfig } from "vitest/config";
 
+// SSL_CERT_FILE is OpenSSL's CA bundle variable and may be present in the
+// host environment running the tests; clear it so it is not resolved into
+// Outline's SSL_CERT setting. The config is evaluated before the global setup
+// and before workers spawn, so this covers every test process.
+delete process.env.SSL_CERT_FILE;
+
 const aliases = {
   "@server": path.resolve(__dirname, "./server"),
   "@shared": path.resolve(__dirname, "./shared"),

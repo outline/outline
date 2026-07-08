@@ -7,6 +7,11 @@ import { InvalidRequestError } from "@server/errors";
 
 const UrlIdLength = 10;
 
+/**
+ * Generates a random identifier for use in model URLs.
+ *
+ * @returns a random URL identifier.
+ */
 export const generateUrlId = () => randomString(UrlIdLength);
 
 // Paths probed by vulnerability scanners.
@@ -88,11 +93,28 @@ function isAllowedPrivateIP(ip: string): boolean {
 }
 
 /**
+ * Builds the error thrown when a URL resolves to a disallowed private IP.
+ *
+ * @param ip - the private IP address that was rejected.
+ * @param hostname - the hostname that resolved to the IP, if any.
+ * @returns the error to throw.
+ */
+function privateIpError(ip: string, hostname?: string) {
+  return InvalidRequestError(
+    `DNS lookup ${ip}${hostname ? ` (${hostname})` : ""} is not allowed.` +
+      (env.isCloudHosted
+        ? ""
+        : " To allow this request, add the IP address or CIDR range to the ALLOWED_PRIVATE_IP_ADDRESSES environment variable.")
+  );
+}
+
+/**
  * Validates that a URL does not resolve to a private or internal IP address.
  * Respects the ALLOWED_PRIVATE_IP_ADDRESSES environment variable.
  *
  * @param url - the URL to validate.
- * @throws InternalError if the URL resolves to a private IP that is not allowed.
+ * @throws InvalidRequestError if the URL resolves to a private IP that is not
+ * allowed, or if the hostname cannot be resolved.
  */
 export async function validateUrlNotPrivate(url: string) {
   // URL.hostname keeps the square brackets around IPv6 literals (e.g.
@@ -101,23 +123,24 @@ export async function validateUrlNotPrivate(url: string) {
 
   if (net.isIP(hostname)) {
     if (isPrivateIP(hostname) && !isAllowedPrivateIP(hostname)) {
-      throw InvalidRequestError(
-        `DNS lookup ${hostname} is not allowed.` +
-          (env.isCloudHosted
-            ? ""
-            : " To allow this request, add the IP address or CIDR range to the ALLOWED_PRIVATE_IP_ADDRESSES environment variable.")
-      );
+      throw privateIpError(hostname);
     }
     return;
   }
 
-  const { address } = await dns.promises.lookup(hostname);
-  if (isPrivateIP(address) && !isAllowedPrivateIP(address)) {
-    throw InvalidRequestError(
-      `DNS lookup ${address} (${hostname}) is not allowed.` +
-        (env.isCloudHosted
-          ? ""
-          : " To allow this request, add the IP address or CIDR range to the ALLOWED_PRIVATE_IP_ADDRESSES environment variable.")
-    );
+  // Resolve every record for the hostname — with multiple A/AAAA records the
+  // connection may use any of them, so a single private record hidden among
+  // public ones must still fail validation.
+  let addresses: dns.LookupAddress[];
+  try {
+    addresses = await dns.promises.lookup(hostname, { all: true });
+  } catch {
+    throw InvalidRequestError(`DNS lookup for ${hostname} failed.`);
+  }
+
+  for (const { address } of addresses) {
+    if (isPrivateIP(address) && !isAllowedPrivateIP(address)) {
+      throw privateIpError(address, hostname);
+    }
   }
 }
