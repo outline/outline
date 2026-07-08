@@ -3,7 +3,7 @@ import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
-import { ellipsis, hover, s } from "@shared/styles";
+import { ellipsis, hover, s, spacing } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
@@ -104,8 +104,8 @@ function SidebarLink(
   const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
   const style = React.useMemo(
     () => ({
-      paddingInlineStart: `${(depth || 0) * 16 + (icon ? -8 : 12)}px`,
-      paddingInlineEnd: unreadBadge ? "32px" : undefined,
+      paddingInlineStart: `${(depth || 0) * spacing.xl + (icon ? -spacing.md : spacing.lg)}px`,
+      paddingInlineEnd: unreadBadge ? `${spacing.xxxl}px` : undefined,
     }),
     [depth, icon, unreadBadge]
   );
@@ -219,7 +219,7 @@ function SidebarLink(
 
 // accounts for whitespace around icon
 export const IconWrapper = styled.span`
-  margin-inline-start: -4px;
+  margin-inline-start: -${spacing.xs}px;
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
@@ -240,7 +240,7 @@ const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
   position: absolute;
   top: 3px;
   inset-inline-end: 4px;
-  gap: 4px;
+  gap: ${spacing.xs}px;
   color: ${s("textTertiary")};
   transition: opacity 50ms;
   height: 24px;
@@ -265,8 +265,8 @@ const HiddenDisclosure = styled(Disclosure)`
   position: inherit;
   inset-inline-start: initial;
   display: none;
-  margin-inline-start: -2px;
-  margin-inline-end: 6px;
+  margin-inline-start: -${spacing.xxs}px;
+  margin-inline-end: ${spacing.sm}px;
 `;
 
 const Link = styled(NavLink)<{
@@ -290,7 +290,7 @@ const Link = styled(NavLink)<{
   position: relative;
   text-overflow: ellipsis;
   font-weight: 475;
-  padding: ${isMobile() ? 12 : 6}px 16px;
+  padding: ${isMobile() ? spacing.lg : spacing.sm}px ${spacing.xl}px;
   border-radius: 4px;
   min-height: 30px;
   user-select: none;
@@ -344,7 +344,7 @@ const Link = styled(NavLink)<{
 
   ${breakpoint("tablet")`
     padding-block: 3px;
-    padding-inline: 12px 8px;
+    padding-inline: ${spacing.lg}px ${spacing.md}px;
     font-size: 14px;
   `}
 
@@ -382,7 +382,7 @@ const Label = styled.div<{ $ellipsis: boolean }>`
   position: relative;
   width: 100%;
   line-height: 24px;
-  margin-inline-start: 2px;
+  margin-inline-start: ${spacing.xxs}px;
   min-width: 0;
   text-align: start;
 
