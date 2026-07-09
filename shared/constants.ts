@@ -53,6 +53,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.EmailDisplay]: EmailDisplay.Members,
   [TeamPreference.MCP]: true,
   [TeamPreference.DisabledEmbeds]: [],
+  [TeamPreference.DocumentDatabases]: false,
 };
 
 export const UserPreferenceDefaults: UserPreferences = {

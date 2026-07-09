@@ -42,17 +42,30 @@ import {
   DefaultScope,
   AfterSave,
 } from "sequelize-typescript";
+import { v4 as uuidv4 } from "uuid";
 import isUUID from "validator/lib/isUUID";
 import type {
   CollectionSort,
+  DataView,
+  FilterCondition,
+  FilterGroup,
   ImportableIntegrationService,
   ProsemirrorData,
+  Property,
   SourceMetadata,
   NavigationNode,
 } from "@shared/types";
-import { CollectionPermission, NavigationNodeType } from "@shared/types";
+import {
+  CollectionPermission,
+  DataViewType,
+  NavigationNodeType,
+} from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
+import {
+  validateDataSchema,
+  validateDataViews,
+} from "@shared/utils/properties";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
 import { parser } from "@server/editor";
@@ -294,6 +307,42 @@ class Collection extends ParanoidModel<
     },
   })
   sort: CollectionSort;
+
+  /**
+   * The typed property definitions that turn this collection into a database.
+   * Null when the collection is not a database.
+   */
+  @AllowNull
+  @Default(null)
+  @Column({
+    type: DataType.JSONB,
+    validate: {
+      isDataSchema(value: Property[] | null) {
+        if (value !== null) {
+          validateDataSchema(value);
+        }
+      },
+    },
+  })
+  dataSchema: Property[] | null;
+
+  /**
+   * Saved database views over the documents in this collection. Views store
+   * no data — they are queries (filter + sorts) plus display configuration.
+   */
+  @AllowNull
+  @Default(null)
+  @Column({
+    type: DataType.JSONB,
+    validate: {
+      isDataViews(value: DataView[] | null) {
+        if (value !== null) {
+          validateDataViews(value);
+        }
+      },
+    },
+  })
+  views: DataView[] | null;
 
   /** Whether the collection is archived, and if so when. */
   @IsDate
@@ -758,6 +807,129 @@ class Collection extends ParanoidModel<
   }
 
   /**
+   * Convenience method to return if this collection is a database, which is
+   * the case when a data schema has been defined.
+   *
+   * @returns boolean
+   */
+  get isDatabase() {
+    return !isNil(this.dataSchema);
+  }
+
+  /**
+   * Returns the property definition with the given id from the data schema.
+   *
+   * @param propertyId The property id to look up
+   * @returns The property definition if found, else undefined.
+   */
+  getProperty = (propertyId: string): Property | undefined =>
+    this.dataSchema?.find((property) => property.id === propertyId);
+
+  /**
+   * Inserts or replaces a property definition in the data schema, keyed by
+   * the property id.
+   *
+   * @param property The property definition to insert or replace
+   * @returns The current data schema.
+   */
+  upsertProperty = (property: Property): Property[] => {
+    const schema = [...(this.dataSchema ?? [])];
+    const index = schema.findIndex((item) => item.id === property.id);
+    if (index === -1) {
+      schema.push(property);
+    } else {
+      schema[index] = property;
+    }
+    this.dataSchema = schema;
+    return schema;
+  };
+
+  /**
+   * Removes a property definition from the data schema along with any
+   * references to it in saved views.
+   *
+   * @param propertyId The id of the property to remove
+   * @returns The current data schema.
+   */
+  removeProperty = (propertyId: string): Property[] => {
+    this.dataSchema = (this.dataSchema ?? []).filter(
+      (property) => property.id !== propertyId
+    );
+
+    if (this.views) {
+      this.views = this.views.map((view) => ({
+        ...view,
+        columns: view.columns.filter(
+          (column) => column.propertyId !== propertyId
+        ),
+        sorts: view.sorts.filter((sort) => sort.propertyId !== propertyId),
+        filter: view.filter
+          ? removeFilterReferences(view.filter, propertyId)
+          : undefined,
+        groupBy: view.groupBy === propertyId ? undefined : view.groupBy,
+      }));
+    }
+
+    return this.dataSchema;
+  };
+
+  /**
+   * Returns the saved database view with the given id.
+   *
+   * @param viewId The view id to look up
+   * @returns The view if found, else undefined.
+   */
+  getView = (viewId: string): DataView | undefined =>
+    this.views?.find((view) => view.id === viewId);
+
+  /**
+   * Inserts or replaces a saved database view, keyed by the view id.
+   *
+   * @param view The view to insert or replace
+   * @returns The current views.
+   */
+  upsertView = (view: DataView): DataView[] => {
+    const views = [...(this.views ?? [])];
+    const index = views.findIndex((item) => item.id === view.id);
+    if (index === -1) {
+      views.push(view);
+    } else {
+      views[index] = view;
+    }
+    this.views = views;
+    return views;
+  };
+
+  /**
+   * Removes a saved database view.
+   *
+   * @param viewId The id of the view to remove
+   * @returns The current views.
+   */
+  removeView = (viewId: string): DataView[] => {
+    this.views = (this.views ?? []).filter((view) => view.id !== viewId);
+    return this.views;
+  };
+
+  /**
+   * Returns the default view for this database — the first saved view, or a
+   * transient table view over all schema properties when none are saved.
+   *
+   * @returns The default view.
+   */
+  defaultView = (): DataView =>
+    this.views?.[0] ?? {
+      id: uuidv4(),
+      name: "Table",
+      type: DataViewType.Table,
+      columns: (this.dataSchema ?? []).map((property) => ({
+        propertyId: property.id,
+        visible: true,
+      })),
+      sorts: [],
+    };
+
+  /**
    * Returns the collection's documentStructure via cache, populating it on
    * miss. The cache is kept fresh by this model's save hooks, so callers
    * should prefer this over re-fetching the column directly.
@@ -1126,6 +1298,25 @@ class Collection extends ParanoidModel<
     color: isNil(this.color) ? undefined : this.color,
     children: sortNavigationNodes(this.documentStructure ?? [], this.sort),
   });
+}
+
+function removeFilterReferences(
+  filter: FilterGroup,
+  propertyId: string
+): FilterGroup | undefined {
+  const conditions = filter.conditions
+    .map((condition) => {
+      if ("conjunction" in condition) {
+        return removeFilterReferences(condition, propertyId);
+      }
+      return condition.propertyId === propertyId ? undefined : condition;
+    })
+    .filter(
+      (condition): condition is FilterCondition | FilterGroup =>
+        condition !== undefined
+    );
+
+  return conditions.length > 0 ? { ...filter, conditions } : undefined;
 }
 
 export default Collection;

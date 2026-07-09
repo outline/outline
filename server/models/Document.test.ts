@@ -1,5 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { EmptyResultError, Op } from "sequelize";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import {
+  CollectionPermission,
+  DocumentPermission,
+  PropertyType,
+} from "@shared/types";
 import slugify from "@shared/utils/slugify";
 import { parser } from "@server/editor";
 import Document from "@server/models/Document";
@@ -633,5 +638,118 @@ describe("commentCount", () => {
     await thread.save();
 
     expect(await document.commentCount).toEqual(1);
+  });
+});
+
+describe("properties", () => {
+  const buildDatabaseCollection = async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const statusId = randomUUID();
+    const priorityId = randomUUID();
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      dataSchema: [
+        {
+          id: statusId,
+          name: "Status",
+          type: PropertyType.Select,
+          options: [
+            { id: "todo", name: "To do" },
+            { id: "done", name: "Done" },
+          ],
+        },
+        {
+          id: priorityId,
+          name: "Priority",
+          type: PropertyType.Number,
+        },
+      ],
+    });
+    return { team, user, collection, statusId, priorityId };
+  };
+
+  test("should coerce values against the collection schema on save", async () => {
+    const { team, user, collection, statusId, priorityId } =
+      await buildDatabaseCollection();
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    document.properties = {
+      [statusId]: "todo",
+      [priorityId]: "5",
+      [randomUUID()]: "unknown key",
+    };
+    await document.save();
+
+    expect(document.properties).toEqual({
+      [statusId]: "todo",
+      [priorityId]: 5,
+    });
+  });
+
+  test("should drop values that do not match the property type", async () => {
+    const { team, user, collection, statusId, priorityId } =
+      await buildDatabaseCollection();
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    document.properties = {
+      [statusId]: "not-an-option",
+      [priorityId]: "not a number",
+    };
+    await document.save();
+
+    expect(document.properties).toEqual({});
+  });
+
+  test("should drop all properties when the collection has no schema", async () => {
+    const document = await buildDocument();
+    document.properties = { [randomUUID()]: "value" };
+    await document.save();
+
+    expect(document.properties).toEqual({});
+  });
+
+  test("should get and set values through the accessors", async () => {
+    const { team, user, collection, statusId } =
+      await buildDatabaseCollection();
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    expect(document.getProperty(statusId)).toBeUndefined();
+    document.setProperty(statusId, "done");
+    expect(document.getProperty(statusId)).toEqual("done");
+
+    await document.save();
+    expect(document.getProperty(statusId)).toEqual("done");
+  });
+
+  test("should unset a value when set to null", async () => {
+    const { team, user, collection, statusId } =
+      await buildDatabaseCollection();
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    document.setProperty(statusId, "done");
+    await document.save();
+    expect(document.properties).toEqual({ [statusId]: "done" });
+
+    document.setProperty(statusId, null);
+    await document.save();
+    expect(document.properties).toEqual({});
   });
 });

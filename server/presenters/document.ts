@@ -104,6 +104,7 @@ async function presentDocument(
 
   if (!options.isPublic) {
     res.tasks = document.tasks;
+    res.properties = document.properties ?? {};
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.collectionId = document.collectionId;
     res.parentDocumentId = document.parentDocumentId;

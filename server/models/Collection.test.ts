@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
+import type { DataView, Property } from "@shared/types";
+import { DataViewType, FilterOperator, PropertyType } from "@shared/types";
 import slugify from "@shared/utils/slugify";
 import {
   buildUser,
@@ -644,5 +646,182 @@ describe("#archiveWithCtx", () => {
 
     await otherDocument.reload();
     expect(otherDocument.archivedAt).toBeNull();
+  });
+});
+
+describe("dataSchema", () => {
+  const buildSchema = () => [
+    {
+      id: randomUUID(),
+      name: "Status",
+      type: PropertyType.Select,
+      options: [
+        { id: "todo", name: "To do" },
+        { id: "done", name: "Done" },
+      ],
+    },
+    {
+      id: randomUUID(),
+      name: "Priority",
+      type: PropertyType.Number,
+    },
+  ];
+
+  test("should not be a database by default", async () => {
+    const collection = await buildCollection();
+    expect(collection.isDatabase).toBe(false);
+    expect(collection.dataSchema).toBe(null);
+    expect(collection.views).toBe(null);
+  });
+
+  test("should be a database when a schema is set", async () => {
+    const collection = await buildCollection({ dataSchema: buildSchema() });
+    expect(collection.isDatabase).toBe(true);
+  });
+
+  test("should reject an invalid schema", async () => {
+    const collection = await buildCollection();
+    const missingFields = [{ id: "nope" }] as unknown as Property[];
+    await expect(
+      collection.update({ dataSchema: missingFields })
+    ).rejects.toThrow();
+
+    const unknownType = [
+      { id: randomUUID(), name: "A", type: "formula" },
+    ] as unknown as Property[];
+    await expect(
+      collection.update({ dataSchema: unknownType })
+    ).rejects.toThrow();
+  });
+
+  test("should get, upsert and remove properties", async () => {
+    const schema = buildSchema();
+    const collection = await buildCollection({ dataSchema: schema });
+
+    expect(collection.getProperty(schema[0].id)?.name).toBe("Status");
+    expect(collection.getProperty(randomUUID())).toBeUndefined();
+
+    const updated = { ...schema[0], name: "State" };
+    collection.upsertProperty(updated);
+    expect(collection.getProperty(schema[0].id)?.name).toBe("State");
+    expect(collection.dataSchema?.length).toBe(2);
+
+    const added = {
+      id: randomUUID(),
+      name: "Due",
+      type: PropertyType.Date,
+    };
+    collection.upsertProperty(added);
+    expect(collection.dataSchema?.length).toBe(3);
+
+    collection.removeProperty(added.id);
+    expect(collection.dataSchema?.length).toBe(2);
+
+    await collection.save();
+    expect(collection.getProperty(schema[0].id)?.name).toBe("State");
+  });
+
+  test("should remove view references when removing a property", async () => {
+    const schema = buildSchema();
+    const view = {
+      id: randomUUID(),
+      name: "Table",
+      type: DataViewType.Table,
+      columns: schema.map((property) => ({
+        propertyId: property.id,
+        visible: true,
+      })),
+      sorts: [{ propertyId: schema[0].id, direction: "asc" as const }],
+      filter: {
+        conjunction: "and" as const,
+        conditions: [
+          {
+            propertyId: schema[0].id,
+            operator: FilterOperator.Is,
+            value: "todo",
+          },
+          {
+            propertyId: schema[1].id,
+            operator: FilterOperator.Gt,
+            value: 1,
+          },
+        ],
+      },
+      groupBy: schema[0].id,
+    };
+    const collection = await buildCollection({
+      dataSchema: schema,
+      views: [view],
+    });
+
+    collection.removeProperty(schema[0].id);
+    await collection.save();
+
+    const saved = collection.getView(view.id);
+    expect(saved?.columns).toEqual([
+      { propertyId: schema[1].id, visible: true },
+    ]);
+    expect(saved?.sorts).toEqual([]);
+    expect(saved?.filter).toEqual({
+      conjunction: "and",
+      conditions: [
+        { propertyId: schema[1].id, operator: FilterOperator.Gt, value: 1 },
+      ],
+    });
+    expect(saved?.groupBy).toBeUndefined();
+  });
+});
+
+describe("views", () => {
+  test("should reject invalid views", async () => {
+    const collection = await buildCollection();
+    const invalid = [{ id: "x" }] as unknown as DataView[];
+    await expect(collection.update({ views: invalid })).rejects.toThrow();
+  });
+
+  test("should get, upsert and remove views", async () => {
+    const collection = await buildCollection({ dataSchema: [] });
+    const view = {
+      id: randomUUID(),
+      name: "All",
+      type: DataViewType.Table,
+      columns: [],
+      sorts: [],
+    };
+
+    collection.upsertView(view);
+    expect(collection.getView(view.id)?.name).toBe("All");
+
+    collection.upsertView({ ...view, name: "Everything" });
+    expect(collection.views?.length).toBe(1);
+    expect(collection.getView(view.id)?.name).toBe("Everything");
+
+    collection.removeView(view.id);
+    expect(collection.views).toEqual([]);
+  });
+
+  test("defaultView should return the first saved view", async () => {
+    const view = {
+      id: randomUUID(),
+      name: "Mine",
+      type: DataViewType.Table,
+      columns: [],
+      sorts: [],
+    };
+    const collection = await buildCollection({
+      dataSchema: [],
+      views: [view],
+    });
+    expect(collection.defaultView().id).toBe(view.id);
+  });
+
+  test("defaultView should generate a table over all properties when none saved", async () => {
+    const propertyId = randomUUID();
+    const collection = await buildCollection({
+      dataSchema: [{ id: propertyId, name: "Status", type: PropertyType.Text }],
+    });
+    const view = collection.defaultView();
+    expect(view.type).toBe(DataViewType.Table);
+    expect(view.columns).toEqual([{ propertyId, visible: true }]);
   });
 });

@@ -52,6 +52,8 @@ export default async function presentCollection(
 
   if (!options.isPublic) {
     res.index = collection.index;
+    res.dataSchema = collection.dataSchema;
+    res.views = collection.views;
     res.sharing = collection.sharing;
     res.commenting = collection.commenting;
     res.templateManagement = collection.templateManagement;

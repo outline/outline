@@ -52,6 +52,17 @@ export const CommentValidation = {
   maxLength: 1000,
 };
 
+export const DataViewValidation = {
+  /** The maximum number of saved views on a collection */
+  maxViews: 25,
+
+  /** The maximum length of a view name */
+  maxNameLength: 255,
+
+  /** The maximum nesting depth of filter groups */
+  maxFilterDepth: 5,
+};
+
 export const DocumentValidation = {
   /** The maximum length of the document title */
   maxTitleLength: 100,
@@ -79,6 +90,20 @@ export const GroupValidation = {
 export const ImportValidation = {
   /** The maximum length of the import name */
   maxNameLength: 100,
+};
+
+export const PropertyValidation = {
+  /** The maximum number of properties in a collection's data schema */
+  maxProperties: 100,
+
+  /** The maximum length of a property or option name */
+  maxNameLength: 255,
+
+  /** The maximum number of options for a select or multiSelect property */
+  maxOptions: 100,
+
+  /** The maximum length of a text or url property value */
+  maxValueLength: 4096,
 };
 
 export const OAuthClientValidation = {

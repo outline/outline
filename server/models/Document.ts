@@ -46,12 +46,15 @@ import { MaxLength } from "class-validator";
 import isUUID from "validator/lib/isUUID";
 import type {
   DocumentPermission,
+  DocumentProperties,
   ImportableIntegrationService,
   NavigationNode,
   ProsemirrorData,
+  PropertyValue,
   SourceMetadata,
 } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { coerceDocumentProperties } from "@shared/utils/properties";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
@@ -425,6 +428,15 @@ class Document extends ArchivableModel<
   @Column(DataType.ARRAY(DataType.UUID))
   collaboratorIds: string[];
 
+  /**
+   * Typed property values keyed by property id, validated against the
+   * collection's data schema when the collection is a database.
+   */
+  @Default({})
+  @AllowNull(false)
+  @Column(DataType.JSONB)
+  properties: DocumentProperties;
+
   // getters
 
   /**
@@ -526,6 +538,27 @@ class Document extends ArchivableModel<
       await collection.addDocumentToStructure(model, 0, { transaction });
       model.collection = collection;
     });
+  }
+
+  @BeforeSave
+  static async validateProperties(
+    model: Document,
+    { transaction }: SaveOptions<InferAttributes<Document>>
+  ) {
+    if (!model.changed("properties")) {
+      return;
+    }
+
+    const collection =
+      model.collection ??
+      (model.collectionId
+        ? await Collection.findByPk(model.collectionId, { transaction })
+        : null);
+
+    model.properties = coerceDocumentProperties(
+      model.properties,
+      collection?.dataSchema
+    );
   }
 
   @BeforeValidate
@@ -990,6 +1023,32 @@ class Document extends ArchivableModel<
     this.title = revision.title;
     this.icon = revision.icon;
     this.color = revision.color;
+  };
+
+  /**
+   * Returns the value of the given property on this document.
+   *
+   * @param propertyId The id of the property in the collection's data schema
+   * @returns The property value if set, else undefined.
+   */
+  public getProperty = (propertyId: string): PropertyValue | undefined =>
+    this.properties?.[propertyId];
+
+  /**
+   * Sets the value of the given property on this document. Values are
+   * validated against the collection's data schema on save; passing null
+   * unsets the property.
+   *
+   * @param propertyId The id of the property in the collection's data schema
+   * @param value The property value to set
+   * @returns The current document properties
+   */
+  public setProperty = (propertyId: string, value: PropertyValue) => {
+    this.properties = {
+      ...this.properties,
+      [propertyId]: value,
+    };
+    return this.properties;
   };
 
   /**

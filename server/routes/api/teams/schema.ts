@@ -75,6 +75,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         mcp: z.boolean().optional(),
         /** List of disabled embed provider titles. */
         disabledEmbeds: z.array(z.string()).optional(),
+        /** Whether document databases (typed properties and database views) are enabled. */
+        documentDatabases: z.boolean().optional(),
       })
       .optional(),
   }),

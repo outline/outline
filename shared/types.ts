@@ -455,6 +455,8 @@ export enum TeamPreference {
   MCP = "mcp",
   /** List of disabled embed provider titles. */
   DisabledEmbeds = "disabledEmbeds",
+  /** Whether document databases (typed properties and database views) are enabled. */
+  DocumentDatabases = "documentDatabases",
 }
 
 export type TeamPreferences = {
@@ -472,6 +474,7 @@ export type TeamPreferences = {
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];
+  [TeamPreference.DocumentDatabases]?: boolean;
 };
 
 export enum NavigationNodeType {
@@ -500,6 +503,132 @@ export type CollectionSort = {
   field: string;
   direction: "asc" | "desc";
 };
+
+export enum PropertyType {
+  Text = "text",
+  Number = "number",
+  Select = "select",
+  MultiSelect = "multiSelect",
+  Checkbox = "checkbox",
+  Date = "date",
+  Url = "url",
+  Person = "person",
+}
+
+/** A selectable option for select and multiSelect properties. */
+export interface PropertyOption {
+  /** Stable identifier — values reference this id, so renaming an option is safe. */
+  id: string;
+  /** Display name of the option. */
+  name: string;
+  /** Display color of the option, in hex format. */
+  color?: string;
+}
+
+/** Additional per-type configuration for a property. */
+export interface PropertyConfig {
+  /** Whether date properties include a time component. */
+  dateIncludesTime?: boolean;
+}
+
+/** Definition of a typed document property, stored in a collection's data schema. */
+export interface Property {
+  /** Stable identifier (UUID) — values are keyed by this id, so renaming a property is safe. */
+  id: string;
+  /** Display name of the property. */
+  name: string;
+  /** The type of values this property holds. */
+  type: PropertyType;
+  /** Options for select and multiSelect properties. */
+  options?: PropertyOption[];
+  /** Additional per-type configuration. */
+  config?: PropertyConfig;
+}
+
+/**
+ * A single property value on a document. The runtime type depends on the
+ * property definition: text/select/date/url/person store strings, number
+ * stores a number, checkbox a boolean, and multiSelect an array of option ids.
+ */
+export type PropertyValue = string | number | boolean | string[] | null;
+
+/** Property values on a document, keyed by property id. */
+export type DocumentProperties = Record<string, PropertyValue>;
+
+export enum FilterOperator {
+  Is = "is",
+  IsNot = "isNot",
+  Contains = "contains",
+  DoesNotContain = "doesNotContain",
+  IsEmpty = "isEmpty",
+  IsNotEmpty = "isNotEmpty",
+  Gt = "gt",
+  Gte = "gte",
+  Lt = "lt",
+  Lte = "lte",
+  Before = "before",
+  After = "after",
+  On = "on",
+}
+
+/** A single filter condition on a property within a database view. */
+export interface FilterCondition {
+  /** The property id the condition applies to. */
+  propertyId: string;
+  /** The comparison operator. */
+  operator: FilterOperator;
+  /** The comparison value; unused for isEmpty / isNotEmpty. */
+  value?: PropertyValue;
+}
+
+/** A group of filter conditions combined with a conjunction; groups may nest. */
+export interface FilterGroup {
+  conjunction: "and" | "or";
+  conditions: (FilterCondition | FilterGroup)[];
+}
+
+export enum DataViewType {
+  Table = "table",
+}
+
+/** Display configuration for one property column in a database view. */
+export interface DataViewColumn {
+  /** The property id this column renders. */
+  propertyId: string;
+  /** Column width in pixels. */
+  width?: number;
+  /** Whether the column is visible. */
+  visible: boolean;
+}
+
+/** A sort level in a database view. */
+export interface DataViewSort {
+  /** The property id to sort by. */
+  propertyId: string;
+  direction: "asc" | "desc";
+}
+
+/**
+ * A saved database view over the documents in a collection — a query
+ * (filter + sorts) plus display configuration. Views store no data; they
+ * read live from document properties.
+ */
+export interface DataView {
+  /** Stable identifier (UUID). */
+  id: string;
+  /** Display name of the view. */
+  name: string;
+  /** The view layout type. */
+  type: DataViewType;
+  /** Columns to display, in order. */
+  columns: DataViewColumn[];
+  /** Sort levels, applied in order. */
+  sorts: DataViewSort[];
+  /** Optional filter applied to rows. */
+  filter?: FilterGroup;
+  /** Property id to group rows by (board/grouped views, later phase). */
+  groupBy?: string;
+}
 
 export enum SubscriptionType {
   Document = "documents.update",
