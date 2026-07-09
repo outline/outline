@@ -8,7 +8,12 @@ import {
   buildOAuthAuthentication,
   buildGroup,
 } from "@server/test/factories";
-import { Document, GroupMembership, UserMembership } from "@server/models";
+import {
+  Attachment,
+  Document,
+  GroupMembership,
+  UserMembership,
+} from "@server/models";
 import { getTestServer } from "@server/test/support";
 import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
 
@@ -257,6 +262,40 @@ describe("create_document", () => {
     expect(data.document.collectionId).toEqual(collection.id);
     expect(data.document.id).toBeDefined();
     expect(data.document.url).toMatch(/^https?:\/\//);
+  });
+
+  it("creates from HTML and preserves images as attachments", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const image =
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "HTML Document",
+      text: `<p>Hello <strong>HTML</strong></p><img alt="chart" src="data:image/png;base64,${image}" width="1" height="1">`,
+      format: "html",
+      collectionId: collection.id,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    const attachmentCount = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType: "image/png",
+      },
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    expect(data.document.title).toEqual("HTML Document");
+    expect(data.document.collectionId).toEqual(collection.id);
+    expect(res?.result?.content?.[1]?.text).toContain("Hello **HTML**");
+    expect(res?.result?.content?.[1]?.text).toContain(
+      "/api/attachments.redirect?id="
+    );
+    expect(attachmentCount).toEqual(1);
   });
 
   it("creates nested under parent document", async () => {
