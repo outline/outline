@@ -18,6 +18,7 @@ import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { documentPath, matchDocumentHistory } from "~/utils/routeHelpers";
+import { isTruthyQueryValue } from "~/utils/urls";
 import Sidebar from "../SidebarLayout";
 import useMobile from "~/hooks/useMobile";
 import usePersistedState from "~/hooks/usePersistedState";
@@ -59,7 +60,7 @@ function History() {
 
   const searchParams = new URLSearchParams(history.location.search);
   const [showChanges, setShowChanges] = React.useState(
-    searchParams.get("changes") === "true" || defaultShowChanges
+    isTruthyQueryValue(searchParams.get("changes")) || defaultShowChanges
   );
 
   const updateLocation = React.useCallback(

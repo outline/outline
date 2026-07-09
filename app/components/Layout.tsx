@@ -30,8 +30,9 @@ const Layout = React.forwardRef(function Layout_(
   ref: React.RefObject<HTMLDivElement>
 ) {
   const { ui } = useStores();
+  const showSidebar = !!sidebar && !ui.sidebarHidden;
   const sidebarCollapsed =
-    !sidebar || (ui.sidebarIsClosed && sidebarCanCollapse);
+    !showSidebar || (ui.sidebarIsClosed && sidebarCanCollapse);
   const sidebarRight = useRightSidebarContent();
 
   return (
@@ -45,7 +46,7 @@ const Layout = React.forwardRef(function Layout_(
       {ui.progressBarVisible && <LoadingIndicatorBar />}
 
       <Container auto>
-        {sidebar}
+        {showSidebar && sidebar}
 
         <SkipNavContent />
         <Content
@@ -54,7 +55,7 @@ const Layout = React.forwardRef(function Layout_(
           role="main"
           $isResizing={ui.sidebarIsResizing}
           $sidebarCollapsed={sidebarCollapsed}
-          $hasSidebar={!!sidebar}
+          $hasSidebar={showSidebar}
           style={
             sidebarCollapsed
               ? undefined

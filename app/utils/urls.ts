@@ -118,6 +118,21 @@ export function isLoopbackUri(uri: string | undefined): boolean {
 }
 
 /**
+ * Returns whether a query string value represents a truthy value, such as
+ * "true", "1", "on", "yes", or a bare flag with no value.
+ *
+ * @param value The query string value to check, typically from URLSearchParams.
+ * @returns true if the value is considered truthy.
+ */
+export function isTruthyQueryValue(value: string | null | undefined): boolean {
+  if (value === null || value === undefined) {
+    return false;
+  }
+  const normalized = value.toLowerCase();
+  return normalized === "" || ["true", "1", "on", "yes"].includes(normalized);
+}
+
+/**
  * Check if the path is a valid path for redirect after login.
  *
  * @param input A path potentially including query string

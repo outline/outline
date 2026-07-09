@@ -7,13 +7,11 @@ import Document from "~/models/Document";
 import type Model from "~/models/base/Model";
 import Collection from "~/models/Collection";
 import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
+import { isTruthyQueryValue } from "~/utils/urls";
 import { startViewTransition } from "~/utils/viewTransition";
 import type RootStore from "./RootStore";
 
 const UI_STORE = "UI_STORE";
-
-// Whether the window launched with sidebar force hidden
-let sidebarHidden = window.location.search.includes("sidebarHidden=true");
 
 export enum Theme {
   Light = "light",
@@ -79,6 +77,13 @@ class UiStore {
 
   @observable
   sidebarCollapsed = false;
+
+  // Whether the sidebar is hidden entirely, e.g. when embedding a document via
+  // the ?sidebarHidden=1 query parameter. Not persisted across reloads.
+  @observable
+  sidebarHidden = isTruthyQueryValue(
+    new URLSearchParams(window.location.search).get("sidebarHidden")
+  );
 
   @observable
   rightSidebar: "comments" | "history" | null = null;
@@ -371,7 +376,7 @@ class UiStore {
 
   @action
   expandSidebar = () => {
-    sidebarHidden = false;
+    this.sidebarHidden = false;
     this.set({ sidebarCollapsed: false });
   };
 
@@ -386,7 +391,7 @@ class UiStore {
 
   @action
   toggleCollapsedSidebar = () => {
-    sidebarHidden = false;
+    this.sidebarHidden = false;
     this.set({ sidebarCollapsed: !this.sidebarCollapsed });
   };
 
@@ -450,7 +455,7 @@ class UiStore {
    */
   @computed
   get sidebarIsClosed() {
-    return this.sidebarCollapsed || sidebarHidden;
+    return this.sidebarCollapsed || this.sidebarHidden;
   }
 
   @computed

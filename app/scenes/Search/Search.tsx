@@ -30,7 +30,7 @@ import useStores from "~/hooks/useStores";
 import type { PaginationParams, SearchResult } from "~/types";
 import { preventDefault } from "~/utils/events";
 import { searchPath } from "~/utils/routeHelpers";
-import { decodeURIComponentSafe } from "~/utils/urls";
+import { decodeURIComponentSafe, isTruthyQueryValue } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
 import { DocumentFilter } from "./components/DocumentFilter";
@@ -71,7 +71,7 @@ function Search() {
   const statusFilter = params.getAll("statusFilter")?.length
     ? (params.getAll("statusFilter") as TStatusFilter[])
     : [TStatusFilter.Published, TStatusFilter.Draft];
-  const titleFilter = params.get("titleFilter") === "true";
+  const titleFilter = isTruthyQueryValue(params.get("titleFilter"));
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
 
