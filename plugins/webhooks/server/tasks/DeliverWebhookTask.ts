@@ -1,5 +1,5 @@
 import { FetchError } from "node-fetch";
-import { Op } from "sequelize";
+import { Op, QueryTypes } from "sequelize";
 import { toError } from "@shared/utils/error";
 import { colorPalette } from "@shared/utils/collections";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
@@ -877,26 +877,31 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     const failureRateThreshold = env.WEBHOOK_FAILURE_RATE_THRESHOLD;
     const timeWindowStart = new Date(Date.now() - timeWindowSeconds * 1000);
 
-    // Count deliveries within the time window
-    const [totalDeliveries, failedDeliveries] = await Promise.all([
-      WebhookDelivery.count({
-        where: {
-          webhookSubscriptionId: subscription.id,
-          createdAt: {
-            [Op.gte]: timeWindowStart,
-          },
+    // Count deliveries within the time window without loading the rows.
+    const [counts] = await WebhookDelivery.sequelize!.query<{
+      total: string;
+      failed: string;
+    }>(
+      `
+        SELECT
+          COUNT(*) as total,
+          COUNT(CASE WHEN status = :statusFailed THEN 1 END) as failed
+        FROM webhook_deliveries
+        WHERE "webhookSubscriptionId" = :subscriptionId
+        AND "createdAt" >= :timeWindowStart
+      `,
+      {
+        type: QueryTypes.SELECT,
+        replacements: {
+          subscriptionId: subscription.id,
+          timeWindowStart,
+          statusFailed: "failed",
         },
-      }),
-      WebhookDelivery.count({
-        where: {
-          webhookSubscriptionId: subscription.id,
-          status: "failed",
-          createdAt: {
-            [Op.gte]: timeWindowStart,
-          },
-        },
-      }),
-    ]);
+      }
+    );
+
+    const totalDeliveries = parseInt(counts.total, 10);
+    const failedDeliveries = parseInt(counts.failed, 10);
 
     // If there are no deliveries in the time window, don't disable
     if (totalDeliveries === 0) {
