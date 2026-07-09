@@ -1,12 +1,14 @@
-import { DocumentIcon, ShapesIcon } from "outline-icons";
+import { DatabaseIcon, DocumentIcon, ShapesIcon } from "outline-icons";
 import { cloneDeep } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import type { MenuItem } from "@shared/editor/types";
+import { TeamPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import getMenuItems from "../menus/block";
@@ -103,6 +105,44 @@ function useTemplateMenuItem(): MenuItem | undefined {
   }, [user, templatesStore.orderedData, collectionId, editor, t]);
 }
 
+/**
+ * Hook that returns a database menu item with children for inserting an
+ * inline database block, or undefined when the feature is disabled or no
+ * database collections exist.
+ */
+function useDatabaseMenuItem(): MenuItem | undefined {
+  const { t } = useTranslation();
+  const team = useCurrentTeam({ rejectOnEmpty: false });
+  const { collections } = useStores();
+
+  return useMemo(() => {
+    if (!team?.getPreference(TeamPreference.DocumentDatabases)) {
+      return undefined;
+    }
+
+    const databases = collections.orderedData.filter(
+      (collection) => collection.isDatabase
+    );
+    if (databases.length === 0) {
+      return undefined;
+    }
+
+    return {
+      name: "noop",
+      title: t("Database"),
+      icon: <DatabaseIcon />,
+      keywords: "database table rows",
+      children: databases.map((collection) => ({
+        name: "database",
+        title: collection.name,
+        icon: <DatabaseIcon />,
+        keywords: collection.name,
+        attrs: { collectionId: collection.id },
+      })),
+    } satisfies MenuItem;
+  }, [team, collections.orderedData, t]);
+}
+
 type Props = Omit<SuggestionsMenuProps, "renderMenuItem" | "items"> &
   Required<Pick<SuggestionsMenuProps, "embeds">>;
 
@@ -110,16 +150,20 @@ function BlockMenu(props: Props) {
   const { t } = useTranslation();
   const { elementRef } = useEditor();
   const templateMenuItem = useTemplateMenuItem();
+  const databaseMenuItem = useDatabaseMenuItem();
 
   const items = useMemo(() => {
     const baseItems = getMenuItems(t, elementRef);
+    const extraItems = [templateMenuItem, databaseMenuItem].filter(
+      (item): item is MenuItem => item !== undefined
+    );
 
-    if (!templateMenuItem) {
+    if (extraItems.length === 0) {
       return baseItems;
     }
 
-    return [...baseItems, { name: "separator" } as MenuItem, templateMenuItem];
-  }, [t, elementRef, templateMenuItem]);
+    return [...baseItems, { name: "separator" } as MenuItem, ...extraItems];
+  }, [t, elementRef, templateMenuItem, databaseMenuItem]);
 
   const renderMenuItem = useCallback(
     (item, _index, options) => (
