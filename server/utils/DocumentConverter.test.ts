@@ -270,6 +270,47 @@ Content`;
         // Should not convert invalid YAML
         expect(result.text).not.toContain("```yaml");
       });
+
+      it("should extract frontmatter when requested", async () => {
+        const md = `---
+Status: In progress
+Priority: 2
+Tags: [a, b]
+---
+
+# My Title
+
+Content after frontmatter`;
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown",
+          { extractFrontmatter: true }
+        );
+
+        expect(result.frontmatter).toEqual({
+          Status: "In progress",
+          Priority: 2,
+          Tags: ["a", "b"],
+        });
+        // Frontmatter should be stripped, not converted to a codeblock
+        expect(result.text).not.toContain("```yaml");
+        expect(result.text).not.toContain("Status");
+        expect(result.text).toContain("Content after frontmatter");
+        expect(result.title).toEqual("My Title");
+      });
+
+      it("should return undefined frontmatter when extracting and none present", async () => {
+        const result = await DocumentConverter.convert(
+          "# Title\n\nContent",
+          "test.md",
+          "text/markdown",
+          { extractFrontmatter: true }
+        );
+
+        expect(result.frontmatter).toBeUndefined();
+        expect(result.text).toContain("Content");
+      });
     });
   });
 

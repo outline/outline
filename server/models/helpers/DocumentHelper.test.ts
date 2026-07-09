@@ -1,7 +1,11 @@
+import { randomUUID } from "node:crypto";
 import Revision from "@server/models/Revision";
 import { buildCollection, buildDocument } from "@server/test/factories";
+import { parseFrontmatter } from "@server/utils/frontmatter";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import type { Property } from "@shared/types";
+import { PropertyType } from "@shared/types";
 import { DocumentHelper } from "./DocumentHelper";
 
 describe("DocumentHelper", () => {
@@ -1129,6 +1133,140 @@ Install instructions here.`,
         DocumentHelper.getAnchorContent(document, "h-missing")
       ).toBeUndefined();
       expect(DocumentHelper.getAnchorContent(document, "")).toBeUndefined();
+    });
+  });
+});
+
+describe("frontmatter properties", () => {
+  const statusId = randomUUID();
+  const tagsId = randomUUID();
+  const priorityId = randomUUID();
+  const dueId = randomUUID();
+
+  const schema: Property[] = [
+    {
+      id: statusId,
+      name: "Status",
+      type: PropertyType.Select,
+      options: [
+        { id: "opt-todo", name: "To do" },
+        { id: "opt-done", name: "Done" },
+      ],
+    },
+    {
+      id: tagsId,
+      name: "Tags",
+      type: PropertyType.MultiSelect,
+      options: [
+        { id: "opt-a", name: "Alpha" },
+        { id: "opt-b", name: "Beta" },
+      ],
+    },
+    { id: priorityId, name: "Priority", type: PropertyType.Number },
+    { id: dueId, name: "Due", type: PropertyType.Date },
+  ];
+
+  describe("propertiesToFrontmatter", () => {
+    it("should serialize values using display and option names", async () => {
+      const document = await buildDocument();
+      document.properties = {
+        [statusId]: "opt-todo",
+        [tagsId]: ["opt-a", "opt-b"],
+        [priorityId]: 2,
+      };
+
+      const block = DocumentHelper.propertiesToFrontmatter(document, schema);
+      expect(block).toContain("Status: To do");
+      expect(block).toContain("- Alpha");
+      expect(block).toContain("- Beta");
+      expect(block).toContain("Priority: 2");
+      expect(block.startsWith("---\n")).toBe(true);
+    });
+
+    it("should return an empty string when there are no values", async () => {
+      const document = await buildDocument();
+      document.properties = {};
+      expect(DocumentHelper.propertiesToFrontmatter(document, schema)).toEqual(
+        ""
+      );
+    });
+  });
+
+  describe("frontmatterToProperties", () => {
+    it("should map names and option names back to ids", () => {
+      const properties = DocumentHelper.frontmatterToProperties(
+        {
+          Status: "To do",
+          Tags: ["Alpha", "opt-b"],
+          priority: "3",
+          Unknown: "dropped",
+        },
+        schema
+      );
+      expect(properties).toEqual({
+        [statusId]: "opt-todo",
+        [tagsId]: ["opt-a", "opt-b"],
+        [priorityId]: 3,
+      });
+    });
+
+    it("should convert YAML dates to ISO strings", () => {
+      const properties = DocumentHelper.frontmatterToProperties(
+        { Due: new Date("2026-08-01T00:00:00.000Z") },
+        schema
+      );
+      expect(properties).toEqual({ [dueId]: "2026-08-01T00:00:00.000Z" });
+    });
+
+    it("should round-trip with propertiesToFrontmatter", async () => {
+      const document = await buildDocument();
+      document.properties = {
+        [statusId]: "opt-done",
+        [tagsId]: ["opt-a"],
+        [priorityId]: 5,
+      };
+
+      const block = DocumentHelper.propertiesToFrontmatter(document, schema);
+      const { data } = parseFrontmatter(`${block}# Title`);
+      const properties = DocumentHelper.frontmatterToProperties(
+        data ?? {},
+        schema
+      );
+      expect(properties).toEqual(document.properties);
+    });
+  });
+
+  describe("toMarkdown includeProperties", () => {
+    it("should prepend frontmatter for documents in a database collection", async () => {
+      const collection = await buildCollection({ dataSchema: schema });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: collection.teamId,
+        title: "My doc",
+        text: "Hello",
+      });
+      document.setProperty(statusId, "opt-todo");
+      await document.save();
+
+      const markdown = await DocumentHelper.toMarkdown(document, {
+        includeProperties: true,
+      });
+      expect(markdown.startsWith("---\nStatus: To do\n---\n")).toBe(true);
+      expect(markdown).toContain("# My doc");
+    });
+
+    it("should not prepend frontmatter when not requested", async () => {
+      const collection = await buildCollection({ dataSchema: schema });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: collection.teamId,
+        title: "My doc",
+      });
+      document.setProperty(statusId, "opt-todo");
+      await document.save();
+
+      const markdown = await DocumentHelper.toMarkdown(document);
+      expect(markdown.startsWith("# My doc")).toBe(true);
     });
   });
 });

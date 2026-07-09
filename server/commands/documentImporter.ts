@@ -16,6 +16,8 @@ type Props = {
   fileName: string;
   content: Buffer | string;
   ctx: APIContext;
+  /** Whether to extract YAML frontmatter instead of converting it to a codeblock. */
+  extractFrontmatter?: boolean;
 };
 
 type ImportResult = {
@@ -23,6 +25,8 @@ type ImportResult = {
   text: string;
   title: string;
   state: Buffer;
+  /** The parsed YAML frontmatter, when extraction was requested and present. */
+  frontmatter?: Record<string, unknown>;
 };
 
 /**
@@ -51,6 +55,7 @@ async function documentImporter({
   content,
   user,
   ctx,
+  extractFrontmatter,
 }: Props): Promise<ImportResult> {
   // Find valid extensions and remove them from the title
   const extensions = [
@@ -70,7 +75,10 @@ async function documentImporter({
     doc,
     title: extractedTitle,
     icon,
-  } = await DocumentConverter.convert(content, fileName, mimeType);
+    frontmatter,
+  } = await DocumentConverter.convert(content, fileName, mimeType, {
+    extractFrontmatter,
+  });
 
   // Use extracted title or fall back to filename
   let title = extractedTitle || fileTitle;
@@ -93,7 +101,7 @@ async function documentImporter({
   title = truncate(title, { length: DocumentValidation.maxTitleLength });
   const state = convertToState(processedDoc.toJSON() as ProsemirrorData, title);
 
-  return { text, state, title, icon };
+  return { text, state, title, icon, frontmatter };
 }
 
 export default traceFunction({

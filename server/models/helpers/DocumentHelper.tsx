@@ -10,10 +10,17 @@ import {
 import headingToSlug from "@shared/editor/lib/headingToSlug";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import type { NavigationNode, ProsemirrorData } from "@shared/types";
-import { IconType, TextEditMode } from "@shared/types";
+import type {
+  DocumentProperties,
+  NavigationNode,
+  ProsemirrorData,
+  Property,
+} from "@shared/types";
+import { IconType, PropertyType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import { coerceDocumentProperties } from "@shared/utils/properties";
 import { parser, serializer, schema } from "@server/editor";
+import { serializeFrontmatter } from "@server/utils/frontmatter";
 import { ValidationError } from "@server/errors";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
@@ -273,6 +280,8 @@ export class DocumentHelper {
     options?: {
       /** Whether to include the document title (default: true) */
       includeTitle?: boolean;
+      /** Whether to include property values as YAML frontmatter (default: false) */
+      includeProperties?: boolean;
       /** Whether to sign attachment urls, and if so for how many seconds is the signature valid */
       signedUrls?: number;
       /** The team context */
@@ -295,6 +304,21 @@ export class DocumentHelper {
       .replace(/(^|\n)\\(\n|$)/g, "\n\n")
       .trim();
 
+    let frontmatter = "";
+    if (options?.includeProperties && document instanceof Document) {
+      const collection =
+        document.collection ??
+        (document.collectionId
+          ? await Collection.findByPk(document.collectionId)
+          : null);
+      if (collection?.dataSchema) {
+        frontmatter = DocumentHelper.propertiesToFrontmatter(
+          document,
+          collection.dataSchema
+        );
+      }
+    }
+
     if (
       (document instanceof Collection ||
         document instanceof Document ||
@@ -305,10 +329,119 @@ export class DocumentHelper {
       const name =
         document instanceof Collection ? document.name : document.title;
       const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${name}`;
-      return `# ${title}\n\n${text}`;
+      return `${frontmatter}# ${title}\n\n${text}`;
     }
 
-    return text;
+    return `${frontmatter}${text}`;
+  }
+
+  /**
+   * Serializes a document's property values to a YAML frontmatter block using
+   * the display names from the collection's data schema. Select and
+   * multiSelect values are written as option names for portability.
+   *
+   * @param document The document whose properties to serialize
+   * @param schema The collection's data schema
+   * @returns The frontmatter block, or an empty string when there are no values.
+   */
+  static propertiesToFrontmatter(
+    document: Document,
+    schema: Property[]
+  ): string {
+    const data: Record<string, unknown> = {};
+
+    for (const property of schema) {
+      const value = document.getProperty(property.id);
+      if (value === undefined || value === null) {
+        continue;
+      }
+
+      switch (property.type) {
+        case PropertyType.Select: {
+          const option = property.options?.find((item) => item.id === value);
+          data[property.name] = option?.name ?? value;
+          break;
+        }
+        case PropertyType.MultiSelect: {
+          if (Array.isArray(value)) {
+            data[property.name] = value.map(
+              (id) =>
+                property.options?.find((item) => item.id === id)?.name ?? id
+            );
+          }
+          break;
+        }
+        default:
+          data[property.name] = value;
+      }
+    }
+
+    return serializeFrontmatter(data);
+  }
+
+  /**
+   * Maps parsed frontmatter data to document property values keyed by
+   * property id. Keys are matched to schema properties by name
+   * (case-insensitive) or id; select and multiSelect values are matched to
+   * options by name or id. Values that cannot be mapped are dropped.
+   *
+   * @param data The parsed frontmatter data
+   * @param schema The collection's data schema
+   * @returns The document property values keyed by property id.
+   */
+  static frontmatterToProperties(
+    data: Record<string, unknown>,
+    schema: Property[]
+  ): DocumentProperties {
+    const values: Record<string, unknown> = {};
+
+    for (const [key, rawValue] of Object.entries(data)) {
+      const normalizedKey = key.trim().toLowerCase();
+      const property = schema.find(
+        (item) =>
+          item.id === key || item.name.trim().toLowerCase() === normalizedKey
+      );
+      if (!property) {
+        continue;
+      }
+      values[property.id] = this.mapFrontmatterValue(property, rawValue);
+    }
+
+    return coerceDocumentProperties(values, schema);
+  }
+
+  /**
+   * Maps a raw frontmatter value to the stored representation for a property,
+   * converting YAML dates to ISO strings and option names to option ids.
+   */
+  private static mapFrontmatterValue(
+    property: Property,
+    value: unknown
+  ): unknown {
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+
+    const optionId = (input: unknown) => {
+      if (typeof input !== "string") {
+        return input;
+      }
+      const normalized = input.trim().toLowerCase();
+      const option = property.options?.find(
+        (item) =>
+          item.id === input || item.name.trim().toLowerCase() === normalized
+      );
+      return option?.id ?? input;
+    };
+
+    switch (property.type) {
+      case PropertyType.Select:
+        return optionId(value);
+      case PropertyType.MultiSelect:
+        return Array.isArray(value) ? value.map(optionId) : optionId(value);
+      default:
+        return value;
+    }
   }
 
   /**

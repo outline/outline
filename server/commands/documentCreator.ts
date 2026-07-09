@@ -22,6 +22,7 @@ type Props = Optional<
     | "importId"
     | "apiImportId"
     | "fullWidth"
+    | "properties"
     | "sourceMetadata"
     | "editorVersion"
     | "publishedAt"
@@ -161,6 +162,7 @@ export default async function documentCreator(
     content,
     template,
     fullWidth,
+    properties,
     importId,
     apiImportId,
     createdAt,
@@ -229,6 +231,7 @@ export default async function documentCreator(
     apiImportId,
     sourceMetadata,
     fullWidth: fullWidth ?? template?.fullWidth,
+    properties,
     icon: icon ?? template?.icon,
     color: color ?? template?.color,
     title: titleWithReplacements,

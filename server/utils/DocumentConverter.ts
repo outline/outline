@@ -6,6 +6,7 @@ import { schema, serializer } from "@server/editor";
 import { FileImportError } from "@server/errors";
 import { trace, traceFunction } from "@server/logging/tracing";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { parseFrontmatter } from "@server/utils/frontmatter";
 
 export interface ConvertResult {
   /** The document content as markdown text. */
@@ -16,6 +17,21 @@ export interface ConvertResult {
   title: string;
   /** The extracted emoji/icon from start of document. */
   icon?: string;
+  /** The parsed YAML frontmatter, when extraction was requested and present. */
+  frontmatter?: Record<string, unknown>;
+}
+
+export interface ConvertOptions {
+  /**
+   * Whether to extract YAML frontmatter from markdown content instead of
+   * converting it to a YAML codeblock (defaults to false).
+   */
+  extractFrontmatter?: boolean;
+  /**
+   * Whether a leading H1 heading should be lifted out as the document title
+   * and removed from the body (defaults to true).
+   */
+  extractTitle?: boolean;
 }
 
 /**
@@ -40,21 +56,28 @@ export class DocumentConverter {
     content: Buffer | string,
     fileName: string,
     mimeType: string,
-    options: { extractTitle?: boolean } = {}
+    options: ConvertOptions = {}
   ): Promise<ConvertResult> {
     const { extractTitle = true } = options;
     let doc: Node;
+    let frontmatter: Record<string, unknown> | undefined;
 
     // Route to appropriate conversion method
     const html = await this.convertToHtml(content, fileName, mimeType);
     if (html !== undefined) {
       doc = await this.htmlToProsemirror(html);
     } else {
-      const markdown = await this.convertToMarkdown(
-        content,
-        fileName,
-        mimeType
-      );
+      let markdown = await this.convertToMarkdown(content, fileName, mimeType);
+
+      if (options.extractFrontmatter) {
+        const parsed = parseFrontmatter(markdown);
+        frontmatter = parsed.data;
+        markdown = parsed.content;
+      } else {
+        // Process frontmatter and convert it to a YAML codeblock
+        markdown = this.processFrontmatter(markdown);
+      }
+
       doc = ProsemirrorHelper.toProsemirror(markdown);
     }
 
@@ -81,6 +104,7 @@ export class DocumentConverter {
       doc,
       title,
       icon,
+      frontmatter,
     };
   }
 
@@ -264,8 +288,7 @@ export class DocumentConverter {
       }
     }
 
-    // Process frontmatter and convert it to a YAML codeblock
-    return this.processFrontmatter(markdown);
+    return markdown;
   }
 
   /**

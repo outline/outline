@@ -1,10 +1,12 @@
 import { errToString } from "@shared/utils/error";
 import type { SourceMetadata } from "@shared/types";
+import { TeamPreference } from "@shared/types";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import { createContext } from "@server/context";
 import { InvalidRequestError } from "@server/errors";
-import { Document, User } from "@server/models";
+import { Collection, Document, User } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import FileStorage from "@server/storage/files";
 import { sequelize } from "@server/storage/database";
 import type { AuthenticationType } from "@server/types";
@@ -94,13 +96,32 @@ export default class DocumentImportTask extends BaseTask<Props> {
       // Run document conversion and image downloading outside a transaction
       const ctx = createContext({ user, authType, ip });
 
-      const { text, state, title, icon } = await documentImporter({
+      // When importing into a database collection, extract frontmatter into
+      // typed properties instead of converting it to a YAML codeblock.
+      const collection = collectionId
+        ? await Collection.findByPk(collectionId)
+        : null;
+      const team = user.team ?? (await user.$get("team"));
+      const extractFrontmatter =
+        !!collection?.dataSchema &&
+        !!team?.getPreference(TeamPreference.DocumentDatabases);
+
+      const { text, state, title, icon, frontmatter } = await documentImporter({
         user,
         fileName: sourceMetadata.fileName,
         mimeType: sourceMetadata.mimeType,
         content: body,
         ctx,
+        extractFrontmatter,
       });
+
+      const properties =
+        frontmatter && collection?.dataSchema
+          ? DocumentHelper.frontmatterToProperties(
+              frontmatter,
+              collection.dataSchema
+            )
+          : undefined;
 
       const document = await sequelize.transaction(async (transaction) =>
         documentCreator(
@@ -121,6 +142,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
             publish,
             collectionId,
             parentDocumentId,
+            properties,
           }
         )
       );
