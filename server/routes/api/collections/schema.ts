@@ -47,7 +47,7 @@ const PropertySchema = z.object({
     .optional(),
 });
 
-const FilterGroupSchema: z.ZodType<FilterGroup> = z.lazy(() =>
+export const FilterGroupSchema: z.ZodType<FilterGroup> = z.lazy(() =>
   z.object({
     conjunction: z.union([z.literal("and"), z.literal("or")]),
     conditions: z.array(
@@ -60,6 +60,13 @@ const FilterGroupSchema: z.ZodType<FilterGroup> = z.lazy(() =>
         }),
       ])
     ),
+  })
+);
+
+export const PropertySortsSchema = z.array(
+  z.object({
+    propertyId: z.string(),
+    direction: z.union([z.literal("asc"), z.literal("desc")]),
   })
 );
 

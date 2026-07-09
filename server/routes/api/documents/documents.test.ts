@@ -6311,3 +6311,302 @@ describe("#documents.update properties", () => {
     expect(res.status).toEqual(403);
   });
 });
+
+describe("#documents.list property filters", () => {
+  const statusId = "11111111-1111-4111-8111-111111111111";
+  const priorityId = "22222222-2222-4222-8222-222222222222";
+  const tagsId = "33333333-3333-4333-8333-333333333333";
+  const notesId = "44444444-4444-4444-8444-444444444444";
+  const dueId = "55555555-5555-4555-8555-555555555555";
+
+  const buildDatabase = async () => {
+    const team = await buildTeam({
+      preferences: { documentDatabases: true },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      dataSchema: [
+        {
+          id: statusId,
+          name: "Status",
+          type: PropertyType.Select,
+          options: [
+            { id: "todo", name: "To do" },
+            { id: "done", name: "Done" },
+          ],
+        },
+        { id: priorityId, name: "Priority", type: PropertyType.Number },
+        {
+          id: tagsId,
+          name: "Tags",
+          type: PropertyType.MultiSelect,
+          options: [
+            { id: "a", name: "Alpha" },
+            { id: "b", name: "Beta" },
+          ],
+        },
+        { id: notesId, name: "Notes", type: PropertyType.Text },
+        { id: dueId, name: "Due", type: PropertyType.Date },
+      ],
+    });
+
+    const build = (title: string, properties: Record<string, unknown>) =>
+      buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title,
+        properties,
+      });
+
+    // properties are set through the model so the BeforeSave hook validates
+    const first = await build("First", {});
+    first.properties = {
+      [statusId]: "todo",
+      [priorityId]: 1,
+      [tagsId]: ["a"],
+      [notesId]: "alpha note",
+      [dueId]: "2026-01-01",
+    };
+    await first.save();
+
+    const second = await build("Second", {});
+    second.properties = {
+      [statusId]: "done",
+      [priorityId]: 5,
+      [tagsId]: ["a", "b"],
+      [notesId]: "beta note",
+      [dueId]: "2026-06-01",
+    };
+    await second.save();
+
+    const third = await build("Third", {});
+    third.properties = { [priorityId]: 3 };
+    await third.save();
+
+    return { team, user, collection, first, second, third };
+  };
+
+  const list = async (
+    user: User,
+    body: Record<string, unknown>
+  ): Promise<{ status: number; titles: string[] }> => {
+    const res = await server.post("/api/documents.list", user, { body });
+    const json = await res.json();
+    return {
+      status: res.status,
+      titles: (json.data ?? [])
+        .map((doc: { title: string }) => doc.title)
+        .sort(),
+    };
+  };
+
+  it("should filter by select equality", async () => {
+    const { user, collection } = await buildDatabase();
+    const { status, titles } = await list(user, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "and",
+        conditions: [{ propertyId: statusId, operator: "is", value: "todo" }],
+      },
+    });
+    expect(status).toEqual(200);
+    expect(titles).toEqual(["First"]);
+  });
+
+  it("should combine conditions with or", async () => {
+    const { user, collection } = await buildDatabase();
+    const { titles } = await list(user, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "or",
+        conditions: [
+          { propertyId: statusId, operator: "is", value: "done" },
+          { propertyId: priorityId, operator: "is", value: 3 },
+        ],
+      },
+    });
+    expect(titles).toEqual(["Second", "Third"]);
+  });
+
+  it("should filter by numeric range", async () => {
+    const { user, collection } = await buildDatabase();
+    const { titles } = await list(user, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "and",
+        conditions: [{ propertyId: priorityId, operator: "gte", value: 3 }],
+      },
+    });
+    expect(titles).toEqual(["Second", "Third"]);
+  });
+
+  it("should filter multiSelect containment", async () => {
+    const { user, collection } = await buildDatabase();
+    const { titles } = await list(user, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "and",
+        conditions: [{ propertyId: tagsId, operator: "contains", value: "b" }],
+      },
+    });
+    expect(titles).toEqual(["Second"]);
+  });
+
+  it("should filter text contains case-insensitively", async () => {
+    const { user, collection } = await buildDatabase();
+    const { titles } = await list(user, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "and",
+        conditions: [
+          { propertyId: notesId, operator: "contains", value: "ALPHA" },
+        ],
+      },
+    });
+    expect(titles).toEqual(["First"]);
+  });
+
+  it("should filter by empty and not empty", async () => {
+    const { user, collection } = await buildDatabase();
+    const empty = await list(user, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "and",
+        conditions: [{ propertyId: statusId, operator: "isEmpty" }],
+      },
+    });
+    expect(empty.titles).toEqual(["Third"]);
+
+    const notEmpty = await list(user, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "and",
+        conditions: [{ propertyId: statusId, operator: "isNotEmpty" }],
+      },
+    });
+    expect(notEmpty.titles).toEqual(["First", "Second"]);
+  });
+
+  it("should filter by date before and after", async () => {
+    const { user, collection } = await buildDatabase();
+    const before = await list(user, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "and",
+        conditions: [
+          { propertyId: dueId, operator: "before", value: "2026-03-01" },
+        ],
+      },
+    });
+    expect(before.titles).toEqual(["First"]);
+
+    const after = await list(user, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "and",
+        conditions: [
+          { propertyId: dueId, operator: "after", value: "2026-03-01" },
+        ],
+      },
+    });
+    expect(after.titles).toEqual(["Second"]);
+  });
+
+  it("should sort by a number property with empty values last", async () => {
+    const { user, collection } = await buildDatabase();
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        collectionId: collection.id,
+        propertySorts: [{ propertyId: priorityId, direction: "desc" }],
+      },
+    });
+    const json = await res.json();
+    expect(res.status).toEqual(200);
+    expect(json.data.map((doc: { title: string }) => doc.title)).toEqual([
+      "Second",
+      "Third",
+      "First",
+    ]);
+  });
+
+  it("should sort select properties by option name", async () => {
+    const { user, collection } = await buildDatabase();
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        collectionId: collection.id,
+        propertySorts: [{ propertyId: statusId, direction: "asc" }],
+      },
+    });
+    const json = await res.json();
+    // "Done" < "To do" alphabetically; empty status sorts last
+    expect(json.data.map((doc: { title: string }) => doc.title)).toEqual([
+      "Second",
+      "First",
+      "Third",
+    ]);
+  });
+
+  it("should fail without a collectionId", async () => {
+    const { user } = await buildDatabase();
+    const { status } = await list(user, {
+      filter: {
+        conjunction: "and",
+        conditions: [{ propertyId: statusId, operator: "isEmpty" }],
+      },
+    });
+    expect(status).toEqual(400);
+  });
+
+  it("should fail when the feature is disabled", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    const { status } = await list(user, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "and",
+        conditions: [{ propertyId: statusId, operator: "isEmpty" }],
+      },
+    });
+    expect(status).toEqual(400);
+  });
+
+  it("should fail for unknown property ids", async () => {
+    const { user, collection } = await buildDatabase();
+    const { status } = await list(user, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "and",
+        conditions: [
+          {
+            propertyId: "99999999-9999-4999-8999-999999999999",
+            operator: "isEmpty",
+          },
+        ],
+      },
+    });
+    expect(status).toEqual(400);
+  });
+
+  it("should not leak documents from collections without access", async () => {
+    const { collection } = await buildDatabase();
+    const otherTeam = await buildTeam({
+      preferences: { documentDatabases: true },
+    });
+    const outsider = await buildUser({ teamId: otherTeam.id });
+    const { status } = await list(outsider, {
+      collectionId: collection.id,
+      filter: {
+        conjunction: "and",
+        conditions: [{ propertyId: statusId, operator: "isEmpty" }],
+      },
+    });
+    expect(status).toEqual(403);
+  });
+});
