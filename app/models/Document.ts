@@ -3,9 +3,11 @@ import i18n, { t } from "i18next";
 import { capitalize, floor } from "es-toolkit/compat";
 import { action, autorun, comparer, computed, observable, set } from "mobx";
 import type {
+  DocumentProperties,
   JSONObject,
   NavigationNode,
   ProsemirrorData,
+  PropertyValue,
 } from "@shared/types";
 import {
   type ExportContentType,
@@ -160,6 +162,16 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   @observable
   insightsEnabled: boolean;
+
+  /**
+   * Typed property values keyed by property id, when the document belongs to
+   * a database collection.
+   *
+   * Not serialized on plain saves — pass a patch explicitly to
+   * `save({ properties })`, where a null value unsets a property.
+   */
+  @observable.shallow
+  properties: DocumentProperties;
 
   /**
    * A reference to the template that this document was created from.
@@ -457,6 +469,41 @@ export default class Document extends ArchivableModel implements Searchable {
       this.tasks = { total, completed };
     }
   }
+
+  /**
+   * Returns the value of the given property on this document.
+   *
+   * @param propertyId The id of the property in the collection's data schema
+   * @returns The property value if set, else undefined.
+   */
+  propertyValue(propertyId: string): PropertyValue | undefined {
+    return this.properties?.[propertyId];
+  }
+
+  /**
+   * Sets the value of the given property and persists it to the server.
+   * Passing null unsets the property.
+   *
+   * @param propertyId The id of the property in the collection's data schema
+   * @param value The property value to set
+   * @returns A promise that resolves when the document has saved.
+   */
+  @action
+  setProperty = (propertyId: string, value: PropertyValue) => {
+    if (value === null) {
+      const { [propertyId]: _removed, ...rest } = this.properties ?? {};
+      this.properties = rest;
+    } else {
+      this.properties = {
+        ...this.properties,
+        [propertyId]: value,
+      };
+    }
+    return this.store.save({
+      id: this.id,
+      properties: { [propertyId]: value },
+    });
+  };
 
   archive = () => this.store.archive(this);
 

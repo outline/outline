@@ -2,10 +2,12 @@ import invariant from "invariant";
 import { action, comparer, computed, observable, runInAction } from "mobx";
 import {
   type CollectionPermission,
+  type DataView,
   type FileOperationFormat,
   type NavigationNode,
   NavigationNodeType,
   type ProsemirrorData,
+  type Property,
 } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import type CollectionsStore from "~/stores/CollectionsStore";
@@ -79,6 +81,24 @@ export default class Collection extends ParanoidModel {
   @observable
   commenting?: boolean | null;
 
+  /**
+   * The typed property definitions that turn this collection into a database.
+   * Null when the collection is not a database.
+   *
+   * Not serialized on plain saves — pass explicitly to `save({ dataSchema })`
+   * so that regular collection updates don't require the feature flag.
+   */
+  @observable.shallow
+  dataSchema?: Property[] | null;
+
+  /**
+   * Saved database views over the documents in this collection.
+   *
+   * Not serialized on plain saves — pass explicitly to `save({ views })`.
+   */
+  @observable.shallow
+  views?: DataView[] | null;
+
   /** The child documents of the collection. */
   @observable
   documents?: NavigationNode[];
@@ -130,6 +150,27 @@ export default class Collection extends ParanoidModel {
    */
   get isPrivate(): boolean {
     return this.permission === null;
+  }
+
+  /**
+   * Convenience method to return if this collection is a database, which is
+   * the case when a data schema has been defined.
+   *
+   * @returns boolean
+   */
+  @computed
+  get isDatabase(): boolean {
+    return this.dataSchema !== null && this.dataSchema !== undefined;
+  }
+
+  /**
+   * Returns the property definition with the given id from the data schema.
+   *
+   * @param propertyId The property id to look up
+   * @returns The property definition if found, else undefined.
+   */
+  getProperty(propertyId: string): Property | undefined {
+    return this.dataSchema?.find((property) => property.id === propertyId);
   }
 
   @computed
