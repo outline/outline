@@ -1,4 +1,10 @@
-import { CollectionPermission, CollectionStatusFilter } from "@shared/types";
+import { randomUUID } from "node:crypto";
+import {
+  CollectionPermission,
+  CollectionStatusFilter,
+  DataViewType,
+  PropertyType,
+} from "@shared/types";
 import { Document, UserMembership, GroupMembership } from "@server/models";
 import {
   buildUser,
@@ -2118,5 +2124,122 @@ describe("#collections.restore", () => {
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toBe(null);
     expect(body.data.index).not.toBe("P");
+  });
+});
+
+describe("#collections.update databases", () => {
+  const buildDatabaseTeam = async () => {
+    const team = await buildTeam({
+      preferences: { documentDatabases: true },
+    });
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+    });
+    return { team, admin, collection };
+  };
+
+  const buildSchema = () => [
+    {
+      id: randomUUID(),
+      name: "Status",
+      type: PropertyType.Select,
+      options: [
+        { id: "todo", name: "To do" },
+        { id: "done", name: "Done" },
+      ],
+    },
+  ];
+
+  it("should set a data schema and views", async () => {
+    const { admin, collection } = await buildDatabaseTeam();
+    const dataSchema = buildSchema();
+    const views = [
+      {
+        id: randomUUID(),
+        name: "Table",
+        type: DataViewType.Table,
+        columns: [{ propertyId: dataSchema[0].id, visible: true }],
+        sorts: [],
+      },
+    ];
+
+    const res = await server.post("/api/collections.update", admin, {
+      body: { id: collection.id, dataSchema, views },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.dataSchema).toEqual(dataSchema);
+    expect(body.data.views).toEqual(views);
+  });
+
+  it("should clear the schema with null", async () => {
+    const { admin, collection } = await buildDatabaseTeam();
+    await server.post("/api/collections.update", admin, {
+      body: { id: collection.id, dataSchema: buildSchema() },
+    });
+
+    const res = await server.post("/api/collections.update", admin, {
+      body: { id: collection.id, dataSchema: null },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.dataSchema).toBeNull();
+  });
+
+  it("should reject an invalid schema", async () => {
+    const { admin, collection } = await buildDatabaseTeam();
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        dataSchema: [{ id: "nope", name: "A", type: "formula" }],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject views referencing unknown properties", async () => {
+    const { admin, collection } = await buildDatabaseTeam();
+    const res = await server.post("/api/collections.update", admin, {
+      body: {
+        id: collection.id,
+        dataSchema: buildSchema(),
+        views: [
+          {
+            id: randomUUID(),
+            name: "Table",
+            type: DataViewType.Table,
+            columns: [{ propertyId: randomUUID(), visible: true }],
+            sorts: [],
+          },
+        ],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should fail when the feature is disabled for the team", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/collections.update", admin, {
+      body: { id: collection.id, dataSchema: buildSchema() },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should require update authorization", async () => {
+    const { team, collection } = await buildDatabaseTeam();
+    const member = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/collections.update", member, {
+      body: { id: collection.id, dataSchema: buildSchema() },
+    });
+    expect(res.status).toEqual(403);
   });
 });

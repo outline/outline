@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { faker } from "@faker-js/faker";
@@ -6,6 +7,7 @@ import FormData from "form-data";
 import {
   CollectionPermission,
   DocumentPermission,
+  PropertyType,
   StatusFilter,
   UserRole,
 } from "@shared/types";
@@ -6185,5 +6187,127 @@ describe("#documents.documents", () => {
 
     expect(res.status).toBe(403);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe("#documents.update properties", () => {
+  const buildDatabaseDocument = async () => {
+    const team = await buildTeam({
+      preferences: { documentDatabases: true },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const statusId = randomUUID();
+    const priorityId = randomUUID();
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      dataSchema: [
+        {
+          id: statusId,
+          name: "Status",
+          type: PropertyType.Select,
+          options: [
+            { id: "todo", name: "To do" },
+            { id: "done", name: "Done" },
+          ],
+        },
+        {
+          id: priorityId,
+          name: "Priority",
+          type: PropertyType.Number,
+        },
+      ],
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    return { team, user, collection, document, statusId, priorityId };
+  };
+
+  it("should update property values", async () => {
+    const { user, document, statusId, priorityId } =
+      await buildDatabaseDocument();
+
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        properties: { [statusId]: "todo", [priorityId]: 3 },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.properties).toEqual({
+      [statusId]: "todo",
+      [priorityId]: 3,
+    });
+  });
+
+  it("should merge new values and unset with null", async () => {
+    const { user, document, statusId, priorityId } =
+      await buildDatabaseDocument();
+
+    await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        properties: { [statusId]: "todo", [priorityId]: 3 },
+      },
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        properties: { [statusId]: null },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.properties).toEqual({ [priorityId]: 3 });
+  });
+
+  it("should drop values that do not match the schema", async () => {
+    const { user, document, statusId } = await buildDatabaseDocument();
+
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        properties: {
+          [statusId]: "not-an-option",
+          [randomUUID()]: "unknown",
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.properties).toEqual({});
+  });
+
+  it("should fail when the feature is disabled for the team", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        properties: { [randomUUID()]: "value" },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should require update authorization", async () => {
+    const { team, document, statusId } = await buildDatabaseDocument();
+    const viewer = await buildViewer({ teamId: team.id });
+
+    const res = await server.post("/api/documents.update", viewer, {
+      body: {
+        id: document.id,
+        properties: { [statusId]: "todo" },
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 });

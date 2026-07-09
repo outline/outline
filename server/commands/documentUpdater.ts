@@ -1,4 +1,4 @@
-import type { TextEditMode } from "@shared/types";
+import type { DocumentProperties, TextEditMode } from "@shared/types";
 import { Event, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -25,6 +25,8 @@ type Props = {
   fullWidth?: boolean;
   /** Whether insights should be visible on the document */
   insightsEnabled?: boolean;
+  /** Typed property values to merge into the document; null values unset */
+  properties?: DocumentProperties;
   /** The edit mode: "replace", "append", "prepend", or "patch" */
   editMode?: TextEditMode;
   /** The markdown text to find when using "patch" edit mode */
@@ -54,6 +56,7 @@ export default async function documentUpdater(
     templateId,
     fullWidth,
     insightsEnabled,
+    properties,
     editMode,
     findText,
     publish,
@@ -98,6 +101,11 @@ export default async function documentUpdater(
   }
   if (insightsEnabled !== undefined) {
     document.insightsEnabled = insightsEnabled;
+  }
+  if (properties !== undefined) {
+    for (const [propertyId, value] of Object.entries(properties)) {
+      document.setProperty(propertyId, value);
+    }
   }
   if (text !== undefined) {
     document = DocumentHelper.applyMarkdownToDocument(

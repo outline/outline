@@ -282,6 +282,23 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if insights should be visible on the doc */
     insightsEnabled: z.boolean().optional(),
 
+    /**
+     * Typed property values to merge into the document, keyed by property id.
+     * A null value unsets the property.
+     */
+    properties: z
+      .record(
+        z.string(),
+        z.union([
+          z.string(),
+          z.number(),
+          z.boolean(),
+          z.array(z.string()),
+          z.null(),
+        ])
+      )
+      .optional(),
+
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 

@@ -17,6 +17,7 @@ import {
   FileOperationState,
   FileOperationType,
   StatusFilter,
+  TeamPreference,
   UserRole,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
@@ -1291,6 +1292,13 @@ router.post(
 
     const { user } = ctx.state.auth;
     let collection: Collection | null | undefined;
+
+    if (
+      input.properties !== undefined &&
+      !user.team.getPreference(TeamPreference.DocumentDatabases)
+    ) {
+      throw ValidationError("Document databases are currently disabled");
+    }
 
     let document = await Document.findByPk(id, {
       userId: user.id,
