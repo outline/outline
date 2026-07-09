@@ -173,6 +173,15 @@ function Details() {
     [team, t]
   );
 
+  const handleDocumentDatabasesChange = React.useCallback(
+    async (checked: boolean) => {
+      team.setPreference(TeamPreference.DocumentDatabases, checked);
+      await team.save();
+      toast.success(t("Settings saved"));
+    },
+    [team, t]
+  );
+
   const isValid = form.current?.checkValidity();
 
   const newTheme = React.useMemo(
@@ -356,6 +365,20 @@ function Details() {
             <DefaultCollectionInputSelect
               onSelectCollection={onSelectCollection}
               defaultCollectionId={defaultCollectionId}
+            />
+          </SettingRow>
+          <SettingRow
+            name={TeamPreference.DocumentDatabases}
+            label={t("Document databases")}
+            description={t(
+              "When enabled collections can define typed document properties and be viewed as databases. This feature is in beta."
+            )}
+          >
+            <Switch
+              id={TeamPreference.DocumentDatabases}
+              name={TeamPreference.DocumentDatabases}
+              checked={team.getPreference(TeamPreference.DocumentDatabases)}
+              onChange={handleDocumentDatabasesChange}
             />
           </SettingRow>
           <SettingRow
