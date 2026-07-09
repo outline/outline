@@ -49,7 +49,9 @@ export default class S3Storage extends BaseStorage {
     contentType = "image"
   ) {
     const params: PresignedPostOptions = {
-      Bucket: this.getBucket(),
+      // Presigned POST embeds the bucket in the form policy, so it must be the
+      // real bucket name — not getBucket(), which returns the accelerate URL.
+      Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME ?? "",
       Key: key,
       Conditions: compact([
         ["content-length-range", 0, maxUploadSize],
