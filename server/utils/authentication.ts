@@ -137,18 +137,16 @@ export async function signIn(
   // stuck on the SSO screen. This must happen regardless of whether the deployment is cloud
   // hosted, otherwise a self-hosted desktop sign-in never hands the token back to the app.
   if (client === Client.Desktop) {
-    ctx.redirect(
-      `${team.url}/desktop-redirect?token=${user.getTransferToken(service)}`
-    );
+    const token = encodeURIComponent(user.getTransferToken(service));
+    ctx.redirect(`${team.url}/desktop-redirect?token=${token}`);
     return;
   }
 
-  // set a transfer cookie for the access token itself and redirect
-  // to the teams subdomain if subdomains are enabled
+  // Redirect to the team subdomain with a short-lived transfer token that the
+  // /auth/redirect handler exchanges for the actual session cookie.
   if (env.isCloudHosted && team.subdomain) {
-    ctx.redirect(
-      `${team.url}/auth/redirect?token=${user.getTransferToken(service)}`
-    );
+    const token = encodeURIComponent(user.getTransferToken(service));
+    ctx.redirect(`${team.url}/auth/redirect?token=${token}`);
   } else {
     ctx.cookies.set("accessToken", user.getSessionToken(expires, service), {
       sameSite: "lax",
