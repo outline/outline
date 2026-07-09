@@ -6,6 +6,7 @@ import { ActionSeparator, createAction } from "~/actions";
 import {
   copyTemplate,
   createDocumentFromTemplate,
+  createNestedTemplate,
   deleteTemplate,
   moveTemplate,
 } from "~/actions/definitions/templates";
@@ -48,6 +49,7 @@ export function useTemplateSettingsActions(
               section,
               perform: () => templates.duplicate(template),
             }),
+            createNestedTemplate,
             moveTemplate,
             ActionSeparator,
             createDocumentFromTemplate,

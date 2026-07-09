@@ -1199,7 +1199,7 @@ router.post(
   validate(T.DocumentsTemplatizeSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsTemplatizeReq>) => {
-    const { id, collectionId, publish } = ctx.input.body;
+    const { id, collectionId, publish, recursive } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -1232,6 +1232,61 @@ router.post(
       title: original.title,
       content: original.content,
     });
+
+    // optionally convert the document's children into nested templates,
+    // preserving the hierarchy and sidebar ordering.
+    if (recursive) {
+      const originalCollection = original.collectionId
+        ? await Collection.findByPk(original.collectionId, {
+            attributes: {
+              include: ["documentStructure"],
+            },
+            transaction,
+          })
+        : null;
+
+      const templatizeChildDocuments = async (
+        parentDocument: Document,
+        parentTemplateId: string
+      ) => {
+        const childDocuments = await parentDocument.findChildDocuments(
+          {
+            publishedAt: {
+              [Op.ne]: null,
+            },
+            archivedAt: {
+              [Op.eq]: null,
+            },
+          },
+          { transaction }
+        );
+
+        const sorted = DocumentHelper.sortDocumentsByStructure(
+          childDocuments,
+          originalCollection?.getDocumentTree(parentDocument.id)?.children ?? []
+        );
+
+        for (const childDocument of sorted) {
+          const childTemplate = await Template.createWithCtx(ctx, {
+            editorVersion: childDocument.editorVersion,
+            collectionId,
+            parentDocumentId: parentTemplateId,
+            teamId: user.teamId,
+            publishedAt: publish ? new Date() : null,
+            lastModifiedById: user.id,
+            createdById: user.id,
+            icon: childDocument.icon,
+            color: childDocument.color,
+            title: childDocument.title,
+            content: childDocument.content,
+          });
+
+          await templatizeChildDocuments(childDocument, childTemplate.id);
+        }
+      };
+
+      await templatizeChildDocuments(original, template.id);
+    }
 
     // reload to get all of the data needed to present (user, collection etc)
     const reloaded = await Template.findByPk(template.id, {

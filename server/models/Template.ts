@@ -5,6 +5,8 @@ import type {
   InferCreationAttributes,
   NonNullFindOptions,
   FindOptions,
+  SaveOptions,
+  WhereOptions,
 } from "sequelize";
 import { EmptyResultError } from "sequelize";
 import {
@@ -20,12 +22,14 @@ import {
   Unique,
   Scopes,
   BeforeValidate,
+  BeforeUpdate,
   IsDate,
 } from "sequelize-typescript";
 import slugify from "slugify";
 import type { ProsemirrorData } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { DocumentValidation } from "@shared/validations";
+import { ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
 import Collection from "./Collection";
 import Revision from "./Revision";
@@ -180,6 +184,13 @@ class Template extends ParanoidModel<
   @Column(DataType.UUID)
   collectionId?: string | null;
 
+  @BelongsTo(() => Template, "parentDocumentId")
+  parentTemplate: Template | null;
+
+  @ForeignKey(() => Template)
+  @Column(DataType.UUID)
+  parentDocumentId: string | null;
+
   @HasMany(() => Revision, "documentId")
   revisions: Revision[];
 
@@ -208,9 +219,94 @@ class Template extends ParanoidModel<
     return !this.collectionId;
   }
 
+  /**
+   * Find all of the direct child templates for this template.
+   *
+   * @param where additional query conditions to filter the templates.
+   * @param options FindOptions.
+   * @returns a promise that resolves to a list of templates.
+   */
+  findChildTemplates = async (
+    where?: Omit<WhereOptions<Template>, "parentDocumentId">,
+    options?: FindOptions<Template>
+  ): Promise<Template[]> =>
+    await (this.constructor as typeof Template).findAll({
+      where: {
+        parentDocumentId: this.id,
+        ...where,
+      },
+      order: [
+        ["createdAt", "ASC"],
+        ["id", "ASC"],
+      ],
+      ...options,
+    });
+
+  /**
+   * Calculate all of the template ids that are children of this template by
+   * recursively iterating through parentDocumentId references.
+   *
+   * @param options FindOptions.
+   * @returns a promise that resolves to a list of template ids.
+   */
+  findAllChildTemplateIds = async (
+    options?: FindOptions<Template>
+  ): Promise<string[]> => {
+    const findAllChildTemplateIds = async (
+      ...parentDocumentId: string[]
+    ): Promise<string[]> => {
+      const childTemplates = await (this.constructor as typeof Template)
+        .unscoped()
+        .findAll({
+          attributes: ["id"],
+          where: {
+            template: true,
+            parentDocumentId,
+          },
+          ...options,
+        });
+
+      const childTemplateIds = childTemplates.map((template) => template.id);
+
+      if (childTemplateIds.length > 0) {
+        return [
+          ...childTemplateIds,
+          ...(await findAllChildTemplateIds(...childTemplateIds)),
+        ];
+      }
+
+      return childTemplateIds;
+    };
+
+    return findAllChildTemplateIds(this.id);
+  };
+
   @BeforeValidate
   static createUrlId(model: Template) {
     return (model.urlId = model.urlId || generateUrlId());
+  }
+
+  @BeforeUpdate
+  static async checkParentDocument(model: Template, options: SaveOptions) {
+    if (
+      model.previous("parentDocumentId") === model.parentDocumentId ||
+      !model.parentDocumentId
+    ) {
+      return;
+    }
+
+    if (model.parentDocumentId === model.id) {
+      throw ValidationError(
+        "infinite loop detected, cannot nest a template inside itself"
+      );
+    }
+
+    const childTemplateIds = await model.findAllChildTemplateIds(options);
+    if (childTemplateIds.includes(model.parentDocumentId)) {
+      throw ValidationError(
+        "infinite loop detected, cannot nest a template inside itself"
+      );
+    }
   }
 
   /**

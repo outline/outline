@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -22,15 +23,32 @@ router.post(
   validate(T.TemplatesCreateSchema),
   transaction(),
   async (ctx: APIContext<T.TemplatesCreateReq>) => {
-    const { id, title, data, icon, color, collectionId } = ctx.input.body;
+    const { id, title, data, icon, color, collectionId, parentDocumentId } =
+      ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
 
+    let parentTemplate: Template | undefined;
+    if (parentDocumentId) {
+      parentTemplate = await Template.findByPk(parentDocumentId, {
+        userId: user.id,
+        rejectOnEmpty: true,
+        transaction,
+      });
+      authorize(user, "update", parentTemplate);
+    }
+
+    // nested templates always share the scope of their parent, so the
+    // collection is inherited rather than read from the request.
+    const targetCollectionId = parentTemplate
+      ? parentTemplate.collectionId
+      : collectionId;
+
     let collection;
-    if (collectionId) {
-      collection = await Collection.findByPk(collectionId, {
+    if (targetCollectionId) {
+      collection = await Collection.findByPk(targetCollectionId, {
         userId: user.id,
         transaction,
       });
@@ -46,6 +64,7 @@ router.post(
       color,
       content: data,
       collectionId: collection?.id,
+      parentDocumentId: parentTemplate?.id,
       publishedAt: new Date(),
       createdById: user.id,
       lastModifiedById: user.id,
@@ -72,7 +91,7 @@ router.post(
   pagination(),
   validate(T.TemplatesListSchema),
   async (ctx: APIContext<T.TemplatesListReq>) => {
-    const { sort, direction, collectionId } = ctx.input.body;
+    const { sort, direction, collectionId, parentDocumentId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const where: WhereOptions<Template> & {
       [Op.and]: WhereOptions<Template>[];
@@ -86,6 +105,12 @@ router.post(
         },
       ],
     };
+
+    if (parentDocumentId !== undefined) {
+      where[Op.and].push({
+        parentDocumentId: parentDocumentId ?? { [Op.eq]: null },
+      });
+    }
 
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
@@ -124,7 +149,32 @@ router.post(
       Template.count({ where }),
     ]);
 
-    const data = templates.map((template) => presentTemplate(template));
+    // count direct children for each returned template so clients know
+    // whether a template can be expanded without fetching its children.
+    const childTemplates = templates.length
+      ? await Template.unscoped().findAll({
+          attributes: ["parentDocumentId"],
+          where: {
+            template: true,
+            parentDocumentId: templates.map((template) => template.id),
+          },
+        })
+      : [];
+    const childCountByParentId = new Map<string, number>();
+    for (const child of childTemplates) {
+      if (child.parentDocumentId) {
+        childCountByParentId.set(
+          child.parentDocumentId,
+          (childCountByParentId.get(child.parentDocumentId) ?? 0) + 1
+        );
+      }
+    }
+
+    const data = templates.map((template) =>
+      presentTemplate(template, {
+        childCount: childCountByParentId.get(template.id) ?? 0,
+      })
+    );
     const policies = presentPolicies(user, templates);
 
     ctx.body = {
@@ -173,6 +223,20 @@ router.post(
     });
     authorize(user, "delete", template);
 
+    // deleting a template also deletes all of its nested templates.
+    const childTemplateIds = await template.findAllChildTemplateIds({
+      transaction,
+    });
+    if (childTemplateIds.length) {
+      const childTemplates = await Template.findAll({
+        where: { id: childTemplateIds },
+        transaction,
+      });
+      for (const childTemplate of childTemplates) {
+        await childTemplate.destroyWithCtx(ctx);
+      }
+    }
+
     await template.destroyWithCtx(ctx);
 
     ctx.body = {
@@ -200,6 +264,24 @@ router.post(
     authorize(user, "restore", template);
 
     await template.restoreWithCtx(ctx);
+
+    // restoring a template also restores all of its nested templates.
+    const childTemplateIds = await template.findAllChildTemplateIds({
+      transaction,
+      paranoid: false,
+    });
+    if (childTemplateIds.length) {
+      const childTemplates = await Template.findAll({
+        where: { id: childTemplateIds },
+        transaction,
+        paranoid: false,
+      });
+      for (const childTemplate of childTemplates) {
+        if (childTemplate.deletedAt) {
+          await childTemplate.restoreWithCtx(ctx);
+        }
+      }
+    }
 
     ctx.body = {
       data: presentTemplate(template),
@@ -243,12 +325,46 @@ router.post(
       lastModifiedById: user.id,
       teamId: user.teamId,
       collectionId: targetCollectionId,
+      // the copy remains a sibling of the original unless it is duplicated
+      // into a different collection, in which case it becomes a root template.
+      parentDocumentId:
+        targetCollectionId === original.collectionId
+          ? original.parentDocumentId
+          : null,
       publishedAt: new Date(),
       content: original.content,
       icon: original.icon,
       color: original.color,
       fullWidth: original.fullWidth,
     });
+
+    // recursively duplicate nested templates under the new copy.
+    const duplicateChildTemplates = async (
+      originalParent: Template,
+      duplicatedParent: Template
+    ) => {
+      const childTemplates = await originalParent.findChildTemplates(
+        undefined,
+        { transaction }
+      );
+      for (const childTemplate of childTemplates) {
+        const duplicatedChild = await Template.createWithCtx(ctx, {
+          title: childTemplate.title,
+          createdById: user.id,
+          lastModifiedById: user.id,
+          teamId: user.teamId,
+          collectionId: targetCollectionId,
+          parentDocumentId: duplicatedParent.id,
+          publishedAt: new Date(),
+          content: childTemplate.content,
+          icon: childTemplate.icon,
+          color: childTemplate.color,
+          fullWidth: childTemplate.fullWidth,
+        });
+        await duplicateChildTemplates(childTemplate, duplicatedChild);
+      }
+    };
+    await duplicateChildTemplates(original, template);
 
     // reload to get all of the data needed to present (user, collection etc)
     template = await Template.findByPk(template.id, {
@@ -281,6 +397,29 @@ router.post(
     });
     authorize(user, "update", template);
 
+    if (updatedFields.parentDocumentId) {
+      const parentTemplate = await Template.findByPk(
+        updatedFields.parentDocumentId,
+        {
+          userId: user.id,
+          rejectOnEmpty: true,
+          transaction,
+        }
+      );
+      authorize(user, "update", parentTemplate);
+
+      // nested templates always share the scope of their parent.
+      updatedFields.collectionId = parentTemplate.collectionId;
+    } else if (
+      updatedFields.collectionId !== undefined &&
+      updatedFields.parentDocumentId === undefined &&
+      template.parentDocumentId
+    ) {
+      throw ValidationError(
+        "Cannot change the collection of a nested template"
+      );
+    }
+
     if (updatedFields.collectionId !== undefined) {
       if (updatedFields.collectionId) {
         const collection = await Collection.findByPk(
@@ -300,7 +439,25 @@ router.post(
       template.content = data;
     }
 
+    const previousCollectionId = template.collectionId;
     await template.updateWithCtx(ctx, updatedFields);
+
+    // moving a template to another collection moves its nested templates
+    // along with it.
+    if (template.collectionId !== previousCollectionId) {
+      const childTemplateIds = await template.findAllChildTemplateIds({
+        transaction,
+      });
+      if (childTemplateIds.length) {
+        await Template.update(
+          { collectionId: template.collectionId },
+          {
+            where: { id: childTemplateIds },
+            transaction,
+          }
+        );
+      }
+    }
 
     ctx.body = {
       data: presentTemplate(template),

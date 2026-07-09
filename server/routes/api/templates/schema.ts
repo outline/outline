@@ -29,6 +29,12 @@ export const TemplatesListSchema = BaseSchema.extend({
   body: TemplatesSortParamsSchema.extend({
     /** Id of the collection to which the template belongs */
     collectionId: z.string().uuid().optional(),
+    /**
+     * Filter by parent template – pass null to return only root templates,
+     * or a template id to return its direct children. When omitted all
+     * templates are returned regardless of nesting.
+     */
+    parentDocumentId: z.string().uuid().nullish(),
   }),
 });
 
@@ -36,6 +42,8 @@ export const TemplatesCreateSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid().optional(),
     collectionId: z.string().uuid().optional(),
+    /** Id of the parent template to nest the new template under */
+    parentDocumentId: z.string().uuid().optional(),
     title: z.string().min(1).max(255),
     data: ProsemirrorSchema(),
     icon: zodIconType().nullish(),
@@ -88,6 +96,11 @@ export const TemplatesUpdateSchema = BaseSchema.extend({
       .nullish(),
     fullWidth: z.boolean().optional(),
     collectionId: z.string().uuid().nullish(),
+    /**
+     * Id of the parent template to nest this template under, or null to
+     * un-nest and return the template to the root level.
+     */
+    parentDocumentId: z.string().uuid().nullish(),
   }),
 });
 

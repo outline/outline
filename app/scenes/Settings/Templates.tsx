@@ -44,15 +44,20 @@ function Templates() {
   const params = useQuery();
   const [query, setQuery] = useState("");
 
+  const searchQuery = params.get("query") || undefined;
+
   const reqParams = useMemo(
     () => ({
-      query: params.get("query") || undefined,
+      query: searchQuery,
       sort: params.get("sort") || "createdAt",
       direction: (params.get("direction") || "desc").toUpperCase() as
         | "ASC"
         | "DESC",
+      // when browsing we show a tree of root templates that can be expanded,
+      // when searching we match against all templates regardless of nesting.
+      parentDocumentId: searchQuery ? undefined : null,
     }),
-    [params]
+    [params, searchQuery]
   );
 
   const sort: ColumnSort = useMemo(
@@ -64,11 +69,54 @@ function Templates() {
   );
 
   const { data, error, loading, next } = useTableRequest({
-    data: getFilteredTemplates(templates.all, reqParams.query),
+    data: searchQuery
+      ? getFilteredTemplates(templates.all, searchQuery)
+      : templates.rootTemplates,
     sort,
     reqFn: templates.fetchPage,
     reqParams,
   });
+
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const handleToggleExpand = useCallback(
+    (template: Template) => {
+      if (!expandedIds.has(template.id)) {
+        void templates.fetchChildTemplates(template.id);
+      }
+      setExpandedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(template.id)) {
+          next.delete(template.id);
+        } else {
+          next.add(template.id);
+        }
+        return next;
+      });
+    },
+    [templates, expandedIds]
+  );
+
+  // interleave the children of expanded templates into the sorted roots.
+  // Intentionally not memoized so MobX tracks child templates as they load.
+  const flattenTree = (roots: Template[]): Template[] => {
+    const rows: Template[] = [];
+    const seen = new Set<string>();
+    const visit = (template: Template) => {
+      if (seen.has(template.id)) {
+        return;
+      }
+      seen.add(template.id);
+      rows.push(template);
+      if (expandedIds.has(template.id)) {
+        template.childTemplates.forEach(visit);
+      }
+    };
+    roots.forEach(visit);
+    return rows;
+  };
+
+  const rows = data ? (searchQuery ? data : flattenTree(data)) : data;
 
   const isEmpty = !loading && !templates.all.length;
 
@@ -138,9 +186,11 @@ function Templates() {
           </StickyFilters>
           <ConditionalFade animate={!data}>
             <TemplatesTable
-              data={data ?? []}
+              data={rows ?? []}
               sort={sort}
               loading={loading}
+              expandedIds={searchQuery ? undefined : expandedIds}
+              onToggleExpand={searchQuery ? undefined : handleToggleExpand}
               page={{
                 hasNext: !!next,
                 fetchNext: next,

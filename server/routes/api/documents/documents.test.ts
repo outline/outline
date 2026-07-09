@@ -17,6 +17,7 @@ import {
   Document,
   View,
   Revision,
+  Template,
   UserMembership,
   SearchQuery,
   Event,
@@ -2272,6 +2273,177 @@ describe("#documents.templatize", () => {
       },
     });
     expect(res.status).toBe(403);
+  });
+  it("should convert child documents into nested templates when recursive", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const childDocument = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+      title: "Child document",
+    });
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: childDocument.id,
+      title: "Grandchild document",
+    });
+
+    const res = await server.post("/api/documents.templatize", user, {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+        publish: true,
+        recursive: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+
+    const childTemplates = await Template.findAll({
+      where: { parentDocumentId: body.data.id },
+    });
+    expect(childTemplates.length).toBe(1);
+    expect(childTemplates[0].title).toBe("Child document");
+    expect(childTemplates[0].collectionId).toBe(collection.id);
+
+    const grandchildTemplates = await Template.findAll({
+      where: { parentDocumentId: childTemplates[0].id },
+    });
+    expect(grandchildTemplates.length).toBe(1);
+    expect(grandchildTemplates[0].title).toBe("Grandchild document");
+  });
+  it("should not convert child documents when recursive is not set", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+    });
+
+    const res = await server.post("/api/documents.templatize", user, {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+
+    const childTemplates = await Template.findAll({
+      where: { parentDocumentId: body.data.id },
+    });
+    expect(childTemplates.length).toBe(0);
+  });
+});
+
+describe("#documents.create with nested templates", () => {
+  it("should create a document hierarchy from a template with nested templates", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const template = await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      title: "Parent template",
+    });
+    const childTemplate = await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: template.id,
+      title: "Child template",
+    });
+    await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: childTemplate.id,
+      title: "Grandchild template",
+    });
+
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        collectionId: collection.id,
+        templateId: template.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual("Parent template");
+
+    const childDocuments = await Document.findAll({
+      where: { parentDocumentId: body.data.id },
+    });
+    expect(childDocuments.length).toEqual(1);
+    expect(childDocuments[0].title).toEqual("Child template");
+    expect(childDocuments[0].publishedAt).toBeTruthy();
+    expect(childDocuments[0].templateId).toEqual(childTemplate.id);
+
+    const grandchildDocuments = await Document.findAll({
+      where: { parentDocumentId: childDocuments[0].id },
+    });
+    expect(grandchildDocuments.length).toEqual(1);
+    expect(grandchildDocuments[0].title).toEqual("Grandchild template");
+  });
+
+  it("should not create child documents when the document is a draft", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const template = await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: template.id,
+    });
+
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        collectionId: collection.id,
+        templateId: template.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const childDocuments = await Document.findAll({
+      where: { parentDocumentId: body.data.id },
+    });
+    expect(childDocuments.length).toEqual(0);
   });
 });
 

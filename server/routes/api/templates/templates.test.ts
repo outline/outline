@@ -1,5 +1,5 @@
 import { CollectionPermission } from "@shared/types";
-import { UserMembership } from "@server/models";
+import { Template, UserMembership } from "@server/models";
 import {
   buildAdmin,
   buildUser,
@@ -452,6 +452,386 @@ describe("#templates.delete", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/templates.delete");
     expect(res.status).toEqual(401);
+  });
+});
+
+describe("nested templates", () => {
+  describe("#templates.create", () => {
+    it("should create a template nested under a parent template", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const parent = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+      });
+
+      const res = await server.post("/api/templates.create", user, {
+        body: {
+          parentDocumentId: parent.id,
+          title: "Nested template",
+          data: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "hello" }],
+              },
+            ],
+          },
+        },
+      });
+
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.parentDocumentId).toEqual(parent.id);
+      expect(body.data.collectionId).toEqual(collection.id);
+    });
+
+    it("should inherit the collection of the parent template", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const otherCollection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const parent = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+      });
+
+      const res = await server.post("/api/templates.create", user, {
+        body: {
+          parentDocumentId: parent.id,
+          collectionId: otherCollection.id,
+          title: "Nested template",
+          data: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "hello" }],
+              },
+            ],
+          },
+        },
+      });
+
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.collectionId).toEqual(collection.id);
+    });
+
+    it("should not allow nesting under a template the user cannot update", async () => {
+      const admin = await buildAdmin();
+      const collection = await buildCollection({
+        userId: admin.id,
+        teamId: admin.teamId,
+        templateManagement: CollectionPermission.Admin,
+      });
+      const parent = await buildTemplate({
+        userId: admin.id,
+        teamId: admin.teamId,
+        collectionId: collection.id,
+      });
+      const member = await buildUser({ teamId: admin.teamId });
+
+      const res = await server.post("/api/templates.create", member, {
+        body: {
+          parentDocumentId: parent.id,
+          title: "Nested template",
+          data: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "hello" }],
+              },
+            ],
+          },
+        },
+      });
+
+      expect(res.status).toEqual(403);
+    });
+  });
+
+  describe("#templates.list", () => {
+    it("should return only root templates when parentDocumentId is null", async () => {
+      const user = await buildUser();
+      const parent = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: parent.collectionId,
+        parentDocumentId: parent.id,
+      });
+
+      const res = await server.post("/api/templates.list", user, {
+        body: {
+          parentDocumentId: null,
+        },
+      });
+
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.length).toEqual(1);
+      expect(body.data[0].id).toEqual(parent.id);
+      expect(body.data[0].childCount).toEqual(1);
+    });
+
+    it("should return child templates when parentDocumentId is set", async () => {
+      const user = await buildUser();
+      const parent = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const child = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: parent.collectionId,
+        parentDocumentId: parent.id,
+      });
+
+      const res = await server.post("/api/templates.list", user, {
+        body: {
+          parentDocumentId: parent.id,
+        },
+      });
+
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.length).toEqual(1);
+      expect(body.data[0].id).toEqual(child.id);
+      expect(body.data[0].parentDocumentId).toEqual(parent.id);
+    });
+  });
+
+  describe("#templates.update", () => {
+    it("should not allow changing the collection of a nested template", async () => {
+      const user = await buildUser();
+      const parent = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const child = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: parent.collectionId,
+        parentDocumentId: parent.id,
+      });
+      const otherCollection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/templates.update", user, {
+        body: {
+          id: child.id,
+          collectionId: otherCollection.id,
+        },
+      });
+
+      expect(res.status).toEqual(400);
+    });
+
+    it("should allow nesting an existing template under another template", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const parent = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+      });
+      const template = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+      });
+
+      const res = await server.post("/api/templates.update", user, {
+        body: {
+          id: template.id,
+          parentDocumentId: parent.id,
+        },
+      });
+
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.parentDocumentId).toEqual(parent.id);
+    });
+
+    it("should not allow nesting a template inside itself", async () => {
+      const user = await buildUser();
+      const parent = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const child = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: parent.collectionId,
+        parentDocumentId: parent.id,
+      });
+
+      const res = await server.post("/api/templates.update", user, {
+        body: {
+          id: parent.id,
+          parentDocumentId: child.id,
+        },
+      });
+
+      expect(res.status).toEqual(400);
+    });
+
+    it("should move nested templates when the root moves to another collection", async () => {
+      const admin = await buildAdmin();
+      const parent = await buildTemplate({
+        userId: admin.id,
+        teamId: admin.teamId,
+      });
+      const child = await buildTemplate({
+        userId: admin.id,
+        teamId: admin.teamId,
+        collectionId: parent.collectionId,
+        parentDocumentId: parent.id,
+      });
+      const targetCollection = await buildCollection({
+        userId: admin.id,
+        teamId: admin.teamId,
+      });
+
+      const res = await server.post("/api/templates.update", admin, {
+        body: {
+          id: parent.id,
+          collectionId: targetCollection.id,
+        },
+      });
+
+      expect(res.status).toEqual(200);
+      const reloadedChild = await Template.findByPk(child.id, {
+        rejectOnEmpty: true,
+      });
+      expect(reloadedChild.collectionId).toEqual(targetCollection.id);
+    });
+  });
+
+  describe("#templates.duplicate", () => {
+    it("should duplicate nested templates recursively", async () => {
+      const user = await buildUser();
+      const parent = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        title: "Parent",
+      });
+      const child = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: parent.collectionId,
+        parentDocumentId: parent.id,
+        title: "Child",
+      });
+      await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: parent.collectionId,
+        parentDocumentId: child.id,
+        title: "Grandchild",
+      });
+
+      const res = await server.post("/api/templates.duplicate", user, {
+        body: {
+          id: parent.id,
+        },
+      });
+
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+
+      const duplicatedChildren = await Template.findAll({
+        where: { parentDocumentId: body.data.id },
+      });
+      expect(duplicatedChildren.length).toEqual(1);
+      expect(duplicatedChildren[0].title).toEqual("Child");
+
+      const duplicatedGrandchildren = await Template.findAll({
+        where: { parentDocumentId: duplicatedChildren[0].id },
+      });
+      expect(duplicatedGrandchildren.length).toEqual(1);
+      expect(duplicatedGrandchildren[0].title).toEqual("Grandchild");
+    });
+  });
+
+  describe("#templates.delete", () => {
+    it("should delete nested templates with their parent", async () => {
+      const user = await buildUser();
+      const parent = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const child = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: parent.collectionId,
+        parentDocumentId: parent.id,
+      });
+
+      const res = await server.post("/api/templates.delete", user, {
+        body: {
+          id: parent.id,
+        },
+      });
+
+      expect(res.status).toEqual(200);
+      const reloadedChild = await Template.findByPk(child.id);
+      expect(reloadedChild).toBeNull();
+    });
+  });
+
+  describe("#templates.restore", () => {
+    it("should restore nested templates with their parent", async () => {
+      const user = await buildUser();
+      const parent = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const child = await buildTemplate({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: parent.collectionId,
+        parentDocumentId: parent.id,
+      });
+
+      await server.post("/api/templates.delete", user, {
+        body: {
+          id: parent.id,
+        },
+      });
+
+      const res = await server.post("/api/templates.restore", user, {
+        body: {
+          id: parent.id,
+        },
+      });
+
+      expect(res.status).toEqual(200);
+      const reloadedChild = await Template.findByPk(child.id);
+      expect(reloadedChild).not.toBeNull();
+      expect(reloadedChild?.deletedAt).toBeNull();
+    });
   });
 });
 

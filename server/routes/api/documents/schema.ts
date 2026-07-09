@@ -253,6 +253,8 @@ export const DocumentsTemplatizeSchema = BaseSchema.extend({
     collectionId: z.string().nullish(),
     /** Whether the new template should be published */
     publish: z.boolean(),
+    /** Whether child documents should be converted to nested templates */
+    recursive: z.boolean().default(false),
   }),
 });
 

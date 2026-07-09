@@ -19,7 +19,7 @@ const useTemplatesAction = () => {
 
   const actions = useMemo(
     () =>
-      templates.alphabetical.map((template) =>
+      templates.alphabeticalRoots.map((template) =>
         createInternalLinkAction({
           name: template.titleWithDefault,
           analyticsName: "New document",

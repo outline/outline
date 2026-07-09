@@ -1,7 +1,12 @@
 import type { Template } from "@server/models";
 import presentUser from "./user";
 
-function presentTemplate(template: Template) {
+type Options = {
+  /** The number of direct child templates, when known. */
+  childCount?: number;
+};
+
+function presentTemplate(template: Template, options?: Options) {
   return {
     id: template.id,
     url: template.path,
@@ -18,6 +23,10 @@ function presentTemplate(template: Template) {
     publishedAt: template.publishedAt,
     fullWidth: template.fullWidth,
     collectionId: template.collectionId,
+    parentDocumentId: template.parentDocumentId,
+    ...(options?.childCount !== undefined
+      ? { childCount: options.childCount }
+      : {}),
   };
 }
 

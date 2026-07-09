@@ -262,6 +262,26 @@ export default async function documentCreator(
     });
   }
 
+  // when creating a published document from a template that contains nested
+  // templates, recursively create the matching document hierarchy.
+  if (template && publish && collectionId) {
+    const childTemplates = await template.findChildTemplates(undefined, {
+      transaction,
+    });
+
+    // reversed since each child is prepended to the parent's children on
+    // publish, so creating in reverse preserves the template order.
+    for (const childTemplate of childTemplates.reverse()) {
+      await documentCreator(ctx, {
+        parentDocumentId: document.id,
+        collectionId,
+        template: childTemplate,
+        publish: true,
+        editorVersion,
+      });
+    }
+  }
+
   // reload to get all of the data needed to present (user, collection etc)
   // we need to specify publishedAt to bypass default scope that only returns
   // published documents

@@ -67,7 +67,7 @@ export function useTemplateMenuActions({
     }
 
     const templates = templatesStore.orderedData.filter(
-      (template) => template.isActive
+      (template) => template.isActive && !template.parentDocumentId
     );
 
     const collectionTemplatesActions = templates

@@ -14,6 +14,7 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import Error404 from "~/scenes/Errors/Error404";
 import Scene from "~/components/Scene";
 import { TemplateForm } from "~/components/Template/TemplateForm";
+import { NestedTemplates } from "~/scenes/Settings/components/NestedTemplates";
 import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import useRequest from "~/hooks/useRequest";
@@ -63,11 +64,16 @@ const LoadingState = observer(function LoadingState() {
 
 const TemplateSetting = observer(function Template_({ template }: Props) {
   const { t } = useTranslation();
-  const { collections } = useStores();
+  const { collections, templates } = useStores();
   const [saving, setSaving] = useState(false);
   const collection = template.collectionId
     ? collections.get(template.collectionId)
     : undefined;
+  const ancestors = template.pathToTemplate;
+
+  useEffect(() => {
+    void templates.fetchAncestors(template);
+  }, [templates, template]);
 
   const breadcrumbActions = useMemo(
     () => [
@@ -87,8 +93,15 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
             }),
           ]
         : []),
+      ...ancestors.map((ancestor) =>
+        createInternalLinkAction({
+          name: ancestor.titleWithDefault,
+          section: NavigationSection,
+          to: ancestor.path,
+        })
+      ),
     ],
-    [t, collection]
+    [t, collection, ancestors]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -126,6 +139,7 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
       }
     >
       <TemplateForm template={template} handleSubmit={handleSubmit} />
+      <NestedTemplates template={template} />
     </Scene>
   );
 });

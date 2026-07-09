@@ -192,15 +192,20 @@ export function updateDocumentPath(oldUrl: string, document: Document): string {
 
 /**
  * Returns the path to create a new template, optionally associated with a
- * collection.
+ * collection or nested under a parent template.
  *
  * @param collectionId an optional collection to associate the template with.
+ * @param params optional parameters such as a parent template to nest under.
  * @returns the path to the new template screen.
  */
-export function newTemplatePath(collectionId?: string) {
-  return collectionId
-    ? settingsPath("templates") + `/new?collectionId=${collectionId}`
-    : `${settingsPath("templates")}/new`;
+export function newTemplatePath(
+  collectionId?: string,
+  params: {
+    parentDocumentId?: string;
+  } = {}
+) {
+  const search = queryString.stringify({ collectionId, ...params });
+  return `${settingsPath("templates")}/new${search ? `?${search}` : ""}`;
 }
 
 /**

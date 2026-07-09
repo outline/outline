@@ -22,6 +22,7 @@ import Text from "~/components/Text";
 import Time from "~/components/Time";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useTemplateSettingsActions } from "~/hooks/useTemplateSettingsActions";
+import Disclosure from "~/components/Sidebar/components/Disclosure";
 import TemplateMenu from "~/menus/TemplateMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import history from "~/utils/history";
@@ -29,8 +30,14 @@ import usePolicy from "~/hooks/usePolicy";
 
 const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
+const NESTED_INDENT = 24;
 
-type Props = Omit<TableProps<Template>, "columns" | "rowHeight">;
+type Props = Omit<TableProps<Template>, "columns" | "rowHeight"> & {
+  /** Ids of templates whose nested templates are shown. */
+  expandedIds?: Set<string>;
+  /** Callback to show or hide the nested templates of a template. */
+  onToggleExpand?: (template: Template) => void;
+};
 
 const TemplateRowContextMenu = observer(function TemplateRowContextMenu({
   template,
@@ -53,7 +60,11 @@ const TemplateRowContextMenu = observer(function TemplateRowContextMenu({
   );
 });
 
-export function TemplatesTable(props: Props) {
+export function TemplatesTable({
+  expandedIds,
+  onToggleExpand,
+  ...rest
+}: Props) {
   const { t } = useTranslation();
 
   const handleOpen = (template: Template) => {
@@ -81,7 +92,12 @@ export function TemplatesTable(props: Props) {
           header: t("Title"),
           accessor: (template) => template.titleWithDefault,
           component: (template) => (
-            <TemplateLink template={template} onClick={handleOpen} />
+            <TemplateLink
+              template={template}
+              onClick={handleOpen}
+              expanded={expandedIds?.has(template.id)}
+              onToggleExpand={onToggleExpand}
+            />
           ),
           width: "4fr",
         },
@@ -130,7 +146,7 @@ export function TemplatesTable(props: Props) {
           width: "50px",
         },
       ]),
-    [t]
+    [t, expandedIds, onToggleExpand]
   );
 
   return (
@@ -139,7 +155,7 @@ export function TemplatesTable(props: Props) {
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
       decorateRow={applyContextMenu}
-      {...props}
+      {...rest}
     />
   );
 }
@@ -148,12 +164,17 @@ const TemplateLink = observer(
   ({
     template,
     onClick,
+    expanded,
+    onToggleExpand,
   }: {
     template: Template;
     onClick: (template: Template) => void;
+    expanded?: boolean;
+    onToggleExpand?: (template: Template) => void;
   }) => {
     const theme = useTheme();
     const can = usePolicy(template);
+    const showNesting = !!onToggleExpand;
     const content = (
       <Flex align="center" gap={4}>
         {template.icon ? (
@@ -174,11 +195,31 @@ const TemplateLink = observer(
       </Flex>
     );
 
-    if (!can.update) {
-      return content;
+    const link = can.update ? (
+      <ButtonLink onClick={() => onClick(template)}>{content}</ButtonLink>
+    ) : (
+      content
+    );
+
+    if (!showNesting) {
+      return link;
     }
 
-    return <ButtonLink onClick={() => onClick(template)}>{content}</ButtonLink>;
+    return (
+      <NestedTitle align="center" $depth={template.depth}>
+        {template.hasChildTemplates && (
+          <Disclosure
+            expanded={!!expanded}
+            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onToggleExpand(template);
+            }}
+          />
+        )}
+        {link}
+      </NestedTitle>
+    );
   }
 );
 
@@ -203,5 +244,14 @@ const Title = styled(Text)`
   &: ${hover} {
     text-decoration: underline;
     cursor: var(--pointer);
+  }
+`;
+
+const NestedTitle = styled(Flex)<{ $depth: number }>`
+  position: relative;
+  padding-inline-start: ${(props) => 20 + props.$depth * NESTED_INDENT}px;
+
+  ${Disclosure} {
+    inset-inline-start: ${(props) => props.$depth * NESTED_INDENT - 2}px;
   }
 `;

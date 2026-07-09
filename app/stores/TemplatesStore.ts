@@ -22,6 +22,69 @@ export default class TemplatesStore extends Store<Template> {
     return filter(this.orderedData, (d) => !d.deletedAt);
   }
 
+  /**
+   * Templates that are not nested under another template.
+   */
+  @computed
+  get rootTemplates(): Template[] {
+    return filter(this.all, (d) => !d.parentDocumentId);
+  }
+
+  /**
+   * Root templates sorted alphabetically by title.
+   */
+  @computed
+  get alphabeticalRoots(): Template[] {
+    return naturalSort(this.rootTemplates, "title");
+  }
+
+  /**
+   * Returns the loaded templates nested directly under the given template,
+   * in creation order.
+   *
+   * @param parentDocumentId the id of the parent template.
+   * @returns a list of templates.
+   */
+  childTemplatesOf(parentDocumentId: string): Template[] {
+    return orderBy(
+      filter(this.all, (d) => d.parentDocumentId === parentDocumentId),
+      ["createdAt", "id"],
+      ["asc", "asc"]
+    );
+  }
+
+  /**
+   * Fetches the templates nested directly under the given template from
+   * the server.
+   *
+   * @param parentDocumentId the id of the parent template.
+   * @returns a promise that resolves to a list of templates.
+   */
+  fetchChildTemplates(parentDocumentId: string) {
+    return this.fetchPage({
+      parentDocumentId,
+      limit: 100,
+    });
+  }
+
+  /**
+   * Ensures the chain of ancestors of the given template is loaded so that
+   * breadcrumbs and depth can be calculated.
+   *
+   * @param template the template to load ancestors for.
+   */
+  fetchAncestors = async (template: Template): Promise<void> => {
+    const seen = new Set<string>([template.id]);
+    let parentDocumentId = template.parentDocumentId;
+
+    while (parentDocumentId && !seen.has(parentDocumentId)) {
+      seen.add(parentDocumentId);
+      const parent =
+        this.data.get(parentDocumentId) ?? (await this.fetch(parentDocumentId));
+      parentDocumentId = parent?.parentDocumentId;
+    }
+  };
+
   @action
   duplicate = async (
     template: Template,
@@ -45,15 +108,18 @@ export default class TemplatesStore extends Store<Template> {
     id,
     collectionId,
     publish,
+    recursive,
   }: {
     id: string;
     collectionId: string | null;
     publish: boolean;
+    recursive?: boolean;
   }): Promise<Template | undefined> => {
     const res = await client.post("/documents.templatize", {
       id,
       collectionId,
       publish,
+      recursive,
     });
     invariant(res?.data, "Data should be available");
 

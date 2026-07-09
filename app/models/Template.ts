@@ -46,6 +46,68 @@ export default class Template extends ParanoidModel implements Searchable {
   collection?: Collection;
 
   /**
+   * The id of the parent template that this template is nested under, if any.
+   */
+  @Field
+  @observable
+  parentDocumentId?: string | null;
+
+  /**
+   * The number of direct child templates, as reported by the server. May be
+   * undefined when the template has not been loaded through a list endpoint.
+   */
+  @observable
+  childCount?: number;
+
+  /**
+   * The parent template that this template is nested under, if any.
+   */
+  @Relation(() => Template, { onDelete: "cascade" })
+  parentDocument?: Template;
+
+  /**
+   * The child templates nested directly under this template, if loaded.
+   */
+  @computed
+  get childTemplates(): Template[] {
+    return this.store.childTemplatesOf(this.id);
+  }
+
+  /**
+   * Whether this template contains nested templates.
+   */
+  @computed
+  get hasChildTemplates(): boolean {
+    return (this.childCount ?? 0) > 0 || this.childTemplates.length > 0;
+  }
+
+  /**
+   * The chain of ancestor templates from the root down to (excluding) this
+   * template. Only ancestors loaded in the store are returned.
+   */
+  @computed
+  get pathToTemplate(): Template[] {
+    const ancestors: Template[] = [];
+    let parent = this.parentDocument;
+
+    while (parent && !ancestors.includes(parent)) {
+      ancestors.unshift(parent);
+      parent = parent.parentDocument;
+    }
+
+    return ancestors;
+  }
+
+  /**
+   * The nesting depth of this template, where root templates have a depth
+   * of zero. Only counts ancestors loaded in the store.
+   */
+  @computed
+  get depth(): number {
+    return this.pathToTemplate.length;
+  }
+
+  /**
    * The title of the template.
    */
   @Field

@@ -42,6 +42,26 @@ export const createTemplate = createInternalLinkAction({
   to: newTemplatePath(),
 });
 
+export const createNestedTemplate = createInternalLinkAction({
+  name: ({ t }) => t("New nested template"),
+  analyticsName: "New nested template",
+  section: ActiveTemplateSection,
+  icon: <PlusIcon />,
+  keywords: "new create nested child template",
+  visible: ({ getActiveModel, stores }) => {
+    const template = getActiveModel(Template);
+    return !!template && !!stores.policies.abilities(template.id).update;
+  },
+  to: ({ getActiveModel }) => {
+    const template = getActiveModel(Template);
+    return template
+      ? newTemplatePath(template.collectionId ?? undefined, {
+          parentDocumentId: template.id,
+        })
+      : "";
+  },
+});
+
 export const deleteTemplate = createAction({
   name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete template",
@@ -78,7 +98,9 @@ export const deleteTemplate = createAction({
             components={{
               em: <strong />,
             }}
-          />
+          />{" "}
+          {template.hasChildTemplates &&
+            t("Any nested templates will also be deleted.")}
         </ConfirmationDialog>
       ),
     });
@@ -136,7 +158,10 @@ export const moveTemplate = createActionWithChildren({
   analyticsName: "Move template",
   section: ActiveTemplateSection,
   icon: <MoveIcon />,
-  visible: ({ getActivePolicies }) =>
+  visible: ({ getActiveModel, getActivePolicies }) =>
+    // nested templates share the collection of their parent and cannot be
+    // moved independently.
+    !getActiveModel(Template)?.parentDocumentId &&
     getActivePolicies(Template).some((policy) => policy.abilities.move),
   children: [moveTemplateToWorkspace, moveTemplateToCollection],
 });

@@ -17,27 +17,45 @@ type Props = {
 function DocumentTemplatizeDialog({ documentId }: Props) {
   const history = useHistory();
   const { t } = useTranslation();
-  const { documents, templates } = useStores();
+  const { collections, documents, templates } = useStores();
   const document = documents.get(documentId);
   invariant(document, "Document must exist");
 
   const [publish, setPublish] = React.useState(true);
+  const [recursive, setRecursive] = React.useState(true);
   const [collectionId, setCollectionId] = React.useState(
     document.collectionId ?? null
   );
+
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
+  const hasChildDocuments =
+    document.childDocuments.length > 0 ||
+    (collection?.getChildrenForDocument(document.id).length ?? 0) > 0;
 
   const handleSubmit = React.useCallback(async () => {
     const template = await templates.templatize({
       id: documentId,
       collectionId,
       publish,
+      recursive: hasChildDocuments && recursive,
     });
 
     if (template) {
       history.push(template.path);
       toast.success(t("Template created, go ahead and customize it"));
     }
-  }, [t, templates, documentId, history, collectionId, publish]);
+  }, [
+    t,
+    templates,
+    documentId,
+    history,
+    collectionId,
+    publish,
+    recursive,
+    hasChildDocuments,
+  ]);
 
   return (
     <ConfirmationDialog
@@ -61,6 +79,17 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
           defaultCollectionId={collectionId}
           onSelect={setCollectionId}
         />
+        {hasChildDocuments && (
+          <Switch
+            name="recursive"
+            label={t("Include nested documents")}
+            note={t(
+              "Convert documents nested under this one into nested templates"
+            )}
+            checked={recursive}
+            onChange={setRecursive}
+          />
+        )}
         <Switch
           name="publish"
           label={t("Published")}

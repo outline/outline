@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
@@ -24,12 +24,22 @@ function TemplateNewScene() {
   const { templates, collections } = useStores();
   const params = useQuery();
   const collectionId = params.get("collectionId") || undefined;
+  const parentDocumentId = params.get("parentDocumentId") || undefined;
   const collection = collectionId ? collections.get(collectionId) : undefined;
+  const parentTemplate = parentDocumentId
+    ? templates.get(parentDocumentId)
+    : undefined;
 
   const [template] = useState(
-    () => new Template({ title: "", collectionId }, templates)
+    () => new Template({ title: "", collectionId, parentDocumentId }, templates)
   );
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (parentDocumentId && !parentTemplate) {
+      void templates.fetch(parentDocumentId);
+    }
+  }, [templates, parentDocumentId, parentTemplate]);
 
   const breadcrumbActions = useMemo(
     () => [
@@ -49,8 +59,17 @@ function TemplateNewScene() {
             }),
           ]
         : []),
+      ...(parentTemplate
+        ? [...parentTemplate.pathToTemplate, parentTemplate].map((ancestor) =>
+            createInternalLinkAction({
+              name: ancestor.titleWithDefault,
+              section: NavigationSection,
+              to: ancestor.path,
+            })
+          )
+        : []),
     ],
-    [t, collection]
+    [t, collection, parentTemplate]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -62,7 +81,7 @@ function TemplateNewScene() {
     setSaving(true);
     try {
       await template.save();
-      history.push(settingsPath("templates"));
+      history.push(template.parentDocument?.path ?? settingsPath("templates"));
     } catch (error) {
       toast.error(errToString(error));
     } finally {

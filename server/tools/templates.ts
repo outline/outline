@@ -29,6 +29,7 @@ export async function presentTemplate(template: Template) {
     url: template.path,
     title: template.title,
     collectionId: template.collectionId ?? null,
+    parentDocumentId: template.parentDocumentId ?? null,
     updatedAt: template.updatedAt,
     text: template.content
       ? await DocumentHelper.toMarkdown(template.content, {
