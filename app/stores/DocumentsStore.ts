@@ -1,7 +1,12 @@
 import invariant from "invariant";
 import { compact, filter, omitBy, orderBy } from "es-toolkit/compat";
 import { observable, action, computed, runInAction } from "mobx";
-import type { DirectionFilter, SortFilter } from "@shared/types";
+import type {
+  DataViewSort,
+  DirectionFilter,
+  FilterGroup,
+  SortFilter,
+} from "@shared/types";
 import {
   AttachmentPreset,
   SubscriptionType,
@@ -27,6 +32,8 @@ import { extname, uploadFile } from "~/utils/files";
 type FetchPageParams = PaginationParams & {
   template?: boolean;
   collectionId?: string;
+  filter?: FilterGroup;
+  propertySorts?: DataViewSort[];
 };
 
 export type SearchParams = {
@@ -328,6 +335,25 @@ export default class DocumentsStore extends Store<Document> {
     } finally {
       this.isFetching = false;
     }
+  };
+
+  /**
+   * Fetches documents in a database collection, optionally filtered and
+   * sorted by their typed property values.
+   *
+   * @param options The collection id plus optional filter, property sorts and pagination
+   * @returns A promise resolving to the matching document models, in order.
+   */
+  @action
+  fetchInDatabase = async (
+    options: {
+      collectionId: string;
+      filter?: FilterGroup;
+      propertySorts?: DataViewSort[];
+    } & PaginationParams
+  ): Promise<Document[]> => {
+    const res = await this.fetchNamedPage("list", options);
+    return compact(res.map((item: { id: string }) => this.get(item.id)));
   };
 
   @action

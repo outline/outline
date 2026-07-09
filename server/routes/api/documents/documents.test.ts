@@ -6352,17 +6352,16 @@ describe("#documents.list property filters", () => {
       ],
     });
 
-    const build = (title: string, properties: Record<string, unknown>) =>
+    const build = (title: string) =>
       buildDocument({
         teamId: team.id,
         userId: user.id,
         collectionId: collection.id,
         title,
-        properties,
       });
 
     // properties are set through the model so the BeforeSave hook validates
-    const first = await build("First", {});
+    const first = await build("First");
     first.properties = {
       [statusId]: "todo",
       [priorityId]: 1,
@@ -6372,7 +6371,7 @@ describe("#documents.list property filters", () => {
     };
     await first.save();
 
-    const second = await build("Second", {});
+    const second = await build("Second");
     second.properties = {
       [statusId]: "done",
       [priorityId]: 5,
@@ -6382,7 +6381,7 @@ describe("#documents.list property filters", () => {
     };
     await second.save();
 
-    const third = await build("Third", {});
+    const third = await build("Third");
     third.properties = { [priorityId]: 3 };
     await third.save();
 

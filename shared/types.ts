@@ -516,23 +516,23 @@ export enum PropertyType {
 }
 
 /** A selectable option for select and multiSelect properties. */
-export interface PropertyOption {
+export type PropertyOption = {
   /** Stable identifier — values reference this id, so renaming an option is safe. */
   id: string;
   /** Display name of the option. */
   name: string;
   /** Display color of the option, in hex format. */
   color?: string;
-}
+};
 
 /** Additional per-type configuration for a property. */
-export interface PropertyConfig {
+export type PropertyConfig = {
   /** Whether date properties include a time component. */
   dateIncludesTime?: boolean;
-}
+};
 
 /** Definition of a typed document property, stored in a collection's data schema. */
-export interface Property {
+export type Property = {
   /** Stable identifier (UUID) — values are keyed by this id, so renaming a property is safe. */
   id: string;
   /** Display name of the property. */
@@ -543,7 +543,7 @@ export interface Property {
   options?: PropertyOption[];
   /** Additional per-type configuration. */
   config?: PropertyConfig;
-}
+};
 
 /**
  * A single property value on a document. The runtime type depends on the
@@ -572,48 +572,48 @@ export enum FilterOperator {
 }
 
 /** A single filter condition on a property within a database view. */
-export interface FilterCondition {
+export type FilterCondition = {
   /** The property id the condition applies to. */
   propertyId: string;
   /** The comparison operator. */
   operator: FilterOperator;
   /** The comparison value; unused for isEmpty / isNotEmpty. */
   value?: PropertyValue;
-}
+};
 
 /** A group of filter conditions combined with a conjunction; groups may nest. */
-export interface FilterGroup {
+export type FilterGroup = {
   conjunction: "and" | "or";
   conditions: (FilterCondition | FilterGroup)[];
-}
+};
 
 export enum DataViewType {
   Table = "table",
 }
 
 /** Display configuration for one property column in a database view. */
-export interface DataViewColumn {
+export type DataViewColumn = {
   /** The property id this column renders. */
   propertyId: string;
   /** Column width in pixels. */
   width?: number;
   /** Whether the column is visible. */
   visible: boolean;
-}
+};
 
 /** A sort level in a database view. */
-export interface DataViewSort {
+export type DataViewSort = {
   /** The property id to sort by. */
   propertyId: string;
   direction: "asc" | "desc";
-}
+};
 
 /**
  * A saved database view over the documents in a collection — a query
  * (filter + sorts) plus display configuration. Views store no data; they
  * read live from document properties.
  */
-export interface DataView {
+export type DataView = {
   /** Stable identifier (UUID). */
   id: string;
   /** Display name of the view. */
@@ -628,7 +628,7 @@ export interface DataView {
   filter?: FilterGroup;
   /** Property id to group rows by (board/grouped views, later phase). */
   groupBy?: string;
-}
+};
 
 export enum SubscriptionType {
   Document = "documents.update",

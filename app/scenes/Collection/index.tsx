@@ -42,6 +42,7 @@ import {
 } from "~/utils/routeHelpers";
 import Error404 from "../Errors/Error404";
 import Actions from "./components/Actions";
+import DatabaseTable from "./components/DatabaseTable";
 import DropToImport from "./components/DropToImport";
 import Empty from "./components/Empty";
 import MembershipPreview from "./components/MembershipPreview";
@@ -233,6 +234,11 @@ const CollectionScene = observer(function CollectionScene_() {
                   />
                 )}
               </Route>
+              {!collection.isArchived && collection.isDatabase && (
+                <Route path={collectionPath(collection, CollectionTab.Table)}>
+                  <DatabaseTable collection={collection} />
+                </Route>
+              )}
               {collection.isEmpty ? (
                 <Empty collection={collection} />
               ) : !collection.isArchived ? (
