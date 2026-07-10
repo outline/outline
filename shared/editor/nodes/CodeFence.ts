@@ -32,7 +32,7 @@ import {
 } from "../commands/codeFence";
 import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
-import { CodeHighlighting } from "../extensions/CodeHighlighting";
+import { CodeHighlighting } from "../plugins/CodeHighlightingPlugin";
 import Mermaid, {
   pluginKey as mermaidPluginKey,
   type MermaidState,

@@ -37,8 +37,12 @@ import DocumentTitle from "./DocumentTitle";
 import { first } from "es-toolkit/compat";
 import { getLangFor } from "~/utils/language";
 import useShare from "@shared/hooks/useShare";
+import CodeWordBreak from "@shared/editor/extensions/CodeWordBreak";
 
-const extensions = withUIExtensions(withComments(richExtensions));
+const extensions = [
+  CodeWordBreak,
+  ...withUIExtensions(withComments(richExtensions)),
+];
 
 type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;

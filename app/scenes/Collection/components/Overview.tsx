@@ -19,8 +19,9 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import type { Properties } from "~/types";
+import CodeWordBreak from "@shared/editor/extensions/CodeWordBreak";
 
-const extensions = withUIExtensions(richExtensions);
+const extensions = [CodeWordBreak, ...withUIExtensions(richExtensions)];
 
 type Props = {
   collection: Collection;
