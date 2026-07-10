@@ -30,6 +30,12 @@ function getBlockingConnection() {
       maxRetriesPerRequest: null,
       connectionNameSuffix: "queue",
     });
+
+    // BullMQ does not close shared connections, so disconnect it ourselves
+    // once all workers and queues have finished closing.
+    ShutdownHelper.add("queue-connection", ShutdownOrder.last, async () => {
+      blockingConnection?.disconnect();
+    });
   }
   return blockingConnection;
 }
