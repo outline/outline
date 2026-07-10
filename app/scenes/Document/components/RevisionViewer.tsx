@@ -16,6 +16,7 @@ import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { type Editor as TEditor } from "~/editor";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
+import CodeWordBreak from "@shared/editor/extensions/CodeWordBreak";
 
 type Props = Omit<EditorProps, "extensions"> & {
   /** The ID of the revision */
@@ -84,6 +85,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
       comparisonData
     );
     return [
+      CodeWordBreak,
       ...withComments(richExtensions),
       ...(showChanges && changeset?.changes
         ? [new Diff({ changes: changeset?.changes })]
