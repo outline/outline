@@ -134,8 +134,7 @@ export async function signIn(
   // If the authentication request originally came from the desktop app then we send the user
   // back to a screen in the web app that will immediately redirect to the desktop. The reason
   // to do this from the client is that if you redirect from the server then the browser ends up
-  // stuck on the SSO screen. This must happen regardless of whether the deployment is cloud
-  // hosted, otherwise a self-hosted desktop sign-in never hands the token back to the app.
+  // stuck on the SSO screen.
   if (client === Client.Desktop) {
     const token = encodeURIComponent(user.getTransferToken(service));
     ctx.redirect(`${team.url}/desktop-redirect?token=${token}`);
