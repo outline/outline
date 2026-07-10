@@ -45,7 +45,7 @@ vi.mock("@aws-sdk/signature-v4-crt", () => ({}));
 
 // Auto-mock these modules using the corresponding files under server/__mocks__/.
 // Vitest requires an explicit vi.mock() call to wire them up.
-vi.mock("bull", () => import("../__mocks__/bull"));
+vi.mock("bullmq", () => import("../__mocks__/bullmq"));
 vi.mock("dd-trace", async () => {
   const mod = await import("../__mocks__/dd-trace");
   return { default: mod.mockTracer, ...mod };

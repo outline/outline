@@ -253,7 +253,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
   }
 
   /**
-   * Job options such as priority and retry strategy, as defined by Bull.
+   * Job options such as priority and retry strategy, as defined by BullMQ.
    */
   public get options() {
     return {

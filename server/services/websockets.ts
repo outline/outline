@@ -18,6 +18,7 @@ import { can } from "@server/policies";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { getUserForJWT } from "@server/utils/jwt";
+import { createWorker } from "@server/queues/queue";
 import { websocketQueue } from "../queues";
 import WebsocketsProcessor from "../queues/processors/WebsocketsProcessor";
 
@@ -146,27 +147,24 @@ export default function init(
 
   // Handle events from event queue that should be sent to the clients down ws
   const websockets = new WebsocketsProcessor();
-  websocketQueue()
-    .process(
-      traceFunction({
-        serviceName: "websockets",
-        spanName: "process",
-        isRoot: true,
-      })(async function (job) {
-        const event = job.data;
+  createWorker(
+    websocketQueue(),
+    traceFunction({
+      serviceName: "websockets",
+      spanName: "process",
+      isRoot: true,
+    })(async function (job) {
+      const event = job.data;
 
-        Tracing.setResource(`Processor.WebsocketsProcessor`);
+      Tracing.setResource(`Processor.WebsocketsProcessor`);
 
-        websockets.perform(event, io).catch((error) => {
-          Logger.error("Error processing websocket event", error, {
-            event,
-          });
+      websockets.perform(event, io).catch((error) => {
+        Logger.error("Error processing websocket event", error, {
+          event,
         });
-      })
-    )
-    .catch((err) => {
-      Logger.fatal("Error starting websocketQueue", err);
-    });
+      });
+    })
+  );
 }
 
 async function authenticated(io: IO.Server, socket: SocketWithAuth) {

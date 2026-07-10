@@ -115,7 +115,7 @@
     "@vitejs/plugin-react": "^6.0.2",
     "addressparser": "^1.0.1",
     "async-sema": "^3.1.1",
-    "bull": "^4.16.5",
+    "bullmq": "^5.79.2",
     "chrono-node": "^2.9.1",
     "class-validator": "^0.15.1",
     "command-score": "^0.1.2",
