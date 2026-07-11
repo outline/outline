@@ -132,16 +132,23 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     [width, direction]
   );
 
-  const handlePointerActivity = React.useCallback(() => {
-    if (ui.sidebarIsClosed) {
-      // clear the timeout when mouse exits
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
+  const handlePointerActivity = React.useCallback(
+    (event: React.PointerEvent) => {
+      if (ui.sidebarIsClosed) {
+        // don't reveal while a button is held, e.g. selecting text near the edge
+        if (event.buttons !== 0) {
+          return;
+        }
+        // clear the timeout when mouse exits
+        if (hoverTimeoutRef.current) {
+          clearTimeout(hoverTimeoutRef.current);
+        }
+        setHovering(document.hasFocus());
+        setPointerMoved(true);
       }
-      setHovering(document.hasFocus());
-      setPointerMoved(true);
-    }
-  }, [ui.sidebarIsClosed]);
+    },
+    [ui.sidebarIsClosed]
+  );
 
   const handlePointerLeave = React.useCallback(
     (ev) => {
