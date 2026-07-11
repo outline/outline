@@ -1,5 +1,6 @@
 import copy from "copy-to-clipboard";
 import { t } from "i18next";
+import { getLuminance } from "polished";
 import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -7,26 +8,35 @@ import { toast } from "sonner";
 import Extension from "../lib/Extension";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
-const HEX_COLOR_REGEX = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6})\b/g;
+// Matches a CSS color in hex (#RGB, #RGBA, #RRGGBB, #RRGGBBAA), rgb()/rgba(),
+// or hsl()/hsla() notation. Functional matches are loose here and validated by
+// getLuminance, which throws for anything that isn't a real color.
+const COLOR_REGEX = new RegExp(
+  [
+    "#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\\b",
+    "(?:rgba?|hsla?)\\([^)]*\\)",
+  ].join("|"),
+  "gi"
+);
 
-type HexPluginState = {
+type ColorPluginState = {
   decorations: DecorationSet;
 };
 
-const pluginKey = new PluginKey<HexPluginState>("hex_color_preview");
+const pluginKey = new PluginKey<ColorPluginState>("color_swatch_preview");
 
 /**
- * An editor extension that renders a small colored circle after any valid hex
- * color code found inside an inline code mark.
+ * An editor extension that renders a small colored circle after any valid CSS
+ * color (hex, rgb/rgba, or hsl/hsla) found inside an inline code mark.
  */
-export default class HexColorPreview extends Extension {
+export default class ColorSwatchPreview extends Extension {
   get name() {
-    return "hex_color_preview";
+    return "color_swatch_preview";
   }
 
   get plugins() {
     return [
-      new Plugin<HexPluginState>({
+      new Plugin<ColorPluginState>({
         key: pluginKey,
         state: {
           init: (_, state) => ({
@@ -67,20 +77,30 @@ export default class HexColorPreview extends Extension {
       }
 
       const text = node.text;
-      HEX_COLOR_REGEX.lastIndex = 0;
+      COLOR_REGEX.lastIndex = 0;
       let match: RegExpExecArray | null;
 
-      while ((match = HEX_COLOR_REGEX.exec(text)) !== null) {
-        const hex = match[0];
-        const end = pos + match.index + hex.length;
+      while ((match = COLOR_REGEX.exec(text)) !== null) {
+        const color = match[0];
+
+        // getLuminance throws for anything that isn't a real color, which also
+        // filters out false-positive regex matches like "rgb(foo)".
+        let luminance: number;
+        try {
+          luminance = getLuminance(color);
+        } catch {
+          continue;
+        }
+
+        const end = pos + match.index + color.length;
 
         decorations.push(
-          Decoration.widget(end, () => this.createSwatch(hex), {
+          Decoration.widget(end, () => this.createSwatch(color, luminance), {
             // Use side: -1 so the swatch renders before the fake-cursor widget
             // from prosemirror-codemark, which uses side 0/-1 to represent the
             // "inside"/"outside" cursor positions at mark boundaries.
             side: -1,
-            key: `hex-${hex}`,
+            key: `color-${end}-${color}`,
             marks: [codeMark],
           })
         );
@@ -90,17 +110,16 @@ export default class HexColorPreview extends Extension {
     return DecorationSet.create(state.doc, decorations);
   }
 
-  private createSwatch(color: string): HTMLElement {
+  private createSwatch(color: string, luminance: number): HTMLElement {
     const swatch = document.createElement("span");
-    swatch.className = EditorStyleHelper.hexColorSwatch;
+    swatch.className = EditorStyleHelper.colorSwatch;
     swatch.setAttribute("aria-hidden", "true");
     swatch.style.backgroundColor = color;
 
-    const luminance = this.getRelativeLuminance(color);
     if (luminance > 0.85) {
-      swatch.classList.add(EditorStyleHelper.hexColorSwatchLight);
+      swatch.classList.add(EditorStyleHelper.colorSwatchLight);
     } else if (luminance < 0.1) {
-      swatch.classList.add(EditorStyleHelper.hexColorSwatchDark);
+      swatch.classList.add(EditorStyleHelper.colorSwatchDark);
     }
 
     swatch.addEventListener("mousedown", (event) => {
@@ -115,14 +134,5 @@ export default class HexColorPreview extends Extension {
     });
 
     return swatch;
-  }
-
-  private getRelativeLuminance(hex: string): number {
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-    const channel = (c: number) =>
-      c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
   }
 }

@@ -1721,7 +1721,7 @@ code {
   }
 }
 
-.${EditorStyleHelper.hexColorSwatch} {
+.${EditorStyleHelper.colorSwatch} {
   display: inline-block;
   width: 0.75em;
   height: 0.75em;
@@ -1734,8 +1734,8 @@ code {
 
 .${
   props.theme.isDark
-    ? EditorStyleHelper.hexColorSwatchDark
-    : EditorStyleHelper.hexColorSwatchLight
+    ? EditorStyleHelper.colorSwatchDark
+    : EditorStyleHelper.colorSwatchLight
 } {
   outline: 1px solid ${props.theme.codeBorder};
 }
