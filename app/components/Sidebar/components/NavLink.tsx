@@ -4,6 +4,8 @@
 // it avoids recalculating the link match again.
 import type { Location, LocationDescriptor } from "history";
 import { createLocation } from "history";
+import { action, observable } from "mobx";
+import { observer } from "mobx-react";
 import * as React from "react";
 import type { match } from "react-router";
 import { __RouterContext as RouterContext, matchPath } from "react-router";
@@ -26,6 +28,14 @@ const normalizeToLocation = (
 
 const joinClassnames = (...classnames: (string | undefined)[]) =>
   classnames.filter((i) => i).join(" ");
+
+// The target of a fast-click navigation, shared between all NavLinks so that
+// only links matching it can render as active before the location changes.
+const pendingLocation = observable.box<Location | null>(null, { deep: false });
+
+const setPendingLocation = action((location: Location | null) => {
+  pendingLocation.set(location);
+});
 
 /**
  * Props for the NavLink component.
@@ -59,7 +69,7 @@ export interface Props extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
 /**
  * A <Link> wrapper that clicks extra fast and knows if it's "active" or not.
  */
-const NavLink = ({
+const NavLink = observer(function NavLink({
   "aria-current": ariaCurrent = "page",
   activeClassName = "active",
   activeStyle,
@@ -75,13 +85,13 @@ const NavLink = ({
   onActiveClick,
   to,
   ...rest
-}: Props) => {
+}: Props) {
   const linkRef = React.useRef<HTMLAnchorElement>(null);
   const context = React.useContext(RouterContext);
-  const [preActive, setPreActive] = React.useState<boolean | undefined>(
-    undefined
-  );
   const currentLocation = locationProp || context.location;
+  // While a fast-click navigation is pending, derive active state from its
+  // target so the outgoing link deactivates immediately.
+  const activeLocation = pendingLocation.get() ?? currentLocation;
   const toLocation = normalizeToLocation(
     resolveToLocation(to, currentLocation),
     currentLocation
@@ -89,7 +99,7 @@ const NavLink = ({
   const { pathname: path } = toLocation;
 
   const pathMatch = path
-    ? matchPath(currentLocation.pathname, {
+    ? matchPath(activeLocation.pathname, {
         // Regex taken from: https://github.com/pillarjs/path-to-regexp/blob/master/index.js#L202
         path: path.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1"),
         exact,
@@ -97,9 +107,9 @@ const NavLink = ({
       })
     : null;
 
-  const isActive =
-    preActive ??
-    !!(isActiveProp ? isActiveProp(pathMatch, currentLocation) : pathMatch);
+  const isActive = !!(isActiveProp
+    ? isActiveProp(pathMatch, activeLocation)
+    : pathMatch);
   const className = isActive
     ? joinClassnames(classNameProp, activeClassName)
     : classNameProp;
@@ -137,14 +147,21 @@ const NavLink = ({
     }
   }, [to, replace]);
 
+  // Whether the link was active when the click gesture began, so a fast click
+  // is not also treated as a click on an already-active link.
+  const wasActiveAtMouseDown = React.useRef<boolean>();
+
   const handleMouseDown = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
+      wasActiveAtMouseDown.current = isActive;
       onClick?.(event);
 
       if (shouldFastClick(event)) {
         event.currentTarget.focus();
 
-        setPreActive(true);
+        setPendingLocation(
+          createLocation(toLocation, undefined, undefined, currentLocation)
+        );
 
         // Wait a frame until following the link
         requestAnimationFrame(() => {
@@ -153,11 +170,23 @@ const NavLink = ({
         });
       }
     },
-    [onClick, navigateTo, shouldFastClick]
+    [
+      onClick,
+      navigateTo,
+      shouldFastClick,
+      toLocation,
+      currentLocation,
+      isActive,
+    ]
   );
 
   const handleClick = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
+      // Keyboard-triggered clicks have no preceding mousedown, fall back to
+      // the current active state.
+      const wasActive = wasActiveAtMouseDown.current ?? isActive;
+      wasActiveAtMouseDown.current = undefined;
+
       // Prevent navigation if link is active, event is synthetic, or context menu is open
       if (
         isActive ||
@@ -170,7 +199,7 @@ const NavLink = ({
       // Fire onActiveClick on click rather than mousedown so that the native
       // HTML5 drag gesture can initiate from an active row without being
       // blocked by a preventDefault on mousedown.
-      if (isActive) {
+      if (isActive && wasActive) {
         onActiveClick?.(event);
       }
     },
@@ -178,7 +207,7 @@ const NavLink = ({
   );
 
   React.useEffect(() => {
-    setPreActive(undefined);
+    setPendingLocation(null);
   }, [currentLocation]);
 
   const handleKeyDown = React.useCallback(
@@ -193,7 +222,6 @@ const NavLink = ({
 
   return (
     <Link
-      key={isActive ? "active" : "inactive"}
       ref={linkRef}
       // Note do not use `onPointerDown` here as it makes the mobile sidebar unscrollable
       onMouseDown={handleMouseDown}
@@ -207,6 +235,6 @@ const NavLink = ({
       {...rest}
     />
   );
-};
+});
 
 export default NavLink;
