@@ -15,7 +15,7 @@ export class NotFoundError extends ExtendableError {}
 /** Error thrown when the request requires payment or an upgraded plan. */
 export class PaymentRequiredError extends ExtendableError {}
 
-/** Error thrown when the link is expired or has been deactivated or an upgraded plan. */
+/** Error thrown when the link is expired or has been deactivated. */
 export class ResourceExpiredError extends ExtendableError {}
 
 /** Error thrown when a request is made while the client is offline. */
