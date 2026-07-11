@@ -29,12 +29,23 @@ const normalizeToLocation = (
 const joinClassnames = (...classnames: (string | undefined)[]) =>
   classnames.filter((i) => i).join(" ");
 
+interface PendingNavigation {
+  /** The current location when the fast click began. */
+  from: Location;
+  /** The target location of the fast click. */
+  to: Location;
+}
+
 // The target of a fast-click navigation, shared between all NavLinks so that
 // only links matching it can render as active before the location changes.
-const pendingLocation = observable.box<Location | null>(null, { deep: false });
+// Only honored while `from` is still the current location, so a stale value
+// cannot influence rendering after navigation.
+const pendingNavigation = observable.box<PendingNavigation | null>(null, {
+  deep: false,
+});
 
-const setPendingLocation = action((location: Location | null) => {
-  pendingLocation.set(location);
+const setPendingNavigation = action((value: PendingNavigation | null) => {
+  pendingNavigation.set(value);
 });
 
 /**
@@ -91,7 +102,9 @@ const NavLink = observer(function NavLink({
   const currentLocation = locationProp || context.location;
   // While a fast-click navigation is pending, derive active state from its
   // target so the outgoing link deactivates immediately.
-  const activeLocation = pendingLocation.get() ?? currentLocation;
+  const pending = pendingNavigation.get();
+  const activeLocation =
+    pending && pending.from === currentLocation ? pending.to : currentLocation;
   const toLocation = normalizeToLocation(
     resolveToLocation(to, currentLocation),
     currentLocation
@@ -157,16 +170,20 @@ const NavLink = observer(function NavLink({
       onClick?.(event);
 
       if (shouldFastClick(event)) {
-        event.currentTarget.focus();
+        // Capture the element as React nulls currentTarget once the handler
+        // returns, which would make the deferred blur a no-op.
+        const element = event.currentTarget;
+        element.focus();
 
-        setPendingLocation(
-          createLocation(toLocation, undefined, undefined, currentLocation)
-        );
+        setPendingNavigation({
+          from: currentLocation,
+          to: createLocation(toLocation, undefined, undefined, currentLocation),
+        });
 
         // Wait a frame until following the link
         requestAnimationFrame(() => {
           requestAnimationFrame(navigateTo);
-          event.currentTarget?.blur();
+          element.blur();
         });
       }
     },
@@ -206,8 +223,13 @@ const NavLink = observer(function NavLink({
     [isActive, onActiveClick]
   );
 
+  // Release a pending navigation once it is no longer honored, without
+  // disturbing one that is still in flight.
   React.useEffect(() => {
-    setPendingLocation(null);
+    const value = pendingNavigation.get();
+    if (value && value.from !== currentLocation) {
+      setPendingNavigation(null);
+    }
   }, [currentLocation]);
 
   const handleKeyDown = React.useCallback(
