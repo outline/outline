@@ -1473,7 +1473,7 @@ export const openDocumentComments = createAction({
       !!activeDocumentId && can.comment && !!stores.auth.team?.commentingEnabled
     );
   },
-  perform: ({ activeDocumentId, stores }) => {
+  perform: ({ activeDocumentId, sidebarContext, stores }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
@@ -1485,7 +1485,7 @@ export const openDocumentComments = createAction({
     // document list), as the comments sidebar is only rendered there.
     const path = documentPath(document);
     if (!history.location.pathname.startsWith(path)) {
-      history.push(path);
+      history.push(path, { sidebarContext });
     }
 
     stores.ui.set({ rightSidebar: "comments" });
