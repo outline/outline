@@ -58,9 +58,6 @@ export default class Mention extends Node {
         id: {
           default: undefined,
         },
-        anchorId: {
-          default: undefined,
-        },
         href: {
           default: undefined,
         },
@@ -90,8 +87,6 @@ export default class Mention extends Node {
               actorId: dom.dataset.actorid,
               label: dom.innerText,
               id: dom.id,
-              anchorId:
-                dom.dataset.anchorId ?? dom.getAttribute("href")?.split("#")[1],
               href: dom.getAttribute("href"),
               unfurl: dom.dataset.unfurl
                 ? JSON.parse(dom.dataset.unfurl)
@@ -118,16 +113,13 @@ export default class Mention extends Node {
             node.attrs.type === MentionType.Date
               ? undefined
               : node.attrs.type === MentionType.Document
-                ? `${env.URL}/doc/${node.attrs.modelId}${
-                    node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""
-                  }`
+                ? `${env.URL}/doc/${node.attrs.modelId}`
                 : node.attrs.type === MentionType.Collection
                   ? `${env.URL}/collection/${node.attrs.modelId}`
                   : sanitizeUrl(node.attrs.href),
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorid": node.attrs.actorId,
-          "data-anchor-id": node.attrs.anchorId,
           "data-url":
             node.attrs.type === MentionType.PullRequest ||
             node.attrs.type === MentionType.Issue ||
@@ -260,11 +252,7 @@ export default class Mention extends Node {
                 ? "doc"
                 : "collection";
 
-            link = `/${linkType}/${modelId}${
-              selection.node.attrs.anchorId
-                ? `#${selection.node.attrs.anchorId}`
-                : ""
-            }`;
+            link = `/${linkType}/${modelId}`;
           }
 
           this.editor.props.onClickLink?.(link);
@@ -346,11 +334,7 @@ export default class Mention extends Node {
 
     // Use regular links for document and collection mentions
     if (mType === MentionType.Document) {
-      state.write(
-        `[${label}](/doc/${mId}${
-          node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""
-        })`
-      );
+      state.write(`[${label}](/doc/${mId})`);
     } else if (mType === MentionType.Collection) {
       state.write(`[${label}](/collection/${mId})`);
     } else {

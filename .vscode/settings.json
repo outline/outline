@@ -4,6 +4,4 @@
   "typescript.validate.enable": true,
   "typescript.format.enable": true,
   "editor.formatOnSave": true,
-  "oxc.enable.oxfmt": true,
-  "editor.defaultFormatter": "oxc.oxc-vscode"
 }
