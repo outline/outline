@@ -1,6 +1,7 @@
 import queryString from "query-string";
+import { addDays, subDays } from "date-fns";
 import { randomString } from "@shared/random";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, ShareTypes } from "@shared/types";
 import { createContext } from "@server/context";
 import { UserMembership, Share, ShareSubscription } from "@server/models";
 import {
@@ -268,6 +269,45 @@ describe("#shares.create", () => {
     expect(body.data.documentTitle).toBe(document.title);
   });
 
+  it("should allow creating a share with expiresAt", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const expiresAt = addDays(new Date(), 7).toISOString();
+
+    const res = await server.post("/api/shares.create", user, {
+      body: {
+        documentId: document.id,
+        expiresAt,
+        type: ShareTypes.Expiring,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.expiresAt).toBe(expiresAt);
+  });
+
+  it("should reject create when expiresAt is in the past", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/shares.create", user, {
+      body: {
+        documentId: document.id,
+        expiresAt: subDays(new Date(), 1).toISOString(),
+        type: ShareTypes.Expiring,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("expiresAt: must be a future date");
+  });
+
   it("should allow creating a published share record for document", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -430,7 +470,7 @@ describe("#shares.create", () => {
     expect(body.data.documentTitle).toBe(document.title);
   });
 
-  it("should return existing share link for document and user", async () => {
+  it("should return existing share link for document and user if type is web", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
@@ -444,11 +484,34 @@ describe("#shares.create", () => {
     const res = await server.post("/api/shares.create", user, {
       body: {
         documentId: document.id,
+        type: ShareTypes.Web,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.id).toBe(share.id);
+  });
+
+  it("should create a new share link if type is sharing", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/shares.create", user, {
+      body: {
+        documentId: document.id,
+        type: ShareTypes.Expiring,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).not.toBe(share.id);
   });
 
   it("should not disclose an existing published share to a user without share permission", async () => {
@@ -738,6 +801,32 @@ describe("#shares.info", () => {
     });
     expect(res.status).toEqual(204);
   });
+
+  it("should return 410 for expired share links", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      expiresAt: subDays(new Date(), 1),
+      type: ShareTypes.Expiring,
+    });
+
+    const res = await server.post("/api/shares.info", {
+      body: {
+        id: share.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(410);
+    expect(body.error).toEqual("resource_expired");
+    expect(body.message).toEqual("Share link has expired");
+  });
+
   it("should return share for parent document with includeChildDocuments=true", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -936,6 +1025,63 @@ describe("#shares.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.urlId).toEqual("url-id");
+  });
+
+  it("should update and clear expiresAt", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      type: ShareTypes.Expiring,
+    });
+    const expiresAt = addDays(new Date(), 30).toISOString();
+
+    const res = await server.post("/api/shares.update", user, {
+      body: {
+        id: share.id,
+        expiresAt,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.expiresAt).toBe(expiresAt);
+
+    const clearRes = await server.post("/api/shares.update", user, {
+      body: {
+        id: share.id,
+        expiresAt: null,
+      },
+    });
+    const clearBody = await clearRes.json();
+    expect(clearRes.status).toEqual(200);
+    expect(clearBody.data.expiresAt).toBeNull();
+  });
+
+  it("should reject update when expiresAt is in the past", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      type: ShareTypes.Expiring,
+    });
+
+    const res = await server.post("/api/shares.update", user, {
+      body: {
+        id: share.id,
+        expiresAt: subDays(new Date(), 1).toISOString(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("expiresAt: must be a future date");
   });
 
   it("should allow clearing urlId", async () => {

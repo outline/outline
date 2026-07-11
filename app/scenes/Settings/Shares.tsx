@@ -1,6 +1,6 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
-import { GlobeIcon, WarningIcon } from "outline-icons";
+import { GlobeIcon, PlusIcon, WarningIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link, useHistory, useLocation } from "react-router-dom";
@@ -18,6 +18,11 @@ import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { SharesTable } from "./components/SharesTable";
 import { StickyFilters } from "./components/StickyFilters";
+import Button from "~/components/Button";
+import { Action } from "~/components/Actions";
+import useActionContext from "~/hooks/useActionContext";
+import { createShareLink } from "~/actions/definitions/createShareLink";
+// import Switch from "~/components/Switch";
 
 function Shares() {
   const team = useCurrentTeam();
@@ -29,6 +34,7 @@ function Shares() {
   const can = usePolicy(team);
   const params = useQuery();
   const [query, setQuery] = useState("");
+  const context = useActionContext();
 
   const reqParams = useMemo(
     () => ({
@@ -89,7 +95,30 @@ function Shares() {
   }, [query, updateParams]);
 
   return (
-    <Scene title={t("Shared Links")} icon={<GlobeIcon />} wide>
+    <Scene
+      title={t("Shared Links")}
+      icon={<GlobeIcon />}
+      wide
+      actions={
+        <>
+          {canShareDocuments && (
+            <Action>
+              <Button
+                type="button"
+                data-on="click"
+                data-event-category="share-link"
+                data-event-action="create"
+                action={createShareLink}
+                context={context}
+                icon={<PlusIcon />}
+              >
+                {t("New Link")}...
+              </Button>
+            </Action>
+          )}
+        </>
+      }
+    >
       <Heading>{t("Shared Links")}</Heading>
 
       {can.update && !canShareDocuments && (
@@ -115,13 +144,20 @@ function Shares() {
         </Trans>
       </Text>
 
-      <StickyFilters>
+      <StickyFilters gap={50}>
         <InputSearch
           short
           value={query}
           placeholder={`${t("Filter")}…`}
           onChange={handleSearch}
         />
+        {/*
+        to do: finish implementation
+        <Switch
+          label={t("Published")}
+          checked={showPublished}
+          onChange={setShowPublished}
+        /> */}
       </StickyFilters>
       <ConditionalFade animate={!data}>
         <SharesTable

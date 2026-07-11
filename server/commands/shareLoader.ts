@@ -1,10 +1,11 @@
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import isUUID from "validator/lib/isUUID";
-import type { NavigationNode } from "@shared/types";
+import { ShareTypes, type NavigationNode } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
   AuthorizationError,
+  ResourceExpiredError,
   InvalidRequestError,
   NotFoundError,
   PaymentRequiredError,
@@ -37,7 +38,8 @@ export async function loadPublicShare({
     revokedAt: {
       [Op.is]: null,
     },
-    published: true,
+    // to do: implement published and unpublished views on the table
+    // published: true,
   };
 
   if (urlId) {
@@ -69,7 +71,15 @@ export async function loadPublicShare({
   });
 
   if (
+    (share?.expiresAt && share.expiresAt < new Date()) ||
+    (share?.type === ShareTypes.Expiring && !share.published)
+  ) {
+    throw ResourceExpiredError("Share link has expired");
+  }
+
+  if (
     !share ||
+    !share.published ||
     !!share.team.suspendedAt ||
     !!share.collection?.archivedAt ||
     !!share.document?.archivedAt

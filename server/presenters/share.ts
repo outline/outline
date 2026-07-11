@@ -4,6 +4,7 @@ import { presentUser } from ".";
 export default function presentShare(share: Share, isAdmin = false) {
   const data = {
     id: share.id,
+    type: share.type,
     sourceTitle: share.collection?.name ?? share.document?.title,
     sourcePath: share.collection?.path ?? share.document?.path,
     collectionId: share.collectionId,
@@ -21,6 +22,7 @@ export default function presentShare(share: Share, isAdmin = false) {
     showTOC: share.showTOC,
     title: share.title,
     iconUrl: share.iconUrl,
+    expiresAt: share.expiresAt,
     lastAccessedAt: share.lastAccessedAt || undefined,
     views: share.views || 0,
     domain: share.domain,

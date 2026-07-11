@@ -30,6 +30,7 @@ import {
   StyledInfoIcon,
   UnderlinedLink,
 } from "../components";
+import { ShareTypes } from "@shared/types";
 
 type Props = {
   /** The document to share. */
@@ -68,7 +69,8 @@ function PublicAccess(
         if (checked && !share) {
           setCreating(true);
           const newShare = await shares.create({
-            type: "document",
+            type: ShareTypes.Web,
+            targetType: "document",
             documentId: document.id,
             published: true,
           });

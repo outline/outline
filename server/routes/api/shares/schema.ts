@@ -7,6 +7,13 @@ import { Share } from "@server/models";
 import { ValidateURL } from "@server/validation";
 import { zodIdType } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
+import { ShareTypes } from "@shared/types";
+
+const ExpiresAtSchema = z.coerce
+  .date()
+  .refine((value) => value.getTime() > Date.now(), {
+    error: "must be a future date",
+  });
 
 export const SharesInfoSchema = BaseSchema.extend({
   body: z
@@ -33,6 +40,7 @@ export type SharesInfoReq = z.infer<typeof SharesInfoSchema>;
 export const SharesListSchema = BaseSchema.extend({
   body: z.object({
     query: z.string().optional(),
+    published: z.boolean().nullish(),
     sort: z
       .string()
       .refine((val) => Object.keys(Share.getAttributes()).includes(val), {
@@ -68,6 +76,7 @@ export const SharesUpdateSchema = BaseSchema.extend({
         { error: ValidateURL.message }
       )
       .nullish(),
+    expiresAt: ExpiresAtSchema.nullish(),
     urlId: z
       .string()
       .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
@@ -82,6 +91,7 @@ export type SharesUpdateReq = z.infer<typeof SharesUpdateSchema>;
 export const SharesCreateSchema = BaseSchema.extend({
   body: z
     .object({
+      type: z.enum(ShareTypes).default(ShareTypes.Web),
       collectionId: zodIdType().optional(),
       documentId: zodIdType().optional(),
       published: z.boolean().prefault(false),
@@ -89,6 +99,7 @@ export const SharesCreateSchema = BaseSchema.extend({
       allowSubscriptions: z.boolean().optional(),
       showLastUpdated: z.boolean().optional(),
       showTOC: z.boolean().optional(),
+      title: z.string().max(ShareValidation.maxTitleLength).nullish(),
       urlId: z
         .string()
         .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
@@ -96,6 +107,7 @@ export const SharesCreateSchema = BaseSchema.extend({
         })
         .optional(),
       includeChildDocuments: z.boolean().prefault(false),
+      expiresAt: ExpiresAtSchema.nullish(),
     })
     .refine((obj) => !(isEmpty(obj.collectionId) && isEmpty(obj.documentId)), {
       error: "one of collectionId or documentId is required",

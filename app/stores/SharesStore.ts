@@ -1,7 +1,11 @@
 import invariant from "invariant";
-import { filter, find, isUndefined, orderBy } from "es-toolkit/compat";
+import { filter, isUndefined, orderBy } from "es-toolkit/compat";
 import { action, computed, observable } from "mobx";
-import type { NavigationNode, PublicTeam } from "@shared/types";
+import {
+  ShareTypes,
+  type NavigationNode,
+  type PublicTeam,
+} from "@shared/types";
 import type Document from "~/models/Document";
 import Share from "~/models/Share";
 import type { PartialExcept } from "~/types";
@@ -37,6 +41,24 @@ export default class SharesStore extends Store<Share> {
     return filter(this.orderedData, (share) => share.published);
   }
 
+  @computed
+  get unpublished(): Share[] {
+    return filter(this.orderedData, (share) => !share.published);
+  }
+
+  @computed
+  get web(): Share[] {
+    return filter(this.orderedData, (share) => share.type === ShareTypes.Web);
+  }
+
+  @computed
+  get expiring(): Share[] {
+    return filter(
+      this.orderedData,
+      (share) => share.type === ShareTypes.Expiring
+    );
+  }
+
   @action
   revoke = async (share: Share) => {
     await client.post("/shares.revoke", {
@@ -48,16 +70,18 @@ export default class SharesStore extends Store<Share> {
   @action
   async create(
     params:
-      | (PartialExcept<Share, "collectionId"> & { type: "collection" })
-      | (PartialExcept<Share, "documentId"> & { type: "document" })
+      | (PartialExcept<Share, "collectionId"> & { targetType: "collection" })
+      | (PartialExcept<Share, "documentId"> & { targetType: "document" })
   ): Promise<Share> {
-    const item =
-      params.type === "collection"
-        ? this.getByCollectionId(params.collectionId)
-        : this.getByDocumentId(params.documentId);
+    if (params.type === ShareTypes.Web) {
+      const item =
+        params.targetType === "collection"
+          ? this.getByCollectionId(params.collectionId)
+          : this.getByDocumentId(params.documentId);
 
-    if (item) {
-      return item;
+      if (item) {
+        return item;
+      }
     }
 
     return super.create(params);
@@ -104,8 +128,8 @@ export default class SharesStore extends Store<Share> {
   async fetchOne(params: { documentId: string } | { collectionId: string }) {
     const share =
       "collectionId" in params
-        ? this.getByCollectionId(params.collectionId)
-        : this.getByDocumentId(params.documentId);
+        ? this.getWebByCollectionId(params.collectionId)
+        : this.getWebByDocumentId(params.documentId);
     if (share) {
       return share;
     }
@@ -127,7 +151,7 @@ export default class SharesStore extends Store<Share> {
 
   getByDocumentParents = (document: Document): Share | undefined => {
     const collectionShare = document.collectionId
-      ? this.getByCollectionId(document.collectionId)
+      ? this.getWebByCollectionId(document.collectionId)
       : undefined;
 
     if (collectionShare?.published) {
@@ -147,7 +171,7 @@ export default class SharesStore extends Store<Share> {
       .map((p) => p.id);
 
     for (const parentId of parentIds) {
-      const share = this.getByDocumentId(parentId);
+      const share = this.getWebByDocumentId(parentId);
 
       if (share?.includeChildDocuments && share.published) {
         return share;
@@ -157,11 +181,60 @@ export default class SharesStore extends Store<Share> {
     return undefined;
   };
 
+  getAllByCollectionId = (collectionId: string): Share[] =>
+    filter(this.orderedData, (share) => share.collectionId === collectionId);
+
+  getAllByDocumentId = (documentId: string): Share[] =>
+    filter(this.orderedData, (share) => share.documentId === documentId);
+
+  getPublishedByCollectionId = (collectionId: string): Share[] =>
+    filter(this.getAllByCollectionId(collectionId), (share) => share.published);
+
+  getPublishedByDocumentId = (documentId: string): Share[] =>
+    filter(this.getAllByDocumentId(documentId), (share) => share.published);
+
+  getExpiringByCollectionId = (
+    collectionId: string,
+    published = true
+  ): Share[] =>
+    filter(
+      this.getAllByCollectionId(collectionId),
+      (share) =>
+        share.type === ShareTypes.Expiring && share.published === published
+    );
+
+  getExpiringByDocumentId = (documentId: string, published = true): Share[] =>
+    filter(
+      this.getAllByDocumentId(documentId),
+      (share) =>
+        share.type === ShareTypes.Expiring && share.published === published
+    );
+
+  getWebByCollectionId = (
+    collectionId: string,
+    published = true
+  ): Share | undefined =>
+    this.getAllByCollectionId(collectionId).find(
+      (share) => share.type === ShareTypes.Web && share.published === published
+    );
+
+  getWebByDocumentId = (
+    documentId: string,
+    published = true
+  ): Share | undefined =>
+    this.getAllByDocumentId(documentId).find(
+      (share) => share.type === ShareTypes.Web && share.published === published
+    );
+
   getByCollectionId = (collectionId: string): Share | null | undefined =>
-    find(this.orderedData, (share) => share.collectionId === collectionId);
+    this.getWebByCollectionId(collectionId) ??
+    this.getPublishedByCollectionId(collectionId).at(-1) ??
+    this.getAllByCollectionId(collectionId).at(-1);
 
   getByDocumentId = (documentId: string): Share | null | undefined =>
-    find(this.orderedData, (share) => share.documentId === documentId);
+    this.getWebByDocumentId(documentId) ??
+    this.getPublishedByDocumentId(documentId).at(-1) ??
+    this.getAllByDocumentId(documentId).at(-1);
 
   get(id: string): Share | undefined {
     return id

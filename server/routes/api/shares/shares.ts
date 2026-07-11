@@ -4,7 +4,7 @@ import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { subMinutes } from "date-fns";
 import { randomString } from "@shared/random";
-import { QueryNotices, TeamPreference } from "@shared/types";
+import { QueryNotices, ShareTypes, TeamPreference } from "@shared/types";
 import {
   AuthenticationError,
   InvalidRequestError,
@@ -154,7 +154,7 @@ router.post(
   pagination(),
   validate(T.SharesListSchema),
   async (ctx: APIContext<T.SharesListReq>) => {
-    const { sort, direction, query } = ctx.input.body;
+    const { sort, direction, query, published } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "listShares", user.team);
     const collectionIds = await user.collectionIds();
@@ -179,7 +179,7 @@ router.post(
     const shareWhere: WhereOptions<Share> = {
       teamId: user.teamId,
       userId: user.id,
-      published: true,
+      published: published === false ? false : true,
       revokedAt: {
         [Op.is]: null,
       },
@@ -265,6 +265,9 @@ router.post(
       allowSubscriptions,
       showLastUpdated,
       showTOC,
+      type,
+      expiresAt,
+      title,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createShare", user.team);
@@ -294,14 +297,35 @@ router.post(
       authorize(user, "read", collection);
     }
 
-    const [share] = await Share.findOrCreateWithCtx(ctx, {
-      where: {
+    let share: Share | undefined;
+
+    if (type === ShareTypes.Web) {
+      [share] = await Share.findOrCreateWithCtx(ctx, {
+        where: {
+          type: ShareTypes.Web,
+          collectionId: collectionId ?? null,
+          documentId: documentId ?? null,
+          teamId: user.teamId,
+          revokedAt: null,
+        },
+        defaults: {
+          type: ShareTypes.Web,
+          userId: user.id,
+          published,
+          includeChildDocuments: published || includeChildDocuments,
+          allowIndexing,
+          allowSubscriptions,
+          showLastUpdated,
+          showTOC,
+          urlId,
+        },
+      });
+    } else {
+      share = await Share.createWithCtx(ctx, {
+        type: ShareTypes.Expiring,
         collectionId: collectionId ?? null,
         documentId: documentId ?? null,
         teamId: user.teamId,
-        revokedAt: null,
-      },
-      defaults: {
         userId: user.id,
         published,
         includeChildDocuments: published || includeChildDocuments,
@@ -309,9 +333,11 @@ router.post(
         allowSubscriptions,
         showLastUpdated,
         showTOC,
+        expiresAt,
+        title: title || null,
         urlId,
-      },
-    });
+      });
+    }
 
     if (share.published) {
       authorize(user, "share", user.team);
@@ -352,6 +378,7 @@ router.post(
       showTOC,
       title,
       iconUrl,
+      expiresAt,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -398,6 +425,10 @@ router.post(
 
     if (!isUndefined(iconUrl)) {
       share.iconUrl = iconUrl || null;
+    }
+
+    if (!isUndefined(expiresAt)) {
+      share.expiresAt = expiresAt || null;
     }
 
     await share.saveWithCtx(ctx);

@@ -4,6 +4,7 @@ import usePolicy from "~/hooks/usePolicy";
 import { ActionSeparator } from "~/actions";
 import {
   copyShareUrlFactory,
+  editShareFactory,
   goToShareSourceFactory,
   revokeShareFactory,
 } from "~/actions/definitions/shares";
@@ -25,6 +26,7 @@ export function useShareMenuActions(targetShare: Share | null) {
         : [
             copyShareUrlFactory({ share: targetShare }),
             goToShareSourceFactory({ share: targetShare }),
+            editShareFactory({ share: targetShare, can }),
             ActionSeparator,
             revokeShareFactory({ share: targetShare, can }),
           ],

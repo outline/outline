@@ -150,7 +150,7 @@ export default class CollectionsStore extends Store<Collection> {
   fetchNamedPage = async (
     request = "list",
     options:
-      | (PaginationParams & { statusFilter: CollectionStatusFilter[] })
+      | (PaginationParams & { statusFilter?: CollectionStatusFilter[] })
       | undefined
   ): Promise<Collection[]> => {
     this.isFetching = true;
@@ -175,6 +175,15 @@ export default class CollectionsStore extends Store<Collection> {
       ...options,
       statusFilter: [CollectionStatusFilter.Archived],
     });
+
+  @action
+  fetchCanShare = async (options?: PaginationParams): Promise<Collection[]> => {
+    const cols = await this.fetchNamedPage("list", { ...options });
+
+    return cols.filter(
+      (col) => !!this.rootStore.policies.abilities(col.id).share
+    );
+  };
 
   get(id: string = ""): Collection | undefined {
     return (

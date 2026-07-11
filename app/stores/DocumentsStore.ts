@@ -397,6 +397,15 @@ export default class DocumentsStore extends Store<Document> {
     this.fetchNamedPage("list", options);
 
   @action
+  fetchCanShare = async (options?: FetchPageParams): Promise<Document[]> => {
+    const docs = await this.fetchNamedPage("list", options);
+
+    return docs.filter(
+      (doc) => !!this.rootStore.policies.abilities(doc.id).share
+    );
+  };
+
+  @action
   searchTitles = async (options?: SearchParams): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.post("/documents.search_titles", {

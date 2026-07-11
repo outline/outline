@@ -802,3 +802,8 @@ export type ReactionSummary = {
   emoji: string;
   userIds: string[];
 };
+
+export enum ShareTypes {
+  Web = "web",
+  Expiring = "expiring",
+}

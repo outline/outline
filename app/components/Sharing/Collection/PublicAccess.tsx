@@ -25,6 +25,7 @@ import useStores from "~/hooks/useStores";
 import { ListItem } from "../components/ListItem";
 import ShareSettingsPopover from "../components/ShareSettingsPopover";
 import { DomainPrefix, ShareLinkInput, StyledInfoIcon } from "../components";
+import { ShareTypes } from "@shared/types";
 
 type Props = {
   /** The collection to share. */
@@ -58,7 +59,8 @@ function InnerPublicAccess(
         if (checked && !share) {
           setCreating(true);
           const newShare = await shares.create({
-            type: "collection",
+            type: ShareTypes.Web,
+            targetType: "collection",
             collectionId: collection.id,
             published: true,
           });

@@ -15,6 +15,7 @@ import {
   IntegrationType,
   MentionType,
   NotificationEventType,
+  ShareTypes,
   SubscriptionType,
   UserRole,
 } from "@shared/types";
@@ -87,6 +88,10 @@ export async function buildShare(overrides: Partial<Share> = {}) {
       teamId: overrides.teamId,
     });
     overrides.documentId = document.id;
+  }
+
+  if (!overrides.type) {
+    overrides.type = ShareTypes.Web;
   }
 
   return Share.create({
