@@ -180,6 +180,37 @@ describe("#urls.unfurl", () => {
     expect(body.id).toEqual(document.id);
   });
 
+  it("should return the section content when document url targets a heading", async () => {
+    const document = await buildDocument({
+      teamId: user.teamId,
+      text: `Intro paragraph.
+
+## Installation
+
+Install instructions here.
+
+## Usage
+
+Usage instructions here.`,
+    });
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: {
+        url: `${env.URL}/${document.url}#h-installation`,
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.type).toEqual(UnfurlResourceType.Document);
+    expect(body.url).toEqual(`${document.url}#h-installation`);
+    expect(body.summary).toEqual(
+      `## Installation
+
+Install instructions here.`
+    );
+  });
+
   it("should succeed with status 200 ok when valid share url is supplied", async () => {
     const document = await buildDocument({
       teamId: user.teamId,

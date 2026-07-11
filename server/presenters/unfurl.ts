@@ -107,7 +107,7 @@ const presentDocument = (
     : undefined;
 
   return {
-    url: url ?? document.url,
+    url: url ?? `${document.url}${anchor ?? ""}`,
     type: UnfurlResourceType.Document,
     id: document.id,
     title: document.titleWithDefault,
