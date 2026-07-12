@@ -156,7 +156,6 @@ function DocumentHeader({
             pathname: documentEditPath(document),
             state: { sidebarContext },
           }}
-          haptic="light"
           neutral
         >
           {isMobile ? null : t("Edit")}
@@ -239,7 +238,6 @@ function DocumentHeader({
                   onClick={handleSave}
                   disabled={savingIsDisabled}
                   neutral={isDraft}
-                  haptic="medium"
                   hideIcon
                 >
                   {isDraft ? t("Save draft") : t("Done editing")}
