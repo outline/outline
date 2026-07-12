@@ -48,7 +48,7 @@ function Shares() {
     () =>
       params.getAll("status")?.length
         ? (params.getAll("status") as ShareStatus[])
-        : [ShareStatus.Active, ShareStatus.Inactive],
+        : [ShareStatus.Active],
     [params]
   );
 

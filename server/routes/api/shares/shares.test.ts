@@ -150,7 +150,7 @@ describe("#shares.list", () => {
     expect(body.data.length).toEqual(0);
   });
 
-  it("should not return unpublished shares", async () => {
+  it("should not return unpublished shares by default", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,

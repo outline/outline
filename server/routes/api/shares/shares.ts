@@ -198,7 +198,7 @@ router.post(
     const hasActive = status?.includes(ShareStatus.Active);
     const hasInactive = status?.includes(ShareStatus.Inactive);
 
-    if (hasActive && !hasInactive) {
+    if ((hasActive && !hasInactive) || (!hasActive && !hasInactive)) {
       shareWhere.published = true;
     } else if (!hasActive && hasInactive) {
       shareWhere.published = false;

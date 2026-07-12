@@ -38,8 +38,6 @@ export async function loadPublicShare({
     revokedAt: {
       [Op.is]: null,
     },
-    // to do: implement published and unpublished views on the table
-    // published: true,
   };
 
   if (urlId) {
