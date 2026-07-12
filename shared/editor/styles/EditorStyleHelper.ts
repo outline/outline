@@ -42,12 +42,6 @@ export class EditorStyleHelper {
 
   static readonly codeWord = "code-word";
 
-  static readonly colorSwatch = "color-swatch";
-
-  static readonly colorSwatchLight = "color-swatch-light";
-
-  static readonly colorSwatchDark = "color-swatch-dark";
-
   /** Toggle button for collapsible code blocks */
   static readonly codeBlockToggle = "code-block-toggle";
 

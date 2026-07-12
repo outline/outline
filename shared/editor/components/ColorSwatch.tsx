@@ -3,7 +3,7 @@ import type { MouseEvent } from "react";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import styled, { css } from "styled-components";
 
 interface Props {
   /** The CSS color the swatch represents, in its original notation. */
@@ -34,22 +34,41 @@ export function ColorSwatch({ color, luminance }: Props) {
     [color, t]
   );
 
-  const className = [
-    EditorStyleHelper.colorSwatch,
-    luminance > 0.85 && EditorStyleHelper.colorSwatchLight,
-    luminance < 0.1 && EditorStyleHelper.colorSwatchDark,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
-    <span
-      className={className}
+    <Swatch
       aria-hidden="true"
       title={t("Click to copy")}
+      $luminance={luminance}
       style={{ backgroundColor: color }}
       onMouseDown={handleMouseDown}
       onClick={handleClick}
     />
   );
 }
+
+const Swatch = styled.span<{ $luminance: number }>`
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin-left: 0.3em;
+  vertical-align: -0.05em;
+  border-radius: 50%;
+  background-clip: padding-box;
+  cursor: var(--pointer);
+  transition: transform 100ms ease;
+
+  /* Outline colors that would otherwise blend into the current background. */
+  ${(props) =>
+    (props.theme.isDark ? props.$luminance < 0.1 : props.$luminance > 0.85) &&
+    css`
+      outline: 1px solid ${props.theme.codeBorder};
+    `}
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+`;
