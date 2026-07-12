@@ -174,6 +174,14 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
               )
             : undefined);
 
+        // The mail and userPrincipalName are directory-owned, so their domains
+        // are inherently verified and can authorize the workspace's allowed
+        // domains even when the contact email above sits on a different domain
+        // (eg a personal or alias mailbox).
+        const verifiedDomains = directoryEmails.map(
+          (value) => parseEmail(value).domain
+        );
+
         const domain = parseEmail(email).domain;
         const subdomain = slugifyDomain(domain);
 
@@ -194,6 +202,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
             name: profile.name,
             email,
             emailVerified,
+            verifiedDomains,
             avatarUrl: profile.picture,
           },
           authenticationProvider: {

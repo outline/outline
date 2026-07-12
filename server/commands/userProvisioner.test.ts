@@ -390,6 +390,105 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(true);
   });
 
+  it("should authorize against verifiedDomains when the contact email is on another domain", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const domain = faker.internet.domainName();
+    await TeamDomain.create({
+      teamId: team.id,
+      name: domain,
+      createdById: admin.id,
+    });
+
+    const authenticationProviders = await team.$get("authenticationProviders");
+    const authenticationProvider = authenticationProviders[0];
+    // Contact email is on a different, non-allowed domain, but a verified
+    // directory domain (eg an Entra UPN) belongs to the allowed domain.
+    const email = faker.internet.email({
+      provider: faker.internet.domainName(),
+    });
+    const result = await userProvisioner(ctx, {
+      name: faker.person.fullName(),
+      email,
+      emailVerified: true,
+      verifiedDomains: [domain],
+      teamId: team.id,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
+        providerId: "fake-service-id",
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+    const { user, isNewUser } = result;
+    expect(user.email).toEqual(email);
+    expect(isNewUser).toEqual(true);
+  });
+
+  it("should authorize against verifiedDomains when the contact email is unverified", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const domain = faker.internet.domainName();
+    await TeamDomain.create({
+      teamId: team.id,
+      name: domain,
+      createdById: admin.id,
+    });
+
+    const authenticationProviders = await team.$get("authenticationProviders");
+    const authenticationProvider = authenticationProviders[0];
+    // The contact email itself is unverified and on another domain, but the
+    // directory-managed domain is verified and allowed, so sign-in succeeds.
+    const email = faker.internet.email({
+      provider: faker.internet.domainName(),
+    });
+    const result = await userProvisioner(ctx, {
+      name: faker.person.fullName(),
+      email,
+      emailVerified: false,
+      verifiedDomains: [domain],
+      teamId: team.id,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
+        providerId: "fake-service-id",
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+    const { user, isNewUser } = result;
+    expect(user.email).toEqual(email);
+    expect(isNewUser).toEqual(true);
+  });
+
+  it("should reject when neither the email nor verifiedDomains are allowed", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    await TeamDomain.create({
+      teamId: team.id,
+      name: faker.internet.domainName(),
+      createdById: admin.id,
+    });
+
+    const authenticationProviders = await team.$get("authenticationProviders");
+    const authenticationProvider = authenticationProviders[0];
+
+    await expect(
+      userProvisioner(ctx, {
+        name: faker.person.fullName(),
+        email: faker.internet.email({ provider: faker.internet.domainName() }),
+        emailVerified: true,
+        verifiedDomains: [faker.internet.domainName()],
+        teamId: team.id,
+        authentication: {
+          authenticationProviderId: authenticationProvider.id,
+          providerId: "fake-service-id",
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      })
+    ).rejects.toThrow("The domain is not allowed for this workspace");
+  });
+
   it("should reject an unverified email when the team has allowed domains", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });

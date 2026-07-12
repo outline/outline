@@ -447,6 +447,26 @@ class Team extends ParanoidModel<
     );
   };
 
+  /**
+   * Find whether any of the passed domains or emails can be used to sign-in to
+   * this team. Note that any single value is allowed when no domain restrictions
+   * are set.
+   *
+   * @param domainsOrEmails The domains or emails to check.
+   * @returns True if at least one is allowed to sign-in to this team.
+   */
+  public isAnyDomainAllowed = async function (
+    this: Team,
+    domainsOrEmails: string[]
+  ): Promise<boolean> {
+    for (const domainOrEmail of domainsOrEmails) {
+      if (await this.isDomainAllowed(domainOrEmail)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   // associations
 
   @HasMany(() => Collection)

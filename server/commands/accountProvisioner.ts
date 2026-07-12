@@ -38,6 +38,12 @@ type Props = {
     email: string;
     /** Whether the provider has verified the user owns the email address */
     emailVerified?: boolean;
+    /**
+     * Additional domains the provider has verified the user controls, beyond the
+     * contact email, used to authorize against the team's allowed domains (eg an
+     * Entra UPN domain that differs from the contact email domain).
+     */
+    verifiedDomains?: string[];
     /** The public url of an image representing the user */
     avatarUrl?: string | null;
     /** The language of the user, if known */
@@ -132,6 +138,7 @@ async function accountProvisioner(
     result = await teamProvisioner(ctx, {
       ...teamParams,
       name: teamParams.name || "Wiki",
+      verifiedDomains: userParams.verifiedDomains,
       authenticationProvider: authenticationProviderParams,
     });
   } catch (err) {
@@ -187,6 +194,7 @@ async function accountProvisioner(
     name: userParams.name,
     email: userParams.email,
     emailVerified: userParams.emailVerified,
+    verifiedDomains: userParams.verifiedDomains,
     authenticationProviderName: AuthenticationHelper.getProviderName(
       authenticationProviderParams.name
     ),

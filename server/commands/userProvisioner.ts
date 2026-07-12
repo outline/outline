@@ -30,6 +30,14 @@ type Props = {
    * Matching an existing account by email only happens when explicitly true.
    */
   emailVerified?: boolean;
+  /**
+   * Additional domains the provider has verified the user controls, beyond the
+   * contact email. Used to authorize against the team's allowed domains when the
+   * directory-managed identity domain differs from the contact email (eg an
+   * Entra UPN). The contact email domain is included automatically when the
+   * email is verified.
+   */
+  verifiedDomains?: string[];
   /** The display name of the authentication provider, eg "Google". */
   authenticationProviderName?: string;
   /** The language of the user, if known */
@@ -65,6 +73,7 @@ export default async function userProvisioner(
     name,
     email,
     emailVerified,
+    verifiedDomains,
     authenticationProviderName,
     role,
     language,
@@ -152,12 +161,21 @@ export default async function userProvisioner(
     attributes: ["defaultUserRole", "inviteRequired", "id"],
   });
 
-  // Unverified emails cannot match an existing account or pass allow listed domains
-  if (emailVerified !== true && (existingUser || team?.allowedDomains.length)) {
-    const providerName = authenticationProviderName ?? "your identity provider";
-    throw InvalidAuthenticationError(
-      `Your email address has not been verified by ${providerName}. Please verify your email and try signing in again.`
-    );
+  const providerName = authenticationProviderName ?? "your identity provider";
+  const emailNotVerifiedMessage = `Your email address has not been verified by ${providerName}. Please verify your email and try signing in again.`;
+
+  // Identifiers (the contact email when verified, plus any directory-managed
+  // domains such as an Entra UPN) that the provider has verified the user
+  // controls. These authorize the sign-in against the team's allowed domains.
+  const verifiedIdentifiers = [
+    ...(emailVerified === true ? [email] : []),
+    ...(verifiedDomains ?? []),
+  ];
+
+  // An unverified email must not claim an existing account or invite, otherwise
+  // a spoofed address could take over another user's account.
+  if (emailVerified !== true && existingUser) {
+    throw InvalidAuthenticationError(emailNotVerifiedMessage);
   }
 
   // We have an existing user, so we need to update it with our
@@ -248,10 +266,17 @@ export default async function userProvisioner(
       throw InviteRequiredError();
     }
 
-    // If the team settings do not allow this domain,
-    // throw an error and fail user creation.
-    if (team && !(await team.isDomainAllowed(email))) {
-      throw DomainNotAllowedError();
+    // If the team restricts sign-in to specific domains, at least one verified
+    // domain must be allowed.
+    if (team?.allowedDomains.length) {
+      if (!(await team.isAnyDomainAllowed(verifiedIdentifiers))) {
+        // With nothing verified to authorize against, unverified email is the
+        // actionable failure rather than the domain restriction itself.
+        if (verifiedIdentifiers.length === 0) {
+          throw InvalidAuthenticationError(emailNotVerifiedMessage);
+        }
+        throw DomainNotAllowedError();
+      }
     }
 
     const user = await User.createWithCtx(

@@ -28,6 +28,12 @@ type Props = {
   name: string;
   /** The domain name from the email of the user logging in */
   domain?: string;
+  /**
+   * Additional domains the provider has verified the user controls, beyond the
+   * email domain, used to authorize attaching to an existing self-hosted team
+   * (eg an Entra UPN domain that differs from the contact email domain).
+   */
+  verifiedDomains?: string[];
   /** The preferred subdomain to provision for the team if not yet created */
   subdomain: string;
   /** The public url of an image representing the team */
@@ -43,7 +49,15 @@ type Props = {
 
 async function teamProvisioner(
   ctx: APIContext,
-  { teamId, name, domain, subdomain, avatarUrl, authenticationProvider }: Props
+  {
+    teamId,
+    name,
+    domain,
+    verifiedDomains,
+    subdomain,
+    avatarUrl,
+    authenticationProvider,
+  }: Props
 ): Promise<TeamProvisionerResult> {
   const where = teamId
     ? { ...authenticationProvider, teamId }
@@ -112,7 +126,12 @@ async function teamProvisioner(
     // new team is allowed then assign the authentication provider to the
     // existing team
     if (domain) {
-      if (await existingTeam.isDomainAllowed(domain)) {
+      if (
+        await existingTeam.isAnyDomainAllowed([
+          domain,
+          ...(verifiedDomains ?? []),
+        ])
+      ) {
         authP = await existingTeam.$create<AuthenticationProvider>(
           "authenticationProvider",
           authenticationProvider
