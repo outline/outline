@@ -179,7 +179,7 @@ function Shares() {
                 context={context}
                 icon={<PlusIcon />}
               >
-                {t("New Link")}...
+                {t("New  Private Link")}...
               </Button>
             </Action>
           )}

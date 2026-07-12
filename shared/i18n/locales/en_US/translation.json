@@ -1459,7 +1459,7 @@
   "Workspace creation": "Workspace creation",
   "Allow editors to create new workspaces": "Allow editors to create new workspaces",
   "Could not load shares": "Could not load shares",
-  "New Link": "New Link",
+  "New  Private Link": "New  Private Link",
   "Sharing is currently disabled.": "Sharing is currently disabled.",
   "You can globally enable and disable public document sharing in the <em>security settings</em>.": "You can globally enable and disable public document sharing in the <em>security settings</em>.",
   "Documents that have been shared are listed below. Anyone that has the public link can access a read-only version of the document until the link has been revoked.": "Documents that have been shared are listed below. Anyone that has the public link can access a read-only version of the document until the link has been revoked.",
