@@ -2,8 +2,6 @@ import type { Node } from "prosemirror-model";
 import type { EditorState, Transaction } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import ReactDOM from "react-dom";
-import { ThemeProvider } from "styled-components";
 import Extension from "@shared/editor/lib/Extension";
 import { changedDescendants } from "@shared/editor/lib/changedDescendants";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
@@ -182,14 +180,12 @@ export default class CommentGutter extends Extension {
           () => {
             // The mount point is layout-neutral; the rendered gutter is
             // absolutely positioned relative to the editor instead.
-            const element = document.createElement("div");
-            element.style.display = "contents";
-            ReactDOM.render(
-              <ThemeProvider theme={this.editor.props.theme}>
-                <CommentGutterComponent commentIds={commentIds} {...handlers} />
-              </ThemeProvider>,
-              element
+            const element = this.editor.renderToPortal(
+              CommentGutterComponent,
+              { commentIds, ...handlers },
+              false
             );
+            element.style.display = "contents";
             return element;
           },
           {
@@ -201,7 +197,7 @@ export default class CommentGutter extends Extension {
               commentIds.forEach((commentId) =>
                 handlers.onHoverCommentMark(commentId, false)
               );
-              ReactDOM.unmountComponentAtNode(node);
+              this.editor.destroyPortal(node);
             },
           }
         )

@@ -54,7 +54,8 @@ import type { Properties } from "~/types";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
-import type { NodeViewRenderer } from "./components/NodeViewRenderer";
+import { NodeViewRenderer } from "./components/NodeViewRenderer";
+import type { PortalRenderer } from "./components/NodeViewRenderer";
 
 import WithTheme from "./components/WithTheme";
 import { isArray, isNull, map } from "es-toolkit/compat";
@@ -231,7 +232,9 @@ export class Editor extends React.PureComponent<
   };
 
   widgets: { [name: string]: React.FC<WidgetProps> };
-  renderers = observable.set<NodeViewRenderer<ComponentProps>>();
+  nodeRenderers = observable.set<NodeViewRenderer<ComponentProps>>();
+  decorationRenderers = observable.set<PortalRenderer>();
+  private portalDestroyers = new WeakMap<HTMLElement, () => void>();
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
@@ -287,7 +290,7 @@ export class Editor extends React.PureComponent<
 
       // NodeView will not automatically render when editable changes so we must trigger an update
       // manually, see: https://discuss.prosemirror.net/t/re-render-custom-nodeview-when-view-editable-changes/6441
-      Array.from(this.renderers).forEach((view) =>
+      Array.from(this.nodeRenderers).forEach((view) =>
         view.setProp("isEditable", false)
       );
     }
@@ -894,6 +897,42 @@ export class Editor extends React.PureComponent<
     return false;
   };
 
+  /**
+   * Renders a React component into the editor's shared React tree and returns a
+   * DOM element to mount it into — for example from a ProseMirror decoration
+   * widget. Because it joins the editor tree via a portal, the component
+   * inherits all editor context (theme, translations, stores) with no separate
+   * React root. Pair every call with destroyPortal in the widget's teardown.
+   *
+   * @param Component - The React component to render.
+   * @param props - The props to pass to the component.
+   * @param inline - Whether to mount into an inline element (default true).
+   * @returns the DOM element the component is rendered into.
+   */
+  public renderToPortal<P extends object>(
+    Component: React.FunctionComponent<P>,
+    props: P,
+    inline = true
+  ): HTMLElement {
+    const element = document.createElement(inline ? "span" : "div");
+    const renderer = new NodeViewRenderer(element, Component, props);
+    this.decorationRenderers.add(renderer);
+    this.portalDestroyers.set(element, () =>
+      this.decorationRenderers.delete(renderer)
+    );
+    return element;
+  }
+
+  /**
+   * Unmounts a component previously rendered with renderToPortal.
+   *
+   * @param element - The element returned by renderToPortal.
+   */
+  public destroyPortal(element: HTMLElement) {
+    this.portalDestroyers.get(element)?.();
+    this.portalDestroyers.delete(element);
+  }
+
   public render() {
     const { readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
@@ -936,7 +975,11 @@ export class Editor extends React.PureComponent<
               ))}
             <Observer>
               {() => (
-                <>{Array.from(this.renderers).map((view) => view.content)}</>
+                <>
+                  {[...this.nodeRenderers, ...this.decorationRenderers].map(
+                    (view) => view.content
+                  )}
+                </>
               )}
             </Observer>
           </Flex>

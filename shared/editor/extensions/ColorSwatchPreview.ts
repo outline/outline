@@ -1,12 +1,9 @@
-import copy from "copy-to-clipboard";
-import { t } from "i18next";
 import { getLuminance } from "polished";
 import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { toast } from "sonner";
+import { ColorSwatch } from "../components/ColorSwatch";
 import Extension from "../lib/Extension";
-import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 // Matches a CSS color in hex (#RGB, #RGBA, #RRGGBB, #RRGGBBAA), rgb()/rgba(),
 // or hsl()/hsla() notation. Functional matches are loose here and validated by
@@ -32,6 +29,10 @@ const pluginKey = new PluginKey<ColorPluginState>("color_swatch_preview");
 export default class ColorSwatchPreview extends Extension {
   get name() {
     return "color_swatch_preview";
+  }
+
+  get allowInReadOnly() {
+    return true;
   }
 
   get plugins() {
@@ -94,14 +95,19 @@ export default class ColorSwatchPreview extends Extension {
 
         const end = pos + match.index + color.length;
 
+        // Key on the color value rather than the document position, so editing
+        // elsewhere doesn't change the key and force ProseMirror to destroy and
+        // remount the swatch's React portal. Identical colors are interchangeable
+        // so a shared key between them is harmless.
         decorations.push(
           Decoration.widget(end, () => this.createSwatch(color, luminance), {
             // Use side: -1 so the swatch renders before the fake-cursor widget
             // from prosemirror-codemark, which uses side 0/-1 to represent the
             // "inside"/"outside" cursor positions at mark boundaries.
             side: -1,
-            key: `color-${end}-${color}`,
+            key: `color-${color.toLowerCase()}`,
             marks: [codeMark],
+            destroy: (node: HTMLElement) => this.editor.destroyPortal(node),
           })
         );
       }
@@ -111,28 +117,12 @@ export default class ColorSwatchPreview extends Extension {
   }
 
   private createSwatch(color: string, luminance: number): HTMLElement {
-    const swatch = document.createElement("span");
-    swatch.className = EditorStyleHelper.colorSwatch;
-    swatch.setAttribute("aria-hidden", "true");
-    swatch.style.backgroundColor = color;
-
-    if (luminance > 0.85) {
-      swatch.classList.add(EditorStyleHelper.colorSwatchLight);
-    } else if (luminance < 0.1) {
-      swatch.classList.add(EditorStyleHelper.colorSwatchDark);
-    }
-
-    swatch.addEventListener("mousedown", (event) => {
-      // Prevent the editor from moving the cursor into the code mark on click.
-      event.preventDefault();
+    const element = this.editor.renderToPortal(ColorSwatch, {
+      color,
+      luminance,
     });
-    swatch.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      copy(color);
-      toast.message(t("Copied to clipboard"));
-    });
-
-    return swatch;
+    // Keep the mount point layout-neutral; the swatch styles itself.
+    element.style.display = "contents";
+    return element;
   }
 }
