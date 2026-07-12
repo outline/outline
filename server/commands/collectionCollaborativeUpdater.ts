@@ -16,7 +16,7 @@ type Props = {
   collectionId: string;
   /** Current collaborative state. */
   ydoc: Y.Doc;
-  /** The user IDs that have modified the collection since it was last persisted. */
+  /** The user IDs that have modified the collection since it was last persisted, ordered oldest to most recent. */
   sessionCollaboratorIds: string[];
   /** Whether the last connection to the collection left. */
   isLastConnection: boolean;
@@ -67,6 +67,7 @@ export default async function collectionCollaborativeUpdater({
       return;
     }
 
+    // Attribute to the most recent editor, which is the tail of the ordered list.
     const actorId =
       sessionCollaboratorIds[sessionCollaboratorIds.length - 1] ??
       collection.createdById;

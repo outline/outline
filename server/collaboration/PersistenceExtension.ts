@@ -53,8 +53,14 @@ export default class PersistenceExtension implements Extension {
         `${context.user.name} changed ${documentName}`
       );
 
+      // Track collaborators as an ordered list so the most recent editor can be
+      // attributed reliably. Move the user to the tail to keep it deduped.
       const key = RedisPrefixHelper.getCollaboratorsKey(id);
-      await Redis.defaultClient.sadd(key, context.user.id);
+      await Redis.defaultClient
+        .multi()
+        .lrem(key, 0, context.user.id)
+        .rpush(key, context.user.id)
+        .exec();
     }
   }
 
@@ -69,8 +75,8 @@ export default class PersistenceExtension implements Extension {
     const clientVersion = requestParameters.get("editorVersion");
 
     const key = RedisPrefixHelper.getCollaboratorsKey(id);
-    const sessionCollaboratorIds = await Redis.defaultClient.smembers(key);
-    if (!sessionCollaboratorIds || sessionCollaboratorIds.length === 0) {
+    const sessionCollaboratorIds = await Redis.defaultClient.lrange(key, 0, -1);
+    if (sessionCollaboratorIds.length === 0) {
       Logger.debug("multiplayer", `No changes for ${documentName}`);
       return;
     }
@@ -83,6 +89,13 @@ export default class PersistenceExtension implements Extension {
           sessionCollaboratorIds,
           isLastConnection: clientsCount === 0,
         });
+
+        // Collections have no revision pipeline to clear the collaborators list
+        // (documents are cleared by RevisionsProcessor), so clear it here once
+        // the last client disconnects to avoid stale IDs lingering in Redis.
+        if (clientsCount === 0) {
+          await Redis.defaultClient.del(key);
+        }
       } else {
         await documentCollaborativeUpdater({
           documentId: id,

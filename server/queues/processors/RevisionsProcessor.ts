@@ -25,7 +25,7 @@ export default class RevisionsProcessor extends BaseProcessor {
 
         // Get collaborator IDs since last revision was written.
         const key = RedisPrefixHelper.getCollaboratorsKey(event.documentId);
-        const collaboratorIds = await Redis.defaultClient.smembers(key);
+        const collaboratorIds = await Redis.defaultClient.lrange(key, 0, -1);
         await Redis.defaultClient.del(key);
 
         const document = await Document.findByPk(event.documentId, {

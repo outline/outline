@@ -16,7 +16,7 @@ type Props = {
   documentId: string;
   /** Current collaobrative state. */
   ydoc: Y.Doc;
-  /** The user IDs that have modified the document since it was last persisted. */
+  /** The user IDs that have modified the document since it was last persisted, ordered oldest to most recent. */
   sessionCollaboratorIds: string[];
   /** Whether the last connection to the document left. */
   isLastConnection: boolean;
@@ -62,6 +62,7 @@ export default async function documentCollaborativeUpdater({
     ).toJSON() as ProsemirrorData;
     const isUnchanged = isEqual(document.content, content);
     const isDeleted = !!document.deletedAt;
+    // Attribute to the most recent editor, which is the tail of the ordered list.
     const lastModifiedById = isDeleted
       ? document.lastModifiedById
       : (sessionCollaboratorIds[sessionCollaboratorIds.length - 1] ??
