@@ -245,7 +245,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             userId: user.id,
             // required so that edits to the description are synced to any
             // active collaborative editing session.
-            includeState: true,
+            includeState: input.description !== undefined,
             rejectOnEmpty: true,
           });
           authorize(user, "update", collection);

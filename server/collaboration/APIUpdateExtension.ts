@@ -16,6 +16,7 @@ import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
+import type { HookContext } from "@server/models/base/Model";
 import RedisAdapter from "@server/storage/redis";
 
 /**
@@ -192,6 +193,30 @@ export class APIUpdateExtension implements Extension {
       Logger.error("Failed to process API update message", error as Error);
     }
   };
+
+  /**
+   * Publish a notification that an entity was updated via the API once the
+   * current transaction, if any, has committed. This should be called from
+   * the entity's update hook.
+   *
+   * @param documentName - the multiplayer name of the entity that was updated, eg "document.123".
+   * @param ctx - the hook context of the update.
+   */
+  static notifyUpdateAfterCommit(documentName: string, ctx: HookContext) {
+    const actorId = ctx.auth?.user?.id;
+    if (!actorId) {
+      return;
+    }
+
+    const notify = () => APIUpdateExtension.notifyUpdate(documentName, actorId);
+
+    if (ctx.transaction) {
+      const transaction = ctx.transaction.parent || ctx.transaction;
+      transaction.afterCommit(notify);
+    } else {
+      void notify();
+    }
+  }
 
   /**
    * Publish a notification that an entity was updated via the API.

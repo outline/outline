@@ -23,6 +23,17 @@ export class RedisPrefixHelper {
   }
 
   /**
+   * Gets key against which the collaborators of a multiplayer editing session
+   * are stored, shared by all entity types.
+   *
+   * @param id The ID of the entity being edited.
+   * @returns the cache key string.
+   */
+  public static getCollaboratorsKey(id: string) {
+    return `collaborators:${id}`;
+  }
+
+  /**
    * Gets key for caching embed check results. This is a global cache key
    * (not team-specific) since embed headers are the same for all users.
    *

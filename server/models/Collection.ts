@@ -373,16 +373,6 @@ class Collection extends ParanoidModel<
   }
 
   /**
-   * Returns the key used to store the collaborators of a collection in Redis.
-   *
-   * @param collectionId The ID of the collection.
-   * @returns Redis key for collaborators.
-   */
-  static getCollaboratorKey(collectionId: string) {
-    return `collaborators:${collectionId}`;
-  }
-
-  /**
    * Whether this collection is considered active or not. A collection is active if
    * it has not been archived or deleted.
    *
@@ -461,21 +451,11 @@ class Collection extends ParanoidModel<
 
   @AfterUpdate
   static notifyCollaborationServer(model: Collection, ctx: HookContext) {
-    if (model.changed("state") && ctx.auth?.user?.id) {
-      const actorId = ctx.auth.user.id;
-      const notify = async () => {
-        await APIUpdateExtension.notifyUpdate(
-          toMultiplayerName(MultiplayerEntityType.Collection, model.id),
-          actorId
-        );
-      };
-
-      if (ctx.transaction) {
-        const transaction = ctx.transaction.parent || ctx.transaction;
-        transaction.afterCommit(notify);
-      } else {
-        void notify();
-      }
+    if (model.changed("state")) {
+      APIUpdateExtension.notifyUpdateAfterCommit(
+        toMultiplayerName(MultiplayerEntityType.Collection, model.id),
+        ctx
+      );
     }
   }
 

@@ -593,7 +593,7 @@ router.post(
       userId: user.id,
       // required so that edits to the description are synced to any active
       // collaborative editing session.
-      includeState: true,
+      includeState: description !== undefined || data !== undefined,
       transaction,
     });
     authorize(user, "update", collection);

@@ -47,9 +47,9 @@ export class ViewsExtension implements Extension {
       );
       await Promise.all([
         // views are only recorded for documents
-        ...(type === MultiplayerEntityType.Document
-          ? [View.touch(id, context.user.id, true)]
-          : []),
+        type === MultiplayerEntityType.Document
+          ? View.touch(id, context.user.id, true)
+          : undefined,
         context.user.update({ lastActiveAt: new Date() }),
       ]);
     }

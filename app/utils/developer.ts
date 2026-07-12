@@ -1,4 +1,8 @@
 import { flatten } from "es-toolkit/compat";
+import {
+  MultiplayerEntityType,
+  toMultiplayerName,
+} from "@shared/collaboration/EntityName";
 import stores from "~/stores";
 import { flattenTree } from "@shared/utils/tree";
 
@@ -27,11 +31,15 @@ export async function deleteAllDatabases() {
   // by iterating over all known collections and documents.
   await Promise.all(
     stores.collections.orderedData.map(async (collection) => {
-      window.indexedDB.deleteDatabase(`collection.${collection.id}`);
+      window.indexedDB.deleteDatabase(
+        toMultiplayerName(MultiplayerEntityType.Collection, collection.id)
+      );
       const nodes = flatten(collection.documents?.map(flattenTree));
 
       return nodes.map(async (node) => {
-        window.indexedDB.deleteDatabase(`document.${node.id}`);
+        window.indexedDB.deleteDatabase(
+          toMultiplayerName(MultiplayerEntityType.Document, node.id)
+        );
       });
     })
   );

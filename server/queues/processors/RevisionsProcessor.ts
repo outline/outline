@@ -3,6 +3,7 @@ import Redis from "@server/storage/redis";
 import revisionCreator from "@server/commands/revisionCreator";
 import { Revision, Document, User } from "@server/models";
 import type { DocumentEvent, RevisionEvent, Event } from "@server/types";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import DocumentUpdateTextTask from "../tasks/DocumentUpdateTextTask";
 import BaseProcessor from "./BaseProcessor";
 
@@ -23,7 +24,7 @@ export default class RevisionsProcessor extends BaseProcessor {
         }
 
         // Get collaborator IDs since last revision was written.
-        const key = Document.getCollaboratorKey(event.documentId);
+        const key = RedisPrefixHelper.getCollaboratorsKey(event.documentId);
         const collaboratorIds = await Redis.defaultClient.smembers(key);
         await Redis.defaultClient.del(key);
 

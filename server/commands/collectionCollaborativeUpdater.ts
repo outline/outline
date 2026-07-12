@@ -39,8 +39,9 @@ export default async function collectionCollaborativeUpdater({
       transaction,
     });
 
-    const collection = await Collection.unscoped().findOne({
-      attributes: { exclude: ["state"] },
+    // the default scope excludes the large state and documentStructure
+    // columns, neither of which need to be read here.
+    const collection = await Collection.findOne({
       where: {
         id: collectionId,
       },
@@ -75,16 +76,12 @@ export default async function collectionCollaborativeUpdater({
       `Persisting collection ${collectionId}, attributed to ${actorId}`
     );
 
-    collection.content = content;
-
     await collection.update(
       {
         content,
         description: ProsemirrorHelper.isEmptyData(content)
           ? null
-          : await DocumentHelper.toMarkdown(collection, {
-              includeTitle: false,
-            }),
+          : await DocumentHelper.toMarkdown(content),
         state: Buffer.from(state),
       },
       {

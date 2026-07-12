@@ -17,6 +17,7 @@ import Document from "@server/models/Document";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import Redis from "@server/storage/redis";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import collectionCollaborativeUpdater from "../commands/collectionCollaborativeUpdater";
 import documentCollaborativeUpdater from "../commands/documentCollaborativeUpdater";
 import type { withContext } from "./types";
@@ -44,7 +45,7 @@ export default class PersistenceExtension implements Extension {
   }
 
   async onChange({ context, documentName }: withContext<onChangePayload>) {
-    const { type, id } = parseMultiplayerName(documentName);
+    const { id } = parseMultiplayerName(documentName);
 
     if (context.user) {
       Logger.debug(
@@ -52,10 +53,7 @@ export default class PersistenceExtension implements Extension {
         `${context.user.name} changed ${documentName}`
       );
 
-      const key =
-        type === MultiplayerEntityType.Collection
-          ? Collection.getCollaboratorKey(id)
-          : Document.getCollaboratorKey(id);
+      const key = RedisPrefixHelper.getCollaboratorsKey(id);
       await Redis.defaultClient.sadd(key, context.user.id);
     }
   }
@@ -70,10 +68,7 @@ export default class PersistenceExtension implements Extension {
     const { type, id } = parseMultiplayerName(documentName);
     const clientVersion = requestParameters.get("editorVersion");
 
-    const key =
-      type === MultiplayerEntityType.Collection
-        ? Collection.getCollaboratorKey(id)
-        : Document.getCollaboratorKey(id);
+    const key = RedisPrefixHelper.getCollaboratorsKey(id);
     const sessionCollaboratorIds = await Redis.defaultClient.smembers(key);
     if (!sessionCollaboratorIds || sessionCollaboratorIds.length === 0) {
       Logger.debug("multiplayer", `No changes for ${documentName}`);
@@ -106,6 +101,20 @@ export default class PersistenceExtension implements Extension {
   }
 
   /**
+   * Hydrates a YJS document from stored collaborative state.
+   *
+   * @param name A label for the entity used in logging.
+   * @param state The stored collaborative state.
+   * @returns the hydrated YJS document.
+   */
+  private hydrateFromState(name: string, state: Uint8Array): Y.Doc {
+    Logger.info("database", `${name} is in database state`);
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, state);
+    return ydoc;
+  }
+
+  /**
    * Loads the collaborative state for a document, creating it from the
    * content or text if it does not exist yet.
    *
@@ -125,10 +134,10 @@ export default class PersistenceExtension implements Extension {
 
     // If the document already has state, we can return it without needing a transaction
     if (documentWithoutLock.state) {
-      const ydoc = new Y.Doc();
-      Logger.info("database", `Document ${documentId} is in database state`);
-      Y.applyUpdate(ydoc, documentWithoutLock.state);
-      return ydoc;
+      return this.hydrateFromState(
+        `Document ${documentId}`,
+        documentWithoutLock.state
+      );
     }
 
     // If the document doesn't have state yet, we need to acquire a lock and create it
@@ -146,10 +155,7 @@ export default class PersistenceExtension implements Extension {
 
       // Double-check the state in case another process created it
       if (document.state) {
-        ydoc = new Y.Doc();
-        Logger.info("database", `Document ${documentId} is in database state`);
-        Y.applyUpdate(ydoc, document.state);
-        return ydoc;
+        return this.hydrateFromState(`Document ${documentId}`, document.state);
       }
 
       if (document.content) {
@@ -200,13 +206,10 @@ export default class PersistenceExtension implements Extension {
 
     // If the collection already has state, we can return it without needing a transaction
     if (collectionWithoutLock.state) {
-      const ydoc = new Y.Doc();
-      Logger.info(
-        "database",
-        `Collection ${collectionId} is in database state`
+      return this.hydrateFromState(
+        `Collection ${collectionId}`,
+        collectionWithoutLock.state
       );
-      Y.applyUpdate(ydoc, collectionWithoutLock.state);
-      return ydoc;
     }
 
     // If the collection doesn't have state yet, we need to acquire a lock and create it
@@ -223,13 +226,10 @@ export default class PersistenceExtension implements Extension {
 
       // Double-check the state in case another process created it
       if (collection.state) {
-        const ydoc = new Y.Doc();
-        Logger.info(
-          "database",
-          `Collection ${collectionId} is in database state`
+        return this.hydrateFromState(
+          `Collection ${collectionId}`,
+          collection.state
         );
-        Y.applyUpdate(ydoc, collection.state);
-        return ydoc;
       }
 
       Logger.info(
