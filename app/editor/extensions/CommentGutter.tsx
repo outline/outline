@@ -6,6 +6,7 @@ import Extension from "@shared/editor/lib/Extension";
 import { changedDescendants } from "@shared/editor/lib/changedDescendants";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import { UserPreferenceDefaults } from "@shared/constants";
 import { UserPreference } from "@shared/types";
 import { CommentGutter as CommentGutterComponent } from "../components/CommentGutter";
 
@@ -25,7 +26,8 @@ export default class CommentGutter extends Extension {
 
   get plugins() {
     const isEnabled = () =>
-      !!this.editor.props.userPreferences?.[UserPreference.CommentsInGutter];
+      this.editor.props.userPreferences?.[UserPreference.CommentsInGutter] ??
+      UserPreferenceDefaults[UserPreference.CommentsInGutter];
 
     const handleClickCommentMark = (commentId: string) =>
       this.editor.props.onClickCommentMark?.(commentId);
