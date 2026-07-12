@@ -94,6 +94,12 @@ export default function createCSPMiddleware(options?: CSPOptions) {
       styleSrc,
       scriptSrc: [
         ...uniq(scriptSrc),
+        // Allow the service worker to importScripts the workbox runtime, which
+        // is served under /static on the document origin — potentially a custom
+        // domain not otherwise present in scriptSrc. Scoped to the /static path
+        // so only immutable build assets are permitted, not user content served
+        // elsewhere on the same origin.
+        `${ctx.origin}/static/`,
         ...(options?.extraScriptSrc ?? []),
         env.DEVELOPMENT_UNSAFE_INLINE_CSP
           ? "'unsafe-inline'"
