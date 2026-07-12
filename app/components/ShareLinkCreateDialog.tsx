@@ -324,7 +324,7 @@ export function ShareLinkCreateDialog({ share, onSubmit }: Props) {
             onSelect={handleSelectCustomDate}
           />
         ) : (
-          <Text type="secondary" size="small">
+          <Text type="secondary" size="small" style={{ marginTop: 12 }}>
             {expiresAt
               ? `${dateToExpiry(expiresAt.toISOString(), t, userLocale)}.`
               : `${t("Never expires")}.`}
@@ -387,6 +387,7 @@ function getExpiryType(expiresAt?: string | null): ExpiryType {
 const StyledExpirySelect = styled(InputSelect)`
   width: 170px;
   margin-bottom: 0;
+  margin-top: 12px;
 `;
 
 const StyledTargetTypeSelect = styled(InputSelect)`
