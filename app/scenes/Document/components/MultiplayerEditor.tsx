@@ -15,6 +15,10 @@ import { toast } from "sonner";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
+import {
+  MultiplayerEntityType,
+  toMultiplayerName,
+} from "@shared/collaboration/EntityName";
 import History from "@shared/editor/extensions/History";
 import EDITOR_VERSION from "@shared/editor/version";
 import { supportsPassiveListener } from "@shared/utils/browser";
@@ -35,6 +39,8 @@ import { sleep } from "@shared/utils/timers";
 
 type Props = EditorProps & {
   id: string;
+  /** The type of entity being edited, defaults to document. */
+  entityType?: MultiplayerEntityType;
   onSynced?: () => Promise<void>;
 };
 
@@ -54,7 +60,7 @@ type MessageEvent = {
 };
 
 function MultiplayerEditor(
-  { onSynced, ...props }: Props,
+  { onSynced, entityType = MultiplayerEntityType.Document, ...props }: Props,
   ref: ForwardedRef<SharedEditor>
 ) {
   const documentId = props.id;
@@ -81,7 +87,7 @@ function MultiplayerEditor(
   // see: https://github.com/facebook/react/issues/20090#issuecomment-715926549
   useLayoutEffect(() => {
     const debug = env.ENVIRONMENT === "development";
-    const name = `document.${documentId}`;
+    const name = toMultiplayerName(entityType, documentId);
     const localProvider =
       typeof indexedDB !== "undefined"
         ? new IndexeddbPersistence(name, ydoc)
@@ -235,6 +241,7 @@ function MultiplayerEditor(
     history,
     t,
     documentId,
+    entityType,
     ui,
     presence,
     ydoc,

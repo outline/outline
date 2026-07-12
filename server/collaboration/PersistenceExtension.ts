@@ -5,13 +5,19 @@ import type {
   Extension,
 } from "@hocuspocus/server";
 import * as Y from "yjs";
+import {
+  MultiplayerEntityType,
+  parseMultiplayerName,
+} from "@shared/collaboration/EntityName";
 import { toError } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
+import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import Redis from "@server/storage/redis";
+import collectionCollaborativeUpdater from "../commands/collectionCollaborativeUpdater";
 import documentCollaborativeUpdater from "../commands/documentCollaborativeUpdater";
 import type { withContext } from "./types";
 
@@ -21,7 +27,7 @@ export default class PersistenceExtension implements Extension {
     documentName,
     ...data
   }: withContext<onLoadDocumentPayload>) {
-    const [, documentId] = documentName.split(".");
+    const { type, id } = parseMultiplayerName(documentName);
     const fieldName = "default";
 
     // Check if the given field already exists in the given y-doc. This is import
@@ -30,6 +36,84 @@ export default class PersistenceExtension implements Extension {
       return;
     }
 
+    if (type === MultiplayerEntityType.Collection) {
+      return this.loadCollection(id, fieldName);
+    }
+
+    return this.loadDocument(id, fieldName);
+  }
+
+  async onChange({ context, documentName }: withContext<onChangePayload>) {
+    const { type, id } = parseMultiplayerName(documentName);
+
+    if (context.user) {
+      Logger.debug(
+        "multiplayer",
+        `${context.user.name} changed ${documentName}`
+      );
+
+      const key =
+        type === MultiplayerEntityType.Collection
+          ? Collection.getCollaboratorKey(id)
+          : Document.getCollaboratorKey(id);
+      await Redis.defaultClient.sadd(key, context.user.id);
+    }
+  }
+
+  async onStoreDocument({
+    document,
+    context,
+    documentName,
+    clientsCount,
+    requestParameters,
+  }: onStoreDocumentPayload) {
+    const { type, id } = parseMultiplayerName(documentName);
+    const clientVersion = requestParameters.get("editorVersion");
+
+    const key =
+      type === MultiplayerEntityType.Collection
+        ? Collection.getCollaboratorKey(id)
+        : Document.getCollaboratorKey(id);
+    const sessionCollaboratorIds = await Redis.defaultClient.smembers(key);
+    if (!sessionCollaboratorIds || sessionCollaboratorIds.length === 0) {
+      Logger.debug("multiplayer", `No changes for ${documentName}`);
+      return;
+    }
+
+    try {
+      if (type === MultiplayerEntityType.Collection) {
+        await collectionCollaborativeUpdater({
+          collectionId: id,
+          ydoc: document,
+          sessionCollaboratorIds,
+          isLastConnection: clientsCount === 0,
+        });
+      } else {
+        await documentCollaborativeUpdater({
+          documentId: id,
+          ydoc: document,
+          sessionCollaboratorIds,
+          isLastConnection: clientsCount === 0,
+          clientVersion,
+        });
+      }
+    } catch (err) {
+      Logger.error(`Unable to persist ${type}`, toError(err), {
+        documentId: id,
+        userId: context.user?.id,
+      });
+    }
+  }
+
+  /**
+   * Loads the collaborative state for a document, creating it from the
+   * content or text if it does not exist yet.
+   *
+   * @param documentId The document ID.
+   * @param fieldName The YJS field name.
+   * @returns a promise resolving to the YJS document, or undefined.
+   */
+  private async loadDocument(documentId: string, fieldName: string) {
     // First, try to find the document without a lock to check if it has state
     const documentWithoutLock = await Document.unscoped().findOne({
       attributes: ["state"],
@@ -96,50 +180,78 @@ export default class PersistenceExtension implements Extension {
     });
   }
 
-  async onChange({ context, documentName }: withContext<onChangePayload>) {
-    const [, documentId] = documentName.split(".");
+  /**
+   * Loads the collaborative state for a collection description, creating it
+   * from the content snapshot if it does not exist yet.
+   *
+   * @param collectionId The collection ID.
+   * @param fieldName The YJS field name.
+   * @returns a promise resolving to the YJS document, or undefined.
+   */
+  private async loadCollection(collectionId: string, fieldName: string) {
+    // First, try to find the collection without a lock to check if it has state
+    const collectionWithoutLock = await Collection.unscoped().findOne({
+      attributes: ["state"],
+      rejectOnEmpty: true,
+      where: {
+        id: collectionId,
+      },
+    });
 
-    if (context.user) {
-      Logger.debug(
-        "multiplayer",
-        `${context.user.name} changed ${documentName}`
+    // If the collection already has state, we can return it without needing a transaction
+    if (collectionWithoutLock.state) {
+      const ydoc = new Y.Doc();
+      Logger.info(
+        "database",
+        `Collection ${collectionId} is in database state`
       );
-
-      const key = Document.getCollaboratorKey(documentId);
-      await Redis.defaultClient.sadd(key, context.user.id);
-    }
-  }
-
-  async onStoreDocument({
-    document,
-    context,
-    documentName,
-    clientsCount,
-    requestParameters,
-  }: onStoreDocumentPayload) {
-    const [, documentId] = documentName.split(".");
-    const clientVersion = requestParameters.get("editorVersion");
-
-    const key = Document.getCollaboratorKey(documentId);
-    const sessionCollaboratorIds = await Redis.defaultClient.smembers(key);
-    if (!sessionCollaboratorIds || sessionCollaboratorIds.length === 0) {
-      Logger.debug("multiplayer", `No changes for ${documentName}`);
-      return;
+      Y.applyUpdate(ydoc, collectionWithoutLock.state);
+      return ydoc;
     }
 
-    try {
-      await documentCollaborativeUpdater({
-        documentId,
-        ydoc: document,
-        sessionCollaboratorIds,
-        isLastConnection: clientsCount === 0,
-        clientVersion,
+    // If the collection doesn't have state yet, we need to acquire a lock and create it
+    return await sequelize.transaction(async (transaction) => {
+      const collection = await Collection.unscoped().findOne({
+        attributes: ["id", "state", "content", "description"],
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+        rejectOnEmpty: true,
+        where: {
+          id: collectionId,
+        },
       });
-    } catch (err) {
-      Logger.error("Unable to persist document", toError(err), {
-        documentId,
-        userId: context.user?.id,
-      });
-    }
+
+      // Double-check the state in case another process created it
+      if (collection.state) {
+        const ydoc = new Y.Doc();
+        Logger.info(
+          "database",
+          `Collection ${collectionId} is in database state`
+        );
+        Y.applyUpdate(ydoc, collection.state);
+        return ydoc;
+      }
+
+      Logger.info(
+        "database",
+        `Collection ${collectionId} is not in state, creating from content`
+      );
+      const ydoc = ProsemirrorHelper.toYDoc(
+        collection.content ?? collection.description ?? "",
+        fieldName
+      );
+      const state = ProsemirrorHelper.toState(ydoc);
+      await collection.update(
+        {
+          state,
+        },
+        {
+          silent: true,
+          hooks: false,
+          transaction,
+        }
+      );
+      return ydoc;
+    });
   }
 }

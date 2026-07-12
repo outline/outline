@@ -718,27 +718,38 @@ export class DocumentHelper {
     document.text = serializer.serialize(doc);
 
     if (document.state) {
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, document.state);
-      const type = ydoc.get("default", Y.XmlFragment) as Y.XmlFragment;
-
-      if (!type.doc) {
-        throw new Error("type.doc not found");
-      }
-
-      // apply new document to existing ydoc
-      updateYFragment(type.doc, type, doc, {
-        mapping: new Map(),
-        isOMark: new Map(),
-      });
-
-      const state = Y.encodeStateAsUpdate(ydoc);
-
-      document.state = Buffer.from(state);
+      document.state = DocumentHelper.applyToState(document.state, doc);
       document.changed("state", true);
     }
 
     return document;
+  }
+
+  /**
+   * Applies a ProseMirror document to existing YJS collaborative state,
+   * returning the updated state.
+   *
+   * @param state The existing YJS collaborative state.
+   * @param doc The ProseMirror document to apply.
+   * @returns the updated YJS state.
+   * @throws Error if the state does not contain a document fragment.
+   */
+  static applyToState(state: Uint8Array, doc: Node): Buffer {
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, state);
+    const type = ydoc.get("default", Y.XmlFragment) as Y.XmlFragment;
+
+    if (!type.doc) {
+      throw new Error("type.doc not found");
+    }
+
+    // apply new document to existing ydoc
+    updateYFragment(type.doc, type, doc, {
+      mapping: new Map(),
+      isOMark: new Map(),
+    });
+
+    return Buffer.from(Y.encodeStateAsUpdate(ydoc));
   }
 
   /**

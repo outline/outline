@@ -3,6 +3,10 @@ import type {
   onDisconnectPayload,
   onChangePayload,
 } from "@hocuspocus/server";
+import {
+  MultiplayerEntityType,
+  parseMultiplayerName,
+} from "@shared/collaboration/EntityName";
 import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
@@ -32,7 +36,7 @@ export class ViewsExtension implements Extension {
     }
 
     const lastUpdate = this.lastViewBySocket.get(socketId);
-    const [, documentId] = documentName.split(".");
+    const { type, id } = parseMultiplayerName(documentName);
 
     if (!lastUpdate || Date.now() - lastUpdate.getTime() > Minute.ms) {
       this.lastViewBySocket.set(socketId, new Date());
@@ -42,7 +46,10 @@ export class ViewsExtension implements Extension {
         `User ${context.user.id} viewed "${documentName}"`
       );
       await Promise.all([
-        View.touch(documentId, context.user.id, true),
+        // views are only recorded for documents
+        ...(type === MultiplayerEntityType.Document
+          ? [View.touch(id, context.user.id, true)]
+          : []),
         context.user.update({ lastActiveAt: new Date() }),
       ]);
     }

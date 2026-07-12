@@ -243,6 +243,9 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           const collection = await Collection.findByPk(input.id, {
             userId: user.id,
+            // required so that edits to the description are synced to any
+            // active collaborative editing session.
+            includeState: true,
             rejectOnEmpty: true,
           });
           authorize(user, "update", collection);

@@ -27,6 +27,7 @@ export async function deleteAllDatabases() {
   // by iterating over all known collections and documents.
   await Promise.all(
     stores.collections.orderedData.map(async (collection) => {
+      window.indexedDB.deleteDatabase(`collection.${collection.id}`);
       const nodes = flatten(collection.documents?.map(flattenTree));
 
       return nodes.map(async (node) => {

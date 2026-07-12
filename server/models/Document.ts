@@ -71,6 +71,10 @@ import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import type { APIContext } from "@server/types";
+import {
+  MultiplayerEntityType,
+  toMultiplayerName,
+} from "@shared/collaboration/EntityName";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { SkipChangeset } from "./decorators/Changeset";
 import type { EventOverrideOptions, HookContext } from "./base/Model";
@@ -588,7 +592,10 @@ class Document extends ArchivableModel<
     if (model.changed("state") && ctx.auth?.user?.id) {
       const actorId = ctx.auth.user.id;
       const notify = async () => {
-        await APIUpdateExtension.notifyUpdate(model.id, actorId);
+        await APIUpdateExtension.notifyUpdate(
+          toMultiplayerName(MultiplayerEntityType.Document, model.id),
+          actorId
+        );
       };
 
       if (ctx.transaction) {

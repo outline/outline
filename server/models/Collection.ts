@@ -41,6 +41,7 @@ import {
   BeforeUpdate,
   DefaultScope,
   AfterSave,
+  AfterUpdate,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type {
@@ -51,10 +52,15 @@ import type {
   NavigationNode,
 } from "@shared/types";
 import { CollectionPermission } from "@shared/types";
+import {
+  MultiplayerEntityType,
+  toMultiplayerName,
+} from "@shared/collaboration/EntityName";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { parser } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
@@ -72,7 +78,9 @@ import Import from "./Import";
 import Team from "./Team";
 import User from "./User";
 import UserMembership from "./UserMembership";
+import type { HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
+import { SkipChangeset } from "./decorators/Changeset";
 import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
@@ -82,6 +90,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 type AdditionalFindOptions = {
   userId?: string;
   includeDocumentStructure?: boolean;
+  includeState?: boolean;
   includeOwner?: boolean;
   includeArchivedBy?: boolean;
   rejectOnEmpty?: boolean | Error;
@@ -89,10 +98,15 @@ type AdditionalFindOptions = {
 
 @DefaultScope(() => ({
   attributes: {
-    exclude: ["documentStructure"],
+    exclude: ["documentStructure", "state"],
   },
 }))
 @Scopes(() => ({
+  withAttributes: (exclude: string[]) => ({
+    attributes: {
+      exclude,
+    },
+  }),
   withAllMemberships: {
     include: [
       {
@@ -147,7 +161,7 @@ type AdditionalFindOptions = {
   withDocumentStructure: () => ({
     attributes: {
       // resets to include the documentStructure column
-      exclude: [],
+      exclude: ["state"],
     },
   }),
   withMembership: (userId: string) => {
@@ -238,6 +252,18 @@ class Collection extends ParanoidModel<
    */
   @Column(DataType.JSONB)
   content: ProsemirrorData | null;
+
+  /**
+   * The content of the collection as YJS collaborative state, this column can be quite large and
+   * should only be selected from the DB when required.
+   */
+  @SimpleLength({
+    max: CollectionValidation.maxStateLength,
+    msg: `Collection collaborative state is too large`,
+  })
+  @Column(DataType.BLOB)
+  @SkipChangeset
+  state?: Uint8Array | null;
 
   /** An icon (or) emoji to use as the collection icon. */
   @Column(DataType.STRING)
@@ -347,6 +373,16 @@ class Collection extends ParanoidModel<
   }
 
   /**
+   * Returns the key used to store the collaborators of a collection in Redis.
+   *
+   * @param collectionId The ID of the collection.
+   * @returns Redis key for collaborators.
+   */
+  static getCollaboratorKey(collectionId: string) {
+    return `collaborators:${collectionId}`;
+  }
+
+  /**
    * Whether this collection is considered active or not. A collection is active if
    * it has not been archived or deleted.
    *
@@ -380,6 +416,19 @@ class Collection extends ParanoidModel<
       model.content = await DocumentHelper.toJSON(model);
     }
 
+    // Sync content edits into the collaborative state when loaded, so active
+    // multiplayer sessions receive changes made through the API.
+    if (model.changed("content") && !model.changed("state") && model.state) {
+      const doc = model.content
+        ? DocumentHelper.toProsemirror(model.content)
+        : parser.parse("");
+
+      if (doc) {
+        model.state = DocumentHelper.applyToState(model.state, doc);
+        model.changed("state", true);
+      }
+    }
+
     if (model.changed("documentStructure")) {
       await CacheHelper.clearData(
         RedisPrefixHelper.getCollectionDocumentsKey(model.id)
@@ -407,6 +456,26 @@ class Collection extends ParanoidModel<
       }
 
       await setData();
+    }
+  }
+
+  @AfterUpdate
+  static notifyCollaborationServer(model: Collection, ctx: HookContext) {
+    if (model.changed("state") && ctx.auth?.user?.id) {
+      const actorId = ctx.auth.user.id;
+      const notify = async () => {
+        await APIUpdateExtension.notifyUpdate(
+          toMultiplayerName(MultiplayerEntityType.Collection, model.id),
+          actorId
+        );
+      };
+
+      if (ctx.transaction) {
+        const transaction = ctx.transaction.parent || ctx.transaction;
+        transaction.afterCommit(notify);
+      } else {
+        void notify();
+      }
     }
   }
 
@@ -660,6 +729,7 @@ class Collection extends ParanoidModel<
 
     const {
       includeDocumentStructure,
+      includeState,
       includeOwner,
       includeArchivedBy,
       userId,
@@ -667,7 +737,15 @@ class Collection extends ParanoidModel<
     } = options;
 
     const scopes: (string | ScopeOptions)[] = [
-      includeDocumentStructure ? "withDocumentStructure" : "defaultScope",
+      {
+        method: [
+          "withAttributes",
+          [
+            ...(includeDocumentStructure ? [] : ["documentStructure"]),
+            ...(includeState ? [] : ["state"]),
+          ],
+        ],
+      },
       {
         method: ["withMembership", userId],
       },
