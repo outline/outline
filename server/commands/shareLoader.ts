@@ -72,7 +72,7 @@ export async function loadPublicShare({
 
   if (
     (share?.expiresAt && share.expiresAt < new Date()) ||
-    (share?.type === ShareTypes.Expiring && !share.published)
+    (share?.type === ShareTypes.Private && !share.published)
   ) {
     throw ResourceExpiredError("Share link has expired");
   }

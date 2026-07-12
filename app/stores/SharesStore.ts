@@ -52,10 +52,10 @@ export default class SharesStore extends Store<Share> {
   }
 
   @computed
-  get expiring(): Share[] {
+  get private(): Share[] {
     return filter(
       this.orderedData,
-      (share) => share.type === ShareTypes.Expiring
+      (share) => share.type === ShareTypes.Private
     );
   }
 
@@ -193,21 +193,30 @@ export default class SharesStore extends Store<Share> {
   getPublishedByDocumentId = (documentId: string): Share[] =>
     filter(this.getAllByDocumentId(documentId), (share) => share.published);
 
-  getExpiringByCollectionId = (
+  getUnpublishedByCollectionId = (collectionId: string): Share[] =>
+    filter(
+      this.getAllByCollectionId(collectionId),
+      (share) => !share.published
+    );
+
+  getUnpublishedByDocumentId = (documentId: string): Share[] =>
+    filter(this.getAllByDocumentId(documentId), (share) => !share.published);
+
+  getPrivateByCollectionId = (
     collectionId: string,
     published = true
   ): Share[] =>
     filter(
       this.getAllByCollectionId(collectionId),
       (share) =>
-        share.type === ShareTypes.Expiring && share.published === published
+        share.type === ShareTypes.Private && share.published === published
     );
 
-  getExpiringByDocumentId = (documentId: string, published = true): Share[] =>
+  getPrivateByDocumentId = (documentId: string, published = true): Share[] =>
     filter(
       this.getAllByDocumentId(documentId),
       (share) =>
-        share.type === ShareTypes.Expiring && share.published === published
+        share.type === ShareTypes.Private && share.published === published
     );
 
   getWebByCollectionId = (

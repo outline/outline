@@ -322,7 +322,7 @@ router.post(
       });
     } else {
       share = await Share.createWithCtx(ctx, {
-        type: ShareTypes.Expiring,
+        type: ShareTypes.Private,
         collectionId: collectionId ?? null,
         documentId: documentId ?? null,
         teamId: user.teamId,

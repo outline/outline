@@ -805,5 +805,5 @@ export type ReactionSummary = {
 
 export enum ShareTypes {
   Web = "web",
-  Expiring = "expiring",
+  Private = "private",
 }

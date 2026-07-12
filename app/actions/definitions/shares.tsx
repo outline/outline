@@ -73,7 +73,7 @@ export const editShareFactory = ({
     analyticsName: "Edit share link",
     section: ShareSection,
     icon: <EditIcon />,
-    visible: !!can.revoke && share.type === ShareTypes.Expiring,
+    visible: !!can.revoke && share.type === ShareTypes.Private,
     perform: ({ t, stores }) => {
       stores.dialogs.openModal({
         title: t("Edit share link"),

@@ -212,7 +212,7 @@ export function ShareLinkCreateDialog({ share, onSubmit }: Props) {
         }
 
         await shares.create({
-          type: ShareTypes.Expiring,
+          type: ShareTypes.Private,
           targetType: "document",
           documentId: targetDocument.id,
           published: true,
@@ -228,7 +228,7 @@ export function ShareLinkCreateDialog({ share, onSubmit }: Props) {
         }
 
         await shares.create({
-          type: ShareTypes.Expiring,
+          type: ShareTypes.Private,
           targetType: "collection",
           collectionId: targetCollection.id,
           published: true,

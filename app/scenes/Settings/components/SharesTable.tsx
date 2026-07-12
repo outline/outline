@@ -107,7 +107,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
         {
           type: "data",
           id: "expiringAt",
-          header: t("Expiring date"),
+          header: t("Expiration date"),
           accessor: (share) => share.expiresAt,
           component: (share) =>
             share.expiresAt ? (

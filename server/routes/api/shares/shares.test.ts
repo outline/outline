@@ -281,7 +281,7 @@ describe("#shares.create", () => {
       body: {
         documentId: document.id,
         expiresAt,
-        type: ShareTypes.Expiring,
+        type: ShareTypes.Private,
       },
     });
     const body = await res.json();
@@ -300,7 +300,7 @@ describe("#shares.create", () => {
       body: {
         documentId: document.id,
         expiresAt: subDays(new Date(), 1).toISOString(),
-        type: ShareTypes.Expiring,
+        type: ShareTypes.Private,
       },
     });
     const body = await res.json();
@@ -492,7 +492,7 @@ describe("#shares.create", () => {
     expect(body.data.id).toBe(share.id);
   });
 
-  it("should create a new share link if type is sharing", async () => {
+  it("should create a new share link if type is private", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
@@ -506,7 +506,7 @@ describe("#shares.create", () => {
     const res = await server.post("/api/shares.create", user, {
       body: {
         documentId: document.id,
-        type: ShareTypes.Expiring,
+        type: ShareTypes.Private,
       },
     });
     const body = await res.json();
@@ -813,7 +813,7 @@ describe("#shares.info", () => {
       teamId: user.teamId,
       userId: user.id,
       expiresAt: subDays(new Date(), 1),
-      type: ShareTypes.Expiring,
+      type: ShareTypes.Private,
     });
 
     const res = await server.post("/api/shares.info", {
@@ -1036,7 +1036,7 @@ describe("#shares.update", () => {
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
-      type: ShareTypes.Expiring,
+      type: ShareTypes.Private,
     });
     const expiresAt = addDays(new Date(), 30).toISOString();
 
@@ -1070,7 +1070,7 @@ describe("#shares.update", () => {
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
-      type: ShareTypes.Expiring,
+      type: ShareTypes.Private,
     });
 
     const res = await server.post("/api/shares.update", user, {
