@@ -307,7 +307,7 @@ export function ShareLinkCreateDialog({ share, onSubmit }: Props) {
         </Text>
       )}
 
-      <Text as="h3" weight="bold" style={{ marginTop: 16 }}>
+      <Text as="h3" weight="bold" style={{ marginTop: 16, marginBottom: -5 }}>
         {t("Link expiration")}
       </Text>
       <HStack align="center" spacing={8} style={{ marginBottom: 20 }}>
