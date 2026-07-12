@@ -7,6 +7,7 @@ import {
   editShareFactory,
   goToShareSourceFactory,
   revokeShareFactory,
+  toggleActivateShareFactory,
 } from "~/actions/definitions/shares";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
@@ -26,6 +27,7 @@ export function useShareMenuActions(targetShare: Share | null) {
         : [
             copyShareUrlFactory({ share: targetShare }),
             goToShareSourceFactory({ share: targetShare }),
+            toggleActivateShareFactory({ share: targetShare, can }),
             editShareFactory({ share: targetShare, can }),
             ActionSeparator,
             revokeShareFactory({ share: targetShare, can }),

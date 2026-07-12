@@ -2,7 +2,14 @@ import copy from "copy-to-clipboard";
 import { errToString } from "@shared/utils/error";
 import type Share from "~/models/Share";
 import { createAction, createInternalLinkAction } from "..";
-import { ArrowIcon, CopyIcon, EditIcon, TrashIcon } from "outline-icons";
+import {
+  ArrowIcon,
+  CheckmarkIcon,
+  CloseIcon,
+  CopyIcon,
+  EditIcon,
+  TrashIcon,
+} from "outline-icons";
 import { ShareSection } from "../sections";
 import env from "~/env";
 import { toast } from "sonner";
@@ -87,5 +94,21 @@ export const editShareFactory = ({
     },
   });
 
-// to do:
-// export const togglePublishShareFactory = () => {};
+export const toggleActivateShareFactory = ({
+  share,
+  can,
+}: {
+  share: Share;
+  can: Record<string, boolean>;
+}) =>
+  createAction({
+    name: ({ t }) => (share.published ? t("Deactivate") : t("Activate")),
+    analyticsName: "Toggle Share Link Activation",
+    section: ShareSection,
+    icon: share.published ? <CloseIcon /> : <CheckmarkIcon />,
+    visible: !!can.revoke,
+    perform: () =>
+      share.save({
+        published: !share.published,
+      }),
+  });
