@@ -106,6 +106,32 @@ describe("#shares.list", () => {
     expect(body.data[0].documentTitle).toBe("test");
   });
 
+  it("should allow filtering by share title and return matching shares", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "hardcoded",
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      title: "team handbook",
+    });
+
+    const res = await server.post("/api/shares.list", user, {
+      body: {
+        query: "handbook",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(share.id);
+    expect(body.data[0].title).toBe("team handbook");
+  });
+
   it("should not return revoked shares", async () => {
     const user = await buildUser();
     const document = await buildDocument({

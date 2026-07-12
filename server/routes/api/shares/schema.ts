@@ -7,7 +7,7 @@ import { Share } from "@server/models";
 import { ValidateURL } from "@server/validation";
 import { zodIdType } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
-import { ShareTypes } from "@shared/types";
+import { ShareStatus, ShareTypes } from "@shared/types";
 
 const ExpiresAtSchema = z.coerce
   .date()
@@ -40,7 +40,8 @@ export type SharesInfoReq = z.infer<typeof SharesInfoSchema>;
 export const SharesListSchema = BaseSchema.extend({
   body: z.object({
     query: z.string().optional(),
-    published: z.boolean().nullish(),
+    type: z.array(z.enum(ShareTypes)).optional(),
+    status: z.array(z.enum(ShareStatus)).optional(),
     sort: z
       .string()
       .refine((val) => Object.keys(Share.getAttributes()).includes(val), {

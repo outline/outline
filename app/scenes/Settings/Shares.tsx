@@ -5,6 +5,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { ShareStatus, ShareTypes } from "@shared/types";
 import { ConditionalFade } from "~/components/Fade";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
@@ -22,7 +23,8 @@ import Button from "~/components/Button";
 import { Action } from "~/components/Actions";
 import useActionContext from "~/hooks/useActionContext";
 import { createShareLink } from "~/actions/definitions/createShareLink";
-// import Switch from "~/components/Switch";
+import ShareTypeFilter from "./components/ShareTypeFilter";
+import ShareStatusFilter from "./components/ShareStatusFilter";
 
 function Shares() {
   const team = useCurrentTeam();
@@ -35,16 +37,48 @@ function Shares() {
   const params = useQuery();
   const [query, setQuery] = useState("");
   const context = useActionContext();
+  const typeFilter = useMemo(
+    () =>
+      params.getAll("type")?.length
+        ? (params.getAll("type") as ShareTypes[])
+        : [ShareTypes.Web, ShareTypes.Private],
+    [params]
+  );
+  const statusFilter = useMemo(
+    () =>
+      params.getAll("status")?.length
+        ? (params.getAll("status") as ShareStatus[])
+        : [ShareStatus.Active, ShareStatus.Inactive],
+    [params]
+  );
+
+  const published = useMemo(() => {
+    const hasActive = statusFilter.includes(ShareStatus.Active);
+    const hasInactive = statusFilter.includes(ShareStatus.Inactive);
+
+    if (hasActive && !hasInactive) {
+      return true;
+    }
+
+    if (!hasActive && hasInactive) {
+      return false;
+    }
+
+    return undefined;
+  }, [statusFilter]);
 
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
       sort: params.get("sort") || "createdAt",
+      type: typeFilter.length ? typeFilter : undefined,
+      status: statusFilter.length ? statusFilter : undefined,
+      published,
       direction: (params.get("direction") || "desc").toUpperCase() as
         | "ASC"
         | "DESC",
     }),
-    [params]
+    [params, published, statusFilter, typeFilter]
   );
 
   const sort: ColumnSort = useMemo(
@@ -55,19 +89,40 @@ function Shares() {
     [reqParams.sort, reqParams.direction]
   );
 
+  const filteredData = shares
+    .findByQuery(reqParams.query ?? "")
+    .filter((share) => {
+      const matchesType =
+        typeFilter.length === 0 || typeFilter.includes(share.type);
+
+      const matchesStatus =
+        statusFilter.length === 0 ||
+        (statusFilter.includes(ShareStatus.Active) && share.published) ||
+        (statusFilter.includes(ShareStatus.Inactive) && !share.published);
+
+      return matchesType && matchesStatus;
+    });
+
   const { data, error, loading, next } = useTableRequest({
-    data: shares.findByQuery(reqParams.query ?? ""),
+    data: filteredData,
     sort,
     reqFn: shares.fetchPage,
     reqParams,
   });
 
   const updateParams = useCallback(
-    (name: string, value: string) => {
-      if (value) {
-        params.set(name, value);
+    (name: string, value: string | string[]) => {
+      if (typeof value === "string") {
+        if (value) {
+          params.set(name, value);
+        } else {
+          params.delete(name);
+        }
       } else {
         params.delete(name);
+        for (const v of value) {
+          params.append(name, v);
+        }
       }
 
       history.replace({
@@ -93,6 +148,18 @@ function Shares() {
     const timeout = setTimeout(() => updateParams("query", query), 250);
     return () => clearTimeout(timeout);
   }, [query, updateParams]);
+
+  const handleStatusFilter = useCallback(
+    ({ statusFilter }) => {
+      updateParams("status", statusFilter);
+    },
+    [updateParams]
+  );
+
+  const handleTypeFilter = useCallback(
+    ({ typeFilter }) => updateParams("type", typeFilter),
+    [updateParams]
+  );
 
   return (
     <Scene
@@ -151,13 +218,11 @@ function Shares() {
           placeholder={`${t("Filter")}…`}
           onChange={handleSearch}
         />
-        {/*
-        to do: finish implementation
-        <Switch
-          label={t("Published")}
-          checked={showPublished}
-          onChange={setShowPublished}
-        /> */}
+        <ShareTypeFilter typeFilter={typeFilter} onSelect={handleTypeFilter} />
+        <ShareStatusFilter
+          statusFilter={statusFilter}
+          onSelect={handleStatusFilter}
+        />
       </StickyFilters>
       <ConditionalFade animate={!data}>
         <SharesTable

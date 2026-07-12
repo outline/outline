@@ -807,3 +807,8 @@ export enum ShareTypes {
   Web = "web",
   Private = "private",
 }
+
+export enum ShareStatus {
+  Active = "active",
+  Inactive = "inactive",
+}

@@ -114,7 +114,9 @@ class Share extends Model implements Searchable {
 
   @computed
   get searchContent(): string[] {
-    return [this.sourceTitle ?? this.documentTitle];
+    return [this.title, this.sourceTitle ?? this.documentTitle].filter(
+      (value): value is string => !!value
+    );
   }
 
   @computed

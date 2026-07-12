@@ -4,7 +4,12 @@ import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { subMinutes } from "date-fns";
 import { randomString } from "@shared/random";
-import { QueryNotices, ShareTypes, TeamPreference } from "@shared/types";
+import {
+  QueryNotices,
+  ShareStatus,
+  ShareTypes,
+  TeamPreference,
+} from "@shared/types";
 import {
   AuthenticationError,
   InvalidRequestError,
@@ -154,7 +159,7 @@ router.post(
   pagination(),
   validate(T.SharesListSchema),
   async (ctx: APIContext<T.SharesListReq>) => {
-    const { sort, direction, query, published } = ctx.input.body;
+    const { sort, direction, query, status, type } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "listShares", user.team);
     const collectionIds = await user.collectionIds();
@@ -169,9 +174,15 @@ router.post(
       "$document.collectionId$": collectionIds,
     };
 
+    const shareTitleWhere: WhereOptions<Share> = {};
+
     if (query) {
       collectionWhere["$collection.name$"] = { [Op.iLike]: `%${query}%` };
       documentWhere["$document.title$"] = {
+        [Op.iLike]: `%${query}%`,
+      };
+
+      shareTitleWhere.title = {
         [Op.iLike]: `%${query}%`,
       };
     }
@@ -179,11 +190,25 @@ router.post(
     const shareWhere: WhereOptions<Share> = {
       teamId: user.teamId,
       userId: user.id,
-      published: published === false ? false : true,
       revokedAt: {
         [Op.is]: null,
       },
     };
+
+    const hasActive = status?.includes(ShareStatus.Active);
+    const hasInactive = status?.includes(ShareStatus.Inactive);
+
+    if (hasActive && !hasInactive) {
+      shareWhere.published = true;
+    } else if (!hasActive && hasInactive) {
+      shareWhere.published = false;
+    }
+
+    if (type?.length) {
+      shareWhere.type = {
+        [Op.in]: type,
+      };
+    }
 
     if (user.isAdmin) {
       delete shareWhere.userId;
@@ -192,7 +217,11 @@ router.post(
     const options: FindOptions = {
       where: {
         ...shareWhere,
-        [Op.or]: [collectionWhere, documentWhere],
+        [Op.or]: [
+          { ...collectionWhere },
+          { ...documentWhere },
+          { ...shareTitleWhere },
+        ],
       },
       include: [
         {

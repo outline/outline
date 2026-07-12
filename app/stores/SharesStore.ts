@@ -193,15 +193,6 @@ export default class SharesStore extends Store<Share> {
   getPublishedByDocumentId = (documentId: string): Share[] =>
     filter(this.getAllByDocumentId(documentId), (share) => share.published);
 
-  getUnpublishedByCollectionId = (collectionId: string): Share[] =>
-    filter(
-      this.getAllByCollectionId(collectionId),
-      (share) => !share.published
-    );
-
-  getUnpublishedByDocumentId = (documentId: string): Share[] =>
-    filter(this.getAllByDocumentId(documentId), (share) => !share.published);
-
   getPrivateByCollectionId = (
     collectionId: string,
     published = true
