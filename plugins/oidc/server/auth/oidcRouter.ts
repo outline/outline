@@ -243,15 +243,12 @@ export function createOIDCRouter(
               scopes: params.scope ? params.scope.split(" ") : scopes,
             },
           });
+
           // Persist the id_token so a later RP-initiated logout can pass it as
           // the `id_token_hint`, allowing the provider to scope the logout to
           // this session rather than terminating its global SSO session. The
           // token is stored server-side keyed by a short session identifier;
-          // only that identifier goes in the cookie. id_tokens can be large and
-          // storing one directly in the cookie inflates response headers enough
-          // to exceed reverse proxy buffers, resulting in a 502 on sign-in.
-          // This is best-effort: a Redis failure must not block sign-in, the
-          // logout simply falls back to omitting the `id_token_hint`.
+          // only that identifier goes in the cookie.
           if (endpoints.logoutURL && params.id_token) {
             try {
               const sessionId = crypto.randomBytes(16).toString("hex");
