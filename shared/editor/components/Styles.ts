@@ -783,7 +783,7 @@ td .image .image-wrapper,
 th .image .image-wrapper,
 td .image .image-wrapper img,
 th .image .image-wrapper img {
-  width: min(var(--image-width, auto), 100%);
+  width: min(var(--image-width), 100%);
 }
 
 .image.placeholder,
