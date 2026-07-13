@@ -5,17 +5,21 @@ import { CopyIcon, GlobeIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
+import { differenceInCalendarDays, endOfDay } from "date-fns";
 import { errToString } from "@shared/utils/error";
 import Flex from "@shared/components/Flex";
 import Squircle from "@shared/components/Squircle";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import type Document from "~/models/Document";
 import type Share from "~/models/Share";
+import { InputSelect, type Option } from "~/components/InputSelect";
 import Switch from "~/components/Switch";
 import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import useUserLocale from "~/hooks/useUserLocale";
+import { dateToExpiry } from "~/utils/date";
 import { AvatarSize } from "../../Avatar";
 import CopyToClipboard from "../../CopyToClipboard";
 import NudeButton from "../../NudeButton";
@@ -30,6 +34,12 @@ import {
   StyledInfoIcon,
   UnderlinedLink,
 } from "../components";
+import ExpiryDatePicker from "~/scenes/ApiKeyNew/components/ExpiryDatePicker";
+import {
+  ExpiryType,
+  ExpiryValues,
+  calculateExpiryDate,
+} from "~/scenes/ApiKeyNew/utils";
 
 type Props = {
   /** The document to share. */
@@ -57,10 +67,52 @@ function PublicAccess(
   const documentAbilities = usePolicy(document);
   const canPublish = share ? can.update : documentAbilities.share;
   const [creating, setCreating] = React.useState(false);
+  const userLocale = useUserLocale();
+  const currentDate = React.useRef<Date>(new Date());
+  const [expiryType, setExpiryType] = React.useState<ExpiryType>(
+    ExpiryType.Month
+  );
+  const [expiresAt, setExpiresAt] = React.useState<Date | undefined>(() =>
+    calculateExpiryDate(currentDate.current, ExpiryType.Month)
+  );
+
+  const expiryOptions = React.useMemo<Option[]>(
+    () =>
+      [...ExpiryValues.entries()].map(([expType, { label }]) => ({
+        type: "item",
+        label,
+        value: expType,
+      })),
+    []
+  );
 
   React.useEffect(() => {
     setUrlId(share?.urlId);
   }, [share?.urlId]);
+
+  React.useEffect(() => {
+    if (!share?.expiresAt) {
+      setExpiryType(ExpiryType.NoExpiration);
+      setExpiresAt(undefined);
+      return;
+    }
+
+    const parsedExpiresAt = new Date(share.expiresAt);
+    const daysUntilExpiry = differenceInCalendarDays(
+      parsedExpiresAt,
+      currentDate.current
+    );
+
+    const matchedType = [
+      ExpiryType.Week,
+      ExpiryType.Month,
+      ExpiryType.TwoMonths,
+      ExpiryType.ThreeMonths,
+    ].find((type) => ExpiryValues.get(type)?.value === daysUntilExpiry);
+
+    setExpiresAt(parsedExpiresAt);
+    setExpiryType(matchedType ?? ExpiryType.Custom);
+  }, [share?.expiresAt]);
 
   const handlePublishedChange = React.useCallback(
     async (checked: boolean) => {
@@ -71,11 +123,15 @@ function PublicAccess(
             type: "document",
             documentId: document.id,
             published: true,
+            expiresAt: expiresAt?.toISOString(),
           });
           copy(newShare.url);
           toast.success(t("Public link copied to clipboard"));
         } else if (share) {
-          await share.save({ published: checked });
+          await share.save({
+            published: checked,
+            expiresAt: expiresAt?.toISOString() ?? null,
+          });
           if (checked) {
             copy(share.url);
             toast.success(t("Public link copied to clipboard"));
@@ -87,7 +143,46 @@ function PublicAccess(
         setCreating(false);
       }
     },
-    [t, share, shares, document]
+    [t, share, shares, document, expiresAt]
+  );
+
+  const updateShareExpiry = React.useCallback(
+    async (date?: Date) => {
+      if (!share?.published) {
+        return;
+      }
+
+      try {
+        await share.save({ expiresAt: date?.toISOString() ?? null });
+      } catch (err) {
+        toast.error(errToString(err));
+      }
+    },
+    [share]
+  );
+
+  const handleExpiryTypeChange = React.useCallback(
+    async (value: string) => {
+      const nextExpiryType = value as ExpiryType;
+      const nextExpiresAt = calculateExpiryDate(
+        currentDate.current,
+        nextExpiryType
+      );
+
+      setExpiryType(nextExpiryType);
+      setExpiresAt(nextExpiresAt);
+      await updateShareExpiry(nextExpiresAt);
+    },
+    [updateShareExpiry]
+  );
+
+  const handleSelectCustomDate = React.useCallback(
+    async (date: Date) => {
+      const nextExpiresAt = endOfDay(date);
+      setExpiresAt(nextExpiresAt);
+      await updateShareExpiry(nextExpiresAt);
+    },
+    [updateShareExpiry]
   );
 
   const handleUrlChange = React.useMemo(
@@ -198,24 +293,46 @@ function PublicAccess(
             {copyButton}
           </ShareLinkInput>
         ) : share?.published ? (
-          <Flex align="center" gap={2}>
-            <ShareLinkInput
-              type="text"
-              ref={inputRef}
-              placeholder={share?.id}
-              onChange={handleUrlChange}
-              error={validationError}
-              defaultValue={urlId}
-              prefix={
-                <DomainPrefix onClick={() => inputRef.current?.focus()}>
-                  {env.URL.replace(/https?:\/\//, "") + "/s/"}
-                </DomainPrefix>
-              }
-            >
-              {copyButton}
-            </ShareLinkInput>
-            <ShareSettingsPopover share={share} />
-          </Flex>
+          <>
+            <Flex align="center" gap={2}>
+              <ShareLinkInput
+                type="text"
+                ref={inputRef}
+                placeholder={share?.id}
+                onChange={handleUrlChange}
+                error={validationError}
+                defaultValue={urlId}
+                prefix={
+                  <DomainPrefix onClick={() => inputRef.current?.focus()}>
+                    {env.URL.replace(/https?:\/\//, "") + "/s/"}
+                  </DomainPrefix>
+                }
+              >
+                {copyButton}
+              </ShareLinkInput>
+              <ShareSettingsPopover share={share} />
+            </Flex>
+            <Flex align="center" gap={8}>
+              <StyledExpirySelect
+                options={expiryOptions}
+                value={expiryType}
+                onChange={handleExpiryTypeChange}
+                label={t("Expiration")}
+              />
+              {expiryType === ExpiryType.Custom ? (
+                <ExpiryDatePicker
+                  selectedDate={expiresAt}
+                  onSelect={handleSelectCustomDate}
+                />
+              ) : (
+                <Text type="secondary" size="small">
+                  {expiresAt
+                    ? `${dateToExpiry(expiresAt.toISOString(), t, userLocale)}.`
+                    : `${t("Never expires")}.`}
+                </Text>
+              )}
+            </Flex>
+          </>
         ) : null}
 
         {share?.published && !share.includeChildDocuments ? (
@@ -233,5 +350,10 @@ function PublicAccess(
     </div>
   );
 }
+
+const StyledExpirySelect = styled(InputSelect)`
+  width: 150px !important;
+  margin-bottom: 0;
+`;
 
 export default observer(React.forwardRef(PublicAccess));

@@ -114,6 +114,28 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             ) : null,
           width: "2fr",
         },
+        {
+          type: "data",
+          id: "expiresAt",
+          header: t("Expires"),
+          accessor: (share) => share.expiresAt,
+          component: (share) =>
+            share.expiresAt ? (
+              <Time
+                dateTime={share.expiresAt}
+                relative={false}
+                format={{
+                  en_US: "MMM d, yyyy",
+                  en_GB: "d MMM yyyy",
+                  fr_FR: "d MMM yyyy",
+                  de_DE: "dd.MM.yyyy",
+                }}
+              />
+            ) : (
+              t("None")
+            ),
+          width: "2fr",
+        },
         hasDomain
           ? {
               type: "data",

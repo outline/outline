@@ -15,6 +15,7 @@ export default function presentShare(share: Share, isAdmin = false) {
     urlId: share.urlId,
     createdBy: presentUser(share.user),
     includeChildDocuments: share.includeChildDocuments,
+    expiresAt: share.expiresAt,
     allowIndexing: share.allowIndexing,
     allowSubscriptions: share.allowSubscriptions,
     showLastUpdated: share.showLastUpdated,

@@ -258,6 +258,7 @@ router.post(
     const {
       collectionId,
       documentId,
+      expiresAt,
       published,
       urlId,
       includeChildDocuments,
@@ -309,6 +310,7 @@ router.post(
         allowSubscriptions,
         showLastUpdated,
         showTOC,
+        expiresAt: expiresAt ?? null,
         urlId,
       },
     });
@@ -343,6 +345,7 @@ router.post(
   async (ctx: APIContext<T.SharesUpdateReq>) => {
     const {
       id,
+      expiresAt,
       includeChildDocuments,
       published,
       urlId,
@@ -373,6 +376,10 @@ router.post(
 
     if (includeChildDocuments !== undefined) {
       share.includeChildDocuments = includeChildDocuments;
+    }
+
+    if (!isUndefined(expiresAt)) {
+      share.expiresAt = expiresAt ?? null;
     }
 
     if (!isUndefined(urlId)) {

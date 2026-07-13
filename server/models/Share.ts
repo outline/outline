@@ -122,6 +122,10 @@ class Share extends IdModel<
   @Column(DataType.DATE)
   lastAccessedAt: Date | null;
 
+  @AllowNull
+  @Column(DataType.DATE)
+  expiresAt: Date | null;
+
   /** Total count of times the shared link has been accessed */
   @Default(0)
   @Column(DataType.INTEGER)

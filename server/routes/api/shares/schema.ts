@@ -53,6 +53,7 @@ export type SharesListReq = z.infer<typeof SharesListSchema>;
 export const SharesUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.uuid(),
+    expiresAt: z.coerce.date().nullish(),
     includeChildDocuments: z.boolean().optional(),
     published: z.boolean().optional(),
     allowIndexing: z.boolean().optional(),
@@ -79,11 +80,27 @@ export const SharesUpdateSchema = BaseSchema.extend({
 
 export type SharesUpdateReq = z.infer<typeof SharesUpdateSchema>;
 
+const isTodayOrAfter = (value: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const candidate = new Date(value);
+  candidate.setHours(0, 0, 0, 0);
+
+  return candidate >= today;
+};
+
 export const SharesCreateSchema = BaseSchema.extend({
   body: z
     .object({
       collectionId: zodIdType().optional(),
       documentId: zodIdType().optional(),
+      expiresAt: z.coerce
+        .date()
+        .nullish()
+        .refine((value) => !value || isTodayOrAfter(value), {
+          error: "must be today or later",
+        }),
       published: z.boolean().prefault(false),
       allowIndexing: z.boolean().optional(),
       allowSubscriptions: z.boolean().optional(),

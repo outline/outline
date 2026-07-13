@@ -14,6 +14,7 @@ import {
 } from "@server/test/factories";
 
 import { getTestServer, withAPIContext } from "@server/test/support";
+import { subDays } from "date-fns";
 
 const server = getTestServer();
 
@@ -139,6 +140,33 @@ describe("#shares.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
+  });
+
+  it("should include expiresAt in list results", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      expiresAt,
+    });
+
+    const res = await server.post("/api/shares.list", user);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const listed = body.data.find(
+      (item: { id: string; expiresAt: string }) => item.id === share.id
+    );
+    expect(listed).toBeTruthy();
+    expect(new Date(listed.expiresAt).toISOString()).toEqual(
+      expiresAt.toISOString()
+    );
   });
 
   it("should not return shares to deleted documents", async () => {
@@ -288,6 +316,45 @@ describe("#shares.create", () => {
     expect(body.data.includeChildDocuments).toBe(true);
     expect(body.data.urlId).toBe("test");
     expect(body.data.documentTitle).toBe(document.title);
+  });
+
+  it("should allow creating a published share with expiresAt", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    const res = await server.post("/api/shares.create", user, {
+      body: {
+        documentId: document.id,
+        published: true,
+        expiresAt: expiresAt.toISOString(),
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(new Date(body.data.expiresAt).toISOString()).toEqual(
+      expiresAt.toISOString()
+    );
+  });
+
+  it("should reject create when expiresAt is in the past", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/shares.create", user, {
+      body: {
+        documentId: document.id,
+        expiresAt: subDays(new Date(), 1).toISOString(),
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should set includeChildDocuments when creating a published share", async () => {
@@ -964,6 +1031,58 @@ describe("#shares.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.urlId).toBeNull();
+  });
+
+  it("should update expiresAt", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
+
+    const res = await server.post("/api/shares.update", user, {
+      body: {
+        id: share.id,
+        expiresAt: expiresAt.toISOString(),
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(new Date(body.data.expiresAt).toISOString()).toEqual(
+      expiresAt.toISOString()
+    );
+  });
+
+  it("should allow clearing expiresAt", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+    });
+
+    const res = await server.post("/api/shares.update", user, {
+      body: {
+        id: share.id,
+        expiresAt: null,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.expiresAt).toBeNull();
   });
 
   it("should update title and iconUrl", async () => {

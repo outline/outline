@@ -329,6 +329,14 @@ describe("shareLoader", () => {
       await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
     });
 
+    it("should throw error when share is expired", async () => {
+      const share = await buildShare({
+        expiresAt: new Date(Date.now() - 60 * 1000),
+      });
+
+      await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
+    });
+
     it("should throw error when team has disabled sharing", async () => {
       const team = await buildTeam({
         sharing: false,

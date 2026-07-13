@@ -22,6 +22,10 @@ class Share extends Model implements Searchable {
   @observable
   includeChildDocuments: boolean;
 
+  @Field
+  @observable
+  expiresAt: string | null;
+
   /** The document ID that is shared. */
   @Field
   @observable
