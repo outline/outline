@@ -19,7 +19,7 @@ import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
-import type { ActionWithChildren } from "~/types";
+import type { ActionFactory, ActionWithChildren } from "~/types";
 
 export type DocumentRowProps = {
   /** Document identifier for policy, prefetch and import. */
@@ -98,11 +98,7 @@ export type DocumentRowProps = {
   newChildDepth?: number;
 
   /** Context menu action for the row. */
-  contextAction?: ActionWithChildren;
-  /** Callback when the context menu is opened. */
-  onContextMenuOpen?: () => void;
-  /** Callback when the context menu is closed. */
-  onContextMenuClose?: () => void;
+  contextAction?: ActionWithChildren | ActionFactory;
 
   /** Optional override for the active-match function. */
   isActiveOverride?: (
@@ -151,8 +147,6 @@ function DocumentRow({
   onCreateChild,
   newChildDepth,
   contextAction,
-  onContextMenuOpen,
-  onContextMenuClose,
   isActiveOverride,
   children,
   onClickIntent,
@@ -266,8 +260,6 @@ function DocumentRow({
       onDisclosureClick={onDisclosureClick}
       onClickIntent={onClickIntent}
       contextAction={contextAction}
-      onContextMenuOpen={onContextMenuOpen}
-      onContextMenuClose={onContextMenuClose}
       icon={icon}
       isActive={isActiveOverride ?? defaultIsActive}
       isActiveDrop={isActiveDropTarget}

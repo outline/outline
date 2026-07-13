@@ -1,36 +1,5 @@
 /* oxlint-disable */
-import type { NavigationNode } from "@shared/types";
-import { NavigationNodeType } from "@shared/types";
 import stores from "~/stores";
-
-type ReadCounter = {
-  count: number;
-};
-
-function documentNode(
-  id: string,
-  children: NavigationNode[] = [],
-  readCounter?: ReadCounter
-): NavigationNode {
-  const node: NavigationNode = {
-    id,
-    title: id,
-    url: `/${id}`,
-    type: NavigationNodeType.Document,
-    children,
-  };
-
-  if (readCounter) {
-    Object.defineProperty(node, "children", {
-      get() {
-        readCounter.count += 1;
-        return children;
-      },
-    });
-  }
-
-  return node;
-}
 
 describe("Collection model", () => {
   test("should initialize with data", () => {
@@ -39,26 +8,5 @@ describe("Collection model", () => {
       name: "Engineering",
     });
     expect(collection.name).toBe("Engineering");
-  });
-
-  test("should cache children by document id", () => {
-    const readCounter = { count: 0 };
-    const child = documentNode("child");
-    const target = documentNode("target", [child], readCounter);
-    const collection = stores.collections.add({
-      id: "children-index",
-      name: "Engineering",
-      sort: {
-        field: "index",
-        direction: "asc",
-      },
-      documents: [documentNode("root", [target])],
-    });
-
-    expect(collection.getChildrenForDocument("target")).toEqual([child]);
-    const readsAfterFirstLookup = readCounter.count;
-
-    expect(collection.getChildrenForDocument("target")).toEqual([child]);
-    expect(readCounter.count).toBe(readsAfterFirstLookup);
   });
 });

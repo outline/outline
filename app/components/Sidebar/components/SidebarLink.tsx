@@ -12,7 +12,7 @@ import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
 import type { Props as NavLinkProps } from "./NavLink";
 import NavLink from "./NavLink";
-import type { ActionWithChildren } from "~/types";
+import type { ActionFactory, ActionWithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
 
@@ -58,11 +58,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   /** Whether to automatically scroll this link into view if needed */
   scrollIntoViewIfNeeded?: boolean;
   /** Optional context menu action to display */
-  contextAction?: ActionWithChildren;
-  /** Callback when the context menu is opened */
-  onContextMenuOpen?: () => void;
-  /** Callback when the context menu is closed */
-  onContextMenuClose?: () => void;
+  contextAction?: ActionWithChildren | ActionFactory;
 };
 
 const activeDropStyle = {
@@ -97,8 +93,6 @@ function SidebarLink(
     disabled,
     unreadBadge,
     contextAction,
-    onContextMenuOpen,
-    onContextMenuClose,
     ellipsis = true,
     ...rest
   }: Props,
@@ -157,12 +151,7 @@ function SidebarLink(
 
   const innerContent = (
     <>
-      <ContextMenu
-        action={contextAction}
-        ariaLabel={t("Link options")}
-        onOpen={onContextMenuOpen}
-        onClose={onContextMenuClose}
-      >
+      <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
         <Content>
           {hasDisclosure && (
             <DisclosureComponent

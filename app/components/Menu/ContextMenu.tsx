@@ -2,7 +2,7 @@ import * as React from "react";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
-import type { ActionVariant, ActionWithChildren } from "~/types";
+import type { ActionFactory, ActionVariant, ActionWithChildren } from "~/types";
 import { preventDefault } from "~/utils/events";
 import { toMenuItems } from "./transformer";
 import { observer } from "mobx-react";
@@ -12,7 +12,7 @@ import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 
 type Props = {
   /** Root action with children representing the menu items */
-  action?: ActionWithChildren;
+  action?: ActionWithChildren | ActionFactory;
   /** Trigger for the menu */
   children: React.ReactNode;
   /** ARIA label for the menu */
@@ -37,10 +37,12 @@ export const ContextMenu = observer(
         return [];
       }
 
-      return ((action?.children as ActionVariant[]) ?? []).map((childAction) =>
-        actionToMenuItem(childAction, actionContext)
+      const resolvedAction = typeof action === "function" ? action() : action;
+
+      return ((resolvedAction?.children as ActionVariant[]) ?? []).map(
+        (childAction) => actionToMenuItem(childAction, actionContext)
       );
-    }, [open, action?.children, actionContext]);
+    }, [open, action, actionContext]);
 
     const handleOpenChange = React.useCallback(
       (open: boolean) => {

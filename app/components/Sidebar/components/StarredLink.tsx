@@ -98,8 +98,6 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   const can = usePolicy(document);
   const editableTitleRef = React.useRef<RefHandle>(null);
   const [{ isDragging }, draggableRef] = useDragStar(star);
-  const [contextMenuOpen, handleContextMenuOpen, handleContextMenuClose] =
-    useBoolean();
 
   const documentCollection = document.collectionId
     ? collections.get(document.collectionId)
@@ -171,7 +169,6 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
 
   const contextMenuAction = useDocumentMenuAction({
     documentId: document.id,
-    enabled: contextMenuOpen,
     onRename: handleRename,
   });
 
@@ -220,8 +217,6 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         onCreateChild={handleNewDoc}
         newChildDepth={2}
         contextAction={contextMenuAction}
-        onContextMenuOpen={handleContextMenuOpen}
-        onContextMenuClose={handleContextMenuClose}
         isActiveOverride={isActive}
         onClickIntent={handlePrefetch}
       >
