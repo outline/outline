@@ -250,25 +250,33 @@ export function createOIDCRouter(
           // only that identifier goes in the cookie. id_tokens can be large and
           // storing one directly in the cookie inflates response headers enough
           // to exceed reverse proxy buffers, resulting in a 502 on sign-in.
+          // This is best-effort: a Redis failure must not block sign-in, the
+          // logout simply falls back to omitting the `id_token_hint`.
           if (endpoints.logoutURL && params.id_token) {
-            const sessionId = crypto.randomBytes(16).toString("hex");
-            await Redis.defaultClient.set(
-              RedisPrefixHelper.getLogoutTokenKey(sessionId),
-              params.id_token,
-              "EX",
-              OIDC_LOGOUT_TOKEN_TTL_SECONDS
-            );
-            context.cookies.set(OIDC_SESSION_COOKIE, sessionId, {
-              httpOnly: true,
-              sameSite: "lax",
-              secure: env.isProduction,
-              path: OIDC_LOGOUT_PATH,
-              domain: getCookieDomain(
-                context.request.hostname,
-                env.isCloudHosted
-              ),
-              expires: addSeconds(new Date(), OIDC_LOGOUT_TOKEN_TTL_SECONDS),
-            });
+            try {
+              const sessionId = crypto.randomBytes(16).toString("hex");
+              await Redis.defaultClient.set(
+                RedisPrefixHelper.getLogoutTokenKey(sessionId),
+                params.id_token,
+                "EX",
+                OIDC_LOGOUT_TOKEN_TTL_SECONDS
+              );
+              context.cookies.set(OIDC_SESSION_COOKIE, sessionId, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: env.isProduction,
+                path: OIDC_LOGOUT_PATH,
+                domain: getCookieDomain(
+                  context.request.hostname,
+                  env.isCloudHosted
+                ),
+                expires: addSeconds(new Date(), OIDC_LOGOUT_TOKEN_TTL_SECONDS),
+              });
+            } catch (err) {
+              Logger.warn("Failed to persist OIDC logout token hint", {
+                error: toError(err).message,
+              });
+            }
           }
 
           return done(null, result.user, { ...result, client });
@@ -290,11 +298,20 @@ export function createOIDCRouter(
   // https://openid.net/specs/openid-connect-rpinitiated-1_0.html
   router.get(`${config.id}.logout`, async (ctx: Context) => {
     const sessionId = ctx.cookies.get(OIDC_SESSION_COOKIE);
-    const idToken = sessionId
-      ? await Redis.defaultClient.getdel(
+    // Best-effort: a Redis failure falls back to omitting the `id_token_hint`
+    // rather than blocking logout.
+    let idToken: string | null = null;
+    if (sessionId) {
+      try {
+        idToken = await Redis.defaultClient.getdel(
           RedisPrefixHelper.getLogoutTokenKey(sessionId)
-        )
-      : null;
+        );
+      } catch (err) {
+        Logger.warn("Failed to read OIDC logout token hint", {
+          error: toError(err).message,
+        });
+      }
+    }
 
     // Always discard our session identifier, regardless of where we redirect.
     ctx.cookies.set(OIDC_SESSION_COOKIE, "", {
