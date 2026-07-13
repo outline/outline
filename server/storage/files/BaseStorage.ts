@@ -1,5 +1,6 @@
 import type { Blob } from "node:buffer";
 import type { Readable } from "node:stream";
+import { buffer } from "node:stream/consumers";
 import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import { omit } from "es-toolkit/compat";
 import { toError, errToString } from "@shared/utils/error";
@@ -141,20 +142,10 @@ export default abstract class BaseStorage {
    */
   public async getFileBuffer(key: string) {
     const stream = await this.getFileStream(key);
-    return new Promise<Buffer>((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      if (!stream) {
-        return reject(new Error("No stream available"));
-      }
-
-      stream.on("data", (d) => {
-        chunks.push(d);
-      });
-      stream.once("end", () => {
-        resolve(Buffer.concat(chunks));
-      });
-      stream.once("error", reject);
-    });
+    if (!stream) {
+      throw new Error("No stream available");
+    }
+    return buffer(stream);
   }
 
   /**
