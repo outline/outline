@@ -19,6 +19,7 @@ import invariant from "invariant";
 import { compact } from "es-toolkit/compat";
 import tmp from "tmp";
 import { toError } from "@shared/utils/error";
+import { Minute, Second } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
@@ -38,6 +39,12 @@ export default class S3Storage extends BaseStorage {
       forcePathStyle: env.AWS_S3_FORCE_PATH_STYLE,
       region: env.AWS_REGION,
       endpoint: this.getEndpoint(),
+      requestHandler: {
+        connectionTimeout: 10 * Second.ms,
+        // Inactivity-based, so large transfers are unaffected as long as data
+        // is flowing — only hung connections are terminated.
+        socketTimeout: Minute.ms,
+      },
     });
   }
 

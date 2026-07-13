@@ -1,4 +1,5 @@
 import fs from "fs-extra";
+import { FileOperationState } from "@shared/types";
 import ZipHelper from "@server/utils/ZipHelper";
 import {
   buildCollection,
@@ -57,5 +58,33 @@ describe("ExportMarkdownZipTask", () => {
     } finally {
       await fs.remove(filePath);
     }
+  });
+
+  describe("onFailed", () => {
+    it("should mark an in-flight file operation as errored", async () => {
+      const fileOperation = await buildFileOperation({
+        state: FileOperationState.Creating,
+      });
+
+      const task = new ExportMarkdownZipTask();
+      await task.onFailed({ fileOperationId: fileOperation.id });
+
+      await fileOperation.reload();
+      expect(fileOperation.state).toEqual(FileOperationState.Error);
+      expect(fileOperation.error).toBeTruthy();
+    });
+
+    it("should not touch a file operation in a terminal state", async () => {
+      const fileOperation = await buildFileOperation({
+        state: FileOperationState.Complete,
+      });
+
+      const task = new ExportMarkdownZipTask();
+      await task.onFailed({ fileOperationId: fileOperation.id });
+
+      await fileOperation.reload();
+      expect(fileOperation.state).toEqual(FileOperationState.Complete);
+      expect(fileOperation.error).toBeNull();
+    });
   });
 });

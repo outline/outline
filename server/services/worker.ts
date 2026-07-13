@@ -15,6 +15,10 @@ import {
 import processors from "../queues/processors";
 import tasks from "../queues/tasks";
 
+// Bull's unexported failure reason for jobs that exceeded the stall limit,
+// see bull/lib/queue.js — verify against it when upgrading.
+const stalledJobError = "job stalled more than allowable limit";
+
 export default async function init() {
   await initI18n();
 
@@ -201,6 +205,40 @@ export default async function init() {
     .catch((err) => {
       Logger.fatal("Error starting taskQueue", err);
     });
+
+  // Failures thrown inside the process function invoke `onFailed` in the
+  // catch above. Jobs can also fail without ever reaching that code path — a
+  // job timeout is raced outside the handler, and a stalled job (worker crash
+  // or blocked event loop) is failed by the stall checker — handle those here.
+  taskQueue().on("failed", (job, err) => {
+    if (!job?.data?.name) {
+      return;
+    }
+    const { name, props } = job.data;
+    const TaskClass = tasks[name];
+    if (!TaskClass) {
+      return;
+    }
+
+    const stalled = err.message === stalledJobError;
+    const timedOut = err.name === "TimeoutError";
+    const exhausted = job.attemptsMade >= (job.opts.attempts || 1);
+
+    if (!stalled && !(timedOut && exhausted)) {
+      return;
+    }
+
+    Logger.info("worker", `${name} failed outside of process handler`, {
+      props,
+      error: err.message,
+    });
+
+    // @ts-expect-error We will not instantiate an abstract class
+    const task = new TaskClass();
+    void task.onFailed(props).catch((error: Error) => {
+      Logger.error(`Error handling failure of task ${name}`, error, props);
+    });
+  });
 
   HealthMonitor.start(globalEventQueue());
   HealthMonitor.start(processorEventQueue());
