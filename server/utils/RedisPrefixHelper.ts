@@ -69,4 +69,15 @@ export class RedisPrefixHelper {
   ) {
     return `count:${modelName}:${relationName}:${id}`;
   }
+
+  /**
+   * Gets key for storing an OIDC id_token used as the `id_token_hint` during
+   * RP-initiated logout, referenced by a short session identifier.
+   *
+   * @param sessionId The logout session identifier to generate a key for.
+   * @returns the cache key string.
+   */
+  public static getLogoutTokenKey(sessionId: string) {
+    return `oidc:logout:${sessionId}`;
+  }
 }
