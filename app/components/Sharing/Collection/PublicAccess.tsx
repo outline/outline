@@ -269,7 +269,7 @@ function InnerPublicAccess(
                 options={expiryOptions}
                 value={expiryType}
                 onChange={handleExpiryTypeChange}
-                label={t("Expiration Date")}
+                label={t("Link Expiration")}
               />
               {expiryType === ExpiryType.Custom ? (
                 <ExpiryDatePicker
