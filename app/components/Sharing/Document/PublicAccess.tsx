@@ -71,10 +71,10 @@ function PublicAccess(
   const userLocale = useUserLocale();
   const currentDate = React.useRef<Date>(new Date());
   const [expiryType, setExpiryType] = React.useState<ExpiryType>(
-    ExpiryType.Month
+    ExpiryType.NoExpiration
   );
-  const [expiresAt, setExpiresAt] = React.useState<Date | undefined>(() =>
-    calculateExpiryDate(currentDate.current, ExpiryType.Month)
+  const [expiresAt, setExpiresAt] = React.useState<Date | undefined>(
+    new Date()
   );
 
   const expiryOptions = React.useMemo<Option[]>(
@@ -113,7 +113,7 @@ function PublicAccess(
 
     setExpiresAt(parsedExpiresAt);
     setExpiryType(matchedType ?? ExpiryType.Custom);
-  }, [share?.expiresAt]);
+  }, []);
 
   const handlePublishedChange = React.useCallback(
     async (checked: boolean) => {

@@ -53,7 +53,12 @@ export type SharesListReq = z.infer<typeof SharesListSchema>;
 export const SharesUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.uuid(),
-    expiresAt: z.coerce.date().nullish(),
+    expiresAt: z.coerce
+      .date()
+      .nullish()
+      .refine((value) => !value || isTodayOrAfter(value), {
+        error: "must be today or later",
+      }),
     includeChildDocuments: z.boolean().optional(),
     published: z.boolean().optional(),
     allowIndexing: z.boolean().optional(),
