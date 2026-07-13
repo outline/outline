@@ -40,6 +40,7 @@ import {
   ExpiryValues,
   calculateExpiryDate,
 } from "~/scenes/ApiKeyNew/utils";
+import Container from "~/scenes/Document/components/Container";
 
 type Props = {
   /** The document to share. */
@@ -317,15 +318,17 @@ function PublicAccess(
                 options={expiryOptions}
                 value={expiryType}
                 onChange={handleExpiryTypeChange}
-                label={t("Expiration")}
+                label={t("Link Expiration")}
               />
               {expiryType === ExpiryType.Custom ? (
-                <ExpiryDatePicker
-                  selectedDate={expiresAt}
-                  onSelect={handleSelectCustomDate}
-                />
+                <Container style={{ marginTop: 16 }}>
+                  <ExpiryDatePicker
+                    selectedDate={expiresAt}
+                    onSelect={handleSelectCustomDate}
+                  />
+                </Container>
               ) : (
-                <Text type="secondary" size="small">
+                <Text type="secondary" size="small" style={{ marginTop: 25 }}>
                   {expiresAt
                     ? `${dateToExpiry(expiresAt.toISOString(), t, userLocale)}.`
                     : `${t("Never expires")}.`}
@@ -354,6 +357,7 @@ function PublicAccess(
 const StyledExpirySelect = styled(InputSelect)`
   width: 150px !important;
   margin-bottom: 0;
+  margin-top: 0;
 `;
 
 export default observer(React.forwardRef(PublicAccess));
