@@ -1,6 +1,6 @@
 import copy from "copy-to-clipboard";
 import { CheckmarkIcon, CopyIcon } from "outline-icons";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   HexColorInput,
   HexAlphaColorPicker,
@@ -23,6 +23,14 @@ function ColorPicker({ activeColor, onSelect, alpha }: Props) {
   const [color, setColor] = useState(activeColor || DEFAULT_COLOR);
   const [copied, setCopied] = useState(false);
   const theme = useTheme();
+
+  // Keep the internal color in sync when the active color is changed externally,
+  // for example when the theme is reset.
+  useEffect(() => {
+    if (activeColor) {
+      setColor(activeColor);
+    }
+  }, [activeColor]);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
