@@ -1173,11 +1173,11 @@ router.post(
     // duplicate search query records
     if (query && offset === 0) {
       const duration = Date.now() - searchStartedAt;
-      await SearchQuery.create({
+      await SearchQuery.record({
         userId: user?.id,
         teamId,
         shareId: share?.id,
-        source: ctx.state.auth.type || "app", // we'll consider anything that isn't "api" to be "app"
+        source: ctx.state.auth.type || "app", // anything that isn't explicitly set is "app"
         query,
         results: total,
         duration,

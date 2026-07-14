@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Table,
@@ -10,6 +11,7 @@ import {
   DataType,
   Default,
 } from "sequelize-typescript";
+import { Second } from "@shared/utils/time";
 import Share from "@server/models/Share";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
@@ -26,6 +28,73 @@ class SearchQuery extends Model<
   InferAttributes<SearchQuery>,
   Partial<InferCreationAttributes<SearchQuery>>
 > {
+  /**
+   * The window during which a follow-up query for the same scope is treated as
+   * a continuation of the same "search as you type" session rather than a new
+   * search.
+   */
+  public static recencyWindow = Second.ms * 30;
+
+  /**
+   * Records a search query, collapsing rapid "search as you type" keystrokes
+   * into a single record. If a query was recorded for the same scope within the
+   * recency window and one query is a prefix of the other (i.e. the visitor kept
+   * typing or edited their term), the existing record is updated in place rather
+   * than inserting a new row.
+   *
+   * @param attrs the attributes of the search to record.
+   * @returns the created or updated search query record.
+   */
+  public static async record(attrs: {
+    userId?: string | null;
+    teamId: string;
+    shareId?: string | null;
+    source: string;
+    query: string;
+    results: number;
+    duration: number;
+  }): Promise<SearchQuery> {
+    const { userId, teamId, shareId, source, query, results, duration } = attrs;
+
+    // Without a user or share to scope by, collapsing would merge unrelated
+    // searches across the team, so only ever record a new row.
+    const existing =
+      userId || shareId
+        ? await this.findOne({
+            where: {
+              teamId,
+              userId: userId ?? null,
+              shareId: shareId ?? null,
+              source,
+              createdAt: {
+                [Op.gte]: new Date(Date.now() - SearchQuery.recencyWindow),
+              },
+            },
+            order: [["createdAt", "DESC"]],
+          })
+        : null;
+
+    if (
+      existing &&
+      (query.startsWith(existing.query) || existing.query.startsWith(query))
+    ) {
+      existing.query = query;
+      existing.results = results;
+      existing.duration = duration;
+      return existing.save();
+    }
+
+    return this.create({
+      userId,
+      teamId,
+      shareId,
+      source,
+      query,
+      results,
+      duration,
+    });
+  }
+
   @IsUUID(4)
   @PrimaryKey
   @Default(DataType.UUIDV4)
