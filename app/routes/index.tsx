@@ -8,10 +8,11 @@ import env from "~/env";
 import lazy from "~/utils/lazyWithRetry";
 import { matchDocumentSlug as documentSlug } from "~/utils/routeHelpers";
 import useAutoRefresh from "~/hooks/useAutoRefresh";
+import { routeMap } from "./map";
 
 const Authenticated = lazy(() => import("~/components/Authenticated"));
 const AuthenticatedRoutes = lazy(() => import("./authenticated"));
-const Shared = lazy(() => import("~/scenes/Shared"));
+const Shared = routeMap.shared.Component;
 const Login = lazy(() => import("~/scenes/Login"));
 const Logout = lazy(() => import("~/scenes/Logout"));
 const OAuthAuthorize = lazy(() => import("~/scenes/Login/OAuthAuthorize"));

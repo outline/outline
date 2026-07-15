@@ -12,30 +12,18 @@ import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQueryNotices from "~/hooks/useQueryNotices";
-import lazy from "~/utils/lazyWithRetry";
 import {
-  archivePath,
-  draftsPath,
   homePath,
-  searchPath,
   settingsPath,
   matchDocumentSlug as documentSlug,
   matchCollectionSlug as collectionSlug,
-  trashPath,
-  debugPath,
+  matchDocumentEdit,
+  matchDocumentHistory,
 } from "~/utils/routeHelpers";
 import env from "~/env";
+import { routeMap } from "./map";
 
-const SettingsRoutes = lazy(() => import("./settings"));
-const Archive = lazy(() => import("~/scenes/Archive"));
-const Collection = lazy(() => import("~/scenes/Collection"));
-const Document = lazy(() => import("~/scenes/Document"));
-const Drafts = lazy(() => import("~/scenes/Drafts"));
-const Home = lazy(() => import("~/scenes/Home"));
-const Search = lazy(() => import("~/scenes/Search"));
-const Trash = lazy(() => import("~/scenes/Trash"));
-const Debug = lazy(() => import("~/scenes/Developer/Debug"));
-const Changesets = lazy(() => import("~/scenes/Developer/Changesets"));
+const SettingsRoutes = routeMap.settings.Component;
 
 const RedirectDocument = ({
   match,
@@ -70,15 +58,30 @@ function AuthenticatedRoutes() {
         >
           <Switch>
             {can.createDocument && (
-              <Route exact path={draftsPath()} component={Drafts} />
+              <Route
+                exact
+                path={routeMap.drafts.paths}
+                component={routeMap.drafts.Component}
+              />
             )}
             {can.createDocument && (
-              <Route exact path={archivePath()} component={Archive} />
+              <Route
+                exact
+                path={routeMap.archive.paths}
+                component={routeMap.archive.Component}
+              />
             )}
             {can.createDocument && (
-              <Route exact path={trashPath()} component={Trash} />
+              <Route
+                exact
+                path={routeMap.trash.paths}
+                component={routeMap.trash.Component}
+              />
             )}
-            <Route path={`${homePath()}/:tab?`} component={Home} />
+            <Route
+              path={routeMap.home.paths}
+              component={routeMap.home.Component}
+            />
             <Redirect from="/dashboard" to={homePath()} />
             <Redirect exact from="/starred" to={homePath()} />
             <Redirect exact from="/templates" to={settingsPath("templates")} />
@@ -90,13 +93,8 @@ function AuthenticatedRoutes() {
             />
             <Route
               exact
-              path={`/collection/${collectionSlug}/overview/edit`}
-              component={Collection}
-            />
-            <Route
-              exact
-              path={`/collection/${collectionSlug}/:tab?`}
-              component={Collection}
+              path={routeMap.collection.paths}
+              component={routeMap.collection.Component}
             />
             <Route exact path="/doc/new" component={DocumentNew} />
             <Route
@@ -106,25 +104,36 @@ function AuthenticatedRoutes() {
             />
             <Route
               exact
-              path={`/doc/${documentSlug}/history/:revisionId?`}
-              component={Document}
+              path={matchDocumentHistory}
+              component={routeMap.document.Component}
             />
 
             <Route
               exact
-              path={`/doc/${documentSlug}/edit`}
-              component={Document}
+              path={matchDocumentEdit}
+              component={routeMap.document.Component}
             />
-            <Route path={`/doc/${documentSlug}`} component={Document} />
-            <Route exact path={`${searchPath()}/:query?`} component={Search} />
+            <Route
+              path={routeMap.document.paths}
+              component={routeMap.document.Component}
+            />
+            <Route
+              exact
+              path={routeMap.search.paths}
+              component={routeMap.search.Component}
+            />
             {env.isDevelopment && (
-              <Route exact path={debugPath()} component={Debug} />
+              <Route
+                exact
+                path={routeMap.debug.paths}
+                component={routeMap.debug.Component}
+              />
             )}
             {env.isDevelopment && (
               <Route
                 exact
-                path={`${debugPath()}/changesets`}
-                component={Changesets}
+                path={routeMap.changesets.paths}
+                component={routeMap.changesets.Component}
               />
             )}
             <Route exact path="/404" component={Error404} />
