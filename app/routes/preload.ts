@@ -4,7 +4,7 @@ import env from "~/env";
 import { routeMap } from "./map";
 
 /**
- * Prefetches the lazy-loaded components associated with the route that the
+ * Preloads the lazy-loaded components associated with the route that the
  * given location resolves to, so the code is already available by the time
  * the user navigates there.
  *
@@ -13,7 +13,7 @@ import { routeMap } from "./map";
  *
  * @param to the location the user is expected to navigate to.
  */
-export function prefetchRouteComponents(to: LocationDescriptor): void {
+export function preloadRouteComponents(to: LocationDescriptor): void {
   const path = typeof to === "string" ? to : to.pathname;
   if (!path) {
     return;
@@ -28,7 +28,7 @@ export function prefetchRouteComponents(to: LocationDescriptor): void {
         paths.some((pattern) => matchPath(pathname, { path: pattern }))
       );
 
-  void route?.prefetch().catch(() => {
-    // Prefetching is best effort.
+  void route?.preload().catch(() => {
+    // Preloading is best effort.
   });
 }

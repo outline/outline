@@ -8,7 +8,7 @@ import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
 import useClickIntent from "~/hooks/useClickIntent";
-import { prefetchRouteComponents } from "~/routes/prefetch";
+import { preloadRouteComponents } from "~/routes/preload";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
 import type { Props as NavLinkProps } from "./NavLink";
@@ -106,10 +106,10 @@ function SidebarLink(
     (ev: React.MouseEvent<HTMLElement>) => {
       onClickIntent?.(ev);
 
-      // In addition to any data prefetch, warm the code-split chunks for the
-      // route the link points to.
+      // In addition to any data prefetch, preload the code-split chunks for
+      // the route the link points to.
       if (to) {
-        prefetchRouteComponents(to);
+        preloadRouteComponents(to);
       }
     },
     [onClickIntent, to]

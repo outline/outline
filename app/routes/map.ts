@@ -18,7 +18,7 @@ import {
 
 /**
  * A lazy-loaded route in the application, pairing the path patterns it
- * renders at with the code-split component and a way to prefetch it.
+ * renders at with the code-split component and a way to preload it.
  */
 export interface RouteMapEntry {
   /** Patterns, in react-router syntax, matching the locations the scene renders at. */
@@ -26,17 +26,17 @@ export interface RouteMapEntry {
   /** The lazy-loaded component rendered for the route. */
   Component: React.LazyExoticComponent<React.ComponentType<any>>;
   /** Imports the code-split chunk(s) for the route ahead of render. */
-  prefetch: () => Promise<unknown>;
+  preload: () => Promise<unknown>;
 }
 
 /**
  * The single source of truth for lazy-loaded routes that are reachable
  * through in-app navigation. Route definitions (see `./index` and
  * `./authenticated`) render `Component` at `paths`, and hovering a link is
- * used as a signal to call `prefetch` (see `./prefetch`) so the code is
+ * used as a signal to call `preload` (see `./preload`) so the code is
  * already available when the user navigates.
  *
- * Note: Prefetch matching checks entries in order and patterns are matched
+ * Note: Preload matching checks entries in order and patterns are matched
  * non-exactly, so list more specific routes before routes they share a
  * prefix with.
  */
@@ -64,10 +64,10 @@ function defineRoute(
   paths: string | string[],
   load: () => Promise<{ default: React.ComponentType<any> }>
 ): RouteMapEntry {
-  const { Component, prefetch } = createLazyComponent(load);
+  const { Component, preload } = createLazyComponent(load);
   return {
     paths: Array.isArray(paths) ? paths : [paths],
     Component,
-    prefetch,
+    preload,
   };
 }
