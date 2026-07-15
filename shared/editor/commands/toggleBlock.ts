@@ -6,14 +6,22 @@ import {
 import { Slice, Fragment } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
 import { NodeSelection, TextSelection } from "prosemirror-state";
-import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
+import {
+  findWrapping,
+  liftTarget,
+  ReplaceAroundStep,
+} from "prosemirror-transform";
 import { v4 } from "uuid";
+import Storage from "../../utils/Storage";
 import ToggleBlock, {
   Action,
   toggleEventPluginKey,
   toggleFoldPluginKey,
+  toggleStorageKey,
 } from "../nodes/ToggleBlock";
+import { findCutAfterHeading } from "../queries/findCutAfterHeading";
 import {
+  findConvertibleHeading,
   isToggleBlock,
   isToggleBlockFolded,
   getToggleBlockDepth,
@@ -470,6 +478,57 @@ export const splitBlockPreservingBody: Command = (state, dispatch) => {
     TextSelection.near(tr.doc.resolve($cursor!.after(-1)), 1)
   );
   tr = tr.delete($cursor!.pos, $cursor!.end());
+  dispatch?.(tr);
+  return true;
+};
+
+/**
+ * Convert every heading in the document into a toggle heading by wrapping the
+ * heading, together with the content that follows it up to the next heading of
+ * the same or higher level, in a toggle block. Headings that are already the
+ * head of a toggle block are left untouched.
+ *
+ * @returns true if at least one heading was converted.
+ */
+export const convertHeadingsToToggleBlocks: Command = (state, dispatch) => {
+  const toggleType = state.schema.nodes.container_toggle;
+  if (!toggleType) {
+    return false;
+  }
+
+  let tr = state.tr;
+  let minPos = 0;
+  let converted = false;
+
+  // Wrapping a heading moves any sub-headings that follow it into the toggle
+  // body, where they remain convertible, so repeatedly convert the first
+  // convertible heading after the last one processed until none remain.
+  for (
+    let heading = findConvertibleHeading(tr.doc, minPos);
+    heading;
+    heading = findConvertibleHeading(tr.doc, minPos)
+  ) {
+    minPos = heading.pos + 1;
+
+    const $head = tr.doc.resolve(heading.pos + 1);
+    const $from = TextSelection.near($head, 1).$from;
+    const $to = TextSelection.near(findCutAfterHeading($head), -1).$to;
+    const id = v4();
+    const range = $from.blockRange($to);
+    const wrapping = range && findWrapping(range, toggleType, { id });
+    if (!range || !wrapping) {
+      continue;
+    }
+
+    Storage.set(toggleStorageKey(id), { fold: false });
+    tr = tr.wrap(range, wrapping);
+    converted = true;
+  }
+
+  if (!converted) {
+    return false;
+  }
+
   dispatch?.(tr);
   return true;
 };

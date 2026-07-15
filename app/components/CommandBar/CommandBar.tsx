@@ -10,6 +10,7 @@ import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import CommandBarResults from "./CommandBarResults";
+import useEditorActions from "./useEditorActions";
 import useRecentDocumentActions from "./useRecentDocumentActions";
 import useSettingsAction from "./useSettingsAction";
 import useTemplatesAction from "./useTemplatesAction";
@@ -30,6 +31,7 @@ function CommandBar() {
   );
 
   useCommandBarActions(commandBarActions);
+  useEditorActions();
 
   return (
     <>

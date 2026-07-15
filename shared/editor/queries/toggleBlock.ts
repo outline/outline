@@ -140,6 +140,39 @@ export function isSelectionAtEndOfToggleBlockHead(state: EditorState): boolean {
 }
 
 /**
+ * Find the first heading in the document at or after the given position that
+ * is not already the head (first child) of a toggle block.
+ *
+ * @param doc - the document node to search.
+ * @param minPos - the position to start searching from, defaults to the start.
+ * @returns the heading node and its position, or undefined if none exists.
+ */
+export function findConvertibleHeading(
+  doc: ProsemirrorNode,
+  minPos = 0
+): { node: ProsemirrorNode; pos: number } | undefined {
+  const { heading, container_toggle } = doc.type.schema.nodes;
+  let found: { node: ProsemirrorNode; pos: number } | undefined;
+
+  doc.descendants((node, pos, parent, index) => {
+    if (found) {
+      return false;
+    }
+    if (
+      pos >= minPos &&
+      node.type === heading &&
+      !(parent?.type === container_toggle && index === 0)
+    ) {
+      found = { node, pos };
+      return false;
+    }
+    return true;
+  });
+
+  return found;
+}
+
+/**
  * Result of detaching the body from a toggle block.
  */
 export interface DetachBodyResult {

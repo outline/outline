@@ -25,6 +25,7 @@ import {
   liftAllChildBlocksOfNodeAfter,
   splitBlockPreservingBody,
   toggleBlock,
+  convertHeadingsToToggleBlocks,
   liftAllChildBlocksOfNodeBefore,
   indentBlock,
   dedentBlocks,
@@ -418,66 +419,73 @@ export default class ToggleBlock extends Node {
   }: {
     type: NodeType;
     schema: Schema;
-  }): CommandFactory {
-    return (attrs) => (state, dispatch) => {
-      const { $from, $to } = state.selection;
-      const level =
-        attrs &&
-        typeof attrs === "object" &&
-        "level" in attrs &&
-        typeof attrs.level === "number"
-          ? attrs.level
-          : undefined;
+  }): Record<string, CommandFactory> {
+    return {
+      convertHeadingsToToggleBlocks: () => convertHeadingsToToggleBlocks,
+      [this.name]: (attrs) => (state, dispatch) => {
+        const { $from, $to } = state.selection;
+        const level =
+          attrs &&
+          typeof attrs === "object" &&
+          "level" in attrs &&
+          typeof attrs.level === "number"
+            ? attrs.level
+            : undefined;
 
-      if (isNodeActive(type)(state)) {
-        dispatch?.(liftChildrenOfNodeAt($from.before(-1), state.tr));
-        return true;
-      }
-      // if heading
-      if ($from.parent.type === state.schema.nodes.heading) {
-        const $fr_ = TextSelection.near($from, 1).$from;
-        const $to_ = TextSelection.near(findCutAfterHeading($from), -1).$to;
-        const id = v4();
-        const range = $fr_.blockRange($to_),
-          wrapping = range && findWrapping(range, type, { id });
-        if (!wrapping) {
-          return false;
+        if (isNodeActive(type)(state)) {
+          dispatch?.(liftChildrenOfNodeAt($from.before(-1), state.tr));
+          return true;
         }
-        Storage.set(toggleStorageKey(id), { fold: false });
-        const tr = state.tr.wrap(range!, wrapping);
-        dispatch?.(tr);
-        return true;
-      }
-      // if para
-      if ($from.parent.type === state.schema.nodes.paragraph) {
-        const id = v4();
-        const range = $from.blockRange($to),
-          wrapping = range && findWrapping(range, type, { id });
-        if (!wrapping) {
-          return false;
+        // if heading
+        if ($from.parent.type === state.schema.nodes.heading) {
+          const $fr_ = TextSelection.near($from, 1).$from;
+          const $to_ = TextSelection.near(findCutAfterHeading($from), -1).$to;
+          const id = v4();
+          const range = $fr_.blockRange($to_),
+            wrapping = range && findWrapping(range, type, { id });
+          if (!wrapping) {
+            return false;
+          }
+          Storage.set(toggleStorageKey(id), { fold: false });
+          const tr = state.tr.wrap(range!, wrapping);
+          dispatch?.(tr);
+          return true;
+        }
+        // if para
+        if ($from.parent.type === state.schema.nodes.paragraph) {
+          const id = v4();
+          const range = $from.blockRange($to),
+            wrapping = range && findWrapping(range, type, { id });
+          if (!wrapping) {
+            return false;
+          }
+
+          Storage.set(toggleStorageKey(id), { fold: false });
+          const tr = state.tr.wrap(range!, wrapping);
+
+          // When a heading level is provided, make the toggle's title a heading
+          // rather than a paragraph (a collapsible heading).
+          if (level) {
+            tr.setNodeMarkup(
+              tr.selection.$from.before(),
+              schema.nodes.heading,
+              {
+                level,
+              }
+            );
+          }
+
+          dispatch?.(
+            tr.insert(
+              tr.selection.$from.after(),
+              schema.nodes.paragraph.create({})
+            )
+          );
+          return true;
         }
 
-        Storage.set(toggleStorageKey(id), { fold: false });
-        const tr = state.tr.wrap(range!, wrapping);
-
-        // When a heading level is provided, make the toggle's title a heading
-        // rather than a paragraph (a collapsible heading).
-        if (level) {
-          tr.setNodeMarkup(tr.selection.$from.before(), schema.nodes.heading, {
-            level,
-          });
-        }
-
-        dispatch?.(
-          tr.insert(
-            tr.selection.$from.after(),
-            schema.nodes.paragraph.create({})
-          )
-        );
-        return true;
-      }
-
-      return false;
+        return false;
+      },
     };
   }
 
