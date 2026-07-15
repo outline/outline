@@ -8,6 +8,7 @@ import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
 import useClickIntent from "~/hooks/useClickIntent";
+import { prefetchRouteComponents } from "~/routes/prefetch";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
 import type { Props as NavLinkProps } from "./NavLink";
@@ -101,7 +102,21 @@ function SidebarLink(
   const hasDisclosure = expanded !== undefined;
   const { t } = useTranslation();
   const theme = useTheme();
-  const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
+  const handleClickIntent = React.useCallback(
+    (ev: React.MouseEvent<HTMLElement>) => {
+      onClickIntent?.(ev);
+
+      // In addition to any data prefetch, warm the code-split chunks for the
+      // route the link points to.
+      if (to) {
+        prefetchRouteComponents(to);
+      }
+    },
+    [onClickIntent, to]
+  );
+  const { handleMouseEnter, handleMouseLeave } = useClickIntent(
+    onClickIntent || to ? handleClickIntent : undefined
+  );
   const style = React.useMemo(
     () => ({
       paddingInlineStart: `${(depth || 0) * 16 + (icon ? -8 : 12)}px`,
