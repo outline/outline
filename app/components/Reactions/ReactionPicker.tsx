@@ -56,7 +56,7 @@ const ReactionPicker: React.FC<Props> = ({ onSelect, className, size }) => {
           <NudeButton
             aria-label={t("Reaction picker")}
             className={className}
-            onMouseEnter={() => EmojiPanel.preload()}
+            onMouseEnter={() => EmojiPanel.prefetch()}
             onClick={(e) => e.stopPropagation()}
             size={size}
           >

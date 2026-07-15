@@ -121,9 +121,9 @@ export const CollectionForm = observer(function CollectionForm_({
 
   const values = watch();
 
-  // Preload the IconPicker component on mount
+  // Prefetch the IconPicker component on mount
   useEffect(() => {
-    void IconPicker.preload();
+    void IconPicker.prefetch();
   }, []);
 
   useEffect(() => {

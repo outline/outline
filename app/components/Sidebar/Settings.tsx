@@ -56,7 +56,7 @@ function SettingsSidebar() {
                   <SidebarLink
                     key={item.path}
                     to={item.path}
-                    onClickIntent={item.preload}
+                    onClickIntent={item.prefetch}
                     active={
                       item.path.startsWith(settingsPath("templates")) ||
                       item.path.startsWith(settingsPath("groups"))

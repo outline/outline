@@ -68,10 +68,10 @@ function defineRoute(
   paths: string | string[],
   load: () => Promise<{ default: React.ComponentType<any> }>
 ): RouteMapEntry {
-  const { Component, preload } = createLazyComponent(load);
+  const { Component, prefetch } = createLazyComponent(load);
   return {
     paths: Array.isArray(paths) ? paths : [paths],
     Component,
-    prefetch: preload,
+    prefetch,
   };
 }
