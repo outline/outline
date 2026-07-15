@@ -334,15 +334,57 @@ export function desktopify(path: string, origin?: string): string {
 export const matchCollectionSlug =
   ":collectionSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
 
+/** Route matcher for the collection screen. */
+export const matchCollection = `/collection/${matchCollectionSlug}/:tab?`;
+
 /** Route matcher for the collection edit screen. */
 export const matchCollectionEdit = `/collection/${matchCollectionSlug}/overview/edit`;
+
+/** Route matcher for creating a new document in a collection. */
+export const matchCollectionNew = `/collection/${matchCollectionSlug}/new`;
 
 /** Route matcher for a document slug. */
 export const matchDocumentSlug =
   ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
+
+/** Route matcher for the document screen. */
+export const matchDocument = `/doc/${matchDocumentSlug}`;
 
 /** Route matcher for the document edit screen. */
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
 
 /** Route matcher for the document history screen. */
 export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;
+
+/** Route matcher for the document shortlink redirect screen. */
+export const matchDocumentShortlink = `/d/${matchDocumentSlug}`;
+
+/** Route matcher for the home screen. */
+export const matchHome = "/home/:tab?";
+
+/** Route matcher for the drafts screen. */
+export const matchDrafts = "/drafts";
+
+/** Route matcher for the archive screen. */
+export const matchArchive = "/archive";
+
+/** Route matcher for the trash screen. */
+export const matchTrash = "/trash";
+
+/** Route matcher for the search screen. */
+export const matchSearch = "/search/:query?";
+
+/** Route matcher for the settings screens. */
+export const matchSettings = "/settings";
+
+/** Route matcher for the debug screen. */
+export const matchDebug = "/debug";
+
+/** Route matcher for the changesets debug screen. */
+export const matchChangesets = `${matchDebug}/changesets`;
+
+/** Route matcher for a publicly shared collection or document. */
+export const matchShare = "/s/:shareId";
+
+/** Route matcher for a document within a public share. */
+export const matchShareDocument = `${matchShare}/doc/${matchDocumentSlug}`;

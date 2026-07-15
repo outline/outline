@@ -15,10 +15,10 @@ import useQueryNotices from "~/hooks/useQueryNotices";
 import {
   homePath,
   settingsPath,
-  matchDocumentSlug as documentSlug,
-  matchCollectionSlug as collectionSlug,
+  matchCollectionNew,
   matchDocumentEdit,
   matchDocumentHistory,
+  matchDocumentShortlink,
 } from "~/utils/routeHelpers";
 import env from "~/env";
 import { routeMap } from "./map";
@@ -86,11 +86,7 @@ function AuthenticatedRoutes() {
             <Redirect exact from="/starred" to={homePath()} />
             <Redirect exact from="/templates" to={settingsPath("templates")} />
             <Redirect exact from="/collections/*" to="/collection/*" />
-            <Route
-              exact
-              path={`/collection/${collectionSlug}/new`}
-              component={DocumentNew}
-            />
+            <Route exact path={matchCollectionNew} component={DocumentNew} />
             <Route
               exact
               path={routeMap.collection.paths}
@@ -99,7 +95,7 @@ function AuthenticatedRoutes() {
             <Route exact path="/doc/new" component={DocumentNew} />
             <Route
               exact
-              path={`/d/${documentSlug}`}
+              path={matchDocumentShortlink}
               component={RedirectDocument}
             />
             <Route

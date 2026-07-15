@@ -2,16 +2,18 @@
 import type * as React from "react";
 import { createLazyComponent } from "~/components/LazyLoad";
 import {
-  archivePath,
-  debugPath,
-  draftsPath,
-  homePath,
+  matchArchive,
+  matchChangesets,
+  matchCollection,
   matchCollectionEdit,
-  matchCollectionSlug,
-  matchDocumentSlug,
-  searchPath,
-  settingsPath,
-  trashPath,
+  matchDebug,
+  matchDocument,
+  matchDrafts,
+  matchHome,
+  matchSearch,
+  matchSettings,
+  matchShare,
+  matchTrash,
 } from "~/utils/routeHelpers";
 
 /**
@@ -39,29 +41,23 @@ export interface RouteMapEntry {
  * prefix with.
  */
 export const routeMap = {
-  drafts: defineRoute(draftsPath(), () => import("~/scenes/Drafts")),
-  archive: defineRoute(archivePath(), () => import("~/scenes/Archive")),
-  trash: defineRoute(trashPath(), () => import("~/scenes/Trash")),
-  home: defineRoute(`${homePath()}/:tab?`, () => import("~/scenes/Home")),
-  search: defineRoute(
-    `${searchPath()}/:query?`,
-    () => import("~/scenes/Search")
-  ),
+  drafts: defineRoute(matchDrafts, () => import("~/scenes/Drafts")),
+  archive: defineRoute(matchArchive, () => import("~/scenes/Archive")),
+  trash: defineRoute(matchTrash, () => import("~/scenes/Trash")),
+  home: defineRoute(matchHome, () => import("~/scenes/Home")),
+  search: defineRoute(matchSearch, () => import("~/scenes/Search")),
   collection: defineRoute(
-    [matchCollectionEdit, `/collection/${matchCollectionSlug}/:tab?`],
+    [matchCollectionEdit, matchCollection],
     () => import("~/scenes/Collection")
   ),
-  document: defineRoute(
-    `/doc/${matchDocumentSlug}`,
-    () => import("~/scenes/Document")
-  ),
-  settings: defineRoute(settingsPath(), () => import("./settings")),
-  shared: defineRoute("/s/:shareId", () => import("~/scenes/Shared")),
+  document: defineRoute(matchDocument, () => import("~/scenes/Document")),
+  settings: defineRoute(matchSettings, () => import("./settings")),
+  shared: defineRoute(matchShare, () => import("~/scenes/Shared")),
   changesets: defineRoute(
-    `${debugPath()}/changesets`,
+    matchChangesets,
     () => import("~/scenes/Developer/Changesets")
   ),
-  debug: defineRoute(debugPath(), () => import("~/scenes/Developer/Debug")),
+  debug: defineRoute(matchDebug, () => import("~/scenes/Developer/Debug")),
 };
 
 function defineRoute(

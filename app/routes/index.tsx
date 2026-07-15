@@ -6,7 +6,12 @@ import FullscreenLoading from "~/components/FullscreenLoading";
 import Route from "~/components/ProfiledRoute";
 import env from "~/env";
 import lazy from "~/utils/lazyWithRetry";
-import { matchDocumentSlug as documentSlug } from "~/utils/routeHelpers";
+import {
+  matchDocument,
+  matchDocumentSlug as documentSlug,
+  matchShare,
+  matchShareDocument,
+} from "~/utils/routeHelpers";
 import useAutoRefresh from "~/hooks/useAutoRefresh";
 import { routeMap } from "./map";
 
@@ -31,13 +36,9 @@ export default function Routes() {
       {env.ROOT_SHARE_ID ? (
         <Switch>
           <Route exact path="/" component={Shared} />
-          <Route exact path={`/doc/${documentSlug}`} component={Shared} />
-          <Redirect exact from="/s/:shareId" to="/" />
-          <Redirect
-            exact
-            from={`/s/:shareId/doc/${documentSlug}`}
-            to={`/doc/${documentSlug}`}
-          />
+          <Route exact path={matchDocument} component={Shared} />
+          <Redirect exact from={matchShare} to="/" />
+          <Redirect exact from={matchShareDocument} to={matchDocument} />
         </Switch>
       ) : (
         <Switch>
@@ -47,19 +48,15 @@ export default function Routes() {
           <Route exact path="/desktop-redirect" component={DesktopRedirect} />
           <Route exact path="/oauth/authorize" component={OAuthAuthorize} />
 
-          <Redirect exact from="/share/:shareId" to="/s/:shareId" />
-          <Route exact path="/s/:shareId" component={Shared} />
+          <Redirect exact from="/share/:shareId" to={matchShare} />
+          <Route exact path={matchShare} component={Shared} />
 
           <Redirect
             exact
             from={`/share/:shareId/doc/${documentSlug}`}
-            to={`/s/:shareId/doc/${documentSlug}`}
+            to={matchShareDocument}
           />
-          <Route
-            exact
-            path={`/s/:shareId/doc/${documentSlug}`}
-            component={Shared}
-          />
+          <Route exact path={matchShareDocument} component={Shared} />
 
           <Authenticated>
             <AuthenticatedRoutes />

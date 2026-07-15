@@ -14,7 +14,7 @@ import history from "~/utils/history";
 import {
   documentPath,
   matchDocumentHistory,
-  matchDocumentSlug,
+  matchDocument,
 } from "~/utils/routeHelpers";
 import SidebarLayout from "~/scenes/Document/components/SidebarLayout";
 
@@ -42,7 +42,7 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   const isMobile = useMobile();
 
   const inner = (
-    <Route path={`/doc/${matchDocumentSlug}`}>
+    <Route path={matchDocument}>
       <React.Suspense
         fallback={
           <SidebarLayout title={<PlaceholderText width={100} />}>
