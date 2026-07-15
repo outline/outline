@@ -39,12 +39,12 @@ export interface RouteMapEntry {
  * prefix with.
  */
 export const routeMap = {
-  drafts: defineRoute([draftsPath()], () => import("~/scenes/Drafts")),
-  archive: defineRoute([archivePath()], () => import("~/scenes/Archive")),
-  trash: defineRoute([trashPath()], () => import("~/scenes/Trash")),
-  home: defineRoute([`${homePath()}/:tab?`], () => import("~/scenes/Home")),
+  drafts: defineRoute(draftsPath(), () => import("~/scenes/Drafts")),
+  archive: defineRoute(archivePath(), () => import("~/scenes/Archive")),
+  trash: defineRoute(trashPath(), () => import("~/scenes/Trash")),
+  home: defineRoute(`${homePath()}/:tab?`, () => import("~/scenes/Home")),
   search: defineRoute(
-    [`${searchPath()}/:query?`],
+    `${searchPath()}/:query?`,
     () => import("~/scenes/Search")
   ),
   collection: defineRoute(
@@ -52,22 +52,26 @@ export const routeMap = {
     () => import("~/scenes/Collection")
   ),
   document: defineRoute(
-    [`/doc/${matchDocumentSlug}`],
+    `/doc/${matchDocumentSlug}`,
     () => import("~/scenes/Document")
   ),
-  settings: defineRoute([settingsPath()], () => import("./settings")),
-  shared: defineRoute(["/s/:shareId"], () => import("~/scenes/Shared")),
+  settings: defineRoute(settingsPath(), () => import("./settings")),
+  shared: defineRoute("/s/:shareId", () => import("~/scenes/Shared")),
   changesets: defineRoute(
-    [`${debugPath()}/changesets`],
+    `${debugPath()}/changesets`,
     () => import("~/scenes/Developer/Changesets")
   ),
-  debug: defineRoute([debugPath()], () => import("~/scenes/Developer/Debug")),
+  debug: defineRoute(debugPath(), () => import("~/scenes/Developer/Debug")),
 };
 
 function defineRoute(
-  paths: string[],
+  paths: string | string[],
   load: () => Promise<{ default: React.ComponentType<any> }>
 ): RouteMapEntry {
   const { Component, preload } = createLazyComponent(load);
-  return { paths, Component, prefetch: preload };
+  return {
+    paths: Array.isArray(paths) ? paths : [paths],
+    Component,
+    prefetch: preload,
+  };
 }
