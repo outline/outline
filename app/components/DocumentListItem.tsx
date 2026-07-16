@@ -143,10 +143,10 @@ function DocumentListItem(
             search: highlight
               ? `?q=${encodeURIComponent(highlight)}`
               : undefined,
-            state: {
-              title: document.titleWithDefault,
-              sidebarContext,
-            },
+          }}
+          state={{
+            title: document.titleWithDefault,
+            sidebarContext,
           }}
           {...rest}
           {...rovingTabIndex}

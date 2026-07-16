@@ -3,7 +3,7 @@ import { AllSelection } from "prosemirror-state";
 import { useRef, useCallback } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Prompt, useHistory, useLocation } from "react-router-dom";
+import { unstable_usePrompt as usePrompt, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -27,6 +27,7 @@ import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
 import isTextInput from "~/utils/isTextInput";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
@@ -40,12 +41,6 @@ import Notices from "./Notices";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
 import SharedHeader from "./SharedHeader";
-
-type LocationState = {
-  title?: string;
-  restore?: boolean;
-  revisionId?: string;
-};
 
 interface Props {
   /** Tree of navigation nodes for shared documents. */
@@ -84,8 +79,7 @@ function DocumentScene({
 }: Props) {
   const { auth, ui, dialogs } = useStores();
   const { t } = useTranslation();
-  const history = useHistory();
-  const location = useLocation<LocationState>();
+  const location = useLocation();
   const sidebarContext = useLocationSidebarContext();
   const { team, user } = auth;
 
@@ -105,6 +99,14 @@ function DocumentScene({
     onFileUploadStart,
     onFileUploadStop,
   } = useDocumentSave({ document, editorRef, readOnly });
+
+  // Warn before navigating away while images are still uploading.
+  usePrompt({
+    when: !readOnly && isUploading && !isEditorDirty,
+    message: t(
+      `Images are still uploading.\nAre you sure you want to discard them?`
+    ),
+  });
 
   const onSynced = useCallback(async () => {
     const restore = location.state?.restore;
@@ -147,7 +149,7 @@ function DocumentScene({
       );
       toast.success(t("Document restored"));
     }
-  }, [location, replaceSelection, t, history, document.url]);
+  }, [location, replaceSelection, t, document.url]);
 
   const onUndoRedo = useCallback(
     (event: KeyboardEvent) => {
@@ -207,7 +209,7 @@ function DocumentScene({
         editorRef.current?.focus();
       }
     },
-    [readOnly, abilities.update, history, document, sidebarContext]
+    [readOnly, abilities.update, document, sidebarContext]
   );
 
   const goToHistory = useCallback(
@@ -232,7 +234,7 @@ function DocumentScene({
         });
       }
     },
-    [readOnly, location.pathname, history, document, sidebarContext]
+    [readOnly, location.pathname, document, sidebarContext]
   );
 
   const onPublish = useCallback(
@@ -275,7 +277,7 @@ function DocumentScene({
         state: { sidebarContext },
       });
     }
-  }, [readOnly, history, document, sidebarContext]);
+  }, [readOnly, document, sidebarContext]);
 
   // Render
   const isShare = !!shareId;
@@ -330,14 +332,6 @@ function DocumentScene({
         <PageTitle title={pageTitle} favicon={favicon} />
         {(isUploading || isSaving) && <LoadingIndicator />}
         <Container column>
-          {!readOnly && (
-            <Prompt
-              when={isUploading && !isEditorDirty}
-              message={t(
-                `Images are still uploading.\nAre you sure you want to discard them?`
-              )}
-            />
-          )}
           {isShare ? (
             <SharedHeader document={document} />
           ) : (

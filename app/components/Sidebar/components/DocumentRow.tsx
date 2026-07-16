@@ -1,10 +1,10 @@
-import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import type { ConnectDragSource } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import type { match } from "react-router";
+import type { Location, PathMatch } from "react-router-dom";
+import type { ToWithState } from "~/types";
 import styled from "styled-components";
 import { DocumentValidation } from "@shared/validations";
 import type Document from "~/models/Document";
@@ -28,7 +28,7 @@ export type DocumentRowProps = {
   document?: Document;
 
   /** Navigation target for the row. */
-  to: LocationDescriptor;
+  to: ToWithState;
 
   /** Indentation depth of the row. */
   depth: number;
@@ -102,7 +102,7 @@ export type DocumentRowProps = {
 
   /** Optional override for the active-match function. */
   isActiveOverride?: (
-    match: match | null,
+    match: PathMatch<string> | null,
     location: Location<{ sidebarContext?: SidebarContextType }>
   ) => boolean;
 
@@ -239,7 +239,7 @@ function DocumentRow({
 
   const defaultIsActive = React.useCallback(
     (
-      m: match | null,
+      m: PathMatch<string> | null,
       location: Location<{ sidebarContext?: SidebarContextType }>
     ) => {
       if (sidebarContext !== location.state?.sidebarContext) {

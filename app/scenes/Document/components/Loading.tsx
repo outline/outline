@@ -1,4 +1,4 @@
-import type { Location } from "history";
+import type { Location } from "react-router-dom";
 import CenteredContent from "~/components/CenteredContent";
 import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";

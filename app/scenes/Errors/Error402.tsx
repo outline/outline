@@ -7,7 +7,7 @@ import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 
 const Error402 = () => {
-  const location = useLocation<{ title?: string }>();
+  const location = useLocation();
   const { t } = useTranslation();
   const title = location.state?.title ?? t("Payment Required");
 

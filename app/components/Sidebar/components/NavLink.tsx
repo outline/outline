@@ -2,29 +2,33 @@
 // This file is pulled almost 100% from react-router with the addition of one
 // thing, automatic scroll to the active link. It's worth the copy paste because
 // it avoids recalculating the link match again.
-import type { Location, LocationDescriptor } from "history";
-import { createLocation } from "history";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import type { match } from "react-router";
-import { __RouterContext as RouterContext, matchPath } from "react-router";
-import { Link } from "react-router-dom";
+import type { Location, PathMatch } from "react-router-dom";
+import { Link, matchPath, parsePath, useLocation } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
 import history from "~/utils/history";
+import type { ToWithState } from "~/types";
 
 const resolveToLocation = (
-  to: LocationDescriptor | ((location: Location) => LocationDescriptor),
+  to: ToWithState | ((location: Location) => ToWithState),
   currentLocation: Location
 ) => (typeof to === "function" ? to(currentLocation) : to);
 
-const normalizeToLocation = (
-  to: LocationDescriptor,
+const toLocationObject = (
+  to: ToWithState,
   currentLocation: Location
-) =>
-  typeof to === "string"
-    ? createLocation(to, null, undefined, currentLocation)
-    : to;
+): Location => {
+  const partial = typeof to === "string" ? parsePath(to) : to;
+  return {
+    pathname: partial.pathname ?? currentLocation.pathname,
+    search: partial.search ?? "",
+    hash: partial.hash ?? "",
+    state: typeof to === "object" && "state" in to ? to.state : null,
+    key: "default",
+  };
+};
 
 const joinClassnames = (...classnames: (string | undefined)[]) =>
   classnames.filter((i) => i).join(" ");
@@ -64,13 +68,13 @@ export interface Props extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   /** If true, use history.replace instead of history.push when navigating */
   replace?: boolean;
   /** Custom function to determine if the link is active */
-  isActive?: (match: match | null, location: Location) => boolean;
+  isActive?: (match: PathMatch<string> | null, location: Location) => boolean;
   /** The location to match against. Defaults to the current history location */
   location?: Location;
   /** If true, trailing slashes on the path will be considered when matching */
   strict?: boolean;
   /** The location to navigate to. Can be a string path or location descriptor object */
-  to: LocationDescriptor;
+  to: ToWithState;
   /** Custom component to use instead of the default anchor element */
   component?: React.ComponentType;
   /** Callback fired when an active link is clicked */
@@ -98,26 +102,21 @@ const NavLink = observer(function NavLink({
   ...rest
 }: Props) {
   const linkRef = React.useRef<HTMLAnchorElement>(null);
-  const context = React.useContext(RouterContext);
-  const currentLocation = locationProp || context.location;
+  const contextLocation = useLocation();
+  const currentLocation = locationProp || contextLocation;
   // While a fast-click navigation is pending, derive active state from its
   // target so the outgoing link deactivates immediately.
   const pending = pendingNavigation.get();
   const activeLocation =
     pending && pending.from === currentLocation ? pending.to : currentLocation;
-  const toLocation = normalizeToLocation(
+  const toLocation = toLocationObject(
     resolveToLocation(to, currentLocation),
     currentLocation
   );
   const { pathname: path } = toLocation;
 
   const pathMatch = path
-    ? matchPath(activeLocation.pathname, {
-        // Regex taken from: https://github.com/pillarjs/path-to-regexp/blob/master/index.js#L202
-        path: path.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1"),
-        exact,
-        strict,
-      })
+    ? matchPath({ path, end: exact ?? false }, activeLocation.pathname)
     : null;
 
   const isActive = !!(isActiveProp
@@ -177,7 +176,7 @@ const NavLink = observer(function NavLink({
 
         setPendingNavigation({
           from: currentLocation,
-          to: createLocation(toLocation, undefined, undefined, currentLocation),
+          to: toLocation,
         });
 
         // Wait a frame until following the link
@@ -253,6 +252,7 @@ const NavLink = observer(function NavLink({
       className={className}
       style={style}
       to={toLocation}
+      state={toLocation.state}
       replace={replace}
       {...rest}
     />

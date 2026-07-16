@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import type { LocationDescriptor } from "history";
+import type { To } from "react-router-dom";
 import { isEqual } from "es-toolkit/compat";
 import queryString from "query-string";
 import * as React from "react";
@@ -25,7 +25,7 @@ interface LinkProps extends BaseProps {
   /**
    * The path to match against the current location.
    */
-  to: LocationDescriptor;
+  to: To;
   /**
    * Optional click handler called when the tab is clicked (in addition to navigation).
    */

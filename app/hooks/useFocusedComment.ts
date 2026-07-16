@@ -2,7 +2,7 @@ import useQuery from "~/hooks/useQuery";
 import useStores from "./useStores";
 import { useDocumentContext } from "~/components/DocumentContext";
 import { useEffect } from "react";
-import { useHistory } from "react-router-dom";
+import history from "~/utils/history";
 
 /**
  * Custom hook to retrieve the currently focused comment in a document.
@@ -15,7 +15,6 @@ export function useFocusedComment() {
   const query = useQuery();
   const focusedCommentId = context.focusedCommentId || query.get("commentId");
   const comment = focusedCommentId ? comments.get(focusedCommentId) : undefined;
-  const history = useHistory();
 
   // Move the query string into context
   useEffect(() => {
@@ -38,7 +37,7 @@ export function useFocusedComment() {
         });
       }
     }
-  }, [focusedCommentId, history]);
+  }, [focusedCommentId]);
 
   return comment?.parentCommentId
     ? comments.get(comment.parentCommentId)

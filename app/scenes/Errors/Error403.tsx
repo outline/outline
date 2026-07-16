@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import Button from "~/components/Button";
@@ -12,6 +12,7 @@ import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
 import Loading from "~/scenes/Document/components/Loading";
 import { client } from "~/utils/ApiClient";
+import history from "~/utils/history";
 
 type Props = {
   /** The document ID to request access to. */
@@ -20,8 +21,7 @@ type Props = {
 
 const Error403 = ({ documentId }: Props) => {
   const { t } = useTranslation();
-  const location = useLocation<{ title?: string }>();
-  const history = useHistory();
+  const location = useLocation();
   const [requesting, setRequesting] = useState(false);
   const [requested, setRequested] = useState(false);
   const [loading, setLoading] = useState(!!documentId);
@@ -64,7 +64,7 @@ const Error403 = ({ documentId }: Props) => {
     }
   }, [documentId, t, requested, requesting]);
 
-  const handleGoBack = useCallback(() => history.goBack(), [history]);
+  const handleGoBack = useCallback(() => history.goBack(), []);
 
   if (loading) {
     return <Loading location={location} />;

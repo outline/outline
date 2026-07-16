@@ -1,8 +1,7 @@
 import { useCallback } from "react";
-import { useHistory } from "react-router-dom";
 import { isModKey } from "@shared/utils/keyboard";
 import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
-import { patchLocation } from "~/utils/history";
+import history, { patchLocation } from "~/utils/history";
 import { sharedModelPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import useStores from "./useStores";
@@ -14,7 +13,6 @@ type Params = {
 };
 
 export default function useEditorClickHandlers({ shareId }: Params) {
-  const history = useHistory();
   const { documents, ui } = useStores();
   const handleClickLink = useCallback(
     (href: string, event?: MouseEvent) => {
@@ -104,7 +102,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         window.open(href, "_blank");
       }
     },
-    [history, shareId, documents, ui]
+    [shareId, documents, ui]
   );
 
   return { handleClickLink };

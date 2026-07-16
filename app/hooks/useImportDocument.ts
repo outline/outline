@@ -1,11 +1,11 @@
 import invariant from "invariant";
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import { useSidebarContext } from "~/components/Sidebar/components/SidebarContext";
 import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
 import { documentPath } from "~/utils/routeHelpers";
 
 let importingLock = false;
@@ -21,7 +21,6 @@ export default function useImportDocument(
   const sidebarContext = useSidebarContext();
   const [isImporting, setImporting] = useState(false);
   const { t } = useTranslation();
-  const history = useHistory();
   const handleFiles = useCallback(
     async (files = []) => {
       if (importingLock) {
@@ -74,7 +73,7 @@ export default function useImportDocument(
         importingLock = false;
       }
     },
-    [t, documents, history, collectionId, sidebarContext, documentId]
+    [t, documents, collectionId, sidebarContext, documentId]
   );
 
   return {

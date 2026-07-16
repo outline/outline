@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { HomeIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import { Switch, Route } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { Action } from "~/components/Actions";
@@ -66,58 +66,72 @@ function Home() {
           </Tab>
           <Tab to="/home/created">{t("Created by me")}</Tab>
         </Tabs>
-        <Switch>
-          <Route path="/home/recent">
-            <PaginatedDocumentList
-              documents={documents.recentlyUpdated}
-              fetch={documents.fetchRecentlyUpdated}
-              empty={<Empty>{t("Weird, this shouldn't ever be empty")}</Empty>}
-              showCollection
-            />
-          </Route>
-          <Route path="/home/popular">
-            <PaginatedDocumentList
-              key="popular"
-              documents={documents.popular}
-              fetch={documents.fetchPopular}
-              empty={
-                <Empty>
-                  {t("Documents with recent activity will appear here")}
-                </Empty>
-              }
-              showCollection
-            />
-          </Route>
-          <Route path="/home/created">
-            <PaginatedDocumentList
-              key="created"
-              documents={documents.createdByUser(userId)}
-              fetch={documents.fetchOwned}
-              options={{
-                userId,
-              }}
-              empty={
-                <Empty>{t("You haven’t created any documents yet")}</Empty>
-              }
-              showCollection
-            />
-          </Route>
-          <Route path="/home">
-            <PaginatedDocumentList
-              key="recent"
-              documents={documents.recentlyViewed}
-              fetch={documents.fetchRecentlyViewed}
-              empty={
-                <Empty>
-                  {t(
-                    "Documents you’ve recently viewed will be here for easy access"
-                  )}
-                </Empty>
-              }
-              showCollection
-            />
-          </Route>
-        </Switch>
+        <Routes>
+          <Route
+            path="recent"
+            element={
+              <PaginatedDocumentList
+                documents={documents.recentlyUpdated}
+                fetch={documents.fetchRecentlyUpdated}
+                empty={
+                  <Empty>{t("Weird, this shouldn't ever be empty")}</Empty>
+                }
+                showCollection
+              />
+            }
+          />
+          <Route
+            path="popular"
+            element={
+              <PaginatedDocumentList
+                key="popular"
+                documents={documents.popular}
+                fetch={documents.fetchPopular}
+                empty={
+                  <Empty>
+                    {t("Documents with recent activity will appear here")}
+                  </Empty>
+                }
+                showCollection
+              />
+            }
+          />
+          <Route
+            path="created"
+            element={
+              <PaginatedDocumentList
+                key="created"
+                documents={documents.createdByUser(userId)}
+                fetch={documents.fetchOwned}
+                options={{
+                  userId,
+                }}
+                empty={
+                  <Empty>{t("You haven’t created any documents yet")}</Empty>
+                }
+                showCollection
+              />
+            }
+          />
+          <Route
+            index
+            element={
+              <PaginatedDocumentList
+                key="recent"
+                documents={documents.recentlyViewed}
+                fetch={documents.fetchRecentlyViewed}
+                empty={
+                  <Empty>
+                    {t(
+                      "Documents you’ve recently viewed will be here for easy access"
+                    )}
+                  </Empty>
+                }
+                showCollection
+              />
+            }
+          />
+        </Routes>
       </Documents>
     </Scene>
   );

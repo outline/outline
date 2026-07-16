@@ -5,7 +5,7 @@ import { PlusIcon, GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import type Group from "~/models/Group";
 import { Action } from "~/components/Actions";
@@ -22,6 +22,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
+import history from "~/utils/history";
 import { CreateGroupDialog } from "./components/GroupDialogs";
 import GroupSourceFilter from "./components/GroupSourceFilter";
 import { GroupsTable } from "./components/GroupsTable";
@@ -53,7 +54,6 @@ function Groups() {
   const { dialogs, groups } = useStores();
   const team = useCurrentTeam();
   const can = usePolicy(team);
-  const history = useHistory();
   const location = useLocation();
   const params = useQuery();
   const [query, setQuery] = useState("");
@@ -104,7 +104,7 @@ function Groups() {
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, location.pathname]
   );
 
   const handleSourceFilter = useCallback(

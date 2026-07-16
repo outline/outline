@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import type { RouteComponentProps, StaticContext } from "react-router";
-import { Redirect, useLocation } from "react-router";
+import { Navigate, useLocation, useMatch, useParams } from "react-router-dom";
 import { toError } from "@shared/utils/error";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
@@ -43,13 +42,6 @@ type Params = {
   revisionId?: string;
 };
 
-type LocationState = {
-  /** The document title, if preloaded */
-  title?: string;
-  restore?: boolean;
-  revisionId?: string;
-};
-
 type Children = (options: {
   document: Document;
   revision: Revision | undefined;
@@ -61,20 +53,22 @@ type Children = (options: {
   ) => Promise<string>;
 }) => React.ReactNode;
 
-type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
+type Props = {
   children: Children;
 };
 
-function DataLoader({ match, children }: Props) {
+function DataLoader({ children }: Props) {
   const { ui, views, shares, comments, documents, revisions } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const { setDocument } = useDocumentContext();
   const [error, setError] = React.useState<Error | null>(null);
-  const { revisionId, documentSlug } = match.params;
+  const { revisionId, documentSlug = "" } = useParams<Params>();
+  const location = useLocation();
+  const isDocumentEdit = !!useMatch(matchDocumentEdit);
 
   // Allows loading by /doc/slug-<urlId> or /doc/<id>
-  const document = documents.get(match.params.documentSlug);
+  const document = documents.get(documentSlug);
 
   if (document) {
     setDocument(document);
@@ -89,10 +83,9 @@ function DataLoader({ match, children }: Props) {
     : undefined;
 
   const isEditRoute =
-    match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
+    isDocumentEdit || location.pathname.startsWith(settingsPath());
   const isEditing = isEditRoute || !user?.separateEditMode;
   const can = usePolicy(document);
-  const location = useLocation<LocationState>();
   const query = useQuery();
   const missingPolicy = !can || Object.keys(can).length === 0;
 
@@ -260,15 +253,16 @@ function DataLoader({ match, children }: Props) {
 
   // Redirect to the canonical URL if the document slug has changed, e.g.
   // after a rename, so the browser address bar stays in sync.
-  const canonicalUrl = updateDocumentPath(match.url, document);
+  const canonicalUrl = updateDocumentPath(location.pathname, document);
   if (location.pathname !== canonicalUrl) {
     return (
-      <Redirect
+      <Navigate
+        replace
         to={{
           pathname: canonicalUrl,
-          state: location.state,
           hash: location.hash,
         }}
+        state={location.state}
       />
     );
   }

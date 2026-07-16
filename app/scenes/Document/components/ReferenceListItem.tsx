@@ -86,10 +86,10 @@ function ReferenceListItem({
             ? sharedModelPath(shareId, document.url)
             : document.url,
           hash: anchor ? `d-${anchor}` : undefined,
-          state: {
-            title: document.title,
-            sidebarContext,
-          },
+        }}
+        state={{
+          title: document.title,
+          sidebarContext,
         }}
         {...rest}
       >

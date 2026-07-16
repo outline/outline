@@ -54,10 +54,6 @@ type PathParams = {
   documentSlug?: string;
 };
 
-type LocationState = {
-  title?: string;
-};
-
 function useModel() {
   const { collections, documents, shares } = useStores();
   const {
@@ -125,7 +121,7 @@ function useActivePage(share?: Share) {
 function SharedScene() {
   const { t, i18n } = useTranslation();
   const { shareId = env.ROOT_SHARE_ID, documentSlug } = useParams<PathParams>();
-  const location = useLocation<LocationState>();
+  const location = useLocation();
   const { documents, shares, ui } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const [, setPostLoginPath] = usePostLoginPath();

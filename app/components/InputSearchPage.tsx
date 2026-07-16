@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
@@ -14,6 +13,7 @@ import {
 import useBoolean from "~/hooks/useBoolean";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
+import history from "~/utils/history";
 import { searchPath } from "~/utils/routeHelpers";
 import Input from "./Input";
 
@@ -47,7 +47,6 @@ function InputSearchPage({
 }: Props) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const theme = useTheme();
-  const history = useHistory();
   const { t } = useTranslation();
   const isMobile = useMobile();
   const [isFocused, setFocused, setUnfocused] = useBoolean(false);
@@ -84,7 +83,7 @@ function InputSearchPage({
         onKeyDown(ev);
       }
     },
-    [history, collectionId, source, onKeyDown]
+    [collectionId, source, onKeyDown]
   );
 
   return (

@@ -6,7 +6,6 @@ import {
   SidebarScrollProvider,
 } from "./components/DragActiveContext";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Scrollable from "~/components/Scrollable";
@@ -16,6 +15,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import TeamMenu from "~/menus/TeamMenu";
+import history from "~/utils/history";
 import { homePath, searchPath } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
@@ -41,7 +41,6 @@ function AppSidebar() {
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
-  const history = useHistory();
   const isMobile = useMobile();
 
   const handleSearchClick = useCallback(() => {
@@ -50,7 +49,7 @@ function AppSidebar() {
     if (pathname.startsWith(basePath) && (search || pathname !== basePath)) {
       history.push(basePath);
     }
-  }, [history]);
+  }, []);
 
   useEffect(() => {
     void collections.fetchAll();

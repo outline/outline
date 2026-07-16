@@ -3,13 +3,14 @@ import { observer } from "mobx-react";
 import { BackIcon } from "outline-icons";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
+import history from "~/utils/history";
 import { settingsPath } from "~/utils/routeHelpers";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
@@ -22,7 +23,6 @@ import Version from "./components/Version";
 function SettingsSidebar() {
   const { integrations } = useStores();
   const { t } = useTranslation();
-  const history = useHistory();
   const location = useLocation();
   const configs = useSettingsConfig();
 
@@ -37,7 +37,7 @@ function SettingsSidebar() {
 
   const returnToApp = useCallback(() => {
     history.push("/home");
-  }, [history]);
+  }, []);
 
   return (
     <Sidebar canCollapse={false}>

@@ -1,9 +1,9 @@
-import type { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { EditIcon, TrashIcon } from "outline-icons";
 import { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
+import type { ToWithState } from "~/types";
 import styled, { css } from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
 import { ellipsis, hover, s } from "@shared/styles";
@@ -63,7 +63,7 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
     ref.current?.focus();
   };
 
-  let meta, icon, to: LocationDescriptor | undefined;
+  let meta, icon, to: ToWithState | undefined;
 
   if (item.deletedAt) {
     icon = <TrashIcon />;

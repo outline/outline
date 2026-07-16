@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Route, matchPath, useLocation } from "react-router-dom";
+import { matchPath, useLocation, useMatch } from "react-router-dom";
 import {
   RightSidebarWrappedContext,
   useSetRightSidebar,
@@ -41,20 +41,19 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   const { ui } = useStores();
   const isMobile = useMobile();
 
-  const inner = (
-    <Route path={`/doc/${matchDocumentSlug}`}>
-      <React.Suspense
-        fallback={
-          <SidebarLayout title={<PlaceholderText width={100} />}>
-            {null}
-          </SidebarLayout>
-        }
-      >
-        {ui.rightSidebar === "comments" && <DocumentComments />}
-        {ui.rightSidebar === "history" && <DocumentHistory />}
-      </React.Suspense>
-    </Route>
-  );
+  const documentMatch = useMatch(`/doc/${matchDocumentSlug}/*`);
+  const inner = documentMatch ? (
+    <React.Suspense
+      fallback={
+        <SidebarLayout title={<PlaceholderText width={100} />}>
+          {null}
+        </SidebarLayout>
+      }
+    >
+      {ui.rightSidebar === "comments" && <DocumentComments />}
+      {ui.rightSidebar === "history" && <DocumentHistory />}
+    </React.Suspense>
+  ) : null;
 
   if (isMobile) {
     return inner;
@@ -78,9 +77,7 @@ export default function useDocumentSidebar() {
   const { ui, documents } = useStores();
   const location = useLocation();
   const setSidebar = useSetRightSidebar();
-  const isHistoryRoute = !!matchPath(location.pathname, {
-    path: matchDocumentHistory,
-  });
+  const isHistoryRoute = !!matchPath(matchDocumentHistory, location.pathname);
   const isOpen = ui.rightSidebar !== null;
   const isInitialOpenRef = React.useRef(isOpen);
 

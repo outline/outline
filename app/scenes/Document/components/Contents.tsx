@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { transparentize } from "polished";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EmojiText } from "@shared/components/EmojiText";
@@ -10,13 +9,12 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, hideScrollbars, s } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
-import { patchLocation } from "~/utils/history";
+import history, { patchLocation } from "~/utils/history";
 import { decodeURIComponentSafe } from "~/utils/urls";
 
 const HEADING_OFFSET = 20;
 
 function Contents() {
-  const history = useHistory();
   const [activeSlug, setActiveSlug] = useState<string>();
   const scrollPosition = useWindowScrollPosition({
     throttle: 100,
@@ -42,7 +40,7 @@ function Contents() {
       event.preventDefault();
       history.push(patchLocation(history.location, { hash: `#${id}` }));
     },
-    [history]
+    []
   );
 
   useEffect(() => {

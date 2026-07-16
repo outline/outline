@@ -1041,7 +1041,10 @@ More install detail.
 Usage instructions here.`,
       });
 
-      const result = DocumentHelper.getAnchorContent(document, "h-installation");
+      const result = DocumentHelper.getAnchorContent(
+        document,
+        "h-installation"
+      );
       expect(result).toBe(
         `## Installation
 

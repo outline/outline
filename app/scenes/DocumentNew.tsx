@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
@@ -11,18 +11,18 @@ import PlaceholderDocument from "~/components/PlaceholderDocument";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
 import { documentEditPath, documentPath } from "~/utils/routeHelpers";
 
 function DocumentNew() {
-  const history = useHistory();
   const location = useLocation();
   const query = useQuery();
   const user = useCurrentUser();
-  const match = useRouteMatch<{ collectionSlug?: string }>();
+  const { collectionSlug } = useParams<{ collectionSlug?: string }>();
   const { t } = useTranslation();
   const { documents, collections, userMemberships, groupMemberships } =
     useStores();
-  const id = match.params.collectionSlug || query.get("collectionId");
+  const id = collectionSlug || query.get("collectionId");
 
   useEffect(() => {
     async function createDocument() {

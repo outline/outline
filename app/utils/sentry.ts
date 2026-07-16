@@ -1,5 +1,11 @@
 import * as Sentry from "@sentry/react";
-import type { History } from "history";
+import { useEffect } from "react";
+import {
+  createRoutesFromChildren,
+  matchRoutes,
+  useLocation,
+  useNavigationType,
+} from "react-router-dom";
 import env from "~/env";
 import {
   AuthorizationError,
@@ -15,10 +21,8 @@ import {
 
 /**
  * Initializes the Sentry error tracking client for the browser.
- *
- * @param history the router history used for navigation instrumentation.
  */
-export function initSentry(history: History) {
+export function initSentry() {
   const ignoredErrorTypes = [
     AuthorizationError,
     BadRequestError,
@@ -37,7 +41,15 @@ export function initSentry(history: History) {
     release: env.VERSION,
     tunnel: env.SENTRY_TUNNEL,
     allowUrls: [env.URL, env.CDN_URL, env.COLLABORATION_URL],
-    integrations: [Sentry.reactRouterV5BrowserTracingIntegration({ history })],
+    integrations: [
+      Sentry.reactRouterV6BrowserTracingIntegration({
+        useEffect,
+        useLocation,
+        useNavigationType,
+        createRoutesFromChildren,
+        matchRoutes,
+      }),
+    ],
     tracesSampleRate: env.ENVIRONMENT === "production" ? 0.1 : 1,
     ignoreErrors: [
       "Failed to fetch dynamically imported module",

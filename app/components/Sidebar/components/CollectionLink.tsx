@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useHistory } from "react-router-dom";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import type Collection from "~/models/Collection";
@@ -12,6 +11,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import useBoolean from "~/hooks/useBoolean";
+import history from "~/utils/history";
 import { documentEditPath } from "~/utils/routeHelpers";
 import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
 import CollectionLinkChildren from "./CollectionLinkChildren";
@@ -38,7 +38,6 @@ const CollectionLink: React.FC<Props> = ({
 }: Props) => {
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documents } = useStores();
-  const history = useHistory();
   const can = usePolicy(collection);
   const sidebarContext = useSidebarContext();
   const user = useCurrentUser();
@@ -89,7 +88,7 @@ const CollectionLink: React.FC<Props> = ({
         state: { sidebarContext },
       });
     },
-    [user, sidebarContext, history, collection, documents]
+    [user, sidebarContext, collection, documents]
   );
 
   const contextMenuAction = useCollectionMenuAction({

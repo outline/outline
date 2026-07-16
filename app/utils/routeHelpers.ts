@@ -331,15 +331,13 @@ export function desktopify(path: string, origin?: string): string {
 }
 
 /** Route matcher for a collection slug. */
-export const matchCollectionSlug =
-  ":collectionSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
+export const matchCollectionSlug = ":collectionSlug";
 
 /** Route matcher for the collection edit screen. */
 export const matchCollectionEdit = `/collection/${matchCollectionSlug}/overview/edit`;
 
 /** Route matcher for a document slug. */
-export const matchDocumentSlug =
-  ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
+export const matchDocumentSlug = ":documentSlug";
 
 /** Route matcher for the document edit screen. */
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;

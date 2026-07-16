@@ -111,9 +111,9 @@ function DocumentCard(props: Props) {
           $isDragging={isDragging}
           to={{
             pathname: document.path,
-            state: {
-              title: document.titleWithDefault,
-            },
+          }}
+          state={{
+            title: document.titleWithDefault,
           }}
         >
           <Content justify="space-between" column>

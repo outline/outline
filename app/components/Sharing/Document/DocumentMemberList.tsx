@@ -2,7 +2,7 @@ import { orderBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { Link, useHistory } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
 import { s } from "@shared/styles";
@@ -16,6 +16,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import type { Permission } from "~/types";
 import { EmptySelectValue } from "~/types";
+import history from "~/utils/history";
 import { homePath } from "~/utils/routeHelpers";
 import { ListItem } from "../components/ListItem";
 import { GroupMembersPopover } from "../components";
@@ -35,7 +36,6 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
   const { userMemberships, groupMemberships } = useStores();
 
   const user = useCurrentUser();
-  const history = useHistory();
   const can = usePolicy(document);
   const { t } = useTranslation();
   const theme = useTheme();
@@ -61,7 +61,7 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
         toast.error(t("Could not remove user"));
       }
     },
-    [t, history, userMemberships, user, document]
+    [t, userMemberships, user, document]
   );
 
   const handleUpdateUser = React.useCallback(

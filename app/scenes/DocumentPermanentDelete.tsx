@@ -1,11 +1,11 @@
 import { observer } from "mobx-react";
 import { useTranslation, Trans } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import type Document from "~/models/Document";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
 
 type Props = {
   document: Document;
@@ -15,7 +15,6 @@ type Props = {
 function DocumentPermanentDelete({ document, onSubmit }: Props) {
   const { t } = useTranslation();
   const { documents } = useStores();
-  const history = useHistory();
 
   const handleSubmit = async () => {
     await documents.delete(document, {

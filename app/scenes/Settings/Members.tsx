@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { PlusIcon, UserIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import type UsersStore from "~/stores/UsersStore";
@@ -22,6 +22,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
+import history from "~/utils/history";
 import { ExportCSV } from "./components/ExportCSV";
 import { MembersTable } from "./components/MembersTable";
 import { StickyFilters } from "./components/StickyFilters";
@@ -32,7 +33,6 @@ import { HStack } from "~/components/primitives/HStack";
 function Members() {
   const appName = env.APP_NAME;
   const location = useLocation();
-  const history = useHistory();
   const team = useCurrentTeam();
   const { users } = useStores();
   const { t } = useTranslation();
@@ -86,7 +86,7 @@ function Members() {
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, location.pathname]
   );
 
   const handleStatusFilter = useCallback(

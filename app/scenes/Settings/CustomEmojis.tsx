@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { PlusIcon, SmileyIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
@@ -19,13 +19,13 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
+import history from "~/utils/history";
 import EmojisTable from "./components/EmojisTable";
 import { StickyFilters } from "./components/StickyFilters";
 import type EmojisStore from "~/stores/EmojiStore";
 
 function Emojis() {
   const location = useLocation();
-  const history = useHistory();
   const team = useCurrentTeam();
   const context = useActionContext();
   const { emojis } = useStores();
@@ -76,7 +76,7 @@ function Emojis() {
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, location.pathname]
   );
 
   const handleSearch = useCallback((event) => {

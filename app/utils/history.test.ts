@@ -1,4 +1,4 @@
-import type { Location } from "history";
+import type { Location } from "react-router-dom";
 import { patchLocation } from "./history";
 
 describe("patchLocation", () => {

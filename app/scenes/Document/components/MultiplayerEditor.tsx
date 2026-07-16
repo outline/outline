@@ -10,7 +10,6 @@ import {
   type ForwardedRef,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
@@ -29,6 +28,7 @@ import useIsMounted from "~/hooks/useIsMounted";
 import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import type { AwarenessChangeEvent } from "~/types";
+import history from "~/utils/history";
 import Logger from "~/utils/Logger";
 import { homePath } from "~/utils/routeHelpers";
 import { sleep } from "@shared/utils/timers";
@@ -58,7 +58,6 @@ function MultiplayerEditor(
   ref: ForwardedRef<SharedEditor>
 ) {
   const documentId = props.id;
-  const history = useHistory();
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const retryCount = useRef(0);
@@ -231,17 +230,7 @@ function MultiplayerEditor(
       setRemoteProvider(undefined);
       ui.setMultiplayerStatus(undefined, undefined);
     };
-  }, [
-    history,
-    t,
-    documentId,
-    ui,
-    presence,
-    ydoc,
-    currentUser.id,
-    isMounted,
-    auth,
-  ]);
+  }, [t, documentId, ui, presence, ydoc, currentUser.id, isMounted, auth]);
 
   const user = useMemo(
     () => ({

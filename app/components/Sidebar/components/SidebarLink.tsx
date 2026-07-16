@@ -1,4 +1,4 @@
-import type { LocationDescriptor } from "history";
+import type { ToWithState } from "~/types";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -22,7 +22,7 @@ import { useTranslation } from "react-i18next";
  */
 type Props = Omit<NavLinkProps, "to"> & {
   /** The location to navigate to when the link is clicked */
-  to?: LocationDescriptor;
+  to?: ToWithState;
   /** Ref callback to access the underlying HTML element */
   innerRef?: (ref: HTMLElement | null | undefined) => void;
   /** Callback fired when the link is clicked */

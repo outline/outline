@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -12,6 +11,7 @@ import { examples } from "./components/ExampleData";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import usePersistedState from "~/hooks/usePersistedState";
+import history from "~/utils/history";
 import Scrollable from "~/components/Scrollable";
 import Switch from "~/components/Switch";
 import { action } from "mobx";
@@ -23,7 +23,6 @@ import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
  */
 function Changesets() {
   const { ui } = useStores();
-  const history = useHistory();
   const query = useQuery();
   const [showChangeset, setShowChangeset] = usePersistedState<boolean>(
     "show-changeset-json",

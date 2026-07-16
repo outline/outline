@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { useLocation, Link, Redirect } from "react-router-dom";
+import { useLocation, Link, Navigate } from "react-router-dom";
 import styled from "styled-components";
 import { getCookie, setCookie } from "tiny-cookie";
 import { s } from "@shared/styles";
@@ -135,18 +135,23 @@ function Login({ children, onBack }: Props) {
   if (auth.authenticated && !isPasskeyLogin) {
     const postLoginPath = spendPostLoginPath();
     if (postLoginPath) {
-      return <Redirect to={postLoginPath} />;
+      return <Navigate to={postLoginPath} replace />;
     }
 
     if (rememberLastPath && lastVisitedPath !== location.pathname) {
-      return <Redirect to={lastVisitedPath} />;
+      return <Navigate to={lastVisitedPath} replace />;
     }
 
     if (auth.team?.defaultCollectionId) {
-      return <Redirect to={`/collection/${auth.team?.defaultCollectionId}`} />;
+      return (
+        <Navigate
+          to={`/collection/${auth.team?.defaultCollectionId}`}
+          replace
+        />
+      );
     }
 
-    return <Redirect to={homePath()} />;
+    return <Navigate to={homePath()} replace />;
   }
 
   if (error) {

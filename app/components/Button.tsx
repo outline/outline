@@ -1,4 +1,4 @@
-import type { LocationDescriptor } from "history";
+import type { To } from "react-router-dom";
 import { DisclosureIcon } from "outline-icons";
 import { darken, lighten, transparentize } from "polished";
 import * as React from "react";
@@ -151,7 +151,7 @@ export type Props<T> = ActionButtonProps & {
   danger?: boolean;
   fullwidth?: boolean;
   as?: T;
-  to?: LocationDescriptor;
+  to?: To;
   borderOnHover?: boolean;
   hideIcon?: boolean;
   href?: string;

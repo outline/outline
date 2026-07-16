@@ -28,7 +28,7 @@ type Props = {
 };
 
 const LoadingState = observer(function LoadingState() {
-  const { id } = useParams<{ id: string }>();
+  const { id = "" } = useParams<{ id: string }>();
   const { templates, ui } = useStores();
   const template = templates.get(id);
   const { request, error } = useRequest(() => templates.fetch(id));

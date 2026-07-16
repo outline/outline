@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { changeLanguage } from "~/utils/language";
@@ -54,7 +54,7 @@ const Authenticated = ({ children }: Props) => {
     return <LoadingIndicator />;
   }
 
-  return <Redirect to="/" />;
+  return <Navigate to="/" replace />;
 };
 
 export default observer(Authenticated);

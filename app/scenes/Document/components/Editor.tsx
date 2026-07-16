@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import { useRouteMatch } from "react-router-dom";
+import { useMatch } from "react-router-dom";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
 import { richExtensions, withComments } from "@shared/editor/nodes";
@@ -67,7 +67,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
   const editorRef = React.useRef<SharedEditor>(null);
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
-  const match = useRouteMatch();
+  const historyMatch = useMatch(matchDocumentHistory);
   const { setFocusedCommentId } = useDocumentContext();
   const focusedComment = useFocusedComment();
   const { ui, comments } = useStores();
@@ -236,10 +236,9 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         <DocumentMeta
           document={document as Document}
           to={{
-            pathname:
-              match.path === matchDocumentHistory
-                ? documentPath(document as Document)
-                : documentHistoryPath(document as Document),
+            pathname: historyMatch
+              ? documentPath(document as Document)
+              : documentHistoryPath(document as Document),
             state: { sidebarContext },
           }}
           rtl={direction === "rtl"}

@@ -2,8 +2,9 @@ import { observer } from "mobx-react";
 import { DraftsIcon } from "outline-icons";
 import queryString from "query-string";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import styled from "styled-components";
+import history from "~/utils/history";
 import type { DateFilter as TDateFilter } from "@shared/types";
 import CollectionFilter from "~/scenes/Search/components/CollectionFilter";
 import { Action } from "~/components/Actions";
@@ -21,7 +22,6 @@ import DateFilter from "./Search/components/DateFilter";
 function Drafts() {
   const { t } = useTranslation();
   const { documents } = useStores();
-  const history = useHistory();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const collectionId = params.get("collectionId") || undefined;

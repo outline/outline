@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { CodeIcon } from "outline-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
@@ -18,6 +18,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
+import history from "~/utils/history";
 import { ApiKeysTable } from "./components/ApiKeysTable";
 import { StickyFilters } from "./components/StickyFilters";
 
@@ -27,7 +28,6 @@ function ApiKeys() {
   const { apiKeys } = useStores();
   const can = usePolicy(team);
   const params = useQuery();
-  const history = useHistory();
   const location = useLocation();
   const [query, setQuery] = useState(params.get("query") || "");
 
@@ -77,7 +77,7 @@ function ApiKeys() {
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, location.pathname]
   );
 
   const handleSearch = useCallback(

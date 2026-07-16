@@ -3,8 +3,7 @@ import { observer } from "mobx-react";
 import { GroupIcon, HiddenIcon, PlusIcon } from "outline-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import { toast } from "sonner";
 import type User from "~/models/User";
@@ -33,13 +32,14 @@ import { AddPeopleToGroupDialog } from "./components/GroupDialogs";
 import GroupPermissionFilter from "./components/GroupPermissionFilter";
 import { GroupMembersTable } from "./components/GroupMembersTable";
 import { StickyFilters } from "./components/StickyFilters";
+import history from "~/utils/history";
 import { settingsPath } from "~/utils/routeHelpers";
 
 /**
  * Settings page that lists members of a specific group.
  */
 function GroupMembers() {
-  const { id } = useParams<{ id: string }>();
+  const { id = "" } = useParams<{ id: string }>();
   const { groups } = useStores();
   const group = groups.get(id);
   const { request, error } = useRequest(() => groups.fetch(id));
@@ -71,7 +71,6 @@ const GroupMembersPage = observer(function GroupMembersPage({
   const { dialogs, groups, users, groupUsers } = useStores();
   const group = groups.get(groupId)!;
   const can = usePolicy(group);
-  const history = useHistory();
   const location = useLocation();
   const params = useQuery();
   const [query, setQuery] = useState("");
@@ -149,7 +148,7 @@ const GroupMembersPage = observer(function GroupMembersPage({
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, location.pathname]
   );
 
   const updateQuery = useCallback(

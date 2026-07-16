@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default function ScrollToTop({ children }: Props) {
-  const location = useLocation<{ retainScrollPosition?: boolean }>();
+  const location = useLocation();
   const previousLocationPathname = usePrevious(location.pathname);
   const scrollContainerRef = useScrollContext();
 

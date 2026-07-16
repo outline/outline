@@ -1,4 +1,3 @@
-import type { LocationDescriptor } from "history";
 import { toast } from "sonner";
 import type { Optional } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
@@ -12,6 +11,7 @@ import type {
   ExternalLinkAction,
   InternalLinkAction,
   MenuItem,
+  ToWithState,
 } from "~/types";
 import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
@@ -141,7 +141,7 @@ export function actionToMenuItem(
           };
 
         case "internal_link": {
-          const to = resolve<LocationDescriptor>(action.to, context);
+          const to = resolve<ToWithState>(action.to, context);
           return {
             type: "route",
             title,
@@ -286,7 +286,7 @@ export async function performAction(
     action.variant === "action"
       ? () => action.perform(context)
       : action.variant === "internal_link"
-        ? () => history.push(resolve<LocationDescriptor>(action.to, context))
+        ? () => history.push(resolve<ToWithState>(action.to, context))
         : () => window.open(action.url, action.target);
 
   const result = perform();

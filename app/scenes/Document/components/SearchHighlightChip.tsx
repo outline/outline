@@ -1,18 +1,17 @@
 import { CloseIcon } from "outline-icons";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { ellipsis } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Tooltip from "~/components/Tooltip";
-import { patchLocation } from "~/utils/history";
+import history, { patchLocation } from "~/utils/history";
 import { undraggableOnDesktop } from "~/styles";
 
 export function SearchHighlightChip() {
   const { t } = useTranslation();
   const { editor } = useDocumentContext();
-  const history = useHistory();
   const location = useLocation();
   const searchHighlight = new URLSearchParams(location.search).get("q");
 
@@ -24,7 +23,7 @@ export function SearchHighlightChip() {
     history.replace(
       patchLocation(location, { search: search ? `?${search}` : "" })
     );
-  }, [editor, history, location]);
+  }, [editor, location]);
 
   if (!searchHighlight) {
     return null;

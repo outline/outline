@@ -1,9 +1,8 @@
 import fractionalIndex from "fractional-index";
-import type { Location } from "history";
+import type { Location } from "react-router-dom";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
@@ -21,6 +20,7 @@ import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentEditPath } from "~/utils/routeHelpers";
+import history from "~/utils/history";
 import {
   useDragStar,
   useDropToChangeCollection,
@@ -90,7 +90,6 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   handleMenuClose,
   cursor,
 }: StarredDocumentLinkProps) {
-  const history = useHistory();
   const user = useCurrentUser();
   const { collections, documents } = useStores();
   const can = usePolicy(document);
@@ -162,7 +161,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         state: { sidebarContext },
       });
     },
-    [documents, document, documentCollection, sidebarContext, user, history]
+    [documents, document, documentCollection, sidebarContext, user]
   );
 
   const contextMenuAction = useDocumentMenuAction({
@@ -255,7 +254,6 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
   isDraggingAnyStar,
 }: StarredCollectionLinkProps) {
   const { documents } = useStores();
-  const history = useHistory();
   const user = useCurrentUser();
   const can = usePolicy(collection.id);
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
@@ -308,7 +306,7 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
         state: { sidebarContext },
       });
     },
-    [user, sidebarContext, history, collection, documents]
+    [user, sidebarContext, collection, documents]
   );
 
   const contextMenuAction = useCollectionMenuAction({

@@ -1,4 +1,4 @@
-import type { LocationDescriptor } from "history";
+import type { ToWithState } from "~/types";
 import { observer, useObserver } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import { useRef, Fragment } from "react";
@@ -23,7 +23,7 @@ type Props = {
   /* The document to display meta data for */
   document: Document | Template;
   revision?: Revision;
-  to?: LocationDescriptor;
+  to?: ToWithState;
   rtl?: boolean;
 };
 
@@ -58,8 +58,8 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
           <CommentLink
             to={{
               pathname: documentPath(document as Document),
-              state: { sidebarContext },
             }}
+            state={{ sidebarContext }}
             onClick={() =>
               ui.set({
                 rightSidebar:

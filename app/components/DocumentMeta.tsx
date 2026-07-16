@@ -1,9 +1,9 @@
 import { subYears } from "date-fns";
-import type { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import type { To } from "react-router-dom";
 import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import type Document from "~/models/Document";
@@ -24,7 +24,7 @@ type Props = {
   document: Document;
   revision?: Revision;
   replace?: boolean;
-  to?: LocationDescriptor;
+  to?: To;
 };
 
 const DocumentMeta: React.FC<Props> = ({

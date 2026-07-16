@@ -28,9 +28,7 @@ export const restoreRevision = createAction({
       return;
     }
 
-    const match = matchPath<{ revisionId: string }>(location.pathname, {
-      path: matchDocumentHistory,
-    });
+    const match = matchPath(matchDocumentHistory, location.pathname);
     const revisionId = getActiveModel(Revision)?.id ?? match?.params.revisionId;
     if (!revisionId) {
       return;
@@ -67,9 +65,7 @@ export const deleteRevision = createAction({
       return;
     }
 
-    const match = matchPath<{ revisionId: string }>(location.pathname, {
-      path: matchDocumentHistory,
-    });
+    const match = matchPath(matchDocumentHistory, location.pathname);
     const revisionId = match?.params.revisionId;
     if (revisionId) {
       const revision = stores.revisions.get(revisionId);

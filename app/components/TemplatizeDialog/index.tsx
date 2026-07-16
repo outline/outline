@@ -2,12 +2,12 @@ import invariant from "invariant";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Switch from "~/components/Switch";
 import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
 import SelectLocation from "./SelectLocation";
 
 type Props = {
@@ -15,7 +15,6 @@ type Props = {
 };
 
 function DocumentTemplatizeDialog({ documentId }: Props) {
-  const history = useHistory();
   const { t } = useTranslation();
   const { documents, templates } = useStores();
   const document = documents.get(documentId);
@@ -37,7 +36,7 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
       history.push(template.path);
       toast.success(t("Template created, go ahead and customize it"));
     }
-  }, [t, templates, documentId, history, collectionId, publish]);
+  }, [t, templates, documentId, collectionId, publish]);
 
   return (
     <ConfirmationDialog

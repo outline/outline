@@ -1,7 +1,6 @@
 import * as React from "react";
 import { EditIcon, GroupIcon, TrashIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import type Group from "~/models/Group";
 import {
   DeleteGroupDialog,
@@ -17,6 +16,7 @@ import {
 import { GroupSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import { settingsPath } from "~/utils/routeHelpers";
+import history from "~/utils/history";
 
 interface Options {
   /** Whether to hide the "Members" navigation action. */
@@ -36,7 +36,6 @@ export function useGroupMenuActions(
 ) {
   const { t } = useTranslation();
   const { dialogs } = useStores();
-  const history = useHistory();
   const can = usePolicy(targetGroup ?? ({} as Group));
 
   const navigateToMembers = React.useCallback(() => {
@@ -44,7 +43,7 @@ export function useGroupMenuActions(
       return;
     }
     history.push(settingsPath("groups", targetGroup.id, "members"));
-  }, [targetGroup, history]);
+  }, [targetGroup]);
 
   const openEditDialog = React.useCallback(() => {
     if (!targetGroup) {

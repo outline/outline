@@ -1,5 +1,5 @@
 import fractionalIndex from "fractional-index";
-import type { Location } from "history";
+import type { Location } from "react-router-dom";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { IconType, NotificationEventType } from "@shared/types";

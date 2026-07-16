@@ -39,7 +39,7 @@ type Props = {
 };
 
 const LoadingState = observer(function LoadingState() {
-  const { id } = useParams<{ id: string }>();
+  const { id = "" } = useParams<{ id: string }>();
   const { oauthClients } = useStores();
   const oauthClient = oauthClients.get(id);
   const { request } = useRequest(() => oauthClients.fetch(id));

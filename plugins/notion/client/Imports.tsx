@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import env from "@shared/env";
 import { IntegrationService } from "@shared/types";
@@ -9,6 +9,7 @@ import Button from "~/components/Button";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
 import { generateOAuthStateNonce } from "~/utils/oauth";
 import { redirectTo } from "~/utils/urls";
 import { NotionOAuthNonceCookie, NotionUtils } from "../shared/NotionUtils";
@@ -18,7 +19,6 @@ export const Notion = observer(() => {
   const { t } = useTranslation();
   const { dialogs } = useStores();
   const team = useCurrentTeam();
-  const history = useHistory();
   const location = useLocation();
   const queryParams = useQuery();
 
@@ -34,7 +34,7 @@ export const Notion = observer(() => {
       pathname: location.pathname,
       search: "",
     });
-  }, [history, location]);
+  }, [location]);
 
   const handleSubmit = React.useCallback(() => {
     dialogs.closeAllModals();

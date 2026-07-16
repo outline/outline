@@ -1,11 +1,11 @@
-import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import type { ConnectDropTarget } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import type { match } from "react-router";
+import type { Location, PathMatch } from "react-router-dom";
+import type { ToWithState } from "~/types";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
 import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
@@ -29,14 +29,14 @@ export type CollectionRowProps = {
   depth?: number;
 
   /** Navigation target for the row. */
-  to: LocationDescriptor;
+  to: ToWithState;
   /** Click handler for the row. */
   onClick?: () => void;
   /** Called on click intent for prefetching. */
   onClickIntent?: () => void;
   /** Optional override for the active-match function. */
   isActiveOverride?: (
-    match: match | null,
+    match: PathMatch<string> | null,
     location: Location<{ sidebarContext?: SidebarContextType }>
   ) => boolean;
 
@@ -154,7 +154,7 @@ function CollectionRow({
 
   const defaultIsActive = React.useCallback(
     (
-      _m: match | null,
+      _m: PathMatch<string> | null,
       location: Location<{ sidebarContext?: SidebarContextType }>
     ) => !!_m && location.state?.sidebarContext === sidebarContext,
     [sidebarContext]

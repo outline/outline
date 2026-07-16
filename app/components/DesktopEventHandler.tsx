@@ -1,16 +1,15 @@
 import { useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { useDesktopTitlebar } from "~/hooks/useDesktopTitlebar";
 import useStores from "~/hooks/useStores";
 import Desktop from "~/utils/Desktop";
+import history from "~/utils/history";
 
 export default function DesktopEventHandler() {
   useDesktopTitlebar();
   const { t } = useTranslation();
-  const history = useHistory();
   const { dialogs } = useStores();
   const hasDisabledUpdateMessage = useRef(false);
 
@@ -55,7 +54,7 @@ export default function DesktopEventHandler() {
         content: <KeyboardShortcuts />,
       });
     });
-  }, [t, history, dialogs]);
+  }, [t, dialogs]);
 
   return null;
 }

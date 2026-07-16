@@ -4,7 +4,7 @@ import Text from "~/components/Text";
 import type { IntegrationType } from "@shared/types";
 import type Integration from "~/models/Integration";
 import useStores from "~/hooks/useStores";
-import { useHistory } from "react-router-dom";
+import history from "~/utils/history";
 import { settingsPath } from "~/utils/routeHelpers";
 import { observer } from "mobx-react";
 import { capitalize } from "es-toolkit/compat";
@@ -16,7 +16,6 @@ type Props = {
 export const DisconnectAnalyticsDialog = observer(({ integration }: Props) => {
   const { t } = useTranslation();
   const { dialogs } = useStores();
-  const history = useHistory();
 
   const handleSubmit = async () => {
     await integration.delete();

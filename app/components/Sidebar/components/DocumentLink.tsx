@@ -1,8 +1,7 @@
-import type { Location } from "history";
+import type { Location } from "react-router-dom";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
@@ -22,6 +21,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentEditPath } from "~/utils/routeHelpers";
+import history from "~/utils/history";
 import {
   useDragDocument,
   useDropToReorderDocument,
@@ -194,7 +194,6 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
 }: InnerProps) {
   const { documents } = useStores();
   const { t } = useTranslation();
-  const history = useHistory();
   const can = usePolicy(node.id);
   const canUpdate = can.update;
   const document = documents.get(node.id);
@@ -364,16 +363,7 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
         state: { sidebarContext },
       });
     },
-    [
-      documents,
-      collection,
-      membership,
-      sidebarContext,
-      user,
-      node.id,
-      document,
-      history,
-    ]
+    [documents, collection, membership, sidebarContext, user, node.id, document]
   );
 
   const contextMenuAction = useDocumentMenuAction({

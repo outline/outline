@@ -1,28 +1,23 @@
 import { observer } from "mobx-react";
 import { Suspense } from "react";
-import type { RouteComponentProps } from "react-router-dom";
-import { Switch, Redirect } from "react-router-dom";
+import type { RouteObject } from "react-router-dom";
+import { Navigate, useParams, useRoutes } from "react-router-dom";
 import DocumentNew from "~/scenes/DocumentNew";
 import Error404 from "~/scenes/Errors/Error404";
 import AuthenticatedLayout from "~/components/AuthenticatedLayout";
 import CenteredContent from "~/components/CenteredContent";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
-import Route from "~/components/ProfiledRoute";
 import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQueryNotices from "~/hooks/useQueryNotices";
 import lazy from "~/utils/lazyWithRetry";
 import {
-  archivePath,
-  draftsPath,
   homePath,
   searchPath,
   settingsPath,
   matchDocumentSlug as documentSlug,
   matchCollectionSlug as collectionSlug,
-  trashPath,
-  debugPath,
 } from "~/utils/routeHelpers";
 import env from "~/env";
 
@@ -37,17 +32,20 @@ const Trash = lazy(() => import("~/scenes/Trash"));
 const Debug = lazy(() => import("~/scenes/Developer/Debug"));
 const Changesets = lazy(() => import("~/scenes/Developer/Changesets"));
 
-const RedirectDocument = ({
-  match,
-}: RouteComponentProps<{ documentSlug: string }>) => (
-  <Redirect
-    to={
-      match.params.documentSlug
-        ? `/doc/${match.params.documentSlug}`
-        : homePath()
-    }
-  />
-);
+/** Strips the leading slash so a path can be used as a descendant route. */
+const rel = (path: string) => path.replace(/^\//, "");
+
+/** Redirects a `/d/:documentSlug` short link to its canonical document path. */
+function RedirectDocument() {
+  const { documentSlug: slug } = useParams();
+  return <Navigate to={slug ? `/doc/${slug}` : homePath()} replace />;
+}
+
+/** Redirects a legacy `/collections/*` path to its `/collection/*` form. */
+function RedirectCollections() {
+  const params = useParams();
+  return <Navigate to={`/collection/${params["*"] ?? ""}`} replace />;
+}
 
 /**
  * The authenticated routes are all the routes of the application that require
@@ -57,6 +55,52 @@ function AuthenticatedRoutes() {
   useQueryNotices();
   const team = useCurrentTeam();
   const can = usePolicy(team);
+
+  const routes: RouteObject[] = [
+    ...(can.createDocument
+      ? [
+          { path: rel("/drafts"), element: <Drafts /> },
+          { path: rel("/archive"), element: <Archive /> },
+          { path: rel("/trash"), element: <Trash /> },
+        ]
+      : []),
+    { path: `${rel(homePath())}/*`, element: <Home /> },
+    { path: "dashboard", element: <Navigate to={homePath()} replace /> },
+    { path: "starred", element: <Navigate to={homePath()} replace /> },
+    {
+      path: "templates",
+      element: <Navigate to={settingsPath("templates")} replace />,
+    },
+    { path: "collections/*", element: <RedirectCollections /> },
+    {
+      path: `collection/${collectionSlug}/new`,
+      element: <DocumentNew />,
+    },
+    {
+      path: `collection/${collectionSlug}/*`,
+      element: <Collection />,
+    },
+    { path: "doc/new", element: <DocumentNew /> },
+    { path: `d/${documentSlug}`, element: <RedirectDocument /> },
+    {
+      path: `doc/${documentSlug}/history/:revisionId?`,
+      element: <Document />,
+    },
+    { path: `doc/${documentSlug}/edit`, element: <Document /> },
+    { path: `doc/${documentSlug}/*`, element: <Document /> },
+    { path: `${rel(searchPath())}/:query?`, element: <Search /> },
+    ...(env.isDevelopment
+      ? [
+          { path: rel("/debug"), element: <Debug /> },
+          { path: rel("/debug/changesets"), element: <Changesets /> },
+        ]
+      : []),
+    { path: "404", element: <Error404 /> },
+    { path: "settings/*", element: <SettingsRoutes /> },
+    { path: "*", element: <Error404 /> },
+  ];
+
+  const element = useRoutes(routes);
 
   return (
     <WebsocketProvider>
@@ -68,69 +112,7 @@ function AuthenticatedRoutes() {
             </CenteredContent>
           }
         >
-          <Switch>
-            {can.createDocument && (
-              <Route exact path={draftsPath()} component={Drafts} />
-            )}
-            {can.createDocument && (
-              <Route exact path={archivePath()} component={Archive} />
-            )}
-            {can.createDocument && (
-              <Route exact path={trashPath()} component={Trash} />
-            )}
-            <Route path={`${homePath()}/:tab?`} component={Home} />
-            <Redirect from="/dashboard" to={homePath()} />
-            <Redirect exact from="/starred" to={homePath()} />
-            <Redirect exact from="/templates" to={settingsPath("templates")} />
-            <Redirect exact from="/collections/*" to="/collection/*" />
-            <Route
-              exact
-              path={`/collection/${collectionSlug}/new`}
-              component={DocumentNew}
-            />
-            <Route
-              exact
-              path={`/collection/${collectionSlug}/overview/edit`}
-              component={Collection}
-            />
-            <Route
-              exact
-              path={`/collection/${collectionSlug}/:tab?`}
-              component={Collection}
-            />
-            <Route exact path="/doc/new" component={DocumentNew} />
-            <Route
-              exact
-              path={`/d/${documentSlug}`}
-              component={RedirectDocument}
-            />
-            <Route
-              exact
-              path={`/doc/${documentSlug}/history/:revisionId?`}
-              component={Document}
-            />
-
-            <Route
-              exact
-              path={`/doc/${documentSlug}/edit`}
-              component={Document}
-            />
-            <Route path={`/doc/${documentSlug}`} component={Document} />
-            <Route exact path={`${searchPath()}/:query?`} component={Search} />
-            {env.isDevelopment && (
-              <Route exact path={debugPath()} component={Debug} />
-            )}
-            {env.isDevelopment && (
-              <Route
-                exact
-                path={`${debugPath()}/changesets`}
-                component={Changesets}
-              />
-            )}
-            <Route exact path="/404" component={Error404} />
-            <SettingsRoutes />
-            <Route component={Error404} />
-          </Switch>
+          {element}
         </Suspense>
       </AuthenticatedLayout>
     </WebsocketProvider>

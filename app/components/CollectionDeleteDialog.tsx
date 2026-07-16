@@ -1,12 +1,12 @@
 import { observer } from "mobx-react";
 import { useTranslation, Trans } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import type Collection from "~/models/Collection";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
 import { homePath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -17,7 +17,6 @@ type Props = {
 function CollectionDeleteDialog({ collection, onSubmit }: Props) {
   const team = useCurrentTeam();
   const { ui } = useStores();
-  const history = useHistory();
   const { t } = useTranslation();
 
   const handleSubmit = async () => {

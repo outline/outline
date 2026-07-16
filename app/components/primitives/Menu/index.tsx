@@ -1,7 +1,7 @@
 import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import * as Components from "../components/Menu";
-import type { LocationDescriptor } from "history";
+import type { To } from "react-router-dom";
 import * as React from "react";
 import Tooltip from "~/components/Tooltip";
 import { CheckmarkIcon } from "outline-icons";
@@ -322,7 +322,7 @@ const MenuButton = React.forwardRef<
 MenuButton.displayName = "MenuButton";
 
 type MenuInternalLinkProps = BaseItemProps & {
-  to: LocationDescriptor;
+  to: To;
 } & Omit<
     React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
     "children" | "asChild" | "onClick"

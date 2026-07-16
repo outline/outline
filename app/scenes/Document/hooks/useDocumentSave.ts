@@ -3,7 +3,6 @@ import { Node } from "prosemirror-model";
 import type { Selection } from "prosemirror-state";
 import { AllSelection, TextSelection } from "prosemirror-state";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
@@ -14,6 +13,7 @@ import type Revision from "~/models/Revision";
 import type { Editor as TEditor } from "~/editor";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
 import { documentEditPath } from "~/utils/routeHelpers";
 
 const AUTOSAVE_DELAY = 3000;
@@ -94,7 +94,6 @@ export function useDocumentSave({
   readOnly,
 }: UseDocumentSaveOptions): UseDocumentSaveResult {
   const { auth, ui } = useStores();
-  const history = useHistory();
   const sidebarContext = useLocationSidebarContext();
 
   // State
@@ -189,7 +188,7 @@ export function useDocumentSave({
         setIsPublishing(false);
       }
     },
-    [document, editorRef, history, sidebarContext, ui]
+    [document, editorRef, sidebarContext, ui]
   );
 
   const onSaveRef = useRef(onSave);

@@ -2,9 +2,9 @@ import {
   useFocusEffect,
   useRovingTabIndex,
 } from "@getoutline/react-roving-tabindex";
-import type { LocationDescriptor } from "history";
 import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
+import type { ToWithState } from "~/types";
 import styled, { useTheme } from "styled-components";
 import { s, hover, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
@@ -14,7 +14,7 @@ export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   /** An icon or image to display to the left of the list item */
   image?: React.ReactNode;
   /** An internal location to navigate to on click, if provided the list item will have hover styles */
-  to?: LocationDescriptor;
+  to?: ToWithState;
   /** An optional click handler, if provided the list item will have hover styles */
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   /** An optional keydown handler, if provided the list item will have hover styles */
@@ -172,7 +172,7 @@ const Wrapper = styled.a<{
   $border?: boolean;
   $hover?: boolean;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
-  to?: LocationDescriptor;
+  to?: ToWithState;
 }>`
   display: flex;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};

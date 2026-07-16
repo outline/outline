@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { GlobeIcon, WarningIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { Link, useHistory, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { ConditionalFade } from "~/components/Fade";
 import Heading from "~/components/Heading";
@@ -16,6 +16,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
+import history from "~/utils/history";
 import { SharesTable } from "./components/SharesTable";
 import { StickyFilters } from "./components/StickyFilters";
 
@@ -23,7 +24,6 @@ function Shares() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const location = useLocation();
-  const history = useHistory();
   const { shares, auth } = useStores();
   const canShareDocuments = auth.team && auth.team.sharing;
   const can = usePolicy(team);
@@ -69,7 +69,7 @@ function Shares() {
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, location.pathname]
   );
 
   const handleSearch = useCallback((event) => {

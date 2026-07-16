@@ -2,7 +2,7 @@ import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useRouteMatch } from "react-router-dom";
+import { useMatch } from "react-router-dom";
 import styled from "styled-components";
 import type { ProsemirrorData } from "@shared/types";
 import { UserPreference } from "@shared/types";
@@ -20,6 +20,7 @@ import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import { matchDocumentSlug } from "~/utils/routeHelpers";
 import type { CommentSortOption } from "~/types";
 import { CommentSortType } from "~/types";
 import CommentForm from "./CommentForm";
@@ -34,8 +35,10 @@ function Comments() {
   const { editor, isEditorInitialized, setFocusedCommentId } =
     useDocumentContext();
   const { t } = useTranslation();
-  const match = useRouteMatch<{ documentSlug: string }>();
-  const document = documents.get(match.params.documentSlug);
+  // Matched against the location rather than route params because the sidebar
+  // renders outside the document route context.
+  const match = useMatch(`/doc/${matchDocumentSlug}/*`);
+  const document = documents.get(match?.params.documentSlug ?? "");
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
   const isMobile = useMobile();

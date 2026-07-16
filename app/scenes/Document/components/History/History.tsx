@@ -3,7 +3,7 @@ import { orderBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useRouteMatch } from "react-router-dom";
+import { useMatch } from "react-router-dom";
 import { Pagination } from "@shared/constants";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Revision from "~/models/Revision";
@@ -17,7 +17,12 @@ import useKeyDown from "~/hooks/useKeyDown";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { documentPath, matchDocumentHistory } from "~/utils/routeHelpers";
+import history from "~/utils/history";
+import {
+  documentPath,
+  matchDocumentHistory,
+  matchDocumentSlug,
+} from "~/utils/routeHelpers";
 import { isTruthyQueryValue } from "~/utils/urls";
 import Sidebar from "../SidebarLayout";
 import useMobile from "~/hooks/useMobile";
@@ -40,14 +45,13 @@ const DocumentEvents = [
 function History() {
   const { events, documents, revisions } = useStores();
   const { t } = useTranslation();
-  const match = useRouteMatch<{ documentSlug: string }>();
-  const historyMatch = useRouteMatch<{ revisionId?: string }>({
-    path: matchDocumentHistory,
-  });
-  const history = useHistory();
+  // Matched against the location rather than route params because the sidebar
+  // renders outside the document route context.
+  const documentMatch = useMatch(`/doc/${matchDocumentSlug}/*`);
+  const historyMatch = useMatch(matchDocumentHistory);
   const query = useQuery();
   const sidebarContext = useLocationSidebarContext();
-  const document = documents.get(match.params.documentSlug);
+  const document = documents.get(documentMatch?.params.documentSlug ?? "");
   const [revisionsOffset, setRevisionsOffset] = React.useState(0);
   const [eventsOffset, setEventsOffset] = React.useState(0);
   const isMobile = useMobile();
@@ -82,7 +86,7 @@ function History() {
         state: history.location.state,
       });
     },
-    [history]
+    []
   );
 
   // Handler for toggling the "Show Changes" switch, updating state and URL parameter
@@ -247,7 +251,7 @@ function History() {
     } else {
       history.goBack();
     }
-  }, [history, document, sidebarContext, isMobile]);
+  }, [document, sidebarContext, isMobile]);
 
   useKeyDown("Escape", onCloseHistory);
 

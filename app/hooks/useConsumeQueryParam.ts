@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useHistory } from "react-router-dom";
+import history from "~/utils/history";
 import useQuery from "./useQuery";
 
 /**
@@ -12,7 +12,6 @@ import useQuery from "./useQuery";
  */
 export default function useConsumeQueryParam(name: string): string | null {
   const query = useQuery();
-  const history = useHistory();
   const value = query.get(name);
   const consumedRef = useRef(false);
 
@@ -28,7 +27,7 @@ export default function useConsumeQueryParam(name: string): string | null {
         search: search ? `?${search}` : "",
       });
     }
-  }, [value, name, history]);
+  }, [value, name]);
 
   return consumedRef.current ? null : value;
 }

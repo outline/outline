@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { PlusIcon, WebhooksIcon } from "outline-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
@@ -18,6 +18,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
+import history from "~/utils/history";
 import { StickyFilters } from "~/scenes/Settings/components/StickyFilters";
 import { createWebhookSubscription } from "./actions";
 import { WebhookSubscriptionsTable } from "./components/WebhookSubscriptionsTable";
@@ -29,7 +30,6 @@ function Webhooks() {
   const can = usePolicy(team);
   const appName = env.APP_NAME;
   const params = useQuery();
-  const history = useHistory();
   const location = useLocation();
   const [query, setQuery] = useState(params.get("query") || "");
 
@@ -81,7 +81,7 @@ function Webhooks() {
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, location.pathname]
   );
 
   const handleSearch = useCallback(

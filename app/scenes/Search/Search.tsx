@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -29,6 +29,7 @@ import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import type { PaginationParams, SearchResult } from "~/types";
 import { preventDefault } from "~/utils/events";
+import history from "~/utils/history";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe, isTruthyQueryValue } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -50,9 +51,8 @@ function Search() {
   // routing
   const params = useQuery();
   const location = useLocation();
-  const history = useHistory();
-  const routeMatch = useRouteMatch<{ query: string }>();
-  const handleGoBack = React.useCallback(() => history.goBack(), [history]);
+  const { query: routeQuery } = useParams<{ query: string }>();
+  const handleGoBack = React.useCallback(() => history.goBack(), []);
 
   // refs
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -61,7 +61,7 @@ function Search() {
 
   // filters
   const decodedQuery = decodeURIComponentSafe(
-    routeMatch.params.query ?? params.get("q") ?? params.get("query") ?? ""
+    routeQuery ?? params.get("q") ?? params.get("query") ?? ""
   ).trim();
   const query = decodedQuery !== "" ? decodedQuery : undefined;
   const collectionId = params.get("collectionId") ?? "";
@@ -146,7 +146,7 @@ function Search() {
 
   const updateLocation = (query: string) => {
     // If query came from route params, navigate to base search path
-    const pathname = routeMatch.params.query ? searchPath() : location.pathname;
+    const pathname = routeQuery ? searchPath() : location.pathname;
 
     history.replace({
       pathname,

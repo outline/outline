@@ -1,4 +1,4 @@
-import type { Location, LocationDescriptor } from "history";
+import type { Location, Path } from "react-router-dom";
 import type { TFunction } from "i18next";
 import type {
   JSONValue,
@@ -57,10 +57,13 @@ export type MenuHeading = {
   title: React.ReactNode;
 };
 
+/** A navigation target that may additionally carry location state. */
+export type ToWithState = string | (Partial<Path> & { state?: unknown });
+
 export type MenuInternalLink = {
   type: "route";
   title: React.ReactNode;
-  to: LocationDescriptor;
+  to: ToWithState;
   visible?: boolean;
   selected?: boolean;
   disabled?: boolean;
@@ -165,7 +168,7 @@ export type Action = BaseAction & {
 
 export type InternalLinkAction = BaseAction & {
   variant: "internal_link";
-  to: ((context: ActionContext) => LocationDescriptor) | LocationDescriptor;
+  to: ((context: ActionContext) => ToWithState) | ToWithState;
 };
 
 export type ExternalLinkAction = BaseAction & {

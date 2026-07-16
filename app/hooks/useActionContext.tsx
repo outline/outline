@@ -2,8 +2,8 @@ import { observer } from "mobx-react";
 import type { ReactNode } from "react";
 import React, { createContext, useCallback, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router";
 import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
 import type Model from "~/models/base/Model";
 import type Policy from "~/models/Policy";
 import type { ActionContext as ActionContextType } from "~/types";
@@ -56,12 +56,9 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
   const stores = useStores();
   const { t } = useTranslation();
 
-  // Use history (stable reference) and read location lazily via a getter so
-  // navigation does not invalidate the context value. Action perform/visible
-  // callbacks see the current location at call time via history.location,
-  // which react-router updates on every navigation.
-  const history = useHistory();
-
+  // Read location lazily via a getter so navigation does not invalidate the
+  // context value. Action perform/visible callbacks see the current location at
+  // call time via history.location, which the router updates on every navigation.
   const {
     activeModels: valueModels,
     isMenu,
@@ -191,7 +188,6 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     parentContext,
     stores,
     t,
-    history,
     valueModels,
     isMenu,
     isCommandBar,

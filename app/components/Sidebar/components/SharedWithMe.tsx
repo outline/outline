@@ -20,15 +20,13 @@ import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
 import SidebarContext, { groupSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
-import { useHistory } from "react-router-dom";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
-import { patchLocation } from "~/utils/history";
+import history, { patchLocation } from "~/utils/history";
 
 function SharedWithMe() {
   const { ui, userMemberships, groupMemberships } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser();
-  const history = useHistory();
   const locationSidebarContext = useLocationSidebarContext();
 
   usePaginatedRequest<GroupMembership>(groupMemberships.fetchAll);

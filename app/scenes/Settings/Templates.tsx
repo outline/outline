@@ -4,7 +4,7 @@ import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
 import { useEffect, useMemo, useCallback, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import type Template from "~/models/Template";
 import { Action } from "~/components/Actions";
@@ -20,6 +20,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
+import history from "~/utils/history";
 import { StickyFilters } from "./components/StickyFilters";
 import { TemplatesTable } from "./components/TemplatesTable";
 
@@ -39,7 +40,6 @@ function Templates() {
   const { templates } = useStores();
   const team = useCurrentTeam();
   const can = usePolicy(team);
-  const history = useHistory();
   const location = useLocation();
   const params = useQuery();
   const [query, setQuery] = useState("");
@@ -85,7 +85,7 @@ function Templates() {
         search: params.toString(),
       });
     },
-    [params, history, location.pathname]
+    [params, location.pathname]
   );
 
   const handleSearch = useCallback((event) => {

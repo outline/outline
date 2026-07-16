@@ -1,42 +1,57 @@
-import type { LocationDescriptor, LocationDescriptorObject } from "history";
 import * as React from "react";
-import { type match, NavLink, Route } from "react-router-dom";
+import type { Location, To } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import type { ToWithState } from "~/types";
 
-type Props = React.ComponentProps<typeof NavLink> & {
-  children?: (
-    match:
-      | match<{
-          [x: string]: string | undefined;
-        }>
-      | boolean
-      | null,
-    location: LocationDescriptorObject
-  ) => React.ReactNode;
+type Props = Omit<
+  React.ComponentProps<typeof NavLink>,
+  "children" | "style" | "to"
+> & {
+  children?:
+    | ((isActive: boolean, location: Location) => React.ReactNode)
+    | React.ReactNode;
   /** If true, the tab will only be active if the path matches exactly */
   exact?: boolean;
   /** CSS properties to apply to the link when it is active */
   activeStyle?: React.CSSProperties;
+  /** Static styles to apply to the link */
+  style?: React.CSSProperties;
   /** The path to match against the current location */
-  to: LocationDescriptor;
+  to: ToWithState;
 };
 
+/** Splits a location descriptor into a navigation target and its state. */
+function splitTo(to: ToWithState): { to: To; state: unknown } {
+  if (typeof to === "object" && to && "state" in to) {
+    const { state, ...path } = to;
+    return { to: path, state };
+  }
+  return { to, state: undefined };
+}
+
 function NavLinkWithChildrenFunc(
-  { to, exact = false, children, ...rest }: Props,
+  { to, exact = false, children, activeStyle, style, ...rest }: Props,
   ref?: React.Ref<HTMLAnchorElement>
 ) {
+  const location = useLocation();
+  const target = splitTo(to);
+
   return (
-    <Route path={typeof to === "string" ? to : to?.pathname} exact={exact}>
-      {({ match, location }) => (
-        <NavLink {...rest} to={to} exact={exact} ref={ref}>
-          {children
-            ? children(
-                rest.isActive ? rest.isActive(match, location) : match,
-                location
-              )
-            : null}
-        </NavLink>
-      )}
-    </Route>
+    <NavLink
+      {...rest}
+      to={target.to}
+      state={target.state}
+      end={exact}
+      ref={ref}
+      style={({ isActive }) => ({
+        ...style,
+        ...(isActive ? activeStyle : undefined),
+      })}
+    >
+      {typeof children === "function"
+        ? ({ isActive }) => children(isActive, location)
+        : children}
+    </NavLink>
   );
 }
 

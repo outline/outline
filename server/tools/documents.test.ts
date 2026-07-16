@@ -15,7 +15,11 @@ import {
   UserMembership,
 } from "@server/models";
 import { getTestServer } from "@server/test/support";
-import { buildOAuthUser, callMcpTool, parseMcpListContent } from "@server/test/McpHelper";
+import {
+  buildOAuthUser,
+  callMcpTool,
+  parseMcpListContent,
+} from "@server/test/McpHelper";
 
 const server = getTestServer();
 

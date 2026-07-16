@@ -1,4 +1,4 @@
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 import { logoutPath } from "~/utils/routeHelpers";
@@ -14,7 +14,7 @@ const Logout = () => {
   if (env.OIDC_LOGOUT_URI || auth.lastSignedIn === "oidc") {
     return null; // user will be redirected to logout URI after logout
   }
-  return <Redirect to={logoutPath()} />;
+  return <Navigate to={logoutPath()} replace />;
 };
 
 export default Logout;
