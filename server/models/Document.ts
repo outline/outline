@@ -10,7 +10,13 @@ import type {
   FindOptions,
   WhereOptions,
 } from "sequelize";
-import { Transaction, Op, EmptyResultError, Sequelize } from "sequelize";
+import {
+  Transaction,
+  Op,
+  EmptyResultError,
+  Sequelize,
+  QueryTypes,
+} from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -984,34 +990,51 @@ class Document extends ArchivableModel<
     where?: Omit<WhereOptions<Document>, "parentDocumentId">,
     options?: FindOptions<Document>
   ): Promise<string[]> => {
-    const findAllChildDocumentIds = async (
-      ...parentDocumentId: string[]
-    ): Promise<string[]> => {
-      // Unscoped as this method only ever reads the id column
-      const childDocuments = await (this.constructor as typeof Document)
-        .unscoped()
-        .findAll({
-          attributes: ["id"],
-          where: {
-            parentDocumentId,
-            ...where,
-          },
-          ...options,
-        });
+    const model = this.constructor as typeof Document;
 
-      const childDocumentIds = childDocuments.map((doc) => doc.id);
-
-      if (childDocumentIds.length > 0) {
-        return [
-          ...childDocumentIds,
-          ...(await findAllChildDocumentIds(...childDocumentIds)),
-        ];
-      }
-
-      return childDocumentIds;
+    // Sequelize types the query generator as unknown; narrow to the single
+    // method used to build the shared filter fragment.
+    const queryGenerator = model.sequelize!.getQueryInterface()
+      .queryGenerator as {
+      getWhereConditions(
+        where: WhereOptions<Document>,
+        tableName: string,
+        factory: typeof Document
+      ): string;
     };
 
-    return findAllChildDocumentIds(this.id);
+    const whereConditions = queryGenerator.getWhereConditions(
+      { deletedAt: null, ...where },
+      "documents",
+      model
+    );
+
+    // A single recursive CTE walks the entire subtree in one round-trip rather
+    // than issuing one query per level of nesting (N+1). Rows are ordered by
+    // depth to ensure breadth-first result ordering.
+    const rows = await model.sequelize!.query<{ id: string }>(
+      `
+      WITH RECURSIVE children AS (
+        SELECT documents.id, 1 AS depth
+        FROM documents
+        WHERE documents."parentDocumentId" = :parentDocumentId
+          AND (${whereConditions})
+        UNION
+        SELECT documents.id, children.depth + 1
+        FROM documents
+        INNER JOIN children ON documents."parentDocumentId" = children.id
+        WHERE (${whereConditions})
+      )
+      SELECT id FROM children ORDER BY depth
+      `,
+      {
+        replacements: { parentDocumentId: this.id },
+        transaction: options?.transaction,
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    return rows.map((row) => row.id);
   };
 
   publish = async (
