@@ -17,11 +17,7 @@ export class NodeViewRenderer<T extends object> implements PortalRenderer {
   @observable public props: T;
 
   /**
-   * Stable identity used as the React key when renderers are rendered as a
-   * list. Without it the keyless list reconciles by index, so churn in the set
-   * (e.g. decoration widgets being added and removed) can leave a portal's DOM
-   * orphaned — present in the document but no longer managed by React, so its
-   * event handlers stop firing.
+   * Stable identity used as the React key when renderers are rendered
    */
   public readonly key = `renderer-${nextRendererId++}`;
 

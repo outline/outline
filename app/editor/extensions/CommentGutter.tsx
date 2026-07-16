@@ -31,10 +31,6 @@ export default class CommentGutter extends Extension {
     const handleClickCommentMark = (commentId: string) =>
       this.editor.props.onClickCommentMark?.(commentId);
 
-    // Mirror the comment mark's hover state when its gutter indicator is
-    // hovered. This is applied as container CSS rather than by mutating the
-    // mark's DOM directly, which would trip ProseMirror's mutation observer
-    // and redraw the line — tearing down and recreating this gutter widget.
     const handleHoverCommentMark = (commentId: string, hovered: boolean) => {
       this.editor.setHoveredCommentId(hovered ? commentId : null);
     };
@@ -197,10 +193,7 @@ export default class CommentGutter extends Extension {
             key: `comment-gutter-${anchor}-${[...commentIds].sort().join("-")}`,
             side: -1,
             ignoreSelection: true,
-            // Keep interactions on the indicator from reaching ProseMirror,
-            // which would otherwise treat the click as an editor selection and
-            // redraw the slot — tearing down and recreating this widget (and
-            // its React portal) mid-click, so the handlers never resolve.
+            // Keep interactions on the indicator from reaching ProseMirror
             stopEvent: () => true,
             destroy: (node: HTMLElement) => {
               // Clear any forced hover state, otherwise it can remain stuck
