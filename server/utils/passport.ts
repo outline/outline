@@ -13,6 +13,7 @@ import { errToString, toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import { Team, User } from "@server/models";
 import Redis from "@server/storage/redis";
 import { InternalError, OAuthStateMismatchError } from "../errors";
@@ -102,17 +103,30 @@ export async function startOAuthFlow(ctx: Context, next: Next) {
  *
  * Passport OAuth2 strategies build their own HTTP client and do not honor the
  * standard proxy environment variables, so the agent must be attached to the
- * strategy explicitly. This is a no-op when no proxy is configured.
+ * strategy's internal `_oauth2` client explicitly. This is a no-op when no
+ * proxy is configured.
  *
  * @param strategy the OAuth2-based passport strategy to configure.
  * @returns the same strategy instance, for convenient chaining.
  */
 export function withProxyAgent<T extends Strategy>(strategy: T): T {
   const proxy = process.env.https_proxy ?? process.env.HTTPS_PROXY;
-  if (proxy) {
-    // @ts-expect-error _oauth2 is a protected internal of OAuth2-based strategies
-    strategy._oauth2.setAgent(new HttpsProxyAgent(proxy));
+  if (!proxy) {
+    return strategy;
   }
+
+  // `_oauth2` is a private internal, so degrade gracefully if upstream removes it.
+  // @ts-expect-error _oauth2 is not part of the public strategy type
+  const client = strategy._oauth2;
+  if (typeof client?.setAgent !== "function") {
+    Logger.warn(
+      "Unable to apply HTTPS proxy to auth strategy; the OAuth2 client is not available",
+      { strategy: strategy.name }
+    );
+    return strategy;
+  }
+
+  client.setAgent(new HttpsProxyAgent(proxy));
   return strategy;
 }
 
