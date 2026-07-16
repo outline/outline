@@ -1217,7 +1217,7 @@ ${
     text-decoration: underline 2px ${props.theme.commentMarkBackground};
     transition: background 100ms ease-in-out;
 
-    &:hover, &.${EditorStyleHelper.commentHovered} {
+    &:hover {
       ${props.readOnly ? "cursor: var(--pointer);" : ""}
       background: ${props.theme.commentMarkBackground};
 
@@ -1226,10 +1226,6 @@ ${
       }
     }
   }
-}
-
-a.${EditorStyleHelper.commentHovered} ~ span.component-image div.image-wrapper {
-  outline: ${props.theme.commentedImageOutlineDark} solid 2px;
 }
 `
     : `
@@ -1374,6 +1370,16 @@ p {
 
 .heading-content {
   position: relative;
+}
+
+/* The heading is the gutter's containing block (unlike paragraphs, which
+   resolve against the padded .ProseMirror). Pin it vertically to the line and
+   add the editor's horizontal padding so it aligns with other gutter marks. */
+.heading-content .${EditorStyleHelper.commentGutter} {
+  top: 0;
+  bottom: 0;
+  justify-content: center;
+  inset-inline-start: calc(100% + ${EditorStyleHelper.padding}px);
 }
 
 .heading-content a,

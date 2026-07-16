@@ -182,6 +182,8 @@ type State = {
   isEditorFocused: boolean;
   /** Image that's being currently viewed in Lightbox */
   activeLightboxImage: LightboxImage | null;
+  /** The comment thread currently highlighted from its gutter indicator */
+  hoveredCommentId: string | null;
 };
 
 /**
@@ -212,6 +214,7 @@ export class Editor extends React.PureComponent<
     isRTL: false,
     isEditorFocused: false,
     activeLightboxImage: null,
+    hoveredCommentId: null,
   };
 
   isInitialized = false;
@@ -933,6 +936,19 @@ export class Editor extends React.PureComponent<
     this.portalDestroyers.delete(element);
   }
 
+  /**
+   * Highlight (or clear) the comment thread whose gutter indicator is hovered.
+   * Applied as container CSS rather than by mutating the mark's DOM directly,
+   * which would trip ProseMirror's mutation observer and force a redraw.
+   *
+   * @param commentId - The comment thread id to highlight, or null to clear.
+   */
+  public setHoveredCommentId = (commentId: string | null) => {
+    if (this.state.hoveredCommentId !== commentId) {
+      this.setState({ hoveredCommentId: commentId });
+    }
+  };
+
   public render() {
     const { readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
@@ -956,6 +972,7 @@ export class Editor extends React.PureComponent<
               readOnly={readOnly}
               readOnlyWriteCheckboxes={canUpdate}
               focusedCommentId={this.props.focusedCommentId}
+              hoveredCommentId={this.state.hoveredCommentId ?? undefined}
               userId={this.props.userId}
               editorStyle={this.props.editorStyle}
               commenting={!!this.props.onClickCommentMark}
@@ -1001,6 +1018,7 @@ export class Editor extends React.PureComponent<
 const EditorContainer = styled(Styles)<{
   userId?: string;
   focusedCommentId?: string;
+  hoveredCommentId?: string;
 }>`
   ${(props) =>
     props.focusedCommentId &&
@@ -1014,6 +1032,24 @@ const EditorContainer = styled(Styles)<{
         }
       }
       a#comment-${props.focusedCommentId}
+        ~ span.component-image
+        div.image-wrapper {
+        outline: ${props.theme.commentedImageOutlineDark} solid 2px;
+      }
+    `}
+
+  ${(props) =>
+    props.hoveredCommentId &&
+    props.hoveredCommentId !== props.focusedCommentId &&
+    css`
+      span#comment-${props.hoveredCommentId} {
+        background: ${props.theme.commentMarkBackground};
+
+        * {
+          background: transparent !important;
+        }
+      }
+      a#comment-${props.hoveredCommentId}
         ~ span.component-image
         div.image-wrapper {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;

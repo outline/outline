@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import stores from "~/stores";
 
 type IconProps = {
@@ -60,7 +61,11 @@ export function CommentGutter({
   onHoverCommentMark,
 }: Props) {
   return (
-    <Gutter contentEditable={false} suppressContentEditableWarning>
+    <Gutter
+      className={EditorStyleHelper.commentGutter}
+      contentEditable={false}
+      suppressContentEditableWarning
+    >
       {commentIds.map((commentId) => (
         <CommentGutterIcon
           key={commentId}
