@@ -102,6 +102,16 @@ type AdditionalFindOptions = {
   rejectOnEmpty?: boolean | Error;
 };
 
+/** Sequelize types the query generator as unknown; this narrows to the single
+ * method used to build a raw SQL filter fragment. */
+interface QueryGeneratorWithWhere {
+  getWhereConditions(
+    where: WhereOptions<Document>,
+    tableName: string,
+    factory: typeof Document
+  ): string;
+}
+
 // @ts-expect-error Type 'Literal' is not assignable to type 'string | ProjectionAlias'.
 @DefaultScope(() => ({
   include: [
@@ -991,17 +1001,8 @@ class Document extends ArchivableModel<
     options?: FindOptions<Document>
   ): Promise<string[]> => {
     const model = this.constructor as typeof Document;
-
-    // Sequelize types the query generator as unknown; narrow to the single
-    // method used to build the shared filter fragment.
-    const queryGenerator = model.sequelize!.getQueryInterface()
-      .queryGenerator as {
-      getWhereConditions(
-        where: WhereOptions<Document>,
-        tableName: string,
-        factory: typeof Document
-      ): string;
-    };
+    const queryGenerator = this.sequelize!.getQueryInterface()
+      .queryGenerator as QueryGeneratorWithWhere;
 
     const whereConditions = queryGenerator.getWhereConditions(
       { deletedAt: null, ...where },
@@ -1011,15 +1012,16 @@ class Document extends ArchivableModel<
 
     // A single recursive CTE walks the entire subtree in one round-trip rather
     // than issuing one query per level of nesting (N+1). Rows are ordered by
-    // depth to ensure breadth-first result ordering.
-    const rows = await model.sequelize!.query<{ id: string }>(
+    // depth to ensure breadth-first result ordering. UNION ALL is safe as the
+    // tree is acyclic, so each descendant id is reached exactly once.
+    const rows = await this.sequelize!.query<{ id: string }>(
       `
       WITH RECURSIVE children AS (
         SELECT documents.id, 1 AS depth
         FROM documents
         WHERE documents."parentDocumentId" = :parentDocumentId
           AND (${whereConditions})
-        UNION
+        UNION ALL
         SELECT documents.id, children.depth + 1
         FROM documents
         INNER JOIN children ON documents."parentDocumentId" = children.id
