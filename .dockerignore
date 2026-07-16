@@ -23,4 +23,5 @@ node_modules
 **/*.test.jsx
 **/__tests__
 **/__mocks__
+**/__snapshots__
 **/test/fixtures
