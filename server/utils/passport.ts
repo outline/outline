@@ -1,7 +1,9 @@
 import crypto from "node:crypto";
 import { addMinutes, subMinutes } from "date-fns";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import type { JwtPayload } from "jsonwebtoken";
 import type { Context, Next } from "koa";
+import type { Strategy } from "passport";
 import type {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
@@ -92,6 +94,26 @@ export async function startOAuthFlow(ctx: Context, next: Next) {
   }
 
   return next();
+}
+
+/**
+ * Routes a passport OAuth2 strategy's outbound token and userinfo requests
+ * through the HTTPS proxy configured in the environment, when present.
+ *
+ * Passport OAuth2 strategies build their own HTTP client and do not honor the
+ * standard proxy environment variables, so the agent must be attached to the
+ * strategy explicitly. This is a no-op when no proxy is configured.
+ *
+ * @param strategy the OAuth2-based passport strategy to configure.
+ * @returns the same strategy instance, for convenient chaining.
+ */
+export function withProxyAgent<T extends Strategy>(strategy: T): T {
+  const proxy = process.env.https_proxy ?? process.env.HTTPS_PROXY;
+  if (proxy) {
+    // @ts-expect-error _oauth2 is a protected internal of OAuth2-based strategies
+    strategy._oauth2.setAgent(new HttpsProxyAgent(proxy));
+  }
+  return strategy;
 }
 
 /**

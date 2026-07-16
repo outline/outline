@@ -25,6 +25,7 @@ import {
   getUserFromOAuthState,
   request,
   startOAuthFlow,
+  withProxyAgent,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -52,212 +53,214 @@ export function createOIDCRouter(
 
   passport.use(
     config.id,
-    new OIDCStrategy(
-      {
-        authorizationURL: endpoints.authorizationURL,
-        tokenURL: endpoints.tokenURL,
-        clientID: env.OIDC_CLIENT_ID!,
-        clientSecret: env.OIDC_CLIENT_SECRET!,
-        callbackURL: `${env.URL}/auth/${config.id}.callback`,
-        passReqToCallback: true,
-        scope: env.OIDC_SCOPES,
-        // @ts-expect-error custom state store
-        store: new StateStore(endpoints.pkce),
-        state: true,
-        pkce: endpoints.pkce ?? false,
-      },
-      // OpenID Connect standard profile claims can be found in the official
-      // specification.
-      // https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
-      // Non-standard claims may be configured by individual identity providers.
-      // Any claim supplied in response to the userinfo request will be
-      // available on the `profile` parameter
-      async function (
-        req: Request,
-        accessToken: string,
-        refreshToken: string,
-        params: { expires_in: number; id_token: string; scope?: string },
-        _profile: unknown,
-        done: (
-          err: Error | null,
-          user: User | null,
-          result?: AuthenticationResult
-        ) => void
-      ) {
-        const context = req.ctx;
-        try {
-          // Some providers require a POST request to the userinfo endpoint, add them as exceptions here.
-          const usePostMethod = [
-            "https://api.dropboxapi.com/2/openid/userinfo",
-          ];
+    withProxyAgent(
+      new OIDCStrategy(
+        {
+          authorizationURL: endpoints.authorizationURL,
+          tokenURL: endpoints.tokenURL,
+          clientID: env.OIDC_CLIENT_ID!,
+          clientSecret: env.OIDC_CLIENT_SECRET!,
+          callbackURL: `${env.URL}/auth/${config.id}.callback`,
+          passReqToCallback: true,
+          scope: env.OIDC_SCOPES,
+          // @ts-expect-error custom state store
+          store: new StateStore(endpoints.pkce),
+          state: true,
+          pkce: endpoints.pkce ?? false,
+        },
+        // OpenID Connect standard profile claims can be found in the official
+        // specification.
+        // https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+        // Non-standard claims may be configured by individual identity providers.
+        // Any claim supplied in response to the userinfo request will be
+        // available on the `profile` parameter
+        async function (
+          req: Request,
+          accessToken: string,
+          refreshToken: string,
+          params: { expires_in: number; id_token: string; scope?: string },
+          _profile: unknown,
+          done: (
+            err: Error | null,
+            user: User | null,
+            result?: AuthenticationResult
+          ) => void
+        ) {
+          const context = req.ctx;
+          try {
+            // Some providers require a POST request to the userinfo endpoint, add them as exceptions here.
+            const usePostMethod = [
+              "https://api.dropboxapi.com/2/openid/userinfo",
+            ];
 
-          const profile = await request(
-            usePostMethod.includes(endpoints.userInfoURL) ? "POST" : "GET",
-            endpoints.userInfoURL,
-            accessToken
-          );
+            const profile = await request(
+              usePostMethod.includes(endpoints.userInfoURL) ? "POST" : "GET",
+              endpoints.userInfoURL,
+              accessToken
+            );
 
-          // Some providers, namely ADFS, don't provide anything more than the `sub` claim in the userinfo endpoint
-          // So, we'll decode the params.id_token and see if that contains what we need.
-          const token = (() => {
-            try {
-              const decoded = JWT.decode(params.id_token);
+            // Some providers, namely ADFS, don't provide anything more than the `sub` claim in the userinfo endpoint
+            // So, we'll decode the params.id_token and see if that contains what we need.
+            const token = (() => {
+              try {
+                const decoded = JWT.decode(params.id_token);
 
-              if (!decoded || typeof decoded !== "object") {
-                Logger.warn("Decoded id_token is not a valid object");
+                if (!decoded || typeof decoded !== "object") {
+                  Logger.warn("Decoded id_token is not a valid object");
+                  return {};
+                }
+
+                return decoded as {
+                  email?: string;
+                  email_verified?: boolean | string;
+                  preferred_username?: string;
+                  sub?: string;
+                };
+              } catch (err) {
+                Logger.error("id_token decode threw error: ", toError(err));
                 return {};
               }
+            })();
 
-              return decoded as {
-                email?: string;
-                email_verified?: boolean | string;
-                preferred_username?: string;
-                sub?: string;
-              };
-            } catch (err) {
-              Logger.error("id_token decode threw error: ", toError(err));
-              return {};
+            const email = profile.email ?? token.email ?? null;
+
+            if (!email) {
+              throw AuthenticationError(
+                `An email field was not returned in the profile or id_token parameter, but is required.`
+              );
             }
-          })();
 
-          const email = profile.email ?? token.email ?? null;
+            // The email_verified claim is part of the OIDC standard claims.
+            // https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+            const emailVerifiedClaim =
+              profile.email_verified ?? token.email_verified;
+            const emailVerified =
+              emailVerifiedClaim === undefined
+                ? undefined
+                : emailVerifiedClaim === true || emailVerifiedClaim === "true";
 
-          if (!email) {
-            throw AuthenticationError(
-              `An email field was not returned in the profile or id_token parameter, but is required.`
-            );
-          }
+            const team = await getTeamFromContext(context);
+            const client = getClientFromOAuthState(context);
+            const user =
+              context.state?.auth?.user ?? (await getUserFromOAuthState(context));
+            const { domain } = parseEmail(email);
 
-          // The email_verified claim is part of the OIDC standard claims.
-          // https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
-          const emailVerifiedClaim =
-            profile.email_verified ?? token.email_verified;
-          const emailVerified =
-            emailVerifiedClaim === undefined
-              ? undefined
-              : emailVerifiedClaim === true || emailVerifiedClaim === "true";
+            // Only a single OIDC provider is supported – find the existing, if any.
+            const authenticationProvider = team
+              ? ((await AuthenticationProvider.findOne({
+                  where: {
+                    name: "oidc",
+                    teamId: team.id,
+                    providerId: domain,
+                  },
+                })) ??
+                (await AuthenticationProvider.findOne({
+                  where: {
+                    name: "oidc",
+                    teamId: team.id,
+                  },
+                })))
+              : undefined;
 
-          const team = await getTeamFromContext(context);
-          const client = getClientFromOAuthState(context);
-          const user =
-            context.state?.auth?.user ?? (await getUserFromOAuthState(context));
-          const { domain } = parseEmail(email);
+            // Derive a providerId from the OIDC location if there is no existing provider.
+            const oidcURL = new URL(endpoints.authorizationURL);
+            const providerId =
+              authenticationProvider?.providerId ?? oidcURL.hostname;
 
-          // Only a single OIDC provider is supported – find the existing, if any.
-          const authenticationProvider = team
-            ? ((await AuthenticationProvider.findOne({
-                where: {
-                  name: "oidc",
-                  teamId: team.id,
-                  providerId: domain,
-                },
-              })) ??
-              (await AuthenticationProvider.findOne({
-                where: {
-                  name: "oidc",
-                  teamId: team.id,
-                },
-              })))
-            : undefined;
+            if (!domain) {
+              throw OIDCMalformedUserInfoError();
+            }
 
-          // Derive a providerId from the OIDC location if there is no existing provider.
-          const oidcURL = new URL(endpoints.authorizationURL);
-          const providerId =
-            authenticationProvider?.providerId ?? oidcURL.hostname;
+            // remove the TLD and form a subdomain from the remaining
+            const subdomain = slugifyDomain(domain);
 
-          if (!domain) {
-            throw OIDCMalformedUserInfoError();
-          }
+            // Claim name can be overriden using an env variable.
+            // Default is 'preferred_username' as per OIDC spec.
+            // This will default to the profile.preferred_username, but will fall back to preferred_username from the id_token
+            const username =
+              get(profile, env.OIDC_USERNAME_CLAIM) ??
+              get(token, env.OIDC_USERNAME_CLAIM);
+            const name = profile.name || username || profile.username;
+            const profileId = profile.sub ?? token.sub ?? profile.id;
 
-          // remove the TLD and form a subdomain from the remaining
-          const subdomain = slugifyDomain(domain);
+            if (!name) {
+              throw AuthenticationError(
+                `Neither a ${env.OIDC_USERNAME_CLAIM}, "name" or "username" was returned in the profile loaded from ${endpoints.userInfoURL}, but at least one is required.`
+              );
+            }
+            if (!profileId) {
+              throw AuthenticationError(
+                `A user id was not returned in the profile loaded from ${endpoints.userInfoURL}, searched in "sub" and "id" fields.`
+              );
+            }
 
-          // Claim name can be overriden using an env variable.
-          // Default is 'preferred_username' as per OIDC spec.
-          // This will default to the profile.preferred_username, but will fall back to preferred_username from the id_token
-          const username =
-            get(profile, env.OIDC_USERNAME_CLAIM) ??
-            get(token, env.OIDC_USERNAME_CLAIM);
-          const name = profile.name || username || profile.username;
-          const profileId = profile.sub ?? token.sub ?? profile.id;
+            // Check if the picture field is a Base64 data URL and filter it out
+            // to avoid validation errors in the User model
+            let avatarUrl = profile.picture;
+            if (profile.picture && isBase64Url(profile.picture)) {
+              Logger.debug(
+                "authentication",
+                "Filtering out Base64 data URL from avatar",
+                {
+                  email,
+                }
+              );
+              avatarUrl = null;
+            }
 
-          if (!name) {
-            throw AuthenticationError(
-              `Neither a ${env.OIDC_USERNAME_CLAIM}, "name" or "username" was returned in the profile loaded from ${endpoints.userInfoURL}, but at least one is required.`
-            );
-          }
-          if (!profileId) {
-            throw AuthenticationError(
-              `A user id was not returned in the profile loaded from ${endpoints.userInfoURL}, searched in "sub" and "id" fields.`
-            );
-          }
-
-          // Check if the picture field is a Base64 data URL and filter it out
-          // to avoid validation errors in the User model
-          let avatarUrl = profile.picture;
-          if (profile.picture && isBase64Url(profile.picture)) {
-            Logger.debug(
-              "authentication",
-              "Filtering out Base64 data URL from avatar",
-              {
-                email,
-              }
-            );
-            avatarUrl = null;
-          }
-
-          const ctx = createContext({
-            ip: context.ip,
-            user,
-            authType: context.state?.auth?.type,
-          });
-          const result = await accountProvisioner(ctx, {
-            team: {
-              teamId: team?.id,
-              name: env.APP_NAME,
-              domain,
-              subdomain,
-            },
-            user: {
-              name,
-              email,
-              emailVerified,
-              avatarUrl,
-            },
-            authenticationProvider: {
-              name: config.id,
-              providerId,
-            },
-            authentication: {
-              providerId: profileId,
-              accessToken,
-              refreshToken,
-              expiresIn: params.expires_in,
-              scopes: params.scope ? params.scope.split(" ") : scopes,
-            },
-          });
-          // Persist the id_token so a later RP-initiated logout can pass it as
-          // the `id_token_hint`, allowing the provider to scope the logout to
-          // this session rather than terminating its global SSO session.
-          if (endpoints.logoutURL && params.id_token) {
-            context.cookies.set("oidcIdToken", params.id_token, {
-              httpOnly: true,
-              sameSite: "lax",
-              secure: env.isProduction,
-              path: OIDC_LOGOUT_PATH,
-              domain: getCookieDomain(
-                context.request.hostname,
-                env.isCloudHosted
-              ),
-              expires: addMonths(new Date(), 3),
+            const ctx = createContext({
+              ip: context.ip,
+              user,
+              authType: context.state?.auth?.type,
             });
-          }
+            const result = await accountProvisioner(ctx, {
+              team: {
+                teamId: team?.id,
+                name: env.APP_NAME,
+                domain,
+                subdomain,
+              },
+              user: {
+                name,
+                email,
+                emailVerified,
+                avatarUrl,
+              },
+              authenticationProvider: {
+                name: config.id,
+                providerId,
+              },
+              authentication: {
+                providerId: profileId,
+                accessToken,
+                refreshToken,
+                expiresIn: params.expires_in,
+                scopes: params.scope ? params.scope.split(" ") : scopes,
+              },
+            });
+            // Persist the id_token so a later RP-initiated logout can pass it as
+            // the `id_token_hint`, allowing the provider to scope the logout to
+            // this session rather than terminating its global SSO session.
+            if (endpoints.logoutURL && params.id_token) {
+              context.cookies.set("oidcIdToken", params.id_token, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: env.isProduction,
+                path: OIDC_LOGOUT_PATH,
+                domain: getCookieDomain(
+                  context.request.hostname,
+                  env.isCloudHosted
+                ),
+                expires: addMonths(new Date(), 3),
+              });
+            }
 
-          return done(null, result.user, { ...result, client });
-        } catch (err) {
-          return done(toError(err), null);
+            return done(null, result.user, { ...result, client });
+          } catch (err) {
+            return done(toError(err), null);
+          }
         }
-      }
+      )
     )
   );
 
