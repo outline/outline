@@ -3,7 +3,7 @@ import { addMinutes, subMinutes } from "date-fns";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import type { JwtPayload } from "jsonwebtoken";
 import type { Context, Next } from "koa";
-import type { Strategy } from "passport";
+import type { Strategy } from "@outlinewiki/koa-passport";
 import type {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
