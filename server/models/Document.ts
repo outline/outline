@@ -1004,11 +1004,14 @@ class Document extends ArchivableModel<
     const queryGenerator = this.sequelize!.getQueryInterface()
       .queryGenerator as QueryGeneratorWithWhere;
 
+    const paranoid = options?.paranoid ?? true;
     const whereConditions = queryGenerator.getWhereConditions(
-      { deletedAt: null, ...where },
+      { ...(paranoid ? { deletedAt: null } : {}), ...where },
       "documents",
       model
     );
+    const anchorFilter = whereConditions ? `AND (${whereConditions})` : "";
+    const recursiveFilter = whereConditions ? `WHERE (${whereConditions})` : "";
 
     // A single recursive CTE walks the entire subtree in one round-trip rather
     // than issuing one query per level of nesting (N+1). Rows are ordered by
@@ -1020,12 +1023,12 @@ class Document extends ArchivableModel<
         SELECT documents.id, 1 AS depth
         FROM documents
         WHERE documents."parentDocumentId" = :parentDocumentId
-          AND (${whereConditions})
+          ${anchorFilter}
         UNION ALL
         SELECT documents.id, children.depth + 1
         FROM documents
         INNER JOIN children ON documents."parentDocumentId" = children.id
-        WHERE (${whereConditions})
+        ${recursiveFilter}
       )
       SELECT id FROM children ORDER BY depth
       `,

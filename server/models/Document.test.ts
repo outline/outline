@@ -227,6 +227,34 @@ describe("#findAllChildDocumentIds", () => {
     // descendants are not traversed.
     expect(results).toEqual([publishedChild.id]);
   });
+
+  test("should include soft-deleted children when paranoid is false", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test",
+    });
+    const child = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+      title: "child",
+    });
+    await child.destroy();
+
+    expect(await document.findAllChildDocumentIds()).toEqual([]);
+    expect(
+      await document.findAllChildDocumentIds(undefined, { paranoid: false })
+    ).toEqual([child.id]);
+  });
 });
 
 describe("#findByPk", () => {
