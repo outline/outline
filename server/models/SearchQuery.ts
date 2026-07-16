@@ -18,6 +18,17 @@ import User from "@server/models/User";
 import Model from "@server/models/base/Model";
 import Fix from "./decorators/Fix";
 
+/**
+ * Where a search query originated.
+ */
+export enum SearchQuerySource {
+  Slack = "slack",
+  App = "app",
+  API = "api",
+  OAuth = "oauth",
+  MCP = "mcp",
+}
+
 @Table({
   tableName: "search_queries",
   modelName: "search_query",
@@ -49,7 +60,7 @@ class SearchQuery extends Model<
     userId?: string | null;
     teamId: string;
     shareId?: string | null;
-    source: string;
+    source: SearchQuerySource;
     query: string;
     results: number;
     duration: number;
@@ -107,8 +118,8 @@ class SearchQuery extends Model<
   /**
    * Where the query originated.
    */
-  @Column(DataType.ENUM("slack", "app", "api", "oauth"))
-  source: string;
+  @Column(DataType.ENUM(...Object.values(SearchQuerySource)))
+  source: SearchQuerySource;
 
   /**
    * The number of results returned for this query.

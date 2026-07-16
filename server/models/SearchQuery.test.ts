@@ -1,5 +1,5 @@
 import { buildTeam, buildUser } from "@server/test/factories";
-import SearchQuery from "./SearchQuery";
+import SearchQuery, { SearchQuerySource } from "./SearchQuery";
 
 describe("SearchQuery.record", () => {
   it("updates the existing record when a query extends a recent one", async () => {
@@ -9,7 +9,7 @@ describe("SearchQuery.record", () => {
     const first = await SearchQuery.record({
       userId: user.id,
       teamId,
-      source: "app",
+      source: SearchQuerySource.App,
       query: "conf",
       results: 3,
       duration: 10,
@@ -18,7 +18,7 @@ describe("SearchQuery.record", () => {
     const second = await SearchQuery.record({
       userId: user.id,
       teamId,
-      source: "app",
+      source: SearchQuerySource.App,
       query: "conflue",
       results: 5,
       duration: 12,
@@ -37,7 +37,7 @@ describe("SearchQuery.record", () => {
     const first = await SearchQuery.record({
       userId: user.id,
       teamId,
-      source: "app",
+      source: SearchQuerySource.App,
       query: "conflue",
       results: 5,
       duration: 12,
@@ -46,7 +46,7 @@ describe("SearchQuery.record", () => {
     const second = await SearchQuery.record({
       userId: user.id,
       teamId,
-      source: "app",
+      source: SearchQuerySource.App,
       query: "conf",
       results: 3,
       duration: 10,
@@ -64,7 +64,7 @@ describe("SearchQuery.record", () => {
     await SearchQuery.record({
       userId: user.id,
       teamId,
-      source: "app",
+      source: SearchQuerySource.App,
       query: "conflue",
       results: 5,
       duration: 12,
@@ -73,7 +73,7 @@ describe("SearchQuery.record", () => {
     await SearchQuery.record({
       userId: user.id,
       teamId,
-      source: "app",
+      source: SearchQuerySource.App,
       query: "database",
       results: 2,
       duration: 8,
@@ -90,7 +90,7 @@ describe("SearchQuery.record", () => {
     await SearchQuery.record({
       userId: userA.id,
       teamId: team.id,
-      source: "app",
+      source: SearchQuerySource.App,
       query: "conf",
       results: 1,
       duration: 5,
@@ -99,7 +99,7 @@ describe("SearchQuery.record", () => {
     await SearchQuery.record({
       userId: userB.id,
       teamId: team.id,
-      source: "app",
+      source: SearchQuerySource.App,
       query: "conflue",
       results: 1,
       duration: 5,
@@ -113,7 +113,7 @@ describe("SearchQuery.record", () => {
 
     await SearchQuery.record({
       teamId: team.id,
-      source: "api",
+      source: SearchQuerySource.API,
       query: "conf",
       results: 1,
       duration: 5,
@@ -121,7 +121,7 @@ describe("SearchQuery.record", () => {
 
     await SearchQuery.record({
       teamId: team.id,
-      source: "api",
+      source: SearchQuerySource.API,
       query: "conflue",
       results: 1,
       duration: 5,
@@ -137,7 +137,7 @@ describe("SearchQuery.record", () => {
     const first = await SearchQuery.record({
       userId: user.id,
       teamId,
-      source: "app",
+      source: SearchQuerySource.App,
       query: "conf",
       results: 1,
       duration: 5,
@@ -157,7 +157,7 @@ describe("SearchQuery.record", () => {
     await SearchQuery.record({
       userId: user.id,
       teamId,
-      source: "app",
+      source: SearchQuerySource.App,
       query: "conflue",
       results: 1,
       duration: 5,
