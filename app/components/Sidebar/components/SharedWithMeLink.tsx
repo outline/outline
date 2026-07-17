@@ -208,7 +208,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
                 membership={membership}
                 activeDocument={documents.active}
                 isDraft={childNode.isDraft}
-                depth={2}
+                depth={depth + 1}
                 index={index}
                 parentId={document.id}
               />
