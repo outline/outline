@@ -189,18 +189,20 @@ export function MediaDimension() {
     [handleBlur, reset]
   );
 
-  // Sync dimension changes from outside.
+  // Sync dimension changes from outside, without clobbering in-progress edits
+  // to the inputs (which also change `localDimension`).
+  const prevSizeRef = useRef({ width, height });
   useEffect(() => {
+    const prev = prevSizeRef.current;
+    prevSizeRef.current = { width, height };
+
     if (isDraggingRef.current) {
       return;
     }
-    if (
-      width !== Number(localDimension.width) ||
-      height !== Number(localDimension.height)
-    ) {
+    if (prev.width !== width || prev.height !== height) {
       reset();
     }
-  }, [width, height, reset, localDimension.width, localDimension.height]);
+  }, [width, height, reset]);
 
   // Listen to drag resize updates in real-time.
   useEffect(() => {
