@@ -80,7 +80,7 @@ export function CommentGutter({
 
 const Gutter = styled.div`
   position: absolute;
-  inset-inline-start: 100%;
+  inset-inline-start: calc(100% + ${EditorStyleHelper.padding}px);
   margin-inline-start: 8px;
   display: flex;
   flex-direction: column;
