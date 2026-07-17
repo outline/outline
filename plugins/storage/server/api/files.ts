@@ -48,21 +48,21 @@ router.post(
       throw ValidationError("Request must include a file parameter");
     }
 
+    // A short-lived signature authorizes the upload to this key without a session.
+    if (sig) {
+      verifyUploadSignature(sig, key);
+    } else if (!actor) {
+      throw AuthenticationError("Authentication required");
+    }
+
     const attachment = await Attachment.findOne({
       where: { key },
       rejectOnEmpty: true,
     });
 
-    // Authorize the upload either through an authenticated session belonging to
-    // the attachment owner, or a short-lived signature scoped to this key only.
-    if (sig) {
-      verifyUploadSignature(sig, key);
-    } else if (actor) {
-      if (attachment.userId !== actor.id) {
-        throw AuthorizationError("Invalid key");
-      }
-    } else {
-      throw AuthenticationError("Authentication required");
+    // For session-based uploads, ensure the attachment belongs to the actor.
+    if (!sig && actor && attachment.userId !== actor.id) {
+      throw AuthorizationError("Invalid key");
     }
 
     const declaredSize = Number(attachment.size);
