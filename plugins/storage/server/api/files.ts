@@ -30,7 +30,7 @@ const router = new Router();
 router.post(
   "files.create",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
-  auth(),
+  auth({ optional: true }),
   validate(T.FilesCreateSchema),
   timeout(30 * 60 * 1000), // 30 minutes for large file uploads
   multipart({
@@ -41,7 +41,7 @@ router.post(
   }),
   async (ctx: APIContext<T.FilesCreateReq>) => {
     const actor = ctx.state.auth.user;
-    const { key } = ctx.input.body;
+    const { key, sig } = ctx.input.body;
     const file = ctx.input.file;
 
     if (!file) {
@@ -53,8 +53,16 @@ router.post(
       rejectOnEmpty: true,
     });
 
-    if (attachment.userId !== actor.id) {
-      throw AuthorizationError("Invalid key");
+    // Authorize the upload either through an authenticated session belonging to
+    // the attachment owner, or a short-lived signature scoped to this key only.
+    if (sig) {
+      verifyUploadSignature(sig, key);
+    } else if (actor) {
+      if (attachment.userId !== actor.id) {
+        throw AuthorizationError("Invalid key");
+      }
+    } else {
+      throw AuthenticationError("Authentication required");
     }
 
     const declaredSize = Number(attachment.size);
@@ -184,6 +192,28 @@ function getByteRange(
   const end = parseInt(match[2], 10) || size - 1;
 
   return { start, end };
+}
+
+/**
+ * Verifies a short-lived signature authorizing an upload to a single key.
+ *
+ * @param sig The signature to verify.
+ * @param key The key the upload is being made to.
+ * @throws AuthenticationError if the signature is invalid, expired, or scoped
+ * to a different key.
+ */
+function verifyUploadSignature(sig: string, key: string) {
+  const payload = getJWTPayload(sig);
+
+  if (payload.type !== "attachment-upload" || payload.key !== key) {
+    throw AuthenticationError("Invalid signature");
+  }
+
+  try {
+    JWT.verify(sig, env.SECRET_KEY);
+  } catch (_err) {
+    throw AuthenticationError("Invalid signature");
+  }
 }
 
 function getKeyFromContext(ctx: APIContext<T.FilesGetReq>): string {
