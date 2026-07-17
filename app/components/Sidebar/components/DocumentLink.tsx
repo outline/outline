@@ -17,6 +17,7 @@ import type { RefHandle } from "~/components/EditableTitle";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useOnScreen from "~/hooks/useOnScreen";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -65,6 +66,7 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
   const hasChildDocuments =
     !!node.children.length || activeDocument?.parentDocumentId === node.id;
   const sidebarContext = useSidebarContext();
+  const locationSidebarContext = useLocationSidebarContext();
   const { fetchChildDocuments } = documents;
 
   // Keep expansion/data effects on the outer so they run regardless of whether
@@ -135,11 +137,11 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
   }
 
   // The inner row's own scrollIntoView only fires while it is mounted, which
-  // skips active documents that are virtualized off-screen
+  // skips active documents that are virtualized off-screen.
   React.useLayoutEffect(() => {
     if (
       isActiveDocument &&
-      sidebarContext === "collections" &&
+      (!locationSidebarContext || locationSidebarContext === sidebarContext) &&
       placeholderRef.current
     ) {
       scrollIntoView(placeholderRef.current, {
@@ -148,7 +150,7 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
         boundary: (parent) => parent.id !== "sidebar",
       });
     }
-  }, [isActiveDocument, sidebarContext]);
+  }, [isActiveDocument, sidebarContext, locationSidebarContext]);
 
   return (
     <>
