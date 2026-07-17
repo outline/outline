@@ -42,7 +42,7 @@ function SharedSidebar({ share }: Props) {
   const shareId = share.urlId || share.id;
   const collection = collections.get(rootNode?.id);
   const hideRootNode = collection
-    ? ProsemirrorDataHelper.isEmpty(collection?.data)
+    ? ProsemirrorDataHelper.isEmpty(collection.data)
     : false;
 
   const handleOpenSearch = useCallback(() => {
