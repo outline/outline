@@ -7,7 +7,7 @@ import scrollIntoView from "scroll-into-view-if-needed";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import { DocumentPermission, UserPreference } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
@@ -353,7 +353,7 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
             document?.fullWidth ??
             user.getPreference(UserPreference.FullWidthDocuments),
           title: input,
-          data: ProsemirrorHelper.getEmptyDocument(),
+          data: ProsemirrorDataHelper.getEmpty(),
         },
         { publish: true }
       );

@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useHistory } from "react-router-dom";
 import { UserPreference } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import type { RefHandle } from "~/components/EditableTitle";
@@ -79,7 +79,7 @@ const CollectionLink: React.FC<Props> = ({
           collectionId: collection.id,
           title: input,
           fullWidth: user.getPreference(UserPreference.FullWidthDocuments),
-          data: ProsemirrorHelper.getEmptyDocument(),
+          data: ProsemirrorDataHelper.getEmpty(),
         },
         { publish: true }
       );

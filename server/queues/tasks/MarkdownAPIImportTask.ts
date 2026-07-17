@@ -21,7 +21,7 @@ import { Attachment } from "@server/models";
 import AttachmentHelper, {
   Buckets,
 } from "@server/models/helpers/AttachmentHelper";
-import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import type { ZipTreeNode } from "@server/utils/ZipHelper";
@@ -369,7 +369,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       const collectionOutputs: ImportTaskOutput = collections.map((c) => ({
         externalId: c.id,
         title: c.title,
-        content: ProsemirrorHelper.getEmptyDocument() as ProsemirrorDoc,
+        content: ProsemirrorDataHelper.getEmpty() as ProsemirrorDoc,
       }));
 
       // First wave of document tasks: only top-level docs in each collection.
@@ -434,7 +434,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         taskOutput.push({
           externalId: item.externalId,
           title: item.title,
-          content: ProsemirrorHelper.getEmptyDocument() as ProsemirrorDoc,
+          content: ProsemirrorDataHelper.getEmpty() as ProsemirrorDoc,
         });
       } else {
         const transformedMarkdown = this.rewriteMarkdown(item);

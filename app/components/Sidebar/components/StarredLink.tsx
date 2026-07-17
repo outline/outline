@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { UserPreference } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import type Star from "~/models/Star";
@@ -152,7 +152,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
             document.fullWidth ??
             user.getPreference(UserPreference.FullWidthDocuments),
           title: input,
-          data: ProsemirrorHelper.getEmptyDocument(),
+          data: ProsemirrorDataHelper.getEmpty(),
         },
         { publish: true }
       );
@@ -298,7 +298,7 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
           collectionId: collection.id,
           title: input,
           fullWidth: user.getPreference(UserPreference.FullWidthDocuments),
-          data: ProsemirrorHelper.getEmptyDocument(),
+          data: ProsemirrorDataHelper.getEmpty(),
         },
         { publish: true }
       );
