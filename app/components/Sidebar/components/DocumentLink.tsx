@@ -137,11 +137,15 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
   }
 
   // The inner row's own scrollIntoView only fires while it is mounted, which
-  // skips active documents that are virtualized off-screen.
+  // skips active documents that are virtualized off-screen. Only scroll the tree
+  // that matches the navigation context so a document rendered in multiple
+  // contexts (collections/starred/shared) doesn't jump to an unexpected section;
+  // when no context is set, fall back to the collections tree alone.
   React.useLayoutEffect(() => {
     if (
       isActiveDocument &&
-      (!locationSidebarContext || locationSidebarContext === sidebarContext) &&
+      (locationSidebarContext === sidebarContext ||
+        (!locationSidebarContext && sidebarContext === "collections")) &&
       placeholderRef.current
     ) {
       scrollIntoView(placeholderRef.current, {
