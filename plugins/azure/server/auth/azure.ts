@@ -19,6 +19,7 @@ import {
   getClientFromOAuthState,
   getUserFromOAuthState,
   startOAuthFlow,
+  withProxyAgent,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -232,7 +233,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       }
     }
   );
-  passport.use(strategy);
+  passport.use(withProxyAgent(strategy));
   router.get(
     config.id,
     startOAuthFlow,

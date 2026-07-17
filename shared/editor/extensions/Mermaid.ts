@@ -530,7 +530,11 @@ export default function Mermaid({
         return this.getState(state)?.decorationSet;
       },
       handleKeyDown(view, event) {
-        if (event.key === "Enter" && isModKey(event) && !editor.props.readOnly) {
+        if (
+          event.key === "Enter" &&
+          isModKey(event) &&
+          !editor.props.readOnly
+        ) {
           const { selection } = view.state;
           const isNodeSel = selection instanceof NodeSelection;
           const isMermaidNode =
@@ -591,8 +595,12 @@ export default function Mermaid({
           event.preventDefault();
 
           if (isSelected || editor.props.readOnly) {
-            // Already selected or read-only, open lightbox
-            if (node && node.textContent.trim().length > 0) {
+            // Already selected or read-only, open lightbox unless the diagram
+            // failed to render (no valid image to show)
+            const hasError =
+              diagram.classList.contains("parse-error") ||
+              diagram.classList.contains("empty");
+            if (!hasError && node && node.textContent.trim().length > 0) {
               editor.updateActiveLightboxImage(
                 LightboxImageFactory.createLightboxImage(view, nodePos)
               );

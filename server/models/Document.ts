@@ -10,7 +10,13 @@ import type {
   FindOptions,
   WhereOptions,
 } from "sequelize";
-import { Transaction, Op, EmptyResultError, Sequelize } from "sequelize";
+import {
+  Transaction,
+  Op,
+  EmptyResultError,
+  Sequelize,
+  QueryTypes,
+} from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -95,6 +101,16 @@ type AdditionalFindOptions = {
   /** Whether to reject the query if no document is found. */
   rejectOnEmpty?: boolean | Error;
 };
+
+/** Sequelize types the query generator as unknown; this narrows to the single
+ * method used to build a raw SQL filter fragment. */
+interface QueryGeneratorWithWhere {
+  getWhereConditions(
+    where: WhereOptions<Document>,
+    tableName: string,
+    factory: typeof Document
+  ): string;
+}
 
 // @ts-expect-error Type 'Literal' is not assignable to type 'string | ProjectionAlias'.
 @DefaultScope(() => ({
@@ -984,34 +1000,46 @@ class Document extends ArchivableModel<
     where?: Omit<WhereOptions<Document>, "parentDocumentId">,
     options?: FindOptions<Document>
   ): Promise<string[]> => {
-    const findAllChildDocumentIds = async (
-      ...parentDocumentId: string[]
-    ): Promise<string[]> => {
-      // Unscoped as this method only ever reads the id column
-      const childDocuments = await (this.constructor as typeof Document)
-        .unscoped()
-        .findAll({
-          attributes: ["id"],
-          where: {
-            parentDocumentId,
-            ...where,
-          },
-          ...options,
-        });
+    const model = this.constructor as typeof Document;
+    const queryGenerator = this.sequelize!.getQueryInterface()
+      .queryGenerator as QueryGeneratorWithWhere;
 
-      const childDocumentIds = childDocuments.map((doc) => doc.id);
+    const paranoid = options?.paranoid ?? true;
+    const whereConditions = queryGenerator.getWhereConditions(
+      { ...(paranoid ? { deletedAt: null } : {}), ...where },
+      "documents",
+      model
+    );
+    const anchorFilter = whereConditions ? `AND (${whereConditions})` : "";
+    const recursiveFilter = whereConditions ? `WHERE (${whereConditions})` : "";
 
-      if (childDocumentIds.length > 0) {
-        return [
-          ...childDocumentIds,
-          ...(await findAllChildDocumentIds(...childDocumentIds)),
-        ];
+    // A single recursive CTE walks the entire subtree in one round-trip rather
+    // than issuing one query per level of nesting (N+1). Rows are ordered by
+    // depth to ensure breadth-first result ordering. UNION ALL is safe as the
+    // tree is acyclic, so each descendant id is reached exactly once.
+    const rows = await this.sequelize!.query<{ id: string }>(
+      `
+      WITH RECURSIVE children AS (
+        SELECT documents.id, 1 AS depth
+        FROM documents
+        WHERE documents."parentDocumentId" = :parentDocumentId
+          ${anchorFilter}
+        UNION ALL
+        SELECT documents.id, children.depth + 1
+        FROM documents
+        INNER JOIN children ON documents."parentDocumentId" = children.id
+        ${recursiveFilter}
+      )
+      SELECT id FROM children ORDER BY depth
+      `,
+      {
+        replacements: { parentDocumentId: this.id },
+        transaction: options?.transaction,
+        type: QueryTypes.SELECT,
       }
+    );
 
-      return childDocumentIds;
-    };
-
-    return findAllChildDocumentIds(this.id);
+    return rows.map((row) => row.id);
   };
 
   publish = async (

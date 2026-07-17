@@ -11,8 +11,15 @@ export interface PortalRenderer {
   readonly content: ReactNode;
 }
 
+let nextRendererId = 0;
+
 export class NodeViewRenderer<T extends object> implements PortalRenderer {
   @observable public props: T;
+
+  /**
+   * Stable identity used as the React key when renderers are rendered
+   */
+  public readonly key = `renderer-${nextRendererId++}`;
 
   public constructor(
     public element: HTMLElement,
@@ -24,7 +31,11 @@ export class NodeViewRenderer<T extends object> implements PortalRenderer {
 
   @computed
   public get content() {
-    return createPortal(<this.Component {...this.props} />, this.element);
+    return createPortal(
+      <this.Component {...this.props} />,
+      this.element,
+      this.key
+    );
   }
 
   @action

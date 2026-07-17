@@ -9,7 +9,8 @@ import documentImporter from "@server/commands/documentImporter";
 import documentMover from "@server/commands/documentMover";
 import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
-import { Collection, Document, Template } from "@server/models";
+import { Collection, Document, SearchQuery, Template } from "@server/models";
+import { SearchQuerySource } from "@server/models/SearchQuery";
 import { sequelize } from "@server/storage/database";
 import { authorize, can } from "@server/policies";
 import {
@@ -140,12 +141,29 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 }
               }
 
-              const { results } = await searchProvider.searchForUser(user, {
-                query,
-                collectionId,
-                offset: effectiveOffset,
-                limit: effectiveLimit,
-              });
+              const searchStartedAt = Date.now();
+              const { results, total } = await searchProvider.searchForUser(
+                user,
+                {
+                  query,
+                  collectionId,
+                  offset: effectiveOffset,
+                  limit: effectiveLimit,
+                }
+              );
+
+              // Only record the first page of results to avoid duplicate
+              // records as the client pages through results.
+              if (effectiveOffset === 0) {
+                await SearchQuery.record({
+                  userId: user.id,
+                  teamId: user.teamId,
+                  source: SearchQuerySource.MCP,
+                  query,
+                  results: total,
+                  duration: Date.now() - searchStartedAt,
+                });
+              }
 
               const filteredResults = results.filter(
                 (result) => result.document.id !== exactMatch?.id
