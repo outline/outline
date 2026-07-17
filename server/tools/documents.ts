@@ -411,7 +411,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const [{ text, ...attributes }, breadcrumb] = await Promise.all([
             presentDocument(document, {
               includeData: false,
-              includeText: true,
+              includeText: false,
               includeUpdatedAt: true,
             }),
             getDocumentBreadcrumb(document, user),
@@ -678,7 +678,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const [{ text, ...attributes }, breadcrumb] = await Promise.all([
             presentDocument(updated, {
               includeData: false,
-              includeText: true,
+              includeText: false,
               includeUpdatedAt: true,
             }),
             getDocumentBreadcrumb(updated, user),
