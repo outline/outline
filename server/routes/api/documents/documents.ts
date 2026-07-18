@@ -63,6 +63,7 @@ import {
   GroupMembership,
   FileOperation,
 } from "@server/models";
+import { SearchQuerySource } from "@server/models/SearchQuery";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
@@ -1173,11 +1174,14 @@ router.post(
     // duplicate search query records
     if (query && offset === 0) {
       const duration = Date.now() - searchStartedAt;
-      await SearchQuery.create({
+      await SearchQuery.record({
         userId: user?.id,
         teamId,
         shareId: share?.id,
-        source: ctx.state.auth.type || "app", // we'll consider anything that isn't "api" to be "app"
+        // auth.type values are a subset of search sources; unauthenticated share searches default to "app"
+        source:
+          (ctx.state.auth.type as unknown as SearchQuerySource) ||
+          SearchQuerySource.App,
         query,
         results: total,
         duration,

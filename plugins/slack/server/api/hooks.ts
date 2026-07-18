@@ -24,6 +24,7 @@ import {
   AuthenticationProvider,
   Comment,
 } from "@server/models";
+import { SearchQuerySource } from "@server/models/SearchQuery";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { can } from "@server/policies";
 import type { APIContext } from "@server/types";
@@ -245,7 +246,7 @@ router.post(
     await SearchQuery.create({
       userId: user ? user.id : null,
       teamId: user.teamId,
-      source: "slack",
+      source: SearchQuerySource.Slack,
       query: text,
       results: total,
     });

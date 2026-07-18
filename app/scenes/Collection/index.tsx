@@ -51,7 +51,7 @@ import Overview from "./components/Overview";
 import { Header } from "./components/Header";
 import usePersistedState from "~/hooks/usePersistedState";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 
 const CollectionScene = observer(function CollectionScene_() {
   const params = useParams<{ collectionSlug?: string }>();
@@ -73,7 +73,7 @@ const CollectionScene = observer(function CollectionScene_() {
   const collection = collections.get(id);
   const can = usePolicy(collection);
   const hasDescription = collection?.data
-    ? !ProsemirrorHelper.isEmptyData(collection.data)
+    ? !ProsemirrorDataHelper.isEmpty(collection.data)
     : false;
 
   const { pins, count } = usePinnedDocuments(urlId, collection?.id);

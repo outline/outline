@@ -3,7 +3,7 @@ import * as React from "react";
 import type { RouteComponentProps, StaticContext } from "react-router";
 import { Redirect, useLocation } from "react-router";
 import { toError } from "@shared/utils/error";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
@@ -169,7 +169,7 @@ function DataLoader({ match, children }: Props) {
         {
           collectionId: nested ? undefined : document.collectionId,
           parentDocumentId: nested ? document.id : document.parentDocumentId,
-          data: ProsemirrorHelper.getEmptyDocument(),
+          data: ProsemirrorDataHelper.getEmpty(),
           ...params,
         },
         {

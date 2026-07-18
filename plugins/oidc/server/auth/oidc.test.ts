@@ -1,3 +1,5 @@
+import Redis from "@server/storage/redis";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -32,10 +34,16 @@ describe("oidc", () => {
     });
 
     it("should include the id_token_hint when present", async () => {
+      const sessionId = "test-session-id";
+      await Redis.defaultClient.set(
+        RedisPrefixHelper.getLogoutTokenKey("oidc", sessionId),
+        "fake-id-token"
+      );
+
       const res = await server.get("/auth/oidc.logout", {
         redirect: "manual",
         headers: {
-          Cookie: "oidcIdToken=fake-id-token",
+          Cookie: `oidcSession=${sessionId}`,
         },
       });
       expect(res.status).toEqual(302);
@@ -44,8 +52,14 @@ describe("oidc", () => {
         "fake-id-token"
       );
       expect(res.headers.get("set-cookie")).toContain(
-        "oidcIdToken=; path=/auth/oidc.logout;"
+        "oidcSession=; path=/auth/oidc.logout;"
       );
+      // The token is consumed from the server-side store on logout.
+      expect(
+        await Redis.defaultClient.get(
+          RedisPrefixHelper.getLogoutTokenKey("oidc", sessionId)
+        )
+      ).toBeNull();
     });
   });
 });

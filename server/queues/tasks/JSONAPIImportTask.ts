@@ -22,7 +22,7 @@ import Logger from "@server/logging/Logger";
 import type { ImportTask } from "@server/models";
 import { Attachment } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
-import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import type {
@@ -323,7 +323,7 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
           urlId: c.export.urlId,
           icon: c.export.icon,
           color: c.export.color,
-          data: c.export.data ?? ProsemirrorHelper.getEmptyDocument(),
+          data: c.export.data ?? ProsemirrorDataHelper.getEmpty(),
           attachmentIdMap,
         })),
       ];
@@ -335,7 +335,7 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
         icon: c.export.icon,
         color: c.export.color,
         content: rewriteAttachmentReferences(
-          c.export.data ?? ProsemirrorHelper.getEmptyDocument(),
+          c.export.data ?? ProsemirrorDataHelper.getEmpty(),
           attachmentIdMap
         ) as ProsemirrorDoc,
       }));

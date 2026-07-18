@@ -4,8 +4,7 @@ import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import Extension from "@shared/editor/lib/Extension";
 import { changedDescendants } from "@shared/editor/lib/changedDescendants";
-import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
-import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import { mapDecorations } from "@shared/editor/lib/multiplayer";
 import { UserPreferenceDefaults } from "@shared/constants";
 import { UserPreference } from "@shared/types";
 import { CommentGutter as CommentGutterComponent } from "../components/CommentGutter";
@@ -32,14 +31,8 @@ export default class CommentGutter extends Extension {
     const handleClickCommentMark = (commentId: string) =>
       this.editor.props.onClickCommentMark?.(commentId);
 
-    // Mirror the comment mark's hover state when its gutter indicator is
-    // hovered, by toggling a class on the matching mark(s) in the document.
     const handleHoverCommentMark = (commentId: string, hovered: boolean) => {
-      this.editor.view?.dom
-        .querySelectorAll(`[id="comment-${commentId}"]`)
-        .forEach((element) =>
-          element.classList.toggle(EditorStyleHelper.commentHovered, hovered)
-        );
+      this.editor.setHoveredCommentId(hovered ? commentId : null);
     };
 
     const handlers = {
@@ -63,14 +56,20 @@ export default class CommentGutter extends Extension {
               return pluginState;
             }
 
-            if (isRemoteTransaction(tr) || this.hasCommentChange(tr)) {
+            // Only rebuild when the comments themselves change. Otherwise map
+            // the existing decorations, preserving each widget's identity so
+            // the React-rendered indicators are not torn down and recreated on
+            // every remote edit — churn that leaves their event handlers dead.
+            // mapDecorations handles remote (Yjs) transactions, whose mapping
+            // cannot be applied naively.
+            if (this.hasCommentChange(tr)) {
               return {
                 decorations: this.createDecorations(newState, handlers),
               };
             }
 
             return {
-              decorations: pluginState.decorations.map(tr.mapping, tr.doc),
+              decorations: mapDecorations(pluginState.decorations, tr),
             };
           },
         },
@@ -194,6 +193,8 @@ export default class CommentGutter extends Extension {
             key: `comment-gutter-${anchor}-${[...commentIds].sort().join("-")}`,
             side: -1,
             ignoreSelection: true,
+            // Keep interactions on the indicator from reaching ProseMirror
+            stopEvent: () => true,
             destroy: (node: HTMLElement) => {
               // Clear any forced hover state, otherwise it can remain stuck
               commentIds.forEach((commentId) =>

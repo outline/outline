@@ -115,6 +115,19 @@ export default class UsersStore extends Store<User> {
     });
 
   /**
+   * Returns the loaded user with the given email address, if any.
+   *
+   * @param email the email address to look up.
+   * @returns the matching user, or undefined if none exists.
+   */
+  getByEmail = (email: string): User | undefined => {
+    const normalizedEmail = email.trim().toLowerCase();
+    return this.all.find(
+      (user) => user.email?.trim().toLowerCase() === normalizedEmail
+    );
+  };
+
+  /**
    * Returns users that are not in the given document, optionally filtered by a query.
    *
    * @param documentId
