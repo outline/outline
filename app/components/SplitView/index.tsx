@@ -4,17 +4,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Router, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { CloseIcon } from "outline-icons";
 import { depths, s } from "@shared/styles";
 import CenteredContent from "~/components/CenteredContent";
-import NudeButton from "~/components/NudeButton";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
-import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
 import history, { patchLocation } from "~/utils/history";
 import type { SplitViewPane } from "~/utils/splitView";
 import {
-  closeSplitView,
   getFocusedSplitPane,
   getSplitPath,
   isSplitablePath,
@@ -87,10 +83,6 @@ const Pane = ({ pane, isFocused, children }: PaneProps) => {
     setFocusedSplitPane(pane);
   }, [pane]);
 
-  const handleClose = React.useCallback(() => {
-    closeSplitView(history);
-  }, []);
-
   return (
     <PaneContainer
       role="group"
@@ -100,18 +92,6 @@ const Pane = ({ pane, isFocused, children }: PaneProps) => {
       onFocusCapture={handleFocus}
     >
       <SplitViewContext.Provider value={contextValue}>
-        {isSecondary && (
-          <PaneHeader>
-            <Tooltip content={t("Close split view")} side="bottom">
-              <NudeButton
-                aria-label={t("Close split view")}
-                onClick={handleClose}
-              >
-                <CloseIcon />
-              </NudeButton>
-            </Tooltip>
-          </PaneHeader>
-        )}
         <PaneContent>
           <React.Suspense
             fallback={
@@ -221,15 +201,6 @@ const PaneContent = styled.div`
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-`;
-
-const PaneHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-shrink: 0;
-  padding: 6px 8px;
-  color: ${s("textSecondary")};
 `;
 
 const FocusRing = styled.div<{ $visible: boolean }>`

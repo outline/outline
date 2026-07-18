@@ -208,15 +208,30 @@ export function openRouteInSplit(history: History, path: string): void {
 }
 
 /**
- * Closes the split view, keeping only the route in the primary pane, and
- * returns focus to it.
+ * Closes one pane of the split view, leaving the other pane's route as the
+ * single displayed route, and returns focus to the primary pane. Closing the
+ * primary pane promotes the secondary route to become the main route.
  *
  * @param history the history instance to navigate with.
+ * @param pane the pane to close, defaults to the secondary pane.
  */
-export function closeSplitView(history: History): void {
+export function closeSplitPane(
+  history: History,
+  pane: SplitViewPane = "secondary"
+): void {
   const { location } = history;
+  const splitPath = getSplitPath(location.search);
   setFocusedSplitPane("primary");
   withoutSplitViewNavigation(() => {
+    if (pane === "primary" && splitPath !== undefined) {
+      const target = parsePath(splitPath);
+      history.push({
+        ...target,
+        search: setSplitPath(target.search, undefined),
+      });
+      return;
+    }
+
     history.push({
       pathname: location.pathname,
       hash: location.hash,

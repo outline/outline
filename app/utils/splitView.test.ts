@@ -1,6 +1,6 @@
 import { createMemoryHistory } from "history";
 import {
-  closeSplitView,
+  closeSplitPane,
   getFocusedSplitPane,
   getSplitPath,
   isSplitablePath,
@@ -149,17 +149,44 @@ describe("openRouteInSplit", () => {
   });
 });
 
-describe("closeSplitView", () => {
-  it("removes the split parameter and focuses the primary pane", () => {
+describe("closeSplitPane", () => {
+  it("keeps the primary route when closing the secondary pane", () => {
     const history = createMemoryHistory({
       initialEntries: ["/doc/my-doc?split=%2Fdoc%2Fother-doc"],
     });
     setFocusedSplitPane("secondary");
 
-    closeSplitView(history);
+    closeSplitPane(history, "secondary");
 
     expect(history.location.pathname).toEqual("/doc/my-doc");
     expect(getSplitPath(history.location.search)).toBeUndefined();
     expect(getFocusedSplitPane()).toEqual("primary");
+  });
+
+  it("promotes the secondary route when closing the primary pane", () => {
+    const history = createMemoryHistory({
+      initialEntries: [
+        "/doc/my-doc?split=%2Fdoc%2Fother-doc%3FcommentId%3D123",
+      ],
+    });
+    setFocusedSplitPane("secondary");
+
+    closeSplitPane(history, "primary");
+
+    expect(history.location.pathname).toEqual("/doc/other-doc");
+    expect(history.location.search).toContain("commentId=123");
+    expect(getSplitPath(history.location.search)).toBeUndefined();
+    expect(getFocusedSplitPane()).toEqual("primary");
+  });
+
+  it("removes the split parameter when closing the primary pane without a secondary route", () => {
+    const history = createMemoryHistory({
+      initialEntries: ["/doc/my-doc"],
+    });
+
+    closeSplitPane(history, "primary");
+
+    expect(history.location.pathname).toEqual("/doc/my-doc");
+    expect(getSplitPath(history.location.search)).toBeUndefined();
   });
 });

@@ -13,6 +13,7 @@ import Error404 from "~/scenes/Errors/Error404";
 import ErrorOffline from "~/scenes/Errors/ErrorOffline";
 import ErrorUnknown from "~/scenes/Errors/ErrorUnknown";
 import { useDocumentContext } from "~/components/DocumentContext";
+import { useSplitView } from "~/components/SplitView/context";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -91,6 +92,7 @@ function DataLoader({ match, children }: Props) {
   const isEditRoute =
     match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
   const isEditing = isEditRoute || !user?.separateEditMode;
+  const { isFocused: isPaneFocused } = useSplitView();
   const can = usePolicy(document);
   const location = useLocation<LocationState>();
   const query = useQuery();
@@ -182,11 +184,17 @@ function DataLoader({ match, children }: Props) {
     [document, documents]
   );
 
+  // Sets the current document as active in the sidebar. In a split view only
+  // the focused pane's document is active, updated as focus moves between the
+  // panes.
+  React.useEffect(() => {
+    if (document && isPaneFocused) {
+      ui.setActiveDocument(document);
+    }
+  }, [ui, document, isPaneFocused]);
+
   React.useEffect(() => {
     if (document) {
-      // sets the current document as active in the sidebar
-      ui.setActiveDocument(document);
-
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
       if (!missingPolicy && !can.update && isEditRoute) {
@@ -220,7 +228,6 @@ function DataLoader({ match, children }: Props) {
     comments,
     team,
     shares,
-    ui,
     revisionId,
     missingPolicy,
   ]);
