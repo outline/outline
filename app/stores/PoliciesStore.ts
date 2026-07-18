@@ -7,6 +7,8 @@ import Store from "./base/Store";
 export default class PoliciesStore extends Store<Policy> {
   actions = [];
 
+  persistable = true;
+
   constructor(rootStore: RootStore) {
     super(rootStore, Policy);
   }

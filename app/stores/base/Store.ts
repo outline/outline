@@ -76,6 +76,12 @@ export default abstract class Store<T extends Model> {
 
   apiEndpoint: string;
 
+  /**
+   * Whether the store's data should be persisted to IndexedDB, and restored
+   * at boot, once persistence is enabled for the authenticated team.
+   */
+  persistable = false;
+
   rootStore: RootStore;
 
   protected persistence?: StorePersistence<T>;
@@ -105,19 +111,22 @@ export default abstract class Store<T extends Model> {
   }
 
   /**
-   * Enables persistence of this store's data to IndexedDB and hydrates any
-   * previously persisted records into the store. Safe to call multiple times,
-   * subsequent calls are a no-op.
+   * Enables persistence of this store's data to IndexedDB, scoped to the
+   * given team, and hydrates any previously persisted records into the store.
+   * Safe to call multiple times, subsequent calls are a no-op.
    *
-   * @param databaseName the name of the IndexedDB database to persist to.
+   * @param teamId the ID of the team the persisted data belongs to.
    * @returns a promise that resolves when hydration is complete.
    */
-  async enablePersistence(databaseName: string): Promise<void> {
+  async enablePersistence(teamId: string): Promise<void> {
     if (this.persistence || !StorePersistence.isSupported) {
       return;
     }
 
-    this.persistence = new StorePersistence<T>(this, databaseName);
+    this.persistence = new StorePersistence<T>(
+      this,
+      StorePersistence.databaseName(this.apiEndpoint, teamId)
+    );
     await this.persistence.hydrate();
   }
 

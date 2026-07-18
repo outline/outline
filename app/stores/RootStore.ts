@@ -35,8 +35,7 @@ import UserMembershipsStore from "./UserMembershipsStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
 import WebhookSubscriptionsStore from "./WebhookSubscriptionStore";
-import type Store from "./base/Store";
-import StorePersistence from "./base/StorePersistence";
+import Store from "./base/Store";
 
 export default class RootStore {
   apiKeys: ApiKeysStore;
@@ -121,9 +120,9 @@ export default class RootStore {
   }
 
   /**
-   * Enable IndexedDB persistence for eligible stores, scoped to the current
-   * team. A no-op when there is no authenticated team or persistence is
-   * already enabled.
+   * Enable IndexedDB persistence for all stores marked as persistable, scoped
+   * to the current team. A no-op when there is no authenticated team or
+   * persistence is already enabled.
    */
   public enablePersistence() {
     const teamId = this.auth.currentTeamId;
@@ -131,9 +130,11 @@ export default class RootStore {
       return;
     }
 
-    void this.policies.enablePersistence(
-      StorePersistence.databaseName("policies", teamId)
-    );
+    Object.values(this).forEach((store) => {
+      if (store instanceof Store && store.persistable) {
+        void store.enablePersistence(teamId);
+      }
+    });
   }
 
   /**
