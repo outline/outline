@@ -13,20 +13,25 @@ describe("S3Storage", () => {
     it("returns null and does not report an error when the object is missing (masked 403)", async () => {
       // S3 returns AccessDenied for s3:ListBucket instead of 404 when the IAM
       // identity lacks ListBucket permission and the key does not exist.
-      const error = Object.assign(new Error("AccessDenied"), {
-        name: "AccessDenied",
-        $metadata: { httpStatusCode: 403 },
-      });
+      const error = Object.assign(
+        new Error(
+          "User: arn:aws:iam::123:user/attachments is not authorized to perform: s3:ListBucket on resource"
+        ),
+        {
+          name: "AccessDenied",
+          $metadata: { httpStatusCode: 403 },
+        }
+      );
       const storage = new S3Storage();
       vi.spyOn(Reflect.get(storage, "client"), "send").mockRejectedValue(error);
       const errorSpy = vi.spyOn(Logger, "error");
-      const debugSpy = vi.spyOn(Logger, "debug");
+      const infoSpy = vi.spyOn(Logger, "info");
 
       const stream = await storage.getFileStream("missing/key");
 
       expect(stream).toBeNull();
       expect(errorSpy).not.toHaveBeenCalled();
-      expect(debugSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
 
     it("reports a real error for unexpected failures", async () => {

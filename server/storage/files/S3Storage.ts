@@ -320,7 +320,7 @@ export default class S3Storage extends BaseStorage {
         // lacks the ListBucket permission — S3 masks not-found as forbidden.
         // Neither is a real error, so log quietly and return null.
         if (this.isNotFoundError(err)) {
-          Logger.debug("utils", "File not found in S3", { key });
+          Logger.info("utils", "File not found in S3", { key });
         } else {
           Logger.error("Error getting file stream from S3 ", toError(err), {
             key,
@@ -335,15 +335,18 @@ export default class S3Storage extends BaseStorage {
     if (!(err instanceof Error)) {
       return false;
     }
+    // A genuinely missing object is reported as NoSuchKey / NotFound (404).
     if (
       err.name === "NoSuchKey" ||
       err.name === "NotFound" ||
-      err.name === "AccessDenied"
+      this.getHttpStatusCode(err) === 404
     ) {
       return true;
     }
-    const statusCode = this.getHttpStatusCode(err);
-    return statusCode === 404 || statusCode === 403;
+    // When the IAM identity lacks s3:ListBucket, S3 masks a missing object as a
+    // 403 AccessDenied referencing s3:ListBucket. A 403 that does not mention
+    // ListBucket is a genuine permission error and should still be surfaced.
+    return err.message.includes("s3:ListBucket");
   }
 
   private getHttpStatusCode(err: Error): number | undefined {
