@@ -41,6 +41,8 @@ import {
   getRecentlyUsedCodeLanguage,
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
+import { isCode, isDiagramService, isMermaid } from "../lib/isCode";
+import { isRemoteTransaction } from "../lib/multiplayer";
 import { isCode, isMermaid } from "../lib/isCode";
 import { isRemoteTransaction, mapDecorations } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
@@ -445,7 +447,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
             const tallBlocks = findTallBlocks(state.doc);
             return build(state.doc, tallBlocks, new Set(tallBlocks));
           },
-          apply: (tr, prev, oldState, newState) => {
+          apply: (tr, prev, _oldState, newState) => {
             const meta = tr.getMeta(collapseKey);
 
             // Toggle collapsed state
@@ -477,52 +479,14 @@ export default class CodeFence extends Node<CodeFenceOptions> {
               const tallBlocks = findTallBlocks(newState.doc);
               const collapsedBlocks = new Set<number>();
               const isRemote = isRemoteTransaction(tr, newState);
-              const previousBlockDecorations: Decoration[] = [];
-              for (const pos of prev.tallBlocks) {
-                const node = oldState.doc.nodeAt(pos);
-                if (!node || !isCode(node)) {
-                  continue;
-                }
 
-                previousBlockDecorations.push(
-                  Decoration.node(
-                    pos,
-                    pos + node.nodeSize,
-                    {},
-                    {
-                      collapsed: prev.collapsedBlocks.has(pos),
-                      trackedCodeBlock: true,
-                    }
-                  )
-                );
-              }
-
-              const mappedTallBlocks = new Set<number>();
-              const mappedCollapsedBlocks = new Set<number>();
-              const previousBlocks = DecorationSet.create(
-                oldState.doc,
-                previousBlockDecorations
-              );
-              for (const decoration of mapDecorations(
-                previousBlocks,
-                tr,
-                newState
-              ).find()) {
-                if (!decoration.spec.trackedCodeBlock) {
-                  continue;
-                }
-
-                mappedTallBlocks.add(decoration.from);
-                if (decoration.spec.collapsed) {
-                  mappedCollapsedBlocks.add(decoration.from);
-                }
-              }
-
+              const inverse = tr.mapping.invert();
               for (const pos of tallBlocks) {
-                if (isRemote && !mappedTallBlocks.has(pos)) {
+                const oldPos = inverse.map(pos);
+                if (isRemote && !prev.tallBlocks.has(oldPos)) {
                   // Newly tall blocks start collapsed on load
                   collapsedBlocks.add(pos);
-                } else if (mappedCollapsedBlocks.has(pos)) {
+                } else if (prev.collapsedBlocks.has(oldPos)) {
                   // Preserve previous collapsed state
                   collapsedBlocks.add(pos);
                 }

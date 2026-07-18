@@ -171,6 +171,7 @@ export enum IntegrationType {
 export enum IntegrationService {
   Diagrams = "diagrams",
   Grist = "grist",
+  Kroki = "kroki",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
   Matomo = "matomo",
@@ -218,6 +219,7 @@ export type UserCreatableIntegrationService = Extract<
   | IntegrationService.Diagrams
   | IntegrationService.Grist
   | IntegrationService.GoogleAnalytics
+  | IntegrationService.Kroki
   | IntegrationService.Matomo
   | IntegrationService.Umami
   | IntegrationService.GitLab
@@ -227,6 +229,7 @@ export const UserCreatableIntegrationService = {
   Diagrams: IntegrationService.Diagrams,
   Grist: IntegrationService.Grist,
   GoogleAnalytics: IntegrationService.GoogleAnalytics,
+  Kroki: IntegrationService.Kroki,
   Matomo: IntegrationService.Matomo,
   Umami: IntegrationService.Umami,
   GitLab: IntegrationService.GitLab,
@@ -286,6 +289,10 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       };
       diagrams?: {
         url: string;
+      };
+      kroki?: {
+        url: string;
+        enabledFormats?: string[];
       };
     }
   : T extends IntegrationType.Analytics
