@@ -732,6 +732,12 @@ const embeds: EmbedDescriptor[] = [
     icon: <Img src="/images/plantuml.png" alt="PlantUml" />,
     component: PlantUmlDiagrams,
   }),
+  new EmbedDescriptor({
+    id: "kroki",
+    title: "Kroki",
+    name: IntegrationService.Kroki,
+    visible: false,
+  }),
   /* The generic iframe embed should always be the last one */
   new EmbedDescriptor({
     id: "embed",
