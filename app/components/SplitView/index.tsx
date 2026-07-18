@@ -128,6 +128,7 @@ export const SplitView = observer(function SplitView({ children }: Props) {
           resizeBorder={
             <SplitResizeBorder
               dir="right"
+              $transparent
               data-resize-handle
               onMouseDown={handleResizeStart}
               onDoubleClick={handleResizeReset}
