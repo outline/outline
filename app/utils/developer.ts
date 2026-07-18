@@ -1,5 +1,6 @@
 import { flatten } from "es-toolkit/compat";
 import stores from "~/stores";
+import Store from "~/stores/base/Store";
 import StorePersistence from "~/stores/base/StorePersistence";
 import { flattenTree } from "@shared/utils/tree";
 
@@ -13,10 +14,15 @@ export async function deleteAllDatabases() {
     return;
   }
 
-  if (stores.auth.currentTeamId) {
-    window.indexedDB.deleteDatabase(
-      StorePersistence.databaseName("policies", stores.auth.currentTeamId)
-    );
+  const teamId = stores.auth.currentTeamId;
+  if (teamId) {
+    Object.values(stores).forEach((store) => {
+      if (store instanceof Store && store.persistable) {
+        window.indexedDB.deleteDatabase(
+          StorePersistence.databaseName(store.apiEndpoint, teamId)
+        );
+      }
+    });
   }
 
   if ("databases" in window.indexedDB) {
