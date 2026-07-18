@@ -15392,12 +15392,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"outline-icons@npm:^4.3.0":
-  version: 4.3.0
-  resolution: "outline-icons@npm:4.3.0"
+"outline-icons@npm:^4.5.0":
+  version: 4.5.0
+  resolution: "outline-icons@npm:4.5.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
-  checksum: 10c0/e36330852526ac15973480aa4ce4bf82ee21bf54dbeb6b6a9b02bc5e03701a19e3f796fb38a077ad7cef7e3383ff020d4c6246013b656be80c8c97243f522fbb
+  checksum: 10c0/68273a9507609667287dc1a744ddc00a9c38357f03144be6da840106e4bd89f78b7cfc34887b86d35dcbdcb7fed867787729d7137f1873cd4bf6938da493d680
   languageName: node
   linkType: hard
 
@@ -15612,7 +15612,7 @@ __metadata:
     nodemailer: "npm:^9.0.1"
     nodemon: "npm:^3.1.14"
     octokit: "npm:^5.0.5"
-    outline-icons: "npm:^4.3.0"
+    outline-icons: "npm:^4.5.0"
     oxfmt: "npm:0.55.0"
     oxlint: "npm:1.70.0"
     oxlint-tsgolint: "npm:0.23.0"

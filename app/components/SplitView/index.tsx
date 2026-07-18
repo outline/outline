@@ -16,16 +16,14 @@ import {
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
-import history, { patchLocation } from "~/utils/history";
+import history, { patchLocation, toLocationDescriptor } from "~/utils/history";
 import type { SplitViewPane } from "~/utils/splitView";
 import {
   getFocusedSplitPane,
   getSplitPath,
   isSplitablePath,
-  observeFocusedSplitPane,
   setFocusedSplitPane,
   setSplitPath,
-  toLocationDescriptor,
 } from "~/utils/splitView";
 import { SplitViewContext } from "./context";
 
@@ -48,11 +46,7 @@ export const SplitView = observer(function SplitView({ children }: Props) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [isResizing, setResizing] = React.useState(false);
   const splitPath = isMobile ? undefined : getSplitPath(location.search);
-  const [focusedPane, setFocusedPaneState] = React.useState<SplitViewPane>(
-    getFocusedSplitPane()
-  );
-
-  React.useEffect(() => observeFocusedSplitPane(setFocusedPaneState), []);
+  const focusedPane = getFocusedSplitPane();
 
   // Return focus to the primary pane and reset the secondary pane's sidebar
   // and size whenever the split view closes.

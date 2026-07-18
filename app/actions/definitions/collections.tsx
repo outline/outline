@@ -13,7 +13,7 @@ import {
   RestoreIcon,
   SearchIcon,
   ShapesIcon,
-  SidebarIcon,
+  SplitIcon,
   StarredIcon,
   SubscribeIcon,
   TrashIcon,
@@ -272,7 +272,7 @@ export const openCollectionInSplit = createAction({
   name: ({ t }) => t("Open in split view"),
   analyticsName: "Open collection in split view",
   section: ActiveCollectionSection,
-  icon: <SidebarIcon />,
+  icon: <SplitIcon />,
   keywords: "split side pane",
   visible: ({ getActiveModel }) => !!getActiveModel(Collection) && !isMobile(),
   perform: ({ getActiveModel }) => {

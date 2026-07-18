@@ -1,14 +1,13 @@
 import { createMemoryHistory } from "history";
+import { reaction } from "mobx";
 import {
   closeSplitPane,
   getFocusedSplitPane,
   getSplitPath,
   isSplitablePath,
-  observeFocusedSplitPane,
   openRouteInSplit,
   setFocusedSplitPane,
   setSplitPath,
-  toLocationDescriptor,
 } from "./splitView";
 
 beforeEach(() => {
@@ -98,43 +97,22 @@ describe("isSplitablePath", () => {
   });
 });
 
-describe("toLocationDescriptor", () => {
-  it("parses a string path", () => {
-    expect(toLocationDescriptor("/doc/my-doc?foo=bar#hash")).toMatchObject({
-      pathname: "/doc/my-doc",
-      search: "?foo=bar",
-      hash: "#hash",
-    });
-  });
-
-  it("attaches state to a string path", () => {
-    expect(
-      toLocationDescriptor("/doc/my-doc", { restore: true })
-    ).toMatchObject({
-      pathname: "/doc/my-doc",
-      state: { restore: true },
-    });
-  });
-
-  it("returns location descriptor objects unchanged", () => {
-    const descriptor = { pathname: "/doc/my-doc" };
-    expect(toLocationDescriptor(descriptor)).toBe(descriptor);
-  });
-});
-
 describe("focused split pane", () => {
   it("defaults to the primary pane", () => {
     expect(getFocusedSplitPane()).toEqual("primary");
   });
 
-  it("notifies observers when the focused pane changes", () => {
+  it("is observable", () => {
     const observed: string[] = [];
-    const unsubscribe = observeFocusedSplitPane((pane) => observed.push(pane));
+    const dispose = reaction(
+      () => getFocusedSplitPane(),
+      (pane) => observed.push(pane)
+    );
 
     setFocusedSplitPane("secondary");
     setFocusedSplitPane("secondary");
     setFocusedSplitPane("primary");
-    unsubscribe();
+    dispose();
     setFocusedSplitPane("secondary");
 
     expect(observed).toEqual(["secondary", "primary"]);

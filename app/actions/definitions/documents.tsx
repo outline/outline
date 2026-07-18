@@ -34,7 +34,7 @@ import {
   EditIcon,
   EmbedIcon,
   OpenIcon,
-  SidebarIcon,
+  SplitIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
@@ -1067,7 +1067,7 @@ export const openDocumentInSplit = createAction({
   name: ({ t }) => t("Open in split view"),
   analyticsName: "Open document in split view",
   section: ActiveDocumentSection,
-  icon: <SidebarIcon />,
+  icon: <SplitIcon />,
   keywords: "split side pane",
   visible: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId || isMobile()) {

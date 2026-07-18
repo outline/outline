@@ -4,14 +4,13 @@ import type {
   LocationDescriptorObject,
   LocationState,
 } from "history";
-import { createBrowserHistory, createPath } from "history";
+import { createBrowserHistory, createPath, parsePath } from "history";
 import {
   getFocusedSplitPane,
   getSplitPath,
   isSplitViewNavigationSuppressed,
   isSplitablePath,
   setSplitPath,
-  toLocationDescriptor,
 } from "./splitView";
 
 /**
@@ -29,6 +28,26 @@ export function patchLocation(
 ): LocationDescriptorObject {
   const { pathname, search, hash, state } = location;
   return { pathname, search, hash, state, ...patch };
+}
+
+/**
+ * Normalizes the arguments accepted by history.push and history.replace into
+ * a location descriptor object.
+ *
+ * @param to the path or location descriptor passed to the history method.
+ * @param state optional location state, used when `to` is a string.
+ * @returns a location descriptor object.
+ */
+export function toLocationDescriptor(
+  to: LocationDescriptor,
+  state?: LocationState
+): LocationDescriptorObject {
+  if (typeof to === "string") {
+    const location = parsePath(to);
+    return state === undefined ? location : { ...location, state };
+  }
+
+  return to;
 }
 
 const history = createBrowserHistory();

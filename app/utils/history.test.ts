@@ -1,5 +1,5 @@
 import type { Location } from "history";
-import history, { patchLocation } from "./history";
+import history, { patchLocation, toLocationDescriptor } from "./history";
 import {
   getSplitPath,
   setFocusedSplitPane,
@@ -32,6 +32,30 @@ describe("patchLocation", () => {
     expect(
       patchLocation(location, { search: "?q=1", hash: "#three" })
     ).toMatchObject({ search: "?q=1", hash: "#three" });
+  });
+});
+
+describe("toLocationDescriptor", () => {
+  it("parses a string path", () => {
+    expect(toLocationDescriptor("/doc/my-doc?foo=bar#hash")).toMatchObject({
+      pathname: "/doc/my-doc",
+      search: "?foo=bar",
+      hash: "#hash",
+    });
+  });
+
+  it("attaches state to a string path", () => {
+    expect(
+      toLocationDescriptor("/doc/my-doc", { restore: true })
+    ).toMatchObject({
+      pathname: "/doc/my-doc",
+      state: { restore: true },
+    });
+  });
+
+  it("returns location descriptor objects unchanged", () => {
+    const descriptor = { pathname: "/doc/my-doc" };
+    expect(toLocationDescriptor(descriptor)).toBe(descriptor);
   });
 });
 

@@ -1,10 +1,6 @@
-import type {
-  History,
-  LocationDescriptor,
-  LocationDescriptorObject,
-  LocationState,
-} from "history";
+import type { History } from "history";
 import { parsePath } from "history";
+import { action, observable } from "mobx";
 import queryString from "query-string";
 
 /**
@@ -104,69 +100,29 @@ export function isSplitablePath(pathname: string): boolean {
   );
 }
 
-/**
- * Normalizes the arguments accepted by history.push and history.replace into
- * a location descriptor object.
- *
- * @param to the path or location descriptor passed to the history method.
- * @param state optional location state, used when `to` is a string.
- * @returns a location descriptor object.
- */
-export function toLocationDescriptor(
-  to: LocationDescriptor,
-  state?: LocationState
-): LocationDescriptorObject {
-  if (typeof to === "string") {
-    const location = parsePath(to);
-    return state === undefined ? location : { ...location, state };
-  }
-
-  return to;
-}
-
-let focusedPane: SplitViewPane = "primary";
-const focusListeners = new Set<(pane: SplitViewPane) => void>();
+const focusedSplitPane = observable.box<SplitViewPane>("primary");
 
 /**
  * Returns the pane of the split view that currently has focus. Defaults to
- * the primary pane when no split view is open.
+ * the primary pane when no split view is open. The value is observable, so
+ * observer components reading it re-render when focus changes.
  *
  * @returns the focused pane.
  */
 export function getFocusedSplitPane(): SplitViewPane {
-  return focusedPane;
+  return focusedSplitPane.get();
 }
 
 /**
- * Sets the pane of the split view that currently has focus and notifies any
- * observers. Navigation triggered outside of a pane, such as from the sidebar
- * or command bar, is directed to the focused pane.
+ * Sets the pane of the split view that currently has focus. Navigation
+ * triggered outside of a pane, such as from the sidebar or command bar, is
+ * directed to the focused pane.
  *
  * @param pane the pane to focus.
  */
-export function setFocusedSplitPane(pane: SplitViewPane): void {
-  if (focusedPane === pane) {
-    return;
-  }
-
-  focusedPane = pane;
-  focusListeners.forEach((listener) => listener(pane));
-}
-
-/**
- * Observes changes to the focused split view pane.
- *
- * @param callback invoked with the newly focused pane on every change.
- * @returns a function that removes the observer.
- */
-export function observeFocusedSplitPane(
-  callback: (pane: SplitViewPane) => void
-): () => void {
-  focusListeners.add(callback);
-  return () => {
-    focusListeners.delete(callback);
-  };
-}
+export const setFocusedSplitPane = action((pane: SplitViewPane): void => {
+  focusedSplitPane.set(pane);
+});
 
 let navigationSuppressed = false;
 
