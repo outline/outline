@@ -1,0 +1,227 @@
+import type {
+  History,
+  LocationDescriptor,
+  LocationDescriptorObject,
+  LocationState,
+} from "history";
+import { parsePath } from "history";
+import queryString from "query-string";
+
+/**
+ * Name of the query string parameter that holds the route displayed in the
+ * secondary pane of the split view. Keeping the value in the URL allows a
+ * reload to hydrate both panes.
+ */
+export const splitViewQueryParam = "split";
+
+/** Identifies a pane within the split view. */
+export type SplitViewPane = "primary" | "secondary";
+
+/**
+ * Parses the split view route from a location search string.
+ *
+ * @param search the location search string, with or without a leading "?".
+ * @returns the internal path shown in the secondary pane, or undefined when
+ * no valid split route is present.
+ */
+export function getSplitPath(search: string): string | undefined {
+  const value = queryString.parse(search)[splitViewQueryParam];
+  const path = Array.isArray(value) ? value[value.length - 1] : value;
+
+  if (typeof path !== "string") {
+    return undefined;
+  }
+
+  // Only allow internal, absolute paths – never protocol-relative or full
+  // URLs – as the value is used to drive the router directly.
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    return undefined;
+  }
+
+  if (!isSplitablePath(parsePath(path).pathname)) {
+    return undefined;
+  }
+
+  return path;
+}
+
+/**
+ * Returns a new search string with the split view route set or removed,
+ * preserving all other query parameters.
+ *
+ * @param search the current location search string.
+ * @param path the internal path to open in the secondary pane, or undefined
+ * to remove the split view parameter.
+ * @returns the updated search string, prefixed with "?" when non-empty.
+ */
+export function setSplitPath(search: string, path: string | undefined): string {
+  const params = queryString.parse(search);
+
+  if (path === undefined) {
+    delete params[splitViewQueryParam];
+  } else {
+    params[splitViewQueryParam] = path;
+  }
+
+  const stringified = queryString.stringify(params);
+  return stringified ? `?${stringified}` : "";
+}
+
+const nonSplitViewPrefixes = [
+  "/settings",
+  "/s",
+  "/share",
+  "/login",
+  "/logout",
+  "/create",
+  "/desktop-redirect",
+  "/oauth",
+  "/auth",
+  "/404",
+];
+
+/**
+ * Whether a route can be rendered inside a split view pane. Routes such as
+ * settings or authentication render their own chrome and must always be
+ * displayed full width.
+ *
+ * @param pathname the pathname to check.
+ * @returns true if the route can be displayed in a split view pane.
+ */
+export function isSplitablePath(pathname: string): boolean {
+  if (pathname === "/") {
+    return false;
+  }
+
+  return !nonSplitViewPrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
+/**
+ * Normalizes the arguments accepted by history.push and history.replace into
+ * a location descriptor object.
+ *
+ * @param to the path or location descriptor passed to the history method.
+ * @param state optional location state, used when `to` is a string.
+ * @returns a location descriptor object.
+ */
+export function toLocationDescriptor(
+  to: LocationDescriptor,
+  state?: LocationState
+): LocationDescriptorObject {
+  if (typeof to === "string") {
+    const location = parsePath(to);
+    return state === undefined ? location : { ...location, state };
+  }
+
+  return to;
+}
+
+let focusedPane: SplitViewPane = "primary";
+const focusListeners = new Set<(pane: SplitViewPane) => void>();
+
+/**
+ * Returns the pane of the split view that currently has focus. Defaults to
+ * the primary pane when no split view is open.
+ *
+ * @returns the focused pane.
+ */
+export function getFocusedSplitPane(): SplitViewPane {
+  return focusedPane;
+}
+
+/**
+ * Sets the pane of the split view that currently has focus and notifies any
+ * observers. Navigation triggered outside of a pane, such as from the sidebar
+ * or command bar, is directed to the focused pane.
+ *
+ * @param pane the pane to focus.
+ */
+export function setFocusedSplitPane(pane: SplitViewPane): void {
+  if (focusedPane === pane) {
+    return;
+  }
+
+  focusedPane = pane;
+  focusListeners.forEach((listener) => listener(pane));
+}
+
+/**
+ * Observes changes to the focused split view pane.
+ *
+ * @param callback invoked with the newly focused pane on every change.
+ * @returns a function that removes the observer.
+ */
+export function observeFocusedSplitPane(
+  callback: (pane: SplitViewPane) => void
+): () => void {
+  focusListeners.add(callback);
+  return () => {
+    focusListeners.delete(callback);
+  };
+}
+
+let navigationSuppressed = false;
+
+/**
+ * Whether split view handling of navigation is temporarily suppressed, used
+ * when closing the split view so that the navigation is not rewritten.
+ *
+ * @returns true if split view navigation handling is suppressed.
+ */
+export function isSplitViewNavigationSuppressed(): boolean {
+  return navigationSuppressed;
+}
+
+/**
+ * Runs a callback with split view handling of navigation disabled, allowing
+ * the exact location passed to history.push or history.replace to be used.
+ *
+ * @param callback the callback to run.
+ */
+export function withoutSplitViewNavigation(callback: () => void): void {
+  navigationSuppressed = true;
+  try {
+    callback();
+  } finally {
+    navigationSuppressed = false;
+  }
+}
+
+/**
+ * Opens the given path in the secondary pane of the split view, keeping the
+ * current route in the primary pane, and focuses the secondary pane.
+ *
+ * @param history the history instance to navigate with.
+ * @param path the internal path to open in the secondary pane.
+ */
+export function openRouteInSplit(history: History, path: string): void {
+  const { location } = history;
+  setFocusedSplitPane("secondary");
+  history.push({
+    pathname: location.pathname,
+    hash: location.hash,
+    state: location.state,
+    search: setSplitPath(location.search, path),
+  });
+}
+
+/**
+ * Closes the split view, keeping only the route in the primary pane, and
+ * returns focus to it.
+ *
+ * @param history the history instance to navigate with.
+ */
+export function closeSplitView(history: History): void {
+  const { location } = history;
+  setFocusedSplitPane("primary");
+  withoutSplitViewNavigation(() => {
+    history.push({
+      pathname: location.pathname,
+      hash: location.hash,
+      state: location.state,
+      search: setSplitPath(location.search, undefined),
+    });
+  });
+}

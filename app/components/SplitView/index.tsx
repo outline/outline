@@ -1,0 +1,243 @@
+import type { LocationDescriptor, LocationState, MemoryHistory } from "history";
+import { createMemoryHistory, createPath } from "history";
+import * as React from "react";
+import { useTranslation } from "react-i18next";
+import { Router, useLocation } from "react-router-dom";
+import styled from "styled-components";
+import { CloseIcon } from "outline-icons";
+import { depths, s } from "@shared/styles";
+import CenteredContent from "~/components/CenteredContent";
+import NudeButton from "~/components/NudeButton";
+import PlaceholderDocument from "~/components/PlaceholderDocument";
+import Tooltip from "~/components/Tooltip";
+import useMobile from "~/hooks/useMobile";
+import history, { patchLocation } from "~/utils/history";
+import type { SplitViewPane } from "~/utils/splitView";
+import {
+  closeSplitView,
+  getFocusedSplitPane,
+  getSplitPath,
+  isSplitablePath,
+  observeFocusedSplitPane,
+  setFocusedSplitPane,
+  setSplitPath,
+  toLocationDescriptor,
+} from "~/utils/splitView";
+import { SplitViewContext } from "./context";
+
+type Props = {
+  /** The routes to render, once per open pane. */
+  children: React.ReactNode;
+};
+
+/**
+ * Renders the application routes in a single pane, or side by side in two
+ * panes when a secondary route is present in the split query parameter. The
+ * secondary pane is driven by its own in-memory router which is kept in sync
+ * with the query parameter so that a reload hydrates both panes.
+ */
+export function SplitView({ children }: Props) {
+  const location = useLocation();
+  const isMobile = useMobile();
+  const splitPath = isMobile ? undefined : getSplitPath(location.search);
+  const [focusedPane, setFocusedPaneState] = React.useState<SplitViewPane>(
+    getFocusedSplitPane()
+  );
+
+  React.useEffect(() => observeFocusedSplitPane(setFocusedPaneState), []);
+
+  // Return focus to the primary pane whenever the split view closes.
+  React.useEffect(() => {
+    if (!splitPath) {
+      setFocusedSplitPane("primary");
+    }
+  }, [splitPath]);
+
+  if (!splitPath) {
+    return <>{children}</>;
+  }
+
+  return (
+    <Container>
+      <Pane pane="primary" isFocused={focusedPane === "primary"}>
+        {children}
+      </Pane>
+      <Pane pane="secondary" isFocused={focusedPane === "secondary"}>
+        <SecondaryRouter splitPath={splitPath}>{children}</SecondaryRouter>
+      </Pane>
+    </Container>
+  );
+}
+
+type PaneProps = {
+  pane: SplitViewPane;
+  isFocused: boolean;
+  children: React.ReactNode;
+};
+
+const Pane = ({ pane, isFocused, children }: PaneProps) => {
+  const { t } = useTranslation();
+  const isSecondary = pane === "secondary";
+  const contextValue = React.useMemo(
+    () => ({ pane, isSplitView: true, isFocused }),
+    [pane, isFocused]
+  );
+
+  const handleFocus = React.useCallback(() => {
+    setFocusedSplitPane(pane);
+  }, [pane]);
+
+  const handleClose = React.useCallback(() => {
+    closeSplitView(history);
+  }, []);
+
+  return (
+    <PaneContainer
+      role="group"
+      aria-label={isSecondary ? t("Split pane") : t("Main pane")}
+      $secondary={isSecondary}
+      onMouseDownCapture={handleFocus}
+      onFocusCapture={handleFocus}
+    >
+      <SplitViewContext.Provider value={contextValue}>
+        {isSecondary && (
+          <PaneHeader>
+            <Tooltip content={t("Close split view")} side="bottom">
+              <NudeButton
+                aria-label={t("Close split view")}
+                onClick={handleClose}
+              >
+                <CloseIcon />
+              </NudeButton>
+            </Tooltip>
+          </PaneHeader>
+        )}
+        <PaneContent>
+          <React.Suspense
+            fallback={
+              <CenteredContent>
+                <PlaceholderDocument />
+              </CenteredContent>
+            }
+          >
+            {children}
+          </React.Suspense>
+        </PaneContent>
+        <FocusRing $visible={isFocused} aria-hidden />
+      </SplitViewContext.Provider>
+    </PaneContainer>
+  );
+};
+
+type SecondaryRouterProps = {
+  /** The path currently displayed in the secondary pane. */
+  splitPath: string;
+  children: React.ReactNode;
+};
+
+/**
+ * Hosts the secondary pane routes inside an in-memory router so navigation
+ * within the pane, such as following document links, stays in the pane. The
+ * pane location is mirrored to the split query parameter of the browser URL,
+ * while navigation to routes that cannot render in a pane is promoted to the
+ * primary browser history.
+ */
+const SecondaryRouter = ({ splitPath, children }: SecondaryRouterProps) => {
+  const initialPathRef = React.useRef(splitPath);
+  const memoryHistory = React.useMemo<MemoryHistory>(() => {
+    const memory = createMemoryHistory({
+      initialEntries: [initialPathRef.current],
+    });
+    const memoryPush = memory.push.bind(memory);
+    const memoryReplace = memory.replace.bind(memory);
+
+    const handled =
+      (navigate: (to: LocationDescriptor) => void) =>
+      (to: LocationDescriptor, state?: LocationState) => {
+        const descriptor = toLocationDescriptor(to, state);
+        const pathname = descriptor.pathname ?? memory.location.pathname;
+
+        if (!isSplitablePath(pathname)) {
+          history.push(descriptor);
+          return;
+        }
+
+        navigate(descriptor);
+      };
+
+    memory.push = handled(memoryPush);
+    memory.replace = handled(memoryReplace);
+    return memory;
+  }, []);
+
+  // Mirror pane navigation into the split query parameter of the browser URL.
+  React.useEffect(
+    () =>
+      memoryHistory.listen((paneLocation) => {
+        const path = createPath(paneLocation);
+        const current = history.location;
+
+        if (getSplitPath(current.search) !== path) {
+          history.replace(
+            patchLocation(current, {
+              search: setSplitPath(current.search, path),
+            })
+          );
+        }
+      }),
+    [memoryHistory]
+  );
+
+  // Apply external changes to the split query parameter, such as opening a
+  // different route in the split view or browser back/forward navigation.
+  React.useEffect(() => {
+    if (createPath(memoryHistory.location) !== splitPath) {
+      memoryHistory.replace(splitPath);
+    }
+  }, [memoryHistory, splitPath]);
+
+  return <Router history={memoryHistory}>{children}</Router>;
+};
+
+const Container = styled.div`
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+`;
+
+const PaneContainer = styled.div<{ $secondary: boolean }>`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 50%;
+  min-width: 0;
+  border-inline-start: ${(props) =>
+    props.$secondary ? `1px solid ${props.theme.divider}` : "none"};
+`;
+
+const PaneContent = styled.div`
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+`;
+
+const PaneHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  padding: 6px 8px;
+  color: ${s("textSecondary")};
+`;
+
+const FocusRing = styled.div<{ $visible: boolean }>`
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: ${depths.header + 1};
+  box-shadow: inset 0 0 0 2px ${s("accent")};
+  opacity: ${(props) => (props.$visible ? 1 : 0)};
+  transition: opacity 100ms ease-in-out;
+`;
