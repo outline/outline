@@ -1,12 +1,10 @@
-import crypto from "node:crypto";
 import passport from "@outlinewiki/koa-passport";
-import { addSeconds, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import type { Context, Request } from "koa";
 import type Router from "koa-router";
 import { get } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
-import { getCookieDomain, slugifyDomain } from "@shared/utils/domains";
+import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import { isBase64Url } from "@shared/utils/urls";
 import accountProvisioner from "@server/commands/accountProvisioner";
@@ -18,9 +16,8 @@ import Logger from "@server/logging/Logger";
 import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
 import { AuthenticationProvider } from "@server/models";
-import Redis from "@server/storage/redis";
 import type { AuthenticationResult } from "@server/types";
-import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
+import { LogoutTokenStore } from "@server/utils/LogoutTokenStore";
 import {
   StateStore,
   getTeamFromContext,
@@ -34,12 +31,6 @@ import config from "../../plugin.json";
 import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
 import { createContext } from "@server/context";
-
-const OIDC_LOGOUT_PATH = "/auth/oidc.logout";
-const OIDC_SESSION_COOKIE = "oidcSession";
-// Shared by the server-side token and the cookie referencing it so the hint
-// is available for as long as the cookie can be sent back.
-const OIDC_LOGOUT_TOKEN_TTL_SECONDS = 90 * 24 * 60 * 60;
 
 export interface OIDCEndpoints {
   authorizationURL: string;
@@ -57,6 +48,7 @@ export function createOIDCRouter(
   endpoints: OIDCEndpoints
 ): void {
   const scopes = env.OIDC_SCOPES.split(" ");
+  const logoutTokens = new LogoutTokenStore(config.id);
 
   passport.use(
     config.id,
@@ -248,41 +240,9 @@ export function createOIDCRouter(
             });
             // Persist the id_token so a later RP-initiated logout can pass it as
             // the `id_token_hint`, allowing the provider to scope the logout to
-            // this session rather than terminating its global SSO session. The
-            // token is stored server-side keyed by a short session identifier;
-            // only that identifier goes in the cookie. id_tokens can be large and
-            // storing one directly in the cookie inflates response headers enough
-            // to exceed reverse proxy buffers, resulting in a 502 on sign-in.
-            // This is best-effort: a Redis failure must not block sign-in, the
-            // logout simply falls back to omitting the `id_token_hint`.
+            // this session rather than terminating its global SSO session.
             if (endpoints.logoutURL && params.id_token) {
-              try {
-                const sessionId = crypto.randomBytes(16).toString("hex");
-                await Redis.defaultClient.set(
-                  RedisPrefixHelper.getLogoutTokenKey(sessionId),
-                  params.id_token,
-                  "EX",
-                  OIDC_LOGOUT_TOKEN_TTL_SECONDS
-                );
-                context.cookies.set(OIDC_SESSION_COOKIE, sessionId, {
-                  httpOnly: true,
-                  sameSite: "lax",
-                  secure: env.isProduction,
-                  path: OIDC_LOGOUT_PATH,
-                  domain: getCookieDomain(
-                    context.request.hostname,
-                    env.isCloudHosted
-                  ),
-                  expires: addSeconds(
-                    new Date(),
-                    OIDC_LOGOUT_TOKEN_TTL_SECONDS
-                  ),
-                });
-              } catch (err) {
-                Logger.warn("Failed to persist OIDC logout token hint", {
-                  error: toError(err).message,
-                });
-              }
+              await logoutTokens.persist(context, params.id_token);
             }
 
             return done(null, result.user, { ...result, client });
@@ -304,31 +264,7 @@ export function createOIDCRouter(
   // while `post_logout_redirect_uri` returns the user to Outline afterwards.
   // https://openid.net/specs/openid-connect-rpinitiated-1_0.html
   router.get(`${config.id}.logout`, async (ctx: Context) => {
-    const sessionId = ctx.cookies.get(OIDC_SESSION_COOKIE);
-    // Best-effort: a Redis failure falls back to omitting the `id_token_hint`
-    // rather than blocking logout.
-    let idToken: string | null = null;
-    if (sessionId) {
-      try {
-        idToken = await Redis.defaultClient.getdel(
-          RedisPrefixHelper.getLogoutTokenKey(sessionId)
-        );
-      } catch (err) {
-        Logger.warn("Failed to read OIDC logout token hint", {
-          error: toError(err).message,
-        });
-      }
-    }
-
-    // Always discard our session identifier, regardless of where we redirect.
-    ctx.cookies.set(OIDC_SESSION_COOKIE, "", {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: env.isProduction,
-      path: OIDC_LOGOUT_PATH,
-      domain: getCookieDomain(ctx.request.hostname, env.isCloudHosted),
-      expires: subMinutes(new Date(), 1),
-    });
+    const idToken = await logoutTokens.consume(ctx);
 
     if (!endpoints.logoutURL) {
       return ctx.redirect("/");

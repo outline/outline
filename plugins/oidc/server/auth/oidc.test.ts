@@ -36,7 +36,7 @@ describe("oidc", () => {
     it("should include the id_token_hint when present", async () => {
       const sessionId = "test-session-id";
       await Redis.defaultClient.set(
-        RedisPrefixHelper.getLogoutTokenKey(sessionId),
+        RedisPrefixHelper.getLogoutTokenKey("oidc", sessionId),
         "fake-id-token"
       );
 
@@ -57,7 +57,7 @@ describe("oidc", () => {
       // The token is consumed from the server-side store on logout.
       expect(
         await Redis.defaultClient.get(
-          RedisPrefixHelper.getLogoutTokenKey(sessionId)
+          RedisPrefixHelper.getLogoutTokenKey("oidc", sessionId)
         )
       ).toBeNull();
     });
