@@ -91,6 +91,31 @@ describe("#integrations.update", () => {
     expect(body.data.id).toEqual(integration.id);
     expect(body.data.settings.url).toEqual("https://grist.example.com");
   });
+
+  it("should succeed with status 200 ok when kroki integration settings are updated", async () => {
+    const admin = await buildAdmin();
+
+    const integration = await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+      service: IntegrationService.Kroki,
+      type: IntegrationType.Embed,
+      settings: { kroki: { url: "https://kroki.example.com" } },
+    });
+
+    const res = await server.post("/api/integrations.update", admin, {
+      body: {
+        id: integration.id,
+        settings: { kroki: { url: "https://kroki.new.example.com", mermaid: true } },
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(integration.id);
+    expect(body.data.settings.kroki.url).toEqual("https://kroki.new.example.com");
+    expect(body.data.settings.kroki.mermaid).toEqual(true);
+  });
 });
 
 describe("#integrations.create", () => {
@@ -143,6 +168,134 @@ describe("#integrations.create", () => {
     expect(body.data.service).toEqual(IntegrationService.Grist);
     expect(body.data.settings).not.toBeFalsy();
     expect(body.data.settings.url).toEqual("https://grist.example.com");
+  });
+
+  it("should succeed with status 200 ok for a kroki integration with valid URL", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", admin, {
+      body: {
+        type: IntegrationType.Embed,
+        service: IntegrationService.Kroki,
+        settings: { kroki: { url: "https://kroki.example.com" } },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.type).toEqual(IntegrationType.Embed);
+    expect(body.data.service).toEqual(IntegrationService.Kroki);
+    expect(body.data.settings).not.toBeFalsy();
+    expect(body.data.settings.kroki.url).toEqual("https://kroki.example.com");
+  });
+
+  it("should succeed with status 200 ok for a kroki integration with mermaid enabled", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", admin, {
+      body: {
+        type: IntegrationType.Embed,
+        service: IntegrationService.Kroki,
+        settings: { kroki: { url: "https://kroki.example.com", mermaid: true } },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.service).toEqual(IntegrationService.Kroki);
+    expect(body.data.settings.kroki.url).toEqual("https://kroki.example.com");
+    expect(body.data.settings.kroki.mermaid).toEqual(true);
+  });
+
+  it("should succeed with status 200 ok for a kroki integration with mermaid disabled", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", admin, {
+      body: {
+        type: IntegrationType.Embed,
+        service: IntegrationService.Kroki,
+        settings: { kroki: { url: "https://kroki.example.com", mermaid: false } },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.service).toEqual(IntegrationService.Kroki);
+    expect(body.data.settings.kroki.url).toEqual("https://kroki.example.com");
+    expect(body.data.settings.kroki.mermaid).toEqual(false);
+  });
+
+  it("should fail with status 400 bad request for a kroki integration with invalid URL", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", admin, {
+      body: {
+        type: IntegrationType.Embed,
+        service: IntegrationService.Kroki,
+        settings: { kroki: { url: "not a valid url" } },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toContain("Invalid URL");
+  });
+
+  it("should fail with status 400 bad request for a kroki integration with missing URL", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", admin, {
+      body: {
+        type: IntegrationType.Embed,
+        service: IntegrationService.Kroki,
+        settings: { kroki: {} },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toBeTruthy();
+  });
+
+  it("should succeed with status 200 ok for a kroki integration with enabledFormats array (8.12)", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", admin, {
+      body: {
+        type: IntegrationType.Embed,
+        service: IntegrationService.Kroki,
+        settings: {
+          kroki: {
+            url: "https://kroki.io",
+            enabledFormats: ["d2", "plantuml", "ditaa"],
+          },
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.service).toEqual(IntegrationService.Kroki);
+    expect(body.data.settings.kroki.url).toEqual("https://kroki.io");
+    expect(body.data.settings.kroki.enabledFormats).toEqual([
+      "d2",
+      "plantuml",
+      "ditaa",
+    ]);
+  });
+
+  it("should fail with status 400 bad request for a kroki integration with non-array enabledFormats (8.13)", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", admin, {
+      body: {
+        type: IntegrationType.Embed,
+        service: IntegrationService.Kroki,
+        settings: {
+          kroki: {
+            url: "https://kroki.io",
+            enabledFormats: "not-an-array",
+          },
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toBeTruthy();
   });
 });
 
@@ -209,6 +362,27 @@ describe("#integrations.delete", () => {
     expect(res.status).toEqual(200);
 
     const intg = await Integration.findByPk(integration.id);
+    expect(intg?.deletedAt).not.toBeNull();
+  });
+
+  it("should succeed with status 200 ok when kroki integration is deleted", async () => {
+    const krokiIntegration = await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+      service: IntegrationService.Kroki,
+      type: IntegrationType.Embed,
+      settings: { kroki: { url: "https://kroki.example.com", mermaid: true } },
+    });
+
+    const res = await server.post("/api/integrations.delete", admin, {
+      body: {
+        id: krokiIntegration.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+
+    const intg = await Integration.findByPk(krokiIntegration.id);
     expect(intg?.deletedAt).not.toBeNull();
   });
 });

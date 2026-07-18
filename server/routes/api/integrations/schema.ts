@@ -65,6 +65,14 @@ export const IntegrationsCreateSchema = BaseSchema.extend({
       )
       .or(
         z.object({
+          kroki: z.object({
+            url: z.url(),
+            enabledFormats: z.array(z.string()).optional(),
+          }),
+        })
+      )
+      .or(
+        z.object({
           gitlab: z.object({
             url: z.url().optional(),
             installation: z
@@ -112,6 +120,14 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
       .or(
         z.object({
           diagrams: z.object({ url: z.url() }),
+        })
+      )
+      .or(
+        z.object({
+          kroki: z.object({
+            url: z.url(),
+            enabledFormats: z.array(z.string()).optional(),
+          }),
         })
       )
       .or(
