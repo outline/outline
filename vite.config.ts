@@ -53,13 +53,6 @@ export default () =>
         workbox: {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           globPatterns: ["**/*.{js,css,ico,png,svg}"],
-          // The HTML document is rendered per-request by the server (it injects
-          // a unique CSP nonce and the runtime env), so there is no static shell
-          // to precache and nothing for a `navigateFallback` URL to point at.
-          // Disable the built-in navigation fallback so it does not compete with
-          // the network-first navigation route defined in `runtimeCaching`,
-          // which keeps a copy of the last rendered shell so that the precached
-          // JS/CSS can boot when offline.
           navigateFallback: null,
           modifyURLPrefix: {
             "": `${environment.CDN_URL ?? ""}/static/`,
