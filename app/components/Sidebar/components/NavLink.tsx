@@ -12,6 +12,7 @@ import { __RouterContext as RouterContext, matchPath } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
 import { isModKey } from "@shared/utils/keyboard";
+import { useFocusedSplitLocation } from "~/hooks/useFocusedSplitLocation";
 import Desktop from "~/utils/Desktop";
 import history from "~/utils/history";
 import { isSplitablePath, openRouteInSplit } from "~/utils/splitView";
@@ -103,11 +104,16 @@ const NavLink = observer(function NavLink({
   const linkRef = React.useRef<HTMLAnchorElement>(null);
   const context = React.useContext(RouterContext);
   const currentLocation = locationProp || context.location;
+  // The focused split view pane's route, decoded from the split query
+  // parameter, so the active item follows the focused pane.
+  const splitLocation = useFocusedSplitLocation();
   // While a fast-click navigation is pending, derive active state from its
   // target so the outgoing link deactivates immediately.
   const pending = pendingNavigation.get();
   const activeLocation =
-    pending && pending.from === currentLocation ? pending.to : currentLocation;
+    pending && pending.from === currentLocation
+      ? pending.to
+      : (locationProp ?? splitLocation ?? currentLocation);
   const toLocation = normalizeToLocation(
     resolveToLocation(to, currentLocation),
     currentLocation

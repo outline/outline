@@ -198,7 +198,7 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
   parentId,
   hasChildren,
 }: InnerProps) {
-  const { documents, ui } = useStores();
+  const { documents } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
   const can = usePolicy(node.id);
@@ -280,19 +280,11 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
       if (sidebarContext !== location.state?.sidebarContext) {
         return false;
       }
-
-      // The active document follows the focused split view pane, so prefer it
-      // over the primary route when known. The route is used as a fallback so
-      // rows highlight immediately while a document is still loading.
-      if (document && ui.activeDocumentId) {
-        return document.id === ui.activeDocumentId;
-      }
-
       return (
         (document && location.pathname.endsWith(document.urlId)) || !!match
       );
     },
-    [sidebarContext, document, ui]
+    [sidebarContext, document]
   );
 
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
