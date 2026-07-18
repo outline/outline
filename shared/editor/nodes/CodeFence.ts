@@ -32,6 +32,10 @@ import {
 import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
 import { CodeHighlighting } from "../plugins/CodeHighlightingPlugin";
+import DiagramService, {
+  pluginKey as diagramServicePluginKey,
+  type DiagramServiceState,
+} from "../extensions/DiagramService";
 import Mermaid, {
   pluginKey as mermaidPluginKey,
   type MermaidState,
@@ -40,7 +44,7 @@ import {
   getRecentlyUsedCodeLanguage,
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
-import { isCode, isMermaid } from "../lib/isCode";
+import { isCode, isDiagramService, isMermaid } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -318,32 +322,74 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           isCode(state.selection.node)
             ? { pos: state.selection.from, node: state.selection.node }
             : findParentNode(isCode)(state.selection);
-        if (!codeBlock || !isMermaid(codeBlock.node)) {
+        if (!codeBlock) {
           return false;
         }
 
-        const mermaidState = mermaidPluginKey.getState(state) as MermaidState;
-        const decorations = mermaidState?.decorationSet.find(
+        const dsState = diagramServicePluginKey.getState(state) as DiagramServiceState;
+        const dsDecorations = dsState?.decorationSet.find(
           codeBlock.pos,
           codeBlock.pos + codeBlock.node.nodeSize
         );
-        const nodeDecoration = decorations?.find(
+        const dsDeco = dsDecorations?.find(
           (d) => d.spec.diagramId && d.from === codeBlock.pos
         );
-        const diagramId = nodeDecoration?.spec.diagramId;
 
-        if (dispatch && diagramId) {
-          dispatch(
-            state.tr
-              .setMeta(mermaidPluginKey, {
-                editingId:
-                  mermaidState?.editingId === diagramId ? undefined : diagramId,
-              })
-              .setSelection(TextSelection.create(state.doc, codeBlock.pos + 1))
-              .scrollIntoView()
-          );
+        if (!dsDeco && !isMermaid(codeBlock.node)) {
+          return false;
         }
-        return true;
+
+        if (dsDeco) {
+          if (dispatch) {
+            dispatch(
+              state.tr
+                .setMeta(diagramServicePluginKey, {
+                  editingId:
+                    dsState?.editingId === dsDeco.spec.diagramId
+                      ? undefined
+                      : dsDeco.spec.diagramId,
+                })
+                .setSelection(
+                  TextSelection.create(state.doc, codeBlock.pos + 1)
+                )
+                .scrollIntoView()
+            );
+          }
+          return true;
+        }
+
+        if (isMermaid(codeBlock.node)) {
+          const mermaidState = mermaidPluginKey.getState(
+            state
+          ) as MermaidState;
+          const decorations = mermaidState?.decorationSet.find(
+            codeBlock.pos,
+            codeBlock.pos + codeBlock.node.nodeSize
+          );
+          const nodeDecoration = decorations?.find(
+            (d) => d.spec.diagramId && d.from === codeBlock.pos
+          );
+          const diagramId = nodeDecoration?.spec.diagramId;
+
+          if (dispatch && diagramId) {
+            dispatch(
+              state.tr
+                .setMeta(mermaidPluginKey, {
+                  editingId:
+                    mermaidState?.editingId === diagramId
+                      ? undefined
+                      : diagramId,
+                })
+                .setSelection(
+                  TextSelection.create(state.doc, codeBlock.pos + 1)
+                )
+                .scrollIntoView()
+            );
+          }
+          return true;
+        }
+
+        return false;
       },
       copyToClipboard: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
@@ -583,19 +629,34 @@ export default class CodeFence extends Node<CodeFenceOptions> {
         return DecorationSet.empty;
       }
 
-      if (isMermaid(codeBlock.node)) {
-        const mermaidState = mermaidPluginKey.getState(state) as MermaidState;
-        const decorations = mermaidState?.decorationSet.find(
+      if (isDiagramService(codeBlock.node) || isMermaid(codeBlock.node)) {
+        const dsState = diagramServicePluginKey.getState(state) as DiagramServiceState;
+        const dsDecorations = dsState?.decorationSet.find(
           codeBlock.pos,
           codeBlock.pos + codeBlock.node.nodeSize
         );
-        const nodeDecoration = decorations?.find(
+        const dsDeco = dsDecorations?.find(
           (d) => d.spec.diagramId && d.from === codeBlock.pos
         );
-        const diagramId = nodeDecoration?.spec.diagramId;
 
-        if (!diagramId || mermaidState?.editingId !== diagramId) {
-          return DecorationSet.empty;
+        if (dsDeco) {
+          if (!dsState?.editingId || dsState.editingId !== dsDeco.spec.diagramId) {
+            return DecorationSet.empty;
+          }
+        } else if (isMermaid(codeBlock.node)) {
+          const mermaidState = mermaidPluginKey.getState(state) as MermaidState;
+          const mermaidDecorations = mermaidState?.decorationSet.find(
+            codeBlock.pos,
+            codeBlock.pos + codeBlock.node.nodeSize
+          );
+          const mermaidDeco = mermaidDecorations?.find(
+            (d) => d.spec.diagramId && d.from === codeBlock.pos
+          );
+          const diagramId = mermaidDeco?.spec.diagramId;
+
+          if (!diagramId || mermaidState?.editingId !== diagramId) {
+            return DecorationSet.empty;
+          }
         }
       }
 
@@ -614,6 +675,12 @@ export default class CodeFence extends Node<CodeFenceOptions> {
       }),
       this.name === "code_fence"
         ? Mermaid({
+            isDark: this.editor.props.theme.isDark,
+            editor: this.editor,
+          })
+        : undefined,
+      this.name === "code_fence"
+        ? DiagramService({
             isDark: this.editor.props.theme.isDark,
             editor: this.editor,
           })
