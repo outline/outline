@@ -1,5 +1,6 @@
 import { flatten } from "es-toolkit/compat";
 import stores from "~/stores";
+import StorePersistence from "~/stores/base/StorePersistence";
 import { flattenTree } from "@shared/utils/tree";
 
 /**
@@ -10,6 +11,12 @@ import { flattenTree } from "@shared/utils/tree";
 export async function deleteAllDatabases() {
   if (!window.indexedDB) {
     return;
+  }
+
+  if (stores.auth.currentTeamId) {
+    window.indexedDB.deleteDatabase(
+      StorePersistence.databaseName("policies", stores.auth.currentTeamId)
+    );
   }
 
   if ("databases" in window.indexedDB) {
