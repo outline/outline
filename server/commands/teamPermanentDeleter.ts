@@ -42,33 +42,32 @@ async function teamPermanentDeleter(team: Team) {
 
   // Attachments are destroyed as individual instances (rather than a bulk
   // delete) so the BeforeDestroy hook runs and removes the associated file from
-  // storage. We cannot use findAllInBatches with an advancing offset here –
-  // deleting a batch shifts the remaining rows backwards, so advancing the
-  // offset would skip records and leave attachments that still reference the
-  // team, causing a foreign key violation when the team itself is destroyed.
-  // Instead we repeatedly fetch and delete the first batch until none remain.
-  let attachments: Attachment[];
-  do {
-    attachments = await Attachment.findAll<Attachment>({
+  // storage.
+  await Attachment.findAllInBatches<Attachment>(
+    {
       where: {
         teamId,
       },
-      limit: 100,
-    });
-
-    if (attachments.length > 0) {
-      await sequelize.transaction(async (transaction) => {
-        Logger.info("commands", `Deleting ${attachments.length} attachments…`);
-        await Promise.all(
-          attachments.map((attachment) =>
-            attachment.destroy({
-              transaction,
-            })
-          )
-        );
-      });
+      batchLimit: 100,
+    },
+    async (attachments) => {
+      if (attachments.length > 0) {
+        await sequelize.transaction(async (transaction) => {
+          Logger.info(
+            "commands",
+            `Deleting ${attachments.length} attachments…`
+          );
+          await Promise.all(
+            attachments.map((attachment) =>
+              attachment.destroy({
+                transaction,
+              })
+            )
+          );
+        });
+      }
     }
-  } while (attachments.length > 0);
+  );
 
   // Destroy user-relation models
   await User.findAllInBatches<User>(

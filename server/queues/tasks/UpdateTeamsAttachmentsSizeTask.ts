@@ -30,6 +30,9 @@ export default class UpdateTeamsAttachmentsSizeTask extends CronTask {
             [Op.gt]: subDays(new Date(), 1),
           },
         },
+        // A unique order is required for keyset pagination; the primary key
+        // cannot be used with a DISTINCT select.
+        order: [["teamId", "ASC"]],
         batchLimit: 100,
         raw: true,
       },
