@@ -89,6 +89,12 @@ const nonSplitViewPrefixes = [
  * @returns true if the route can be displayed in a split view pane.
  */
 export function isSplitablePath(pathname: string): boolean {
+  // Require an internal, absolute pathname – full URLs and protocol-relative
+  // values must never be treated as splitable.
+  if (!pathname.startsWith("/") || pathname.startsWith("//")) {
+    return false;
+  }
+
   if (pathname === "/") {
     return false;
   }

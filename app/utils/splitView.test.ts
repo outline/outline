@@ -89,6 +89,13 @@ describe("isSplitablePath", () => {
     expect(isSplitablePath("/search")).toBe(true);
     expect(isSplitablePath("/settings-doc-a1b2c3d4e5")).toBe(true);
   });
+
+  it("rejects values that are not internal absolute paths", () => {
+    expect(isSplitablePath("https://example.com/doc/my-doc")).toBe(false);
+    expect(isSplitablePath("//example.com")).toBe(false);
+    expect(isSplitablePath("doc/my-doc")).toBe(false);
+    expect(isSplitablePath("")).toBe(false);
+  });
 });
 
 describe("toLocationDescriptor", () => {
