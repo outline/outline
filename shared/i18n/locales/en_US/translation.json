@@ -1822,6 +1822,7 @@
   "Show {{ count }} completed_many": "Show {{ count }} completed",
   "Show {{ count }} completed_other": "Show {{ count }} completed",
   "Hide completed": "Hide completed",
+  "Sorry, the link could not be copied": "Sorry, the link could not be copied",
   "Write a caption": "Write a caption",
   "Add title": "Add title",
   "Add content": "Add content",
