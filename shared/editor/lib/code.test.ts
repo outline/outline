@@ -15,6 +15,9 @@ describe("getRefractorLangForLanguage", () => {
     expect(getRefractorLangForLanguage("xml")).toBe("markup");
     expect(getRefractorLangForLanguage("diff")).toBe("diff");
     expect(getRefractorLangForLanguage("fortran")).toBe("fortran");
+    expect(getRefractorLangForLanguage("d2")).toBe("d2");
+    expect(getRefractorLangForLanguage("plantuml")).toBe("plantuml");
+    expect(getRefractorLangForLanguage("puml")).toBe("plantuml");
     expect(getRefractorLangForLanguage("unknown")).toBeUndefined();
     expect(getRefractorLangForLanguage("")).toBeUndefined();
   });
@@ -28,6 +31,9 @@ describe("getLabelForLanguage", () => {
     expect(getLabelForLanguage("xml")).toBe("XML");
     expect(getLabelForLanguage("diff")).toBe("Diff");
     expect(getLabelForLanguage("fortran")).toBe("Fortran");
+    expect(getLabelForLanguage("d2")).toBe("D2");
+    expect(getLabelForLanguage("plantuml")).toBe("PlantUML");
+    expect(getLabelForLanguage("puml")).toBe("PlantUML");
     expect(getLabelForLanguage("unknown")).toBe("Plain text");
     expect(getLabelForLanguage("none")).toBe("Plain text");
     expect(getLabelForLanguage("")).toBe("Plain text");
@@ -56,6 +62,24 @@ describe("setRecentlyUsedCodeLanguage", () => {
     expect(getRecentlyUsedCodeLanguage()).toBe("javascript");
   });
 
+  it("should not remember d2 as the last selected code language", () => {
+    setRecentlyUsedCodeLanguage("javascript");
+    setRecentlyUsedCodeLanguage("d2");
+    expect(getRecentlyUsedCodeLanguage()).toBe("javascript");
+  });
+
+  it("should not remember plantuml as the last selected code language", () => {
+    setRecentlyUsedCodeLanguage("javascript");
+    setRecentlyUsedCodeLanguage("plantuml");
+    expect(getRecentlyUsedCodeLanguage()).toBe("javascript");
+  });
+
+  it("should not remember puml as the last selected code language", () => {
+    setRecentlyUsedCodeLanguage("javascript");
+    setRecentlyUsedCodeLanguage("puml");
+    expect(getRecentlyUsedCodeLanguage()).toBe("javascript");
+  });
+
   it("should ignore mermaid that was already persisted", () => {
     Storage.set("rme-code-language", "mermaid");
     expect(getRecentlyUsedCodeLanguage()).toBeUndefined();
@@ -72,6 +96,16 @@ describe("getFrequentCodeLanguages", () => {
       javascript: 3,
       mermaid: 5,
       mermaidjs: 2,
+    });
+    expect(getFrequentCodeLanguages()).toEqual(["javascript"]);
+  });
+
+  it("should exclude d2, plantuml, puml that were already persisted", () => {
+    Storage.set("frequent-code-languages", {
+      javascript: 3,
+      d2: 5,
+      plantuml: 4,
+      puml: 2,
     });
     expect(getFrequentCodeLanguages()).toEqual(["javascript"]);
   });
