@@ -306,6 +306,9 @@ class Share extends IdModel<
         revokedAt: { [Op.is]: null },
         [column]: values,
       },
+      // Deterministic order so the same share consistently wins when a
+      // resource has more than one active share.
+      order: [["createdAt", "ASC"]],
     });
   }
 }
