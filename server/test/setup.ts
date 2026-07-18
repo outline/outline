@@ -13,13 +13,18 @@ afterAll(() => server.close());
 // This needs to be done before any modules that use EventEmitter are loaded
 EventEmitter.defaultMaxListeners = 100;
 
-// Mock AWS SDK S3 client and related commands
+// Mock AWS SDK S3 client and related commands. The client must be a real
+// class as it is instantiated with `new` via a dynamic import, which does not
+// apply the spy-constructor interop that static imports receive.
 vi.mock("@aws-sdk/client-s3", () => ({
-  S3Client: vi.fn(() => ({
-    send: vi.fn(),
-  })),
+  S3Client: class MockS3Client {
+    send = vi.fn();
+  },
   DeleteObjectCommand: vi.fn(),
   GetObjectCommand: vi.fn(),
+  HeadObjectCommand: vi.fn(),
+  CopyObjectCommand: vi.fn(),
+  PutObjectCommand: vi.fn(),
   ObjectCannedACL: {},
 }));
 

@@ -23,7 +23,8 @@ describe("S3Storage", () => {
         }
       );
       const storage = new S3Storage();
-      vi.spyOn(Reflect.get(storage, "client"), "send").mockRejectedValue(error);
+      const { client } = await Reflect.get(storage, "getS3").call(storage);
+      vi.spyOn(client, "send").mockRejectedValue(error);
       const errorSpy = vi.spyOn(Logger, "error");
       const infoSpy = vi.spyOn(Logger, "info");
 
@@ -40,7 +41,8 @@ describe("S3Storage", () => {
         $metadata: { httpStatusCode: 500 },
       });
       const storage = new S3Storage();
-      vi.spyOn(Reflect.get(storage, "client"), "send").mockRejectedValue(error);
+      const { client } = await Reflect.get(storage, "getS3").call(storage);
+      vi.spyOn(client, "send").mockRejectedValue(error);
       const errorSpy = vi.spyOn(Logger, "error");
 
       const stream = await storage.getFileStream("some/key");

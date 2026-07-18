@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { Readable } from "node:stream";
+import type * as AwsS3 from "@aws-sdk/client-s3";
 import type { ObjectCannedACL, S3Client } from "@aws-sdk/client-s3";
 import type { PresignedPostOptions } from "@aws-sdk/s3-presigned-post";
 import fs from "fs-extra";
@@ -43,7 +44,8 @@ export default class S3Storage extends BaseStorage {
     };
 
     const { createPresignedPost } = await import("@aws-sdk/s3-presigned-post");
-    return createPresignedPost(await this.getClient(), params);
+    const { client } = await this.getS3();
+    return createPresignedPost(client, params);
   }
 
   /**
@@ -65,8 +67,8 @@ export default class S3Storage extends BaseStorage {
     const contentDisposition = this.getContentDisposition(contentType);
     const cacheControl = "max-age=31557600";
 
-    const { PutObjectCommand } = await import("@aws-sdk/client-s3");
-    const command = new PutObjectCommand({
+    const { sdk, client } = await this.getS3();
+    const command = new sdk.PutObjectCommand({
       Bucket: this.getBucket(),
       Key: key,
       ContentType: contentType,
@@ -77,7 +79,7 @@ export default class S3Storage extends BaseStorage {
     });
 
     const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
-    let url = await getSignedUrl(await this.getClient(), command, {
+    let url = await getSignedUrl(client, command, {
       expiresIn: 3600,
     });
 
@@ -154,8 +156,9 @@ export default class S3Storage extends BaseStorage {
     acl?: string;
   }) => {
     const { Upload } = await import("@aws-sdk/lib-storage");
+    const { client } = await this.getS3();
     const upload = new Upload({
-      client: await this.getClient(),
+      client,
       params: {
         ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
         Bucket: this.getBucket(),
@@ -174,10 +177,9 @@ export default class S3Storage extends BaseStorage {
   };
 
   public async deleteFile(key: string) {
-    const { DeleteObjectCommand } = await import("@aws-sdk/client-s3");
-    const client = await this.getClient();
+    const { sdk, client } = await this.getS3();
     await client.send(
-      new DeleteObjectCommand({
+      new sdk.DeleteObjectCommand({
         Bucket: this.getBucket(),
         Key: key,
       })
@@ -259,11 +261,10 @@ export default class S3Storage extends BaseStorage {
   }
 
   public async getFileExists(key: string): Promise<boolean> {
-    const { HeadObjectCommand } = await import("@aws-sdk/client-s3");
-    const client = await this.getClient();
+    const { sdk, client } = await this.getS3();
     return client
       .send(
-        new HeadObjectCommand({
+        new sdk.HeadObjectCommand({
           Bucket: this.getBucket(),
           Key: key,
         })
@@ -273,19 +274,16 @@ export default class S3Storage extends BaseStorage {
   }
 
   public moveFile = async (fromKey: string, toKey: string) => {
-    const { CopyObjectCommand, DeleteObjectCommand } = await import(
-      "@aws-sdk/client-s3"
-    );
-    const client = await this.getClient();
+    const { sdk, client } = await this.getS3();
     await client.send(
-      new CopyObjectCommand({
+      new sdk.CopyObjectCommand({
         Bucket: this.getBucket(),
         CopySource: `${env.AWS_S3_UPLOAD_BUCKET_NAME}/${fromKey}`,
         Key: toKey,
       })
     );
     await client.send(
-      new DeleteObjectCommand({
+      new sdk.DeleteObjectCommand({
         Bucket: this.getBucket(),
         Key: fromKey,
       })
@@ -296,11 +294,10 @@ export default class S3Storage extends BaseStorage {
     key: string,
     range?: { start: number; end: number }
   ): Promise<NodeJS.ReadableStream | null> {
-    const { GetObjectCommand } = await import("@aws-sdk/client-s3");
-    const client = await this.getClient();
+    const { sdk, client } = await this.getS3();
     return client
       .send(
-        new GetObjectCommand({
+        new sdk.GetObjectCommand({
           Bucket: this.getBucket(),
           Key: key,
           Range: range ? `bytes=${range.start}-${range.end}` : undefined,
@@ -357,28 +354,30 @@ export default class S3Storage extends BaseStorage {
     return undefined;
   }
 
-  private clientPromise?: Promise<S3Client>;
+  private s3Promise?: Promise<{ sdk: typeof AwsS3; client: S3Client }>;
 
   /**
-   * Returns the S3 client, creating it on first use. Creation is deferred so
-   * the AWS SDK and its native CRT binding are not loaded at startup.
+   * Returns the S3 SDK module and client, loading both on first use. Loading
+   * is deferred so the AWS SDK and its native CRT binding are not loaded at
+   * startup.
    */
-  private getClient(): Promise<S3Client> {
-    this.clientPromise ??= (async () => {
+  private getS3(): Promise<{ sdk: typeof AwsS3; client: S3Client }> {
+    this.s3Promise ??= (async () => {
       // Must be loaded before the client is constructed so SigV4a request
       // signing is available.
       // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
       await import("@aws-sdk/signature-v4-crt");
 
-      const { S3Client } = await import("@aws-sdk/client-s3");
-      return new S3Client({
+      const sdk = await import("@aws-sdk/client-s3");
+      const client = new sdk.S3Client({
         bucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : false,
         forcePathStyle: env.AWS_S3_FORCE_PATH_STYLE,
         region: env.AWS_REGION,
         endpoint: this.getEndpoint(),
       });
+      return { sdk, client };
     })();
-    return this.clientPromise;
+    return this.s3Promise;
   }
 
   private getCloudFrontUrlForKey(key: string): string {
@@ -419,10 +418,10 @@ export default class S3Storage extends BaseStorage {
     // Ensure expiration does not exceed AWS S3 Signature V4 limit of 7 days
     const clampedExpiresIn = Math.min(expiresIn, S3Storage.maxSignedUrlExpires);
 
-    const { GetObjectCommand } = await import("@aws-sdk/client-s3");
+    const { sdk, client } = await this.getS3();
     const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
-    const command = new GetObjectCommand(params);
-    const url = await getSignedUrl(await this.getClient(), command, {
+    const command = new sdk.GetObjectCommand(params);
+    const url = await getSignedUrl(client, command, {
       expiresIn: clampedExpiresIn,
     });
 
