@@ -2,7 +2,7 @@ import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { errToString } from "@shared/utils/error";
-import { Collection, type Team, type User } from "@server/models";
+import { Collection, Share, type Team, type User } from "@server/models";
 import { addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import { can } from "@server/policies";
@@ -287,6 +287,96 @@ export async function getBreadcrumbsForDocuments(
   }
 
   return breadcrumbs;
+}
+
+/**
+ * Resolves public share URLs for a batch of documents. Only published,
+ * non-revoked shares are considered, so the returned URLs are always publicly
+ * accessible links.
+ *
+ * @param team - the team the documents belong to, used to build absolute URLs.
+ * @param documentIds - a single document ID or an array of document IDs.
+ * @returns a map from document ID to its public share URL.
+ */
+export async function getPublicShareUrlsForDocuments(
+  team: Team,
+  documentIds: string | string[]
+): Promise<Map<string, string>> {
+  const shares = await Share.getPublicSharesForDocumentIds(
+    team.id,
+    documentIds
+  );
+  return toShareUrlMap(team, shares);
+}
+
+/**
+ * Resolves public share URLs for a batch of collections. Only published,
+ * non-revoked shares are considered, so the returned URLs are always publicly
+ * accessible links.
+ *
+ * @param team - the team the collections belong to, used to build absolute URLs.
+ * @param collectionIds - a single collection ID or an array of collection IDs.
+ * @returns a map from collection ID to its public share URL.
+ */
+export async function getPublicShareUrlsForCollections(
+  team: Team,
+  collectionIds: string | string[]
+): Promise<Map<string, string>> {
+  const shares = await Share.getPublicSharesForCollectionIds(
+    team.id,
+    collectionIds
+  );
+  return toShareUrlMap(team, shares);
+}
+
+/**
+ * Resolves the public share URL for a single document.
+ *
+ * @param team - the team the document belongs to, used to build the absolute URL.
+ * @param documentId - the document ID to look up.
+ * @returns the public share URL, or undefined when the document is not publicly shared.
+ */
+export async function getPublicShareUrlForDocument(
+  team: Team,
+  documentId: string
+): Promise<string | undefined> {
+  const map = await getPublicShareUrlsForDocuments(team, documentId);
+  return map.get(documentId);
+}
+
+/**
+ * Resolves the public share URL for a single collection.
+ *
+ * @param team - the team the collection belongs to, used to build the absolute URL.
+ * @param collectionId - the collection ID to look up.
+ * @returns the public share URL, or undefined when the collection is not publicly shared.
+ */
+export async function getPublicShareUrlForCollection(
+  team: Team,
+  collectionId: string
+): Promise<string | undefined> {
+  const map = await getPublicShareUrlsForCollections(team, collectionId);
+  return map.get(collectionId);
+}
+
+/**
+ * Maps public shares to a lookup of resource ID to canonical share URL, keyed
+ * by the share's document or collection ID. The first share wins when more than
+ * one points at the same resource.
+ */
+function toShareUrlMap(team: Team, shares: Share[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const share of shares) {
+    const key = share.documentId ?? share.collectionId;
+    if (!key || map.has(key)) {
+      continue;
+    }
+    // canonicalUrl reads the team association, which the unscoped query does
+    // not load — supply the already-loaded team.
+    share.team = team;
+    map.set(key, share.canonicalUrl);
+  }
+  return map;
 }
 
 /**

@@ -27,6 +27,8 @@ import {
   getActorFromContext,
   getBreadcrumbsForDocuments,
   getDocumentBreadcrumb,
+  getPublicShareUrlForDocument,
+  getPublicShareUrlsForDocuments,
   optionalString,
   pathToUrl,
   withTracing,
@@ -168,13 +170,17 @@ export function documentTools(server: McpServer, scopes: string[]) {
               const filteredResults = results.filter(
                 (result) => result.document.id !== exactMatch?.id
               );
-              const breadcrumbs = await getBreadcrumbsForDocuments(
-                [
-                  ...(exactMatch ? [exactMatch] : []),
-                  ...filteredResults.map((r) => r.document),
-                ],
-                user
-              );
+              const matchedDocuments = [
+                ...(exactMatch ? [exactMatch] : []),
+                ...filteredResults.map((r) => r.document),
+              ];
+              const [breadcrumbs, shareUrls] = await Promise.all([
+                getBreadcrumbsForDocuments(matchedDocuments, user),
+                getPublicShareUrlsForDocuments(
+                  user.team,
+                  matchedDocuments.map((doc) => doc.id)
+                ),
+              ]);
 
               const presented = await Promise.all(
                 filteredResults.map(async (result) => {
@@ -186,10 +192,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     })
                   );
                   const breadcrumb = breadcrumbs.get(result.document.id);
+                  const shareUrl = shareUrls.get(result.document.id);
                   const siblingIndex = indexMap?.get(result.document.id);
                   return {
                     document: doc,
                     ...(breadcrumb !== undefined && { breadcrumb }),
+                    ...(shareUrl !== undefined && { shareUrl }),
                     context: result.context,
                     ...(siblingIndex !== undefined && {
                       index: siblingIndex,
@@ -207,10 +215,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   })
                 );
                 const breadcrumb = breadcrumbs.get(exactMatch.id);
+                const shareUrl = shareUrls.get(exactMatch.id);
                 const siblingIndex = indexMap?.get(exactMatch.id);
                 presented.unshift({
                   document: doc,
                   ...(breadcrumb !== undefined && { breadcrumb }),
+                  ...(shareUrl !== undefined && { shareUrl }),
                   context: undefined,
                   ...(siblingIndex !== undefined && { index: siblingIndex }),
                 });
@@ -231,10 +241,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             const documents = results.map((result) => result.document);
 
-            const breadcrumbs = await getBreadcrumbsForDocuments(
-              documents,
-              user
-            );
+            const [breadcrumbs, shareUrls] = await Promise.all([
+              getBreadcrumbsForDocuments(documents, user),
+              getPublicShareUrlsForDocuments(
+                user.team,
+                documents.map((document) => document.id)
+              ),
+            ]);
 
             const presented = await Promise.all(
               documents.map(async (document) => {
@@ -246,10 +259,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   })
                 );
                 const breadcrumb = breadcrumbs.get(document.id);
+                const shareUrl = shareUrls.get(document.id);
                 const siblingIndex = indexMap?.get(document.id);
                 return {
                   document: doc,
                   ...(breadcrumb !== undefined && { breadcrumb }),
+                  ...(shareUrl !== undefined && { shareUrl }),
                   ...(siblingIndex !== undefined && { index: siblingIndex }),
                 };
               })
@@ -536,10 +551,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
               }
             }
 
-            const breadcrumbs = await getBreadcrumbsForDocuments(
-              documents,
-              user
-            );
+            const [breadcrumbs, shareUrls] = await Promise.all([
+              getBreadcrumbsForDocuments(documents, user),
+              getPublicShareUrlsForDocuments(
+                user.team,
+                documents.map((document) => document.id)
+              ),
+            ]);
 
             const presented = await Promise.all(
               documents.map(async (document) => {
@@ -551,10 +569,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   })
                 );
                 const breadcrumb = breadcrumbs.get(document.id);
+                const shareUrl = shareUrls.get(document.id);
                 const siblingIndex = indexMap.get(document.id);
                 return {
                   document: doc,
                   ...(breadcrumb !== undefined && { breadcrumb }),
+                  ...(shareUrl !== undefined && { shareUrl }),
                   ...(siblingIndex !== undefined && { index: siblingIndex }),
                 };
               })
@@ -675,14 +695,16 @@ export function documentTools(server: McpServer, scopes: string[]) {
             }
           }
 
-          const [{ text, ...attributes }, breadcrumb] = await Promise.all([
-            presentDocument(updated, {
-              includeData: false,
-              includeText: true,
-              includeUpdatedAt: true,
-            }),
-            getDocumentBreadcrumb(updated, user),
-          ]);
+          const [{ text, ...attributes }, breadcrumb, shareUrl] =
+            await Promise.all([
+              presentDocument(updated, {
+                includeData: false,
+                includeText: true,
+                includeUpdatedAt: true,
+              }),
+              getDocumentBreadcrumb(updated, user),
+              getPublicShareUrlForDocument(user.team, updated.id),
+            ]);
           return {
             content: [
               {
@@ -690,6 +712,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 text: JSON.stringify({
                   document: pathToUrl(user.team, attributes),
                   ...(breadcrumb !== undefined && { breadcrumb }),
+                  ...(shareUrl !== undefined && { shareUrl }),
                 }),
               },
               {
@@ -802,14 +825,16 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             await documentRestorer(ctx, { document, collectionId });
 
-            const [{ text, ...attributes }, breadcrumb] = await Promise.all([
-              presentDocument(document, {
-                includeData: false,
-                includeText: true,
-                includeUpdatedAt: true,
-              }),
-              getDocumentBreadcrumb(document, user),
-            ]);
+            const [{ text, ...attributes }, breadcrumb, shareUrl] =
+              await Promise.all([
+                presentDocument(document, {
+                  includeData: false,
+                  includeText: true,
+                  includeUpdatedAt: true,
+                }),
+                getDocumentBreadcrumb(document, user),
+                getPublicShareUrlForDocument(user.team, document.id),
+              ]);
             return {
               content: [
                 {
@@ -817,6 +842,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   text: JSON.stringify({
                     document: pathToUrl(user.team, attributes),
                     ...(breadcrumb !== undefined && { breadcrumb }),
+                    ...(shareUrl !== undefined && { shareUrl }),
                   }),
                 },
                 {

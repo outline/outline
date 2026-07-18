@@ -12,6 +12,8 @@ import {
   error,
   getActorFromContext,
   buildAPIContext,
+  getPublicShareUrlForCollection,
+  getPublicShareUrlsForCollections,
   optionalString,
   pathToUrl,
   withTracing,
@@ -108,27 +110,35 @@ export function collectionTools(server: McpServer, scopes: string[]) {
               }
             }
 
-            const presented = await Promise.all(
-              collections
-                .filter((c) => c.id !== exactMatch?.id)
-                .map(async (collection) =>
-                  pathToUrl(
+            const matchedCollections = [
+              ...(exactMatch ? [exactMatch] : []),
+              ...collections.filter((c) => c.id !== exactMatch?.id),
+            ];
+            const [shareUrls, presented] = await Promise.all([
+              getPublicShareUrlsForCollections(
+                user.team,
+                matchedCollections.map((c) => c.id)
+              ),
+              Promise.all(
+                matchedCollections.map(async (collection) => ({
+                  collection,
+                  presented: pathToUrl(
                     user.team,
                     await presentCollection(undefined, collection)
-                  )
-                )
-            );
+                  ),
+                }))
+              ),
+            ]);
 
-            if (exactMatch) {
-              presented.unshift(
-                pathToUrl(
-                  user.team,
-                  await presentCollection(undefined, exactMatch)
-                )
-              );
-            }
+            const results = presented.map(({ collection, presented }) => {
+              const shareUrl = shareUrls.get(collection.id);
+              return {
+                ...presented,
+                ...(shareUrl !== undefined && { shareUrl }),
+              };
+            });
 
-            return success(presented);
+            return success(results);
           } catch (message) {
             return error(message);
           }
@@ -272,10 +282,17 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           await collection.saveWithCtx(ctx);
 
-          const presented = pathToUrl(
+          const shareUrl = await getPublicShareUrlForCollection(
             user.team,
-            await presentCollection(undefined, collection)
+            collection.id
           );
+          const presented = {
+            ...pathToUrl(
+              user.team,
+              await presentCollection(undefined, collection)
+            ),
+            ...(shareUrl !== undefined && { shareUrl }),
+          };
           return success(presented);
         } catch (message) {
           return error(message);
