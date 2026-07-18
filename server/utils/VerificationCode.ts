@@ -36,13 +36,17 @@ export class VerificationCode {
   private static readonly ATTEMPTS_PREFIX = "email_verification_attempts:";
 
   /**
-   * Generate a random 6-digit code
+   * Generate a random 6-digit code.
    *
-   * @returns A string representing a 6-digit code
+   * Draws uniformly from the full 000000–999999 range so that codes with
+   * leading zeros are possible. Restricting to 100000–999999 would drop 10%
+   * of the keyspace and let an attacker assume the first digit is never zero,
+   * so the code is left-padded to a fixed six characters instead.
+   *
+   * @returns A string representing a 6-digit code.
    */
   public static generate(): string {
-    // Generate a random integer between 100000 and 999999 (6 digits)
-    return randomInt(100000, 1000000).toString().padStart(6, "0");
+    return randomInt(0, 1000000).toString().padStart(6, "0");
   }
 
   /**

@@ -15,6 +15,27 @@ describe("VerificationCode", () => {
       const code = VerificationCode.generate();
       expect(code).toMatch(/^\d{6}$/);
     });
+
+    it("should always produce exactly six digits across many samples", () => {
+      for (let i = 0; i < 1000; i++) {
+        expect(VerificationCode.generate()).toMatch(/^\d{6}$/);
+      }
+    });
+
+    it("should be able to produce codes with leading zeros", () => {
+      // The full 000000–999999 keyspace includes codes below 100000, which
+      // must still be rendered as six characters. Draw enough samples that
+      // seeing at least one leading-zero code is overwhelmingly likely
+      // (P(miss) ≈ 0.9^2000).
+      let sawLeadingZero = false;
+      for (let i = 0; i < 2000; i++) {
+        if (VerificationCode.generate().startsWith("0")) {
+          sawLeadingZero = true;
+          break;
+        }
+      }
+      expect(sawLeadingZero).toBe(true);
+    });
   });
 
   describe("store and retrieve", () => {
