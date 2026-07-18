@@ -1,5 +1,5 @@
 import { isEqual, pick } from "es-toolkit/compat";
-import { observable, action, toJS } from "mobx";
+import { observable, action, runInAction, toJS } from "mobx";
 import type { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
@@ -82,11 +82,16 @@ export default abstract class Model {
   }
 
   /**
-   * Persists the model to the server API
+   * Persists the model to the server API.
+   *
+   * The change is applied optimistically – the given params are set on the
+   * model immediately so that observers of the store update without waiting
+   * for the server to respond, and are rolled back if the request fails.
    *
    * @param params Specific fields to save, if not provided the model will be serialized
    * @param options Options to pass to the store
    * @returns A promise that resolves with the updated model
+   * @throws The original error if the request fails, after the model has been rolled back.
    */
   save = async (
     params?: Record<string, unknown>,
@@ -95,22 +100,45 @@ export default abstract class Model {
     const isNew = this.isNew;
     this.isSaving = true;
 
-    try {
-      // ensure that the id is passed if the document has one
-      if (!params) {
-        params = this.toAPI();
-      }
+    // ensure that the id is passed if the document has one
+    const data: Record<string, unknown> = params ?? this.toAPI();
 
+    // Snapshot the current state of the model so that the optimistic update
+    // below can be rolled back if saving fails.
+    const previousAttributes = this.persistedAttributes;
+    const previousValues: Record<string, unknown> = {};
+    for (const key in data) {
+      // @ts-expect-error TODO
+      previousValues[key] = toJS(this[key]);
+    }
+    const previousId = this.id;
+    let addedToStore = false;
+
+    try {
       if (isNew) {
         LifecycleManager.executeHooks(this.constructor, "beforeCreate", this);
       } else {
         LifecycleManager.executeHooks(this.constructor, "beforeUpdate", this);
       }
 
+      // Optimistically apply the new values so that observers of the store
+      // update immediately, without waiting for the server to respond.
+      runInAction(() => {
+        this.updateData(data);
+        // Keep the attributes last received from the server so that `isDirty`
+        // stays accurate while the request is in flight.
+        this.persistedAttributes = previousAttributes;
+
+        if (isNew && this.id && !this.store.get(this.id)) {
+          this.store.add(this);
+          addedToStore = true;
+        }
+      });
+
       const model = await this.store.save(
         {
-          ...params,
-          id: this.id,
+          ...data,
+          id: previousId,
         },
         {
           ...options,
@@ -119,7 +147,17 @@ export default abstract class Model {
       );
 
       // if saving is successful set the new values on the model itself
-      this.updateData(Object.assign({}, params, model));
+      this.updateData(Object.assign({}, data, model));
+
+      // if the server responded with a different model to the one added
+      // optimistically then remove the temporary entry from the store
+      if (addedToStore && model !== this) {
+        runInAction(() => {
+          if (this.store.get(previousId) === this) {
+            this.store.data.delete(previousId);
+          }
+        });
+      }
 
       if (isNew) {
         LifecycleManager.executeHooks(this.constructor, "afterCreate", this);
@@ -128,6 +166,18 @@ export default abstract class Model {
       }
 
       return model;
+    } catch (err) {
+      // roll the model back to its state before saving began
+      runInAction(() => {
+        this.updateData(previousValues);
+        this.persistedAttributes = previousAttributes;
+        this.isNew = isNew;
+
+        if (addedToStore && this.store.get(previousId) === this) {
+          this.store.data.delete(previousId);
+        }
+      });
+      throw err;
     } finally {
       this.isSaving = false;
     }
