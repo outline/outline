@@ -435,7 +435,7 @@ const emailStyle = (props: Props) => css`
     border-radius: 8px;
     padding: 6px 8px;
   }
-  .image > img {
+  .image:not(.image-icon) > img {
     width: auto;
     height: auto;
   }
