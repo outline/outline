@@ -97,6 +97,11 @@ class UiStore {
   @observable
   secondaryRightSidebar: RightSidebarPanel | null = null;
 
+  // The fraction of the split view's width occupied by the primary pane. Not
+  // persisted, reset when the split view closes.
+  @observable
+  splitViewRatio = 0.5;
+
   @observable
   sidebarIsResizing = false;
 
@@ -347,6 +352,17 @@ class UiStore {
   @action
   setSidebarResizing = (sidebarIsResizing: boolean): void => {
     this.sidebarIsResizing = sidebarIsResizing;
+  };
+
+  /**
+   * Sets the fraction of the split view's width occupied by the primary pane,
+   * clamped so that neither pane becomes unusably narrow.
+   *
+   * @param ratio the fraction of the split view's width for the primary pane.
+   */
+  @action
+  setSplitViewRatio = (ratio: number): void => {
+    this.splitViewRatio = Math.min(0.8, Math.max(0.2, ratio));
   };
 
   /**

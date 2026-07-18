@@ -1,6 +1,8 @@
 import type { LocationDescriptor, LocationState, MemoryHistory } from "history";
 import { createMemoryHistory, createPath } from "history";
+import { useDirection } from "@radix-ui/react-direction";
 import { AnimatePresence } from "framer-motion";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Router, useLocation } from "react-router-dom";
@@ -12,6 +14,7 @@ import {
   RightSidebarProvider,
   useRightSidebarContent,
 } from "~/components/RightSidebarContext";
+import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import history, { patchLocation } from "~/utils/history";
@@ -38,10 +41,13 @@ type Props = {
  * secondary pane is driven by its own in-memory router which is kept in sync
  * with the query parameter so that a reload hydrates both panes.
  */
-export function SplitView({ children }: Props) {
+export const SplitView = observer(function SplitView({ children }: Props) {
   const { ui } = useStores();
   const location = useLocation();
   const isMobile = useMobile();
+  const direction = useDirection();
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [isResizing, setResizing] = React.useState(false);
   const splitPath = isMobile ? undefined : getSplitPath(location.search);
   const [focusedPane, setFocusedPaneState] = React.useState<SplitViewPane>(
     getFocusedSplitPane()
@@ -50,39 +56,108 @@ export function SplitView({ children }: Props) {
   React.useEffect(() => observeFocusedSplitPane(setFocusedPaneState), []);
 
   // Return focus to the primary pane and reset the secondary pane's sidebar
-  // whenever the split view closes.
+  // and size whenever the split view closes.
   React.useEffect(() => {
     if (!splitPath) {
       setFocusedSplitPane("primary");
       ui.setRightSidebar(null, "secondary");
+      ui.setSplitViewRatio(0.5);
     }
   }, [splitPath, ui]);
+
+  const handleDrag = React.useCallback(
+    (event: MouseEvent) => {
+      // suppresses text selection
+      event.preventDefault();
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect || rect.width === 0) {
+        return;
+      }
+
+      const offset =
+        direction === "rtl"
+          ? rect.right - event.clientX
+          : event.clientX - rect.left;
+      ui.setSplitViewRatio(offset / rect.width);
+    },
+    [direction, ui]
+  );
+
+  const handleStopDrag = React.useCallback(() => {
+    setResizing(false);
+  }, []);
+
+  const handleResizeStart = React.useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    setResizing(true);
+  }, []);
+
+  const handleResizeReset = React.useCallback(() => {
+    ui.setSplitViewRatio(0.5);
+  }, [ui]);
+
+  React.useEffect(() => {
+    if (isResizing) {
+      document.addEventListener("mousemove", handleDrag);
+      document.addEventListener("mouseup", handleStopDrag);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleDrag);
+      document.removeEventListener("mouseup", handleStopDrag);
+    };
+  }, [isResizing, handleDrag, handleStopDrag]);
 
   if (!splitPath) {
     return <>{children}</>;
   }
 
   return (
-    <Container>
-      <Pane pane="primary" isFocused={focusedPane === "primary"}>
+    <Container ref={containerRef}>
+      <Pane
+        pane="primary"
+        isFocused={focusedPane === "primary"}
+        style={{ flex: `0 0 ${ui.splitViewRatio * 100}%` }}
+      >
         {children}
       </Pane>
       <SecondaryRouter splitPath={splitPath}>
-        <Pane pane="secondary" isFocused={focusedPane === "secondary"}>
+        <Pane
+          pane="secondary"
+          isFocused={focusedPane === "secondary"}
+          resizeBorder={
+            <SplitResizeBorder
+              dir="right"
+              data-resize-handle
+              onMouseDown={handleResizeStart}
+              onDoubleClick={handleResizeReset}
+            />
+          }
+        >
           {children}
         </Pane>
       </SecondaryRouter>
     </Container>
   );
-}
+});
 
 type PaneProps = {
   pane: SplitViewPane;
   isFocused: boolean;
+  /** Inline styles applied to the pane container, such as its size. */
+  style?: React.CSSProperties;
+  /** An optional resize handle rendered at the edge of the pane. */
+  resizeBorder?: React.ReactNode;
   children: React.ReactNode;
 };
 
-const Pane = ({ pane, isFocused, children }: PaneProps) => {
+const Pane = ({
+  pane,
+  isFocused,
+  style,
+  resizeBorder,
+  children,
+}: PaneProps) => {
   const { t } = useTranslation();
   const isSecondary = pane === "secondary";
   const contextValue = React.useMemo(
@@ -90,15 +165,26 @@ const Pane = ({ pane, isFocused, children }: PaneProps) => {
     [pane, isFocused]
   );
 
-  const handleFocus = React.useCallback(() => {
-    setFocusedSplitPane(pane);
-  }, [pane]);
+  const handleFocus = React.useCallback(
+    (event: React.SyntheticEvent) => {
+      // Grabbing the resize handle should not move focus between panes.
+      if (
+        event.target instanceof HTMLElement &&
+        event.target.closest("[data-resize-handle]")
+      ) {
+        return;
+      }
+      setFocusedSplitPane(pane);
+    },
+    [pane]
+  );
 
   return (
     <PaneContainer
       role="group"
       aria-label={isSecondary ? t("Split pane") : t("Main pane")}
       $secondary={isSecondary}
+      style={style}
       onMouseDownCapture={handleFocus}
       onFocusCapture={handleFocus}
     >
@@ -119,6 +205,7 @@ const Pane = ({ pane, isFocused, children }: PaneProps) => {
           <FocusRing $visible={isFocused} aria-hidden />
         </RightSidebarProvider>
       </SplitViewContext.Provider>
+      {resizeBorder}
     </PaneContainer>
   );
 };
@@ -225,6 +312,10 @@ const PaneContent = styled.div`
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+`;
+
+const SplitResizeBorder = styled(ResizeBorder)`
+  z-index: ${depths.sidebar + 1};
 `;
 
 const FocusRing = styled.div<{ $visible: boolean }>`
