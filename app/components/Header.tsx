@@ -13,7 +13,6 @@ import { supportsPassiveListener } from "@shared/utils/browser";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
-import NudeButton from "~/components/NudeButton";
 import { useSplitView } from "~/components/SplitView/context";
 import Tooltip from "~/components/Tooltip";
 import useEventListener from "~/hooks/useEventListener";
@@ -123,9 +122,10 @@ function Header(
               <CloseSplitPaneButton
                 aria-label={t("Close pane")}
                 onClick={handleCloseSplitPane}
-              >
-                <CloseIcon />
-              </CloseSplitPaneButton>
+                icon={<CloseIcon />}
+                neutral
+                borderOnHover
+              />
             </Tooltip>
           )}
         </Actions>
@@ -246,7 +246,7 @@ const MobileMenuButton = styled(Button)`
   }
 `;
 
-const CloseSplitPaneButton = styled(NudeButton)`
+const CloseSplitPaneButton = styled(Button)`
   pointer-events: auto;
 `;
 
