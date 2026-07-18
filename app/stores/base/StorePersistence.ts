@@ -42,9 +42,9 @@ export default class StorePersistence<T extends Model> {
     return `outline.${storeName}.${teamId}`;
   }
 
-  constructor(store: Store<T>, databaseName: string) {
+  constructor(store: Store<T>, teamId: string) {
     this.store = store;
-    this.name = databaseName;
+    this.name = StorePersistence.databaseName(store.apiEndpoint, teamId);
   }
 
   /**
@@ -130,29 +130,30 @@ export default class StorePersistence<T extends Model> {
 
   /**
    * Removes all persisted records, used when the store is cleared on logout.
+   *
+   * @returns a promise that resolves when the records have been removed.
    */
-  public clear = () => {
+  public clear = async (): Promise<void> => {
     this.dirty.clear();
 
     if (this.disabled) {
       return;
     }
 
-    void this.open()
-      .then((database) =>
-        promisifyRequest(
-          database
-            .transaction(OBJECT_STORE_NAME, "readwrite")
-            .objectStore(OBJECT_STORE_NAME)
-            .clear()
-        )
-      )
-      .catch((err) => {
-        Logger.warn("Failed to clear persisted store in IndexedDB", {
-          database: this.name,
-          error: err,
-        });
+    try {
+      const database = await this.open();
+      await promisifyRequest(
+        database
+          .transaction(OBJECT_STORE_NAME, "readwrite")
+          .objectStore(OBJECT_STORE_NAME)
+          .clear()
+      );
+    } catch (err) {
+      Logger.warn("Failed to clear persisted store in IndexedDB", {
+        database: this.name,
+        error: err,
       });
+    }
   };
 
   private open = (): Promise<IDBDatabase> => {

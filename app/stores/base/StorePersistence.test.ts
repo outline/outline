@@ -10,9 +10,9 @@ import StorePersistence from "./StorePersistence";
 
 describe("StorePersistence", () => {
   test("round-trips models through IndexedDB into a fresh store", async () => {
-    const name = StorePersistence.databaseName("policies", "team-1");
+    const teamId = "team-1";
     const source = new RootStore();
-    const persistence = new StorePersistence(source.policies, name);
+    const persistence = new StorePersistence(source.policies, teamId);
 
     source.policies.add({
       id: "doc-1",
@@ -22,7 +22,7 @@ describe("StorePersistence", () => {
     await persistence.flush();
 
     const target = new RootStore();
-    const targetPersistence = new StorePersistence(target.policies, name);
+    const targetPersistence = new StorePersistence(target.policies, teamId);
     await targetPersistence.hydrate();
 
     expect(toJS(target.policies.get("doc-1")?.abilities)).toEqual({
@@ -34,9 +34,9 @@ describe("StorePersistence", () => {
   });
 
   test("does not overwrite models already in the store when hydrating", async () => {
-    const name = StorePersistence.databaseName("policies", "team-2");
+    const teamId = "team-2";
     const source = new RootStore();
-    const persistence = new StorePersistence(source.policies, name);
+    const persistence = new StorePersistence(source.policies, teamId);
 
     source.policies.add({ id: "doc-1", abilities: { read: false } });
     persistence.persist("doc-1");
@@ -44,16 +44,16 @@ describe("StorePersistence", () => {
 
     const target = new RootStore();
     target.policies.add({ id: "doc-1", abilities: { read: true } });
-    const targetPersistence = new StorePersistence(target.policies, name);
+    const targetPersistence = new StorePersistence(target.policies, teamId);
     await targetPersistence.hydrate();
 
     expect(target.policies.get("doc-1")?.abilities).toEqual({ read: true });
   });
 
   test("deletes the persisted record when the model has been removed", async () => {
-    const name = StorePersistence.databaseName("policies", "team-3");
+    const teamId = "team-3";
     const source = new RootStore();
-    const persistence = new StorePersistence(source.policies, name);
+    const persistence = new StorePersistence(source.policies, teamId);
 
     source.policies.add({ id: "doc-1", abilities: { read: true } });
     persistence.persist("doc-1");
@@ -64,16 +64,16 @@ describe("StorePersistence", () => {
     await persistence.flush();
 
     const target = new RootStore();
-    const targetPersistence = new StorePersistence(target.policies, name);
+    const targetPersistence = new StorePersistence(target.policies, teamId);
     await targetPersistence.hydrate();
 
     expect(target.policies.get("doc-1")).toBeUndefined();
   });
 
   test("clear removes all persisted records", async () => {
-    const name = StorePersistence.databaseName("policies", "team-4");
+    const teamId = "team-4";
     const source = new RootStore();
-    const persistence = new StorePersistence(source.policies, name);
+    const persistence = new StorePersistence(source.policies, teamId);
 
     source.policies.add({ id: "doc-1", abilities: { read: true } });
     source.policies.add({ id: "doc-2", abilities: { read: true } });
@@ -81,13 +81,10 @@ describe("StorePersistence", () => {
     persistence.persist("doc-2");
     await persistence.flush();
 
-    persistence.clear();
-
-    // clear() runs asynchronously in the background, wait for it to finish.
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await persistence.clear();
 
     const target = new RootStore();
-    const targetPersistence = new StorePersistence(target.policies, name);
+    const targetPersistence = new StorePersistence(target.policies, teamId);
     await targetPersistence.hydrate();
 
     expect(target.policies.orderedData).toHaveLength(0);
