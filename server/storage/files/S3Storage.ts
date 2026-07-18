@@ -315,12 +315,53 @@ export default class S3Storage extends BaseStorage {
       )
       .then((item) => item.Body as NodeJS.ReadableStream)
       .catch((err) => {
-        Logger.error("Error getting file stream from S3 ", err, {
-          key,
-        });
+        // A missing object is reported as NoSuchKey (404), or as an
+        // AccessDenied (403) referencing s3:ListBucket when the IAM identity
+        // lacks the ListBucket permission — S3 masks not-found as forbidden.
+        // Neither is a real error, so log quietly and return null.
+        if (this.isNotFoundError(err)) {
+          Logger.info("utils", "File not found in S3", { key });
+        } else {
+          Logger.error("Error getting file stream from S3 ", toError(err), {
+            key,
+          });
+        }
 
         return null;
       });
+  }
+
+  private isNotFoundError(err: unknown): boolean {
+    if (!(err instanceof Error)) {
+      return false;
+    }
+    // A genuinely missing object is reported as NoSuchKey / NotFound (404).
+    if (
+      err.name === "NoSuchKey" ||
+      err.name === "NotFound" ||
+      this.getHttpStatusCode(err) === 404
+    ) {
+      return true;
+    }
+    // When the IAM identity lacks s3:ListBucket, S3 masks a missing object as a
+    // 403 AccessDenied referencing s3:ListBucket. A 403 that does not mention
+    // ListBucket is a genuine permission error and should still be surfaced.
+    return err.message.includes("s3:ListBucket");
+  }
+
+  private getHttpStatusCode(err: Error): number | undefined {
+    if ("$metadata" in err) {
+      const metadata = err.$metadata;
+      if (
+        metadata &&
+        typeof metadata === "object" &&
+        "httpStatusCode" in metadata
+      ) {
+        const statusCode = metadata.httpStatusCode;
+        return typeof statusCode === "number" ? statusCode : undefined;
+      }
+    }
+    return undefined;
   }
 
   private client: S3Client;

@@ -1,7 +1,55 @@
+import { vi } from "vitest";
 import { Week, Day } from "@shared/utils/time";
+import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
+import S3Storage from "./S3Storage";
 
 describe("S3Storage", () => {
+  describe("getFileStream", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("returns null and does not report an error when the object is missing (masked 403)", async () => {
+      // S3 returns AccessDenied for s3:ListBucket instead of 404 when the IAM
+      // identity lacks ListBucket permission and the key does not exist.
+      const error = Object.assign(
+        new Error(
+          "User: arn:aws:iam::123:user/attachments is not authorized to perform: s3:ListBucket on resource"
+        ),
+        {
+          name: "AccessDenied",
+          $metadata: { httpStatusCode: 403 },
+        }
+      );
+      const storage = new S3Storage();
+      vi.spyOn(Reflect.get(storage, "client"), "send").mockRejectedValue(error);
+      const errorSpy = vi.spyOn(Logger, "error");
+      const infoSpy = vi.spyOn(Logger, "info");
+
+      const stream = await storage.getFileStream("missing/key");
+
+      expect(stream).toBeNull();
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
+    });
+
+    it("reports a real error for unexpected failures", async () => {
+      const error = Object.assign(new Error("boom"), {
+        name: "InternalError",
+        $metadata: { httpStatusCode: 500 },
+      });
+      const storage = new S3Storage();
+      vi.spyOn(Reflect.get(storage, "client"), "send").mockRejectedValue(error);
+      const errorSpy = vi.spyOn(Logger, "error");
+
+      const stream = await storage.getFileStream("some/key");
+
+      expect(stream).toBeNull();
+      expect(errorSpy).toHaveBeenCalled();
+    });
+  });
+
   describe("getSignedUrl expiration limits", () => {
     it("should define maximum expiration as 7 days for AWS S3 Signature V4", () => {
       // AWS S3 Signature V4 presigned URLs have a maximum expiration of 7 days

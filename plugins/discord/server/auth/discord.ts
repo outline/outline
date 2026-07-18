@@ -185,7 +185,8 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               }
             }
             const user =
-              context.state?.auth?.user ?? (await getUserFromOAuthState(context));
+              context.state?.auth?.user ??
+              (await getUserFromOAuthState(context));
 
             // if a team can be inferred, we assume the user is only interested in signing into
             // that team in particular; otherwise, we will do a best effort at finding their account

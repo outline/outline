@@ -44,6 +44,7 @@ export const EditorAwareHTML5Backend: BackendFactory = (
   options
 ) => {
   const backend = HTML5Backend(manager, context, options);
+  const monitor = manager.getMonitor();
 
   // The top-level handlers are private instance fields on the backend, so reach
   // for them through an index signature view of the instance.
@@ -57,6 +58,15 @@ export const EditorAwareHTML5Backend: BackendFactory = (
     if (typeof original === "function") {
       handlers[name] = (event: DragEvent) => {
         if (isWithinEditor(event.target)) {
+          return;
+        }
+        // A drag that began or entered the page over the editor is never
+        // registered with react-dnd because those events are skipped above.
+        // The backend's drop handler assumes a registered drag and calls
+        // `actions.hover` unconditionally, which throws "Cannot call hover
+        // while not dragging" – so drops without a tracked drag must be
+        // ignored here.
+        if (name === "handleTopDrop" && !monitor.isDragging()) {
           return;
         }
         original.call(backend, event);

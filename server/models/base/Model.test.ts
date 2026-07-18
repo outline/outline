@@ -1,7 +1,12 @@
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
 import { CommentingAccess, TeamPreference } from "@shared/types";
-import { buildDocument, buildTeam } from "@server/test/factories";
+import {
+  buildDocument,
+  buildSearchQuery,
+  buildTeam,
+} from "@server/test/factories";
+import SearchQuery from "../SearchQuery";
 import User from "../User";
 
 describe("Model", () => {
@@ -95,6 +100,60 @@ describe("Model", () => {
       expect(usersBatch.length).toEqual(2);
       expect(usersBatch[0].length).toEqual(2);
       expect(usersBatch[1].length).toEqual(2);
+    });
+
+    it("should not skip records when the callback deletes them", async () => {
+      const team = await buildTeam();
+      await Promise.all(
+        [...Array(5)].map(() => buildSearchQuery({ teamId: team.id }))
+      );
+
+      const total = await SearchQuery.findAllInBatches<SearchQuery>(
+        {
+          attributes: ["id"],
+          where: { teamId: team.id },
+          order: [["createdAt", "ASC"]],
+          batchLimit: 2,
+        },
+        async (searchQueries) => {
+          await SearchQuery.destroy({
+            where: { id: searchQueries.map((searchQuery) => searchQuery.id) },
+          });
+        }
+      );
+
+      expect(total).toEqual(5);
+      expect(await SearchQuery.count({ where: { teamId: team.id } })).toEqual(
+        0
+      );
+    });
+
+    it("should not skip or repeat records when ordering by a non-unique column", async () => {
+      const team = await buildTeam();
+      await User.bulkCreate(
+        [...Array(10)].map(() => ({
+          email: faker.internet.email().toLowerCase(),
+          name: faker.person.fullName(),
+          teamId: team.id,
+        }))
+      );
+
+      const seen: string[] = [];
+
+      await User.findAllInBatches<User>(
+        {
+          attributes: ["id"],
+          where: { teamId: team.id },
+          order: [["createdAt", "ASC"]],
+          batchLimit: 3,
+        },
+        async (foundUsers) => {
+          seen.push(...foundUsers.map((user) => user.id));
+        }
+      );
+
+      expect(seen.length).toEqual(10);
+      expect(new Set(seen).size).toEqual(10);
     });
   });
 });

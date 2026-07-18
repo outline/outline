@@ -1,11 +1,10 @@
 import passport from "@outlinewiki/koa-passport";
-import { addMonths, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import type { Context, Request } from "koa";
 import type Router from "koa-router";
 import { get } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
-import { getCookieDomain, slugifyDomain } from "@shared/utils/domains";
+import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import { isBase64Url } from "@shared/utils/urls";
 import accountProvisioner from "@server/commands/accountProvisioner";
@@ -18,6 +17,7 @@ import passportMiddleware from "@server/middlewares/passport";
 import type { User } from "@server/models";
 import { AuthenticationProvider } from "@server/models";
 import type { AuthenticationResult } from "@server/types";
+import { LogoutTokenStore } from "@server/utils/LogoutTokenStore";
 import {
   StateStore,
   getTeamFromContext,
@@ -31,8 +31,6 @@ import config from "../../plugin.json";
 import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
 import { createContext } from "@server/context";
-
-const OIDC_LOGOUT_PATH = "/auth/oidc.logout";
 
 export interface OIDCEndpoints {
   authorizationURL: string;
@@ -50,6 +48,7 @@ export function createOIDCRouter(
   endpoints: OIDCEndpoints
 ): void {
   const scopes = env.OIDC_SCOPES.split(" ");
+  const logoutTokens = new LogoutTokenStore(config.id);
 
   passport.use(
     config.id,
@@ -142,7 +141,8 @@ export function createOIDCRouter(
             const team = await getTeamFromContext(context);
             const client = getClientFromOAuthState(context);
             const user =
-              context.state?.auth?.user ?? (await getUserFromOAuthState(context));
+              context.state?.auth?.user ??
+              (await getUserFromOAuthState(context));
             const { domain } = parseEmail(email);
 
             // Only a single OIDC provider is supported – find the existing, if any.
@@ -242,17 +242,7 @@ export function createOIDCRouter(
             // the `id_token_hint`, allowing the provider to scope the logout to
             // this session rather than terminating its global SSO session.
             if (endpoints.logoutURL && params.id_token) {
-              context.cookies.set("oidcIdToken", params.id_token, {
-                httpOnly: true,
-                sameSite: "lax",
-                secure: env.isProduction,
-                path: OIDC_LOGOUT_PATH,
-                domain: getCookieDomain(
-                  context.request.hostname,
-                  env.isCloudHosted
-                ),
-                expires: addMonths(new Date(), 3),
-              });
+              await logoutTokens.persist(context, params.id_token);
             }
 
             return done(null, result.user, { ...result, client });
@@ -273,18 +263,8 @@ export function createOIDCRouter(
   // ended so the provider can scope the logout and skip a confirmation prompt,
   // while `post_logout_redirect_uri` returns the user to Outline afterwards.
   // https://openid.net/specs/openid-connect-rpinitiated-1_0.html
-  router.get(`${config.id}.logout`, (ctx: Context) => {
-    const idToken = ctx.cookies.get("oidcIdToken");
-
-    // Always discard our copy of the id_token, regardless of where we redirect.
-    ctx.cookies.set("oidcIdToken", "", {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: env.isProduction,
-      path: OIDC_LOGOUT_PATH,
-      domain: getCookieDomain(ctx.request.hostname, env.isCloudHosted),
-      expires: subMinutes(new Date(), 1),
-    });
+  router.get(`${config.id}.logout`, async (ctx: Context) => {
+    const idToken = await logoutTokens.consume(ctx);
 
     if (!endpoints.logoutURL) {
       return ctx.redirect("/");

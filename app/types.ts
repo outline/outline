@@ -183,6 +183,8 @@ export type ActionWithChildren = BaseAction & {
     | (ActionVariant | ActionGroup | ActionSeparator)[];
 };
 
+export type ActionFactory = () => ActionWithChildren;
+
 export type ActionVariant =
   | Action
   | InternalLinkAction

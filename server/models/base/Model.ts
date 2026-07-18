@@ -10,7 +10,7 @@ import type {
   NonAttribute,
   SaveOptions,
 } from "sequelize";
-import { DataTypes, UniqueConstraintError } from "sequelize";
+import { DataTypes, Op, UniqueConstraintError } from "sequelize";
 import {
   AfterCreate,
   AfterDestroy,
@@ -344,31 +344,85 @@ class Model<
    * @return The total number of results processed.
    */
   static async findAllInBatches<T extends Model>(
-    query: Replace<FindOptions<T>, "limit", "batchLimit"> & {
+    query: Omit<Replace<FindOptions<T>, "limit", "batchLimit">, "order"> & {
       /** The maximum number of results to return, after which the query will stop. */
       totalLimit?: number;
+      /** The order of results, as plain [column, direction] pairs. */
+      order?: Array<[string, "ASC" | "DESC"]>;
     },
     callback: (results: Array<T>, query: FindOptions<T>) => Promise<void>
   ): Promise<number> {
-    let total = 0;
-    const mappedQuery = {
-      ...query,
-      offset: query.offset ?? 0,
-      limit: query.batchLimit ?? 10,
-    };
+    const { batchLimit = 10, totalLimit = Infinity, offset, ...rest } = query;
 
-    let results;
+    // A raw query with an explicit order is trusted to be unique (it may
+    // select aggregates where the primary key is unavailable), otherwise
+    // append the primary key column(s) to guarantee a total, stable order.
+    const order = [...(rest.order ?? [])];
+    if (!rest.raw || order.length === 0) {
+      for (const pk of this.primaryKeyAttributes) {
+        if (!order.some(([column]) => column === pk)) {
+          order.push([pk, "ASC"]);
+        }
+      }
+    }
+
+    // The cursor columns must be selected for their values to be read back,
+    // so add any missing ones when the caller restricts attributes.
+    let attributes = rest.attributes;
+    if (
+      Array.isArray(attributes) &&
+      attributes.every((attr): attr is string => typeof attr === "string")
+    ) {
+      attributes = [
+        ...new Set([...attributes, ...order.map(([column]) => column)]),
+      ];
+    }
+
+    const cursorValue = (row: T, column: string) =>
+      typeof row.get === "function"
+        ? row.get(column)
+        : (row as Record<string, unknown>)[column];
+
+    const buildCursor = (lastRow: T) => ({
+      [Op.or]: order.map(([column, direction], index) => {
+        const clause: Record<string, unknown> = {};
+        for (const [prevColumn] of order.slice(0, index)) {
+          clause[prevColumn] = { [Op.eq]: cursorValue(lastRow, prevColumn) };
+        }
+        clause[column] = {
+          [direction === "DESC" ? Op.lt : Op.gt]: cursorValue(lastRow, column),
+        };
+        return clause;
+      }),
+    });
+
+    let cursor: ReturnType<typeof buildCursor> | undefined;
+    let currentOffset = offset ?? 0;
+    let total = 0;
+    let limit: number;
+    let results: T[];
 
     do {
+      limit = Math.min(batchLimit, totalLimit - total);
+      const findOptions: FindOptions<T> = {
+        ...rest,
+        attributes,
+        order,
+        limit,
+        offset: currentOffset,
+        where: cursor ? { [Op.and]: [rest.where ?? {}, cursor] } : rest.where,
+      };
       // @ts-expect-error this T
-      results = await this.findAll<T>(mappedQuery);
+      results = await this.findAll<T>(findOptions);
       total += results.length;
-      await callback(results, mappedQuery);
-      mappedQuery.offset += mappedQuery.limit;
-    } while (
-      results.length >= mappedQuery.limit &&
-      (mappedQuery.totalLimit ?? Infinity) > mappedQuery.offset
-    );
+      await callback(results, findOptions);
+
+      if (results.length > 0) {
+        cursor = buildCursor(results[results.length - 1]);
+      }
+      // The cursor supersedes offset-based pagination after the first batch.
+      currentOffset = 0;
+    } while (results.length >= limit && total < totalLimit);
 
     return total;
   }
