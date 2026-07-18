@@ -36,12 +36,8 @@ export class VerificationCode {
   private static readonly ATTEMPTS_PREFIX = "email_verification_attempts:";
 
   /**
-   * Generate a random 6-digit code.
-   *
-   * Draws uniformly from the full 000000–999999 range so that codes with
-   * leading zeros are possible. Restricting to 100000–999999 would drop 10%
-   * of the keyspace and let an attacker assume the first digit is never zero,
-   * so the code is left-padded to a fixed six characters instead.
+   * Generate a random 6-digit code, drawn uniformly from the full range of
+   * possible values and left-padded to a fixed six characters.
    *
    * @returns A string representing a 6-digit code.
    */
