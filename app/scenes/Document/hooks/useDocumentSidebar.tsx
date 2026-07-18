@@ -39,7 +39,7 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   skipInitialAnimation,
 }: DocumentSidebarContentProps) {
   const { ui } = useStores();
-  const { pane } = useSplitView();
+  const { pane, isSplitView } = useSplitView();
   const isMobile = useMobile();
   const panel = ui.getRightSidebar(pane);
 
@@ -63,7 +63,9 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   }
 
   return (
-    <Aside skipInitialAnimation={skipInitialAnimation}>
+    // Skip the width animation in a split view, where the sidebar content
+    // would visibly overflow the pane while animating into place.
+    <Aside skipInitialAnimation={skipInitialAnimation || isSplitView}>
       <RightSidebarWrappedContext.Provider value={true}>
         {inner}
       </RightSidebarWrappedContext.Provider>

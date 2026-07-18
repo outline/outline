@@ -1,7 +1,6 @@
 import type { LocationDescriptor, LocationState, MemoryHistory } from "history";
 import { createMemoryHistory, createPath } from "history";
 import { useDirection } from "@radix-ui/react-direction";
-import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -214,11 +213,12 @@ const Pane = ({
 /**
  * Renders the pane's right sidebar content, such as document comments or
  * history, inside the pane so that each pane displays the sidebar for its
- * own route.
+ * own route. Rendered without open and close animations as the sidebar
+ * content visibly overflows the pane while its width animates.
  */
 const PaneAside = () => {
   const content = useRightSidebarContent();
-  return <AnimatePresence initial={false}>{content}</AnimatePresence>;
+  return <>{content}</>;
 };
 
 type SecondaryRouterProps = {
