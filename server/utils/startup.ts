@@ -1,3 +1,5 @@
+import cluster from "node:cluster";
+import os from "node:os";
 import { styleText } from "node:util";
 import { isEmpty } from "es-toolkit/compat";
 import { toError, errToString } from "@shared/utils/error";
@@ -9,6 +11,59 @@ import { migrations } from "@server/storage/database";
 import { getArg } from "./args";
 import { MutexLock } from "./MutexLock";
 import { Minute } from "@shared/utils/time";
+
+/**
+ * Applies a default V8 heap limit to forked service processes when the process
+ * is running under a memory constraint (e.g. a container limit) and no limit
+ * was configured explicitly. Without this, V8 sizes its heap from the host's
+ * total memory, so several forked processes can together commit far more
+ * memory than the container allows and are eventually OOM-killed.
+ *
+ * The limit can be overridden by setting `--max-old-space-size` in
+ * `NODE_OPTIONS` or on the command line.
+ *
+ * @param processCount the number of service processes that will be forked.
+ */
+export function configureChildHeapLimit(processCount: number) {
+  if (cluster.isWorker) {
+    return;
+  }
+
+  const nodeOptions = process.env.NODE_OPTIONS ?? "";
+  const isConfigured =
+    nodeOptions.includes("--max-old-space-size") ||
+    process.execArgv.some((arg) => arg.startsWith("--max-old-space-size"));
+  if (isConfigured) {
+    return;
+  }
+
+  // constrainedMemory() reports 0/undefined when unknown, and an effectively
+  // unlimited sentinel (2^64) when no cgroup limit is set — only apply a
+  // default when a real constraint below the host's total memory exists.
+  const constrainedMemory = process.constrainedMemory();
+  if (!constrainedMemory || constrainedMemory >= os.totalmem()) {
+    return;
+  }
+
+  // Budget ~80% of the constraint for V8 heaps across all forked processes,
+  // leaving headroom for the master process and non-heap memory such as
+  // compiled code, buffers, and native allocations.
+  const totalMB = constrainedMemory / 1024 / 1024;
+  const heapMB = Math.max(
+    256,
+    Math.floor((totalMB * 0.8) / Math.max(1, processCount))
+  );
+
+  // Forked processes parse NODE_OPTIONS on startup, so this applies to every
+  // service process without affecting the already-running master.
+  process.env.NODE_OPTIONS =
+    `${nodeOptions} --max-old-space-size=${heapMB}`.trim();
+
+  Logger.info(
+    "lifecycle",
+    `Memory constraint of ${Math.round(totalMB)}MB detected, defaulting each service process to a ${heapMB}MB heap limit`
+  );
+}
 
 /**
  * Checks for pending database migrations on startup and runs them, unless the

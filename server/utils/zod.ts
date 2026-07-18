@@ -1,6 +1,6 @@
 import emojiRegex from "emoji-regex";
 import { z } from "zod";
-import { IconLibrary } from "@shared/utils/IconLibrary";
+import { iconNames } from "@shared/utils/IconNames";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 
 /**
@@ -35,11 +35,7 @@ export const zodIdType = () =>
  * @returns a zod schema for icons.
  */
 export const zodIconType = () =>
-  z.union([
-    z.string().regex(emojiRegex()),
-    zodEnumFromObjectKeys(IconLibrary.mapping),
-    z.uuid(),
-  ]);
+  z.union([z.string().regex(emojiRegex()), z.enum(iconNames), z.uuid()]);
 
 /**
  * Returns a zod schema that validates an emoji value, either an emoji

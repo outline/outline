@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/react";
 import { t } from "i18next";
 import { v4 as uuidv4 } from "uuid";
 import type { EditorView } from "prosemirror-view";
@@ -226,7 +225,11 @@ const insertFiles = async function (
         }
       })
       .catch((error) => {
-        Sentry.captureException(error);
+        // Imported dynamically so the Sentry SDK stays out of the module graph
+        // until an upload actually fails, keeping it off server-side startup.
+        void import("@sentry/react").then((Sentry) =>
+          Sentry.captureException(error)
+        );
 
         // oxlint-disable-next-line no-console
         console.error(error);

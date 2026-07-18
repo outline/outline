@@ -7,6 +7,7 @@ import "./logging/tracer"; // must come before importing any instrumented module
 
 import http from "node:http";
 import https from "node:https";
+import os from "node:os";
 import type { Context } from "koa";
 import Koa from "koa";
 import helmet from "koa-helmet";
@@ -21,7 +22,11 @@ import services from "./services";
 import { getArg } from "./utils/args";
 import { getSSLOptions } from "./utils/ssl";
 import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
-import { printEnv, checkPendingMigrations } from "./utils/startup";
+import {
+  printEnv,
+  checkPendingMigrations,
+  configureChildHeapLimit,
+} from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 import onerror from "./onerror";
 import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
@@ -261,6 +266,16 @@ const isWebProcess =
 
 const isWorkerProcess =
   env.SERVICES.length === 1 && env.SERVICES.includes("worker");
+
+// Mirrors the `count` passed to throng below, where undefined falls back to
+// throng's default of one process per CPU.
+const processCount = isWorkerProcess
+  ? 1
+  : isWebProcess
+    ? (webProcessCount ?? os.cpus().length)
+    : os.cpus().length;
+
+configureChildHeapLimit(processCount);
 
 void throng({
   master,
