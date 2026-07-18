@@ -14,10 +14,6 @@ export default function useWindowScrollbarWidth(): number | null {
     const htmlElement = document.documentElement;
 
     const measure = () => {
-      // window.innerWidth includes the vertical scrollbar while the html
-      // element's clientWidth excludes it, so the difference is the scrollbar
-      // width. scrollWidth - clientWidth would instead measure horizontal
-      // overflow, which is 0 even when a vertical scrollbar is visible.
       const scrollbarWidth = window.innerWidth - htmlElement.clientWidth;
       setWidth(scrollbarWidth);
     };
