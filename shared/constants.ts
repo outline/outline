@@ -23,15 +23,18 @@ export const CSRF = {
   fieldName: "_csrf",
 };
 
+/** The maximum number of sub-requests permitted in a single `/batch` request. */
+export const BatchMaxRequests = 25;
+
 /**
  * RPC methods that may be coalesced into a single `/batch` request. Deliberately
  * curated to simple JSON mutations — no reads, redirects, file responses, or
  * endpoints that set response headers. Shared by the client (which collects
  * these into a batch) and the server (which only dispatches allowlisted methods).
+ *
+ * When adding a method, also add its router to `dispatchableRouters` in
+ * server/routes/api/batch/batch.ts so the server can resolve its middleware.
  */
-/** The maximum number of sub-requests permitted in a single `/batch` request. */
-export const BatchMaxRequests = 25;
-
 export const BatchableApiMethods = [
   "documents.update",
   "documents.move",
