@@ -131,7 +131,7 @@ export default class RootStore {
     }
 
     Object.values(this).forEach((store) => {
-      if (store instanceof Store && store.persistable) {
+      if (store instanceof Store) {
         void store.enablePersistence(teamId);
       }
     });

@@ -107,26 +107,28 @@ export default abstract class Store<T extends Model> {
   @action
   clear() {
     this.data.clear();
-    this.persistence?.clear();
+    void this.persistence?.clear();
   }
 
   /**
    * Enables persistence of this store's data to IndexedDB, scoped to the
    * given team, and hydrates any previously persisted records into the store.
-   * Safe to call multiple times, subsequent calls are a no-op.
+   * A no-op if the store is not persistable, persistence is unsupported, or it
+   * is already enabled, so it is safe to call on every store and more than once.
    *
    * @param teamId the ID of the team the persisted data belongs to.
    * @returns a promise that resolves when hydration is complete.
    */
   async enablePersistence(teamId: string): Promise<void> {
-    if (this.persistence || !StorePersistence.isSupported) {
+    if (
+      !this.persistable ||
+      this.persistence ||
+      !StorePersistence.isSupported
+    ) {
       return;
     }
 
-    this.persistence = new StorePersistence<T>(
-      this,
-      StorePersistence.databaseName(this.apiEndpoint, teamId)
-    );
+    this.persistence = new StorePersistence<T>(this, teamId);
     await this.persistence.hydrate();
   }
 
