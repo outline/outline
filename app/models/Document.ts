@@ -9,6 +9,7 @@ import {
   observable,
   override,
   set,
+  toJS,
 } from "mobx";
 import type {
   JSONObject,
@@ -56,7 +57,7 @@ export default class Document extends ArchivableModel implements Searchable {
     autorun(() => {
       Storage.set(
         `embedsDisabled-${this.id}`,
-        this.embedsDisabled ? true : undefined
+        this.embedsDisabled ? true : undefined,
       );
     });
   }
@@ -264,7 +265,7 @@ export default class Document extends ArchivableModel implements Searchable {
   @computed
   get notifications(): Notification[] {
     return this.store.rootStore.notifications.filter(
-      (notification: Notification) => notification.documentId === this.id
+      (notification: Notification) => notification.documentId === this.id,
     );
   }
 
@@ -321,7 +322,7 @@ export default class Document extends ArchivableModel implements Searchable {
   @computed
   get isStarred(): boolean {
     return !!this.store.rootStore.stars.orderedData.find(
-      (star) => star.documentId === this.id
+      (star) => star.documentId === this.id,
     );
   }
 
@@ -515,7 +516,7 @@ export default class Document extends ArchivableModel implements Searchable {
   @action
   setPreference<K extends DocumentPreference>(
     key: K,
-    value: NonNullable<DocumentPreferences[K]>
+    value: NonNullable<DocumentPreferences[K]>,
   ) {
     this.preferences = {
       ...this.preferences,
@@ -538,7 +539,7 @@ export default class Document extends ArchivableModel implements Searchable {
   unpublish = (
     options: { detach?: boolean } = {
       detach: false,
-    }
+    },
   ) => this.store.unpublish(this, options);
 
   @action
@@ -564,7 +565,7 @@ export default class Document extends ArchivableModel implements Searchable {
       (pin) =>
         pin.documentId === this.id &&
         (pin.collectionId === collectionId ||
-          (!collectionId && !pin.collectionId))
+          (!collectionId && !pin.collectionId)),
     );
 
     return pin?.delete();
@@ -609,7 +610,7 @@ export default class Document extends ArchivableModel implements Searchable {
             NotificationEventType.AddUserToDocument,
             NotificationEventType.UpdateDocument,
             NotificationEventType.PublishDocument,
-          ].includes(notification.event)
+          ].includes(notification.event),
       )
       .forEach((notification) => notification.markAsRead());
 
@@ -628,15 +629,27 @@ export default class Document extends ArchivableModel implements Searchable {
   @action
   save = async (
     fields?: Properties<typeof this>,
-    options?: SaveOptions
+    options?: SaveOptions,
   ): Promise<Document> => {
     const params = fields ?? this.toAPI();
     this.isSaving = true;
 
+    // Snapshot the current values of the saved fields so that the optimistic
+    // update below can be rolled back if saving fails.
+    const previousValues: Record<string, unknown> = {};
+    for (const key in params) {
+      // @ts-expect-error TODO
+      previousValues[key] = toJS(this[key]);
+    }
+
+    // optimistically set the new values on the model so that observers update
+    // immediately, without waiting for the server to respond
+    set(this, { ...params, ...fields });
+
     try {
       const model = await this.store.save(
         { ...params, ...fields, id: this.id },
-        options
+        options,
       );
 
       // if saving is successful set the new values on the model itself
@@ -645,6 +658,10 @@ export default class Document extends ArchivableModel implements Searchable {
       this.persistedAttributes = this.toAPI();
 
       return model;
+    } catch (err) {
+      // roll the model back to its state before saving began
+      set(this, previousValues);
+      throw err;
     } finally {
       this.isSaving = false;
     }
@@ -678,14 +695,14 @@ export default class Document extends ArchivableModel implements Searchable {
   get pinned(): boolean {
     return !!this.store.rootStore.pins.orderedData.find(
       (pin) =>
-        pin.documentId === this.id && pin.collectionId === this.collectionId
+        pin.documentId === this.id && pin.collectionId === this.collectionId,
     );
   }
 
   @computed
   get pinnedToHome(): boolean {
     return !!this.store.rootStore.pins.orderedData.find(
-      (pin) => pin.documentId === this.id && !pin.collectionId
+      (pin) => pin.documentId === this.id && !pin.collectionId,
     );
   }
 
@@ -698,7 +715,7 @@ export default class Document extends ArchivableModel implements Searchable {
   get childDocuments() {
     return this.store.orderedData.filter(
       (doc) =>
-        doc.parentDocumentId === this.id && this.isActive === doc.isActive
+        doc.parentDocumentId === this.id && this.isActive === doc.isActive,
     );
   }
 
@@ -767,7 +784,7 @@ export default class Document extends ArchivableModel implements Searchable {
         headers: {
           accept: contentType,
         },
-      }
+      },
     );
 
     const fileOperation = response?.data?.fileOperation;
