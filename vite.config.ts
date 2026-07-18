@@ -53,6 +53,13 @@ export default () =>
         workbox: {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           globPatterns: ["**/*.{js,css,ico,png,svg}"],
+          // The HTML document is rendered per-request by the server (it injects
+          // a unique CSP nonce and the runtime env), so there is no static shell
+          // to precache and nothing for a `navigateFallback` URL to point at.
+          // Disable the built-in navigation fallback so it does not compete with
+          // the network-first navigation route defined in `runtimeCaching`,
+          // which keeps a copy of the last rendered shell so that the precached
+          // JS/CSS can boot when offline.
           navigateFallback: null,
           modifyURLPrefix: {
             "": `${environment.CDN_URL ?? ""}/static/`,
@@ -61,6 +68,48 @@ export default () =>
           clientsClaim: true,
           cleanupOutdatedCaches: true,
           runtimeCaching: [
+            {
+              // Cache the server-rendered HTML shell so that navigations and
+              // reloads work offline. Without this the document request fails
+              // before the precached bundle can run, leaving the precache
+              // effectively unreachable offline.
+              //
+              // Every same-origin app navigation is collapsed onto a single
+              // cache entry: the shell is identical for all client-routed paths
+              // (empty SSR content, the router reads the location on boot), so
+              // any route can cold-start or reload offline, not only URLs that
+              // were previously visited. The cached response carries its own CSP
+              // header, whose nonce matches the inline scripts in the same
+              // cached body, so the shell still executes when served from cache.
+              //
+              // Public shares (`/s/`) and embeds (`/embeds/`) render
+              // document-specific HTML and are excluded from the shared shell.
+              urlPattern: ({ request, url, sameOrigin }) =>
+                sameOrigin &&
+                request.mode === "navigate" &&
+                !url.pathname.startsWith("/s/") &&
+                !url.pathname.startsWith("/embeds/"),
+              handler: "NetworkFirst",
+              options: {
+                cacheName: "html-cache",
+                networkTimeoutSeconds: 3,
+                expiration: {
+                  maxEntries: 1,
+                  maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+                plugins: [
+                  {
+                    // Normalize every navigation onto one shell key so that any
+                    // path resolves to the cached shell when offline.
+                    cacheKeyWillBeUsed: async ({ request }) =>
+                      new URL("/", request.url).href,
+                  },
+                ],
+              },
+            },
             {
               urlPattern: /api\/urls\.unfurl$/,
               handler: "CacheOnly",
