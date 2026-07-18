@@ -14,6 +14,7 @@ import type { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import type { Props as EditorProps } from "~/components/Editor";
 import Editor from "~/components/Editor";
+import { useSplitView } from "~/components/SplitView/context";
 import type { Editor as SharedEditor } from "~/editor";
 import Flex from "~/components/Flex";
 import Time from "~/components/Time";
@@ -71,6 +72,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
   const { setFocusedCommentId } = useDocumentContext();
   const focusedComment = useFocusedComment();
   const { ui, comments } = useStores();
+  const { pane } = useSplitView();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const sidebarContext = useLocationSidebarContext();
@@ -106,9 +108,9 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
       ) {
         setFocusedCommentId(focusedComment.id);
       }
-      ui.set({ rightSidebar: "comments" });
+      ui.setRightSidebar("comments", pane);
     }
-  }, [focusedComment, ui, document.id, params, setFocusedCommentId]);
+  }, [focusedComment, ui, pane, document.id, params, setFocusedCommentId]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.
@@ -161,9 +163,9 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
   const handleClickCommentMark = React.useCallback(
     (commentId: string) => {
       setFocusedCommentId(commentId);
-      ui.set({ rightSidebar: "comments" });
+      ui.setRightSidebar("comments", pane);
     },
-    [setFocusedCommentId, ui]
+    [setFocusedCommentId, ui, pane]
   );
 
   // Soft delete the Comment model when associated mark is totally removed.
@@ -265,7 +267,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         }
         onOpenCommentsSidebar={
           commentingEnabled
-            ? () => ui.set({ rightSidebar: "comments" })
+            ? () => ui.setRightSidebar("comments", pane)
             : undefined
         }
         onInit={handleInit}

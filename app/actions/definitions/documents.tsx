@@ -83,7 +83,7 @@ import {
   trashPath,
   documentEditPath,
 } from "~/utils/routeHelpers";
-import { openRouteInSplit } from "~/utils/splitView";
+import { getFocusedSplitPane, openRouteInSplit } from "~/utils/splitView";
 import { documentBreadcrumbText } from "~/components/DocumentBreadcrumb";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type {
@@ -1512,7 +1512,7 @@ export const openDocumentComments = createAction({
       history.push(path, { sidebarContext });
     }
 
-    stores.ui.set({ rightSidebar: "comments" });
+    stores.ui.setRightSidebar("comments", getFocusedSplitPane());
   },
 });
 

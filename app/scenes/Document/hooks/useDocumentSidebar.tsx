@@ -39,7 +39,9 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   skipInitialAnimation,
 }: DocumentSidebarContentProps) {
   const { ui } = useStores();
+  const { pane } = useSplitView();
   const isMobile = useMobile();
+  const panel = ui.getRightSidebar(pane);
 
   const inner = (
     <Route path={`/doc/${matchDocumentSlug}`}>
@@ -50,8 +52,8 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
           </SidebarLayout>
         }
       >
-        {ui.rightSidebar === "comments" && <DocumentComments />}
-        {ui.rightSidebar === "history" && <DocumentHistory />}
+        {panel === "comments" && <DocumentComments />}
+        {panel === "history" && <DocumentHistory />}
       </React.Suspense>
     </Route>
   );
@@ -74,53 +76,45 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
  * to store state, sets a stable component into the sidebar context when open,
  * and clears it when closed or on unmount.
  *
- * In a split view the sidebar content is rendered into the pane's own sidebar
- * slot, so each pane displays the panels for its own document. Only the
- * focused pane syncs the history route with the shared panel state.
+ * In a split view the sidebar state and content are tracked per pane, so each
+ * pane opens and closes panels for its own document independently.
  */
 export default function useDocumentSidebar() {
   const { ui, documents } = useStores();
   const location = useLocation();
   const paneHistory = useHistory();
-  const { isFocused } = useSplitView();
+  const { pane } = useSplitView();
   const setSidebar = useSetRightSidebar();
   const isHistoryRoute = !!matchPath(location.pathname, {
     path: matchDocumentHistory,
   });
-  const isOpen = ui.rightSidebar !== null;
+  const panel = ui.getRightSidebar(pane);
+  const isOpen = panel !== null;
   const wasOpenRef = React.useRef(isOpen);
 
   React.useEffect(() => {
-    if (!isFocused) {
-      return;
-    }
-
     if (isHistoryRoute) {
-      ui.set({ rightSidebar: "history" });
-    } else if (ui.rightSidebar === "history") {
-      ui.set({ rightSidebar: null });
+      ui.setRightSidebar("history", pane);
+    } else if (ui.getRightSidebar(pane) === "history") {
+      ui.setRightSidebar(null, pane);
     }
-  }, [isFocused, isHistoryRoute, ui]);
+  }, [isHistoryRoute, ui, pane]);
 
   // When the sidebar switches away from history while still on a /history URL,
   // update the URL to remove the /history suffix.
   React.useEffect(() => {
-    if (isFocused && isHistoryRoute && ui.rightSidebar !== "history") {
-      const document = ui.activeDocumentId
-        ? documents.get(ui.activeDocumentId)
+    if (isHistoryRoute && panel !== "history") {
+      const slugMatch = matchPath<{ documentSlug: string }>(location.pathname, {
+        path: `/doc/${matchDocumentSlug}`,
+      });
+      const document = slugMatch
+        ? documents.get(slugMatch.params.documentSlug)
         : undefined;
       if (document) {
         paneHistory.push(documentPath(document));
       }
     }
-  }, [
-    isFocused,
-    ui.rightSidebar,
-    isHistoryRoute,
-    ui.activeDocumentId,
-    documents,
-    paneHistory,
-  ]);
+  }, [panel, isHistoryRoute, location.pathname, documents, paneHistory]);
 
   React.useEffect(() => {
     if (isOpen) {

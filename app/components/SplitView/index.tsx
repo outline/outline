@@ -13,6 +13,7 @@ import {
   useRightSidebarContent,
 } from "~/components/RightSidebarContext";
 import useMobile from "~/hooks/useMobile";
+import useStores from "~/hooks/useStores";
 import history, { patchLocation } from "~/utils/history";
 import type { SplitViewPane } from "~/utils/splitView";
 import {
@@ -38,6 +39,7 @@ type Props = {
  * with the query parameter so that a reload hydrates both panes.
  */
 export function SplitView({ children }: Props) {
+  const { ui } = useStores();
   const location = useLocation();
   const isMobile = useMobile();
   const splitPath = isMobile ? undefined : getSplitPath(location.search);
@@ -47,12 +49,14 @@ export function SplitView({ children }: Props) {
 
   React.useEffect(() => observeFocusedSplitPane(setFocusedPaneState), []);
 
-  // Return focus to the primary pane whenever the split view closes.
+  // Return focus to the primary pane and reset the secondary pane's sidebar
+  // whenever the split view closes.
   React.useEffect(() => {
     if (!splitPath) {
       setFocusedSplitPane("primary");
+      ui.setRightSidebar(null, "secondary");
     }
-  }, [splitPath]);
+  }, [splitPath, ui]);
 
   if (!splitPath) {
     return <>{children}</>;
