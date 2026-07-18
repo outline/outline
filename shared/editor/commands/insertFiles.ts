@@ -227,9 +227,11 @@ const insertFiles = async function (
       .catch((error) => {
         // Imported dynamically so the Sentry SDK stays out of the module graph
         // until an upload actually fails, keeping it off server-side startup.
-        void import("@sentry/react").then((Sentry) =>
-          Sentry.captureException(error)
-        );
+        void import("@sentry/react")
+          .then((Sentry) => Sentry.captureException(error))
+          .catch(() => {
+            // Reporting is best-effort; the error is logged below regardless.
+          });
 
         // oxlint-disable-next-line no-console
         console.error(error);

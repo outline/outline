@@ -1,14 +1,12 @@
 import env from "@server/env";
 import type BaseStorage from "./BaseStorage";
+import LocalStorage from "./LocalStorage";
+import S3Storage from "./S3Storage";
 
-// The storage module is required lazily rather than imported so only the
-// configured backend and its dependency tree (for S3, the AWS SDK and its
-// native CRT binding) are loaded into memory.
-/* oxlint-disable @typescript-eslint/no-require-imports */
+// Only the configured backend is instantiated. S3Storage requires the AWS SDK
+// lazily, so the SDK and its native CRT binding are never loaded into memory
+// when local file storage is in use.
 const storage: BaseStorage =
-  env.FILE_STORAGE === "local"
-    ? new (require("./LocalStorage").default)()
-    : new (require("./S3Storage").default)();
-/* oxlint-enable @typescript-eslint/no-require-imports */
+  env.FILE_STORAGE === "local" ? new LocalStorage() : new S3Storage();
 
 export default storage;

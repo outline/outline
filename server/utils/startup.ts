@@ -49,10 +49,16 @@ export function configureChildHeapLimit(processCount: number) {
   // leaving headroom for the master process and non-heap memory such as
   // compiled code, buffers, and native allocations.
   const totalMB = constrainedMemory / 1024 / 1024;
-  const heapMB = Math.max(
-    256,
-    Math.floor((totalMB * 0.8) / Math.max(1, processCount))
-  );
+  const budgetMB = Math.floor((totalMB * 0.8) / Math.max(1, processCount));
+
+  // Below 256MB per process the server cannot operate reliably, so the floor
+  // is applied even though the combined heaps may then exceed the budget.
+  const heapMB = Math.max(256, budgetMB);
+  if (heapMB > budgetMB) {
+    Logger.warn(
+      `The available memory of ${Math.round(totalMB)}MB is low for ${processCount} service process(es); reduce process count or increase available memory`
+    );
+  }
 
   // Forked processes parse NODE_OPTIONS on startup, so this applies to every
   // service process without affecting the already-running master.
