@@ -117,13 +117,13 @@ export default class UsersStore extends Store<User> {
   /**
    * Returns the loaded user with the given email address, if any.
    *
-   * @param email The email address to look up.
-   * @returns The matching user, or undefined if none exists.
+   * @param email the email address to look up.
+   * @returns the matching user, or undefined if none exists.
    */
   getByEmail = (email: string): User | undefined => {
-    const normalizedEmail = email.trim().toLocaleLowerCase();
+    const normalizedEmail = email.trim().toLowerCase();
     return this.all.find(
-      (user) => user.email?.toLocaleLowerCase() === normalizedEmail
+      (user) => user.email?.trim().toLowerCase() === normalizedEmail
     );
   };
 
