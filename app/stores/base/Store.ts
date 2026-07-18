@@ -23,6 +23,7 @@ import type { PaginationParams, PartialExcept, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import ParanoidModel from "~/models/base/ParanoidModel";
+import StorePersistence from "./StorePersistence";
 
 type ListPredicate<T> =
   | ((value: T, index: number, collection: ArrayLike<T>) => boolean)
@@ -77,6 +78,8 @@ export default abstract class Store<T extends Model> {
 
   rootStore: RootStore;
 
+  protected persistence?: StorePersistence<T>;
+
   actions = [
     RPCAction.Info,
     RPCAction.List,
@@ -98,6 +101,24 @@ export default abstract class Store<T extends Model> {
   @action
   clear() {
     this.data.clear();
+    this.persistence?.clear();
+  }
+
+  /**
+   * Enables persistence of this store's data to IndexedDB and hydrates any
+   * previously persisted records into the store. Safe to call multiple times,
+   * subsequent calls are a no-op.
+   *
+   * @param databaseName the name of the IndexedDB database to persist to.
+   * @returns a promise that resolves when hydration is complete.
+   */
+  async enablePersistence(databaseName: string): Promise<void> {
+    if (this.persistence || !StorePersistence.isSupported) {
+      return;
+    }
+
+    this.persistence = new StorePersistence<T>(this, databaseName);
+    await this.persistence.hydrate();
   }
 
   addPolicies = (policies: Policy[]) => {
@@ -158,16 +179,19 @@ export default abstract class Store<T extends Model> {
 
       if (existingModel) {
         existingModel.updateData(item);
+        this.persistence?.persist(existingModel.id);
         return existingModel;
       }
 
       // @ts-expect-error TS thinks that we're instantiating an abstract class here
       const newModel = new ModelClass(item, this);
       this.data.set(newModel.id, newModel);
+      this.persistence?.persist(newModel.id);
       return newModel;
     }
 
     this.data.set(item.id, item);
+    this.persistence?.persist(item.id);
     return item;
   };
 
@@ -218,6 +242,10 @@ export default abstract class Store<T extends Model> {
     }
 
     LifecycleManager.executeHooks(model.constructor, "afterRemove", model);
+
+    // Persists the soft-deleted model, or removes the persisted record if the
+    // model was hard-deleted from the store.
+    this.persistence?.persist(id);
   }
 
   @action
