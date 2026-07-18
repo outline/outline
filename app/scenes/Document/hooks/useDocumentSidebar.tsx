@@ -1,12 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import {
-  Route,
-  Router,
-  matchPath,
-  useHistory,
-  useLocation,
-} from "react-router-dom";
+import { Route, matchPath, useHistory, useLocation } from "react-router-dom";
 import {
   RightSidebarWrappedContext,
   useSetRightSidebar,
@@ -22,7 +16,6 @@ import {
   matchDocumentHistory,
   matchDocumentSlug,
 } from "~/utils/routeHelpers";
-import { getFocusedSplitPane } from "~/utils/splitView";
 import SidebarLayout from "~/scenes/Document/components/SidebarLayout";
 
 const DocumentComments = lazyWithRetry(
@@ -81,15 +74,15 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
  * to store state, sets a stable component into the sidebar context when open,
  * and clears it when closed or on unmount.
  *
- * In a split view only the focused pane manages the sidebar, so the sidebar
- * always represents the active document. The content is wrapped in the pane's
- * router so panels resolve their document from, and navigate, the owning pane.
+ * In a split view the sidebar content is rendered into the pane's own sidebar
+ * slot, so each pane displays the panels for its own document. Only the
+ * focused pane syncs the history route with the shared panel state.
  */
 export default function useDocumentSidebar() {
   const { ui, documents } = useStores();
   const location = useLocation();
   const paneHistory = useHistory();
-  const { pane, isSplitView, isFocused } = useSplitView();
+  const { isFocused } = useSplitView();
   const setSidebar = useSetRightSidebar();
   const isHistoryRoute = !!matchPath(location.pathname, {
     path: matchDocumentHistory,
@@ -130,30 +123,20 @@ export default function useDocumentSidebar() {
   ]);
 
   React.useEffect(() => {
-    if (!isFocused) {
-      return;
-    }
-
     if (isOpen) {
       setSidebar(
-        <Router key={pane} history={paneHistory}>
-          <DocumentSidebarContent skipInitialAnimation={wasOpenRef.current} />
-        </Router>
+        <DocumentSidebarContent skipInitialAnimation={wasOpenRef.current} />
       );
     } else {
       setSidebar(null);
     }
     wasOpenRef.current = isOpen;
-  }, [isOpen, isFocused, pane, paneHistory, setSidebar]);
+  }, [isOpen, setSidebar]);
 
   React.useEffect(
     () => () => {
-      // In a split view only the focused pane owns the sidebar, so an
-      // unfocused pane unmounting must not clear the focused pane's sidebar.
-      if (!isSplitView || pane === getFocusedSplitPane()) {
-        setSidebar(null);
-      }
+      setSidebar(null);
     },
-    [setSidebar, isSplitView, pane]
+    [setSidebar]
   );
 }

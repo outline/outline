@@ -1,5 +1,6 @@
 import type { LocationDescriptor, LocationState, MemoryHistory } from "history";
 import { createMemoryHistory, createPath } from "history";
+import { AnimatePresence } from "framer-motion";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Router, useLocation } from "react-router-dom";
@@ -7,6 +8,10 @@ import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import CenteredContent from "~/components/CenteredContent";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
+import {
+  RightSidebarProvider,
+  useRightSidebarContent,
+} from "~/components/RightSidebarContext";
 import useMobile from "~/hooks/useMobile";
 import history, { patchLocation } from "~/utils/history";
 import type { SplitViewPane } from "~/utils/splitView";
@@ -58,9 +63,11 @@ export function SplitView({ children }: Props) {
       <Pane pane="primary" isFocused={focusedPane === "primary"}>
         {children}
       </Pane>
-      <Pane pane="secondary" isFocused={focusedPane === "secondary"}>
-        <SecondaryRouter splitPath={splitPath}>{children}</SecondaryRouter>
-      </Pane>
+      <SecondaryRouter splitPath={splitPath}>
+        <Pane pane="secondary" isFocused={focusedPane === "secondary"}>
+          {children}
+        </Pane>
+      </SecondaryRouter>
     </Container>
   );
 }
@@ -92,21 +99,34 @@ const Pane = ({ pane, isFocused, children }: PaneProps) => {
       onFocusCapture={handleFocus}
     >
       <SplitViewContext.Provider value={contextValue}>
-        <PaneContent>
-          <React.Suspense
-            fallback={
-              <CenteredContent>
-                <PlaceholderDocument />
-              </CenteredContent>
-            }
-          >
-            {children}
-          </React.Suspense>
-        </PaneContent>
-        <FocusRing $visible={isFocused} aria-hidden />
+        <RightSidebarProvider>
+          <PaneContent>
+            <React.Suspense
+              fallback={
+                <CenteredContent>
+                  <PlaceholderDocument />
+                </CenteredContent>
+              }
+            >
+              {children}
+            </React.Suspense>
+          </PaneContent>
+          <PaneAside />
+          <FocusRing $visible={isFocused} aria-hidden />
+        </RightSidebarProvider>
       </SplitViewContext.Provider>
     </PaneContainer>
   );
+};
+
+/**
+ * Renders the pane's right sidebar content, such as document comments or
+ * history, inside the pane so that each pane displays the sidebar for its
+ * own route.
+ */
+const PaneAside = () => {
+  const content = useRightSidebarContent();
+  return <AnimatePresence initial={false}>{content}</AnimatePresence>;
 };
 
 type SecondaryRouterProps = {
@@ -189,7 +209,6 @@ const Container = styled.div`
 const PaneContainer = styled.div<{ $secondary: boolean }>`
   position: relative;
   display: flex;
-  flex-direction: column;
   flex: 1 1 50%;
   min-width: 0;
   border-inline-start: ${(props) =>
@@ -198,6 +217,7 @@ const PaneContainer = styled.div<{ $secondary: boolean }>`
 
 const PaneContent = styled.div`
   flex: 1;
+  min-width: 0;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -207,7 +227,7 @@ const FocusRing = styled.div<{ $visible: boolean }>`
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: ${depths.header + 1};
+  z-index: ${depths.sidebar + 1};
   box-shadow: inset 0 0 0 2px ${s("accent")};
   opacity: ${(props) => (props.$visible ? 1 : 0)};
   transition: opacity 100ms ease-in-out;
