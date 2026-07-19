@@ -22,6 +22,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
 function Aside({ children, border, className, skipInitialAnimation }: Props) {
   const theme = useTheme();
   const { ui } = useStores();
+  const positionRef = React.useRef<HTMLDivElement>(null);
   const [isResizing, setResizing] = React.useState(false);
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
@@ -32,12 +33,24 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
     (event: MouseEvent) => {
       // suppresses text selection
       event.preventDefault();
+      // Measure from the sidebar's own anchored edge rather than the window,
+      // as in a split view the sidebar is not positioned at the window edge.
+      const rect = positionRef.current?.getBoundingClientRect();
+      if (!rect) {
+        return;
+      }
+
       const distance =
-        direction === "rtl" ? event.pageX : window.innerWidth - event.pageX;
-      const width = Math.max(Math.min(distance, maxWidth), minWidth);
+        direction === "rtl"
+          ? event.clientX - rect.left
+          : rect.right - event.clientX;
+      const width = Math.max(
+        Math.min(distance + (windowScrollbarWidth ?? 0), maxWidth),
+        minWidth
+      );
       ui.set({ sidebarRightWidth: width });
     },
-    [minWidth, maxWidth, direction, ui]
+    [minWidth, maxWidth, direction, ui, windowScrollbarWidth]
   );
 
   const handleReset = React.useCallback(() => {
@@ -111,7 +124,7 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
       role="complementary"
       aria-label="Aside"
     >
-      <Position style={style} column>
+      <Position ref={positionRef} style={style} column>
         <ErrorBoundary>{children}</ErrorBoundary>
         <ResizeBorder
           onMouseDown={handleMouseDown}
