@@ -103,9 +103,12 @@ export default function useDocumentSidebar() {
   }, [isHistoryRoute, ui, pane]);
 
   // When the sidebar switches away from history while still on a /history URL,
-  // update the URL to remove the /history suffix.
+  // update the URL to remove the /history suffix. The panel is read from the
+  // store at effect time so that navigating to a /history URL, which opens
+  // the panel in the effect above within the same commit, is not mistaken
+  // for the panel having switched away.
   React.useEffect(() => {
-    if (isHistoryRoute && panel !== "history") {
+    if (isHistoryRoute && ui.getRightSidebar(pane) !== "history") {
       const slugMatch = matchPath<{ documentSlug: string }>(location.pathname, {
         path: `/doc/${matchDocumentSlug}`,
       });
@@ -116,7 +119,15 @@ export default function useDocumentSidebar() {
         paneHistory.push(documentPath(document));
       }
     }
-  }, [panel, isHistoryRoute, location.pathname, documents, paneHistory]);
+  }, [
+    panel,
+    isHistoryRoute,
+    location.pathname,
+    documents,
+    paneHistory,
+    ui,
+    pane,
+  ]);
 
   React.useEffect(() => {
     if (isOpen) {
