@@ -123,6 +123,32 @@
         "react/rules-of-hooks": "error"
       },
       "plugins": ["eslint", "oxc", "react", "typescript", "import"]
+    },
+    {
+      "files": ["shared/**/*.{js,jsx,ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "prosemirror-tables",
+                "importNames": [
+                  "addRowBefore",
+                  "addRowAfter",
+                  "addColumnBefore",
+                  "addColumnAfter"
+                ],
+                "message": "Use the wrappers from shared/editor/commands/table instead, which respect the target index and place the cursor in the inserted cell."
+              },
+              {
+                "name": "sonner",
+                "message": "Do not import a toast library within shared; surface notifications through the onNotice callback so shared code stays decoupled from the app's toast implementation."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }
