@@ -110,7 +110,7 @@ export async function start(id: number, disconnect: () => void) {
   server.on("error", (err) => {
     if ("code" in err && err.code === "EADDRINUSE") {
       Logger.error(`Port ${normalizedPort} is already in use. Exiting…`, err);
-      process.exit(0);
+      process.exit(1);
     }
 
     if ("code" in err && err.code === "EACCES") {
@@ -118,7 +118,7 @@ export async function start(id: number, disconnect: () => void) {
         `Port ${normalizedPort} requires elevated privileges. Exiting…`,
         err
       );
-      process.exit(0);
+      process.exit(1);
     }
 
     throw err;

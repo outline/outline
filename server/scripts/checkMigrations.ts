@@ -33,7 +33,7 @@ async function checkPendingMigrations() {
         Logger.fatal(
           styleText(
             "red",
-            `Database migrations are pending and were not ran because --no-migrate flag was passed.\nRun the migrations with "yarn db:migrate".`
+            `Database migrations are pending and were not run because the --no-migrate flag was passed.\nRun the migrations with "yarn db:migrate".`
           ),
           new Error("Migrations pending")
         );
