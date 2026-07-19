@@ -36,11 +36,14 @@ export default class ShutdownHelper {
    */
   public static readonly forceQuitTimeout = 60 * 1000;
 
-  /** Whether the server is currently shutting down */
-  private static isShuttingDown = false;
-
-  /** List of shutdown handlers to execute */
-  private static handlers: Handler[] = [];
+  /**
+   * Whether the process is currently shutting down.
+   *
+   * @returns true once `execute` has been called.
+   */
+  public static get isShuttingDown() {
+    return this.shuttingDown;
+  }
 
   /**
    * Add a shutdown handler to be executed when the process is exiting
@@ -71,10 +74,10 @@ export default class ShutdownHelper {
    * @param code The exit code to use
    */
   public static async execute(code = 0) {
-    if (this.isShuttingDown) {
+    if (this.shuttingDown) {
       return;
     }
-    this.isShuttingDown = true;
+    this.shuttingDown = true;
 
     // Start the shutdown timer
     void sleep(this.forceQuitTimeout).then(() => {
@@ -111,4 +114,10 @@ export default class ShutdownHelper {
     Logger.info("lifecycle", "Gracefully quitting");
     process.exit(code);
   }
+
+  /** Whether the server is currently shutting down */
+  private static shuttingDown = false;
+
+  /** List of shutdown handlers to execute */
+  private static handlers: Handler[] = [];
 }
