@@ -165,7 +165,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .optional()
             .describe("A markdown description for the collection."),
           icon: optionalString().describe(
-            "An icon for the collection, e.g. an emoji."
+            "An icon for the collection. May be an emoji or a named icon; read the outline://icons resource for the list of available icon names."
           ),
           color: optionalString().describe(
             "The hex color for the collection icon, e.g. #FF0000."
@@ -235,7 +235,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .nullable()
             .optional()
             .describe(
-              "An icon for the collection, e.g. an emoji. Set to null to remove."
+              "An icon for the collection. Set to null to remove. May be an emoji or a named icon; read the outline://icons resource for the list of available icon names."
             ),
           color: z
             .string()

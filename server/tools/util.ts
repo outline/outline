@@ -65,6 +65,9 @@ export function optionalString() {
     .transform((v) => (v === "" ? undefined : v));
 }
 
+/** The URI of the MCP resource that lists the available named icons. */
+export const iconNamesResourceUri = "outline://icons";
+
 /**
  * Helper function to format successful MCP tool responses.
  *

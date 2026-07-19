@@ -361,7 +361,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             "The ID of a template to pre-fill the new document from. The template's title, content, icon, and color are used unless overridden by the corresponding parameters."
           ),
           icon: optionalString().describe(
-            "An icon for the document, e.g. an emoji."
+            "An icon for the document. May be an emoji or a named icon; read the outline://icons resource for the list of available icon names."
           ),
           color: optionalString().describe(
             "The hex color for the document icon, e.g. #FF0000."
@@ -627,7 +627,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .nullable()
             .optional()
             .describe(
-              "An icon for the document, e.g. an emoji. Set to null to remove."
+              "An icon for the document. Set to null to remove. May be an emoji or a named icon; read the outline://icons resource for the list of available icon names."
             ),
           color: z
             .string()
