@@ -1,4 +1,5 @@
 import { Scope, TeamPreference } from "@shared/types";
+import { iconNames } from "@shared/utils/IconNames";
 import { UserFlag } from "@server/models/User";
 import {
   buildUser,
@@ -139,6 +140,70 @@ describe("POST /mcp/", () => {
 
       await user.reload();
       expect(user.getFlag(UserFlag.MCP)).toEqual(1);
+    });
+  });
+
+  describe("resources", () => {
+    it("initialize advertises the resources capability", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("initialize", {
+        protocolVersion: "2025-03-26",
+        capabilities: {},
+        clientInfo: { name: "test-client", version: "1.0.0" },
+      });
+
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body,
+      });
+      expect(res.status).toEqual(200);
+
+      const parsed = await parseMcpResponse(res);
+      const result = parsed?.result as {
+        capabilities?: { resources?: unknown };
+      };
+      expect(result?.capabilities?.resources).toBeDefined();
+    });
+
+    it("resources/list includes the icons resource", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("resources/list");
+
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body,
+      });
+      expect(res.status).toEqual(200);
+
+      const parsed = await parseMcpResponse(res);
+      const result = parsed?.result as {
+        resources?: { uri: string; mimeType?: string }[];
+      };
+      const icons = result?.resources?.find((r) => r.uri === "outline://icons");
+      expect(icons).toBeDefined();
+      expect(icons?.mimeType).toEqual("application/json");
+    });
+
+    it("resources/read returns the icon names as JSON", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const { body } = mcpRequest("resources/read", {
+        uri: "outline://icons",
+      });
+
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body,
+      });
+      expect(res.status).toEqual(200);
+
+      const parsed = await parseMcpResponse(res);
+      const result = parsed?.result as {
+        contents?: { uri: string; mimeType?: string; text: string }[];
+      };
+      const content = result?.contents?.[0];
+      expect(content?.uri).toEqual("outline://icons");
+      expect(content?.mimeType).toEqual("application/json");
+      expect(JSON.parse(content?.text ?? "null")).toEqual(iconNames);
     });
   });
 
