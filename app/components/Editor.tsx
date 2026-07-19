@@ -16,6 +16,7 @@ import { AttachmentValidation } from "@shared/validations";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
+import { toastNotice } from "~/editor/toastNotice";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditorClickHandlers from "~/hooks/useEditorClickHandlers";
 import useEmbeds from "~/hooks/useEmbeds";
@@ -178,6 +179,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         onFileUploadStart: handleFileUploadStart,
         onFileUploadStop: handleFileUploadStop,
         onFileUploadProgress: handleFileUploadProgress,
+        onNotice: toastNotice,
         isAttachment,
       });
     },

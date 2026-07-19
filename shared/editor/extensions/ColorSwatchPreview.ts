@@ -120,6 +120,7 @@ export default class ColorSwatchPreview extends Extension {
     const element = this.editor.renderToPortal(ColorSwatch, {
       color,
       luminance,
+      onNotice: this.editor.props.onNotice,
     });
     // Keep the mount point layout-neutral; the swatch styles itself.
     element.style.display = "contents";

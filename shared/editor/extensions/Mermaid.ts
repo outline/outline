@@ -7,7 +7,6 @@ import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { NodeSelection, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { toast } from "sonner";
 import { errToString } from "../../utils/error";
 import { isCode, isMermaid } from "../lib/isCode";
 import { isRemoteTransaction, mapDecorations } from "../lib/multiplayer";
@@ -397,7 +396,7 @@ export default function Mermaid({
   isDark: boolean;
   editor: Editor;
 }) {
-  const { onClickLink } = editor.props;
+  const { onClickLink, onNotice } = editor.props;
 
   return new Plugin({
     key: pluginKey,
@@ -633,7 +632,10 @@ export default function Mermaid({
                 onClickLink(sanitizeUrl(href) ?? "");
               }
             } catch (_err) {
-              toast.error(t("Sorry, that type of link is not supported"));
+              onNotice?.(
+                t("Sorry, that type of link is not supported"),
+                "error"
+              );
             }
           }
 

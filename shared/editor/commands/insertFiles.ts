@@ -1,7 +1,7 @@
 import { t } from "i18next";
 import { v4 as uuidv4 } from "uuid";
 import type { EditorView } from "prosemirror-view";
-import { toast } from "sonner";
+import type { EditorNotice } from "../types";
 import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
@@ -26,6 +26,8 @@ export type Options = {
   onFileUploadStop?: () => void;
   /** Callback fired when file upload progress changes */
   onFileUploadProgress?: (id: string, fractionComplete: number) => void;
+  /** Callback fired to surface a notice to the user */
+  onNotice?: EditorNotice;
   /** Attributes to overwrite */
   attrs?: {
     /** Width to use when inserting image */
@@ -247,8 +249,9 @@ const insertFiles = async function (
           })
         );
 
-        toast.error(
-          error.message || t("Sorry, an error occurred uploading the file")
+        options.onNotice?.(
+          error.message || t("Sorry, an error occurred uploading the file"),
+          "error"
         );
       })
       .finally(() => {

@@ -2,21 +2,23 @@ import copy from "copy-to-clipboard";
 import type { MouseEvent } from "react";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import styled, { css } from "styled-components";
+import type { EditorNotice } from "../types";
 
 interface Props {
   /** The CSS color the swatch represents, in its original notation. */
   color: string;
   /** The relative luminance of the color, used to pick an outline. */
   luminance: number;
+  /** Callback used to surface a notice to the user. */
+  onNotice?: EditorNotice;
 }
 
 /**
  * A small colored circle rendered after a CSS color inside inline code. Clicking
  * it copies the color to the clipboard.
  */
-export function ColorSwatch({ color, luminance }: Props) {
+export function ColorSwatch({ color, luminance, onNotice }: Props) {
   const { t } = useTranslation();
 
   const handleMouseDown = useCallback((event: MouseEvent) => {
@@ -29,9 +31,9 @@ export function ColorSwatch({ color, luminance }: Props) {
       event.preventDefault();
       event.stopPropagation();
       copy(color);
-      toast.message(t("Copied to clipboard"));
+      onNotice?.(t("Copied to clipboard"));
     },
-    [color, t]
+    [color, onNotice, t]
   );
 
   return (

@@ -38,6 +38,7 @@ import { basicExtensions as extensions } from "@shared/editor/nodes";
 import type ReactNode from "@shared/editor/nodes/ReactNode";
 import type {
   ComponentProps,
+  EditorNotice,
   SelectionToolbarMenuDescriptor,
 } from "@shared/editor/types";
 import type {
@@ -63,6 +64,7 @@ import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
+import { toastNotice } from "./toastNotice";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -161,6 +163,11 @@ export type Props = {
   ) => void;
   /** Callback when user presses any key with document focused */
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
+  /**
+   * Callback used to surface a short notice to the user. Defaults to rendering
+   * a toast so that shared editor code stays agnostic of the toast library.
+   */
+  onNotice?: EditorNotice;
   /** Collection of embed types to render in the document */
   embeds: EmbedDescriptor[];
   /** Display preferences for the logged in user, if any. */
@@ -206,6 +213,7 @@ export class Editor extends React.PureComponent<
     onFileUploadStop: () => {
       // no default behavior
     },
+    onNotice: toastNotice,
     embeds: [],
     extensions,
   };
