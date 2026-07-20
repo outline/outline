@@ -153,7 +153,7 @@
     "ipaddr.js": "^2.4.0",
     "is-printable-key-event": "^1.0.0",
     "iso-639-3": "^3.0.1",
-    "js-yaml": "^4.2.0",
+    "js-yaml": "^4.3.0",
     "jsdom": "^22.1.0",
     "jsonwebtoken": "^9.0.3",
     "katex": "^0.16.45",
