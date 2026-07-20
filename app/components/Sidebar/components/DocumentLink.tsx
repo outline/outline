@@ -14,10 +14,10 @@ import type Document from "~/models/Document";
 import type GroupMembership from "~/models/GroupMembership";
 import type UserMembership from "~/models/UserMembership";
 import type { RefHandle } from "~/components/EditableTitle";
+import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useOnScreen from "~/hooks/useOnScreen";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -66,7 +66,7 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
   const hasChildDocuments =
     !!node.children.length || activeDocument?.parentDocumentId === node.id;
   const sidebarContext = useSidebarContext();
-  const locationSidebarContext = useLocationSidebarContext();
+  const activeSidebarContext = useActiveSidebarContext();
   const { fetchChildDocuments } = documents;
 
   // Keep expansion/data effects on the outer so they run regardless of whether
@@ -144,8 +144,8 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
   React.useLayoutEffect(() => {
     if (
       isActiveDocument &&
-      (locationSidebarContext === sidebarContext ||
-        (!locationSidebarContext && sidebarContext === "collections")) &&
+      (activeSidebarContext === sidebarContext ||
+        (!activeSidebarContext && sidebarContext === "collections")) &&
       placeholderRef.current
     ) {
       scrollIntoView(placeholderRef.current, {
@@ -154,7 +154,7 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
         boundary: (parent) => parent.id !== "sidebar",
       });
     }
-  }, [isActiveDocument, sidebarContext, locationSidebarContext]);
+  }, [isActiveDocument, sidebarContext, activeSidebarContext]);
 
   return (
     <>

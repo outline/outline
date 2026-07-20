@@ -6,8 +6,8 @@ import { IconType, NotificationEventType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import type GroupMembership from "~/models/GroupMembership";
 import UserMembership from "~/models/UserMembership";
+import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useBoolean from "~/hooks/useBoolean";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import {
@@ -40,7 +40,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId } = membership;
   const isActiveDocument = documentId === ui.activeDocumentId;
-  const locationSidebarContext = useLocationSidebarContext();
+  const activeSidebarContext = useActiveSidebarContext();
   const sidebarContext = useSidebarContext();
   const document = documentId ? documents.get(documentId) : undefined;
 
@@ -54,7 +54,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     : false;
 
   const [expanded, setExpanded, setCollapsed] = useBoolean(
-    isActiveDocumentInPath && locationSidebarContext === sidebarContext
+    isActiveDocumentInPath && activeSidebarContext === sidebarContext
   );
 
   const { event: disclosureEvent, onDisclosureClick } =
@@ -63,13 +63,13 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   useSidebarDisclosure(setExpanded, setCollapsed);
 
   React.useEffect(() => {
-    if (isActiveDocumentInPath && locationSidebarContext === sidebarContext) {
+    if (isActiveDocumentInPath && activeSidebarContext === sidebarContext) {
       setExpanded();
     }
   }, [
     isActiveDocumentInPath,
     sidebarContext,
-    locationSidebarContext,
+    activeSidebarContext,
     setExpanded,
   ]);
 

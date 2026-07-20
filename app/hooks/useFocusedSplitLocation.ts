@@ -18,7 +18,9 @@ import { getFocusedSplitPane, getSplitPath } from "~/utils/splitView";
  * has focus, no split view is open, or the component is rendered inside a
  * pane and the router context already provides the pane's location.
  */
-export function useFocusedSplitLocation(): Location | undefined {
+export function useFocusedSplitLocation():
+  | Location<{ sidebarContext?: SidebarContextType }>
+  | undefined {
   const location = useLocation<{ sidebarContext?: SidebarContextType }>();
   const focusedPane = getFocusedSplitPane();
   const { isSplitView } = useSplitView();
