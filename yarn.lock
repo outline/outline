@@ -99,13 +99,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/cloudfront-signer@npm:^3.1078.0":
-  version: 3.1078.0
-  resolution: "@aws-sdk/cloudfront-signer@npm:3.1078.0"
+"@aws-sdk/cloudfront-signer@npm:^3.1088.0":
+  version: 3.1088.0
+  resolution: "@aws-sdk/cloudfront-signer@npm:3.1088.0"
   dependencies:
-    "@smithy/core": "npm:^3.29.0"
+    "@smithy/core": "npm:^3.29.4"
     tslib: "npm:^2.6.2"
-  checksum: 10c0/ab8ec3fc21222f10c065645a1d73cb057191bf59f62fbe6d4dc2d0b09842b9c0c2bdac34529664d016c66e280e4b2f340da6509cb264034467b93ec878b58128
+  checksum: 10c0/2923c24f2e135f66170de337c999505e79ec4b08071ef6de6e06d3dac3a7a5457320527cf9d67e56a2473e3aaaccf3421350d526cd7b2472647a24814c2401f1
   languageName: node
   linkType: hard
 
@@ -5871,6 +5871,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@smithy/core@npm:^3.29.4":
+  version: 3.29.5
+  resolution: "@smithy/core@npm:3.29.5"
+  dependencies:
+    "@smithy/types": "npm:^4.16.1"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/42dfd3235949c834411329fd519888052402989967c3c2e08ae6832eb0f7334aeb7b3e48dba703faf93e6c5edc72acf17618a2b3f417442dcffe92826d37a5c0
+  languageName: node
+  linkType: hard
+
 "@smithy/credential-provider-imds@npm:^4.4.5":
   version: 4.4.6
   resolution: "@smithy/credential-provider-imds@npm:4.4.6"
@@ -5921,6 +5931,15 @@ __metadata:
   dependencies:
     tslib: "npm:^2.6.2"
   checksum: 10c0/65cb70240fa13f37274796b065be48d86cccd182ec97e7b1a0da234e2c9bd5ee686b4f5f111c930fe2209a2a6f168b9a045d59fb80c5545f4bff885ba350afa2
+  languageName: node
+  linkType: hard
+
+"@smithy/types@npm:^4.16.1":
+  version: 4.16.1
+  resolution: "@smithy/types@npm:4.16.1"
+  dependencies:
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/e024d9d148deca7bd21d032a9316db109bbe7cf256ffbb8d3981655b9f4f7695c08ec9b87f5a8cf1442e783ba26cb27e4f09603c5bfa3ba1e526c41b1b3e94d2
   languageName: node
   linkType: hard
 
@@ -15406,7 +15425,7 @@ __metadata:
   resolution: "outline@workspace:."
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.1079.0"
-    "@aws-sdk/cloudfront-signer": "npm:^3.1078.0"
+    "@aws-sdk/cloudfront-signer": "npm:^3.1088.0"
     "@aws-sdk/lib-storage": "npm:^3.1079.0"
     "@aws-sdk/s3-presigned-post": "npm:^3.1079.0"
     "@aws-sdk/s3-request-presigner": "npm:^3.1079.0"
