@@ -34,6 +34,23 @@ import mentionRule from "../rules/mention";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
 
+/**
+ * Whether a mention type is backed by an external integration URL held in
+ * `attrs.href` (issue, pull request, project), rather than an internal Outline
+ * reference addressed via `mention://`. Used to keep the DOM and Markdown
+ * serializers in agreement about which mentions render as real links.
+ *
+ * @param type the mention type to check.
+ * @returns true if the mention links to an external URL.
+ */
+function isExternalUrlMention(type: MentionType): boolean {
+  return (
+    type === MentionType.Issue ||
+    type === MentionType.PullRequest ||
+    type === MentionType.Project
+  );
+}
+
 export default class Mention extends Node {
   get name() {
     return "mention";
@@ -128,12 +145,9 @@ export default class Mention extends Node {
           "data-id": node.attrs.modelId,
           "data-actorid": node.attrs.actorId,
           "data-anchor-id": node.attrs.anchorId,
-          "data-url":
-            node.attrs.type === MentionType.PullRequest ||
-            node.attrs.type === MentionType.Issue ||
-            node.attrs.type === MentionType.Project
-              ? sanitizeUrl(node.attrs.href)
-              : `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
+          "data-url": isExternalUrlMention(node.attrs.type)
+            ? sanitizeUrl(node.attrs.href)
+            : `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
           "data-unfurl": JSON.stringify(node.attrs.unfurl),
         },
         toPlainText(node),
@@ -246,11 +260,7 @@ export default class Mention extends Node {
 
           let link: string;
 
-          if (
-            mentionType === MentionType.Issue ||
-            mentionType === MentionType.PullRequest ||
-            mentionType === MentionType.Project
-          ) {
+          if (isExternalUrlMention(mentionType)) {
             link = selection.node.attrs.href;
           } else {
             const { modelId } = selection.node.attrs;
@@ -353,8 +363,15 @@ export default class Mention extends Node {
       );
     } else if (mType === MentionType.Collection) {
       state.write(`[${label}](/collection/${mId})`);
+    } else if (isExternalUrlMention(mType) && node.attrs.href) {
+      // Issue, pull request and project mentions come from external
+      // integrations and already carry the real URL in `href`. Emit a portable
+      // link instead of the internal mention:// URI so the reference resolves
+      // outside Outline, matching what toDOM already renders for these types.
+      state.write(`[${label}](${sanitizeUrl(node.attrs.href)})`);
     } else {
-      // Keep the existing mention:// format for other types (user, group, issue, pull_request, url)
+      // Keep the existing mention:// format for other types (user, group,
+      // date, url) and for any legacy node that has no href to link to.
       state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
     }
   }
