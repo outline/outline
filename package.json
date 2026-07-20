@@ -126,7 +126,7 @@
     "core-js": "^3.49.0",
     "crypto-js": "^4.2.0",
     "date-fns": "^3.6.0",
-    "dd-trace": "^5.109.0",
+    "dd-trace": "^5.115.0",
     "diff": "^5.2.2",
     "email-providers": "^1.14.0",
     "emoji-mart": "^5.6.0",
