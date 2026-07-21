@@ -120,7 +120,10 @@ export default async function userProvisioner(
           avatarUrl,
         });
       }
-      await user.update({ email });
+      // Overwrite the stored email when the provider verified it
+      if (emailVerified === true) {
+        await user.update({ email });
+      }
       await auth.update(rest);
 
       return {
