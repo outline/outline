@@ -226,7 +226,13 @@ export function pushOrOpenInSplit(
   if (isSplitViewModifierPressed() && !isMobile()) {
     const location = typeof to === "string" ? parsePath(to) : to;
 
-    if (location.pathname && isSplitablePath(location.pathname)) {
+    // Location state cannot be represented in the split query parameter, so
+    // routes that rely on it must navigate normally.
+    if (
+      location.state === undefined &&
+      location.pathname &&
+      isSplitablePath(location.pathname)
+    ) {
       openRouteInSplit(history, createPath(location));
       return;
     }
