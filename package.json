@@ -382,6 +382,6 @@
     "uuid": "^11.1.1",
     "nodemailer@npm:9.0.0": "^9.0.1"
   },
-  "version": "1.9.1",
+  "version": "1.9.2",
   "packageManager": "yarn@4.11.0"
 }
