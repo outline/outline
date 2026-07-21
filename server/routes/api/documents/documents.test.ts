@@ -1252,6 +1252,77 @@ describe("#documents.list", () => {
     expect(body.data[0].id).toEqual(restrictedDoc.id);
   });
 
+  it("should return restricted documents for group members", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const group = await buildGroup({ teamId: team.id, createdById: owner.id });
+    await group.$add("user", user, {
+      through: {
+        createdById: owner.id,
+      },
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    const res = await server.post("/api/documents.list", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.map((doc: { id: string }) => doc.id)).toContain(
+      document.id
+    );
+  });
+
+  it("should return children of a document shared from a private collection", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: team.id,
+      permission: null,
+    });
+    const parent = await buildDocument({
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const child = await buildDocument({
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+    });
+    await UserMembership.create({
+      documentId: parent.id,
+      userId: user.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        parentDocumentId: parent.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(child.id);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.list");
     const body = await res.json();
@@ -1576,6 +1647,59 @@ describe("#documents.search", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.title).toEqual("Much test support");
+  });
+
+  it("should return restricted documents for admins", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      title: "restricted searchable",
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const res = await server.post("/api/documents.search", admin, {
+      body: {
+        query: "restricted searchable",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.id).toEqual(document.id);
+  });
+
+  it("should not return restricted documents for non-members", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    await buildDocument({
+      title: "restricted searchable",
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const res = await server.post("/api/documents.search", user, {
+      body: {
+        query: "restricted searchable",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
   });
 
   it("should return results using shareId", async () => {

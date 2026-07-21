@@ -664,7 +664,14 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     }
     if (collectionIds.length) {
       where[Op.or].push({
-        [Op.and]: [{ collectionId: collectionIds }, { isPrivate: false }],
+        [Op.and]: [
+          { collectionId: collectionIds },
+          // Exclude restricted documents the user cannot access. Team-level
+          // searches fail closed and never include restricted documents.
+          model instanceof User
+            ? Document.restrictionsWhere(model)
+            : { isPrivate: false },
+        ],
       });
     }
 

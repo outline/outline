@@ -146,6 +146,7 @@ router.post(
     }
 
     let documentIds: string[] = [];
+    let collectionAccess: WhereOptions<Document> | undefined;
 
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
@@ -167,41 +168,26 @@ router.post(
         where[Op.and].push({ id: documentIds });
       }
 
-      // Filter restricted documents for non-admin users
-      if (!user.isAdmin) {
-        const restrictedDocIds = await accessibleRestrictedDocIds(user.id);
-        where[Op.and].push({
-          [Op.or]: [
-            { isPrivate: false },
-            ...(restrictedDocIds.length
-              ? [{ [Op.and]: [{ isPrivate: true }, { id: restrictedDocIds }] }]
-              : []),
-          ],
-        });
-      }
+      // Exclude restricted documents the user cannot access
+      where[Op.and].push(Document.restrictionsWhere(user));
     } else if (!backlinkDocumentId) {
       // if it's not a backlink request, filter by all collections the user has access to
       const collectionIds = await user.collectionIds();
 
       if (user.isAdmin) {
-        // Admins can see all documents in their accessible collections
-        where[Op.and].push({ collectionId: collectionIds });
+        collectionAccess = { collectionId: collectionIds };
       } else {
-        // Non-admin users: collection access only for non-restricted docs.
-        // Restricted docs with direct membership are included via subquery.
-        const restrictedDocIds = await accessibleRestrictedDocIds(user.id);
-
-        where[Op.and].push({
+        // Restricted documents the user can access through a direct or group
+        // membership are included regardless of collection access.
+        collectionAccess = {
           [Op.or]: [
-            {
-              [Op.and]: [{ collectionId: collectionIds }, { isPrivate: false }],
-            },
-            ...(restrictedDocIds.length
-              ? [{ [Op.and]: [{ isPrivate: true }, { id: restrictedDocIds }] }]
-              : []),
+            { collectionId: collectionIds },
+            { id: { [Op.in]: Document.restrictedDocumentIdsQuery(user) } },
           ],
-        });
+        };
+        where[Op.and].push(Document.restrictionsWhere(user));
       }
+      where[Op.and].push(collectionAccess);
     }
 
     if (parentDocumentId) {
@@ -235,7 +221,10 @@ router.post(
       ]);
 
       if (groupMembership || membership) {
-        remove(where[Op.and], (cond) => has(cond, "collectionId"));
+        remove(
+          where[Op.and],
+          (cond) => cond === collectionAccess || has(cond, "collectionId")
+        );
       }
 
       where[Op.and].push({ parentDocumentId });
@@ -824,11 +813,12 @@ router.post(
       });
       documentTree = collection?.getDocumentTree(document.id) ?? undefined;
 
-      // Filter restricted subtrees for non-admin users
-      if (documentTree && !user.isAdmin) {
+      // Filter restricted subtrees the user cannot access
+      if (documentTree) {
         const [filtered] = await Collection.filterRestrictedNodes(
           [documentTree],
-          user.id
+          user,
+          document.collectionId
         );
         documentTree = filtered;
       }
@@ -2202,65 +2192,6 @@ function getAPIVersion(ctx: APIContext) {
         ctx.input.body.apiVersion) ??
       0
   );
-}
-
-/**
- * Find IDs of restricted documents the given user can access via direct or group membership.
- *
- * @param userId the user to check memberships for.
- * @return restricted document IDs accessible to the user.
- */
-async function accessibleRestrictedDocIds(userId: string): Promise<string[]> {
-  const [userMemberships, groupMemberships] = await Promise.all([
-    UserMembership.findAll({
-      attributes: ["documentId"],
-      where: { userId, documentId: { [Op.ne]: null } },
-      include: [
-        {
-          model: Document.unscoped(),
-          required: true,
-          attributes: [],
-          where: { isPrivate: true },
-        },
-      ],
-    }),
-    GroupMembership.findAll({
-      attributes: ["documentId"],
-      where: { documentId: { [Op.ne]: null } },
-      include: [
-        {
-          model: Document.unscoped(),
-          required: true,
-          attributes: [],
-          where: { isPrivate: true },
-        },
-        {
-          model: Group,
-          required: true,
-          include: [
-            {
-              model: GroupUser,
-              required: true,
-              where: { userId },
-            },
-          ],
-        },
-      ],
-    }),
-  ]);
-
-  const ids = new Set<string>();
-  for (const m of userMemberships) {
-    if (m.documentId) {
-      ids.add(m.documentId);
-    }
-  }
-  for (const m of groupMemberships) {
-    if (m.documentId) {
-      ids.add(m.documentId);
-    }
-  }
-  return [...ids];
 }
 
 export default router;

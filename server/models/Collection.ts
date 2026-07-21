@@ -1125,74 +1125,49 @@ class Collection extends ParanoidModel<
   });
 
   /**
-   * Filter restricted (private) nodes from a navigation tree for a given user.
-   * Prunes entire subtrees rooted at private nodes the user cannot access.
+   * Filter restricted (private) documents from a navigation tree for a given
+   * user. Prunes entire subtrees rooted at restricted documents the user
+   * cannot access. Restriction state is read from the database rather than
+   * the cached tree so stale structure data cannot expose documents. Admins
+   * can access all restricted documents, so the tree is returned unfiltered.
    *
    * @param nodes - the navigation tree to filter.
-   * @param userId - the user requesting the tree.
+   * @param user - the user requesting the tree.
+   * @param collectionId - the collection the nodes belong to.
    * @returns filtered navigation tree.
    */
   static async filterRestrictedNodes(
     nodes: NavigationNode[],
-    userId: string
+    user: User,
+    collectionId: string
   ): Promise<NavigationNode[]> {
-    const restrictedIds: string[] = [];
-    const collectRestricted = (items: NavigationNode[]) => {
-      for (const node of items) {
-        if (node.isPrivate) {
-          restrictedIds.push(node.id);
-        }
-        collectRestricted(node.children);
-      }
-    };
-    collectRestricted(nodes);
-
-    if (restrictedIds.length === 0) {
+    if (user.isAdmin) {
       return nodes;
     }
 
-    const [userMemberships, groupMemberships] = await Promise.all([
-      UserMembership.findAll({
-        attributes: ["documentId"],
-        where: {
-          userId,
-          documentId: { [Op.in]: restrictedIds },
-        },
-      }),
-      GroupMembership.findAll({
-        attributes: ["documentId"],
-        where: {
-          documentId: { [Op.in]: restrictedIds },
-        },
-        include: [
-          {
-            model: Group,
-            required: true,
-            include: [
-              {
-                model: GroupUser,
-                required: true,
-                where: { userId },
-              },
-            ],
+    // A single query resolves membership access inside the database and
+    // returns only the IDs that must be pruned from the tree.
+    const inaccessibleIds = new Set(
+      (
+        await Document.unscoped().findAll({
+          attributes: ["id"],
+          where: {
+            collectionId,
+            isPrivate: true,
+            id: { [Op.notIn]: Document.restrictedDocumentIdsQuery(user) },
           },
-        ],
-      }),
-    ]);
+        })
+      ).map((document) => document.id)
+    );
 
-    const accessibleRestrictedIds = new Set([
-      ...userMemberships
-        .map((m) => m.documentId)
-        .filter((id): id is string => id !== null),
-      ...groupMemberships
-        .map((m) => m.documentId)
-        .filter((id): id is string => id !== null),
-    ]);
+    if (inaccessibleIds.size === 0) {
+      return nodes;
+    }
 
     const filterNodes = (items: NavigationNode[]): NavigationNode[] => {
       const result: NavigationNode[] = [];
       for (const node of items) {
-        if (node.isPrivate && !accessibleRestrictedIds.has(node.id)) {
+        if (inaccessibleIds.has(node.id)) {
           continue;
         }
         result.push({
