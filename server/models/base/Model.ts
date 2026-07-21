@@ -283,33 +283,58 @@ class Model<
       );
     }
 
+    const collectionId =
+      "collectionId" in model
+        ? model.collectionId
+        : model instanceof models.collection
+          ? model.id
+          : undefined;
+
+    const documentId =
+      "documentId" in model
+        ? model.documentId
+        : model instanceof models.document
+          ? model.id
+          : undefined;
+
+    let teamId =
+      "teamId" in model
+        ? model.teamId
+        : model instanceof models.team
+          ? model.id
+          : context.auth?.user?.teamId;
+
+    // Membership-style models (e.g. UserMembership, GroupMembership) carry no
+    // teamId of their own, so derive it from the associated document or
+    // collection when the mutating context has no authenticated team. This
+    // guarantees events are never persisted without a team.
+    if (!teamId && (documentId || collectionId)) {
+      const parent = documentId
+        ? await models.document.unscoped().findByPk(documentId, {
+            attributes: ["teamId"],
+            paranoid: false,
+            transaction: context.transaction,
+          })
+        : await models.collection.unscoped().findByPk(collectionId, {
+            attributes: ["teamId"],
+            paranoid: false,
+            transaction: context.transaction,
+          });
+      teamId = parent?.getDataValue("teamId") ?? teamId;
+    }
+
     const attrs = {
       name: `${namespace}.${context.event.name ?? name}`,
       modelId: "modelId" in model ? model.modelId : model.id,
-      collectionId:
-        "collectionId" in model
-          ? model.collectionId
-          : model instanceof models.collection
-            ? model.id
-            : undefined,
-      documentId:
-        "documentId" in model
-          ? model.documentId
-          : model instanceof models.document
-            ? model.id
-            : undefined,
+      collectionId,
+      documentId,
       userId:
         "userId" in model
           ? model.userId
           : model instanceof models.user
             ? model.id
             : undefined,
-      teamId:
-        "teamId" in model
-          ? model.teamId
-          : model instanceof models.team
-            ? model.id
-            : context.auth?.user.teamId,
+      teamId,
       actorId:
         context.auth?.user?.id ??
         (model instanceof models.user && name === "create"
