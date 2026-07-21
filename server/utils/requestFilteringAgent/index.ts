@@ -42,6 +42,7 @@ export interface RequestFilteringAgentOptions {
   denyIPAddressList?: string[];
 }
 
+/** Default options applied when constructing request filtering agents. */
 export const DefaultRequestFilteringAgentOptions: Required<RequestFilteringAgentOptions> =
   {
     allowPrivateIPAddress: false,
@@ -281,7 +282,10 @@ export class RequestFilteringHttpsAgent extends https.Agent {
   }
 }
 
+/** Process-global HTTP agent with default request filtering options. */
 export const globalHttpAgent = new RequestFilteringHttpAgent();
+
+/** Process-global HTTPS agent with default request filtering options. */
 export const globalHttpsAgent = new RequestFilteringHttpsAgent();
 
 /**

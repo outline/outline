@@ -6,7 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { randomElement } from "@shared/random";
-import { CollectionPermission, TeamPreference } from "@shared/types";
+import { CollectionPermission } from "@shared/types";
 import type { Option } from "~/components/InputSelect";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
@@ -204,7 +204,7 @@ export const CollectionForm = observer(function CollectionForm_({
         />
       )}
 
-      {team.getPreference(TeamPreference.Commenting) && (
+      {team.commentingEnabled && (
         <Controller
           control={control}
           name="commenting"

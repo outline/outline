@@ -1,7 +1,7 @@
 import { APIResponseError, APIErrorCode } from "@notionhq/client";
 import type { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
 import type { IntegrationService, ProsemirrorDoc } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
@@ -125,7 +125,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
           ...databaseInfo,
           icon: emoji,
           externalId: item.externalId,
-          content: ProsemirrorHelper.getEmptyDocument() as ProsemirrorDoc,
+          content: ProsemirrorDataHelper.getEmpty() as ProsemirrorDoc,
           collectionExternalId,
           children: pages.map((page) => ({
             type: page.type,

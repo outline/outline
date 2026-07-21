@@ -1,5 +1,5 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
-import { type SaveOptions } from "sequelize";
+import { Op, type SaveOptions } from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -110,21 +110,21 @@ class Share extends IdModel<
   InferAttributes<Share>,
   Partial<InferCreationAttributes<Share>>
 > {
-  @Column
+  @Column(DataType.BOOLEAN)
   published: boolean;
 
-  @Column
+  @Column(DataType.BOOLEAN)
   includeChildDocuments: boolean;
 
-  @Column
+  @Column(DataType.DATE)
   revokedAt: Date | null;
 
-  @Column
+  @Column(DataType.DATE)
   lastAccessedAt: Date | null;
 
   /** Total count of times the shared link has been accessed */
   @Default(0)
-  @Column
+  @Column(DataType.INTEGER)
   views: number;
 
   @AllowNull
@@ -132,29 +132,29 @@ class Share extends IdModel<
     args: UrlHelper.SHARE_URL_SLUG_REGEX,
     msg: "Must be only alphanumeric and dashes",
   })
-  @Column
+  @Column(DataType.STRING)
   urlId: string | null | undefined;
 
   @Unique
   @Length({ max: 255, msg: "domain must be 255 characters or less" })
   @IsFQDN
-  @Column
+  @Column(DataType.STRING)
   domain: string | null;
 
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   allowIndexing: boolean;
 
   @Default(true)
-  @Column
+  @Column(DataType.BOOLEAN)
   allowSubscriptions: boolean;
 
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   showLastUpdated: boolean;
 
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   showTOC: boolean;
 
   @AllowNull
@@ -162,7 +162,7 @@ class Share extends IdModel<
     max: ShareValidation.maxTitleLength,
     msg: `title must be ${ShareValidation.maxTitleLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   title: string | null;
 
   @AllowNull
@@ -171,7 +171,7 @@ class Share extends IdModel<
     max: ShareValidation.maxIconUrlLength,
     msg: `iconUrl must be ${ShareValidation.maxIconUrlLength} characters or less`,
   })
-  @Column
+  @Column(DataType.STRING)
   iconUrl: string | null;
 
   // hooks
@@ -196,6 +196,36 @@ class Share extends IdModel<
     }
 
     return model;
+  }
+
+  // static methods
+
+  /**
+   * Finds published, non-revoked shares for the given document(s) within a team.
+   *
+   * @param teamId - the team the documents belong to.
+   * @param documentIds - a single document ID or an array of document IDs.
+   * @returns the matching public shares.
+   */
+  static getPublicSharesForDocumentIds(
+    teamId: string,
+    documentIds: string | string[]
+  ): Promise<Share[]> {
+    return this.findPublicShares(teamId, "documentId", documentIds);
+  }
+
+  /**
+   * Finds published, non-revoked shares for the given collection(s) within a team.
+   *
+   * @param teamId - the team the collections belong to.
+   * @param collectionIds - a single collection ID or an array of collection IDs.
+   * @returns the matching public shares.
+   */
+  static getPublicSharesForCollectionIds(
+    teamId: string,
+    collectionIds: string | string[]
+  ): Promise<Share[]> {
+    return this.findPublicShares(teamId, "collectionId", collectionIds);
   }
 
   // getters
@@ -257,6 +287,29 @@ class Share extends IdModel<
     this.revokedAt = new Date();
     this.revokedById = user.id;
     return this.saveWithCtx(ctx, undefined, { name: "revoke" });
+  }
+
+  private static findPublicShares(
+    teamId: string,
+    column: "documentId" | "collectionId",
+    ids: string | string[]
+  ): Promise<Share[]> {
+    const values = Array.isArray(ids) ? ids : [ids];
+    if (values.length === 0) {
+      return Promise.resolve([]);
+    }
+
+    return this.unscoped().findAll({
+      where: {
+        teamId,
+        published: true,
+        revokedAt: { [Op.is]: null },
+        [column]: values,
+      },
+      // Deterministic order so the same share consistently wins when a
+      // resource has more than one active share.
+      order: [["createdAt", "ASC"]],
+    });
   }
 }
 

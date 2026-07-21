@@ -56,7 +56,7 @@ class AccessRequest extends IdModel<
   status: AccessRequestStatus;
 
   @AllowNull
-  @Column
+  @Column(DataType.DATE)
   respondedAt: Date | null;
 
   // associations

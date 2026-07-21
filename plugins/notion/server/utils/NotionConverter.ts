@@ -595,9 +595,14 @@ export class NotionConverter {
       }>;
     }
   ) {
+    // A table with no rows is invalid content, skip it entirely.
+    if (!item.children?.length) {
+      return undefined;
+    }
+
     return {
       type: "table",
-      content: (item.children ?? []).map((tr, y) => ({
+      content: item.children.map((tr, y) => ({
         type: "tr",
         content: tr.table_row.cells.map((td, x) => ({
           type:

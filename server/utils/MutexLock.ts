@@ -13,8 +13,12 @@ type AcquireOptions = {
   releaseOnShutdown?: boolean;
 };
 
+/**
+ * A distributed mutex lock backed by Redis, for coordinating exclusive access
+ * to resources across processes.
+ */
 export class MutexLock {
-  // Default expiry time for acquiring lock in milliseconds
+  /** Default expiry time for acquiring lock in milliseconds. */
   public static defaultLockTimeout = 4000;
 
   /**

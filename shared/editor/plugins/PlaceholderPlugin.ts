@@ -23,16 +23,23 @@ type Config = Array<{
 }>;
 
 export class PlaceholderPlugin extends Plugin {
-  constructor(config: Config) {
+  /**
+   * @param config Placeholder conditions to evaluate against candidate nodes.
+   * @param nodeTypes Names of the node types eligible for a placeholder.
+   * Defaults to paragraphs only.
+   */
+  constructor(config: Config, nodeTypes: string[] = ["paragraph"]) {
     super({
       state: {
         init: (_, state: EditorState) => ({
-          decorations: this.createDecorations(state, config),
+          decorations: this.createDecorations(state, config, nodeTypes),
         }),
         apply: (tr, pluginState, oldState, newState) => {
           // Only recompute if doc or selection changed
           if (tr.docChanged || tr.selectionSet) {
-            return { decorations: this.createDecorations(newState, config) };
+            return {
+              decorations: this.createDecorations(newState, config, nodeTypes),
+            };
           }
           return pluginState;
         },
@@ -46,14 +53,18 @@ export class PlaceholderPlugin extends Plugin {
     });
   }
 
-  private createDecorations(state: EditorState, config: Config) {
+  private createDecorations(
+    state: EditorState,
+    config: Config,
+    nodeTypes: string[]
+  ) {
     const paras: Array<{
       node: Node;
       $start: ResolvedPos;
       parent: Node | null;
     }> = [];
     state.doc.descendants((node, pos, parent) => {
-      if (node.type.name === "paragraph") {
+      if (nodeTypes.includes(node.type.name)) {
         paras.push({ node, $start: state.doc.resolve(pos + 1), parent });
         return false;
       }

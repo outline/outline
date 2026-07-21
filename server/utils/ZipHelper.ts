@@ -39,6 +39,9 @@ export interface ZipTreeNode {
   children: ZipTreeNode[];
 }
 
+/**
+ * Helper for creating and reading zip files.
+ */
 @trace()
 export default class ZipHelper {
   /**
@@ -138,7 +141,7 @@ export default class ZipHelper {
             const handle: ZipEntryHandle = {
               fileName,
               uncompressedSize: entry.uncompressedSize,
-              isDirectory: /\/$/.test(fileName),
+              isDirectory: fileName.endsWith("/"),
               readBuffer: (maxSize) =>
                 new Promise<Buffer>((res, rej) => {
                   if (entry.uncompressedSize > maxSize) {
@@ -339,7 +342,7 @@ export default class ZipHelper {
                 return;
               }
 
-              if (/\/$/.test(filePath)) {
+              if (filePath.endsWith("/")) {
                 // directory file names end with '/'
                 fs.mkdirp(path.join(outputDir, filePath), (mkErr) =>
                   processNext(mkErr)

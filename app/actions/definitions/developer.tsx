@@ -161,6 +161,18 @@ export const createTestUsers = createAction({
   },
 });
 
+export const createTestNotifications = createAction({
+  name: "Create 10 notifications",
+  icon: <BeakerIcon />,
+  section: DeveloperSection,
+  visible: () => env.ENVIRONMENT === "development",
+  perform: async () => {
+    const count = 10;
+    await client.post("/developer.create_test_notifications", { count });
+    toast.message(`${count} test notifications created`);
+  },
+});
+
 export const createToast = createAction({
   name: "Create toast",
   section: DeveloperSection,
@@ -239,6 +251,7 @@ export const developer = createActionWithChildren({
     toggleFeatureFlag,
     createToast,
     createTestUsers,
+    createTestNotifications,
     clearIndexedDB,
     clearStorage,
     startTyping,

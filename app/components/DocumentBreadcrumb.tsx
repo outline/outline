@@ -5,9 +5,11 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
+import { ellipsis } from "@shared/styles";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
+import Tooltip from "~/components/Tooltip";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { ActionContextProvider } from "~/hooks/useActionContext";
@@ -74,17 +76,17 @@ type Props = {
   children?: React.ReactNode;
   document: Document;
   onlyText?: boolean;
-  reverse?: boolean;
   /**
-   * Maximum number of items to show in the breadcrumb.
-   * If value is less than or equals to 0, no items will be shown.
-   * If value is undefined, all items will be shown.
+   * Maximum number of ancestor documents to show, counted back from the
+   * document's immediate parent. Any ancestors beyond this depth are replaced
+   * with an ellipsis. The collection is always shown. If undefined, all
+   * ancestors are shown. If less than or equal to 0, no items are shown.
    */
   maxDepth?: number;
 };
 
 function DocumentBreadcrumb(
-  { document, children, onlyText, reverse = false, maxDepth }: Props,
+  { document, children, onlyText, maxDepth }: Props,
   ref: React.RefObject<HTMLDivElement> | null
 ) {
   const { collections } = useStores();
@@ -107,7 +109,9 @@ function DocumentBreadcrumb(
       return [];
     }
 
-    const outputActions = [
+    // Root items (trash / archive / collection) are always retained so the
+    // collection can still be shown when visible, even for small depths.
+    const rootActions = [
       createInternalLinkAction({
         name: t("Trash"),
         section: ActiveDocumentSection,
@@ -124,12 +128,12 @@ function DocumentBreadcrumb(
       }),
       createInternalLinkAction({
         name: collection ? (
-          <CollectionName collection={collection} />
+          <CollectionName
+            collection={collection}
+            icon={<CollectionIcon collection={collection} expanded />}
+          />
         ) : undefined,
         section: ActiveDocumentSection,
-        icon: collection ? (
-          <CollectionIcon collection={collection} expanded />
-        ) : undefined,
         visible: !!(collection && can.readDocument),
         to: collection
           ? {
@@ -144,49 +148,44 @@ function DocumentBreadcrumb(
         visible: document.isCollectionDeleted,
         to: "",
       }),
-      ...path.map((node) => {
-        const title = node.title || t("Untitled");
-        return createInternalLinkAction({
-          name: (
-            <DocumentName
-              documentId={node.id}
-              collection={collection}
-              title={title}
-            />
-          ),
-          icon: node.icon ? (
-            <Icon
-              value={node.icon}
-              color={node.color}
-              initial={title.charAt(0).toUpperCase()}
-            />
-          ) : undefined,
-          section: ActiveDocumentSection,
-          to: {
-            pathname: node.url,
-            state: { sidebarContext },
-          },
-        });
-      }),
     ];
 
-    return reverse
-      ? depth !== undefined
-        ? outputActions.slice(-depth)
-        : outputActions
-      : depth !== undefined
-        ? outputActions.slice(0, depth)
-        : outputActions;
-  }, [
-    t,
-    document,
-    collection,
-    can.readDocument,
-    sidebarContext,
-    path,
-    reverse,
-    depth,
-  ]);
+    const ancestorActions = path.map((node) => {
+      const title = node.title || t("Untitled");
+      return createInternalLinkAction({
+        name: (
+          <DocumentName
+            documentId={node.id}
+            collection={collection}
+            title={title}
+            icon={
+              node.icon ? (
+                <Icon
+                  value={node.icon}
+                  color={node.color}
+                  initial={title.charAt(0).toUpperCase()}
+                />
+              ) : undefined
+            }
+          />
+        ),
+        section: ActiveDocumentSection,
+        to: {
+          pathname: node.url,
+          state: { sidebarContext },
+        },
+      });
+    });
+
+    // Depth is counted back from the document's parent, so keep the ancestors
+    // nearest the document.
+    return [
+      ...rootActions,
+      ...(depth !== undefined
+        ? ancestorActions.slice(-depth)
+        : ancestorActions),
+    ];
+  }, [t, document, collection, can.readDocument, sidebarContext, path, depth]);
 
   if (!collections.isLoaded) {
     return null;
@@ -200,24 +199,34 @@ function DocumentBreadcrumb(
     const { collection: collectionLabel, ancestors: ancestorLabels } =
       documentBreadcrumbParts(document, t);
 
-    const slicedAncestors = reverse
-      ? ancestorLabels.slice(depth && -depth)
-      : ancestorLabels.slice(0, depth);
+    // Depth is measured back from the document's parent, so keep the trailing
+    // ancestors nearest to the document and collapse anything beyond into an
+    // ellipsis. The collection is always shown.
+    const tail =
+      depth === undefined ? ancestorLabels : ancestorLabels.slice(-depth);
+    const omitted = ancestorLabels.slice(
+      0,
+      ancestorLabels.length - tail.length
+    );
 
-    const showCollection =
-      !!collectionLabel &&
-      (!reverse || depth === undefined || slicedAncestors.length < depth);
+    const segments: React.ReactNode[] = [
+      ...(collectionLabel ? [collectionLabel] : []),
+      ...(omitted.length
+        ? [
+            <Tooltip content={omitted.join(" / ")}>
+              <Ellipsis>…</Ellipsis>
+            </Tooltip>,
+          ]
+        : []),
+      ...tail,
+    ];
 
     return (
       <>
-        {showCollection && collectionLabel}
-        {slicedAncestors.map((label, index) => (
+        {segments.map((label, index) => (
           <React.Fragment key={index}>
-            {showCollection && <SmallSlash />}
+            {index !== 0 && <SmallSlash />}
             {label}
-            {!showCollection && index !== slicedAncestors.length - 1 && (
-              <SmallSlash />
-            )}
           </React.Fragment>
         ))}
       </>
@@ -231,11 +240,13 @@ function DocumentBreadcrumb(
   );
 }
 
-/** Renders a collection name wrapped in a context menu. */
+/** Renders a collection name and icon wrapped in a context menu. */
 const CollectionName = observer(function CollectionName_({
   collection,
+  icon,
 }: {
   collection: Collection;
+  icon?: React.ReactNode;
 }) {
   const { t } = useTranslation();
   const menuAction = useCollectionMenuAction({
@@ -245,21 +256,26 @@ const CollectionName = observer(function CollectionName_({
   return (
     <ActionContextProvider value={{ activeModels: [collection] }}>
       <ContextMenu action={menuAction} ariaLabel={t("Collection options")}>
-        <span>{collection.name}</span>
+        <Name>
+          {icon}
+          <NameText>{collection.name}</NameText>
+        </Name>
       </ContextMenu>
     </ActionContextProvider>
   );
 });
 
-/** Renders a document name wrapped in a context menu. */
+/** Renders a document name and icon wrapped in a context menu. */
 const DocumentName = observer(function DocumentName_({
   documentId,
   collection,
   title,
+  icon,
 }: {
   documentId: string;
   collection: Collection | undefined;
   title: string;
+  icon?: React.ReactNode;
 }) {
   const { t } = useTranslation();
   const { documents } = useStores();
@@ -267,7 +283,12 @@ const DocumentName = observer(function DocumentName_({
   const menuAction = useDocumentMenuAction({ documentId });
 
   if (!doc) {
-    return <>{title}</>;
+    return (
+      <Name>
+        {icon}
+        <NameText>{title}</NameText>
+      </Name>
+    );
   }
 
   return (
@@ -277,11 +298,31 @@ const DocumentName = observer(function DocumentName_({
       }}
     >
       <ContextMenu action={menuAction} ariaLabel={t("Document options")}>
-        <span>{title}</span>
+        <Name>
+          {icon}
+          <NameText>{title}</NameText>
+        </Name>
       </ContextMenu>
     </ActionContextProvider>
   );
 });
+
+const Name = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+`;
+
+const NameText = styled.span`
+  ${ellipsis()}
+  min-width: 0;
+`;
+
+const Ellipsis = styled.span`
+  cursor: default;
+`;
 
 const SmallSlash = styled(GoToIcon)`
   width: 12px;

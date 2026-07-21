@@ -120,3 +120,25 @@ export async function callMcpTool(
       }
     | undefined;
 }
+
+/**
+ * Parses list-style MCP tool content blocks into an array of items.
+ * Zero-result list tools return a single `[]` sentinel block instead of
+ * an empty content array.
+ *
+ * @param content - the content blocks from an MCP tool result.
+ * @returns the parsed list items.
+ */
+export function parseMcpListContent<T = unknown>(
+  content: { text?: string }[] | undefined
+): T[] {
+  if (!content?.length) {
+    return [];
+  }
+
+  if (content.length === 1 && content[0]?.text === "[]") {
+    return [];
+  }
+
+  return content.map((c) => JSON.parse(c.text ?? "{}") as T);
+}

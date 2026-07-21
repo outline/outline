@@ -111,7 +111,7 @@ export class TableView extends ProsemirrorTableView {
   private scrollHandler: (() => void) | null = null;
 
   /** Default height of the app's fixed header */
-  private static readonly HEADER_HEIGHT = 60;
+  private static readonly HEADER_HEIGHT = 64;
 
   /**
    * Sets up the scroll listener for sticky header behavior. Nested tables

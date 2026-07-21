@@ -9,7 +9,14 @@ import { s } from "../../styles";
 import { isExternalUrl, sanitizeImageSrc } from "../../utils/urls";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
-import { ResizeLeft, ResizeRight } from "./ResizeHandle";
+import {
+  ResizeLeft,
+  ResizeRight,
+  ResizeTopLeft,
+  ResizeTopRight,
+  ResizeBottomLeft,
+  ResizeBottomRight,
+} from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 
 type Props = ComponentProps & {
@@ -26,11 +33,60 @@ type Props = ComponentProps & {
   children?: React.ReactElement;
 };
 
+/** Images rendered smaller than this width are displayed as inline icons. */
+export const InlineIconMaxWidth = 48;
+
+type ImageClassNameOptions = {
+  /** Layout modifier, e.g. "full-width", "left-50". */
+  layoutClass?: string | null;
+  /** Rendered width of the image in pixels. */
+  width?: number | null;
+  /** Whether the image failed to load. */
+  error?: boolean;
+};
+
+/**
+ * Whether an image should render as an inline icon rather than a block. Small
+ * images are displayed inline with the surrounding text.
+ *
+ * @param options The image's layout, width, and error state.
+ * @returns True if the image should be rendered as an inline icon.
+ */
+export function isInlineImageIcon({
+  layoutClass,
+  width,
+  error,
+}: ImageClassNameOptions): boolean {
+  return (
+    layoutClass !== "full-width" &&
+    !!width &&
+    width < InlineIconMaxWidth &&
+    !error
+  );
+}
+
+/**
+ * Builds the className for an image node's container, including the layout and
+ * inline-icon modifiers. Shared by the live NodeView and the static HTML
+ * serializer so that exported documents render small images inline too.
+ *
+ * @param options The image's layout, width, and error state.
+ * @returns The space-separated className string.
+ */
+export function imageClassName(options: ImageClassNameOptions): string {
+  return [
+    "image",
+    options.layoutClass ? `image-${options.layoutClass}` : "",
+    isInlineImageIcon(options) ? "image-icon" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 const Image = (props: Props) => {
   const { isSelected, node, isEditable, onChangeSize, onClick } = props;
   const { src, layoutClass } = node.attrs;
   const { t } = useTranslation();
-  const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [loaded, setLoaded] = React.useState(false);
   const [error, setError] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
@@ -55,8 +111,11 @@ const Image = (props: Props) => {
   });
 
   const isFullWidth = layoutClass === "full-width";
-  const isResizable = !!props.onChangeSize && !error;
+  const isInlineIcon = isInlineImageIcon({ layoutClass, width, error });
+  const isResizable = !!props.onChangeSize && !error && !isInlineIcon;
   const isDownloadable = !!props.onDownload && !error;
+
+  const className = imageClassName({ layoutClass, width, error });
 
   React.useEffect(() => {
     if (node.attrs.width && node.attrs.width !== width) {
@@ -81,7 +140,9 @@ const Image = (props: Props) => {
 
   const widthStyle = isFullWidth
     ? { width: "var(--container-width)" }
-    : { width: width || "auto" };
+    : width
+      ? { ["--image-width"]: `${width}px` }
+      : { width: "auto" };
 
   const handleImageTouchStart = (ev: React.TouchEvent<HTMLDivElement>) => {
     const currentTime = Date.now();
@@ -240,12 +301,34 @@ const Image = (props: Props) => {
               onDoubleClick={handleDoubleClick}
               $dragging={!!dragging}
             />
+            <ResizeTopLeft
+              onPointerDown={handlePointerDown("topLeft")}
+              onDoubleClick={handleDoubleClick}
+              $dragging={!!dragging}
+            />
+            <ResizeTopRight
+              onPointerDown={handlePointerDown("topRight")}
+              onDoubleClick={handleDoubleClick}
+              $dragging={!!dragging}
+            />
+            <ResizeBottomLeft
+              onPointerDown={handlePointerDown("bottomLeft")}
+              onDoubleClick={handleDoubleClick}
+              $dragging={!!dragging}
+            />
+            <ResizeBottomRight
+              onPointerDown={handlePointerDown("bottomRight")}
+              onDoubleClick={handleDoubleClick}
+              $dragging={!!dragging}
+            />
           </>
         )}
       </ImageWrapper>
-      {isFullWidth && props.children
-        ? React.cloneElement(props.children, { style: widthStyle })
-        : props.children}
+      {isInlineIcon
+        ? null
+        : isFullWidth && props.children
+          ? React.cloneElement(props.children, { style: widthStyle })
+          : props.children}
     </div>
   );
 };
@@ -336,7 +419,7 @@ const ImageWrapper = styled.div<{ isFullWidth: boolean; $dragging: boolean }>`
   transition-duration: ${(props) =>
     props.isFullWidth || props.$dragging ? "0ms" : "150ms"};
   transition-timing-function: ease-in-out;
-  overflow: hidden;
+  overflow: visible;
 
   img {
     transition-property: width, height;
@@ -350,7 +433,8 @@ const ImageWrapper = styled.div<{ isFullWidth: boolean; $dragging: boolean }>`
       opacity: 0.9;
     }
 
-    ${ResizeLeft}, ${ResizeRight} {
+    ${ResizeLeft}, ${ResizeRight},
+    ${ResizeTopLeft}, ${ResizeTopRight}, ${ResizeBottomLeft}, ${ResizeBottomRight} {
       opacity: 1;
     }
   }

@@ -102,7 +102,7 @@ export default function PdfViewer(props: Props) {
           : "pdf-wrapper"
       }
       style={{ width: width ?? "100%" }}
-      $dragging={dragging}
+      $dragging={!!dragging}
     >
       <Flex gap={6} align="center">
         {props.icon}
@@ -128,11 +128,11 @@ export default function PdfViewer(props: Props) {
         <>
           <ResizeLeft
             onPointerDown={handlePointerDown("left")}
-            $dragging={isSelected || dragging}
+            $dragging={!!(isSelected || dragging)}
           />
           <ResizeRight
             onPointerDown={handlePointerDown("right")}
-            $dragging={isSelected || dragging}
+            $dragging={!!(isSelected || dragging)}
           />
         </>
       )}

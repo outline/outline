@@ -37,15 +37,15 @@ class OAuthAuthorizationCode extends IdModel<
   /** A recognizable prefix for authorization codes. */
   public static authorizationCodePrefix = "ol_ac_";
 
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   authorizationCodeHash: string;
 
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   codeChallenge?: string;
 
-  @Column
+  @Column(DataType.STRING)
   @SkipChangeset
   codeChallengeMethod?: string;
 
@@ -66,7 +66,7 @@ class OAuthAuthorizationCode extends IdModel<
   scope: string[];
 
   @Length({ max: OAuthClientValidation.maxRedirectUriLength })
-  @Column
+  @Column(DataType.STRING)
   redirectUri: string;
 
   @Column(DataType.DATE)

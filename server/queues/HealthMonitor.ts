@@ -23,7 +23,7 @@ export default class HealthMonitor {
       lastActivityTime = Date.now();
     });
 
-    setInterval(async () => {
+    const timer = setInterval(async () => {
       const timeSinceActivity = Date.now() - lastActivityTime;
 
       // If there's been recent activity, the queue is healthy
@@ -31,17 +31,28 @@ export default class HealthMonitor {
         return;
       }
 
-      const waiting = await queue.getWaitingCount();
-      if (waiting > 50) {
-        Logger.fatal(
-          "Queue has stopped processing jobs",
-          new Error(`Jobs are waiting in the ${queue.name} queue`),
-          {
-            queue: queue.name,
-            waiting,
-          }
-        );
+      try {
+        const waiting = await queue.getWaitingCount();
+        if (waiting > 50) {
+          Logger.fatal(
+            "Queue has stopped processing jobs",
+            new Error(`Jobs are waiting in the ${queue.name} queue`),
+            {
+              queue: queue.name,
+              waiting,
+            }
+          );
+        }
+      } catch (err) {
+        // A transient error querying the queue (eg Redis blip or a queue closing
+        // during shutdown) should not take down the process it is meant to guard.
+        Logger.warn("Failed to check queue health", {
+          queue: queue.name,
+          error: err,
+        });
       }
     }, 30 * Second.ms);
+
+    timer.unref();
   }
 }

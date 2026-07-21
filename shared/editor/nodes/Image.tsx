@@ -11,7 +11,10 @@ import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { sanitizeImageSrc, sanitizeUrl } from "../../utils/urls";
 import Caption from "../components/Caption";
-import ImageComponent from "../components/Image";
+import ImageComponent, {
+  imageClassName,
+  isInlineImageIcon,
+} from "../components/Image";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps, NodeAttrMark } from "../types";
@@ -136,8 +139,9 @@ export default class Image extends SimpleImage {
       atom: true,
       parseDOM: [
         {
-          tag: "div[class~=image]",
-          getAttrs: (dom: HTMLDivElement) => {
+          // `span` covers inline icons, which use a phrasing-content wrapper.
+          tag: "div[class~=image], span[class~=image]",
+          getAttrs: (dom: HTMLElement) => {
             const img = dom.getElementsByTagName("img")[0] as
               | HTMLImageElement
               | undefined;
@@ -206,9 +210,16 @@ export default class Image extends SimpleImage {
         },
       ],
       toDOM: (node) => {
-        const className = node.attrs.layoutClass
-          ? `image image-${node.attrs.layoutClass}`
-          : "image";
+        // Shared with the live NodeView so exported/static HTML renders small
+        // images as inline icons too.
+        const isInlineIcon = isInlineImageIcon({
+          layoutClass: node.attrs.layoutClass,
+          width: node.attrs.width,
+        });
+        const className = imageClassName({
+          layoutClass: node.attrs.layoutClass,
+          width: node.attrs.width,
+        });
 
         // `marks` is held separately below and is not a valid DOM attribute.
         const { marks, ...attrs } = node.attrs;
@@ -231,6 +242,13 @@ export default class Image extends SimpleImage {
         const href = typeof linkHref === "string" ? linkHref : undefined;
 
         const children = [href ? ["a", { href: sanitizeUrl(href) }, img] : img];
+
+        // Inline icons must use a span wrapper so the browser keeps them inside
+        // them inside the containing paragraph; a block `div` (or `p` caption)
+        // would be forced onto its own line when the HTML is parsed.
+        if (isInlineIcon) {
+          return ["span", { class: className }, ...children];
+        }
 
         if (node.attrs.alt) {
           children.push([

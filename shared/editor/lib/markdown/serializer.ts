@@ -463,6 +463,11 @@ export class MarkdownSerializerState {
   }
 
   renderTable(node) {
+    // A table with no rows is not valid Markdown and has nothing to serialize.
+    if (node.childCount === 0) {
+      return;
+    }
+
     this.flushClose(1);
 
     const prevTable = this.inTable;
@@ -547,7 +552,10 @@ export class MarkdownSerializerState {
   // content. If `startOfLine` is true, also escape characters that
   // has special meaning only at the start of the line.
   esc(str = "", startOfLine) {
-    str = str.replace(/[`*\\~[\]]/g, "\\$&");
+    str = str.replace(/[`*\\~]/g, "\\$&");
+    // Only escape an opening square bracket when the same line later contains a
+    // `](`, meaning it could otherwise be parsed as an inline link or image
+    str = str.replace(/\[(?=[^\n]*\]\()/g, "\\$&");
     if (startOfLine) {
       str = str.replace(/^[:#\-*+]/, "\\$&").replace(/^(\d+)\./, "$1\\.");
     }

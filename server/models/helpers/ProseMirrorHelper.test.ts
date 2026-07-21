@@ -295,7 +295,7 @@ describe("ProsemirrorHelper", () => {
       expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
     });
 
-    it("should return the table node with the mentioned row only", () => {
+    it("should trim a table to the mentioned row", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
         type: MentionType.User,
@@ -304,23 +304,29 @@ describe("ProsemirrorHelper", () => {
         modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
       };
 
+      const row = (text: string): DeepPartial<ProsemirrorData> => ({
+        type: "tr",
+        content: [
+          {
+            type: "td",
+            attrs: { colspan: 1, rowspan: 1 },
+            content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+          },
+        ],
+      });
+
       const mentionedRow: DeepPartial<ProsemirrorData> = {
         type: "tr",
         content: [
           {
             type: "td",
-            attrs: {
-              colspan: 1,
-              rowspan: 1,
-            },
+            attrs: { colspan: 1, rowspan: 1 },
             content: [
               {
                 type: "paragraph",
                 content: [
-                  {
-                    type: "mention",
-                    attrs: mentionAttrs,
-                  },
+                  { type: "text", text: "row B " },
+                  { type: "mention", attrs: mentionAttrs },
                 ],
               },
             ],
@@ -330,37 +336,8 @@ describe("ProsemirrorHelper", () => {
 
       const doc = buildProseMirrorDoc([
         {
-          type: "paragraph",
-          content: [
-            {
-              type: "text",
-              text: "some content in a paragraph",
-            },
-          ],
-        },
-        {
           type: "table",
-          content: [
-            {
-              type: "td",
-              attrs: {
-                colspan: 1,
-                rowspan: 1,
-              },
-              content: [
-                {
-                  type: "paragraph",
-                  content: [
-                    {
-                      type: "text",
-                      text: "cell content",
-                    },
-                  ],
-                },
-              ],
-            },
-            mentionedRow,
-          ],
+          content: [row("row A"), mentionedRow, row("row C")],
         },
       ]);
 
@@ -379,7 +356,7 @@ describe("ProsemirrorHelper", () => {
       expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
     });
 
-    it("should return the checkbox list with the mentioned item only", () => {
+    it("should trim a checkbox list to the mentioned item and one either side", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
         type: MentionType.User,
@@ -388,25 +365,19 @@ describe("ProsemirrorHelper", () => {
         modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
       };
 
+      const checkboxItem = (text: string): DeepPartial<ProsemirrorData> => ({
+        type: "checkbox_item",
+        content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+      });
+
       const mentionedItem: DeepPartial<ProsemirrorData> = {
         type: "checkbox_item",
         content: [
           {
             type: "paragraph",
             content: [
-              {
-                type: "text",
-                text: "task B ",
-              },
-              {
-                type: "paragraph",
-                content: [
-                  {
-                    type: "mention",
-                    attrs: mentionAttrs,
-                  },
-                ],
-              },
+              { type: "text", text: "task C " },
+              { type: "mention", attrs: mentionAttrs },
             ],
           },
         ],
@@ -414,42 +385,267 @@ describe("ProsemirrorHelper", () => {
 
       const doc = buildProseMirrorDoc([
         {
-          type: "paragraph",
+          type: "checkbox_list",
           content: [
-            {
-              type: "text",
-              text: "some content in a paragraph",
-            },
+            checkboxItem("task A"),
+            checkboxItem("task B"),
+            mentionedItem,
+            checkboxItem("task D"),
+            checkboxItem("task E"),
           ],
         },
+      ]);
+
+      // The mention is in the third item, so the snippet keeps items two
+      // through four.
+      const expectedDoc = buildProseMirrorDoc([
         {
           type: "checkbox_list",
           content: [
+            checkboxItem("task B"),
+            mentionedItem,
+            checkboxItem("task D"),
+          ],
+        },
+      ]);
+
+      const newDoc = ProsemirrorHelper.getNodeForMentionEmail(
+        doc,
+        mentionAttrs
+      );
+
+      expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
+    });
+
+    it("should trim a bullet list to the mentioned item and one either side", () => {
+      const mentionAttrs: MentionAttrs = {
+        id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
+        type: MentionType.User,
+        label: "test.user",
+        actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
+        modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
+      };
+
+      const listItem = (text: string): DeepPartial<ProsemirrorData> => ({
+        type: "list_item",
+        content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+      });
+
+      const mentionedItem: DeepPartial<ProsemirrorData> = {
+        type: "list_item",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "item A " },
+              { type: "mention", attrs: mentionAttrs },
+            ],
+          },
+        ],
+      };
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "bullet_list",
+          content: [mentionedItem, listItem("item B"), listItem("item C")],
+        },
+      ]);
+
+      // The mention is in the first item, so the window is clamped to the
+      // mentioned item and the one that follows.
+      const expectedDoc = buildProseMirrorDoc([
+        {
+          type: "bullet_list",
+          content: [mentionedItem, listItem("item B")],
+        },
+      ]);
+
+      const newDoc = ProsemirrorHelper.getNodeForMentionEmail(
+        doc,
+        mentionAttrs
+      );
+
+      expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
+    });
+
+    it("should advance an ordered list's start to keep numbering aligned", () => {
+      const mentionAttrs: MentionAttrs = {
+        id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
+        type: MentionType.User,
+        label: "test.user",
+        actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
+        modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
+      };
+
+      const listItem = (text: string): DeepPartial<ProsemirrorData> => ({
+        type: "list_item",
+        content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+      });
+
+      const mentionedItem: DeepPartial<ProsemirrorData> = {
+        type: "list_item",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "item D " },
+              { type: "mention", attrs: mentionAttrs },
+            ],
+          },
+        ],
+      };
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "ordered_list",
+          attrs: { order: 1, listStyle: "number" },
+          content: [
+            listItem("item A"),
+            listItem("item B"),
+            listItem("item C"),
+            mentionedItem,
+            listItem("item E"),
+          ],
+        },
+      ]);
+
+      // The mention is in the fourth item, so items three through five are kept
+      // and the list starts at three to preserve the original numbering.
+      const expectedDoc = buildProseMirrorDoc([
+        {
+          type: "ordered_list",
+          attrs: { order: 3, listStyle: "number" },
+          content: [listItem("item C"), mentionedItem, listItem("item E")],
+        },
+      ]);
+
+      const newDoc = ProsemirrorHelper.getNodeForMentionEmail(
+        doc,
+        mentionAttrs
+      );
+
+      expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
+    });
+
+    it("should return the whole blockquote containing the mention", () => {
+      const mentionAttrs: MentionAttrs = {
+        id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
+        type: MentionType.User,
+        label: "test.user",
+        actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
+        modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
+      };
+
+      const mentionedParagraph: DeepPartial<ProsemirrorData> = {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "a quote with ",
+          },
+          {
+            type: "mention",
+            attrs: mentionAttrs,
+          },
+          {
+            type: "text",
+            text: " mentioned",
+          },
+        ],
+      };
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "blockquote",
+          content: [
             {
-              type: "checkbox_item",
+              type: "paragraph",
               content: [
                 {
-                  type: "paragraph",
-                  content: [
-                    {
-                      type: "text",
-                      text: "task A",
-                    },
-                  ],
+                  type: "text",
+                  text: "some other line",
                 },
               ],
             },
-            mentionedItem,
+            mentionedParagraph,
           ],
         },
       ]);
 
       const expectedDoc = buildProseMirrorDoc([
         {
-          type: "checkbox_list",
-          content: [mentionedItem],
+          type: "blockquote",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "some other line",
+                },
+              ],
+            },
+            mentionedParagraph,
+          ],
         },
       ]);
+
+      const newDoc = ProsemirrorHelper.getNodeForMentionEmail(
+        doc,
+        mentionAttrs
+      );
+
+      expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
+    });
+
+    it("should stop climbing when the container exceeds the size budget", () => {
+      const mentionAttrs: MentionAttrs = {
+        id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
+        type: MentionType.User,
+        label: "test.user",
+        actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
+        modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
+      };
+
+      const mentionedParagraph: DeepPartial<ProsemirrorData> = {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "a quote with ",
+          },
+          {
+            type: "mention",
+            attrs: mentionAttrs,
+          },
+          {
+            type: "text",
+            text: " mentioned",
+          },
+        ],
+      };
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "blockquote",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "x".repeat(ProsemirrorHelper.mentionEmailMaxChars + 1),
+                },
+              ],
+            },
+            mentionedParagraph,
+          ],
+        },
+      ]);
+
+      // The blockquote overflows the budget, so the snippet falls back to the
+      // mention's own paragraph rather than the surrounding container.
+      const expectedDoc = buildProseMirrorDoc([mentionedParagraph]);
 
       const newDoc = ProsemirrorHelper.getNodeForMentionEmail(
         doc,

@@ -22,7 +22,8 @@ export default class ExportMarkdownZipTask extends ExportDocumentTreeTask {
 
   public async exportDocument(
     document: Document,
-    documentStructure: NavigationNode[]
+    documentStructure: NavigationNode[],
+    includeAttachments: boolean
   ): Promise<string> {
     const zip = new ZipFile();
 
@@ -31,6 +32,7 @@ export default class ExportMarkdownZipTask extends ExportDocumentTreeTask {
       documentStructure,
       format: FileOperationFormat.MarkdownZip,
       zip,
+      includeAttachments,
     });
   }
 }

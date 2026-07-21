@@ -2,6 +2,7 @@ import emailProviders from "email-providers";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
+  DataType,
   Table,
   BelongsTo,
   ForeignKey,
@@ -36,7 +37,7 @@ class TeamDomain extends IdModel<
     msg: `name must be ${TeamValidation.maxDomainLength} characters or less`,
   })
   @IsFQDN
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   // associations
@@ -45,14 +46,14 @@ class TeamDomain extends IdModel<
   team: Team;
 
   @ForeignKey(() => Team)
-  @Column
+  @Column(DataType.UUID)
   teamId: string;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;
 
   @ForeignKey(() => User)
-  @Column
+  @Column(DataType.UUID)
   createdById: string;
 
   // hooks

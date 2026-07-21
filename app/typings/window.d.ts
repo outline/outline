@@ -6,7 +6,16 @@ declare global {
     /**
      * A special feature that allows you to get all matching modules starting from some base directory.
      */
-    glob: (pattern: string, option?: { eager: boolean }) => any;
+    glob: {
+      (
+        pattern: string | string[],
+        option: { eager: true }
+      ): Record<string, unknown>;
+      (
+        pattern: string | string[],
+        option?: { eager?: false }
+      ): Record<string, () => Promise<unknown>>;
+    };
   }
 
   interface Window {

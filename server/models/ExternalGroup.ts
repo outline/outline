@@ -27,7 +27,7 @@ class ExternalGroup extends IdModel<
     max: 255,
     msg: "externalId must be 255 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   externalId: string;
 
   /** The group name as reported by the external provider. */
@@ -35,7 +35,7 @@ class ExternalGroup extends IdModel<
     max: 255,
     msg: "name must be 255 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
   /** When this record was last synced from the provider. */

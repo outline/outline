@@ -39,30 +39,30 @@ async function build() {
 
   // Compile server and shared
   console.log("Compiling…");
+  const swc = (src, out) =>
+    execAsync(
+      `yarn swc "${src}" -d "${out}" --strip-leading-paths --extensions .ts,.tsx --ignore "**/*.test.ts,**/*.test.tsx,**/__mocks__/**" --quiet`
+    );
+
   await Promise.all([
-    execAsync(
-      "yarn babel --extensions .ts,.tsx --quiet -d ./build/server ./server"
-    ),
-    execAsync(
-      "yarn babel --extensions .ts,.tsx --quiet -d ./build/shared ./shared"
-    ),
+    swc("./server", "./build/server"),
+    swc("./shared", "./build/shared"),
   ]);
 
+  // SWC's --strip-leading-paths removes only the topmost path segment, so a
+  // `plugins/<name>/server` input keeps `<name>/server/…` and lands correctly
+  // under a `./build/plugins` output directory.
   for (const plugin of d) {
     const hasServer = existsSync(`./plugins/${plugin}/server`);
 
     if (hasServer) {
-      await execAsync(
-        `yarn babel --extensions .ts,.tsx --quiet -d "./build/plugins/${plugin}/server" "./plugins/${plugin}/server"`
-      );
+      await swc(`./plugins/${plugin}/server`, "./build/plugins");
     }
 
     const hasShared = existsSync(`./plugins/${plugin}/shared`);
 
     if (hasShared) {
-      await execAsync(
-        `yarn babel --extensions .ts,.tsx --quiet -d "./build/plugins/${plugin}/shared" "./plugins/${plugin}/shared"`
-      );
+      await swc(`./plugins/${plugin}/shared`, "./build/plugins");
     }
   }
 

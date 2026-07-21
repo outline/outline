@@ -166,12 +166,6 @@ export default function blockMenuItems(
       keywords: "math katex latex",
     },
     {
-      name: "container_toggle",
-      title: t("Toggle block"),
-      icon: <CollapseIcon />,
-      keywords: "toggle collapsible collapse fold",
-    },
-    {
       name: "hr",
       title: t("Divider"),
       icon: <HorizontalRuleIcon />,
@@ -202,6 +196,43 @@ export default function blockMenuItems(
           label: modelId,
         };
       },
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "container_toggle",
+      title: t("Toggle block"),
+      icon: <CollapseIcon />,
+      keywords: "toggle collapsible collapse fold",
+    },
+    {
+      name: "container_toggle",
+      title: t("Big toggle heading"),
+      icon: <Heading1Icon />,
+      keywords: "toggle collapsible collapse fold heading h1",
+      attrs: { level: 1 },
+    },
+    {
+      name: "container_toggle",
+      title: t("Medium toggle heading"),
+      icon: <Heading2Icon />,
+      keywords: "toggle collapsible collapse fold heading h2",
+      attrs: { level: 2 },
+    },
+    {
+      name: "container_toggle",
+      title: t("Small toggle heading"),
+      icon: <Heading3Icon />,
+      keywords: "toggle collapsible collapse fold heading h3",
+      attrs: { level: 3 },
+    },
+    {
+      name: "container_toggle",
+      title: t("Extra small toggle heading"),
+      icon: <Heading4Icon />,
+      keywords: "toggle collapsible collapse fold heading h4",
+      attrs: { level: 4 },
     },
     {
       name: "separator",

@@ -38,7 +38,7 @@ class View extends IdModel<
   InferAttributes<View>,
   Partial<InferCreationAttributes<View>>
 > {
-  @Column
+  @Column(DataType.DATE)
   lastEditingAt: Date | null;
 
   @Default(1)

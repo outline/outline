@@ -1,7 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2";
 import jwt from "jsonwebtoken";
-import type { Context } from "koa";
+import type { Request } from "koa";
 import Router from "koa-router";
 import type { Profile } from "passport";
 import { toError } from "@shared/utils/error";
@@ -19,6 +19,7 @@ import {
   getClientFromOAuthState,
   getUserFromOAuthState,
   startOAuthFlow,
+  withProxyAgent,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -86,7 +87,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       scope: scopes,
     },
     async function (
-      context: Context,
+      req: Request,
       accessToken: string,
       refreshToken: string,
       params: { expires_in: number; id_token: string },
@@ -97,6 +98,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         result?: AuthenticationResult
       ) => void
     ) {
+      const context = req.ctx;
       try {
         // see docs for what the fields in profile represent here:
         // https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens
@@ -231,7 +233,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       }
     }
   );
-  passport.use(strategy);
+  passport.use(withProxyAgent(strategy));
   router.get(
     config.id,
     startOAuthFlow,

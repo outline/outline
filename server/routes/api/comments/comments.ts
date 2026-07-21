@@ -3,16 +3,11 @@ import { difference } from "es-toolkit/compat";
 import type { FindOptions, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import {
-  CommentStatusFilter,
-  TeamPreference,
-  MentionType,
-  IconType,
-} from "@shared/types";
+import { CommentStatusFilter, MentionType, IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { commentParser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
-import { feature } from "@server/middlewares/feature";
+import { commentingEnabled } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -33,7 +28,7 @@ router.post(
   "comments.create",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
@@ -126,7 +121,7 @@ router.post(
 router.post(
   "comments.info",
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsInfoSchema),
   async (ctx: APIContext<T.CommentsInfoReq>) => {
     const { id, includeAnchorText } = ctx.input.body;
@@ -154,7 +149,7 @@ router.post(
   "comments.list",
   auth(),
   pagination(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsListSchema),
   async (ctx: APIContext<T.CommentsListReq>) => {
     const {
@@ -270,7 +265,7 @@ router.post(
 router.post(
   "comments.update",
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsUpdateReq>) => {
@@ -334,7 +329,7 @@ router.post(
 router.post(
   "comments.delete",
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsDeleteReq>) => {
@@ -367,7 +362,7 @@ router.post(
 router.post(
   "comments.resolve",
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsResolveSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsResolveReq>) => {
@@ -402,7 +397,7 @@ router.post(
 router.post(
   "comments.unresolve",
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsUnresolveSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsUnresolveReq>) => {
@@ -438,7 +433,7 @@ router.post(
   "comments.add_reaction",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsReactionSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsReactionReq>) => {
@@ -493,7 +488,7 @@ router.post(
   "comments.remove_reaction",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
-  feature(TeamPreference.Commenting),
+  commentingEnabled(),
   validate(T.CommentsReactionSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsReactionReq>) => {

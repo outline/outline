@@ -295,7 +295,7 @@ function ShareSettingsPopover({ share, children }: Props) {
                   "Display the last modified timestamp on the shared page"
                 )}
               >
-                <NudeButton size={18}>
+                <NudeButton size={18} aria-label={t("More information")}>
                   <QuestionMarkIcon size={18} />
                 </NudeButton>
               </Tooltip>
@@ -320,7 +320,7 @@ function ShareSettingsPopover({ share, children }: Props) {
                   "Display the table of contents on documents by default"
                 )}
               >
-                <NudeButton size={18}>
+                <NudeButton size={18} aria-label={t("More information")}>
                   <QuestionMarkIcon size={18} />
                 </NudeButton>
               </Tooltip>
@@ -348,7 +348,7 @@ function ShareSettingsPopover({ share, children }: Props) {
                   "Disable this setting to discourage search engines from indexing the page"
                 )}
               >
-                <NudeButton size={18}>
+                <NudeButton size={18} aria-label={t("More information")}>
                   <QuestionMarkIcon size={18} />
                 </NudeButton>
               </Tooltip>
@@ -374,7 +374,7 @@ function ShareSettingsPopover({ share, children }: Props) {
                     "Allow viewers to subscribe and receive email notifications when documents are updated"
                   )}
                 >
-                  <NudeButton size={18}>
+                  <NudeButton size={18} aria-label={t("More information")}>
                     <QuestionMarkIcon size={18} />
                   </NudeButton>
                 </Tooltip>

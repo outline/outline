@@ -23,6 +23,11 @@ export default class LocalStorage extends BaseStorage {
     maxUploadSize: number,
     contentType = "image"
   ): Promise<Partial<PresignedPost>> {
+    // A short-lived signature that authorizes uploading to this key only
+    const sig = JWT.sign({ key, type: "attachment-upload" }, env.SECRET_KEY, {
+      expiresIn: 3600,
+    });
+
     return Promise.resolve({
       url: this.getUrlForKey(key),
       fields: {
@@ -30,6 +35,7 @@ export default class LocalStorage extends BaseStorage {
         acl,
         maxUploadSize: String(maxUploadSize),
         contentType,
+        sig,
         [CSRF.fieldName]: ctx.cookies.get(CSRF.cookieName) || "",
       },
     });

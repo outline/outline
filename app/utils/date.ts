@@ -13,6 +13,15 @@ import type { TFunction } from "i18next";
 import type { locales } from "@shared/utils/date";
 import { dateLocale } from "@shared/utils/date";
 
+/**
+ * Converts a date to a human-readable heading such as "Today", "Yesterday",
+ * the day of the week, or a relative time period.
+ *
+ * @param dateTime the date string to convert.
+ * @param t the translation function.
+ * @param userLocale the user's locale, if known.
+ * @returns a localized heading for the date.
+ */
 export function dateToHeading(
   dateTime: string,
   t: TFunction,

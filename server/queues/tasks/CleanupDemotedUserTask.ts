@@ -14,9 +14,11 @@ type Props = {
  */
 export default class CleanupDemotedUserTask extends BaseTask<Props> {
   public async perform(props: Props) {
-    const user = await User.scope("withTeam").findByPk(props.userId, {
-      rejectOnEmpty: true,
-    });
+    const user = await User.scope("withTeam").findByPk(props.userId);
+
+    if (!user) {
+      return;
+    }
 
     await sequelize.transaction(async (transaction) => {
       if (cannot(user, "createWebhookSubscription", user.team)) {

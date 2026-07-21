@@ -140,21 +140,25 @@ export default abstract class ExportTask extends BaseTask<Props> {
         throw new Error("Document not found in collection tree");
       }
 
-      return this.exportDocument(document, documentStructure.children ?? []);
+      return this.exportDocument(
+        document,
+        documentStructure.children ?? [],
+        fileOperation.options?.includeAttachments ?? true
+      );
     }
 
     // ensure attachment size is within limits
-    if (!fileOperation.collectionId) {
+    if (
+      !fileOperation.collectionId &&
+      fileOperation.options?.includeAttachments &&
+      env.MAXIMUM_EXPORT_SIZE
+    ) {
       const totalAttachmentsSize = await Attachment.getTotalSizeForTeam(
         sequelizeReadOnly,
         user.teamId
       );
 
-      if (
-        fileOperation.options?.includeAttachments &&
-        env.MAXIMUM_EXPORT_SIZE &&
-        totalAttachmentsSize > env.MAXIMUM_EXPORT_SIZE
-      ) {
+      if (totalAttachmentsSize > env.MAXIMUM_EXPORT_SIZE) {
         throw ValidationError(
           `${bytesToHumanReadable(
             totalAttachmentsSize
@@ -208,12 +212,13 @@ export default abstract class ExportTask extends BaseTask<Props> {
    *
    * @param document The document to export
    * @param documentStructure Structure of document's children
-   * @param fileOperation File operation associated with the export
+   * @param includeAttachments Whether to include attachments in the export
    * @returns A promise that resolves to a temporary file path
    */
   protected abstract exportDocument(
     document: Document,
-    documentStructure: NavigationNode[]
+    documentStructure: NavigationNode[],
+    includeAttachments: boolean
   ): Promise<string>;
 
   /**

@@ -22,6 +22,7 @@ import SidebarContext, { groupSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import { useHistory } from "react-router-dom";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import { patchLocation } from "~/utils/history";
 
 function SharedWithMe() {
   const { ui, userMemberships, groupMemberships } = useStores();
@@ -62,13 +63,14 @@ function SharedWithMe() {
     );
 
     if (isActiveDocSharedDirectly) {
-      history.push({
-        ...history.location,
-        state: {
-          ...(history.location.state as Record<string, unknown>),
-          sidebarContext: "shared",
-        },
-      });
+      history.push(
+        patchLocation(history.location, {
+          state: {
+            ...(history.location.state as Record<string, unknown>),
+            sidebarContext: "shared",
+          },
+        })
+      );
 
       return;
     }
@@ -81,13 +83,14 @@ function SharedWithMe() {
     );
 
     if (groupWithActiveDocument) {
-      history.push({
-        ...history.location,
-        state: {
-          ...(history.location.state as Record<string, unknown>),
-          sidebarContext: groupSidebarContext(groupWithActiveDocument.id),
-        },
-      });
+      history.push(
+        patchLocation(history.location, {
+          state: {
+            ...(history.location.state as Record<string, unknown>),
+            sidebarContext: groupSidebarContext(groupWithActiveDocument.id),
+          },
+        })
+      );
     }
   }, [
     ui.activeDocumentId,

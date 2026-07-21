@@ -5,6 +5,14 @@ import { Team, User } from "@server/models";
 import { AuthenticationError, UserSuspendedError } from "../errors";
 import type { Context } from "koa";
 
+/**
+ * Decodes a JWT token and returns its payload without verifying the
+ * signature.
+ *
+ * @param token the JWT token to decode.
+ * @returns the decoded token payload.
+ * @throws AuthenticationError if the token is missing or cannot be decoded.
+ */
 export function getJWTPayload(token: string) {
   let payload;
   if (!token) {
@@ -96,6 +104,15 @@ export async function getUserForJWT(
   };
 }
 
+/**
+ * Retrieves the user associated with an email sign-in token, validating the
+ * token's type, expiration, and originating IP address.
+ *
+ * @param ctx the Koa context of the current request.
+ * @param token the email sign-in token to validate.
+ * @returns the user associated with the token.
+ * @throws AuthenticationError if the token is invalid, expired, or from a different IP.
+ */
 export async function getUserForEmailSigninToken(
   ctx: Context,
   token: string
@@ -130,6 +147,15 @@ export async function getUserForEmailSigninToken(
   return user;
 }
 
+/**
+ * Retrieves the user and new email address associated with an email update
+ * token, validating the token's type and expiration.
+ *
+ * @param token the email update token to validate.
+ * @param options find options passed when loading the user.
+ * @returns the user and the new email address.
+ * @throws AuthenticationError if the token is invalid or expired.
+ */
 export async function getDetailsForEmailUpdateToken(
   token: string,
   options: FindOptions<User> = {}

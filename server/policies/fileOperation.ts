@@ -3,6 +3,12 @@ import { User, Team, FileOperation } from "@server/models";
 import { allow } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
+const TerminalStates = [
+  FileOperationState.Complete,
+  FileOperationState.Error,
+  FileOperationState.Expired,
+];
+
 allow(
   User,
   ["createFileOperation", "createExport"],
@@ -24,7 +30,7 @@ allow(User, "delete", FileOperation, (actor, fileOperation) =>
     isTeamMutable(actor),
     or(
       fileOperation?.type !== FileOperationType.Export,
-      fileOperation?.state === FileOperationState.Complete
+      !!fileOperation && TerminalStates.includes(fileOperation.state)
     )
   )
 );

@@ -82,8 +82,7 @@ const mathStyle = (props: Props) => css`
 
     .ProseMirror-focused {
       border-radius: 2px;
-      outline: 2px solid
-        ${props.readOnly ? "transparent" : props.theme.selected};
+      outline: none;
     }
   }
 
@@ -436,7 +435,7 @@ const emailStyle = (props: Props) => css`
     border-radius: 8px;
     padding: 6px 8px;
   }
-  .image > img {
+  .image:not(.image-icon) > img {
     width: auto;
     height: auto;
   }
@@ -648,7 +647,6 @@ width: 100%;
         font-weight: 500;
         line-height: 0;
         margin-left: -24px;
-        transition: opacity 150ms ease-in-out;
         opacity: 0;
         width: 24px;
       }
@@ -659,10 +657,13 @@ width: 100%;
       }
     }
 
-    &:hover,
-    &:focus-within {
-      .heading-actions {
-        opacity: 1;
+    &:hover {
+      .heading-anchor {
+        opacity: 0.75;
+
+        &:hover {
+          opacity: 1;
+        }
       }
     }
   }
@@ -771,6 +772,19 @@ iframe.embed {
   }
 }
 
+.image .image-wrapper,
+.image .image-wrapper img {
+  width: var(--image-width, auto);
+}
+
+/* Inside auto-layout table cells the plain pixel width would expand the cell  */
+td .image .image-wrapper,
+th .image .image-wrapper,
+td .image .image-wrapper img,
+th .image .image-wrapper img {
+  width: min(var(--image-width), 100%);
+}
+
 .image.placeholder,
 .video.placeholder {
   position: relative;
@@ -832,6 +846,17 @@ iframe.embed {
 .image-replacement-uploading {
   img {
     opacity: 0.5;
+  }
+}
+
+.image-icon {
+  display: inline-block;
+  text-align: initial;
+  clear: initial;
+  vertical-align: text-bottom;
+
+  .image-wrapper {
+    margin: 0;
   }
 }
 
@@ -950,6 +975,11 @@ img.ProseMirror-separator {
   display: block;
 }
 
+.component-image:has(.image-icon) {
+  display: inline-block;
+  vertical-align: text-bottom;
+}
+
 .image-commented .image-wrapper {
   outline: ${props.theme.commentedImageOutlineLight} solid 2px;
 }
@@ -1057,6 +1087,9 @@ h6:not(.placeholder)::before {
     &:not(.placeholder)::before {
       opacity: 1;
     }
+    &:hover:not(.placeholder)::before {
+      opacity: 0;
+    }
   }
 }
 
@@ -1107,85 +1140,37 @@ h6:not(.placeholder)::before {
   top: -0.1em;
 }
 
-.heading-anchor,
-.heading-fold {
-  display: inline-block;
+.heading-anchor {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  margin-left: -26px;
+  width: 26px;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  user-select: none;
   color: ${props.theme.text};
-  opacity: .75;
   cursor: var(--pointer);
   background: none;
   outline: none;
   border: 0;
-  margin: 0;
   padding: 0;
-  text-align: start;
   font-weight: 500;
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 14px;
-  line-height: 0;
-  width: 12px;
-  height: 24px;
+  font-size: 16px;
+  line-height: 1;
+  box-sizing: border-box;
 
-  &:focus,
   &:hover {
     opacity: 1;
   }
-}
-
-.ProseMirror.exported {
-  .heading-fold {
-    display: none;
-  }
-}
-
-.heading-anchor {
-  box-sizing: border-box;
-}
-
-.heading-actions {
-  opacity: 0;
-  user-select: none;
-  background: ${props.theme.background};
-  margin-left: -26px;
-  flex-direction: row;
-  display: none;
-  position: absolute;
-  left: 0;
-  top: calc(.5em - 6px);
-  width: 26px;
-  height: 24px;
 
   &:dir(rtl) {
     margin-left: 0;
     margin-right: -26px;
-  }
-
-  &.collapsed {
-    opacity: 1;
-  }
-
-  &.collapsed .heading-anchor {
-    opacity: 0;
-  }
-
-  &.collapsed .heading-fold {
-    opacity: 1;
-  }
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  &:hover {
-    .heading-anchor {
-      opacity: 0.75 !important;
-    }
-    .heading-anchor:hover {
-      opacity: 1 !important;
-    }
   }
 }
 
@@ -1196,31 +1181,12 @@ h6 {
   h4,
   h5,
   h6 {
-    .heading-actions {
+    .heading-anchor {
       display: inline-flex;
     }
     &:not(.placeholder)::before {
       display: ${props.readOnly ? "none" : "inline-block"};
     }
-  }
-}
-
-.heading-fold {
-  display: inline-block;
-  transform-origin: center;
-  padding: 0;
-
-  &.collapsed {
-    svg {
-      transform: rotate(-90deg);
-      pointer-events: none;
-    }
-    transition-delay: 0.1s;
-    opacity: 1;
-  }
-
-  &:dir(rtl).collapsed svg {
-    transform: rotate(90deg);
   }
 }
 
@@ -1273,6 +1239,7 @@ ${
 .notice-block {
   display: flex;
   align-items: center;
+  position: relative;
   background: ${transparentize(0.9, props.theme.noticeInfoBackground)};
   border-left: 4px solid ${props.theme.noticeInfoBackground};
   color: ${props.theme.noticeInfoText};
@@ -1402,8 +1369,23 @@ p {
   min-height: 1.6em;
 }
 
+/* Make top-level paragraphs a positioning context so the comment gutter anchors
+   to them (flush with the content column) */
+.ProseMirror > p {
+  position: relative;
+}
+
 .heading-content {
   position: relative;
+}
+
+/* The heading is taller than the line, so pin the gutter vertically to center
+   its indicators against the text. Horizontal alignment is handled by the
+   gutter's own rule. */
+.heading-content .${EditorStyleHelper.commentGutter} {
+  top: 0;
+  bottom: 0;
+  justify-content: center;
 }
 
 .heading-content a,
@@ -1763,25 +1745,6 @@ code {
   }
 }
 
-.${EditorStyleHelper.hexColorSwatch} {
-  display: inline-block;
-  width: 0.75em;
-  height: 0.75em;
-  margin-left: 0.3em;
-  vertical-align: -0.05em;
-  border-radius: 50%;
-  background-clip: padding-box;
-  cursor: var(--pointer);
-}
-
-.${
-  props.theme.isDark
-    ? EditorStyleHelper.hexColorSwatchDark
-    : EditorStyleHelper.hexColorSwatchLight
-} {
-  outline: 1px solid ${props.theme.codeBorder};
-}
-
 mark {
   border-radius: 1px;
   padding: 2px 0;
@@ -1834,7 +1797,8 @@ mark {
     `
   }
 
-  &:is(.code-active) + .mermaid-diagram-wrapper {
+  &:is(.code-active)
+    + .mermaid-diagram-wrapper:not(.parse-error):not(.empty) {
     cursor: zoom-in;
   }
 
@@ -1850,7 +1814,7 @@ mark {
     outline: none;
 
     & + .mermaid-diagram-wrapper {
-      &:not(.empty) {
+      &:not(.parse-error):not(.empty) {
         cursor: zoom-in;
       }
       outline: 2px solid ${props.theme.selected};
@@ -1863,7 +1827,7 @@ mark {
     height: 0;
     overflow: hidden;
 
-    & + .mermaid-diagram-wrapper {
+    & + .mermaid-diagram-wrapper:not(.parse-error):not(.empty) {
       cursor: zoom-in;
     }
 }
@@ -2476,10 +2440,12 @@ table {
 
   > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
     transform: translateY(calc(var(--header-offset, 64px) + var(--sticky-scroll-offset, 0px)));
-    border-bottom: 1px solid ${props.theme.divider};
 
-    // Mask content scrolling past the top of the header
-    box-shadow: 0 -1px 0 ${props.theme.divider};
+    // Mask content scrolling past the top of the header (first shadow) and draw
+    // the divider below it (second shadow). Using box-shadow rather than a real
+    // border avoids changing the row height when the sticky class toggles, which
+    // otherwise causes a flicker loop at the bottom of the table via scroll anchoring.
+    box-shadow: 0 -1px 0 ${props.theme.divider}, 0 1px 0 ${props.theme.divider};
     border-radius: 0 !important;
 
     .${EditorStyleHelper.tableGripColumn},
@@ -2502,6 +2468,7 @@ table {
   scrollbar-color: transparent transparent;
   overflow-y: hidden;
   overflow-x: auto;
+  overflow-anchor: none;
   padding-top: 1em;
   padding-bottom: .5em;
   padding-left: ${EditorStyleHelper.padding}px;
@@ -2617,12 +2584,6 @@ table {
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
 }
 
-.folded-content,
-.folded-content + .mermaid-diagram-wrapper {
-  display: none;
-  user-select: none;
-}
-
 @keyframes ProseMirror-cursor-blink {
   to {
     visibility: hidden;
@@ -2641,7 +2602,7 @@ del {
 @media print {
   .placeholder::before,
   .block-menu-trigger,
-  .heading-actions,
+  .heading-anchor,
   button.show-source-button,
   h1:not(.placeholder)::before,
   h2:not(.placeholder)::before,
@@ -2685,12 +2646,9 @@ li > .${EditorStyleHelper.toggleBlock} {
 
 .${EditorStyleHelper.toggleBlock} {
   display: flex;
-
-  /* When a toggle block is inside a collapsed heading it receives the
-     folded-content decoration; ensure it stays hidden despite display: flex. */
-  &.folded-content {
-    display: none;
-  }
+  /* Establish a positioning context so comment gutters on nested content anchor
+     here (flush with the content column) rather than the padded .ProseMirror. */
+  position: relative;
 
   &:focus-within {
     transition-delay: 0.1s;
@@ -2781,6 +2739,23 @@ li > .${EditorStyleHelper.toggleBlock} {
     > .${EditorStyleHelper.toggleBlockHead} {
       > * {
         margin-top: 0;
+      }
+
+      /* When the title is a heading, match the placeholder text to its size */
+      &.placeholder:has(> :is(h1, h2, h3, h4))::before {
+        font-weight: 600;
+      }
+      &.placeholder:has(> h1)::before {
+        font-size: var(--font-size-h1);
+      }
+      &.placeholder:has(> h2)::before {
+        font-size: var(--font-size-h2);
+      }
+      &.placeholder:has(> h3)::before {
+        font-size: var(--font-size-h3);
+      }
+      &.placeholder:has(> h4)::before {
+        font-size: var(--font-size-h4);
       }
     }
     flex-grow: 1;

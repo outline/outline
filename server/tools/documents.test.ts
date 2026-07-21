@@ -8,9 +8,20 @@ import {
   buildOAuthAuthentication,
   buildGroup,
 } from "@server/test/factories";
-import { Document, GroupMembership, UserMembership } from "@server/models";
+import {
+  Attachment,
+  Document,
+  GroupMembership,
+  SearchQuery,
+  UserMembership,
+} from "@server/models";
+import { SearchQuerySource } from "@server/models/SearchQuery";
 import { getTestServer } from "@server/test/support";
-import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
+import {
+  buildOAuthUser,
+  callMcpTool,
+  parseMcpListContent,
+} from "@server/test/McpHelper";
 
 const server = getTestServer();
 
@@ -198,12 +209,15 @@ describe("list_documents", () => {
       query: privateDocument.urlId,
     });
 
-    const data = (res?.result?.content ?? []).map((c: { text?: string }) =>
-      JSON.parse(c.text ?? "{}")
+    expect(res?.result?.content).toEqual([{ type: "text", text: "[]" }]);
+
+    const data = parseMcpListContent<{ document: { id: string } }>(
+      res?.result?.content
     );
-    const ids = data.map((d: { document: { id: string } }) => d.document.id);
+    const ids = data.map((d) => d.document.id);
 
     expect(res?.result?.isError).not.toBe(true);
+    expect(ids).toHaveLength(0);
     expect(ids).not.toContain(privateDocument.id);
   });
 
@@ -236,6 +250,49 @@ describe("list_documents", () => {
 
     expect(ids).toContain(document.id);
   });
+
+  it("records the search query with an mcp source", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Metaphysics",
+    });
+
+    await callMcpTool(server, accessToken, "list_documents", {
+      query: "Metaphysics",
+    });
+
+    const searchQuery = await SearchQuery.findOne({
+      where: { teamId: user.teamId, userId: user.id },
+    });
+    expect(searchQuery?.source).toEqual(SearchQuerySource.MCP);
+    expect(searchQuery?.query).toEqual("Metaphysics");
+  });
+
+  it("does not record a search query when listing recent documents", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    await callMcpTool(server, accessToken, "list_documents");
+
+    expect(await SearchQuery.count({ where: { teamId: user.teamId } })).toEqual(
+      0
+    );
+  });
 });
 
 describe("create_document", () => {
@@ -257,6 +314,40 @@ describe("create_document", () => {
     expect(data.document.collectionId).toEqual(collection.id);
     expect(data.document.id).toBeDefined();
     expect(data.document.url).toMatch(/^https?:\/\//);
+  });
+
+  it("creates from HTML and preserves images as attachments", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const image =
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "HTML Document",
+      text: `<p>Hello <strong>HTML</strong></p><img alt="chart" src="data:image/png;base64,${image}" width="1" height="1">`,
+      format: "html",
+      collectionId: collection.id,
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    const attachmentCount = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType: "image/png",
+      },
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    expect(data.document.title).toEqual("HTML Document");
+    expect(data.document.collectionId).toEqual(collection.id);
+    expect(res?.result?.content?.[1]?.text).toContain("Hello **HTML**");
+    expect(res?.result?.content?.[1]?.text).toContain(
+      "/api/attachments.redirect?id="
+    );
+    expect(attachmentCount).toEqual(1);
   });
 
   it("creates nested under parent document", async () => {
@@ -436,6 +527,55 @@ describe("update_document", () => {
 
     expect(data.document.title).toEqual("Updated Title");
     expect(data.document.url).toMatch(/^https?:\/\//);
+  });
+
+  it("errors when no fields are provided to update", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "original text",
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "The update resulted in no changes to the document"
+    );
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.text).toEqual("original text");
+  });
+
+  it("errors when provided fields are identical to the current document", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      title: document.title,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "The update resulted in no changes to the document"
+    );
   });
 
   it("unpublishes a document", async () => {

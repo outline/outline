@@ -355,7 +355,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
         description:
           "Updates an existing comment by its ID. Can update the text content, resolve or unresolve the comment thread, or both. Only top-level comments (not replies) can be resolved or unresolved.",
         annotations: {
-          idempotentHint: true,
+          idempotentHint: false,
           readOnlyHint: false,
         },
         inputSchema: {
@@ -405,6 +405,16 @@ export function commentTools(server: McpServer, scopes: string[]) {
             authorize(user, "unresolve", comment);
             authorize(user, "update", document);
             comment.unresolve();
+          }
+
+          // A write that changes nothing must fail loud rather than return a
+          // success the caller would read as a completed write — the request
+          // either carried no recognized fields or text identical to the
+          // current comment.
+          if (!comment.changed()) {
+            return error(
+              "The update resulted in no changes to the comment. Ensure at least one field is provided and differs from the current comment."
+            );
           }
 
           await comment.saveWithCtx(ctx, status ? { silent: true } : undefined);

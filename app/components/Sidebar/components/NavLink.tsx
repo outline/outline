@@ -3,13 +3,22 @@
 // thing, automatic scroll to the active link. It's worth the copy paste because
 // it avoids recalculating the link match again.
 import type { Location, LocationDescriptor } from "history";
-import { createLocation } from "history";
+import { createLocation, createPath } from "history";
+import { action, observable } from "mobx";
+import { observer } from "mobx-react";
 import * as React from "react";
 import type { match } from "react-router";
 import { __RouterContext as RouterContext, matchPath } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
+import { useFocusedSplitLocation } from "~/hooks/useFocusedSplitLocation";
+import Desktop from "~/utils/Desktop";
 import history from "~/utils/history";
+import {
+  isSplitablePath,
+  isSplitViewModifierEvent,
+  openRouteInSplit,
+} from "~/utils/splitView";
 
 const resolveToLocation = (
   to: LocationDescriptor | ((location: Location) => LocationDescriptor),
@@ -26,6 +35,25 @@ const normalizeToLocation = (
 
 const joinClassnames = (...classnames: (string | undefined)[]) =>
   classnames.filter((i) => i).join(" ");
+
+interface PendingNavigation {
+  /** The current location when the fast click began. */
+  from: Location;
+  /** The target location of the fast click. */
+  to: Location;
+}
+
+// The target of a fast-click navigation, shared between all NavLinks so that
+// only links matching it can render as active before the location changes.
+// Only honored while `from` is still the current location, so a stale value
+// cannot influence rendering after navigation.
+const pendingNavigation = observable.box<PendingNavigation | null>(null, {
+  deep: false,
+});
+
+const setPendingNavigation = action((value: PendingNavigation | null) => {
+  pendingNavigation.set(value);
+});
 
 /**
  * Props for the NavLink component.
@@ -59,7 +87,7 @@ export interface Props extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
 /**
  * A <Link> wrapper that clicks extra fast and knows if it's "active" or not.
  */
-const NavLink = ({
+const NavLink = observer(function NavLink({
   "aria-current": ariaCurrent = "page",
   activeClassName = "active",
   activeStyle,
@@ -75,13 +103,20 @@ const NavLink = ({
   onActiveClick,
   to,
   ...rest
-}: Props) => {
+}: Props) {
   const linkRef = React.useRef<HTMLAnchorElement>(null);
   const context = React.useContext(RouterContext);
-  const [preActive, setPreActive] = React.useState<boolean | undefined>(
-    undefined
-  );
   const currentLocation = locationProp || context.location;
+  // The focused split view pane's route, decoded from the split query
+  // parameter, so the active item follows the focused pane.
+  const splitLocation = useFocusedSplitLocation();
+  // While a fast-click navigation is pending, derive active state from its
+  // target so the outgoing link deactivates immediately.
+  const pending = pendingNavigation.get();
+  const activeLocation =
+    pending && pending.from === currentLocation
+      ? pending.to
+      : (locationProp ?? splitLocation ?? currentLocation);
   const toLocation = normalizeToLocation(
     resolveToLocation(to, currentLocation),
     currentLocation
@@ -89,7 +124,7 @@ const NavLink = ({
   const { pathname: path } = toLocation;
 
   const pathMatch = path
-    ? matchPath(currentLocation.pathname, {
+    ? matchPath(activeLocation.pathname, {
         // Regex taken from: https://github.com/pillarjs/path-to-regexp/blob/master/index.js#L202
         path: path.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1"),
         exact,
@@ -97,9 +132,9 @@ const NavLink = ({
       })
     : null;
 
-  const isActive =
-    preActive ??
-    !!(isActiveProp ? isActiveProp(pathMatch, currentLocation) : pathMatch);
+  const isActive = !!(isActiveProp
+    ? isActiveProp(pathMatch, activeLocation)
+    : pathMatch);
   const className = isActive
     ? joinClassnames(classNameProp, activeClassName)
     : classNameProp;
@@ -137,27 +172,63 @@ const NavLink = ({
     }
   }, [to, replace]);
 
+  // Whether the link was active when the click gesture began, so a fast click
+  // is not also treated as a click on an already-active link.
+  const wasActiveAtMouseDown = React.useRef<boolean>();
+
   const handleMouseDown = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
+      wasActiveAtMouseDown.current = isActive;
       onClick?.(event);
 
       if (shouldFastClick(event)) {
-        event.currentTarget.focus();
+        // Capture the element as React nulls currentTarget once the handler
+        // returns, which would make the deferred blur a no-op.
+        const element = event.currentTarget;
+        element.focus();
 
-        setPreActive(true);
+        setPendingNavigation({
+          from: currentLocation,
+          to: createLocation(toLocation, undefined, undefined, currentLocation),
+        });
 
         // Wait a frame until following the link
         requestAnimationFrame(() => {
           requestAnimationFrame(navigateTo);
-          event.currentTarget?.blur();
+          element.blur();
         });
       }
     },
-    [onClick, navigateTo, shouldFastClick]
+    [
+      onClick,
+      navigateTo,
+      shouldFastClick,
+      toLocation,
+      currentLocation,
+      isActive,
+    ]
   );
 
   const handleClick = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
+      // In the desktop app a modifier-click opens the link in a split view,
+      // standing in for the browser's open-in-new-tab behavior.
+      if (
+        Desktop.isElectron() &&
+        isSplitViewModifierEvent(event.nativeEvent) &&
+        toLocation.pathname &&
+        isSplitablePath(toLocation.pathname)
+      ) {
+        event.preventDefault();
+        openRouteInSplit(history, createPath(toLocation));
+        return;
+      }
+
+      // Keyboard-triggered clicks have no preceding mousedown, fall back to
+      // the current active state.
+      const wasActive = wasActiveAtMouseDown.current ?? isActive;
+      wasActiveAtMouseDown.current = undefined;
+
       // Prevent navigation if link is active, event is synthetic, or context menu is open
       if (
         isActive ||
@@ -170,15 +241,20 @@ const NavLink = ({
       // Fire onActiveClick on click rather than mousedown so that the native
       // HTML5 drag gesture can initiate from an active row without being
       // blocked by a preventDefault on mousedown.
-      if (isActive) {
+      if (isActive && wasActive) {
         onActiveClick?.(event);
       }
     },
-    [isActive, onActiveClick]
+    [isActive, onActiveClick, toLocation]
   );
 
+  // Release a pending navigation once it is no longer honored, without
+  // disturbing one that is still in flight.
   React.useEffect(() => {
-    setPreActive(undefined);
+    const value = pendingNavigation.get();
+    if (value && value.from !== currentLocation) {
+      setPendingNavigation(null);
+    }
   }, [currentLocation]);
 
   const handleKeyDown = React.useCallback(
@@ -193,7 +269,6 @@ const NavLink = ({
 
   return (
     <Link
-      key={isActive ? "active" : "inactive"}
       ref={linkRef}
       // Note do not use `onPointerDown` here as it makes the mobile sidebar unscrollable
       onMouseDown={handleMouseDown}
@@ -207,6 +282,6 @@ const NavLink = ({
       {...rest}
     />
   );
-};
+});
 
 export default NavLink;

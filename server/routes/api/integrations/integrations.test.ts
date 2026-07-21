@@ -1,3 +1,4 @@
+import type { IntegrationSettings } from "@shared/types";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import type { User } from "@server/models";
 import Integration from "@server/models/Integration";
@@ -209,5 +210,50 @@ describe("#integrations.delete", () => {
 
     const intg = await Integration.findByPk(integration.id);
     expect(intg?.deletedAt).not.toBeNull();
+  });
+});
+
+describe("#integrations.list", () => {
+  it("should not expose the webhook url of post integrations", async () => {
+    const admin = await buildAdmin();
+    await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+      service: IntegrationService.Slack,
+      type: IntegrationType.Post,
+      settings: {
+        url: "https://hooks.slack.com/services/secret",
+        channel: "#general",
+        channelId: "C123",
+      } as IntegrationSettings<IntegrationType.Post>,
+    });
+
+    const res = await server.post("/api/integrations.list", admin);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    // Only the opted-in channel field is exposed, never the webhook url.
+    expect(body.data[0].settings.url).toBeUndefined();
+    expect(body.data[0].settings.channel).toEqual("#general");
+  });
+
+  it("should expose the public settings of embed integrations", async () => {
+    const team = await buildTeam();
+    const member = await buildUser({ teamId: team.id });
+    await buildIntegration({
+      userId: member.id,
+      teamId: team.id,
+      service: IntegrationService.Diagrams,
+      type: IntegrationType.Embed,
+      settings: { url: "https://example.com" },
+    });
+
+    const res = await server.post("/api/integrations.list", member);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].settings.url).toEqual("https://example.com");
   });
 });

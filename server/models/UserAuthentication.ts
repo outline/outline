@@ -39,7 +39,7 @@ class UserAuthentication extends IdModel<
   @Encrypted
   refreshToken: string;
 
-  @Column
+  @Column(DataType.STRING)
   providerId: string;
 
   @Column(DataType.DATE)

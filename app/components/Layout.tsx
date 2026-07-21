@@ -21,14 +21,18 @@ type Props = {
   title?: string;
   /** Left sidebar content. */
   sidebar?: React.ReactNode;
+  /** Whether the sidebar can be collapsed, defaults to true. */
+  sidebarCanCollapse?: boolean;
 };
 
 const Layout = React.forwardRef(function Layout_(
-  { title, children, sidebar }: Props,
+  { title, children, sidebar, sidebarCanCollapse = true }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const { ui } = useStores();
-  const sidebarCollapsed = !sidebar || ui.sidebarIsClosed;
+  const showSidebar = !!sidebar && !ui.sidebarHidden;
+  const sidebarCollapsed =
+    !showSidebar || (ui.sidebarIsClosed && sidebarCanCollapse);
   const sidebarRight = useRightSidebarContent();
 
   return (
@@ -42,7 +46,7 @@ const Layout = React.forwardRef(function Layout_(
       {ui.progressBarVisible && <LoadingIndicatorBar />}
 
       <Container auto>
-        {sidebar}
+        {showSidebar && sidebar}
 
         <SkipNavContent />
         <Content
@@ -51,7 +55,7 @@ const Layout = React.forwardRef(function Layout_(
           role="main"
           $isResizing={ui.sidebarIsResizing}
           $sidebarCollapsed={sidebarCollapsed}
-          $hasSidebar={!!sidebar}
+          $hasSidebar={showSidebar}
           style={
             sidebarCollapsed
               ? undefined

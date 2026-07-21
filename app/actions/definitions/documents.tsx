@@ -34,12 +34,13 @@ import {
   EditIcon,
   EmbedIcon,
   OpenIcon,
+  SplitIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import { ExportContentType, TeamPreference } from "@shared/types";
+import { ExportContentType } from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
 import { getEventFiles } from "@shared/utils/files";
 import { Week } from "@shared/utils/time";
@@ -82,6 +83,7 @@ import {
   trashPath,
   documentEditPath,
 } from "~/utils/routeHelpers";
+import { getFocusedSplitPane, openRouteInSplit } from "~/utils/splitView";
 import { documentBreadcrumbText } from "~/components/DocumentBreadcrumb";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type {
@@ -1061,6 +1063,28 @@ export const openDocumentInDesktop = createAction({
   },
 });
 
+export const openDocumentInSplit = createAction({
+  name: ({ t }) => t("Open in split view"),
+  analyticsName: "Open document in split view",
+  section: ActiveDocumentSection,
+  icon: <SplitIcon />,
+  keywords: "split side pane",
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId || isMobile()) {
+      return false;
+    }
+    return !!stores.documents.get(activeDocumentId);
+  },
+  perform: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      openRouteInSplit(history, documentPath(document));
+    }
+  },
+});
+
 export const presentDocument = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Present") : t("Present document")),
   analyticsName: "Present document",
@@ -1470,17 +1494,25 @@ export const openDocumentComments = createAction({
     const can = stores.policies.abilities(activeDocumentId ?? "");
 
     return (
-      !!activeDocumentId &&
-      can.comment &&
-      !!stores.auth.team?.getPreference(TeamPreference.Commenting)
+      !!activeDocumentId && can.comment && !!stores.auth.team?.commentingEnabled
     );
   },
-  perform: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  perform: ({ activeDocumentId, sidebarContext, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
       return;
     }
 
-    stores.ui.set({ rightSidebar: "comments" });
+    // Navigate to the document when triggered from outside its scene (e.g. a
+    // document list), as the comments sidebar is only rendered there.
+    const path = documentPath(document);
+    if (!history.location.pathname.startsWith(path)) {
+      history.push(path, { sidebarContext });
+    }
+
+    stores.ui.setRightSidebar("comments", getFocusedSplitPane());
   },
 });
 
@@ -1637,5 +1669,6 @@ export const rootDocumentActions = [
   openDocumentHistory,
   openDocumentInsights,
   openDocumentInDesktop,
+  openDocumentInSplit,
   shareDocument,
 ];

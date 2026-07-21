@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import type { WhereOptions } from "sequelize";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -72,7 +72,7 @@ router.post(
   pagination(),
   validate(T.TemplatesListSchema),
   async (ctx: APIContext<T.TemplatesListReq>) => {
-    const { sort, direction, collectionId } = ctx.input.body;
+    const { sort, direction, collectionId, query } = ctx.input.body;
     const { user } = ctx.state.auth;
     const where: WhereOptions<Template> & {
       [Op.and]: WhereOptions<Template>[];
@@ -109,6 +109,16 @@ router.post(
       });
     }
 
+    if (query) {
+      where[Op.and].push(
+        Sequelize.literal(
+          `unaccent(LOWER("template"."title")) like unaccent(LOWER(:query))`
+        )
+      );
+    }
+
+    const replacements = { query: `%${query}%` };
+
     const [templates, total] = await Promise.all([
       Template.scope([
         "defaultScope",
@@ -117,11 +127,16 @@ router.post(
         },
       ]).findAll({
         where,
+        replacements,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      Template.count({ where }),
+      Template.count({
+        where,
+        // @ts-expect-error Types are incorrect for count
+        replacements,
+      }),
     ]);
 
     const data = templates.map((template) => presentTemplate(template));

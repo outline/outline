@@ -11,14 +11,14 @@ import {
 } from "@server/models";
 import { authorize } from "@server/policies";
 
-// Higher value takes precedence
+/** Priority of collection permissions — a higher value takes precedence. */
 export const CollectionPermissionPriority = {
   [CollectionPermission.Admin]: 2,
   [CollectionPermission.ReadWrite]: 1,
   [CollectionPermission.Read]: 0,
 } satisfies Record<CollectionPermission, number>;
 
-// Higher value takes precedence
+/** Priority of document permissions — a higher value takes precedence. */
 export const DocumentPermissionPriority = {
   [DocumentPermission.Admin]: 2,
   [DocumentPermission.ReadWrite]: 1,

@@ -1,5 +1,5 @@
 import passport from "@outlinewiki/koa-passport";
-import type { Context } from "koa";
+import type { Request } from "koa";
 import Router from "koa-router";
 import type { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
@@ -27,6 +27,7 @@ import {
   getUserFromOAuthState,
   StateStore,
   startOAuthFlow,
+  withProxyAgent,
 } from "@server/utils/passport";
 import { parseEmail } from "@shared/utils/email";
 import env from "../env";
@@ -76,7 +77,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       scope: scopes,
     },
     async function (
-      context: Context,
+      req: Request,
       accessToken: string,
       refreshToken: string,
       params: { expires_in: number },
@@ -87,6 +88,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         result?: AuthenticationResult
       ) => void
     ) {
+      const context = req.ctx;
       try {
         const team = await getTeamFromContext(context);
         const client = getClientFromOAuthState(context);
@@ -136,7 +138,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   // For some reason the author made the strategy name capatilised, I don't know
   // why but we need everything lowercase so we just monkey-patch it here.
   strategy.name = providerName;
-  passport.use(strategy);
+  passport.use(withProxyAgent(strategy));
 
   router.get("slack", startOAuthFlow, passport.authenticate(providerName));
   router.get("slack.callback", passportMiddleware(providerName));

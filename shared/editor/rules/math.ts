@@ -4,7 +4,7 @@ import type StateInline from "markdown-it/lib/rules_inline/state_inline.mjs";
 
 export const REGEX_INLINE_MATH_DOLLARS = /\$\$(.+)\$\$$/;
 
-export const REGEX_BLOCK_MATH_DOLLARS = /\$\$\$\s+$/;
+export const REGEX_BLOCK_MATH_DOLLARS = /^\$\$\$\s+$/;
 
 const inlineMathDelimiter = "$";
 const blockMathDelimiter = "$$";

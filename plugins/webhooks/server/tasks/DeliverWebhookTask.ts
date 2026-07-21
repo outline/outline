@@ -1,5 +1,5 @@
 import { FetchError } from "node-fetch";
-import { Op } from "sequelize";
+import { Op, QueryTypes } from "sequelize";
 import { toError } from "@shared/utils/error";
 import { colorPalette } from "@shared/utils/collections";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
@@ -877,36 +877,47 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     const failureRateThreshold = env.WEBHOOK_FAILURE_RATE_THRESHOLD;
     const timeWindowStart = new Date(Date.now() - timeWindowSeconds * 1000);
 
-    // Get all deliveries within the time window
-    const deliveriesInWindow = await WebhookDelivery.findAll({
-      where: {
-        webhookSubscriptionId: subscription.id,
-        createdAt: {
-          [Op.gte]: timeWindowStart,
+    // Count deliveries within the time window without loading the rows.
+    const [counts] = await WebhookDelivery.sequelize!.query<{
+      total: string;
+      failed: string;
+    }>(
+      `
+        SELECT
+          COUNT(*) as total,
+          COUNT(CASE WHEN status = :statusFailed THEN 1 END) as failed
+        FROM webhook_deliveries
+        WHERE "webhookSubscriptionId" = :subscriptionId
+        AND "createdAt" >= :timeWindowStart
+      `,
+      {
+        type: QueryTypes.SELECT,
+        replacements: {
+          subscriptionId: subscription.id,
+          timeWindowStart,
+          statusFailed: "failed",
         },
-      },
-      order: [["createdAt", "DESC"]],
-    });
+      }
+    );
+
+    const totalDeliveries = parseInt(counts.total, 10);
+    const failedDeliveries = parseInt(counts.failed, 10);
 
     // If there are no deliveries in the time window, don't disable
-    if (deliveriesInWindow.length === 0) {
+    if (totalDeliveries === 0) {
       return;
     }
 
     // Calculate failure rate
-    const failedDeliveries = deliveriesInWindow.filter(
-      (delivery) => delivery.status === "failed"
-    );
-    const failureRate =
-      (failedDeliveries.length / deliveriesInWindow.length) * 100;
+    const failureRate = (failedDeliveries / totalDeliveries) * 100;
 
     // Only log analysis if there are failures to report
-    if (failedDeliveries.length > 0) {
+    if (failedDeliveries > 0) {
       Logger.info("task", "Webhook failure analysis", {
         subscriptionId: subscription.id,
         timeWindowSeconds,
-        totalDeliveries: deliveriesInWindow.length,
-        failedDeliveries: failedDeliveries.length,
+        totalDeliveries,
+        failedDeliveries,
         failureRate: Math.round(failureRate * 100) / 100,
         threshold: failureRateThreshold,
       });
@@ -915,16 +926,15 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     // Check if failure rate exceeds threshold and we have enough data points
     if (
       failureRate >= failureRateThreshold &&
-      deliveriesInWindow.length >=
-        DeliverWebhookTask.MIN_DELIVERIES_FOR_ANALYSIS
+      totalDeliveries >= DeliverWebhookTask.MIN_DELIVERIES_FOR_ANALYSIS
     ) {
       Logger.warn("Disabling webhook due to high failure rate", {
         subscriptionId: subscription.id,
         failureRate: Math.round(failureRate * 100) / 100,
         threshold: failureRateThreshold,
         timeWindowSeconds,
-        totalDeliveries: deliveriesInWindow.length,
-        failedDeliveries: failedDeliveries.length,
+        totalDeliveries,
+        failedDeliveries,
       });
 
       // Disable the subscription

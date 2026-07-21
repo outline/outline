@@ -107,7 +107,12 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
       <RightSidebarProvider>
         <PortalContext.Provider value={layoutRef.current}>
           <DndProvider backend={EditorAwareHTML5Backend}>
-            <Layout title={team.name} sidebar={sidebar} ref={layoutRef}>
+            <Layout
+              title={team.name}
+              sidebar={sidebar}
+              sidebarCanCollapse={!isSettings}
+              ref={layoutRef}
+            >
               <RegisterKeyDown trigger="n" handler={goToNewDocument} />
               <RegisterKeyDown trigger="t" handler={goToSearch} />
               <RegisterKeyDown trigger="/" handler={goToSearch} />

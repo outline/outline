@@ -17,6 +17,7 @@ type Dimension = {
 
 export function MediaDimension() {
   const ref = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
   const boundsRef = useRef<{
     width: { min: number; max: number };
     height: { min: number; max: number };
@@ -188,15 +189,51 @@ export function MediaDimension() {
     [handleBlur, reset]
   );
 
-  // Sync dimension changes from outside.
+  // Sync dimension changes from outside, without clobbering in-progress edits
+  // to the inputs (which also change `localDimension`).
+  const prevSizeRef = useRef({ width, height });
   useEffect(() => {
-    if (
-      width !== Number(localDimension.width) ||
-      height !== Number(localDimension.height)
-    ) {
+    const prev = prevSizeRef.current;
+    prevSizeRef.current = { width, height };
+
+    if (isDraggingRef.current) {
+      return;
+    }
+    if (prev.width !== width || prev.height !== height) {
       reset();
     }
   }, [width, height, reset]);
+
+  // Listen to drag resize updates in real-time.
+  useEffect(() => {
+    const handleDragResize = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        width: number;
+        height?: number;
+        isDragging?: boolean;
+      }>;
+      const {
+        width: newWidth,
+        height: newHeight,
+        isDragging,
+      } = customEvent.detail;
+
+      if (isDragging !== undefined) {
+        isDraggingRef.current = isDragging;
+      }
+
+      setLocalDimension({
+        width: newWidth ? String(newWidth) : "",
+        height: newHeight ? String(newHeight) : "",
+        changed: "none",
+      });
+    };
+
+    window.addEventListener("media-drag-resize", handleDragResize);
+    return () => {
+      window.removeEventListener("media-drag-resize", handleDragResize);
+    };
+  }, []);
 
   // hacky debounce for checking error.
   useEffect(() => {
@@ -268,7 +305,7 @@ const StyledInput = styled(Input)<{ $error?: boolean }>`
   }
 
   ${NativeInput} {
-    height: 24px;
+    height: 22px;
     padding: 0;
     text-align: center;
 

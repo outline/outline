@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsc/tsconfig.tsbuildinfo",
     "strict": false,
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
@@ -31,7 +33,11 @@
       "@server/*": ["./server/*"],
       "@shared/*": ["./shared/*"],
       "~/*": ["./app/*"],
-      "plugins/*": ["./plugins/*"]
+      "plugins/*": ["./plugins/*"],
+      // Vite 8 and its plugins ship types only via their exports map, which
+      // resolvePackageJsonExports disables; point tsc at their declaration entries.
+      "vite": ["./node_modules/vite/dist/node/index.d.ts"],
+      "@vitejs/plugin-react": ["./node_modules/@vitejs/plugin-react/dist/index.d.ts"]
     }
   },
   "exclude": ["node_modules", "build", "server/migrations"]

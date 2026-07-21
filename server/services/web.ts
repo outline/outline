@@ -73,7 +73,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
         }
         Metrics.gaugePerInstance("connections.count", count);
       });
-    }, 5 * Second.ms);
+    }, 5 * Second.ms).unref();
   }
 
   ShutdownHelper.add("connections", ShutdownOrder.normal, async () => {

@@ -10,7 +10,9 @@ import {
   CommentIcon,
   LinkIcon,
 } from "outline-icons";
+import { NodeSelection } from "prosemirror-state";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
+import { InlineIconMaxWidth } from "@shared/editor/components/Image";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import { ImageSource } from "@shared/editor/lib/FileHelper";
@@ -46,13 +48,22 @@ export default function imageMenuItems(ctx: SelectionContext): MenuItem[] {
     src: "",
   });
 
+  // Small images are displayed as inline icons, so alignment controls don't apply.
+  const selectedNode =
+    state.selection instanceof NodeSelection ? state.selection.node : undefined;
+  const isInlineIcon =
+    selectedNode?.type === schema.nodes.image &&
+    selectedNode.attrs.layoutClass !== "full-width" &&
+    !!selectedNode.attrs.width &&
+    selectedNode.attrs.width < InlineIconMaxWidth;
+
   return [
     {
       name: "alignLeft",
       tooltip: t("Align left"),
       icon: <AlignImageLeftIcon />,
       active: isLeftAligned,
-      visible: !isEmptyDiagram(state),
+      visible: !isEmptyDiagram(state) && !isInlineIcon,
     },
     {
       name: "alignCenter",
@@ -63,24 +74,25 @@ export default function imageMenuItems(ctx: SelectionContext): MenuItem[] {
         !isLeftAligned(state) &&
         !isRightAligned(state) &&
         !isFullWidthAligned(state),
-      visible: !isEmptyDiagram(state),
+      visible: !isEmptyDiagram(state) && !isInlineIcon,
     },
     {
       name: "alignRight",
       tooltip: t("Align right"),
       icon: <AlignImageRightIcon />,
       active: isRightAligned,
-      visible: !isEmptyDiagram(state),
+      visible: !isEmptyDiagram(state) && !isInlineIcon,
     },
     {
       name: "alignFullWidth",
       tooltip: t("Full width"),
       icon: <AlignFullWidthIcon />,
       active: isFullWidthAligned,
-      visible: !isEmptyDiagram(state),
+      visible: !isEmptyDiagram(state) && !isInlineIcon,
     },
     {
       name: "separator",
+      visible: !isInlineIcon,
     },
     {
       name: "dimensions",

@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import { useWebHaptics } from "web-haptics/react";
 import { useLocation } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -54,7 +53,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   const collapsed = ui.sidebarIsClosed && canCollapse;
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
-  const { trigger } = useWebHaptics();
   const direction = useDirection();
 
   const [offset, setOffset] = React.useState(0);
@@ -132,16 +130,23 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     [width, direction]
   );
 
-  const handlePointerActivity = React.useCallback(() => {
-    if (ui.sidebarIsClosed) {
-      // clear the timeout when mouse exits
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
+  const handlePointerActivity = React.useCallback(
+    (event: React.PointerEvent) => {
+      if (ui.sidebarIsClosed) {
+        // don't reveal while a button is held, e.g. selecting text near the edge
+        if (event.buttons !== 0) {
+          return;
+        }
+        // clear the timeout when mouse exits
+        if (hoverTimeoutRef.current) {
+          clearTimeout(hoverTimeoutRef.current);
+        }
+        setHovering(document.hasFocus());
+        setPointerMoved(true);
       }
-      setHovering(document.hasFocus());
-      setPointerMoved(true);
-    }
-  }, [ui.sidebarIsClosed]);
+    },
+    [ui.sidebarIsClosed]
+  );
 
   const handlePointerLeave = React.useCallback(
     (ev) => {
@@ -257,7 +262,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   );
 
   const handleCloseSidebar = () => {
-    void trigger("light");
     ui.toggleMobileSidebar();
   };
 

@@ -3,7 +3,7 @@ import { EditIcon, PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import type Collection from "~/models/Collection";
-import { Action, Separator } from "~/components/Actions";
+import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Tooltip from "~/components/Tooltip";
 import usePolicy from "~/hooks/usePolicy";
@@ -66,12 +66,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
             shortcut="e"
             placement="bottom"
           >
-            <Button
-              icon={<EditIcon />}
-              onClick={goToEdit}
-              haptic="light"
-              neutral
-            >
+            <Button icon={<EditIcon />} onClick={goToEdit} neutral>
               {t("Edit")}
             </Button>
           </Tooltip>
@@ -80,32 +75,23 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
       {isEditing && user?.separateEditMode && (
         <Action>
           <RegisterKeyDown trigger="Escape" handler={goBack} />
-          <Button onClick={goBack} haptic="medium">
-            {t("Done editing")}
-          </Button>
+          <Button onClick={goBack}>{t("Done editing")}</Button>
         </Action>
       )}
       {can.createDocument && (
-        <>
-          <Action>
-            <Tooltip
-              content={t("New document")}
-              shortcut="n"
-              placement="bottom"
+        <Action>
+          <Tooltip content={t("New document")} shortcut="n" placement="bottom">
+            <Button
+              as={Link}
+              to={collection ? newDocumentPath(collection.id) : ""}
+              disabled={!collection}
+              icon={<PlusIcon />}
+              neutral={isEditing}
             >
-              <Button
-                as={Link}
-                to={collection ? newDocumentPath(collection.id) : ""}
-                disabled={!collection}
-                icon={<PlusIcon />}
-                neutral={isEditing}
-              >
-                {t("New doc")}
-              </Button>
-            </Tooltip>
-          </Action>
-          <Separator />
-        </>
+              {t("New doc")}
+            </Button>
+          </Tooltip>
+        </Action>
       )}
       <Action>
         <CollectionMenu collection={collection} align="end" neutral />

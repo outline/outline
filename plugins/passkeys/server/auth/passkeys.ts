@@ -155,6 +155,9 @@ router.post(
         expectedChallenge,
         expectedOrigin: getExpectedOrigin(ctx),
         expectedRPID: getRpID(ctx),
+        // Match the "preferred" policy in registration options; some
+        // authenticators legitimately skip user verification.
+        requireUserVerification: false,
       });
     } catch (error) {
       const err = toError(error);
@@ -330,6 +333,9 @@ router.post(
           counter: passkey.counter,
           transports: passkey.transports as AuthenticatorTransportFuture[],
         },
+        // Match the "preferred" policy in authentication options; some
+        // authenticators legitimately skip user verification.
+        requireUserVerification: false,
       });
     } catch (err) {
       Logger.error(

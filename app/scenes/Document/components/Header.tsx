@@ -6,10 +6,11 @@ import { Link } from "react-router-dom";
 import useMeasure from "react-use-measure";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
+import { s } from "@shared/styles";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import { publishDocument } from "~/actions/definitions/documents";
 import { restoreRevision } from "~/actions/definitions/revisions";
-import { Action, Separator } from "~/components/Actions";
+import { Action } from "~/components/Actions";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Collaborators from "~/components/Collaborators";
@@ -130,7 +131,7 @@ function DocumentHeader({
       shortcut={`Ctrl+${altDisplay}+h`}
       placement="bottom"
     >
-      <Button
+      <TocButton
         aria-label={t("Show contents")}
         onClick={handleToggle}
         icon={<TableOfContentsIcon />}
@@ -155,7 +156,6 @@ function DocumentHeader({
             pathname: documentEditPath(document),
             state: { sidebarContext },
           }}
-          haptic="light"
           neutral
         >
           {isMobile ? null : t("Edit")}
@@ -182,7 +182,10 @@ function DocumentHeader({
           <TableOfContentsMenu />
         ) : (
           <DocumentBreadcrumb document={document}>
-            {toc} <Star document={document} color={theme.textSecondary} />
+            {toc}{" "}
+            <StarAction>
+              <Star document={document} color={theme.textSecondary} />
+            </StarAction>
           </DocumentBreadcrumb>
         )
       }
@@ -240,7 +243,6 @@ function DocumentHeader({
                   onClick={handleSave}
                   disabled={savingIsDisabled}
                   neutral={isDraft}
-                  haptic="medium"
                   hideIcon
                 >
                   {isDraft ? t("Save draft") : t("Done editing")}
@@ -293,7 +295,6 @@ function DocumentHeader({
               </Button>
             </Action>
           )}
-          {!isDeleted && <Separator />}
           <Action>
             <DocumentMenu
               document={document}
@@ -314,6 +315,36 @@ function DocumentHeader({
 const StyledHeader = styled(Header)<{ $hidden: boolean }>`
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
+`;
+
+const TocButton = styled(Button)`
+  border-radius: 4px;
+
+  &&:hover:not(:disabled),
+  &&[aria-expanded="true"] {
+    background: ${s("buttonNeutralHoverBackground")};
+    box-shadow: none;
+    transition: none;
+  }
+`;
+
+const StarAction = styled.span`
+  display: inline-flex;
+
+  button {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 100ms ease-in-out;
+
+    &:hover {
+      background: ${s("buttonNeutralHoverBackground")};
+      transition: none;
+    }
+  }
 `;
 
 export default observer(DocumentHeader);

@@ -16,32 +16,33 @@ import {
   isValid,
   parse,
 } from "date-fns";
-import {
-  ca,
-  cs,
-  de,
-  enGB,
-  enUS,
-  es,
-  faIR,
-  fr,
-  he,
-  hu,
-  it,
-  ja,
-  ko,
-  nb,
-  nl,
-  ptBR,
-  pt,
-  pl,
-  sv,
-  tr,
-  vi,
-  uk,
-  zhCN,
-  zhTW,
-} from "date-fns/locale";
+// Locales are imported from their individual modules rather than the
+// "date-fns/locale" index, which would load every locale date-fns ships
+// (~90) into memory rather than only those supported by the app.
+import { ca } from "date-fns/locale/ca";
+import { cs } from "date-fns/locale/cs";
+import { de } from "date-fns/locale/de";
+import { enGB } from "date-fns/locale/en-GB";
+import { enUS } from "date-fns/locale/en-US";
+import { es } from "date-fns/locale/es";
+import { faIR } from "date-fns/locale/fa-IR";
+import { fr } from "date-fns/locale/fr";
+import { he } from "date-fns/locale/he";
+import { hu } from "date-fns/locale/hu";
+import { it } from "date-fns/locale/it";
+import { ja } from "date-fns/locale/ja";
+import { ko } from "date-fns/locale/ko";
+import { nb } from "date-fns/locale/nb";
+import { nl } from "date-fns/locale/nl";
+import { ptBR } from "date-fns/locale/pt-BR";
+import { pt } from "date-fns/locale/pt";
+import { pl } from "date-fns/locale/pl";
+import { sv } from "date-fns/locale/sv";
+import { tr } from "date-fns/locale/tr";
+import { vi } from "date-fns/locale/vi";
+import { uk } from "date-fns/locale/uk";
+import { zhCN } from "date-fns/locale/zh-CN";
+import { zhTW } from "date-fns/locale/zh-TW";
 import type { DateFilter } from "../types";
 import { isBrowser } from "./browser";
 

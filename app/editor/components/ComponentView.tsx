@@ -72,8 +72,8 @@ export default class ComponentView {
     this.dom.classList.add(this.className);
     this.renderer = new NodeViewRenderer(this.dom, this.component, this.props);
 
-    // Add the renderer to the editor's set of renderers so that it is included in the React tree.
-    this.editor.renderers.add(this.renderer);
+    // Add the renderer to the editor's set of node renderers so that it is included in the React tree.
+    this.editor.nodeRenderers.add(this.renderer);
 
     // Apply decoration classes to the DOM element.
     this.applyDecorationClasses();
@@ -156,7 +156,7 @@ export default class ComponentView {
   }
 
   destroy() {
-    this.editor.renderers.delete(this.renderer);
+    this.editor.nodeRenderers.delete(this.renderer);
     this.dom = null;
   }
 

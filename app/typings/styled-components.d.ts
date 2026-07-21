@@ -166,6 +166,7 @@ declare module "styled-components" {
     mentionBackground: string;
     mentionHoverBackground: string;
     buttonNeutralBackground: string;
+    buttonNeutralHoverBackground: string;
     buttonNeutralText: string;
     buttonNeutralBorder: string;
     tooltipBackground: string;

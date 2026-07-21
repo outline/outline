@@ -224,11 +224,10 @@ export default class AuthStore extends Store<Team> {
         this.collaborationToken = res.data.collaborationToken;
 
         if (env.SENTRY_DSN) {
-          Sentry.configureScope((scope) => {
-            scope.setUser({ id: this.currentUserId! });
-            scope.setExtra("team", this.team?.name);
-            scope.setExtra("teamId", this.currentTeamId);
-          });
+          const scope = Sentry.getCurrentScope();
+          scope.setUser({ id: this.currentUserId! });
+          scope.setExtra("team", this.team?.name);
+          scope.setExtra("teamId", this.currentTeamId);
         }
 
         // Redirect to the correct custom domain or team subdomain if needed
@@ -369,8 +368,13 @@ export default class AuthStore extends Store<Team> {
       });
     }
 
-    if (userInitiated) {
-      this.logoutRedirectUri = env.OIDC_LOGOUT_URI;
+    if (
+      userInitiated &&
+      (env.OIDC_LOGOUT_URI || this.lastSignedIn === "oidc")
+    ) {
+      // Route through the server so it can build a spec-compliant RP-initiated
+      // logout URL (including the id_token_hint) for the OIDC provider.
+      this.logoutRedirectUri = "/auth/oidc.logout";
     }
 
     if (clearCache) {

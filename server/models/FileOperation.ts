@@ -70,13 +70,13 @@ class FileOperation extends ParanoidModel<
   @Column(DataType.ENUM(...Object.values(FileOperationState)))
   state: FileOperationState;
 
-  @Column
+  @Column(DataType.STRING)
   key: string;
 
-  @Column
+  @Column(DataType.STRING)
   url?: string | null;
 
-  @Column
+  @Column(DataType.STRING)
   error: string | null;
 
   @Column(DataType.BIGINT)

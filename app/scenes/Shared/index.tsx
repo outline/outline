@@ -266,6 +266,7 @@ function SharedScene() {
             <Layout
               title={pageTitle}
               sidebar={hasSidebar ? <Sidebar share={share} /> : null}
+              sidebarCanCollapse={false}
             >
               {model instanceof Document ? (
                 <DocumentScene document={model} />

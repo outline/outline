@@ -1,3 +1,4 @@
+import { subSeconds } from "date-fns";
 import {
   MentionType,
   NotificationEventType,
@@ -83,6 +84,12 @@ describe("revisions.create", () => {
     );
     document.collaboratorIds = [user.id, collaborator.id];
     await document.save();
+
+    // Backdate the update so the view is recorded strictly after it.
+    await document.update(
+      { updatedAt: subSeconds(new Date(), 60) },
+      { silent: true }
+    );
 
     await View.create({
       userId: collaborator.id,
@@ -483,6 +490,12 @@ describe("revisions.create", () => {
     );
     document.collaboratorIds = [collaborator.id];
     await document.save();
+
+    // Backdate the update so the view is recorded strictly after it.
+    await document.update(
+      { updatedAt: subSeconds(new Date(), 60) },
+      { silent: true }
+    );
 
     await View.create({
       userId: collaborator.id,

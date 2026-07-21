@@ -66,6 +66,19 @@ class MockStorage extends BaseStorage {
 }
 
 describe("BaseStorage", () => {
+  describe("getPresignedPut", () => {
+    it("should return undefined from default implementation", async () => {
+      const storage = new MockStorage();
+      const result = await storage.getPresignedPut(
+        "uploads/test/key",
+        "private",
+        1000000,
+        "image/png"
+      );
+      expect(result).toBeUndefined();
+    });
+  });
+
   describe("storeFromUrl", () => {
     let storage: MockStorage;
 

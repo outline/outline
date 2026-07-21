@@ -21,6 +21,7 @@ import {
   ImportTaskState,
 } from "@shared/types";
 import { toError } from "@shared/utils/error";
+import { isExternalUrl } from "@shared/utils/urls";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -365,7 +366,14 @@ export default abstract class APIImportTask<
         return { url, name: name.length !== 0 ? name : node.type.name };
       }),
       "url"
-    );
+    ).filter((item) => isExternalUrl(item.url));
+
+    // Nothing remote to download — content already points at internal
+    // attachments (e.g. a Markdown zip's local files resolved to redirect
+    // URLs), so leave the doc untouched.
+    if (!attachmentsData.length) {
+      return doc;
+    }
 
     await sequelize.transaction(async (transaction) => {
       const dbPromises = attachmentsData.map(async (item) => {
@@ -436,14 +444,23 @@ export default abstract class APIImportTask<
       const attrs = json.attrs ?? {};
 
       if (node.type.name === "attachment") {
-        const attachmentModel = urlToAttachment[attrs.href as string];
         // attachment node uses 'href' attribute.
+        const attachmentModel = urlToAttachment[attrs.href as string];
+        // Nodes already pointing at internal attachments aren't in the map;
+        // leave them untouched.
+        if (!attachmentModel) {
+          return node;
+        }
         attrs.href = attachmentModel.redirectUrl;
         // attachment node can have id.
         attrs.id = attachmentModel.id;
       } else if (node.type.name === "image" || node.type.name === "video") {
         // image & video nodes use 'src' attribute.
-        attrs.src = urlToAttachment[attrs.src as string].redirectUrl;
+        const attachmentModel = urlToAttachment[attrs.src as string];
+        if (!attachmentModel) {
+          return node;
+        }
+        attrs.src = attachmentModel.redirectUrl;
       }
 
       json.attrs = attrs;

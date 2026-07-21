@@ -7,7 +7,9 @@ import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 import { toError } from "@shared/utils/error";
 import { TeamPreference } from "@shared/types";
+import { iconNames } from "@shared/utils/IconNames";
 import { NotFoundError } from "@server/errors";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -22,10 +24,42 @@ import { documentTools } from "@server/tools/documents";
 import { fetchTool } from "@server/tools/fetch";
 import { templateTools } from "@server/tools/templates";
 import { userTools } from "@server/tools/users";
+import { iconNamesResourceUri } from "@server/tools/util";
 import { version } from "../../../package.json";
 
 const app = new Koa();
 const router = new Router();
+
+// RFC 9728 / MCP auth spec: 401 responses from the /mcp endpoint must include
+// a WWW-Authenticate header pointing at the OAuth protected resource metadata
+// document so clients can bootstrap the authorization flow via discovery.
+app.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (err: unknown) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      (err as { status?: number }).status === 401
+    ) {
+      const headersHost = err as { headers?: Record<string, string> };
+      const existingHeaders = headersHost.headers ?? {};
+      const hasWwwAuth = Object.keys(existingHeaders).some(
+        (k) => k.toLowerCase() === "www-authenticate"
+      );
+      if (!hasWwwAuth) {
+        const origin = env.isCloudHosted
+          ? ctx.request.URL.origin
+          : new URL(env.URL).origin;
+        headersHost.headers = {
+          ...existingHeaders,
+          "WWW-Authenticate": `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`,
+        };
+      }
+    }
+    throw err;
+  }
+});
 
 const defaultInstructions = `Document markdown content must not begin with a top-level heading (H1) — the title is stored as a separate field, so set it via the title parameter and start the content with body text or a lower-level heading instead.
 
@@ -56,9 +90,32 @@ function createMcpServer(scopes: string[], guidance?: string): McpServer {
     {
       capabilities: {
         tools: {},
+        resources: {},
       },
       instructions,
     }
+  );
+
+  // Exposed as a resource rather than inlined into every icon field's schema,
+  // so the full list is fetched on demand instead of shipped with tools/list.
+  server.registerResource(
+    "icons",
+    iconNamesResourceUri,
+    {
+      title: "Icon names",
+      description:
+        "The names of the icons available for document and collection icons.",
+      mimeType: "application/json",
+    },
+    (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "application/json",
+          text: JSON.stringify(iconNames),
+        },
+      ],
+    })
   );
 
   attachmentTools(server, scopes);

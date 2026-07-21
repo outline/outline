@@ -13,6 +13,16 @@ export type NodeWithPos = {
 
 export type PlainTextSerializer = (node: ProsemirrorNode) => string;
 
+/** The severity of a notice surfaced to the user from the editor. */
+export type EditorNoticeType = "info" | "success" | "warning" | "error";
+
+/**
+ * Callback used by the editor to surface a short notice (e.g. a toast) to the
+ * user. Provided by the host application so shared editor code stays agnostic
+ * of any specific notification library.
+ */
+export type EditorNotice = (message: string, type?: EditorNoticeType) => void;
+
 export enum TableLayout {
   fullWidth = "full-width",
 }

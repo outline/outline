@@ -71,7 +71,7 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   @Column(DataType.INTEGER)
   documentCount: number;
 
-  @Column
+  @Column(DataType.STRING)
   error: string | null;
 
   // associations

@@ -13,6 +13,7 @@ import {
   RestoreIcon,
   SearchIcon,
   ShapesIcon,
+  SplitIcon,
   StarredIcon,
   SubscribeIcon,
   TrashIcon,
@@ -42,8 +43,10 @@ import {
 } from "~/utils/routeHelpers";
 import ExportDialog from "~/components/ExportDialog";
 import { getEventFiles } from "@shared/utils/files";
+import { isMobile } from "@shared/utils/browser";
 import history from "~/utils/history";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import { openRouteInSplit } from "~/utils/splitView";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
   <DynamicCollectionIcon collection={collection} />
@@ -263,6 +266,21 @@ export const sortCollection = createActionWithChildren({
       },
     }),
   ],
+});
+
+export const openCollectionInSplit = createAction({
+  name: ({ t }) => t("Open in split view"),
+  analyticsName: "Open collection in split view",
+  section: ActiveCollectionSection,
+  icon: <SplitIcon />,
+  keywords: "split side pane",
+  visible: ({ getActiveModel }) => !!getActiveModel(Collection) && !isMobile(),
+  perform: ({ getActiveModel }) => {
+    const collection = getActiveModel(Collection);
+    if (collection) {
+      openRouteInSplit(history, collection.path);
+    }
+  },
 });
 
 export const searchInCollection = createInternalLinkAction({
@@ -539,6 +557,7 @@ export const createTemplate = createInternalLinkAction({
 
 export const rootCollectionActions = [
   openCollection,
+  openCollectionInSplit,
   createCollection,
   starCollection,
   unstarCollection,

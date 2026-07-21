@@ -4963,13 +4963,11 @@ describe("#documents.users", () => {
     });
 
     // add people to group
-    await Promise.all([
-      group.$add("user", ken, {
-        through: {
-          createdById: user.id,
-        },
-      }),
-    ]);
+    await group.$add("user", ken, {
+      through: {
+        createdById: user.id,
+      },
+    });
 
     // add people and groups to collection
     await Promise.all([

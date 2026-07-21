@@ -27,7 +27,14 @@ export type TokenRevokeReq = z.infer<typeof TokenRevokeSchema>;
 
 export const RegisterSchema = BaseSchema.extend({
   body: z.object({
-    client_name: z.string().min(1).max(OAuthClientValidation.maxNameLength),
+    // RFC 7591 §2 marks every metadata field as OPTIONAL; some MCP clients
+    // omit `client_name` on dynamic registration and currently get rejected.
+    // A default is filled in by the handler when the field is absent.
+    client_name: z
+      .string()
+      .min(1)
+      .max(OAuthClientValidation.maxNameLength)
+      .optional(),
     redirect_uris: z
       .array(z.url().max(OAuthClientValidation.maxRedirectUriLength))
       .min(1)

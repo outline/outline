@@ -126,6 +126,23 @@ describe("DocumentHelper", () => {
       expect(result).not.toMatch(/<script[^>]*nonce="/);
     });
 
+    it("should render math and include the KaTeX stylesheet", async () => {
+      const document = await buildDocument({
+        text: "Inline $E=mc^2$ and block:\n\n$$\n\\frac{1}{2}\n$$\n",
+      });
+      const result = await DocumentHelper.toHTML(document);
+      expect(result).toContain('class="katex"');
+      expect(result).toContain("katex.min.css");
+    });
+
+    it("should not include the KaTeX stylesheet without math", async () => {
+      const document = await buildDocument({
+        text: "This is a test paragraph",
+      });
+      const result = await DocumentHelper.toHTML(document);
+      expect(result).not.toContain("katex.min.css");
+    });
+
     it("should render diff classes when changes provided", async () => {
       const doc1 = await buildDocument({ text: "Hello world" });
       const doc2 = await buildDocument({ text: "Hello modified world" });
@@ -342,6 +359,78 @@ This is a [test paragraph](https://example.net)`,
   });
 
   describe("toMarkdown", () => {
+    it("should preserve smart quotes rather than flattening them", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "the cat’s “meow”" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(result).toBe("the cat’s “meow”");
+    });
+
+    it("should not crash serializing a table with no rows", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "before" }] },
+            { type: "table", content: [] },
+            { type: "paragraph", content: [{ type: "text", text: "after" }] },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(result).toBe("before\n\nafter");
+    });
+
+    it("should not escape standalone square brackets", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "one [two] three" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(result).toBe("one [two] three");
+    });
+
+    it("should escape literal inline-link syntax with nested brackets", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "nested [a[b]c](url) link" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Escaped so it is not re-parsed into a link on round-trip.
+      expect(result).toBe("nested \\[a\\[b]c](url) link");
+    });
+
     it("should export bullet lists inside table cells with br tags", async () => {
       // Create a document with a table containing a bullet list in a cell
       // This tests the renderList inTable handling
@@ -933,6 +1022,113 @@ In a cell
 
 
 `);
+    });
+  });
+
+  describe("getAnchorContent", () => {
+    it("should return the section content for a matching heading anchor", async () => {
+      const document = await buildDocument({
+        text: `Intro paragraph.
+
+## Installation
+
+Install instructions here.
+
+More install detail.
+
+## Usage
+
+Usage instructions here.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(
+        document,
+        "h-installation"
+      );
+      expect(result).toBe(
+        `## Installation
+
+Install instructions here.
+
+More install detail.`
+      );
+    });
+
+    it("should accept an anchor with a leading hash", async () => {
+      const document = await buildDocument({
+        text: `## Installation
+
+Install instructions here.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(
+        document,
+        "#h-installation"
+      );
+      expect(result).toBe(
+        `## Installation
+
+Install instructions here.`
+      );
+    });
+
+    it("should stop at the next heading of the same or higher level", async () => {
+      const document = await buildDocument({
+        text: `## Section
+
+Section body.
+
+### Subsection
+
+Subsection body.
+
+## Other
+
+Other body.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(document, "h-section");
+      expect(result).toBe(
+        `## Section
+
+Section body.
+
+### Subsection
+
+Subsection body.`
+      );
+    });
+
+    it("should resolve anchors for duplicate headings", async () => {
+      const document = await buildDocument({
+        text: `## Notes
+
+First notes.
+
+## Notes
+
+Second notes.`,
+      });
+
+      const result = DocumentHelper.getAnchorContent(document, "h-notes-1");
+      expect(result).toBe(
+        `## Notes
+
+Second notes.`
+      );
+    });
+
+    it("should return undefined when no heading matches", async () => {
+      const document = await buildDocument({
+        text: `## Installation
+
+Install instructions here.`,
+      });
+
+      expect(
+        DocumentHelper.getAnchorContent(document, "h-missing")
+      ).toBeUndefined();
+      expect(DocumentHelper.getAnchorContent(document, "")).toBeUndefined();
     });
   });
 });

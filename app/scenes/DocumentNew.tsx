@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { toast } from "sonner";
 import { UserPreference } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import CenteredContent from "~/components/CenteredContent";
 import Flex from "~/components/Flex";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
@@ -47,7 +47,7 @@ function DocumentNew() {
               user.getPreference(UserPreference.FullWidthDocuments),
             templateId: query.get("templateId") ?? undefined,
             title: query.get("title") ?? "",
-            data: ProsemirrorHelper.getEmptyDocument(),
+            data: ProsemirrorDataHelper.getEmpty(),
           },
           {
             publish: collection?.id || parentDocumentId ? true : undefined,

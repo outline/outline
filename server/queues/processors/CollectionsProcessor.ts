@@ -21,7 +21,6 @@ export default class CollectionsProcessor extends BaseProcessor {
 
     await sequelize.transaction(async (transaction) => {
       const team = await Team.findByPk(event.teamId, {
-        rejectOnEmpty: true,
         transaction,
         lock: transaction.LOCK.UPDATE,
       });

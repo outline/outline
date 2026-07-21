@@ -49,7 +49,7 @@ class Event extends IdModel<
 
   /** The originating IP address of the event. */
   @IsIP
-  @Column
+  @Column(DataType.STRING)
   ip: string | null;
 
   /** The type of authentication used to create the event. */

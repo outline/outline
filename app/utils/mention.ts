@@ -15,6 +15,13 @@ const gitlabSystemPaths = new Set([
   "-",
 ]);
 
+/**
+ * Checks whether a URL can be converted to a mention for the given
+ * integration.
+ *
+ * @param options the URL and integration to check against.
+ * @returns true if the URL can be mentioned through the integration.
+ */
 export const isURLMentionable = ({
   url,
   integration,
@@ -61,6 +68,13 @@ export const isURLMentionable = ({
   }
 };
 
+/**
+ * Determines the type of mention a URL represents for the given integration,
+ * such as an issue, pull request, or project.
+ *
+ * @param options the URL and integration to evaluate.
+ * @returns the mention type, or undefined if the URL is not recognized.
+ */
 export const determineMentionType = ({
   url,
   integration,

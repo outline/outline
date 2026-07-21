@@ -14,6 +14,9 @@ export class EditorStyleHelper {
 
   static readonly imagePositionAnchor = "image-position-anchor";
 
+  /** Class added to body when resizing images/media */
+  static readonly resizeDragging = "resize-dragging";
+
   // Headings
 
   static readonly headingPositionAnchor = "heading-position-anchor";
@@ -21,6 +24,9 @@ export class EditorStyleHelper {
   // Comments
 
   static readonly comment = "comment-marker";
+
+  /** Container for the comment indicators shown in the gutter beside a line */
+  static readonly commentGutter = "comment-gutter";
 
   // Multiplayer
 
@@ -35,12 +41,6 @@ export class EditorStyleHelper {
   static readonly codeBlock = "code-block";
 
   static readonly codeWord = "code-word";
-
-  static readonly hexColorSwatch = "hex-color-swatch";
-
-  static readonly hexColorSwatchLight = "hex-color-swatch-light";
-
-  static readonly hexColorSwatchDark = "hex-color-swatch-dark";
 
   /** Toggle button for collapsible code blocks */
   static readonly codeBlockToggle = "code-block-toggle";

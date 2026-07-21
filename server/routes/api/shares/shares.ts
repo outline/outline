@@ -294,16 +294,6 @@ router.post(
       authorize(user, "read", collection);
     }
 
-    if (published) {
-      authorize(user, "share", user.team);
-      if (document) {
-        authorize(user, "share", document);
-      }
-      if (collection) {
-        authorize(user, "share", collection);
-      }
-    }
-
     const [share] = await Share.findOrCreateWithCtx(ctx, {
       where: {
         collectionId: collectionId ?? null,
@@ -322,6 +312,16 @@ router.post(
         urlId,
       },
     });
+
+    if (share.published) {
+      authorize(user, "share", user.team);
+      if (document) {
+        authorize(user, "share", document);
+      }
+      if (collection) {
+        authorize(user, "share", collection);
+      }
+    }
 
     share.team = user.team;
     share.user = user;

@@ -94,7 +94,7 @@ describe("#oauth.register", () => {
     expect(body.logo_uri).toEqual("https://example.com/logo.png");
   });
 
-  it("should reject missing client_name", async () => {
+  it("should accept registration without client_name", async () => {
     const res = await server.post("/oauth/register", {
       body: {
         redirect_uris: ["https://example.com/callback"],
@@ -104,7 +104,10 @@ describe("#oauth.register", () => {
       },
     });
 
-    expect(res.status).toEqual(400);
+    expect(res.status).toEqual(201);
+    const body = await res.json();
+    expect(body.client_id).toBeTruthy();
+    expect(body.client_name).toEqual("Untitled application");
   });
 
   it("should reject missing redirect_uris", async () => {

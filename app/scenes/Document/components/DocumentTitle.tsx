@@ -147,10 +147,10 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
       if (/\/date\s$/.test(input)) {
         value = getCurrentDateAsString();
         ref?.current?.focusAtEnd();
-      } else if (/\/time$/.test(input)) {
+      } else if (input.endsWith("/time")) {
         value = getCurrentTimeAsString();
         ref?.current?.focusAtEnd();
-      } else if (/\/datetime$/.test(input)) {
+      } else if (input.endsWith("/datetime")) {
         value = getCurrentDateTimeAsString();
         ref?.current?.focusAtEnd();
       }

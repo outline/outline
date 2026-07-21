@@ -138,7 +138,10 @@ export default class PasteHandler extends Extension {
                           return;
                         }
                         if (document) {
-                          if (state.schema.nodes.mention && !containsHash) {
+                          if (state.schema.nodes.mention) {
+                            const { hash } = new URL(trimmedText);
+                            const trimmedHash = hash.substring(1);
+
                             view.dispatch(
                               view.state.tr.replaceWith(
                                 state.selection.from,
@@ -148,6 +151,9 @@ export default class PasteHandler extends Extension {
                                   modelId: document.id,
                                   label: document.titleWithDefault,
                                   id: uuidv4(),
+                                  anchorId: trimmedHash.length
+                                    ? trimmedHash
+                                    : undefined,
                                 })
                               )
                             );
@@ -157,9 +163,9 @@ export default class PasteHandler extends Extension {
                               determineIconType(document.icon) ===
                               IconType.Emoji;
 
-                            const title = `${
-                              hasEmoji ? document.icon + " " : ""
-                            }${document.titleWithDefault}`;
+                            const title = `${hasEmoji ? document.icon + " " : ""}${
+                              document.titleWithDefault
+                            }`;
 
                             this.insertLink(`${document.path}${hash}`, title);
                           }
@@ -202,9 +208,9 @@ export default class PasteHandler extends Extension {
                               determineIconType(collection.icon) ===
                               IconType.Emoji;
 
-                            const title = `${
-                              hasEmoji ? collection.icon + " " : ""
-                            }${collection.name}`;
+                            const title = `${hasEmoji ? collection.icon + " " : ""}${
+                              collection.name
+                            }`;
 
                             this.insertLink(`${collection.path}${hash}`, title);
                           }

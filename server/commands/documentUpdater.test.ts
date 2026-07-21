@@ -419,6 +419,40 @@ describe("documentUpdater", () => {
       });
     });
 
+    it("should patch text retrieved via toMarkdown containing smart quotes and brackets", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        teamId: user.teamId,
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "the cat’s “meow” [loud]" }],
+            },
+          ],
+        },
+      });
+
+      // findText is the exact text a client receives from retrieval.
+      const findText = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      expect(findText).toBe("the cat’s “meow” [loud]");
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "quiet",
+        TextEditMode.Patch,
+        findText
+      );
+
+      expect(result.content!.content![0]).toMatchObject({
+        type: "paragraph",
+        content: [{ type: "text", text: "quiet" }],
+      });
+    });
+
     it("should throw when findText is not found in document", async () => {
       const user = await buildUser();
       const document = await buildDocument({
