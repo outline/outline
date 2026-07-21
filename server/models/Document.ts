@@ -384,7 +384,7 @@ class Document extends ArchivableModel<
 
   /** Whether this document has restricted access (does not inherit permissions from parent/collection). */
   @Default(false)
-  @Column
+  @Column(DataType.BOOLEAN)
   isPrivate: boolean;
 
   /** Whether this document is part of onboarding. */
