@@ -27,12 +27,18 @@ import Logger from "./utils/Logger";
 import { PluginManager } from "./utils/PluginManager";
 import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
+import { trackSplitViewModifier } from "./utils/splitView";
 import { ActionContextProvider } from "./hooks/useActionContext";
 
 // Load plugins as soon as possible
 void PluginManager.loadPlugins();
 
 initI18n(env.DEFAULT_LANGUAGE);
+
+// Register ahead of rendering so the capture-phase listeners run before any
+// React-mounted listener, such as kbar's Enter handler.
+trackSplitViewModifier();
+
 const element = window.document.getElementById("root");
 
 if (env.SENTRY_DSN) {

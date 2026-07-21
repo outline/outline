@@ -11,11 +11,14 @@ import type { match } from "react-router";
 import { __RouterContext as RouterContext, matchPath } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
-import { isModKey } from "@shared/utils/keyboard";
 import { useFocusedSplitLocation } from "~/hooks/useFocusedSplitLocation";
 import Desktop from "~/utils/Desktop";
 import history from "~/utils/history";
-import { isSplitablePath, openRouteInSplit } from "~/utils/splitView";
+import {
+  isSplitablePath,
+  isSplitViewModifierEvent,
+  openRouteInSplit,
+} from "~/utils/splitView";
 
 const resolveToLocation = (
   to: LocationDescriptor | ((location: Location) => LocationDescriptor),
@@ -212,9 +215,7 @@ const NavLink = observer(function NavLink({
       // standing in for the browser's open-in-new-tab behavior.
       if (
         Desktop.isElectron() &&
-        isModKey(event.nativeEvent) &&
-        !event.shiftKey &&
-        !event.altKey &&
+        isSplitViewModifierEvent(event.nativeEvent) &&
         toLocation.pathname &&
         isSplitablePath(toLocation.pathname)
       ) {

@@ -1,7 +1,9 @@
-import type { History } from "history";
-import { parsePath } from "history";
+import type { History, LocationDescriptor } from "history";
+import { createPath, parsePath } from "history";
 import { action, observable } from "mobx";
 import queryString from "query-string";
+import { isMobile } from "@shared/utils/browser";
+import { isModKey } from "@shared/utils/keyboard";
 
 /**
  * Name of the query string parameter that holds the route displayed in the
@@ -149,6 +151,88 @@ export function withoutSplitViewNavigation(callback: () => void): void {
   } finally {
     navigationSuppressed = false;
   }
+}
+
+let splitModifierPressed = false;
+
+/**
+ * Whether an event carries the modifier combination that opens a route in the
+ * secondary pane of the split view.
+ *
+ * @param event the keyboard or mouse event to check.
+ * @returns true if the split view modifier combination is held.
+ */
+export function isSplitViewModifierEvent(
+  event: KeyboardEvent | MouseEvent
+): boolean {
+  return isModKey(event) && !event.shiftKey && !event.altKey;
+}
+
+/**
+ * Starts tracking whether the split view modifier combination is held during
+ * events dispatched to the window, allowing code without direct access to the
+ * triggering event, such as command bar actions, to check it with
+ * isSplitViewModifierPressed. Synthetic clicks, such as the one kbar
+ * dispatches when Enter is pressed, are ignored so the state of the
+ * originating keyboard event is preserved.
+ *
+ * @returns a function that stops tracking.
+ */
+export function trackSplitViewModifier(): () => void {
+  const record = (event: KeyboardEvent | MouseEvent) => {
+    splitModifierPressed = isSplitViewModifierEvent(event);
+  };
+  const handleClick = (event: MouseEvent) => {
+    // Clicks not produced by a pointer press carry no modifier state.
+    if (event.detail === 0) {
+      return;
+    }
+    record(event);
+  };
+
+  window.addEventListener("keydown", record, { capture: true });
+  window.addEventListener("click", handleClick, { capture: true });
+
+  return () => {
+    splitModifierPressed = false;
+    window.removeEventListener("keydown", record, { capture: true });
+    window.removeEventListener("click", handleClick, { capture: true });
+  };
+}
+
+/**
+ * Whether the split view modifier combination was held during the most recent
+ * tracked event, see trackSplitViewModifier. Intended to be read while that
+ * event is still being dispatched.
+ *
+ * @returns true if the split view modifier is held.
+ */
+export function isSplitViewModifierPressed(): boolean {
+  return splitModifierPressed;
+}
+
+/**
+ * Navigates to the given location, opening it in the secondary pane of the
+ * split view instead when the split view modifier is held and the route can
+ * render in a pane.
+ *
+ * @param history the history instance to navigate with.
+ * @param to the path or location descriptor to navigate to.
+ */
+export function pushOrOpenInSplit(
+  history: History,
+  to: LocationDescriptor
+): void {
+  if (isSplitViewModifierPressed() && !isMobile()) {
+    const location = typeof to === "string" ? parsePath(to) : to;
+
+    if (location.pathname && isSplitablePath(location.pathname)) {
+      openRouteInSplit(history, createPath(location));
+      return;
+    }
+  }
+
+  history.push(to);
 }
 
 /**
