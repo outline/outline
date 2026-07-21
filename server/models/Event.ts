@@ -89,11 +89,11 @@ class Event extends IdModel<
       // We want to use the parent transaction, otherwise the 'afterCommit' hook will never fire in this case.
       // See: https://github.com/sequelize/sequelize/issues/17452
       (options.transaction.parent || options.transaction).afterCommit(
-        () => void globalEventQueue().add(model)
+        () => void globalEventQueue().add(model.name, model)
       );
       return;
     }
-    void globalEventQueue().add(model);
+    void globalEventQueue().add(model.name, model);
   }
 
   // associations
@@ -139,12 +139,11 @@ class Event extends IdModel<
    */
   static schedule(event: Partial<Event>) {
     const now = new Date();
-    return globalEventQueue().add(
-      this.build({
-        createdAt: now,
-        ...event,
-      })
-    );
+    const model = this.build({
+      createdAt: now,
+      ...event,
+    });
+    return globalEventQueue().add(model.name, model);
   }
 
   /**

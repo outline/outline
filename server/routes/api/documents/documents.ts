@@ -1603,19 +1603,19 @@ router.post(
       });
     }
 
-    const job = await new DocumentImportTask().schedule({
-      key,
-      sourceMetadata: {
-        fileName,
-        mimeType,
-      },
-      userId: user.id,
-      collectionId: collectionId ?? parentDocument?.collectionId,
-      parentDocumentId,
-      publish,
-      ip: ctx.request.ip,
-    });
-    const response: DocumentImportTaskResponse = await job.finished();
+    const response: DocumentImportTaskResponse =
+      await new DocumentImportTask().scheduleAndWait({
+        key,
+        sourceMetadata: {
+          fileName,
+          mimeType,
+        },
+        userId: user.id,
+        collectionId: collectionId ?? parentDocument?.collectionId,
+        parentDocumentId,
+        publish,
+        ip: ctx.request.ip,
+      });
     if ("error" in response) {
       throw InvalidRequestError(response.error);
     }

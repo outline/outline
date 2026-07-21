@@ -1,4 +1,5 @@
-import { createQueue } from "@server/queues/queue";
+import type { QueueEvents } from "bullmq";
+import { createQueue, createQueueEvents } from "@server/queues/queue";
 import { Second } from "@shared/utils/time";
 
 let cachedGlobalEventQueue: ReturnType<typeof createQueue> | undefined;
@@ -32,9 +33,7 @@ export const processorEventQueue = () => {
 let cachedWebsocketQueue: ReturnType<typeof createQueue> | undefined;
 export const websocketQueue = () => {
   if (!cachedWebsocketQueue) {
-    cachedWebsocketQueue = createQueue("websockets", {
-      timeout: 10 * Second.ms,
-    });
+    cachedWebsocketQueue = createQueue("websockets");
   }
   return cachedWebsocketQueue;
 };
@@ -51,4 +50,21 @@ export const taskQueue = () => {
     });
   }
   return cachedTaskQueue;
+};
+
+let cachedTaskQueueEvents: QueueEvents | undefined;
+
+/**
+ * Events listener for the task queue, used to wait on job results with
+ * `job.waitUntilFinished`. Resolves once the listener is connected, so jobs
+ * scheduled afterwards cannot miss their completion events.
+ *
+ * @returns A promise resolving to the queue events instance.
+ */
+export const taskQueueEvents = async () => {
+  if (!cachedTaskQueueEvents) {
+    cachedTaskQueueEvents = createQueueEvents(taskQueue());
+  }
+  await cachedTaskQueueEvents.waitUntilReady();
+  return cachedTaskQueueEvents;
 };

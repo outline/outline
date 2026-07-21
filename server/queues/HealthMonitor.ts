@@ -1,4 +1,4 @@
-import type { Queue } from "bull";
+import type { Queue, Worker } from "bullmq";
 import { Second } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 
@@ -9,17 +9,18 @@ export default class HealthMonitor {
    * process is exit.
    *
    * @param queue The queue to monitor
+   * @param worker The worker processing jobs from the queue
    */
-  public static start(queue: Queue) {
+  public static start(queue: Queue, worker: Worker) {
     let lastActivityTime = Date.now();
 
-    queue.on("active", () => {
+    worker.on("active", () => {
       lastActivityTime = Date.now();
     });
-    queue.on("completed", () => {
+    worker.on("completed", () => {
       lastActivityTime = Date.now();
     });
-    queue.on("failed", () => {
+    worker.on("failed", () => {
       lastActivityTime = Date.now();
     });
 

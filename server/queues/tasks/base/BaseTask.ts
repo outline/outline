@@ -1,5 +1,5 @@
-import type { Job, JobOptions } from "bull";
-import { taskQueue } from "../../";
+import type { Job, JobsOptions } from "bullmq";
+import { taskQueue, taskQueueEvents } from "../../";
 
 export enum TaskPriority {
   Background = 40,
@@ -13,17 +13,33 @@ export abstract class BaseTask<T extends object> {
    * Schedule this task type to be processed asynchronously by a worker.
    *
    * @param props Properties to be used by the task
-   * @param options Job options such as priority and retry strategy, as defined by Bull.
+   * @param options Job options such as priority and retry strategy, as defined by BullMQ.
    * @returns A promise that resolves once the job is placed on the task queue
    */
-  public schedule(props: T, options?: JobOptions): Promise<Job> {
+  public schedule(props: T, options?: JobsOptions): Promise<Job> {
     return taskQueue().add(
-      {
-        name: this.constructor.name,
-        props,
-      },
+      this.constructor.name,
+      { props },
       { ...options, ...this.options }
     );
+  }
+
+  /**
+   * Schedule this task to be processed by a worker and wait for the result.
+   *
+   * @param props Properties to be used by the task
+   * @param options Job options such as priority and retry strategy, as defined by BullMQ.
+   * @returns A promise that resolves to the return value of `perform`.
+   */
+  public async scheduleAndWait(
+    props: T,
+    options?: JobsOptions
+  ): Promise<Awaited<ReturnType<this["perform"]>>> {
+    // The events listener must be connected before the job is added, so that
+    // the completion event cannot be missed.
+    const queueEvents = await taskQueueEvents();
+    const job = await this.schedule(props, options);
+    return job.waitUntilFinished(queueEvents);
   }
 
   /**
@@ -48,7 +64,7 @@ export abstract class BaseTask<T extends object> {
   /**
    * Job options such as priority and retry strategy.
    */
-  public get options(): JobOptions {
+  public get options(): JobsOptions {
     return {
       priority: TaskPriority.Normal,
       attempts: 5,

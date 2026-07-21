@@ -247,12 +247,10 @@ router.post(
       )
     );
 
-    const job = await new UploadAttachmentFromUrlTask().schedule({
+    const response = await new UploadAttachmentFromUrlTask().scheduleAndWait({
       attachmentId: attachment.id,
       url,
     });
-
-    const response = await job.finished();
     if ("error" in response) {
       throw InvalidRequestError(response.error);
     }

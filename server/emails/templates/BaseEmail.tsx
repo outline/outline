@@ -1,6 +1,6 @@
 import type { EmailAddress } from "addressparser";
 import addressparser from "addressparser";
-import type Bull from "bull";
+import type { JobsOptions } from "bullmq";
 import invariant from "invariant";
 import { t as i18nT } from "i18next";
 import { subMinutes } from "date-fns";
@@ -53,10 +53,10 @@ export default abstract class BaseEmail<
   /**
    * Schedule this email type to be sent asyncronously by a worker.
    *
-   * @param options Options to pass to the Bull queue
+   * @param options Options to pass to the task queue
    * @returns A promise that resolves once the email is placed on the task queue
    */
-  public schedule(options?: Bull.JobOptions) {
+  public schedule(options?: JobsOptions) {
     // No-op to schedule emails if SMTP is not configured
     if (!env.SMTP_FROM_EMAIL) {
       Logger.info(
@@ -75,8 +75,8 @@ export default abstract class BaseEmail<
     // Ideally we'd use EmailTask.schedule here but importing creates a circular
     // dependency so we're pushing onto the task queue in the expected format
     return taskQueue().add(
+      "EmailTask",
       {
-        name: "EmailTask",
         props: {
           templateName,
           ...this.metadata,

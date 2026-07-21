@@ -1,4 +1,4 @@
-import type { JobOptions } from "bull";
+import type { JobsOptions } from "bullmq";
 import { chunk, truncate, uniqBy } from "es-toolkit/compat";
 import { Fragment, Node } from "prosemirror-model";
 import type { WhereOptions } from "sequelize";
@@ -485,9 +485,9 @@ export default abstract class APIImportTask<
   }
 
   /**
-   * Job options such as priority and retry strategy, as defined by Bull.
+   * Job options such as priority and retry strategy, as defined by BullMQ.
    */
-  public get options(): JobOptions {
+  public get options(): JobsOptions {
     return {
       priority: TaskPriority.Normal,
       attempts: 3,
