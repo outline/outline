@@ -28,11 +28,18 @@ import { commentedImagePlugin } from "../plugins/CommentedImagePlugin";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
+// Token that encodes the image `source` attribute inside the markdown title.
+// The title already carries layoutClass and size; this prefix is stripped on
+// parse so the embed type survives the API markdown round-trip.
+const SOURCE_TOKEN_PREFIX = "source=";
+const DIAGRAMS_NET_SOURCE_TAG = `${SOURCE_TOKEN_PREFIX}${ImageSource.DiagramsNet}`;
+
 type TitleAttributes = {
   layoutClass?: string;
   title?: string;
   width?: number;
   height?: number;
+  source?: string;
 };
 
 const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
@@ -41,9 +48,19 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
     title: undefined,
     width: undefined,
     height: undefined,
+    source: undefined,
   };
   if (!tokenTitle) {
     return attributes;
+  }
+
+  // Extract a leading "source=<value>" token before layout/size parsing.
+  const sourceMatch = tokenTitle.match(
+    new RegExp(`\\s*${SOURCE_TOKEN_PREFIX}(\\S+)\\s*`)
+  );
+  if (sourceMatch) {
+    attributes.source = sourceMatch[1];
+    tokenTitle = tokenTitle.replace(sourceMatch[0], "");
   }
 
   ["right-50", "left-50", "full-width"].map((className) => {
@@ -60,7 +77,7 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
     tokenTitle = tokenTitle.replace(imageSizeRegex, "");
   }
 
-  attributes.title = tokenTitle;
+  attributes.title = tokenTitle || undefined;
 
   return attributes;
 };
@@ -479,6 +496,18 @@ export default class Image extends SimpleImage {
       "](" +
       state.esc(node.attrs.src || "", false);
 
+    // Build the title attribute payload. The source tag (e.g. diagrams.net)
+    // must round-trip so API-driven edits preserve draw.io editability.
+    const titleParts: string[] = [];
+    if (node.attrs.source) {
+      titleParts.push(`${SOURCE_TOKEN_PREFIX}${node.attrs.source}`);
+    }
+    if (node.attrs.layoutClass) {
+      titleParts.push(node.attrs.layoutClass);
+    } else if (node.attrs.title) {
+      titleParts.push(node.attrs.title);
+    }
+
     let size = "";
     if (node.attrs.width || node.attrs.height) {
       size = ` =${state.esc(
@@ -489,12 +518,10 @@ export default class Image extends SimpleImage {
         false
       )}`;
     }
-    if (node.attrs.layoutClass) {
-      markdown += ' "' + state.esc(node.attrs.layoutClass, false) + size + '"';
-    } else if (node.attrs.title) {
-      markdown += ' "' + state.esc(node.attrs.title, false) + size + '"';
-    } else if (size) {
-      markdown += ' "' + size + '"';
+
+    if (titleParts.length > 0 || size) {
+      markdown +=
+        ' "' + state.esc(titleParts.join(" "), false) + size + '"';
     }
     markdown += ")";
     state.write(markdown);
