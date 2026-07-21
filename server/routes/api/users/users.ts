@@ -40,6 +40,8 @@ router.post(
       ctx.input.body;
 
     const actor = ctx.state.auth.user;
+    authorize(actor, "listUsers", actor.team);
+
     let where: WhereOptions<User> = {
       teamId: actor.teamId,
     };
