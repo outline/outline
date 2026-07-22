@@ -33,7 +33,6 @@ const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 // parse so the embed type survives the API markdown round-trip.
 const SOURCE_TOKEN_PREFIX = "source=";
 
-
 type TitleAttributes = {
   layoutClass?: string;
   title?: string;
@@ -118,6 +117,10 @@ export default class Image extends SimpleImage {
     return {
       inline: true,
       attrs: {
+        id: {
+          default: null,
+          validate: "string|null",
+        },
         src: {
           default: "",
           validate: "string",
@@ -441,19 +444,24 @@ export default class Image extends SimpleImage {
   handleEditDiagram =
     ({ getPos, view }: ComponentProps) =>
     () => {
-      const { commands } = this.editor;
-      if (!commands.editDiagram) {
+      const commandName =
+        view.state.doc.nodeAt(getPos())?.attrs.source === ImageSource.Excalidraw
+          ? "editExcalidraw"
+          : "editDiagram";
+      const command = this.editor.commands[commandName];
+      if (!command) {
         return;
       }
       const pos = getPos();
       const $pos = view.state.doc.resolve(pos);
       view.dispatch(view.state.tr.setSelection(new NodeSelection($pos)));
-      commands.editDiagram();
+      command();
     };
 
   component = (props: ComponentProps) => {
     if (
-      props.node.attrs.source === ImageSource.DiagramsNet &&
+      (props.node.attrs.source === ImageSource.DiagramsNet ||
+        props.node.attrs.source === ImageSource.Excalidraw) &&
       !props.node.attrs.src
     ) {
       return (
@@ -520,8 +528,7 @@ export default class Image extends SimpleImage {
     }
 
     if (titleParts.length > 0 || size) {
-      markdown +=
-        ' "' + state.esc(titleParts.join(" "), false) + size + '"';
+      markdown += ' "' + state.esc(titleParts.join(" "), false) + size + '"';
     }
     markdown += ")";
     state.write(markdown);

@@ -46,6 +46,16 @@ export default () =>
     },
     plugins: [
       react(),
+      {
+        name: "excalidraw-assets",
+        closeBundle() {
+          fs.cpSync(
+            "node_modules/@excalidraw/excalidraw/dist/prod/fonts",
+            "build/app/excalidraw/fonts",
+            { recursive: true }
+          );
+        },
+      },
       // https://vite-pwa-org.netlify.app/
       VitePWA({
         injectRegister: "inline",

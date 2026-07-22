@@ -3,6 +3,7 @@ import extract from "png-chunks-extract";
 
 export enum ImageSource {
   DiagramsNet = "diagrams.net",
+  Excalidraw = "excalidraw",
 }
 
 export default class FileHelper {
@@ -213,7 +214,31 @@ export default class FileHelper {
     if (await this.isDiagramsNetImage(file)) {
       return ImageSource.DiagramsNet;
     }
+    if (await this.isExcalidrawImage(file)) {
+      return ImageSource.Excalidraw;
+    }
     return undefined;
+  }
+
+  /**
+   * Checks if a file contains an embedded Excalidraw scene. Excalidraw embeds
+   * the scene payload inside SVG comments when exported with `exportEmbedScene`.
+   * The marker string is stable across Excalidraw versions (verified against
+   * @excalidraw/excalidraw exportToSvg).
+   *
+   * @param file The image file to check
+   * @returns True if the file contains an embedded Excalidraw scene
+   */
+  private static async isExcalidrawImage(file: File): Promise<boolean> {
+    if (file.type !== "image/svg+xml") {
+      return false;
+    }
+    try {
+      const text = await file.text();
+      return text.includes("payload-type:application/vnd.excalidraw+json");
+    } catch (_err) {
+      return false;
+    }
   }
 
   /**

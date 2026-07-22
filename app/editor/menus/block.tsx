@@ -281,6 +281,12 @@ export default function blockMenuItems(
       icon: <Img src="/images/diagrams.png" alt="Diagrams.net Diagram" />,
       keywords: "diagram flowchart draw.io",
     },
+    {
+      name: "editExcalidraw",
+      title: "Excalidraw Diagram",
+      icon: <Img src="/images/excalidraw.png" alt="Excalidraw Diagram" />,
+      keywords: "diagram sketch whiteboard draw excalidraw",
+    },
   ];
 
   // Filter out diagrams.net in desktop app

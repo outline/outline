@@ -63,6 +63,7 @@ import { isArray, isNull, map } from "es-toolkit/compat";
 import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
+import ExcalidrawEditor from "~/editor/components/ExcalidrawEditor";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
 import { toastNotice } from "./toastNotice";
 
@@ -1017,6 +1018,7 @@ export class Editor extends React.PureComponent<
               onClose={this.view.focus.bind(this.view)}
             />
           )}
+          {!readOnly && <ExcalidrawEditor editor={this} />}
         </EditorContext.Provider>
       </PortalContext.Provider>
     );
