@@ -29,6 +29,14 @@ export function getSessionsInCookie(ctx: Context) {
   }
 }
 
+/**
+ * Signs in a user by setting authentication cookies and recording the sign-in
+ * event, then redirects to the appropriate destination.
+ *
+ * @param ctx the Koa context.
+ * @param service the name of the authentication service used to sign in.
+ * @param result the authentication result containing user and team details.
+ */
 export async function signIn(
   ctx: Context | APIContext,
   service: string,
@@ -100,8 +108,9 @@ export async function signIn(
     domain,
   });
 
-  // set a transfer cookie for the access token itself and redirect
-  // to the teams subdomain if subdomains are enabled
+  // On cloud hosted multi-team deployments, record the signed-in team in the
+  // sessions cookie so the web team switcher stays in sync. This applies to
+  // both web and desktop clients.
   if (env.isCloudHosted && team.subdomain) {
     // get any existing sessions (teams signed in) and add this team
     const existing = getSessionsInCookie(ctx);
@@ -120,20 +129,23 @@ export async function signIn(
       expires,
       domain,
     });
+  }
 
-    // If the authentication request originally came from the desktop app then we send the user
-    // back to a screen in the web app that will immediately redirect to the desktop. The reason
-    // to do this from the client is that if you redirect from the server then the browser ends up
-    // stuck on the SSO screen.
-    if (client === Client.Desktop) {
-      ctx.redirect(
-        `${team.url}/desktop-redirect?token=${user.getTransferToken(service)}`
-      );
-    } else {
-      ctx.redirect(
-        `${team.url}/auth/redirect?token=${user.getTransferToken(service)}`
-      );
-    }
+  // If the authentication request originally came from the desktop app then we send the user
+  // back to a screen in the web app that will immediately redirect to the desktop. The reason
+  // to do this from the client is that if you redirect from the server then the browser ends up
+  // stuck on the SSO screen.
+  if (client === Client.Desktop) {
+    const token = encodeURIComponent(user.getTransferToken(service));
+    ctx.redirect(`${team.url}/desktop-redirect?token=${token}`);
+    return;
+  }
+
+  // Redirect to the team subdomain with a short-lived transfer token that the
+  // /auth/redirect handler exchanges for the actual session cookie.
+  if (env.isCloudHosted && team.subdomain) {
+    const token = encodeURIComponent(user.getTransferToken(service));
+    ctx.redirect(`${team.url}/auth/redirect?token=${token}`);
   } else {
     ctx.cookies.set("accessToken", user.getSessionToken(expires, service), {
       sameSite: "lax",

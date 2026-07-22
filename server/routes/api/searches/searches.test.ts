@@ -1,5 +1,6 @@
 import type { User } from "@server/models";
 import { SearchQuery } from "@server/models";
+import { SearchQuerySource } from "@server/models/SearchQuery";
 import { buildSearchQuery, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -25,7 +26,7 @@ describe("#searches.list", () => {
         userId: user.id,
         teamId: user.teamId,
         query: "bar",
-        source: "api",
+        source: SearchQuerySource.API,
       }),
     ]);
   });
@@ -44,7 +45,7 @@ describe("#searches.list", () => {
   it("should allow filtering by source", async () => {
     const res = await server.post("/api/searches.list", user, {
       body: {
-        source: "api",
+        source: SearchQuerySource.API,
       },
     });
     const body = await res.json();

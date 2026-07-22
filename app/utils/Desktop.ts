@@ -1,5 +1,9 @@
 import { isMac, isWindows } from "@shared/utils/browser";
 
+/**
+ * Helper methods for detecting and interacting with the desktop application
+ * wrapper.
+ */
 export default class Desktop {
   /**
    * Returns true if the client has inset/floating window controls.

@@ -6,6 +6,10 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
 
+/**
+ * Manages rate limiters for API endpoints, backed by Redis with an in-memory
+ * insurance limiter as a fallback.
+ */
 export default class RateLimiter {
   constructor() {
     throw Error(`Cannot instantiate class!`);
@@ -26,6 +30,10 @@ export default class RateLimiter {
 
   private static _defaultRateLimiter: RateLimiterRedis | undefined;
 
+  /**
+   * The default rate limiter, used for any path without a specific limiter
+   * registered.
+   */
   static get defaultRateLimiter(): RateLimiterRedis {
     if (!this._defaultRateLimiter) {
       this._defaultRateLimiter = new RateLimiterRedis({
@@ -39,15 +47,34 @@ export default class RateLimiter {
     return this._defaultRateLimiter;
   }
 
+  /**
+   * Returns the rate limiter registered for a path, falling back to the
+   * default rate limiter.
+   *
+   * @param path the request path to look up.
+   * @returns the rate limiter for the path.
+   */
   static getRateLimiter(path: string): RateLimiterRedis {
     return this.rateLimiterMap.get(path) || this.defaultRateLimiter;
   }
 
+  /**
+   * Registers a rate limiter with a custom configuration for a path.
+   *
+   * @param path the request path to register the rate limiter for.
+   * @param config the rate limiter configuration.
+   */
   static setRateLimiter(path: string, config: IRateLimiterStoreOptions): void {
     const rateLimiter = new RateLimiterRedis(config);
     this.rateLimiterMap.set(path, rateLimiter);
   }
 
+  /**
+   * Checks whether a custom rate limiter is registered for a path.
+   *
+   * @param path the request path to check.
+   * @returns true if a custom rate limiter is registered.
+   */
   static hasRateLimiter(path: string): boolean {
     return this.rateLimiterMap.has(path);
   }

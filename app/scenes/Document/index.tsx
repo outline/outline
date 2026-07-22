@@ -3,9 +3,11 @@ import type { StaticContext } from "react-router";
 import { useHistory } from "react-router";
 import type { RouteComponentProps } from "react-router-dom";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
+import { useSplitView } from "~/components/SplitView/context";
 import { useTrackLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import useStores from "~/hooks/useStores";
 import { patchLocation } from "~/utils/history";
+import { getFocusedSplitPane } from "~/utils/splitView";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
 import { Footer } from "./components/Footer";
@@ -27,11 +29,21 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState>;
 export default function DocumentScene(props: Props) {
   const { ui } = useStores();
   const history = useHistory();
+  const { pane, isSplitView } = useSplitView();
   const { documentSlug, revisionId } = props.match.params;
   const currentPath = props.location.pathname;
   useTrackLastVisitedPath(currentPath);
 
-  useEffect(() => () => ui.clearActiveDocument(), [ui]);
+  useEffect(
+    () => () => {
+      // In a split view only the focused pane owns the active document, so an
+      // unfocused pane unmounting must not clear the focused pane's state.
+      if (!isSplitView || pane === getFocusedSplitPane()) {
+        ui.clearActiveDocument();
+      }
+    },
+    [ui, isSplitView, pane]
+  );
 
   useEffect(() => {
     // When opening a document directly on app load, sidebarContext will not be set.

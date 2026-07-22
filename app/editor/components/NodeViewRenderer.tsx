@@ -1,14 +1,29 @@
 import { isEqual } from "es-toolkit/compat";
 import { action, computed, observable } from "mobx";
-import type { FunctionComponent } from "react";
+import type { FunctionComponent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 
-export class NodeViewRenderer<T extends object> {
+/**
+ * The minimal shape the editor needs to include a renderer's React content in
+ * its shared tree. Both node views and decoration widgets satisfy this.
+ */
+export interface PortalRenderer {
+  readonly content: ReactNode;
+}
+
+let nextRendererId = 0;
+
+export class NodeViewRenderer<T extends object> implements PortalRenderer {
   @observable public props: T;
+
+  /**
+   * Stable identity used as the React key when renderers are rendered
+   */
+  public readonly key = `renderer-${nextRendererId++}`;
 
   public constructor(
     public element: HTMLElement,
-    private Component: FunctionComponent,
+    private Component: FunctionComponent<T>,
     props: T
   ) {
     this.props = props;
@@ -16,7 +31,11 @@ export class NodeViewRenderer<T extends object> {
 
   @computed
   public get content() {
-    return createPortal(<this.Component {...this.props} />, this.element);
+    return createPortal(
+      <this.Component {...this.props} />,
+      this.element,
+      this.key
+    );
   }
 
   @action

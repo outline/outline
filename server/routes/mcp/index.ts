@@ -7,6 +7,7 @@ import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 import { toError } from "@shared/utils/error";
 import { TeamPreference } from "@shared/types";
+import { iconNames } from "@shared/utils/IconNames";
 import { NotFoundError } from "@server/errors";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -23,6 +24,7 @@ import { documentTools } from "@server/tools/documents";
 import { fetchTool } from "@server/tools/fetch";
 import { templateTools } from "@server/tools/templates";
 import { userTools } from "@server/tools/users";
+import { iconNamesResourceUri } from "@server/tools/util";
 import { version } from "../../../package.json";
 
 const app = new Koa();
@@ -88,9 +90,32 @@ function createMcpServer(scopes: string[], guidance?: string): McpServer {
     {
       capabilities: {
         tools: {},
+        resources: {},
       },
       instructions,
     }
+  );
+
+  // Exposed as a resource rather than inlined into every icon field's schema,
+  // so the full list is fetched on demand instead of shipped with tools/list.
+  server.registerResource(
+    "icons",
+    iconNamesResourceUri,
+    {
+      title: "Icon names",
+      description:
+        "The names of the icons available for document and collection icons.",
+      mimeType: "application/json",
+    },
+    (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "application/json",
+          text: JSON.stringify(iconNames),
+        },
+      ],
+    })
   );
 
   attachmentTools(server, scopes);

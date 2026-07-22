@@ -149,6 +149,20 @@ Jane,24,`;
         expect(result.text).toContain("Subtitle");
       });
 
+      it("should keep the leading H1 in the body when extractTitle is false", async () => {
+        const md = "# My Title\n\nContent here";
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown",
+          { extractTitle: false }
+        );
+
+        expect(result.title).toEqual("");
+        expect(result.text).toContain("My Title");
+        expect(result.text).toContain("Content here");
+      });
+
       it("should convert frontmatter to yaml codeblock", async () => {
         const md = `---
 title: Test Document

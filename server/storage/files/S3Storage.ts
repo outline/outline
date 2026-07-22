@@ -1,19 +1,8 @@
 import path from "node:path";
 import type { Readable } from "node:stream";
-import type { ObjectCannedACL } from "@aws-sdk/client-s3";
-import {
-  S3Client,
-  DeleteObjectCommand,
-  GetObjectCommand,
-  HeadObjectCommand,
-  CopyObjectCommand,
-  PutObjectCommand,
-} from "@aws-sdk/client-s3";
-import { Upload } from "@aws-sdk/lib-storage";
+import type * as AwsS3 from "@aws-sdk/client-s3";
+import type { ObjectCannedACL, S3Client } from "@aws-sdk/client-s3";
 import type { PresignedPostOptions } from "@aws-sdk/s3-presigned-post";
-import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { getSignedUrl as getCloudFrontSignedUrl } from "@aws-sdk/cloudfront-signer";
 import fs from "fs-extra";
 import invariant from "invariant";
 import { compact } from "es-toolkit/compat";
@@ -24,23 +13,11 @@ import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
 import type { AppContext } from "@server/types";
 
+// The AWS SDK packages are imported dynamically inside methods rather than at
+// module top-level so they are only loaded into memory once S3 storage is
+// used — this module itself is imported regardless of the configured storage
+// backend. Only the packages' type imports are free of runtime cost.
 export default class S3Storage extends BaseStorage {
-  constructor() {
-    super();
-
-    // Loaded here rather than at module top-level so the native CRT binding
-    // only loads when S3 storage is actually used, keeping it off startup.
-    // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
-    require("@aws-sdk/signature-v4-crt");
-
-    this.client = new S3Client({
-      bucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : false,
-      forcePathStyle: env.AWS_S3_FORCE_PATH_STYLE,
-      region: env.AWS_REGION,
-      endpoint: this.getEndpoint(),
-    });
-  }
-
   public async getPresignedPost(
     _ctx: AppContext,
     key: string,
@@ -49,7 +26,9 @@ export default class S3Storage extends BaseStorage {
     contentType = "image"
   ) {
     const params: PresignedPostOptions = {
-      Bucket: this.getBucket(),
+      // Presigned POST embeds the bucket in the form policy, so it must be the
+      // real bucket name — not getBucket(), which returns the accelerate URL.
+      Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME ?? "",
       Key: key,
       Conditions: compact([
         ["content-length-range", 0, maxUploadSize],
@@ -64,7 +43,9 @@ export default class S3Storage extends BaseStorage {
       Expires: 3600,
     };
 
-    return createPresignedPost(this.client, params);
+    const { createPresignedPost } = await import("@aws-sdk/s3-presigned-post");
+    const { client } = await this.getS3();
+    return createPresignedPost(client, params);
   }
 
   /**
@@ -86,7 +67,8 @@ export default class S3Storage extends BaseStorage {
     const contentDisposition = this.getContentDisposition(contentType);
     const cacheControl = "max-age=31557600";
 
-    const command = new PutObjectCommand({
+    const { sdk, client } = await this.getS3();
+    const command = new sdk.PutObjectCommand({
       Bucket: this.getBucket(),
       Key: key,
       ContentType: contentType,
@@ -96,7 +78,8 @@ export default class S3Storage extends BaseStorage {
       ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
     });
 
-    let url = await getSignedUrl(this.client, command, {
+    const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
+    let url = await getSignedUrl(client, command, {
       expiresIn: 3600,
     });
 
@@ -172,8 +155,10 @@ export default class S3Storage extends BaseStorage {
     key: string;
     acl?: string;
   }) => {
+    const { Upload } = await import("@aws-sdk/lib-storage");
+    const { client } = await this.getS3();
     const upload = new Upload({
-      client: this.client,
+      client,
       params: {
         ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
         Bucket: this.getBucket(),
@@ -192,8 +177,9 @@ export default class S3Storage extends BaseStorage {
   };
 
   public async deleteFile(key: string) {
-    await this.client.send(
-      new DeleteObjectCommand({
+    const { sdk, client } = await this.getS3();
+    await client.send(
+      new sdk.DeleteObjectCommand({
         Bucket: this.getBucket(),
         Key: key,
       })
@@ -217,6 +203,8 @@ export default class S3Storage extends BaseStorage {
       const cfUrl = this.getCloudFrontUrlForKey(key);
 
       try {
+        const { getSignedUrl: getCloudFrontSignedUrl } =
+          await import("@aws-sdk/cloudfront-signer");
         return getCloudFrontSignedUrl({
           url: cfUrl,
           keyPairId: env.AWS_CLOUDFRONT_KEY_PAIR_ID,
@@ -271,10 +259,11 @@ export default class S3Storage extends BaseStorage {
     });
   }
 
-  public getFileExists(key: string): Promise<boolean> {
-    return this.client
+  public async getFileExists(key: string): Promise<boolean> {
+    const { sdk, client } = await this.getS3();
+    return client
       .send(
-        new HeadObjectCommand({
+        new sdk.HeadObjectCommand({
           Bucket: this.getBucket(),
           Key: key,
         })
@@ -284,28 +273,30 @@ export default class S3Storage extends BaseStorage {
   }
 
   public moveFile = async (fromKey: string, toKey: string) => {
-    await this.client.send(
-      new CopyObjectCommand({
+    const { sdk, client } = await this.getS3();
+    await client.send(
+      new sdk.CopyObjectCommand({
         Bucket: this.getBucket(),
         CopySource: `${env.AWS_S3_UPLOAD_BUCKET_NAME}/${fromKey}`,
         Key: toKey,
       })
     );
-    await this.client.send(
-      new DeleteObjectCommand({
+    await client.send(
+      new sdk.DeleteObjectCommand({
         Bucket: this.getBucket(),
         Key: fromKey,
       })
     );
   };
 
-  public getFileStream(
+  public async getFileStream(
     key: string,
     range?: { start: number; end: number }
   ): Promise<NodeJS.ReadableStream | null> {
-    return this.client
+    const { sdk, client } = await this.getS3();
+    return client
       .send(
-        new GetObjectCommand({
+        new sdk.GetObjectCommand({
           Bucket: this.getBucket(),
           Key: key,
           Range: range ? `bytes=${range.start}-${range.end}` : undefined,
@@ -313,15 +304,80 @@ export default class S3Storage extends BaseStorage {
       )
       .then((item) => item.Body as NodeJS.ReadableStream)
       .catch((err) => {
-        Logger.error("Error getting file stream from S3 ", err, {
-          key,
-        });
+        // A missing object is reported as NoSuchKey (404), or as an
+        // AccessDenied (403) referencing s3:ListBucket when the IAM identity
+        // lacks the ListBucket permission — S3 masks not-found as forbidden.
+        // Neither is a real error, so log quietly and return null.
+        if (this.isNotFoundError(err)) {
+          Logger.info("utils", "File not found in S3", { key });
+        } else {
+          Logger.error("Error getting file stream from S3 ", toError(err), {
+            key,
+          });
+        }
 
         return null;
       });
   }
 
-  private client: S3Client;
+  private isNotFoundError(err: unknown): boolean {
+    if (!(err instanceof Error)) {
+      return false;
+    }
+    // A genuinely missing object is reported as NoSuchKey / NotFound (404).
+    if (
+      err.name === "NoSuchKey" ||
+      err.name === "NotFound" ||
+      this.getHttpStatusCode(err) === 404
+    ) {
+      return true;
+    }
+    // When the IAM identity lacks s3:ListBucket, S3 masks a missing object as a
+    // 403 AccessDenied referencing s3:ListBucket. A 403 that does not mention
+    // ListBucket is a genuine permission error and should still be surfaced.
+    return err.message.includes("s3:ListBucket");
+  }
+
+  private getHttpStatusCode(err: Error): number | undefined {
+    if ("$metadata" in err) {
+      const metadata = err.$metadata;
+      if (
+        metadata &&
+        typeof metadata === "object" &&
+        "httpStatusCode" in metadata
+      ) {
+        const statusCode = metadata.httpStatusCode;
+        return typeof statusCode === "number" ? statusCode : undefined;
+      }
+    }
+    return undefined;
+  }
+
+  private s3Promise?: Promise<{ sdk: typeof AwsS3; client: S3Client }>;
+
+  /**
+   * Returns the S3 SDK module and client, loading both on first use. Loading
+   * is deferred so the AWS SDK and its native CRT binding are not loaded at
+   * startup.
+   */
+  private getS3(): Promise<{ sdk: typeof AwsS3; client: S3Client }> {
+    this.s3Promise ??= (async () => {
+      // Must be loaded before the client is constructed so SigV4a request
+      // signing is available.
+      // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
+      await import("@aws-sdk/signature-v4-crt");
+
+      const sdk = await import("@aws-sdk/client-s3");
+      const client = new sdk.S3Client({
+        bucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : false,
+        forcePathStyle: env.AWS_S3_FORCE_PATH_STYLE,
+        region: env.AWS_REGION,
+        endpoint: this.getEndpoint(),
+      });
+      return { sdk, client };
+    })();
+    return this.s3Promise;
+  }
 
   private getCloudFrontUrlForKey(key: string): string {
     if (!env.AWS_CLOUDFRONT_URL) {
@@ -361,8 +417,10 @@ export default class S3Storage extends BaseStorage {
     // Ensure expiration does not exceed AWS S3 Signature V4 limit of 7 days
     const clampedExpiresIn = Math.min(expiresIn, S3Storage.maxSignedUrlExpires);
 
-    const command = new GetObjectCommand(params);
-    const url = await getSignedUrl(this.client, command, {
+    const { sdk, client } = await this.getS3();
+    const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
+    const command = new sdk.GetObjectCommand(params);
+    const url = await getSignedUrl(client, command, {
       expiresIn: clampedExpiresIn,
     });
 

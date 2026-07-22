@@ -1,5 +1,5 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
-import { type SaveOptions } from "sequelize";
+import { Op, type SaveOptions } from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -198,6 +198,36 @@ class Share extends IdModel<
     return model;
   }
 
+  // static methods
+
+  /**
+   * Finds published, non-revoked shares for the given document(s) within a team.
+   *
+   * @param teamId - the team the documents belong to.
+   * @param documentIds - a single document ID or an array of document IDs.
+   * @returns the matching public shares.
+   */
+  static getPublicSharesForDocumentIds(
+    teamId: string,
+    documentIds: string | string[]
+  ): Promise<Share[]> {
+    return this.findPublicShares(teamId, "documentId", documentIds);
+  }
+
+  /**
+   * Finds published, non-revoked shares for the given collection(s) within a team.
+   *
+   * @param teamId - the team the collections belong to.
+   * @param collectionIds - a single collection ID or an array of collection IDs.
+   * @returns the matching public shares.
+   */
+  static getPublicSharesForCollectionIds(
+    teamId: string,
+    collectionIds: string | string[]
+  ): Promise<Share[]> {
+    return this.findPublicShares(teamId, "collectionId", collectionIds);
+  }
+
   // getters
 
   get isRevoked() {
@@ -257,6 +287,29 @@ class Share extends IdModel<
     this.revokedAt = new Date();
     this.revokedById = user.id;
     return this.saveWithCtx(ctx, undefined, { name: "revoke" });
+  }
+
+  private static findPublicShares(
+    teamId: string,
+    column: "documentId" | "collectionId",
+    ids: string | string[]
+  ): Promise<Share[]> {
+    const values = Array.isArray(ids) ? ids : [ids];
+    if (values.length === 0) {
+      return Promise.resolve([]);
+    }
+
+    return this.unscoped().findAll({
+      where: {
+        teamId,
+        published: true,
+        revokedAt: { [Op.is]: null },
+        [column]: values,
+      },
+      // Deterministic order so the same share consistently wins when a
+      // resource has more than one active share.
+      order: [["createdAt", "ASC"]],
+    });
   }
 }
 

@@ -8,7 +8,7 @@ import styled from "styled-components";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useStores from "~/hooks/useStores";
 import type { DragObject } from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
@@ -30,12 +30,12 @@ function DraggableCollectionLink({
   activeDocument,
   belowCollection,
 }: Props) {
-  const locationSidebarContext = useLocationSidebarContext();
+  const activeSidebarContext = useActiveSidebarContext();
   const sidebarContext = useSidebarContext();
   const { ui, policies, collections } = useStores();
   const [expanded, setExpanded] = useState(
     collection.id === ui.activeCollectionId &&
-      sidebarContext === locationSidebarContext
+      sidebarContext === activeSidebarContext
   );
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
 
@@ -87,7 +87,7 @@ function DraggableCollectionLink({
   useEffect(() => {
     if (
       collection.id === ui.activeCollectionId &&
-      sidebarContext === locationSidebarContext
+      sidebarContext === activeSidebarContext
     ) {
       setExpanded(true);
     }
@@ -95,7 +95,7 @@ function DraggableCollectionLink({
     collection.id,
     ui.activeCollectionId,
     sidebarContext,
-    locationSidebarContext,
+    activeSidebarContext,
   ]);
 
   const handleDisclosureClick = useCallback(

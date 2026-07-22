@@ -176,28 +176,57 @@ function Table<TData>({
         <THead role="rowgroup" $topPos={stickyOffset}>
           {table.getHeaderGroups().map((headerGroup) => (
             <TR role="row" key={headerGroup.id} $columns={gridColumns}>
-              {headerGroup.headers.map((header) => (
-                <TH role="columnheader" key={header.id}>
-                  <SortWrapper
-                    align="center"
-                    gap={4}
-                    onClick={header.column.getToggleSortingHandler()}
-                    $sortable={header.column.getCanSort()}
+              {headerGroup.headers.map((header) => {
+                const sorted = header.column.getIsSorted();
+                const canSort = header.column.getCanSort();
+                const toggleSorting = header.column.getToggleSortingHandler();
+                const handleSortKeyDown = (
+                  ev: React.KeyboardEvent<HTMLDivElement>
+                ) => {
+                  if (!ev.repeat && (ev.key === "Enter" || ev.key === " ")) {
+                    ev.preventDefault();
+                    toggleSorting?.(ev);
+                  }
+                };
+
+                return (
+                  <TH
+                    role="columnheader"
+                    key={header.id}
+                    aria-sort={
+                      !canSort
+                        ? undefined
+                        : sorted === "asc"
+                          ? "ascending"
+                          : sorted === "desc"
+                            ? "descending"
+                            : "none"
+                    }
                   >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                    {header.column.getIsSorted() === "asc" ? (
-                      <AscSortIcon />
-                    ) : header.column.getIsSorted() === "desc" ? (
-                      <DescSortIcon />
-                    ) : (
-                      <div />
-                    )}
-                  </SortWrapper>
-                </TH>
-              ))}
+                    <SortWrapper
+                      align="center"
+                      gap={4}
+                      onClick={toggleSorting}
+                      onKeyDown={canSort ? handleSortKeyDown : undefined}
+                      role={canSort ? "button" : undefined}
+                      tabIndex={canSort ? 0 : undefined}
+                      $sortable={canSort}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                      {sorted === "asc" ? (
+                        <AscSortIcon />
+                      ) : sorted === "desc" ? (
+                        <DescSortIcon />
+                      ) : (
+                        <div />
+                      )}
+                    </SortWrapper>
+                  </TH>
+                );
+              })}
             </TR>
           ))}
         </THead>
@@ -322,6 +351,11 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
     background: ${(props) =>
       props.$sortable ? props.theme.backgroundSecondary : "none"};
   }
+
+  &:focus-visible {
+    outline: 2px solid ${(props) => props.theme.accent};
+    outline-offset: 2px;
+  }
 `;
 
 const InnerTable = styled.div`
@@ -416,6 +450,7 @@ const TD = styled.span`
       background: ${s("sidebarControlHoverBackground")};
     }
 
+    &:focus-visible,
     &[aria-expanded="true"] {
       opacity: 1;
     }

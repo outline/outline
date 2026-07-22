@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { metaDisplay, shortcutSeparator } from "@shared/utils/keyboard";
 import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
@@ -42,7 +42,7 @@ function SharedSidebar({ share }: Props) {
   const shareId = share.urlId || share.id;
   const collection = collections.get(rootNode?.id);
   const hideRootNode = collection
-    ? ProsemirrorHelper.isEmptyData(collection?.data)
+    ? ProsemirrorDataHelper.isEmpty(collection.data)
     : false;
 
   const handleOpenSearch = useCallback(() => {

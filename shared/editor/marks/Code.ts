@@ -13,7 +13,6 @@ import { markInputRuleForPattern } from "../lib/markInputRule";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { isInCode } from "../queries/isInCode";
 import Mark from "./Mark";
-import { codeWordDecorations } from "../plugins/CodeWordDecorationsPlugin";
 
 export default class Code extends Mark {
   get name() {
@@ -110,7 +109,6 @@ export default class Code extends Mark {
 
     return [
       codeCursorPlugin,
-      codeWordDecorations(),
       new Plugin({
         props: {
           // Typing a character inside of two backticks will wrap the character

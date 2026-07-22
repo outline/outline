@@ -1,6 +1,8 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { isModKey } from "@shared/utils/keyboard";
+import { SplitViewContext } from "~/components/SplitView/context";
 import isTextInput from "~/utils/isTextInput";
+import { getFocusedSplitPane } from "~/utils/splitView";
 
 type Callback = (event: KeyboardEvent) => void;
 
@@ -38,10 +40,17 @@ export default function useKeyDown(
   fn: Callback,
   options?: Options
 ): void {
+  const { pane, isSplitView } = useContext(SplitViewContext);
   const predicate = createKeyPredicate(key);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
+      // Shortcuts registered within an unfocused split view pane are ignored
+      // so that only the focused pane responds to them.
+      if (isSplitView && pane !== getFocusedSplitPane()) {
+        return;
+      }
+
       if (predicate(event)) {
         fn(event);
       }
@@ -55,7 +64,7 @@ export default function useKeyDown(
     return () => {
       callbacks = callbacks.filter((cb) => cb.callback !== handler);
     };
-  }, [fn, predicate, options]);
+  }, [fn, predicate, options, isSplitView, pane]);
 }
 
 window.addEventListener("keydown", (event) => {

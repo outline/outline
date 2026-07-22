@@ -1,4 +1,8 @@
-import { decodeURIComponentSafe, isAllowedLoginRedirect } from "./urls";
+import {
+  decodeURIComponentSafe,
+  isAllowedLoginRedirect,
+  isTruthyQueryValue,
+} from "./urls";
 
 describe("decodeURIComponentSafe", () => {
   test("to handle % symbols", () => {
@@ -131,5 +135,37 @@ describe("decodeURIComponentSafe", () => {
       expect(isAllowedLoginRedirect("/\\evil.com")).toBe(false);
       expect(isAllowedLoginRedirect("//documents?foo=bar")).toBe(false);
     });
+  });
+});
+
+describe("isTruthyQueryValue", () => {
+  it("treats common affirmative values as truthy", () => {
+    expect(isTruthyQueryValue("true")).toBe(true);
+    expect(isTruthyQueryValue("1")).toBe(true);
+    expect(isTruthyQueryValue("on")).toBe(true);
+    expect(isTruthyQueryValue("yes")).toBe(true);
+  });
+
+  it("is case insensitive", () => {
+    expect(isTruthyQueryValue("TRUE")).toBe(true);
+    expect(isTruthyQueryValue("On")).toBe(true);
+    expect(isTruthyQueryValue("Yes")).toBe(true);
+  });
+
+  it("treats a bare flag with no value as truthy", () => {
+    expect(isTruthyQueryValue("")).toBe(true);
+  });
+
+  it("treats absent values as falsy", () => {
+    expect(isTruthyQueryValue(null)).toBe(false);
+    expect(isTruthyQueryValue(undefined)).toBe(false);
+  });
+
+  it("treats negative and unrecognized values as falsy", () => {
+    expect(isTruthyQueryValue("false")).toBe(false);
+    expect(isTruthyQueryValue("0")).toBe(false);
+    expect(isTruthyQueryValue("off")).toBe(false);
+    expect(isTruthyQueryValue("no")).toBe(false);
+    expect(isTruthyQueryValue("maybe")).toBe(false);
   });
 });

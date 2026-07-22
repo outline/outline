@@ -66,6 +66,18 @@ describe("rewriteAttachmentPaths", () => {
     ]);
     expect(out).toBe("![x](https://example.com/a.png)");
   });
+
+  it("leaves remote signed URLs untouched so the base task can download them", () => {
+    // Slab exports reference images as remote signed URLs rather than files
+    // in the zip; these aren't in the manifest and must survive rewriting so
+    // the per-page attachment upload step can fetch and re-host them.
+    const signedUrl =
+      "https://uploads.slab.com/posts/abc/image.png?Signature=xyz&Expires=123";
+    const out = rewriteAttachmentPaths(`![x](${signedUrl})`, [
+      { id: "id-a", pathInZip: "C/attachments/local.png" },
+    ]);
+    expect(out).toBe(`![x](${signedUrl})`);
+  });
 });
 
 describe("rewriteInternalLinks", () => {

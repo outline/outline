@@ -34,7 +34,7 @@ const DefaultOptions = {
   maxCachedSessions: 500,
 };
 
-export type { RequestInit } from "node-fetch";
+export type { RequestInit, Response } from "node-fetch";
 export { Headers };
 
 /**

@@ -7,7 +7,7 @@ import { Scope } from "@shared/types";
 import { version } from "../../package.json";
 import env from "~/env";
 import Logger from "./Logger";
-import download from "./download";
+import { download } from "./download";
 import {
   AuthorizationError,
   BadGatewayError,
@@ -53,8 +53,6 @@ interface FetchOptions {
   headers?: Record<string, string>;
   baseUrl?: string;
 }
-
-const fetchWithRetry = retry(fetch);
 
 class ApiClient {
   baseUrl: string;
@@ -167,17 +165,12 @@ class ApiClient {
       ...options?.headers,
     };
 
-    // Add CSRF token to headers for mutating requests
+    // Mutating requests require a CSRF token, unless exempt server-side.
     const isModifyingRequest = method === "POST" || method === "PUT";
     const canAccessWithReadOnly = AuthenticationHelper.canAccess(path, [
       Scope.Read,
     ]);
-    if (isModifyingRequest && !canAccessWithReadOnly) {
-      const csrfToken = getCookie(CSRF.cookieName);
-      if (csrfToken) {
-        headerOptions[CSRF.headerName] = csrfToken;
-      }
-    }
+    const requiresCsrfToken = isModifyingRequest && !canAccessWithReadOnly;
 
     // for multipart forms or other non JSON requests fetch
     // populates the Content-Type without needing to explicitly
@@ -187,21 +180,35 @@ class ApiClient {
     }
 
     const headers = new Headers(headerOptions);
+
+    // The token is read before each attempt so that retries reflect any
+    // rotation of the cookie since the request was prepared.
+    const fetchWithFreshCsrfToken: typeof fetch = (input, init) => {
+      if (requiresCsrfToken) {
+        const csrfToken = getCookie(CSRF.cookieName);
+        if (csrfToken) {
+          headers.set(CSRF.headerName, csrfToken);
+        }
+      }
+      return fetch(input, init);
+    };
+
     const timeStart = window.performance.now();
     let response;
 
     try {
-      response = await (options?.retry === false ? fetch : fetchWithRetry)(
-        urlToFetch,
-        {
-          method,
-          body,
-          headers,
-          redirect: "follow",
-          credentials: "same-origin",
-          cache: "no-cache",
-        }
-      );
+      response = await (
+        options?.retry === false
+          ? fetchWithFreshCsrfToken
+          : retry(fetchWithFreshCsrfToken)
+      )(urlToFetch, {
+        method,
+        body,
+        headers,
+        redirect: "follow",
+        credentials: "same-origin",
+        cache: "no-cache",
+      });
     } catch (_err) {
       if (window.navigator.onLine) {
         throw new NetworkError("A network error occurred, try again?");

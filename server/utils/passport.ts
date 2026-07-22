@@ -1,21 +1,26 @@
 import crypto from "node:crypto";
 import { addMinutes, subMinutes } from "date-fns";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import type { JwtPayload } from "jsonwebtoken";
 import type { Context, Next } from "koa";
+import type { Strategy } from "@outlinewiki/koa-passport";
 import type {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
 } from "passport-oauth2";
 import type { Primitive } from "utility-types";
-import { toError } from "@shared/utils/error";
+import { errToString, toError } from "@shared/utils/error";
 import { Client } from "@shared/types";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import { Team, User } from "@server/models";
 import Redis from "@server/storage/redis";
 import { InternalError, OAuthStateMismatchError } from "../errors";
 import { hash, safeEqual } from "./crypto";
 import fetch from "./fetch";
 import { getUserForJWT } from "./jwt";
+import { parseUserInfoResponse } from "./oauth";
 import {
   hashOAuthStateNonce,
   signOAuthIntent,
@@ -90,6 +95,39 @@ export async function startOAuthFlow(ctx: Context, next: Next) {
   }
 
   return next();
+}
+
+/**
+ * Routes a passport OAuth2 strategy's outbound token and userinfo requests
+ * through the HTTPS proxy configured in the environment, when present.
+ *
+ * Passport OAuth2 strategies build their own HTTP client and do not honor the
+ * standard proxy environment variables, so the agent must be attached to the
+ * strategy's internal `_oauth2` client explicitly. This is a no-op when no
+ * proxy is configured.
+ *
+ * @param strategy the OAuth2-based passport strategy to configure.
+ * @returns the same strategy instance, for convenient chaining.
+ */
+export function withProxyAgent<T extends Strategy>(strategy: T): T {
+  const proxy = process.env.https_proxy ?? process.env.HTTPS_PROXY;
+  if (!proxy) {
+    return strategy;
+  }
+
+  // `_oauth2` is a private internal, so degrade gracefully if upstream removes it.
+  // @ts-expect-error _oauth2 is not part of the public strategy type
+  const client = strategy._oauth2;
+  if (typeof client?.setAgent !== "function") {
+    Logger.warn(
+      "Unable to apply HTTPS proxy to auth strategy; the OAuth2 client is not available",
+      { strategy: strategy.name }
+    );
+    return strategy;
+  }
+
+  client.setAgent(new HttpsProxyAgent(proxy));
+  return strategy;
 }
 
 /**
@@ -192,11 +230,22 @@ export class StateStore {
   };
 }
 
-export async function request(
+/**
+ * Perform an authenticated request against an OAuth provider endpoint and
+ * parse the response body. Handles both JSON responses and, for OIDC userinfo
+ * endpoints configured for signed responses, `application/jwt` bodies.
+ *
+ * @param method The HTTP method to use.
+ * @param endpoint The endpoint to request.
+ * @param accessToken The access token to authenticate with.
+ * @returns The parsed response body.
+ * @throws {InternalError} When the response body cannot be parsed.
+ */
+export async function request<T = JwtPayload>(
   method: "GET" | "POST",
   endpoint: string,
   accessToken: string
-) {
+): Promise<T> {
   const response = await fetch(endpoint, {
     method,
     allowPrivateIPAddress: true,
@@ -205,13 +254,12 @@ export async function request(
       "Content-Type": "application/json",
     },
   });
-  const text = await response.text();
 
   try {
-    return JSON.parse(text);
-  } catch (_err) {
+    return await parseUserInfoResponse<T>(response);
+  } catch (err) {
     throw InternalError(
-      `Failed to parse response from ${endpoint}. Expected JSON, got: ${text}`
+      `Failed to parse response from ${endpoint}. ${errToString(err)}`
     );
   }
 }

@@ -1,6 +1,10 @@
 import { buildCollection, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
+import {
+  buildOAuthUser,
+  callMcpTool,
+  parseMcpListContent,
+} from "@server/test/McpHelper";
 
 const server = getTestServer();
 
@@ -13,18 +17,17 @@ describe("collection tools", () => {
     });
 
     const res = await callMcpTool(server, accessToken, "list_collections");
-    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-      JSON.parse(c.text)
+    const data = parseMcpListContent<{ id: string; url: string }>(
+      res?.result?.content
     );
 
     expect(data.length).toBeGreaterThanOrEqual(1);
-    const ids = data.map((c: { id: string }) => c.id);
+    const ids = data.map((c) => c.id);
     expect(ids).toContain(collection.id);
 
-    const match = data.find((c: { id: string }) => c.id === collection.id) as {
-      url: string;
-    };
-    expect(match.url).toMatch(/^https?:\/\//);
+    const match = data.find((c) => c.id === collection.id);
+    expect(match).toBeDefined();
+    expect(match!.url).toMatch(/^https?:\/\//);
   });
 
   it("list_collections does not return collections from another team", async () => {
@@ -36,9 +39,7 @@ describe("collection tools", () => {
     });
 
     const res = await callMcpTool(server, accessToken, "list_collections");
-    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-      JSON.parse(c.text)
-    );
+    const data = parseMcpListContent<{ id: string }>(res?.result?.content);
 
     const ids = data.map((c: { id: string }) => c.id);
     expect(ids).not.toContain(otherCollection.id);
@@ -79,5 +80,40 @@ describe("collection tools", () => {
 
     expect(data.name).toEqual("Updated Name");
     expect(data.url).toMatch(/^https?:\/\//);
+  });
+
+  it("update_collection errors when no fields are provided to update", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_collection", {
+      id: collection.id,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "The update resulted in no changes to the collection"
+    );
+  });
+
+  it("update_collection errors when provided fields are identical to the current collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_collection", {
+      id: collection.id,
+      name: collection.name,
+    });
+
+    expect(res?.result?.isError).toBe(true);
+    expect(res?.result?.content?.[0]?.text).toContain(
+      "The update resulted in no changes to the collection"
+    );
   });
 });

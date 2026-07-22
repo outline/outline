@@ -25,6 +25,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import { sidebarAppearDuration } from "~/styles/animations";
 import CommentForm from "./CommentForm";
 import CommentThreadItem from "./CommentThreadItem";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 
 type Props = {
   /** The document that this comment thread belongs to */
@@ -56,7 +57,6 @@ function CommentThread({
   const { editor, setFocusedCommentId } = useDocumentContext();
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
-  const replyRef = React.useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
   const [autoFocus, setAutoFocusOn, setAutoFocusOff] = useBoolean(thread.isNew);
   const user = useCurrentUser();
@@ -104,6 +104,7 @@ function CommentThread({
       // click handler, so skip deselecting here to avoid a flash of the
       // deselected state (and the new comment form) in between.
       !target.closest("[data-comment-thread]") &&
+      !target.closest("." + EditorStyleHelper.commentGutter) &&
       event.defaultPrevented === false
     ) {
       setFocusedCommentId(null);
@@ -193,13 +194,14 @@ function CommentThread({
         }, sidebarAppearDuration);
       } else {
         setTimeout(() => {
-          if (!replyRef.current) {
+          if (!topRef.current) {
             return;
           }
-          scrollIntoView(replyRef.current, {
+          // Scroll the whole into view when its mark is clicked
+          scrollIntoView(topRef.current, {
             scrollMode: "if-needed",
             behavior: "smooth",
-            block: "center",
+            block: "nearest",
             boundary: (parent) =>
               // Prevents body and other parent elements from being scrolled
               parent.id !== "comments",
@@ -278,7 +280,7 @@ function CommentThread({
           );
         })}
 
-        <ResizingHeightContainer hideOverflow={false} ref={replyRef}>
+        <ResizingHeightContainer hideOverflow={false}>
           {(focused || draft || commentsInThread.length === 0) && canReply && (
             <Fade timing={100}>
               <CommentForm

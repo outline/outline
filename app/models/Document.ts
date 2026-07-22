@@ -388,7 +388,6 @@ export default class Document extends ArchivableModel implements Searchable {
     return !this.publishedAt;
   }
 
-  @computed
   get hasEmptyTitle(): boolean {
     return this.title === "";
   }

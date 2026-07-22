@@ -39,6 +39,9 @@ export interface ZipTreeNode {
   children: ZipTreeNode[];
 }
 
+/**
+ * Helper for creating and reading zip files.
+ */
 @trace()
 export default class ZipHelper {
   /**

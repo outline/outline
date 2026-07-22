@@ -14,6 +14,7 @@ import type { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import type { Props as EditorProps } from "~/components/Editor";
 import Editor from "~/components/Editor";
+import { useSplitView } from "~/components/SplitView/context";
 import type { Editor as SharedEditor } from "~/editor";
 import Flex from "~/components/Flex";
 import Time from "~/components/Time";
@@ -37,8 +38,12 @@ import DocumentTitle from "./DocumentTitle";
 import { first } from "es-toolkit/compat";
 import { getLangFor } from "~/utils/language";
 import useShare from "@shared/hooks/useShare";
+import CodeWordBreak from "@shared/editor/extensions/CodeWordBreak";
 
-const extensions = withUIExtensions(withComments(richExtensions));
+const extensions = [
+  CodeWordBreak,
+  ...withUIExtensions(withComments(richExtensions)),
+];
 
 type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;
@@ -67,6 +72,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
   const { setFocusedCommentId } = useDocumentContext();
   const focusedComment = useFocusedComment();
   const { ui, comments } = useStores();
+  const { pane } = useSplitView();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const sidebarContext = useLocationSidebarContext();
@@ -102,9 +108,9 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
       ) {
         setFocusedCommentId(focusedComment.id);
       }
-      ui.set({ rightSidebar: "comments" });
+      ui.setRightSidebar("comments", pane);
     }
-  }, [focusedComment, ui, document.id, params, setFocusedCommentId]);
+  }, [focusedComment, ui, pane, document.id, params, setFocusedCommentId]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.
@@ -150,6 +156,16 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
       }
     },
     [comments, user?.id, props.id, setFocusedCommentId]
+  );
+
+  // Focus a comment and open the sidebar when its mark or gutter marker is
+  // clicked.
+  const handleClickCommentMark = React.useCallback(
+    (commentId: string) => {
+      setFocusedCommentId(commentId);
+      ui.setRightSidebar("comments", pane);
+    },
+    [setFocusedCommentId, ui, pane]
   );
 
   // Soft delete the Comment model when associated mark is totally removed.
@@ -241,7 +257,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         userId={user?.id}
         focusedCommentId={focusedComment?.id}
         onClickCommentMark={
-          commentingEnabled && can.comment ? setFocusedCommentId : undefined
+          commentingEnabled && can.comment ? handleClickCommentMark : undefined
         }
         onCreateCommentMark={
           commentingEnabled && can.comment ? handleDraftComment : undefined
@@ -251,7 +267,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         }
         onOpenCommentsSidebar={
           commentingEnabled
-            ? () => ui.set({ rightSidebar: "comments" })
+            ? () => ui.setRightSidebar("comments", pane)
             : undefined
         }
         onInit={handleInit}

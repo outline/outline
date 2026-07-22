@@ -77,6 +77,11 @@ export type MentionAttrs = {
 
 const pluginsWithSafeDecorations = new WeakSet<Plugin>();
 
+// KaTeX renders math server-side during HTML export, but relies on this
+// stylesheet (loaded dynamically in the app) to position glyphs correctly.
+const katexStylesheetUrl =
+  "https://cdn.jsdelivr.net/npm/katex@0.16.45/dist/katex.min.css";
+
 function isDecorationSource(value: unknown): value is DecorationSource {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -681,6 +686,15 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
         }
 
         dom.window.document.body.appendChild(element);
+      }
+
+      // Include the KaTeX stylesheet if the document contains rendered math, so
+      // that formulas display correctly in the exported HTML/PDF.
+      if (doc.querySelector(".katex")) {
+        const link = doc.createElement("link");
+        link.setAttribute("rel", "stylesheet");
+        link.setAttribute("href", katexStylesheetUrl);
+        doc.head.appendChild(link);
       }
 
       const output = dom.serialize();

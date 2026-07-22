@@ -10,7 +10,7 @@ import { s } from "@shared/styles";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import { publishDocument } from "~/actions/definitions/documents";
 import { restoreRevision } from "~/actions/definitions/revisions";
-import { Action, Separator } from "~/components/Actions";
+import { Action } from "~/components/Actions";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Collaborators from "~/components/Collaborators";
@@ -156,7 +156,6 @@ function DocumentHeader({
             pathname: documentEditPath(document),
             state: { sidebarContext },
           }}
-          haptic="light"
           neutral
         >
           {isMobile ? null : t("Edit")}
@@ -239,7 +238,6 @@ function DocumentHeader({
                   onClick={handleSave}
                   disabled={savingIsDisabled}
                   neutral={isDraft}
-                  haptic="medium"
                   hideIcon
                 >
                   {isDraft ? t("Save draft") : t("Done editing")}
@@ -292,7 +290,6 @@ function DocumentHeader({
               </Button>
             </Action>
           )}
-          {!isDeleted && <Separator />}
           <Action>
             <DocumentMenu
               document={document}

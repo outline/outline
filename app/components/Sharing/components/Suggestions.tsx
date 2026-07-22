@@ -104,7 +104,7 @@ export const Suggestions = observer(
             : users.activeOrInvited
       ).filter((u) => !u.isSuspended);
 
-      if (isEmail(query)) {
+      if (isEmail(query) && !users.getByEmail(query)) {
         filtered.push(getSuggestionForEmail(query));
       }
 

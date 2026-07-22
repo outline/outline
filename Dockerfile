@@ -14,6 +14,11 @@ ARG APP_PATH
 WORKDIR $APP_PATH
 ENV NODE_ENV=production
 
+# Limit glibc malloc arenas, which default to 8 per CPU. Each arena can hold
+# onto 64MB of virtual memory and freed allocations, which inflates resident
+# memory in multi-threaded Node.js processes for no performance benefit here.
+ENV MALLOC_ARENA_MAX=2
+
 # Create a non-root user compatible with Debian and BusyBox based images
 RUN addgroup --gid 1001 nodejs && \
     adduser --uid 1001 --ingroup nodejs nodejs && \

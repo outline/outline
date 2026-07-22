@@ -17,6 +17,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { ImportMenu } from "~/menus/ImportMenu";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { useFormatNumber } from "~/hooks/useFormatNumber";
 
 type Props = {
   /** Import that's displayed as list item. */
@@ -28,6 +29,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
   const { dialogs } = useStores();
   const user = useCurrentUser();
   const theme = useTheme();
+  const formatNumber = useFormatNumber();
   const showProgress =
     importModel.state !== ImportState.Canceled &&
     importModel.state !== ImportState.Errored;
@@ -139,7 +141,8 @@ export const ImportListItem = observer(({ importModel }: Props) => {
           {showProgress && (
             <>
               &nbsp;•&nbsp;
-              {t("{{ count }} document imported", {
+              {t("{{ total }} document imported", {
+                total: formatNumber(importModel.documentCount),
                 count: importModel.documentCount,
               })}
             </>

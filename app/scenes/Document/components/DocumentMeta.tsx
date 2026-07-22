@@ -11,6 +11,7 @@ import type Template from "~/models/Template";
 import { openDocumentInsights } from "~/actions/definitions/documents";
 import DocumentMeta, { Separator } from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
+import { useSplitView } from "~/components/SplitView/context";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
@@ -30,6 +31,7 @@ type Props = {
 function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
   const { views, comments, ui } = useStores();
   const { t } = useTranslation();
+  const { pane } = useSplitView();
   const sidebarContext = useLocationSidebarContext();
   const team = useCurrentTeam();
   const documentViews = useObserver(() => views.inDocument(document.id));
@@ -61,10 +63,10 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
               state: { sidebarContext },
             }}
             onClick={() =>
-              ui.set({
-                rightSidebar:
-                  ui.rightSidebar === "comments" ? null : "comments",
-              })
+              ui.setRightSidebar(
+                ui.getRightSidebar(pane) === "comments" ? null : "comments",
+                pane
+              )
             }
           >
             <CommentIcon size={18} />

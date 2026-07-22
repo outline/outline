@@ -150,6 +150,14 @@ const CHAR_DOT = 46; /* . */
 
 // Based on the NodeJS Library https://github.com/nodejs/node/blob/896b75a4da58a7283d551c4595e0aa454baca3e0/lib/path.js
 // Copyright Joyent, Inc. and other Node contributors.
+/**
+ * Returns the extension of the path, from the last occurrence of the "."
+ * character to the end of the string in the last portion of the path.
+ *
+ * @param path the path to evaluate.
+ * @returns the extension including the leading ".", or an empty string.
+ * @throws TypeError if path is not a string.
+ */
 export const extname = (path: string) => {
   if (typeof path !== "string") {
     throw new TypeError(

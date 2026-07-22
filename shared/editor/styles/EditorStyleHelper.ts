@@ -25,6 +25,9 @@ export class EditorStyleHelper {
 
   static readonly comment = "comment-marker";
 
+  /** Container for the comment indicators shown in the gutter beside a line */
+  static readonly commentGutter = "comment-gutter";
+
   // Multiplayer
 
   /** Remote collaborator's cursor */
@@ -38,12 +41,6 @@ export class EditorStyleHelper {
   static readonly codeBlock = "code-block";
 
   static readonly codeWord = "code-word";
-
-  static readonly hexColorSwatch = "hex-color-swatch";
-
-  static readonly hexColorSwatchLight = "hex-color-swatch-light";
-
-  static readonly hexColorSwatchDark = "hex-color-swatch-dark";
 
   /** Toggle button for collapsible code blocks */
   static readonly codeBlockToggle = "code-block-toggle";

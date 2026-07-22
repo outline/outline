@@ -9,6 +9,7 @@ COPY ./patches ./patches
 RUN apt-get update && apt-get install -y cmake
 ENV NODE_OPTIONS="--max-old-space-size=24000"
 
+RUN npm install -g corepack
 RUN corepack enable
 RUN yarn install --immutable --network-timeout 1000000 && \
   yarn cache clean

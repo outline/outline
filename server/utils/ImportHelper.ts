@@ -13,6 +13,9 @@ export type FileTreeNode = {
   children: FileTreeNode[];
 };
 
+/**
+ * Helper for working with directories of files during imports.
+ */
 export default class ImportHelper {
   /**
    * Collects the files and folders for a directory filePath.

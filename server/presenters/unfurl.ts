@@ -5,6 +5,7 @@ import { UnfurlResourceType } from "@shared/types";
 import { dateLocale } from "@shared/utils/date";
 import type { Document, User, Group } from "@server/models";
 import { View } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { opts } from "@server/utils/i18n";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous payload from internal callers and third-party unfurl plugins.
@@ -97,12 +98,20 @@ const presentDocument = (
   const document: Document = data.document;
   const viewer: User | undefined = data.viewer;
   const url: string | undefined = data.url;
+  const anchor: string | undefined = data.anchor;
+
+  // When the URL targets a specific heading, preview the content of that
+  // section rather than the top of the document.
+  const sectionSummary = anchor
+    ? DocumentHelper.getAnchorContent(document, anchor)
+    : undefined;
+
   return {
-    url: url ?? document.url,
+    url: url ?? `${document.url}${anchor ?? ""}`,
     type: UnfurlResourceType.Document,
     id: document.id,
     title: document.titleWithDefault,
-    summary: document.getSummary(),
+    summary: sectionSummary || document.getSummary(),
     lastActivityByViewer: viewer
       ? presentLastActivityInfoFor(document, viewer)
       : undefined,
