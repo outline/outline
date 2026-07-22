@@ -92,6 +92,7 @@ export type MarkdownAttachmentManifestItem = z.infer<
 export interface MarkdownImportScratch {
   storageKey: string;
   manifest?: MarkdownAttachmentManifestItem[];
+  docMap?: Record<string, string>;
 }
 
 /**
@@ -157,7 +158,6 @@ export interface MarkdownPageImportTaskInputItem {
   path: string;
   markdownText: string;
   attachmentMap: MarkdownAttachmentManifestItem[];
-  docMap: Record<string, string>;
   children?: MarkdownPageImportTaskInputItem[];
 }
 
