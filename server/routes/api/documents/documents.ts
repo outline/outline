@@ -11,7 +11,12 @@ import type { Literal } from "sequelize/types/utils";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
 import { errToString } from "@shared/utils/error";
-import type { DirectionFilter, SortFilter } from "@shared/types";
+import type {
+  DirectionFilter,
+  DocumentProperties,
+  Property,
+  SortFilter,
+} from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
   FileOperationFormat,
@@ -70,6 +75,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { PropertyQueryHelper } from "@server/models/helpers/PropertyQueryHelper";
+import { RollupHelper } from "@server/models/helpers/RollupHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -168,6 +174,7 @@ router.post(
 
     let documentIds: string[] = [];
     let propertyOrder: Literal[] = [];
+    let dataSchema: Property[] | null | undefined;
 
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
@@ -178,15 +185,15 @@ router.post(
       });
 
       authorize(user, "readDocument", collection);
+      dataSchema = collection.dataSchema;
 
       // build filters and sorts over the properties column against the
       // collection's data schema
       if (hasPropertyQuery) {
-        const dataSchema = collection.dataSchema ?? [];
         if (filter) {
           const propertyFilter = PropertyQueryHelper.buildFilter(
             filter,
-            dataSchema
+            dataSchema ?? []
           );
           if (propertyFilter) {
             where[Op.and].push(propertyFilter);
@@ -195,7 +202,7 @@ router.post(
         if (propertySorts?.length) {
           propertyOrder = PropertyQueryHelper.buildOrder(
             propertySorts,
-            dataSchema
+            dataSchema ?? []
           );
         }
       }
@@ -387,6 +394,25 @@ router.post(
     );
 
     const data = await presentDocuments(ctx, documents);
+
+    // rollup property values are computed at read time, not stored
+    if (
+      dataSchema &&
+      user.team.getPreference(TeamPreference.DocumentDatabases)
+    ) {
+      const rollups = await RollupHelper.compute(documents, dataSchema);
+      documents.forEach((document, index) => {
+        const computed = rollups.get(document.id);
+        const item = data[index];
+        if (computed && item) {
+          item.properties = {
+            ...(item.properties as DocumentProperties | undefined),
+            ...computed,
+          };
+        }
+      });
+    }
+
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
@@ -681,6 +707,26 @@ router.post(
         user,
       });
       serializedDocument = await presentDocument(ctx, document);
+
+      // rollup property values are computed at read time, not stored
+      if (user.team.getPreference(TeamPreference.DocumentDatabases)) {
+        const collection = document.collectionId
+          ? await Collection.findByPk(document.collectionId)
+          : null;
+        if (collection?.dataSchema) {
+          const rollups = await RollupHelper.compute(
+            [document],
+            collection.dataSchema
+          );
+          const computed = rollups.get(document.id);
+          if (computed) {
+            serializedDocument.properties = {
+              ...(serializedDocument.properties as Record<string, unknown>),
+              ...computed,
+            };
+          }
+        }
+      }
     }
 
     ctx.body = {

@@ -8,6 +8,7 @@ import {
   FileOperationFormat,
   FilterOperator,
   PropertyType,
+  RollupAggregation,
 } from "@shared/types";
 import { Collection } from "@server/models";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
@@ -43,6 +44,10 @@ const PropertySchema = z.object({
   config: z
     .object({
       dateIncludesTime: z.boolean().optional(),
+      targetCollectionId: z.uuid().optional(),
+      relationPropertyId: z.string().optional(),
+      rollupPropertyId: z.string().optional(),
+      rollupAggregation: z.enum(RollupAggregation).optional(),
     })
     .optional(),
 });

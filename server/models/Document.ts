@@ -53,6 +53,7 @@ import type {
   PropertyValue,
   SourceMetadata,
 } from "@shared/types";
+import { PropertyType } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { coerceDocumentProperties } from "@shared/utils/properties";
 import { UrlHelper } from "@shared/utils/UrlHelper";
@@ -559,6 +560,44 @@ class Document extends ArchivableModel<
       model.properties,
       collection?.dataSchema
     );
+
+    // relation values may only reference existing documents in the same team,
+    // and never the document itself
+    const relationProperties = (collection?.dataSchema ?? []).filter(
+      (property) =>
+        property.type === PropertyType.Relation &&
+        Array.isArray(model.properties[property.id])
+    );
+    if (relationProperties.length === 0) {
+      return;
+    }
+
+    const referencedIds = Array.from(
+      new Set(
+        relationProperties.flatMap(
+          (property) => model.properties[property.id] as string[]
+        )
+      )
+    ).filter((id) => id !== model.id);
+
+    const existing = await this.findAll({
+      attributes: ["id"],
+      where: { id: referencedIds, teamId: model.teamId },
+      transaction,
+      paranoid: true,
+    });
+    const validIds = new Set(existing.map((document) => document.id));
+
+    for (const property of relationProperties) {
+      const values = (model.properties[property.id] as string[]).filter((id) =>
+        validIds.has(id)
+      );
+      if (values.length > 0) {
+        model.properties[property.id] = values;
+      } else {
+        delete model.properties[property.id];
+      }
+    }
   }
 
   @BeforeValidate

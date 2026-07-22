@@ -13,6 +13,7 @@ import IdModel from "./base/IdModel";
 export enum RelationshipType {
   Backlink = "backlink",
   Similar = "similar",
+  Relation = "relation",
 }
 
 @Table({ tableName: "relationships", modelName: "relationship" })

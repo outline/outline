@@ -238,6 +238,11 @@ export class PropertyQueryHelper {
     if (!property) {
       throw ValidationError(`Unknown property id "${propertyId}"`);
     }
+    if (property.type === PropertyType.Rollup) {
+      throw ValidationError(
+        `Cannot filter or sort by rollup property "${property.name}"`
+      );
+    }
     return property;
   }
 

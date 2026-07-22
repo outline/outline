@@ -1,6 +1,11 @@
 import { v4 as uuidv4 } from "uuid";
 import type { Property } from "../types";
-import { DataViewType, FilterOperator, PropertyType } from "../types";
+import {
+  DataViewType,
+  FilterOperator,
+  PropertyType,
+  RollupAggregation,
+} from "../types";
 import {
   coerceDocumentProperties,
   coercePropertyValue,
@@ -68,6 +73,13 @@ const personProperty: Property = {
   type: PropertyType.Person,
 };
 
+const relationProperty: Property = {
+  id: uuidv4(),
+  name: "Linked",
+  type: PropertyType.Relation,
+  config: { targetCollectionId: uuidv4() },
+};
+
 const schema: Property[] = [
   textProperty,
   numberProperty,
@@ -77,6 +89,7 @@ const schema: Property[] = [
   dateProperty,
   urlProperty,
   personProperty,
+  relationProperty,
 ];
 
 describe("validateDataSchema", () => {
@@ -368,6 +381,109 @@ describe("coercePropertyValue", () => {
     const id = uuidv4();
     expect(coercePropertyValue(personProperty, id)).toBe(id);
     expect(coercePropertyValue(personProperty, "jane")).toBeUndefined();
+  });
+
+  it("should coerce relation values to unique document ids", () => {
+    const a = uuidv4();
+    const b = uuidv4();
+    expect(coercePropertyValue(relationProperty, [a, b, a])).toEqual([a, b]);
+    expect(coercePropertyValue(relationProperty, a)).toEqual([a]);
+    expect(coercePropertyValue(relationProperty, ["nope", a])).toEqual([a]);
+    expect(coercePropertyValue(relationProperty, ["nope"])).toBeUndefined();
+    expect(coercePropertyValue(relationProperty, 42)).toBeUndefined();
+  });
+
+  it("should reject relation config without a UUID target", () => {
+    expect(() =>
+      validateDataSchema([
+        {
+          id: uuidv4(),
+          name: "Linked",
+          type: PropertyType.Relation,
+          config: { targetCollectionId: "not-a-uuid" },
+        },
+      ])
+    ).toThrow(/targetCollectionId/);
+  });
+
+  it("should never store rollup values", () => {
+    const rollup: Property = {
+      id: uuidv4(),
+      name: "Total",
+      type: PropertyType.Rollup,
+      config: {
+        relationPropertyId: relationProperty.id,
+        rollupPropertyId: numberProperty.id,
+        rollupAggregation: RollupAggregation.Sum,
+      },
+    };
+    expect(coercePropertyValue(rollup, 42)).toBeUndefined();
+    expect(coercePropertyValue(rollup, [1, 2])).toBeUndefined();
+  });
+
+  it("should validate rollup schema references", () => {
+    const base = {
+      id: uuidv4(),
+      name: "Total",
+      type: PropertyType.Rollup,
+    };
+    // valid: aggregates across a relation in the same schema
+    expect(() =>
+      validateDataSchema([
+        relationProperty,
+        {
+          ...base,
+          config: {
+            relationPropertyId: relationProperty.id,
+            rollupPropertyId: uuidv4(),
+            rollupAggregation: RollupAggregation.Sum,
+          },
+        },
+      ])
+    ).not.toThrow();
+    // missing config entirely
+    expect(() => validateDataSchema([relationProperty, base])).toThrow(
+      /relation property/
+    );
+    // relation reference points at a non-relation property
+    expect(() =>
+      validateDataSchema([
+        relationProperty,
+        {
+          ...base,
+          config: {
+            relationPropertyId: relationProperty.id,
+            rollupAggregation: "median",
+          },
+        },
+      ])
+    ).toThrow(/aggregation/);
+    // non-count aggregation requires a target property
+    expect(() =>
+      validateDataSchema([
+        relationProperty,
+        {
+          ...base,
+          config: {
+            relationPropertyId: relationProperty.id,
+            rollupAggregation: RollupAggregation.Sum,
+          },
+        },
+      ])
+    ).toThrow(/aggregate/);
+    // relationPropertyId must exist in the schema
+    expect(() =>
+      validateDataSchema([
+        relationProperty,
+        {
+          ...base,
+          config: {
+            relationPropertyId: uuidv4(),
+            rollupAggregation: RollupAggregation.Count,
+          },
+        },
+      ])
+    ).toThrow(/same schema/);
   });
 
   it("should drop null and undefined values", () => {

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import type { DataViewSort, Property } from "@shared/types";
+import { PropertyType } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import type Document from "~/models/Document";
 import PropertyValueEditor from "~/components/DocumentProperties/PropertyValueEditor";
@@ -43,8 +44,12 @@ function DatabaseTable({ rows, properties, sort, onSort, hasFilter }: Props) {
               <HeaderCell
                 as="th"
                 key={property.id}
-                onClick={() => onSort(property.id)}
-                $sortable
+                onClick={
+                  property.type === PropertyType.Rollup
+                    ? undefined
+                    : () => onSort(property.id)
+                }
+                $sortable={property.type !== PropertyType.Rollup}
               >
                 {property.name}
                 {sort?.propertyId === property.id

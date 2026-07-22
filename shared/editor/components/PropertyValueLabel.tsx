@@ -1,5 +1,8 @@
 import { observer } from "mobx-react";
+import * as React from "react";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "../../styles";
 import type { Property, PropertyValue } from "../../types";
 import { PropertyType } from "../../types";
 import { sanitizeUrl } from "../../utils/urls";
@@ -69,10 +72,72 @@ export const PropertyValueLabel = observer(function PropertyValueLabel_({
     case PropertyType.Date:
       return <span>{typeof value === "string" ? value.slice(0, 10) : ""}</span>;
 
+    case PropertyType.Rollup:
+      return typeof value === "number" ? (
+        <span>{String(Math.round(value * 100) / 100)}</span>
+      ) : null;
+
+    case PropertyType.Relation: {
+      if (!Array.isArray(value)) {
+        return null;
+      }
+      return (
+        <>
+          {value.map((id) => (
+            <RelationChip key={id} documentId={id} />
+          ))}
+        </>
+      );
+    }
+
     default:
       return <span>{String(value)}</span>;
   }
 });
+
+/**
+ * Renders one referenced document of a relation value as a chip linking to
+ * the document, fetching it into the store when not yet loaded. Documents
+ * the current user cannot access render nothing.
+ */
+const RelationChip = observer(function RelationChip_({
+  documentId,
+}: {
+  documentId: string;
+}) {
+  const { documents } = useStores();
+  const document = documents.get(documentId);
+
+  React.useEffect(() => {
+    if (!document) {
+      void documents.fetch(documentId).catch(() => {
+        // referenced document is inaccessible or deleted — render nothing
+      });
+    }
+  }, [documents, document, documentId]);
+
+  if (!document) {
+    return null;
+  }
+
+  return (
+    <DocumentChip to={document.path}>{document.titleWithDefault}</DocumentChip>
+  );
+});
+
+const DocumentChip = styled(Link)`
+  display: inline-block;
+  background: ${(props) => props.theme.backgroundSecondary};
+  color: ${s("text")};
+  border-radius: 10px;
+  padding: 1px 8px;
+  font-size: 13px;
+  margin-right: 4px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
 
 const Chip = styled.span<{ $color?: string }>`
   display: inline-block;

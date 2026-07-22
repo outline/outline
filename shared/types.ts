@@ -513,6 +513,17 @@ export enum PropertyType {
   Date = "date",
   Url = "url",
   Person = "person",
+  Relation = "relation",
+  Rollup = "rollup",
+}
+
+/** Aggregations available to rollup properties. */
+export enum RollupAggregation {
+  Count = "count",
+  Sum = "sum",
+  Avg = "avg",
+  Min = "min",
+  Max = "max",
 }
 
 /** A selectable option for select and multiSelect properties. */
@@ -529,6 +540,14 @@ export type PropertyOption = {
 export type PropertyConfig = {
   /** Whether date properties include a time component. */
   dateIncludesTime?: boolean;
+  /** The collection relation properties reference documents from; unset means any collection in the team. */
+  targetCollectionId?: string;
+  /** The relation property a rollup aggregates across. */
+  relationPropertyId?: string;
+  /** The property on the related documents a rollup aggregates; unused for count. */
+  rollupPropertyId?: string;
+  /** The aggregation a rollup applies. */
+  rollupAggregation?: RollupAggregation;
 };
 
 /** Definition of a typed document property, stored in a collection's data schema. */

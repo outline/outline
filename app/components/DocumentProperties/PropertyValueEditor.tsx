@@ -217,6 +217,25 @@ function PropertyValueEditor({ property, value, onChange, readOnly }: Props) {
       );
     }
 
+    case PropertyType.Rollup: {
+      return typeof value === "number" ? (
+        <RollupValue>{formatRollupValue(value)}</RollupValue>
+      ) : (
+        <Placeholder>–</Placeholder>
+      );
+    }
+
+    case PropertyType.Relation: {
+      return (
+        <RelationValueEditor
+          property={property}
+          value={value}
+          onChange={onChange}
+          readOnly={readOnly}
+        />
+      );
+    }
+
     case PropertyType.Person: {
       if (readOnly) {
         const user = typeof value === "string" ? users.get(value) : undefined;
@@ -245,6 +264,128 @@ function PropertyValueEditor({ property, value, onChange, readOnly }: Props) {
       return null;
   }
 }
+
+const RelationValueEditor = observer(function RelationValueEditor_({
+  property,
+  value,
+  onChange,
+  readOnly,
+}: Props) {
+  const { t } = useTranslation();
+  const { documents } = useStores();
+  const targetCollectionId = property.config?.targetCollectionId;
+  const selectedIds = React.useMemo(
+    () => (Array.isArray(value) ? value : []),
+    [value]
+  );
+
+  const [candidateIds, setCandidateIds] = React.useState<string[]>();
+
+  // fetch documents referenced by the current value so their titles resolve
+  React.useEffect(() => {
+    for (const id of selectedIds) {
+      if (!documents.get(id)) {
+        void documents.fetch(id).catch(() => {
+          // referenced document is inaccessible — leave it out of the list
+        });
+      }
+    }
+  }, [documents, selectedIds]);
+
+  React.useEffect(() => {
+    if (readOnly || candidateIds !== undefined) {
+      return;
+    }
+    async function load() {
+      try {
+        const results = targetCollectionId
+          ? await documents.fetchInDatabase({
+              collectionId: targetCollectionId,
+              limit: 100,
+            })
+          : await documents.fetchRecentlyUpdated({ limit: 100 });
+        setCandidateIds(results.map((item) => item.id));
+      } catch (_err) {
+        setCandidateIds([]);
+      }
+    }
+    void load();
+  }, [readOnly, candidateIds, documents, targetCollectionId]);
+
+  const handleRemove = (id: string) => {
+    const next = selectedIds.filter((item) => item !== id);
+    onChange(next.length === 0 ? null : next);
+  };
+
+  const handleAdd = (id: string) => {
+    if (id === EMPTY_VALUE || selectedIds.includes(id)) {
+      return;
+    }
+    onChange([...selectedIds, id]);
+  };
+
+  const options = (candidateIds ?? [])
+    .filter((id) => !selectedIds.includes(id))
+    .map((id) => documents.get(id))
+    .filter((document) => !!document)
+    .map((document) => ({
+      type: "item" as const,
+      label: document.titleWithDefault,
+      value: document.id,
+    }));
+
+  return (
+    <ChipList>
+      {selectedIds.map((id) => {
+        const document = documents.get(id);
+        if (!document) {
+          return null;
+        }
+        return (
+          <Chip key={id}>
+            {document.titleWithDefault}
+            {!readOnly && (
+              <ChipRemove
+                type="button"
+                onClick={() => handleRemove(id)}
+                aria-label={t("Remove")}
+              >
+                ×
+              </ChipRemove>
+            )}
+          </Chip>
+        );
+      })}
+      {readOnly && selectedIds.length === 0 && <Placeholder>–</Placeholder>}
+      {!readOnly && (
+        <InputSelect
+          options={[
+            {
+              type: "item" as const,
+              label: t("Add document"),
+              value: EMPTY_VALUE,
+            },
+            ...options,
+          ]}
+          value={EMPTY_VALUE}
+          onChange={handleAdd}
+          label={property.name}
+          labelHidden
+          short
+        />
+      )}
+    </ChipList>
+  );
+});
+
+function formatRollupValue(value: number): string {
+  return String(Math.round(value * 100) / 100);
+}
+
+const RollupValue = styled.span`
+  padding: 4px 6px;
+  color: ${s("textSecondary")};
+`;
 
 const NudeInput = styled.input`
   border: 0;
@@ -294,6 +435,19 @@ const Chip = styled.span<{ $color?: string }>`
   border-radius: 12px;
   padding: 2px 8px;
   font-size: 13px;
+`;
+
+const ChipRemove = styled.button`
+  border: 0;
+  background: none;
+  color: ${s("textSecondary")};
+  font-size: 13px;
+  padding: 0 0 0 4px;
+  cursor: var(--pointer);
+
+  &:hover {
+    color: ${s("text")};
+  }
 `;
 
 const ChipButton = styled.button<{ $selected: boolean; $color?: string }>`

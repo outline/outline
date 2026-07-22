@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { s } from "@shared/styles";
-import type { Property, PropertyOption } from "@shared/types";
-import { PropertyType } from "@shared/types";
+import type { Property, PropertyConfig, PropertyOption } from "@shared/types";
+import { PropertyType, RollupAggregation } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import { PropertyValidation } from "@shared/validations";
 import Button from "~/components/Button";
@@ -34,6 +34,16 @@ const typeLabels: Record<PropertyType, string> = {
   [PropertyType.Date]: "Date",
   [PropertyType.Url]: "URL",
   [PropertyType.Person]: "Person",
+  [PropertyType.Relation]: "Relation",
+  [PropertyType.Rollup]: "Rollup",
+};
+
+const aggregationLabels: Record<RollupAggregation, string> = {
+  [RollupAggregation.Count]: "Count",
+  [RollupAggregation.Sum]: "Sum",
+  [RollupAggregation.Avg]: "Average",
+  [RollupAggregation.Min]: "Min",
+  [RollupAggregation.Max]: "Max",
 };
 
 /**
@@ -87,6 +97,24 @@ function DatabaseSchemaEditor({ collectionId, onSubmit }: Props) {
     updateProperty(index, {
       type,
       options: supportsOptions ? (draft[index].options ?? []) : undefined,
+      config:
+        type === PropertyType.Relation
+          ? draft[index].config
+          : type === PropertyType.Rollup
+            ? { rollupAggregation: RollupAggregation.Count }
+            : undefined,
+    });
+  };
+
+  const updateConfig = (index: number, updates: Partial<PropertyConfig>) => {
+    updateProperty(index, {
+      config: { ...draft[index].config, ...updates },
+    });
+  };
+
+  const handleTargetCollectionChange = (index: number, value: string) => {
+    updateProperty(index, {
+      config: value === "" ? undefined : { targetCollectionId: value },
     });
   };
 
@@ -140,7 +168,14 @@ function DatabaseSchemaEditor({ collectionId, onSubmit }: Props) {
   const isValid =
     draft.every((property) => property.name.trim() !== "") &&
     new Set(draft.map((property) => property.name.trim().toLowerCase()))
-      .size === draft.length;
+      .size === draft.length &&
+    draft.every(
+      (property) =>
+        property.type !== PropertyType.Rollup ||
+        (!!property.config?.relationPropertyId &&
+          (property.config.rollupAggregation === RollupAggregation.Count ||
+            !!property.config.rollupPropertyId))
+    );
 
   return (
     <Flex column gap={12}>
@@ -154,6 +189,21 @@ function DatabaseSchemaEditor({ collectionId, onSubmit }: Props) {
         const supportsOptions =
           property.type === PropertyType.Select ||
           property.type === PropertyType.MultiSelect;
+        const isRelation = property.type === PropertyType.Relation;
+        const isRollup = property.type === PropertyType.Rollup;
+        const relationProperties = draft.filter(
+          (item) => item.type === PropertyType.Relation
+        );
+        const rollupRelation = relationProperties.find(
+          (item) => item.id === property.config?.relationPropertyId
+        );
+        const rollupTargetSchema = rollupRelation?.config?.targetCollectionId
+          ? (collections.get(rollupRelation.config.targetCollectionId)
+              ?.dataSchema ?? [])
+          : [];
+        const rollupNumberProperties = rollupTargetSchema.filter(
+          (item) => item.type === PropertyType.Number
+        );
 
         return (
           <PropertyRow key={property.id} column gap={6}>
@@ -187,6 +237,87 @@ function DatabaseSchemaEditor({ collectionId, onSubmit }: Props) {
                 <CloseIcon size={18} />
               </NudeButton>
             </Flex>
+            {isRelation && (
+              <InputSelect
+                options={[
+                  {
+                    type: "item" as const,
+                    label: t("Any collection"),
+                    value: "",
+                  },
+                  ...collections.orderedData.map((item) => ({
+                    type: "item" as const,
+                    label: item.name,
+                    value: item.id,
+                  })),
+                ]}
+                value={property.config?.targetCollectionId ?? ""}
+                onChange={(value) => handleTargetCollectionChange(index, value)}
+                label={t("Related collection")}
+                labelHidden
+                short
+              />
+            )}
+            {isRollup && (
+              <Flex align="center" gap={8}>
+                <InputSelect
+                  options={relationProperties.map((item) => ({
+                    type: "item" as const,
+                    label: item.name || t("Untitled"),
+                    value: item.id,
+                  }))}
+                  value={property.config?.relationPropertyId ?? null}
+                  onChange={(value) =>
+                    updateConfig(index, { relationPropertyId: value })
+                  }
+                  label={t("Relation property")}
+                  labelHidden
+                  short
+                />
+                <InputSelect
+                  options={Object.values(RollupAggregation)
+                    .filter(
+                      (aggregation) =>
+                        aggregation === RollupAggregation.Count ||
+                        rollupNumberProperties.length > 0
+                    )
+                    .map((aggregation) => ({
+                      type: "item" as const,
+                      label: t(aggregationLabels[aggregation]),
+                      value: aggregation,
+                    }))}
+                  value={
+                    property.config?.rollupAggregation ??
+                    RollupAggregation.Count
+                  }
+                  onChange={(value) =>
+                    updateConfig(index, {
+                      rollupAggregation: value as RollupAggregation,
+                    })
+                  }
+                  label={t("Aggregation")}
+                  labelHidden
+                  short
+                />
+                {property.config?.rollupAggregation !==
+                  RollupAggregation.Count && (
+                  <InputSelect
+                    options={rollupNumberProperties.map((item) => ({
+                      type: "item" as const,
+                      label: item.name,
+                      value: item.id,
+                    }))}
+                    value={property.config?.rollupPropertyId ?? null}
+                    onChange={(value) =>
+                      updateConfig(index, { rollupPropertyId: value })
+                    }
+                    label={t("Property to aggregate")}
+                    labelHidden
+                    short
+                  />
+                )}
+              </Flex>
+            )}
             {supportsOptions && (
               <OptionsInput
                 defaultValue={(property.options ?? [])

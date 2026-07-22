@@ -8,7 +8,12 @@ import type {
   PropertyOption,
   PropertyValue,
 } from "../types";
-import { DataViewType, FilterOperator, PropertyType } from "../types";
+import {
+  DataViewType,
+  FilterOperator,
+  PropertyType,
+  RollupAggregation,
+} from "../types";
 import { DataViewValidation, PropertyValidation } from "../validations";
 
 /**
@@ -42,6 +47,21 @@ export function validateDataSchema(value: unknown): void {
     }
     ids.add(property.id);
     names.add(normalizedName);
+  }
+
+  // rollups must aggregate across a relation property in the same schema
+  for (const property of value as Property[]) {
+    if (property.type !== PropertyType.Rollup) {
+      continue;
+    }
+    const relation = (value as Property[]).find(
+      (item) => item.id === property.config?.relationPropertyId
+    );
+    if (!relation || relation.type !== PropertyType.Relation) {
+      throw new Error(
+        `Rollup property "${property.name}" must reference a relation property in the same schema`
+      );
+    }
   }
 }
 
@@ -194,6 +214,25 @@ export function coercePropertyValue(
       return typeof value === "string" && isUUID(value) ? value : undefined;
     }
 
+    case PropertyType.Rollup:
+      // rollup values are computed at query time and never stored
+      return undefined;
+
+    case PropertyType.Relation: {
+      const input = typeof value === "string" ? [value] : value;
+      if (!Array.isArray(input)) {
+        return undefined;
+      }
+      const ids = Array.from(
+        new Set(
+          input.filter(
+            (item): item is string => typeof item === "string" && isUUID(item)
+          )
+        )
+      ).slice(0, PropertyValidation.maxRelations);
+      return ids.length > 0 ? ids : undefined;
+    }
+
     default:
       return undefined;
   }
@@ -333,8 +372,46 @@ function validateProperty(property: unknown): asserts property is Property {
   if (property.options !== undefined) {
     validateOptions(property.options);
   }
-  if (property.config !== undefined && !isPlainObject(property.config)) {
-    throw new Error("Property config must be an object");
+  if (property.config !== undefined) {
+    if (!isPlainObject(property.config)) {
+      throw new Error("Property config must be an object");
+    }
+    if (
+      property.config.targetCollectionId !== undefined &&
+      (typeof property.config.targetCollectionId !== "string" ||
+        !isUUID(property.config.targetCollectionId))
+    ) {
+      throw new Error("Property config targetCollectionId must be a UUID");
+    }
+  }
+
+  if ((property.type as PropertyType) === PropertyType.Rollup) {
+    validateRollupConfig(property as Property);
+  }
+}
+
+function validateRollupConfig(property: Property) {
+  const config = property.config;
+  if (!config || typeof config.relationPropertyId !== "string") {
+    throw new Error(
+      `Rollup property "${property.name}" must reference a relation property`
+    );
+  }
+  if (
+    typeof config.rollupAggregation !== "string" ||
+    !Object.values(RollupAggregation).includes(config.rollupAggregation)
+  ) {
+    throw new Error(
+      `Rollup property "${property.name}" must define a valid aggregation`
+    );
+  }
+  if (
+    config.rollupAggregation !== RollupAggregation.Count &&
+    typeof config.rollupPropertyId !== "string"
+  ) {
+    throw new Error(
+      `Rollup property "${property.name}" must reference a property to aggregate`
+    );
   }
 }
 

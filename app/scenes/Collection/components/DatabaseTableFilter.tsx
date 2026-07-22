@@ -38,6 +38,11 @@ const operatorLabels: Record<FilterOperator, string> = {
 
 function operatorsForType(type: PropertyType): FilterOperator[] {
   switch (type) {
+    case PropertyType.Rollup:
+      // rollups are computed at read time and cannot be queried
+      return [];
+    case PropertyType.Relation:
+      return [FilterOperator.IsEmpty, FilterOperator.IsNotEmpty];
     case PropertyType.Select:
     case PropertyType.Person:
       return [
@@ -108,6 +113,9 @@ function DatabaseTableFilter({ schema, filter, onChange }: Props) {
       return;
     }
     const operator = operatorsForType(next.type)[0];
+    if (!operator) {
+      return;
+    }
     onChange({
       propertyId,
       operator,
@@ -237,11 +245,13 @@ function DatabaseTableFilter({ schema, filter, onChange }: Props) {
       <InputSelect
         options={[
           { type: "item", label: t("No filter"), value: NONE },
-          ...schema.map((item) => ({
-            type: "item" as const,
-            label: item.name,
-            value: item.id,
-          })),
+          ...schema
+            .filter((item) => operatorsForType(item.type).length > 0)
+            .map((item) => ({
+              type: "item" as const,
+              label: item.name,
+              value: item.id,
+            })),
         ]}
         value={filter?.propertyId ?? NONE}
         onChange={handleProperty}
