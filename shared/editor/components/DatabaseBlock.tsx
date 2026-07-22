@@ -6,7 +6,11 @@ import styled from "styled-components";
 import { s } from "../../styles";
 import type { DataView, Property, PropertyValue } from "../../types";
 import { DataViewType } from "../../types";
-import { groupByProperty, isGroupableProperty } from "../../utils/properties";
+import {
+  groupByProperty,
+  isGroupableProperty,
+  visiblePropertiesForView,
+} from "../../utils/properties";
 import useIsMounted from "../../hooks/useIsMounted";
 import useStores from "../../hooks/useStores";
 import type { ComponentProps } from "../types";
@@ -54,6 +58,7 @@ function DatabaseBlock({
     ? views.find((item: DataView) => item.id === viewId)
     : undefined;
   const viewType = view?.type ?? DataViewType.Table;
+  const visibleSchema = visiblePropertiesForView(schema, view);
 
   React.useEffect(() => {
     if (!collectionId) {
@@ -153,6 +158,7 @@ function DatabaseBlock({
         <BlockBoard
           rows={rows}
           schema={schema}
+          properties={visibleSchema}
           view={view}
           isEmpty={isEmpty}
           emptyLabel={t("No documents yet")}
@@ -161,21 +167,21 @@ function DatabaseBlock({
       ) : viewType === DataViewType.List ? (
         <BlockList
           rows={rows}
-          schema={schema}
+          schema={visibleSchema}
           isEmpty={isEmpty}
           emptyLabel={t("No documents yet")}
         />
       ) : viewType === DataViewType.Gallery ? (
         <BlockGallery
           rows={rows}
-          schema={schema}
+          schema={visibleSchema}
           isEmpty={isEmpty}
           emptyLabel={t("No documents yet")}
         />
       ) : (
         <BlockTable
           rows={rows}
-          schema={schema}
+          schema={visibleSchema}
           isEmpty={isEmpty}
           emptyLabel={t("No documents yet")}
           titleLabel={t("Title")}
@@ -239,6 +245,7 @@ const BlockTable = observer(function BlockTable_({
 const BlockBoard = observer(function BlockBoard_({
   rows,
   schema,
+  properties,
   view,
   isEmpty,
   emptyLabel,
@@ -246,6 +253,7 @@ const BlockBoard = observer(function BlockBoard_({
 }: {
   rows: RowModel[];
   schema: Property[];
+  properties: Property[];
   view?: DataView;
   isEmpty: boolean;
   emptyLabel: string;
@@ -269,7 +277,7 @@ const BlockBoard = observer(function BlockBoard_({
   const groups = groupByProperty(rows, property, (doc) =>
     doc.propertyValue(property.id)
   );
-  const cardProperties = schema.filter((item) => item.id !== property.id);
+  const cardProperties = properties.filter((item) => item.id !== property.id);
 
   return (
     <ScrollContainer>

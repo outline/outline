@@ -9,7 +9,10 @@ import { v4 as uuidv4 } from "uuid";
 import type { DataView, DataViewSort, FilterCondition } from "@shared/types";
 import { DataViewType } from "@shared/types";
 import { errToString } from "@shared/utils/error";
-import { isGroupableProperty } from "@shared/utils/properties";
+import {
+  isGroupableProperty,
+  visiblePropertiesForView,
+} from "@shared/utils/properties";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import Button from "~/components/Button";
@@ -25,6 +28,7 @@ import DatabaseGallery from "./DatabaseGallery";
 import DatabaseList from "./DatabaseList";
 import DatabaseTable from "./DatabaseTable";
 import DatabaseTableFilter from "./DatabaseTableFilter";
+import DatabaseViewProperties from "./DatabaseViewProperties";
 
 type Props = {
   /** The database collection to render. */
@@ -32,11 +36,12 @@ type Props = {
 };
 
 const PAGE_LIMIT = 100;
+const NO_GROUPING = "";
 
 /**
  * The database area of a collection: a toolbar with a view switcher, filter
- * bar and row creation, plus the active layout — table, board, list or
- * gallery — over the collection's documents.
+ * bar, per-view property visibility and row creation, plus the active
+ * layout — table, board, list or gallery — over the collection's documents.
  */
 function DatabaseView({ collection }: Props) {
   const { t } = useTranslation();
@@ -49,6 +54,8 @@ function DatabaseView({ collection }: Props) {
     DataViewType.Table
   );
   const [rows, setRows] = React.useState<Document[]>();
+  const [hasMore, setHasMore] = React.useState(false);
+  const [isLoadingMore, setIsLoadingMore] = React.useState(false);
   const [sort, setSort] = React.useState<DataViewSort>();
   const [filter, setFilter] = React.useState<FilterCondition>();
   const [isCreating, setIsCreating] = React.useState(false);
@@ -65,6 +72,9 @@ function DatabaseView({ collection }: Props) {
       ? DataViewType.Table
       : persistedType;
 
+  const activeView = collection.viewOfType(viewType);
+  const visibleProperties = visiblePropertiesForView(schema, activeView);
+
   const savedBoardView = collection.viewOfType(DataViewType.Board);
   const savedGroupByProperty = savedBoardView?.groupBy
     ? collection.getProperty(savedBoardView.groupBy)
@@ -74,25 +84,63 @@ function DatabaseView({ collection }: Props) {
       ? savedGroupByProperty
       : groupableProperties[0];
 
-  const load = React.useCallback(async () => {
-    try {
-      const results = await documents.fetchInDatabase({
+  const savedListView = collection.viewOfType(DataViewType.List);
+  const savedListGroupByProperty = savedListView?.groupBy
+    ? collection.getProperty(savedListView.groupBy)
+    : undefined;
+  const listGroupByProperty =
+    savedListGroupByProperty && isGroupableProperty(savedListGroupByProperty)
+      ? savedListGroupByProperty
+      : undefined;
+
+  const query = React.useCallback(
+    (offset: number) =>
+      documents.fetchInDatabase({
         collectionId: collection.id,
         limit: PAGE_LIMIT,
+        offset,
         propertySorts: sort ? [sort] : undefined,
         filter: filter
           ? { conjunction: "and", conditions: [filter] }
           : undefined,
-      });
-      setRows(results);
-    } catch (error) {
-      toast.error(errToString(error));
-    }
-  }, [documents, collection.id, sort, filter]);
+      }),
+    [documents, collection.id, sort, filter]
+  );
 
   React.useEffect(() => {
+    let stale = false;
+    async function load() {
+      try {
+        const results = await query(0);
+        if (!stale) {
+          setRows(results);
+          setHasMore(results.length === PAGE_LIMIT);
+        }
+      } catch (error) {
+        toast.error(errToString(error));
+      }
+    }
     void load();
-  }, [load]);
+    return () => {
+      stale = true;
+    };
+  }, [query]);
+
+  const handleLoadMore = React.useCallback(async () => {
+    if (!rows) {
+      return;
+    }
+    setIsLoadingMore(true);
+    try {
+      const results = await query(rows.length);
+      setRows((current) => [...(current ?? []), ...results]);
+      setHasMore(results.length === PAGE_LIMIT);
+    } catch (error) {
+      toast.error(errToString(error));
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [rows, query]);
 
   const handleSort = React.useCallback((propertyId: string) => {
     setSort((current) => {
@@ -178,6 +226,32 @@ function DatabaseView({ collection }: Props) {
     [upsertView]
   );
 
+  const handleChangeListGroupBy = React.useCallback(
+    (propertyId: string) => {
+      void upsertView(DataViewType.List, {
+        groupBy: propertyId === NO_GROUPING ? undefined : propertyId,
+      });
+    },
+    [upsertView]
+  );
+
+  const handleToggleProperty = React.useCallback(
+    (propertyId: string, visible: boolean) => {
+      const view = collection.viewOfType(viewType);
+      const columns = [...(view?.columns ?? [])];
+      const index = columns.findIndex(
+        (column) => column.propertyId === propertyId
+      );
+      if (index >= 0) {
+        columns[index] = { ...columns[index], visible };
+      } else {
+        columns.push({ propertyId, visible });
+      }
+      void upsertView(viewType, { columns });
+    },
+    [collection, viewType, upsertView]
+  );
+
   if (!rows) {
     return <PlaceholderList count={5} />;
   }
@@ -230,6 +304,38 @@ function DatabaseView({ collection }: Props) {
               short
             />
           )}
+        {viewType === DataViewType.List &&
+          groupableProperties.length > 0 &&
+          can.update && (
+            <InputSelect
+              options={[
+                {
+                  type: "item" as const,
+                  label: t("No grouping"),
+                  value: NO_GROUPING,
+                },
+                ...groupableProperties.map((property) => ({
+                  type: "item" as const,
+                  label: t("Group by {{ propertyName }}", {
+                    propertyName: property.name,
+                  }),
+                  value: property.id,
+                })),
+              ]}
+              value={listGroupByProperty?.id ?? NO_GROUPING}
+              onChange={handleChangeListGroupBy}
+              label={t("Group by")}
+              labelHidden
+              short
+            />
+          )}
+        {can.update && schema.length > 0 && (
+          <DatabaseViewProperties
+            schema={schema}
+            view={activeView}
+            onToggle={handleToggleProperty}
+          />
+        )}
         {can.createDocument && (
           <Button
             type="button"
@@ -245,30 +351,44 @@ function DatabaseView({ collection }: Props) {
 
       {viewType === DataViewType.Board && groupByProperty ? (
         <DatabaseBoard
-          collection={collection}
           rows={rows}
+          properties={visibleProperties}
           groupByProperty={groupByProperty}
         />
       ) : viewType === DataViewType.List ? (
         <DatabaseList
-          collection={collection}
           rows={rows}
+          properties={visibleProperties}
+          groupByProperty={listGroupByProperty}
           hasFilter={!!filter}
         />
       ) : viewType === DataViewType.Gallery ? (
         <DatabaseGallery
-          collection={collection}
           rows={rows}
+          properties={visibleProperties}
           hasFilter={!!filter}
         />
       ) : (
         <DatabaseTable
-          collection={collection}
           rows={rows}
+          properties={visibleProperties}
           sort={sort}
           onSort={handleSort}
           hasFilter={!!filter}
         />
+      )}
+
+      {hasMore && (
+        <LoadMore align="center" justify="center">
+          <Button
+            type="button"
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            neutral
+          >
+            {t("Load more")}
+          </Button>
+        </LoadMore>
       )}
     </Fade>
   );
@@ -290,6 +410,10 @@ function defaultViewName(type: DataViewType): string {
 const Toolbar = styled(Flex)`
   margin: 12px 0;
   flex-wrap: wrap;
+`;
+
+const LoadMore = styled(Flex)`
+  margin: 12px 0;
 `;
 
 const Switcher = styled.div`

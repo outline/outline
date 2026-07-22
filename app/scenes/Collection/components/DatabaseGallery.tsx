@@ -6,14 +6,13 @@ import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import PropertyValueLabel from "@shared/editor/components/PropertyValueLabel";
 import type { Property } from "@shared/types";
-import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 
 type Props = {
-  /** The database collection the rows belong to. */
-  collection: Collection;
   /** The documents to render as cards, in order. */
   rows: Document[];
+  /** The properties to display on cards, in order. */
+  properties: Property[];
   /** Whether a filter is currently applied, to phrase the empty state. */
   hasFilter: boolean;
 };
@@ -22,9 +21,8 @@ type Props = {
  * Renders the documents of a database collection as a responsive card grid:
  * each card shows the document title and its property values stacked.
  */
-function DatabaseGallery({ collection, rows, hasFilter }: Props) {
+function DatabaseGallery({ rows, properties, hasFilter }: Props) {
   const { t } = useTranslation();
-  const schema = collection.dataSchema ?? [];
 
   if (rows.length === 0) {
     return (
@@ -37,7 +35,11 @@ function DatabaseGallery({ collection, rows, hasFilter }: Props) {
   return (
     <Grid>
       {rows.map((document) => (
-        <GalleryCard key={document.id} document={document} schema={schema} />
+        <GalleryCard
+          key={document.id}
+          document={document}
+          properties={properties}
+        />
       ))}
     </Grid>
   );
@@ -45,15 +47,15 @@ function DatabaseGallery({ collection, rows, hasFilter }: Props) {
 
 const GalleryCard = observer(function GalleryCard_({
   document,
-  schema,
+  properties,
 }: {
   document: Document;
-  schema: Property[];
+  properties: Property[];
 }) {
   return (
     <Card>
       <CardTitle to={document.path}>{document.titleWithDefault}</CardTitle>
-      {schema.map((property) => {
+      {properties.map((property) => {
         const value = document.propertyValue(property.id);
         if (value === undefined || value === null) {
           return null;

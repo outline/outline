@@ -275,6 +275,31 @@ export function groupByProperty<T>(
   return Array.from(buckets.values());
 }
 
+/**
+ * Resolves the properties visible in a view. A view's columns act as
+ * visibility overrides: properties explicitly marked `visible: false` are
+ * hidden, and every other schema property — including ones the view has no
+ * column entry for — is visible, in schema order.
+ *
+ * @param schema the collection's data schema.
+ * @param view the view whose column config applies, if any.
+ * @returns the visible properties in schema order.
+ */
+export function visiblePropertiesForView(
+  schema: Property[],
+  view?: DataView | null
+): Property[] {
+  if (!view?.columns.length) {
+    return schema;
+  }
+  const hidden = new Set(
+    view.columns
+      .filter((column) => !column.visible)
+      .map((column) => column.propertyId)
+  );
+  return schema.filter((property) => !hidden.has(property.id));
+}
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }

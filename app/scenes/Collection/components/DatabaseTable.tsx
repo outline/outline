@@ -4,18 +4,17 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import type { DataViewSort } from "@shared/types";
+import type { DataViewSort, Property } from "@shared/types";
 import { errToString } from "@shared/utils/error";
-import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import PropertyValueEditor from "~/components/DocumentProperties/PropertyValueEditor";
 import usePolicy from "~/hooks/usePolicy";
 
 type Props = {
-  /** The database collection the rows belong to. */
-  collection: Collection;
   /** The documents to render as rows, in order. */
   rows: Document[];
+  /** The properties to render as columns, in order. */
+  properties: Property[];
   /** The active sort, reflected in the column headers. */
   sort?: DataViewSort;
   /** Callback when a column header is clicked to change the sort. */
@@ -29,9 +28,8 @@ type Props = {
  * documents, columns are the properties from the collection's data schema.
  * Cells are editable in place and headers toggle sorting.
  */
-function DatabaseTable({ collection, rows, sort, onSort, hasFilter }: Props) {
+function DatabaseTable({ rows, properties, sort, onSort, hasFilter }: Props) {
   const { t } = useTranslation();
-  const schema = collection.dataSchema ?? [];
 
   return (
     <ScrollContainer>
@@ -41,7 +39,7 @@ function DatabaseTable({ collection, rows, sort, onSort, hasFilter }: Props) {
             <HeaderCell as="th" $minWidth={220}>
               {t("Title")}
             </HeaderCell>
-            {schema.map((property) => (
+            {properties.map((property) => (
               <HeaderCell
                 as="th"
                 key={property.id}
@@ -63,12 +61,12 @@ function DatabaseTable({ collection, rows, sort, onSort, hasFilter }: Props) {
             <DatabaseTableRow
               key={document.id}
               document={document}
-              collection={collection}
+              properties={properties}
             />
           ))}
           {rows.length === 0 && (
             <tr>
-              <EmptyCell colSpan={schema.length + 1}>
+              <EmptyCell colSpan={properties.length + 1}>
                 {hasFilter
                   ? t("No documents match the filter")
                   : t("No documents yet")}
@@ -83,13 +81,12 @@ function DatabaseTable({ collection, rows, sort, onSort, hasFilter }: Props) {
 
 const DatabaseTableRow = observer(function DatabaseTableRow_({
   document,
-  collection,
+  properties,
 }: {
   document: Document;
-  collection: Collection;
+  properties: Property[];
 }) {
   const can = usePolicy(document);
-  const schema = collection.dataSchema ?? [];
 
   const handleChange = async (
     propertyId: string,
@@ -107,7 +104,7 @@ const DatabaseTableRow = observer(function DatabaseTableRow_({
       <TitleCell>
         <TitleLink to={document.path}>{document.titleWithDefault}</TitleLink>
       </TitleCell>
-      {schema.map((property) => (
+      {properties.map((property) => (
         <Cell key={property.id}>
           <PropertyValueEditor
             property={property}

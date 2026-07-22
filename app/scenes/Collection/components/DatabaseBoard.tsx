@@ -15,19 +15,21 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import PropertyValueLabel from "@shared/editor/components/PropertyValueLabel";
-import type { Property, PropertyOption } from "@shared/types";
+import type { Property, PropertyOption, PropertyValue } from "@shared/types";
 import { PropertyType } from "@shared/types";
 import { errToString } from "@shared/utils/error";
-import { groupByProperty } from "@shared/utils/properties";
-import type Collection from "~/models/Collection";
+import {
+  groupByProperty,
+  groupOptionIdForValue,
+} from "@shared/utils/properties";
 import type Document from "~/models/Document";
 import usePolicy from "~/hooks/usePolicy";
 
 type Props = {
-  /** The database collection the rows belong to. */
-  collection: Collection;
   /** The documents to render as cards, in order. */
   rows: Document[];
+  /** The properties to display on cards, in order. */
+  properties: Property[];
   /** The groupable property whose options form the board columns. */
   groupByProperty: Property;
 };
@@ -40,7 +42,7 @@ const EMPTY_COLUMN_ID = "__none__";
  * "No value" column. Dragging a card between columns updates the document's
  * group property value.
  */
-function DatabaseBoard({ collection, rows, groupByProperty: property }: Props) {
+function DatabaseBoard({ rows, properties, groupByProperty: property }: Props) {
   const { t } = useTranslation();
 
   const sensors = useSensors(
@@ -66,12 +68,18 @@ function DatabaseBoard({ collection, rows, groupByProperty: property }: Props) {
         return;
       }
       const optionId = over.id === EMPTY_COLUMN_ID ? null : String(over.id);
-      const value =
-        optionId === null
-          ? null
-          : property.type === PropertyType.MultiSelect
-            ? [optionId]
-            : optionId;
+      let value: PropertyValue = optionId;
+      if (property.type === PropertyType.MultiSelect) {
+        // moving a card swaps only its group option — the first known option,
+        // which determines the column — and keeps the other selected options
+        const current = document.propertyValue(property.id);
+        const others = (Array.isArray(current) ? current : []).filter(
+          (item) =>
+            item !== optionId &&
+            item !== groupOptionIdForValue(property, current)
+        );
+        value = optionId === null ? null : [optionId, ...others];
+      }
       try {
         await document.setProperty(property.id, value);
       } catch (error) {
@@ -87,9 +95,9 @@ function DatabaseBoard({ collection, rows, groupByProperty: property }: Props) {
         {groups.map((group) => (
           <BoardColumn
             key={group.option?.id ?? EMPTY_COLUMN_ID}
-            collection={collection}
             option={group.option}
             documents={group.items}
+            properties={properties}
             groupByProperty={property}
             emptyLabel={t("No value")}
           />
@@ -100,15 +108,15 @@ function DatabaseBoard({ collection, rows, groupByProperty: property }: Props) {
 }
 
 const BoardColumn = observer(function BoardColumn_({
-  collection,
   option,
   documents,
+  properties,
   groupByProperty: property,
   emptyLabel,
 }: {
-  collection: Collection;
   option: PropertyOption | null;
   documents: Document[];
+  properties: Property[];
   groupByProperty: Property;
   emptyLabel: string;
 }) {
@@ -129,8 +137,8 @@ const BoardColumn = observer(function BoardColumn_({
       {documents.map((document) => (
         <BoardCard
           key={document.id}
-          collection={collection}
           document={document}
+          properties={properties}
           groupByProperty={property}
         />
       ))}
@@ -139,12 +147,12 @@ const BoardColumn = observer(function BoardColumn_({
 });
 
 const BoardCard = observer(function BoardCard_({
-  collection,
   document,
+  properties,
   groupByProperty: property,
 }: {
-  collection: Collection;
   document: Document;
+  properties: Property[];
   groupByProperty: Property;
 }) {
   const can = usePolicy(document);
@@ -153,8 +161,7 @@ const BoardCard = observer(function BoardCard_({
       id: document.id,
       disabled: !can.update,
     });
-  const schema = collection.dataSchema ?? [];
-  const cardProperties = schema.filter((item) => item.id !== property.id);
+  const cardProperties = properties.filter((item) => item.id !== property.id);
 
   return (
     <Card

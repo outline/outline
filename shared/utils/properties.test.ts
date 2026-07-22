@@ -9,6 +9,7 @@ import {
   isGroupableProperty,
   validateDataSchema,
   validateDataViews,
+  visiblePropertiesForView,
 } from "./properties";
 
 const textProperty: Property = {
@@ -497,5 +498,42 @@ describe("groupByProperty", () => {
       "b",
     ]);
     expect(groups[2].items.map((row) => row.title)).toEqual(["one"]);
+  });
+});
+
+describe("visiblePropertiesForView", () => {
+  const view = {
+    id: uuidv4(),
+    name: "Table",
+    type: DataViewType.Table,
+    columns: [
+      { propertyId: numberProperty.id, visible: false },
+      { propertyId: selectProperty.id, visible: true },
+    ],
+    sorts: [],
+  };
+
+  it("should hide properties marked not visible", () => {
+    const visible = visiblePropertiesForView(schema, view);
+    expect(visible.map((property) => property.id)).not.toContain(
+      numberProperty.id
+    );
+  });
+
+  it("should keep properties without a column entry visible in schema order", () => {
+    const visible = visiblePropertiesForView(schema, view);
+    expect(visible.map((property) => property.id)).toEqual(
+      schema
+        .filter((property) => property.id !== numberProperty.id)
+        .map((property) => property.id)
+    );
+  });
+
+  it("should show all properties without a view or column config", () => {
+    expect(visiblePropertiesForView(schema)).toEqual(schema);
+    expect(visiblePropertiesForView(schema, null)).toEqual(schema);
+    expect(visiblePropertiesForView(schema, { ...view, columns: [] })).toEqual(
+      schema
+    );
   });
 });
