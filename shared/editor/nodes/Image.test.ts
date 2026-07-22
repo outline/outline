@@ -1,4 +1,4 @@
-import { extensionManager, schema } from "../../test/editor";
+import { extensionManager, findNodes, schema } from "../../test/editor";
 import { ImageSource } from "../lib/FileHelper";
 
 const serializer = extensionManager.serializer();
@@ -7,25 +7,15 @@ const parser = extensionManager.parser({
   plugins: extensionManager.rulePlugins,
 });
 
-function findImageNode(doc: any) {
-  let found: any;
-  function walk(node: any) {
-    if (node.type === "image") {
-      found = node;
-      return;
-    }
-    node.content?.forEach(walk);
-  }
-  walk(doc);
-  return found;
-}
+const findImageNode = (doc: ReturnType<typeof parser.parse>) =>
+  findNodes(doc?.toJSON(), "image")[0];
 
 describe("Image node source attribute round-trip", () => {
   it("preserves diagrams.net source through markdown serialize → parse", () => {
     const doc = parser.parse(
       `![](https://example.com/diagram.svg "source=${ImageSource.DiagramsNet}")`
     );
-    const imageNode = findImageNode(doc!.toJSON());
+    const imageNode = findImageNode(doc);
     expect(imageNode).toBeDefined();
     expect(imageNode.attrs.source).toBe(ImageSource.DiagramsNet);
   });
@@ -43,7 +33,7 @@ describe("Image node source attribute round-trip", () => {
     const doc1 = parser.parse(original);
     const md1 = serializer.serialize(doc1);
     const doc2 = parser.parse(md1);
-    const imageNode = findImageNode(doc2!.toJSON());
+    const imageNode = findImageNode(doc2);
     expect(imageNode.attrs.source).toBe(ImageSource.DiagramsNet);
   });
 
@@ -51,7 +41,7 @@ describe("Image node source attribute round-trip", () => {
     const doc = parser.parse(
       `![](https://example.com/diagram.svg "source=${ImageSource.DiagramsNet} Caption =100x100")`
     );
-    const imageNode = findImageNode(doc!.toJSON());
+    const imageNode = findImageNode(doc);
     expect(imageNode.attrs.source).toBe(ImageSource.DiagramsNet);
     expect(imageNode.attrs.width).toBe(100);
     expect(imageNode.attrs.height).toBe(100);
@@ -59,7 +49,7 @@ describe("Image node source attribute round-trip", () => {
 
   it("does not set source for regular images", () => {
     const doc = parser.parse(`![](https://example.com/photo.png)`);
-    const imageNode = findImageNode(doc!.toJSON());
+    const imageNode = findImageNode(doc);
     expect(imageNode.attrs.source).toBeFalsy();
   });
 
@@ -67,8 +57,17 @@ describe("Image node source attribute round-trip", () => {
     const doc = parser.parse(
       `![](https://example.com/diagram.svg "source=${ImageSource.DiagramsNet} My Caption")`
     );
-    const imageNode = findImageNode(doc!.toJSON());
+    const imageNode = findImageNode(doc);
     expect(imageNode.attrs.source).toBe(ImageSource.DiagramsNet);
     expect(imageNode.attrs.title).not.toContain("source=");
+  });
+
+  it("preserves source-like text inside a caption", () => {
+    const doc = parser.parse(
+      `![](https://example.com/diagram.svg "Caption source=example")`
+    );
+    const imageNode = findImageNode(doc);
+    expect(imageNode.attrs.source).toBeFalsy();
+    expect(imageNode.attrs.title).toBe("Caption source=example");
   });
 });

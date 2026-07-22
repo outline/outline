@@ -32,7 +32,7 @@ const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 // The title already carries layoutClass and size; this prefix is stripped on
 // parse so the embed type survives the API markdown round-trip.
 const SOURCE_TOKEN_PREFIX = "source=";
-const DIAGRAMS_NET_SOURCE_TAG = `${SOURCE_TOKEN_PREFIX}${ImageSource.DiagramsNet}`;
+
 
 type TitleAttributes = {
   layoutClass?: string;
@@ -56,7 +56,7 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
 
   // Extract a leading "source=<value>" token before layout/size parsing.
   const sourceMatch = tokenTitle.match(
-    new RegExp(`\\s*${SOURCE_TOKEN_PREFIX}(\\S+)\\s*`)
+    new RegExp(`^\\s*${SOURCE_TOKEN_PREFIX}(\\S+)\\s*`)
   );
   if (sourceMatch) {
     attributes.source = sourceMatch[1];
