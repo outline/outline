@@ -330,7 +330,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Create document",
         description:
-          "Creates a new document from markdown or HTML content. Requires a collectionId to place it in a collection, or parentDocumentId to nest it under an existing document. Pass a templateId (from list_templates) to pre-fill from a template; the template's content is used unless text is also provided.",
+          "Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, or parentDocumentId to nest it under an existing document. Pass a templateId (from list_templates) to pre-fill the document from a template; the template's content is used unless text is also provided.",
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
@@ -343,7 +343,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .string()
             .optional()
             .describe(
-              'The content of the document. Interpreted as markdown unless format is "html". For HTML that includes images or videos, pass the markup with format "html" — remote and base64 media are imported as attachments automatically. Do not convert such HTML to markdown, and do not upload the HTML file itself as an attachment.'
+              'The content of the document. Interpreted as markdown unless format is set to "html".'
             ),
           format: z
             .enum(["markdown", "html"])
