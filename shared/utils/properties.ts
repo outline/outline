@@ -5,6 +5,7 @@ import type {
   FilterCondition,
   FilterGroup,
   Property,
+  PropertyOption,
   PropertyValue,
 } from "../types";
 import { DataViewType, FilterOperator, PropertyType } from "../types";
@@ -198,6 +199,82 @@ export function coercePropertyValue(
   }
 }
 
+/**
+ * A bucket of items grouped by one option of a property, as rendered by a
+ * board column or a grouped list section.
+ */
+export type PropertyGroup<T> = {
+  /** The option this bucket represents, or null for the "no value" bucket. */
+  option: PropertyOption | null;
+  /** The items whose group value resolves to this bucket, in input order. */
+  items: T[];
+};
+
+/**
+ * Returns whether a property can be used to group rows, e.g. as the column
+ * source of a board view.
+ *
+ * @param property the property definition.
+ * @returns true when the property type supports grouping.
+ */
+export function isGroupableProperty(property: Property): boolean {
+  return (
+    property.type === PropertyType.Select ||
+    property.type === PropertyType.MultiSelect
+  );
+}
+
+/**
+ * Resolves the option id a value groups under for the given property.
+ * MultiSelect values group by their first option only.
+ *
+ * @param property the property definition to group by.
+ * @param value the document's value for the property.
+ * @returns the option id, or null when the value is empty or references no
+ *   known option.
+ */
+export function groupOptionIdForValue(
+  property: Property,
+  value: PropertyValue | undefined
+): string | null {
+  const candidate = Array.isArray(value) ? value[0] : value;
+  if (typeof candidate !== "string") {
+    return null;
+  }
+  return optionIds(property).has(candidate) ? candidate : null;
+}
+
+/**
+ * Buckets items by their value for a groupable property. The result contains
+ * the "no value" bucket first, followed by one bucket per option in the
+ * property's option order — including empty buckets, so board columns are
+ * stable regardless of data.
+ *
+ * @param items the items to group.
+ * @param property the property definition to group by.
+ * @param getValue accessor returning an item's value for the property.
+ * @returns the ordered group buckets.
+ */
+export function groupByProperty<T>(
+  items: T[],
+  property: Property,
+  getValue: (item: T) => PropertyValue | undefined
+): PropertyGroup<T>[] {
+  const options = property.options ?? [];
+  const buckets = new Map<string | null, PropertyGroup<T>>();
+  buckets.set(null, { option: null, items: [] });
+  for (const option of options) {
+    buckets.set(option.id, { option, items: [] });
+  }
+
+  for (const item of items) {
+    const optionId = groupOptionIdForValue(property, getValue(item));
+    buckets.get(optionId)?.items.push(item);
+  }
+
+  return Array.from(buckets.values());
+}
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -341,6 +418,14 @@ function validateDataView(
 
   if (view.groupBy !== undefined) {
     validatePropertyReference(view.groupBy, knownPropertyIds);
+    if (schema) {
+      const property = schema.find((item) => item.id === view.groupBy);
+      if (property && !isGroupableProperty(property)) {
+        throw new Error(
+          `Property "${property.name}" cannot be used to group a view`
+        );
+      }
+    }
   }
 }
 

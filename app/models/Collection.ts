@@ -3,6 +3,7 @@ import { action, comparer, computed, observable, runInAction } from "mobx";
 import {
   type CollectionPermission,
   type DataView,
+  type DataViewType,
   type FileOperationFormat,
   type NavigationNode,
   NavigationNodeType,
@@ -171,6 +172,26 @@ export default class Collection extends ParanoidModel {
    */
   getProperty(propertyId: string): Property | undefined {
     return this.dataSchema?.find((property) => property.id === propertyId);
+  }
+
+  /**
+   * Returns the saved database view with the given id.
+   *
+   * @param viewId The view id to look up
+   * @returns The view if found, else undefined.
+   */
+  getView(viewId: string): DataView | undefined {
+    return this.views?.find((view) => view.id === viewId);
+  }
+
+  /**
+   * Returns the first saved database view of the given type.
+   *
+   * @param type The view type to look up
+   * @returns The view if found, else undefined.
+   */
+  viewOfType(type: DataViewType): DataView | undefined {
+    return this.views?.find((view) => view.type === type);
   }
 
   @computed

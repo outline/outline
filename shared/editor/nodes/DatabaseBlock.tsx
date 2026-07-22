@@ -75,10 +75,24 @@ export default class DatabaseBlock extends Node {
       );
     };
 
+  handleChangeView =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    (viewId: string | null) => {
+      const { view } = this.editor;
+      const { tr } = view.state;
+      view.dispatch(
+        tr.setNodeMarkup(getPos(), undefined, {
+          ...node.attrs,
+          viewId,
+        })
+      );
+    };
+
   component = (props: ComponentProps) => (
     <DatabaseBlockComponent
       {...props}
       onChangeCollection={this.handleChangeCollection(props)}
+      onChangeView={this.handleChangeView(props)}
     />
   );
 

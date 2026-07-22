@@ -4,6 +4,9 @@ import { DataViewType, FilterOperator, PropertyType } from "../types";
 import {
   coerceDocumentProperties,
   coercePropertyValue,
+  groupByProperty,
+  groupOptionIdForValue,
+  isGroupableProperty,
   validateDataSchema,
   validateDataViews,
 } from "./properties";
@@ -189,8 +192,53 @@ describe("validateDataViews", () => {
 
   it("should reject unknown view types", () => {
     expect(() =>
-      validateDataViews([{ ...validView, type: "board" }], schema)
+      validateDataViews([{ ...validView, type: "timeline" }], schema)
     ).toThrow(/Unknown view type/);
+  });
+
+  it("should accept board, list and gallery view types", () => {
+    for (const type of [
+      DataViewType.Board,
+      DataViewType.List,
+      DataViewType.Gallery,
+    ]) {
+      expect(() =>
+        validateDataViews([{ ...validView, type }], schema)
+      ).not.toThrow();
+    }
+  });
+
+  it("should accept grouping by a select property", () => {
+    expect(() =>
+      validateDataViews(
+        [
+          {
+            ...validView,
+            type: DataViewType.Board,
+            groupBy: selectProperty.id,
+          },
+        ],
+        schema
+      )
+    ).not.toThrow();
+  });
+
+  it("should reject grouping by a non-groupable property", () => {
+    expect(() =>
+      validateDataViews(
+        [{ ...validView, type: DataViewType.Board, groupBy: textProperty.id }],
+        schema
+      )
+    ).toThrow(/cannot be used to group/);
+  });
+
+  it("should reject grouping by an unknown property", () => {
+    expect(() =>
+      validateDataViews(
+        [{ ...validView, type: DataViewType.Board, groupBy: uuidv4() }],
+        schema
+      )
+    ).toThrow(/Unknown property id/);
   });
 
   it("should reject columns referencing unknown properties", () => {
@@ -373,5 +421,81 @@ describe("coerceDocumentProperties", () => {
     expect(coerceDocumentProperties("nope", schema)).toEqual({});
     expect(coerceDocumentProperties([1, 2], schema)).toEqual({});
     expect(coerceDocumentProperties(null, schema)).toEqual({});
+  });
+});
+
+describe("isGroupableProperty", () => {
+  it("should accept select and multiSelect properties", () => {
+    expect(isGroupableProperty(selectProperty)).toBe(true);
+    expect(isGroupableProperty(multiSelectProperty)).toBe(true);
+  });
+
+  it("should reject other property types", () => {
+    expect(isGroupableProperty(textProperty)).toBe(false);
+    expect(isGroupableProperty(numberProperty)).toBe(false);
+    expect(isGroupableProperty(checkboxProperty)).toBe(false);
+    expect(isGroupableProperty(dateProperty)).toBe(false);
+    expect(isGroupableProperty(personProperty)).toBe(false);
+  });
+});
+
+describe("groupOptionIdForValue", () => {
+  it("should resolve a select value to its option id", () => {
+    expect(groupOptionIdForValue(selectProperty, "todo")).toBe("todo");
+  });
+
+  it("should resolve a multiSelect value to its first option", () => {
+    expect(groupOptionIdForValue(multiSelectProperty, ["b", "a"])).toBe("b");
+  });
+
+  it("should resolve empty and unknown values to null", () => {
+    expect(groupOptionIdForValue(selectProperty, undefined)).toBe(null);
+    expect(groupOptionIdForValue(selectProperty, null)).toBe(null);
+    expect(groupOptionIdForValue(selectProperty, "missing")).toBe(null);
+    expect(groupOptionIdForValue(multiSelectProperty, [])).toBe(null);
+    expect(groupOptionIdForValue(multiSelectProperty, ["missing"])).toBe(null);
+  });
+});
+
+describe("groupByProperty", () => {
+  type Row = { title: string; value?: string | string[] | null };
+  const rows: Row[] = [
+    { title: "one", value: "todo" },
+    { title: "two", value: "done" },
+    { title: "three" },
+    { title: "four", value: "todo" },
+    { title: "five", value: "missing" },
+  ];
+
+  it("should bucket items by option in option order with no-value first", () => {
+    const groups = groupByProperty(rows, selectProperty, (row) => row.value);
+    expect(groups.map((group) => group.option?.id ?? null)).toEqual([
+      null,
+      "todo",
+      "done",
+    ]);
+    expect(groups[0].items.map((row) => row.title)).toEqual(["three", "five"]);
+    expect(groups[1].items.map((row) => row.title)).toEqual(["one", "four"]);
+    expect(groups[2].items.map((row) => row.title)).toEqual(["two"]);
+  });
+
+  it("should keep empty buckets so columns are stable", () => {
+    const groups = groupByProperty([], selectProperty, (row: Row) => row.value);
+    expect(groups).toHaveLength(3);
+    expect(groups.every((group) => group.items.length === 0)).toBe(true);
+  });
+
+  it("should group multiSelect items by their first option", () => {
+    const groups = groupByProperty(
+      [{ title: "one", value: ["b", "a"] } as Row],
+      multiSelectProperty,
+      (row) => row.value
+    );
+    expect(groups.map((group) => group.option?.id ?? null)).toEqual([
+      null,
+      "a",
+      "b",
+    ]);
+    expect(groups[2].items.map((row) => row.title)).toEqual(["one"]);
   });
 });

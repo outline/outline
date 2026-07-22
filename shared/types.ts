@@ -589,6 +589,9 @@ export type FilterGroup = {
 
 export enum DataViewType {
   Table = "table",
+  Board = "board",
+  List = "list",
+  Gallery = "gallery",
 }
 
 /** Display configuration for one property column in a database view. */
@@ -626,7 +629,12 @@ export type DataView = {
   sorts: DataViewSort[];
   /** Optional filter applied to rows. */
   filter?: FilterGroup;
-  /** Property id to group rows by (board/grouped views, later phase). */
+  /**
+   * Property id to group rows by. Used by board views, where each option of
+   * the referenced property becomes a column. Only select and multiSelect
+   * properties are groupable; multiSelect rows are grouped by their first
+   * option.
+   */
   groupBy?: string;
 };
 

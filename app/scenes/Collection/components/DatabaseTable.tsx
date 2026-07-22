@@ -1,173 +1,83 @@
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useHistory } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import type { DataViewSort, FilterCondition } from "@shared/types";
+import type { DataViewSort } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
-import Button from "~/components/Button";
 import PropertyValueEditor from "~/components/DocumentProperties/PropertyValueEditor";
-import Fade from "~/components/Fade";
-import Flex from "~/components/Flex";
-import PlaceholderList from "~/components/List/Placeholder";
 import usePolicy from "~/hooks/usePolicy";
-import useStores from "~/hooks/useStores";
-import DatabaseTableFilter from "./DatabaseTableFilter";
 
 type Props = {
-  /** The database collection to render as a table. */
+  /** The database collection the rows belong to. */
   collection: Collection;
+  /** The documents to render as rows, in order. */
+  rows: Document[];
+  /** The active sort, reflected in the column headers. */
+  sort?: DataViewSort;
+  /** Callback when a column header is clicked to change the sort. */
+  onSort: (propertyId: string) => void;
+  /** Whether a filter is currently applied, to phrase the empty state. */
+  hasFilter: boolean;
 };
-
-const PAGE_LIMIT = 100;
 
 /**
  * Renders the documents of a database collection as a table: rows are
  * documents, columns are the properties from the collection's data schema.
- * Cells are editable in place, headers toggle sorting, and a filter bar
- * queries the server through documents.list.
+ * Cells are editable in place and headers toggle sorting.
  */
-function DatabaseTable({ collection }: Props) {
+function DatabaseTable({ collection, rows, sort, onSort, hasFilter }: Props) {
   const { t } = useTranslation();
-  const { documents } = useStores();
-  const history = useHistory();
-  const can = usePolicy(collection);
-
-  const [rows, setRows] = React.useState<Document[]>();
-  const [sort, setSort] = React.useState<DataViewSort>();
-  const [filter, setFilter] = React.useState<FilterCondition>();
-  const [isCreating, setIsCreating] = React.useState(false);
-
-  const schema = React.useMemo(
-    () => collection.dataSchema ?? [],
-    [collection.dataSchema]
-  );
-
-  const load = React.useCallback(async () => {
-    try {
-      const results = await documents.fetchInDatabase({
-        collectionId: collection.id,
-        limit: PAGE_LIMIT,
-        propertySorts: sort ? [sort] : undefined,
-        filter: filter
-          ? { conjunction: "and", conditions: [filter] }
-          : undefined,
-      });
-      setRows(results);
-    } catch (error) {
-      toast.error(errToString(error));
-    }
-  }, [documents, collection.id, sort, filter]);
-
-  React.useEffect(() => {
-    void load();
-  }, [load]);
-
-  const handleSort = React.useCallback((propertyId: string) => {
-    setSort((current) => {
-      if (current?.propertyId !== propertyId) {
-        return { propertyId, direction: "asc" };
-      }
-      if (current.direction === "asc") {
-        return { propertyId, direction: "desc" };
-      }
-      return undefined;
-    });
-  }, []);
-
-  const handleNewRow = React.useCallback(async () => {
-    setIsCreating(true);
-    try {
-      const document = await documents.create(
-        {
-          title: "",
-          collectionId: collection.id,
-        },
-        { publish: true }
-      );
-      history.push(document.path);
-    } catch (error) {
-      toast.error(errToString(error));
-    } finally {
-      setIsCreating(false);
-    }
-  }, [documents, collection.id, history]);
-
-  if (!rows) {
-    return <PlaceholderList count={5} />;
-  }
+  const schema = collection.dataSchema ?? [];
 
   return (
-    <Fade>
-      <Toolbar align="center" gap={8}>
-        <DatabaseTableFilter
-          schema={schema}
-          filter={filter}
-          onChange={setFilter}
-        />
-        {can.createDocument && (
-          <Button
-            type="button"
-            onClick={handleNewRow}
-            disabled={isCreating}
-            icon={<PlusIcon />}
-            neutral
-          >
-            {t("New row")}
-          </Button>
-        )}
-      </Toolbar>
-
-      <ScrollContainer>
-        <Grid>
-          <thead>
-            <tr>
-              <HeaderCell as="th" $minWidth={220}>
-                {t("Title")}
+    <ScrollContainer>
+      <Grid>
+        <thead>
+          <tr>
+            <HeaderCell as="th" $minWidth={220}>
+              {t("Title")}
+            </HeaderCell>
+            {schema.map((property) => (
+              <HeaderCell
+                as="th"
+                key={property.id}
+                onClick={() => onSort(property.id)}
+                $sortable
+              >
+                {property.name}
+                {sort?.propertyId === property.id
+                  ? sort.direction === "asc"
+                    ? " ↑"
+                    : " ↓"
+                  : ""}
               </HeaderCell>
-              {schema.map((property) => (
-                <HeaderCell
-                  as="th"
-                  key={property.id}
-                  onClick={() => handleSort(property.id)}
-                  $sortable
-                >
-                  {property.name}
-                  {sort?.propertyId === property.id
-                    ? sort.direction === "asc"
-                      ? " ↑"
-                      : " ↓"
-                    : ""}
-                </HeaderCell>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((document) => (
-              <DatabaseTableRow
-                key={document.id}
-                document={document}
-                collection={collection}
-              />
             ))}
-            {rows.length === 0 && (
-              <tr>
-                <EmptyCell colSpan={schema.length + 1}>
-                  {filter
-                    ? t("No documents match the filter")
-                    : t("No documents yet")}
-                </EmptyCell>
-              </tr>
-            )}
-          </tbody>
-        </Grid>
-      </ScrollContainer>
-    </Fade>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((document) => (
+            <DatabaseTableRow
+              key={document.id}
+              document={document}
+              collection={collection}
+            />
+          ))}
+          {rows.length === 0 && (
+            <tr>
+              <EmptyCell colSpan={schema.length + 1}>
+                {hasFilter
+                  ? t("No documents match the filter")
+                  : t("No documents yet")}
+              </EmptyCell>
+            </tr>
+          )}
+        </tbody>
+      </Grid>
+    </ScrollContainer>
   );
 }
 
@@ -210,11 +120,6 @@ const DatabaseTableRow = observer(function DatabaseTableRow_({
     </Row>
   );
 });
-
-const Toolbar = styled(Flex)`
-  margin: 12px 0;
-  flex-wrap: wrap;
-`;
 
 const ScrollContainer = styled.div`
   overflow-x: auto;

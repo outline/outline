@@ -4,34 +4,56 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "../../styles";
-import type { Property, PropertyValue } from "../../types";
-import { PropertyType } from "../../types";
-import { sanitizeUrl } from "../../utils/urls";
+import type { DataView, Property, PropertyValue } from "../../types";
+import { DataViewType } from "../../types";
+import { groupByProperty, isGroupableProperty } from "../../utils/properties";
 import useIsMounted from "../../hooks/useIsMounted";
 import useStores from "../../hooks/useStores";
 import type { ComponentProps } from "../types";
+import PropertyValueLabel from "./PropertyValueLabel";
 
 const ROW_LIMIT = 25;
 
 type Props = ComponentProps & {
   /** Callback to set the collection rendered by this block. */
   onChangeCollection: (collectionId: string) => void;
+  /** Callback to set the saved view rendered by this block. */
+  onChangeView: (viewId: string | null) => void;
+};
+
+type RowModel = {
+  id: string;
+  path: string;
+  titleWithDefault: string;
+  propertyValue: (id: string) => PropertyValue | undefined;
 };
 
 /**
- * Renders the inline database block: a read-only live table over the
- * documents of a database collection. When the block has no collection yet
- * (freshly inserted), it renders a picker of available databases.
+ * Renders the inline database block: a read-only live view over the
+ * documents of a database collection, laid out as a table, board, list or
+ * gallery depending on the referenced saved view. When the block has no
+ * collection yet (freshly inserted), it renders a picker of available
+ * databases.
  */
-function DatabaseBlock({ node, isEditable, onChangeCollection }: Props) {
+function DatabaseBlock({
+  node,
+  isEditable,
+  onChangeCollection,
+  onChangeView,
+}: Props) {
   const { t } = useTranslation();
   const { collections, documents } = useStores();
   const isMounted = useIsMounted();
-  const { collectionId } = node.attrs;
+  const { collectionId, viewId } = node.attrs;
 
   const [rowIds, setRowIds] = React.useState<string[]>();
   const collection = collectionId ? collections.get(collectionId) : undefined;
   const schema: Property[] = collection?.dataSchema ?? [];
+  const views: DataView[] = collection?.views ?? [];
+  const view = viewId
+    ? views.find((item: DataView) => item.id === viewId)
+    : undefined;
+  const viewType = view?.type ?? DataViewType.Table;
 
   React.useEffect(() => {
     if (!collectionId) {
@@ -96,120 +118,268 @@ function DatabaseBlock({ node, isEditable, onChangeCollection }: Props) {
     );
   }
 
-  const rows = (rowIds ?? [])
+  const rows: RowModel[] = (rowIds ?? [])
     .map((id: string) => documents.get(id))
     .filter(Boolean);
+  const isEmpty = rowIds !== undefined && rows.length === 0;
 
   return (
     <Container contentEditable={false}>
       <Header>
         <Title to={collection.path}>{collection.name}</Title>
+        {isEditable && views.length > 0 && (
+          <ViewPicker>
+            <PickerButton
+              type="button"
+              onClick={() => onChangeView(null)}
+              $active={!view}
+            >
+              {t("Table")}
+            </PickerButton>
+            {views.map((item: DataView) => (
+              <PickerButton
+                key={item.id}
+                type="button"
+                onClick={() => onChangeView(item.id)}
+                $active={view?.id === item.id}
+              >
+                {item.name}
+              </PickerButton>
+            ))}
+          </ViewPicker>
+        )}
       </Header>
-      <ScrollContainer>
-        <Grid>
-          <thead>
-            <tr>
-              <HeaderCell $minWidth={180}>{t("Title")}</HeaderCell>
-              {schema.map((property) => (
-                <HeaderCell key={property.id}>{property.name}</HeaderCell>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(
-              (doc: {
-                id: string;
-                path: string;
-                titleWithDefault: string;
-                propertyValue: (id: string) => PropertyValue | undefined;
-              }) => (
-                <tr key={doc.id}>
-                  <Cell>
-                    <RowLink to={doc.path}>{doc.titleWithDefault}</RowLink>
-                  </Cell>
-                  {schema.map((property) => (
-                    <Cell key={property.id}>
-                      <Value
-                        property={property}
-                        value={doc.propertyValue(property.id)}
-                      />
-                    </Cell>
-                  ))}
-                </tr>
-              )
-            )}
-            {rowIds && rows.length === 0 && (
-              <tr>
-                <EmptyCell colSpan={schema.length + 1}>
-                  {t("No documents yet")}
-                </EmptyCell>
-              </tr>
-            )}
-          </tbody>
-        </Grid>
-      </ScrollContainer>
+      {viewType === DataViewType.Board ? (
+        <BlockBoard
+          rows={rows}
+          schema={schema}
+          view={view}
+          isEmpty={isEmpty}
+          emptyLabel={t("No documents yet")}
+          noValueLabel={t("No value")}
+        />
+      ) : viewType === DataViewType.List ? (
+        <BlockList
+          rows={rows}
+          schema={schema}
+          isEmpty={isEmpty}
+          emptyLabel={t("No documents yet")}
+        />
+      ) : viewType === DataViewType.Gallery ? (
+        <BlockGallery
+          rows={rows}
+          schema={schema}
+          isEmpty={isEmpty}
+          emptyLabel={t("No documents yet")}
+        />
+      ) : (
+        <BlockTable
+          rows={rows}
+          schema={schema}
+          isEmpty={isEmpty}
+          emptyLabel={t("No documents yet")}
+          titleLabel={t("Title")}
+        />
+      )}
     </Container>
   );
 }
 
-const Value = observer(function Value_({
-  property,
-  value,
+const BlockTable = observer(function BlockTable_({
+  rows,
+  schema,
+  isEmpty,
+  emptyLabel,
+  titleLabel,
 }: {
-  property: Property;
-  value: PropertyValue | undefined;
+  rows: RowModel[];
+  schema: Property[];
+  isEmpty: boolean;
+  emptyLabel: string;
+  titleLabel: string;
 }) {
-  const { users } = useStores();
+  return (
+    <ScrollContainer>
+      <Grid>
+        <thead>
+          <tr>
+            <HeaderCell $minWidth={180}>{titleLabel}</HeaderCell>
+            {schema.map((property) => (
+              <HeaderCell key={property.id}>{property.name}</HeaderCell>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((doc) => (
+            <tr key={doc.id}>
+              <Cell>
+                <RowLink to={doc.path}>{doc.titleWithDefault}</RowLink>
+              </Cell>
+              {schema.map((property) => (
+                <Cell key={property.id}>
+                  <PropertyValueLabel
+                    property={property}
+                    value={doc.propertyValue(property.id)}
+                  />
+                </Cell>
+              ))}
+            </tr>
+          ))}
+          {isEmpty && (
+            <tr>
+              <EmptyCell colSpan={schema.length + 1}>{emptyLabel}</EmptyCell>
+            </tr>
+          )}
+        </tbody>
+      </Grid>
+    </ScrollContainer>
+  );
+});
 
-  if (value === undefined || value === null) {
-    return null;
+const BlockBoard = observer(function BlockBoard_({
+  rows,
+  schema,
+  view,
+  isEmpty,
+  emptyLabel,
+  noValueLabel,
+}: {
+  rows: RowModel[];
+  schema: Property[];
+  view?: DataView;
+  isEmpty: boolean;
+  emptyLabel: string;
+  noValueLabel: string;
+}) {
+  const configured = view?.groupBy
+    ? schema.find((item) => item.id === view.groupBy)
+    : undefined;
+  const property =
+    configured && isGroupableProperty(configured)
+      ? configured
+      : schema.find(isGroupableProperty);
+
+  if (!property) {
+    return <Placeholder>{emptyLabel}</Placeholder>;
+  }
+  if (isEmpty) {
+    return <Placeholder>{emptyLabel}</Placeholder>;
   }
 
-  switch (property.type) {
-    case PropertyType.Checkbox:
-      return <span>{value === true ? "✓" : ""}</span>;
+  const groups = groupByProperty(rows, property, (doc) =>
+    doc.propertyValue(property.id)
+  );
+  const cardProperties = schema.filter((item) => item.id !== property.id);
 
-    case PropertyType.Select: {
-      const option = property.options?.find((item) => item.id === value);
-      return option ? <Chip $color={option.color}>{option.name}</Chip> : null;
-    }
+  return (
+    <ScrollContainer>
+      <Columns>
+        {groups.map((group) => (
+          <Column key={group.option?.id ?? "none"}>
+            <ColumnHeader>
+              {group.option ? (
+                <Chip $color={group.option.color}>{group.option.name}</Chip>
+              ) : (
+                <MutedLabel>{noValueLabel}</MutedLabel>
+              )}
+              <MutedLabel>{group.items.length}</MutedLabel>
+            </ColumnHeader>
+            {group.items.map((doc) => (
+              <BoardCard key={doc.id}>
+                <RowLink to={doc.path}>{doc.titleWithDefault}</RowLink>
+                {cardProperties.map((item) => {
+                  const value = doc.propertyValue(item.id);
+                  if (value === undefined || value === null) {
+                    return null;
+                  }
+                  return (
+                    <CardValue key={item.id}>
+                      <PropertyValueLabel property={item} value={value} />
+                    </CardValue>
+                  );
+                })}
+              </BoardCard>
+            ))}
+          </Column>
+        ))}
+      </Columns>
+    </ScrollContainer>
+  );
+});
 
-    case PropertyType.MultiSelect: {
-      if (!Array.isArray(value)) {
-        return null;
-      }
-      return (
-        <>
-          {value.map((id) => {
-            const option = property.options?.find((item) => item.id === id);
-            return option ? (
-              <Chip key={id} $color={option.color}>
-                {option.name}
-              </Chip>
-            ) : null;
+const BlockList = observer(function BlockList_({
+  rows,
+  schema,
+  isEmpty,
+  emptyLabel,
+}: {
+  rows: RowModel[];
+  schema: Property[];
+  isEmpty: boolean;
+  emptyLabel: string;
+}) {
+  if (isEmpty) {
+    return <Placeholder>{emptyLabel}</Placeholder>;
+  }
+  return (
+    <div>
+      {rows.map((doc) => (
+        <ListRow key={doc.id}>
+          <RowLink to={doc.path}>{doc.titleWithDefault}</RowLink>
+          <ListValues>
+            {schema.map((property) => {
+              const value = doc.propertyValue(property.id);
+              if (value === undefined || value === null) {
+                return null;
+              }
+              return (
+                <span key={property.id}>
+                  <PropertyValueLabel property={property} value={value} />
+                </span>
+              );
+            })}
+          </ListValues>
+        </ListRow>
+      ))}
+    </div>
+  );
+});
+
+const BlockGallery = observer(function BlockGallery_({
+  rows,
+  schema,
+  isEmpty,
+  emptyLabel,
+}: {
+  rows: RowModel[];
+  schema: Property[];
+  isEmpty: boolean;
+  emptyLabel: string;
+}) {
+  if (isEmpty) {
+    return <Placeholder>{emptyLabel}</Placeholder>;
+  }
+  return (
+    <GalleryGrid>
+      {rows.map((doc) => (
+        <GalleryCard key={doc.id}>
+          <RowLink to={doc.path}>{doc.titleWithDefault}</RowLink>
+          {schema.map((property) => {
+            const value = doc.propertyValue(property.id);
+            if (value === undefined || value === null) {
+              return null;
+            }
+            return (
+              <CardValue key={property.id}>
+                <MutedLabel>{property.name}</MutedLabel>{" "}
+                <PropertyValueLabel property={property} value={value} />
+              </CardValue>
+            );
           })}
-        </>
-      );
-    }
-
-    case PropertyType.Url:
-      return typeof value === "string" ? (
-        <a href={sanitizeUrl(value)} target="_blank" rel="noreferrer nofollow">
-          {value}
-        </a>
-      ) : null;
-
-    case PropertyType.Person: {
-      const user = typeof value === "string" ? users.get(value) : undefined;
-      return <span>{user?.name ?? ""}</span>;
-    }
-
-    case PropertyType.Date:
-      return <span>{typeof value === "string" ? value.slice(0, 10) : ""}</span>;
-
-    default:
-      return <span>{String(value)}</span>;
-  }
+        </GalleryCard>
+      ))}
+    </GalleryGrid>
+  );
 });
 
 const Container = styled.div`
@@ -220,6 +390,11 @@ const Container = styled.div`
 `;
 
 const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
   padding: 8px 10px;
   border-bottom: 1px solid ${s("divider")};
 `;
@@ -227,6 +402,12 @@ const Header = styled.div`
 const Title = styled(Link)`
   font-weight: 500;
   color: ${s("text")};
+`;
+
+const ViewPicker = styled.span`
+  display: inline-flex;
+  gap: 4px;
+  flex-wrap: wrap;
 `;
 
 const ScrollContainer = styled.div`
@@ -267,11 +448,89 @@ const Cell = styled.td`
 `;
 
 const RowLink = styled(Link)`
+  display: inline-block;
   color: ${s("text")};
 
   &:hover {
     text-decoration: underline;
   }
+`;
+
+const Columns = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px;
+`;
+
+const Column = styled.div`
+  flex: 0 0 200px;
+  border: 1px solid ${s("divider")};
+  border-radius: 6px;
+  padding: 6px;
+`;
+
+const ColumnHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+`;
+
+const BoardCard = styled.div`
+  border: 1px solid ${s("divider")};
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+
+  &:not(:last-child) {
+    margin-bottom: 6px;
+  }
+`;
+
+const CardValue = styled.div`
+  font-size: 12px;
+  color: ${s("textSecondary")};
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const ListRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  font-size: 14px;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid ${s("divider")};
+  }
+`;
+
+const ListValues = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: ${s("textSecondary")};
+`;
+
+const GalleryGrid = styled.div`
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+`;
+
+const GalleryCard = styled.div`
+  border: 1px solid ${s("divider")};
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
 `;
 
 const Chip = styled.span<{ $color?: string }>`
@@ -280,7 +539,11 @@ const Chip = styled.span<{ $color?: string }>`
   border-radius: 10px;
   padding: 1px 8px;
   font-size: 13px;
-  margin-right: 4px;
+`;
+
+const MutedLabel = styled.span`
+  color: ${s("textSecondary")};
+  font-size: 12px;
 `;
 
 const EmptyCell = styled.td`
@@ -294,9 +557,10 @@ const Placeholder = styled.div`
   color: ${s("textSecondary")};
 `;
 
-const PickerButton = styled.button`
+const PickerButton = styled.button<{ $active?: boolean }>`
   border: 1px solid ${(props) => props.theme.inputBorder};
-  background: none;
+  background: ${(props) =>
+    props.$active ? props.theme.backgroundSecondary : "none"};
   color: ${s("text")};
   border-radius: 12px;
   padding: 2px 10px;

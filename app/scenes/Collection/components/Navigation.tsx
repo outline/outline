@@ -63,7 +63,7 @@ const Navigation = observer(function Navigation({
       )}
       <Tab {...tabProps(CollectionTab.Recent)}>{t("Documents")}</Tab>
       {showTable && !collection.isArchived && (
-        <Tab {...tabProps(CollectionTab.Table)}>{t("Table")}</Tab>
+        <Tab {...tabProps(CollectionTab.Table)}>{t("Database")}</Tab>
       )}
       {!collection.isArchived && (
         <>
