@@ -122,7 +122,7 @@ router.post(
       where = {
         ...where,
         id: {
-          ...((where.id as object) ?? {}),
+          ...(where.id as object),
           [source === "manual" ? Op.notIn : Op.in]: sourceGroupIds,
         },
       };

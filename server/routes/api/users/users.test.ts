@@ -499,7 +499,7 @@ describe("#users.invite", () => {
     const user = await buildUser();
     const res = await server.post("/api/users.invite", user, {
       body: {
-        invites: new Array(21).fill({
+        invites: Array.from({ length: 21 }).fill({
           email: "test@example.com",
           name: "Test",
           role: "viewer",

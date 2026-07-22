@@ -84,7 +84,7 @@ export class AnchorPlugin extends Plugin {
     const anchors = ProsemirrorHelper.getAnchors(state.doc);
     return DecorationSet.create(
       state.doc,
-      anchors.map(this.createAnchorDecoration)
+      anchors.map((anchor) => this.createAnchorDecoration(anchor))
     );
   }
 }
