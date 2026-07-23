@@ -92,7 +92,9 @@ export class CacheHelper {
     const lockKey = `lock:${key}`;
     try {
       try {
-        lock = await MutexLock.acquire(lockKey, lockTimeout);
+        lock = await MutexLock.acquire(lockKey, lockTimeout, {
+          retry: MutexLock.cacheRetrySettings,
+        });
       } catch (err) {
         Logger.error(`Could not acquire lock for ${key}`, toError(err));
       }

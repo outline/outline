@@ -3,6 +3,7 @@ import Redlock, {
   ResourceLockedError,
   type Lock,
   type RedlockAbortSignal,
+  type Settings,
 } from "redlock";
 import Redis from "@server/storage/redis";
 import Logger from "@server/logging/Logger";
@@ -11,6 +12,8 @@ import ShutdownHelper, { ShutdownOrder } from "./ShutdownHelper";
 type AcquireOptions = {
   /** Whether a lock should be automatically released on server shutdown */
   releaseOnShutdown?: boolean;
+  /** Overrides the default retry settings for this acquisition. */
+  retry?: Partial<Settings>;
 };
 
 /**
@@ -22,14 +25,24 @@ export class MutexLock {
   public static defaultLockTimeout = 4000;
 
   /**
+   * Retry settings for short-lived cache locks, bounded to roughly the lock
+   * TTL. Contenders re-check the cache after acquiring, so a longer window only
+   * adds latency and retains memory during cache-miss storms.
+   */
+  public static cacheRetrySettings: Partial<Settings> = {
+    retryCount: 15,
+    retryDelay: 250,
+  };
+
+  /**
    * Returns the redlock instance
    */
   public static get lock(): Redlock {
     if (!this.redlock) {
       this.redlock = new Redlock([Redis.defaultClient], {
         retryJitter: 100,
-        retryCount: 15,
-        retryDelay: 250,
+        retryCount: 120,
+        retryDelay: 1000,
       });
       this.redlock.on("error", (err) => {
         if (err instanceof ResourceLockedError) {
@@ -60,7 +73,7 @@ export class MutexLock {
     timeout: number,
     options?: AcquireOptions
   ) {
-    const lock = await this.lock.acquire([resource], timeout);
+    const lock = await this.lock.acquire([resource], timeout, options?.retry);
     if (options?.releaseOnShutdown) {
       const key = `lock:${resource}`;
       // @ts-expect-error Attach resource for use in shutdown
