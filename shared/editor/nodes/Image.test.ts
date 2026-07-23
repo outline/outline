@@ -12,7 +12,7 @@ const findImageNode = (doc: ReturnType<typeof parser.parse>) => {
   if (!imageNode?.attrs) {
     throw new Error("Expected image node with attributes");
   }
-  return imageNode;
+  return { ...imageNode, attrs: imageNode.attrs };
 };
 
 describe("Image node source attribute round-trip", () => {
