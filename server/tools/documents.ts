@@ -81,12 +81,17 @@ export function bodyOptionsFor(format: ContentFormat | undefined) {
 }
 
 /**
- * Builds a tool result carrying document metadata as JSON plus, for markdown
- * callers, the document body as its own content block. Keeping the body out of
- * the JSON avoids escaping every newline and quote in it.
+ * Builds a tool result carrying document metadata as JSON plus the document
+ * body as its own content block. Keeping the body out of the JSON avoids
+ * escaping every newline and quote in it.
+ *
+ * The body block is emitted in both formats — `bodyOptionsFor` always requests
+ * the markdown, since `json` adds the ProseMirror structure to the metadata
+ * rather than replacing the markdown. It is omitted when the body is empty (a
+ * title-only document), so callers never receive a stray empty text block.
  *
  * @param metadata - the document metadata to serialize.
- * @param text - the markdown body, or undefined when JSON was requested.
+ * @param text - the markdown body.
  * @returns the tool result.
  */
 export function documentResult(
@@ -96,7 +101,9 @@ export function documentResult(
   return {
     content: [
       { type: "text" as const, text: JSON.stringify(metadata) },
-      ...(typeof text === "string" ? [{ type: "text" as const, text }] : []),
+      ...(typeof text === "string" && text.length > 0
+        ? [{ type: "text" as const, text }]
+        : []),
     ],
   } satisfies CallToolResult;
 }

@@ -327,6 +327,20 @@ describe("responseFormat on document write tools", () => {
     }
   );
 
+  it("omits the body block for a title-only document", async () => {
+    const { accessToken, collection } = await setup();
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Title only",
+      collectionId: collection.id,
+    });
+
+    // No body text, so only the metadata block — never a stray empty block.
+    expect(res?.result?.content?.length).toEqual(1);
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.document.title).toEqual("Title only");
+  });
+
   it("create_document returns data alongside the markdown for json", async () => {
     const { accessToken, collection } = await setup();
 

@@ -51,7 +51,7 @@ async function presentCommentWithText(
     includeAnchorText: true,
     commentMarks,
   });
-  const text = (await DocumentHelper.toMarkdown(data)).trim();
+  const text = await DocumentHelper.toMarkdown(data);
 
   return format === ContentFormat.Json
     ? { ...rest, data, text }
