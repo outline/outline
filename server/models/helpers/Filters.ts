@@ -5,6 +5,7 @@ import type {
   FilterCondition,
   FilterGroup,
 } from "@shared/helpers/FilterHelper";
+import { RANGE_OPERATORS } from "@shared/helpers/FilterHelper";
 import type { DateFilter, StatusFilter } from "@shared/types";
 import { StatusFilter as StatusFilterEnum } from "@shared/types";
 import { Collection } from "@server/models";
@@ -38,13 +39,6 @@ const operatorMap: Record<
 function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, (c) => `\\${c}`);
 }
-
-const COMPARISON_OPERATORS = new Set<ComparisonOperator>([
-  "gt",
-  "gte",
-  "lt",
-  "lte",
-]);
 
 // Only date fields support ISO 8601 duration values — converting durations on
 // other fields (e.g. `title gte "P1D"`) would compare a text column against a
@@ -120,7 +114,7 @@ function leafToWhere(condition: FilterCondition): Record<string, unknown> {
       }
       const resolved =
         DATE_FIELD_RE.test(field) &&
-        COMPARISON_OPERATORS.has(operator) &&
+        RANGE_OPERATORS.has(operator) &&
         typeof value === "string" &&
         isISO8601Duration(value)
           ? dateFromDuration(value)
@@ -433,21 +427,24 @@ export function expandDocumentIdInFilter(
   if (filter.field !== "documentId") {
     return filter;
   }
+  // `eq` is the single-id case of `in`; both map to the deduped union of each
+  // document's pre-resolved expansion (falling back to the raw id).
+  let ids: string[] | undefined;
   if (filter.operator === "eq" && filter.value !== undefined) {
-    const id = String(filter.value);
-    return { field: "id", operator: "in", value: expandedIds.get(id) ?? [id] };
+    ids = [String(filter.value)];
+  } else if (filter.operator === "in" && Array.isArray(filter.value)) {
+    ids = filter.value.map(String);
   }
-  if (filter.operator === "in" && Array.isArray(filter.value)) {
-    const ids = filter.value.map(String);
-    return {
-      field: "id",
-      operator: "in",
-      value: Array.from(
-        new Set(ids.flatMap((id) => expandedIds.get(id) ?? [id]))
-      ),
-    };
+  if (!ids) {
+    return filter;
   }
-  return filter;
+  return {
+    field: "id",
+    operator: "in",
+    value: Array.from(
+      new Set(ids.flatMap((id) => expandedIds.get(id) ?? [id]))
+    ),
+  };
 }
 
 /**

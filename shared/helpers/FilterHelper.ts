@@ -66,8 +66,13 @@ const uuidSchema = z.uuid();
 // Accept a full ISO 8601 datetime (with `Z` or an offset) or a bare ISO date.
 const dateSchema = z.union([z.iso.datetime({ offset: true }), z.iso.date()]);
 
-// Relative durations (e.g. `-P1D`) are only meaningful for range comparisons.
-const RANGE_OPERATORS = new Set<ComparisonOperator>(["gt", "gte", "lt", "lte"]);
+/** Operators for which range comparisons (and relative durations) apply. */
+export const RANGE_OPERATORS = new Set<ComparisonOperator>([
+  "gt",
+  "gte",
+  "lt",
+  "lte",
+]);
 
 /**
  * Check whether a single scalar value is compatible with a field's column type.
