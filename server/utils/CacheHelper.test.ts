@@ -38,6 +38,21 @@ describe("CacheHelper", () => {
       expect(await CacheHelper.getData("test:dedupe")).toEqual("value");
     });
 
+    it("should return a cached falsy value without invoking the callback", async () => {
+      await CacheHelper.setData("test:falsy", null, 60);
+
+      let calls = 0;
+      const callback = async () => {
+        calls++;
+        return ["value"];
+      };
+
+      expect(
+        await CacheHelper.getDataOrSet("test:falsy", callback, 60)
+      ).toBeNull();
+      expect(calls).toEqual(0);
+    });
+
     it("should call the callback again after the in-flight promise settles", async () => {
       let calls = 0;
       const callback = async () => {

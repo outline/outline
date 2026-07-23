@@ -48,7 +48,9 @@ export class CacheHelper {
   ): Promise<T | undefined> {
     const cache = await this.getData<T>(key);
 
-    if (cache) {
+    // A genuine miss returns undefined; falsy cached values (null, false, 0,
+    // "") are valid and must be returned rather than re-populated.
+    if (cache !== undefined) {
       return cache;
     }
 
@@ -98,7 +100,7 @@ export class CacheHelper {
         Logger.error(`Could not acquire lock for ${key}`, toError(err));
       }
       cache = await this.getData<T>(key);
-      if (cache) {
+      if (cache !== undefined) {
         return cache;
       }
 
