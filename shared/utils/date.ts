@@ -394,3 +394,13 @@ export function dateToRelativeReadable(
   }
   return format(date, "MMMM do, yyyy", { locale });
 }
+
+export function isTodayOrAfter(value: Date | string) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const candidate = new Date(value);
+  candidate.setHours(0, 0, 0, 0);
+
+  return candidate >= today;
+}
