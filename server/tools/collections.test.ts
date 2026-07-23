@@ -87,6 +87,26 @@ describe("collection tools", () => {
     expect(match!.data).toBeUndefined();
   });
 
+  it("treats an empty responseFormat as omitted", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      description: "Hello, `world`!",
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_collections", {
+      responseFormat: "",
+    });
+    const data = parseMcpListContent<{ id: string; description?: string }>(
+      res?.result?.content
+    );
+
+    const match = data.find((c) => c.id === collection.id);
+    expect(res?.result?.isError).toBeFalsy();
+    expect(match!.description).toEqual("Hello, `world`!");
+  });
+
   it("returns ProseMirror JSON when responseFormat is json", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({

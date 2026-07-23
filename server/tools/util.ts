@@ -83,8 +83,12 @@ export enum ContentFormat {
  */
 export function formatParam() {
   return z
-    .enum(ContentFormat)
-    .optional()
+    .preprocess(
+      // Clients sometimes send "" for a field they meant to omit; fall back to
+      // the default rather than failing the call. See `optionalString`.
+      (value) => (value === "" ? undefined : value),
+      z.enum(ContentFormat).optional()
+    )
     .describe(
       'The format to return content in. "markdown" (default) is compact but lossy — formatting with no markdown equivalent, such as comment anchors, highlight colors, table column widths, and embeds, is not represented. "json" returns the ProseMirror document, which is many times larger but preserves everything; use it only when the structure itself is needed.'
     );
