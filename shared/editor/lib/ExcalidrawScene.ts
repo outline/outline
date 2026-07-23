@@ -1,12 +1,14 @@
-import type { ExcalidrawInitialDataState } from "@excalidraw/excalidraw/types";
+import type { loadFromBlob } from "@excalidraw/excalidraw";
+
+type RestoredScene = Awaited<ReturnType<typeof loadFromBlob>>;
 
 /**
  * The parsed contents of an Excalidraw scene.
  */
 export type ExcalidrawScene = {
-  elements: NonNullable<ExcalidrawInitialDataState["elements"]>;
-  appState: NonNullable<ExcalidrawInitialDataState["appState"]>;
-  files: NonNullable<ExcalidrawInitialDataState["files"]>;
+  elements: NonNullable<RestoredScene["elements"]>;
+  appState: NonNullable<RestoredScene["appState"]>;
+  files: NonNullable<RestoredScene["files"]>;
 };
 
 /**
