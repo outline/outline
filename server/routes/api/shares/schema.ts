@@ -7,6 +7,7 @@ import { Share } from "@server/models";
 import { ValidateURL } from "@server/validation";
 import { zodIdType } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
+import { isTodayOrAfter } from "@shared/utils/date";
 
 export const SharesInfoSchema = BaseSchema.extend({
   body: z
@@ -85,16 +86,6 @@ export const SharesUpdateSchema = BaseSchema.extend({
 
 export type SharesUpdateReq = z.infer<typeof SharesUpdateSchema>;
 
-const isTodayOrAfter = (value: Date) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const candidate = new Date(value);
-  candidate.setHours(0, 0, 0, 0);
-
-  return candidate >= today;
-};
-
 export const SharesCreateSchema = BaseSchema.extend({
   body: z
     .object({
@@ -102,7 +93,7 @@ export const SharesCreateSchema = BaseSchema.extend({
       documentId: zodIdType().optional(),
       expiresAt: z.coerce
         .date()
-        .nullish()
+        .optional()
         .refine((value) => !value || isTodayOrAfter(value), {
           error: "must be today or later",
         }),
