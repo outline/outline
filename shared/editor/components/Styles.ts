@@ -1236,7 +1236,7 @@ ${
 `
 }
 
-.notice-block {
+.${EditorStyleHelper.notice} {
   display: flex;
   align-items: center;
   position: relative;
@@ -1261,13 +1261,13 @@ ${
   }
 }
 
-.notice-block .content {
+.${EditorStyleHelper.notice} .${EditorStyleHelper.noticeContent} {
   flex-grow: 1;
   min-width: 0;
 }
 
-.notice-block {
-  .icon {
+.${EditorStyleHelper.notice} {
+  .${EditorStyleHelper.noticeIcon} {
     width: 24px;
     height: 24px;
     align-self: flex-start;
@@ -1275,18 +1275,18 @@ ${
     color: ${props.theme.noticeInfoBackground};
   }
 
-  &:dir(rtl) .icon {
+  &:dir(rtl) .${EditorStyleHelper.noticeIcon} {
     margin-right: 0;
     margin-left: 4px;
   }
 }
 
-.notice-block.tip {
+.${EditorStyleHelper.notice}.tip {
   background: ${transparentize(0.9, props.theme.noticeTipBackground)};
   border-left: 4px solid ${props.theme.noticeTipBackground};
   color: ${props.theme.noticeTipText};
 
-  .icon {
+  .${EditorStyleHelper.noticeIcon} {
     color: ${props.theme.noticeTipBackground};
   }
 
@@ -1295,12 +1295,12 @@ ${
   }
 }
 
-.notice-block.warning {
+.${EditorStyleHelper.notice}.warning {
   background: ${transparentize(0.9, props.theme.noticeWarningBackground)};
   border-left: 4px solid ${props.theme.noticeWarningBackground};
   color: ${props.theme.noticeWarningText};
 
-  .icon {
+  .${EditorStyleHelper.noticeIcon} {
     color: ${props.theme.noticeWarningBackground};
   }
 
@@ -1309,12 +1309,12 @@ ${
   }
 }
 
-.notice-block.success {
+.${EditorStyleHelper.notice}.success {
   background: ${transparentize(0.9, props.theme.noticeSuccessBackground)};
   border-left: 4px solid ${props.theme.noticeSuccessBackground};
   color: ${props.theme.noticeSuccessText};
 
-  .icon {
+  .${EditorStyleHelper.noticeIcon} {
     color: ${props.theme.noticeSuccessBackground};
   }
 
