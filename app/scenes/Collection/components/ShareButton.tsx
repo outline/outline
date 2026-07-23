@@ -32,8 +32,14 @@ function ShareButton({ collection }: Props) {
   const isMobile = useMobile();
   const team = useCurrentTeam();
   const share = shares.getByCollectionId(collection.id);
+  const isShareExpired = !!(
+    share?.expiresAt && new Date(share.expiresAt) <= new Date()
+  );
   const isPubliclyShared =
-    team.sharing !== false && collection?.sharing !== false && share?.published;
+    team.sharing !== false &&
+    collection?.sharing !== false &&
+    share?.published &&
+    !isShareExpired;
   const { preload, loading, reset } = useShareDataLoader({ collection });
 
   const handleOpenChange = useCallback(

@@ -445,6 +445,7 @@
   "Publish to web": "Publish to web",
   "Allow anyone with the link to access": "Allow anyone with the link to access",
   "Publish to internet": "Publish to internet",
+  "This public link has expired. Set a new expiration date or remove expiration in sharing settings to re-enable access.": "This public link has expired. Set a new expiration date or remove expiration in sharing settings to re-enable access.",
   "All documents in this collection will be shared on the web, including any new documents added later": "All documents in this collection will be shared on the web, including any new documents added later",
   "Invite": "Invite",
   "{{ userName }} was added to the collection": "{{ userName }} was added to the collection",

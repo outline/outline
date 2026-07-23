@@ -32,6 +32,15 @@ function ShareButton({ document }: Props) {
   const share = shares.getByDocumentId(document.id);
   const sharedParent = shares.getByDocumentParents(document);
   const domain = share?.domain || sharedParent?.domain;
+  const isShareExpired = !!(
+    share?.expiresAt && new Date(share.expiresAt) <= new Date()
+  );
+  const isParentShareExpired = !!(
+    sharedParent?.expiresAt && new Date(sharedParent.expiresAt) <= new Date()
+  );
+  const hasActiveShare = !!share?.published && !isShareExpired;
+  const hasActiveParentShare =
+    !!sharedParent?.published && !isParentShareExpired;
   const { preload, loading, reset } = useShareDataLoader({ document });
 
   const handleOpenChange = useCallback(
@@ -54,7 +63,10 @@ function ShareButton({ document }: Props) {
     return null;
   }
 
-  const icon = document.isPubliclyShared ? <GlobeIcon /> : undefined;
+  const icon =
+    document.isPubliclyShared && (hasActiveShare || hasActiveParentShare) ? (
+      <GlobeIcon />
+    ) : undefined;
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
