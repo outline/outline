@@ -88,7 +88,7 @@ function ExcalidrawEditor({ editor }: Props) {
           setLoading(false);
         }
       } else {
-        setInitialData({ elements: [], appState: {} });
+        setInitialData({ elements: [], appState: {}, files: {} });
       }
     };
 

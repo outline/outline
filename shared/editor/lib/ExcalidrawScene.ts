@@ -1,13 +1,12 @@
-import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
-import type { AppState, BinaryFiles } from "@excalidraw/excalidraw/types";
+import type { ExcalidrawInitialDataState } from "@excalidraw/excalidraw/types";
 
 /**
  * The parsed contents of an Excalidraw scene.
  */
 export type ExcalidrawScene = {
-  elements: readonly ExcalidrawElement[];
-  appState: Partial<AppState>;
-  files: BinaryFiles;
+  elements: NonNullable<ExcalidrawInitialDataState["elements"]>;
+  appState: NonNullable<ExcalidrawInitialDataState["appState"]>;
+  files: NonNullable<ExcalidrawInitialDataState["files"]>;
 };
 
 /**

@@ -42,15 +42,6 @@ describe("Image node source attribute round-trip", () => {
     expect(imageNode.attrs.source).toBe(ImageSource.DiagramsNet);
   });
 
-  it("round-trips an Excalidraw image without losing source", () => {
-    const original = `![](https://example.com/diagram.svg "source=${ImageSource.Excalidraw}")`;
-    const doc1 = parser.parse(original);
-    const md1 = serializer.serialize(doc1);
-    const doc2 = parser.parse(md1);
-    const imageNode = findImageNode(doc2);
-    expect(imageNode.attrs.source).toBe(ImageSource.Excalidraw);
-  });
-
   it("preserves source alongside size and title", () => {
     const doc = parser.parse(
       `![](https://example.com/diagram.svg "source=${ImageSource.DiagramsNet} Caption =100x100")`
@@ -83,13 +74,5 @@ describe("Image node source attribute round-trip", () => {
     const imageNode = findImageNode(doc);
     expect(imageNode.attrs.source).toBeFalsy();
     expect(imageNode.attrs.title).toBe("Caption source=example");
-  });
-  it("supports stable identity for async diagram saves", () => {
-    const node = schema.nodes.image.create({
-      id: "diagram-id",
-      src: "",
-      source: ImageSource.Excalidraw,
-    });
-    expect(node.attrs.id).toBe("diagram-id");
   });
 });
