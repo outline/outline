@@ -111,16 +111,8 @@ export default function init(
     Metrics.increment("websockets.connected");
     Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
 
-    socket.on("disconnect", async () => {
-      Metrics.increment("websockets.disconnected");
-      Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
-      // Release the connection's auth reference so it isn't retained for the
-      // lifetime of the socket object.
-      socket.client.auth = undefined;
-    });
-
-    setTimeout(function () {
-      // If the socket didn't authenticate after connection, disconnect it
+    // If the socket didn't authenticate after connection, disconnect it
+    const authTimeout = setTimeout(function () {
       if (!socket.client.auth) {
         Logger.debug("websockets", `Disconnecting socket ${socket.id}`);
 
@@ -128,6 +120,17 @@ export default function init(
         socket.disconnect("unauthorized");
       }
     }, 1000);
+
+    socket.on("disconnect", async () => {
+      Metrics.increment("websockets.disconnected");
+      Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
+
+      // Cancel the pending auth timeout, now we're disconnected
+      clearTimeout(authTimeout);
+
+      // Release the connection's auth reference so it isn't retained
+      socket.client.auth = undefined;
+    });
 
     try {
       const user = await authenticate(socket);
