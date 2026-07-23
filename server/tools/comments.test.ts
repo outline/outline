@@ -13,6 +13,21 @@ import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
 
 const server = getTestServer();
 
+/** A comment body whose inline code is lost by plain-text rendering. */
+const inlineCodeComment = {
+  type: "doc",
+  content: [
+    {
+      type: "paragraph",
+      content: [
+        { type: "text", text: "Hello, " },
+        { type: "text", text: "world", marks: [{ type: "code_inline" }] },
+        { type: "text", text: "!" },
+      ],
+    },
+  ],
+} as ProsemirrorData;
+
 describe("list_comments", () => {
   it("returns comments on a document", async () => {
     const { user, accessToken } = await buildOAuthUser();
@@ -115,6 +130,123 @@ describe("list_comments", () => {
     expect(data.length).toBeGreaterThanOrEqual(1);
     expect(data[0].anchorText).toBeUndefined();
   });
+
+  it("returns markdown text and omits ProseMirror data by default", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    await comment.update({ data: inlineCodeComment });
+
+    const res = await callMcpTool(server, accessToken, "list_comments", {
+      documentId: document.id,
+    });
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+
+    expect(data[0].text).toEqual("Hello, `world`!");
+    expect(data[0].data).toBeUndefined();
+  });
+
+  it("adds ProseMirror data alongside the markdown when responseFormat is json", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    await comment.update({ data: inlineCodeComment });
+
+    const res = await callMcpTool(server, accessToken, "list_comments", {
+      documentId: document.id,
+      responseFormat: "json",
+    });
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+
+    expect(data[0].data?.type).toEqual("doc");
+    // text stays markdown so the value can be written back via update_comment.
+    expect(data[0].text).toEqual("Hello, `world`!");
+  });
+
+  it("resolves anchorText for every comment when several share a document", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const first = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const second = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    // Both marks live in one document, so both must resolve off the single
+    // cached parse shared across the async fan-out.
+    const content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "first anchor",
+              marks: [buildCommentMark({ id: first.id, userId: user.id })],
+            },
+            { type: "text", text: " and " },
+            {
+              type: "text",
+              text: "second anchor",
+              marks: [buildCommentMark({ id: second.id, userId: user.id })],
+            },
+          ],
+        },
+      ],
+    } as ProsemirrorData;
+    await document.update({ content });
+
+    const res = await callMcpTool(server, accessToken, "list_comments", {
+      documentId: document.id,
+    });
+    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+      JSON.parse(c.text)
+    );
+
+    const anchorById = new Map<string, string>(
+      data.map((c: { id: string; anchorText: string }) => [c.id, c.anchorText])
+    );
+    expect(anchorById.get(first.id)).toEqual("first anchor");
+    expect(anchorById.get(second.id)).toEqual("second anchor");
+  });
 });
 
 describe("create_comment", () => {
@@ -183,7 +315,8 @@ describe("create_comment", () => {
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(data.data?.type).toEqual("doc");
-    expect(data.text).toEqual("Hello, world!");
+    // text stays markdown so the value can be written back via update_comment.
+    expect(data.text).toEqual("Hello, `world`!");
   });
 
   it("creates a reply to an existing comment", async () => {

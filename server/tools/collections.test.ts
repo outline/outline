@@ -127,7 +127,47 @@ describe("collection tools", () => {
     const match = data.find((c) => c.id === collection.id);
     expect(match).toBeDefined();
     expect(match!.data?.type).toEqual("doc");
-    expect(match!.description).toBeUndefined();
+    // The markdown description is kept — update_collection has no `data`
+    // input, so it is the only representation that can be written back.
+    expect(match!.description).toEqual("Hello, `world`!");
+  });
+
+  it("returns the description verbatim rather than re-escaped markdown", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      description: "Rates: 5 * 3 and C:\\Users\\foo",
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_collections");
+    const data = parseMcpListContent<{ id: string; description?: string }>(
+      res?.result?.content
+    );
+
+    // Round-tripping through the markdown serializer would return
+    // "5 \\* 3" and "C:\\\\Users", which a caller echoing the value back into
+    // update_collection would persist.
+    const match = data.find((c) => c.id === collection.id);
+    expect(match!.description).toEqual("Rates: 5 * 3 and C:\\Users\\foo");
+  });
+
+  it("keeps description present when it is empty, so a cleared value is distinguishable", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      description: null,
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_collections");
+    const data = parseMcpListContent<{ id: string; description?: string }>(
+      res?.result?.content
+    );
+
+    const match = data.find((c) => c.id === collection.id);
+    expect(match).toHaveProperty("description");
+    expect(match!.description).toEqual("");
   });
 
   it("update_collection updates fields on existing collection", async () => {

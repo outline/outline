@@ -295,6 +295,98 @@ describe("list_documents", () => {
   });
 });
 
+describe("responseFormat on document write tools", () => {
+  /** create_document, update_document and restore_document all build their
+   * result through the same documentResult/bodyOptionsFor pair, so each is
+   * pinned in both formats here. */
+  const setup = async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    return { user, accessToken, collection };
+  };
+
+  it.each(["omitted", "markdown"])(
+    "create_document returns markdown when responseFormat is %s",
+    async (responseFormat) => {
+      const { accessToken, collection } = await setup();
+
+      const res = await callMcpTool(server, accessToken, "create_document", {
+        title: "Doc",
+        text: "Hello, `world`!",
+        collectionId: collection.id,
+        ...(responseFormat === "omitted" ? {} : { responseFormat }),
+      });
+
+      expect(res?.result?.content?.length).toEqual(2);
+      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+      expect(data.document.data).toBeUndefined();
+      expect(res?.result?.content?.[1]?.text).toEqual("Hello, `world`!");
+    }
+  );
+
+  it("create_document returns data alongside the markdown for json", async () => {
+    const { accessToken, collection } = await setup();
+
+    const res = await callMcpTool(server, accessToken, "create_document", {
+      title: "Doc",
+      text: "Hello, `world`!",
+      collectionId: collection.id,
+      responseFormat: "json",
+    });
+
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.document.data?.type).toEqual("doc");
+    // The markdown body is still present — update_document's patch mode
+    // requires findText to be copied verbatim from it.
+    expect(res?.result?.content?.length).toEqual(2);
+    expect(res?.result?.content?.[1]?.text).toEqual("Hello, `world`!");
+  });
+
+  it("update_document returns data alongside the markdown for json", async () => {
+    const { user, accessToken, collection } = await setup();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      text: "Updated `body`",
+      responseFormat: "json",
+    });
+
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.document.data?.type).toEqual("doc");
+    expect(res?.result?.content?.length).toEqual(2);
+    expect(res?.result?.content?.[1]?.text).toContain("Updated `body`");
+  });
+
+  it("restore_document returns data alongside the markdown for json", async () => {
+    const { user, accessToken, collection } = await setup();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "Hello, `world`!",
+    });
+    await document.destroy();
+
+    const res = await callMcpTool(server, accessToken, "restore_document", {
+      id: document.id,
+      responseFormat: "json",
+    });
+
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+    expect(data.document.data?.type).toEqual("doc");
+    expect(res?.result?.content?.length).toEqual(2);
+    expect(res?.result?.content?.[1]?.text).toContain("Hello, `world`!");
+  });
+});
+
 describe("create_document", () => {
   it("creates in a collection", async () => {
     const { user, accessToken } = await buildOAuthUser();

@@ -1,3 +1,4 @@
+import { toJSONSchema, z } from "zod";
 import { CollectionPermission, type NavigationNode } from "@shared/types";
 import {
   buildCollection,
@@ -7,6 +8,8 @@ import {
 } from "@server/test/factories";
 import {
   buildBreadcrumb,
+  ContentFormat,
+  formatParam,
   getBreadcrumbsForDocuments,
   optionalString,
   success,
@@ -107,6 +110,49 @@ describe("optionalString", () => {
 
   it("preserves whitespace-only strings", () => {
     expect(schema.parse(" ")).toBe(" ");
+  });
+});
+
+describe("formatParam", () => {
+  const schema = formatParam();
+
+  it("returns undefined when input is omitted", () => {
+    expect(schema.parse(undefined)).toBeUndefined();
+  });
+
+  it.each([
+    ["an empty string", ""],
+    ["null", null],
+  ])("coerces %s to undefined", (_label, input) => {
+    expect(schema.parse(input)).toBeUndefined();
+  });
+
+  it.each([ContentFormat.Markdown, ContentFormat.Json])(
+    "passes through %s",
+    (format) => {
+      expect(schema.parse(format)).toBe(format);
+    }
+  );
+
+  it("rejects an unrecognized format", () => {
+    expect(() => schema.parse("yaml")).toThrow();
+  });
+
+  it("advertises every accepted input in its published JSON Schema", () => {
+    // The published schema is derived from the input side. A z.preprocess step
+    // is erased during that conversion, which would leave the schema stricter
+    // than the server.
+    const jsonSchema = toJSONSchema(z.object({ responseFormat: schema }), {
+      io: "input",
+    }) as unknown as {
+      properties: { responseFormat: { anyOf: unknown[] } };
+    };
+
+    expect(jsonSchema.properties.responseFormat.anyOf).toEqual([
+      { type: "string", enum: ["markdown", "json"] },
+      { type: "string", const: "" },
+      { type: "null" },
+    ]);
   });
 });
 

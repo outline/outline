@@ -64,12 +64,20 @@ export function presentDocument(
  * `documentResult`; ProseMirror JSON is carried inline in the metadata as
  * `data`, since it is already JSON.
  *
+ * `json` adds the structure on top of the markdown rather than replacing it.
+ * `update_document` documents `patch` as the safe edit mode and requires
+ * `findText` to be copied verbatim from the document's markdown, so a response
+ * carrying only ProseMirror would leave the caller unable to edit without
+ * falling back to a whole-document `replace`.
+ *
  * @param format - the format to render the document body in.
  * @returns presenter options for `presentDocument`.
  */
 export function bodyOptionsFor(format: ContentFormat | undefined) {
-  const asJson = format === ContentFormat.Json;
-  return { includeData: asJson, includeText: !asJson };
+  return {
+    includeData: format === ContentFormat.Json,
+    includeText: true,
+  };
 }
 
 /**

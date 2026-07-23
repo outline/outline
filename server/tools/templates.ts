@@ -9,6 +9,8 @@ import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import {
   error,
   success,
+  ContentFormat,
+  formatParam,
   getActorFromContext,
   optionalString,
   pathToUrl,
@@ -23,13 +25,21 @@ import {
  * @param template - the template to present.
  * @returns the presented template with its body as markdown.
  */
-export async function presentTemplate(template: Template) {
+export async function presentTemplate(
+  template: Template,
+  format: ContentFormat = ContentFormat.Markdown
+) {
   return {
     id: template.id,
     url: template.path,
     title: template.title,
     collectionId: template.collectionId ?? null,
     updatedAt: template.updatedAt,
+    // `json` adds the structure alongside the markdown; the markdown is what
+    // `create_document` accepts, so it is never dropped.
+    ...(format === ContentFormat.Json && template.content
+      ? { data: template.content }
+      : {}),
     text: template.content
       ? await DocumentHelper.toMarkdown(template.content, {
           includeTitle: false,
@@ -76,11 +86,12 @@ export function templateTools(server: McpServer, scopes: string[]) {
             .describe(
               "The maximum number of results to return. Defaults to 25, max 100."
             ),
+          responseFormat: formatParam(),
         },
       },
       withTracing(
         "list_templates",
-        async ({ collectionId, offset, limit }, extra) => {
+        async ({ collectionId, offset, limit, responseFormat }, extra) => {
           try {
             const user = getActorFromContext(extra);
             const effectiveOffset = offset ?? 0;
@@ -120,7 +131,10 @@ export function templateTools(server: McpServer, scopes: string[]) {
 
             const presented = await Promise.all(
               templates.map(async (template) =>
-                pathToUrl(user.team, await presentTemplate(template))
+                pathToUrl(
+                  user.team,
+                  await presentTemplate(template, responseFormat)
+                )
               )
             );
             return success(presented);

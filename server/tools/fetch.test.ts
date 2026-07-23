@@ -82,13 +82,39 @@ describe("fetch", () => {
       responseFormat: "json",
     });
 
-    // The body is already JSON, so it rides along in the metadata block
-    // instead of being appended as a second markdown block.
-    expect(res!.result!.content!.length).toEqual(1);
+    // json adds the structure to the metadata block but keeps the markdown
+    // body, which update_document's patch mode needs for findText.
+    expect(res!.result!.content!.length).toEqual(2);
 
     const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
     expect(metadata.document.data?.type).toEqual("doc");
-    expect(metadata.document.text).toBeUndefined();
+    expect(res!.result!.content![1].text).toContain("Hello");
+  });
+
+  it("honors responseFormat for templates", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      text: "Hello, `world`!",
+    });
+
+    const markdown = await callMcpTool(server, accessToken, "fetch", {
+      resource: "template",
+      id: template.id,
+    });
+    const markdownMeta = JSON.parse(markdown!.result!.content![0].text ?? "{}");
+    expect(markdownMeta.data).toBeUndefined();
+    expect(markdown!.result!.content![1].text).toContain("Hello, `world`!");
+
+    const json = await callMcpTool(server, accessToken, "fetch", {
+      resource: "template",
+      id: template.id,
+      responseFormat: "json",
+    });
+    const jsonMeta = JSON.parse(json!.result!.content![0].text ?? "{}");
+    expect(jsonMeta.data?.type).toEqual("doc");
+    expect(json!.result!.content![1].text).toContain("Hello, `world`!");
   });
 
   it("returns a collection description as markdown, not ProseMirror JSON", async () => {

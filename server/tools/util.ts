@@ -74,23 +74,27 @@ export enum ContentFormat {
 }
 
 /**
- * Builds a zod schema for the `format` input shared by every tool that returns
- * document, collection, or comment content. Markdown is the default because it
- * costs a fraction of the tokens; ProseMirror JSON remains available for
- * callers that need to inspect or preserve structure.
+ * Builds a zod schema for the `responseFormat` input shared by every tool that
+ * returns document, collection, or comment content. Markdown is the default
+ * because it costs a fraction of the tokens; ProseMirror JSON is returned
+ * alongside it for callers that need to inspect or preserve structure.
+ *
+ * `""` and `null` are accepted as "omitted" — clients and LLM-generated tool
+ * arguments routinely serialize an unset optional field as one of the two. The
+ * union spells this out rather than using `z.preprocess`, because the published
+ * JSON Schema is derived from the *input* side and a preprocess step is erased
+ * during that conversion; a host that validates arguments against the schema
+ * before dispatch would reject values the server accepts. See `optionalString`.
  *
  * @returns a zod schema accepting `ContentFormat | undefined`.
  */
 export function formatParam() {
   return z
-    .preprocess(
-      // Clients sometimes send "" for a field they meant to omit; fall back to
-      // the default rather than failing the call. See `optionalString`.
-      (value) => (value === "" ? undefined : value),
-      z.enum(ContentFormat).optional()
-    )
+    .union([z.enum(ContentFormat), z.literal(""), z.null()])
+    .optional()
+    .transform((value) => value || undefined)
     .describe(
-      'The format to return content in. "markdown" (default) is compact but lossy — formatting with no markdown equivalent, such as comment anchors, highlight colors, table column widths, and embeds, is not represented. "json" returns the ProseMirror document, which is many times larger but preserves everything; use it only when the structure itself is needed.'
+      'The format to return content in. "markdown" (default) is compact but lossy — formatting with no markdown equivalent, such as comment anchors, highlight colors, table column widths, and embeds, is not represented. "json" additionally returns the ProseMirror document, which is many times larger but preserves everything; use it only when the structure itself is needed.'
     );
 }
 

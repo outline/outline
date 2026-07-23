@@ -32,6 +32,11 @@ import { ValidationError } from "@server/errors";
  * JSON. The ProseMirror `data` repeats that same content at a multiple of the
  * token cost, so it is omitted unless the caller asks for it.
  *
+ * `text` is markdown in both formats — `json` adds `data` on top rather than
+ * changing what `text` means. `update_comment` parses its `text` input as
+ * markdown, so a caller that read plain text and wrote it back would silently
+ * strip every mark in the comment.
+ *
  * @param comment - the comment model instance.
  * @param commentMarks - optional precomputed comment marks to avoid reparsing.
  * @param format - the format to render the comment content in.
@@ -46,16 +51,11 @@ async function presentCommentWithText(
     includeAnchorText: true,
     commentMarks,
   });
+  const text = (await DocumentHelper.toMarkdown(data)).trim();
 
-  // Plain text alongside the structure, matching what a JSON caller had before.
-  if (format === ContentFormat.Json) {
-    return { ...rest, data, text: comment.toPlainText() };
-  }
-
-  return {
-    ...rest,
-    text: (await DocumentHelper.toMarkdown(data)).trim(),
-  };
+  return format === ContentFormat.Json
+    ? { ...rest, data, text }
+    : { ...rest, text };
 }
 
 /**

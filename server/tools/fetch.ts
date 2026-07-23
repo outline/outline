@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import {
   Attachment,
   Collection,
@@ -221,19 +220,11 @@ export function fetchTool(server: McpServer, scopes: string[]) {
 
             authorize(actor, "read", template);
 
-            const { text, ...attributes } = await presentTemplate(template);
-            return {
-              content: [
-                {
-                  type: "text" as const,
-                  text: JSON.stringify(pathToUrl(actor.team, attributes)),
-                },
-                {
-                  type: "text" as const,
-                  text,
-                },
-              ],
-            } satisfies CallToolResult;
+            const { text, ...attributes } = await presentTemplate(
+              template,
+              responseFormat
+            );
+            return documentResult(pathToUrl(actor.team, attributes), text);
           }
 
           default:

@@ -2,13 +2,11 @@ import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Collection, Team } from "@server/models";
-import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
 import { authorize } from "@server/policies";
 import { presentCollection } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import type { ProsemirrorData } from "@shared/types";
 import {
   success,
   error,
@@ -24,10 +22,19 @@ import {
 } from "./util";
 
 /**
- * Presents a collection for a tool response. The description is rendered as
+ * Presents a collection for a tool response. The description is returned as
  * markdown rather than the ProseMirror JSON the standard presenter emits,
- * which costs a small multiple of the tokens for the same content. Callers
- * that need the structure can ask for it with `format: "json"`.
+ * which costs a small multiple of the tokens for the same content.
+ *
+ * `collection.description` is used verbatim rather than re-serializing the
+ * ProseMirror content: the model keeps the two in sync on save, so the stored
+ * markdown is authoritative, and round-tripping it through the serializer
+ * would add escapes (`5 * 3` becoming `5 \* 3`) that a caller echoing the
+ * value back into `update_collection` would write into the record.
+ *
+ * `description` is always present, so a caller can tell a cleared description
+ * from an absent field. `json` adds the ProseMirror `data` on top rather than
+ * replacing the markdown, since only the markdown can be written back.
  *
  * @param collection - the collection to present.
  * @param format - the format to render the description in.
@@ -38,18 +45,14 @@ export async function presentCollectionForTool(
   format: ContentFormat = ContentFormat.Markdown
 ) {
   const presented = await presentCollection(undefined, collection);
+  const description = collection.description ?? "";
 
   if (format === ContentFormat.Json) {
-    return presented;
+    return { ...presented, description };
   }
 
-  const { data, ...rest } = presented;
-  const description = data
-    ? (await DocumentHelper.toMarkdown(data as ProsemirrorData)).trim()
-    : "";
-
-  // Omit the field entirely when empty rather than emitting an empty string.
-  return description ? { ...rest, description } : rest;
+  const { data: _data, ...rest } = presented;
+  return { ...rest, description };
 }
 
 /**
