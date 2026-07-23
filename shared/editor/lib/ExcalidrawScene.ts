@@ -6,8 +6,8 @@ type RestoredScene = Awaited<ReturnType<typeof loadFromBlob>>;
  * The parsed contents of an Excalidraw scene.
  */
 export type ExcalidrawScene = {
-  elements: NonNullable<RestoredScene["elements"]>;
-  appState: NonNullable<RestoredScene["appState"]>;
+  elements: Readonly<NonNullable<RestoredScene["elements"]>>;
+  appState: Partial<NonNullable<RestoredScene["appState"]>>;
   files: NonNullable<RestoredScene["files"]>;
 };
 

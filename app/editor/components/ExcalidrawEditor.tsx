@@ -26,7 +26,7 @@ type Props = {
 };
 
 type ExcalidrawApi = {
-  getSceneElements: () => ExcalidrawScene["elements"];
+  getSceneElements: () => Readonly<ExcalidrawScene["elements"]>;
   getAppState: () => ExcalidrawScene["appState"];
   getFiles: () => ExcalidrawScene["files"];
 };
