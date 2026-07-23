@@ -21,6 +21,10 @@ export class CacheHelper {
   // Default expiry time for cache data in seconds
   private static defaultDataExpiry = Day.seconds;
 
+  // In-flight cache population promises keyed by cache key, so that N same-key
+  // misses within one process share a single lock acquisition and callback.
+  private static inflight = new Map<string, Promise<unknown>>();
+
   /**
    * Given a key this method will attempt to get the data from cache store first
    * If data is not found, it will call the callback to get the data and save it in cache
@@ -42,11 +46,47 @@ export class CacheHelper {
     expiry: number,
     lockTimeout: number = MutexLock.defaultLockTimeout
   ): Promise<T | undefined> {
-    let cache = await this.getData<T>(key);
+    const cache = await this.getData<T>(key);
 
     if (cache) {
       return cache;
     }
+
+    // Coalesce concurrent same-key misses in this process onto one population
+    // so they don't each contend on the distributed lock.
+    const existing = this.inflight.get(key) as
+      | Promise<T | undefined>
+      | undefined;
+    if (existing) {
+      return existing;
+    }
+
+    const promise = this.populate<T>(key, callback, expiry, lockTimeout);
+    this.inflight.set(key, promise);
+    try {
+      return await promise;
+    } finally {
+      this.inflight.delete(key);
+    }
+  }
+
+  /**
+   * Acquires the distributed lock, re-checks the cache, and populates it from
+   * the callback. Serialized per-process by getDataOrSet's in-flight map.
+   *
+   * @param key Cache key.
+   * @param callback Callback to get the data if not found in cache.
+   * @param expiry Default cache data expiry in seconds.
+   * @param lockTimeout Lock timeout in milliseconds.
+   * @returns The data from cache or the result of the callback.
+   */
+  private static async populate<T>(
+    key: string,
+    callback: () => Promise<T | CacheResult<T> | undefined>,
+    expiry: number,
+    lockTimeout: number
+  ): Promise<T | undefined> {
+    let cache: T | undefined;
 
     // Nothing in the cache, acquire a lock to prevent multiple writes
     let lock;

@@ -19,6 +19,42 @@ describe("CacheHelper", () => {
     });
   });
 
+  describe("getDataOrSet", () => {
+    it("should coalesce concurrent same-key misses into one callback", async () => {
+      let calls = 0;
+      const callback = async () => {
+        calls++;
+        return "value";
+      };
+
+      const results = await Promise.all(
+        Array.from({ length: 10 }, () =>
+          CacheHelper.getDataOrSet("test:dedupe", callback, 60)
+        )
+      );
+
+      expect(calls).toEqual(1);
+      expect(results).toEqual(Array.from({ length: 10 }, () => "value"));
+      expect(await CacheHelper.getData("test:dedupe")).toEqual("value");
+    });
+
+    it("should call the callback again after the in-flight promise settles", async () => {
+      let calls = 0;
+      const callback = async () => {
+        calls++;
+        return calls === 1 ? undefined : "value";
+      };
+
+      expect(
+        await CacheHelper.getDataOrSet("test:retry", callback, 60)
+      ).toBeUndefined();
+      expect(
+        await CacheHelper.getDataOrSet("test:retry", callback, 60)
+      ).toEqual("value");
+      expect(calls).toEqual(2);
+    });
+  });
+
   describe("removeData", () => {
     it("should remove a single key", async () => {
       await CacheHelper.setData("test:key", "value", 60);

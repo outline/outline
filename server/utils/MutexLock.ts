@@ -28,8 +28,8 @@ export class MutexLock {
     if (!this.redlock) {
       this.redlock = new Redlock([Redis.defaultClient], {
         retryJitter: 100,
-        retryCount: 120,
-        retryDelay: 1000,
+        retryCount: 15,
+        retryDelay: 250,
       });
       this.redlock.on("error", (err) => {
         if (err instanceof ResourceLockedError) {
