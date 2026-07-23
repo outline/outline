@@ -47,16 +47,21 @@ const matchesModifiers = (event: KeyboardEvent, options?: Options) => {
 // Based on implementation in react-use
 // https://github.com/streamich/react-use/blob/master/src/useKey.ts#L15-L22
 // A string filter matches the bare key with the modifiers described by options;
-// use a function filter for anything the options cannot express. The key is
-// matched case-insensitively so shortcuts still fire when Shift is held (e.g.
-// Cmd+Shift+P reports event.key "P").
+// use a function filter for anything the options cannot express.
 const createKeyPredicate = (keyFilter: KeyFilter, options?: Options) =>
   typeof keyFilter === "function"
     ? keyFilter
     : typeof keyFilter === "string"
-      ? (event: KeyboardEvent) =>
-          event.key.toLowerCase() === keyFilter.toLowerCase() &&
-          matchesModifiers(event, options)
+      ? (event: KeyboardEvent) => {
+          // Match case-insensitively only when Shift is required, since a
+          // shifted letter reports an uppercase event.key (e.g. Cmd+Shift+P).
+          // Otherwise match exactly so a bare shortcut does not fire when Shift
+          // is held (e.g. "n" must not trigger on Shift+N).
+          const keyMatches = options?.shiftKey
+            ? event.key.toLowerCase() === keyFilter.toLowerCase()
+            : event.key === keyFilter;
+          return keyMatches && matchesModifiers(event, options);
+        }
       : keyFilter
         ? (_event: KeyboardEvent) => true
         : (_event: KeyboardEvent) => false;
