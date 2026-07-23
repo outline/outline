@@ -14,14 +14,12 @@ import { ValidationError } from "@server/errors";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 import { Matches } from "class-validator";
 import FileStorage from "@server/storage/files";
 import Attachment from "./Attachment";
 
 @Table({ tableName: "emojis", modelName: "emoji" })
-@Fix
 class Emoji extends IdModel<
   InferAttributes<Emoji>,
   Partial<InferCreationAttributes<Emoji>>

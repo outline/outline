@@ -72,7 +72,6 @@ import UserMembership from "./UserMembership";
 import View from "./View";
 import ArchivableModel from "./base/ArchivableModel";
 import { CounterCache } from "./decorators/CounterCache";
-import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
@@ -284,7 +283,6 @@ interface QueryGeneratorWithWhere {
   },
 }))
 @Table({ tableName: "documents", modelName: "document" })
-@Fix
 class Document extends ArchivableModel<
   InferAttributes<Document>,
   Partial<InferCreationAttributes<Document>>

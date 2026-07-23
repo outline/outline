@@ -68,7 +68,6 @@ import UserMembership from "./UserMembership";
 import UserPasskey from "./UserPasskey";
 import ParanoidModel from "./base/ParanoidModel";
 import Encrypted from "./decorators/Encrypted";
-import Fix from "./decorators/Fix";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
@@ -133,7 +132,6 @@ export enum UserFlag {
   },
 }))
 @Table({ tableName: "users", modelName: "user" })
-@Fix
 class User extends ParanoidModel<
   InferAttributes<User>,
   Partial<InferCreationAttributes<User>>

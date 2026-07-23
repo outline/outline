@@ -16,7 +16,6 @@ import Share from "@server/models/Share";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import Model from "@server/models/base/Model";
-import Fix from "./decorators/Fix";
 
 /**
  * Where a search query originated.
@@ -34,7 +33,6 @@ export enum SearchQuerySource {
   modelName: "search_query",
   updatedAt: false,
 })
-@Fix
 class SearchQuery extends Model<
   InferAttributes<SearchQuery>,
   Partial<InferCreationAttributes<SearchQuery>>

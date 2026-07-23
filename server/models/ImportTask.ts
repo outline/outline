@@ -14,7 +14,6 @@ import type { ImportableIntegrationService } from "@shared/types";
 import { ImportTaskPhase, ImportTaskState } from "@shared/types";
 import Import from "./Import";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 
 // Not all fields are automatically inferred by Sequelize.
 // see https://sequelize.org/docs/v7/models/model-typing/#manual-attribute-typing
@@ -31,7 +30,6 @@ export type ImportTaskCreationAttributes<
   Partial<NonInferredAttributes<T>>;
 
 @Table({ tableName: "import_tasks", modelName: "import_task" })
-@Fix
 class ImportTask<T extends ImportableIntegrationService> extends IdModel<
   ImportTaskAttributes<T>,
   ImportTaskCreationAttributes<T>
