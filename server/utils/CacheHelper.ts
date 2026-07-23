@@ -48,14 +48,11 @@ export class CacheHelper {
   ): Promise<T | undefined> {
     const cache = await this.getData<T>(key);
 
-    // A genuine miss returns undefined; falsy cached values (null, false, 0,
-    // "") are valid and must be returned rather than re-populated.
     if (cache !== undefined) {
       return cache;
     }
 
-    // Coalesce concurrent same-key misses in this process onto one population
-    // so they don't each contend on the distributed lock.
+    // Coalesce concurrent same-key misses in this process
     const existing = this.inflight.get(key) as
       | Promise<T | undefined>
       | undefined;
