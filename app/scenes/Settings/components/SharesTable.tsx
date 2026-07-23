@@ -15,11 +15,14 @@ import { UserLabel } from "~/components/UserLabel";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useShareMenuActions } from "~/hooks/useShareMenuActions";
+import useUserLocale from "~/hooks/useUserLocale";
 import Time from "~/components/Time";
 import ShareMenu from "~/menus/ShareMenu";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
 import useStores from "~/hooks/useStores";
 import ShareSelectionToolbar from "./ShareSelectionToolbar";
+import Text from "~/components/Text";
+import { dateToExpiry } from "~/utils/date";
 
 const ROW_HEIGHT = 50;
 
@@ -50,6 +53,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const formatNumber = useFormatNumber();
   const { policies } = useStores();
+  const userLocale = useUserLocale();
   const hasDomain = data.some((share) => share.domain);
 
   const isRowSelectable = useCallback(
@@ -120,19 +124,16 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
           header: t("Expires"),
           accessor: (share) => share.expiresAt,
           component: (share) =>
-            share.expiresAt ? (
-              <Time
-                dateTime={share.expiresAt}
-                relative={false}
-                format={{
-                  en_US: "MMM d, yyyy",
-                  en_GB: "d MMM yyyy",
-                  fr_FR: "d MMM yyyy",
-                  de_DE: "dd.MM.yyyy",
-                }}
-              />
+            share.expiresAt && new Date(share.expiresAt) <= new Date() ? (
+              <Text type="danger">
+                {t("Expired")} <Time dateTime={share.expiresAt} addSuffix />
+              </Text>
+            ) : share.expiresAt ? (
+              <Text type="tertiary">
+                {dateToExpiry(share.expiresAt, t, userLocale)}
+              </Text>
             ) : (
-              t("None")
+              <Text type="tertiary">{t("Never")}</Text>
             ),
           width: "2fr",
         },
@@ -164,7 +165,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             }
           : undefined,
       ]),
-    [t, hasDomain, canManage, formatNumber]
+    [t, hasDomain, canManage, formatNumber, userLocale]
   );
 
   return (

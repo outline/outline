@@ -28,7 +28,7 @@ const ErrorExpiredLink = () => {
             {t("Home")}
           </Button>
           <Button action={navigateToSearch} neutral>
-            {t("Search")}...
+            {t("Search")}…
           </Button>
         </HStack>
       </VStack>

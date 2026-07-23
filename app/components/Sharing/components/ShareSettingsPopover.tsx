@@ -445,9 +445,9 @@ function LinkExpiration({ share }: Props) {
 
     setExpiresAt(parsedExpiresAt);
     setExpiryType(matchedType ?? ExpiryType.Custom);
-  }, [
-    // we don't want to trigger when we update the share's expiresAt
-  ]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const expiryOptions = React.useMemo<Option[]>(
     () =>
