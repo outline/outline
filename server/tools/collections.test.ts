@@ -62,6 +62,52 @@ describe("collection tools", () => {
     expect(data.id).toBeDefined();
     expect(data.url).toMatch(/^https?:\/\//);
     expect(data.permission).toEqual(null);
+    expect(data.description).toEqual("A test description");
+    expect(data.data).toBeUndefined();
+  });
+
+  it("returns the description as markdown, not ProseMirror JSON", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      description: "Hello, `world`!",
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_collections");
+    const data = parseMcpListContent<{
+      id: string;
+      description?: string;
+      data?: unknown;
+    }>(res?.result?.content);
+
+    const match = data.find((c) => c.id === collection.id);
+    expect(match).toBeDefined();
+    expect(match!.description).toEqual("Hello, `world`!");
+    expect(match!.data).toBeUndefined();
+  });
+
+  it("returns ProseMirror JSON when responseFormat is json", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      description: "Hello, `world`!",
+    });
+
+    const res = await callMcpTool(server, accessToken, "list_collections", {
+      responseFormat: "json",
+    });
+    const data = parseMcpListContent<{
+      id: string;
+      description?: string;
+      data?: { type: string };
+    }>(res?.result?.content);
+
+    const match = data.find((c) => c.id === collection.id);
+    expect(match).toBeDefined();
+    expect(match!.data?.type).toEqual("doc");
+    expect(match!.description).toBeUndefined();
   });
 
   it("update_collection updates fields on existing collection", async () => {

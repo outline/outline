@@ -65,6 +65,31 @@ export function optionalString() {
     .transform((v) => (v === "" ? undefined : v));
 }
 
+/** The format used to represent rich text content in tool responses. */
+export enum ContentFormat {
+  /** Markdown. Compact and readable, but lossy. */
+  Markdown = "markdown",
+  /** ProseMirror JSON. Verbose, but preserves every mark and node. */
+  Json = "json",
+}
+
+/**
+ * Builds a zod schema for the `format` input shared by every tool that returns
+ * document, collection, or comment content. Markdown is the default because it
+ * costs a fraction of the tokens; ProseMirror JSON remains available for
+ * callers that need to inspect or preserve structure.
+ *
+ * @returns a zod schema accepting `ContentFormat | undefined`.
+ */
+export function formatParam() {
+  return z
+    .enum(ContentFormat)
+    .optional()
+    .describe(
+      'The format to return content in. "markdown" (default) is compact but lossy — formatting with no markdown equivalent, such as comment anchors, highlight colors, table column widths, and embeds, is not represented. "json" returns the ProseMirror document, which is many times larger but preserves everything; use it only when the structure itself is needed.'
+    );
+}
+
 /** The URI of the MCP resource that lists the available named icons. */
 export const iconNamesResourceUri = "outline://icons";
 

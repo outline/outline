@@ -18,6 +18,8 @@ import {
   error,
   success,
   buildAPIContext,
+  ContentFormat,
+  formatParam,
   getActorFromContext,
   optionalString,
   withTracing,
@@ -25,25 +27,34 @@ import {
 import { ValidationError } from "@server/errors";
 
 /**
- * Presents a comment with a plain-text rendering of its content so that
- * MCP consumers (typically AI agents) can read it without parsing
- * ProseMirror JSON.
+ * Presents a comment with a markdown rendering of its content so that MCP
+ * consumers (typically AI agents) can read it without parsing ProseMirror
+ * JSON. The ProseMirror `data` repeats that same content at a multiple of the
+ * token cost, so it is omitted unless the caller asks for it.
  *
  * @param comment - the comment model instance.
  * @param commentMarks - optional precomputed comment marks to avoid reparsing.
+ * @param format - the format to render the comment content in.
  * @returns the presented comment with an additional `text` field.
  */
-function presentCommentWithText(
+async function presentCommentWithText(
   comment: Comment,
-  commentMarks?: CommentMark[]
+  commentMarks?: CommentMark[],
+  format: ContentFormat = ContentFormat.Markdown
 ) {
-  const presented = presentComment(comment, {
+  const { data, ...rest } = presentComment(comment, {
     includeAnchorText: true,
     commentMarks,
   });
+
+  // Plain text alongside the structure, matching what a JSON caller had before.
+  if (format === ContentFormat.Json) {
+    return { ...rest, data, text: comment.toPlainText() };
+  }
+
   return {
-    ...presented,
-    text: comment.toPlainText(),
+    ...rest,
+    text: (await DocumentHelper.toMarkdown(data)).trim(),
   };
 }
 
@@ -97,6 +108,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             .describe(
               "The maximum number of results to return. Defaults to 25, max 100."
             ),
+          responseFormat: formatParam(),
         },
       },
       withTracing(
@@ -109,6 +121,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             statusFilter,
             offset,
             limit,
+            responseFormat,
           },
           extra
         ) => {
@@ -196,22 +209,24 @@ export function commentTools(server: McpServer, scopes: string[]) {
             // Precompute comment marks per document to avoid reparsing
             // the same document for every comment.
             const marksCache = new Map<string, CommentMark[]>();
-            const presented = comments.map((comment) => {
-              const doc = comment.document;
-              let marks: CommentMark[] | undefined;
-              if (doc) {
-                if (!marksCache.has(doc.id)) {
-                  marksCache.set(
-                    doc.id,
-                    ProsemirrorHelper.getComments(
-                      DocumentHelper.toProsemirror(doc)
-                    )
-                  );
+            const presented = await Promise.all(
+              comments.map((comment) => {
+                const doc = comment.document;
+                let marks: CommentMark[] | undefined;
+                if (doc) {
+                  if (!marksCache.has(doc.id)) {
+                    marksCache.set(
+                      doc.id,
+                      ProsemirrorHelper.getComments(
+                        DocumentHelper.toProsemirror(doc)
+                      )
+                    );
+                  }
+                  marks = marksCache.get(doc.id);
                 }
-                marks = marksCache.get(doc.id);
-              }
-              return presentCommentWithText(comment, marks);
-            });
+                return presentCommentWithText(comment, marks, responseFormat);
+              })
+            );
             return success(presented);
           } catch (err) {
             return error(err);
@@ -249,6 +264,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
           anchorSuffix: optionalString().describe(
             "Only provide this if anchorText appears more than once in the document and you need to target a specific occurrence. Plain text that immediately follows anchorText."
           ),
+          responseFormat: formatParam(),
         },
       },
       withTracing(
@@ -261,6 +277,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             anchorText,
             anchorPrefix,
             anchorSuffix,
+            responseFormat,
           },
           context
         ) => {
@@ -333,7 +350,11 @@ export function commentTools(server: McpServer, scopes: string[]) {
               return created;
             });
 
-            const presented = presentCommentWithText(comment);
+            const presented = await presentCommentWithText(
+              comment,
+              undefined,
+              responseFormat
+            );
             return {
               content: [
                 { type: "text" as const, text: JSON.stringify(presented) },
@@ -372,9 +393,11 @@ export function commentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Set to 'resolved' to resolve or 'unresolved' to unresolve a top-level comment thread."
             ),
+          responseFormat: formatParam(),
         },
       },
-      withTracing("update_comment", async ({ id, text, status }, context) => {
+      withTracing("update_comment", async (input, context) => {
+        const { id, text, status, responseFormat } = input;
         try {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
@@ -420,7 +443,11 @@ export function commentTools(server: McpServer, scopes: string[]) {
           await comment.saveWithCtx(ctx, status ? { silent: true } : undefined);
 
           comment.document = document!;
-          const presented = presentCommentWithText(comment);
+          const presented = await presentCommentWithText(
+            comment,
+            undefined,
+            responseFormat
+          );
           return {
             content: [
               { type: "text" as const, text: JSON.stringify(presented) },

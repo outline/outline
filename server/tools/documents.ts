@@ -24,6 +24,8 @@ import {
   success,
   buildAPIContext,
   buildSiblingIndexMap,
+  ContentFormat,
+  formatParam,
   getActorFromContext,
   getBreadcrumbsForDocuments,
   getDocumentBreadcrumb,
@@ -54,6 +56,41 @@ export function presentDocument(
   } = {}
 ) {
   return presentDocumentBase(undefined, document, options);
+}
+
+/**
+ * Builds the presenter options that render a document body in the requested
+ * format. Markdown is returned as a separate content block by
+ * `documentResult`; ProseMirror JSON is carried inline in the metadata as
+ * `data`, since it is already JSON.
+ *
+ * @param format - the format to render the document body in.
+ * @returns presenter options for `presentDocument`.
+ */
+export function bodyOptionsFor(format: ContentFormat | undefined) {
+  const asJson = format === ContentFormat.Json;
+  return { includeData: asJson, includeText: !asJson };
+}
+
+/**
+ * Builds a tool result carrying document metadata as JSON plus, for markdown
+ * callers, the document body as its own content block. Keeping the body out of
+ * the JSON avoids escaping every newline and quote in it.
+ *
+ * @param metadata - the document metadata to serialize.
+ * @param text - the markdown body, or undefined when JSON was requested.
+ * @returns the tool result.
+ */
+export function documentResult(
+  metadata: Record<string, unknown>,
+  text: unknown
+): CallToolResult {
+  return {
+    content: [
+      { type: "text" as const, text: JSON.stringify(metadata) },
+      ...(typeof text === "string" ? [{ type: "text" as const, text }] : []),
+    ],
+  } satisfies CallToolResult;
 }
 
 /**
@@ -378,6 +415,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen. Defaults to false. Do not set this to true for HTML input unless the user explicitly asks for a full-width document layout."
             ),
+          responseFormat: formatParam(),
         },
       },
       withTracing("create_document", async (input, context) => {
@@ -425,27 +463,18 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
           const [{ text, ...attributes }, breadcrumb] = await Promise.all([
             presentDocument(document, {
-              includeData: false,
-              includeText: true,
+              ...bodyOptionsFor(input.responseFormat),
               includeUpdatedAt: true,
             }),
             getDocumentBreadcrumb(document, user),
           ]);
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify({
-                  document: pathToUrl(user.team, attributes),
-                  ...(breadcrumb !== undefined && { breadcrumb }),
-                }),
-              },
-              {
-                type: "text" as const,
-                text: typeof text === "string" ? text : "",
-              },
-            ],
-          } satisfies CallToolResult;
+          return documentResult(
+            {
+              document: pathToUrl(user.team, attributes),
+              ...(breadcrumb !== undefined && { breadcrumb }),
+            },
+            text
+          );
         } catch (message) {
           return error(message);
         }
@@ -648,6 +677,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether the document should occupy full width of the screen."
             ),
+          responseFormat: formatParam(),
         },
       },
       withTracing("update_document", async (input, context) => {
@@ -698,29 +728,20 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const [{ text, ...attributes }, breadcrumb, shareUrl] =
             await Promise.all([
               presentDocument(updated, {
-                includeData: false,
-                includeText: true,
+                ...bodyOptionsFor(input.responseFormat),
                 includeUpdatedAt: true,
               }),
               getDocumentBreadcrumb(updated, user),
               getPublicShareUrlForDocument(user.team, updated.id),
             ]);
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify({
-                  document: pathToUrl(user.team, attributes),
-                  ...(breadcrumb !== undefined && { breadcrumb }),
-                  ...(shareUrl !== undefined && { shareUrl }),
-                }),
-              },
-              {
-                type: "text" as const,
-                text: typeof text === "string" ? text : "",
-              },
-            ],
-          } satisfies CallToolResult;
+          return documentResult(
+            {
+              document: pathToUrl(user.team, attributes),
+              ...(breadcrumb !== undefined && { breadcrumb }),
+              ...(shareUrl !== undefined && { shareUrl }),
+            },
+            text
+          );
         } catch (message) {
           return error(message);
         }
@@ -801,9 +822,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
           collectionId: optionalString().describe(
             "The collection to restore the document into. Defaults to its original collection."
           ),
+          responseFormat: formatParam(),
         },
       },
-      withTracing("restore_document", async ({ id, collectionId }, context) => {
+      withTracing("restore_document", async (input, context) => {
+        const { id, collectionId, responseFormat } = input;
         try {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
@@ -828,29 +851,20 @@ export function documentTools(server: McpServer, scopes: string[]) {
             const [{ text, ...attributes }, breadcrumb, shareUrl] =
               await Promise.all([
                 presentDocument(document, {
-                  includeData: false,
-                  includeText: true,
+                  ...bodyOptionsFor(responseFormat),
                   includeUpdatedAt: true,
                 }),
                 getDocumentBreadcrumb(document, user),
                 getPublicShareUrlForDocument(user.team, document.id),
               ]);
-            return {
-              content: [
-                {
-                  type: "text" as const,
-                  text: JSON.stringify({
-                    document: pathToUrl(user.team, attributes),
-                    ...(breadcrumb !== undefined && { breadcrumb }),
-                    ...(shareUrl !== undefined && { shareUrl }),
-                  }),
-                },
-                {
-                  type: "text" as const,
-                  text: typeof text === "string" ? text : "",
-                },
-              ],
-            } satisfies CallToolResult;
+            return documentResult(
+              {
+                document: pathToUrl(user.team, attributes),
+                ...(breadcrumb !== undefined && { breadcrumb }),
+                ...(shareUrl !== undefined && { shareUrl }),
+              },
+              text
+            );
           });
         } catch (message) {
           return error(message);

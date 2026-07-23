@@ -140,6 +140,52 @@ describe("create_comment", () => {
     expect(data.documentId).toEqual(document.id);
   });
 
+  it("returns markdown text and omits ProseMirror data", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_comment", {
+      documentId: document.id,
+      text: "Hello, `world`!",
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+    // Inline code survives markdown, where toPlainText() would drop the ticks.
+    expect(data.text).toEqual("Hello, `world`!");
+    expect(data.data).toBeUndefined();
+  });
+
+  it("returns ProseMirror data when responseFormat is json", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "create_comment", {
+      documentId: document.id,
+      text: "Hello, `world`!",
+      responseFormat: "json",
+    });
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+    expect(data.data?.type).toEqual("doc");
+    expect(data.text).toEqual("Hello, world!");
+  });
+
   it("creates a reply to an existing comment", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({

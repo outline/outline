@@ -2,14 +2,18 @@ import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Collection, Team } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
 import { authorize } from "@server/policies";
 import { presentCollection } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
+import type { ProsemirrorData } from "@shared/types";
 import {
   success,
   error,
+  ContentFormat,
+  formatParam,
   getActorFromContext,
   buildAPIContext,
   getPublicShareUrlForCollection,
@@ -18,6 +22,35 @@ import {
   pathToUrl,
   withTracing,
 } from "./util";
+
+/**
+ * Presents a collection for a tool response. The description is rendered as
+ * markdown rather than the ProseMirror JSON the standard presenter emits,
+ * which costs a small multiple of the tokens for the same content. Callers
+ * that need the structure can ask for it with `format: "json"`.
+ *
+ * @param collection - the collection to present.
+ * @param format - the format to render the description in.
+ * @returns the presented collection object.
+ */
+export async function presentCollectionForTool(
+  collection: Collection,
+  format: ContentFormat = ContentFormat.Markdown
+) {
+  const presented = await presentCollection(undefined, collection);
+
+  if (format === ContentFormat.Json) {
+    return presented;
+  }
+
+  const { data, ...rest } = presented;
+  const description = data
+    ? (await DocumentHelper.toMarkdown(data as ProsemirrorData)).trim()
+    : "";
+
+  // Omit the field entirely when empty rather than emitting an empty string.
+  return description ? { ...rest, description } : rest;
+}
 
 /**
  * Registers collection-related MCP tools on the given server, filtered by
@@ -57,11 +90,12 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe(
               "The maximum number of results to return. Defaults to 25, max 100."
             ),
+          responseFormat: formatParam(),
         },
       },
       withTracing(
         "list_collections",
-        async ({ query, offset, limit }, extra) => {
+        async ({ query, offset, limit, responseFormat }, extra) => {
           try {
             const user = getActorFromContext(extra);
             const collectionIds = await user.collectionIds();
@@ -124,7 +158,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
                   collection,
                   presented: pathToUrl(
                     user.team,
-                    await presentCollection(undefined, collection)
+                    await presentCollectionForTool(collection, responseFormat)
                   ),
                 }))
               ),
@@ -170,6 +204,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           color: optionalString().describe(
             "The hex color for the collection icon, e.g. #FF0000."
           ),
+          responseFormat: formatParam(),
         },
       },
       withTracing("create_collection", async (input, context) => {
@@ -200,7 +235,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           const presented = pathToUrl(
             user.team,
-            await presentCollection(undefined, reloaded)
+            await presentCollectionForTool(reloaded, input.responseFormat)
           );
           return success(presented);
         } catch (message) {
@@ -244,6 +279,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe(
               "The hex color for the collection icon. Set to null to remove."
             ),
+          responseFormat: formatParam(),
         },
       },
       withTracing("update_collection", async (input, context) => {
@@ -289,7 +325,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           const presented = {
             ...pathToUrl(
               user.team,
-              await presentCollection(undefined, collection)
+              await presentCollectionForTool(collection, input.responseFormat)
             ),
             ...(shareUrl !== undefined && { shareUrl }),
           };

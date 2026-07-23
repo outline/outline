@@ -63,6 +63,52 @@ describe("fetch", () => {
     expect(res!.result!.content![1].text).toContain("Hello");
   });
 
+  it("returns ProseMirror data inline when responseFormat is json", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "# Hello\n\nWorld",
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "document",
+      id: document.id,
+      responseFormat: "json",
+    });
+
+    // The body is already JSON, so it rides along in the metadata block
+    // instead of being appended as a second markdown block.
+    expect(res!.result!.content!.length).toEqual(1);
+
+    const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
+    expect(metadata.document.data?.type).toEqual("doc");
+    expect(metadata.document.text).toBeUndefined();
+  });
+
+  it("returns a collection description as markdown, not ProseMirror JSON", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      description: "Hello, `world`!",
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "collection",
+      id: collection.id,
+    });
+
+    const data = JSON.parse(res!.result!.content![0].text ?? "{}");
+    expect(data.description).toEqual("Hello, `world`!");
+    expect(data.data).toBeUndefined();
+  });
+
   it("returns the public share url for a shared document", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({

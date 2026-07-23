@@ -10,17 +10,15 @@ import {
 } from "@server/models";
 import { authorize, can } from "@server/policies";
 import { AuthorizationError } from "@server/errors";
-import {
-  presentCollection,
-  presentNavigationNode,
-  presentUser,
-} from "@server/presenters";
+import { presentNavigationNode, presentUser } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { presentDocument } from "./documents";
+import { presentCollectionForTool } from "./collections";
+import { bodyOptionsFor, documentResult, presentDocument } from "./documents";
 import { presentTemplate } from "./templates";
 import {
   error,
   success,
+  formatParam,
   getActorFromContext,
   getDocumentBreadcrumb,
   getPublicShareUrlForCollection,
@@ -117,9 +115,11 @@ export function fetchTool(server: McpServer, scopes: string[]) {
           .describe(
             'The unique identifier or URL. For users, "current_user" returns the authenticated user.'
           ),
+        responseFormat: formatParam(),
       },
     },
-    withTracing("fetch", async ({ resource, id: rawId }, extra) => {
+    withTracing("fetch", async (input, extra) => {
+      const { resource, id: rawId, responseFormat } = input;
       try {
         const actor = getActorFromContext(extra);
         const id = extractId(rawId);
@@ -136,30 +136,21 @@ export function fetchTool(server: McpServer, scopes: string[]) {
             const [{ text, ...attributes }, breadcrumb, shareUrl] =
               await Promise.all([
                 presentDocument(document, {
-                  includeData: false,
-                  includeText: true,
+                  ...bodyOptionsFor(responseFormat),
                   includeUpdatedAt: true,
                   includeCommentCount: true,
                 }),
                 getDocumentBreadcrumb(document, actor),
                 getPublicShareUrlForDocument(actor.team, document.id),
               ]);
-            return {
-              content: [
-                {
-                  type: "text" as const,
-                  text: JSON.stringify({
-                    document: pathToUrl(actor.team, attributes),
-                    ...(breadcrumb !== undefined && { breadcrumb }),
-                    ...(shareUrl !== undefined && { shareUrl }),
-                  }),
-                },
-                {
-                  type: "text" as const,
-                  text: typeof text === "string" ? text : "",
-                },
-              ],
-            } satisfies CallToolResult;
+            return documentResult(
+              {
+                document: pathToUrl(actor.team, attributes),
+                ...(breadcrumb !== undefined && { breadcrumb }),
+                ...(shareUrl !== undefined && { shareUrl }),
+              },
+              text
+            );
           }
 
           case "collection": {
@@ -172,7 +163,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
             authorize(actor, "read", collection);
 
             const [presented, shareUrl] = await Promise.all([
-              presentCollection(undefined, collection),
+              presentCollectionForTool(collection, responseFormat),
               getPublicShareUrlForCollection(actor.team, collection.id),
             ]);
             return success([
