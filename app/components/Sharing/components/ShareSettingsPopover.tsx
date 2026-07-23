@@ -37,6 +37,17 @@ import {
   PopoverContent,
 } from "~/components/primitives/Popover";
 import { ListItem } from "./ListItem";
+import ExpiryDatePicker from "~/scenes/ApiKeyNew/components/ExpiryDatePicker";
+import { InputSelect, type Option } from "~/components/InputSelect";
+import useUserLocale from "~/hooks/useUserLocale";
+import {
+  calculateExpiryDate,
+  ExpiryType,
+  ExpiryValues,
+} from "~/scenes/ApiKeyNew/utils";
+import { dateToExpiry } from "~/utils/date";
+import { differenceInCalendarDays, endOfDay } from "date-fns";
+import Container from "~/scenes/Document/components/Container";
 
 type Props = {
   /** The share model to configure settings for. */
@@ -391,10 +402,175 @@ function ShareSettingsPopover({ share, children }: Props) {
             }
           />
         )}
+
+        <LinkExpiration share={share} />
       </PopoverContent>
     </Popover>
   );
 }
+
+function LinkExpiration({ share }: Props) {
+  const { t } = useTranslation();
+  const idPrefix = React.useMemo(() => uniqueId("share-settings-"), []);
+  const expirationId = `${idPrefix}-expiration`;
+  const userLocale = useUserLocale();
+  const currentDate = React.useRef<Date>(new Date());
+  const [expiryType, setExpiryType] = React.useState<ExpiryType>(
+    ExpiryType.Month
+  );
+  const [expiresAt, setExpiresAt] = React.useState<Date | undefined>(undefined);
+  const [showExpiration, setShowExpiration] = React.useState(
+    share.expiresAt ? true : false
+  );
+
+  React.useEffect(() => {
+    if (!share?.expiresAt) {
+      setExpiryType(ExpiryType.NoExpiration);
+      setExpiresAt(undefined);
+      return;
+    }
+
+    const parsedExpiresAt = new Date(share.expiresAt);
+    const daysUntilExpiry = differenceInCalendarDays(
+      parsedExpiresAt,
+      currentDate.current
+    );
+
+    const matchedType = [
+      ExpiryType.Week,
+      ExpiryType.Month,
+      ExpiryType.TwoMonths,
+      ExpiryType.ThreeMonths,
+    ].find((type) => ExpiryValues.get(type)?.value === daysUntilExpiry);
+
+    setExpiresAt(parsedExpiresAt);
+    setExpiryType(matchedType ?? ExpiryType.Custom);
+  }, [
+    // we don't want to trigger when we update the share's expiresAt
+  ]);
+
+  const expiryOptions = React.useMemo<Option[]>(
+    () =>
+      [...ExpiryValues.entries()].flatMap(([expType, { label }]) =>
+        expType === ExpiryType.NoExpiration
+          ? []
+          : [
+              {
+                type: "item",
+                label,
+                value: expType,
+              },
+            ]
+      ),
+    []
+  );
+
+  const updateShareExpiry = React.useCallback(
+    async (date?: Date) => {
+      if (!share?.published) {
+        return;
+      }
+
+      try {
+        await share.save({ expiresAt: date?.toISOString() ?? null });
+      } catch (err) {
+        toast.error(errToString(err));
+      }
+    },
+    [share]
+  );
+
+  const handleExpiryTypeChange = React.useCallback(
+    async (value: string) => {
+      const nextExpiryType = value as ExpiryType;
+      const nextExpiresAt = calculateExpiryDate(
+        currentDate.current,
+        nextExpiryType
+      );
+
+      setExpiryType(nextExpiryType);
+      setExpiresAt(nextExpiresAt);
+      await updateShareExpiry(nextExpiresAt);
+    },
+    [updateShareExpiry]
+  );
+
+  const handleSelectCustomDate = React.useCallback(
+    async (date: Date) => {
+      const nextExpiresAt = endOfDay(date);
+      setExpiresAt(nextExpiresAt);
+      await updateShareExpiry(nextExpiresAt);
+    },
+    [updateShareExpiry]
+  );
+
+  const handleShowExpirationOptions = React.useCallback(
+    async (val: boolean) => {
+      setShowExpiration(val);
+
+      if (val === true) {
+        await handleExpiryTypeChange(expiresAt ? expiryType : ExpiryType.Month);
+      }
+    },
+    [handleExpiryTypeChange, setShowExpiration, expiryType, expiresAt]
+  );
+
+  return (
+    <>
+      <ListItem
+        title={
+          <SwitchLabel htmlFor={expirationId}>
+            {t("Link Expiration")}&nbsp;
+            <Tooltip content={t("Set an expiration date for the link")}>
+              <NudeButton size={18} aria-label={t("More information")}>
+                <QuestionMarkIcon size={18} />
+              </NudeButton>
+            </Tooltip>
+          </SwitchLabel>
+        }
+        actions={
+          <Switch
+            id={expirationId}
+            checked={showExpiration}
+            onChange={handleShowExpirationOptions}
+            width={26}
+            height={14}
+          />
+        }
+      />
+      {showExpiration && (
+        <HStack align="center" justify="space-between" style={{ marginTop: 5 }}>
+          <StyledExpirySelect
+            label=""
+            options={expiryOptions}
+            value={expiryType}
+            onChange={handleExpiryTypeChange}
+          />
+          {expiryType === ExpiryType.Custom ? (
+            <Container style={{ marginTop: -8 }}>
+              <ExpiryDatePicker
+                selectedDate={expiresAt}
+                onSelect={handleSelectCustomDate}
+              />
+            </Container>
+          ) : (
+            <Text type="secondary" size="small">
+              {expiresAt
+                ? `${dateToExpiry(expiresAt.toISOString(), t, userLocale)}.`
+                : `${t("Never expires")}.`}
+            </Text>
+          )}
+        </HStack>
+      )}
+    </>
+  );
+}
+
+const StyledExpirySelect = styled(InputSelect)`
+  width: 150px !important;
+  margin-bottom: 0;
+  margin-top: 0;
+`;
 
 const SwitchLabel = styled.label`
   display: flex;
