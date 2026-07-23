@@ -103,25 +103,28 @@ export class CacheHelper {
         return cache;
       }
 
-      // Get the data from the callback and save it in cache
+      // Get the data from the callback and save it in cache. Only undefined
+      // means "nothing to cache"; falsy values like null are cached normally.
       const result = await callback();
-      if (result) {
-        // Check if result is a CacheResult with dynamic expiry
-        const isCacheResult =
-          typeof result === "object" &&
-          "data" in result &&
-          Object.keys(result).every((k) => k === "data" || k === "expiry");
-
-        if (isCacheResult) {
-          const { data, expiry: dynamicExpiry } = result as CacheResult<T>;
-          await this.setData<T>(key, data, dynamicExpiry ?? expiry);
-          return data;
-        }
-
-        await this.setData<T>(key, result as T, expiry);
-        return result as T;
+      if (result === undefined) {
+        return undefined;
       }
-      return undefined;
+
+      // Check if result is a CacheResult with dynamic expiry
+      const isCacheResult =
+        result !== null &&
+        typeof result === "object" &&
+        "data" in result &&
+        Object.keys(result).every((k) => k === "data" || k === "expiry");
+
+      if (isCacheResult) {
+        const { data, expiry: dynamicExpiry } = result as CacheResult<T>;
+        await this.setData<T>(key, data, dynamicExpiry ?? expiry);
+        return data;
+      }
+
+      await this.setData<T>(key, result as T, expiry);
+      return result as T;
     } finally {
       if (lock) {
         await MutexLock.release(lock);
