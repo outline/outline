@@ -813,10 +813,10 @@ describe("Filters", () => {
       ).toEqual({ collaboratorIds: { [Op.contains]: ["u1"] } });
     });
 
-    it("maps userId in to collaboratorIds @> ARRAY[...values]", () => {
+    it("maps userId in to collaboratorIds && ARRAY[...values] (any-of)", () => {
       expect(
         buildSearchWhere({ field: "userId", operator: "in", value: ["a", "b"] })
-      ).toEqual({ collaboratorIds: { [Op.contains]: ["a", "b"] } });
+      ).toEqual({ collaboratorIds: { [Op.overlap]: ["a", "b"] } });
     });
 
     it("converts collectionId eq via the standard leaf conversion", () => {

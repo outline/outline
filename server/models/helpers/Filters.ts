@@ -88,7 +88,10 @@ function leafToWhere(condition: FilterCondition): Record<string, unknown> {
       return { collaboratorIds: { [Op.contains]: [String(value)] } };
     }
     if (operator === "in" && Array.isArray(value)) {
-      return { collaboratorIds: { [Op.contains]: value.map(String) } };
+      // `in` means "any of" — a document matches if it shares any collaborator
+      // with the list, so use array overlap (&&) rather than contains (@>),
+      // which would require every listed user to be a collaborator.
+      return { collaboratorIds: { [Op.overlap]: value.map(String) } };
     }
     throw new Error("`userId` only supports `eq` or `in` operators");
   }
