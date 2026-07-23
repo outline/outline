@@ -33,7 +33,7 @@ function ShareButton({ collection }: Props) {
   const isMobile = useMobile();
   const team = useCurrentTeam();
   const share = shares.getByCollectionId(collection.id);
-  const isShareExpired = share?.expiresAt && isTodayOrAfter(share.expiresAt);
+  const isShareExpired = share?.expiresAt && !isTodayOrAfter(share.expiresAt);
   const isPubliclyShared =
     team.sharing !== false &&
     collection?.sharing !== false &&
