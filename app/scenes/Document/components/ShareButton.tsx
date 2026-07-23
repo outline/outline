@@ -33,9 +33,9 @@ function ShareButton({ document }: Props) {
   const share = shares.getByDocumentId(document.id);
   const sharedParent = shares.getByDocumentParents(document);
   const domain = share?.domain || sharedParent?.domain;
-  const isShareExpired = share?.expiresAt && isTodayOrAfter(share.expiresAt);
+  const isShareExpired = share?.expiresAt && !isTodayOrAfter(share.expiresAt);
   const isParentShareExpired =
-    sharedParent?.expiresAt && isTodayOrAfter(sharedParent.expiresAt);
+    sharedParent?.expiresAt && !isTodayOrAfter(sharedParent.expiresAt);
   const hasActiveShare = !!share?.published && !isShareExpired;
   const hasActiveParentShare =
     !!sharedParent?.published && !isParentShareExpired;

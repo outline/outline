@@ -50,7 +50,7 @@ function InnerPublicAccess(
   const collectionAbilities = usePolicy(collection);
   const canPublish = share ? can.update : collectionAbilities.share;
   const [creating, setCreating] = React.useState(false);
-  const isShareExpired = share?.expiresAt && isTodayOrAfter(share.expiresAt);
+  const isShareExpired = share?.expiresAt && !isTodayOrAfter(share.expiresAt);
 
   React.useEffect(() => {
     setUrlId(share?.urlId);
