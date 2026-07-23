@@ -7,8 +7,13 @@ const parser = extensionManager.parser({
   plugins: extensionManager.rulePlugins,
 });
 
-const findImageNode = (doc: ReturnType<typeof parser.parse>) =>
-  findNodes(doc?.toJSON(), "image")[0];
+const findImageNode = (doc: ReturnType<typeof parser.parse>) => {
+  const imageNode = findNodes(doc?.toJSON(), "image")[0];
+  if (!imageNode?.attrs) {
+    throw new Error("Expected image node with attributes");
+  }
+  return imageNode;
+};
 
 describe("Image node source attribute round-trip", () => {
   it("preserves diagrams.net source through markdown serialize → parse", () => {
