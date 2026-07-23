@@ -38,6 +38,29 @@ describe("#users.list", () => {
     expect(body.data[0].id).toEqual(user.id);
   });
 
+  it("should treat LIKE wildcards in the query as literal characters", async () => {
+    const user = await buildUser({
+      name: "Underscore",
+      email: "a_b@example.com",
+    });
+    // must not be matched by the "_" in the query
+    await buildUser({
+      name: "Wildcard",
+      email: "axb@example.com",
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/users.list", user, {
+      body: {
+        query: "a_b@example.com",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(user.id);
+  });
+
   it("should allow filtering by user name", async () => {
     const user = await buildUser({
       name: "Tèster",
