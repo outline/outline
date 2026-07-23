@@ -5,8 +5,9 @@ import { CopyIcon, GlobeIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { errToString } from "@shared/utils/error";
+import { s } from "@shared/styles";
 import Flex from "@shared/components/Flex";
 import Squircle from "@shared/components/Squircle";
 import { UrlHelper } from "@shared/utils/UrlHelper";
@@ -57,6 +58,16 @@ function PublicAccess(
   const documentAbilities = usePolicy(document);
   const canPublish = share ? can.update : documentAbilities.share;
   const [creating, setCreating] = React.useState(false);
+  const isShareExpired = !!(
+    share?.expiresAt && new Date(share.expiresAt) <= new Date()
+  );
+  const isParentShareExpired = !!(
+    sharedParent?.expiresAt && new Date(sharedParent.expiresAt) <= new Date()
+  );
+
+  const hasExpiredShare =
+    (!!share?.published && isShareExpired) ||
+    (!!sharedParent?.published && isParentShareExpired && !document.isDraft);
 
   React.useEffect(() => {
     setUrlId(share?.urlId);
@@ -218,7 +229,19 @@ function PublicAccess(
           </Flex>
         ) : null}
 
-        {share?.published && !share.includeChildDocuments ? (
+        {hasExpiredShare && (
+          <ExpiredBanner>
+            <Text type="danger" size="small" style={{ color: "white" }}>
+              {t(
+                "This public link has expired. Set a new expiration date or remove expiration in sharing settings to re-enable access."
+              )}
+            </Text>
+          </ExpiredBanner>
+        )}
+
+        {!hasExpiredShare &&
+        share?.published &&
+        !share.includeChildDocuments ? (
           <Text as="p" type="tertiary" size="xsmall">
             <StyledInfoIcon color={theme.textTertiary} />
             <span>
@@ -233,5 +256,13 @@ function PublicAccess(
     </div>
   );
 }
+
+const ExpiredBanner = styled.div`
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid ${s("danger")};
+  background: ${s("noticeWarningBackground")};
+`;
 
 export default observer(React.forwardRef(PublicAccess));

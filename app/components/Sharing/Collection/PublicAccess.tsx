@@ -25,6 +25,8 @@ import useStores from "~/hooks/useStores";
 import { ListItem } from "../components/ListItem";
 import ShareSettingsPopover from "../components/ShareSettingsPopover";
 import { DomainPrefix, ShareLinkInput, StyledInfoIcon } from "../components";
+import styled from "styled-components";
+import { s } from "@shared/styles";
 
 type Props = {
   /** The collection to share. */
@@ -47,6 +49,9 @@ function InnerPublicAccess(
   const collectionAbilities = usePolicy(collection);
   const canPublish = share ? can.update : collectionAbilities.share;
   const [creating, setCreating] = React.useState(false);
+  const isShareExpired = !!(
+    share?.expiresAt && new Date(share.expiresAt) <= new Date()
+  );
 
   React.useEffect(() => {
     setUrlId(share?.urlId);
@@ -169,20 +174,39 @@ function InnerPublicAccess(
               </ShareLinkInput>
               <ShareSettingsPopover share={share} />
             </Flex>
-            <Flex align="flex-start" gap={4}>
-              <StyledInfoIcon color={theme.textTertiary} />
-              <Text type="tertiary" size="xsmall">
-                {t(
-                  "All documents in this collection will be shared on the web, including any new documents added later"
-                )}
-                .
-              </Text>
-            </Flex>
+
+            {isShareExpired ? (
+              <ExpiredBanner>
+                <Text type="danger" size="small" style={{ color: "white" }}>
+                  {t(
+                    "This public link has expired. Set a new expiration date or remove expiration in sharing settings to re-enable access."
+                  )}
+                </Text>
+              </ExpiredBanner>
+            ) : (
+              <Flex align="flex-start" gap={4}>
+                <StyledInfoIcon color={theme.textTertiary} />
+                <Text type="tertiary" size="xsmall">
+                  {t(
+                    "All documents in this collection will be shared on the web, including any new documents added later"
+                  )}
+                  .
+                </Text>
+              </Flex>
+            )}
           </>
         )}
       </ResizingHeightContainer>
     </div>
   );
 }
+
+const ExpiredBanner = styled.div`
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid ${s("danger")};
+  background: ${s("noticeWarningBackground")};
+`;
 
 export const PublicAccess = observer(React.forwardRef(InnerPublicAccess));
