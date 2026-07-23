@@ -46,6 +46,12 @@ const COMPARISON_OPERATORS = new Set<ComparisonOperator>([
   "lte",
 ]);
 
+// Only date fields support ISO 8601 duration values — converting durations on
+// other fields (e.g. `title gte "P1D"`) would compare a text column against a
+// timestamp and error at the database. Follows the codebase-wide naming
+// convention for timestamp columns (`*At`, `*Date`).
+const DATE_FIELD_RE = /(At|Date)$/;
+
 /**
  * Convert an ISO 8601 duration into a Sequelize literal expressing
  * `now() ± interval '<duration>'`. A leading `-` flips the sign, allowing
@@ -110,6 +116,7 @@ function leafToWhere(condition: FilterCondition): Record<string, unknown> {
         throw new Error(`Unhandled filter operator: ${operator}`);
       }
       const resolved =
+        DATE_FIELD_RE.test(field) &&
         COMPARISON_OPERATORS.has(operator) &&
         typeof value === "string" &&
         isISO8601Duration(value)
@@ -398,34 +405,44 @@ export function legacyParamsToFilter(legacy: LegacyParams): Filter | undefined {
 }
 
 /**
- * Replace `documentId eq X` leaves in a filter with `id in [...]` leaves
- * pre-resolved by the route handler (typically X plus its descendant ids).
+ * Replace `documentId` leaves in a filter with `id in [...]` leaves using ids
+ * pre-resolved by the route handler (typically each document plus its
+ * descendant ids). `eq` leaves map to their document's expansion; `in` leaves
+ * map to the union of their documents' expansions. A document missing from the
+ * map falls back to its own id, which matches at most the document itself.
  *
  * @param filter the filter to transform.
- * @param documentId the documentId value to match leaves against.
- * @param expandedIds the resolved id list to substitute.
+ * @param expandedIds map of documentId to its resolved id list.
  * @returns a new filter with the substitution applied.
  */
 export function expandDocumentIdInFilter(
   filter: Filter,
-  documentId: string,
-  expandedIds: string[]
+  expandedIds: Map<string, string[]>
 ): Filter {
   if (isGroup(filter)) {
     return {
       operator: filter.operator,
       filters: filter.filters.map((f) =>
-        expandDocumentIdInFilter(f, documentId, expandedIds)
+        expandDocumentIdInFilter(f, expandedIds)
       ),
     };
   }
-  if (
-    filter.field === "documentId" &&
-    filter.operator === "eq" &&
-    filter.value !== undefined &&
-    String(filter.value) === documentId
-  ) {
-    return { field: "id", operator: "in", value: expandedIds };
+  if (filter.field !== "documentId") {
+    return filter;
+  }
+  if (filter.operator === "eq" && filter.value !== undefined) {
+    const id = String(filter.value);
+    return { field: "id", operator: "in", value: expandedIds.get(id) ?? [id] };
+  }
+  if (filter.operator === "in" && Array.isArray(filter.value)) {
+    const ids = filter.value.map(String);
+    return {
+      field: "id",
+      operator: "in",
+      value: Array.from(
+        new Set(ids.flatMap((id) => expandedIds.get(id) ?? [id]))
+      ),
+    };
   }
   return filter;
 }

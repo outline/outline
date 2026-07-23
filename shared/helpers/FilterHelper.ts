@@ -53,6 +53,14 @@ export type Filter<F extends string = string> =
 /** The column type a filterable field maps to, used to validate values. */
 export type FieldKind = "uuid" | "string" | "number" | "boolean" | "date";
 
+/**
+ * A filterable field definition: either just its column type, or an object
+ * that additionally restricts which operators the field supports.
+ */
+export type FieldSpec =
+  | FieldKind
+  | { kind: FieldKind; operators: readonly ComparisonOperator[] };
+
 const uuidSchema = z.uuid();
 
 // Accept a full ISO 8601 datetime (with `Z` or an offset) or a bare ISO date.
@@ -113,12 +121,14 @@ function depthOf(filter: Filter): number {
  * Each field maps to a column type ({@link FieldKind}) so that values are
  * validated against the field at the input layer, returning a clean 400 rather
  * than letting malformed input (e.g. a non-uuid id, an invalid date) reach the
- * database.
+ * database. A field may also restrict its supported operators
+ * ({@link FieldSpec}) so that combinations the query layer cannot execute are
+ * rejected here as well.
  *
- * @param fields map of allowed field name to its column type.
+ * @param fields map of allowed field name to its column type, optionally with a restricted operator set.
  * @returns the composed FilterSchema along with its FilterCondition / FilterGroup parts.
  */
-export function createFilterSchema<S extends Record<string, FieldKind>>(
+export function createFilterSchema<S extends Record<string, FieldSpec>>(
   fields: S
 ) {
   const FieldEnum = z.enum(
@@ -136,7 +146,20 @@ export function createFilterSchema<S extends Record<string, FieldKind>>(
     })
     .superRefine((data, ctx) => {
       const { field, operator, value } = data;
-      const kind = fields[field];
+      const spec: FieldSpec = fields[field];
+      const kind = typeof spec === "string" ? spec : spec.kind;
+      const allowedOperators =
+        typeof spec === "string" ? undefined : spec.operators;
+
+      if (allowedOperators && !allowedOperators.includes(operator)) {
+        ctx.addIssue({
+          code: "custom",
+          message: `operator '${operator}' is not supported for field '${field}'`,
+          path: ["operator"],
+        });
+        return;
+      }
+
       const isArrayOp = operator === "in" || operator === "notIn";
       const isNullOp = operator === "isNull" || operator === "isNotNull";
       const isStringOp =

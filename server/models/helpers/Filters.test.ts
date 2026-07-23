@@ -145,6 +145,14 @@ describe("Filters", () => {
       ).toEqual({ title: { [Op.in]: ["P1D"] } });
     });
 
+    it("does not transform duration-shaped values on non-date fields", () => {
+      // Converting would compare a text column against a timestamp and error
+      // at the database.
+      expect(
+        buildWhere({ field: "title", operator: "gte", value: "P1D" })
+      ).toEqual({ title: { [Op.gte]: "P1D" } });
+    });
+
     it("passes through ISO 8601 datetimes unchanged on gte", () => {
       expect(
         buildWhere({
@@ -237,10 +245,10 @@ describe("Filters", () => {
       ).toEqual({ collaboratorIds: { [Op.contains]: ["u1"] } });
     });
 
-    it("maps userId in to collaboratorIds @> ARRAY[...values]", () => {
+    it("maps userId in to collaboratorIds && ARRAY[...values] (any-of)", () => {
       expect(
         buildWhere({ field: "userId", operator: "in", value: ["a", "b"] })
-      ).toEqual({ collaboratorIds: { [Op.contains]: ["a", "b"] } });
+      ).toEqual({ collaboratorIds: { [Op.overlap]: ["a", "b"] } });
     });
 
     it("rejects userId with a non-eq/in operator", () => {
@@ -909,8 +917,7 @@ describe("Filters", () => {
       expect(
         expandDocumentIdInFilter(
           { field: "documentId", operator: "eq", value: "p" },
-          "p",
-          ["p", "c1", "c2"]
+          new Map([["p", ["p", "c1", "c2"]]])
         )
       ).toEqual({ field: "id", operator: "in", value: ["p", "c1", "c2"] });
     });
@@ -925,8 +932,7 @@ describe("Filters", () => {
               { field: "documentId", operator: "eq", value: "p" },
             ],
           },
-          "p",
-          ["p", "c1"]
+          new Map([["p", ["p", "c1"]]])
         )
       ).toEqual({
         operator: "AND",
@@ -937,19 +943,62 @@ describe("Filters", () => {
       });
     });
 
-    it("leaves non-matching leaves untouched", () => {
-      const filter = {
-        operator: "AND" as const,
-        filters: [
-          { field: "title" as const, operator: "eq" as const, value: "x" },
+    it("replaces a documentId in leaf with the deduped union of expansions", () => {
+      expect(
+        expandDocumentIdInFilter(
+          { field: "documentId", operator: "in", value: ["a", "b"] },
+          new Map([
+            ["a", ["a", "shared"]],
+            ["b", ["b", "shared"]],
+          ])
+        )
+      ).toEqual({
+        field: "id",
+        operator: "in",
+        value: ["a", "shared", "b"],
+      });
+    });
+
+    it("replaces multiple documentId leaves, including inside OR groups", () => {
+      expect(
+        expandDocumentIdInFilter(
           {
-            field: "documentId" as const,
-            operator: "eq" as const,
-            value: "different",
+            operator: "OR",
+            filters: [
+              { field: "documentId", operator: "eq", value: "a" },
+              { field: "documentId", operator: "eq", value: "b" },
+            ],
           },
+          new Map([
+            ["a", ["a", "a1"]],
+            ["b", ["b", "b1"]],
+          ])
+        )
+      ).toEqual({
+        operator: "OR",
+        filters: [
+          { field: "id", operator: "in", value: ["a", "a1"] },
+          { field: "id", operator: "in", value: ["b", "b1"] },
         ],
+      });
+    });
+
+    it("falls back to the raw id when no expansion is present", () => {
+      expect(
+        expandDocumentIdInFilter(
+          { field: "documentId", operator: "eq", value: "unknown" },
+          new Map([["p", ["p"]]])
+        )
+      ).toEqual({ field: "id", operator: "in", value: ["unknown"] });
+    });
+
+    it("leaves non-documentId leaves untouched", () => {
+      const filter = {
+        field: "title" as const,
+        operator: "eq" as const,
+        value: "x",
       };
-      expect(expandDocumentIdInFilter(filter, "p", ["p"])).toEqual(filter);
+      expect(expandDocumentIdInFilter(filter, new Map())).toEqual(filter);
     });
 
     describe("authorizeFilterFields", () => {

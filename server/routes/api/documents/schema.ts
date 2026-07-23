@@ -14,7 +14,7 @@ import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
 
-const documentFilter = createFilterSchema({
+const documentFilterFields = {
   createdAt: "date",
   updatedAt: "date",
   publishedAt: "date",
@@ -22,9 +22,20 @@ const documentFilter = createFilterSchema({
   title: "string",
   templateId: "uuid",
   collectionId: "uuid",
-  userId: "uuid",
+  // `userId` maps to the collaboratorIds array column and only supports
+  // membership checks.
+  userId: { kind: "uuid", operators: ["eq", "in"] },
   documentId: "uuid",
   parentDocumentId: "uuid",
+} as const;
+
+const documentListFilter = createFilterSchema(documentFilterFields);
+
+// On search endpoints `documentId` scopes results to a document subtree and is
+// resolved by the route handler, which only supports `eq` and `in`.
+const documentSearchFilter = createFilterSchema({
+  ...documentFilterFields,
+  documentId: { kind: "uuid", operators: ["eq", "in"] },
 } as const);
 
 const DocumentsSortParamsSchema = z.object({
@@ -149,7 +160,7 @@ export const DocumentsListSchema = BaseSchema.extend({
 
     /** List of filter expressions. Implicit AND between top-level entries. */
     filters: z
-      .array(documentFilter.FilterSchema)
+      .array(documentListFilter.FilterSchema)
       .min(1)
       .max(FilterValidation.maxFiltersPerGroup)
       .optional(),
@@ -303,7 +314,7 @@ export const DocumentsSearchSchema = BaseSchema.extend({
 
     /** List of filter expressions. Implicit AND between top-level entries. */
     filters: z
-      .array(documentFilter.FilterSchema)
+      .array(documentSearchFilter.FilterSchema)
       .min(1)
       .max(FilterValidation.maxFiltersPerGroup)
       .optional(),
@@ -329,7 +340,7 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
 
     /** List of filter expressions. Implicit AND between top-level entries. */
     filters: z
-      .array(documentFilter.FilterSchema)
+      .array(documentSearchFilter.FilterSchema)
       .min(1)
       .max(FilterValidation.maxFiltersPerGroup)
       .optional(),

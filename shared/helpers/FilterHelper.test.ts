@@ -180,3 +180,62 @@ describe("createFilterSchema value validation", () => {
     ).toBe(true);
   });
 });
+
+describe("createFilterSchema operator allowlists", () => {
+  const { FilterSchema: RestrictedSchema } = createFilterSchema({
+    userId: { kind: "uuid", operators: ["eq", "in"] },
+    title: "string",
+  } as const);
+
+  it("accepts an allowed operator", () => {
+    expect(
+      RestrictedSchema.safeParse({
+        field: "userId",
+        operator: "eq",
+        value: uuid,
+      }).success
+    ).toBe(true);
+    expect(
+      RestrictedSchema.safeParse({
+        field: "userId",
+        operator: "in",
+        value: [uuid],
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects operators outside the allowlist", () => {
+    for (const operator of ["neq", "notIn", "isNull", "isNotNull", "lt"]) {
+      const result = RestrictedSchema.safeParse({
+        field: "userId",
+        operator,
+        ...(operator === "isNull" || operator === "isNotNull"
+          ? {}
+          : { value: operator === "notIn" ? [uuid] : uuid }),
+      });
+      expect(result.success).toBe(false);
+    }
+  });
+
+  it("does not restrict fields without an allowlist", () => {
+    expect(
+      RestrictedSchema.safeParse({
+        field: "title",
+        operator: "neq",
+        value: "x",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects a disallowed operator nested inside a group", () => {
+    expect(
+      RestrictedSchema.safeParse({
+        operator: "OR",
+        filters: [
+          { field: "title", operator: "eq", value: "x" },
+          { field: "userId", operator: "neq", value: uuid },
+        ],
+      }).success
+    ).toBe(false);
+  });
+});

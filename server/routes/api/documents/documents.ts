@@ -70,6 +70,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import {
   authorizeFilterFields,
   buildWhere,
+  collectEqValues,
   combineFilters,
   expandDocumentIdInFilter,
   extractTopLevelEqValue,
@@ -113,27 +114,73 @@ import {
 const router = new Router();
 
 /**
- * Resolve a `documentId eq X` leaf in a search filter to an `id in [...]`
- * leaf containing the document and all of its descendants. The original
- * document is authorized as part of the lookup.
+ * Resolve every `documentId` leaf in a search filter to an `id in [...]` leaf
+ * containing the document and all of its descendants. When a user is given,
+ * each referenced document is authorized for read access. In share contexts
+ * the expansion is only scoped to the share's team — results are constrained
+ * to the share's own document subtree by the provider, so no per-document
+ * authorization is needed.
  *
  * @param filter the search filter to transform.
- * @param user the user performing the search.
- * @returns the filter with documentId expanded, or the original filter if
- * no documentId leaf is present.
+ * @param context the user performing the search, or the share's team scope.
+ * @returns the filter with documentId leaves expanded, or the original filter
+ * if none are present.
  */
-async function expandDocumentIdLeaf(
+async function expandDocumentIdLeaves(
   filter: Filter,
-  user: User
+  context: { user: User } | { teamId: string }
 ): Promise<Filter> {
-  const documentId = extractTopLevelEqValue(filter, "documentId");
-  if (!documentId) {
+  const documentIds = uniq(collectEqValues(filter, "documentId"));
+  if (documentIds.length === 0) {
     return filter;
   }
-  const document = await Document.findByPk(documentId, { userId: user.id });
-  authorize(user, "read", document);
-  const ids = [documentId, ...(await document.findAllChildDocumentIds())];
-  return expandDocumentIdInFilter(filter, documentId, ids);
+
+  const expandedIds = new Map<string, string[]>();
+  await Promise.all(
+    documentIds.map(async (documentId) => {
+      if ("user" in context) {
+        const document = await Document.findByPk(documentId, {
+          userId: context.user.id,
+        });
+        authorize(context.user, "read", document);
+        expandedIds.set(documentId, [
+          documentId,
+          ...(await document.findAllChildDocumentIds()),
+        ]);
+      } else {
+        const document = await Document.unscoped().findOne({
+          where: { id: documentId, teamId: context.teamId },
+        });
+        expandedIds.set(
+          documentId,
+          document
+            ? [documentId, ...(await document.findAllChildDocumentIds())]
+            : [documentId]
+        );
+      }
+    })
+  );
+
+  return expandDocumentIdInFilter(filter, expandedIds);
+}
+
+/**
+ * Fetch the ids of documents the user has a direct membership on. Used to
+ * express draft visibility without referencing the (separately-loaded)
+ * memberships association, which would otherwise break the COUNT query.
+ *
+ * @param user the user to fetch membership document ids for.
+ * @returns the list of document ids.
+ */
+async function directMembershipDocumentIds(user: User): Promise<string[]> {
+  const memberships = await UserMembership.findAll({
+    attributes: ["documentId"],
+    where: {
+      userId: user.id,
+      documentId: { [Op.ne]: null },
+    },
+  });
+  return memberships.map((m) => m.documentId as string);
 }
 
 router.post(
@@ -282,6 +329,24 @@ router.post(
       remove(where[Op.and], (cond) => has(cond, "collectionId"));
     }
 
+    // A filter referencing publishedAt can surface drafts (the replacement
+    // for the deprecated statusFilter=draft). Drafts are only ever visible to
+    // their creator or users with a direct membership — enforce that here,
+    // mirroring the legacy statusFilter path below.
+    const filterIncludesDrafts =
+      !statusFilter &&
+      filter !== undefined &&
+      hasFieldInFilter(filter, "publishedAt");
+    if (filterIncludesDrafts) {
+      where[Op.and].push({
+        [Op.or]: [
+          { publishedAt: { [Op.ne]: null } },
+          { createdById: user.id },
+          { id: await directMembershipDocumentIds(user) },
+        ],
+      });
+    }
+
     const statusQuery = [];
     if (statusFilter?.includes(StatusFilter.Published)) {
       statusQuery.push({
@@ -299,18 +364,7 @@ router.post(
     }
 
     if (statusFilter?.includes(StatusFilter.Draft)) {
-      // Pre-fetch document IDs the user has a direct membership on so the
-      // filter can be expressed without referencing the (separately-loaded)
-      // memberships association, which would otherwise break the COUNT query.
-      const membershipDocumentIds = (
-        await UserMembership.findAll({
-          attributes: ["documentId"],
-          where: {
-            userId: user.id,
-            documentId: { [Op.ne]: null },
-          },
-        })
-      ).map((m) => m.documentId as string);
+      const membershipDocumentIds = await directMembershipDocumentIds(user);
 
       statusQuery.push({
         [Op.and]: [
@@ -361,7 +415,8 @@ router.post(
           : undefined
         : [[sort, direction]];
 
-    const includeDrafts = !!statusFilter?.includes(StatusFilter.Draft);
+    const includeDrafts =
+      !!statusFilter?.includes(StatusFilter.Draft) || filterIncludesDrafts;
 
     // The withDrafts scope drops the defaultScope filters, so re-apply the
     // ones we still want — templates and trial-import documents should never
@@ -1082,7 +1137,7 @@ router.post(
     }
 
     const resolvedFilter = filter
-      ? await expandDocumentIdLeaf(filter, user)
+      ? await expandDocumentIdLeaves(filter, { user })
       : undefined;
 
     const documents =
@@ -1188,10 +1243,13 @@ router.post(
             ]
           : []),
       ]);
+      const resolvedShareFilter = shareFilter
+        ? await expandDocumentIdLeaves(shareFilter, { teamId: share.teamId })
+        : undefined;
 
       response = await SearchProviderManager.getProvider().searchForTeam(team, {
         query,
-        filter: shareFilter,
+        filter: resolvedShareFilter,
         share,
         offset,
         limit,
@@ -1213,7 +1271,7 @@ router.post(
       }
 
       const resolvedFilter = filter
-        ? await expandDocumentIdLeaf(filter, user)
+        ? await expandDocumentIdLeaves(filter, { user })
         : undefined;
 
       response = await SearchProviderManager.getProvider().searchForUser(user, {
