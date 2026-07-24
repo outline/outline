@@ -1,4 +1,4 @@
-import { format as formatDate } from "date-fns";
+import { addDays, format as formatDate } from "date-fns";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -15,9 +15,14 @@ import useUserLocale from "~/hooks/useUserLocale";
 type Props = {
   selectedDate?: Date;
   onSelect: (date: Date) => void;
+  allowToday?: boolean;
 };
 
-const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
+const ExpiryDatePicker = ({
+  selectedDate,
+  onSelect,
+  allowToday = true,
+}: Props) => {
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
 
@@ -53,7 +58,9 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
           selected={selectedDate}
           onSelect={handleSelect}
           locale={locale}
-          disabled={{ before: new Date() }}
+          disabled={{
+            before: allowToday ? new Date() : addDays(new Date(), 1),
+          }}
         />
       </PopoverContent>
     </Popover>

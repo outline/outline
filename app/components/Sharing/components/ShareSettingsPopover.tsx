@@ -511,8 +511,17 @@ function LinkExpiration({ share }: Props) {
       if (val === true) {
         await handleExpiryTypeChange(expiresAt ? expiryType : ExpiryType.Month);
       }
+      if (val === false) {
+        await updateShareExpiry(undefined);
+      }
     },
-    [handleExpiryTypeChange, setShowExpiration, expiryType, expiresAt]
+    [
+      handleExpiryTypeChange,
+      setShowExpiration,
+      expiryType,
+      expiresAt,
+      updateShareExpiry,
+    ]
   );
 
   return (
@@ -549,6 +558,7 @@ function LinkExpiration({ share }: Props) {
           {expiryType === ExpiryType.Custom ? (
             <Container style={{ marginTop: -8 }}>
               <ExpiryDatePicker
+                allowToday={false}
                 selectedDate={expiresAt}
                 onSelect={handleSelectCustomDate}
               />
