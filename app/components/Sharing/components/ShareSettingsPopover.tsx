@@ -550,7 +550,8 @@ function LinkExpiration({ share }: Props) {
       {showExpiration && (
         <HStack align="center" justify="space-between" style={{ marginTop: 5 }}>
           <StyledExpirySelect
-            label=""
+            label={t("Expiration")}
+            labelHidden
             options={expiryOptions}
             value={expiryType}
             onChange={handleExpiryTypeChange}
