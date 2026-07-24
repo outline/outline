@@ -432,13 +432,14 @@ export class DocumentHelper {
    * @param before The before document
    * @param after The after document
    * @param options Options passed to HTML generation
-   * @returns The diff as a HTML string
+   * @returns The diff as an HTML string, an empty string when there is no
+   * before document, or undefined when the documents contain no changes.
    */
   static async toEmailDiff(
     before: Document | Revision | null,
     after: Revision,
     options?: HTMLOptions
-  ) {
+  ): Promise<string | undefined> {
     if (!before) {
       return "";
     }
