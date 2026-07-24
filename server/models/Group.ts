@@ -18,7 +18,6 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import { CounterCache } from "./decorators/CounterCache";
-import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
@@ -58,7 +57,6 @@ import NotContainsUrl from "./validators/NotContainsUrl";
     },
   },
 })
-@Fix
 class Group extends ParanoidModel<
   InferAttributes<Group>,
   Partial<InferCreationAttributes<Group>>

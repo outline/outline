@@ -42,6 +42,7 @@ import {
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 import { InvalidRequestError } from "@server/errors";
@@ -307,9 +308,7 @@ router.post(
 
     if (query) {
       groupWhere = {
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 
@@ -458,9 +457,7 @@ router.post(
 
     if (query) {
       userWhere = {
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 
@@ -754,7 +751,7 @@ router.post(
       });
     }
 
-    const replacements = { query: `%${query}%` };
+    const replacements = { query: QueryHelper.likeContains(query ?? "") };
 
     const [collections, total] = await Promise.all([
       Collection.scope(

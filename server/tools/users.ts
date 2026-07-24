@@ -6,6 +6,7 @@ import { UserRole } from "@shared/types";
 import { User, Team } from "@server/models";
 import { authorize, can } from "@server/policies";
 import { presentUser } from "@server/presenters";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import {
   error,
@@ -148,7 +149,9 @@ export function userTools(server: McpServer, scopes: string[]) {
               };
             }
 
-            const replacements = { query: `%${query}%` };
+            const replacements = {
+              query: QueryHelper.likeContains(query ?? ""),
+            };
 
             const users = await User.findAll({
               where,

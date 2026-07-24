@@ -29,7 +29,6 @@ import GroupMembership from "./GroupMembership";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import type { HookContext } from "./base/Model";
-import Fix from "./decorators/Fix";
 
 /**
  * Represents a users's permission to access a collection or document.
@@ -68,7 +67,6 @@ import Fix from "./decorators/Fix";
   },
 }))
 @Table({ tableName: "user_permissions", modelName: "user_permission" })
-@Fix
 class UserMembership extends IdModel<
   InferAttributes<UserMembership>,
   Partial<InferCreationAttributes<UserMembership>>

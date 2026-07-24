@@ -35,6 +35,7 @@ import {
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getTeamFromContext } from "@server/utils/passport";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import { navigationNodeToSitemap } from "@server/utils/sitemap";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -170,9 +171,11 @@ router.post(
     };
 
     if (query) {
-      collectionWhere["$collection.name$"] = { [Op.iLike]: `%${query}%` };
+      collectionWhere["$collection.name$"] = {
+        [Op.iLike]: QueryHelper.likeContains(query),
+      };
       documentWhere["$document.title$"] = {
-        [Op.iLike]: `%${query}%`,
+        [Op.iLike]: QueryHelper.likeContains(query),
       };
     }
 

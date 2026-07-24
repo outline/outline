@@ -14,7 +14,6 @@ import env from "@server/env";
 import User from "@server/models/User";
 import IdModel from "@server/models/base/IdModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
-import Fix from "@server/models/decorators/Fix";
 import { hash } from "@server/utils/crypto";
 import OAuthClient from "./OAuthClient";
 
@@ -23,7 +22,6 @@ import OAuthClient from "./OAuthClient";
   modelName: "oauth_authorization_code",
   updatedAt: false,
 })
-@Fix
 class OAuthAuthorizationCode extends IdModel<
   InferAttributes<OAuthAuthorizationCode>,
   Partial<InferCreationAttributes<OAuthAuthorizationCode>>

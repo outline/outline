@@ -24,7 +24,7 @@ export default class Queue {
       return;
     }
 
-    this.handler(job, this.done);
+    this.handler(job, () => this.done());
   }
 
   process(handler: (job: unknown, done: () => void) => void) {

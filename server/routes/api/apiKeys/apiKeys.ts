@@ -11,6 +11,7 @@ import { presentApiKey } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -95,7 +96,7 @@ router.post(
       };
     }
 
-    const replacements = { query: `%${query}%` };
+    const replacements = { query: QueryHelper.likeContains(query ?? "") };
 
     const apiKeys = await ApiKey.findAll({
       where,

@@ -12,6 +12,7 @@ import pagination, {
 } from "@server/routes/api/middlewares/pagination";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
 import * as T from "./schema";
 
@@ -43,7 +44,7 @@ router.post(
       };
     }
 
-    const replacements = { query: `%${query}%` };
+    const replacements = { query: QueryHelper.likeContains(query ?? "") };
 
     const { results, pagination } = await paginateQuery(
       ctx,

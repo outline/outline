@@ -17,7 +17,6 @@ import type { APIContext } from "@server/types";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import { SkipChangeset } from "./decorators/Changeset";
@@ -32,7 +31,6 @@ import { SkipChangeset } from "./decorators/Changeset";
   ],
 }))
 @Table({ tableName: "revisions", modelName: "revision" })
-@Fix
 class Revision extends ParanoidModel<
   InferAttributes<Revision>,
   Partial<InferCreationAttributes<Revision>>

@@ -3,6 +3,7 @@ import { Sequelize, Op, type WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Collection, Team } from "@server/models";
 import { sequelize } from "@server/storage/database";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import { authorize } from "@server/policies";
 import { presentCollection } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
@@ -89,7 +90,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
               method: ["withMembership", user.id],
             }).findAll({
               where,
-              replacements: { query: `%${query}%` },
+              replacements: { query: QueryHelper.likeContains(query ?? "") },
               order: [
                 Sequelize.literal('"collection"."index" collate "C"'),
                 ["updatedAt", "DESC"],

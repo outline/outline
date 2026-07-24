@@ -24,7 +24,6 @@ import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 import IsFQDN from "./validators/IsFQDN";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
@@ -105,7 +104,6 @@ import Length from "./validators/Length";
   }),
 }))
 @Table({ tableName: "shares", modelName: "share" })
-@Fix
 class Share extends IdModel<
   InferAttributes<Share>,
   Partial<InferCreationAttributes<Share>>

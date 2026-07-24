@@ -67,6 +67,8 @@ Document and collection markdown support @mentions using the syntax: @[Display N
 
 Read images and attachments with the "fetch" tool by setting resource to "attachment" and passing either the attachment ID or an /api/attachments.redirect?id=... URL; the tool will return a signed URL for download.
 
+Base64-encoded images are supported in document content for all formats. When creating a document from HTML that includes images or videos, pass the markup with format "html" — remote URLs and base64 media are imported as attachments automatically. Do not convert such HTML to markdown, and do not upload the HTML file itself as an attachment.
+
 When asked to create a document that follows a template, use the "list_templates" tool to find a matching template; each result already includes the template body as markdown. To use it unchanged, pass its ID as templateId to "create_document" and the new document is pre-filled from it. To adapt it first, modify the returned body and pass the result as the text parameter to "create_document". Either way no separate fetch is needed.`;
 
 /**

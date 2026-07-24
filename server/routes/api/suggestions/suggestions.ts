@@ -5,6 +5,7 @@ import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Group, User } from "@server/models";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import { can } from "@server/policies";
 import {
   presentDocuments,
@@ -60,7 +61,7 @@ router.post(
             : {},
         },
         order: [["name", "ASC"]],
-        replacements: { query: `%${query}%` },
+        replacements: { query: QueryHelper.likeContains(query ?? "") },
         offset,
         limit,
       }),
@@ -75,7 +76,7 @@ router.post(
             : {},
         },
         order: [["name", "ASC"]],
-        replacements: { query: `%${query}%` },
+        replacements: { query: QueryHelper.likeContains(query ?? "") },
         offset,
         limit,
       }),

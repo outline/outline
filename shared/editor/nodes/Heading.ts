@@ -13,6 +13,7 @@ import { Plugin, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { Primitive } from "utility-types";
 import { isSafari } from "../../utils/browser";
+import { removeUrlFragment, removeUrlPathSuffix } from "../../utils/urls";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import toggleBlockType from "../commands/toggleBlockType";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -124,10 +125,11 @@ export default class Heading extends Node<HeadingOptions> {
     const hash = `#${anchor.id}`;
 
     // the existing url might contain a hash already, lets make sure to remove
-    // that rather than appending another one.
-    const normalizedUrl = window.location.href
-      .split("#")[0]
-      .replace("/edit", "");
+    // that rather than appending another one, along with any /edit suffix.
+    const normalizedUrl = removeUrlPathSuffix(
+      removeUrlFragment(window.location.href),
+      "/edit"
+    );
     try {
       copy(normalizedUrl + hash);
       this.editor.props.onNotice?.(t("Link copied to clipboard"));

@@ -12,7 +12,6 @@ import { s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import { IconType, TOCPosition, TeamPreference } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
-import { isModKey } from "@shared/utils/keyboard";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
@@ -151,29 +150,26 @@ function DocumentScene({
 
   const onUndoRedo = useCallback(
     (event: KeyboardEvent) => {
-      if (isModKey(event)) {
-        const target =
-          event.target instanceof Element ? event.target : undefined;
+      const target = event.target instanceof Element ? event.target : undefined;
 
-        // The editor handles undo/redo through its own keymap when focused
-        if (
-          editorRef.current?.view?.hasFocus() ||
-          (target && (isTextInput(target) || !!target.closest(".ProseMirror")))
-        ) {
-          return;
-        }
+      // The editor handles undo/redo through its own keymap when focused
+      if (
+        editorRef.current?.view?.hasFocus() ||
+        (target && (isTextInput(target) || !!target.closest(".ProseMirror")))
+      ) {
+        return;
+      }
 
-        event.preventDefault();
+      event.preventDefault();
 
-        if (event.shiftKey) {
-          if (!readOnly) {
-            editorRef.current?.commands.redo?.();
-          }
-        } else {
-          if (!readOnly) {
-            editorRef.current?.commands.undo?.();
-          }
-        }
+      if (readOnly) {
+        return;
+      }
+
+      if (event.shiftKey) {
+        editorRef.current?.commands.redo?.();
+      } else {
+        editorRef.current?.commands.undo?.();
       }
     },
     [readOnly]
@@ -259,15 +255,6 @@ function DocumentScene({
     [document, dialogs, t, onSave]
   );
 
-  const handlePublishShortcut = useCallback(
-    (event: KeyboardEvent) => {
-      if (isModKey(event) && event.shiftKey) {
-        onPublish(event);
-      }
-    },
-    [onPublish]
-  );
-
   const goBack = useCallback(() => {
     if (!readOnly) {
       history.push({
@@ -309,16 +296,18 @@ function DocumentScene({
   return (
     <ErrorBoundary showTitle>
       <RegisterKeyDown trigger="m" handler={onMove} />
-      <RegisterKeyDown trigger="z" handler={onUndoRedo} />
+      <RegisterKeyDown trigger="z" metaKey handler={onUndoRedo} />
       <RegisterKeyDown trigger="e" handler={goToEdit} />
       <RegisterKeyDown trigger="Escape" handler={goBack} />
       <RegisterKeyDown trigger="h" handler={goToHistory} />
       <RegisterKeyDown
         trigger="p"
+        metaKey
+        shiftKey
         options={{
           allowInInput: true,
         }}
-        handler={handlePublishShortcut}
+        handler={onPublish}
       />
       <MeasuredContainer
         as={Background}

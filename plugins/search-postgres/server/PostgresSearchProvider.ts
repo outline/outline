@@ -25,6 +25,7 @@ import {
   buildSearchWhere,
   collectEqValues,
 } from "@server/models/helpers/Filters";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import type {
   SearchOptions,
   SearchResponse,
@@ -289,9 +290,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
     if (query) {
       where[Op.and].push({
-        title: {
-          [Op.iLike]: `%${query}%`,
-        },
+        title: { [Op.iLike]: QueryHelper.likeContains(query) },
       });
     }
 
@@ -376,7 +375,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         teamId: user.teamId,
       },
       order: [["name", "ASC"]],
-      replacements: { query: `%${query}%` },
+      replacements: { query: QueryHelper.likeContains(query ?? "") },
       limit,
       offset,
     });
@@ -743,16 +742,18 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       const iLikeQueries = [...quotedQueries, ...likelyUrls].slice(0, 3);
 
       for (const match of iLikeQueries) {
+        // only escape % and _ as backslashes were already escaped above.
+        const pattern = `%${match.replace(/[%_]/g, "\\$&")}%`;
         where[Op.and].push({
           [Op.or]: [
             {
               title: {
-                [Op.iLike]: `%${match}%`,
+                [Op.iLike]: pattern,
               },
             },
             {
               text: {
-                [Op.iLike]: `%${match}%`,
+                [Op.iLike]: pattern,
               },
             },
           ],

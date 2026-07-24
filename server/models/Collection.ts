@@ -73,7 +73,6 @@ import Team from "./Team";
 import User from "./User";
 import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
@@ -198,7 +197,6 @@ type AdditionalFindOptions = {
   },
 }))
 @Table({ tableName: "collections", modelName: "collection" })
-@Fix
 class Collection extends ParanoidModel<
   InferAttributes<Collection>,
   Partial<InferCreationAttributes<Collection>>

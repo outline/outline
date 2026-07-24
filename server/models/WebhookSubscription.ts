@@ -31,7 +31,6 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Encrypted from "./decorators/Encrypted";
-import Fix from "./decorators/Fix";
 import IsUrl from "./validators/IsUrl";
 import Length from "./validators/Length";
 import { randomString } from "@shared/random";
@@ -48,7 +47,6 @@ import { randomString } from "@shared/random";
   tableName: "webhook_subscriptions",
   modelName: "webhook_subscription",
 })
-@Fix
 class WebhookSubscription extends ParanoidModel<
   InferAttributes<WebhookSubscription>,
   Partial<InferCreationAttributes<WebhookSubscription>>

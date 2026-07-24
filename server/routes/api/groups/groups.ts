@@ -24,6 +24,7 @@ import {
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -68,9 +69,7 @@ router.post(
     } else if (query) {
       where = {
         ...where,
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 
@@ -122,7 +121,7 @@ router.post(
       where = {
         ...where,
         id: {
-          ...((where.id as object) ?? {}),
+          ...(where.id as object),
           [source === "manual" ? Op.notIn : Op.in]: sourceGroupIds,
         },
       };
@@ -389,9 +388,7 @@ router.post(
 
     if (query) {
       userWhere = {
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 

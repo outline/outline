@@ -10,6 +10,12 @@ export type KeyFilter = ((event: KeyboardEvent) => boolean) | string;
 
 export type Options = {
   allowInInput?: boolean;
+  /** Require the platform modifier key (Cmd on macOS, Ctrl elsewhere) to be held. */
+  metaKey?: boolean;
+  /** Require the Alt/Option key to be held. */
+  altKey?: boolean;
+  /** Require the Shift key to be held. */
+  shiftKey?: boolean;
 };
 
 type RegisteredCallback = {
@@ -24,24 +30,57 @@ let callbacks: RegisteredCallback[] = [];
 // in this case, they should never be triggered from mobile keyboards.
 let imeOpen = false;
 
+// Returns true when the event's modifier keys satisfy the given options.
+const matchesModifiers = (event: KeyboardEvent, options?: Options) => {
+  if (options?.metaKey ? !isModKey(event) : isModKey(event)) {
+    return false;
+  }
+  if (options?.altKey && !event.altKey) {
+    return false;
+  }
+  if (options?.shiftKey && !event.shiftKey) {
+    return false;
+  }
+  return true;
+};
+
 // Based on implementation in react-use
 // https://github.com/streamich/react-use/blob/master/src/useKey.ts#L15-L22
-const createKeyPredicate = (keyFilter: KeyFilter) =>
+// A string filter matches the bare key with the modifiers described by options;
+// use a function filter for anything the options cannot express.
+const createKeyPredicate = (keyFilter: KeyFilter, options?: Options) =>
   typeof keyFilter === "function"
     ? keyFilter
     : typeof keyFilter === "string"
-      ? (event: KeyboardEvent) => event.key === keyFilter
+      ? (event: KeyboardEvent) => {
+          // Match case-insensitively only when Shift is required, since a
+          // shifted letter reports an uppercase event.key (e.g. Cmd+Shift+P).
+          // Otherwise match exactly so a bare shortcut does not fire when Shift
+          // is held (e.g. "n" must not trigger on Shift+N).
+          const keyMatches = options?.shiftKey
+            ? event.key.toLowerCase() === keyFilter.toLowerCase()
+            : event.key === keyFilter;
+          return keyMatches && matchesModifiers(event, options);
+        }
       : keyFilter
         ? (_event: KeyboardEvent) => true
         : (_event: KeyboardEvent) => false;
 
+/**
+ * Registers a global keyboard shortcut for the lifetime of the component.
+ *
+ * @param key The key to match, either a string for a single key or a predicate
+ * function for full control over the event.
+ * @param fn The callback to invoke when the shortcut matches.
+ * @param options Behavioral options, including the required modifier keys.
+ */
 export default function useKeyDown(
   key: KeyFilter,
   fn: Callback,
   options?: Options
 ): void {
   const { pane, isSplitView } = useContext(SplitViewContext);
-  const predicate = createKeyPredicate(key);
+  const predicate = createKeyPredicate(key, options);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
