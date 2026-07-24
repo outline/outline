@@ -17,7 +17,7 @@ export const APIKeysCreateSchema = BaseSchema.extend({
       .date()
       .optional()
       .refine((value) => !value || isAfterToday(value), {
-        error: "must be today or later",
+        error: "must be in the future",
       }),
     /** A list of scopes that this API key has access to */
     scope: z.array(z.string()).optional(),
