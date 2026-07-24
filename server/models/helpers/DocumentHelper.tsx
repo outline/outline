@@ -451,7 +451,11 @@ export class DocumentHelper {
     try {
       return DocumentHelper.clipEmailDiff(dom.window.document);
     } finally {
-      dom.window.close();
+      try {
+        dom.window.close();
+      } catch (_err) {
+        // Best effort, closing the window releases its timers and resources.
+      }
     }
   }
 

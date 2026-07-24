@@ -509,7 +509,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
   public static async toHTML(node: Node, options?: HTMLOptions) {
     let view;
     let cleanupEnv;
-    let dom;
+    let dom: JSDOM | undefined;
 
     // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
     const { JSDOM } = await import("jsdom");
@@ -721,8 +721,8 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       }
       try {
         dom?.window.close();
-      } catch (err) {
-        Logger.error("Error closing JSDOM window", toError(err));
+      } catch (_err) {
+        // Best effort, closing the window releases its timers and resources.
       }
       cleanupEnv?.();
     }
