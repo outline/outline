@@ -396,10 +396,10 @@ export function dateToRelativeReadable(
 }
 
 /**
- * Returns true when the given date is a future day.
+ * Returns true when the given date is in the future relative to now.
  *
  * @param value - the date to test, either a Date object or an ISO string.
- * @returns true if the date is in the future, false if it is in not.
+ * @returns true if the date is in the future, false otherwise.
  */
 export function isAfterToday(value: Date | string): boolean {
   const now = new Date();
