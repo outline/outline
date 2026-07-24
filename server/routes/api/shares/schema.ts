@@ -58,7 +58,7 @@ export const SharesUpdateSchema = BaseSchema.extend({
       .date()
       .nullish()
       .refine((value) => !value || isAfterToday(value), {
-        error: "must be today or later",
+        error: "must be in the future",
       }),
     includeChildDocuments: z.boolean().optional(),
     published: z.boolean().optional(),
@@ -95,7 +95,7 @@ export const SharesCreateSchema = BaseSchema.extend({
         .date()
         .optional()
         .refine((value) => !value || isAfterToday(value), {
-          error: "must be today or later",
+          error: "must be in the future",
         }),
       published: z.boolean().prefault(false),
       allowIndexing: z.boolean().optional(),
