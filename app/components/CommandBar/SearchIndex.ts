@@ -1,6 +1,6 @@
 import Fuse from "fuse.js";
 
-export interface SharedSearchDocument {
+export interface SearchIndexDocument {
   id: string;
   title: string;
   /** Plain text content of the document, may be absent until it has loaded. */
@@ -10,15 +10,15 @@ export interface SharedSearchDocument {
   color?: string | null;
 }
 
-export interface SharedSearchResult {
-  document: SharedSearchDocument;
+export interface SearchIndexResult {
+  document: SearchIndexDocument;
   /** Fuse relevance score, lower is a better match. */
   score: number;
   /** A highlighted snippet of content surrounding the match, if any. */
   context?: string;
 }
 
-const options: Fuse.IFuseOptions<SharedSearchDocument> = {
+const options: Fuse.IFuseOptions<SearchIndexDocument> = {
   keys: [
     { name: "title", weight: 2 },
     { name: "text", weight: 1 },
@@ -85,24 +85,24 @@ function buildContext(
  * Records are merged by id over time so that titles (known upfront) and content
  * (loaded lazily or returned by the server) can progressively enrich the index.
  */
-export class SharedSearchIndex {
-  private records = new Map<string, SharedSearchDocument>();
-  private fuse = new Fuse<SharedSearchDocument>([], options);
+export class SearchIndex {
+  private records = new Map<string, SearchIndexDocument>();
+  private fuse = new Fuse<SearchIndexDocument>([], options);
 
   /**
-   * Merges documents into the index, replacing collection contents only when
+   * Merges documents into the index, rebuilding the collection only when
    * something changed. Existing content text is preserved when an incoming
    * record has none, so partial updates never discard richer data.
    *
    * @param documents the documents to add or update.
    * @returns whether the indexed collection changed as a result.
    */
-  public update(documents: SharedSearchDocument[]): boolean {
+  public update(documents: SearchIndexDocument[]): boolean {
     let changed = false;
 
     for (const incoming of documents) {
       const existing = this.records.get(incoming.id);
-      const merged: SharedSearchDocument = existing
+      const merged: SearchIndexDocument = existing
         ? { ...existing, ...incoming }
         : incoming;
 
@@ -131,12 +131,20 @@ export class SharedSearchIndex {
   }
 
   /**
+   * Removes all documents from the index.
+   */
+  public clear(): void {
+    this.records.clear();
+    this.fuse.setCollection([]);
+  }
+
+  /**
    * Performs a fuzzy search across indexed titles and content.
    *
    * @param query the search query.
    * @returns the matching documents ordered by relevance.
    */
-  public search(query: string): SharedSearchResult[] {
+  public search(query: string): SearchIndexResult[] {
     const trimmed = query.trim();
     if (!trimmed) {
       return [];

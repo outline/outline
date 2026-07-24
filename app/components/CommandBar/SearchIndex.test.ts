@@ -1,8 +1,8 @@
-import { SharedSearchIndex } from "./SharedSearchIndex";
+import { SearchIndex } from "./SearchIndex";
 
-describe("SharedSearchIndex", () => {
+describe("SearchIndex", () => {
   it("returns no results for an empty query", () => {
-    const index = new SharedSearchIndex();
+    const index = new SearchIndex();
     index.update([{ id: "1", title: "Engineering Handbook", url: "/doc/1" }]);
 
     expect(index.search("")).toEqual([]);
@@ -10,7 +10,7 @@ describe("SharedSearchIndex", () => {
   });
 
   it("matches titles despite spelling mistakes", () => {
-    const index = new SharedSearchIndex();
+    const index = new SearchIndex();
     index.update([
       { id: "1", title: "Engineering Handbook", url: "/doc/1" },
       { id: "2", title: "Marketing Plan", url: "/doc/2" },
@@ -21,7 +21,7 @@ describe("SharedSearchIndex", () => {
   });
 
   it("matches document content and highlights the context", () => {
-    const index = new SharedSearchIndex();
+    const index = new SearchIndex();
     index.update([
       {
         id: "1",
@@ -37,7 +37,7 @@ describe("SharedSearchIndex", () => {
   });
 
   it("preserves previously indexed content when a later update omits it", () => {
-    const index = new SharedSearchIndex();
+    const index = new SearchIndex();
     index.update([
       {
         id: "1",
@@ -53,7 +53,7 @@ describe("SharedSearchIndex", () => {
   });
 
   it("weights title matches above content matches", () => {
-    const index = new SharedSearchIndex();
+    const index = new SearchIndex();
     index.update([
       { id: "1", title: "Onboarding", url: "/doc/1", text: "unrelated body" },
       {
@@ -66,5 +66,19 @@ describe("SharedSearchIndex", () => {
 
     const results = index.search("onboarding");
     expect(results[0]?.document.id).toBe("1");
+  });
+
+  it("reports whether an update changed the collection", () => {
+    const index = new SearchIndex();
+    expect(index.update([{ id: "1", title: "A", url: "/doc/1" }])).toBe(true);
+    expect(index.update([{ id: "1", title: "A", url: "/doc/1" }])).toBe(false);
+  });
+
+  it("clears all indexed documents", () => {
+    const index = new SearchIndex();
+    index.update([{ id: "1", title: "Engineering", url: "/doc/1" }]);
+    index.clear();
+
+    expect(index.search("engineering")).toEqual([]);
   });
 });

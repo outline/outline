@@ -13,39 +13,13 @@ import {
 } from "~/actions/sections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import useStores from "~/hooks/useStores";
-import type Document from "~/models/Document";
-import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import history from "~/utils/history";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import {
-  SharedSearchIndex,
-  type SharedSearchDocument,
-  type SharedSearchResult,
-} from "~/utils/SharedSearchIndex";
+import type { SearchIndexDocument } from "./SearchIndex";
+import { toSearchRecord, useSearchIndex } from "./useSearchIndex";
 
 const maxRecentDocs = 5;
 const serverSearchDelay = 350;
-const plainTextCache = new Map<string, string>();
-
-/**
- * Returns the plain text content of a document, memoized by its last update so
- * that repeated indexing passes do not reparse unchanged ProseMirror data.
- */
-function getPlainText(doc: Document): string {
-  const key = `${doc.id}:${doc.updatedAt ?? ""}`;
-  const cached = plainTextCache.get(key);
-  if (cached !== undefined) {
-    return cached;
-  }
-  const text = ProsemirrorHelper.toPlainText(doc);
-  plainTextCache.set(key, text);
-  return text;
-}
-
-/** Removes server-generated `<b>` highlight tags from a context snippet. */
-function stripHighlightTags(context: string | undefined): string | undefined {
-  return context?.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
-}
 
 /** Collects every non-collection node from a shared navigation tree. */
 function collectDocumentNodes(root: NavigationNode): NavigationNode[] {
@@ -62,21 +36,13 @@ function collectDocumentNodes(root: NavigationNode): NavigationNode[] {
 
 /**
  * Registers search result actions in the command bar scoped to a public share.
- * Results are driven entirely by a client-side Fuse index — providing fuzzy,
+ * Results are driven entirely by a client-side fuzzy index — providing
  * typo-tolerant matching — which is progressively fed by document titles from
  * the shared tree, the content of loaded documents, and server responses.
  */
 function SharedSearchActions() {
   const { documents } = useStores();
   const { shareId, sharedTree } = useShare();
-  const index = React.useMemo(() => new SharedSearchIndex(), [shareId]);
-
-  const recentDocsRef = React.useRef<SharedSearchDocument[]>([]);
-  const [recentDocs, setRecentDocs] = React.useState<SharedSearchDocument[]>(
-    []
-  );
-  // Bumped whenever the index changes, to re-run the memoized search below.
-  const [version, setVersion] = React.useState(0);
 
   const { searchQuery } = useKBar((state) => ({
     searchQuery: state.searchQuery,
@@ -85,12 +51,15 @@ function SharedSearchActions() {
   const searchQueryRef = React.useRef(searchQuery);
   searchQueryRef.current = searchQuery;
 
-  // Compute results synchronously during render so the displayed matches never
-  // lag behind the query. Recomputed when the query or the index changes.
-  const results = React.useMemo<SharedSearchResult[]>(
-    () => (searchQuery && shareId ? index.search(searchQuery) : []),
-    [index, searchQuery, shareId, version]
-  );
+  const { results, feed, reset } = useSearchIndex(searchQuery);
+
+  const recentDocsRef = React.useRef<SearchIndexDocument[]>([]);
+  const [recentDocs, setRecentDocs] = React.useState<SearchIndexDocument[]>([]);
+
+  // Start from a clean index whenever the share changes.
+  React.useEffect(() => {
+    reset();
+  }, [reset, shareId]);
 
   // Feed the index with titles from the shared tree and content from any
   // documents that have loaded into the store, re-running as documents load.
@@ -102,28 +71,25 @@ function SharedSearchActions() {
     const nodes = collectDocumentNodes(sharedTree);
 
     return autorun(() => {
-      const changed = index.update(
+      feed(
         nodes.map((node) => {
           const doc = documents.get(node.id);
-          return {
-            id: node.id,
-            title: doc?.titleWithDefault ?? node.title,
-            url: doc?.url ?? node.url,
-            text: doc?.data ? getPlainText(doc) : undefined,
-            icon: doc?.icon ?? node.icon,
-            color: doc?.color ?? node.color,
-          };
+          return doc
+            ? toSearchRecord(doc)
+            : {
+                id: node.id,
+                title: node.title,
+                url: node.url,
+                icon: node.icon,
+                color: node.color,
+              };
         })
       );
-
-      if (changed) {
-        setVersion((v) => v + 1);
-      }
     });
-  }, [documents, sharedTree, index]);
+  }, [documents, sharedTree, feed]);
 
   // Enrich the index from the server so that content we have not loaded
-  // client-side can still surface, then re-run the memoized search.
+  // client-side can still surface.
   React.useEffect(() => {
     if (!searchQuery || !shareId) {
       return;
@@ -132,28 +98,16 @@ function SharedSearchActions() {
     const currentQuery = searchQuery;
     const handle = setTimeout(() => {
       void documents.search({ query: currentQuery, shareId }).then((res) => {
-        const changed = index.update(
-          res.map((result) => ({
-            id: result.document.id,
-            title: result.document.titleWithDefault,
-            url: result.document.url,
-            text: result.document.data
-              ? getPlainText(result.document)
-              : stripHighlightTags(result.context),
-            icon: result.document.icon,
-            color: result.document.color,
-          }))
+        feed(
+          res.map((result) => toSearchRecord(result.document, result.context))
         );
-        if (changed) {
-          setVersion((v) => v + 1);
-        }
       });
     }, serverSearchDelay);
 
     return () => clearTimeout(handle);
-  }, [documents, searchQuery, shareId, index]);
+  }, [documents, searchQuery, shareId, feed]);
 
-  const addRecentDoc = React.useCallback((doc: SharedSearchDocument) => {
+  const addRecentDoc = React.useCallback((doc: SearchIndexDocument) => {
     const filtered = recentDocsRef.current.filter((d) => d.id !== doc.id);
     const next = [doc, ...filtered].slice(0, maxRecentDocs);
     recentDocsRef.current = next;
@@ -161,7 +115,7 @@ function SharedSearchActions() {
   }, []);
 
   const documentIcon = React.useCallback(
-    (doc: SharedSearchDocument) =>
+    (doc: SearchIndexDocument) =>
       doc.icon ? (
         <Icon
           value={doc.icon}
