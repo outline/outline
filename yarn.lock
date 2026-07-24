@@ -15546,6 +15546,7 @@ __metadata:
     framer-motion: "npm:^6.5.1"
     franc: "npm:^6.2.0"
     fs-extra: "npm:^11.3.6"
+    fuse.js: "npm:^6.6.2"
     fuzzy-search: "npm:^3.2.1"
     glob: "npm:^11.1.0"
     hot-shots: "npm:^12.1.0"
