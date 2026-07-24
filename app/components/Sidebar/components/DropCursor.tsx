@@ -20,10 +20,6 @@ const Cursor = styled.div<{
   transition: opacity 150ms;
   position: absolute;
   z-index: 1;
-
-  /* Cursors stay mounted between drags so drag start/end doesn't re-render
-     rows. They are only interactive while a drag is active (attribute set by
-     DragActiveProvider) so the invisible strips never intercept clicks. */
   pointer-events: none;
 
   [data-drag-active] & {

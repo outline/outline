@@ -399,9 +399,6 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
     onRename: handleRename,
   });
 
-  // The menu must stay mounted during drags. Unmounting it for every row at
-  // drag start and remounting at drop is expensive. The actions slot is
-  // hidden via CSS (see Actions in SidebarLink) while a drag is active.
   const menu = document ? (
     <DocumentMenu
       document={document}
@@ -419,8 +416,7 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
       membership?.permission === DocumentPermission.ReadWrite;
 
   // Cursors stay mounted between drags so that drag start/end doesn't change
-  // the tree for every row. DropCursor is inert and invisible while no drag
-  // is active.
+  // the tree for every row.
   const cursorBefore =
     canReorderHere && index === 0 ? (
       <DropCursor

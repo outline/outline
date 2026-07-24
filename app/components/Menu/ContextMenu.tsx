@@ -32,10 +32,7 @@ export const ContextMenu = observer(
       isMenu: true,
     });
 
-    // Menu items must only be built while the menu is open. Resolving every
-    // action's title, icon and visibility (including translations) is
-    // expensive, and the closed branch reads no observables so store changes
-    // don't invalidate it.
+    // Menu items are only be built while the menu is open.
     const menuItems = useComputed(() => {
       if (!open) {
         return [];
