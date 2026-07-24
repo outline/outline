@@ -97,7 +97,9 @@ export function SelectionToolbar(props: Props) {
     }
 
     if (isEmbedSelection && !readOnly) {
-      setActiveToolbar(Toolbar.Media);
+      // Embed selections show the toolbar menu by default – the media link
+      // editor is available through the "Edit link" menu item.
+      setActiveToolbar(Toolbar.Menu);
     } else if (
       linkMark &&
       (activeToolbar === null || activeToolbar === Toolbar.Link) &&
@@ -228,6 +230,10 @@ export function SelectionToolbar(props: Props) {
     if (item.name === "dimensions") {
       return item.visible ?? false;
     }
+    // Handled by the toolbar itself rather than an editor command, see below.
+    if (item.name === "editEmbedUrl") {
+      return item.visible ?? true;
+    }
     if (item.name && !commands[item.name]) {
       return false;
     }
@@ -254,6 +260,12 @@ export function SelectionToolbar(props: Props) {
       item.onClick = () => {
         setAutoFocusLinkInput(true);
         setActiveToolbar(Toolbar.Link);
+      };
+    }
+
+    if (item.name === "editEmbedUrl") {
+      item.onClick = () => {
+        setActiveToolbar(Toolbar.Media);
       };
     }
     return item;

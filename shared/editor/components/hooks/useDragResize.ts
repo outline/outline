@@ -105,7 +105,11 @@ export default function useDragResize(props: Params): ReturnValue {
 
   const constrainWidth = React.useCallback(
     (width: number, max: number) => {
-      const minWidth = Math.min(naturalWidth, minWidthRatio * max);
+      // Elements without a natural width (e.g. embeds) fall back to the ratio
+      // based minimum rather than allowing a zero width.
+      const minWidth = naturalWidth
+        ? Math.min(naturalWidth, minWidthRatio * max)
+        : minWidthRatio * max;
       return Math.round(Math.min(max, Math.max(width, minWidth)));
     },
     [naturalWidth]
@@ -144,8 +148,18 @@ export default function useDragResize(props: Params): ReturnValue {
         "bottomRight",
       ].includes(dragging || "");
 
-      if (isCorner && naturalHeight && naturalWidth) {
-        const aspectRatio = naturalHeight / naturalWidth;
+      // Corner drags are locked to an aspect ratio – the natural ratio of the
+      // element when known, otherwise the ratio at the start of the drag so
+      // that elements without a natural size (e.g. embeds) keep their existing
+      // proportions.
+      const aspectRatio =
+        naturalWidth && naturalHeight
+          ? naturalHeight / naturalWidth
+          : sizeAtDragStart.width && sizeAtDragStart.height
+            ? sizeAtDragStart.height / sizeAtDragStart.width
+            : undefined;
+
+      if (isCorner && aspectRatio) {
         const hFactor = isCentered ? 0.5 : 1;
         const factor = isCentered ? 2 : 1;
         const dW =
@@ -158,7 +172,6 @@ export default function useDragResize(props: Params): ReturnValue {
         const factor = isCentered ? 2 : 1;
         const newWidth = sizeAtDragStart.width + diffX * factor;
         const constrainedWidth = constrainWidth(newWidth, maxWidth);
-        const aspectRatio = naturalHeight / naturalWidth;
 
         // When dragged to or beyond the editor edge, store the natural width as a
         // sentinel for "full width" so the element stays responsive. Only do this
@@ -170,7 +183,7 @@ export default function useDragResize(props: Params): ReturnValue {
             ? naturalWidth
             : constrainedWidth;
         const nextHeight = isCorner
-          ? naturalWidth
+          ? aspectRatio
             ? Math.round(constrainedWidth * aspectRatio)
             : undefined
           : sizeAtDragStart.height;

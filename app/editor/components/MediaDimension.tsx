@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import Text from "@shared/components/Text";
+import { EmbedDefaultHeight } from "@shared/editor/components/Embed";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { extraArea } from "@shared/styles";
 import Input, { NativeInput, Outline } from "~/components/Input";
@@ -48,14 +49,24 @@ export function MediaDimension() {
       getComputedStyle(ref.current).getPropertyValue("--document-width")
     );
     const maxWidth = docWidth - EditorStyleHelper.padding * 2;
-    const constrainedWidth = Math.min(width, maxWidth); // Ensure media width does not exceed the max width of the editor.
-    const aspectRatio = height / constrainedWidth;
 
-    const maxHeight = Math.round(maxWidth * aspectRatio);
-    boundsRef.current = {
-      width: { min: 50, max: maxWidth },
-      height: { min: 50, max: maxHeight },
-    };
+    if (nodeType === "embed") {
+      // Embeds have no natural aspect ratio – width and height can be set
+      // independently, so the height is not bounded by the width.
+      boundsRef.current = {
+        width: { min: 50, max: maxWidth },
+        height: { min: 50, max: Infinity },
+      };
+    } else {
+      const constrainedWidth = Math.min(width, maxWidth); // Ensure media width does not exceed the max width of the editor.
+      const aspectRatio = height / constrainedWidth;
+
+      const maxHeight = Math.round(maxWidth * aspectRatio);
+      boundsRef.current = {
+        width: { min: 50, max: maxWidth },
+        height: { min: 50, max: maxHeight },
+      };
+    }
   }
 
   const reset = useCallback(() => {
@@ -119,6 +130,33 @@ export function MediaDimension() {
       localHeightAsNumber = localDimension.height
         ? parseInt(localDimension.height, 10)
         : undefined;
+
+    // Embeds are not constrained to an aspect ratio – both dimensions are
+    // applied exactly as entered. An empty width keeps the embed responsive
+    // at the full width of the editor.
+    if (nodeType === "embed") {
+      const isEmbedUnchanged =
+        (localWidthAsNumber ?? null) === (width ?? null) &&
+        (localHeightAsNumber ?? null) === (height ?? null);
+      const isEmbedError =
+        error.width ||
+        error.height ||
+        (localWidthAsNumber !== undefined &&
+          isOutsideBounds("width", localWidthAsNumber)) ||
+        (localHeightAsNumber !== undefined &&
+          isOutsideBounds("height", localHeightAsNumber));
+
+      if (isEmbedUnchanged || isEmbedError) {
+        reset();
+        return;
+      }
+
+      commands["resizeEmbed"]({
+        width: localWidthAsNumber,
+        height: localHeightAsNumber ?? EmbedDefaultHeight,
+      });
+      return;
+    }
 
     const isUnchanged =
       !localWidthAsNumber ||

@@ -5,7 +5,14 @@ import { getMatchingEmbed } from "../lib/embeds";
 import type { ComponentProps } from "../types";
 import DisabledEmbed from "./DisabledEmbed";
 import Frame from "./Frame";
-import { ResizeBottom, ResizeLeft, ResizeRight } from "./ResizeHandle";
+import {
+  ResizeLeft,
+  ResizeRight,
+  ResizeTopLeft,
+  ResizeTopRight,
+  ResizeBottomLeft,
+  ResizeBottomRight,
+} from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 
 type Props = ComponentProps & {
@@ -15,11 +22,14 @@ type Props = ComponentProps & {
   onChangeSize?: (props: { width: number; height?: number }) => void;
 };
 
+/** The height an embed is rendered at when no height attribute is set. */
+export const EmbedDefaultHeight = 400;
+
 const Embed = (props: Props) => {
   const ref = React.useRef<HTMLDivElement>(null);
   const { node, isEditable, embedsDisabled, onChangeSize } = props;
   const naturalWidth = 0;
-  const naturalHeight = 400;
+  const naturalHeight = EmbedDefaultHeight;
   const isResizable = !!onChangeSize && !embedsDisabled;
 
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
@@ -34,28 +44,54 @@ const Embed = (props: Props) => {
   );
 
   React.useEffect(() => {
-    if (node.attrs.height && node.attrs.height !== height) {
+    const nextWidth = node.attrs.width ?? naturalWidth;
+    const nextHeight = node.attrs.height ?? naturalHeight;
+    if (nextWidth !== width || nextHeight !== height) {
       setSize({
-        width: node.attrs.width,
-        height: node.attrs.height,
+        width: nextWidth,
+        height: nextHeight,
       });
     }
-  }, [node.attrs.height]);
+  }, [node.attrs.width, node.attrs.height]);
 
   const style: React.CSSProperties = {
     width: width || "100%",
-    height: height || 400,
+    height: height || EmbedDefaultHeight,
     maxWidth: "100%",
     pointerEvents: dragging ? "none" : "all",
   };
 
   return (
-    <FrameWrapper ref={ref} $dragging={!!dragging}>
+    <FrameWrapper
+      ref={ref}
+      $dragging={!!dragging}
+      style={{ width: style.width }}
+    >
       <InnerEmbed style={style} {...props} />
       {isEditable && isResizable && (
         <>
-          <ResizeBottom
-            onPointerDown={handlePointerDown("bottom")}
+          <ResizeLeft
+            onPointerDown={handlePointerDown("left")}
+            $dragging={!!dragging}
+          />
+          <ResizeRight
+            onPointerDown={handlePointerDown("right")}
+            $dragging={!!dragging}
+          />
+          <ResizeTopLeft
+            onPointerDown={handlePointerDown("topLeft")}
+            $dragging={!!dragging}
+          />
+          <ResizeTopRight
+            onPointerDown={handlePointerDown("topRight")}
+            $dragging={!!dragging}
+          />
+          <ResizeBottomLeft
+            onPointerDown={handlePointerDown("bottomLeft")}
+            $dragging={!!dragging}
+          />
+          <ResizeBottomRight
+            onPointerDown={handlePointerDown("bottomRight")}
             $dragging={!!dragging}
           />
         </>
@@ -142,7 +178,8 @@ const FrameWrapper = styled.div<{ $dragging: boolean }>`
   transition-timing-function: ease-in-out;
 
   &:hover {
-    ${ResizeLeft}, ${ResizeRight} {
+    ${ResizeLeft}, ${ResizeRight},
+    ${ResizeTopLeft}, ${ResizeTopRight}, ${ResizeBottomLeft}, ${ResizeBottomRight} {
       opacity: 1;
     }
   }
