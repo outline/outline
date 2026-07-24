@@ -15,7 +15,7 @@ import useShareDataLoader from "~/hooks/useShareDataLoader";
 import useStores from "~/hooks/useStores";
 import { preventDefault } from "~/utils/events";
 import lazyWithRetry from "~/utils/lazyWithRetry";
-import { isAfterToday } from "@shared/utils/date";
+import { isFuture } from "date-fns";
 
 const SharePopover = lazyWithRetry(
   () => import("~/components/Sharing/Collection/SharePopover")
@@ -33,7 +33,7 @@ function ShareButton({ collection }: Props) {
   const isMobile = useMobile();
   const team = useCurrentTeam();
   const share = shares.getByCollectionId(collection.id);
-  const isShareExpired = share?.expiresAt && !isAfterToday(share.expiresAt);
+  const isShareExpired = share?.expiresAt && !isFuture(share.expiresAt);
   const isPubliclyShared =
     team.sharing !== false &&
     collection?.sharing !== false &&

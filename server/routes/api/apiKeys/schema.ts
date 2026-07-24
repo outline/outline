@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ApiKey } from "@server/models";
 import { BaseSchema } from "@server/routes/api/schema";
 import { ApiKeyValidation } from "@shared/validations";
-import { isAfterToday } from "@shared/utils/date";
+import { isFuture } from "date-fns";
 
 export const APIKeysCreateSchema = BaseSchema.extend({
   body: z.object({
@@ -16,7 +16,7 @@ export const APIKeysCreateSchema = BaseSchema.extend({
     expiresAt: z.coerce
       .date()
       .optional()
-      .refine((value) => !value || isAfterToday(value), {
+      .refine((value) => !value || isFuture(value), {
         error: "must be in the future",
       }),
     /** A list of scopes that this API key has access to */

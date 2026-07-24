@@ -1,7 +1,6 @@
 import {
   dateToReadable,
   dateToRelativeReadable,
-  isAfterToday,
   parseISODate,
   toISODate,
 } from "./date";
@@ -77,30 +76,5 @@ describe("dateToRelativeReadable", () => {
 
   it("includes the year for a date in a different year", () => {
     expect(dateToRelativeReadable("2020-02-03", t)).toBe("February 3rd, 2020");
-  });
-});
-
-describe("isAfterToday", () => {
-  it("returns true for a future date", () => {
-    const future = new Date();
-    future.setDate(future.getDate() + 1);
-    expect(isAfterToday(future)).toBe(true);
-  });
-
-  it("returns false for a past date", () => {
-    const past = new Date();
-    past.setDate(past.getDate() - 1);
-    expect(isAfterToday(past)).toBe(false);
-  });
-
-  it("returns false for today", () => {
-    const today = new Date();
-    expect(isAfterToday(today)).toBe(false);
-  });
-
-  it("accepts an ISO string", () => {
-    const future = new Date();
-    future.setDate(future.getDate() + 7);
-    expect(isAfterToday(future.toISOString())).toBe(true);
   });
 });

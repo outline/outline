@@ -7,7 +7,7 @@ import { Share } from "@server/models";
 import { ValidateURL } from "@server/validation";
 import { zodIdType } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
-import { isAfterToday } from "@shared/utils/date";
+import { isFuture } from "date-fns";
 
 export const SharesInfoSchema = BaseSchema.extend({
   body: z
@@ -37,9 +37,7 @@ export const SharesListSchema = BaseSchema.extend({
     sort: z
       .string()
       .refine((val) => Object.keys(Share.getAttributes()).includes(val), {
-        message: `must be one of ${Object.keys(Share.getAttributes()).join(
-          ", "
-        )}`,
+        message: `must be one of ${Object.keys(Share.getAttributes()).join(", ")}`,
       })
       .prefault("updatedAt"),
     direction: z
@@ -57,7 +55,7 @@ export const SharesUpdateSchema = BaseSchema.extend({
     expiresAt: z.coerce
       .date()
       .nullish()
-      .refine((value) => !value || isAfterToday(value), {
+      .refine((value) => !value || isFuture(value), {
         error: "must be in the future",
       }),
     includeChildDocuments: z.boolean().optional(),
@@ -94,7 +92,7 @@ export const SharesCreateSchema = BaseSchema.extend({
       expiresAt: z.coerce
         .date()
         .optional()
-        .refine((value) => !value || isAfterToday(value), {
+        .refine((value) => !value || isFuture(value), {
           error: "must be in the future",
         }),
       published: z.boolean().prefault(false),
