@@ -1,3 +1,4 @@
+import type { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
@@ -446,8 +447,22 @@ export class DocumentHelper {
     // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
     const { JSDOM } = await import("jsdom");
     const dom = new JSDOM(html);
-    const doc = dom.window.document;
+    try {
+      return DocumentHelper.clipEmailDiff(dom.window.document);
+    } finally {
+      dom.window.close();
+    }
+  }
 
+  /**
+   * Clips a rendered diff document down to only the changed nodes and their
+   * surrounding context, returning the resulting HTML or undefined when the
+   * document contains no diff elements.
+   *
+   * @param doc The rendered diff document to clip.
+   * @returns The clipped HTML, or undefined when there is nothing to show.
+   */
+  private static clipEmailDiff(doc: JSDOM["window"]["document"]) {
     const containsDiffElement = (node: Element | null) => {
       if (!node) {
         return false;

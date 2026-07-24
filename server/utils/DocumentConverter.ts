@@ -119,6 +119,7 @@ export class DocumentConverter {
       return domParser.parse(document.body);
     } finally {
       cleanup();
+      dom.window.close();
     }
   }
 
