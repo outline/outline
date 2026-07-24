@@ -59,7 +59,9 @@ const ExpiryDatePicker = ({
           onSelect={handleSelect}
           locale={locale}
           disabled={{
-            before: allowToday ? new Date() : addDays(new Date(), 1),
+            before: allowToday
+              ? new Date(new Date().setHours(0, 0, 0, 0))
+              : new Date(addDays(new Date(), 1).setHours(0, 0, 0, 0)),
           }}
         />
       </PopoverContent>
