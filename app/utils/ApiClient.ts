@@ -16,6 +16,7 @@ import {
   NotFoundError,
   OfflineError,
   PaymentRequiredError,
+  ResourceExpiredError,
   RateLimitExceededError,
   RequestError,
   ServiceUnavailableError,
@@ -295,6 +296,10 @@ class ApiClient {
 
     if (response.status === 404) {
       throw new NotFoundError(error.message);
+    }
+
+    if (response.status === 410) {
+      throw new ResourceExpiredError(error.message);
     }
 
     if (response.status === 503) {

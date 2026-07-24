@@ -2,10 +2,19 @@ import copy from "copy-to-clipboard";
 import { errToString } from "@shared/utils/error";
 import type Share from "~/models/Share";
 import { createAction, createInternalLinkAction } from "..";
-import { ArrowIcon, CopyIcon, TrashIcon } from "outline-icons";
+import {
+  ArrowIcon,
+  CheckmarkIcon,
+  CloseIcon,
+  CopyIcon,
+  EditIcon,
+  TrashIcon,
+} from "outline-icons";
 import { ShareSection } from "../sections";
 import env from "~/env";
 import { toast } from "sonner";
+import { ShareLinkCreateDialog } from "~/components/ShareLinkCreateDialog";
+import { ShareTypes } from "@shared/types";
 
 export const copyShareUrlFactory = ({ share }: { share: Share }) =>
   createAction({
@@ -57,4 +66,49 @@ export const revokeShareFactory = ({
         toast.error(errToString(err));
       }
     },
+  });
+
+export const editShareFactory = ({
+  share,
+  can,
+}: {
+  share: Share;
+  can: Record<string, boolean>;
+}) =>
+  createAction({
+    name: ({ t }) => t("Edit link"),
+    analyticsName: "Edit share link",
+    section: ShareSection,
+    icon: <EditIcon />,
+    visible: !!can.revoke && share.type === ShareTypes.Private,
+    perform: ({ t, stores }) => {
+      stores.dialogs.openModal({
+        title: t("Edit share link"),
+        content: (
+          <ShareLinkCreateDialog
+            share={share}
+            onSubmit={stores.dialogs.closeAllModals}
+          />
+        ),
+      });
+    },
+  });
+
+export const toggleActivateShareFactory = ({
+  share,
+  can,
+}: {
+  share: Share;
+  can: Record<string, boolean>;
+}) =>
+  createAction({
+    name: ({ t }) => (share.published ? t("Deactivate") : t("Activate")),
+    analyticsName: "Toggle Share Link Activation",
+    section: ShareSection,
+    icon: share.published ? <CloseIcon /> : <CheckmarkIcon />,
+    visible: !!can.revoke,
+    perform: () =>
+      share.save({
+        published: !share.published,
+      }),
   });

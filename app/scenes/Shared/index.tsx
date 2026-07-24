@@ -26,10 +26,15 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { Theme } from "~/stores/UiStore";
 import { client } from "~/utils/ApiClient";
-import { AuthorizationError, OfflineError } from "~/utils/errors";
+import {
+  AuthorizationError,
+  OfflineError,
+  ResourceExpiredError,
+} from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
 import Loading from "../Document/components/Loading";
+import ErrorExpiredLink from "../Errors/ErrorExpiredLink";
 import ErrorOffline from "../Errors/ErrorOffline";
 import { Collection as CollectionScene } from "./Collection";
 import { Document as DocumentScene } from "./Document";
@@ -231,6 +236,9 @@ function SharedScene() {
           </Login>
         </Suspense>
       );
+    }
+    if (error instanceof ResourceExpiredError) {
+      return <ErrorExpiredLink />;
     }
     return <Error404 />;
   }

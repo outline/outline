@@ -10,6 +10,7 @@ import {
   DataType,
   Default,
   AllowNull,
+  IsDate,
   Is,
   Unique,
   BeforeUpdate,
@@ -27,6 +28,7 @@ import IdModel from "./base/IdModel";
 import IsFQDN from "./validators/IsFQDN";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
+import { type ShareTypes } from "@shared/types";
 
 @DefaultScope(() => ({
   include: [
@@ -108,6 +110,9 @@ class Share extends IdModel<
   InferAttributes<Share>,
   Partial<InferCreationAttributes<Share>>
 > {
+  @Column(DataType.STRING)
+  type: ShareTypes;
+
   @Column(DataType.BOOLEAN)
   published: boolean;
 
@@ -119,6 +124,11 @@ class Share extends IdModel<
 
   @Column(DataType.DATE)
   lastAccessedAt: Date | null;
+
+  @AllowNull
+  @IsDate
+  @Column(DataType.DATE)
+  expiresAt: Date | null;
 
   /** Total count of times the shared link has been accessed */
   @Default(0)

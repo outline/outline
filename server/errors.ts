@@ -118,6 +118,13 @@ export function NotFoundError(message = "Resource not found") {
   });
 }
 
+export function ResourceExpiredError(message = "Resource has expired") {
+  return httpErrors(410, message, {
+    id: "resource_expired",
+    isReportable: false,
+  });
+}
+
 export function ParamRequiredError(message = "Required parameter missing") {
   return httpErrors(400, message, {
     id: "param_required",

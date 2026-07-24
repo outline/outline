@@ -64,11 +64,12 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
           type: "data",
           id: "title",
           header: t("Title"),
-          accessor: (share) => share.sourceTitle || t("Untitled"),
+          accessor: (share) =>
+            share.title || share.sourceTitle || t("Untitled"),
           sortable: false,
           component: (share) => (
             <>
-              {share.sourceTitle || t("Untitled")}{" "}
+              {share.title || share.sourceTitle || t("Untitled")}{" "}
               {share.collectionId ? <Badge>{t("Collection")}</Badge> : null}
             </>
           ),
@@ -101,6 +102,28 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             share.createdAt ? (
               <Time dateTime={share.createdAt} addSuffix />
             ) : null,
+          width: "2fr",
+        },
+        {
+          type: "data",
+          id: "expiringAt",
+          header: t("Expiration date"),
+          accessor: (share) => share.expiresAt,
+          component: (share) =>
+            share.expiresAt ? (
+              <Time
+                dateTime={share.expiresAt}
+                relative={false}
+                format={{
+                  en_US: "MMM d, yyyy",
+                  en_GB: "d MMM yyyy",
+                  fr_FR: "d MMM yyyy",
+                  de_DE: "dd.MM.yyyy",
+                }}
+              />
+            ) : (
+              "None"
+            ),
           width: "2fr",
         },
         {
