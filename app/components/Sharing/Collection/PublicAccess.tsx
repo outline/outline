@@ -27,7 +27,7 @@ import ShareSettingsPopover from "../components/ShareSettingsPopover";
 import { DomainPrefix, ShareLinkInput, StyledInfoIcon } from "../components";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { isAfterToday } from "@shared/utils/date";
+import { isFuture } from "date-fns";
 
 type Props = {
   /** The collection to share. */
@@ -50,7 +50,7 @@ function InnerPublicAccess(
   const collectionAbilities = usePolicy(collection);
   const canPublish = share ? can.update : collectionAbilities.share;
   const [creating, setCreating] = React.useState(false);
-  const isShareExpired = share?.expiresAt && !isAfterToday(share.expiresAt);
+  const isShareExpired = share?.expiresAt && !isFuture(share.expiresAt);
 
   React.useEffect(() => {
     setUrlId(share?.urlId);

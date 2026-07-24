@@ -14,7 +14,7 @@ import useShareDataLoader from "~/hooks/useShareDataLoader";
 import useStores from "~/hooks/useStores";
 import { preventDefault } from "~/utils/events";
 import lazyWithRetry from "~/utils/lazyWithRetry";
-import { isAfterToday } from "@shared/utils/date";
+import { isFuture } from "date-fns";
 
 const SharePopover = lazyWithRetry(
   () => import("~/components/Sharing/Document")
@@ -33,9 +33,9 @@ function ShareButton({ document }: Props) {
   const share = shares.getByDocumentId(document.id);
   const sharedParent = shares.getByDocumentParents(document);
   const domain = share?.domain || sharedParent?.domain;
-  const isShareExpired = share?.expiresAt && !isAfterToday(share.expiresAt);
+  const isShareExpired = share?.expiresAt && !isFuture(share.expiresAt);
   const isParentShareExpired =
-    sharedParent?.expiresAt && !isAfterToday(sharedParent.expiresAt);
+    sharedParent?.expiresAt && !isFuture(sharedParent.expiresAt);
   const hasActiveShare = !!share?.published && !isShareExpired;
   const hasActiveParentShare =
     !!sharedParent?.published && !isParentShareExpired;

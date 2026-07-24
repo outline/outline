@@ -533,16 +533,3 @@ export function dateToRelativeReadable(
   }
   return joinDateAndTime(dateString, format(date, "p", { locale }), language);
 }
-
-/**
- * Returns true when the given date is in the future relative to now.
- *
- * @param value - the date to test, either a Date object or an ISO string.
- * @returns true if the date is in the future, false otherwise.
- */
-export function isAfterToday(value: Date | string): boolean {
-  const now = new Date();
-  const candidate = new Date(value);
-
-  return candidate > now;
-}
