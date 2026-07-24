@@ -2,6 +2,7 @@ import {
   dateToReadable,
   dateToRelativeReadable,
   hasTimeComponent,
+  isAfterToday,
   parseISODate,
   toISODate,
   toISODateTime,
@@ -123,5 +124,30 @@ describe("dateToRelativeReadable", () => {
     expect(dateToRelativeReadable("2020-02-03T13:00", t)).toBe(
       "February 3rd, 2020 at 1:00 PM"
     );
+  });
+});
+
+describe("isAfterToday", () => {
+  it("returns true for a future date", () => {
+    const future = new Date();
+    future.setDate(future.getDate() + 1);
+    expect(isAfterToday(future)).toBe(true);
+  });
+
+  it("returns false for a past date", () => {
+    const past = new Date();
+    past.setDate(past.getDate() - 1);
+    expect(isAfterToday(past)).toBe(false);
+  });
+
+  it("returns false for today", () => {
+    const today = new Date();
+    expect(isAfterToday(today)).toBe(false);
+  });
+
+  it("accepts an ISO string", () => {
+    const future = new Date();
+    future.setDate(future.getDate() + 7);
+    expect(isAfterToday(future.toISOString())).toBe(true);
   });
 });

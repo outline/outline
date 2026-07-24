@@ -534,12 +534,15 @@ export function dateToRelativeReadable(
   return joinDateAndTime(dateString, format(date, "p", { locale }), language);
 }
 
-export function isTodayOrAfter(value: Date | string) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
+/**
+ * Returns true when the given date is a future day.
+ *
+ * @param value - the date to test, either a Date object or an ISO string.
+ * @returns true if the date is in the future, false if it is in not.
+ */
+export function isAfterToday(value: Date | string): boolean {
+  const now = new Date();
   const candidate = new Date(value);
-  candidate.setHours(0, 0, 0, 0);
 
-  return candidate >= today;
+  return candidate > now;
 }

@@ -4,7 +4,7 @@ import { BaseSchema } from "@server/routes/api/schema";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { Scope } from "@shared/types";
 import { ApiKeyValidation } from "@shared/validations";
-import { isTodayOrAfter } from "@shared/utils/date";
+import { isAfterToday } from "@shared/utils/date";
 
 const globalScopes = new Set<string>([...Object.values(Scope), "*"]);
 
@@ -29,7 +29,7 @@ export const APIKeysCreateSchema = BaseSchema.extend({
     expiresAt: z.coerce
       .date()
       .optional()
-      .refine((value) => !value || isTodayOrAfter(value), {
+      .refine((value) => !value || isAfterToday(value), {
         error: "must be today or later",
       }),
     /** A list of scopes that this API key has access to */

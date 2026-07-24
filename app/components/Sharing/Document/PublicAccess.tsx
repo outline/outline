@@ -31,7 +31,7 @@ import {
   StyledInfoIcon,
   UnderlinedLink,
 } from "../components";
-import { isTodayOrAfter } from "@shared/utils/date";
+import { isAfterToday } from "@shared/utils/date";
 
 type Props = {
   /** The document to share. */
@@ -59,9 +59,9 @@ function PublicAccess(
   const documentAbilities = usePolicy(document);
   const canPublish = share ? can.update : documentAbilities.share;
   const [creating, setCreating] = React.useState(false);
-  const isShareExpired = share?.expiresAt && !isTodayOrAfter(share.expiresAt);
+  const isShareExpired = share?.expiresAt && !isAfterToday(share.expiresAt);
   const isParentShareExpired =
-    sharedParent?.expiresAt && !isTodayOrAfter(sharedParent.expiresAt);
+    sharedParent?.expiresAt && !isAfterToday(sharedParent.expiresAt);
 
   const hasExpiredShare =
     (!!share?.published && isShareExpired) ||
