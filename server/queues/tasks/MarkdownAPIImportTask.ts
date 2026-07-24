@@ -665,6 +665,16 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     manifest: MarkdownAttachmentManifestItem[];
     markdownByNode: Map<ZipTreeNode, string>;
   }): void {
+    // Index existing docs by title so the folder/file merge lookup below is O(1)
+    // instead of an `out.find` scan per child (O(n²) over the number of siblings
+    // in a single directory). First occurrence wins, mirroring `find`.
+    const byTitle = new Map<string, DiscoveredDocument>();
+    for (const doc of out) {
+      if (!byTitle.has(doc.title)) {
+        byTitle.set(doc.title, doc);
+      }
+    }
+
     for (const child of children) {
       if (child.children.length > 0 && this.isAttachmentFolder(child)) {
         this.collectAttachments(child, manifest);
@@ -691,7 +701,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       // Folder-and-file with the same title (a "name.md" alongside a "name/"
       // directory) is merged onto a single document: the folder body picks up
       // the file's markdown text, and the folder's contents become children.
-      const sibling = out.find((d) => d.title === child.title);
+      const sibling = byTitle.get(child.title);
 
       if (sibling) {
         if (sibling.markdownText === "" && markdownText) {
@@ -720,6 +730,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         children: [],
       };
       out.push(node);
+      byTitle.set(node.title, node);
 
       if (isFolder) {
         this.collectDocumentsAndAttachments({
