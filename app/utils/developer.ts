@@ -19,28 +19,47 @@ export async function deleteAllDatabases() {
   if ("databases" in window.indexedDB) {
     const databases = await window.indexedDB.databases();
 
-    for (const database of databases) {
-      if (database.name) {
-        window.indexedDB.deleteDatabase(database.name);
-      }
-    }
+    await Promise.all(
+      databases.flatMap((database) =>
+        database.name ? [deleteDatabase(database.name)] : []
+      )
+    );
     return;
   }
 
   // If the browser does not support listing databases, we need to manually delete as best we can
   // by iterating over all known collections and documents.
   await Promise.all(
-    stores.collections.orderedData.map(async (collection) => {
-      window.indexedDB.deleteDatabase(
-        toMultiplayerName(MultiplayerEntityType.Collection, collection.id)
-      );
+    stores.collections.orderedData.flatMap((collection) => {
       const nodes = flatten(collection.documents?.map(flattenTree));
 
-      return nodes.map(async (node) => {
-        window.indexedDB.deleteDatabase(
-          toMultiplayerName(MultiplayerEntityType.Document, node.id)
-        );
-      });
+      return [
+        deleteDatabase(
+          toMultiplayerName(MultiplayerEntityType.Collection, collection.id)
+        ),
+        ...nodes.map((node) =>
+          deleteDatabase(
+            toMultiplayerName(MultiplayerEntityType.Document, node.id)
+          )
+        ),
+      ];
     })
   );
+}
+
+/**
+ * Delete a single IndexedDB database by name, resolving once the request
+ * settles. Best-effort: resolves rather than rejects on error or block so a
+ * single failure does not abort the wider cleanup.
+ *
+ * @param name The name of the database to delete.
+ * @returns A promise that resolves when the deletion request settles.
+ */
+function deleteDatabase(name: string): Promise<void> {
+  return new Promise((resolve) => {
+    const request = window.indexedDB.deleteDatabase(name);
+    request.onsuccess = () => resolve();
+    request.onerror = () => resolve();
+    request.onblocked = () => resolve();
+  });
 }
