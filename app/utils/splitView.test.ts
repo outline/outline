@@ -4,7 +4,7 @@ import {
   closeSplitPane,
   getFocusedSplitPane,
   getSplitPath,
-  isSplitablePath,
+  isSplittablePath,
   openRouteInSplit,
   setFocusedSplitPane,
   setSplitPath,
@@ -65,36 +65,37 @@ describe("setSplitPath", () => {
   });
 });
 
-describe("isSplitablePath", () => {
+describe("isSplittablePath", () => {
   it("allows content routes", () => {
-    expect(isSplitablePath("/home")).toBe(true);
-    expect(isSplitablePath("/doc/my-doc-a1b2c3d4e5")).toBe(true);
-    expect(isSplitablePath("/collection/engineering-a1b2c3d4e5")).toBe(true);
-    expect(isSplitablePath("/search")).toBe(true);
-    expect(isSplitablePath("/drafts")).toBe(true);
+    expect(isSplittablePath("/home")).toBe(true);
+    expect(isSplittablePath("/doc/my-doc-a1b2c3d4e5")).toBe(true);
+    expect(isSplittablePath("/collection/engineering-a1b2c3d4e5")).toBe(true);
+    expect(isSplittablePath("/search")).toBe(true);
+    expect(isSplittablePath("/drafts")).toBe(true);
   });
 
   it("rejects routes that render their own chrome", () => {
-    expect(isSplitablePath("/")).toBe(false);
-    expect(isSplitablePath("/settings")).toBe(false);
-    expect(isSplitablePath("/settings/members")).toBe(false);
-    expect(isSplitablePath("/s/abc123")).toBe(false);
-    expect(isSplitablePath("/logout")).toBe(false);
-    expect(isSplitablePath("/oauth/authorize")).toBe(false);
-    expect(isSplitablePath("/404")).toBe(false);
+    expect(isSplittablePath("/")).toBe(false);
+    expect(isSplittablePath("/settings")).toBe(false);
+    expect(isSplittablePath("/settings/members")).toBe(false);
+    expect(isSplittablePath("/s/abc123")).toBe(false);
+    expect(isSplittablePath("/logout")).toBe(false);
+    expect(isSplittablePath("/oauth/authorize")).toBe(false);
+    expect(isSplittablePath("/404")).toBe(false);
   });
 
   it("does not reject routes sharing a prefix with an excluded route", () => {
-    expect(isSplitablePath("/search")).toBe(true);
-    expect(isSplitablePath("/settings-doc-a1b2c3d4e5")).toBe(true);
+    expect(isSplittablePath("/search")).toBe(true);
+    expect(isSplittablePath("/settings-doc-a1b2c3d4e5")).toBe(true);
   });
 
   it("rejects values that are not internal absolute paths", () => {
-    expect(isSplitablePath("https://example.com/doc/my-doc")).toBe(false);
-    expect(isSplitablePath("//example.com")).toBe(false);
-    expect(isSplitablePath("doc/my-doc")).toBe(false);
-    expect(isSplitablePath("")).toBe(false);
+    expect(isSplittablePath("https://example.com/doc/my-doc")).toBe(false);
+    expect(isSplittablePath("//example.com")).toBe(false);
+    expect(isSplittablePath("doc/my-doc")).toBe(false);
+    expect(isSplittablePath("")).toBe(false);
   });
+
 });
 
 describe("focused split pane", () => {
