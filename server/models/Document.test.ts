@@ -299,6 +299,25 @@ describe("#findByPk", () => {
       })
     ).rejects.toThrow(EmptyResultError);
   });
+
+  it("should load state as a fallback when content is empty", async () => {
+    const state = Buffer.from([1, 2, 3]);
+    const document = await buildDocument();
+    await Document.unscoped().update(
+      { content: null, state },
+      { where: { id: document.id }, hooks: false, silent: true }
+    );
+
+    const response = await Document.findByPk(document.id);
+    expect(response?.state).toEqual(state);
+  });
+
+  it("should not load state when content is available", async () => {
+    const document = await buildDocument();
+    const response = await Document.findByPk(document.id);
+    expect(response?.content).toBeTruthy();
+    expect(response?.state).toBeNull();
+  });
 });
 
 describe("findByIds", () => {
