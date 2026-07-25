@@ -1,3 +1,4 @@
+import cluster from "node:cluster";
 import type { Span, Tracer } from "dd-trace";
 import env from "@server/env";
 
@@ -36,7 +37,9 @@ let tracer: Tracer;
 // If the DataDog agent is installed and the DD_API_KEY environment variable is
 // in the environment then we can safely attempt to start the DD tracer. This
 // must happen before any instrumented module is imported.
-if (env.DD_API_KEY) {
+// Note: the tracer is only loaded in worker processes. The throng master
+// supervises forked workers and never serves traffic.
+if (env.DD_API_KEY && cluster.isWorker) {
   const ddTrace = require("dd-trace") as { default?: Tracer };
   tracer = ddTrace.default ?? (ddTrace as unknown as Tracer);
 
