@@ -151,6 +151,7 @@ export class PluginManager {
       .sync(path.join(rootDir, "plugins/*/server/index.[jt]s"))
       .forEach((filePath: string) => {
         try {
+          // oxlint-disable-next-line typescript/no-require-imports -- path is only known at runtime
           require(path.join(process.cwd(), filePath));
         } catch (err) {
           // Isolate failures so a single broken plugin cannot prevent the rest

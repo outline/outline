@@ -41,6 +41,7 @@
     "no-irregular-whitespace": "error",
     "no-loss-of-precision": "error",
     "no-new-native-nonconstructor": "error",
+    "unicorn/no-new-array": "error",
     "no-nonoctal-decimal-escape": "error",
     "no-obj-calls": "error",
     "no-prototype-builtins": "error",
@@ -104,7 +105,7 @@
             "html": true
           }
         ],
-        "@typescript-eslint/no-require-imports": "off",
+        "typescript/no-require-imports": "error",
         "import/no-named-as-default": "off",
         "import/no-named-as-default-member": "off",
         "typescript/consistent-type-imports": "error",
