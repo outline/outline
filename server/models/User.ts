@@ -482,12 +482,17 @@ class User extends ParanoidModel<
    * Returns the user's active collection ids. This includes collections the user
    * has access to through group memberships.
    *
-   * @param options Additional options to pass to the find
+   * @param options Additional options to pass to the find, set `skipCache` to bypass the cached response
    * @returns An array of collection ids
    */
-  public collectionIds = async (options: FindOptions<Collection> = {}) => {
+  public collectionIds = async (
+    options: FindOptions<Collection> & { skipCache?: boolean } = {}
+  ) => {
+    const { skipCache, ...findOptions } = options;
     const hasOptions =
-      options.transaction || options.paranoid === false || options.lock;
+      findOptions.transaction ||
+      findOptions.paranoid === false ||
+      findOptions.lock;
 
     const fetchCollectionIds = async () => {
       const collectionStubs = await Collection.findAll({
@@ -545,13 +550,13 @@ class User extends ParanoidModel<
           },
         ],
         paranoid: true,
-        ...options,
+        ...findOptions,
       });
 
       return Array.from(new Set(collectionStubs.map((c) => c.id)));
     };
 
-    if (hasOptions) {
+    if (hasOptions || skipCache) {
       return fetchCollectionIds();
     }
 

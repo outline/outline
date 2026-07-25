@@ -901,11 +901,9 @@ export default class WebsocketsProcessor {
 
       case "users.promote":
       case "users.demote": {
-        if (event.name === "users.demote") {
-          socketio
-            .to(`user-${event.userId}`)
-            .emit(event.name, { id: event.userId });
-        }
+        socketio
+          .to(`user-${event.userId}`)
+          .emit(event.name, { id: event.userId });
 
         // the user's accessible collections may have changed with their role.
         const user = await User.findByPk(event.userId);
@@ -914,7 +912,9 @@ export default class WebsocketsProcessor {
         }
 
         const membersRoom = `team-${user.teamId}.members`;
-        const accessibleCollectionIds = await user.collectionIds();
+        const accessibleCollectionIds = await user.collectionIds({
+          skipCache: true,
+        });
 
         if (user.isGuest) {
           const teamCollections = await Collection.findAll({
