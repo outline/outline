@@ -1,11 +1,13 @@
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { Fragment, Node } from "prosemirror-model";
-import { UniqueConstraintError } from "sequelize";
+import { Op, UniqueConstraintError } from "sequelize";
+import { isUUID } from "validator";
 import type {
   ImportTaskInput,
   ImportTaskOutput,
   JSONAttachmentManifestItem,
+  JSONEmojiManifestItem,
   JSONPageImportTaskInputItem,
 } from "@shared/schema";
 import type {
@@ -14,13 +16,14 @@ import type {
   ProsemirrorDoc,
 } from "@shared/types";
 import { AttachmentPreset } from "@shared/types";
+import { errToString } from "@shared/utils/error";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type { ImportTask } from "@server/models";
-import { Attachment } from "@server/models";
+import { Attachment, Emoji } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { sequelize } from "@server/storage/database";
@@ -29,6 +32,7 @@ import type {
   AttachmentJSONExport,
   CollectionJSONExport,
   DocumentJSONExport,
+  EmojiJSONExport,
   JSONExportMetadata,
 } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";
@@ -121,6 +125,57 @@ export function rewriteAttachmentReferences(
   return doc.copy(transformFragment(doc.content)).toJSON() as ProsemirrorData;
 }
 
+/**
+ * Rewrites inline custom emoji references in a ProseMirror document to the
+ * emoji ids the import resolved them to. Emojis are addressed by id in the
+ * `data-name` attribute; unicode emojis use a shortcode there instead and are
+ * left alone, as are ids missing from the map.
+ *
+ * Exported for tests; not part of the module's public surface.
+ *
+ * @param content ProseMirror content from a document or collection.
+ * @param emojiIdMap Map of external emoji id → new internal id.
+ * @returns ProseMirror content with rewritten emoji references.
+ */
+export function rewriteEmojiReferences(
+  content: ProsemirrorData,
+  emojiIdMap: Record<string, string>
+): ProsemirrorData {
+  if (!Object.keys(emojiIdMap).length) {
+    return content;
+  }
+
+  const transform = (node: ProsemirrorData): ProsemirrorData => {
+    const name = node.type === "emoji" ? node.attrs?.["data-name"] : undefined;
+    const rewritten = typeof name === "string" ? emojiIdMap[name] : undefined;
+
+    return {
+      ...node,
+      ...(rewritten
+        ? { attrs: { ...node.attrs, "data-name": rewritten } }
+        : undefined),
+      ...(node.content ? { content: node.content.map(transform) } : undefined),
+    };
+  };
+
+  return transform(content);
+}
+
+/**
+ * Maps a document or collection icon onto the emoji id the import resolved it
+ * to, when the icon is a custom emoji. Other icon types pass through.
+ *
+ * @param icon The icon as it appears in the export.
+ * @param emojiIdMap Map of external emoji id → new internal id.
+ * @returns The icon to store on the imported model.
+ */
+function rewriteEmojiIcon(
+  icon: string | null | undefined,
+  emojiIdMap: Record<string, string>
+): string | null | undefined {
+  return icon && isUUID(icon) ? (emojiIdMap[icon] ?? icon) : icon;
+}
+
 export default class JSONAPIImportTask extends APIImportTask<Service> {
   protected shouldUploadAttachmentsPerPage(): boolean {
     return false;
@@ -137,6 +192,8 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
     if (!scratch?.storageKey || !scratch.manifest?.length) {
       return;
     }
+
+    const { teamId, createdById } = lastImportTask.import;
 
     const handle = await FileStorage.getFileHandle(scratch.storageKey);
 
@@ -200,6 +257,12 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
             `JSON import attachment missing in zip, skipping: ${item.pathInZip}`
           );
         }
+      }
+
+      // Emojis point at the attachments created above, so they can only be
+      // created once the walk is complete.
+      if (scratch.emojis?.length) {
+        await this.createEmojis(scratch.emojis, teamId, createdById);
       }
     } finally {
       await handle.cleanup().catch(() => {});
@@ -290,6 +353,20 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
         }
       }
 
+      // Custom emojis are resolved against the destination team before any
+      // content is rewritten, so documents can reference them by their final
+      // id even though the Emoji rows are only created once their attachments
+      // have landed in the completion phase.
+      const emojiManifest: JSONEmojiManifestItem[] = [];
+      const emojiIdMap: Record<string, string> = {};
+      await this.registerEmojis(
+        collectionExports.map((c) => c.data),
+        importTask.import.teamId,
+        attachmentIdMap,
+        emojiManifest,
+        emojiIdMap
+      );
+
       // Discover documents per collection, building the parent/child tree
       // shape expected by the per-page cascade.
       const collections = collectionExports.map((c) =>
@@ -308,7 +385,11 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
           permission: placeholder.permission,
         })),
       ];
-      associatedImport.scratch = { storageKey, manifest };
+      associatedImport.scratch = {
+        storageKey,
+        manifest,
+        emojis: emojiManifest,
+      };
       await associatedImport.save();
 
       // Collection placeholder items so ImportsProcessor iterates them
@@ -325,6 +406,7 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
           color: c.export.color,
           data: c.export.data ?? ProsemirrorDataHelper.getEmpty(),
           attachmentIdMap,
+          emojiIdMap,
         })),
       ];
 
@@ -332,11 +414,14 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
         externalId: c.externalId,
         title: c.export.name,
         urlId: c.export.urlId,
-        icon: c.export.icon,
+        icon: rewriteEmojiIcon(c.export.icon, emojiIdMap),
         color: c.export.color,
-        content: rewriteAttachmentReferences(
-          c.export.data ?? ProsemirrorDataHelper.getEmpty(),
-          attachmentIdMap
+        content: rewriteEmojiReferences(
+          rewriteAttachmentReferences(
+            c.export.data ?? ProsemirrorDataHelper.getEmpty(),
+            attachmentIdMap
+          ),
+          emojiIdMap
         ) as ProsemirrorDoc,
       }));
 
@@ -346,7 +431,10 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
       // depth-ordered cascade of ImportTask rows so parent FKs are always
       // satisfied at child-doc creation time.
       const childTasksInput: ImportTaskInput<Service> = collections.flatMap(
-        (c) => c.children.map((d) => this.toPageInput(d, attachmentIdMap))
+        (c) =>
+          c.children.map((d) =>
+            this.toPageInput(d, attachmentIdMap, emojiIdMap)
+          )
       );
 
       return { taskOutput: collectionOutputs, childTasksInput };
@@ -363,16 +451,17 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
 
     const items = importTask.input as JSONPageImportTaskInputItem[];
     for (const item of items) {
-      const transformed = rewriteAttachmentReferences(
-        item.data,
-        item.attachmentIdMap
+      const emojiIdMap = item.emojiIdMap ?? {};
+      const transformed = rewriteEmojiReferences(
+        rewriteAttachmentReferences(item.data, item.attachmentIdMap),
+        emojiIdMap
       ) as ProsemirrorDoc;
 
       taskOutput.push({
         externalId: item.externalId,
         title: item.title,
         urlId: item.urlId,
-        icon: item.icon,
+        icon: rewriteEmojiIcon(item.icon, emojiIdMap),
         color: item.color,
         author: item.createdByName,
         createdById: item.createdById,
@@ -513,11 +602,13 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
    *
    * @param doc The discovered document, including its descendants.
    * @param attachmentIdMap External attachment id → new internal id map.
+   * @param emojiIdMap External custom emoji id → new internal id map.
    * @returns A self-contained per-page task input.
    */
   private toPageInput(
     doc: DiscoveredDocument,
-    attachmentIdMap: Record<string, string>
+    attachmentIdMap: Record<string, string>,
+    emojiIdMap: Record<string, string>
   ): JSONPageImportTaskInputItem {
     const exported = doc.export;
     return {
@@ -536,9 +627,119 @@ export default class JSONAPIImportTask extends APIImportTask<Service> {
       updatedAt: exported.updatedAt,
       publishedAt: exported.publishedAt,
       attachmentIdMap,
+      emojiIdMap,
       children: doc.children.length
-        ? doc.children.map((c) => this.toPageInput(c, attachmentIdMap))
+        ? doc.children.map((c) =>
+            this.toPageInput(c, attachmentIdMap, emojiIdMap)
+          )
         : undefined,
     };
+  }
+
+  /**
+   * Resolves the custom emojis referenced by an export against the destination
+   * team. An emoji whose name already exists in the team is reused, otherwise
+   * an id is pre-assigned so content can be rewritten now and the Emoji row
+   * created once its attachment exists. Emojis whose image is missing from the
+   * export are skipped, leaving their references untouched.
+   *
+   * @param collections Parsed collection exports to read emojis from.
+   * @param teamId Team the import is landing in.
+   * @param attachmentIdMap External attachment id → new internal id map.
+   * @param manifest Manifest array to push to-be-created emojis into.
+   * @param emojiIdMap External emoji id → resolved id map to populate.
+   */
+  private async registerEmojis(
+    collections: CollectionJSONExport[],
+    teamId: string,
+    attachmentIdMap: Record<string, string>,
+    manifest: JSONEmojiManifestItem[],
+    emojiIdMap: Record<string, string>
+  ): Promise<void> {
+    const exported = new Map<string, EmojiJSONExport>();
+    for (const collection of collections) {
+      for (const emoji of Object.values(collection.emojis ?? {})) {
+        exported.set(emoji.id, emoji);
+      }
+    }
+
+    if (!exported.size) {
+      return;
+    }
+
+    const existing = await Emoji.findAll({
+      where: {
+        teamId,
+        name: [...exported.values()].map((emoji) => emoji.name),
+      },
+    });
+    const existingByName = new Map(existing.map((e) => [e.name, e.id]));
+
+    for (const emoji of exported.values()) {
+      const existingId = existingByName.get(emoji.name);
+      if (existingId) {
+        emojiIdMap[emoji.id] = existingId;
+        continue;
+      }
+
+      const attachmentId = attachmentIdMap[emoji.attachmentId];
+      if (!attachmentId) {
+        Logger.warn(
+          `JSON import emoji image missing in export, skipping: ${emoji.name}`
+        );
+        continue;
+      }
+
+      const id = randomUUID();
+      emojiIdMap[emoji.id] = id;
+      manifest.push({ id, name: emoji.name, attachmentId });
+    }
+  }
+
+  /**
+   * Creates the Emoji rows pre-assigned during bootstrap. Called once every
+   * attachment has landed, since an emoji is a pointer to its image. Failures
+   * are logged rather than thrown — a single unusable emoji shouldn't fail an
+   * otherwise complete import.
+   *
+   * @param emojis Emoji manifest recorded on the import's scratch state.
+   * @param teamId Team the import is landing in.
+   * @param createdById User that initiated the import.
+   */
+  private async createEmojis(
+    emojis: JSONEmojiManifestItem[],
+    teamId: string,
+    createdById: string
+  ): Promise<void> {
+    for (const emoji of emojis) {
+      try {
+        // A retried completion hook re-encounters emojis it already created,
+        // and a name may have been taken since bootstrap resolved it.
+        const existing = await Emoji.findOne({
+          where: {
+            teamId,
+            [Op.or]: [{ id: emoji.id }, { name: emoji.name }],
+          },
+        });
+        if (existing) {
+          continue;
+        }
+
+        await Emoji.create({
+          id: emoji.id,
+          name: emoji.name,
+          attachmentId: emoji.attachmentId,
+          teamId,
+          createdById,
+        });
+      } catch (err) {
+        if (err instanceof UniqueConstraintError) {
+          continue;
+        }
+        Logger.warn(`JSON import could not create emoji: ${emoji.name}`, {
+          error: errToString(err),
+        });
+      }
+    }
   }
 }

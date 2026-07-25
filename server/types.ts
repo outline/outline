@@ -569,6 +569,13 @@ export type AttachmentJSONExport = {
   key: string;
 };
 
+export type EmojiJSONExport = {
+  id: string;
+  name: string;
+  /** Id of the attachment holding the emoji image, present in `attachments`. */
+  attachmentId: string;
+};
+
 export type CollectionJSONExport = {
   collection: {
     id: string;
@@ -587,6 +594,14 @@ export type CollectionJSONExport = {
   };
   attachments: {
     [id: string]: AttachmentJSONExport;
+  };
+  /**
+   * Custom emojis referenced by the collection or its documents, either inline
+   * in content or as an icon. Absent in exports created before custom emoji
+   * support was added.
+   */
+  emojis?: {
+    [id: string]: EmojiJSONExport;
   };
 };
 

@@ -7,6 +7,7 @@ import {
   Attachment,
   Collection,
   Document,
+  Emoji,
   ImportTask,
   User,
 } from "@server/models";
@@ -20,6 +21,7 @@ import {
 import {
   buildAdmin,
   buildDocument,
+  buildEmoji,
   buildImport,
   buildTeam,
   buildUser,
@@ -27,6 +29,7 @@ import {
 import JSONImportsProcessor from "../processors/JSONImportsProcessor";
 import JSONAPIImportTask, {
   rewriteAttachmentReferences,
+  rewriteEmojiReferences,
 } from "./JSONAPIImportTask";
 
 // Fixed external IDs and email used across the user-mapping tests — these
@@ -34,10 +37,15 @@ import JSONAPIImportTask, {
 const FIXTURE_USER_ID = "ccec260a-e060-4925-ade8-17cfabaf2cac";
 const FIXTURE_USER_EMAIL = "hmac.devo@gmail.com";
 
+// Name of the custom emoji written into every zip, referenced both inline in
+// Document 1 and as Document 2's icon.
+const FIXTURE_EMOJI_NAME = "party_parrot";
+
 interface BuiltZip {
   filePath: string;
   documentOneUrlId: string;
   documentTwoUrlId: string;
+  emojiExternalId: string;
   cleanup: () => Promise<void>;
 }
 
@@ -47,7 +55,7 @@ interface BuiltZip {
  * collide on `urlId` uniqueness. The structure matches what ExportJSONTask
  * produces: a single collection JSON + metadata.json at the zip root,
  * documents carrying source user attribution, plus one referenced
- * attachment.
+ * attachment and one custom emoji.
  */
 async function buildJSONExportZip(): Promise<BuiltZip> {
   const collectionExternalId = randomUUID();
@@ -58,6 +66,9 @@ async function buildJSONExportZip(): Promise<BuiltZip> {
   const documentTwoUrlId = randomUrlId();
   const attachmentExternalId = randomUUID();
   const attachmentKey = `uploads/${FIXTURE_USER_ID}/${attachmentExternalId}/pikachu.jpg`;
+  const emojiExternalId = randomUUID();
+  const emojiAttachmentExternalId = randomUUID();
+  const emojiAttachmentKey = `uploads/${FIXTURE_USER_ID}/${emojiAttachmentExternalId}/${FIXTURE_EMOJI_NAME}.png`;
 
   const collectionExport = {
     collection: {
@@ -138,6 +149,13 @@ async function buildJSONExportZip(): Promise<BuiltZip> {
                 },
               ],
             },
+            {
+              type: "paragraph",
+              content: [
+                { type: "emoji", attrs: { "data-name": emojiExternalId } },
+                { type: "emoji", attrs: { "data-name": "smile" } },
+              ],
+            },
           ],
         },
         createdById: FIXTURE_USER_ID,
@@ -153,7 +171,7 @@ async function buildJSONExportZip(): Promise<BuiltZip> {
         id: documentTwoId,
         urlId: documentTwoUrlId,
         title: "Document 2",
-        icon: null,
+        icon: emojiExternalId,
         color: null,
         data: {
           type: "doc",
@@ -183,6 +201,21 @@ async function buildJSONExportZip(): Promise<BuiltZip> {
         size: 6,
         key: attachmentKey,
       },
+      [emojiAttachmentExternalId]: {
+        id: emojiAttachmentExternalId,
+        documentId: null,
+        contentType: "image/png",
+        name: `${FIXTURE_EMOJI_NAME}.png`,
+        size: 6,
+        key: emojiAttachmentKey,
+      },
+    },
+    emojis: {
+      [emojiExternalId]: {
+        id: emojiExternalId,
+        name: FIXTURE_EMOJI_NAME,
+        attachmentId: emojiAttachmentExternalId,
+      },
     },
   };
 
@@ -198,6 +231,7 @@ async function buildJSONExportZip(): Promise<BuiltZip> {
   zip.file("metadata.json", JSON.stringify(metadata));
   zip.file("Test JSON.json", JSON.stringify(collectionExport));
   zip.file(attachmentKey, Buffer.from("pixels"));
+  zip.file(emojiAttachmentKey, Buffer.from("pixels"));
 
   const buffer = await zip.generateAsync({ type: "nodebuffer" });
   const filePath: string = await new Promise((resolve, reject) => {
@@ -209,6 +243,7 @@ async function buildJSONExportZip(): Promise<BuiltZip> {
     filePath,
     documentOneUrlId,
     documentTwoUrlId,
+    emojiExternalId,
     cleanup: async () => {
       await fs.rm(filePath, { force: true }).catch(() => {});
     },
@@ -390,6 +425,82 @@ describe("JSONAPIImportTask", () => {
     expect(linkMark?.attrs?.href).toBe(collection.path);
   });
 
+  describe("custom emojis", () => {
+    it("creates referenced emojis and points content at them", async () => {
+      const admin = await buildAdmin();
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: zip.filePath,
+      });
+
+      const emojis = await Emoji.findAll({ where: { teamId: admin.teamId } });
+      expect(emojis.length).toBe(1);
+      expect(emojis[0].name).toBe(FIXTURE_EMOJI_NAME);
+      expect(emojis[0].id).not.toBe(zip.emojiExternalId);
+
+      const attachment = await Attachment.findByPk(emojis[0].attachmentId);
+      expect(attachment).not.toBeNull();
+
+      const docOne = await Document.findOne({
+        where: { apiImportId: importId, title: "Document 1" },
+        rejectOnEmpty: true,
+      });
+      const emojiParagraph = docOne.content?.content?.[4];
+      expect(emojiParagraph?.content?.[0]?.attrs?.["data-name"]).toBe(
+        emojis[0].id
+      );
+      // Unicode emojis are addressed by shortcode, not id, and are untouched.
+      expect(emojiParagraph?.content?.[1]?.attrs?.["data-name"]).toBe("smile");
+    });
+
+    it("rewrites a document icon that is a custom emoji", async () => {
+      const admin = await buildAdmin();
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: zip.filePath,
+      });
+
+      const emoji = await Emoji.findOne({
+        where: { teamId: admin.teamId, name: FIXTURE_EMOJI_NAME },
+        rejectOnEmpty: true,
+      });
+      const docTwo = await Document.findOne({
+        where: { apiImportId: importId, title: "Document 2" },
+        rejectOnEmpty: true,
+      });
+
+      expect(docTwo.icon).toBe(emoji.id);
+      expect(docTwo.icon).not.toBe(zip.emojiExternalId);
+    });
+
+    it("reuses an existing emoji of the same name", async () => {
+      const admin = await buildAdmin();
+      const existing = await buildEmoji({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        name: FIXTURE_EMOJI_NAME,
+      });
+
+      const { importId } = await runImport({
+        teamId: admin.teamId,
+        createdById: admin.id,
+        zipPath: zip.filePath,
+      });
+
+      const emojis = await Emoji.findAll({ where: { teamId: admin.teamId } });
+      expect(emojis.length).toBe(1);
+      expect(emojis[0].id).toBe(existing.id);
+
+      const docTwo = await Document.findOne({
+        where: { apiImportId: importId, title: "Document 2" },
+        rejectOnEmpty: true,
+      });
+      expect(docTwo.icon).toBe(existing.id);
+    });
+  });
+
   describe("user mapping", () => {
     it("maps createdById to an existing user by ID", async () => {
       let originalAuthor = await User.findByPk(FIXTURE_USER_ID);
@@ -530,7 +641,7 @@ describe("rewriteAttachmentReferences", () => {
     expect(attachment?.attrs?.id).toBe("new-2");
   });
 
-  it("leaves unknown references untouched", () => {
+  it("leaves unknown attachment references untouched", () => {
     const out = rewriteAttachmentReferences(
       {
         type: "doc",
@@ -554,5 +665,42 @@ describe("rewriteAttachmentReferences", () => {
     expect(image?.attrs?.src).toBe(
       "/api/attachments.redirect?id=does-not-exist"
     );
+  });
+});
+
+describe("rewriteEmojiReferences", () => {
+  const nested = (...names: string[]) => ({
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: names.map((name) => ({
+          type: "emoji",
+          attrs: { "data-name": name },
+        })),
+      },
+    ],
+  });
+
+  it("rewrites custom emoji references to new ids", () => {
+    const out = rewriteEmojiReferences(nested("external-1"), {
+      "external-1": "new-1",
+    });
+    expect(out.content?.[0].content?.[0].attrs?.["data-name"]).toBe("new-1");
+  });
+
+  it("leaves unicode emojis and unknown ids untouched", () => {
+    const out = rewriteEmojiReferences(nested("smile", "external-2"), {
+      "external-1": "new-1",
+    });
+    expect(out.content?.[0].content?.[0].attrs?.["data-name"]).toBe("smile");
+    expect(out.content?.[0].content?.[1].attrs?.["data-name"]).toBe(
+      "external-2"
+    );
+  });
+
+  it("returns content unchanged when there are no emojis to map", () => {
+    const content = nested("external-1");
+    expect(rewriteEmojiReferences(content, {})).toBe(content);
   });
 });

@@ -16,6 +16,7 @@ import {
   yDocToProsemirrorJSON,
 } from "y-prosemirror";
 import * as Y from "yjs";
+import { isUUID } from "validator";
 import { toError, errToString } from "@shared/utils/error";
 import Diff from "@shared/editor/extensions/Diff";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
@@ -494,6 +495,26 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
         }
       }
     }
+
+    return [...ids];
+  }
+
+  /**
+   * Returns an array of custom emoji IDs referenced inline in the node. Unicode
+   * emojis are stored by shortcode rather than id and are skipped.
+   *
+   * @param doc The node to parse custom emojis from
+   * @returns An array of emoji IDs
+   */
+  static parseEmojiIds(doc: Node) {
+    const ids = new Set<string>();
+
+    doc.descendants((node) => {
+      const name = node.type.name === "emoji" && node.attrs["data-name"];
+      if (typeof name === "string" && isUUID(name)) {
+        ids.add(name);
+      }
+    });
 
     return [...ids];
   }
