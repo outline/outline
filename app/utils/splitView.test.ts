@@ -95,7 +95,6 @@ describe("isSplittablePath", () => {
     expect(isSplittablePath("doc/my-doc")).toBe(false);
     expect(isSplittablePath("")).toBe(false);
   });
-
 });
 
 describe("focused split pane", () => {

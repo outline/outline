@@ -11678,6 +11678,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fuse.js@npm:^7.5.0":
+  version: 7.5.0
+  resolution: "fuse.js@npm:7.5.0"
+  checksum: 10c0/1fa51a66063b9b0579921ed1d774864e5e027719d3a4fdb469e6636befa4a9f2f7da626c07da757c6e1ef8a761c7bd3a217e6ecc8e16f0276e1a0f8dd941ff77
+  languageName: node
+  linkType: hard
+
 "fuzzy-search@npm:^3.2.1":
   version: 3.2.1
   resolution: "fuzzy-search@npm:3.2.1"
@@ -15546,6 +15553,7 @@ __metadata:
     framer-motion: "npm:^6.5.1"
     franc: "npm:^6.2.0"
     fs-extra: "npm:^11.3.6"
+    fuse.js: "npm:^7.5.0"
     fuzzy-search: "npm:^3.2.1"
     glob: "npm:^11.1.0"
     hot-shots: "npm:^12.1.0"
