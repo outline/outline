@@ -3,6 +3,7 @@ import {
   CaseSensitiveIcon,
   CollectionIcon,
   CopyIcon,
+  DuplicateIcon,
   MoveIcon,
   NewDocumentIcon,
   PlusIcon,
@@ -174,6 +175,24 @@ export const createDocumentFromTemplate = createInternalLinkAction({
       search,
       state: { sidebarContext },
     };
+  },
+});
+
+export const duplicateTemplate = createAction({
+  name: ({ t }) => t("Duplicate"),
+  analyticsName: "Duplicate template",
+  section: ActiveTemplateSection,
+  icon: <DuplicateIcon />,
+  keywords: "copy",
+  visible: ({ getActivePolicies }) =>
+    getActivePolicies(Template).some((policy) => policy.abilities.duplicate),
+  perform: async ({ getActiveModel, stores }) => {
+    const template = getActiveModel(Template);
+    if (!template) {
+      return;
+    }
+
+    await stores.templates.duplicate(template);
   },
 });
 

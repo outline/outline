@@ -46,7 +46,9 @@ export const navigateToHome = createInternalLinkAction({
   visible: ({ location }) => location.pathname !== homePath(),
 });
 
-export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
+export const navigateToRecentSearchQueryActionFactory = (
+  searchQuery: SearchQuery
+) =>
   createInternalLinkAction({
     section: RecentSearchesSection,
     name: searchQuery.query,

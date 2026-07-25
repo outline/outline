@@ -12,8 +12,8 @@ import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import { ActionSeparator } from "~/actions";
 import {
-  copyLinkToRevision,
-  downloadRevision,
+  copyLinkToRevisionActionFactory,
+  downloadRevisionActionFactory,
   restoreRevision,
 } from "~/actions/definitions/revisions";
 import { Avatar, AvatarSize } from "~/components/Avatar";
@@ -50,8 +50,8 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
     () => [
       restoreRevision,
       ActionSeparator,
-      copyLinkToRevision(item.id),
-      downloadRevision(item.id),
+      copyLinkToRevisionActionFactory(item.id),
+      downloadRevisionActionFactory(item.id),
     ],
     [item.id]
   );

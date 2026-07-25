@@ -2,8 +2,8 @@ import { useKBar } from "kbar";
 import { observer } from "mobx-react";
 import { useEffect, useRef } from "react";
 import { Minute } from "@shared/utils/time";
-import { searchDocumentsForQuery } from "~/actions/definitions/documents";
-import { navigateToRecentSearchQuery } from "~/actions/definitions/navigation";
+import { searchDocumentsForQueryActionFactory } from "~/actions/definitions/documents";
+import { navigateToRecentSearchQueryActionFactory } from "~/actions/definitions/navigation";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import useStores from "~/hooks/useStores";
 
@@ -51,11 +51,13 @@ function SearchActions() {
   }, [documents, searchQuery]);
 
   useCommandBarActions(
-    searchQuery ? [searchDocumentsForQuery(searchQuery)] : [],
+    searchQuery ? [searchDocumentsForQueryActionFactory(searchQuery)] : [],
     [searchQuery]
   );
 
-  useCommandBarActions(searches.recent.map(navigateToRecentSearchQuery));
+  useCommandBarActions(
+    searches.recent.map(navigateToRecentSearchQueryActionFactory)
+  );
 
   return null;
 }
