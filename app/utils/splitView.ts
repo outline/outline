@@ -102,11 +102,6 @@ export function isSplittablePath(pathname: string): boolean {
   );
 }
 
-// Backward-compatible alias; prefer isSplittablePath.
-export function isSplitablePath(pathname: string): boolean {
-  return isSplittablePath(pathname);
-}
-
 const focusedSplitPane = observable.box<SplitViewPane>("primary");
 
 /**

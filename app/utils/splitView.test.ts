@@ -4,7 +4,6 @@ import {
   closeSplitPane,
   getFocusedSplitPane,
   getSplitPath,
-  isSplitablePath,
   isSplittablePath,
   openRouteInSplit,
   setFocusedSplitPane,
@@ -97,10 +96,6 @@ describe("isSplittablePath", () => {
     expect(isSplittablePath("")).toBe(false);
   });
 
-  it("keeps backward compatibility with isSplitablePath", () => {
-    expect(isSplitablePath("/home")).toBe(isSplittablePath("/home"));
-    expect(isSplitablePath("/settings")).toBe(isSplittablePath("/settings"));
-  });
 });
 
 describe("focused split pane", () => {
