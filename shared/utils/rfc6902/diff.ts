@@ -276,11 +276,11 @@ export function diffArrays<T>(
   const subInput = input_end - start;
   const subOutput = output_end - start;
 
-  const memo: Array<Array<DynamicAlternative>> = Array.from({
-    length: subInput + 1,
-  });
+  // oxlint-disable-next-line unicorn/no-new-array
+  const memo: Array<Array<DynamicAlternative>> = new Array(subInput + 1);
   for (let i = 0; i <= subInput; i++) {
-    memo[i] = Array.from({ length: subOutput + 1 });
+    // oxlint-disable-next-line unicorn/no-new-array
+    memo[i] = new Array(subOutput + 1);
   }
   memo[0][0] = { prevI: -1, prevJ: -1, operation: null, cost: 0 };
 
