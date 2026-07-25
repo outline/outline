@@ -29,12 +29,22 @@ export function redirectOnClient(
       )}" value="${escape(value)}" />`;
     });
 
-    if (this.userAgent.isBot) {
+    // Bots are shown a manual submit button instead of auto-submitting, so that
+    // link scanners in email clients don't follow the redirect.
+    const isBot = this.userAgent.isBot;
+
+    if (isBot) {
       formFields += `
           <p>If you are not redirected automatically, please click the button below.</p>
           <input type="submit" value="Continue" />
         `;
     }
+
+    const script = isBot
+      ? ""
+      : `<script nonce="${this.state.cspNonce}">
+    document.getElementById('redirect-form').submit();
+  </script>`;
 
     this.body = `
 <html lang="en">
@@ -45,9 +55,7 @@ export function redirectOnClient(
   <form id="redirect-form" method="POST" action="${formAction}">
     ${formFields}
   </form>
-  <script nonce="${this.state.cspNonce}">
-    ${!this.userAgent.isBot} && document.getElementById('redirect-form').submit();
-  </script>
+  ${script}
 </body>
 </html>`;
   } else {
