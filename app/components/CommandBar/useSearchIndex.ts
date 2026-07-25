@@ -7,20 +7,21 @@ import {
   type SearchIndexResult,
 } from "./SearchIndex";
 
-const plainTextCache = new Map<string, string>();
+const plainTextCache = new Map<string, { updatedAt: string; text: string }>();
 
 /**
- * Returns the plain text content of a document, memoized by its last update so
- * that repeated indexing passes do not reparse unchanged ProseMirror data.
+ * Returns the plain text content of a document, memoized so that repeated
+ * indexing passes do not reparse unchanged ProseMirror data. The cache holds at
+ * most one entry per document, invalidated when the document is edited.
  */
 function getPlainText(doc: Document): string {
-  const key = `${doc.id}:${doc.updatedAt ?? ""}`;
-  const cached = plainTextCache.get(key);
-  if (cached !== undefined) {
-    return cached;
+  const updatedAt = String(doc.updatedAt ?? "");
+  const cached = plainTextCache.get(doc.id);
+  if (cached?.updatedAt === updatedAt) {
+    return cached.text;
   }
   const text = ProsemirrorHelper.toPlainText(doc);
-  plainTextCache.set(key, text);
+  plainTextCache.set(doc.id, { updatedAt, text });
   return text;
 }
 
@@ -49,6 +50,20 @@ export function toSearchRecord(
     icon: doc.icon,
     color: doc.color,
   };
+}
+
+/**
+ * Returns the command bar priority that preserves a result's position in the
+ * list. The command bar re-ranks registered actions with its own fuzzy matcher
+ * and orders each section by `priority + score`, where score never spans more
+ * than 0.5 — so a step of one per position keeps our ordering intact.
+ *
+ * @param index the position of the result.
+ * @param total the total number of results.
+ * @returns the priority to assign to the action.
+ */
+export function toActionPriority(index: number, total: number): number {
+  return total - index;
 }
 
 export interface UseSearchIndex {

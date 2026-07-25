@@ -3,6 +3,7 @@ import { autorun } from "mobx";
 import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import useShare from "@shared/hooks/useShare";
 import { NavigationNodeType, type NavigationNode } from "@shared/types";
@@ -16,7 +17,11 @@ import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { sharedModelPath } from "~/utils/routeHelpers";
 import type { SearchIndexDocument } from "./SearchIndex";
-import { toSearchRecord, useSearchIndex } from "./useSearchIndex";
+import {
+  toActionPriority,
+  toSearchRecord,
+  useSearchIndex,
+} from "./useSearchIndex";
 
 const maxRecentDocs = 5;
 const serverSearchDelay = 350;
@@ -41,6 +46,7 @@ function collectDocumentNodes(root: NavigationNode): NavigationNode[] {
  * the shared tree, the content of loaded documents, and server responses.
  */
 function SharedSearchActions() {
+  const { t } = useTranslation();
   const { documents } = useStores();
   const { shareId, sharedTree } = useShare();
 
@@ -78,7 +84,7 @@ function SharedSearchActions() {
             ? toSearchRecord(doc)
             : {
                 id: node.id,
-                title: node.title,
+                title: node.title || t("Untitled"),
                 url: node.url,
                 icon: node.icon,
                 color: node.color,
@@ -86,7 +92,7 @@ function SharedSearchActions() {
         })
       );
     });
-  }, [documents, sharedTree, feed]);
+  }, [documents, sharedTree, feed, t]);
 
   // Enrich the index from the server so that content we have not loaded
   // client-side can still surface.
@@ -119,7 +125,7 @@ function SharedSearchActions() {
       doc.icon ? (
         <Icon
           value={doc.icon}
-          initial={doc.title.slice(0, 1)}
+          initial={doc.title.charAt(0).toUpperCase()}
           color={doc.color ?? undefined}
         />
       ) : (
@@ -130,7 +136,7 @@ function SharedSearchActions() {
 
   const actions = React.useMemo(
     () =>
-      results.map((result) =>
+      results.map((result, index) =>
         createAction({
           id: `shared-search-${result.document.id}`,
           name: result.document.title,
@@ -138,6 +144,7 @@ function SharedSearchActions() {
           keywords: searchQuery,
           analyticsName: "Open shared search result",
           section: SearchResultsSection,
+          priority: toActionPriority(index, results.length),
           icon: documentIcon(result.document),
           perform: () => {
             if (shareId) {

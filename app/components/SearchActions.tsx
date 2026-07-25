@@ -10,6 +10,7 @@ import { navigateToRecentSearchQuery } from "~/actions/definitions/navigation";
 import { SearchResultsSection } from "~/actions/sections";
 import type { SearchIndexDocument } from "~/components/CommandBar/SearchIndex";
 import {
+  toActionPriority,
   toSearchRecord,
   useSearchIndex,
 } from "~/components/CommandBar/useSearchIndex";
@@ -72,7 +73,7 @@ function SearchActions() {
       doc.icon ? (
         <Icon
           value={doc.icon}
-          initial={doc.title.slice(0, 1)}
+          initial={doc.title.charAt(0).toUpperCase()}
           color={doc.color ?? undefined}
         />
       ) : (
@@ -83,7 +84,7 @@ function SearchActions() {
 
   const resultActions = React.useMemo(
     () =>
-      results.map((result) =>
+      results.map((result, index) =>
         createInternalLinkAction({
           id: `search-result-${result.document.id}`,
           name: result.document.title,
@@ -91,6 +92,7 @@ function SearchActions() {
           keywords: searchQuery,
           analyticsName: "Open search result",
           section: SearchResultsSection,
+          priority: toActionPriority(index, results.length),
           icon: documentIcon(result.document),
           to: result.document.url,
         })

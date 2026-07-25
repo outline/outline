@@ -1,7 +1,10 @@
+import { escapeRegExp } from "es-toolkit/compat";
 import Fuse from "fuse.js";
 
+/** A document as represented within the search index. */
 export interface SearchIndexDocument {
   id: string;
+  /** Display title, already defaulted for documents without one. */
   title: string;
   /** Plain text content of the document, may be absent until it has loaded. */
   text?: string;
@@ -10,6 +13,7 @@ export interface SearchIndexDocument {
   color?: string | null;
 }
 
+/** A single document matched by a search of the index. */
 export interface SearchIndexResult {
   document: SearchIndexDocument;
   /** Fuse relevance score, lower is a better match. */
@@ -18,16 +22,25 @@ export interface SearchIndexResult {
   context?: string;
 }
 
+/** The shortest term considered for matching and highlighting. */
+const minTermLength = 2;
+
+/** How directly a title matches the query, ordered most to least direct. */
+enum TitleRanking {
+  Prefix = 0,
+  WordPrefix = 1,
+  Fuzzy = 2,
+}
+
 const options: Fuse.IFuseOptions<SearchIndexDocument> = {
   keys: [
     { name: "title", weight: 2 },
     { name: "text", weight: 1 },
   ],
   includeScore: true,
-  includeMatches: true,
   ignoreLocation: true,
   threshold: 0.3,
-  minMatchCharLength: 2,
+  minMatchCharLength: minTermLength,
 };
 
 const resultLimit = 25;
@@ -35,48 +48,117 @@ const contextLead = 40;
 const contextLength = 200;
 
 /**
- * Builds a highlighted context snippet from the matched content indices,
- * wrapping matched ranges in `<b>` tags and trimming to a short window around
- * the first match.
+ * Finds the literal, case-insensitive occurrences of the query — and of each of
+ * its terms when it has more than one — within the given text. Fuzzy matching
+ * decides *which* documents rank, but only literal matches are worth
+ * highlighting, as the underlying fuzzy indices span scattered characters and
+ * read as noise.
  *
- * @param matches the Fuse matches for a single result.
- * @returns the highlighted snippet, or undefined when there is no content match.
+ * @param text the text to search within.
+ * @param query the search query.
+ * @returns the matched ranges as start/end offsets, in document order.
+ */
+function findExactMatches(text: string, query: string): [number, number][] {
+  const terms = query
+    .split(/\s+/)
+    .filter((term) => term.length >= minTermLength);
+  const patterns = [query, ...(terms.length > 1 ? terms : [])].map(
+    escapeRegExp
+  );
+  const regex = new RegExp(patterns.join("|"), "gi");
+
+  const ranges: [number, number][] = [];
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text)) !== null) {
+    if (match[0].length === 0) {
+      regex.lastIndex++;
+      continue;
+    }
+    ranges.push([match.index, match.index + match[0].length]);
+  }
+  return ranges;
+}
+
+/**
+ * Ranks how directly a title matches the query, so that literal prefix matches
+ * can be ordered ahead of fuzzy ones. Fuse scores purely on fuzzy distance and
+ * will otherwise rank a typo-tolerant match above a title the user is part-way
+ * through typing.
+ *
+ * @param title the document title.
+ * @param query the search query.
+ * @returns the ranking, where a lower number is a more direct match.
+ */
+function getTitleRanking(title: string, query: string): TitleRanking {
+  const normalizedTitle = title.toLowerCase();
+  const normalizedQuery = query.toLowerCase();
+
+  if (normalizedTitle.startsWith(normalizedQuery)) {
+    return TitleRanking.Prefix;
+  }
+
+  // A word within the title starting with the query, e.g. "hand" in
+  // "Engineering Handbook".
+  const boundary = /^\w/.test(query) ? "\\b" : "";
+  if (new RegExp(`${boundary}${escapeRegExp(query)}`, "i").test(title)) {
+    return TitleRanking.WordPrefix;
+  }
+
+  return TitleRanking.Fuzzy;
+}
+
+/**
+ * Builds a preview snippet of the document content, trimmed to a short window.
+ * When the content contains exact matches for the query the window is centered
+ * on the first of them and each match is wrapped in `<b>` tags, otherwise the
+ * opening of the content is used unhighlighted.
+ *
+ * @param text the document content.
+ * @param query the search query.
+ * @returns the snippet, or undefined when there is no content to preview.
  */
 function buildContext(
-  matches: ReadonlyArray<Fuse.FuseResultMatch> | undefined
+  text: string | undefined,
+  query: string
 ): string | undefined {
-  const match = matches?.find(
-    (m) => m.key === "text" && m.value && m.indices.length > 0
-  );
-  if (!match?.value) {
+  const trimmedText = text?.trim();
+  if (!trimmedText) {
     return undefined;
   }
 
-  const value = match.value;
-  const indices = [...match.indices].sort((a, b) => a[0] - b[0]);
-  const windowStart = Math.max(0, indices[0][0] - contextLead);
-  const windowEnd = Math.min(value.length, windowStart + contextLength);
+  const ranges =
+    query.length >= minTermLength ? findExactMatches(trimmedText, query) : [];
+
+  // Without a literal match there is nothing worth marking, but the opening of
+  // the document still makes a useful preview.
+  if (!ranges.length) {
+    const excerpt = trimmedText.slice(0, contextLength);
+    return excerpt.length < trimmedText.length ? `${excerpt.trim()}…` : excerpt;
+  }
+
+  const windowStart = Math.max(0, ranges[0][0] - contextLead);
+  const windowEnd = Math.min(trimmedText.length, windowStart + contextLength);
 
   let out = "";
   let cursor = windowStart;
-  for (const [start, end] of indices) {
-    if (end < windowStart || start >= windowEnd) {
+  for (const [start, end] of ranges) {
+    if (end <= windowStart || start >= windowEnd) {
       continue;
     }
     const from = Math.max(start, windowStart);
-    const to = Math.min(end + 1, windowEnd);
+    const to = Math.min(end, windowEnd);
     if (from > cursor) {
-      out += value.slice(cursor, from);
+      out += trimmedText.slice(cursor, from);
     }
-    out += `<b>${value.slice(from, to)}</b>`;
+    out += `<b>${trimmedText.slice(from, to)}</b>`;
     cursor = to;
   }
   if (cursor < windowEnd) {
-    out += value.slice(cursor, windowEnd);
+    out += trimmedText.slice(cursor, windowEnd);
   }
 
   const prefix = windowStart > 0 ? "…" : "";
-  const suffix = windowEnd < value.length ? "…" : "";
+  const suffix = windowEnd < trimmedText.length ? "…" : "";
   return `${prefix}${out.trim()}${suffix}`;
 }
 
@@ -106,7 +188,9 @@ export class SearchIndex {
         ? { ...existing, ...incoming }
         : incoming;
 
-      if (existing?.text && !incoming.text) {
+      // Preserve previously-indexed content when an update omits text entirely,
+      // but respect an update that intentionally clears it to an empty string.
+      if (incoming.text === undefined && existing?.text !== undefined) {
         merged.text = existing.text;
       }
 
@@ -139,7 +223,9 @@ export class SearchIndex {
   }
 
   /**
-   * Performs a fuzzy search across indexed titles and content.
+   * Performs a fuzzy search across indexed titles and content. Titles that the
+   * query prefixes are always ordered ahead of purely fuzzy matches, with the
+   * fuzzy score breaking ties within each tier.
    *
    * @param query the search query.
    * @returns the matching documents ordered by relevance.
@@ -150,10 +236,16 @@ export class SearchIndex {
       return [];
     }
 
-    return this.fuse.search(trimmed, { limit: resultLimit }).map((result) => ({
-      document: result.item,
-      score: result.score ?? 1,
-      context: buildContext(result.matches),
-    }));
+    return this.fuse
+      .search(trimmed)
+      .map((result) => ({
+        document: result.item,
+        score: result.score ?? 1,
+        ranking: getTitleRanking(result.item.title, trimmed),
+        context: buildContext(result.item.text, trimmed),
+      }))
+      .sort((a, b) => a.ranking - b.ranking || a.score - b.score)
+      .slice(0, resultLimit)
+      .map(({ document, score, context }) => ({ document, score, context }));
   }
 }
