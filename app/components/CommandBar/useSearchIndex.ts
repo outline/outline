@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type Document from "~/models/Document";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import {
@@ -78,7 +78,7 @@ export interface UseSearchIndex {
 /**
  * Maintains a client-side fuzzy search index and searches it for the given
  * query. The index is fed incrementally via the returned `feed` function, and
- * results are computed synchronously so they never lag behind the query.
+ * matching runs in web workers so that typing is never blocked by it.
  *
  * @param query the current search query.
  * @returns the current results and functions to feed or reset the index.
@@ -90,8 +90,9 @@ export function useSearchIndex(query: string): UseSearchIndex {
   }
   const index = indexRef.current;
 
-  // Bumped whenever the index changes, to re-run the memoized search below.
+  // Bumped whenever the index changes, to re-run the search below.
   const [version, setVersion] = useState(0);
+  const [results, setResults] = useState<SearchIndexResult[]>([]);
 
   const feed = useCallback(
     (documents: SearchIndexDocument[]) => {
@@ -107,10 +108,35 @@ export function useSearchIndex(query: string): UseSearchIndex {
     setVersion((v) => v + 1);
   }, [index]);
 
-  const results = useMemo<SearchIndexResult[]>(
-    () => (query ? index.search(query) : []),
-    [index, query, version]
-  );
+  useEffect(() => {
+    if (!query) {
+      setResults([]);
+      return;
+    }
+
+    // Searches resolve out of order, so a stale response must not overwrite the
+    // results of a query the user has since moved on from.
+    let disposed = false;
+
+    void index
+      .search(query)
+      .then((next) => {
+        if (!disposed) {
+          setResults(next);
+        }
+      })
+      .catch(() => {
+        if (!disposed) {
+          setResults([]);
+        }
+      });
+
+    return () => {
+      disposed = true;
+    };
+  }, [index, query, version]);
+
+  useEffect(() => () => index.dispose(), [index]);
 
   return { results, feed, reset };
 }
