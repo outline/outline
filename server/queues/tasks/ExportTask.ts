@@ -136,13 +136,20 @@ export default abstract class ExportTask extends BaseTask<Props> {
         document.id
       );
 
-      if (!documentStructure) {
+      if (!documentStructure || !document.collectionId) {
         throw new Error("Document not found in collection tree");
       }
 
+      // Exclude restricted documents the user cannot access from the export
+      const children = await Collection.filterRestrictedNodes(
+        documentStructure.children ?? [],
+        user,
+        document.collectionId
+      );
+
       return this.exportDocument(
         document,
-        documentStructure.children ?? [],
+        children,
         fileOperation.options?.includeAttachments ?? true
       );
     }
@@ -192,6 +199,15 @@ export default abstract class ExportTask extends BaseTask<Props> {
         where,
       }
     );
+
+    // Exclude restricted documents the user cannot access from the export
+    for (const collection of collections) {
+      collection.documentStructure = await Collection.filterRestrictedNodes(
+        collection.documentStructure ?? [],
+        user,
+        collection.id
+      );
+    }
 
     return this.exportCollections(collections, fileOperation);
   }

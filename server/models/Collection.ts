@@ -1121,6 +1121,63 @@ class Collection extends ParanoidModel<
     color: isNil(this.color) ? undefined : this.color,
     children: sortNavigationNodes(this.documentStructure ?? [], this.sort),
   });
+
+  /**
+   * Filter restricted (private) documents from a navigation tree for a given
+   * user. Prunes entire subtrees rooted at restricted documents the user
+   * cannot access. Restriction state is read from the database rather than
+   * the cached tree so stale structure data cannot expose documents. Admins
+   * can access all restricted documents, so the tree is returned unfiltered.
+   *
+   * @param nodes - the navigation tree to filter.
+   * @param user - the user requesting the tree.
+   * @param collectionId - the collection the nodes belong to.
+   * @returns filtered navigation tree.
+   */
+  static async filterRestrictedNodes(
+    nodes: NavigationNode[],
+    user: User,
+    collectionId: string
+  ): Promise<NavigationNode[]> {
+    if (user.isAdmin) {
+      return nodes;
+    }
+
+    // A single query resolves membership access inside the database and
+    // returns only the IDs that must be pruned from the tree.
+    const inaccessibleIds = new Set(
+      (
+        await Document.unscoped().findAll({
+          attributes: ["id"],
+          where: {
+            collectionId,
+            isPrivate: true,
+            id: { [Op.notIn]: Document.restrictedDocumentIdsQuery(user) },
+          },
+        })
+      ).map((document) => document.id)
+    );
+
+    if (inaccessibleIds.size === 0) {
+      return nodes;
+    }
+
+    const filterNodes = (items: NavigationNode[]): NavigationNode[] => {
+      const result: NavigationNode[] = [];
+      for (const node of items) {
+        if (inaccessibleIds.has(node.id)) {
+          continue;
+        }
+        result.push({
+          ...node,
+          children: filterNodes(node.children),
+        });
+      }
+      return result;
+    };
+
+    return filterNodes(nodes);
+  }
 }
 
 export default Collection;

@@ -143,8 +143,15 @@ router.post(
 
     const documentStructure = await collection.getCachedDocumentStructure();
 
+    // Filter restricted subtrees the user cannot access
+    const filteredStructure = await Collection.filterRestrictedNodes(
+      documentStructure || [],
+      user,
+      collection.id
+    );
+
     ctx.body = {
-      data: documentStructure || [],
+      data: filteredStructure,
     };
   }
 );

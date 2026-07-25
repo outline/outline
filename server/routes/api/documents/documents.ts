@@ -13,6 +13,7 @@ import { errToString } from "@shared/utils/error";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
+  DocumentPermission,
   FileOperationFormat,
   FileOperationState,
   FileOperationType,
@@ -146,6 +147,7 @@ router.post(
     }
 
     let documentIds: string[] = [];
+    let collectionAccess: WhereOptions<Document> | undefined;
 
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
@@ -165,12 +167,28 @@ router.post(
           .slice(offset, offset + limit)
           .map((node) => node.id);
         where[Op.and].push({ id: documentIds });
-      } // if it's not a backlink request, filter by all collections the user has access to
+      }
+
+      // Exclude restricted documents the user cannot access
+      where[Op.and].push(Document.restrictionsWhere(user));
     } else if (!backlinkDocumentId) {
+      // if it's not a backlink request, filter by all collections the user has access to
       const collectionIds = await user.collectionIds();
-      where[Op.and].push({
-        collectionId: collectionIds,
-      });
+
+      if (user.isAdmin) {
+        collectionAccess = { collectionId: collectionIds };
+      } else {
+        // Restricted documents the user can access through a direct or group
+        // membership are included regardless of collection access.
+        collectionAccess = {
+          [Op.or]: [
+            { collectionId: collectionIds },
+            { id: { [Op.in]: Document.restrictedDocumentIdsQuery(user) } },
+          ],
+        };
+        where[Op.and].push(Document.restrictionsWhere(user));
+      }
+      where[Op.and].push(collectionAccess);
     }
 
     if (parentDocumentId) {
@@ -204,7 +222,10 @@ router.post(
       ]);
 
       if (groupMembership || membership) {
-        remove(where[Op.and], (cond) => has(cond, "collectionId"));
+        remove(
+          where[Op.and],
+          (cond) => cond === collectionAccess || has(cond, "collectionId")
+        );
       }
 
       where[Op.and].push({ parentDocumentId });
@@ -792,6 +813,16 @@ router.post(
         includeDocumentStructure: true,
       });
       documentTree = collection?.getDocumentTree(document.id) ?? undefined;
+
+      // Filter restricted subtrees the user cannot access
+      if (documentTree) {
+        const [filtered] = await Collection.filterRestrictedNodes(
+          [documentTree],
+          user,
+          document.collectionId
+        );
+        documentTree = filtered;
+      }
     }
 
     ctx.body = {
@@ -1285,7 +1316,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, insightsEnabled, publish, collectionId, ...input } =
+    const { id, insightsEnabled, publish, collectionId, isPrivate, ...input } =
       ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
@@ -1302,6 +1333,36 @@ router.post(
 
     if (collection && insightsEnabled !== undefined) {
       authorize(user, "updateInsights", document);
+    }
+
+    // Handle restrict/unrestrict toggle — validation and descendant cascade
+    // are enforced by Document model hooks (@BeforeUpdate and @AfterUpdate)
+    if (isPrivate !== undefined && isPrivate !== document.isPrivate) {
+      authorize(user, "manageUsers", document);
+      document.isPrivate = isPrivate;
+
+      if (isPrivate) {
+        // Ensure the acting user has direct admin access
+        const existingMembership = await UserMembership.findOne({
+          where: {
+            documentId: document.id,
+            userId: user.id,
+            sourceId: null,
+          },
+          transaction,
+        });
+        if (!existingMembership) {
+          await UserMembership.create(
+            {
+              documentId: document.id,
+              userId: user.id,
+              permission: DocumentPermission.Admin,
+              createdById: user.id,
+            },
+            { transaction }
+          );
+        }
+      }
     }
 
     if (publish) {

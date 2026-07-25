@@ -156,6 +156,13 @@ export default class Document extends ArchivableModel implements Searchable {
   fullWidth: boolean;
 
   /**
+   * Whether this document has restricted access (does not inherit permissions from parent/collection).
+   */
+  @Field
+  @observable
+  isPrivate: boolean;
+
+  /**
    * Whether team members can see who has viewed this document.
    */
   @observable

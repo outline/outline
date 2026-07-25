@@ -662,7 +662,16 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       where[Op.and].push({ collectionId: options.collectionId });
     }
     if (collectionIds.length) {
-      where[Op.or].push({ collectionId: collectionIds });
+      where[Op.or].push({
+        [Op.and]: [
+          { collectionId: collectionIds },
+          // Exclude restricted documents the user cannot access. Team-level
+          // searches fail closed and never include restricted documents.
+          model instanceof User
+            ? Document.restrictionsWhere(model)
+            : { isPrivate: false },
+        ],
+      });
     }
 
     if (options.dateFilter) {
