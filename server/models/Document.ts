@@ -8,6 +8,7 @@ import type {
   SaveOptions,
   ScopeOptions,
   FindOptions,
+  ProjectionAlias,
   WhereOptions,
 } from "sequelize";
 import {
@@ -86,9 +87,12 @@ export const DOCUMENT_VERSION = 2;
 // If content (JSON) is null then we still need to return the state column (BINARY)
 // as it's used as a fallback for content deserialization for older documents.
 // This can be removed if content is 100% backfilled.
-const stateIfContentEmpty = Sequelize.literal(
-  `CASE WHEN document.content IS NULL THEN document.state ELSE NULL END AS state`
-);
+const stateIfContentEmpty: ProjectionAlias = [
+  Sequelize.literal(
+    `CASE WHEN document.content IS NULL THEN document.state ELSE NULL END`
+  ),
+  "state",
+];
 
 type AdditionalFindOptions = {
   /** The user ID to load associated permissions for. */
@@ -111,7 +115,6 @@ interface QueryGeneratorWithWhere {
   ): string;
 }
 
-// @ts-expect-error Type 'Literal' is not assignable to type 'string | ProjectionAlias'.
 @DefaultScope(() => ({
   include: [
     {
@@ -141,7 +144,6 @@ interface QueryGeneratorWithWhere {
     include: [stateIfContentEmpty],
   },
 }))
-// @ts-expect-error Type 'Literal' is not assignable to type 'string | ProjectionAlias'.
 @Scopes(() => ({
   withoutState: {
     attributes: {
