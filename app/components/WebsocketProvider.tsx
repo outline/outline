@@ -120,16 +120,6 @@ function useConnectionHandlers() {
         data,
       });
     });
-
-    // received a message from the API server that we should request
-    // to join or leave a specific room. Forward that to the ws server.
-    socket.on("join", (event) => {
-      socket.emit("join", event);
-    });
-
-    socket.on("leave", (event) => {
-      socket.emit("leave", event);
-    });
   };
 }
 

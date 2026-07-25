@@ -863,6 +863,30 @@ class User extends ParanoidModel<
     }
   }
 
+  // When a user's role changes their set of accessible collections may also
+  // change, so invalidate the cached collection ids.
+  @AfterUpdate
+  static async invalidateCollectionIdsAfterRoleChange(
+    model: User,
+    options: InstanceUpdateOptions<InferAttributes<User>>
+  ) {
+    if (!model.changed("role")) {
+      return;
+    }
+
+    const invalidate = () =>
+      CacheHelper.clearData(
+        RedisPrefixHelper.getUserCollectionIdsKey(model.id)
+      );
+
+    if (options.transaction) {
+      const transaction = options.transaction.parent || options.transaction;
+      transaction.afterCommit(invalidate);
+    } else {
+      await invalidate();
+    }
+  }
+
   // When a user's suspension state changes, invalidate the cached member count
   // for every group they belong to so the count reflects only active members.
   @AfterUpdate

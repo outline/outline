@@ -12,8 +12,7 @@ import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
-import { Collection, Group, User } from "@server/models";
-import { can } from "@server/policies";
+import type { User } from "@server/models";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { getUserForJWT } from "@server/utils/jwt";
@@ -183,9 +182,14 @@ async function authenticated(
   // and user so we can send authenticated events
   const rooms = [`team-${user.teamId}`, `user-${user.id}`];
 
-  // the rooms associated with collections this user has access to on
-  // connection. New collection and group subscriptions are managed
-  // from the client as needed through the 'join' event.
+  // the room of non-guest team members, who have access to all
+  // team-visible collections.
+  if (!user.isGuest) {
+    rooms.push(`team-${user.teamId}.members`);
+  }
+
+  // the rooms associated with collections and groups this user
+  // has access to on connection.
   const [collectionIds, groupIds] = await Promise.all([
     user.collectionIds(),
     user.groupIds(),
@@ -193,49 +197,6 @@ async function authenticated(
 
   collectionIds.forEach((colId) => rooms.push(`collection-${colId}`));
   groupIds.forEach((groupId) => rooms.push(`group-${groupId}`));
-
-  const { id: userId } = user;
-
-  // allow the client to request to join rooms
-  socket.on("join", async (event) => {
-    // The user is reloaded here rather than captured by this handler so the
-    // full model is not retained for the lifetime of the connection.
-    const authUser = await User.findByPk(userId);
-    if (!authUser) {
-      return;
-    }
-
-    // user is joining a collection channel, because their permissions have
-    // changed, granting them access.
-    if (event.collectionId) {
-      const collection = await Collection.findByPk(event.collectionId, {
-        userId: authUser.id,
-      });
-
-      if (can(authUser, "read", collection)) {
-        await socket.join(`collection-${event.collectionId}`);
-      }
-    }
-    if (event.groupId) {
-      const group = await Group.scope({
-        method: ["withMembership", authUser.id],
-      }).findByPk(event.groupId);
-
-      if (can(authUser, "read", group)) {
-        await socket.join(`group-${event.groupId}`);
-      }
-    }
-  });
-
-  // allow the client to request to leave rooms
-  socket.on("leave", async (event) => {
-    if (event.collectionId) {
-      await socket.leave(`collection-${event.collectionId}`);
-    }
-    if (event.groupId) {
-      await socket.leave(`group-${event.groupId}`);
-    }
-  });
 
   // join all of the rooms at once
   await socket.join(rooms);
