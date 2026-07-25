@@ -1,14 +1,12 @@
 import { useKBar } from "kbar";
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
 import * as React from "react";
-import Icon from "@shared/components/Icon";
 import { Minute } from "@shared/utils/time";
 import { createInternalLinkAction } from "~/actions";
 import { searchDocumentsForQuery } from "~/actions/definitions/documents";
 import { navigateToRecentSearchQuery } from "~/actions/definitions/navigation";
 import { SearchResultsSection } from "~/actions/sections";
-import type { SearchIndexDocument } from "~/components/CommandBar/SearchIndex";
+import { SearchResultIcon } from "~/components/CommandBar/SearchResultIcon";
 import {
   toActionPriority,
   toSearchRecord,
@@ -68,20 +66,6 @@ function SearchActions() {
     return () => clearTimeout(handle);
   }, [documents, searchQuery, feed]);
 
-  const documentIcon = React.useCallback(
-    (doc: SearchIndexDocument) =>
-      doc.icon ? (
-        <Icon
-          value={doc.icon}
-          initial={doc.title.charAt(0).toUpperCase()}
-          color={doc.color ?? undefined}
-        />
-      ) : (
-        <DocumentIcon />
-      ),
-    []
-  );
-
   const resultActions = React.useMemo(
     () =>
       results.map((result, index) =>
@@ -93,11 +77,11 @@ function SearchActions() {
           analyticsName: "Open search result",
           section: SearchResultsSection,
           priority: toActionPriority(index, results.length),
-          icon: documentIcon(result.document),
+          icon: <SearchResultIcon document={result.document} />,
           to: result.document.url,
         })
       ),
-    [results, searchQuery, documentIcon]
+    [results, searchQuery]
   );
 
   useCommandBarActions(

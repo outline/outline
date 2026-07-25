@@ -1,10 +1,8 @@
 import { useKBar } from "kbar";
 import { autorun } from "mobx";
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import Icon from "@shared/components/Icon";
 import useShare from "@shared/hooks/useShare";
 import { NavigationNodeType, type NavigationNode } from "@shared/types";
 import { createAction } from "~/actions";
@@ -17,6 +15,7 @@ import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { sharedModelPath } from "~/utils/routeHelpers";
 import type { SearchIndexDocument } from "./SearchIndex";
+import { SearchResultIcon } from "./SearchResultIcon";
 import {
   toActionPriority,
   toSearchRecord,
@@ -120,20 +119,6 @@ function SharedSearchActions() {
     setRecentDocs(next);
   }, []);
 
-  const documentIcon = React.useCallback(
-    (doc: SearchIndexDocument) =>
-      doc.icon ? (
-        <Icon
-          value={doc.icon}
-          initial={doc.title.charAt(0).toUpperCase()}
-          color={doc.color ?? undefined}
-        />
-      ) : (
-        <DocumentIcon />
-      ),
-    []
-  );
-
   const actions = React.useMemo(
     () =>
       results.map((result, index) =>
@@ -145,7 +130,7 @@ function SharedSearchActions() {
           analyticsName: "Open shared search result",
           section: SearchResultsSection,
           priority: toActionPriority(index, results.length),
-          icon: documentIcon(result.document),
+          icon: <SearchResultIcon document={result.document} />,
           perform: () => {
             if (shareId) {
               const currentQuery = searchQueryRef.current;
@@ -160,7 +145,7 @@ function SharedSearchActions() {
           },
         })
       ),
-    [results, shareId, searchQuery, addRecentDoc, documentIcon]
+    [results, shareId, searchQuery, addRecentDoc]
   );
 
   const recentDocActions = React.useMemo(
@@ -171,7 +156,7 @@ function SharedSearchActions() {
           name: doc.title,
           analyticsName: "Open recent shared document",
           section: RecentSearchesSection,
-          icon: documentIcon(doc),
+          icon: <SearchResultIcon document={doc} />,
           perform: () => {
             if (shareId) {
               history.push(sharedModelPath(shareId, doc.url));
@@ -179,7 +164,7 @@ function SharedSearchActions() {
           },
         })
       ),
-    [recentDocs, shareId, documentIcon]
+    [recentDocs, shareId]
   );
 
   useCommandBarActions(searchQuery ? actions : recentDocActions, [
