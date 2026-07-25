@@ -110,7 +110,8 @@ export default function useDragResize(props: Params): ReturnValue {
   // remote change cannot yank the element out from under the pointer.
   if (
     !dragging &&
-    (committed.width !== props.width || committed.height !== props.height)
+    (!Object.is(committed.width, props.width) ||
+      !Object.is(committed.height, props.height))
   ) {
     setCommitted({ width: props.width, height: props.height });
     setDraft(null);
