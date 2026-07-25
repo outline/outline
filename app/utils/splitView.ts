@@ -36,7 +36,7 @@ export function getSplitPath(search: string): string | undefined {
     return undefined;
   }
 
-  if (!isSplitablePath(parsePath(path).pathname)) {
+  if (!isSplittablePath(parsePath(path).pathname)) {
     return undefined;
   }
 
@@ -86,9 +86,9 @@ const nonSplitViewPrefixes = [
  * @param pathname the pathname to check.
  * @returns true if the route can be displayed in a split view pane.
  */
-export function isSplitablePath(pathname: string): boolean {
+export function isSplittablePath(pathname: string): boolean {
   // Require an internal, absolute pathname – full URLs and protocol-relative
-  // values must never be treated as splitable.
+  // values must never be treated as splittable.
   if (!pathname.startsWith("/") || pathname.startsWith("//")) {
     return false;
   }
@@ -100,6 +100,11 @@ export function isSplitablePath(pathname: string): boolean {
   return !nonSplitViewPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
+}
+
+// Backward-compatible alias; prefer isSplittablePath.
+export function isSplitablePath(pathname: string): boolean {
+  return isSplittablePath(pathname);
 }
 
 const focusedSplitPane = observable.box<SplitViewPane>("primary");
@@ -231,7 +236,7 @@ export function pushOrOpenInSplit(
     if (
       location.state === undefined &&
       location.pathname &&
-      isSplitablePath(location.pathname)
+      isSplittablePath(location.pathname)
     ) {
       openRouteInSplit(history, createPath(location));
       return;

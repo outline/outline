@@ -22,7 +22,7 @@ import type { SplitViewPane } from "~/utils/splitView";
 import {
   getFocusedSplitPane,
   getSplitPath,
-  isSplitablePath,
+  isSplittablePath,
   setFocusedSplitPane,
   setSplitPath,
 } from "~/utils/splitView";
@@ -246,7 +246,7 @@ const SecondaryRouter = ({ splitPath, children }: SecondaryRouterProps) => {
         const descriptor = toLocationDescriptor(to, state);
         const pathname = descriptor.pathname ?? memory.location.pathname;
 
-        if (!isSplitablePath(pathname)) {
+        if (!isSplittablePath(pathname)) {
           history.push(descriptor);
           return;
         }

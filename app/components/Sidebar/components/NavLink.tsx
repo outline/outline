@@ -15,7 +15,7 @@ import { useFocusedSplitLocation } from "~/hooks/useFocusedSplitLocation";
 import Desktop from "~/utils/Desktop";
 import history from "~/utils/history";
 import {
-  isSplitablePath,
+  isSplittablePath,
   isSplitViewModifierEvent,
   openRouteInSplit,
 } from "~/utils/splitView";
@@ -217,7 +217,7 @@ const NavLink = observer(function NavLink({
         Desktop.isElectron() &&
         isSplitViewModifierEvent(event.nativeEvent) &&
         toLocation.pathname &&
-        isSplitablePath(toLocation.pathname)
+        isSplittablePath(toLocation.pathname)
       ) {
         event.preventDefault();
         openRouteInSplit(history, createPath(toLocation));

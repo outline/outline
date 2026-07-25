@@ -6,7 +6,7 @@ import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
 import Desktop from "~/utils/Desktop";
 import browserHistory, { patchLocation } from "~/utils/history";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import { isSplitablePath, openRouteInSplit } from "~/utils/splitView";
+import { isSplittablePath, openRouteInSplit } from "~/utils/splitView";
 import { isHash } from "~/utils/urls";
 import useStores from "./useStores";
 import { isFirefox } from "@shared/utils/browser";
@@ -105,7 +105,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           isModKey(event) &&
           !event.shiftKey &&
           event.button !== 1 &&
-          isSplitablePath(parsePath(navigateTo).pathname)
+          isSplittablePath(parsePath(navigateTo).pathname)
         ) {
           // In the desktop app a modifier-click opens the link in a split
           // view, standing in for the browser's open-in-new-tab behavior.
