@@ -5,12 +5,12 @@ import documentCreator, {
   authorizeDocumentCreate,
   authorizeDocumentPublish,
 } from "@server/commands/documentCreator";
-import documentImporter from "@server/commands/documentImporter";
 import documentMover from "@server/commands/documentMover";
 import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
 import { Collection, Document, SearchQuery, Template } from "@server/models";
 import { SearchQuerySource } from "@server/models/SearchQuery";
+import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import { sequelize } from "@server/storage/database";
 import { authorize, can } from "@server/policies";
 import {
@@ -351,6 +351,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               'The format of the text content. Defaults to "markdown"; use "html" for rich HTML input.'
             ),
+          sourceFileName: optionalString().describe(
+            'The name of the file the content was read from, e.g. "notes.md". Recorded on the document and shown to users as the file it was imported from, so only set it when the content genuinely came from a file. Also used as the title when the content has no heading and no title is given.'
+          ),
           collectionId: optionalString().describe(
             "The collection to place the document in."
           ),
@@ -399,29 +402,46 @@ export function documentTools(server: McpServer, scopes: string[]) {
             authorize(user, "read", template);
           }
 
-          const imported =
+          // Parsing HTML loads a full DOM, which would block the event loop for
+          // every other request, so hand it to a worker instead.
+          const document =
             input.format === "html"
-              ? await documentImporter({
-                  user,
-                  fileName: "document.html",
-                  mimeType: "text/html",
+              ? await DocumentImportTask.scheduleAndWait({
                   content: input.text ?? "",
-                  ctx,
+                  sourceMetadata: {
+                    fileName: input.sourceFileName ?? "document.html",
+                    mimeType: "text/html",
+                  },
+                  attributes: {
+                    title: input.title,
+                    icon: input.icon,
+                    color: input.color,
+                    fullWidth: input.fullWidth,
+                  },
+                  userId: user.id,
+                  publish: input.publish !== false,
+                  collectionId: collection?.id,
+                  parentDocumentId,
+                  authType: ctx.state.auth.type,
+                  ip: ctx.context.ip,
                 })
-              : undefined;
-
-          const document = await documentCreator(ctx, {
-            title: input.title ?? imported?.title,
-            text: imported?.text ?? input.text,
-            state: imported?.state,
-            icon: input.icon ?? imported?.icon,
-            color: input.color,
-            parentDocumentId: parentDocumentId,
-            publish: input.publish !== false,
-            collectionId: collection?.id,
-            template: imported ? undefined : template,
-            fullWidth: input.fullWidth,
-          });
+              : await documentCreator(ctx, {
+                  title: input.title,
+                  text: input.text,
+                  icon: input.icon,
+                  color: input.color,
+                  parentDocumentId,
+                  publish: input.publish !== false,
+                  collectionId: collection?.id,
+                  template,
+                  fullWidth: input.fullWidth,
+                  sourceMetadata: input.sourceFileName
+                    ? {
+                        fileName: input.sourceFileName,
+                        mimeType: "text/markdown",
+                      }
+                    : undefined,
+                });
 
           const [{ text, ...attributes }, breadcrumb] = await Promise.all([
             presentDocument(document, {
