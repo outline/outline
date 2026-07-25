@@ -25,8 +25,8 @@ export class EditorStyleHelper {
 
   static readonly comment = "comment-marker";
 
-  /** Applied to a comment mark to force its hover state (e.g. from the gutter) */
-  static readonly commentHovered = "comment-marker-hovered";
+  /** Container for the comment indicators shown in the gutter beside a line */
+  static readonly commentGutter = "comment-gutter";
 
   // Multiplayer
 
@@ -41,12 +41,6 @@ export class EditorStyleHelper {
   static readonly codeBlock = "code-block";
 
   static readonly codeWord = "code-word";
-
-  static readonly hexColorSwatch = "hex-color-swatch";
-
-  static readonly hexColorSwatchLight = "hex-color-swatch-light";
-
-  static readonly hexColorSwatchDark = "hex-color-swatch-dark";
 
   /** Toggle button for collapsible code blocks */
   static readonly codeBlockToggle = "code-block-toggle";
@@ -83,6 +77,17 @@ export class EditorStyleHelper {
 
   /** Toggle block folded state */
   static readonly toggleBlockFolded = "folded";
+
+  // Notices
+
+  /** Notice block wrapper */
+  static readonly notice = "notice-block";
+
+  /** Notice block icon */
+  static readonly noticeIcon = "icon";
+
+  /** Notice block content area */
+  static readonly noticeContent = "content";
 
   // Checkbox Lists
 

@@ -18,30 +18,15 @@ export default function Video(props: Props) {
   const ref = React.useRef<HTMLDivElement>(null);
   const isResizable = !!onChangeSize;
 
-  const {
-    width,
-    height,
-    setSize,
-    handlePointerDown,
-    handleDoubleClick,
-    dragging,
-  } = useDragResize({
-    width: node.attrs.width ?? naturalWidth,
-    height: node.attrs.height ?? naturalHeight,
-    naturalWidth,
-    naturalHeight,
-    onChangeSize,
-    ref,
-  });
-
-  React.useEffect(() => {
-    if (node.attrs.width && node.attrs.width !== width) {
-      setSize({
-        width: node.attrs.width,
-        height: node.attrs.height,
-      });
-    }
-  }, [node.attrs.width]);
+  const { width, height, handlePointerDown, handleDoubleClick, dragging } =
+    useDragResize({
+      width: node.attrs.width ?? naturalWidth,
+      height: node.attrs.height ?? naturalHeight,
+      naturalWidth,
+      naturalHeight,
+      onChangeSize,
+      ref,
+    });
 
   const style: React.CSSProperties = {
     width: width || "auto",

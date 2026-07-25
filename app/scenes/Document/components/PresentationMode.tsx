@@ -143,11 +143,9 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
   const slides = React.useMemo(() => {
     const result = splitIntoSlides(strippedData, title, icon, iconColor);
     const contentSlides = result.filter((s) => s.type === "content");
-    const hasContent =
-      contentSlides.length > 0 &&
-      contentSlides.some(
-        (s) => s.type === "content" && !isContentEmpty(s.content)
-      );
+    const hasContent = contentSlides.some(
+      (s) => s.type === "content" && !isContentEmpty(s.content)
+    );
 
     if (!hasContent) {
       return [result[0], { type: "instructions" as const }];

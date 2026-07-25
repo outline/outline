@@ -34,6 +34,7 @@ import {
   EditIcon,
   EmbedIcon,
   OpenIcon,
+  SplitIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
@@ -82,6 +83,8 @@ import {
   trashPath,
   documentEditPath,
 } from "~/utils/routeHelpers";
+import { getFocusedSplitPane, openRouteInSplit } from "~/utils/splitView";
+import { recentDocuments } from "~/components/CommandBar/useRecentDocumentActions";
 import { documentBreadcrumbText } from "~/components/DocumentBreadcrumb";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type {
@@ -110,34 +113,46 @@ export const openDocument = createActionWithChildren({
   shortcut: ["o", "d"],
   keywords: "go to",
   icon: <DocumentIcon />,
-  children: ({ stores, t }) => {
+  children: ({ stores, activeDocumentId, t }) => {
     const nodes = stores.collections.navigationNodes.reduce(
       (acc, node) => [...acc, ...node.children],
       [] as NavigationNode[]
     );
     const documents = stores.documents.orderedData;
 
-    return uniqBy([...documents, ...nodes], "id").map((item) => {
-      const document = stores.documents.get(item.id);
-      return createInternalLinkAction({
-        // Note: using url which includes the slug rather than id here to bust
-        // cache if the document is renamed
-        id: item.url,
-        name: item.title,
-        description: document ? documentBreadcrumbText(document, t) : undefined,
-        icon: item.icon ? (
-          <Icon
-            value={item.icon}
-            initial={item.title}
-            color={item.color ?? undefined}
-          />
-        ) : (
-          <DocumentIcon outline={item.isDraft} />
-        ),
-        section: DocumentSection,
-        to: item.url,
+    // Documents already listed under "Recently viewed" are skipped so that they
+    // do not appear twice in the command bar.
+    const recentIds = new Set(
+      recentDocuments(stores.documents.recentlyViewed, activeDocumentId).map(
+        (document) => document.id
+      )
+    );
+
+    return uniqBy([...documents, ...nodes], "id")
+      .filter((item) => !recentIds.has(item.id))
+      .map((item) => {
+        const document = stores.documents.get(item.id);
+        return createInternalLinkAction({
+          // Note: using url which includes the slug rather than id here to bust
+          // cache if the document is renamed
+          id: item.url,
+          name: item.title,
+          description: document
+            ? documentBreadcrumbText(document, t)
+            : undefined,
+          icon: item.icon ? (
+            <Icon
+              value={item.icon}
+              initial={item.title}
+              color={item.color ?? undefined}
+            />
+          ) : (
+            <DocumentIcon outline={item.isDraft} />
+          ),
+          section: DocumentSection,
+          to: item.url,
+        });
       });
-    });
   },
 });
 
@@ -1061,6 +1076,28 @@ export const openDocumentInDesktop = createAction({
   },
 });
 
+export const openDocumentInSplit = createAction({
+  name: ({ t }) => t("Open in split view"),
+  analyticsName: "Open document in split view",
+  section: ActiveDocumentSection,
+  icon: <SplitIcon />,
+  keywords: "split side pane",
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId || isMobile()) {
+      return false;
+    }
+    return !!stores.documents.get(activeDocumentId);
+  },
+  perform: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      openRouteInSplit(history, documentPath(document));
+    }
+  },
+});
+
 export const presentDocument = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Present") : t("Present document")),
   analyticsName: "Present document",
@@ -1184,7 +1221,7 @@ export const openRandomDocument = createAction({
   },
 });
 
-export const searchDocumentsForQuery = (query: string) =>
+export const searchDocumentsForQueryActionFactory = (query: string) =>
   createInternalLinkAction({
     id: "search",
     name: ({ t }) =>
@@ -1488,7 +1525,7 @@ export const openDocumentComments = createAction({
       history.push(path, { sidebarContext });
     }
 
-    stores.ui.set({ rightSidebar: "comments" });
+    stores.ui.setRightSidebar("comments", getFocusedSplitPane());
   },
 });
 
@@ -1584,7 +1621,7 @@ export const leaveDocument = createAction({
   },
 });
 
-export const applyTemplateFactory = ({
+export const applyTemplateActionFactory = ({
   actions,
 }: {
   actions: (Action | ActionGroup | ActionSeparator)[];
@@ -1645,5 +1682,6 @@ export const rootDocumentActions = [
   openDocumentHistory,
   openDocumentInsights,
   openDocumentInDesktop,
+  openDocumentInSplit,
   shareDocument,
 ];

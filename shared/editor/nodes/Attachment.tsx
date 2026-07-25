@@ -178,6 +178,7 @@ export default class Attachment extends Node {
           onFileUploadStart,
           onFileUploadStop,
           onFileUploadProgress,
+          onNotice,
         } = this.editor.props;
 
         if (!uploadFile) {
@@ -205,6 +206,7 @@ export default class Attachment extends Node {
             onFileUploadStart,
             onFileUploadStop,
             onFileUploadProgress,
+            onNotice,
             replaceExisting: true,
             attrs: {
               preview: node.attrs.preview,

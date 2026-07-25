@@ -24,7 +24,6 @@ import Model from "@server/models/base/Model";
 import { ValidationError } from "../errors";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
-import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
 // TODO: Avoid this hardcoding of plugins
@@ -53,7 +52,6 @@ import type { DestroyOptions } from "sequelize";
   modelName: "authentication_provider",
   updatedAt: false,
 })
-@Fix
 class AuthenticationProvider extends Model<
   InferAttributes<AuthenticationProvider>,
   Partial<InferCreationAttributes<AuthenticationProvider>>

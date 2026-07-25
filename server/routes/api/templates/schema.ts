@@ -29,6 +29,9 @@ export const TemplatesListSchema = BaseSchema.extend({
   body: TemplatesSortParamsSchema.extend({
     /** Id of the collection to which the template belongs */
     collectionId: z.string().uuid().optional(),
+
+    /** Search query to filter templates by title */
+    query: z.string().optional(),
   }),
 });
 

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import FormData from "form-data";
 import { ensureDirSync } from "fs-extra";
+import JWT from "jsonwebtoken";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import env from "@server/env";
 import AttachmentHelper, {
@@ -193,6 +194,110 @@ describe("#files.create", () => {
     expect(
       existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
     ).toBe(true);
+  });
+
+  it("should succeed with a valid upload signature and no session", async () => {
+    const user = await buildUser();
+    const fileName = "images.docx";
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
+      fileName
+    );
+
+    const sig = JWT.sign(
+      { key: attachment.key, type: "attachment-upload" },
+      env.SECRET_KEY,
+      { expiresIn: 3600 }
+    );
+
+    const content = await readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const form = new FormData();
+    form.append("key", attachment.key);
+    form.append("file", content, fileName);
+    form.append("sig", sig);
+
+    const res = await server.post(`/api/files.create`, {
+      headers: form.getHeaders(),
+      body: form,
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+    expect(
+      existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
+    ).toBe(true);
+  });
+
+  it("should fail with a signature scoped to a different key", async () => {
+    const user = await buildUser();
+    const fileName = "images.docx";
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
+      fileName
+    );
+
+    const sig = JWT.sign(
+      { key: "public/foo/bar/other.png", type: "attachment-upload" },
+      env.SECRET_KEY,
+      { expiresIn: 3600 }
+    );
+
+    const content = await readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const form = new FormData();
+    form.append("key", attachment.key);
+    form.append("file", content, fileName);
+    form.append("sig", sig);
+
+    const res = await server.post(`/api/files.create`, {
+      headers: form.getHeaders(),
+      body: form,
+    });
+    expect(res.status).toEqual(401);
+    expect(
+      existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
+    ).toBe(false);
+  });
+
+  it("should fail with status 401 when neither session nor signature is provided", async () => {
+    const user = await buildUser();
+    const fileName = "images.docx";
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
+      fileName
+    );
+
+    const content = await readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const form = new FormData();
+    form.append("key", attachment.key);
+    form.append("file", content, fileName);
+
+    const res = await server.post(`/api/files.create`, {
+      headers: form.getHeaders(),
+      body: form,
+    });
+    expect(res.status).toEqual(401);
   });
 });
 

@@ -1,6 +1,10 @@
 import { buildCollection, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import { buildOAuthUser, callMcpTool, parseMcpListContent } from "@server/test/McpHelper";
+import {
+  buildOAuthUser,
+  callMcpTool,
+  parseMcpListContent,
+} from "@server/test/McpHelper";
 
 const server = getTestServer();
 

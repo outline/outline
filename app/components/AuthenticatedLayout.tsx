@@ -15,7 +15,6 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
 import history from "~/utils/history";
-import { isModKey } from "@shared/utils/keyboard";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import {
   searchPath,
@@ -45,11 +44,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const team = useCurrentTeam();
   const [spendPostLoginPath] = usePostLoginPath();
 
-  useKeyDown(".", (event) => {
-    if (isModKey(event)) {
-      ui.toggleCollapsedSidebar();
-    }
-  });
+  useKeyDown(".", () => ui.toggleCollapsedSidebar(), { metaKey: true });
 
   const goToSearch = (ev: KeyboardEvent) => {
     if (!ev.metaKey && !ev.ctrlKey) {

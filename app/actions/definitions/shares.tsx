@@ -7,7 +7,7 @@ import { ShareSection } from "../sections";
 import env from "~/env";
 import { toast } from "sonner";
 
-export const copyShareUrlFactory = ({ share }: { share: Share }) =>
+export const copyShareUrlActionFactory = ({ share }: { share: Share }) =>
   createAction({
     name: ({ t }) => t("Copy link"),
     analyticsName: "Copy share link",
@@ -22,7 +22,7 @@ export const copyShareUrlFactory = ({ share }: { share: Share }) =>
     },
   });
 
-export const goToShareSourceFactory = ({ share }: { share: Share }) =>
+export const goToShareSourceActionFactory = ({ share }: { share: Share }) =>
   createInternalLinkAction({
     name: ({ t }) =>
       share.collectionId ? t("Go to collection") : t("Go to document"),
@@ -35,7 +35,7 @@ export const goToShareSourceFactory = ({ share }: { share: Share }) =>
     },
   });
 
-export const revokeShareFactory = ({
+export const revokeShareActionFactory = ({
   share,
   can,
 }: {

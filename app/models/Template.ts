@@ -120,7 +120,6 @@ export default class Template extends ParanoidModel implements Searchable {
     return !!this.deletedAt;
   }
 
-  @computed
   get hasEmptyTitle(): boolean {
     return this.title === "";
   }

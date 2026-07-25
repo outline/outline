@@ -52,6 +52,7 @@ import {
   Template,
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
+import { SearchQuerySource } from "@server/models/SearchQuery";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { hash } from "@server/utils/crypto";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
@@ -763,7 +764,7 @@ export async function buildSearchQuery(
   }
 
   if (!overrides.source) {
-    overrides.source = "app";
+    overrides.source = SearchQuerySource.App;
   }
 
   if (isNil(overrides.query)) {

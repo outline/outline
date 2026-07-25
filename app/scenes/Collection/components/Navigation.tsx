@@ -1,8 +1,7 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
 import type Collection from "~/models/Collection";
-import Tab from "~/components/Tab";
-import Tabs from "~/components/Tabs";
+import { Tab, Tabs } from "~/components/Tabs";
 import { collectionPath } from "~/utils/routeHelpers";
 import { type SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 

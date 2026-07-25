@@ -6,10 +6,22 @@ const StorageKey = "frequent-code-languages";
 const frequentLanguagesToGet = 5;
 const frequentLanguagesToTrack = 10;
 
+/**
+ * Describes a code language supported by the editor.
+ */
 type CodeLanguage = {
+  /** The language identifier used by Refractor for syntax highlighting. */
   lang: string;
+  /** The human-readable label shown in the language selector. */
   label: string;
+  /** Lazily loads the Refractor syntax definition for the language. */
   loader?: () => Promise<RefractorSyntax>;
+  /**
+   * Whether this entry is a backwards-compatible alias for another language.
+   * Aliases remain resolvable for existing documents but are hidden from the
+   * language selector to avoid duplicate options.
+   */
+  alias?: boolean;
 };
 
 /**
@@ -186,6 +198,7 @@ export const codeLanguages: Record<string, CodeLanguage> = {
   mermaidjs: {
     lang: "mermaid",
     label: "Mermaid",
+    alias: true,
     // @ts-expect-error Mermaid is not in types but exists
     loader: () => import("refractor/lang/mermaid").then((m) => m.default),
   },

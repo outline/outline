@@ -1,3 +1,4 @@
+import type { JSDOM } from "jsdom";
 import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
@@ -431,13 +432,14 @@ export class DocumentHelper {
    * @param before The before document
    * @param after The after document
    * @param options Options passed to HTML generation
-   * @returns The diff as a HTML string
+   * @returns The diff as an HTML string, an empty string when there is no
+   * before document, or undefined when the documents contain no changes.
    */
   static async toEmailDiff(
     before: Document | Revision | null,
     after: Revision,
     options?: HTMLOptions
-  ) {
+  ): Promise<string | undefined> {
     if (!before) {
       return "";
     }
@@ -446,8 +448,26 @@ export class DocumentHelper {
     // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
     const { JSDOM } = await import("jsdom");
     const dom = new JSDOM(html);
-    const doc = dom.window.document;
+    try {
+      return DocumentHelper.clipEmailDiff(dom.window.document);
+    } finally {
+      try {
+        dom.window.close();
+      } catch (_err) {
+        // Best effort, closing the window releases its timers and resources.
+      }
+    }
+  }
 
+  /**
+   * Clips a rendered diff document down to only the changed nodes and their
+   * surrounding context, returning the resulting HTML or undefined when the
+   * document contains no diff elements.
+   *
+   * @param doc The rendered diff document to clip.
+   * @returns The clipped HTML, or undefined when there is nothing to show.
+   */
+  private static clipEmailDiff(doc: JSDOM["window"]["document"]) {
     const containsDiffElement = (node: Element | null) => {
       if (!node) {
         return false;

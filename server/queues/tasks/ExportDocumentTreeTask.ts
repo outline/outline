@@ -9,6 +9,7 @@ import type { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import Document from "@server/models/Document";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
@@ -94,6 +95,25 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         });
         buffer = Buffer.from("");
       }
+
+      // Inline small images referenced a single time as base64 data URIs
+      // rather than writing an external file. PDF export renders from HTML too.
+      if (
+        format === FileOperationFormat.HTMLZip ||
+        format === FileOperationFormat.PDF
+      ) {
+        const inlined = HTMLHelper.inlineImage(
+          text,
+          attachment.redirectUrl,
+          attachment.contentType,
+          buffer
+        );
+        if (inlined !== null) {
+          text = inlined;
+          continue;
+        }
+      }
+
       zip.addBuffer(buffer, path.join(dir, attachment.key), {
         mtime: attachment.updatedAt,
       });

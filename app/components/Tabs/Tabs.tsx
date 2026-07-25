@@ -1,3 +1,4 @@
+import { uniqueId } from "es-toolkit/compat";
 import { LayoutGroup } from "framer-motion";
 import { transparentize } from "polished";
 import * as React from "react";
@@ -63,10 +64,13 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const Tabs: React.FC = ({ children }: Props) => {
+export const Tabs: React.FC = ({ children }: Props) => {
   const ref = React.useRef<HTMLElement>(null);
   const [shadowVisible, setShadow] = React.useState(false);
   const { width } = useWindowSize();
+  // Namespace the shared layout animation so multiple tab bars on screen at
+  // once don't share the "underline" layoutId and animate between each other.
+  const layoutGroupId = React.useMemo(() => uniqueId("tabs-"), []);
 
   const updateShadows = React.useCallback(() => {
     const c = ref.current;
@@ -87,7 +91,7 @@ const Tabs: React.FC = ({ children }: Props) => {
   }, [width, updateShadows]);
 
   return (
-    <LayoutGroup>
+    <LayoutGroup id={layoutGroupId}>
       <Sticky>
         <Nav ref={ref} onScroll={updateShadows} $shadowVisible={shadowVisible}>
           {children}
@@ -96,5 +100,3 @@ const Tabs: React.FC = ({ children }: Props) => {
     </LayoutGroup>
   );
 };
-
-export default Tabs;

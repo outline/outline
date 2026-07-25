@@ -13,6 +13,7 @@ import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import { ArrowDownIcon } from "~/components/Icons/ArrowIcon";
+import { useSplitView } from "~/components/SplitView/context";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useFocusedComment } from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -30,6 +31,7 @@ import useMobile from "~/hooks/useMobile";
 
 function Comments() {
   const { ui, comments, documents } = useStores();
+  const { pane } = useSplitView();
   const user = useCurrentUser();
   const { editor, isEditorInitialized, setFocusedCommentId } =
     useDocumentContext();
@@ -49,7 +51,7 @@ function Comments() {
   const isAtBottom = useRef(true);
   const [showJumpToRecentBtn, setShowJumpToRecentBtn] = useState(false);
 
-  useKeyDown("Escape", () => document && ui.set({ rightSidebar: null }));
+  useKeyDown("Escape", () => document && ui.setRightSidebar(null, pane));
 
   // Account for the resolved status of the comment changing
   useEffect(() => {
@@ -204,7 +206,7 @@ function Comments() {
         </Flex>
       }
       onClose={() => {
-        ui.set({ rightSidebar: null });
+        ui.setRightSidebar(null, pane);
         setFocusedCommentId(null);
       }}
       scrollable={false}

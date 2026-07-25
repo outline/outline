@@ -32,7 +32,6 @@ import User from "./User";
 import UserMembership from "./UserMembership";
 import { type HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 
 /**
  * Represents a group's permission to access a collection or document.
@@ -71,7 +70,6 @@ import Fix from "./decorators/Fix";
   },
 }))
 @Table({ tableName: "group_permissions", modelName: "group_permission" })
-@Fix
 class GroupMembership extends ParanoidModel<
   InferAttributes<GroupMembership>,
   Partial<InferCreationAttributes<GroupMembership>>

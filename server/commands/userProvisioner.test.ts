@@ -24,6 +24,7 @@ describe("userProvisioner", () => {
     const result = await userProvisioner(ctx, {
       name: existing.name,
       email: newEmail,
+      emailVerified: true,
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
       authentication: {
@@ -40,6 +41,30 @@ describe("userProvisioner", () => {
     expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
     expect(isNewUser).toEqual(false);
+  });
+
+  it("should not update existing user email on re-login when unverified", async () => {
+    const existing = await buildUser();
+    const originalEmail = existing.email;
+    const authentications = await existing.$get("authentications");
+    const existingAuth = authentications[0];
+    const result = await userProvisioner(ctx, {
+      name: existing.name,
+      email: "victim@example.com",
+      emailVerified: false,
+      avatarUrl: existing.avatarUrl,
+      teamId: existing.teamId,
+      authentication: {
+        authenticationProviderId: existingAuth.authenticationProviderId,
+        providerId: existingAuth.providerId,
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+    expect(result.user.email).toEqual(originalEmail);
+
+    await existing.reload();
+    expect(existing.email).toEqual(originalEmail);
   });
 
   it("should add authentication provider to existing users", async () => {

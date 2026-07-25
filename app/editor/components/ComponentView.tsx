@@ -42,6 +42,8 @@ export default class ComponentView {
   isSelected = false;
   /** The DOM element that the node is rendered into. */
   dom: HTMLElement | null;
+  /** The DOM element that the node's editable content is rendered into, if the node has content. */
+  contentDOM: HTMLElement | null = null;
   /** The base class name for the node's DOM element. */
   className?: string;
 
@@ -68,12 +70,18 @@ export default class ComponentView {
       ? document.createElement("span")
       : document.createElement("div");
 
+    if (!node.isLeaf) {
+      this.contentDOM = document.createElement(
+        node.type.spec.inline ? "span" : "div"
+      );
+    }
+
     this.className = `component-${node.type.name}`;
     this.dom.classList.add(this.className);
     this.renderer = new NodeViewRenderer(this.dom, this.component, this.props);
 
-    // Add the renderer to the editor's set of renderers so that it is included in the React tree.
-    this.editor.renderers.add(this.renderer);
+    // Add the renderer to the editor's set of node renderers so that it is included in the React tree.
+    this.editor.nodeRenderers.add(this.renderer);
 
     // Apply decoration classes to the DOM element.
     this.applyDecorationClasses();
@@ -147,7 +155,29 @@ export default class ComponentView {
     }
   }
 
+  /**
+   * Ref callback for the component to mark the element that the node's
+   * editable content should be mounted within. The content itself is managed
+   * by ProseMirror rather than React.
+   */
+  handleContentRef = (element: HTMLElement | null) => {
+    if (
+      element &&
+      this.contentDOM &&
+      element !== this.contentDOM.parentElement
+    ) {
+      element.appendChild(this.contentDOM);
+    }
+  };
+
   stopEvent(event: Event) {
+    if (
+      this.contentDOM &&
+      event.target instanceof globalThis.Node &&
+      this.contentDOM.contains(event.target)
+    ) {
+      return false;
+    }
     return (
       event.type !== "mousedown" &&
       !event.type.startsWith("drag") &&
@@ -156,11 +186,15 @@ export default class ComponentView {
   }
 
   destroy() {
-    this.editor.renderers.delete(this.renderer);
+    this.editor.nodeRenderers.delete(this.renderer);
     this.dom = null;
+    this.contentDOM = null;
   }
 
-  ignoreMutation() {
+  ignoreMutation(mutation: MutationRecord) {
+    if (this.contentDOM) {
+      return !this.contentDOM.contains(mutation.target);
+    }
     return true;
   }
 
@@ -172,6 +206,7 @@ export default class ComponentView {
       isEditable: this.view.editable,
       getPos: this.getPos,
       decorations: this.decorations,
+      contentRef: this.handleContentRef,
     } as ComponentProps;
   }
 }

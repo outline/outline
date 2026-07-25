@@ -3,7 +3,7 @@
 // thing, automatic scroll to the active link. It's worth the copy paste because
 // it avoids recalculating the link match again.
 import type { Location, LocationDescriptor } from "history";
-import { createLocation } from "history";
+import { createLocation, createPath } from "history";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -11,7 +11,14 @@ import type { match } from "react-router";
 import { __RouterContext as RouterContext, matchPath } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
+import { useFocusedSplitLocation } from "~/hooks/useFocusedSplitLocation";
+import Desktop from "~/utils/Desktop";
 import history from "~/utils/history";
+import {
+  isSplittablePath,
+  isSplitViewModifierEvent,
+  openRouteInSplit,
+} from "~/utils/splitView";
 
 const resolveToLocation = (
   to: LocationDescriptor | ((location: Location) => LocationDescriptor),
@@ -100,11 +107,16 @@ const NavLink = observer(function NavLink({
   const linkRef = React.useRef<HTMLAnchorElement>(null);
   const context = React.useContext(RouterContext);
   const currentLocation = locationProp || context.location;
+  // The focused split view pane's route, decoded from the split query
+  // parameter, so the active item follows the focused pane.
+  const splitLocation = useFocusedSplitLocation();
   // While a fast-click navigation is pending, derive active state from its
   // target so the outgoing link deactivates immediately.
   const pending = pendingNavigation.get();
   const activeLocation =
-    pending && pending.from === currentLocation ? pending.to : currentLocation;
+    pending && pending.from === currentLocation
+      ? pending.to
+      : (locationProp ?? splitLocation ?? currentLocation);
   const toLocation = normalizeToLocation(
     resolveToLocation(to, currentLocation),
     currentLocation
@@ -199,6 +211,19 @@ const NavLink = observer(function NavLink({
 
   const handleClick = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
+      // In the desktop app a modifier-click opens the link in a split view,
+      // standing in for the browser's open-in-new-tab behavior.
+      if (
+        Desktop.isElectron() &&
+        isSplitViewModifierEvent(event.nativeEvent) &&
+        toLocation.pathname &&
+        isSplittablePath(toLocation.pathname)
+      ) {
+        event.preventDefault();
+        openRouteInSplit(history, createPath(toLocation));
+        return;
+      }
+
       // Keyboard-triggered clicks have no preceding mousedown, fall back to
       // the current active state.
       const wasActive = wasActiveAtMouseDown.current ?? isActive;
@@ -220,7 +245,7 @@ const NavLink = observer(function NavLink({
         onActiveClick?.(event);
       }
     },
-    [isActive, onActiveClick]
+    [isActive, onActiveClick, toLocation]
   );
 
   // Release a pending navigation once it is no longer honored, without

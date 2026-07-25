@@ -10,6 +10,7 @@ type Props = {
 };
 
 const Container = styled.div<Props>`
+  position: relative;
   width: 100%;
   max-width: 100vw;
   padding: ${(props) => (props.withStickyHeader ? "4px 16px" : "60px 16px")};

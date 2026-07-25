@@ -311,9 +311,9 @@ function Placeholder({
   return (
     <DelayedMount>
       <TBody $height={150}>
-        {new Array(rows).fill(1).map((_r, row) => (
+        {Array.from({ length: rows }).map((_r, row) => (
           <TR key={row} $columns={gridColumns}>
-            {new Array(columns).fill(1).map((_c, col) => (
+            {Array.from({ length: columns }).map((_c, col) => (
               <TD key={col}>
                 <PlaceholderText minWidth={25} maxWidth={75} />
               </TD>

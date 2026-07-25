@@ -26,11 +26,9 @@ import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 import type { Context } from "koa";
 
 @Table({ tableName: "events", modelName: "event", updatedAt: false })
-@Fix
 class Event extends IdModel<
   InferAttributes<Event>,
   Partial<InferCreationAttributes<Event>>

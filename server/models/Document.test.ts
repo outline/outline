@@ -1,4 +1,4 @@
-import { EmptyResultError } from "sequelize";
+import { EmptyResultError, Op } from "sequelize";
 import { CollectionPermission } from "@shared/types";
 import slugify from "@shared/utils/slugify";
 import { parser } from "@server/editor";
@@ -181,6 +181,80 @@ describe("#findAllChildDocumentIds", () => {
     expect(results[0]).toBe(document2.id);
     expect(results[1]).toBe(document3.id);
   });
+
+  test("should apply where filter and prune unmatched branches", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test",
+    });
+    const publishedChild = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+      title: "published",
+    });
+    // A draft (unpublished) child, with its own nested child.
+    const draftChild = await buildDraftDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+      title: "draft",
+    });
+    await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      parentDocumentId: draftChild.id,
+      title: "published under draft",
+    });
+
+    const results = await document.findAllChildDocumentIds({
+      publishedAt: {
+        [Op.ne]: null,
+      },
+    });
+    // Only the published child is returned; the draft branch is pruned so its
+    // descendants are not traversed.
+    expect(results).toEqual([publishedChild.id]);
+  });
+
+  test("should include soft-deleted children when paranoid is false", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test",
+    });
+    const child = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+      title: "child",
+    });
+    await child.destroy();
+
+    expect(await document.findAllChildDocumentIds()).toEqual([]);
+    expect(
+      await document.findAllChildDocumentIds(undefined, { paranoid: false })
+    ).toEqual([child.id]);
+  });
 });
 
 describe("#findByPk", () => {
@@ -224,6 +298,25 @@ describe("#findByPk", () => {
         rejectOnEmpty: true,
       })
     ).rejects.toThrow(EmptyResultError);
+  });
+
+  it("should load state as a fallback when content is empty", async () => {
+    const state = Buffer.from([1, 2, 3]);
+    const document = await buildDocument();
+    await Document.unscoped().update(
+      { content: null, state },
+      { where: { id: document.id }, hooks: false, silent: true }
+    );
+
+    const response = await Document.findByPk(document.id);
+    expect(response?.state).toEqual(state);
+  });
+
+  it("should not load state when content is available", async () => {
+    const document = await buildDocument();
+    const response = await Document.findByPk(document.id);
+    expect(response?.content).toBeTruthy();
+    expect(response?.state).toBeNull();
   });
 });
 

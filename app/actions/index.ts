@@ -15,6 +15,7 @@ import type {
 } from "~/types";
 import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
+import { pushOrOpenInSplit } from "~/utils/splitView";
 import type { Action as KbarAction } from "kbar";
 
 export function resolve<T>(value: unknown, context: ActionContext): T {
@@ -219,12 +220,19 @@ export function actionToKBar(
   const section = resolve<string>(action.section, context);
   const subtitle = resolve<string>(action.description, context);
 
-  const sectionPriority =
-    typeof action.section !== "string" && "priority" in action.section
-      ? ((action.section.priority as number) ?? 0)
-      : 0;
+  // Sections are passed to the command bar as objects so that their declared
+  // priority orders the sections themselves – given a bare string it would
+  // instead order them by the match score of whichever result happens to come
+  // first, which lets a section with an exact keyword match jump to the top.
+  const sectionWithPriority = {
+    name: section,
+    priority:
+      typeof action.section !== "string" && "priority" in action.section
+        ? ((action.section.priority as number) ?? 0)
+        : 0,
+  };
 
-  const priority = (1 + (action.priority ?? 0)) * (1 + (sectionPriority ?? 0));
+  const priority = 1 + (action.priority ?? 0);
 
   switch (action.variant) {
     case "action":
@@ -234,7 +242,7 @@ export function actionToKBar(
         {
           id: action.id,
           name,
-          section,
+          section: sectionWithPriority,
           keywords: action.keywords,
           shortcut: action.shortcut,
           subtitle,
@@ -259,7 +267,7 @@ export function actionToKBar(
         {
           id: action.id,
           name,
-          section,
+          section: sectionWithPriority,
           keywords: action.keywords,
           shortcut: action.shortcut,
           icon,
@@ -286,7 +294,17 @@ export async function performAction(
     action.variant === "action"
       ? () => action.perform(context)
       : action.variant === "internal_link"
-        ? () => history.push(resolve<LocationDescriptor>(action.to, context))
+        ? () => {
+            const to = resolve<LocationDescriptor>(action.to, context);
+
+            // Holding the modifier while triggering a command bar action
+            // opens the route in the secondary pane of the split view.
+            if (context.isCommandBar) {
+              pushOrOpenInSplit(history, to);
+            } else {
+              history.push(to);
+            }
+          }
         : () => window.open(action.url, action.target);
 
   const result = perform();

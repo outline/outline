@@ -16,7 +16,6 @@ import {
   TextSelection,
 } from "prosemirror-state";
 import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
-import { toast } from "sonner";
 import type { Primitive } from "utility-types";
 import type { UserPreferences } from "../../types";
 import { isBrowser, isMac } from "../../utils/browser";
@@ -351,7 +350,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
 
         if (codeBlock) {
           copy(codeBlock.node.textContent);
-          toast.message(t("Copied to clipboard"));
+          this.editor.props.onNotice?.(t("Copied to clipboard"));
           return true;
         }
 
@@ -372,7 +371,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           dispatch?.(tr);
 
           copy(tr.doc.textBetween(state.selection.from, state.selection.to));
-          toast.message(t("Copied to clipboard"));
+          this.editor.props.onNotice?.(t("Copied to clipboard"));
           return true;
         }
 

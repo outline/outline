@@ -36,6 +36,53 @@ type Props = ComponentProps & {
 /** Images rendered smaller than this width are displayed as inline icons. */
 export const InlineIconMaxWidth = 48;
 
+type ImageClassNameOptions = {
+  /** Layout modifier, e.g. "full-width", "left-50". */
+  layoutClass?: string | null;
+  /** Rendered width of the image in pixels. */
+  width?: number | null;
+  /** Whether the image failed to load. */
+  error?: boolean;
+};
+
+/**
+ * Whether an image should render as an inline icon rather than a block. Small
+ * images are displayed inline with the surrounding text.
+ *
+ * @param options The image's layout, width, and error state.
+ * @returns True if the image should be rendered as an inline icon.
+ */
+export function isInlineImageIcon({
+  layoutClass,
+  width,
+  error,
+}: ImageClassNameOptions): boolean {
+  return (
+    layoutClass !== "full-width" &&
+    !!width &&
+    width < InlineIconMaxWidth &&
+    !error
+  );
+}
+
+/**
+ * Builds the className for an image node's container, including the layout and
+ * inline-icon modifiers. Shared by the live NodeView and the static HTML
+ * serializer so that exported documents render small images inline too.
+ *
+ * @param options The image's layout, width, and error state.
+ * @returns The space-separated className string.
+ */
+export function imageClassName(options: ImageClassNameOptions): string {
+  return [
+    "image",
+    options.layoutClass ? `image-${options.layoutClass}` : "",
+    isInlineImageIcon(options) ? "image-icon" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 const Image = (props: Props) => {
   const { isSelected, node, isEditable, onChangeSize, onClick } = props;
   const { src, layoutClass } = node.attrs;
@@ -47,44 +94,22 @@ const Image = (props: Props) => {
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const lastTapTimeRef = React.useRef(0);
   const ref = React.useRef<HTMLDivElement>(null);
-  const {
-    width,
-    height,
-    setSize,
-    handlePointerDown,
-    handleDoubleClick,
-    dragging,
-  } = useDragResize({
-    width: node.attrs.width ?? naturalWidth,
-    height: node.attrs.height ?? naturalHeight,
-    naturalWidth,
-    naturalHeight,
-    onChangeSize,
-    ref,
-  });
+  const { width, height, handlePointerDown, handleDoubleClick, dragging } =
+    useDragResize({
+      width: node.attrs.width ?? naturalWidth,
+      height: node.attrs.height ?? naturalHeight,
+      naturalWidth,
+      naturalHeight,
+      onChangeSize,
+      ref,
+    });
 
   const isFullWidth = layoutClass === "full-width";
-  const isInlineIcon =
-    !isFullWidth && !!width && width < InlineIconMaxWidth && !error;
+  const isInlineIcon = isInlineImageIcon({ layoutClass, width, error });
   const isResizable = !!props.onChangeSize && !error && !isInlineIcon;
   const isDownloadable = !!props.onDownload && !error;
 
-  const className = [
-    "image",
-    layoutClass ? `image-${layoutClass}` : "",
-    isInlineIcon ? "image-icon" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  React.useEffect(() => {
-    if (node.attrs.width && node.attrs.width !== width) {
-      setSize({
-        width: node.attrs.width,
-        height: node.attrs.height,
-      });
-    }
-  }, [node.attrs.width]);
+  const className = imageClassName({ layoutClass, width, error });
 
   const sanitizedSrc = sanitizeImageSrc(src);
   const linkMarkType = props.view.state.schema.marks.link;
@@ -100,7 +125,9 @@ const Image = (props: Props) => {
 
   const widthStyle = isFullWidth
     ? { width: "var(--container-width)" }
-    : { width: width ? `min(${width}px, 100%)` : "auto" };
+    : width
+      ? { ["--image-width"]: `${width}px` }
+      : { width: "auto" };
 
   const handleImageTouchStart = (ev: React.TouchEvent<HTMLDivElement>) => {
     const currentTime = Date.now();
@@ -219,16 +246,11 @@ const Image = (props: Props) => {
                 // seen and is not sized to 0px
                 const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
                 const nh = (ev.target as HTMLImageElement).naturalHeight;
+                // When no width is set on the node the natural size is what the
+                // image is displayed at, so it feeds straight into useDragResize.
                 setNaturalWidth(nw);
                 setNaturalHeight(nh);
                 setLoaded(true);
-
-                if (!node.attrs.width) {
-                  setSize((state) => ({
-                    ...state,
-                    width: nw,
-                  }));
-                }
               }}
               onClick={handleImageClick}
               onTouchStart={handleImageTouchStart}

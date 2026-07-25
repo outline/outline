@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
-import { ThemeProvider, useTheme } from "styled-components";
+import { ThemeProvider } from "styled-components";
 import { errToString } from "@shared/utils/error";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import type { CustomTheme } from "@shared/types";
@@ -37,7 +37,6 @@ function Details() {
   const { dialogs, ui } = useStores();
   const { t } = useTranslation();
   const team = useCurrentTeam();
-  const theme = useTheme();
   const can = usePolicy(team);
 
   const form = useRef<HTMLFormElement>(null);
@@ -267,14 +266,14 @@ function Details() {
           >
             <InputColor
               id="accent"
-              value={accent ?? theme.accent}
+              value={accent ?? newTheme.accent}
               label={t("Accent color")}
               onChange={setAccent}
               flex
             />
             <InputColor
               id="accentText"
-              value={accentText ?? theme.accentText}
+              value={accentText ?? newTheme.accentText}
               label={t("Accent text color")}
               onChange={setAccentText}
               flex

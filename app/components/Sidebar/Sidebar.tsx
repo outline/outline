@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import { useWebHaptics } from "web-haptics/react";
 import { useLocation } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -54,7 +53,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   const collapsed = ui.sidebarIsClosed && canCollapse;
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
-  const { trigger } = useWebHaptics();
   const direction = useDirection();
 
   const [offset, setOffset] = React.useState(0);
@@ -264,7 +262,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   );
 
   const handleCloseSidebar = () => {
-    void trigger("light");
     ui.toggleMobileSidebar();
   };
 

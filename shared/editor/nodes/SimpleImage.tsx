@@ -163,6 +163,7 @@ export default class SimpleImage extends Node {
           onFileUploadStart,
           onFileUploadStop,
           onFileUploadProgress,
+          onNotice,
         } = this.editor.props;
 
         if (!uploadFile) {
@@ -184,6 +185,7 @@ export default class SimpleImage extends Node {
             onFileUploadStart,
             onFileUploadStop,
             onFileUploadProgress,
+            onNotice,
             replaceExisting: true,
             attrs: {
               width: node.attrs.width,

@@ -213,7 +213,7 @@ function DocumentBreadcrumb(
       ...(collectionLabel ? [collectionLabel] : []),
       ...(omitted.length
         ? [
-            <Tooltip content={omitted.join(" / ")}>
+            <Tooltip key="ellipsis" content={omitted.join(" / ")}>
               <Ellipsis>…</Ellipsis>
             </Tooltip>,
           ]

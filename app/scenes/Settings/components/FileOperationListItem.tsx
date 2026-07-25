@@ -25,6 +25,12 @@ type Props = {
   fileOperation: FileOperation;
 };
 
+const TerminalStates = [
+  FileOperationState.Complete,
+  FileOperationState.Error,
+  FileOperationState.Expired,
+];
+
 const FileOperationListItem = ({ fileOperation }: Props) => {
   const { t } = useTranslation();
   const user = useCurrentUser();
@@ -96,7 +102,7 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
 
   const showMenu =
     (fileOperation.type === FileOperationType.Export &&
-      fileOperation.state === FileOperationState.Complete) ||
+      TerminalStates.includes(fileOperation.state)) ||
     fileOperation.type === FileOperationType.Import;
 
   const selfHostedHelp = isCloudHosted

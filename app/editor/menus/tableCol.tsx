@@ -163,15 +163,13 @@ export default function tableColMenuItems(ctx: SelectionContext): MenuItem[] {
           <PaletteIcon />
         ),
       children: [
-        ...[
-          {
-            name: "toggleColumnBackgroundAndCollapseSelection",
-            label: t("None"),
-            icon: <DottedCircleIcon color="transparent" />,
-            active: () => (hasBackground ? false : true),
-            attrs: { color: null },
-          },
-        ],
+        {
+          name: "toggleColumnBackgroundAndCollapseSelection",
+          label: t("None"),
+          icon: <DottedCircleIcon color="transparent" />,
+          active: () => (hasBackground ? false : true),
+          attrs: { color: null },
+        },
         ...TableCell.presetColors.map((preset) => ({
           name: "toggleColumnBackgroundAndCollapseSelection",
           label: preset.name,

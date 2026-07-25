@@ -32,7 +32,7 @@ beforeEach(async () => {
 
 function updateDocumentText(document: Document, text: string) {
   document.content = parser.parse(text)?.toJSON();
-  document.updatedAt = new Date();
+  document.setDataValue("updatedAt", new Date());
   return document;
 }
 
@@ -569,7 +569,7 @@ describe("revisions.create", () => {
         ],
       },
     ]).toJSON();
-    document.updatedAt = new Date();
+    document.setDataValue("updatedAt", new Date());
     await document.save();
 
     const revision = await Revision.createFromDocument(
@@ -636,7 +636,7 @@ describe("revisions.create", () => {
         ],
       },
     ]).toJSON();
-    document.updatedAt = new Date();
+    document.setDataValue("updatedAt", new Date());
     await document.save();
 
     const revision = await Revision.createFromDocument(
@@ -674,7 +674,7 @@ describe("revisions.create", () => {
         content: [buildMention({ modelId: mentioned.id, actorId: actor.id })],
       },
     ]).toJSON();
-    document.updatedAt = new Date();
+    document.setDataValue("updatedAt", new Date());
     await document.save();
 
     const revision = await Revision.createFromDocument(
@@ -727,7 +727,7 @@ describe("revisions.create", () => {
         content: [buildMention({ modelId: mentioned.id, actorId: actor.id })],
       },
     ]).toJSON();
-    document.updatedAt = new Date();
+    document.setDataValue("updatedAt", new Date());
     await document.save();
 
     const revision = await Revision.createFromDocument(
@@ -793,7 +793,7 @@ describe("revisions.create", () => {
         ],
       },
     ]).toJSON();
-    document.updatedAt = new Date();
+    document.setDataValue("updatedAt", new Date());
     await document.save();
 
     const revision = await Revision.createFromDocument(

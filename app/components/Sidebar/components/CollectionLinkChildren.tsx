@@ -44,7 +44,7 @@ function CollectionLinkChildren({
   children,
 }: Props) {
   const pageSize = DEFAULT_PAGE_SIZE;
-  const { documents } = useStores();
+  const { documents, ui } = useStores();
   const { t } = useTranslation();
   const activeDocument = documents.active;
   const childDocuments = useCollectionDocuments(collection, activeDocument);
@@ -64,7 +64,7 @@ function CollectionLinkChildren({
 
   const expansion = useSidebarExpansionState(
     childDocuments,
-    activeDocument?.id
+    ui.activeDocumentId
   );
 
   // Handle collection-level alt-click cascade from DraggableCollectionLink

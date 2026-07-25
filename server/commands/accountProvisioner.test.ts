@@ -71,6 +71,7 @@ describe("accountProvisioner", () => {
         user: {
           name: existing.name,
           email: newEmail,
+          emailVerified: true,
           avatarUrl: existing.avatarUrl,
         },
         team: {

@@ -7,7 +7,6 @@ import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { NodeSelection, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { toast } from "sonner";
 import { errToString } from "../../utils/error";
 import { isCode, isMermaid } from "../lib/isCode";
 import { isRemoteTransaction, mapDecorations } from "../lib/multiplayer";
@@ -397,7 +396,7 @@ export default function Mermaid({
   isDark: boolean;
   editor: Editor;
 }) {
-  const { onClickLink } = editor.props;
+  const { onClickLink, onNotice } = editor.props;
 
   return new Plugin({
     key: pluginKey,
@@ -530,7 +529,11 @@ export default function Mermaid({
         return this.getState(state)?.decorationSet;
       },
       handleKeyDown(view, event) {
-        if (event.key === "Enter" && isModKey(event) && !editor.props.readOnly) {
+        if (
+          event.key === "Enter" &&
+          isModKey(event) &&
+          !editor.props.readOnly
+        ) {
           const { selection } = view.state;
           const isNodeSel = selection instanceof NodeSelection;
           const isMermaidNode =
@@ -591,8 +594,12 @@ export default function Mermaid({
           event.preventDefault();
 
           if (isSelected || editor.props.readOnly) {
-            // Already selected or read-only, open lightbox
-            if (node && node.textContent.trim().length > 0) {
+            // Already selected or read-only, open lightbox unless the diagram
+            // failed to render (no valid image to show)
+            const hasError =
+              diagram.classList.contains("parse-error") ||
+              diagram.classList.contains("empty");
+            if (!hasError && node && node.textContent.trim().length > 0) {
               editor.updateActiveLightboxImage(
                 LightboxImageFactory.createLightboxImage(view, nodePos)
               );
@@ -625,7 +632,10 @@ export default function Mermaid({
                 onClickLink(sanitizeUrl(href) ?? "");
               }
             } catch (_err) {
-              toast.error(t("Sorry, that type of link is not supported"));
+              onNotice?.(
+                t("Sorry, that type of link is not supported"),
+                "error"
+              );
             }
           }
 

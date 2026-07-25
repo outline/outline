@@ -19,7 +19,7 @@ import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
-import type { ActionWithChildren } from "~/types";
+import type { ActionFactory, ActionWithChildren } from "~/types";
 
 export type DocumentRowProps = {
   /** Document identifier for policy, prefetch and import. */
@@ -98,7 +98,7 @@ export type DocumentRowProps = {
   newChildDepth?: number;
 
   /** Context menu action for the row. */
-  contextAction?: ActionWithChildren;
+  contextAction?: ActionWithChildren | ActionFactory;
 
   /** Optional override for the active-match function. */
   isActiveOverride?: (

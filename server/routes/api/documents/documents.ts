@@ -63,8 +63,10 @@ import {
   GroupMembership,
   FileOperation,
 } from "@server/models";
+import { SearchQuerySource } from "@server/models/SearchQuery";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -81,7 +83,6 @@ import {
   presentGroup,
   presentFileOperation,
 } from "@server/presenters";
-import type { DocumentImportTaskResponse } from "@server/queues/tasks/DocumentImportTask";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import EmptyTrashTask from "@server/queues/tasks/EmptyTrashTask";
 import FileStorage from "@server/storage/files";
@@ -89,6 +90,7 @@ import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { convertBareUrlsToEmbedMarkdown } from "@server/utils/embeds";
 import { streamZipResponse } from "@server/utils/koa";
+import { QueryHelper } from "@server/storage/QueryHelper";
 import { getTeamFromContext } from "@server/utils/passport";
 import pagination, { paginateQuery } from "../middlewares/pagination";
 import * as T from "./schema";
@@ -750,7 +752,7 @@ router.post(
       };
     }
 
-    const replacements = { query: `%${query}%` };
+    const replacements = { query: QueryHelper.likeContains(query ?? "") };
 
     const { results: users, pagination } = await paginateQuery<User>(
       ctx,
@@ -908,7 +910,43 @@ router.post(
         })
       : [];
 
-    if (attachments.length === 0) {
+    // Read attachments and, when exporting HTML, inline small images that are
+    // referenced a single time as base64 data URIs. Any remaining attachments
+    // are bundled alongside the document in a zip.
+    const externalAttachments: { attachment: Attachment; buffer: Buffer }[] =
+      [];
+    for (const attachment of attachments) {
+      let buffer: Buffer;
+      try {
+        buffer = await attachment.buffer;
+      } catch (err) {
+        Logger.warn(`Failed to read attachment from storage`, {
+          attachmentId: attachment.id,
+          teamId: attachment.teamId,
+          error: errToString(err),
+        });
+        buffer = Buffer.from("");
+      }
+
+      if (contentType === "text/html") {
+        const inlined = HTMLHelper.inlineImage(
+          content,
+          attachment.redirectUrl,
+          attachment.contentType,
+          buffer
+        );
+        if (inlined !== null) {
+          content = inlined;
+          continue;
+        }
+      }
+
+      externalAttachments.push({ attachment, buffer });
+    }
+
+    // When there are no external attachments the document is self-contained and
+    // can be served directly rather than bundled in a zip.
+    if (externalAttachments.length === 0) {
       ctx.set("Content-Type", contentType);
       ctx.set(
         "Content-Disposition",
@@ -921,22 +959,11 @@ router.post(
     }
 
     await streamZipResponse(ctx, `${fileName}.zip`, async (zip) => {
-      for (const attachment of attachments) {
+      for (const { attachment, buffer } of externalAttachments) {
         const location = path.join(
           "attachments",
           `${attachment.id}.${mime.extension(attachment.contentType)}`
         );
-        let buffer: Buffer;
-        try {
-          buffer = await attachment.buffer;
-        } catch (err) {
-          Logger.warn(`Failed to read attachment from storage`, {
-            attachmentId: attachment.id,
-            teamId: attachment.teamId,
-            error: errToString(err),
-          });
-          buffer = Buffer.from("");
-        }
         zip.addBuffer(buffer, location, { mtime: attachment.updatedAt });
 
         content = content.replace(
@@ -1173,11 +1200,14 @@ router.post(
     // duplicate search query records
     if (query && offset === 0) {
       const duration = Date.now() - searchStartedAt;
-      await SearchQuery.create({
+      await SearchQuery.record({
         userId: user?.id,
         teamId,
         shareId: share?.id,
-        source: ctx.state.auth.type || "app", // we'll consider anything that isn't "api" to be "app"
+        // auth.type values are a subset of search sources; unauthenticated share searches default to "app"
+        source:
+          (ctx.state.auth.type as unknown as SearchQuerySource) ||
+          SearchQuerySource.App,
         query,
         results: total,
         duration,
@@ -1573,7 +1603,7 @@ router.post(
       });
     }
 
-    const job = await new DocumentImportTask().schedule({
+    const document = await DocumentImportTask.scheduleAndWait({
       key,
       sourceMetadata: {
         fileName,
@@ -1583,16 +1613,8 @@ router.post(
       collectionId: collectionId ?? parentDocument?.collectionId,
       parentDocumentId,
       publish,
+      authType: ctx.state.auth.type,
       ip: ctx.request.ip,
-    });
-    const response: DocumentImportTaskResponse = await job.finished();
-    if ("error" in response) {
-      throw InvalidRequestError(response.error);
-    }
-
-    const document = await Document.findByPk(response.documentId, {
-      userId: user.id,
-      rejectOnEmpty: true,
     });
 
     ctx.body = {
@@ -1934,9 +1956,7 @@ router.post(
 
     if (query) {
       userWhere = {
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 
@@ -1996,9 +2016,7 @@ router.post(
 
     if (query) {
       groupWhere = {
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
       };
     }
 

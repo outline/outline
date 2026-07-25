@@ -28,7 +28,6 @@ import Document from "./Document";
 import User from "./User";
 import { type HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 import TextLength from "./validators/TextLength";
 import { SkipChangeset } from "./decorators/Changeset";
 
@@ -47,7 +46,6 @@ import { SkipChangeset } from "./decorators/Changeset";
   ],
 }))
 @Table({ tableName: "comments", modelName: "comment" })
-@Fix
 class Comment extends ParanoidModel<
   InferAttributes<Comment>,
   Partial<InferCreationAttributes<Comment>>

@@ -1,8 +1,8 @@
 import * as React from "react";
-import { actionToMenuItem } from "~/actions";
+import { actionToMenuItem, resolve } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
-import type { ActionVariant, ActionWithChildren } from "~/types";
+import type { ActionFactory, ActionVariant, ActionWithChildren } from "~/types";
 import { preventDefault } from "~/utils/events";
 import { toMenuItems } from "./transformer";
 import { observer } from "mobx-react";
@@ -12,7 +12,7 @@ import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 
 type Props = {
   /** Root action with children representing the menu items */
-  action?: ActionWithChildren;
+  action?: ActionWithChildren | ActionFactory;
   /** Trigger for the menu */
   children: React.ReactNode;
   /** ARIA label for the menu */
@@ -25,22 +25,34 @@ type Props = {
 
 export const ContextMenu = observer(
   ({ action, children, ariaLabel, onOpen, onClose }: Props) => {
+    const [open, setOpen] = React.useState(false);
     const isMobile = useMobile();
     const contentRef = React.useRef<React.ElementRef<typeof MenuContent>>(null);
     const actionContext = useActionContext({
       isMenu: true,
     });
 
-    const menuItems = useComputed(
-      () =>
-        ((action?.children as ActionVariant[]) ?? []).map((childAction) =>
-          actionToMenuItem(childAction, actionContext)
-        ),
-      [action?.children, actionContext]
-    );
+    // Menu items are only built while the menu is open.
+    const menuItems = useComputed(() => {
+      if (!open) {
+        return [];
+      }
+
+      const resolvedAction = typeof action === "function" ? action() : action;
+      if (!resolvedAction) {
+        return [];
+      }
+
+      // children may be a factory function, so resolve it before mapping.
+      return resolve<ActionVariant[]>(
+        resolvedAction.children,
+        actionContext
+      ).map((childAction) => actionToMenuItem(childAction, actionContext));
+    }, [open, action, actionContext]);
 
     const handleOpenChange = React.useCallback(
       (open: boolean) => {
+        setOpen(open);
         if (open) {
           onOpen?.();
         } else {
@@ -62,15 +74,23 @@ export const ContextMenu = observer(
       }
     }, []);
 
-    if (isMobile || !action || menuItems.length === 0) {
+    // For non-factory actions we can cheaply detect an empty menu without
+    // resolving any items (actionToMenuItem is length-preserving).
+    const childActions =
+      typeof action === "function" ? undefined : action?.children;
+    const isEmpty =
+      typeof action !== "function" &&
+      (Array.isArray(childActions) ? childActions.length === 0 : !childActions);
+
+    if (isMobile || !action || isEmpty) {
       return <>{children}</>;
     }
 
-    const content = toMenuItems(menuItems);
+    const content = open ? toMenuItems(menuItems) : null;
 
     return (
       <MenuProvider variant="context">
-        <Menu onOpenChange={handleOpenChange}>
+        <Menu open={open} onOpenChange={handleOpenChange}>
           <MenuTrigger aria-label={ariaLabel}>{children}</MenuTrigger>
           <MenuContent
             aria-label={ariaLabel}

@@ -44,7 +44,6 @@ import Share from "./Share";
 import TeamDomain from "./TeamDomain";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 import IsFQDN from "./validators/IsFQDN";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
@@ -74,7 +73,6 @@ const avatarRedirectPattern = new RegExp(attachmentRedirectRegex.source, "i");
   },
 }))
 @Table({ tableName: "teams", modelName: "team" })
-@Fix
 class Team extends ParanoidModel<
   InferAttributes<Team>,
   Partial<InferCreationAttributes<Team>>

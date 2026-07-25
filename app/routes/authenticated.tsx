@@ -8,6 +8,7 @@ import AuthenticatedLayout from "~/components/AuthenticatedLayout";
 import CenteredContent from "~/components/CenteredContent";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import Route from "~/components/ProfiledRoute";
+import { SplitView } from "~/components/SplitView";
 import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
@@ -68,69 +69,79 @@ function AuthenticatedRoutes() {
             </CenteredContent>
           }
         >
-          <Switch>
-            {can.createDocument && (
-              <Route exact path={draftsPath()} component={Drafts} />
-            )}
-            {can.createDocument && (
-              <Route exact path={archivePath()} component={Archive} />
-            )}
-            {can.createDocument && (
-              <Route exact path={trashPath()} component={Trash} />
-            )}
-            <Route path={`${homePath()}/:tab?`} component={Home} />
-            <Redirect from="/dashboard" to={homePath()} />
-            <Redirect exact from="/starred" to={homePath()} />
-            <Redirect exact from="/templates" to={settingsPath("templates")} />
-            <Redirect exact from="/collections/*" to="/collection/*" />
-            <Route
-              exact
-              path={`/collection/${collectionSlug}/new`}
-              component={DocumentNew}
-            />
-            <Route
-              exact
-              path={`/collection/${collectionSlug}/overview/edit`}
-              component={Collection}
-            />
-            <Route
-              exact
-              path={`/collection/${collectionSlug}/:tab?`}
-              component={Collection}
-            />
-            <Route exact path="/doc/new" component={DocumentNew} />
-            <Route
-              exact
-              path={`/d/${documentSlug}`}
-              component={RedirectDocument}
-            />
-            <Route
-              exact
-              path={`/doc/${documentSlug}/history/:revisionId?`}
-              component={Document}
-            />
-
-            <Route
-              exact
-              path={`/doc/${documentSlug}/edit`}
-              component={Document}
-            />
-            <Route path={`/doc/${documentSlug}`} component={Document} />
-            <Route exact path={`${searchPath()}/:query?`} component={Search} />
-            {env.isDevelopment && (
-              <Route exact path={debugPath()} component={Debug} />
-            )}
-            {env.isDevelopment && (
+          <SplitView>
+            <Switch>
+              {can.createDocument && (
+                <Route exact path={draftsPath()} component={Drafts} />
+              )}
+              {can.createDocument && (
+                <Route exact path={archivePath()} component={Archive} />
+              )}
+              {can.createDocument && (
+                <Route exact path={trashPath()} component={Trash} />
+              )}
+              <Route path={`${homePath()}/:tab?`} component={Home} />
+              <Redirect from="/dashboard" to={homePath()} />
+              <Redirect exact from="/starred" to={homePath()} />
+              <Redirect
+                exact
+                from="/templates"
+                to={settingsPath("templates")}
+              />
+              <Redirect exact from="/collections/*" to="/collection/*" />
               <Route
                 exact
-                path={`${debugPath()}/changesets`}
-                component={Changesets}
+                path={`/collection/${collectionSlug}/new`}
+                component={DocumentNew}
               />
-            )}
-            <Route exact path="/404" component={Error404} />
-            <SettingsRoutes />
-            <Route component={Error404} />
-          </Switch>
+              <Route
+                exact
+                path={`/collection/${collectionSlug}/overview/edit`}
+                component={Collection}
+              />
+              <Route
+                exact
+                path={`/collection/${collectionSlug}/:tab?`}
+                component={Collection}
+              />
+              <Route exact path="/doc/new" component={DocumentNew} />
+              <Route
+                exact
+                path={`/d/${documentSlug}`}
+                component={RedirectDocument}
+              />
+              <Route
+                exact
+                path={`/doc/${documentSlug}/history/:revisionId?`}
+                component={Document}
+              />
+
+              <Route
+                exact
+                path={`/doc/${documentSlug}/edit`}
+                component={Document}
+              />
+              <Route path={`/doc/${documentSlug}`} component={Document} />
+              <Route
+                exact
+                path={`${searchPath()}/:query?`}
+                component={Search}
+              />
+              {env.isDevelopment && (
+                <Route exact path={debugPath()} component={Debug} />
+              )}
+              {env.isDevelopment && (
+                <Route
+                  exact
+                  path={`${debugPath()}/changesets`}
+                  component={Changesets}
+                />
+              )}
+              <Route exact path="/404" component={Error404} />
+              <SettingsRoutes />
+              <Route component={Error404} />
+            </Switch>
+          </SplitView>
         </Suspense>
       </AuthenticatedLayout>
     </WebsocketProvider>

@@ -11,7 +11,6 @@ import { GroupPermission } from "@shared/types";
 import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
-import Fix from "./decorators/Fix";
 
 @Scopes(() => ({
   withGroup: {
@@ -30,7 +29,6 @@ import Fix from "./decorators/Fix";
   },
 }))
 @Table({ tableName: "group_users", modelName: "group_user" })
-@Fix
 class GroupUser extends Model<
   InferAttributes<GroupUser>,
   Partial<InferCreationAttributes<GroupUser>>

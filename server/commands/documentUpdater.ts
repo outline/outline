@@ -65,6 +65,19 @@ export default async function documentUpdater(
   const { transaction } = ctx.state;
   const cId = collectionId || document.collectionId;
 
+  // Serialize concurrent updates to the same document by taking a row-level
+  // lock before mutating. The wait is already bounded by the transaction's
+  // statement_timeout.
+  if (transaction) {
+    await Document.unscoped().findOne({
+      attributes: ["id"],
+      where: { id: document.id },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+      paranoid: false,
+    });
+  }
+
   if (title !== undefined) {
     document.title = title.trim();
   }

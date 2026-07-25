@@ -7,6 +7,7 @@ import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 import { toError } from "@shared/utils/error";
 import { TeamPreference } from "@shared/types";
+import { iconNames } from "@shared/utils/IconNames";
 import { NotFoundError } from "@server/errors";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -23,6 +24,7 @@ import { documentTools } from "@server/tools/documents";
 import { fetchTool } from "@server/tools/fetch";
 import { templateTools } from "@server/tools/templates";
 import { userTools } from "@server/tools/users";
+import { iconNamesResourceUri } from "@server/tools/util";
 import { version } from "../../../package.json";
 
 const app = new Koa();
@@ -65,6 +67,8 @@ Document and collection markdown support @mentions using the syntax: @[Display N
 
 Read images and attachments with the "fetch" tool by setting resource to "attachment" and passing either the attachment ID or an /api/attachments.redirect?id=... URL; the tool will return a signed URL for download.
 
+Base64-encoded images are supported in document content for all formats. When creating a document from HTML that includes images or videos, pass the markup with format "html" — remote URLs and base64 media are imported as attachments automatically. Do not convert such HTML to markdown, and do not upload the HTML file itself as an attachment.
+
 When asked to create a document that follows a template, use the "list_templates" tool to find a matching template; each result already includes the template body as markdown. To use it unchanged, pass its ID as templateId to "create_document" and the new document is pre-filled from it. To adapt it first, modify the returned body and pass the result as the text parameter to "create_document". Either way no separate fetch is needed.`;
 
 /**
@@ -88,9 +92,32 @@ function createMcpServer(scopes: string[], guidance?: string): McpServer {
     {
       capabilities: {
         tools: {},
+        resources: {},
       },
       instructions,
     }
+  );
+
+  // Exposed as a resource rather than inlined into every icon field's schema,
+  // so the full list is fetched on demand instead of shipped with tools/list.
+  server.registerResource(
+    "icons",
+    iconNamesResourceUri,
+    {
+      title: "Icon names",
+      description:
+        "The names of the icons available for document and collection icons.",
+      mimeType: "application/json",
+    },
+    (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "application/json",
+          text: JSON.stringify(iconNames),
+        },
+      ],
+    })
   );
 
   attachmentTools(server, scopes);

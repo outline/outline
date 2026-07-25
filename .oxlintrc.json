@@ -41,6 +41,7 @@
     "no-irregular-whitespace": "error",
     "no-loss-of-precision": "error",
     "no-new-native-nonconstructor": "error",
+    "unicorn/no-new-array": "error",
     "no-nonoctal-decimal-escape": "error",
     "no-obj-calls": "error",
     "no-prototype-builtins": "error",
@@ -104,7 +105,7 @@
             "html": true
           }
         ],
-        "@typescript-eslint/no-require-imports": "off",
+        "typescript/no-require-imports": "error",
         "import/no-named-as-default": "off",
         "import/no-named-as-default-member": "off",
         "typescript/consistent-type-imports": "error",
@@ -120,9 +121,36 @@
             "ignoreRestSiblings": true
           }
         ],
-        "react/rules-of-hooks": "error"
+        "react/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "error"
       },
       "plugins": ["eslint", "oxc", "react", "typescript", "import"]
+    },
+    {
+      "files": ["shared/**/*.{js,jsx,ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "prosemirror-tables",
+                "importNames": [
+                  "addRowBefore",
+                  "addRowAfter",
+                  "addColumnBefore",
+                  "addColumnAfter"
+                ],
+                "message": "Use the wrappers from shared/editor/commands/table instead, which respect the target index and place the cursor in the inserted cell."
+              },
+              {
+                "name": "sonner",
+                "message": "Do not import a toast library within shared; surface notifications through the onNotice callback so shared code stays decoupled from the app's toast implementation."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

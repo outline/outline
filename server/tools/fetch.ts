@@ -23,6 +23,8 @@ import {
   success,
   getActorFromContext,
   getDocumentBreadcrumb,
+  getPublicShareUrlForCollection,
+  getPublicShareUrlForDocument,
   pathToUrl,
   withTracing,
 } from "./util";
@@ -131,15 +133,17 @@ export function fetchTool(server: McpServer, scopes: string[]) {
 
             authorize(actor, "read", document);
 
-            const [{ text, ...attributes }, breadcrumb] = await Promise.all([
-              presentDocument(document, {
-                includeData: false,
-                includeText: true,
-                includeUpdatedAt: true,
-                includeCommentCount: true,
-              }),
-              getDocumentBreadcrumb(document, actor),
-            ]);
+            const [{ text, ...attributes }, breadcrumb, shareUrl] =
+              await Promise.all([
+                presentDocument(document, {
+                  includeData: false,
+                  includeText: true,
+                  includeUpdatedAt: true,
+                  includeCommentCount: true,
+                }),
+                getDocumentBreadcrumb(document, actor),
+                getPublicShareUrlForDocument(actor.team, document.id),
+              ]);
             return {
               content: [
                 {
@@ -147,6 +151,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
                   text: JSON.stringify({
                     document: pathToUrl(actor.team, attributes),
                     ...(breadcrumb !== undefined && { breadcrumb }),
+                    ...(shareUrl !== undefined && { shareUrl }),
                   }),
                 },
                 {
@@ -166,9 +171,15 @@ export function fetchTool(server: McpServer, scopes: string[]) {
 
             authorize(actor, "read", collection);
 
-            const presented = await presentCollection(undefined, collection);
+            const [presented, shareUrl] = await Promise.all([
+              presentCollection(undefined, collection),
+              getPublicShareUrlForCollection(actor.team, collection.id),
+            ]);
             return success([
-              pathToUrl(actor.team, presented),
+              {
+                ...pathToUrl(actor.team, presented),
+                ...(shareUrl !== undefined && { shareUrl }),
+              },
               (collection.documentStructure ?? []).map((node) =>
                 presentNavigationNode(actor.team, node)
               ),

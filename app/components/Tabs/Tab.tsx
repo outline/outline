@@ -106,7 +106,7 @@ const horizontalOnly = (transform: Record<string, string>, generated: string) =>
     "translate3d($1, 0px, $2)"
   );
 
-const Tab: React.FC<Props> = (props: Props) => {
+export const Tab: React.FC<Props> = (props: Props) => {
   const { children, exact, exactQueryString } = props;
   const theme = useTheme();
   const activeStyle = {
@@ -160,5 +160,3 @@ const Tab: React.FC<Props> = (props: Props) => {
     </TabLink>
   );
 };
-
-export default Tab;

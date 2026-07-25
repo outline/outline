@@ -10,14 +10,12 @@ import AuthenticationProvider from "./AuthenticationProvider";
 import Group from "./Group";
 import Team from "./Team";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
 @Table({
   tableName: "external_groups",
   modelName: "external_group",
 })
-@Fix
 class ExternalGroup extends IdModel<
   InferAttributes<ExternalGroup>,
   Partial<InferCreationAttributes<ExternalGroup>>

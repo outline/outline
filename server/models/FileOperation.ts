@@ -22,7 +22,6 @@ import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
-import Fix from "./decorators/Fix";
 import { Buckets } from "./helpers/AttachmentHelper";
 
 export type FileOperationOptions = {
@@ -54,7 +53,6 @@ export type FileOperationOptions = {
   ],
 }))
 @Table({ tableName: "file_operations", modelName: "file_operation" })
-@Fix
 class FileOperation extends ParanoidModel<
   InferAttributes<FileOperation>,
   Partial<InferCreationAttributes<FileOperation>>

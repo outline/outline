@@ -3,6 +3,7 @@ import {
   buildComment,
   buildDocument,
   buildResolvedComment,
+  buildShare,
   buildTemplate,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -60,6 +61,85 @@ describe("fetch", () => {
 
     // Second content is markdown text
     expect(res!.result!.content![1].text).toContain("Hello");
+  });
+
+  it("returns the public share url for a shared document", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: document.id,
+      published: true,
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "document",
+      id: document.id,
+    });
+
+    const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
+    expect(metadata.shareUrl).toMatch(/^https?:\/\//);
+    expect(metadata.shareUrl).toContain(`/s/${share.id}`);
+  });
+
+  it("omits shareUrl when the share is revoked", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    await buildShare({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: document.id,
+      published: true,
+      revokedAt: new Date(),
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "document",
+      id: document.id,
+    });
+
+    const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
+    expect(metadata.shareUrl).toBeUndefined();
+  });
+
+  it("returns the public share url for a shared collection", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      published: true,
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "collection",
+      id: collection.id,
+    });
+
+    const data = JSON.parse(res!.result!.content![0].text ?? "{}");
+    expect(data.shareUrl).toMatch(/^https?:\/\//);
+    expect(data.shareUrl).toContain(`/s/${share.id}`);
   });
 
   it("returns unresolved commentCount on documents", async () => {

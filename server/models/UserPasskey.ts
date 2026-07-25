@@ -10,13 +10,11 @@ import {
 } from "sequelize-typescript";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 import { UserPasskeyValidation } from "@shared/validations";
 import NotContainsUrl from "./validators/NotContainsUrl";
 import { SkipChangeset } from "./decorators/Changeset";
 
 @Table({ tableName: "user_passkeys", modelName: "user_passkey" })
-@Fix
 class UserPasskey extends IdModel<
   InferAttributes<UserPasskey>,
   Partial<InferCreationAttributes<UserPasskey>>

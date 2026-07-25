@@ -64,6 +64,8 @@ export default function Encrypted(target: object, propertyKey: string) {
   }
 
   return {
+    configurable: true,
+    enumerable: true,
     get() {
       const attributeOptions = getAttributes(target);
       const defaultValue = attributeOptions[propertyKey].allowNull ? null : "";

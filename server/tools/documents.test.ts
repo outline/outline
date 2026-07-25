@@ -12,10 +12,16 @@ import {
   Attachment,
   Document,
   GroupMembership,
+  SearchQuery,
   UserMembership,
 } from "@server/models";
+import { SearchQuerySource } from "@server/models/SearchQuery";
 import { getTestServer } from "@server/test/support";
-import { buildOAuthUser, callMcpTool, parseMcpListContent } from "@server/test/McpHelper";
+import {
+  buildOAuthUser,
+  callMcpTool,
+  parseMcpListContent,
+} from "@server/test/McpHelper";
 
 const server = getTestServer();
 
@@ -243,6 +249,49 @@ describe("list_documents", () => {
     const ids = data.map((d: { document: { id: string } }) => d.document.id);
 
     expect(ids).toContain(document.id);
+  });
+
+  it("records the search query with an mcp source", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Metaphysics",
+    });
+
+    await callMcpTool(server, accessToken, "list_documents", {
+      query: "Metaphysics",
+    });
+
+    const searchQuery = await SearchQuery.findOne({
+      where: { teamId: user.teamId, userId: user.id },
+    });
+    expect(searchQuery?.source).toEqual(SearchQuerySource.MCP);
+    expect(searchQuery?.query).toEqual("Metaphysics");
+  });
+
+  it("does not record a search query when listing recent documents", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    await callMcpTool(server, accessToken, "list_documents");
+
+    expect(await SearchQuery.count({ where: { teamId: user.teamId } })).toEqual(
+      0
+    );
   });
 });
 

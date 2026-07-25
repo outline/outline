@@ -12,6 +12,7 @@ import { EmbedDescriptor } from "@shared/editor/embeds";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import type { MenuItem } from "@shared/editor/types";
+import { toastNotice } from "~/editor/toastNotice";
 import { s } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
@@ -501,6 +502,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         onFileUploadStart,
         onFileUploadStop,
         onFileUploadProgress,
+        onNotice: toastNotice,
         isAttachment: inputRef.current?.accept === "*",
         attrs,
       });

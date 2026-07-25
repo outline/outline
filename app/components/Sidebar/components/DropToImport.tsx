@@ -32,7 +32,18 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
     collectionId || documentId,
     "Must provide either collectionId or documentId"
   );
-  useEventListener("dragenter", () => setPreRendered(true));
+
+  // Only prepare the dropzone for OS file drags, internal react-dnd drags
+  // fire native dragenter too
+  useEventListener("dragenter", (event: Event) => {
+    if (
+      typeof DragEvent !== "undefined" &&
+      event instanceof DragEvent &&
+      Array.from(event.dataTransfer?.types ?? []).includes("Files")
+    ) {
+      setPreRendered(true);
+    }
+  });
 
   const canCollection = usePolicy(collectionId);
   const canDocument = usePolicy(documentId);

@@ -19,6 +19,99 @@ describe("CacheHelper", () => {
     });
   });
 
+  describe("getDataOrSet", () => {
+    it("should coalesce concurrent same-key misses into one callback", async () => {
+      let calls = 0;
+      const callback = async () => {
+        calls++;
+        return "value";
+      };
+
+      const results = await Promise.all(
+        Array.from({ length: 10 }, () =>
+          CacheHelper.getDataOrSet("test:dedupe", callback, 60)
+        )
+      );
+
+      expect(calls).toEqual(1);
+      expect(results).toEqual(Array.from({ length: 10 }, () => "value"));
+      expect(await CacheHelper.getData("test:dedupe")).toEqual("value");
+    });
+
+    it("should return a cached falsy value without invoking the callback", async () => {
+      await CacheHelper.setData("test:falsy", null, 60);
+
+      let calls = 0;
+      const callback = async () => {
+        calls++;
+        return ["value"];
+      };
+
+      expect(
+        await CacheHelper.getDataOrSet("test:falsy", callback, 60)
+      ).toBeNull();
+      expect(calls).toEqual(0);
+    });
+
+    it("should cache a falsy callback result and not re-invoke on the next miss", async () => {
+      let calls = 0;
+      const callback = async () => {
+        calls++;
+        return null;
+      };
+
+      expect(
+        await CacheHelper.getDataOrSet<string[] | null>(
+          "test:null",
+          callback,
+          60
+        )
+      ).toBeNull();
+      expect(await CacheHelper.getData("test:null")).toBeNull();
+
+      expect(
+        await CacheHelper.getDataOrSet<string[] | null>(
+          "test:null",
+          callback,
+          60
+        )
+      ).toBeNull();
+      expect(calls).toEqual(1);
+    });
+
+    it("should not cache an undefined callback result", async () => {
+      let calls = 0;
+      const callback = async () => {
+        calls++;
+        return undefined;
+      };
+
+      expect(
+        await CacheHelper.getDataOrSet("test:undef", callback, 60)
+      ).toBeUndefined();
+      expect(
+        await CacheHelper.getDataOrSet("test:undef", callback, 60)
+      ).toBeUndefined();
+      expect(calls).toEqual(2);
+    });
+
+    it("should call the callback again after the in-flight promise settles", async () => {
+      let calls = 0;
+      const callback = async () => {
+        calls++;
+        return calls === 1 ? undefined : "value";
+      };
+
+      expect(
+        await CacheHelper.getDataOrSet("test:retry", callback, 60)
+      ).toBeUndefined();
+      expect(
+        await CacheHelper.getDataOrSet("test:retry", callback, 60)
+      ).toEqual("value");
+      expect(calls).toEqual(2);
+    });
+  });
+
   describe("removeData", () => {
     it("should remove a single key", async () => {
       await CacheHelper.setData("test:key", "value", 60);

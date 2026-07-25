@@ -34,7 +34,7 @@ export default function PdfViewer(props: Props) {
   const embedRef = useRef<HTMLEmbedElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { width, setSize, handlePointerDown, dragging } = useDragResize({
+  const { width, handlePointerDown, dragging } = useDragResize({
     width: node.attrs.width,
     height: node.attrs.height,
     naturalWidth,
@@ -42,16 +42,6 @@ export default function PdfViewer(props: Props) {
     onChangeSize,
     ref,
   });
-
-  useEffect(() => {
-    if (node.attrs.width && node.attrs.width !== width) {
-      setSize({
-        width: node.attrs.width,
-        height: node.attrs.height,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [node.attrs.width]);
 
   // force embed to reload, so the content fits the new size.
   useEffect(() => {

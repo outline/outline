@@ -17,7 +17,6 @@ import {
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
-import Fix from "./decorators/Fix";
 import IdModel from "./base/IdModel";
 import { IsIn } from "class-validator";
 import { ValidationError } from "@server/errors";
@@ -45,7 +44,6 @@ export enum AccessRequestStatus {
   tableName: "access_requests",
   modelName: "access_request",
 })
-@Fix
 class AccessRequest extends IdModel<
   InferAttributes<AccessRequest>,
   Partial<InferCreationAttributes<AccessRequest>>

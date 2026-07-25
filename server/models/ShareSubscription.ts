@@ -15,7 +15,6 @@ import { ValidationError } from "@server/errors";
 import Document from "./Document";
 import Share from "./Share";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 
 /**
  * A subscription to email notifications for updates to a publicly shared
@@ -30,7 +29,6 @@ import Fix from "./decorators/Fix";
   },
 }))
 @Table({ tableName: "share_subscriptions", modelName: "share_subscription" })
-@Fix
 class ShareSubscription extends IdModel<
   InferAttributes<ShareSubscription>,
   Partial<InferCreationAttributes<ShareSubscription>>

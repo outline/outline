@@ -20,10 +20,8 @@ import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Encrypted from "./decorators/Encrypted";
-import Fix from "./decorators/Fix";
 
 @Table({ tableName: "user_authentications", modelName: "user_authentication" })
-@Fix
 class UserAuthentication extends IdModel<
   InferAttributes<UserAuthentication>,
   Partial<InferCreationAttributes<UserAuthentication>>

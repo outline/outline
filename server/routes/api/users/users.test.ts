@@ -38,6 +38,29 @@ describe("#users.list", () => {
     expect(body.data[0].id).toEqual(user.id);
   });
 
+  it("should treat LIKE wildcards in the query as literal characters", async () => {
+    const user = await buildUser({
+      name: "Underscore",
+      email: "a_b@example.com",
+    });
+    // must not be matched by the "_" in the query
+    await buildUser({
+      name: "Wildcard",
+      email: "axb@example.com",
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/users.list", user, {
+      body: {
+        query: "a_b@example.com",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(user.id);
+  });
+
   it("should allow filtering by user name", async () => {
     const user = await buildUser({
       name: "Tèster",
@@ -235,16 +258,12 @@ describe("#users.list", () => {
     expect(body2.data[0].id).toEqual(user.id);
   });
 
-  it("should restrict guest from viewing other user's email", async () => {
+  it("should not allow guests to list users", async () => {
     const team = await buildTeam();
     await buildUser({ teamId: team.id });
     const guest = await buildUser({ teamId: team.id, role: UserRole.Guest });
     const res = await server.post("/api/users.list", guest);
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data).toHaveLength(2);
-    expect(body.data[0].email).toEqual(undefined);
-    expect(body.data[1].email).toEqual(guest.email);
+    expect(res.status).toEqual(403);
   });
 
   it("should restrict viewer from viewing other user's email", async () => {
@@ -269,24 +288,6 @@ describe("#users.list", () => {
     expect(body.data).toHaveLength(2);
     expect(body.data[0].email).toEqual(user.email);
     expect(body.data[1].email).toEqual(member.email);
-  });
-
-  it("should restrict guest from viewing other user's details", async () => {
-    const team = await buildTeam();
-    await buildUser({ teamId: team.id });
-    const guest = await buildUser({ teamId: team.id, role: UserRole.Guest });
-    const res = await server.post("/api/users.list", guest);
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data).toHaveLength(2);
-    expect(body.data[0].language).toEqual(undefined);
-    expect(body.data[0].preferences).toEqual(undefined);
-    expect(body.data[0].notificationSettings).toEqual(undefined);
-    expect(body.data[1].language).toEqual(guest.language);
-    expect(body.data[1].preferences).toEqual(guest.preferences);
-    expect(body.data[1].notificationSettings).toEqual(
-      guest.notificationSettings
-    );
   });
 
   it("should restrict viewer from viewing other user's details", async () => {
@@ -521,7 +522,7 @@ describe("#users.invite", () => {
     const user = await buildUser();
     const res = await server.post("/api/users.invite", user, {
       body: {
-        invites: new Array(21).fill({
+        invites: Array.from({ length: 21 }).fill({
           email: "test@example.com",
           name: "Test",
           role: "viewer",

@@ -15,6 +15,12 @@ describe("VerificationCode", () => {
       const code = VerificationCode.generate();
       expect(code).toMatch(/^\d{6}$/);
     });
+
+    it("should always produce exactly six digits across many samples", () => {
+      for (let i = 0; i < 1000; i++) {
+        expect(VerificationCode.generate()).toMatch(/^\d{6}$/);
+      }
+    });
   });
 
   describe("store and retrieve", () => {

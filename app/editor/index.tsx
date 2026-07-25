@@ -38,6 +38,7 @@ import { basicExtensions as extensions } from "@shared/editor/nodes";
 import type ReactNode from "@shared/editor/nodes/ReactNode";
 import type {
   ComponentProps,
+  EditorNotice,
   SelectionToolbarMenuDescriptor,
 } from "@shared/editor/types";
 import type {
@@ -54,7 +55,8 @@ import type { Properties } from "~/types";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
-import type { NodeViewRenderer } from "./components/NodeViewRenderer";
+import { NodeViewRenderer } from "./components/NodeViewRenderer";
+import type { PortalRenderer } from "./components/NodeViewRenderer";
 
 import WithTheme from "./components/WithTheme";
 import { isArray, isNull, map } from "es-toolkit/compat";
@@ -62,6 +64,7 @@ import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
+import { toastNotice } from "./toastNotice";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -160,6 +163,11 @@ export type Props = {
   ) => void;
   /** Callback when user presses any key with document focused */
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
+  /**
+   * Callback used to surface a short notice to the user. Defaults to rendering
+   * a toast so that shared editor code stays agnostic of the toast library.
+   */
+  onNotice?: EditorNotice;
   /** Collection of embed types to render in the document */
   embeds: EmbedDescriptor[];
   /** Display preferences for the logged in user, if any. */
@@ -181,6 +189,8 @@ type State = {
   isEditorFocused: boolean;
   /** Image that's being currently viewed in Lightbox */
   activeLightboxImage: LightboxImage | null;
+  /** The comment thread currently highlighted from its gutter indicator */
+  hoveredCommentId: string | null;
 };
 
 /**
@@ -203,6 +213,7 @@ export class Editor extends React.PureComponent<
     onFileUploadStop: () => {
       // no default behavior
     },
+    onNotice: toastNotice,
     embeds: [],
     extensions,
   };
@@ -211,6 +222,7 @@ export class Editor extends React.PureComponent<
     isRTL: false,
     isEditorFocused: false,
     activeLightboxImage: null,
+    hoveredCommentId: null,
   };
 
   isInitialized = false;
@@ -231,7 +243,9 @@ export class Editor extends React.PureComponent<
   };
 
   widgets: { [name: string]: React.FC<WidgetProps> };
-  renderers = observable.set<NodeViewRenderer<ComponentProps>>();
+  nodeRenderers = observable.set<NodeViewRenderer<ComponentProps>>();
+  decorationRenderers = observable.set<PortalRenderer>();
+  private portalDestroyers = new WeakMap<HTMLElement, () => void>();
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
@@ -287,7 +301,7 @@ export class Editor extends React.PureComponent<
 
       // NodeView will not automatically render when editable changes so we must trigger an update
       // manually, see: https://discuss.prosemirror.net/t/re-render-custom-nodeview-when-view-editable-changes/6441
-      Array.from(this.renderers).forEach((view) =>
+      Array.from(this.nodeRenderers).forEach((view) =>
         view.setProp("isEditable", false)
       );
     }
@@ -894,6 +908,55 @@ export class Editor extends React.PureComponent<
     return false;
   };
 
+  /**
+   * Renders a React component into the editor's shared React tree and returns a
+   * DOM element to mount it into — for example from a ProseMirror decoration
+   * widget. Because it joins the editor tree via a portal, the component
+   * inherits all editor context (theme, translations, stores) with no separate
+   * React root. Pair every call with destroyPortal in the widget's teardown.
+   *
+   * @param Component - The React component to render.
+   * @param props - The props to pass to the component.
+   * @param inline - Whether to mount into an inline element (default true).
+   * @returns the DOM element the component is rendered into.
+   */
+  public renderToPortal<P extends object>(
+    Component: React.FunctionComponent<P>,
+    props: P,
+    inline = true
+  ): HTMLElement {
+    const element = document.createElement(inline ? "span" : "div");
+    const renderer = new NodeViewRenderer(element, Component, props);
+    this.decorationRenderers.add(renderer);
+    this.portalDestroyers.set(element, () =>
+      this.decorationRenderers.delete(renderer)
+    );
+    return element;
+  }
+
+  /**
+   * Unmounts a component previously rendered with renderToPortal.
+   *
+   * @param element - The element returned by renderToPortal.
+   */
+  public destroyPortal(element: HTMLElement) {
+    this.portalDestroyers.get(element)?.();
+    this.portalDestroyers.delete(element);
+  }
+
+  /**
+   * Highlight (or clear) the comment thread whose gutter indicator is hovered.
+   * Applied as container CSS rather than by mutating the mark's DOM directly,
+   * which would trip ProseMirror's mutation observer and force a redraw.
+   *
+   * @param commentId - The comment thread id to highlight, or null to clear.
+   */
+  public setHoveredCommentId = (commentId: string | null) => {
+    if (this.state.hoveredCommentId !== commentId) {
+      this.setState({ hoveredCommentId: commentId });
+    }
+  };
+
   public render() {
     const { readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
@@ -917,6 +980,7 @@ export class Editor extends React.PureComponent<
               readOnly={readOnly}
               readOnlyWriteCheckboxes={canUpdate}
               focusedCommentId={this.props.focusedCommentId}
+              hoveredCommentId={this.state.hoveredCommentId ?? undefined}
               userId={this.props.userId}
               editorStyle={this.props.editorStyle}
               commenting={!!this.props.onClickCommentMark}
@@ -936,7 +1000,11 @@ export class Editor extends React.PureComponent<
               ))}
             <Observer>
               {() => (
-                <>{Array.from(this.renderers).map((view) => view.content)}</>
+                <>
+                  {[...this.nodeRenderers, ...this.decorationRenderers].map(
+                    (view) => view.content
+                  )}
+                </>
               )}
             </Observer>
           </Flex>
@@ -958,6 +1026,7 @@ export class Editor extends React.PureComponent<
 const EditorContainer = styled(Styles)<{
   userId?: string;
   focusedCommentId?: string;
+  hoveredCommentId?: string;
 }>`
   ${(props) =>
     props.focusedCommentId &&
@@ -971,6 +1040,24 @@ const EditorContainer = styled(Styles)<{
         }
       }
       a#comment-${props.focusedCommentId}
+        ~ span.component-image
+        div.image-wrapper {
+        outline: ${props.theme.commentedImageOutlineDark} solid 2px;
+      }
+    `}
+
+  ${(props) =>
+    props.hoveredCommentId &&
+    props.hoveredCommentId !== props.focusedCommentId &&
+    css`
+      span#comment-${props.hoveredCommentId} {
+        background: ${props.theme.commentMarkBackground};
+
+        * {
+          background: transparent !important;
+        }
+      }
+      a#comment-${props.hoveredCommentId}
         ~ span.component-image
         div.image-wrapper {
         outline: ${props.theme.commentedImageOutlineDark} solid 2px;

@@ -80,7 +80,7 @@ export default async function collectionCollaborativeUpdater({
     await collection.update(
       {
         content,
-        description: ProsemirrorHelper.isEmptyData(content)
+        description: ProsemirrorHelper.isEmpty(node)
           ? null
           : await DocumentHelper.toMarkdown(content),
         state: Buffer.from(state),

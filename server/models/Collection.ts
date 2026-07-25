@@ -51,7 +51,7 @@ import type {
   SourceMetadata,
   NavigationNode,
 } from "@shared/types";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, NavigationNodeType } from "@shared/types";
 import {
   MultiplayerEntityType,
   toMultiplayerName,
@@ -81,7 +81,6 @@ import UserMembership from "./UserMembership";
 import type { HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
 import { SkipChangeset } from "./decorators/Changeset";
-import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
@@ -212,7 +211,6 @@ type AdditionalFindOptions = {
   },
 }))
 @Table({ tableName: "collections", modelName: "collection" })
-@Fix
 class Collection extends ParanoidModel<
   InferAttributes<Collection>,
   Partial<InferCreationAttributes<Collection>>
@@ -1177,6 +1175,7 @@ class Collection extends ParanoidModel<
     id: this.id,
     title: this.name,
     url: this.path,
+    type: NavigationNodeType.Collection,
     icon: isNil(this.icon) ? undefined : this.icon,
     color: isNil(this.color) ? undefined : this.color,
     children: sortNavigationNodes(this.documentStructure ?? [], this.sort),

@@ -15,14 +15,16 @@ const dayStr = (d: Date) => format(d, "yyyy-MM-dd");
 describe("DocumentInsight.rollupPeriod", () => {
   it("writes nothing when no source activity exists in the window", async () => {
     const team = await buildTeam();
-    await buildDocument({ teamId: team.id });
+    const document = await buildDocument({ teamId: team.id });
 
+    // Scope the partition to just this document so the global rollup count
+    // isn't affected by activity from other tests sharing the database.
     const upserted = await DocumentInsight.rollupPeriod({
       periodStart: dayStr(subDays(new Date(), 1)),
       intervalDays: 1,
       period: DocumentInsightPeriod.Day,
-      startUuid: FULL_UUID_RANGE[0],
-      endUuid: FULL_UUID_RANGE[1],
+      startUuid: document.id,
+      endUuid: document.id,
     });
 
     expect(upserted).toBe(0);

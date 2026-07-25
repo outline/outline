@@ -13,6 +13,7 @@ import {
   RestoreIcon,
   SearchIcon,
   ShapesIcon,
+  SplitIcon,
   StarredIcon,
   SubscribeIcon,
   TrashIcon,
@@ -33,6 +34,7 @@ import {
   createInternalLinkAction,
   createActionWithChildren,
 } from "~/actions";
+import { dialogActionFactory } from "~/actions/definitions/common";
 import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import {
@@ -42,8 +44,10 @@ import {
 } from "~/utils/routeHelpers";
 import ExportDialog from "~/components/ExportDialog";
 import { getEventFiles } from "@shared/utils/files";
+import { isMobile } from "@shared/utils/browser";
 import history from "~/utils/history";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import { openRouteInSplit } from "~/utils/splitView";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
   <DynamicCollectionIcon collection={collection} />
@@ -74,22 +78,17 @@ export const openCollection = createActionWithChildren({
   },
 });
 
-export const createCollection = createAction({
-  name: ({ t }) => t("New collection"),
+export const createCollection = dialogActionFactory({
   analyticsName: "New collection",
   section: CollectionSection,
+  name: (t) => t("New collection"),
+  title: (t) => t("Create a collection"),
+  content: (onSubmit) => <CollectionNew onSubmit={onSubmit} />,
   icon: <PlusIcon />,
   keywords: "create",
+  stopEvent: true,
   visible: ({ stores }) =>
     stores.policies.abilities(stores.auth.team?.id || "").createCollection,
-  perform: ({ t, event, stores }) => {
-    event?.preventDefault();
-    event?.stopPropagation();
-    stores.dialogs.openModal({
-      title: t("Create a collection"),
-      content: <CollectionNew onSubmit={stores.dialogs.closeAllModals} />,
-    });
-  },
 });
 
 export const editCollection = createAction({
@@ -263,6 +262,21 @@ export const sortCollection = createActionWithChildren({
       },
     }),
   ],
+});
+
+export const openCollectionInSplit = createAction({
+  name: ({ t }) => t("Open in split view"),
+  analyticsName: "Open collection in split view",
+  section: ActiveCollectionSection,
+  icon: <SplitIcon />,
+  keywords: "split side pane",
+  visible: ({ getActiveModel }) => !!getActiveModel(Collection) && !isMobile(),
+  perform: ({ getActiveModel }) => {
+    const collection = getActiveModel(Collection);
+    if (collection) {
+      openRouteInSplit(history, collection.path);
+    }
+  },
 });
 
 export const searchInCollection = createInternalLinkAction({
@@ -539,6 +553,7 @@ export const createTemplate = createInternalLinkAction({
 
 export const rootCollectionActions = [
   openCollection,
+  openCollectionInSplit,
   createCollection,
   starCollection,
   unstarCollection,

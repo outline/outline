@@ -131,7 +131,6 @@ function SharedDocumentHeader({ document }: Props) {
             pathname: documentEditPath(document),
             state: { sidebarContext },
           }}
-          haptic="light"
           neutral
         >
           {isMobile ? null : t("Edit")}

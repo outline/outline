@@ -1,6 +1,6 @@
+import ColorSwatchPreview from "../extensions/ColorSwatchPreview";
 import DateTime from "../extensions/DateTime";
 import DeleteNearAtom from "../extensions/DeleteNearAtom";
-import HexColorPreview from "../extensions/HexColorPreview";
 import History from "../extensions/History";
 import InputRuleUndo from "../extensions/InputRuleUndo";
 import MaxLength from "../extensions/MaxLength";
@@ -71,7 +71,7 @@ export const inlineExtensions: Nodes = [
   DateTime,
   HardBreak,
   DeleteNearAtom,
-  HexColorPreview,
+  ColorSwatchPreview,
 ];
 
 export const listExtensions: Nodes = [

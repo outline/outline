@@ -12,7 +12,7 @@ import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
 import type { Props as NavLinkProps } from "./NavLink";
 import NavLink from "./NavLink";
-import type { ActionWithChildren } from "~/types";
+import type { ActionFactory, ActionWithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
 
@@ -58,7 +58,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   /** Whether to automatically scroll this link into view if needed */
   scrollIntoViewIfNeeded?: boolean;
   /** Optional context menu action to display */
-  contextAction?: ActionWithChildren;
+  contextAction?: ActionWithChildren | ActionFactory;
 };
 
 const activeDropStyle = {
@@ -237,6 +237,11 @@ const Content = styled.span`
 const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
   display: inline-flex;
   visibility: ${(props) => (props.$showActions ? "visible" : "hidden")};
+
+  [data-drag-active] & {
+    display: none;
+  }
+
   position: absolute;
   top: 3px;
   inset-inline-end: 4px;

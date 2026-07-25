@@ -18,7 +18,6 @@ import Document from "./Document";
 import Event from "./Event";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 import { SkipChangeset } from "./decorators/Changeset";
 
 @Scopes(() => ({
@@ -33,7 +32,6 @@ import { SkipChangeset } from "./decorators/Changeset";
   }),
 }))
 @Table({ tableName: "views", modelName: "view" })
-@Fix
 class View extends IdModel<
   InferAttributes<View>,
   Partial<InferCreationAttributes<View>>

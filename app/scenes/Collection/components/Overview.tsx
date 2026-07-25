@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { MultiplayerEntityType } from "@shared/collaboration/EntityName";
 import { richExtensions } from "@shared/editor/nodes";
 import { s } from "@shared/styles";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { CollectionValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
@@ -53,7 +53,7 @@ function Overview({ collection, readOnly }: Props) {
       const newDocument = await documents.create(
         {
           collectionId: collection.id,
-          data: ProsemirrorHelper.getEmptyDocument(),
+          data: ProsemirrorDataHelper.getEmpty(),
           ...params,
         },
         {

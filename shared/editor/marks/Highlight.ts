@@ -1,11 +1,10 @@
-import { isHexColor } from "class-validator";
 import { parseToRgb, rgba } from "polished";
 import type { MarkSpec, MarkType } from "prosemirror-model";
 import { toggleMark } from "../commands/toggleMark";
 import { markInputRuleForPattern } from "../lib/markInputRule";
 import markRule from "../rules/mark";
 import Mark from "./Mark";
-import { presetColors, hexToRgba } from "@shared/utils/color";
+import { presetColors, hexToRgba, validateColorHex } from "@shared/utils/color";
 
 export default class Highlight extends Mark {
   /** The default opacity of the highlight */
@@ -72,7 +71,7 @@ export default class Highlight extends Mark {
             const color = dom.getAttribute("data-color") || "";
 
             return {
-              color: isHexColor(color) ? color : null,
+              color: validateColorHex(color) ? color : null,
             };
           },
         },

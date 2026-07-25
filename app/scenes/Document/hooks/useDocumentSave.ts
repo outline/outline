@@ -12,6 +12,7 @@ import type Document from "~/models/Document";
 import Template from "~/models/Template";
 import type Revision from "~/models/Revision";
 import type { Editor as TEditor } from "~/editor";
+import useIsMounted from "~/hooks/useIsMounted";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import { documentEditPath } from "~/utils/routeHelpers";
@@ -96,6 +97,7 @@ export function useDocumentSave({
   const { auth, ui } = useStores();
   const history = useHistory();
   const sidebarContext = useLocationSidebarContext();
+  const isMounted = useIsMounted();
 
   // State
   const [isUploading, setIsUploading] = useState(false);
@@ -166,8 +168,10 @@ export function useDocumentSave({
 
       try {
         const savedDocument = await document.save(undefined, options);
-        setIsEditorDirty(false);
         isEditorDirtyRef.current = false;
+        if (isMounted()) {
+          setIsEditorDirty(false);
+        }
 
         if (options.done) {
           history.push({
@@ -185,11 +189,13 @@ export function useDocumentSave({
       } catch (err) {
         toast.error(errToString(err));
       } finally {
-        setIsSaving(false);
-        setIsPublishing(false);
+        if (isMounted()) {
+          setIsSaving(false);
+          setIsPublishing(false);
+        }
       }
     },
-    [document, editorRef, history, sidebarContext, ui]
+    [document, editorRef, history, sidebarContext, ui, isMounted]
   );
 
   const onSaveRef = useRef(onSave);

@@ -80,6 +80,19 @@ describe("AuthenticationHelper", () => {
         expect(canAccess("/api/users.create", scopes)).toBe(false);
       });
 
+      it("collections read scope grants access to membership listing", async () => {
+        const scopes = ["collections:read"];
+
+        expect(canAccess("/api/collections.list", scopes)).toBe(true);
+        expect(canAccess("/api/collections.memberships", scopes)).toBe(true);
+        expect(canAccess("/api/collections.group_memberships", scopes)).toBe(
+          true
+        );
+        expect(canAccess("/api/collections.add_user", scopes)).toBe(false);
+        expect(canAccess("/api/collections.remove_user", scopes)).toBe(false);
+        expect(canAccess("/api/documents.memberships", scopes)).toBe(false);
+      });
+
       it("write", async () => {
         const scopes = ["documents:write"];
 
@@ -115,6 +128,10 @@ describe("AuthenticationHelper", () => {
         expect(canAccess("/api/users.info", scopes)).toBe(true);
         expect(canAccess("/api/groups.info", scopes)).toBe(true);
         expect(canAccess("/api/collections.list", scopes)).toBe(true);
+        expect(canAccess("/api/collections.memberships", scopes)).toBe(true);
+        expect(canAccess("/api/collections.group_memberships", scopes)).toBe(
+          true
+        );
         expect(canAccess("/api/documents.create", scopes)).toBe(false);
         expect(canAccess("/api/documents.update", scopes)).toBe(false);
         expect(canAccess("/api/users.create", scopes)).toBe(false);

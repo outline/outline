@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { Action } from "~/components/Actions";
 import Breadcrumb from "~/components/Breadcrumb";
 import Button from "~/components/Button";
@@ -92,7 +92,7 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
   );
 
   const handleSubmit = useCallback(async () => {
-    if (!template.data || ProsemirrorHelper.isEmptyData(template.data)) {
+    if (!template.data || ProsemirrorDataHelper.isEmpty(template.data)) {
       toast.message(t("A template must have content"));
       return;
     }

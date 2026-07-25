@@ -302,6 +302,43 @@ export function getUrls(text: string) {
 }
 
 /**
+ * Removes the fragment (hash) from a url, if present.
+ *
+ * @param url The url to modify.
+ * @returns The url without its fragment.
+ */
+export function removeUrlFragment(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.hash = "";
+    return parsed.toString();
+  } catch (_err) {
+    return url.split("#")[0];
+  }
+}
+
+/**
+ * Removes a suffix from the end of a url's pathname, if present. The url is
+ * parsed rather than string-replaced so that a matching substring elsewhere in
+ * the url (such as the hostname) is not affected.
+ *
+ * @param url The url to modify.
+ * @param suffix The pathname suffix to remove (e.g. `/edit`).
+ * @returns The url with the suffix removed from the end of its pathname.
+ */
+export function removeUrlPathSuffix(url: string, suffix: string): string {
+  try {
+    const parsed = new URL(url);
+    if (parsed.pathname.endsWith(suffix)) {
+      parsed.pathname = parsed.pathname.slice(0, -suffix.length);
+    }
+    return parsed.toString();
+  } catch (_err) {
+    return url.endsWith(suffix) ? url.slice(0, -suffix.length) : url;
+  }
+}
+
+/**
  * Converts a url to a display friendly format, removing the protocol and trailing slash.
  *
  * @param url The url to convert.

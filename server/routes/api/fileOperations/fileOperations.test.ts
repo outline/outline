@@ -360,7 +360,11 @@ describe("#fileOperations.redirect", () => {
 });
 
 describe("#fileOperations.delete", () => {
-  it("should delete file operation", async () => {
+  it.each([
+    FileOperationState.Complete,
+    FileOperationState.Error,
+    FileOperationState.Expired,
+  ])("should delete %s export file operation", async (state) => {
     const team = await buildTeam();
     const admin = await buildAdmin({
       teamId: team.id,
@@ -369,7 +373,7 @@ describe("#fileOperations.delete", () => {
       type: FileOperationType.Export,
       teamId: team.id,
       userId: admin.id,
-      state: FileOperationState.Complete,
+      state,
     });
     const deleteResponse = await server.post(
       "/api/fileOperations.delete",
@@ -396,6 +400,23 @@ describe("#fileOperations.delete", () => {
         },
       })
     ).toBe(0);
+  });
+
+  it("should not delete an export file operation in a non-terminal state", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const exportData = await buildFileOperation({
+      type: FileOperationType.Export,
+      teamId: team.id,
+      userId: admin.id,
+      state: FileOperationState.Creating,
+    });
+    const res = await server.post("/api/fileOperations.delete", admin, {
+      body: {
+        id: exportData.id,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 
   it("should require authorization", async () => {

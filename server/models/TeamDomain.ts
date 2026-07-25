@@ -17,12 +17,10 @@ import { ValidationError } from "@server/errors";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
 import IsFQDN from "./validators/IsFQDN";
 import Length from "./validators/Length";
 
 @Table({ tableName: "team_domains", modelName: "team_domain" })
-@Fix
 class TeamDomain extends IdModel<
   InferAttributes<TeamDomain>,
   Partial<InferCreationAttributes<TeamDomain>>

@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import type WebhookSubscription from "~/models/WebhookSubscription";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import {
-  deleteWebhookSubscriptionFactory,
-  editWebhookSubscriptionFactory,
+  deleteWebhookSubscriptionActionFactory,
+  editWebhookSubscriptionActionFactory,
 } from "../actions";
 
 /**
@@ -17,8 +17,8 @@ export function useWebhookSubscriptionMenuActions(
 ) {
   const actions = useMemo(
     () => [
-      editWebhookSubscriptionFactory({ webhook }),
-      deleteWebhookSubscriptionFactory({ webhook }),
+      editWebhookSubscriptionActionFactory({ webhook }),
+      deleteWebhookSubscriptionActionFactory({ webhook }),
     ],
     [webhook]
   );

@@ -5,17 +5,17 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
-import { UserPreference } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { type NavigationNode, UserPreference } from "@shared/types";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import type Star from "~/models/Star";
 import type { RefHandle } from "~/components/EditableTitle";
+import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useBoolean from "~/hooks/useBoolean";
 import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
@@ -75,6 +75,8 @@ type StarredCollectionLinkProps = {
   isDraggingAnyStar: boolean;
 };
 
+const emptyChildDocuments: NavigationNode[] = [];
+
 const StarredDocumentLink = observer(function StarredDocumentLink({
   star,
   document,
@@ -102,7 +104,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     : undefined;
   const childDocuments = documentCollection
     ? documentCollection.getChildrenForDocument(document.id)
-    : [];
+    : emptyChildDocuments;
   const hasChildDocuments = childDocuments.length > 0;
   const displayChildDocuments = expanded && !isDragging;
   const expansion = useSidebarExpansionState(
@@ -152,7 +154,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
             document.fullWidth ??
             user.getPreference(UserPreference.FullWidthDocuments),
           title: input,
-          data: ProsemirrorHelper.getEmptyDocument(),
+          data: ProsemirrorDataHelper.getEmpty(),
         },
         { publish: true }
       );
@@ -298,7 +300,7 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
           collectionId: collection.id,
           title: input,
           fullWidth: user.getPreference(UserPreference.FullWidthDocuments),
-          data: ProsemirrorHelper.getEmptyDocument(),
+          data: ProsemirrorDataHelper.getEmpty(),
         },
         { publish: true }
       );
@@ -366,7 +368,7 @@ function StarredLink({ star }: Props) {
   const { documentId, collectionId } = star;
   const collection = collectionId ? collections.get(collectionId) : undefined;
   const document = documentId ? documents.get(documentId) : undefined;
-  const locationSidebarContext = useLocationSidebarContext();
+  const activeSidebarContext = useActiveSidebarContext();
   const sidebarContext = starredSidebarContext(
     star.documentId ?? star.collectionId ?? ""
   );
@@ -374,7 +376,7 @@ function StarredLink({ star }: Props) {
     (star.documentId
       ? star.documentId === ui.activeDocumentId
       : star.collectionId === ui.activeCollectionId) &&
-      sidebarContext === locationSidebarContext
+      sidebarContext === activeSidebarContext
   );
 
   const { event: disclosureEvent, onDisclosureClick } =
@@ -383,12 +385,12 @@ function StarredLink({ star }: Props) {
   React.useEffect(() => {
     if (
       star.documentId === ui.activeDocumentId &&
-      sidebarContext === locationSidebarContext
+      sidebarContext === activeSidebarContext
     ) {
       setExpanded(true);
     } else if (
       star.collectionId === ui.activeCollectionId &&
-      sidebarContext === locationSidebarContext
+      sidebarContext === activeSidebarContext
     ) {
       setExpanded(true);
     }
@@ -398,7 +400,7 @@ function StarredLink({ star }: Props) {
     ui.activeDocumentId,
     ui.activeCollectionId,
     sidebarContext,
-    locationSidebarContext,
+    activeSidebarContext,
   ]);
 
   useEffect(() => {

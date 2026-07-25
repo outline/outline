@@ -11,9 +11,9 @@ import type {
 import type { Command } from "prosemirror-state";
 import { Plugin, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { toast } from "sonner";
 import type { Primitive } from "utility-types";
 import { isSafari } from "../../utils/browser";
+import { removeUrlFragment, removeUrlPathSuffix } from "../../utils/urls";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import toggleBlockType from "../commands/toggleBlockType";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -125,13 +125,22 @@ export default class Heading extends Node<HeadingOptions> {
     const hash = `#${anchor.id}`;
 
     // the existing url might contain a hash already, lets make sure to remove
-    // that rather than appending another one.
-    const normalizedUrl = window.location.href
-      .split("#")[0]
-      .replace("/edit", "");
-    copy(normalizedUrl + hash);
-
-    toast.message(t("Link copied to clipboard"));
+    // that rather than appending another one, along with any /edit suffix.
+    const normalizedUrl = removeUrlPathSuffix(
+      removeUrlFragment(window.location.href),
+      "/edit"
+    );
+    try {
+      copy(normalizedUrl + hash);
+      this.editor.props.onNotice?.(t("Link copied to clipboard"));
+    } catch (_err) {
+      // Some browser contexts disable the prompt() fallback used by
+      // copy-to-clipboard, causing it to throw – surface it rather than crash.
+      this.editor.props.onNotice?.(
+        t("Sorry, the link could not be copied"),
+        "error"
+      );
+    }
   };
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {

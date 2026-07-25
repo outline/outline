@@ -12,7 +12,6 @@ import type {
 import type { Command, EditorState } from "prosemirror-state";
 import { Plugin, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
-import { toast } from "sonner";
 import { isUrl, sanitizeUrl } from "../../utils/urls";
 import { getMarkRange } from "../queries/getMarkRange";
 import Mark from "./Mark";
@@ -126,7 +125,10 @@ export default class Link extends Mark<LinkOptions> {
 
   keys(): Record<string, Command> {
     return {
-      "Mod-Enter": openLink(this.options.onClickLink),
+      "Mod-Enter": openLink(
+        this.options.onClickLink,
+        this.editor.props.onNotice
+      ),
     };
   }
 
@@ -135,7 +137,8 @@ export default class Link extends Mark<LinkOptions> {
       link: (attrs: Attrs) => toggleLink(attrs),
       addLink,
       updateLink,
-      openLink: (): Command => openLink(this.options.onClickLink),
+      openLink: (): Command =>
+        openLink(this.options.onClickLink, this.editor.props.onNotice),
       removeLink,
     };
   }
@@ -226,7 +229,10 @@ export default class Link extends Mark<LinkOptions> {
                   this.options.onClickLink(sanitized, event);
                 }
               } catch (_err) {
-                toast.error(t("Sorry, that type of link is not supported"));
+                this.editor.props.onNotice?.(
+                  t("Sorry, that type of link is not supported"),
+                  "error"
+                );
               }
 
               return true;

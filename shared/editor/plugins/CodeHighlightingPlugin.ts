@@ -114,8 +114,7 @@ function getDecorations({
           (block.node.textContent.match(/\n/g) || []).length + 1;
         const gutterWidth = String(lineCount).length;
 
-        const lineCountText = new Array(lineCount)
-          .fill(0)
+        const lineCountText = Array.from({ length: lineCount })
           .map((_, i) => padStart(`${i + 1}`, gutterWidth, " "))
           .join("\n");
 

@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import FilterOptions from "~/components/FilterOptions";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -20,6 +22,8 @@ function UserFilter(props: Props) {
   const { onSelect, userId } = props;
   const { t } = useTranslation();
   const { users } = useStores();
+  const team = useCurrentTeam();
+  const can = usePolicy(team);
 
   const options = useMemo(() => {
     const userOptions = users.all.map((user) => ({
@@ -43,7 +47,7 @@ function UserFilter(props: Props) {
       selectedKeys={[userId]}
       onSelect={onSelect}
       defaultLabel={t("Any author")}
-      fetchQuery={users.fetchPage}
+      fetchQuery={can.listUsers ? users.fetchPage : undefined}
       fetchQueryOptions={fetchQueryOptions}
       showFilter
     />

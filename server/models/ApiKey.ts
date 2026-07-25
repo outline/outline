@@ -21,7 +21,6 @@ import { hash } from "@server/utils/crypto";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import { SkipChangeset } from "./decorators/Changeset";
-import Fix from "./decorators/Fix";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import Length from "./validators/Length";
 
@@ -35,7 +34,6 @@ import Length from "./validators/Length";
     ],
   },
 }))
-@Fix
 class ApiKey extends ParanoidModel<
   InferAttributes<ApiKey>,
   Partial<InferCreationAttributes<ApiKey>>
