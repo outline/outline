@@ -62,11 +62,14 @@ export const EditorAwareHTML5Backend: BackendFactory = (
         }
         // A drag that began or entered the page over the editor is never
         // registered with react-dnd because those events are skipped above.
-        // The backend's drop handler assumes a registered drag and calls
+        // The backend's drop handlers assume a registered drag and may call
         // `actions.hover` unconditionally, which throws "Cannot call hover
         // while not dragging" – so drops without a tracked drag must be
         // ignored here.
-        if (name === "handleTopDrop" && !monitor.isDragging()) {
+        if (
+          (name === "handleTopDrop" || name === "handleTopDropCapture") &&
+          !monitor.isDragging()
+        ) {
           return;
         }
         original.call(backend, event);
