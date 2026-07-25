@@ -15,13 +15,12 @@ import Time from "../Time";
 import { UnreadBadge } from "../UnreadBadge";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { ContextMenu } from "../Menu/ContextMenu";
-import { createActionWithChildren } from "~/actions";
 import {
-  notificationMarkRead,
-  notificationMarkUnread,
-  notificationArchive,
+  notificationMarkReadActionFactory,
+  notificationMarkUnreadActionFactory,
+  notificationArchiveActionFactory,
 } from "~/actions/definitions/notifications";
-import { NotificationSection } from "~/actions/sections";
+import { useMenuAction } from "~/hooks/useMenuAction";
 import AccessRequestActions from "./AccessRequestActions";
 
 const CommentEditor = lazyWithRetry(
@@ -56,19 +55,15 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     onNavigate();
   };
 
-  const menuAction = React.useMemo(
-    () =>
-      createActionWithChildren({
-        name: ({ t }) => t("Notification options"),
-        section: NotificationSection,
-        children: [
-          notificationMarkRead(notification),
-          notificationMarkUnread(notification),
-          notificationArchive(notification),
-        ],
-      }),
+  const actions = React.useMemo(
+    () => [
+      notificationMarkReadActionFactory(notification),
+      notificationMarkUnreadActionFactory(notification),
+      notificationArchiveActionFactory(notification),
+    ],
     [notification]
   );
+  const menuAction = useMenuAction(actions);
 
   return (
     <ContextMenu action={menuAction} ariaLabel={t("Notification options")}>

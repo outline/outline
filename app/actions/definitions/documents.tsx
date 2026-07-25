@@ -1208,7 +1208,7 @@ export const openRandomDocument = createAction({
   },
 });
 
-export const searchDocumentsForQuery = (query: string) =>
+export const searchDocumentsForQueryActionFactory = (query: string) =>
   createInternalLinkAction({
     id: "search",
     name: ({ t }) =>
@@ -1608,7 +1608,7 @@ export const leaveDocument = createAction({
   },
 });
 
-export const applyTemplateFactory = ({
+export const applyTemplateActionFactory = ({
   actions,
 }: {
   actions: (Action | ActionGroup | ActionSeparator)[];

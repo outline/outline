@@ -5,7 +5,12 @@ import { toast } from "sonner";
 import { ExportContentType } from "@shared/types";
 import Revision from "~/models/Revision";
 import stores from "~/stores";
-import { createAction, createActionWithChildren } from "~/actions";
+import type { ActionContext } from "~/types";
+import {
+  createAction,
+  createActionWithChildren,
+  createInternalLinkAction,
+} from "~/actions";
 import { RevisionSection } from "~/actions/sections";
 import env from "~/env";
 import history from "~/utils/history";
@@ -15,36 +20,36 @@ import {
   urlify,
 } from "~/utils/routeHelpers";
 
-export const restoreRevision = createAction({
+function getActiveRevisionId({ location, getActiveModel }: ActionContext) {
+  const match = matchPath<{ revisionId: string }>(location.pathname, {
+    path: matchDocumentHistory,
+  });
+  return getActiveModel(Revision)?.id ?? match?.params.revisionId;
+}
+
+export const restoreRevision = createInternalLinkAction({
   name: ({ t }) => t("Restore"),
   analyticsName: "Restore revision",
   icon: <RestoreIcon />,
   section: RevisionSection,
-  visible: ({ activeDocumentId }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).update,
-  perform: async ({ event, location, activeDocumentId, getActiveModel }) => {
-    event?.preventDefault();
-    if (!activeDocumentId) {
-      return;
+  visible: (context) =>
+    !!context.activeDocumentId &&
+    stores.policies.abilities(context.activeDocumentId).update &&
+    !!getActiveRevisionId(context),
+  to: (context) => {
+    const revisionId = getActiveRevisionId(context);
+    const document = context.activeDocumentId
+      ? stores.documents.get(context.activeDocumentId)
+      : undefined;
+
+    if (!document || !revisionId) {
+      return context.location;
     }
 
-    const match = matchPath<{ revisionId: string }>(location.pathname, {
-      path: matchDocumentHistory,
-    });
-    const revisionId = getActiveModel(Revision)?.id ?? match?.params.revisionId;
-    if (!revisionId) {
-      return;
-    }
-
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
-      return;
-    }
-
-    history.push(document.url, {
-      restore: true,
-      revisionId,
-    });
+    return {
+      pathname: document.url,
+      state: { restore: true, revisionId },
+    };
   },
 });
 
@@ -80,7 +85,7 @@ export const deleteRevision = createAction({
   },
 });
 
-export const copyLinkToRevision = (revisionId: string) =>
+export const copyLinkToRevisionActionFactory = (revisionId: string) =>
   createAction({
     name: ({ t }) => t("Copy link"),
     analyticsName: "Copy link to revision",
@@ -101,13 +106,13 @@ export const copyLinkToRevision = (revisionId: string) =>
       copy(url, {
         format: "text/plain",
         onCopy: () => {
-          toast.message(t("Link copied"));
+          toast.message(t("Link copied to clipboard"));
         },
       });
     },
   });
 
-export const downloadRevisionAsHTML = (revisionId: string) =>
+export const downloadRevisionAsHTMLActionFactory = (revisionId: string) =>
   createAction({
     name: ({ t }) => t("HTML"),
     analyticsName: "Download revision as HTML",
@@ -124,7 +129,7 @@ export const downloadRevisionAsHTML = (revisionId: string) =>
     },
   });
 
-export const downloadRevisionAsPDF = (revisionId: string) =>
+export const downloadRevisionAsPDFActionFactory = (revisionId: string) =>
   createAction({
     name: ({ t }) => t("PDF"),
     analyticsName: "Download revision as PDF",
@@ -147,7 +152,7 @@ export const downloadRevisionAsPDF = (revisionId: string) =>
     },
   });
 
-export const downloadRevisionAsMarkdown = (revisionId: string) =>
+export const downloadRevisionAsMarkdownActionFactory = (revisionId: string) =>
   createAction({
     name: ({ t }) => t("Markdown"),
     analyticsName: "Download revision as Markdown",
@@ -164,7 +169,7 @@ export const downloadRevisionAsMarkdown = (revisionId: string) =>
     },
   });
 
-export const downloadRevision = (revisionId: string) =>
+export const downloadRevisionActionFactory = (revisionId: string) =>
   createActionWithChildren({
     name: ({ t, isMenu }) => (isMenu ? t("Download") : t("Download revision")),
     analyticsName: "Download revision",
@@ -175,9 +180,9 @@ export const downloadRevision = (revisionId: string) =>
       !!activeDocumentId &&
       stores.policies.abilities(activeDocumentId).download,
     children: [
-      downloadRevisionAsHTML(revisionId),
-      downloadRevisionAsPDF(revisionId),
-      downloadRevisionAsMarkdown(revisionId),
+      downloadRevisionAsHTMLActionFactory(revisionId),
+      downloadRevisionAsPDFActionFactory(revisionId),
+      downloadRevisionAsMarkdownActionFactory(revisionId),
     ],
   });
 
