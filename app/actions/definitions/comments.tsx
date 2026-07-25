@@ -92,7 +92,7 @@ export const copyCommentLinkActionFactory = ({
       }
 
       copy(urlify(commentPath(document, comment)));
-      toast.message(t("Link copied"));
+      toast.message(t("Link copied to clipboard"));
     },
   });
 

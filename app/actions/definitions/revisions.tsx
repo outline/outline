@@ -106,7 +106,7 @@ export const copyLinkToRevisionActionFactory = (revisionId: string) =>
       copy(url, {
         format: "text/plain",
         onCopy: () => {
-          toast.message(t("Link copied"));
+          toast.message(t("Link copied to clipboard"));
         },
       });
     },
