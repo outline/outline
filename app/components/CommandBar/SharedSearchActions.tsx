@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import useShare from "@shared/hooks/useShare";
 import { NavigationNodeType, type NavigationNode } from "@shared/types";
+import { flattenTree } from "@shared/utils/tree";
 import { createAction } from "~/actions";
 import {
   RecentSearchesSection,
@@ -25,18 +26,12 @@ import {
 const maxRecentDocs = 5;
 const serverSearchDelay = 350;
 
-/** Collects every non-collection node from a shared navigation tree. */
-function collectDocumentNodes(root: NavigationNode): NavigationNode[] {
-  const nodes: NavigationNode[] = [];
-  const walk = (node: NavigationNode) => {
-    if (node.type !== NavigationNodeType.Collection) {
-      nodes.push(node);
-    }
-    node.children?.forEach(walk);
-  };
-  walk(root);
-  return nodes;
-}
+/**
+ * A shared tree is rooted at the collection for collection shares, and at a
+ * document for document shares – only the latter are searchable.
+ */
+const isDocumentNode = (node: NavigationNode) =>
+  node.type !== NavigationNodeType.Collection;
 
 /**
  * Registers search result actions in the command bar scoped to a public share.
@@ -73,7 +68,7 @@ function SharedSearchActions() {
       return;
     }
 
-    const nodes = collectDocumentNodes(sharedTree);
+    const nodes = flattenTree(sharedTree).filter(isDocumentNode);
 
     return autorun(() => {
       feed(
@@ -101,15 +96,29 @@ function SharedSearchActions() {
     }
 
     const currentQuery = searchQuery;
+    let disposed = false;
+
     const handle = setTimeout(() => {
-      void documents.search({ query: currentQuery, shareId }).then((res) => {
-        feed(
-          res.map((result) => toSearchRecord(result.document, result.context))
-        );
-      });
+      void documents
+        .search({ query: currentQuery, shareId })
+        .then((res) => {
+          if (disposed) {
+            return;
+          }
+          feed(
+            res.map((result) => toSearchRecord(result.document, result.context))
+          );
+        })
+        .catch(() => {
+          // Failing to enrich the index is not worth surfacing, local results
+          // are still shown.
+        });
     }, serverSearchDelay);
 
-    return () => clearTimeout(handle);
+    return () => {
+      disposed = true;
+      clearTimeout(handle);
+    };
   }, [documents, searchQuery, shareId, feed]);
 
   const addRecentDoc = React.useCallback((doc: SearchIndexDocument) => {

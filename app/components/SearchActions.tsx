@@ -49,21 +49,34 @@ function SearchActions() {
       return;
     }
 
-    const now = Date.now();
     const cached = searchCache.current.get(searchQuery);
-    if (cached && now - cached < cacheTTL) {
+    if (cached && Date.now() - cached < cacheTTL) {
       return;
     }
 
     const currentQuery = searchQuery;
+    let disposed = false;
+
     const handle = setTimeout(() => {
-      void documents.searchTitles({ query: currentQuery }).then((res) => {
-        searchCache.current.set(currentQuery, now);
-        feed(res.map((result) => toSearchRecord(result.document)));
-      });
+      void documents
+        .searchTitles({ query: currentQuery })
+        .then((res) => {
+          searchCache.current.set(currentQuery, Date.now());
+          if (disposed) {
+            return;
+          }
+          feed(res.map((result) => toSearchRecord(result.document)));
+        })
+        .catch(() => {
+          // Failing to enrich the index is not worth surfacing, local results
+          // are still shown.
+        });
     }, serverSearchDelay);
 
-    return () => clearTimeout(handle);
+    return () => {
+      disposed = true;
+      clearTimeout(handle);
+    };
   }, [documents, searchQuery, feed]);
 
   const resultActions = React.useMemo(
