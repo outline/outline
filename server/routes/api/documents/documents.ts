@@ -83,7 +83,6 @@ import {
   presentGroup,
   presentFileOperation,
 } from "@server/presenters";
-import type { DocumentImportTaskResponse } from "@server/queues/tasks/DocumentImportTask";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import EmptyTrashTask from "@server/queues/tasks/EmptyTrashTask";
 import FileStorage from "@server/storage/files";
@@ -1604,7 +1603,7 @@ router.post(
       });
     }
 
-    const job = await new DocumentImportTask().schedule({
+    const document = await DocumentImportTask.scheduleAndWait({
       key,
       sourceMetadata: {
         fileName,
@@ -1614,16 +1613,8 @@ router.post(
       collectionId: collectionId ?? parentDocument?.collectionId,
       parentDocumentId,
       publish,
+      authType: ctx.state.auth.type,
       ip: ctx.request.ip,
-    });
-    const response: DocumentImportTaskResponse = await job.finished();
-    if ("error" in response) {
-      throw InvalidRequestError(response.error);
-    }
-
-    const document = await Document.findByPk(response.documentId, {
-      userId: user.id,
-      rejectOnEmpty: true,
     });
 
     ctx.body = {
