@@ -331,14 +331,6 @@ const DocumentLinkInner = observer(function DocumentLinkInner({
       if (!moveCollectionId) {
         return;
       }
-      if (expansion.isExpanded(node.id)) {
-        return {
-          documentId: item.id,
-          collectionId: moveCollectionId,
-          parentDocumentId: node.id,
-          index: 0,
-        };
-      }
       return {
         documentId: item.id,
         collectionId: moveCollectionId,
