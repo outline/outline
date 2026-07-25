@@ -1,6 +1,8 @@
 import "reflect-metadata";
 import { EventEmitter } from "node:events";
+import type { Job } from "bull";
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
+import type { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
 import { server } from "./msw";
@@ -61,6 +63,21 @@ void pluginModules;
 // no-op during tests.
 (PluginManager as unknown as { loaded: boolean }).loaded = true;
 
+// No worker consumes the task queue in tests, so a scheduled task is performed
+// lazily by the job handle instead. Callers that block on the result get it;
+// scheduling alone stays a no-op, as it is when the queue has no processor.
+const { BaseTask: BaseTaskClass } =
+  await import("@server/queues/tasks/base/BaseTask");
+
 beforeEach(() => {
   env.URL = sharedEnv.URL = "https://app.outline.dev";
+
+  vi.spyOn(BaseTaskClass.prototype, "schedule").mockImplementation(function (
+    this: BaseTask<object>,
+    props: object
+  ) {
+    return Promise.resolve({
+      finished: () => this.perform(props),
+    } as Job);
+  });
 });
