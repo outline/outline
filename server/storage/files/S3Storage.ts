@@ -241,7 +241,11 @@ export default class S3Storage extends BaseStorage {
 
       await pipeline(stream, fs.createWriteStream(tmpFile));
     } catch (err) {
-      await cleanup();
+      await cleanup().catch((rmErr) => {
+        Logger.error("Failed to remove tmp directory", toError(rmErr), {
+          tmpDir,
+        });
+      });
       throw err;
     }
 
