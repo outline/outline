@@ -76,7 +76,17 @@ export default class DocumentImportTask extends BaseTask<Props> {
     userId,
   }: Props): Promise<DocumentImportTaskResponse> {
     try {
-      const body = key ? await FileStorage.getFileBuffer(key) : (content ?? "");
+      let body: Buffer | string;
+      if (key) {
+        body = await FileStorage.getFileBuffer(key);
+      } else if (content !== undefined) {
+        // Empty content is valid and imports an empty document, so only a
+        // missing one is rejected.
+        body = content;
+      } else {
+        throw InvalidRequestError("one of key or content is required");
+      }
+
       const user = await User.findByPk(userId, {
         rejectOnEmpty: true,
       });
