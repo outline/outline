@@ -15,7 +15,7 @@ import Input from "~/components/Input";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import Icon from "./Icon";
-import { disconnectAnalyticsIntegrationFactory } from "~/actions/definitions/integrations";
+import { disconnectAnalyticsIntegrationActionFactory } from "~/actions/definitions/integrations";
 import Flex from "~/components/Flex";
 import styled from "styled-components";
 
@@ -127,7 +127,7 @@ function Matomo() {
           </StyledSubmit>
 
           <Button
-            action={disconnectAnalyticsIntegrationFactory(integration)}
+            action={disconnectAnalyticsIntegrationActionFactory(integration)}
             disabled={formState.isSubmitting}
             neutral
             hideIcon

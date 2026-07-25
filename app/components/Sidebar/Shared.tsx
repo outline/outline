@@ -57,6 +57,8 @@ function SharedSidebar({ share }: Props) {
 
   useEffect(() => {
     ui.tocVisible = share.showTOC;
+    // Only seed the initial visibility, the user can toggle it afterwards.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!rootNode?.children.length) {

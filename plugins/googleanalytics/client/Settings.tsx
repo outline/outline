@@ -15,7 +15,7 @@ import GoogleIcon from "~/components/Icons/GoogleIcon";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import { disconnectAnalyticsIntegrationFactory } from "~/actions/definitions/integrations";
+import { disconnectAnalyticsIntegrationActionFactory } from "~/actions/definitions/integrations";
 import Flex from "~/components/Flex";
 import styled from "styled-components";
 
@@ -106,7 +106,7 @@ function GoogleAnalytics() {
           </StyledSubmit>
 
           <Button
-            action={disconnectAnalyticsIntegrationFactory(integration)}
+            action={disconnectAnalyticsIntegrationActionFactory(integration)}
             disabled={formState.isSubmitting}
             neutral
             hideIcon

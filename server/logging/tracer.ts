@@ -40,6 +40,7 @@ let tracer: Tracer;
 // Note: the tracer is only loaded in worker processes. The throng master
 // supervises forked workers and never serves traffic.
 if (env.DD_API_KEY && cluster.isWorker) {
+  // oxlint-disable-next-line typescript/no-require-imports -- kept lazy so dd-trace stays off the startup path
   const ddTrace = require("dd-trace") as { default?: Tracer };
   tracer = ddTrace.default ?? (ddTrace as unknown as Tracer);
 

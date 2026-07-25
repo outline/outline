@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { InputIcon, SearchIcon } from "outline-icons";
+import { SearchIcon } from "outline-icons";
 import { ActionSeparator, createAction, createRootMenuAction } from "~/actions";
 import {
   restoreDocument,
@@ -20,7 +20,7 @@ import {
   unpublishDocument,
   archiveDocument,
   moveDocument,
-  applyTemplateFactory,
+  applyTemplateActionFactory,
   pinDocument,
   openDocumentComments,
   openDocumentHistory,
@@ -36,10 +36,10 @@ import {
   leaveDocument,
   permanentlyDeleteDocument,
 } from "~/actions/definitions/documents";
+import { renameActionFactory } from "~/actions/definitions/common";
 import { ActiveDocumentSection } from "~/actions/sections";
 import useMobile from "./useMobile";
 import type Template from "~/models/Template";
-import usePolicy from "./usePolicy";
 import { useTemplateMenuActions } from "./useTemplateMenuActions";
 
 type Props = {
@@ -61,7 +61,6 @@ export function useDocumentMenuAction({
 }: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
-  const can = usePolicy(documentId);
 
   const templateMenuActions = useTemplateMenuActions({
     documentId,
@@ -86,12 +85,10 @@ export function useDocumentMenuAction({
         }),
         ActionSeparator,
         editDocument,
-        createAction({
-          name: `${t("Rename")}…`,
+        renameActionFactory({
           section: ActiveDocumentSection,
-          icon: <InputIcon />,
-          visible: !!can.update && !!onRename,
-          perform: () => requestAnimationFrame(() => onRename?.()),
+          modelId: documentId,
+          onRename,
         }),
         shareDocument,
         createTemplateFromDocument,
@@ -100,7 +97,7 @@ export function useDocumentMenuAction({
         unpublishDocument,
         archiveDocument,
         moveDocument,
-        applyTemplateFactory({ actions: templateMenuActions }),
+        applyTemplateActionFactory({ actions: templateMenuActions }),
         importDocument,
         createNewDocument,
         createNewDocumentInAlphabeticalCollection,
@@ -121,6 +118,6 @@ export function useDocumentMenuAction({
         permanentlyDeleteDocument,
         leaveDocument,
       ]),
-    [t, isMobile, templateMenuActions, can.update, onFindAndReplace, onRename]
+    [t, isMobile, templateMenuActions, documentId, onFindAndReplace, onRename]
   );
 }

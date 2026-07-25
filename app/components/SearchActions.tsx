@@ -3,8 +3,8 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Minute } from "@shared/utils/time";
 import { createInternalLinkAction } from "~/actions";
-import { searchDocumentsForQuery } from "~/actions/definitions/documents";
-import { navigateToRecentSearchQuery } from "~/actions/definitions/navigation";
+import { searchDocumentsForQueryActionFactory } from "~/actions/definitions/documents";
+import { navigateToRecentSearchQueryActionFactory } from "~/actions/definitions/navigation";
 import { SearchResultsSection } from "~/actions/sections";
 import { SearchResultIcon } from "~/components/CommandBar/SearchResultIcon";
 import {
@@ -98,11 +98,15 @@ function SearchActions() {
   );
 
   useCommandBarActions(
-    searchQuery ? [...resultActions, searchDocumentsForQuery(searchQuery)] : [],
+    searchQuery
+      ? [...resultActions, searchDocumentsForQueryActionFactory(searchQuery)]
+      : [],
     [resultActions.map((a) => a.id).join(""), searchQuery]
   );
 
-  useCommandBarActions(searches.recent.map(navigateToRecentSearchQuery));
+  useCommandBarActions(
+    searches.recent.map(navigateToRecentSearchQueryActionFactory)
+  );
 
   return null;
 }

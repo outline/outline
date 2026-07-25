@@ -115,6 +115,9 @@ const CollectionScene = observer(function CollectionScene_() {
     }
 
     void fetchData();
+    // Fetched once on mount, the slug in `id` also changes when the collection
+    // is renamed which must not trigger a refetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

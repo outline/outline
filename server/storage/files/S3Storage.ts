@@ -1,12 +1,13 @@
+import os from "node:os";
 import path from "node:path";
 import type { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import type * as AwsS3 from "@aws-sdk/client-s3";
 import type { ObjectCannedACL, S3Client } from "@aws-sdk/client-s3";
 import type { PresignedPostOptions } from "@aws-sdk/s3-presigned-post";
 import fs from "fs-extra";
 import invariant from "invariant";
 import { compact } from "es-toolkit/compat";
-import tmp from "tmp";
 import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -227,36 +228,28 @@ export default class S3Storage extends BaseStorage {
     return this.getS3PresignedUrl(key, expiresIn);
   };
 
-  public getFileHandle(key: string): Promise<{
-    path: string;
-    cleanup: () => Promise<void>;
-  }> {
-    return new Promise((resolve, reject) => {
-      tmp.dir((err, tmpDir) => {
-        if (err) {
-          return reject(err);
-        }
-        const tmpFile = path.join(tmpDir, "tmp");
-        const dest = fs.createWriteStream(tmpFile);
-        dest.on("error", reject);
-        dest.on("finish", () =>
-          resolve({ path: tmpFile, cleanup: () => fs.rm(tmpFile) })
-        );
+  public async getFileHandle(key: string) {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "outline-"));
+    const tmpFile = path.join(tmpDir, "tmp");
+    const cleanup = removeDir(tmpDir);
 
-        void this.getFileStream(key).then((stream) => {
-          if (!stream) {
-            return reject(new Error("No stream available"));
-          }
+    try {
+      const stream = await this.getFileStream(key);
+      if (!stream) {
+        throw new Error("No stream available");
+      }
 
-          stream
-            .on("error", (error) => {
-              dest.end();
-              reject(error);
-            })
-            .pipe(dest);
+      await pipeline(stream, fs.createWriteStream(tmpFile));
+    } catch (err) {
+      await cleanup().catch((rmErr) => {
+        Logger.error("Failed to remove tmp directory", toError(rmErr), {
+          tmpDir,
         });
       });
-    });
+      throw err;
+    }
+
+    return { path: tmpFile, cleanup };
   }
 
   public async getFileExists(key: string): Promise<boolean> {
@@ -462,3 +455,12 @@ export default class S3Storage extends BaseStorage {
     return env.AWS_S3_ACCELERATE_URL || env.AWS_S3_UPLOAD_BUCKET_NAME || "";
   }
 }
+
+/**
+ * Creates a callback that recursively removes the given directory. Defined at
+ * module scope so the returned function captures only the path.
+ *
+ * @param dir the directory to remove.
+ * @returns a function that removes the directory.
+ */
+const removeDir = (dir: string) => () => fs.remove(dir);

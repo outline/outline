@@ -22,6 +22,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "~/components/primitives/Popover";
+import { useClearSearchHighlight } from "~/hooks/useClearSearchHighlight";
 import useKeyDown from "~/hooks/useKeyDown";
 import Desktop from "~/utils/Desktop";
 import { useEditor } from "./EditorContext";
@@ -106,6 +107,7 @@ export default function FindAndReplace({
   const inputReplaceRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
   const theme = useTheme();
+  const clearSearchHighlight = useClearSearchHighlight();
   const [showReplace, setShowReplace] = React.useState(false);
   const [caseSensitive, setCaseSensitive] = React.useState(false);
   const [regexEnabled, setRegex] = React.useState(false);
@@ -336,6 +338,8 @@ export default function FindAndReplace({
   React.useEffect(() => {
     if (localOpen) {
       onOpen();
+      // The find controls take over highlighting from here.
+      clearSearchHighlight();
       const startSearchText = selectionRef.current || searchTerm;
 
       editor.commands.find({

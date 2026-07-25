@@ -94,21 +94,15 @@ const Image = (props: Props) => {
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const lastTapTimeRef = React.useRef(0);
   const ref = React.useRef<HTMLDivElement>(null);
-  const {
-    width,
-    height,
-    setSize,
-    handlePointerDown,
-    handleDoubleClick,
-    dragging,
-  } = useDragResize({
-    width: node.attrs.width ?? naturalWidth,
-    height: node.attrs.height ?? naturalHeight,
-    naturalWidth,
-    naturalHeight,
-    onChangeSize,
-    ref,
-  });
+  const { width, height, handlePointerDown, handleDoubleClick, dragging } =
+    useDragResize({
+      width: node.attrs.width ?? naturalWidth,
+      height: node.attrs.height ?? naturalHeight,
+      naturalWidth,
+      naturalHeight,
+      onChangeSize,
+      ref,
+    });
 
   const isFullWidth = layoutClass === "full-width";
   const isInlineIcon = isInlineImageIcon({ layoutClass, width, error });
@@ -116,15 +110,6 @@ const Image = (props: Props) => {
   const isDownloadable = !!props.onDownload && !error;
 
   const className = imageClassName({ layoutClass, width, error });
-
-  React.useEffect(() => {
-    if (node.attrs.width && node.attrs.width !== width) {
-      setSize({
-        width: node.attrs.width,
-        height: node.attrs.height,
-      });
-    }
-  }, [node.attrs.width]);
 
   const sanitizedSrc = sanitizeImageSrc(src);
   const linkMarkType = props.view.state.schema.marks.link;
@@ -261,16 +246,11 @@ const Image = (props: Props) => {
                 // seen and is not sized to 0px
                 const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
                 const nh = (ev.target as HTMLImageElement).naturalHeight;
+                // When no width is set on the node the natural size is what the
+                // image is displayed at, so it feeds straight into useDragResize.
                 setNaturalWidth(nw);
                 setNaturalHeight(nh);
                 setLoaded(true);
-
-                if (!node.attrs.width) {
-                  setSize((state) => ({
-                    ...state,
-                    width: nw,
-                  }));
-                }
               }}
               onClick={handleImageClick}
               onTouchStart={handleImageTouchStart}

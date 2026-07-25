@@ -3,9 +3,9 @@ import type Share from "~/models/Share";
 import usePolicy from "~/hooks/usePolicy";
 import { ActionSeparator } from "~/actions";
 import {
-  copyShareUrlFactory,
-  goToShareSourceFactory,
-  revokeShareFactory,
+  copyShareUrlActionFactory,
+  goToShareSourceActionFactory,
+  revokeShareActionFactory,
 } from "~/actions/definitions/shares";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
@@ -23,10 +23,10 @@ export function useShareMenuActions(targetShare: Share | null) {
       !targetShare
         ? []
         : [
-            copyShareUrlFactory({ share: targetShare }),
-            goToShareSourceFactory({ share: targetShare }),
+            copyShareUrlActionFactory({ share: targetShare }),
+            goToShareSourceActionFactory({ share: targetShare }),
             ActionSeparator,
-            revokeShareFactory({ share: targetShare, can }),
+            revokeShareActionFactory({ share: targetShare, can }),
           ],
     [targetShare, can]
   );

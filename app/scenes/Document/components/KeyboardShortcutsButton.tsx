@@ -29,6 +29,9 @@ function KeyboardShortcutsButton() {
     if (shortcutsQuery !== null) {
       handleOpenKeyboardShortcuts(shortcutsQuery);
     }
+    // Only the query param should open the guide, re-running when the handler
+    // identity changes would reopen an already dismissed dialog.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shortcutsQuery]);
 
   return (

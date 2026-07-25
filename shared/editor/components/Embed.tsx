@@ -22,25 +22,14 @@ const Embed = (props: Props) => {
   const naturalHeight = 400;
   const isResizable = !!onChangeSize && !embedsDisabled;
 
-  const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
-    {
-      width: node.attrs.width ?? naturalWidth,
-      height: node.attrs.height ?? naturalHeight,
-      naturalWidth,
-      naturalHeight,
-      onChangeSize,
-      ref,
-    }
-  );
-
-  React.useEffect(() => {
-    if (node.attrs.height && node.attrs.height !== height) {
-      setSize({
-        width: node.attrs.width,
-        height: node.attrs.height,
-      });
-    }
-  }, [node.attrs.height]);
+  const { width, height, handlePointerDown, dragging } = useDragResize({
+    width: node.attrs.width ?? naturalWidth,
+    height: node.attrs.height ?? naturalHeight,
+    naturalWidth,
+    naturalHeight,
+    onChangeSize,
+    ref,
+  });
 
   const style: React.CSSProperties = {
     width: width || "100%",

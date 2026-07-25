@@ -54,6 +54,9 @@ const useIconColor = (collection?: Collection) => {
       (hasMultipleCollections && collectionColors.length === 1
         ? collectionColors[0]
         : randomElement(colorPalette)),
+    // Deliberately only keyed on the collection color so the randomly picked
+    // fallback stays stable while the form is open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [collection?.color]
   );
   return iconColor;
