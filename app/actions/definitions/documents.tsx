@@ -66,6 +66,7 @@ import {
 import {
   ActiveDocumentSection,
   DocumentSection,
+  SearchResultsSection,
   TrashSection,
 } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
@@ -1227,7 +1228,8 @@ export const searchDocumentsForQueryActionFactory = (query: string) =>
     name: ({ t }) =>
       t(`Search documents for "{{searchQuery}}"`, { searchQuery: query }),
     analyticsName: "Search documents",
-    section: DocumentSection,
+    section: SearchResultsSection,
+    priority: -1,
     icon: <SearchIcon />,
     to: searchPath({ query }),
     visible: ({ location }) => location.pathname !== searchPath(),
