@@ -176,10 +176,15 @@ function SharedSearchActions() {
     [recentDocs, shareId]
   );
 
+  // Enriching the index can change snippets without changing which documents
+  // matched, so the key must cover contexts as well as ids.
+  const resultsKey = React.useMemo(
+    () => results.map((r) => `${r.document.id}:${r.context ?? ""}`).join(""),
+    [results]
+  );
+
   useCommandBarActions(searchQuery ? actions : recentDocActions, [
-    searchQuery
-      ? actions.map((a) => a.id).join("")
-      : recentDocActions.map((a) => a.id).join(""),
+    searchQuery ? resultsKey : recentDocActions.map((a) => a.id).join(""),
     searchQuery,
   ]);
 

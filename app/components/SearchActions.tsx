@@ -61,10 +61,10 @@ function SearchActions() {
       void documents
         .searchTitles({ query: currentQuery })
         .then((res) => {
-          searchCache.current.set(currentQuery, Date.now());
           if (disposed) {
             return;
           }
+          searchCache.current.set(currentQuery, Date.now());
           feed(res.map((result) => toSearchRecord(result.document)));
         })
         .catch(() => {
@@ -97,11 +97,18 @@ function SearchActions() {
     [results, searchQuery]
   );
 
+  // Enriching the index can change snippets without changing which documents
+  // matched, so the key must cover contexts as well as ids.
+  const resultsKey = React.useMemo(
+    () => results.map((r) => `${r.document.id}:${r.context ?? ""}`).join(""),
+    [results]
+  );
+
   useCommandBarActions(
     searchQuery
       ? [...resultActions, searchDocumentsForQueryActionFactory(searchQuery)]
       : [],
-    [resultActions.map((a) => a.id).join(""), searchQuery]
+    [resultsKey, searchQuery]
   );
 
   useCommandBarActions(
