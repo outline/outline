@@ -49,7 +49,9 @@ function usePosition({
   const [menuWidth, setMenuWidth] = React.useState(0);
   const menuHeight = 36;
 
-  // Measure the menu width after DOM updates to ensure accurate positioning
+  // Measure the menu width after DOM updates to ensure accurate positioning.
+  // Runs after every render by design, the width comparison prevents a loop.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useLayoutEffect(() => {
     if (menuRef.current) {
       const width = menuRef.current.offsetWidth;

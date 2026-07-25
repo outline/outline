@@ -40,6 +40,9 @@ const Embed = (props: Props) => {
         height: node.attrs.height,
       });
     }
+    // Only react to the node attribute changing, depending on the local
+    // `height` would overwrite the size mid-drag.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [node.attrs.height]);
 
   const style: React.CSSProperties = {

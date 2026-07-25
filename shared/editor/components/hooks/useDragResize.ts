@@ -224,6 +224,7 @@ export default function useDragResize(props: Params): ReturnValue {
       naturalHeight,
       minHeight,
       constrainWidth,
+      isCentered,
     ]
   );
 

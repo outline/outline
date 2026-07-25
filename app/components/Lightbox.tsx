@@ -280,6 +280,9 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
         onClose();
       }
     },
+    // Transitions below are driven by the lightbox state machine only, adding
+    // the callbacks or unrelated status fields would re-run them out of order.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [status.lightbox]
   );
 
@@ -288,6 +291,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
       lightbox: LightboxStatus.READY_TO_OPEN,
       image: status.image,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -309,6 +313,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
         image: status.image,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status.image, status.lightbox]);
 
   useEffect(() => {
@@ -332,12 +337,14 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
         image: status.image,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status.lightbox]);
 
   useEffect(() => {
     if (status.lightbox === LightboxStatus.CLOSED) {
       onUpdate(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status.lightbox]);
 
   useEffect(() => {
@@ -683,6 +690,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
     if (activeImage && status.lightbox === LightboxStatus.OPENED) {
       void downloadImage(activeImage.src, activeImage.alt);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeImage, status.lightbox]);
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
@@ -1073,6 +1081,8 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function Image_(
 
   useEffect(() => {
     onLoading();
+    // Reset to the loading state whenever a different image is shown.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
   useEffect(() => {
