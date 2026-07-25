@@ -46,8 +46,6 @@ type ReturnValue = {
   ) => (event: React.PointerEvent<HTMLDivElement>) => void;
   /** Event handler for double-click event on the resize handle. */
   handleDoubleClick: () => void;
-  /** Handler to set the new size of the element from outside. */
-  setSize: React.Dispatch<React.SetStateAction<SizeState>>;
   /** Whether the element is currently being resized. */
   dragging: DragDirection | undefined;
   /** The current width of the element. */
@@ -59,9 +57,9 @@ type ReturnValue = {
 type Params = {
   /** Callback triggered when the image is resized */
   onChangeSize?: undefined | ((size: SizeState) => void);
-  /** The initial width of the element. */
+  /** The committed width of the element, this is the source of truth. */
   width: number;
-  /** The initial height of the element. */
+  /** The committed height of the element, this is the source of truth. */
   height: number;
   /** The natural width of the element. */
   naturalWidth: number;
@@ -88,15 +86,38 @@ export default function useDragResize(props: Params): ReturnValue {
     isCentered = true,
   } = props;
 
-  const [size, setSize] = React.useState<SizeState>({
+  // The committed size passed in through props is the source of truth. `draft`
+  // holds the size being previewed while resizing and is released once the
+  // committed size arrives back through props, so the element never flashes at
+  // its previous size between the drag ending and the change round-tripping.
+  const [draft, setDraft] = React.useState<SizeState | null>(null);
+  const [committed, setCommitted] = React.useState<SizeState>({
     width: props.width,
     height: props.height,
   });
   const [maxWidth, setMaxWidth] = React.useState(Infinity);
   const [offset, setOffset] = React.useState({ x: 0, y: 0 });
-  const [sizeAtDragStart, setSizeAtDragStart] = React.useState(size);
+  const [sizeAtDragStart, setSizeAtDragStart] = React.useState<SizeState>({
+    width: props.width,
+    height: props.height,
+  });
   const [dragging, setDragging] = React.useState<DragDirection>();
   const isResizable = !!onChangeSize;
+
+  // Release the draft whenever the committed size changes, whether that's this
+  // element's own resize landing or an external change such as undo, a reset,
+  // or a collaborator resizing the same node. Skipped while dragging so a
+  // remote change cannot yank the element out from under the pointer.
+  if (
+    !dragging &&
+    (!Object.is(committed.width, props.width) ||
+      !Object.is(committed.height, props.height))
+  ) {
+    setCommitted({ width: props.width, height: props.height });
+    setDraft(null);
+  }
+
+  const size = draft ?? { width: props.width, height: props.height };
 
   // Mirror the latest size into a ref so handlePointerUp can read it without
   // re-binding listeners on every pointermove that updates size.
@@ -175,7 +196,7 @@ export default function useDragResize(props: Params): ReturnValue {
             : undefined
           : sizeAtDragStart.height;
 
-        setSize({
+        setDraft({
           width: nextWidth,
           height: nextHeight,
         });
@@ -197,21 +218,23 @@ export default function useDragResize(props: Params): ReturnValue {
         const heightOnGrid = Math.round(newHeight / gridHeight) * gridHeight;
         const nextHeight = Math.max(heightOnGrid, minHeight ?? 50);
 
-        setSize((state) => {
-          const nextState = {
-            ...state,
-            height: nextHeight,
-          };
-          window.dispatchEvent(
-            new CustomEvent("media-drag-resize", {
-              detail: {
-                ...nextState,
-                isDragging: true,
-              },
-            })
-          );
-          return nextState;
-        });
+        // Vertical-only drags never adjust the width, so it is carried over
+        // from the current size rather than recomputed.
+        const nextState = {
+          width: sizeRef.current.width,
+          height: nextHeight,
+        };
+
+        setDraft(nextState);
+
+        window.dispatchEvent(
+          new CustomEvent("media-drag-resize", {
+            detail: {
+              ...nextState,
+              isDragging: true,
+            },
+          })
+        );
       }
     },
     [
@@ -224,6 +247,7 @@ export default function useDragResize(props: Params): ReturnValue {
       naturalHeight,
       minHeight,
       constrainWidth,
+      isCentered,
     ]
   );
 
@@ -254,7 +278,7 @@ export default function useDragResize(props: Params): ReturnValue {
         event.preventDefault();
         event.stopPropagation();
 
-        setSize(sizeAtDragStart);
+        setDraft(sizeAtDragStart);
         setDragging(undefined);
 
         window.dispatchEvent(
@@ -280,7 +304,7 @@ export default function useDragResize(props: Params): ReturnValue {
       width: naturalWidth,
       height: naturalHeight,
     };
-    setSize(newSize);
+    setDraft(newSize);
     onChangeSize?.(newSize);
   };
 
@@ -346,7 +370,6 @@ export default function useDragResize(props: Params): ReturnValue {
     handlePointerDown,
     handleDoubleClick,
     dragging,
-    setSize,
     width: size.width,
     height: size.height,
   };

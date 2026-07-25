@@ -121,7 +121,8 @@
             "ignoreRestSiblings": true
           }
         ],
-        "react/rules-of-hooks": "error"
+        "react/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "error"
       },
       "plugins": ["eslint", "oxc", "react", "typescript", "import"]
     },

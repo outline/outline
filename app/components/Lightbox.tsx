@@ -15,6 +15,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useReducer,
   useRef,
   useState,
 } from "react";
@@ -65,28 +66,13 @@ import { useDocumentContext } from "./DocumentContext";
 import LightboxComments from "~/scenes/Document/components/Comments/LightboxComments";
 import { PortalContext } from "./Portal";
 import useHideElement from "~/hooks/useHideElement";
-
-export enum LightboxStatus {
-  READY_TO_OPEN,
-  OPENING,
-  OPENED,
-  READY_TO_CLOSE,
-  CLOSING,
-  CLOSED,
-}
-
-export enum ImageStatus {
-  LOADING,
-  ERROR,
-  LOADED,
-  MIN_ZOOM,
-  MAX_ZOOM,
-  ZOOMED,
-}
-type Status = {
-  lightbox: LightboxStatus | null;
-  image: ImageStatus | null;
-};
+import type { Status } from "./LightboxState";
+import {
+  ImageStatus,
+  LightboxStatus,
+  initialStatus,
+  reducer,
+} from "./LightboxState";
 
 type Animation = {
   fadeIn?: { apply: () => Keyframes; duration: number };
@@ -97,6 +83,35 @@ type Animation = {
 };
 
 const ANIMATION_DURATION = 0.3 * Second.ms;
+
+/**
+ * Converts an SVG data URL, as produced by the diagram and mermaid embeds, into
+ * a blob that can be downloaded.
+ *
+ * @param dataURL The data URL to convert.
+ * @returns The blob, or undefined if the URL is not an SVG data URL.
+ */
+const svgDataURLToBlob = (dataURL: string) => {
+  // Match the SVG data URL format (with or without charset)
+  const match = dataURL.match(
+    /^data:image\/svg\+xml(?:;charset=utf-8)?,(.*)$/i
+  );
+  if (!match) {
+    return;
+  }
+
+  const encodedSVGData = match[1];
+  const decodedSVGData = decodeURIComponent(encodedSVGData);
+
+  // Convert string to Uint8Array
+  const uint8 = new Uint8Array(decodedSVGData.length);
+  for (let i = 0; i < decodedSVGData.length; ++i) {
+    uint8[i] = decodedSVGData.charCodeAt(i);
+  }
+
+  // Create and return the Blob
+  return new Blob([uint8], { type: "image/svg+xml" });
+};
 
 /**
  * Stops a React synthetic event from propagating to ancestor handlers, including
@@ -243,7 +258,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   const imgRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
-  const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
+  const [status, dispatch] = useReducer(reducer, initialStatus);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentsRendered, setCommentsRendered] = useState(false);
   const [commentsVisible, setCommentsVisible] = useState(false);
@@ -267,111 +282,39 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
     (img) => img.pos === activeImage.pos
   );
 
-  // Debugging status changes
-  // useEffect(() => {
-  //   console.log(
-  //     `lstat:${status.lightbox === null ? status.lightbox : LightboxStatus[status.lightbox]}, istat:${status.image === null ? status.image : ImageStatus[status.image]}`
-  //   );
-  // }, [status]);
-
-  useEffect(
-    () => () => {
-      if (status.lightbox === LightboxStatus.CLOSED) {
-        onClose();
-      }
-    },
-    [status.lightbox]
+  const handleImageLoading = useCallback(
+    () => dispatch({ type: "imageLoading" }),
+    []
+  );
+  const handleImageLoad = useCallback(
+    () => dispatch({ type: "imageLoaded" }),
+    []
+  );
+  const handleImageError = useCallback(
+    () => dispatch({ type: "imageErrored" }),
+    []
+  );
+  const handleMinZoom = useCallback(
+    () => dispatch({ type: "zoomChanged", zoom: ImageStatus.MIN_ZOOM }),
+    []
+  );
+  const handleZoom = useCallback(
+    () => dispatch({ type: "zoomChanged", zoom: ImageStatus.ZOOMED }),
+    []
+  );
+  const handleMaxZoom = useCallback(
+    () => dispatch({ type: "zoomChanged", zoom: ImageStatus.MAX_ZOOM }),
+    []
   );
 
+  // Keep the latest callbacks in a ref so the close sequence can fire them
+  // without re-running when the caller passes new function identities.
+  const callbacks = useRef({ onUpdate, onClose });
   useEffect(() => {
-    setStatus({
-      lightbox: LightboxStatus.READY_TO_OPEN,
-      image: status.image,
-    });
-  }, []);
+    callbacks.current = { onUpdate, onClose };
+  });
 
-  useEffect(() => {
-    if (status.image === ImageStatus.LOADED) {
-      rememberImagePosition();
-    }
-  }, [status.image]);
-
-  useEffect(() => {
-    if (
-      (status.image === ImageStatus.ERROR ||
-        status.image === ImageStatus.LOADED) &&
-      status.lightbox === LightboxStatus.READY_TO_OPEN
-    ) {
-      setupFadeIn();
-      setupZoomIn();
-      setStatus({
-        lightbox: LightboxStatus.OPENING,
-        image: status.image,
-      });
-    }
-  }, [status.image, status.lightbox]);
-
-  useEffect(() => {
-    if (
-      status.lightbox === LightboxStatus.OPENED &&
-      status.image === ImageStatus.LOADED
-    ) {
-      setStatus({
-        lightbox: LightboxStatus.OPENED,
-        image: ImageStatus.MIN_ZOOM,
-      });
-    }
-  }, [status.lightbox, status.image]);
-
-  useEffect(() => {
-    if (status.lightbox === LightboxStatus.READY_TO_CLOSE) {
-      setupFadeOut();
-      setupZoomOut();
-      setStatus({
-        lightbox: LightboxStatus.CLOSING,
-        image: status.image,
-      });
-    }
-  }, [status.lightbox]);
-
-  useEffect(() => {
-    if (status.lightbox === LightboxStatus.CLOSED) {
-      onUpdate(null);
-    }
-  }, [status.lightbox]);
-
-  useEffect(() => {
-    if (commentsOpen) {
-      setCommentsRendered(true);
-      const frame = window.requestAnimationFrame(() =>
-        setCommentsVisible(true)
-      );
-      return () => window.cancelAnimationFrame(frame);
-    }
-    setCommentsVisible(false);
-    const timer = window.setTimeout(() => setCommentsRendered(false), 200);
-    return () => window.clearTimeout(timer);
-  }, [commentsOpen]);
-
-  useEffect(() => {
-    if (status.image === ImageStatus.MIN_ZOOM) {
-      // It was observed that focus went to `body` as the zoom out button was disabled
-      // upon clicking it. This stopped navigating to next/previous image using arrow keys.
-      // So focusing the content div here to restore the functionality.
-      contentRef.current?.focus();
-    }
-  }, [status.image]);
-
-  // Hide the inline image in the editor while the lightbox zoom transition is
-  // active, otherwise a duplicate is visible behind the fading overlay.
-  useHideElement(
-    activeImage.getElement(),
-    status.lightbox !== null &&
-      status.lightbox !== LightboxStatus.READY_TO_OPEN &&
-      status.lightbox !== LightboxStatus.CLOSED
-  );
-
-  const rememberImagePosition = () => {
+  const rememberImagePosition = useCallback(() => {
     if (imgRef.current) {
       const lightboxImgDOMRect = imgRef.current.getBoundingClientRect();
       const {
@@ -389,9 +332,9 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
         height: lightboxImgHeight,
       };
     }
-  };
+  }, []);
 
-  const setupZoomIn = () => {
+  const setupZoomIn = useCallback(() => {
     if (imgRef.current) {
       // in editor
       const editorImageEl = activeImage.getElement();
@@ -452,9 +395,9 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
         zoomIn: { apply: zoomIn, duration: ANIMATION_DURATION },
       };
     }
-  };
+  }, [activeImage]);
 
-  const setupFadeIn = () => {
+  const setupFadeIn = useCallback(() => {
     const fadeIn = () => keyframes`
                     from { opacity: 0; }
                     to { opacity: 1; }
@@ -464,9 +407,9 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
       fadeIn: { apply: fadeIn, duration: ANIMATION_DURATION },
       fadeOut: undefined,
     };
-  };
+  }, []);
 
-  const setupFadeOut = () => {
+  const setupFadeOut = useCallback(() => {
     const fadeOut = () => keyframes`
               from { opacity: ${overlayRef.current ? window.getComputedStyle(overlayRef.current).opacity : 1}; }
               to { opacity: 0; }
@@ -481,9 +424,9 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
           : ANIMATION_DURATION,
       },
     };
-  };
+  }, []);
 
-  const setupZoomOut = () => {
+  const setupZoomOut = useCallback(() => {
     if (
       imgRef.current &&
       !(
@@ -584,7 +527,98 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
         },
       };
     }
-  };
+  }, [activeImage, status.image, rememberImagePosition]);
+
+  useEffect(() => {
+    dispatch({ type: "mounted" });
+  }, []);
+
+  // Notify the caller once a completed close unmounts the lightbox. The cleanup
+  // captures the status at the time it was registered, so it only fires when
+  // the lightbox is torn down having already reached CLOSED.
+  useEffect(
+    () => () => {
+      if (status.lightbox === LightboxStatus.CLOSED) {
+        callbacks.current.onClose();
+      }
+    },
+    [status.lightbox]
+  );
+
+  // The image position and the opening keyframes are measured after the loaded
+  // image has been laid out, so they cannot be folded into the reducer.
+  useEffect(() => {
+    // MIN_ZOOM as well as LOADED, as the status settles straight to MIN_ZOOM
+    // when navigating to another image with the lightbox already open. Both
+    // mean the image is resting at its natural size, which is what is cached.
+    if (
+      status.image === ImageStatus.LOADED ||
+      status.image === ImageStatus.MIN_ZOOM
+    ) {
+      rememberImagePosition();
+    }
+
+    if (
+      (status.image === ImageStatus.ERROR ||
+        status.image === ImageStatus.LOADED) &&
+      status.lightbox === LightboxStatus.READY_TO_OPEN
+    ) {
+      setupFadeIn();
+      setupZoomIn();
+      dispatch({ type: "openAnimationPrepared" });
+    }
+  }, [
+    status.image,
+    status.lightbox,
+    rememberImagePosition,
+    setupFadeIn,
+    setupZoomIn,
+  ]);
+
+  useEffect(() => {
+    if (status.lightbox === LightboxStatus.READY_TO_CLOSE) {
+      setupFadeOut();
+      setupZoomOut();
+      dispatch({ type: "closeAnimationPrepared" });
+    }
+  }, [status.lightbox, setupFadeOut, setupZoomOut]);
+
+  useEffect(() => {
+    if (status.lightbox === LightboxStatus.CLOSED) {
+      callbacks.current.onUpdate(null);
+    }
+  }, [status.lightbox]);
+
+  useEffect(() => {
+    if (commentsOpen) {
+      setCommentsRendered(true);
+      const frame = window.requestAnimationFrame(() =>
+        setCommentsVisible(true)
+      );
+      return () => window.cancelAnimationFrame(frame);
+    }
+    setCommentsVisible(false);
+    const timer = window.setTimeout(() => setCommentsRendered(false), 200);
+    return () => window.clearTimeout(timer);
+  }, [commentsOpen]);
+
+  useEffect(() => {
+    if (status.image === ImageStatus.MIN_ZOOM) {
+      // It was observed that focus went to `body` as the zoom out button was disabled
+      // upon clicking it. This stopped navigating to next/previous image using arrow keys.
+      // So focusing the content div here to restore the functionality.
+      contentRef.current?.focus();
+    }
+  }, [status.image]);
+
+  // Hide the inline image in the editor while the lightbox zoom transition is
+  // active, otherwise a duplicate is visible behind the fading overlay.
+  useHideElement(
+    activeImage.getElement(),
+    status.lightbox !== null &&
+      status.lightbox !== LightboxStatus.READY_TO_OPEN &&
+      status.lightbox !== LightboxStatus.CLOSED
+  );
 
   const prev = () => {
     if (
@@ -614,76 +648,49 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
     }
   };
 
-  const close = () => {
-    if (
-      status.lightbox === LightboxStatus.OPENING ||
-      status.lightbox === LightboxStatus.OPENED
-    ) {
-      setStatus({
-        lightbox: LightboxStatus.READY_TO_CLOSE,
-        image: status.image,
-      });
-    }
-  };
+  const close = useCallback(() => {
+    dispatch({ type: "closeRequested" });
+  }, []);
 
-  const svgDataURLToBlob = (dataURL: string) => {
-    // Match the SVG data URL format (with or without charset)
-    const match = dataURL.match(
-      /^data:image\/svg\+xml(?:;charset=utf-8)?,(.*)$/i
-    );
-    if (!match) {
-      return;
-    }
+  const downloadImage = useCallback(
+    async (src: string, saveAs: string) => {
+      let imageBlob;
+      if (isInternalUrl(src)) {
+        const image = await fetch(src);
+        imageBlob = await image.blob();
+      } else {
+        // Assuming it's a mermaid svg
+        imageBlob = svgDataURLToBlob(src);
+      }
 
-    const encodedSVGData = match[1];
-    const decodedSVGData = decodeURIComponent(encodedSVGData);
+      if (!imageBlob) {
+        toast.error(t("Unable to download image"));
+        return;
+      }
 
-    // Convert string to Uint8Array
-    const uint8 = new Uint8Array(decodedSVGData.length);
-    for (let i = 0; i < decodedSVGData.length; ++i) {
-      uint8[i] = decodedSVGData.charCodeAt(i);
-    }
+      const imageURL = URL.createObjectURL(imageBlob);
+      const name = saveAs || "image";
+      const extension = imageBlob.type.split(/\/|\+/g)[1];
 
-    // Create and return the Blob
-    return new Blob([uint8], { type: "image/svg+xml" });
-  };
+      // create a temporary link node and click it with our image data
+      const link = document.createElement("a");
+      link.href = imageURL;
+      link.download = `${name}.${extension}`;
+      document.body.appendChild(link);
+      link.click();
 
-  const downloadImage = async (src: string, saveAs: string) => {
-    let imageBlob;
-    if (isInternalUrl(src)) {
-      const image = await fetch(src);
-      imageBlob = await image.blob();
-    } else {
-      // Assuming it's a mermaid svg
-      imageBlob = svgDataURLToBlob(src);
-    }
-
-    if (!imageBlob) {
-      toast.error(t("Unable to download image"));
-      return;
-    }
-
-    const imageURL = URL.createObjectURL(imageBlob);
-    const name = saveAs || "image";
-    const extension = imageBlob.type.split(/\/|\+/g)[1];
-
-    // create a temporary link node and click it with our image data
-    const link = document.createElement("a");
-    link.href = imageURL;
-    link.download = `${name}.${extension}`;
-    document.body.appendChild(link);
-    link.click();
-
-    // cleanup
-    document.body.removeChild(link);
-    URL.revokeObjectURL(imageURL);
-  };
+      // cleanup
+      document.body.removeChild(link);
+      URL.revokeObjectURL(imageURL);
+    },
+    [t]
+  );
 
   const handleDownload = useCallback(() => {
     if (activeImage && status.lightbox === LightboxStatus.OPENED) {
       void downloadImage(activeImage.src, activeImage.alt);
     }
-  }, [activeImage, status.lightbox]);
+  }, [activeImage, status.lightbox, downloadImage]);
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
     // Don't intercept keys while typing into an input, textarea, or editor.
@@ -733,26 +740,20 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
         fadeIn: undefined,
         startTime: undefined,
       };
-      setStatus({
-        lightbox: LightboxStatus.OPENED,
-        image: status.image,
-      });
+      dispatch({ type: "openAnimationEnded" });
     } else if (animation.current?.fadeOut) {
-      setStatus({
-        lightbox: LightboxStatus.CLOSED,
-        image: null,
-      });
+      dispatch({ type: "closeAnimationEnded" });
     }
   };
 
   const handleEditDiagram = () => {
-    const { state, dispatch } = editor.view;
+    const { state, dispatch: dispatchTransaction } = editor.view;
 
     // Select the node at the position
     const tr = state.tr.setSelection(
       NodeSelection.create(state.doc, activeImage.pos)
     );
-    dispatch(tr);
+    dispatchTransaction(tr);
     editor.commands.editDiagram();
   };
 
@@ -918,48 +919,18 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
               ref={imgRef}
               src={activeImage.src}
               alt={activeImage.alt}
-              onLoading={() =>
-                setStatus({
-                  lightbox: status.lightbox,
-                  image: ImageStatus.LOADING,
-                })
-              }
-              onLoad={() =>
-                setStatus({
-                  lightbox: status.lightbox,
-                  image: ImageStatus.LOADED,
-                })
-              }
-              onError={() =>
-                setStatus({
-                  lightbox: status.lightbox,
-                  image: ImageStatus.ERROR,
-                })
-              }
+              onLoading={handleImageLoading}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
               onSwipeRight={prev}
               onSwipeLeft={next}
               onSwipeUp={close}
               onSwipeDown={close}
               status={status}
               animation={animation.current}
-              onMinZoom={() => {
-                setStatus({
-                  lightbox: status.lightbox,
-                  image: ImageStatus.MIN_ZOOM,
-                });
-              }}
-              onZoom={() =>
-                setStatus({
-                  lightbox: status.lightbox,
-                  image: ImageStatus.ZOOMED,
-                })
-              }
-              onMaxZoom={() =>
-                setStatus({
-                  lightbox: status.lightbox,
-                  image: ImageStatus.MAX_ZOOM,
-                })
-              }
+              onMinZoom={handleMinZoom}
+              onZoom={handleZoom}
+              onMaxZoom={handleMaxZoom}
             />
           </ZoomablePannablePinchable>
           {currentImageIndex < images.length - 1 &&
@@ -1073,14 +1044,13 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function Image_(
 
   useEffect(() => {
     onLoading();
-  }, [src]);
+  }, [src, onLoading]);
 
+  // Anything past loading means there is something to show. This deliberately
+  // does not test for LOADED specifically, as the status can settle straight to
+  // MIN_ZOOM when the lightbox is already open and a new image is navigated to.
   useEffect(() => {
-    if (status.image === null || status.image === ImageStatus.LOADING) {
-      setHidden(true);
-    } else if (status.image === ImageStatus.LOADED) {
-      setHidden(false);
-    }
+    setHidden(status.image === null || status.image === ImageStatus.LOADING);
   }, [status.image]);
 
   return status.image === ImageStatus.ERROR ? (

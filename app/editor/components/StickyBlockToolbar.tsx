@@ -94,7 +94,9 @@ const StickyBlockToolbar = React.forwardRef(function StickyBlockToolbar_(
 
   const element = getBlockElement(view);
 
-  // Measure the block relative to the portal's offset parent.
+  // Measure the block relative to the portal's offset parent. Runs after every
+  // render by design, the rect comparison prevents a loop.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useLayoutEffect(() => {
     const track = trackRef.current;
     if (!element || !track) {

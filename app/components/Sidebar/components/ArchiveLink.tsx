@@ -43,7 +43,7 @@ function ArchiveLink() {
     if (disclosure && isUndefined(expanded)) {
       setExpanded(false);
     }
-  }, [disclosure]);
+  }, [disclosure, expanded]);
 
   useEffect(() => {
     if (expanded) {
