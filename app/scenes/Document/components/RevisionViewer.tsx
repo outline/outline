@@ -93,6 +93,17 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
     ];
   }, [revision.data, comparisonData, showChanges]);
 
+  // The editor builds its extensions once, on mount, so it has to be remounted
+  // whenever the diff configuration changes. Revisions are listed without their
+  // content, so the revision being compared against — and with it the Diff
+  // extension — usually only arrives on a later render; without this neither
+  // the highlights nor the change count would ever appear.
+  const editorKey = [
+    showChanges ? "changes" : "no-changes",
+    compareToRevisionId ?? revision.before?.id ?? "none",
+    comparisonData ? "loaded" : "pending",
+  ].join("-");
+
   return (
     <Flex auto column>
       <DocumentTitle
@@ -109,7 +120,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
         $rtl={revision.rtl}
       />
       <Editor
-        key={compareToRevisionId}
+        key={editorKey}
         ref={ref}
         defaultValue={revision.data}
         extensions={extensions}
