@@ -137,6 +137,7 @@ interface QueryGeneratorWithWhere {
     template: false,
   },
   attributes: {
+    exclude: ["state"],
     include: [stateIfContentEmpty],
   },
 }))
@@ -144,6 +145,7 @@ interface QueryGeneratorWithWhere {
 @Scopes(() => ({
   withoutState: {
     attributes: {
+      exclude: ["state"],
       include: [stateIfContentEmpty],
     },
   },
