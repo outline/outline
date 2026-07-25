@@ -236,22 +236,27 @@ export default class S3Storage extends BaseStorage {
         if (err) {
           return reject(err);
         }
+
+        // Removes the temporary directory and everything written into it.
+        const cleanup = () => fs.remove(tmpDir);
+        const fail = (error: Error) => {
+          void cleanup().finally(() => reject(error));
+        };
+
         const tmpFile = path.join(tmpDir, "tmp");
         const dest = fs.createWriteStream(tmpFile);
-        dest.on("error", reject);
-        dest.on("finish", () =>
-          resolve({ path: tmpFile, cleanup: () => fs.rm(tmpFile) })
-        );
+        dest.on("error", fail);
+        dest.on("finish", () => resolve({ path: tmpFile, cleanup }));
 
         void this.getFileStream(key).then((stream) => {
           if (!stream) {
-            return reject(new Error("No stream available"));
+            return fail(new Error("No stream available"));
           }
 
           stream
             .on("error", (error) => {
-              dest.end();
-              reject(error);
+              dest.destroy();
+              fail(error);
             })
             .pipe(dest);
         });
