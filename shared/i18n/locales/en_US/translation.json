@@ -338,7 +338,6 @@
   "name can only contain lowercase letters, numbers, and underscores.": "name can only contain lowercase letters, numbers, and underscores.",
   "This emoji will be available as": "This emoji will be available as",
   "Emoji deleted": "Emoji deleted",
-  "I'm sure – Delete": "I'm sure – Delete",
   "Are you sure you want to delete the <em>{{emojiName}}</em> emoji? You will no longer be able to use it in your documents or collections.": "Are you sure you want to delete the <em>{{emojiName}}</em> emoji? You will no longer be able to use it in your documents or collections.",
   "Emoji replaced": "Emoji replaced",
   "Upload a new image to replace the current one for <em>{{emojiName}}</em>. All existing uses of this emoji will be updated automatically.": "Upload a new image to replace the current one for <em>{{emojiName}}</em>. All existing uses of this emoji will be updated automatically.",

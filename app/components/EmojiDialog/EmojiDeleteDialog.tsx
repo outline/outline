@@ -25,7 +25,7 @@ export function EmojiDeleteDialog({ emoji, onSubmit }: Props) {
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}
-      submitText={t("I'm sure – Delete")}
+      submitText={t("I’m sure – Delete")}
       savingText={`${t("Deleting")}…`}
       danger
     >
