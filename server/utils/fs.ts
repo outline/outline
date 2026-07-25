@@ -195,6 +195,7 @@ export function requireDirectory<T>(dirName: string): [T, string][] {
     const filePath = path.join(dirName, fileName);
     const name = path.basename(filePath.replace(/\.[jt]s$/, ""));
 
+    // oxlint-disable-next-line typescript/no-require-imports -- path is only known at runtime
     return [require(filePath), name];
   });
 }
