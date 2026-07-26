@@ -982,6 +982,7 @@ router.post(
 router.post(
   "documents.restore",
   auth({ role: UserRole.Member }),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsRestoreSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRestoreReq>) => {
@@ -1326,6 +1327,7 @@ router.post(
 router.post(
   "documents.duplicate",
   auth(),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsDuplicateSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsDuplicateReq>) => {
@@ -1384,6 +1386,7 @@ router.post(
 router.post(
   "documents.move",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsMoveSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsMoveReq>) => {
@@ -1439,6 +1442,7 @@ router.post(
 router.post(
   "documents.archive",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsArchiveSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsArchiveReq>) => {
@@ -1465,6 +1469,7 @@ router.post(
 router.post(
   "documents.delete",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsDeleteReq>) => {
@@ -1509,6 +1514,7 @@ router.post(
 router.post(
   "documents.unpublish",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsUnpublishSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
@@ -1793,6 +1799,7 @@ router.post(
 router.post(
   "documents.remove_user",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsRemoveUserSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRemoveUserReq>) => {
@@ -1838,6 +1845,7 @@ router.post(
 router.post(
   "documents.add_group",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsAddGroupSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsAddGroupsReq>) => {
@@ -1898,6 +1906,7 @@ router.post(
 router.post(
   "documents.remove_group",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsRemoveGroupSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRemoveGroupReq>) => {
@@ -2064,6 +2073,7 @@ router.post(
 router.post(
   "documents.empty_trash",
   auth({ role: UserRole.Admin }),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
 
