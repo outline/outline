@@ -3806,6 +3806,21 @@ describe("#documents.update", () => {
     expect(events.length).toEqual(1);
   });
 
+  it("should not update a document with text over the maximum length", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        text: "a".repeat(DocumentValidation.maxLength + 1),
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should not allow publishing a draft without specifying the collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
