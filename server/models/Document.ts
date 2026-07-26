@@ -358,7 +358,7 @@ class Document extends ArchivableModel<
    */
   @SimpleLength({
     max: DocumentValidation.maxLength,
-    msg: `Document content must be ${DocumentValidation.maxLength} characters or less`,
+    msg: `Document text content must be ${DocumentValidation.maxLength} characters or less`,
   })
   @Column(DataType.TEXT)
   @SkipChangeset
