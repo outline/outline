@@ -1,4 +1,3 @@
-import { Transaction } from "sequelize";
 import type { Optional } from "utility-types";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { Collection, Document, type Template } from "@server/models";
@@ -185,21 +184,6 @@ export default async function documentCreator(
     );
   }
 
-  if (publish) {
-    if (!collectionId) {
-      throw new Error("Collection ID is required to publish");
-    }
-
-    // Lock the collection before inserting the document, as the insert takes a
-    // shared lock on the same row through the foreign key and upgrading it
-    // afterwards deadlocks against concurrent creates in the collection.
-    await Collection.findByPk(collectionId, {
-      attributes: ["id"],
-      transaction,
-      lock: Transaction.LOCK.UPDATE,
-    });
-  }
-
   if (urlId) {
     const existing = await Document.unscoped().findOne({
       attributes: ["id"],
@@ -264,7 +248,11 @@ export default async function documentCreator(
     { data: eventData }
   );
 
-  if (publish && collectionId) {
+  if (publish) {
+    if (!collectionId) {
+      throw new Error("Collection ID is required to publish");
+    }
+
     await document.publish(ctx, {
       collectionId,
       silent: true,
