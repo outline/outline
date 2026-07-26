@@ -177,6 +177,27 @@ describe("#shares.list", () => {
     expect(body.data[0].documentTitle).toBe(document.title);
   });
 
+  it("admins should return shares created by a deleted user", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({ userId: admin.id, teamId: team.id });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: team.id,
+      userId: user.id,
+    });
+    await user.destroy();
+
+    const res = await server.post("/api/shares.list", admin);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.pagination.total).toEqual(1);
+    expect(body.data[0].id).toEqual(share.id);
+    expect(body.data[0].createdBy).toBeUndefined();
+  });
+
   it("admins should not return shares in collection not a member of", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -701,6 +722,51 @@ describe("#shares.info", () => {
     expect(body.data.shares).toBeTruthy();
     expect(body.data.shares).toHaveLength(1);
     expect(body.data.shares[0].id).toEqual(share.id);
+  });
+
+  it("should not return the sharer for an unauthenticated viewer", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      published: true,
+    });
+    const res = await server.post("/api/shares.info", {
+      body: {
+        id: share.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.shares[0].id).toEqual(share.id);
+    expect(body.data.shares[0].createdBy).toBeUndefined();
+  });
+
+  it("should return the sharer for a viewer with access to the share", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      published: true,
+    });
+    const res = await server.post("/api/shares.info", user, {
+      body: {
+        id: share.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.shares[0].createdBy.id).toEqual(user.id);
   });
 
   it("should allow reading share by documentId", async () => {
