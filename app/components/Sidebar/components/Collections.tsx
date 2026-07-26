@@ -23,7 +23,7 @@ import Text from "@shared/components/Text";
 import usePolicy from "~/hooks/usePolicy";
 
 function Collections() {
-  const { documents, auth, collections } = useStores();
+  const { documents, auth, collections, policies } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(auth.team?.id);
   const orderedCollections = collections.allActive;
@@ -46,10 +46,12 @@ function Collections() {
         fractionalIndex(null, orderedCollections[0].index)
       );
     },
-    canDrop: (item) => item.id !== orderedCollections[0].id,
+    canDrop: (item) =>
+      item.id !== orderedCollections[0]?.id &&
+      !!policies.abilities(item.id).move,
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
-      isDraggingAnyCollection: monitor.getItemType() === "collection",
+      isDraggingAnyCollection: monitor.canDrop(),
     }),
   });
 
