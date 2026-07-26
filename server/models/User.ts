@@ -880,7 +880,7 @@ class User extends ParanoidModel<
     }
 
     const invalidate = () =>
-      CacheHelper.clearData(
+      CacheHelper.removeData(
         RedisPrefixHelper.getUserCollectionIdsKey(model.id)
       );
 

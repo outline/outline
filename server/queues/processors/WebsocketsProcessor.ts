@@ -332,19 +332,17 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        socketio
-          .to(this.getCollectionEventChannels(event, collection))
-          .emit(event.name, await presentCollection(undefined, collection));
-
         // guests are excluded as they cannot read team-visible collections
         // without an explicit membership.
-        return socketio
-          .in(
-            collection.isPrivate
-              ? `user-${event.actorId}`
-              : `team-${collection.teamId}.members`
-          )
-          .socketsJoin(`collection-${collection.id}`);
+        const rooms = collection.isPrivate
+          ? [`user-${event.actorId}`]
+          : [`user-${event.actorId}`, `team-${collection.teamId}.members`];
+
+        socketio
+          .to(rooms)
+          .emit(event.name, await presentCollection(undefined, collection));
+
+        return socketio.in(rooms).socketsJoin(`collection-${collection.id}`);
       }
 
       case "collections.update": {
@@ -355,9 +353,44 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        return socketio
+        socketio
           .to(this.getCollectionEventChannels(event, collection))
           .emit(event.name, await presentCollection(undefined, collection));
+
+        const { attributes, previous } = event.changes ?? {};
+
+        // the collection became team-visible, all team members gain access.
+        if (attributes?.permission && previous?.permission === null) {
+          return socketio
+            .in(`team-${collection.teamId}.members`)
+            .socketsJoin(`collection-${collection.id}`);
+        }
+
+        // the collection became private, rebuild the channel from explicit
+        // memberships only.
+        if (attributes?.permission === null && previous?.permission) {
+          socketio
+            .in(`collection-${collection.id}`)
+            .socketsLeave(`collection-${collection.id}`);
+
+          const [memberships, groupMemberships] = await Promise.all([
+            UserMembership.findAll({
+              where: { collectionId: collection.id },
+            }),
+            GroupMembership.findAll({
+              where: { collectionId: collection.id },
+            }),
+          ]);
+          const rooms = [
+            ...memberships.map((m) => `user-${m.userId}`),
+            ...groupMemberships.map((m) => `group-${m.groupId}`),
+          ];
+          if (rooms.length) {
+            socketio.in(rooms).socketsJoin(`collection-${collection.id}`);
+          }
+        }
+
+        return;
       }
 
       case "collections.delete": {
@@ -921,9 +954,10 @@ export default class WebsocketsProcessor {
             attributes: ["id"],
             where: { teamId: user.teamId },
           });
+          const accessibleCollectionIdsSet = new Set(accessibleCollectionIds);
           const inaccessibleRooms = teamCollections
             .map((collection) => collection.id)
-            .filter((id) => !accessibleCollectionIds.includes(id))
+            .filter((id) => !accessibleCollectionIdsSet.has(id))
             .map((id) => `collection-${id}`);
 
           return socketio
@@ -975,10 +1009,11 @@ export default class WebsocketsProcessor {
       channels.push(`user-${event.actorId}`);
     }
 
-    if (collection.isPrivate) {
-      channels.push(`collection-${collection.id}`);
-    } else {
-      channels.push(`team-${collection.teamId}`);
+    // guests are never included in the team members channel, they receive
+    // events via the collection channel when they have an explicit membership.
+    channels.push(`collection-${collection.id}`);
+    if (!collection.isPrivate) {
+      channels.push(`team-${collection.teamId}.members`);
     }
 
     return channels;
