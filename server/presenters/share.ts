@@ -27,7 +27,9 @@ export default function presentShare(share: Share, options: Options = {}) {
     published: share.published,
     url: share.canonicalUrl,
     urlId: share.urlId,
-    ...(options.isPublic ? {} : { createdBy: presentUser(share.user) }),
+    ...(options.isPublic || !share.user
+      ? {}
+      : { createdBy: presentUser(share.user) }),
     includeChildDocuments: share.includeChildDocuments,
     allowIndexing: share.allowIndexing,
     allowSubscriptions: share.allowSubscriptions,

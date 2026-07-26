@@ -228,7 +228,7 @@ router.post(
         },
         {
           model: User,
-          required: true,
+          required: false,
           as: "user",
         },
         {

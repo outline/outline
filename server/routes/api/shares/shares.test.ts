@@ -177,6 +177,27 @@ describe("#shares.list", () => {
     expect(body.data[0].documentTitle).toBe(document.title);
   });
 
+  it("admins should return shares created by a deleted user", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({ userId: admin.id, teamId: team.id });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: team.id,
+      userId: user.id,
+    });
+    await user.destroy();
+
+    const res = await server.post("/api/shares.list", admin);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.pagination.total).toEqual(1);
+    expect(body.data[0].id).toEqual(share.id);
+    expect(body.data[0].createdBy).toBeUndefined();
+  });
+
   it("admins should not return shares in collection not a member of", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
