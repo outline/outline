@@ -6,6 +6,7 @@ import Extension from "@shared/editor/lib/Extension";
 import { findParentNodeClosestToPos } from "@shared/editor/queries/findParentNode";
 
 const HANDLE_CLASS = "block-drag-handle";
+const HANDLE_SIZE = 24;
 const META_KEY = "drag-handle";
 const LIST_ITEM_TYPES = ["list_item", "checkbox_item"];
 const LIST_TYPES = ["bullet_list", "ordered_list", "checkbox_list"];
@@ -121,8 +122,15 @@ export default class DragHandle extends Extension {
             const rect = next.element.getBoundingClientRect();
             const offsetX = next.isCheckboxItem ? 0 : next.isListItem ? 40 : 24;
             const offsetY = 2;
+            // RTL blocks lay out their gutter on the right, so mirror the
+            // handle to the opposite edge to match the rest of the editor's
+            // :dir(rtl) handling.
+            const isRTL =
+              window.getComputedStyle(next.element).direction === "rtl";
             handle.style.top = `${rect.top - offsetY}px`;
-            handle.style.left = `${rect.left - offsetX}px`;
+            handle.style.left = isRTL
+              ? `${rect.right + offsetX - HANDLE_SIZE}px`
+              : `${rect.left - offsetX}px`;
             handle.style.opacity = "1";
             handle.style.pointerEvents = "auto";
           };
@@ -147,6 +155,16 @@ export default class DragHandle extends Extension {
             }
             const next = findTarget(view, event);
             if (next) {
+              // Skip repositioning when still hovering the same block —
+              // avoids a getBoundingClientRect and style writes on every
+              // mousemove. Scroll repositioning is handled separately.
+              if (
+                target &&
+                target.pos === next.pos &&
+                target.element === next.element
+              ) {
+                return;
+              }
               show(next);
             } else {
               hide();
@@ -263,8 +281,8 @@ function createHandle(): HTMLElement {
   handle.contentEditable = "false";
   handle.setAttribute("aria-label", "Drag to reorder");
   handle.style.position = "fixed";
-  handle.style.width = "24px";
-  handle.style.height = "24px";
+  handle.style.width = `${HANDLE_SIZE}px`;
+  handle.style.height = `${HANDLE_SIZE}px`;
   handle.style.cursor = "grab";
   handle.style.opacity = "0";
   handle.style.pointerEvents = "none";
