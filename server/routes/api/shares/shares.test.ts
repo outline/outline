@@ -703,6 +703,51 @@ describe("#shares.info", () => {
     expect(body.data.shares[0].id).toEqual(share.id);
   });
 
+  it("should not return the sharer for an unauthenticated viewer", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      published: true,
+    });
+    const res = await server.post("/api/shares.info", {
+      body: {
+        id: share.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.shares[0].id).toEqual(share.id);
+    expect(body.data.shares[0].createdBy).toBeUndefined();
+  });
+
+  it("should return the sharer for a viewer with access to the share", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+      published: true,
+    });
+    const res = await server.post("/api/shares.info", user, {
+      body: {
+        id: share.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.shares[0].createdBy.id).toEqual(user.id);
+  });
+
   it("should allow reading share by documentId", async () => {
     const user = await buildUser();
     const document = await buildDocument({
