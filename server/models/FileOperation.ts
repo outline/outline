@@ -87,11 +87,14 @@ type AdditionalFindOptions = {
         },
         {
           model: Document.scope([
+            "defaultScope",
             {
               method: ["withMembership", userId, false],
             },
           ]),
           as: "document",
+          // Content columns are not needed to authorize or present an export.
+          attributes: { exclude: ["text", "content", "state"] },
           required: false,
           paranoid: false,
         },
