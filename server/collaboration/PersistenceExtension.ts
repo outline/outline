@@ -144,8 +144,19 @@ export default class PersistenceExtension implements Extension {
       return;
     }
 
-    const key = Document.getCollaboratorKey(documentId);
-    const sessionCollaboratorIds = await Redis.defaultClient.smembers(key);
+    // Collaborators are used for attribution only, failure to load them must
+    // not prevent the document itself from being persisted.
+    let sessionCollaboratorIds: string[] = [];
+
+    try {
+      const key = Document.getCollaboratorKey(documentId);
+      sessionCollaboratorIds = await Redis.defaultClient.smembers(key);
+    } catch (err) {
+      Logger.warn("Unable to load collaborators for document", {
+        documentId,
+        message: toError(err).message,
+      });
+    }
 
     try {
       await documentCollaborativeUpdater({
