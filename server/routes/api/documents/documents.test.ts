@@ -10,6 +10,7 @@ import {
   UserRole,
 } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
+import { DocumentValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Group, User } from "@server/models";
@@ -3454,6 +3455,17 @@ describe("#documents.create", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.title).toEqual("");
+  });
+
+  it("should not create a document with text over the maximum length", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "title",
+        text: "a".repeat(DocumentValidation.maxLength + 1),
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should use template title when doc is created using a template and title is not explicitly passed", async () => {
