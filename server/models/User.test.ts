@@ -229,6 +229,22 @@ describe("user model", () => {
       expect(response[0]).toEqual(collection.id);
     });
 
+    it("should not return a cached response after a role change", async () => {
+      const team = await buildTeam();
+      const user = await buildGuestUser({
+        teamId: team.id,
+      });
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      expect(await user.collectionIds()).toEqual([]);
+
+      await user.update({ role: UserRole.Member });
+
+      expect(await user.collectionIds()).toEqual([collection.id]);
+    });
+
     it("should not return private collections", async () => {
       const team = await buildTeam();
       const user = await buildUser({
