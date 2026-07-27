@@ -7,6 +7,9 @@ type Constructor = new (...args: any[]) => unknown;
 
 type Policy = Record<string, boolean | string[]>;
 
+/** Sentinel default so option-free calls share one object and stay cacheable. */
+const noOptions = {};
+
 type Condition<T extends Constructor, P extends Constructor> = (
   performer: InstanceType<P>,
   target: InstanceType<T> | null,
@@ -53,6 +56,9 @@ export class CanCan {
       condition = this.getConditionFn(condition);
     }
 
+    // Registering an ability invalidates the derived action index.
+    this.actionsByClass.clear();
+
     (this.toArray(actions) as string[]).forEach((action) => {
       (this.toArray(targets) as T[]).forEach((target) => {
         const ability = { model, action, target, condition } as Ability;
@@ -83,7 +89,76 @@ export class CanCan {
     performer: Model,
     action: string,
     target: Model | null | undefined,
-    options = {}
+    options: object = noOptions
+  ) => {
+    // Policy conditions are synchronous and pure with respect to already-loaded
+    // model state, so within a single evaluation the same question always has
+    // the same answer. Memoize on object identity for the duration of the
+    // outermost call — policies recurse heavily into one another.
+    this.depth++;
+    try {
+      const byAction = this.cacheFor(performer, target, options);
+      const cached = byAction?.get(action);
+      if (cached !== undefined) {
+        return cached;
+      }
+      const value = this.computeCan(performer, action, target, options);
+      byAction?.set(action, value);
+      return value;
+    } finally {
+      if (--this.depth === 0) {
+        this.cache = null;
+      }
+    }
+  };
+
+  private depth = 0;
+
+  private actionsByClass: Map<
+    Function | null,
+    Map<Function | null, Set<string>>
+  > = new Map();
+
+  private cache: Map<
+    Model,
+    Map<Model | null, Map<string, boolean | string[]>>
+  > | null = null;
+
+  /**
+   * Resolves the per-(performer, target) action cache, or null when the call
+   * carries options and so cannot be shared.
+   */
+  private cacheFor = (
+    performer: Model,
+    target: Model | null | undefined,
+    options: object
+  ) => {
+    // A check that has not recursed has nothing to reuse yet, so the cache is
+    // only built once policies actually nest — the common shallow authorize()
+    // then allocates nothing at all.
+    if (options !== noOptions || this.depth < 2) {
+      return null;
+    }
+    this.cache ??= new Map();
+    let byTarget = this.cache.get(performer);
+    if (!byTarget) {
+      byTarget = new Map();
+      this.cache.set(performer, byTarget);
+    }
+    const key = target ?? null;
+    let byAction = byTarget.get(key);
+    if (!byAction) {
+      byAction = new Map();
+      byTarget.set(key, byAction);
+    }
+    return byAction;
+  };
+
+  private computeCan = (
+    performer: Model,
+    action: string,
+    target: Model | null | undefined,
+    options: object
   ) => {
     const matchingAbilities = this.getMatchingAbilities(
       performer,
@@ -127,29 +202,48 @@ export class CanCan {
   public serialize = (performer: Model, target: Model | null): Policy => {
     const output: Record<string, boolean | string[]> = {};
 
-    // Get all unique actions to check from the index
-    const actionsToCheck = new Set<string>();
-    for (const [model, actionMap] of this.abilities.entries()) {
-      if (performer instanceof model) {
-        for (const [action, abilities] of actionMap.entries()) {
-          for (const ability of abilities) {
-            if (target instanceof (ability.target as Constructor)) {
-              actionsToCheck.add(action);
-              break;
+    // The set of actions worth checking depends only on the classes involved,
+    // so scanning the whole ability index is done once per class pair.
+    const performerClass = performer?.constructor ?? null;
+    const targetClass = target?.constructor ?? null;
+    let byTargetClass = this.actionsByClass.get(performerClass);
+    if (!byTargetClass) {
+      byTargetClass = new Map();
+      this.actionsByClass.set(performerClass, byTargetClass);
+    }
+    let actionsToCheck = byTargetClass.get(targetClass);
+    if (!actionsToCheck) {
+      actionsToCheck = new Set<string>();
+      for (const [model, actionMap] of this.abilities.entries()) {
+        if (performer instanceof model) {
+          for (const [action, abilities] of actionMap.entries()) {
+            for (const ability of abilities) {
+              if (target instanceof (ability.target as Constructor)) {
+                actionsToCheck.add(action);
+                break;
+              }
             }
           }
         }
       }
+      byTargetClass.set(targetClass, actionsToCheck);
     }
 
-    // Check each unique action once
-    actionsToCheck.forEach((action) => {
-      try {
-        output[action] = this.can(performer, action, target);
-      } catch (_err) {
-        output[action] = false;
+    // Check each unique action once, sharing a single memoization scope
+    this.depth++;
+    try {
+      actionsToCheck.forEach((action) => {
+        try {
+          output[action] = this.can(performer, action, target);
+        } catch (_err) {
+          output[action] = false;
+        }
+      });
+    } finally {
+      if (--this.depth === 0) {
+        this.cache = null;
       }
-    });
+    }
 
     return output;
   };
@@ -167,7 +261,7 @@ export class CanCan {
     performer: Model,
     action: string,
     target: Model | null | undefined,
-    options = {}
+    options: object = noOptions
   ) => !this.can(performer, action, target, options);
 
   /**
@@ -183,7 +277,7 @@ export class CanCan {
     performer: Model,
     action: string,
     target: Model | null | undefined,
-    options = {}
+    options: object = noOptions
   ): asserts target => {
     if (this.cannot(performer, action, target, options)) {
       throw AuthorizationError("Authorization error");
