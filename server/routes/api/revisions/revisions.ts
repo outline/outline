@@ -195,7 +195,7 @@ router.post(
       return;
     }
 
-    await streamZipResponse(ctx, `${fileName}.zip`, async (zip) => {
+    streamZipResponse(ctx, `${fileName}.zip`, async (zip) => {
       for (const attachment of attachments) {
         const location = path.join(
           "attachments",

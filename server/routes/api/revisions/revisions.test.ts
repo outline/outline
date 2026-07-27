@@ -1,12 +1,14 @@
 import { createContext } from "@server/context";
 import { UserMembership, Revision } from "@server/models";
+import FileStorage from "@server/storage/files";
 import {
   buildAdmin,
+  buildAttachment,
   buildCollection,
   buildDocument,
   buildUser,
 } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import { getTestServer, readZipResponse } from "@server/test/support";
 
 const server = getTestServer();
 
@@ -245,6 +247,53 @@ describe("#revisions.list", () => {
 });
 
 describe("#revisions.export", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should stream a zip when the revision has attachments", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      title: "Export Test",
+      userId: user.id,
+      teamId: user.teamId,
+      text: `![image](${attachment.redirectUrl})`,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
+      Buffer.from("image-data")
+    );
+
+    const res = await server.post("/api/revisions.export", user, {
+      body: {
+        id: revision.id,
+      },
+      headers: {
+        accept: "text/markdown",
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toEqual("application/zip");
+    expect(res.headers.get("content-disposition")).toContain(
+      `filename="export-test.zip"`
+    );
+
+    const location = `attachments/${attachment.id}.png`;
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([location, "export-test.md"]);
+    expect(entries[location]).toEqual("image-data");
+    expect(entries["export-test.md"]).toContain(location);
+    expect(entries["export-test.md"]).not.toContain(attachment.redirectUrl);
+  });
+
   it("should return revision as markdown by default", async () => {
     const user = await buildUser();
     const document = await buildDocument({
