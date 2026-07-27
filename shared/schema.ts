@@ -115,14 +115,31 @@ export type JSONAttachmentManifestItem = z.infer<
 >;
 
 /**
+ * Manifest entry describing a single custom emoji discovered during the JSON
+ * zip bootstrap phase. `id` is either a pre-assigned UUID for an emoji that
+ * still needs creating, or the id of an existing team emoji with the same name
+ * that the import reuses — either way it's the id that content references are
+ * rewritten to. `attachmentId` points at the emoji image's new Attachment row.
+ */
+export const JSONEmojiManifestItemSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  attachmentId: z.uuid(),
+});
+
+export type JSONEmojiManifestItem = z.infer<typeof JSONEmojiManifestItemSchema>;
+
+/**
  * JSON importer scratch state. `storageKey` is set at import creation (it's
  * the only durable handle on the uploaded zip). `manifest` is added by the
  * bootstrap phase so the completion phase can re-download the zip and create
- * Attachment rows without re-parsing the JSON files.
+ * Attachment rows without re-parsing the JSON files, and `emojis` so it can
+ * create the Emoji rows those attachments belong to.
  */
 export interface JSONImportScratch {
   storageKey: string;
   manifest?: JSONAttachmentManifestItem[];
+  emojis?: JSONEmojiManifestItem[];
 }
 
 /**
@@ -198,6 +215,8 @@ export interface JSONPageImportTaskInputItem {
   publishedAt?: string | null;
   /** Map of external attachment id → manifest entry id, scoped to this doc. */
   attachmentIdMap: Record<string, string>;
+  /** Map of external custom emoji id → the emoji id used after import. */
+  emojiIdMap?: Record<string, string>;
   children?: JSONPageImportTaskInputItem[];
 }
 
