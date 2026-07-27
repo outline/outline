@@ -300,6 +300,30 @@ describe("#findByPk", () => {
     ).rejects.toThrow(EmptyResultError);
   });
 
+  it("should not allow a passed where to override the id", async () => {
+    const document = await buildDocument();
+    const other = await buildDocument();
+
+    const response = await Document.findByPk(document.id, {
+      where: { id: other.id },
+    });
+    expect(response?.id).toBe(document.id);
+
+    const byUrlId = await Document.findByPk(document.urlId, {
+      where: { urlId: other.urlId },
+    });
+    expect(byUrlId?.id).toBe(document.id);
+  });
+
+  it("should throw the passed error when rejectOnEmpty is an error", async () => {
+    const error = new Error("does not exist");
+    await expect(
+      Document.findByPk("0e8280ea-7b4c-40e5-98ba-ec8a2f00f5e8", {
+        rejectOnEmpty: error,
+      })
+    ).rejects.toThrow(error);
+  });
+
   it("should load state as a fallback when content is empty", async () => {
     const state = Buffer.from([1, 2, 3]);
     const document = await buildDocument();

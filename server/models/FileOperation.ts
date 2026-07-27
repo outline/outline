@@ -1,12 +1,16 @@
 import type {
+  FindOptions,
+  Identifier,
   InferAttributes,
   InferCreationAttributes,
+  NonNullFindOptions,
   WhereOptions,
 } from "sequelize";
-import { Op } from "sequelize";
+import { EmptyResultError, Op } from "sequelize";
 import {
   ForeignKey,
   DefaultScope,
+  Scopes,
   Column,
   BeforeDestroy,
   BelongsTo,
@@ -28,6 +32,11 @@ export type FileOperationOptions = {
   includeAttachments?: boolean;
   includePrivate?: boolean;
   permission?: CollectionPermission | null;
+};
+
+type AdditionalFindOptions = {
+  userId?: string;
+  rejectOnEmpty?: boolean | Error;
 };
 
 @DefaultScope(() => ({
@@ -52,12 +61,99 @@ export type FileOperationOptions = {
     },
   ],
 }))
+@Scopes(() => ({
+  withSource: (userId: string) => {
+    if (!userId) {
+      return {};
+    }
+
+    return {
+      include: [
+        {
+          model: User,
+          as: "user",
+          paranoid: false,
+        },
+        {
+          model: Collection.scope([
+            "defaultScope",
+            {
+              method: ["withMembership", userId],
+            },
+          ]),
+          as: "collection",
+          required: false,
+          paranoid: false,
+        },
+        {
+          model: Document.scope([
+            "defaultScope",
+            {
+              method: ["withMembership", userId, false],
+            },
+          ]),
+          as: "document",
+          // Content columns are not needed to authorize or present an export.
+          attributes: { exclude: ["text", "content", "state"] },
+          required: false,
+          paranoid: false,
+        },
+      ],
+    };
+  },
+}))
 @Table({ tableName: "file_operations", modelName: "file_operation" })
 class FileOperation extends ParanoidModel<
   InferAttributes<FileOperation>,
   Partial<InferCreationAttributes<FileOperation>>
 > {
   static eventNamespace = "fileOperations";
+
+  /**
+   * Overrides the standard findByPk behavior to allow loading the exported
+   * collection or document with memberships for a user passed in by `userId`.
+   *
+   * @param id uuid
+   * @param options FindOptions
+   * @returns a promise resolving to a file operation instance or null.
+   */
+  static async findByPk(
+    id: Identifier,
+    options?: NonNullFindOptions<FileOperation> & AdditionalFindOptions
+  ): Promise<FileOperation>;
+  static async findByPk(
+    id: Identifier,
+    options?: FindOptions<FileOperation> & AdditionalFindOptions
+  ): Promise<FileOperation | null>;
+  static async findByPk(
+    id: Identifier,
+    options: FindOptions<FileOperation> & AdditionalFindOptions = {}
+  ): Promise<FileOperation | null> {
+    if (typeof id !== "string") {
+      return null;
+    }
+
+    const { userId, ...rest } = options;
+
+    // Preserve the caller's scope when no userId is passed
+    const scope = userId
+      ? this.scope({ method: ["withSource", userId] })
+      : this;
+
+    const fileOperation = await scope.findOne({
+      ...rest,
+      where: { id },
+      rejectOnEmpty: false,
+    });
+
+    if (!fileOperation && rest.rejectOnEmpty) {
+      throw rest.rejectOnEmpty instanceof Error
+        ? rest.rejectOnEmpty
+        : new EmptyResultError(`File operation doesn't exist with id: ${id}`);
+    }
+
+    return fileOperation;
+  }
 
   @Column(DataType.ENUM(...Object.values(FileOperationType)))
   type: FileOperationType;

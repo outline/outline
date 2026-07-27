@@ -820,15 +820,17 @@ class Document extends ArchivableModel<
 
     if (isUUID(id)) {
       const document = await scope.findOne({
+        ...rest,
         where: {
           id,
         },
-        ...rest,
         rejectOnEmpty: false,
       });
 
       if (!document && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
+        throw rest.rejectOnEmpty instanceof Error
+          ? rest.rejectOnEmpty
+          : new EmptyResultError(`Document doesn't exist with id: ${id}`);
       }
 
       return document;
@@ -837,15 +839,17 @@ class Document extends ArchivableModel<
     const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
       const document = await scope.findOne({
+        ...rest,
         where: {
           urlId: match[1],
         },
-        ...rest,
         rejectOnEmpty: false,
       });
 
       if (!document && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
+        throw rest.rejectOnEmpty instanceof Error
+          ? rest.rejectOnEmpty
+          : new EmptyResultError(`Document doesn't exist with id: ${id}`);
       }
 
       return document;

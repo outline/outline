@@ -682,15 +682,17 @@ class Collection extends ParanoidModel<
 
     if (isUUID(id)) {
       const collection = await scope.findOne({
+        ...rest,
         where: {
           id,
         },
-        ...rest,
         rejectOnEmpty: false,
       });
 
       if (!collection && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
+        throw rest.rejectOnEmpty instanceof Error
+          ? rest.rejectOnEmpty
+          : new EmptyResultError(`Collection doesn't exist with id: ${id}`);
       }
 
       return collection;
@@ -699,15 +701,17 @@ class Collection extends ParanoidModel<
     const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
       const collection = await scope.findOne({
+        ...rest,
         where: {
           urlId: match[1],
         },
-        ...rest,
         rejectOnEmpty: false,
       });
 
       if (!collection && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
+        throw rest.rejectOnEmpty instanceof Error
+          ? rest.rejectOnEmpty
+          : new EmptyResultError(`Collection doesn't exist with id: ${id}`);
       }
 
       return collection;
