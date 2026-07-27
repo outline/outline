@@ -39,8 +39,13 @@ import {
   buildGroup,
   buildAdmin,
   buildTemplate,
+  buildAttachment,
 } from "@server/test/factories";
-import { getTestServer, withAPIContext } from "@server/test/support";
+import {
+  getTestServer,
+  readZipResponse,
+  withAPIContext,
+} from "@server/test/support";
 
 const server = getTestServer();
 
@@ -604,6 +609,10 @@ describe("#documents.info", () => {
 });
 
 describe("#documents.export", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("should return published document", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -686,6 +695,45 @@ describe("#documents.export", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data).toEqual(await DocumentHelper.toMarkdown(document));
+  });
+
+  it("should stream a zip when the document has attachments", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      title: "Export Test",
+      userId: user.id,
+      teamId: user.teamId,
+      text: `![image](${attachment.redirectUrl})`,
+    });
+    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
+      Buffer.from("image-data")
+    );
+
+    const res = await server.post("/api/documents.export", user, {
+      body: {
+        id: document.id,
+      },
+      headers: {
+        accept: "text/markdown",
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toEqual("application/zip");
+    expect(res.headers.get("content-disposition")).toContain(
+      `filename="export-test.zip"`
+    );
+
+    const location = `attachments/${attachment.id}.png`;
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([location, "export-test.md"]);
+    expect(entries[location]).toEqual("image-data");
+    expect(entries["export-test.md"]).toContain(location);
+    expect(entries["export-test.md"]).not.toContain(attachment.redirectUrl);
   });
 
   it("should require authorization without token", async () => {
