@@ -7276,12 +7276,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/readable-stream@npm:^4.0.23":
-  version: 4.0.23
-  resolution: "@types/readable-stream@npm:4.0.23"
+"@types/readable-stream@npm:^4.0.24":
+  version: 4.0.24
+  resolution: "@types/readable-stream@npm:4.0.24"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10c0/89ae3f6a53d186252c4c957b715c8dc12b318be30aeb3546f6513163572e5eebe0f61261e70c6d3f7496d63741ed6f92fbc5d17bfe9a72b0abfe720ee8fa471a
+  checksum: 10c0/12498861c5868d6b887bf60e0d32d85db6c65730ecc7db0e7c15ab92942f6e107af276e23e4a7ebac6ed018f7ec43517fdf4fee4f1a279196752fe0e59b6aadc
   languageName: node
   linkType: hard
 
@@ -15504,7 +15504,7 @@ __metadata:
     "@types/react-router-dom": "npm:^5.3.3"
     "@types/react-virtualized-auto-sizer": "npm:^1.0.8"
     "@types/react-window": "npm:^1.8.8"
-    "@types/readable-stream": "npm:^4.0.23"
+    "@types/readable-stream": "npm:^4.0.24"
     "@types/redis-info": "npm:^3.0.3"
     "@types/refractor": "npm:^3.4.1"
     "@types/resolve-path": "npm:^1.4.3"
