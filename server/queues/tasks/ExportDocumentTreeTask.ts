@@ -84,39 +84,50 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       }
 
       const dir = path.dirname(pathInZip);
-      let buffer: Buffer;
-      try {
-        buffer = await attachment.buffer;
-      } catch (err) {
-        Logger.warn(`Failed to read attachment from storage`, {
-          attachmentId: attachment.id,
-          teamId: attachment.teamId,
-          error: errToString(err),
-        });
-        buffer = Buffer.from("");
-      }
 
       // Inline small images referenced a single time as base64 data URIs
       // rather than writing an external file. PDF export renders from HTML too.
+      // Only these are read into memory; the rest are streamed into the archive.
       if (
-        format === FileOperationFormat.HTMLZip ||
-        format === FileOperationFormat.PDF
-      ) {
-        const inlined = HTMLHelper.inlineImage(
+        (format === FileOperationFormat.HTMLZip ||
+          format === FileOperationFormat.PDF) &&
+        HTMLHelper.canInlineImage(
           text,
           attachment.redirectUrl,
           attachment.contentType,
-          buffer
-        );
+          attachment.size
+        )
+      ) {
+        let buffer: Buffer | undefined;
+        try {
+          buffer = await attachment.buffer;
+        } catch (err) {
+          Logger.warn(`Failed to read attachment from storage`, {
+            attachmentId: attachment.id,
+            teamId: attachment.teamId,
+            error: errToString(err),
+          });
+        }
+
+        const inlined = buffer
+          ? HTMLHelper.inlineImage(
+              text,
+              attachment.redirectUrl,
+              attachment.contentType,
+              buffer
+            )
+          : null;
         if (inlined !== null) {
           text = inlined;
           continue;
         }
       }
 
-      zip.addBuffer(buffer, path.join(dir, attachment.key), {
-        mtime: attachment.updatedAt,
-      });
+      this.addAttachmentToArchive(
+        zip,
+        attachment,
+        path.join(dir, attachment.key)
+      );
 
       text = text.replace(
         new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
@@ -165,33 +176,30 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
    * @returns The path to the zip file in tmp.
    */
   protected async addCollectionsToArchive(
-    zip: ZipFile,
     collections: Collection[],
     format: FileOperationFormat,
     includeAttachments = true
   ) {
     const pathMap = this.createPathMap(collections, format);
-    await this.addDocumentsToArchive({
-      zip,
-      pathMap,
-      format,
-      includeAttachments,
-    });
-
-    return await ZipHelper.toTmpFile(zip);
+    return await ZipHelper.toTmpFile((zip) =>
+      this.addDocumentsToArchive({
+        zip,
+        pathMap,
+        format,
+        includeAttachments,
+      })
+    );
   }
 
   protected async addDocumentToArchive({
     document,
     format,
     documentStructure,
-    zip,
     includeAttachments = true,
   }: {
     document: Document;
     format: FileOperationFormat;
     documentStructure: NavigationNode[];
-    zip: ZipFile;
     includeAttachments?: boolean;
   }) {
     const pathMap = new Map<string, string>();
@@ -209,14 +217,14 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       format
     );
 
-    await this.addDocumentsToArchive({
-      zip,
-      pathMap,
-      format,
-      includeAttachments,
-    });
-
-    return await ZipHelper.toTmpFile(zip);
+    return await ZipHelper.toTmpFile((zip) =>
+      this.addDocumentsToArchive({
+        zip,
+        pathMap,
+        format,
+        includeAttachments,
+      })
+    );
   }
 
   /**

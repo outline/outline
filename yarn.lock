@@ -7528,12 +7528,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/yazl@npm:^2.4.6":
-  version: 2.4.6
-  resolution: "@types/yazl@npm:2.4.6"
+"@types/yazl@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "@types/yazl@npm:3.3.1"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10c0/6145fd1025e592747ed1331d88edb6d57dfd0f514812420889ecc880e0728b22c4d4214d5062b36164c4c40ca271266968a1571118ba6521796c76ac0b18c99c
+  checksum: 10c0/bc72a56c88d99021ecb80ee9c0a2eb3dceb5bec522c20fd4e160d5c52dcc156c37b2e956a05d54e89e7ececba82aca07a361a9e8f66e5ebbbfcdcd8d2c0dfc0e
   languageName: node
   linkType: hard
 
@@ -15545,7 +15545,7 @@ __metadata:
     "@types/utf8": "npm:^3.0.3"
     "@types/validator": "npm:^13.15.10"
     "@types/yauzl": "npm:^2.10.3"
-    "@types/yazl": "npm:^2.4.6"
+    "@types/yazl": "npm:^3.3.1"
     "@vitejs/plugin-react": "npm:^6.0.3"
     "@vitest/ui": "npm:^4.1.8"
     addressparser: "npm:^1.0.1"

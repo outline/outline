@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import tmp from "tmp";
 import type { Entry } from "yauzl";
 import yauzl, { validateFileName } from "yauzl";
-import type { ZipFile } from "yazl";
+import { ZipFile } from "yazl";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -46,31 +46,54 @@ export default class ZipHelper {
   /**
    * Write a zip file to a temporary disk location.
    *
-   * The caller is responsible for adding entries to the `ZipFile`; this method
-   * calls `end()` and waits for the output stream to drain to disk.
+   * Entries are added by the `addEntries` callback, which receives an archive
+   * that is already draining to disk. Adding entries only after a reader is
+   * attached keeps memory proportional to a single entry rather than to the
+   * size of the whole archive.
    *
-   * @param zip yazl ZipFile object with entries already added.
+   * @param addEntries Callback that populates the archive.
    * @returns pathname of the temporary file where the zip was written to disk.
+   * @throws if the archive could not be built or written to disk.
    */
-  public static async toTmpFile(zip: ZipFile): Promise<string> {
+  public static async toTmpFile(
+    addEntries: (zip: ZipFile) => Promise<void>
+  ): Promise<string> {
     Logger.debug("utils", "Creating tmp file…");
     const filePath = await createTmpFile({
       prefix: "export-",
       postfix: ".zip",
     });
 
+    const zip = new ZipFile();
+    const writeStream = fs.createWriteStream(filePath);
+    // yazl reports failures on the archive rather than on its output stream,
+    // so route them into the pipeline to get a single failure path.
+    zip.on("error", (error: Error) => writeStream.destroy(error));
+
+    const writing = pipeline(zip.outputStream, writeStream);
+    // Resolve rather than reject, so that a write failure while entries are
+    // still being added is never an unhandled rejection.
+    const written = writing.then(
+      () => undefined,
+      (error: Error) => error
+    );
+
     try {
-      const writing = pipeline(
-        zip.outputStream,
-        fs.createWriteStream(filePath)
-      );
+      await addEntries(zip);
       zip.end();
-      await writing;
     } catch (error) {
-      await fs.remove(filePath).catch((rmErr) => {
-        Logger.error("Failed to remove tmp file", rmErr);
-      });
+      // Unblock the pipeline, which is still waiting on entries that will now
+      // never arrive.
+      writeStream.destroy();
+      await written;
+      await removeTmpFile(filePath);
       throw error;
+    }
+
+    const writeError = await written;
+    if (writeError) {
+      await removeTmpFile(filePath);
+      throw writeError;
     }
 
     Logger.debug("utils", "Writing zip complete", { path: filePath });
@@ -293,12 +316,25 @@ export default class ZipHelper {
 /**
  * Promisified wrapper around tmp.file.
  *
+ * The descriptor tmp opens is discarded, as the file is written through a
+ * separate stream — retaining it would leak a descriptor per call.
+ *
  * @param options options passed through to tmp.
  * @returns the path of the created temporary file.
  */
 const createTmpFile = (options: tmp.FileOptions) =>
   new Promise<string>((resolve, reject) => {
-    tmp.file(options, (err, filePath) =>
+    tmp.file({ ...options, discardDescriptor: true }, (err, filePath) =>
       err ? reject(err) : resolve(filePath)
     );
+  });
+
+/**
+ * Delete a temporary file, logging rather than throwing on failure.
+ *
+ * @param filePath the path of the file to remove.
+ */
+const removeTmpFile = (filePath: string) =>
+  fs.remove(filePath).catch((error) => {
+    Logger.error("Failed to remove tmp file", error);
   });

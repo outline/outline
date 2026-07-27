@@ -638,6 +638,35 @@ export async function buildAttachment(
   });
 }
 
+/**
+ * Build a collection holding one document that references one attachment,
+ * along with a file operation to export it with.
+ *
+ * @param overrides Optional team and user to build the records under.
+ * @returns the created collection, document, attachment and file operation.
+ */
+export async function buildDocumentWithAttachment(
+  overrides: { teamId?: string; userId?: string } = {}
+) {
+  const teamId = overrides.teamId ?? (await buildTeam()).id;
+  const userId = overrides.userId ?? (await buildUser({ teamId })).id;
+
+  const collection = await buildCollection({ teamId, createdById: userId });
+  const attachment = await buildAttachment({ teamId, userId });
+  const document = await buildDocument({
+    teamId,
+    userId,
+    collectionId: collection.id,
+    title: "Test",
+    text: `![image](${attachment.redirectUrl})`,
+  });
+  await collection.addDocumentToStructure(document);
+
+  const fileOperation = await buildFileOperation({ teamId, userId });
+
+  return { collection, document, attachment, fileOperation };
+}
+
 export async function buildEmoji(
   overrides: Partial<Emoji> = {}
 ): Promise<Emoji> {
