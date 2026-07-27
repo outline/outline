@@ -1738,15 +1738,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@datadog/pprof@npm:5.15.1":
-  version: 5.15.1
-  resolution: "@datadog/pprof@npm:5.15.1"
+"@datadog/pprof@npm:5.17.0":
+  version: 5.17.0
+  resolution: "@datadog/pprof@npm:5.17.0"
   dependencies:
     node-gyp: "npm:latest"
     node-gyp-build: "npm:^4.8.4"
     pprof-format: "npm:^2.2.1"
-    source-map: "npm:^0.7.4"
-  checksum: 10c0/20d4a8f7873e0ff501bfa0bc712556216d6f5fb2dbb1286846ff17545b985391cb59318b0dfd85801d208a3314ef075dd84c2a6441b6fd8e9e1b6b65f0285ef2
+    source-map: "npm:^0.8.0"
+  checksum: 10c0/e3e405dbf387c748ed3c5f976d7a3c487233d6c9866f4125b9a008e32d174c7657c7c81925a1a1239684b4eb3bebcd2694d53bbe99b04514c93de61856e0aa02
   languageName: node
   linkType: hard
 
@@ -9932,21 +9932,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dd-trace@npm:^5.115.0":
-  version: 5.115.0
-  resolution: "dd-trace@npm:5.115.0"
+"dd-trace@npm:^5.117.0":
+  version: 5.117.0
+  resolution: "dd-trace@npm:5.117.0"
   dependencies:
     "@datadog/libdatadog": "npm:0.9.4"
     "@datadog/native-appsec": "npm:11.0.1"
     "@datadog/native-iast-taint-tracking": "npm:4.2.0"
     "@datadog/native-metrics": "npm:3.1.2"
     "@datadog/openfeature-node-server": "npm:2.0.0"
-    "@datadog/pprof": "npm:5.15.1"
+    "@datadog/pprof": "npm:5.17.0"
     "@datadog/wasm-js-rewriter": "npm:5.0.1"
     "@opentelemetry/api": "npm:>=1.0.0 <1.10.0"
     "@opentelemetry/api-logs": "npm:<1.0.0"
     dc-polyfill: "npm:^0.1.11"
-    import-in-the-middle: "npm:^3.3.1"
+    import-in-the-middle: "npm:^3.3.2"
     opentracing: "npm:>=0.14.7"
     oxc-parser: "npm:^0.132.0"
   dependenciesMeta:
@@ -9970,7 +9970,7 @@ __metadata:
       optional: true
     oxc-parser:
       optional: true
-  checksum: 10c0/fab3bfa5937f25aefd89255ec3ca36b71f4afc5a4928bb2c06c6335e4930186815320d6016216aef14f7ccc64022219b058d93cb01e7d07f9b42181faadefa32
+  checksum: 10c0/14a4dff5897accf5953cfbc7244407ed0ffe25e7e65d0e62f8abfb09d99ce1b0c8f2e7c5c44266cd63e1fd9ef4e0a39fbb76fa73acdc16ea5ebf34d485a9b7ea
   languageName: node
   linkType: hard
 
@@ -12522,7 +12522,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"import-in-the-middle@npm:^3.0.0, import-in-the-middle@npm:^3.3.1":
+"import-in-the-middle@npm:^3.0.0":
   version: 3.3.1
   resolution: "import-in-the-middle@npm:3.3.1"
   dependencies:
@@ -12530,6 +12530,17 @@ __metadata:
     es-module-lexer: "npm:^2.2.0"
     module-details-from-path: "npm:^1.0.4"
   checksum: 10c0/b2bff9cb1499a749e395b97a8ce4cd45c76d5ed37c65949bdb04b6e962a666c7ae681ab90480affafc0670e284660631068c168455e5f37a168b08d06af15da6
+  languageName: node
+  linkType: hard
+
+"import-in-the-middle@npm:^3.3.2":
+  version: 3.3.2
+  resolution: "import-in-the-middle@npm:3.3.2"
+  dependencies:
+    cjs-module-lexer: "npm:^2.2.0"
+    es-module-lexer: "npm:^2.2.0"
+    module-details-from-path: "npm:^1.0.4"
+  checksum: 10c0/b60a198b3739fb8d011ec435954793b187fa7764505b7bc4da45e7b080b311584c075f258a4a23abe8d25fe250251129a938a7ae4c79864c53766d60207bd62c
   languageName: node
   linkType: hard
 
@@ -15537,7 +15548,7 @@ __metadata:
     core-js: "npm:^3.49.0"
     crypto-js: "npm:^4.2.0"
     date-fns: "npm:^3.6.0"
-    dd-trace: "npm:^5.115.0"
+    dd-trace: "npm:^5.117.0"
     diff: "npm:^5.2.2"
     discord-api-types: "npm:^0.38.48"
     email-providers: "npm:^1.14.0"
@@ -18825,10 +18836,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map@npm:^0.7.3, source-map@npm:^0.7.4":
+"source-map@npm:^0.7.3":
   version: 0.7.6
   resolution: "source-map@npm:0.7.6"
   checksum: 10c0/59f6f05538539b274ba771d2e9e32f6c65451982510564438e048bc1352f019c6efcdc6dd07909b1968144941c14015c2c7d4369fb7c4d7d53ae769716dcc16c
+  languageName: node
+  linkType: hard
+
+"source-map@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "source-map@npm:0.8.0"
+  checksum: 10c0/fd2a5b81a1bf40f6155592f19c44abb46fc75b0f0f9473dd40c665b6f3866516a26218dad3d76b58b8b3e44560f3ab2191a837e1ce6631987e51a2db2e1cac56
   languageName: node
   linkType: hard
 
