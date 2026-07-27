@@ -1,5 +1,5 @@
 import { EmptyResultError, Op } from "sequelize";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import slugify from "@shared/utils/slugify";
 import { parser } from "@server/editor";
 import Document from "@server/models/Document";
@@ -411,6 +411,56 @@ describe("findByIds", () => {
         userId: user.id,
       }
     );
+    expect(documents.length).toBe(1);
+  });
+
+  it("should not return another user's unfiled draft", async () => {
+    const team = await buildTeam();
+    const author = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const draft = await buildDraftDocument({
+      teamId: team.id,
+      userId: author.id,
+      collectionId: null,
+    });
+    const documents = await Document.findByIds([draft.id], {
+      userId: user.id,
+    });
+    expect(documents.length).toBe(0);
+  });
+
+  it("should return the user's own unfiled draft", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const draft = await buildDraftDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: null,
+    });
+    const documents = await Document.findByIds([draft.id], {
+      userId: user.id,
+    });
+    expect(documents.length).toBe(1);
+  });
+
+  it("should return an unfiled draft shared with the user", async () => {
+    const team = await buildTeam();
+    const author = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const draft = await buildDraftDocument({
+      teamId: team.id,
+      userId: author.id,
+      collectionId: null,
+    });
+    await UserMembership.create({
+      createdById: author.id,
+      documentId: draft.id,
+      userId: user.id,
+      permission: DocumentPermission.Read,
+    });
+    const documents = await Document.findByIds([draft.id], {
+      userId: user.id,
+    });
     expect(documents.length).toBe(1);
   });
 });
