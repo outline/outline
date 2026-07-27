@@ -92,17 +92,14 @@ const handleFileOperationsRedirect = async (
   ctx.redirect(accessUrl);
 };
 
-router.get(
+router.register(
   "fileOperations.redirect",
-  auth(),
-  validate(T.FileOperationsRedirectSchema),
-  handleFileOperationsRedirect
-);
-router.post(
-  "fileOperations.redirect",
-  auth(),
-  validate(T.FileOperationsRedirectSchema),
-  handleFileOperationsRedirect
+  ["get", "post"],
+  [
+    auth(),
+    validate(T.FileOperationsRedirectSchema),
+    handleFileOperationsRedirect,
+  ]
 );
 
 router.post(

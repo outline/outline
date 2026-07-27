@@ -212,17 +212,14 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
     client,
   });
 };
-router.get(
+router.register(
   "email.callback",
-  rateLimiter(RateLimiterStrategy.FivePerMinute),
-  validate(T.EmailCallbackSchema),
-  emailCallback
-);
-router.post(
-  "email.callback",
-  rateLimiter(RateLimiterStrategy.FivePerMinute),
-  validate(T.EmailCallbackSchema),
-  emailCallback
+  ["get", "post"],
+  [
+    rateLimiter(RateLimiterStrategy.FivePerMinute),
+    validate(T.EmailCallbackSchema),
+    emailCallback,
+  ]
 );
 
 export default router;
