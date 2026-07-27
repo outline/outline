@@ -2,7 +2,7 @@ import { Readable } from "node:stream";
 import fs from "fs-extra";
 import { truncate } from "es-toolkit/compat";
 import type { ZipFile } from "yazl";
-import { errToString, toError } from "@shared/utils/error";
+import { toError } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationState, NotificationEventType } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -227,8 +227,10 @@ export default abstract class ExportTask extends BaseTask<Props> {
    * Add an attachment to the archive, streaming its contents from storage as
    * the archive is written so that the file is never held in memory whole.
    *
-   * An attachment that cannot be read is added as an empty entry, as a single
-   * unreadable file should not fail the entire export.
+   * A read that fails, or is interrupted part way through, fails the export —
+   * a silently truncated archive is worse than none, as it looks complete.
+   * An attachment that is simply absent from storage is written as an empty
+   * entry, since a row outliving its file must not make export impossible.
    *
    * @param zip The archive to add the attachment to
    * @param attachment The attachment to add
@@ -244,15 +246,21 @@ export default abstract class ExportTask extends BaseTask<Props> {
       { mtime: attachment.updatedAt },
       (callback) => {
         attachment.stream.then(
-          (stream) => callback(null, stream ?? Readable.from([])),
-          (err) => {
-            Logger.warn(`Failed to read attachment from storage`, {
-              attachmentId: attachment.id,
-              teamId: attachment.teamId,
-              error: errToString(err),
-            });
-            callback(null, Readable.from([]));
-          }
+          (stream) => {
+            if (!stream) {
+              Logger.warn(`Attachment is missing from storage`, {
+                attachmentId: attachment.id,
+                teamId: attachment.teamId,
+              });
+              return callback(null, Readable.from([]));
+            }
+
+            // yazl does not watch the streams it is handed, so an interrupted
+            // read would otherwise stall the archive rather than fail it.
+            stream.on("error", (err) => zip.emit("error", toError(err)));
+            return callback(null, stream);
+          },
+          (err) => callback(toError(err), Readable.from([]))
         );
       }
     );

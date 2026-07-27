@@ -316,12 +316,15 @@ export default class ZipHelper {
 /**
  * Promisified wrapper around tmp.file.
  *
+ * The descriptor tmp opens is discarded, as the file is written through a
+ * separate stream — retaining it would leak a descriptor per call.
+ *
  * @param options options passed through to tmp.
  * @returns the path of the created temporary file.
  */
 const createTmpFile = (options: tmp.FileOptions) =>
   new Promise<string>((resolve, reject) => {
-    tmp.file(options, (err, filePath) =>
+    tmp.file({ ...options, discardDescriptor: true }, (err, filePath) =>
       err ? reject(err) : resolve(filePath)
     );
   });

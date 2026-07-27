@@ -89,13 +89,42 @@ describe("ExportMarkdownZipTask", () => {
     }
   });
 
-  it("should write an empty entry when an attachment cannot be read", async () => {
-    const { collection, attachment, fileOperation } =
-      await buildDocumentWithAttachment();
+  it("should fail the export when an attachment cannot be read", async () => {
+    const { collection, fileOperation } = await buildDocumentWithAttachment();
 
     vi.spyOn(FileStorage, "getFileStream").mockRejectedValue(
       new Error("storage unavailable")
     );
+
+    const task = new ExportMarkdownZipTask();
+    await expect(
+      task.exportCollections([collection], fileOperation)
+    ).rejects.toThrow("storage unavailable");
+  });
+
+  it("should fail the export when an attachment read is interrupted", async () => {
+    const { collection, fileOperation } = await buildDocumentWithAttachment();
+
+    vi.spyOn(FileStorage, "getFileStream").mockResolvedValue(
+      new Readable({
+        read() {
+          this.push("partial");
+          this.destroy(new Error("connection reset"));
+        },
+      })
+    );
+
+    const task = new ExportMarkdownZipTask();
+    await expect(
+      task.exportCollections([collection], fileOperation)
+    ).rejects.toThrow("connection reset");
+  });
+
+  it("should write an empty entry when an attachment is missing from storage", async () => {
+    const { collection, attachment, fileOperation } =
+      await buildDocumentWithAttachment();
+
+    vi.spyOn(FileStorage, "getFileStream").mockResolvedValue(null);
 
     const task = new ExportMarkdownZipTask();
     const filePath = await task.exportCollections([collection], fileOperation);

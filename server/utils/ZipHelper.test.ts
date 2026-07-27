@@ -1,8 +1,8 @@
-import os from "node:os";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import fs from "fs-extra";
 import tmp from "tmp";
+import { vi } from "vitest";
 import { ZipFile } from "yazl";
 import ZipHelper from "./ZipHelper";
 
@@ -21,10 +21,17 @@ async function writeZip(
   return zipPath;
 }
 
-/** Names of the temporary files toTmpFile may have left behind. */
-async function listTmpZips(): Promise<Set<string>> {
-  const files = await fs.readdir(os.tmpdir());
-  return new Set(files.filter((file) => file.startsWith("export-")));
+/**
+ * Watch for the temporary file toTmpFile writes to, so that cleanup can be
+ * asserted against that exact path rather than by scanning the shared temp
+ * directory, which tests running in parallel also write to.
+ */
+function watchTmpFile() {
+  const createWriteStream = vi.spyOn(fs, "createWriteStream");
+  return () => {
+    expect(createWriteStream).toHaveBeenCalledTimes(1);
+    return String(createWriteStream.mock.calls[0][0]);
+  };
 }
 
 async function readZip(filePath: string): Promise<Record<string, string>> {
@@ -40,6 +47,10 @@ async function readZip(filePath: string): Promise<Record<string, string>> {
 }
 
 describe("ZipHelper.toTmpFile", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("writes buffered and streamed entries to a temporary file", async () => {
     const filePath = await ZipHelper.toTmpFile(async (zip) => {
       zip.addBuffer(Buffer.from("hello"), "a.txt");
@@ -76,7 +87,7 @@ describe("ZipHelper.toTmpFile", () => {
   });
 
   it("propagates errors thrown while adding entries and cleans up", async () => {
-    const before = await listTmpZips();
+    const tmpFile = watchTmpFile();
 
     await expect(
       ZipHelper.toTmpFile(async (zip) => {
@@ -86,12 +97,11 @@ describe("ZipHelper.toTmpFile", () => {
       })
     ).rejects.toThrow("boom");
 
-    const after = await listTmpZips();
-    expect([...after].filter((file) => !before.has(file))).toEqual([]);
+    expect(await fs.pathExists(tmpFile())).toBe(false);
   });
 
-  it("propagates errors raised by an entry's stream and cleans up", async () => {
-    const before = await listTmpZips();
+  it("propagates errors raised when opening an entry and cleans up", async () => {
+    const tmpFile = watchTmpFile();
 
     await expect(
       ZipHelper.toTmpFile(async (zip) => {
@@ -102,8 +112,31 @@ describe("ZipHelper.toTmpFile", () => {
       })
     ).rejects.toThrow("stream unavailable");
 
-    const after = await listTmpZips();
-    expect([...after].filter((file) => !before.has(file))).toEqual([]);
+    expect(await fs.pathExists(tmpFile())).toBe(false);
+  });
+
+  it("fails rather than stalls when an entry's stream errors mid-read", async () => {
+    const tmpFile = watchTmpFile();
+
+    await expect(
+      ZipHelper.toTmpFile(async (zip) => {
+        const source = new Readable({
+          read() {
+            this.push("partial");
+            this.destroy(new Error("connection reset"));
+          },
+        });
+        // Mirrors how ExportTask surfaces an interrupted read, which yazl
+        // does not watch for on the streams it is given.
+        source.on("error", (err) => zip.emit("error", err));
+        zip.addReadStreamLazy("a.txt", {}, (callback) =>
+          callback(null, source)
+        );
+        await Promise.resolve();
+      })
+    ).rejects.toThrow("connection reset");
+
+    expect(await fs.pathExists(tmpFile())).toBe(false);
   });
 });
 
