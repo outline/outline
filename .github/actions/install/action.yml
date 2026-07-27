@@ -6,10 +6,10 @@ runs:
     - name: Enable Corepack
       shell: bash
       run: corepack enable
-    - name: Use Node.js 26.x
+    - name: Use Node.js 24.x
       uses: actions/setup-node@v5
       with:
-        node-version: 26.x
+        node-version: 24.x
         cache: "yarn"
     - name: Install dependencies
       shell: bash
