@@ -1,6 +1,8 @@
+import { Readable } from "node:stream";
 import fs from "fs-extra";
 import { truncate } from "es-toolkit/compat";
-import { toError } from "@shared/utils/error";
+import type { ZipFile } from "yazl";
+import { errToString, toError } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationState, NotificationEventType } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -220,6 +222,41 @@ export default abstract class ExportTask extends BaseTask<Props> {
     documentStructure: NavigationNode[],
     includeAttachments: boolean
   ): Promise<string>;
+
+  /**
+   * Add an attachment to the archive, streaming its contents from storage as
+   * the archive is written so that the file is never held in memory whole.
+   *
+   * An attachment that cannot be read is added as an empty entry, as a single
+   * unreadable file should not fail the entire export.
+   *
+   * @param zip The archive to add the attachment to
+   * @param attachment The attachment to add
+   * @param pathInZip The path to store the attachment at within the archive
+   */
+  protected addAttachmentToArchive(
+    zip: ZipFile,
+    attachment: Attachment,
+    pathInZip: string
+  ) {
+    zip.addReadStreamLazy(
+      pathInZip,
+      { mtime: attachment.updatedAt },
+      (callback) => {
+        attachment.stream.then(
+          (stream) => callback(null, stream ?? Readable.from([])),
+          (err) => {
+            Logger.warn(`Failed to read attachment from storage`, {
+              attachmentId: attachment.id,
+              teamId: attachment.teamId,
+              error: errToString(err),
+            });
+            callback(null, Readable.from([]));
+          }
+        );
+      }
+    );
+  }
 
   /**
    * Update the state of the underlying FileOperation in the database and send
