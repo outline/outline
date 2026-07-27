@@ -30,6 +30,9 @@ export class UnprocessableEntityError extends ExtendableError {}
 /** Error thrown when the client has exceeded the allowed request rate. */
 export class RateLimitExceededError extends ExtendableError {}
 
+/** Error thrown when the client closed the connection before a response. */
+export class ClientClosedRequestError extends ExtendableError {}
+
 /** Error thrown when a request fails for a generic reason. */
 export class RequestError extends ExtendableError {}
 

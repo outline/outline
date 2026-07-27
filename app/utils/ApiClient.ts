@@ -12,6 +12,7 @@ import {
   AuthorizationError,
   BadGatewayError,
   BadRequestError,
+  ClientClosedRequestError,
   NetworkError,
   NotFoundError,
   OfflineError,
@@ -309,6 +310,12 @@ class ApiClient {
       throw new RateLimitExceededError(
         `Too many requests, try again in a minute.`
       );
+    }
+
+    // The client, or an intermediate proxy, closed the connection before the
+    // response was received – there is nothing actionable to report.
+    if (response.status === 499) {
+      throw new ClientClosedRequestError(error.message);
     }
 
     const err = new RequestError(`Error ${response.status}`);
