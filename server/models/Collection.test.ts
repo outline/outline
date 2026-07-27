@@ -487,6 +487,30 @@ describe("#findByPk", () => {
     expect(response!.id).toBe(collection.id);
   });
 
+  it("should not allow a passed where to override the id", async () => {
+    const collection = await buildCollection();
+    const other = await buildCollection();
+
+    const response = await Collection.findByPk(collection.id, {
+      where: { id: other.id },
+    });
+    expect(response!.id).toBe(collection.id);
+
+    const byUrlId = await Collection.findByPk(collection.urlId, {
+      where: { urlId: other.urlId },
+    });
+    expect(byUrlId!.id).toBe(collection.id);
+  });
+
+  it("should throw the passed error when rejectOnEmpty is an error", async () => {
+    const error = new Error("does not exist");
+    await expect(
+      Collection.findByPk("0e8280ea-7b4c-40e5-98ba-ec8a2f00f5e8", {
+        rejectOnEmpty: error,
+      })
+    ).rejects.toThrow(error);
+  });
+
   it("should not return documentStructure by default", async () => {
     const collection = await buildCollection();
     const response = await Collection.findByPk(collection.id);

@@ -141,13 +141,15 @@ class FileOperation extends ParanoidModel<
       : this;
 
     const fileOperation = await scope.findOne({
-      where: { id },
       ...rest,
+      where: { id },
       rejectOnEmpty: false,
     });
 
     if (!fileOperation && rest.rejectOnEmpty) {
-      throw new EmptyResultError(`File operation doesn't exist with id: ${id}`);
+      throw rest.rejectOnEmpty instanceof Error
+        ? rest.rejectOnEmpty
+        : new EmptyResultError(`File operation doesn't exist with id: ${id}`);
     }
 
     return fileOperation;
