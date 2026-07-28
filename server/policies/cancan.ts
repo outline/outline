@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { isPlainObject } from "es-toolkit/compat";
 import type { Model } from "sequelize-typescript";
 import { AuthorizationError } from "@server/errors";
@@ -6,6 +7,9 @@ import { AuthorizationError } from "@server/errors";
 type Constructor = new (...args: any[]) => unknown;
 
 type Policy = Record<string, boolean | string[]>;
+
+/** Default so option-free calls share one object and stay cacheable. */
+const noOptions: Readonly<Record<string, never>> = Object.freeze({});
 
 type Condition<T extends Constructor, P extends Constructor> = (
   performer: InstanceType<P>,
@@ -19,6 +23,11 @@ type Ability = {
   target: Constructor | Model | string;
   condition?: Condition<Constructor, Constructor>;
 };
+
+/** A single evaluation, within which memoized answers may be shared. */
+interface Scope {
+  cache: Map<Model, Map<Model | null, Map<string, boolean | string[]>>> | null;
+}
 
 /**
  * Class that provides a simple way to define and check authorization abilities.
@@ -53,6 +62,9 @@ export class CanCan {
       condition = this.getConditionFn(condition);
     }
 
+    // Registering an ability invalidates the derived action index.
+    this.actionsByClass.clear();
+
     (this.toArray(actions) as string[]).forEach((action) => {
       (this.toArray(targets) as T[]).forEach((target) => {
         const ability = { model, action, target, condition } as Ability;
@@ -83,7 +95,166 @@ export class CanCan {
     performer: Model,
     action: string,
     target: Model | null | undefined,
-    options = {}
+    options: object = noOptions
+  ): boolean | string[] => {
+    // Policy conditions are pure with respect to already-loaded model state, so
+    // within a single evaluation the same question always has the same answer.
+    // Memoize on object identity for the duration of the outermost call —
+    // policies recurse heavily into one another.
+    const scope = this.scope.getStore();
+
+    // An outermost check has nothing to reuse yet, so it computes directly and
+    // opens a scope only for the nested checks its conditions go on to make.
+    if (!scope) {
+      return this.scope.run({ cache: null }, () =>
+        this.computeCan(performer, action, target, options)
+      );
+    }
+
+    const byAction = this.cacheFor(scope, performer, target, options);
+    const cached = byAction?.get(action);
+    if (cached !== undefined) {
+      return cached;
+    }
+    const value = this.computeCan(performer, action, target, options);
+    byAction?.set(action, value);
+    return value;
+  };
+
+  /*
+   * Given a user and a model – output an object which describes the actions the
+   * user may take against the model. This serialized policy is used for testing
+   * and sent in API responses to allow clients to adjust which UI is displayed.
+   */
+  public serialize = (performer: Model, target: Model | null): Policy => {
+    // Opening the scope here lets every action below reuse the others' answers.
+    if (!this.scope.getStore()) {
+      return this.scope.run({ cache: null }, () =>
+        this.serialize(performer, target)
+      );
+    }
+
+    const output: Record<string, boolean | string[]> = {};
+
+    // The set of actions worth checking depends only on the classes involved,
+    // so scanning the whole ability index is done once per class pair.
+    const performerClass = performer?.constructor ?? null;
+    const targetClass = target?.constructor ?? null;
+    let byTargetClass = this.actionsByClass.get(performerClass);
+    if (!byTargetClass) {
+      byTargetClass = new Map();
+      this.actionsByClass.set(performerClass, byTargetClass);
+    }
+    let actionsToCheck = byTargetClass.get(targetClass);
+    if (!actionsToCheck) {
+      actionsToCheck = new Set<string>();
+      for (const [model, actionMap] of this.abilities.entries()) {
+        if (performer instanceof model) {
+          for (const [action, abilities] of actionMap.entries()) {
+            for (const ability of abilities) {
+              if (target instanceof (ability.target as Constructor)) {
+                actionsToCheck.add(action);
+                break;
+              }
+            }
+          }
+        }
+      }
+      byTargetClass.set(targetClass, actionsToCheck);
+    }
+
+    actionsToCheck.forEach((action) => {
+      try {
+        output[action] = this.can(performer, action, target);
+      } catch (_err) {
+        output[action] = false;
+      }
+    });
+
+    return output;
+  };
+
+  /**
+   * Check if a performer cannot perform an action on a target, which is the opposite of `can`.
+   *
+   * @param performer The performer that is trying to perform the action.
+   * @param action The action that the performer is trying to perform.
+   * @param target The target that the action is upon.
+   * @param options Additional options to pass to the condition function.
+   * @returns Whether the performer cannot perform the action on the target.
+   */
+  public cannot = (
+    performer: Model,
+    action: string,
+    target: Model | null | undefined,
+    options: object = noOptions
+  ) => !this.can(performer, action, target, options);
+
+  /**
+   * Guard if a performer can perform an action on a target, throwing an error if they cannot.
+   *
+   * @param performer The performer that is trying to perform the action.
+   * @param action The action that the performer is trying to perform.
+   * @param target The target that the action is upon.
+   * @param options Additional options to pass to the condition function.
+   * @throws AuthorizationError If the performer cannot perform the action on the target.
+   */
+  public authorize = (
+    performer: Model,
+    action: string,
+    target: Model | null | undefined,
+    options: object = noOptions
+  ): asserts target => {
+    if (this.cannot(performer, action, target, options)) {
+      throw AuthorizationError("Authorization error");
+    }
+  };
+
+  // Private methods
+
+  // Binding the memoization scope to the async context rather than to `this`
+  // means it cannot outlive the evaluation that opened it, nor be observed by
+  // a concurrent one, even if a condition were ever to await.
+  private scope = new AsyncLocalStorage<Scope>();
+
+  private actionsByClass: Map<
+    Function | null,
+    Map<Function | null, Set<string>>
+  > = new Map();
+
+  /**
+   * Resolves the per-(performer, target) action cache, or null when the call
+   * carries options and so cannot be shared.
+   */
+  private cacheFor = (
+    scope: Scope,
+    performer: Model,
+    target: Model | null | undefined,
+    options: object
+  ) => {
+    if (options !== noOptions) {
+      return null;
+    }
+    scope.cache ??= new Map();
+    let byTarget = scope.cache.get(performer);
+    if (!byTarget) {
+      byTarget = new Map();
+      scope.cache.set(performer, byTarget);
+    }
+    const key = target ?? null;
+    let byAction = byTarget.get(key);
+    if (!byAction) {
+      byAction = new Map();
+      byTarget.set(key, byAction);
+    }
+    return byAction;
+  };
+
+  private computeCan = (
+    performer: Model,
+    action: string,
+    target: Model | null | undefined,
+    options: object
   ) => {
     const matchingAbilities = this.getMatchingAbilities(
       performer,
@@ -118,79 +289,6 @@ export class CanCan {
 
     return membershipIds.length > 0 ? membershipIds : hasNonMembershipMatch;
   };
-
-  /*
-   * Given a user and a model – output an object which describes the actions the
-   * user may take against the model. This serialized policy is used for testing
-   * and sent in API responses to allow clients to adjust which UI is displayed.
-   */
-  public serialize = (performer: Model, target: Model | null): Policy => {
-    const output: Record<string, boolean | string[]> = {};
-
-    // Get all unique actions to check from the index
-    const actionsToCheck = new Set<string>();
-    for (const [model, actionMap] of this.abilities.entries()) {
-      if (performer instanceof model) {
-        for (const [action, abilities] of actionMap.entries()) {
-          for (const ability of abilities) {
-            if (target instanceof (ability.target as Constructor)) {
-              actionsToCheck.add(action);
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    // Check each unique action once
-    actionsToCheck.forEach((action) => {
-      try {
-        output[action] = this.can(performer, action, target);
-      } catch (_err) {
-        output[action] = false;
-      }
-    });
-
-    return output;
-  };
-
-  /**
-   * Check if a performer cannot perform an action on a target, which is the opposite of `can`.
-   *
-   * @param performer The performer that is trying to perform the action.
-   * @param action The action that the performer is trying to perform.
-   * @param target The target that the action is upon.
-   * @param options Additional options to pass to the condition function.
-   * @returns Whether the performer cannot perform the action on the target.
-   */
-  public cannot = (
-    performer: Model,
-    action: string,
-    target: Model | null | undefined,
-    options = {}
-  ) => !this.can(performer, action, target, options);
-
-  /**
-   * Guard if a performer can perform an action on a target, throwing an error if they cannot.
-   *
-   * @param performer The performer that is trying to perform the action.
-   * @param action The action that the performer is trying to perform.
-   * @param target The target that the action is upon.
-   * @param options Additional options to pass to the condition function.
-   * @throws AuthorizationError If the performer cannot perform the action on the target.
-   */
-  public authorize = (
-    performer: Model,
-    action: string,
-    target: Model | null | undefined,
-    options = {}
-  ): asserts target => {
-    if (this.cannot(performer, action, target, options)) {
-      throw AuthorizationError("Authorization error");
-    }
-  };
-
-  // Private methods
 
   private getMatchingAbilities = (
     performer: Model,
