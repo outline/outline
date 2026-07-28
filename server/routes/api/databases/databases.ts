@@ -41,23 +41,24 @@ router.post(
       authorize(user, "readDocument", collection);
     }
 
+    // without a collection filter, only return databases in collections the
+    // user can read — the plain association include is not user-scoped
+    const collectionIds = collectionId
+      ? [collectionId]
+      : await user.collectionIds();
+
     const databases = await Database.findAll({
       where: {
         teamId: user.teamId,
-        ...(collectionId ? { collectionId } : {}),
+        collectionId: collectionIds,
       },
       include: [{ model: Collection, as: "collection", required: true }],
       order: [["createdAt", "ASC"]],
     });
 
-    // without a collection filter, only return databases the user can reach
-    const visible = collectionId
-      ? databases
-      : databases.filter((database) => !!database.collection);
-
     ctx.body = {
-      data: visible.map(presentDatabase),
-      policies: presentPolicies(user, visible),
+      data: databases.map(presentDatabase),
+      policies: presentPolicies(user, databases),
     };
   }
 );

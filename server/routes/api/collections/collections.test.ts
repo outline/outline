@@ -1,7 +1,4 @@
-import {
-  CollectionPermission,
-  CollectionStatusFilter,
-} from "@shared/types";
+import { CollectionPermission, CollectionStatusFilter } from "@shared/types";
 import { Document, UserMembership, GroupMembership } from "@server/models";
 import {
   buildUser,

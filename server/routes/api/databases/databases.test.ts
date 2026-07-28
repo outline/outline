@@ -117,6 +117,30 @@ describe("#databases.list", () => {
       body.data.some((item: { name: string }) => item.name === "Secret")
     ).toBe(false);
   });
+
+  it("should not list databases in private collections without membership", async () => {
+    const { team, user } = await buildEnabledTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const privateCollection = await buildCollection({
+      teamId: team.id,
+      userId: owner.id,
+      permission: null,
+    });
+    await buildDatabase({
+      teamId: team.id,
+      userId: owner.id,
+      collectionId: privateCollection.id,
+      name: "Private",
+    });
+
+    const res = await server.post("/api/databases.list", user, { body: {} });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(
+      body.data.some((item: { name: string }) => item.name === "Private")
+    ).toBe(false);
+  });
 });
 
 describe("#databases.update", () => {

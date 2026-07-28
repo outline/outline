@@ -3496,6 +3496,41 @@ describe("#documents.create", () => {
     );
   });
 
+  it("should create a row inside the database when databaseId is passed", async () => {
+    const team = await buildTeam({
+      preferences: { documentDatabases: true },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Row",
+        collectionId: collection.id,
+        databaseId: database.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.databaseId).toEqual(database.id);
+    expect(body.data.collectionId).toEqual(collection.id);
+
+    // rows must not appear in the collection's sidebar structure
+    await collection.reload();
+    expect(
+      collection.documentStructure?.some((node) => node.id === body.data.id)
+    ).not.toEqual(true);
+  });
+
   it("should create a document with empty title if no title is explicitly passed", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.create", user, {
