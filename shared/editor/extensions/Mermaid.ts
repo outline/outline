@@ -322,6 +322,7 @@ function getNewState({
   autoEditEmpty?: boolean;
 }): MermaidState {
   const decorations: Decoration[] = [];
+  const usedRenderers = new Set<MermaidRenderer>();
   let newEditingId: string | undefined;
 
   // Find all blocks that represent Mermaid diagrams (supports both "mermaid" and "mermaidjs"),
@@ -331,11 +332,25 @@ function getNewState({
   );
 
   blocks.forEach((block) => {
-    const existingDecorations = pluginState.decorationSet.find(
-      block.pos,
-      block.pos + block.node.nodeSize,
-      (spec) => !!spec.diagramId
-    );
+    const existingDecorations = pluginState.decorationSet
+      .find(
+        block.pos,
+        block.pos + block.node.nodeSize,
+        (spec) => !!spec.diagramId
+      )
+      // A widget sitting exactly at the start of this block belongs to the
+      // preceding diagram, whose end position is shared with this one.
+      .filter((decoration) => {
+        if (
+          decoration.from === decoration.to &&
+          decoration.from === block.pos
+        ) {
+          return false;
+        }
+        // Each renderer owns a single DOM element, so it can only back one
+        // diagram — reusing it would place the same node in two places.
+        return !usedRenderers.has(decoration.spec.renderer);
+      });
 
     const bestDecoration = findBestOverlapDecoration(
       existingDecorations,
@@ -345,6 +360,7 @@ function getNewState({
     const isNewBlock = !bestDecoration;
     const renderer: MermaidRenderer =
       bestDecoration?.spec?.renderer ?? new MermaidRenderer(editor);
+    usedRenderers.add(renderer);
 
     // Auto-enter edit mode for newly created empty mermaid diagrams
     if (
