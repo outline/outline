@@ -25,7 +25,7 @@ import { ValidationError } from "@server/errors";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
 import type { Template } from "@server/models";
-import { Collection, Document, Revision } from "@server/models";
+import { Collection, Database, Document, Revision } from "@server/models";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 import { TextHelper } from "./TextHelper";
@@ -306,15 +306,15 @@ export class DocumentHelper {
 
     let frontmatter = "";
     if (options?.includeProperties && document instanceof Document) {
-      const collection =
-        document.collection ??
-        (document.collectionId
-          ? await Collection.findByPk(document.collectionId)
+      const database =
+        document.database ??
+        (document.databaseId
+          ? await Database.findByPk(document.databaseId)
           : null);
-      if (collection?.dataSchema) {
+      if (database) {
         frontmatter = DocumentHelper.propertiesToFrontmatter(
           document,
-          collection.dataSchema
+          database.dataSchema
         );
       }
     }

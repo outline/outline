@@ -7,6 +7,7 @@ import "./attachment";
 import "./authenticationProvider";
 import "./collection";
 import "./comment";
+import "./database";
 import "./document";
 import "./externalGroup";
 import "./fileOperation";

@@ -77,7 +77,7 @@ const relationProperty: Property = {
   id: uuidv4(),
   name: "Linked",
   type: PropertyType.Relation,
-  config: { targetCollectionId: uuidv4() },
+  config: { targetDatabaseId: uuidv4() },
 };
 
 const schema: Property[] = [
@@ -400,10 +400,32 @@ describe("coercePropertyValue", () => {
           id: uuidv4(),
           name: "Linked",
           type: PropertyType.Relation,
-          config: { targetCollectionId: "not-a-uuid" },
+          config: { targetDatabaseId: "not-a-uuid" },
         },
       ])
-    ).toThrow(/targetCollectionId/);
+    ).toThrow(/targetDatabaseId/);
+  });
+
+  it("should reject a relation that names no target database", () => {
+    expect(() =>
+      validateDataSchema([
+        {
+          id: uuidv4(),
+          name: "Linked",
+          type: PropertyType.Relation,
+        },
+      ])
+    ).toThrow(/must reference a target database/);
+  });
+
+  it("should keep only the first id when a relation is single-valued", () => {
+    const a = uuidv4();
+    const b = uuidv4();
+    const single: Property = {
+      ...relationProperty,
+      config: { ...relationProperty.config, allowMultiple: false },
+    };
+    expect(coercePropertyValue(single, [a, b])).toEqual([a]);
   });
 
   it("should never store rollup values", () => {

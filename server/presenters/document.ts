@@ -84,6 +84,7 @@ async function presentDocument(
     revision: document.revisionCount,
     fullWidth: document.fullWidth,
     collectionId: undefined,
+    databaseId: undefined,
     parentDocumentId: undefined,
     lastViewedAt: undefined,
     isCollectionDeleted: undefined,
@@ -107,6 +108,7 @@ async function presentDocument(
     res.properties = document.properties ?? {};
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.collectionId = document.collectionId;
+    res.databaseId = document.databaseId;
     res.parentDocumentId = document.parentDocumentId;
     res.createdBy = presentUser(document.createdBy);
     res.updatedBy = presentUser(document.updatedBy);

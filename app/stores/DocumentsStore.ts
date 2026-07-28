@@ -3,6 +3,7 @@ import { compact, filter, omitBy, orderBy } from "es-toolkit/compat";
 import { observable, action, computed, runInAction } from "mobx";
 import type {
   DataViewSort,
+  DataViewSummaries,
   DirectionFilter,
   FilterGroup,
   SortFilter,
@@ -338,22 +339,43 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   /**
-   * Fetches documents in a database collection, optionally filtered and
-   * sorted by their typed property values.
+   * Fetches the rows of a database, optionally filtered and sorted by their
+   * typed property values, along with the column summaries of a saved view.
    *
-   * @param options The collection id plus optional filter, property sorts and pagination
-   * @returns A promise resolving to the matching document models, in order.
+   * Summaries cover every row matching the filter rather than the returned
+   * page, so they are computed by the server rather than from the result.
+   *
+   * @param options the database id plus optional filter, property sorts,
+   *   summary view and pagination.
+   * @returns the matching rows in order, and any computed summaries.
    */
   @action
   fetchInDatabase = async (
     options: {
-      collectionId: string;
+      databaseId: string;
       filter?: FilterGroup;
       propertySorts?: DataViewSort[];
+      summariesForViewId?: string;
     } & PaginationParams
-  ): Promise<Document[]> => {
-    const res = await this.fetchNamedPage("list", options);
-    return compact(res.map((item: { id: string }) => this.get(item.id)));
+  ): Promise<{ rows: Document[]; summaries?: DataViewSummaries }> => {
+    this.isFetching = true;
+
+    try {
+      const res = await client.post("/documents.list", options);
+      invariant(res?.data, "Document list not available");
+      runInAction("DocumentsStore#fetchInDatabase", () => {
+        res.data.forEach(this.add);
+        this.addPolicies(res.policies);
+      });
+      return {
+        rows: compact(
+          res.data.map((item: { id: string }) => this.get(item.id))
+        ),
+        summaries: res.summaries,
+      };
+    } finally {
+      this.isFetching = false;
+    }
   };
 
   @action

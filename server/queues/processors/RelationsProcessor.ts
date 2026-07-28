@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { PropertyType } from "@shared/types";
-import { Collection, Document, Relationship } from "@server/models";
+import { Database, Document, Relationship } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import type { DocumentEvent, Event } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
@@ -20,12 +20,12 @@ export default class RelationsProcessor extends BaseProcessor {
 
   async perform(event: DocumentEvent) {
     const document = await Document.findByPk(event.documentId);
-    if (!document || !document.collectionId) {
+    if (!document?.databaseId) {
       return;
     }
 
-    const collection = await Collection.findByPk(document.collectionId);
-    const relationProperties = (collection?.dataSchema ?? []).filter(
+    const database = await Database.findByPk(document.databaseId);
+    const relationProperties = (database?.dataSchema ?? []).filter(
       (property) => property.type === PropertyType.Relation
     );
 

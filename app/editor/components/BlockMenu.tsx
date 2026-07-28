@@ -108,22 +108,20 @@ function useTemplateMenuItem(): MenuItem | undefined {
 /**
  * Hook that returns a database menu item with children for inserting an
  * inline database block, or undefined when the feature is disabled or no
- * database collections exist.
+ * databases exist.
  */
 function useDatabaseMenuItem(): MenuItem | undefined {
   const { t } = useTranslation();
   const team = useCurrentTeam({ rejectOnEmpty: false });
-  const { collections } = useStores();
+  const { databases } = useStores();
 
   return useMemo(() => {
     if (!team?.getPreference(TeamPreference.DocumentDatabases)) {
       return undefined;
     }
 
-    const databases = collections.orderedData.filter(
-      (collection) => collection.isDatabase
-    );
-    if (databases.length === 0) {
+    const available = databases.orderedData;
+    if (available.length === 0) {
       return undefined;
     }
 
@@ -132,15 +130,15 @@ function useDatabaseMenuItem(): MenuItem | undefined {
       title: t("Database"),
       icon: <DatabaseIcon />,
       keywords: "database table rows",
-      children: databases.map((collection) => ({
+      children: available.map((database) => ({
         name: "database",
-        title: collection.name,
+        title: database.name,
         icon: <DatabaseIcon />,
-        keywords: collection.name,
-        attrs: { collectionId: collection.id },
+        keywords: database.name,
+        attrs: { databaseId: database.id },
       })),
     } satisfies MenuItem;
-  }, [team, collections.orderedData, t]);
+  }, [team, databases.orderedData, t]);
 }
 
 type Props = Omit<SuggestionsMenuProps, "renderMenuItem" | "items"> &

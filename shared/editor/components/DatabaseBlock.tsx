@@ -19,8 +19,8 @@ import PropertyValueLabel from "./PropertyValueLabel";
 const ROW_LIMIT = 25;
 
 type Props = ComponentProps & {
-  /** Callback to set the collection rendered by this block. */
-  onChangeCollection: (collectionId: string) => void;
+  /** Callback to set the database rendered by this block. */
+  onChangeDatabase: (databaseId: string) => void;
   /** Callback to set the saved view rendered by this block. */
   onChangeView: (viewId: string | null) => void;
 };
@@ -33,27 +33,26 @@ type RowModel = {
 };
 
 /**
- * Renders the inline database block: a read-only live view over the
- * documents of a database collection, laid out as a table, board, list or
- * gallery depending on the referenced saved view. When the block has no
- * collection yet (freshly inserted), it renders a picker of available
- * databases.
+ * Renders the inline database block: a read-only live view over the rows of a
+ * database, laid out as a table, board, list or gallery depending on the
+ * referenced saved view. When the block has no database yet (freshly
+ * inserted), it renders a picker of available databases.
  */
 function DatabaseBlock({
   node,
   isEditable,
-  onChangeCollection,
+  onChangeDatabase,
   onChangeView,
 }: Props) {
   const { t } = useTranslation();
-  const { collections, documents } = useStores();
+  const { databases, documents } = useStores();
   const isMounted = useIsMounted();
-  const { collectionId, viewId } = node.attrs;
+  const { databaseId, viewId } = node.attrs;
 
   const [rowIds, setRowIds] = React.useState<string[]>();
-  const collection = collectionId ? collections.get(collectionId) : undefined;
-  const schema: Property[] = collection?.dataSchema ?? [];
-  const views: DataView[] = collection?.views ?? [];
+  const database = databaseId ? databases.get(databaseId) : undefined;
+  const schema: Property[] = database?.dataSchema ?? [];
+  const views: DataView[] = database?.views ?? [];
   const view = viewId
     ? views.find((item: DataView) => item.id === viewId)
     : undefined;
@@ -61,17 +60,18 @@ function DatabaseBlock({
   const visibleSchema = visiblePropertiesForView(schema, view);
 
   React.useEffect(() => {
-    if (!collectionId) {
+    if (!databaseId) {
       return;
     }
 
     async function load() {
       try {
-        if (!collections.get(collectionId)) {
-          await collections.fetch(collectionId);
+        if (!databases.get(databaseId)) {
+          await databases.fetch(databaseId);
         }
-        const results = await documents.fetchInDatabase({
-          collectionId,
+        const { rows: results } = await documents.fetchInDatabase({
+          databaseId,
+          filter: databases.get(databaseId)?.resolveView(viewId)?.filter,
           limit: ROW_LIMIT,
         });
         if (isMounted()) {
@@ -85,23 +85,21 @@ function DatabaseBlock({
     }
 
     void load();
-  }, [collectionId, collections, documents, isMounted]);
+  }, [databaseId, viewId, databases, documents, isMounted]);
 
-  if (!collectionId) {
-    const databases = collections.orderedData.filter(
-      (item: { isDatabase: boolean }) => item.isDatabase
-    );
+  if (!databaseId) {
+    const available = databases.orderedData;
     return (
       <Container contentEditable={false}>
         <Placeholder>
-          {isEditable && databases.length > 0 ? (
+          {isEditable && available.length > 0 ? (
             <>
               {t("Choose a database")}:{" "}
-              {databases.map((item: { id: string; name: string }) => (
+              {available.map((item: { id: string; name: string }) => (
                 <PickerButton
                   key={item.id}
                   type="button"
-                  onClick={() => onChangeCollection(item.id)}
+                  onClick={() => onChangeDatabase(item.id)}
                 >
                   {item.name}
                 </PickerButton>
@@ -115,7 +113,7 @@ function DatabaseBlock({
     );
   }
 
-  if (!collection) {
+  if (!database) {
     return (
       <Container contentEditable={false}>
         <Placeholder>{t("Database not accessible")}</Placeholder>
@@ -131,7 +129,7 @@ function DatabaseBlock({
   return (
     <Container contentEditable={false}>
       <Header>
-        <Title to={collection.path}>{collection.name}</Title>
+        <Title to={database.path}>{database.name}</Title>
         {isEditable && views.length > 0 && (
           <ViewPicker>
             <PickerButton

@@ -15,12 +15,13 @@ import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import { InputSelect } from "~/components/InputSelect";
 import NudeButton from "~/components/NudeButton";
+import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 
 type Props = {
-  /** The collection whose data schema to edit. */
-  collectionId: string;
+  /** The database whose data schema to edit. */
+  databaseId: string;
   /** Callback when the schema has been saved. */
   onSubmit: () => void;
 };
@@ -47,17 +48,20 @@ const aggregationLabels: Record<RollupAggregation, string> = {
 };
 
 /**
- * A dialog for defining the typed property schema that turns a collection
- * into a database. Properties keep stable ids across renames so existing
- * document values are preserved.
+ * A dialog for defining a database's typed property schema. Properties keep
+ * stable ids across renames so existing row values are preserved.
+ *
+ * A relation property may declare a mirror on the database it points at, in
+ * which case the two stay in step: linking a row from one side links it from
+ * the other. The mirror property itself is created by the server.
  */
-function DatabaseSchemaEditor({ collectionId, onSubmit }: Props) {
+function DatabaseSchemaEditor({ databaseId, onSubmit }: Props) {
   const { t } = useTranslation();
-  const { collections } = useStores();
-  const collection = collections.get(collectionId);
+  const { databases } = useStores();
+  const database = databases.get(databaseId);
 
   const [draft, setDraft] = React.useState<Property[]>(() =>
-    (collection?.dataSchema ?? []).map((property) => ({
+    (database?.dataSchema ?? []).map((property) => ({
       ...property,
       options: property.options?.map((option) => ({ ...option })),
     }))
@@ -112,9 +116,23 @@ function DatabaseSchemaEditor({ collectionId, onSubmit }: Props) {
     });
   };
 
-  const handleTargetCollectionChange = (index: number, value: string) => {
+  const handleTargetDatabaseChange = (index: number, value: string) => {
     updateProperty(index, {
-      config: value === "" ? undefined : { targetCollectionId: value },
+      config: { ...draft[index].config, targetDatabaseId: value },
+    });
+  };
+
+  /**
+   * Turning on a back link mints the id the mirror property will use on the
+   * target database; turning it off drops it, and the server removes the
+   * mirror on save.
+   */
+  const handleToggleInverse = (index: number, checked: boolean) => {
+    updateProperty(index, {
+      config: {
+        ...draft[index].config,
+        inversePropertyId: checked ? uuidv4() : undefined,
+      },
     });
   };
 
@@ -145,12 +163,12 @@ function DatabaseSchemaEditor({ collectionId, onSubmit }: Props) {
   };
 
   const handleSave = async () => {
-    if (!collection) {
+    if (!database) {
       return;
     }
     setIsSaving(true);
     try {
-      await collection.save({
+      await database.save({
         dataSchema: draft.map((property) => ({
           ...property,
           name: property.name.trim(),
@@ -175,13 +193,18 @@ function DatabaseSchemaEditor({ collectionId, onSubmit }: Props) {
         (!!property.config?.relationPropertyId &&
           (property.config.rollupAggregation === RollupAggregation.Count ||
             !!property.config.rollupPropertyId))
+    ) &&
+    draft.every(
+      (property) =>
+        property.type !== PropertyType.Relation ||
+        !!property.config?.targetDatabaseId
     );
 
   return (
     <Flex column gap={12}>
       <Text as="p" type="secondary">
         {t(
-          "Properties defined here appear on every document in the collection and can be used to filter and sort database views."
+          "Properties defined here appear on every row of the database and can be used to filter and sort its views."
         )}
       </Text>
 
@@ -197,8 +220,8 @@ function DatabaseSchemaEditor({ collectionId, onSubmit }: Props) {
         const rollupRelation = relationProperties.find(
           (item) => item.id === property.config?.relationPropertyId
         );
-        const rollupTargetSchema = rollupRelation?.config?.targetCollectionId
-          ? (collections.get(rollupRelation.config.targetCollectionId)
+        const rollupTargetSchema = rollupRelation?.config?.targetDatabaseId
+          ? (databases.get(rollupRelation.config.targetDatabaseId)
               ?.dataSchema ?? [])
           : [];
         const rollupNumberProperties = rollupTargetSchema.filter(
@@ -238,25 +261,42 @@ function DatabaseSchemaEditor({ collectionId, onSubmit }: Props) {
               </NudeButton>
             </Flex>
             {isRelation && (
-              <InputSelect
-                options={[
-                  {
+              <Flex column gap={6}>
+                <InputSelect
+                  options={databases.orderedData.map((item) => ({
                     type: "item" as const,
-                    label: t("Any collection"),
-                    value: "",
-                  },
-                  ...collections.orderedData.map((item) => ({
-                    type: "item" as const,
-                    label: item.name,
+                    label:
+                      item.id === databaseId
+                        ? t("{{ databaseName }} (this database)", {
+                            databaseName: item.name,
+                          })
+                        : item.name,
                     value: item.id,
-                  })),
-                ]}
-                value={property.config?.targetCollectionId ?? ""}
-                onChange={(value) => handleTargetCollectionChange(index, value)}
-                label={t("Related collection")}
-                labelHidden
-                short
-              />
+                  }))}
+                  value={property.config?.targetDatabaseId ?? null}
+                  onChange={(value) => handleTargetDatabaseChange(index, value)}
+                  label={t("Related database")}
+                  labelHidden
+                  short
+                />
+                <Switch
+                  label={t("Create a back link on the related database")}
+                  labelPosition="right"
+                  checked={!!property.config?.inversePropertyId}
+                  onChange={(checked) => handleToggleInverse(index, checked)}
+                  disabled={!property.config?.targetDatabaseId}
+                  inForm={false}
+                />
+                <Switch
+                  label={t("Allow linking more than one row")}
+                  labelPosition="right"
+                  checked={property.config?.allowMultiple !== false}
+                  onChange={(checked) =>
+                    updateConfig(index, { allowMultiple: checked })
+                  }
+                  inForm={false}
+                />
+              </Flex>
             )}
             {isRollup && (
               <Flex align="center" gap={8}>

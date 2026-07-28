@@ -18,6 +18,7 @@ type Props = Optional<
     | "icon"
     | "color"
     | "collectionId"
+    | "databaseId"
     | "parentDocumentId"
     | "importId"
     | "apiImportId"

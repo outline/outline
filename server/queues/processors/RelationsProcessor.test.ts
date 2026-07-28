@@ -3,7 +3,7 @@ import { PropertyType } from "@shared/types";
 import { Relationship } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import {
-  buildCollection,
+  buildDatabase,
   buildDocument,
   buildTeam,
 } from "@server/test/factories";
@@ -14,26 +14,29 @@ const ip = "127.0.0.1";
 async function buildDatabaseFixture() {
   const team = await buildTeam();
   const propertyId = uuidv4();
-  const collection = await buildCollection({
-    teamId: team.id,
+  const database = await buildDatabase({ teamId: team.id });
+  // the relation points back at the same database, so rows link to each other
+  await database.update({
     dataSchema: [
       {
         id: propertyId,
         name: "Linked",
         type: PropertyType.Relation,
+        config: { targetDatabaseId: database.id },
       },
     ],
   });
-  return { team, collection, propertyId };
+  return { team, database, propertyId };
 }
 
 describe("RelationsProcessor", () => {
   it("should create relationship records for relation values", async () => {
-    const { team, collection, propertyId } = await buildDatabaseFixture();
+    const { team, database, propertyId } = await buildDatabaseFixture();
     const target = await buildDocument({ teamId: team.id });
     const document = await buildDocument({
       teamId: team.id,
-      collectionId: collection.id,
+      collectionId: database.collectionId,
+      databaseId: database.id,
       properties: { [propertyId]: [target.id] },
     });
 
@@ -41,7 +44,7 @@ describe("RelationsProcessor", () => {
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
-      collectionId: collection.id,
+      collectionId: database.collectionId,
       teamId: team.id,
       actorId: document.createdById,
       createdAt: document.updatedAt.toISOString(),
@@ -60,11 +63,12 @@ describe("RelationsProcessor", () => {
   });
 
   it("should remove relationship records for removed values", async () => {
-    const { team, collection, propertyId } = await buildDatabaseFixture();
+    const { team, database, propertyId } = await buildDatabaseFixture();
     const target = await buildDocument({ teamId: team.id });
     const document = await buildDocument({
       teamId: team.id,
-      collectionId: collection.id,
+      collectionId: database.collectionId,
+      databaseId: database.id,
       properties: { [propertyId]: [target.id] },
     });
 
@@ -72,7 +76,7 @@ describe("RelationsProcessor", () => {
     const event = {
       name: "documents.update" as const,
       documentId: document.id,
-      collectionId: collection.id,
+      collectionId: database.collectionId,
       teamId: team.id,
       actorId: document.createdById,
       createdAt: document.updatedAt.toISOString(),
@@ -96,11 +100,12 @@ describe("RelationsProcessor", () => {
   });
 
   it("should not duplicate existing relationship records", async () => {
-    const { team, collection, propertyId } = await buildDatabaseFixture();
+    const { team, database, propertyId } = await buildDatabaseFixture();
     const target = await buildDocument({ teamId: team.id });
     const document = await buildDocument({
       teamId: team.id,
-      collectionId: collection.id,
+      collectionId: database.collectionId,
+      databaseId: database.id,
       properties: { [propertyId]: [target.id] },
     });
 
@@ -108,7 +113,7 @@ describe("RelationsProcessor", () => {
     const event = {
       name: "documents.update" as const,
       documentId: document.id,
-      collectionId: collection.id,
+      collectionId: database.collectionId,
       teamId: team.id,
       actorId: document.createdById,
       createdAt: document.updatedAt.toISOString(),

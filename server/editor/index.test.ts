@@ -147,13 +147,13 @@ test("serializes uppercase alpha lists back to markdown", () => {
 });
 
 describe("database block", () => {
-  const collectionId = "11111111-1111-4111-8111-111111111111";
+  const databaseId = "11111111-1111-4111-8111-111111111111";
   const viewId = "22222222-2222-4222-8222-222222222222";
 
   test("round-trips through markdown", () => {
     const markdown = `Before
 
-[Database](database://${collectionId}/${viewId})
+[Database](database://${databaseId}/${viewId})
 
 After`;
     const ast = parser.parse(markdown);
@@ -163,32 +163,32 @@ After`;
       (node: { type: string }) => node.type === "database"
     );
     expect(block).toBeDefined();
-    expect(block?.attrs.collectionId).toEqual(collectionId);
+    expect(block?.attrs.databaseId).toEqual(databaseId);
     expect(block?.attrs.viewId).toEqual(viewId);
 
     const serialized = serializer.serialize(ast);
     expect(serialized).toContain(
-      `[Database](database://${collectionId}/${viewId})`
+      `[Database](database://${databaseId}/${viewId})`
     );
 
     const reparsed = parser.parse(serialized)?.toJSON();
     const reblock = reparsed?.content?.find(
       (node: { type: string }) => node.type === "database"
     );
-    expect(reblock?.attrs.collectionId).toEqual(collectionId);
+    expect(reblock?.attrs.databaseId).toEqual(databaseId);
     expect(reblock?.attrs.viewId).toEqual(viewId);
   });
 
   test("round-trips without a view id", () => {
-    const ast = parser.parse(`[Database](database://${collectionId})`);
+    const ast = parser.parse(`[Database](database://${databaseId})`);
     const block = ast
       ?.toJSON()
       ?.content?.find((node: { type: string }) => node.type === "database");
-    expect(block?.attrs.collectionId).toEqual(collectionId);
+    expect(block?.attrs.databaseId).toEqual(databaseId);
     expect(block?.attrs.viewId).toBeNull();
 
     const output = serializer.serialize(ast);
-    expect(output.trim()).toBe(`[Database](database://${collectionId})`);
+    expect(output.trim()).toBe(`[Database](database://${databaseId})`);
   });
 
   test("does not parse regular links as database blocks", () => {

@@ -5,7 +5,7 @@ import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import { createContext } from "@server/context";
 import { InvalidRequestError } from "@server/errors";
-import { Collection, Document, User } from "@server/models";
+import { Database, Document, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import FileStorage from "@server/storage/files";
 import { sequelize } from "@server/storage/database";
@@ -96,15 +96,17 @@ export default class DocumentImportTask extends BaseTask<Props> {
       // Run document conversion and image downloading outside a transaction
       const ctx = createContext({ user, authType, ip });
 
-      // When importing into a database collection, extract frontmatter into
-      // typed properties instead of converting it to a YAML codeblock.
-      const collection = collectionId
-        ? await Collection.findByPk(collectionId)
-        : null;
+      // When the destination collection holds exactly one database the import
+      // is unambiguous, so frontmatter is extracted into that database's typed
+      // properties rather than converted to a YAML codeblock. With no database
+      // — or several — there is no schema to read the frontmatter against.
       const team = user.team ?? (await user.$get("team"));
-      const extractFrontmatter =
-        !!collection?.dataSchema &&
-        !!team?.getPreference(TeamPreference.DocumentDatabases);
+      const databases =
+        collectionId && team?.getPreference(TeamPreference.DocumentDatabases)
+          ? await Database.findAll({ where: { collectionId } })
+          : [];
+      const database = databases.length === 1 ? databases[0] : null;
+      const extractFrontmatter = !!database;
 
       const { text, state, title, icon, frontmatter } = await documentImporter({
         user,
@@ -116,10 +118,10 @@ export default class DocumentImportTask extends BaseTask<Props> {
       });
 
       const properties =
-        frontmatter && collection?.dataSchema
+        frontmatter && database
           ? DocumentHelper.frontmatterToProperties(
               frontmatter,
-              collection.dataSchema
+              database.dataSchema
             )
           : undefined;
 
@@ -141,6 +143,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
             state,
             publish,
             collectionId,
+            databaseId: database?.id,
             parentDocumentId,
             properties,
           }

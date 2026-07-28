@@ -19,18 +19,26 @@ type Props = {
 };
 
 /**
- * A panel of typed property fields shown at the top of a document when it
- * belongs to a database collection. Edits persist through documents.update.
+ * A panel of typed property fields shown at the top of a document when it is
+ * a row of a database. Edits persist through documents.update.
  */
 function DocumentProperties({ document }: Props) {
   const team = useCurrentTeam();
-  const { collections, users } = useStores();
+  const { databases, users } = useStores();
   const can = usePolicy(document);
 
-  const collection = document.collectionId
-    ? collections.get(document.collectionId)
+  const database = document.databaseId
+    ? databases.get(document.databaseId)
     : undefined;
-  const schema = collection?.dataSchema;
+  const schema = database?.dataSchema;
+
+  React.useEffect(() => {
+    if (document.databaseId && !database) {
+      void databases.fetch(document.databaseId).catch(() => {
+        // the row's database is inaccessible — the panel stays hidden
+      });
+    }
+  }, [databases, document.databaseId, database]);
 
   const hasPersonProperty = !!schema?.some(
     (property) => property.type === PropertyType.Person

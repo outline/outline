@@ -9,11 +9,8 @@ import {
   FileOperationFormat,
   ImportState,
   IntegrationService,
-  TeamPreference,
   UserRole,
 } from "@shared/types";
-import { errToString } from "@shared/utils/error";
-import { validateDataViews } from "@shared/utils/properties";
 import { ImportValidation } from "@shared/validations";
 import collectionDuplicator from "@server/commands/collectionDuplicator";
 import collectionExporter from "@server/commands/collectionExporter";
@@ -49,7 +46,7 @@ import { collectionIndexing } from "@server/utils/indexing";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
-import { InvalidRequestError, ValidationError } from "@server/errors";
+import { InvalidRequestError } from "@server/errors";
 
 const router = new Router();
 
@@ -617,18 +614,9 @@ router.post(
       sharing,
       commenting,
       templateManagement,
-      dataSchema,
-      views,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
-
-    if (
-      (dataSchema !== undefined || views !== undefined) &&
-      !user.team.getPreference(TeamPreference.DocumentDatabases)
-    ) {
-      throw ValidationError("Document databases are currently disabled");
-    }
 
     const collection = await Collection.findByPk(id, {
       userId: user.id,
@@ -709,23 +697,6 @@ router.post(
 
     if (templateManagement !== undefined) {
       collection.templateManagement = templateManagement;
-    }
-
-    if (dataSchema !== undefined) {
-      collection.dataSchema = dataSchema;
-    }
-
-    if (views !== undefined) {
-      collection.views = views;
-    }
-
-    // views must only reference properties that exist in the data schema
-    if (collection.views && collection.dataSchema) {
-      try {
-        validateDataViews(collection.views, collection.dataSchema);
-      } catch (error) {
-        throw ValidationError(errToString(error));
-      }
     }
 
     await collection.saveWithCtx(ctx);

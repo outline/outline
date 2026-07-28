@@ -13,6 +13,7 @@ export { default as GroupMembership } from "./GroupMembership";
 export { default as UserMembership } from "./UserMembership";
 
 export { default as Comment } from "./Comment";
+export { default as Database } from "./Database";
 
 export { default as Document } from "./Document";
 

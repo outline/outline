@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { PropertyType } from "@shared/types";
 import { Document } from "@server/models";
 import {
-  buildCollection,
+  buildDatabase,
   buildDocument,
   buildTeam,
   buildUser,
@@ -13,7 +13,7 @@ it("presents document properties", async () => {
   const team = await buildTeam();
   const user = await buildUser({ teamId: team.id });
   const propertyId = randomUUID();
-  const collection = await buildCollection({
+  const database = await buildDatabase({
     teamId: team.id,
     userId: user.id,
     dataSchema: [{ id: propertyId, name: "Status", type: PropertyType.Text }],
@@ -21,7 +21,8 @@ it("presents document properties", async () => {
   const document = await buildDocument({
     teamId: team.id,
     userId: user.id,
-    collectionId: collection.id,
+    collectionId: database.collectionId,
+    databaseId: database.id,
   });
   document.setProperty(propertyId, "In progress");
   await document.save();

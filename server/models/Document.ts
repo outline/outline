@@ -63,6 +63,7 @@ import { InvalidRequestError, ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
 import Collection from "./Collection";
 import Comment from "./Comment";
+import Database from "./Database";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
 import GroupMembership from "./GroupMembership";
@@ -550,20 +551,20 @@ class Document extends ArchivableModel<
       return;
     }
 
-    const collection =
-      model.collection ??
-      (model.collectionId
-        ? await Collection.findByPk(model.collectionId, { transaction })
+    const database =
+      model.database ??
+      (model.databaseId
+        ? await Database.findByPk(model.databaseId, { transaction })
         : null);
 
     model.properties = coerceDocumentProperties(
       model.properties,
-      collection?.dataSchema
+      database?.dataSchema
     );
 
     // relation values may only reference existing documents in the same team,
     // and never the document itself
-    const relationProperties = (collection?.dataSchema ?? []).filter(
+    const relationProperties = (database?.dataSchema ?? []).filter(
       (property) =>
         property.type === PropertyType.Relation &&
         Array.isArray(model.properties[property.id])
@@ -765,6 +766,18 @@ class Document extends ArchivableModel<
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
+
+  /**
+   * The database this document is a row of, if any. Rows carry typed property
+   * values described by the database's schema and are excluded from the
+   * collection's document structure so they do not clutter the sidebar.
+   */
+  @BelongsTo(() => Database, "databaseId")
+  database?: Database | null;
+
+  @ForeignKey(() => Database)
+  @Column(DataType.UUID)
+  databaseId?: string | null;
 
   @HasMany(() => UserMembership)
   memberships: UserMembership[];

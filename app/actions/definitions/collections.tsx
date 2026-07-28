@@ -28,7 +28,6 @@ import { errToString } from "@shared/utils/error";
 import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
-import DatabaseSchemaEditor from "~/components/Collection/DatabaseSchemaEditor";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import CollectionDuplicateDialog from "~/components/CollectionDuplicateDialog";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -122,30 +121,30 @@ export const editCollection = createAction({
   },
 });
 
-export const manageCollectionDatabase = createAction({
+export const createDatabase = createAction({
   name: ({ t, isMenu }) =>
-    isMenu ? `${t("Database properties")}…` : t("Database properties"),
-  analyticsName: "Manage database properties",
+    isMenu ? `${t("New database")}…` : t("New database"),
+  analyticsName: "New database",
   section: ActiveCollectionSection,
   icon: <DatabaseIcon />,
   visible: ({ stores, getActivePolicies }) =>
     !!stores.auth.team?.getPreference(TeamPreference.DocumentDatabases) &&
     getActivePolicies(Collection).some((policy) => policy.abilities.update),
-  perform: ({ t, getActiveModel, stores }) => {
+  perform: async ({ t, getActiveModel, stores }) => {
     const collection = getActiveModel(Collection);
     if (!collection) {
       return;
     }
 
-    stores.dialogs.openModal({
-      title: t("Database properties"),
-      content: (
-        <DatabaseSchemaEditor
-          collectionId={collection.id}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
-      ),
-    });
+    try {
+      const database = await stores.databases.create({
+        collectionId: collection.id,
+        name: t("Untitled database"),
+      });
+      history.push(database.path);
+    } catch (error) {
+      toast.error(errToString(error));
+    }
   },
 });
 

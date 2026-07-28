@@ -12,6 +12,7 @@ import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
 import { errToString } from "@shared/utils/error";
 import type {
+  DataViewSummaries,
   DirectionFilter,
   DocumentProperties,
   Property,
@@ -57,6 +58,7 @@ import {
   Attachment,
   Relationship,
   Collection,
+  Database,
   Document,
   DocumentInsight,
   Event,
@@ -75,7 +77,9 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { PropertyQueryHelper } from "@server/models/helpers/PropertyQueryHelper";
+import { RelationHelper } from "@server/models/helpers/RelationHelper";
 import { RollupHelper } from "@server/models/helpers/RollupHelper";
+import { SummaryHelper } from "@server/models/helpers/SummaryHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -124,22 +128,27 @@ router.post(
       parentDocumentId,
       userId: createdById,
       statusFilter,
+      databaseId,
       filter,
       propertySorts,
+      summariesForViewId,
     } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
 
     // always filter by the current team
     const { user } = ctx.state.auth;
 
-    const hasPropertyQuery = !!filter || !!propertySorts?.length;
-    if (hasPropertyQuery) {
+    const hasPropertyQuery =
+      !!filter || !!propertySorts?.length || !!summariesForViewId;
+    if (hasPropertyQuery || databaseId) {
       if (!user.team.getPreference(TeamPreference.DocumentDatabases)) {
         throw ValidationError("Document databases are currently disabled");
       }
-      if (!collectionId) {
+    }
+    if (hasPropertyQuery) {
+      if (!databaseId) {
         throw ValidationError(
-          "collectionId is required to filter or sort by properties"
+          "databaseId is required to filter or sort by properties"
         );
       }
       if (sort === "index") {
@@ -175,6 +184,37 @@ router.post(
     let documentIds: string[] = [];
     let propertyOrder: Literal[] = [];
     let dataSchema: Property[] | null | undefined;
+    let database: Database | null = null;
+
+    // rows are scoped to their database rather than the collection, so that a
+    // collection holding several databases lists each separately
+    if (databaseId) {
+      database = await Database.findByPk(databaseId, {
+        include: [{ model: Collection, as: "collection" }],
+      });
+      authorize(user, "read", database);
+
+      where[Op.and].push({ databaseId });
+      dataSchema = database.dataSchema;
+
+      // build filters and sorts over the properties column against the
+      // database's data schema
+      if (filter) {
+        const propertyFilter = PropertyQueryHelper.buildFilter(
+          filter,
+          dataSchema
+        );
+        if (propertyFilter) {
+          where[Op.and].push(propertyFilter);
+        }
+      }
+      if (propertySorts?.length) {
+        propertyOrder = PropertyQueryHelper.buildOrder(
+          propertySorts,
+          dataSchema
+        );
+      }
+    }
 
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
@@ -185,27 +225,6 @@ router.post(
       });
 
       authorize(user, "readDocument", collection);
-      dataSchema = collection.dataSchema;
-
-      // build filters and sorts over the properties column against the
-      // collection's data schema
-      if (hasPropertyQuery) {
-        if (filter) {
-          const propertyFilter = PropertyQueryHelper.buildFilter(
-            filter,
-            dataSchema ?? []
-          );
-          if (propertyFilter) {
-            where[Op.and].push(propertyFilter);
-          }
-        }
-        if (propertySorts?.length) {
-          propertyOrder = PropertyQueryHelper.buildOrder(
-            propertySorts,
-            dataSchema ?? []
-          );
-        }
-      }
 
       // index sort is special because it uses the order of the documents in the
       // collection.documentStructure rather than a database column
@@ -216,7 +235,7 @@ router.post(
           .map((node) => node.id);
         where[Op.and].push({ id: documentIds });
       } // if it's not a backlink request, filter by all collections the user has access to
-    } else if (!backlinkDocumentId) {
+    } else if (!backlinkDocumentId && !databaseId) {
       const collectionIds = await user.collectionIds();
       where[Op.and].push({
         collectionId: collectionIds,
@@ -413,12 +432,28 @@ router.post(
       });
     }
 
+    // column summaries describe every row matching the filter, not just this
+    // page, so they are aggregated separately against the same conditions
+    let summaries: DataViewSummaries | undefined;
+    if (database && summariesForViewId) {
+      const view = database.getView(summariesForViewId);
+      if (view) {
+        summaries = await SummaryHelper.compute(
+          view,
+          database.dataSchema,
+          where,
+          { includeDrafts }
+        );
+      }
+    }
+
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
       pagination,
       data,
       policies,
+      ...(summaries ? { summaries } : {}),
     };
   }
 );
@@ -710,13 +745,13 @@ router.post(
 
       // rollup property values are computed at read time, not stored
       if (user.team.getPreference(TeamPreference.DocumentDatabases)) {
-        const collection = document.collectionId
-          ? await Collection.findByPk(document.collectionId)
+        const database = document.databaseId
+          ? await Database.findByPk(document.databaseId)
           : null;
-        if (collection?.dataSchema) {
+        if (database) {
           const rollups = await RollupHelper.compute(
             [document],
-            collection.dataSchema
+            database.dataSchema
           );
           const computed = rollups.get(document.id);
           if (computed) {
@@ -1405,6 +1440,8 @@ router.post(
       await authorizeDocumentPublish(ctx, document, collectionId);
     }
 
+    const previousProperties = { ...document.properties };
+
     document = await documentUpdater(ctx, {
       document,
       ...input,
@@ -1413,6 +1450,22 @@ router.post(
       insightsEnabled,
       editorVersion,
     });
+
+    // a bidirectional relation is stored on both rows, so writing one side
+    // has to write the other
+    if (input.properties !== undefined && document.databaseId) {
+      const database = await Database.findByPk(document.databaseId, {
+        transaction,
+      });
+      if (database) {
+        await RelationHelper.syncInverseValues(
+          document,
+          database.dataSchema,
+          previousProperties,
+          { transaction }
+        );
+      }
+    }
 
     ctx.body = {
       data: await presentDocument(ctx, document),
@@ -1762,6 +1815,7 @@ router.post(
       publish,
       index,
       collectionId,
+      databaseId,
       parentDocumentId,
       fullWidth,
       templateId,
@@ -1772,8 +1826,19 @@ router.post(
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
 
+    // a row is created inside its database, and inherits that database's
+    // collection so it stays readable by exactly the same people
+    let database: Database | null = null;
+    if (databaseId) {
+      database = await Database.findByPk(databaseId, {
+        include: [{ model: Collection, as: "collection" }],
+        transaction,
+      });
+      authorize(user, "createRow", database);
+    }
+
     const { collection } = await authorizeDocumentCreate(ctx, {
-      collectionId,
+      collectionId: database?.collectionId ?? collectionId,
       parentDocumentId,
     });
 
@@ -1806,6 +1871,7 @@ router.post(
       publish,
       index,
       collectionId: collection?.id,
+      databaseId: database?.id,
       parentDocumentId,
       template,
       fullWidth,

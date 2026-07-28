@@ -30,6 +30,7 @@ import {
   Emoji,
   Star,
   Collection,
+  Database,
   Group,
   GroupUser,
   Attachment,
@@ -321,6 +322,40 @@ export async function buildCollection(
     description: faker.lorem.words(4),
     createdById: overrides.userId,
     ...overrides,
+  });
+}
+
+export async function buildDatabase(
+  overrides: Partial<Database> & { userId?: string } = {}
+) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.collectionId) {
+    const collection = await buildCollection({
+      teamId: overrides.teamId,
+      userId: overrides.userId,
+    });
+    overrides.collectionId = collection.id;
+  }
+
+  const { userId, ...rest } = overrides;
+
+  return Database.create({
+    name: faker.lorem.words(2),
+    dataSchema: [],
+    views: [],
+    createdById: userId,
+    ...rest,
   });
 }
 

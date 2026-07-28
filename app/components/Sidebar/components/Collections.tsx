@@ -1,9 +1,10 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { TeamPreference } from "@shared/types";
 import type Collection from "~/models/Collection";
 import Flex from "~/components/Flex";
 import Error from "~/components/List/Error";
@@ -23,10 +24,21 @@ import Text from "@shared/components/Text";
 import usePolicy from "~/hooks/usePolicy";
 
 function Collections() {
-  const { documents, auth, collections, policies } = useStores();
+  const { documents, auth, collections, databases, policies } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(auth.team?.id);
   const orderedCollections = collections.allActive;
+
+  // databases are listed inside their collection, so the sidebar needs them
+  // loaded alongside the collection list
+  const databasesEnabled = !!auth.team?.getPreference(
+    TeamPreference.DocumentDatabases
+  );
+  useEffect(() => {
+    if (databasesEnabled && !databases.isLoaded && !databases.isFetching) {
+      void databases.fetchAll();
+    }
+  }, [databasesEnabled, databases]);
 
   const params = useMemo(
     () => ({

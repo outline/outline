@@ -1,9 +1,7 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
-import { TeamPreference } from "@shared/types";
 import type Collection from "~/models/Collection";
 import { Tab, Tabs } from "~/components/Tabs";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { collectionPath } from "~/utils/routeHelpers";
 import { type SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 
@@ -15,7 +13,6 @@ export enum CollectionTab {
   Published = "published",
   Old = "old",
   Alphabetical = "alphabetical",
-  Table = "table",
 }
 
 type Props = {
@@ -40,11 +37,6 @@ const Navigation = observer(function Navigation({
   sidebarContext,
 }: Props) {
   const { t } = useTranslation();
-  const team = useCurrentTeam();
-  const showTable =
-    collection.isDatabase &&
-    team.getPreference(TeamPreference.DocumentDatabases);
-
   const tabProps = (path: CollectionTab) => ({
     exact: true,
     onClick: () => onChangeTab(path),
@@ -62,9 +54,6 @@ const Navigation = observer(function Navigation({
         </Tab>
       )}
       <Tab {...tabProps(CollectionTab.Recent)}>{t("Documents")}</Tab>
-      {showTable && !collection.isArchived && (
-        <Tab {...tabProps(CollectionTab.Table)}>{t("Database")}</Tab>
-      )}
       {!collection.isArchived && (
         <>
           <Tab {...tabProps(CollectionTab.Popular)}>{t("Popular")}</Tab>

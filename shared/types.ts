@@ -540,8 +540,21 @@ export type PropertyOption = {
 export type PropertyConfig = {
   /** Whether date properties include a time component. */
   dateIncludesTime?: boolean;
-  /** The collection relation properties reference documents from; unset means any collection in the team. */
-  targetCollectionId?: string;
+  /** The database a relation property references rows from. */
+  targetDatabaseId?: string;
+  /**
+   * The id of the mirroring relation property on the target database. When set
+   * the relation is bidirectional: writing one side updates the other. The
+   * mirror property is created and removed by the server.
+   */
+  inversePropertyId?: string;
+  /**
+   * Restricts which rows a relation property may reference to those matching a
+   * saved view on the target database. Unset means any row.
+   */
+  limitToViewId?: string;
+  /** Whether a relation property may reference more than one row. */
+  allowMultiple?: boolean;
   /** The relation property a rollup aggregates across. */
   relationPropertyId?: string;
   /** The property on the related documents a rollup aggregates; unused for count. */
@@ -550,7 +563,7 @@ export type PropertyConfig = {
   rollupAggregation?: RollupAggregation;
 };
 
-/** Definition of a typed document property, stored in a collection's data schema. */
+/** Definition of a typed document property, stored in a database's data schema. */
 export type Property = {
   /** Stable identifier (UUID) — values are keyed by this id, so renaming a property is safe. */
   id: string;
@@ -613,6 +626,21 @@ export enum DataViewType {
   Gallery = "gallery",
 }
 
+/**
+ * Aggregations a table view can display in a column's footer, computed over
+ * every row matching the view's filter — not only the loaded page.
+ */
+export enum SummaryAggregation {
+  Count = "count",
+  Filled = "filled",
+  Empty = "empty",
+  Unique = "unique",
+  Sum = "sum",
+  Avg = "avg",
+  Min = "min",
+  Max = "max",
+}
+
 /** Display configuration for one property column in a database view. */
 export type DataViewColumn = {
   /** The property id this column renders. */
@@ -621,7 +649,12 @@ export type DataViewColumn = {
   width?: number;
   /** Whether the column is visible. */
   visible: boolean;
+  /** Aggregation shown in the column footer; unset means no summary. */
+  summary?: SummaryAggregation;
 };
+
+/** A computed column summary, keyed by property id. */
+export type DataViewSummaries = Record<string, number | null>;
 
 /** A sort level in a database view. */
 export type DataViewSort = {
@@ -631,9 +664,10 @@ export type DataViewSort = {
 };
 
 /**
- * A saved database view over the documents in a collection — a query
- * (filter + sorts) plus display configuration. Views store no data; they
- * read live from document properties.
+ * A saved database view over the rows of a database — a query (filter +
+ * sorts) plus display configuration. A database may hold any number of views,
+ * including several of the same type. Views store no data; they read live
+ * from document properties.
  */
 export type DataView = {
   /** Stable identifier (UUID). */

@@ -121,6 +121,13 @@ export default class Document extends ArchivableModel implements Searchable {
   collectionId?: string | null;
 
   /**
+   * The database this document is a row of, if any. Rows carry typed property
+   * values described by the database's schema.
+   */
+  @observable
+  databaseId?: string | null;
+
+  /**
    * The collection that this document belongs to.
    */
   @Relation(() => Collection, { onDelete: "cascade" })

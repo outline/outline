@@ -32,7 +32,7 @@ export default class DatabaseBlock extends Node {
       group: "block",
       atom: true,
       attrs: {
-        collectionId: {
+        databaseId: {
           default: "",
           validate: "string",
         },
@@ -44,7 +44,7 @@ export default class DatabaseBlock extends Node {
         {
           tag: "div.database-block",
           getAttrs: (dom: HTMLDivElement) => ({
-            collectionId: dom.getAttribute("data-collection-id") ?? "",
+            databaseId: dom.getAttribute("data-database-id") ?? "",
             viewId: dom.getAttribute("data-view-id"),
           }),
         },
@@ -53,7 +53,7 @@ export default class DatabaseBlock extends Node {
         "div",
         {
           class: "database-block",
-          "data-collection-id": node.attrs.collectionId,
+          "data-database-id": node.attrs.databaseId,
           ...(node.attrs.viewId ? { "data-view-id": node.attrs.viewId } : {}),
         },
         "Database",
@@ -62,15 +62,15 @@ export default class DatabaseBlock extends Node {
     };
   }
 
-  handleChangeCollection =
+  handleChangeDatabase =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
-    (collectionId: string) => {
+    (databaseId: string) => {
       const { view } = this.editor;
       const { tr } = view.state;
       view.dispatch(
         tr.setNodeMarkup(getPos(), undefined, {
           ...node.attrs,
-          collectionId,
+          databaseId,
         })
       );
     };
@@ -91,7 +91,7 @@ export default class DatabaseBlock extends Node {
   component = (props: ComponentProps) => (
     <DatabaseBlockComponent
       {...props}
-      onChangeCollection={this.handleChangeCollection(props)}
+      onChangeDatabase={this.handleChangeDatabase(props)}
       onChangeView={this.handleChangeView(props)}
     />
   );
@@ -110,12 +110,12 @@ export default class DatabaseBlock extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    if (!node.attrs.collectionId) {
+    if (!node.attrs.databaseId) {
       return;
     }
     state.ensureNewLine();
     state.write(
-      `[Database](${databaseHref(node.attrs.collectionId, node.attrs.viewId)})`
+      `[Database](${databaseHref(node.attrs.databaseId, node.attrs.viewId)})`
     );
     state.write("\n\n");
   }
@@ -124,7 +124,7 @@ export default class DatabaseBlock extends Node {
     return {
       node: "database",
       getAttrs: (token: Token) => ({
-        collectionId: token.attrGet("collectionId"),
+        databaseId: token.attrGet("databaseId"),
         viewId: token.attrGet("viewId"),
       }),
     };

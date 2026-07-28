@@ -52,8 +52,16 @@ export const CommentValidation = {
   maxLength: 1000,
 };
 
+export const DatabaseValidation = {
+  /** The maximum length of a database name */
+  maxNameLength: 100,
+
+  /** The maximum number of databases within a single collection */
+  maxPerCollection: 100,
+};
+
 export const DataViewValidation = {
-  /** The maximum number of saved views on a collection */
+  /** The maximum number of saved views on a database */
   maxViews: 25,
 
   /** The maximum length of a view name */
@@ -93,7 +101,7 @@ export const ImportValidation = {
 };
 
 export const PropertyValidation = {
-  /** The maximum number of properties in a collection's data schema */
+  /** The maximum number of properties in a database's data schema */
   maxProperties: 100,
 
   /** The maximum length of a property or option name */

@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { Property } from "@shared/types";
 import { PropertyType, RollupAggregation } from "@shared/types";
 import {
-  buildCollection,
+  buildDatabase,
   buildDocument,
   buildTeam,
 } from "@server/test/factories";
@@ -16,9 +16,14 @@ const avgId = uuidv4();
 const minId = uuidv4();
 const maxId = uuidv4();
 
-function buildSchema(): Property[] {
+function buildSchema(targetDatabaseId: string = uuidv4()): Property[] {
   return [
-    { id: relationId, name: "Items", type: PropertyType.Relation },
+    {
+      id: relationId,
+      name: "Items",
+      type: PropertyType.Relation,
+      config: { targetDatabaseId },
+    },
     {
       id: countId,
       name: "Item count",
@@ -77,33 +82,37 @@ describe("RollupHelper", () => {
     const priceSchema: Property[] = [
       { id: priceId, name: "Price", type: PropertyType.Number },
     ];
-    const itemCollection = await buildCollection({
+    const itemDatabase = await buildDatabase({
       teamId: team.id,
       dataSchema: priceSchema,
     });
     const itemA = await buildDocument({
       teamId: team.id,
-      collectionId: itemCollection.id,
+      collectionId: itemDatabase.collectionId,
+      databaseId: itemDatabase.id,
       properties: { [priceId]: 10 },
     });
     const itemB = await buildDocument({
       teamId: team.id,
-      collectionId: itemCollection.id,
+      collectionId: itemDatabase.collectionId,
+      databaseId: itemDatabase.id,
       properties: { [priceId]: 30 },
     });
     const itemNoPrice = await buildDocument({
       teamId: team.id,
-      collectionId: itemCollection.id,
+      collectionId: itemDatabase.collectionId,
+      databaseId: itemDatabase.id,
     });
 
-    const schema = buildSchema();
-    const collection = await buildCollection({
+    const schema = buildSchema(itemDatabase.id);
+    const database = await buildDatabase({
       teamId: team.id,
       dataSchema: schema,
     });
     const document = await buildDocument({
       teamId: team.id,
-      collectionId: collection.id,
+      collectionId: database.collectionId,
+      databaseId: database.id,
       properties: { [relationId]: [itemA.id, itemB.id, itemNoPrice.id] },
     });
 
@@ -121,13 +130,14 @@ describe("RollupHelper", () => {
   it("should return count zero and no numeric aggregates for empty relations", async () => {
     const team = await buildTeam();
     const schema = buildSchema();
-    const collection = await buildCollection({
+    const database = await buildDatabase({
       teamId: team.id,
       dataSchema: schema,
     });
     const document = await buildDocument({
       teamId: team.id,
-      collectionId: collection.id,
+      collectionId: database.collectionId,
+      databaseId: database.id,
     });
 
     const rollups = await RollupHelper.compute([document], schema);
@@ -143,13 +153,14 @@ describe("RollupHelper", () => {
     const foreign = await buildDocument({ teamId: otherTeam.id });
 
     const schema = buildSchema();
-    const collection = await buildCollection({
+    const database = await buildDatabase({
       teamId: team.id,
       dataSchema: schema,
     });
     const document = await buildDocument({
       teamId: team.id,
-      collectionId: collection.id,
+      collectionId: database.collectionId,
+      databaseId: database.id,
     });
     // bypass the write-time validation to simulate stale data
     document.properties = { [relationId]: [foreign.id] };

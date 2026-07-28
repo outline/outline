@@ -33,6 +33,7 @@ import FileStorage from "@server/storage/files";
 import {
   buildShare,
   buildCollection,
+  buildDatabase,
   buildUser,
   buildDocument,
   buildDraftDocument,
@@ -6198,7 +6199,7 @@ describe("#documents.update properties", () => {
     const user = await buildUser({ teamId: team.id });
     const statusId = randomUUID();
     const priorityId = randomUUID();
-    const collection = await buildCollection({
+    const database = await buildDatabase({
       teamId: team.id,
       userId: user.id,
       dataSchema: [
@@ -6221,9 +6222,10 @@ describe("#documents.update properties", () => {
     const document = await buildDocument({
       teamId: team.id,
       userId: user.id,
-      collectionId: collection.id,
+      collectionId: database.collectionId,
+      databaseId: database.id,
     });
-    return { team, user, collection, document, statusId, priorityId };
+    return { team, user, database, document, statusId, priorityId };
   };
 
   it("should update property values", async () => {
@@ -6319,12 +6321,12 @@ describe("#documents.list property filters", () => {
   const notesId = "44444444-4444-4444-8444-444444444444";
   const dueId = "55555555-5555-4555-8555-555555555555";
 
-  const buildDatabase = async () => {
+  const buildFixture = async () => {
     const team = await buildTeam({
       preferences: { documentDatabases: true },
     });
     const user = await buildUser({ teamId: team.id });
-    const collection = await buildCollection({
+    const database = await buildDatabase({
       teamId: team.id,
       userId: user.id,
       dataSchema: [
@@ -6356,7 +6358,8 @@ describe("#documents.list property filters", () => {
       buildDocument({
         teamId: team.id,
         userId: user.id,
-        collectionId: collection.id,
+        collectionId: database.collectionId,
+        databaseId: database.id,
         title,
       });
 
@@ -6385,7 +6388,7 @@ describe("#documents.list property filters", () => {
     third.properties = { [priorityId]: 3 };
     await third.save();
 
-    return { team, user, collection, first, second, third };
+    return { team, user, database, first, second, third };
   };
 
   const list = async (
@@ -6403,9 +6406,9 @@ describe("#documents.list property filters", () => {
   };
 
   it("should filter by select equality", async () => {
-    const { user, collection } = await buildDatabase();
+    const { user, database } = await buildFixture();
     const { status, titles } = await list(user, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "and",
         conditions: [{ propertyId: statusId, operator: "is", value: "todo" }],
@@ -6416,9 +6419,9 @@ describe("#documents.list property filters", () => {
   });
 
   it("should combine conditions with or", async () => {
-    const { user, collection } = await buildDatabase();
+    const { user, database } = await buildFixture();
     const { titles } = await list(user, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "or",
         conditions: [
@@ -6431,9 +6434,9 @@ describe("#documents.list property filters", () => {
   });
 
   it("should filter by numeric range", async () => {
-    const { user, collection } = await buildDatabase();
+    const { user, database } = await buildFixture();
     const { titles } = await list(user, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "and",
         conditions: [{ propertyId: priorityId, operator: "gte", value: 3 }],
@@ -6443,9 +6446,9 @@ describe("#documents.list property filters", () => {
   });
 
   it("should filter multiSelect containment", async () => {
-    const { user, collection } = await buildDatabase();
+    const { user, database } = await buildFixture();
     const { titles } = await list(user, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "and",
         conditions: [{ propertyId: tagsId, operator: "contains", value: "b" }],
@@ -6455,9 +6458,9 @@ describe("#documents.list property filters", () => {
   });
 
   it("should filter text contains case-insensitively", async () => {
-    const { user, collection } = await buildDatabase();
+    const { user, database } = await buildFixture();
     const { titles } = await list(user, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "and",
         conditions: [
@@ -6469,9 +6472,9 @@ describe("#documents.list property filters", () => {
   });
 
   it("should filter by empty and not empty", async () => {
-    const { user, collection } = await buildDatabase();
+    const { user, database } = await buildFixture();
     const empty = await list(user, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "and",
         conditions: [{ propertyId: statusId, operator: "isEmpty" }],
@@ -6480,7 +6483,7 @@ describe("#documents.list property filters", () => {
     expect(empty.titles).toEqual(["Third"]);
 
     const notEmpty = await list(user, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "and",
         conditions: [{ propertyId: statusId, operator: "isNotEmpty" }],
@@ -6490,9 +6493,9 @@ describe("#documents.list property filters", () => {
   });
 
   it("should filter by date before and after", async () => {
-    const { user, collection } = await buildDatabase();
+    const { user, database } = await buildFixture();
     const before = await list(user, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "and",
         conditions: [
@@ -6503,7 +6506,7 @@ describe("#documents.list property filters", () => {
     expect(before.titles).toEqual(["First"]);
 
     const after = await list(user, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "and",
         conditions: [
@@ -6515,10 +6518,10 @@ describe("#documents.list property filters", () => {
   });
 
   it("should sort by a number property with empty values last", async () => {
-    const { user, collection } = await buildDatabase();
+    const { user, database } = await buildFixture();
     const res = await server.post("/api/documents.list", user, {
       body: {
-        collectionId: collection.id,
+        databaseId: database.id,
         propertySorts: [{ propertyId: priorityId, direction: "desc" }],
       },
     });
@@ -6532,10 +6535,10 @@ describe("#documents.list property filters", () => {
   });
 
   it("should sort select properties by option name", async () => {
-    const { user, collection } = await buildDatabase();
+    const { user, database } = await buildFixture();
     const res = await server.post("/api/documents.list", user, {
       body: {
-        collectionId: collection.id,
+        databaseId: database.id,
         propertySorts: [{ propertyId: statusId, direction: "asc" }],
       },
     });
@@ -6548,8 +6551,8 @@ describe("#documents.list property filters", () => {
     ]);
   });
 
-  it("should fail without a collectionId", async () => {
-    const { user } = await buildDatabase();
+  it("should fail without a databaseId", async () => {
+    const { user } = await buildFixture();
     const { status } = await list(user, {
       filter: {
         conjunction: "and",
@@ -6562,12 +6565,12 @@ describe("#documents.list property filters", () => {
   it("should fail when the feature is disabled", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
-    const collection = await buildCollection({
+    const database = await buildDatabase({
       teamId: team.id,
       userId: user.id,
     });
     const { status } = await list(user, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "and",
         conditions: [{ propertyId: statusId, operator: "isEmpty" }],
@@ -6577,9 +6580,9 @@ describe("#documents.list property filters", () => {
   });
 
   it("should fail for unknown property ids", async () => {
-    const { user, collection } = await buildDatabase();
+    const { user, database } = await buildFixture();
     const { status } = await list(user, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "and",
         conditions: [
@@ -6593,14 +6596,14 @@ describe("#documents.list property filters", () => {
     expect(status).toEqual(400);
   });
 
-  it("should not leak documents from collections without access", async () => {
-    const { collection } = await buildDatabase();
+  it("should not leak rows from databases without access", async () => {
+    const { database } = await buildFixture();
     const otherTeam = await buildTeam({
       preferences: { documentDatabases: true },
     });
     const outsider = await buildUser({ teamId: otherTeam.id });
     const { status } = await list(outsider, {
-      collectionId: collection.id,
+      databaseId: database.id,
       filter: {
         conjunction: "and",
         conditions: [{ propertyId: statusId, operator: "isEmpty" }],

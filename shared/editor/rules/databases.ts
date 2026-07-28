@@ -5,7 +5,7 @@ const hrefRegex =
 
 /**
  * A markdown-it plugin that converts a paragraph containing a single link of
- * the form `[…](database://<collectionId>[/<viewId>])` into a database block
+ * the form `[…](database://<databaseId>[/<viewId>])` into a database block
  * token, the serialized representation of the inline database node.
  */
 export default function databases(md: MarkdownIt) {
@@ -36,7 +36,7 @@ export default function databases(md: MarkdownIt) {
       }
 
       const token = new state.Token("database", "div", 0);
-      token.attrSet("collectionId", match[1]);
+      token.attrSet("databaseId", match[1]);
       if (match[2]) {
         token.attrSet("viewId", match[2]);
       }
@@ -52,25 +52,23 @@ export default function databases(md: MarkdownIt) {
 /**
  * Builds the link href used to serialize a database block to markdown.
  *
- * @param collectionId the collection the block renders.
+ * @param databaseId the database the block renders.
  * @param viewId the saved view to apply, if any.
  * @returns the serialized href.
  */
-export function databaseHref(collectionId: string, viewId?: string | null) {
-  return `database://${collectionId}${viewId ? `/${viewId}` : ""}`;
+export function databaseHref(databaseId: string, viewId?: string | null) {
+  return `database://${databaseId}${viewId ? `/${viewId}` : ""}`;
 }
 
 /**
  * Parses a database block href back into its attributes.
  *
  * @param href the serialized href.
- * @returns the collection and view ids, or undefined when not a database href.
+ * @returns the database and view ids, or undefined when not a database href.
  */
 export function parseDatabaseHref(
   href: string
-): { collectionId: string; viewId: string | null } | undefined {
+): { databaseId: string; viewId: string | null } | undefined {
   const match = href.match(hrefRegex);
-  return match
-    ? { collectionId: match[1], viewId: match[2] ?? null }
-    : undefined;
+  return match ? { databaseId: match[1], viewId: match[2] ?? null } : undefined;
 }

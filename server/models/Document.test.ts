@@ -12,6 +12,7 @@ import {
   buildDocument,
   buildDraftDocument,
   buildCollection,
+  buildDatabase,
   buildComment,
   buildResolvedComment,
   buildTeam,
@@ -650,6 +651,11 @@ describe("properties", () => {
     const collection = await buildCollection({
       teamId: team.id,
       userId: user.id,
+    });
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
       dataSchema: [
         {
           id: statusId,
@@ -667,16 +673,17 @@ describe("properties", () => {
         },
       ],
     });
-    return { team, user, collection, statusId, priorityId };
+    return { team, user, collection, database, statusId, priorityId };
   };
 
-  test("should coerce values against the collection schema on save", async () => {
-    const { team, user, collection, statusId, priorityId } =
+  test("should coerce values against the database schema on save", async () => {
+    const { team, user, collection, database, statusId, priorityId } =
       await buildDatabaseCollection();
     const document = await buildDocument({
       teamId: team.id,
       userId: user.id,
       collectionId: collection.id,
+      databaseId: database.id,
     });
 
     document.properties = {
@@ -693,12 +700,13 @@ describe("properties", () => {
   });
 
   test("should drop values that do not match the property type", async () => {
-    const { team, user, collection, statusId, priorityId } =
+    const { team, user, collection, database, statusId, priorityId } =
       await buildDatabaseCollection();
     const document = await buildDocument({
       teamId: team.id,
       userId: user.id,
       collectionId: collection.id,
+      databaseId: database.id,
     });
 
     document.properties = {
@@ -710,7 +718,7 @@ describe("properties", () => {
     expect(document.properties).toEqual({});
   });
 
-  test("should drop all properties when the collection has no schema", async () => {
+  test("should drop all properties when the document is not a database row", async () => {
     const document = await buildDocument();
     document.properties = { [randomUUID()]: "value" };
     await document.save();
@@ -719,12 +727,13 @@ describe("properties", () => {
   });
 
   test("should get and set values through the accessors", async () => {
-    const { team, user, collection, statusId } =
+    const { team, user, collection, database, statusId } =
       await buildDatabaseCollection();
     const document = await buildDocument({
       teamId: team.id,
       userId: user.id,
       collectionId: collection.id,
+      databaseId: database.id,
     });
 
     expect(document.getProperty(statusId)).toBeUndefined();
@@ -736,12 +745,13 @@ describe("properties", () => {
   });
 
   test("should unset a value when set to null", async () => {
-    const { team, user, collection, statusId } =
+    const { team, user, collection, database, statusId } =
       await buildDatabaseCollection();
     const document = await buildDocument({
       teamId: team.id,
       userId: user.id,
       collectionId: collection.id,
+      databaseId: database.id,
     });
 
     document.setProperty(statusId, "done");

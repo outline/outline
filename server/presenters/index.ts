@@ -3,6 +3,7 @@ import presentAttachment from "./attachment";
 import presentAuthenticationProvider from "./authenticationProvider";
 import presentAvailableTeam from "./availableTeam";
 import presentCollection from "./collection";
+import presentDatabase from "./database";
 import presentComment from "./comment";
 import presentDocument, { presentDocuments } from "./document";
 import presentDocumentInsight from "./documentInsight";
@@ -41,6 +42,7 @@ export {
   presentAuthenticationProvider,
   presentAvailableTeam,
   presentCollection,
+  presentDatabase,
   presentComment,
   presentDocument,
   presentDocuments,

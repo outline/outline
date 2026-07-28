@@ -1,6 +1,10 @@
 import { randomUUID } from "node:crypto";
 import Revision from "@server/models/Revision";
-import { buildCollection, buildDocument } from "@server/test/factories";
+import {
+  buildCollection,
+  buildDatabase,
+  buildDocument,
+} from "@server/test/factories";
 import { parseFrontmatter } from "@server/utils/frontmatter";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
@@ -1237,11 +1241,12 @@ describe("frontmatter properties", () => {
   });
 
   describe("toMarkdown includeProperties", () => {
-    it("should prepend frontmatter for documents in a database collection", async () => {
-      const collection = await buildCollection({ dataSchema: schema });
+    it("should prepend frontmatter for rows of a database", async () => {
+      const database = await buildDatabase({ dataSchema: schema });
       const document = await buildDocument({
-        collectionId: collection.id,
-        teamId: collection.teamId,
+        collectionId: database.collectionId,
+        databaseId: database.id,
+        teamId: database.teamId,
         title: "My doc",
         text: "Hello",
       });
@@ -1256,10 +1261,11 @@ describe("frontmatter properties", () => {
     });
 
     it("should not prepend frontmatter when not requested", async () => {
-      const collection = await buildCollection({ dataSchema: schema });
+      const database = await buildDatabase({ dataSchema: schema });
       const document = await buildDocument({
-        collectionId: collection.id,
-        teamId: collection.teamId,
+        collectionId: database.collectionId,
+        databaseId: database.id,
+        teamId: database.teamId,
         title: "My doc",
       });
       document.setProperty(statusId, "opt-todo");

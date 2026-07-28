@@ -272,8 +272,10 @@ const RelationValueEditor = observer(function RelationValueEditor_({
   readOnly,
 }: Props) {
   const { t } = useTranslation();
-  const { documents } = useStores();
-  const targetCollectionId = property.config?.targetCollectionId;
+  const { documents, databases } = useStores();
+  const targetDatabaseId = property.config?.targetDatabaseId;
+  const limitToViewId = property.config?.limitToViewId;
+  const allowMultiple = property.config?.allowMultiple !== false;
   const selectedIds = React.useMemo(
     () => (Array.isArray(value) ? value : []),
     [value]
@@ -298,19 +300,34 @@ const RelationValueEditor = observer(function RelationValueEditor_({
     }
     async function load() {
       try {
-        const results = targetCollectionId
-          ? await documents.fetchInDatabase({
-              collectionId: targetCollectionId,
-              limit: 100,
-            })
-          : await documents.fetchRecentlyUpdated({ limit: 100 });
-        setCandidateIds(results.map((item) => item.id));
+        if (!targetDatabaseId) {
+          setCandidateIds([]);
+          return;
+        }
+        // when the property limits selection to a view, only rows matching
+        // that view's filter may be linked
+        const view = limitToViewId
+          ? databases.get(targetDatabaseId)?.getView(limitToViewId)
+          : undefined;
+        const { rows } = await documents.fetchInDatabase({
+          databaseId: targetDatabaseId,
+          filter: view?.filter,
+          limit: 100,
+        });
+        setCandidateIds(rows.map((item) => item.id));
       } catch (_err) {
         setCandidateIds([]);
       }
     }
     void load();
-  }, [readOnly, candidateIds, documents, targetCollectionId]);
+  }, [
+    readOnly,
+    candidateIds,
+    documents,
+    databases,
+    targetDatabaseId,
+    limitToViewId,
+  ]);
 
   const handleRemove = (id: string) => {
     const next = selectedIds.filter((item) => item !== id);
@@ -321,7 +338,7 @@ const RelationValueEditor = observer(function RelationValueEditor_({
     if (id === EMPTY_VALUE || selectedIds.includes(id)) {
       return;
     }
-    onChange([...selectedIds, id]);
+    onChange(allowMultiple ? [...selectedIds, id] : [id]);
   };
 
   const options = (candidateIds ?? [])

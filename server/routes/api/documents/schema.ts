@@ -12,7 +12,7 @@ import { DocumentValidation } from "@shared/validations";
 import {
   FilterGroupSchema,
   PropertySortsSchema,
-} from "@server/routes/api/collections/schema";
+} from "@server/routes/api/databases/schema";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
@@ -103,17 +103,26 @@ export const DocumentsListSchema = BaseSchema.extend({
     /** Document statuses to include in results */
     statusFilter: z.enum(StatusFilter).array().optional(),
 
+    /** Restrict results to the rows of this database */
+    databaseId: z.uuid().optional(),
+
     /**
-     * Structured filter over document properties. Requires collectionId and
+     * Structured filter over document properties. Requires databaseId and
      * the document databases feature.
      */
     filter: FilterGroupSchema.optional(),
 
     /**
      * Sort levels over document properties, applied before `sort`. Requires
-     * collectionId and the document databases feature.
+     * databaseId and the document databases feature.
      */
     propertySorts: PropertySortsSchema.optional(),
+
+    /**
+     * Id of the saved view whose column summaries to compute over the whole
+     * filtered set. Requires databaseId.
+     */
+    summariesForViewId: z.uuid().optional(),
   }),
   // Maintains backwards compatibility
 }).transform((req) => {
@@ -478,6 +487,9 @@ export const DocumentsCreateSchema = BaseSchema.extend({
 
     /** Collection to create document within  */
     collectionId: z.uuid().nullish(),
+
+    /** Database to create the document as a row of */
+    databaseId: z.uuid().optional(),
 
     /** Index to create the document at within the collection */
     index: z.number().optional(),

@@ -5,6 +5,7 @@ import type {
   FilterCondition,
   FilterGroup,
   Property,
+  PropertyConfig,
   PropertyOption,
   PropertyValue,
 } from "../types";
@@ -13,12 +14,13 @@ import {
   FilterOperator,
   PropertyType,
   RollupAggregation,
+  SummaryAggregation,
 } from "../types";
 import { DataViewValidation, PropertyValidation } from "../validations";
 
 /**
- * Validates a collection data schema, the array of property definitions that
- * turns a collection into a database.
+ * Validates a database's data schema, the array of property definitions that
+ * describes the columns of the database.
  *
  * @param value the value to validate.
  * @throws Error if the value is not a valid array of property definitions.
@@ -223,13 +225,17 @@ export function coercePropertyValue(
       if (!Array.isArray(input)) {
         return undefined;
       }
+      const limit =
+        property.config?.allowMultiple === false
+          ? 1
+          : PropertyValidation.maxRelations;
       const ids = Array.from(
         new Set(
           input.filter(
             (item): item is string => typeof item === "string" && isUUID(item)
           )
         )
-      ).slice(0, PropertyValidation.maxRelations);
+      ).slice(0, limit);
       return ids.length > 0 ? ids : undefined;
     }
 
@@ -248,6 +254,93 @@ export type PropertyGroup<T> = {
   /** The items whose group value resolves to this bucket, in input order. */
   items: T[];
 };
+
+/**
+ * Recursively strips every condition referencing a property from a filter
+ * group, so removing a property cannot leave a view filtering on it.
+ *
+ * @param filter the filter group to strip.
+ * @param propertyId the id of the property to remove references to.
+ * @returns the filter group, or undefined when no conditions remain.
+ */
+export function removeFilterReferences(
+  filter: FilterGroup,
+  propertyId: string
+): FilterGroup | undefined {
+  const conditions = filter.conditions
+    .map((condition) => {
+      if ("conjunction" in condition) {
+        return removeFilterReferences(condition, propertyId);
+      }
+      return condition.propertyId === propertyId ? undefined : condition;
+    })
+    .filter(
+      (condition): condition is FilterCondition | FilterGroup =>
+        condition !== undefined
+    );
+
+  return conditions.length > 0 ? { ...filter, conditions } : undefined;
+}
+
+/** Summaries that count rows, and so apply to every property type. */
+const countingAggregations = [
+  SummaryAggregation.Count,
+  SummaryAggregation.Filled,
+  SummaryAggregation.Empty,
+  SummaryAggregation.Unique,
+];
+
+/** Summaries that reduce numeric values, and so apply only to numbers. */
+const numericAggregations = [
+  SummaryAggregation.Sum,
+  SummaryAggregation.Avg,
+  SummaryAggregation.Min,
+  SummaryAggregation.Max,
+];
+
+/**
+ * Returns the column summaries available for a property. Every property can be
+ * counted; only numbers can be summed or averaged.
+ *
+ * @param property the property definition.
+ * @returns the aggregations the property supports, in display order.
+ */
+export function summaryAggregationsForProperty(
+  property: Property
+): SummaryAggregation[] {
+  if (property.type === PropertyType.Rollup) {
+    // rollups are computed per page at read time, so there is no single query
+    // that can aggregate them across the whole filtered set
+    return [];
+  }
+  if (property.type === PropertyType.Number) {
+    return [...countingAggregations, ...numericAggregations];
+  }
+  if (
+    property.type === PropertyType.MultiSelect ||
+    property.type === PropertyType.Relation
+  ) {
+    // these hold a list per row, so a distinct count would count combinations
+    // rather than values — an unhelpful number, so it is not offered
+    return countingAggregations.filter(
+      (aggregation) => aggregation !== SummaryAggregation.Unique
+    );
+  }
+  return countingAggregations;
+}
+
+/**
+ * Returns whether a summary produces a count of rows rather than a reduction
+ * of the property's values — used to format the result for display.
+ *
+ * @param aggregation the summary aggregation.
+ * @returns true when the result is a row count.
+ */
+export function isCountingAggregation(
+  aggregation: SummaryAggregation
+): boolean {
+  return countingAggregations.includes(aggregation);
+}
 
 /**
  * Returns whether a property can be used to group rows, e.g. as the column
@@ -376,12 +469,33 @@ function validateProperty(property: unknown): asserts property is Property {
     if (!isPlainObject(property.config)) {
       throw new Error("Property config must be an object");
     }
+    for (const key of [
+      "targetDatabaseId",
+      "inversePropertyId",
+      "limitToViewId",
+    ] as const) {
+      const value = property.config[key];
+      if (
+        value !== undefined &&
+        (typeof value !== "string" || !isUUID(value))
+      ) {
+        throw new Error(`Property config ${key} must be a UUID`);
+      }
+    }
     if (
-      property.config.targetCollectionId !== undefined &&
-      (typeof property.config.targetCollectionId !== "string" ||
-        !isUUID(property.config.targetCollectionId))
+      property.config.allowMultiple !== undefined &&
+      typeof property.config.allowMultiple !== "boolean"
     ) {
-      throw new Error("Property config targetCollectionId must be a UUID");
+      throw new Error("Property config allowMultiple must be a boolean");
+    }
+  }
+
+  if ((property.type as PropertyType) === PropertyType.Relation) {
+    const config = property.config as PropertyConfig | undefined;
+    if (!config?.targetDatabaseId) {
+      throw new Error(
+        `Relation property "${property.name}" must reference a target database`
+      );
     }
   }
 
@@ -498,6 +612,27 @@ function validateDataView(
       (typeof column.width !== "number" || column.width <= 0)
     ) {
       throw new Error("View column width must be a positive number");
+    }
+    if (column.summary !== undefined) {
+      if (
+        typeof column.summary !== "string" ||
+        !Object.values(SummaryAggregation).includes(
+          column.summary as SummaryAggregation
+        )
+      ) {
+        throw new Error("Column summary must be a known aggregation");
+      }
+      const property = schema?.find((item) => item.id === column.propertyId);
+      if (
+        property &&
+        !summaryAggregationsForProperty(property).includes(
+          column.summary as SummaryAggregation
+        )
+      ) {
+        throw new Error(
+          `Summary "${column.summary}" is not available for property "${property.name}"`
+        );
+      }
     }
   }
 

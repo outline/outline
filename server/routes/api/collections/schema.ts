@@ -1,14 +1,9 @@
 import { isUndefined } from "es-toolkit/compat";
 import { z } from "zod";
-import type { FilterGroup } from "@shared/types";
 import {
   CollectionPermission,
   CollectionStatusFilter,
-  DataViewType,
   FileOperationFormat,
-  FilterOperator,
-  PropertyType,
-  RollupAggregation,
 } from "@shared/types";
 import { Collection } from "@server/models";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
@@ -18,82 +13,6 @@ import { BaseSchema, ProsemirrorSchema } from "../schema";
 const BaseIdSchema = z.object({
   /** Id of the collection to be updated */
   id: zodIdType(),
-});
-
-const PropertyValueSchema = z.union([
-  z.string(),
-  z.number(),
-  z.boolean(),
-  z.array(z.string()),
-  z.null(),
-]);
-
-const PropertySchema = z.object({
-  id: z.uuid(),
-  name: z.string(),
-  type: z.enum(PropertyType),
-  options: z
-    .array(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        color: z.string().optional(),
-      })
-    )
-    .optional(),
-  config: z
-    .object({
-      dateIncludesTime: z.boolean().optional(),
-      targetCollectionId: z.uuid().optional(),
-      relationPropertyId: z.string().optional(),
-      rollupPropertyId: z.string().optional(),
-      rollupAggregation: z.enum(RollupAggregation).optional(),
-    })
-    .optional(),
-});
-
-export const FilterGroupSchema: z.ZodType<FilterGroup> = z.lazy(() =>
-  z.object({
-    conjunction: z.union([z.literal("and"), z.literal("or")]),
-    conditions: z.array(
-      z.union([
-        FilterGroupSchema,
-        z.object({
-          propertyId: z.string(),
-          operator: z.enum(FilterOperator),
-          value: PropertyValueSchema.optional(),
-        }),
-      ])
-    ),
-  })
-);
-
-export const PropertySortsSchema = z.array(
-  z.object({
-    propertyId: z.string(),
-    direction: z.union([z.literal("asc"), z.literal("desc")]),
-  })
-);
-
-const DataViewSchema = z.object({
-  id: z.uuid(),
-  name: z.string(),
-  type: z.enum(DataViewType),
-  columns: z.array(
-    z.object({
-      propertyId: z.string(),
-      width: z.number().optional(),
-      visible: z.boolean(),
-    })
-  ),
-  sorts: z.array(
-    z.object({
-      propertyId: z.string(),
-      direction: z.union([z.literal("asc"), z.literal("desc")]),
-    })
-  ),
-  filter: FilterGroupSchema.optional(),
-  groupBy: z.string().optional(),
 });
 
 /** The landing page can be set from description (markdown) or data (rich content), but not both. */
@@ -291,14 +210,6 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
     templateManagement: z
       .enum([CollectionPermission.Admin, CollectionPermission.ReadWrite])
       .optional(),
-    /**
-     * The property definitions that turn this collection into a database.
-     * Passing null removes the schema, turning the database back into a
-     * regular collection.
-     */
-    dataSchema: z.array(PropertySchema).nullish(),
-    /** Saved database views over the documents in this collection. */
-    views: z.array(DataViewSchema).nullish(),
   }).refine(refineBodyContent, bodyContentError),
 });
 
