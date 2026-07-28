@@ -26,7 +26,6 @@ type Ability = {
 
 /** A single evaluation, within which memoized answers may be shared. */
 interface Scope {
-  depth: number;
   cache: Map<Model, Map<Model | null, Map<string, boolean | string[]>>> | null;
 }
 
@@ -103,25 +102,23 @@ export class CanCan {
     // Memoize on object identity for the duration of the outermost call —
     // policies recurse heavily into one another.
     const scope = this.scope.getStore();
+
+    // An outermost check has nothing to reuse yet, so it computes directly and
+    // opens a scope only for the nested checks its conditions go on to make.
     if (!scope) {
-      return this.scope.run({ depth: 0, cache: null }, () =>
-        this.can(performer, action, target, options)
+      return this.scope.run({ cache: null }, () =>
+        this.computeCan(performer, action, target, options)
       );
     }
 
-    scope.depth++;
-    try {
-      const byAction = this.cacheFor(scope, performer, target, options);
-      const cached = byAction?.get(action);
-      if (cached !== undefined) {
-        return cached;
-      }
-      const value = this.computeCan(performer, action, target, options);
-      byAction?.set(action, value);
-      return value;
-    } finally {
-      scope.depth--;
+    const byAction = this.cacheFor(scope, performer, target, options);
+    const cached = byAction?.get(action);
+    if (cached !== undefined) {
+      return cached;
     }
+    const value = this.computeCan(performer, action, target, options);
+    byAction?.set(action, value);
+    return value;
   };
 
   /*
@@ -130,9 +127,9 @@ export class CanCan {
    * and sent in API responses to allow clients to adjust which UI is displayed.
    */
   public serialize = (performer: Model, target: Model | null): Policy => {
-    const scope = this.scope.getStore();
-    if (!scope) {
-      return this.scope.run({ depth: 0, cache: null }, () =>
+    // Opening the scope here lets every action below reuse the others' answers.
+    if (!this.scope.getStore()) {
+      return this.scope.run({ cache: null }, () =>
         this.serialize(performer, target)
       );
     }
@@ -166,20 +163,13 @@ export class CanCan {
       byTargetClass.set(targetClass, actionsToCheck);
     }
 
-    // Every action shares one memoization scope, so raising the depth here lets
-    // the checks below reuse each other's answers.
-    scope.depth++;
-    try {
-      actionsToCheck.forEach((action) => {
-        try {
-          output[action] = this.can(performer, action, target);
-        } catch (_err) {
-          output[action] = false;
-        }
-      });
-    } finally {
-      scope.depth--;
-    }
+    actionsToCheck.forEach((action) => {
+      try {
+        output[action] = this.can(performer, action, target);
+      } catch (_err) {
+        output[action] = false;
+      }
+    });
 
     return output;
   };
@@ -242,10 +232,7 @@ export class CanCan {
     target: Model | null | undefined,
     options: object
   ) => {
-    // A check that has not recursed has nothing to reuse yet, so the cache is
-    // only built once policies actually nest — the common shallow authorize()
-    // then allocates nothing at all.
-    if (options !== noOptions || scope.depth < 2) {
+    if (options !== noOptions) {
       return null;
     }
     scope.cache ??= new Map();
