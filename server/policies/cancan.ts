@@ -7,8 +7,8 @@ type Constructor = new (...args: any[]) => unknown;
 
 type Policy = Record<string, boolean | string[]>;
 
-/** Sentinel default so option-free calls share one object and stay cacheable. */
-const noOptions = {};
+/** Default so option-free calls share one object and stay cacheable. */
+const noOptions: Readonly<Record<string, never>> = Object.freeze({});
 
 type Condition<T extends Constructor, P extends Constructor> = (
   performer: InstanceType<P>,
