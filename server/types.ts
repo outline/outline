@@ -596,9 +596,7 @@ export type UnfurlIssueOrPR =
 
 export type UnfurlProject = UnfurlResponse[UnfurlResourceType.Project];
 
-export type UnfurlURL = UnfurlResponse[UnfurlResourceType.URL] & {
-  transformedUnfurl: true;
-};
+export type UnfurlURL = UnfurlResponse[UnfurlResourceType.URL];
 
 export type Unfurl =
   | UnfurlIssueOrPR
