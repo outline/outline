@@ -44,6 +44,7 @@ export const sortNavigationNodes = (
 export const colorPalette = [
   "#4E5C6E",
   "#0366D6",
+  "#2BC2FF",
   "#9E5CF7",
   "#FF825C",
   "#FF5C80",

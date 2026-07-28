@@ -33,7 +33,6 @@ const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 // parse so the embed type survives the API markdown round-trip.
 const SOURCE_TOKEN_PREFIX = "source=";
 
-
 type TitleAttributes = {
   layoutClass?: string;
   title?: string;
@@ -520,8 +519,7 @@ export default class Image extends SimpleImage {
     }
 
     if (titleParts.length > 0 || size) {
-      markdown +=
-        ' "' + state.esc(titleParts.join(" "), false) + size + '"';
+      markdown += ' "' + state.esc(titleParts.join(" "), false) + size + '"';
     }
     markdown += ")";
     state.write(markdown);
