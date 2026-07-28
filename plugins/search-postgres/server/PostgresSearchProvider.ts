@@ -840,9 +840,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
    */
   public static webSearchQuery(query: string): string {
     // limit length of search queries as we're using regex against untrusted input
-    let limitedQuery = PostgresSearchProvider.escapeQuery(
-      query.slice(0, PostgresSearchProvider.maxQueryLength)
-    );
+    let limitedQuery = query.slice(0, PostgresSearchProvider.maxQueryLength);
 
     const quotedSearch =
       limitedQuery.startsWith('"') && limitedQuery.endsWith('"');
@@ -867,7 +865,8 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       }
     }
 
-    limitedQuery = PostgresSearchProvider.escapePhraseColons(limitedQuery);
+    // Escape only once the phrase delimiters above have settled.
+    limitedQuery = PostgresSearchProvider.escapeTsQuery(limitedQuery);
 
     return (
       queryParser()(
@@ -890,16 +889,20 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   }
 
   /**
-   * ":" is reserved in tsquery, and pg-tsquery passes it through verbatim
-   * inside a quoted phrase, so it must be escaped there.
-   * see: https://github.com/outline/outline/issues/6542
+   * Escapes the characters that are reserved in tsquery, segment by segment so
+   * that quoted phrases can be treated differently to the rest of the query.
    *
-   * Outside of a phrase pg-tsquery drops the colon but keeps a preceding
-   * backslash, so escaping there would emit a dangling "\" operand.
+   * ":" only needs escaping inside a phrase, where pg-tsquery passes it through
+   * verbatim (see: https://github.com/outline/outline/issues/6542). Elsewhere
+   * pg-tsquery drops the colon but keeps a preceding backslash, which would
+   * leave to_tsquery with a dangling escape character.
    */
-  private static escapePhraseColons(query: string): string {
-    return query.replace(/"[^"]*"|'[^']*'/g, (phrase) =>
-      phrase.replace(/:/g, "\\:")
+  private static escapeTsQuery(query: string): string {
+    return query.replace(/"[^"]*"|'[^']*'|[\s\S]/g, (segment) =>
+      // a match longer than the single character fallback is a quoted phrase
+      segment.length > 1
+        ? segment.replace(/[\\:]/g, "\\$&")
+        : segment.replace(/\\/g, "\\\\")
     );
   }
 
