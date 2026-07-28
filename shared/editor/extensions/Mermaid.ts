@@ -371,16 +371,16 @@ function getNewState({
       newEditingId = renderer.diagramId;
     }
 
+    void renderer.render(block, pluginState.isDark);
+
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
-      () => {
-        void renderer.render(block, pluginState.isDark);
-        return renderer.element;
-      },
+      () => renderer.element,
       {
         diagramId: renderer.diagramId,
         renderer,
         side: -10,
+        key: `mermaid-${renderer.diagramId}`,
       }
     );
 
