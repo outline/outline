@@ -1,10 +1,10 @@
-type ModelClass = { readonly name: string };
+type ModelClass = Function;
 type Hook = (...args: unknown[]) => unknown;
 
 export class LifecycleManager {
   // Keyed by the class itself – minified builds mangle class names and two
   // classes in separate chunks can end up sharing one.
-  private static hooks = new Map<ModelClass, Map<string, string[]>>();
+  private static hooks = new WeakMap<ModelClass, Map<string, string[]>>();
 
   public static getHooks(target: ModelClass, lifecycle: string): string[] {
     const key = `lifecycle:${lifecycle}`;
