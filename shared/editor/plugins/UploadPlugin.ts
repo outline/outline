@@ -53,7 +53,8 @@ export class UploadPlugin extends Plugin {
               selection instanceof NodeSelection &&
               selection.node.type.name === "image" &&
               files.length === 1 &&
-              FileHelper.isImage(files[0].type)
+              FileHelper.isImage(files[0].type) &&
+              !options.isAttachment
             ) {
               const { attrs } = selection.node;
 
