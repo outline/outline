@@ -3531,6 +3531,41 @@ describe("#documents.create", () => {
     ).not.toEqual(true);
   });
 
+  it("should create a row in a private collection for a member", async () => {
+    const team = await buildTeam({
+      preferences: { documentDatabases: true },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      permission: null,
+    });
+    await UserMembership.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Row",
+        collectionId: collection.id,
+        databaseId: database.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.databaseId).toEqual(database.id);
+  });
+
   it("should create a document with empty title if no title is explicitly passed", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.create", user, {

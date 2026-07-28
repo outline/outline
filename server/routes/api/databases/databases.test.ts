@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { PropertyType } from "@shared/types";
-import { Database, Document } from "@server/models";
+import { CollectionPermission, PropertyType } from "@shared/types";
+import { Database, Document, UserMembership } from "@server/models";
 import {
   buildCollection,
   buildDatabase,
@@ -140,6 +140,41 @@ describe("#databases.list", () => {
     expect(
       body.data.some((item: { name: string }) => item.name === "Private")
     ).toBe(false);
+  });
+
+  it("should present write policies to a member of a private collection", async () => {
+    const team = await buildTeam({ preferences: { documentDatabases: true } });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      permission: null,
+    });
+    await UserMembership.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/databases.list", user, {
+      body: { collectionId: collection.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    const abilities = body.policies.find(
+      (policy: { id: string }) => policy.id === database.id
+    )?.abilities;
+    expect(abilities?.read).toBe(true);
+    expect(abilities?.createRow).toBe(true);
+    expect(abilities?.update).toBe(true);
   });
 });
 

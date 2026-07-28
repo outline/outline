@@ -1838,10 +1838,18 @@ router.post(
     // collection so it stays readable by exactly the same people
     let database: Database | null = null;
     if (databaseId) {
-      database = await Database.findByPk(databaseId, {
-        include: [{ model: Collection, as: "collection" }],
-        transaction,
-      });
+      database = await Database.findByPk(databaseId, { transaction });
+      if (database) {
+        // load the collection through the user scope so that membership of a
+        // private collection is visible to the policy check
+        const databaseCollection = await Collection.findByPk(
+          database.collectionId,
+          { userId: user.id, transaction }
+        );
+        if (databaseCollection) {
+          database.collection = databaseCollection;
+        }
+      }
       authorize(user, "createRow", database);
     }
 

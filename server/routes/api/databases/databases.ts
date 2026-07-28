@@ -52,9 +52,31 @@ router.post(
         teamId: user.teamId,
         collectionId: collectionIds,
       },
-      include: [{ model: Collection, as: "collection", required: true }],
       order: [["createdAt", "ASC"]],
     });
+
+    // attach collections through the user scope so the presented policies
+    // can see the user's membership of private collections
+    const collections = await Collection.scope([
+      "defaultScope",
+      { method: ["withMembership", user.id] },
+    ]).findAll({
+      where: {
+        id: Array.from(
+          new Set(databases.map((database) => database.collectionId))
+        ),
+        teamId: user.teamId,
+      },
+    });
+    const collectionById = new Map(
+      collections.map((collection) => [collection.id, collection])
+    );
+    for (const database of databases) {
+      const collection = collectionById.get(database.collectionId);
+      if (collection) {
+        database.collection = collection;
+      }
+    }
 
     ctx.body = {
       data: databases.map(presentDatabase),
@@ -131,6 +153,10 @@ router.post(
     );
 
     await RelationHelper.syncInverseProperties(database, [], { transaction });
+
+    // the policies presented below need the collection, and it has to carry
+    // the user's membership for private collections
+    database.collection = collection;
 
     ctx.body = {
       data: presentDatabase(database),
