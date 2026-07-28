@@ -7,12 +7,14 @@ import { changedDescendants } from "@shared/editor/lib/changedDescendants";
 import { mapDecorations } from "@shared/editor/lib/multiplayer";
 import { UserPreferenceDefaults } from "@shared/constants";
 import { UserPreference } from "@shared/types";
+import { isMobile } from "@shared/utils/browser";
 import { CommentGutter as CommentGutterComponent } from "../components/CommentGutter";
 
 /**
  * Adds an indicator in the gutter beside any line that contains an unresolved
  * comment mark, when the user has enabled the preference. Each indicator shows
  * the number of comments in the thread and opens the thread when clicked.
+ * There is no room for the gutter at mobile widths, so it is disabled there.
  */
 export default class CommentGutter extends Extension {
   get name() {
@@ -25,8 +27,9 @@ export default class CommentGutter extends Extension {
 
   get plugins() {
     const isEnabled = () =>
-      this.editor.props.userPreferences?.[UserPreference.CommentsInGutter] ??
-      UserPreferenceDefaults[UserPreference.CommentsInGutter];
+      !isMobile() &&
+      (this.editor.props.userPreferences?.[UserPreference.CommentsInGutter] ??
+        UserPreferenceDefaults[UserPreference.CommentsInGutter]);
 
     const handleClickCommentMark = (commentId: string) =>
       this.editor.props.onClickCommentMark?.(commentId);
