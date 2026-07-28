@@ -59,7 +59,7 @@ export default abstract class Model {
         const store = this.store.rootStore.getStoreForModelName(
           properties.relationClassResolver().modelName
         );
-        if ("fetch" in store) {
+        if ("canFetchById" in store && store.canFetchById) {
           const id = this[properties.idKey];
           if (id) {
             promises.push(store.fetch(id as string));
@@ -69,7 +69,7 @@ export default abstract class Model {
     }
 
     const policy = this.store.rootStore.policies.get(this.id);
-    if (!policy && !options.withoutPolicies) {
+    if (!policy && !options.withoutPolicies && this.store.canFetchById) {
       promises.push(this.store.fetch(this.id, { force: true }));
     }
 

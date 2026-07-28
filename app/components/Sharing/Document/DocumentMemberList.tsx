@@ -132,6 +132,7 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
         new Map(
           groupMemberships
             .inDocument(document.id)
+            .filter((membership) => membership.group)
             .map((membership) => [membership.group.id, membership])
         ).values()
       )

@@ -354,6 +354,13 @@ export default abstract class Store<T extends Model> {
     }
   }
 
+  /**
+   * Whether individual models can be fetched by ID from this store.
+   */
+  get canFetchById(): boolean {
+    return this.actions.includes(RPCAction.Info);
+  }
+
   @action
   async fetch(
     id: string,
