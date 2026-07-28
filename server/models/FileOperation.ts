@@ -109,6 +109,9 @@ class FileOperation extends ParanoidModel<
 > {
   static eventNamespace = "fileOperations";
 
+  /** The number of days a completed file operation remains downloadable. */
+  static expiryDays = 15;
+
   /**
    * Overrides the standard findByPk behavior to allow loading the exported
    * collection or document with memberships for a user passed in by `userId`.

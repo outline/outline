@@ -1,6 +1,7 @@
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
+import { FileOperation } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
@@ -68,6 +69,8 @@ ${this.t("Your Data Export")}
 
 ${this.t("Your requested data export is complete, you can download from the link below in a browser that is logged into your account.")}
 
+${this.t("This export will be available to download for {{ days }} days.", { days: FileOperation.expiryDays })}
+
 ${downloadLink}
 `;
   }
@@ -87,6 +90,12 @@ ${downloadLink}
           <p>
             {this.t(
               "Your requested data export is complete - you can download from the link below in a browser that is logged into your account."
+            )}
+          </p>
+          <p>
+            {this.t(
+              "This export will be available to download for {{ days }} days.",
+              { days: FileOperation.expiryDays }
             )}
           </p>
           <EmptySpace height={10} />
