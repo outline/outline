@@ -320,16 +320,21 @@ function useDocumentHandlers() {
     socket.on(
       "documents.add_user",
       async (event: PartialExcept<UserMembership, "id">) => {
-        userMemberships.add(event);
+        const membership = userMemberships.add(event);
 
         if (event.userId === currentUserId) {
           invalidateChildPolicies(event.documentId!, { documents, policies });
         }
 
         try {
-          await documents.fetch(event.documentId!, {
-            force: event.userId === currentUserId,
-          });
+          // The event only references related models by ID, load any that are
+          // not already in memory so that the membership can be displayed.
+          await Promise.all([
+            documents.fetch(event.documentId!, {
+              force: event.userId === currentUserId,
+            }),
+            membership.loadRelations({ withoutPolicies: true }),
+          ]);
         } catch (err) {
           Logger.error("Failed to fetch document after add_user", toError(err));
         }
@@ -354,13 +359,24 @@ function useDocumentHandlers() {
 
     socket.on(
       "documents.add_group",
-      (event: PartialExcept<GroupMembership, "id">) => {
-        groupMemberships.add(event);
+      async (event: PartialExcept<GroupMembership, "id">) => {
+        const membership = groupMemberships.add(event);
 
         const group = groups.get(event.groupId!);
 
         if (currentUserId && group?.users.some((u) => u.id === currentUserId)) {
           invalidateChildPolicies(event.documentId!, { documents, policies });
+        }
+
+        try {
+          // The event only references related models by ID, load any that are
+          // not already in memory so that the membership can be displayed.
+          await membership.loadRelations({ withoutPolicies: true });
+        } catch (err) {
+          Logger.error(
+            "Failed to load relations after add_group",
+            toError(err)
+          );
         }
       }
     );
@@ -478,11 +494,16 @@ function useCollectionHandlers() {
     );
 
     socket.on("collections.add_user", async (event: Membership) => {
-      memberships.add(event);
+      const membership = memberships.add(event);
       try {
-        await collections.fetch(event.collectionId, {
-          force: event.userId === currentUserId,
-        });
+        // The event only references related models by ID, load any that are not
+        // already in memory so that the membership can be displayed.
+        await Promise.all([
+          collections.fetch(event.collectionId, {
+            force: event.userId === currentUserId,
+          }),
+          membership.loadRelations({ withoutPolicies: true }),
+        ]);
       } catch (err) {
         Logger.error("Failed to fetch collection after add_user", toError(err));
       }
@@ -498,9 +519,11 @@ function useCollectionHandlers() {
     });
 
     socket.on("collections.add_group", async (event: GroupMembership) => {
-      groupMemberships.add(event);
+      const membership = groupMemberships.add(event);
       try {
-        await collections.fetch(event.collectionId!);
+        // The event only references related models by ID, load any that are not
+        // already in memory so that the membership can be displayed.
+        await membership.loadRelations({ withoutPolicies: true });
       } catch (err) {
         Logger.error(
           "Failed to fetch collection after add_group",
@@ -593,9 +616,20 @@ function useGroupHandlers() {
       groups.remove(event.modelId);
     });
 
-    socket.on("groups.add_user", (event: PartialExcept<GroupUser, "id">) => {
-      groupUsers.add(event);
-    });
+    socket.on(
+      "groups.add_user",
+      async (event: PartialExcept<GroupUser, "id">) => {
+        const groupUser = groupUsers.add(event);
+
+        try {
+          // The event only references related models by ID, load any that are
+          // not already in memory so that the membership can be displayed.
+          await groupUser.loadRelations({ withoutPolicies: true });
+        } catch (err) {
+          Logger.error("Failed to load relations after add_user", toError(err));
+        }
+      }
+    );
 
     socket.on("groups.remove_user", (event: PartialExcept<GroupUser, "id">) => {
       groupUsers.removeAll({
