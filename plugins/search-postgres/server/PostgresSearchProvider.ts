@@ -867,6 +867,8 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       }
     }
 
+    limitedQuery = PostgresSearchProvider.escapePhraseColons(limitedQuery);
+
     return (
       queryParser()(
         // Although queryParser trims the query, looks like there's a
@@ -882,14 +884,22 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   }
 
   private static escapeQuery(query: string): string {
-    return (
-      query
-        // replace "\" with escaped "\\" because sequelize.escape doesn't do it
-        // see: https://github.com/sequelize/sequelize/issues/2950
-        .replace(/\\/g, "\\\\")
-        // replace ":" with escaped "\:" because it's a reserved character in tsquery
-        // see: https://github.com/outline/outline/issues/6542
-        .replace(/:/g, "\\:")
+    // replace "\" with escaped "\\" because sequelize.escape doesn't do it
+    // see: https://github.com/sequelize/sequelize/issues/2950
+    return query.replace(/\\/g, "\\\\");
+  }
+
+  /**
+   * ":" is reserved in tsquery, and pg-tsquery passes it through verbatim
+   * inside a quoted phrase, so it must be escaped there.
+   * see: https://github.com/outline/outline/issues/6542
+   *
+   * Outside of a phrase pg-tsquery drops the colon but keeps a preceding
+   * backslash, so escaping there would emit a dangling "\" operand.
+   */
+  private static escapePhraseColons(query: string): string {
+    return query.replace(/"[^"]*"|'[^']*'/g, (phrase) =>
+      phrase.replace(/:/g, "\\:")
     );
   }
 
