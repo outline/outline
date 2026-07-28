@@ -160,6 +160,24 @@ export default class DocumentsStore extends Store<Document> {
     );
   }
 
+  /**
+   * Returns the loaded rows of a database, oldest first.
+   *
+   * @param databaseId the database to filter by.
+   * @returns the database's rows currently loaded in the store.
+   */
+  inDatabase(databaseId: string): Document[] {
+    return orderBy(
+      filter(
+        this.all,
+        (document) =>
+          document.databaseId === databaseId && !!document.publishedAt
+      ),
+      "createdAt",
+      "asc"
+    );
+  }
+
   rootInCollection(collectionId: string): Document[] {
     const collection = this.rootStore.collections.get(collectionId);
 
