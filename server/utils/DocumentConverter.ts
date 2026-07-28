@@ -119,6 +119,11 @@ export class DocumentConverter {
       return domParser.parse(document.body);
     } finally {
       cleanup();
+      try {
+        dom.window.close();
+      } catch (_err) {
+        // Best effort, closing the window releases its timers and resources.
+      }
     }
   }
 

@@ -509,6 +509,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
   public static async toHTML(node: Node, options?: HTMLOptions) {
     let view;
     let cleanupEnv;
+    let dom: JSDOM | undefined;
 
     // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
     const { JSDOM } = await import("jsdom");
@@ -575,7 +576,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
       // Render the Prosemirror document using virtual DOM and serialize the
       // result to a string
-      const dom = new JSDOM(
+      dom = new JSDOM(
         `<!DOCTYPE html><meta charset="utf-8">${
           options?.includeStyles === false ? "" : styleTags
         }${html}`
@@ -717,6 +718,11 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
         view?.destroy();
       } catch (err) {
         Logger.error("Error destroying ProseMirror view", toError(err));
+      }
+      try {
+        dom?.window.close();
+      } catch (_err) {
+        // Best effort, closing the window releases its timers and resources.
       }
       cleanupEnv?.();
     }

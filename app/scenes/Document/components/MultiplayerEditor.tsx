@@ -231,6 +231,9 @@ function MultiplayerEditor(
       setRemoteProvider(undefined);
       ui.setMultiplayerStatus(undefined, undefined);
     };
+    // `token` is intentionally omitted, it is only read when establishing the
+    // connection and a refreshed token must not tear down the provider.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     history,
     t,

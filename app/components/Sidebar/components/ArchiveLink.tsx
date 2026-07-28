@@ -24,10 +24,7 @@ function ArchiveLink() {
   const [disclosure, setDisclosure] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<boolean | undefined>();
 
-  const { request, data, loading, error } = useRequest(
-    collections.fetchArchived,
-    true
-  );
+  const { data, loading, error } = useRequest(collections.fetchArchived, true);
 
   useEffect(() => {
     if (!isUndefined(data) && !loading && isUndefined(error)) {
@@ -43,13 +40,7 @@ function ArchiveLink() {
     if (disclosure && isUndefined(expanded)) {
       setExpanded(false);
     }
-  }, [disclosure]);
-
-  useEffect(() => {
-    if (expanded) {
-      void request();
-    }
-  }, [expanded, request]);
+  }, [disclosure, expanded]);
 
   const handleDisclosureClick = useCallback((ev) => {
     ev.preventDefault();
@@ -84,6 +75,7 @@ function ArchiveLink() {
           <Relative>
             <PaginatedList<Collection>
               aria-label={t("Archived collections")}
+              fetch={collections.fetchArchived}
               items={collections.archived}
               loading={<PlaceholderCollections />}
               renderError={(props) => <StyledError {...props} />}

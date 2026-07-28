@@ -56,6 +56,44 @@ describe("#collections.list", () => {
     expect(body.data[0].archivedBy.id).toBe(collection.archivedById);
   });
 
+  it("should include archived private collections for admin", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/collections.list", admin, {
+      body: {
+        statusFilter: [CollectionStatusFilter.Archived],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(collection.id);
+    expect(body.policies[0].abilities.restore).toBeTruthy();
+  });
+
+  it("should not include archived private collections for member", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    await buildCollection({
+      teamId: team.id,
+      permission: null,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        statusFilter: [CollectionStatusFilter.Archived],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(0);
+  });
+
   it("should exclude archived collections", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });

@@ -1,3 +1,7 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { faker } from "@faker-js/faker";
 import type { Transaction } from "sequelize";
 import { afterEach, beforeEach, vi } from "vitest";
@@ -11,6 +15,7 @@ import webService from "@server/services/web";
 import { sequelize } from "@server/storage/database";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
+import ZipHelper from "@server/utils/ZipHelper";
 import TestServer from "./TestServer";
 
 export function getTestServer() {
@@ -76,6 +81,31 @@ export function withAPIContext<T>(
       },
     } as APIContext);
   });
+}
+
+/**
+ * Read a zip archive returned from an API endpoint into memory.
+ *
+ * @param res The response to read the archive from.
+ * @returns a map of entry filename to the entry contents as a string.
+ */
+export async function readZipResponse(
+  res: Awaited<ReturnType<TestServer["post"]>>
+): Promise<Record<string, string>> {
+  const filePath = path.join(os.tmpdir(), `test-${randomUUID()}.zip`);
+  await fs.writeFile(filePath, Buffer.from(await res.arrayBuffer()));
+
+  try {
+    const entries: Record<string, string> = {};
+    await ZipHelper.walk(filePath, async (entry) => {
+      entries[entry.fileName] = (
+        await entry.readBuffer(1024 * 1024)
+      ).toString();
+    });
+    return entries;
+  } finally {
+    await fs.rm(filePath, { force: true });
+  }
 }
 
 /**

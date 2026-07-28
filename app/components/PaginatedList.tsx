@@ -217,6 +217,9 @@ const PaginatedList = <T extends PaginatedItem>({
     if (fetch) {
       void fetchResults();
     }
+    // `fetchResults` changes identity as pagination advances, depending on it
+    // here would re-run the initial fetch for every page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetch]);
 
   // Handle updates to fetch or options

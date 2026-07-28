@@ -10,6 +10,7 @@ import {
   UserRole,
 } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
+import { DocumentValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Group, User } from "@server/models";
@@ -38,8 +39,13 @@ import {
   buildGroup,
   buildAdmin,
   buildTemplate,
+  buildAttachment,
 } from "@server/test/factories";
-import { getTestServer, withAPIContext } from "@server/test/support";
+import {
+  getTestServer,
+  readZipResponse,
+  withAPIContext,
+} from "@server/test/support";
 
 const server = getTestServer();
 
@@ -603,6 +609,10 @@ describe("#documents.info", () => {
 });
 
 describe("#documents.export", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("should return published document", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -685,6 +695,45 @@ describe("#documents.export", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data).toEqual(await DocumentHelper.toMarkdown(document));
+  });
+
+  it("should stream a zip when the document has attachments", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      title: "Export Test",
+      userId: user.id,
+      teamId: user.teamId,
+      text: `![image](${attachment.redirectUrl})`,
+    });
+    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
+      Buffer.from("image-data")
+    );
+
+    const res = await server.post("/api/documents.export", user, {
+      body: {
+        id: document.id,
+      },
+      headers: {
+        accept: "text/markdown",
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toEqual("application/zip");
+    expect(res.headers.get("content-disposition")).toContain(
+      `filename="export-test.zip"`
+    );
+
+    const location = `attachments/${attachment.id}.png`;
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([location, "export-test.md"]);
+    expect(entries[location]).toEqual("image-data");
+    expect(entries["export-test.md"]).toContain(location);
+    expect(entries["export-test.md"]).not.toContain(attachment.redirectUrl);
   });
 
   it("should require authorization without token", async () => {
@@ -5562,6 +5611,17 @@ describe("#documents.create", () => {
     expect(body.data.title).toEqual("");
   });
 
+  it("should not create a document with text over the maximum length", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "title",
+        text: "a".repeat(DocumentValidation.maxLength + 1),
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should use template title when doc is created using a template and title is not explicitly passed", async () => {
     const user = await buildUser();
     const template = await buildTemplate({
@@ -5898,6 +5958,21 @@ describe("#documents.update", () => {
       },
     });
     expect(events.length).toEqual(1);
+  });
+
+  it("should not update a document with text over the maximum length", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        text: "a".repeat(DocumentValidation.maxLength + 1),
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should not allow publishing a draft without specifying the collection", async () => {

@@ -32,6 +32,14 @@ export function DragActiveProvider({
   children: React.ReactNode;
 }) {
   const isDragging = useDragLayer((monitor) => monitor.isDragging());
+
+  // Expose drag state to CSS so per-row UI (e.g. the hover actions slot) can
+  // be hidden for the duration of a drag without re-rendering
+  React.useEffect(() => {
+    document.body.toggleAttribute("data-drag-active", isDragging);
+    return () => document.body.removeAttribute("data-drag-active");
+  }, [isDragging]);
+
   return (
     <DragActiveContext.Provider value={isDragging}>
       {children}

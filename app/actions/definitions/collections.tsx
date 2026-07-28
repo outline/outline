@@ -34,6 +34,7 @@ import {
   createInternalLinkAction,
   createActionWithChildren,
 } from "~/actions";
+import { dialogActionFactory } from "~/actions/definitions/common";
 import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import {
@@ -77,22 +78,17 @@ export const openCollection = createActionWithChildren({
   },
 });
 
-export const createCollection = createAction({
-  name: ({ t }) => t("New collection"),
+export const createCollection = dialogActionFactory({
   analyticsName: "New collection",
   section: CollectionSection,
+  name: (t) => t("New collection"),
+  title: (t) => t("Create a collection"),
+  content: (onSubmit) => <CollectionNew onSubmit={onSubmit} />,
   icon: <PlusIcon />,
   keywords: "create",
+  stopEvent: true,
   visible: ({ stores }) =>
     stores.policies.abilities(stores.auth.team?.id || "").createCollection,
-  perform: ({ t, event, stores }) => {
-    event?.preventDefault();
-    event?.stopPropagation();
-    stores.dialogs.openModal({
-      title: t("Create a collection"),
-      content: <CollectionNew onSubmit={stores.dialogs.closeAllModals} />,
-    });
-  },
 });
 
 export const editCollection = createAction({

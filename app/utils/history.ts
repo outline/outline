@@ -9,7 +9,7 @@ import {
   getFocusedSplitPane,
   getSplitPath,
   isSplitViewNavigationSuppressed,
-  isSplitablePath,
+  isSplittablePath,
   setSplitPath,
 } from "./splitView";
 
@@ -81,7 +81,7 @@ function applySplitView(
   }
 
   const pathname = descriptor.pathname ?? current.pathname;
-  if (!isSplitablePath(pathname)) {
+  if (!isSplittablePath(pathname)) {
     return descriptor;
   }
 

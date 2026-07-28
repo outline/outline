@@ -1,9 +1,7 @@
-import { ZipFile } from "yazl";
+import type { ZipFile } from "yazl";
 import { omit } from "es-toolkit/compat";
-import { errToString } from "@shared/utils/error";
 import type { NavigationNode } from "@shared/types";
 import env from "@server/env";
-import Logger from "@server/logging/Logger";
 import type { Collection, FileOperation } from "@server/models";
 import { Attachment, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -20,29 +18,28 @@ export default class ExportJSONTask extends ExportTask {
     collections: Collection[],
     fileOperation: FileOperation
   ) {
-    const zip = new ZipFile();
     const usedFilenames = new Set<string>();
 
-    // serial to avoid overloading, slow and steady wins the race
-    for (const collection of collections) {
-      let filename = serializeFilename(collection.name);
-      let i = 0;
-      while (usedFilenames.has(filename)) {
-        filename = `${serializeFilename(collection.name)} (${++i})`;
+    return ZipHelper.toTmpFile(async (zip) => {
+      // serial to avoid overloading, slow and steady wins the race
+      for (const collection of collections) {
+        let filename = serializeFilename(collection.name);
+        let i = 0;
+        while (usedFilenames.has(filename)) {
+          filename = `${serializeFilename(collection.name)} (${++i})`;
+        }
+        usedFilenames.add(filename);
+
+        await this.addCollectionToArchive(
+          zip,
+          collection,
+          fileOperation.options?.includeAttachments ?? true,
+          filename
+        );
       }
-      usedFilenames.add(filename);
 
-      await this.addCollectionToArchive(
-        zip,
-        collection,
-        fileOperation.options?.includeAttachments ?? true,
-        filename
-      );
-    }
-
-    await this.addMetadataToArchive(zip, fileOperation);
-
-    return ZipHelper.toTmpFile(zip);
+      await this.addMetadataToArchive(zip, fileOperation);
+    });
   }
 
   private async addMetadataToArchive(
@@ -87,31 +84,18 @@ export default class ExportJSONTask extends ExportTask {
       attachments: {},
     };
 
-    async function addAttachments(attachments: Attachment[]) {
+    const addAttachments = (attachments: Attachment[]) => {
       for (const attachment of attachments) {
-        let buffer: Buffer;
-        try {
-          buffer = await attachment.buffer;
-        } catch (err) {
-          Logger.warn(`Failed to read attachment from storage`, {
-            attachmentId: attachment.id,
-            teamId: attachment.teamId,
-            error: errToString(err),
-          });
-          buffer = Buffer.from("");
-        }
-        zip.addBuffer(buffer, attachment.key, {
-          mtime: attachment.updatedAt,
-        });
+        this.addAttachmentToArchive(zip, attachment, attachment.key);
 
         output.attachments[attachment.id] = {
           ...omit(presentAttachment(attachment), "url"),
           key: attachment.key,
         };
       }
-    }
+    };
 
-    async function addDocumentTree(nodes: NavigationNode[]) {
+    const addDocumentTree = async (nodes: NavigationNode[]) => {
       for (const node of nodes) {
         const document = await Document.findByPk(node.id, {
           includeState: true,
@@ -132,7 +116,7 @@ export default class ExportJSONTask extends ExportTask {
             })
           : [];
 
-        await addAttachments(documentAttachments);
+        addAttachments(documentAttachments);
 
         output.documents[document.id] = {
           id: document.id,
@@ -157,7 +141,7 @@ export default class ExportJSONTask extends ExportTask {
           await addDocumentTree(node.children);
         }
       }
-    }
+    };
 
     const collectionAttachments = includeAttachments
       ? await Attachment.findAll({
@@ -170,7 +154,7 @@ export default class ExportJSONTask extends ExportTask {
         })
       : [];
 
-    await addAttachments(collectionAttachments);
+    addAttachments(collectionAttachments);
 
     if (collection.documentStructure) {
       await addDocumentTree(collection.documentStructure);

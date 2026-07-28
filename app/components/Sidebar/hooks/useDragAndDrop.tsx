@@ -226,7 +226,7 @@ export function useDropToChangeCollection(
   parentRef: React.RefObject<HTMLDivElement>
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs } = useStores();
+  const { documents, collections, dialogs, policies } = useStores();
   const can = usePolicy(collection);
   const startHover = useHover(parentRef, expandNode);
 
@@ -281,7 +281,7 @@ export function useDropToChangeCollection(
         }
       }
     },
-    canDrop: () => can.createDocument,
+    canDrop: (item) => can.createDocument && !!policies.abilities(item.id).move,
     hover: (_, monitor) => {
       if (
         collection.hasDocuments &&
@@ -311,7 +311,7 @@ export function useDropToReparentDocument(
   parentRef: React.RefObject<HTMLDivElement>
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs } = useStores();
+  const { documents, collections, dialogs, policies } = useStores();
   const hasChildDocuments = !!node?.children.length;
   const document = node ? documents.get(node.id) : undefined;
   const pathToNode = React.useMemo(
@@ -321,11 +321,7 @@ export function useDropToReparentDocument(
 
   const startHover = useHover(parentRef, setExpanded);
 
-  return useDrop<
-    DragObject,
-    Promise<void>,
-    { isOverReparent: boolean; canDropToReparent: boolean }
-  >({
+  return useDrop<DragObject, Promise<void>, { isOverReparent: boolean }>({
     accept: "document",
     drop: async (item, monitor) => {
       if (monitor.didDrop() || !node) {
@@ -377,7 +373,7 @@ export function useDropToReparentDocument(
       }
     },
     canDrop: (item) => {
-      if (!node || item.id === node.id) {
+      if (!node || item.id === node.id || !policies.abilities(item.id).move) {
         return false;
       }
 
@@ -400,9 +396,11 @@ export function useDropToReparentDocument(
         startHover();
       }
     },
+    // Collected values must stay unchanged while the target is not hovered.
+    // Collecting global drag state (e.g. a bare canDrop) re-renders every
+    // sidebar row at drag start and drop.
     collect: (monitor) => ({
-      isOverReparent: monitor.isOver({ shallow: true }),
-      canDropToReparent: monitor.canDrop(),
+      isOverReparent: monitor.isOver({ shallow: true }) && monitor.canDrop(),
     }),
   });
 }
@@ -427,21 +425,17 @@ export function useDropToReorderDocument(
       }
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs } = useStores();
+  const { documents, collections, dialogs, policies } = useStores();
 
   const document = documents.get(node.id);
 
-  return useDrop<
-    DragObject,
-    Promise<void>,
-    { isOverReorder: boolean; isDraggingAnyDocument: boolean }
-  >({
+  return useDrop<DragObject, Promise<void>, { isOverReorder: boolean }>({
     accept: "document",
     canDrop: (item: DragObject) => {
       if (item.id === node.id || (document && !document.isActive)) {
         return false;
       }
-      return true;
+      return !!policies.abilities(item.id).move;
     },
     drop: async (item) => {
       if (!collection?.isManualSort && item.collectionId === collection?.id) {
@@ -490,9 +484,11 @@ export function useDropToReorderDocument(
         }
       }
     },
+    // Collected values must stay unchanged while the target is not hovered.
+    // Collecting global drag state (e.g. a bare canDrop) re-renders every
+    // sidebar row at drag start and drop.
     collect: (monitor) => ({
-      isOverReorder: monitor.isOver(),
-      isDraggingAnyDocument: monitor.canDrop(),
+      isOverReorder: monitor.isOver() && monitor.canDrop(),
     }),
   });
 }

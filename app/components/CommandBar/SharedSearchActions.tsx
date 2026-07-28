@@ -1,11 +1,11 @@
 import { useKBar } from "kbar";
-import { escapeRegExp } from "es-toolkit/compat";
+import { autorun } from "mobx";
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
 import * as React from "react";
-import Icon from "@shared/components/Icon";
+import { useTranslation } from "react-i18next";
 import useShare from "@shared/hooks/useShare";
-import { Minute } from "@shared/utils/time";
+import { NavigationNodeType, type NavigationNode } from "@shared/types";
+import { flattenTree } from "@shared/utils/tree";
 import { createAction } from "~/actions";
 import {
   RecentSearchesSection,
@@ -13,64 +13,36 @@ import {
 } from "~/actions/sections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import useStores from "~/hooks/useStores";
-import type Document from "~/models/Document";
 import history from "~/utils/history";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import type { SearchResult } from "~/types";
+import type { SearchIndexDocument } from "./SearchIndex";
+import { SearchResultIcon } from "./SearchResultIcon";
+import {
+  toActionPriority,
+  toSearchRecord,
+  useSearchIndex,
+} from "./useSearchIndex";
 
-interface CacheEntry {
-  timestamp: number;
-  results: SearchResult[];
-}
-
-const cacheTTL = Minute.ms * 5;
 const maxRecentDocs = 5;
+const serverSearchDelay = 350;
 
 /**
- * Strip server-generated `<b>` highlight tags from context and re-apply them
- * using the current search query. This prevents stale highlights when the
- * displayed results are from a previous (in-flight) query.
- *
- * @param context the server-generated context string with `<b>` tags.
- * @param query the current search query to highlight.
- * @returns the context string with highlights matching the current query.
+ * A shared tree is rooted at the collection for collection shares, and at a
+ * document for document shares – only the latter are searchable.
  */
-function rehighlightContext(
-  context: string | undefined,
-  query: string
-): string | undefined {
-  if (!context) {
-    return context;
-  }
-
-  const plain = context.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
-  const trimmed = query.trim();
-
-  if (!trimmed) {
-    return plain;
-  }
-
-  const terms = trimmed.split(/\s+/).filter(Boolean);
-  const patterns = [escapeRegExp(trimmed)];
-
-  if (terms.length > 1) {
-    patterns.push(...terms.map((t) => `\\b${escapeRegExp(t)}\\b`));
-  }
-
-  const regex = new RegExp(patterns.join("|"), "gi");
-  return plain.replace(regex, "<b>$&</b>");
-}
+const isDocumentNode = (node: NavigationNode) =>
+  node.type !== NavigationNodeType.Collection;
 
 /**
  * Registers search result actions in the command bar scoped to a public share.
+ * Results are driven entirely by a client-side fuzzy index — providing
+ * typo-tolerant matching — which is progressively fed by document titles from
+ * the shared tree, the content of loaded documents, and server responses.
  */
 function SharedSearchActions() {
+  const { t } = useTranslation();
   const { documents } = useStores();
-  const { shareId } = useShare();
-  const searchCache = React.useRef<Map<string, CacheEntry>>(new Map());
-  const [results, setResults] = React.useState<SearchResult[]>([]);
-  const recentDocsRef = React.useRef<Document[]>([]);
-  const [recentDocs, setRecentDocs] = React.useState<Document[]>([]);
+  const { shareId, sharedTree } = useShare();
 
   const { searchQuery } = useKBar((state) => ({
     searchQuery: state.searchQuery,
@@ -79,65 +51,95 @@ function SharedSearchActions() {
   const searchQueryRef = React.useRef(searchQuery);
   searchQueryRef.current = searchQuery;
 
+  const { results, feed, reset } = useSearchIndex(searchQuery);
+
+  const recentDocsRef = React.useRef<SearchIndexDocument[]>([]);
+  const [recentDocs, setRecentDocs] = React.useState<SearchIndexDocument[]>([]);
+
+  // Start from a clean index whenever the share changes.
   React.useEffect(() => {
-    if (!searchQuery || !shareId) {
-      setResults([]);
+    reset();
+  }, [reset, shareId]);
+
+  // Feed the index with titles from the shared tree and content from any
+  // documents that have loaded into the store, re-running as documents load.
+  React.useEffect(() => {
+    if (!sharedTree) {
       return;
     }
 
-    const now = Date.now();
-    const cachedEntry = searchCache.current.get(searchQuery);
-    const isExpired = cachedEntry
-      ? now - cachedEntry.timestamp > cacheTTL
-      : true;
+    const nodes = flattenTree(sharedTree).filter(isDocumentNode);
 
-    if (cachedEntry && !isExpired) {
-      setResults(cachedEntry.results);
+    return autorun(() => {
+      feed(
+        nodes.map((node) => {
+          const doc = documents.get(node.id);
+          return doc
+            ? toSearchRecord(doc)
+            : {
+                id: node.id,
+                title: node.title || t("Untitled"),
+                url: node.url,
+                icon: node.icon,
+                color: node.color,
+              };
+        })
+      );
+    });
+  }, [documents, sharedTree, feed, t]);
+
+  // Enrich the index from the server so that content we have not loaded
+  // client-side can still surface.
+  React.useEffect(() => {
+    if (!searchQuery || !shareId) {
       return;
     }
 
     const currentQuery = searchQuery;
-    void documents.search({ query: searchQuery, shareId }).then((res) => {
-      searchCache.current.set(currentQuery, { timestamp: now, results: res });
-      if (searchQueryRef.current === currentQuery) {
-        setResults(res);
-      }
-    });
-  }, [documents, searchQuery, shareId]);
+    let disposed = false;
 
-  const addRecentDoc = React.useCallback((doc: Document) => {
-    const prev = recentDocsRef.current;
-    const filtered = prev.filter((d) => d.id !== doc.id);
+    const handle = setTimeout(() => {
+      void documents
+        .search({ query: currentQuery, shareId })
+        .then((res) => {
+          if (disposed) {
+            return;
+          }
+          feed(
+            res.map((result) => toSearchRecord(result.document, result.context))
+          );
+        })
+        .catch(() => {
+          // Failing to enrich the index is not worth surfacing, local results
+          // are still shown.
+        });
+    }, serverSearchDelay);
+
+    return () => {
+      disposed = true;
+      clearTimeout(handle);
+    };
+  }, [documents, searchQuery, shareId, feed]);
+
+  const addRecentDoc = React.useCallback((doc: SearchIndexDocument) => {
+    const filtered = recentDocsRef.current.filter((d) => d.id !== doc.id);
     const next = [doc, ...filtered].slice(0, maxRecentDocs);
     recentDocsRef.current = next;
     setRecentDocs(next);
   }, []);
 
-  const documentIcon = React.useCallback(
-    (doc: Document) =>
-      doc.icon ? (
-        <Icon
-          value={doc.icon}
-          initial={doc.initial}
-          color={doc.color ?? undefined}
-        />
-      ) : (
-        <DocumentIcon />
-      ),
-    []
-  );
-
   const actions = React.useMemo(
     () =>
-      results.map((result) =>
+      results.map((result, index) =>
         createAction({
           id: `shared-search-${result.document.id}`,
-          name: result.document.titleWithDefault,
-          description: rehighlightContext(result.context, searchQuery),
+          name: result.document.title,
+          description: result.context,
           keywords: searchQuery,
           analyticsName: "Open shared search result",
           section: SearchResultsSection,
-          icon: documentIcon(result.document),
+          priority: toActionPriority(index, results.length),
+          icon: <SearchResultIcon document={result.document} />,
           perform: () => {
             if (shareId) {
               const currentQuery = searchQueryRef.current;
@@ -152,7 +154,7 @@ function SharedSearchActions() {
           },
         })
       ),
-    [results, shareId, searchQuery, addRecentDoc, documentIcon]
+    [results, shareId, searchQuery, addRecentDoc]
   );
 
   const recentDocActions = React.useMemo(
@@ -160,10 +162,10 @@ function SharedSearchActions() {
       recentDocs.map((doc) =>
         createAction({
           id: `shared-recent-doc-${doc.id}`,
-          name: doc.titleWithDefault,
+          name: doc.title,
           analyticsName: "Open recent shared document",
           section: RecentSearchesSection,
-          icon: documentIcon(doc),
+          icon: <SearchResultIcon document={doc} />,
           perform: () => {
             if (shareId) {
               history.push(sharedModelPath(shareId, doc.url));
@@ -171,13 +173,18 @@ function SharedSearchActions() {
           },
         })
       ),
-    [recentDocs, shareId, documentIcon]
+    [recentDocs, shareId]
+  );
+
+  // Enriching the index can change snippets without changing which documents
+  // matched, so the key must cover contexts as well as ids.
+  const resultsKey = React.useMemo(
+    () => results.map((r) => `${r.document.id}:${r.context ?? ""}`).join(""),
+    [results]
   );
 
   useCommandBarActions(searchQuery ? actions : recentDocActions, [
-    searchQuery
-      ? actions.map((a) => a.id).join("")
-      : recentDocActions.map((a) => a.id).join(""),
+    searchQuery ? resultsKey : recentDocActions.map((a) => a.id).join(""),
     searchQuery,
   ]);
 

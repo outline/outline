@@ -2,6 +2,7 @@ import { Blob } from "node:buffer";
 import { mkdir, unlink, rmdir } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import fs from "fs-extra";
 import invariant from "invariant";
@@ -82,19 +83,9 @@ export default class LocalStorage extends BaseStorage {
     // Create the file on disk first
     await fs.createFile(filePath);
 
-    return new Promise<string>((resolve, reject) => {
-      const dest = fs
-        .createWriteStream(filePath)
-        .on("error", reject)
-        .on("finish", () => resolve(this.getUrlForKey(key)));
+    await pipeline(src, fs.createWriteStream(filePath));
 
-      src
-        .on("error", (err) => {
-          dest.end();
-          reject(err);
-        })
-        .pipe(dest);
-    });
+    return this.getUrlForKey(key);
   };
 
   public async deleteFile(key: string) {

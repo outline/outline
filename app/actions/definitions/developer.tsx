@@ -9,7 +9,11 @@ import {
   UserIcon,
 } from "outline-icons";
 import { toast } from "sonner";
-import { createAction, createActionWithChildren } from "~/actions";
+import {
+  createAction,
+  createActionWithChildren,
+  createInternalLinkAction,
+} from "~/actions";
 import { DeveloperSection } from "~/actions/sections";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
@@ -19,14 +23,12 @@ import { deleteAllDatabases } from "~/utils/developer";
 import history from "~/utils/history";
 import { homePath, debugPath } from "~/utils/routeHelpers";
 
-export const goToDebug = createAction({
+export const goToDebug = createInternalLinkAction({
   name: "Go to debug screen",
   icon: <BeakerIcon />,
   section: DeveloperSection,
   visible: () => env.ENVIRONMENT === "development",
-  perform: () => {
-    history.push(debugPath());
-  },
+  to: debugPath(),
 });
 
 export const copyId = createActionWithChildren({

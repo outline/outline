@@ -42,13 +42,17 @@ const LoadingState = observer(function LoadingState() {
   const { id } = useParams<{ id: string }>();
   const { oauthClients } = useStores();
   const oauthClient = oauthClients.get(id);
-  const { request } = useRequest(() => oauthClients.fetch(id));
+  const fetchOAuthClient = useCallback(
+    () => oauthClients.fetch(id),
+    [oauthClients, id]
+  );
+  const { request } = useRequest(fetchOAuthClient);
 
   useEffect(() => {
     if (!oauthClient) {
       void request();
     }
-  }, [oauthClient]);
+  }, [oauthClient, request]);
 
   if (!oauthClient) {
     return <LoadingIndicator />;

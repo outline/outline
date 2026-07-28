@@ -55,6 +55,9 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
     return resolvedItemChildren
       ? mapMenuItems(resolvedItemChildren, commands, view, state)
       : [];
+    // Menu items are resolved against the editor state at the moment the menu
+    // opens, recomputing on every transaction would rebuild the open menu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, commands]);
 
   const handleCloseAutoFocus = useCallback((ev: Event) => {

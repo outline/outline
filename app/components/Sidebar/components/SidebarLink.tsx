@@ -237,6 +237,11 @@ const Content = styled.span`
 const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
   display: inline-flex;
   visibility: ${(props) => (props.$showActions ? "visible" : "hidden")};
+
+  [data-drag-active] & {
+    display: none;
+  }
+
   position: absolute;
   top: 3px;
   inset-inline-end: 4px;

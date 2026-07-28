@@ -24,7 +24,7 @@ import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import Tooltip from "~/components/Tooltip";
-import { resolveCommentFactory } from "~/actions/definitions/comments";
+import { resolveCommentActionFactory } from "~/actions/definitions/comments";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
@@ -320,7 +320,7 @@ const ResolveButton = ({
     <Tooltip content={t("Mark as resolved")} placement="top">
       <Action
         as={NudeButton}
-        action={resolveCommentFactory({
+        action={resolveCommentActionFactory({
           comment,
           onResolve: () => onUpdate({ resolved: true }),
         })}

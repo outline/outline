@@ -68,13 +68,22 @@ export type MenuItem = {
 };
 
 export type ComponentProps = {
+  /** The current editor theme. */
   theme: DefaultTheme;
+  /** The editor view instance. */
   view: EditorView;
+  /** The node the component is rendering. */
   node: ProsemirrorNode;
+  /** Whether the node is currently selected. */
   isSelected: boolean;
+  /** Whether the editor is editable. */
   isEditable: boolean;
+  /** A function that returns the current position of the node in the document. */
   getPos: () => number;
+  /** The decorations applied to the node. */
   decorations: Decoration[];
+  /** Ref callback marking the element that ProseMirror-managed content is mounted within. */
+  contentRef?: (element: HTMLElement | null) => void;
 };
 
 export type NodeAttrMarkName =

@@ -4,6 +4,7 @@ import env from "~/env";
 import {
   AuthorizationError,
   BadRequestError,
+  ClientClosedRequestError,
   NetworkError,
   NotFoundError,
   OfflineError,
@@ -22,6 +23,7 @@ export function initSentry(history: History) {
   const ignoredErrorTypes = [
     AuthorizationError,
     BadRequestError,
+    ClientClosedRequestError,
     NetworkError,
     NotFoundError,
     OfflineError,

@@ -1,5 +1,6 @@
 import type { JobOptions } from "bull";
 import { chunk, truncate, uniqBy } from "es-toolkit/compat";
+import httpErrors from "http-errors";
 import { Fragment, Node } from "prosemirror-model";
 import type { WhereOptions } from "sequelize";
 import { Transaction } from "sequelize";
@@ -99,8 +100,25 @@ export default abstract class APIImportTask<
         await importTask.save();
       }
 
+      if (this.isNonRetryable(err)) {
+        await this.onFailed({ importTaskId });
+      }
+
       throw err; // throw error for retry.
     }
+  }
+
+  /**
+   * Whether a failure is deterministic and therefore not worth retrying. A
+   * 4xx-class error raised by our own error factories signals invalid source
+   * data (a missing file in an export, an unparseable document) rather than a
+   * transient problem such as a network or storage blip.
+   *
+   * @param err The error thrown while performing the task.
+   * @returns true when retrying the task cannot succeed.
+   */
+  private isNonRetryable(err: unknown): boolean {
+    return httpErrors.isHttpError(err) && err.status >= 400 && err.status < 500;
   }
 
   /**

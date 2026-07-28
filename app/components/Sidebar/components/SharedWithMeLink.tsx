@@ -119,8 +119,11 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     () => document?.asNavigationNode,
     [document]
   );
-  const [{ isOverReparent, canDropToReparent }, dropToReparent] =
-    useDropToReparentDocument(reparentableNode, setExpanded, parentRef);
+  const [{ isOverReparent }, dropToReparent] = useDropToReparentDocument(
+    reparentableNode,
+    setExpanded,
+    parentRef
+  );
 
   const { icon } = useSidebarLabelAndIcon(membership);
   const [{ isDragging }, draggableRef] = useDragMembership(membership);
@@ -192,7 +195,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       isDragging={isDragging}
       parentRef={parentRef}
       dropToReparentRef={dropToReparent}
-      isActiveDropTarget={isOverReparent && canDropToReparent}
+      isActiveDropTarget={isOverReparent}
       menu={menu}
       menuOpen={menuOpen}
       isActiveOverride={isActive}

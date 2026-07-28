@@ -64,6 +64,9 @@ export const DocumentValidation = {
 
   /** The maximum recommended size of the document content */
   maxRecommendedLength: 250000,
+
+  /** The maximum length of the document text content */
+  maxLength: 1500 * 1024,
 };
 
 export const GroupValidation = {

@@ -78,6 +78,17 @@ export class EditorStyleHelper {
   /** Toggle block folded state */
   static readonly toggleBlockFolded = "folded";
 
+  // Notices
+
+  /** Notice block wrapper */
+  static readonly notice = "notice-block";
+
+  /** Notice block icon */
+  static readonly noticeIcon = "icon";
+
+  /** Notice block content area */
+  static readonly noticeContent = "content";
+
   // Checkbox Lists
 
   /** Checkbox list wrapper */

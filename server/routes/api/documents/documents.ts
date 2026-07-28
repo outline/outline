@@ -95,7 +95,6 @@ import {
   presentGroup,
   presentFileOperation,
 } from "@server/presenters";
-import type { DocumentImportTaskResponse } from "@server/queues/tasks/DocumentImportTask";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import EmptyTrashTask from "@server/queues/tasks/EmptyTrashTask";
 import FileStorage from "@server/storage/files";
@@ -1074,7 +1073,7 @@ router.post(
       return;
     }
 
-    await streamZipResponse(ctx, `${fileName}.zip`, async (zip) => {
+    streamZipResponse(ctx, `${fileName}.zip`, (zip) => {
       for (const { attachment, buffer } of externalAttachments) {
         const location = path.join(
           "attachments",
@@ -1098,6 +1097,7 @@ router.post(
 router.post(
   "documents.restore",
   auth({ role: UserRole.Member }),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsRestoreSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRestoreReq>) => {
@@ -1439,6 +1439,7 @@ router.post(
 router.post(
   "documents.duplicate",
   auth(),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsDuplicateSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsDuplicateReq>) => {
@@ -1497,6 +1498,7 @@ router.post(
 router.post(
   "documents.move",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsMoveSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsMoveReq>) => {
@@ -1552,6 +1554,7 @@ router.post(
 router.post(
   "documents.archive",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsArchiveSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsArchiveReq>) => {
@@ -1578,6 +1581,7 @@ router.post(
 router.post(
   "documents.delete",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsDeleteReq>) => {
@@ -1622,6 +1626,7 @@ router.post(
 router.post(
   "documents.unpublish",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsUnpublishSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
@@ -1716,7 +1721,7 @@ router.post(
       });
     }
 
-    const job = await new DocumentImportTask().schedule({
+    const document = await DocumentImportTask.scheduleAndWait({
       key,
       sourceMetadata: {
         fileName,
@@ -1726,16 +1731,8 @@ router.post(
       collectionId: collectionId ?? parentDocument?.collectionId,
       parentDocumentId,
       publish,
+      authType: ctx.state.auth.type,
       ip: ctx.request.ip,
-    });
-    const response: DocumentImportTaskResponse = await job.finished();
-    if ("error" in response) {
-      throw InvalidRequestError(response.error);
-    }
-
-    const document = await Document.findByPk(response.documentId, {
-      userId: user.id,
-      rejectOnEmpty: true,
     });
 
     ctx.body = {
@@ -1914,6 +1911,7 @@ router.post(
 router.post(
   "documents.remove_user",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsRemoveUserSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRemoveUserReq>) => {
@@ -1959,6 +1957,7 @@ router.post(
 router.post(
   "documents.add_group",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsAddGroupSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsAddGroupsReq>) => {
@@ -2019,6 +2018,7 @@ router.post(
 router.post(
   "documents.remove_group",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsRemoveGroupSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRemoveGroupReq>) => {
@@ -2185,6 +2185,7 @@ router.post(
 router.post(
   "documents.empty_trash",
   auth({ role: UserRole.Admin }),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
 

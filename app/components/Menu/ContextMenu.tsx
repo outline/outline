@@ -1,5 +1,5 @@
 import * as React from "react";
-import { actionToMenuItem } from "~/actions";
+import { actionToMenuItem, resolve } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import type { ActionFactory, ActionVariant, ActionWithChildren } from "~/types";
@@ -32,16 +32,22 @@ export const ContextMenu = observer(
       isMenu: true,
     });
 
+    // Menu items are only built while the menu is open.
     const menuItems = useComputed(() => {
       if (!open) {
         return [];
       }
 
       const resolvedAction = typeof action === "function" ? action() : action;
+      if (!resolvedAction) {
+        return [];
+      }
 
-      return ((resolvedAction?.children as ActionVariant[]) ?? []).map(
-        (childAction) => actionToMenuItem(childAction, actionContext)
-      );
+      // children may be a factory function, so resolve it before mapping.
+      return resolve<ActionVariant[]>(
+        resolvedAction.children,
+        actionContext
+      ).map((childAction) => actionToMenuItem(childAction, actionContext));
     }, [open, action, actionContext]);
 
     const handleOpenChange = React.useCallback(
@@ -68,7 +74,15 @@ export const ContextMenu = observer(
       }
     }, []);
 
-    if (isMobile || !action) {
+    // For non-factory actions we can cheaply detect an empty menu without
+    // resolving any items (actionToMenuItem is length-preserving).
+    const childActions =
+      typeof action === "function" ? undefined : action?.children;
+    const isEmpty =
+      typeof action !== "function" &&
+      (Array.isArray(childActions) ? childActions.length === 0 : !childActions);
+
+    if (isMobile || !action || isEmpty) {
       return <>{children}</>;
     }
 

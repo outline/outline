@@ -1,3 +1,4 @@
+import { errToString } from "@shared/utils/error";
 import env from "@server/env";
 import { encrypt, decrypt } from "./Encrypted";
 
@@ -40,10 +41,23 @@ describe("Encrypted", () => {
     expect(encrypt(value).equals(encrypt(value))).toBe(false);
   });
 
-  it("should fail to decrypt tampered data", () => {
-    const encrypted = encrypt(JSON.stringify("hello world"));
+  it("should not return the original value for tampered data", () => {
+    const value = JSON.stringify("hello world");
+    const encrypted = encrypt(value);
     encrypted[encrypted.length - 1] ^= 0xff;
-    expect(() => decrypt(encrypted)).toThrow();
+
+    try {
+      expect(decrypt(encrypted)).not.toEqual(value);
+    } catch (err) {
+      expect(errToString(err)).toMatch(/bad decrypt/);
+    }
+  });
+
+  it("should fail to decrypt a truncated ciphertext", () => {
+    const encrypted = encrypt(JSON.stringify("hello world"));
+    expect(() =>
+      decrypt(encrypted.subarray(0, encrypted.length - 1))
+    ).toThrow();
   });
 
   it("should fail to decrypt with a different key", () => {
