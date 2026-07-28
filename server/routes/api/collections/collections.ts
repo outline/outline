@@ -722,11 +722,17 @@ router.post(
       ],
     };
 
+    const includeArchived = !!statusFilter?.includes(
+      CollectionStatusFilter.Archived
+    );
+
     if (!statusFilter) {
       where[Op.and].push({ archivedAt: { [Op.eq]: null } });
     }
 
-    if (!includeListOnly || !user.isAdmin) {
+    // Admins can restore any archived collection, including private ones they
+    // are not a member of, so they must be able to see them listed.
+    if (!user.isAdmin || !(includeListOnly || includeArchived)) {
       where[Op.and].push({ id: collectionIds });
     }
 
@@ -737,7 +743,7 @@ router.post(
     }
 
     const statusQuery = [];
-    if (statusFilter?.includes(CollectionStatusFilter.Archived)) {
+    if (includeArchived) {
       statusQuery.push({
         archivedAt: {
           [Op.ne]: null,
@@ -755,7 +761,7 @@ router.post(
 
     const [collections, total] = await Promise.all([
       Collection.scope(
-        statusFilter?.includes(CollectionStatusFilter.Archived)
+        includeArchived
           ? [
               {
                 method: ["withMembership", user.id],
