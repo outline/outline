@@ -93,6 +93,15 @@ describe("AuthenticationHelper", () => {
         expect(canAccess("/api/documents.memberships", scopes)).toBe(false);
       });
 
+      it("attachments read scope grants access to redirect", async () => {
+        const scopes = ["attachments:read"];
+
+        expect(canAccess("/api/attachments.info", scopes)).toBe(true);
+        expect(canAccess("/api/attachments.redirect", scopes)).toBe(true);
+        expect(canAccess("/api/attachments.create", scopes)).toBe(false);
+        expect(canAccess("/api/attachments.delete", scopes)).toBe(false);
+      });
+
       it("write", async () => {
         const scopes = ["documents:write"];
 
@@ -132,6 +141,7 @@ describe("AuthenticationHelper", () => {
         expect(canAccess("/api/collections.group_memberships", scopes)).toBe(
           true
         );
+        expect(canAccess("/api/attachments.redirect", scopes)).toBe(true);
         expect(canAccess("/api/documents.create", scopes)).toBe(false);
         expect(canAccess("/api/documents.update", scopes)).toBe(false);
         expect(canAccess("/api/users.create", scopes)).toBe(false);

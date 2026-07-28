@@ -255,8 +255,11 @@ export function createOIDCRouter(
   );
 
   router.get(config.id, startOAuthFlow, passport.authenticate(config.id));
-  router.get(`${config.id}.callback`, passportMiddleware(config.id));
-  router.post(`${config.id}.callback`, passportMiddleware(config.id));
+  router.register(
+    `${config.id}.callback`,
+    ["get", "post"],
+    passportMiddleware(config.id)
+  );
 
   // Performs a spec-compliant RP-initiated logout against the provider's end
   // session endpoint. Passing `id_token_hint` identifies the session being

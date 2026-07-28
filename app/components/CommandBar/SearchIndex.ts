@@ -1,6 +1,5 @@
 import { escapeRegExp } from "es-toolkit/compat";
 import Fuse, { type IFuseOptions } from "fuse.js";
-import { FuseWorker } from "fuse.js/worker";
 
 /** A document as represented within the search index. */
 export interface SearchIndexDocument {
@@ -40,17 +39,10 @@ const options: IFuseOptions<SearchIndexDocument> = {
   ],
   includeScore: true,
   ignoreLocation: true,
+  useTokenSearch: true,
   threshold: 0.3,
   minMatchCharLength: minTermLength,
 };
-
-/**
- * Scanning document content is the expensive part of a query, so it is sharded
- * across web workers to keep it off the main thread. Indices here hold at most
- * a few hundred documents, where more shards cost more in messaging overhead
- * and worker startup than they win back in parallelism.
- */
-const workerOptions = { numWorkers: 2 };
 
 const resultLimit = 25;
 const contextLead = 40;
@@ -179,12 +171,7 @@ function buildContext(
 export class SearchIndex {
   private records = new Map<string, SearchIndexDocument>();
 
-  // Workers are unavailable when server rendering and under jsdom, where the
-  // main-thread implementation stands in with an identical API.
-  private fuse: Fuse<SearchIndexDocument> | FuseWorker<SearchIndexDocument> =
-    typeof Worker === "undefined"
-      ? new Fuse<SearchIndexDocument>([], { ...options, useTokenSearch: true })
-      : new FuseWorker<SearchIndexDocument>([], options, workerOptions);
+  private fuse = new Fuse<SearchIndexDocument>([], options);
 
   /**
    * Merges documents into the index, rebuilding the collection only when
@@ -223,7 +210,7 @@ export class SearchIndex {
     }
 
     if (changed) {
-      this.setCollection(Array.from(this.records.values()));
+      this.fuse.setCollection(Array.from(this.records.values()));
     }
 
     return changed;
@@ -234,17 +221,7 @@ export class SearchIndex {
    */
   public clear(): void {
     this.records.clear();
-    this.setCollection([]);
-  }
-
-  /**
-   * Releases the workers backing the index. The index must not be used again
-   * afterwards.
-   */
-  public dispose(): void {
-    if (this.fuse instanceof FuseWorker) {
-      this.fuse.terminate();
-    }
+    this.fuse.setCollection([]);
   }
 
   /**
@@ -255,17 +232,16 @@ export class SearchIndex {
    * @param query the search query.
    * @returns the matching documents ordered by relevance.
    */
-  public async search(query: string): Promise<SearchIndexResult[]> {
+  public search(query: string): SearchIndexResult[] {
     const trimmed = query.trim();
     if (!trimmed) {
       return [];
     }
 
-    const matches = await this.fuse.search(trimmed);
-
     // Building context scans the full text of a document, so it is deferred
     // until the results have been truncated to those actually displayed.
-    return matches
+    return this.fuse
+      .search(trimmed)
       .map((result) => ({
         document: result.item,
         score: result.score ?? 1,
@@ -278,17 +254,5 @@ export class SearchIndex {
         score,
         context: buildContext(document.text, trimmed),
       }));
-  }
-
-  /**
-   * Replaces the indexed collection. Workers apply this asynchronously, but
-   * they process messages in order, so a search issued afterwards always sees
-   * the new collection.
-   */
-  private setCollection(documents: SearchIndexDocument[]): void {
-    void Promise.resolve(this.fuse.setCollection(documents)).catch(() => {
-      // A worker that failed to accept the collection will also fail the next
-      // search, which is where the error surfaces.
-    });
   }
 }

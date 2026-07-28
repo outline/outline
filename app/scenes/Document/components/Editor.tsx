@@ -6,7 +6,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
 import { richExtensions, withComments } from "@shared/editor/nodes";
-import { colorPalette } from "@shared/utils/collections";
+import { colorPalette } from "@shared/constants";
 import Comment from "~/models/Comment";
 import type Document from "~/models/Document";
 import type Template from "~/models/Template";

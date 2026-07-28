@@ -1,6 +1,7 @@
 import type {
   onStoreDocumentPayload,
   onLoadDocumentPayload,
+  afterLoadDocumentPayload,
   onChangePayload,
   Extension,
 } from "@hocuspocus/server";
@@ -24,6 +25,9 @@ import type { withContext } from "./types";
 
 @trace()
 export default class PersistenceExtension implements Extension {
+  /** The names of entities that have changed since they were last persisted. */
+  private unsavedDocumentNames = new Set<string>();
+
   async onLoadDocument({
     documentName,
     ...data
@@ -42,6 +46,18 @@ export default class PersistenceExtension implements Extension {
     }
 
     return this.loadDocument(id, fieldName);
+  }
+
+  async afterLoadDocument({
+    documentName,
+    document,
+  }: afterLoadDocumentPayload) {
+    // Track changes from the ydoc itself rather than the onChange hook, which
+    // runs behind other extensions in an async chain and so may not have
+    // recorded the change by the time the document is stored on disconnect.
+    document.on("update", () => {
+      this.unsavedDocumentNames.add(documentName);
+    });
   }
 
   async onChange({ context, documentName }: withContext<onChangePayload>) {
@@ -74,11 +90,26 @@ export default class PersistenceExtension implements Extension {
     const { type, id } = parseMultiplayerName(documentName);
     const clientVersion = requestParameters.get("editorVersion");
 
-    const key = RedisPrefixHelper.getCollaboratorsKey(id);
-    const sessionCollaboratorIds = await Redis.defaultClient.lrange(key, 0, -1);
-    if (sessionCollaboratorIds.length === 0) {
+    // Nothing to do if the entity hasn't changed since it was last persisted.
+    // Note the flag is cleared before writing so that changes received while
+    // persisting will schedule another store.
+    if (!this.unsavedDocumentNames.delete(documentName)) {
       Logger.debug("multiplayer", `No changes for ${documentName}`);
       return;
+    }
+
+    // Collaborators are used for attribution only, failure to load them must
+    // not prevent the entity itself from being persisted.
+    const key = RedisPrefixHelper.getCollaboratorsKey(id);
+    let sessionCollaboratorIds: string[] = [];
+
+    try {
+      sessionCollaboratorIds = await Redis.defaultClient.lrange(key, 0, -1);
+    } catch (err) {
+      Logger.warn("Unable to load collaborators", {
+        documentId: id,
+        message: toError(err).message,
+      });
     }
 
     try {
@@ -106,6 +137,9 @@ export default class PersistenceExtension implements Extension {
         });
       }
     } catch (err) {
+      // Restore the flag so that a subsequent store will retry the write.
+      this.unsavedDocumentNames.add(documentName);
+
       Logger.error(`Unable to persist ${type}`, toError(err), {
         documentId: id,
         userId: context.user?.id,

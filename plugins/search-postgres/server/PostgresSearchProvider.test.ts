@@ -1420,5 +1420,23 @@ describe("PostgresSearchProvider", () => {
         `"plugins"`
       );
     });
+    it("should not escape colons outside of a phrase", () => {
+      // pg-tsquery drops an unquoted colon but keeps a preceding backslash,
+      // so escaping here would leave a dangling "\" operand.
+      expect(
+        PostgresSearchProvider.webSearchQuery("hoffe, gehts gut :) bei")
+      ).toBe("(hoffe|gehts&gut)&bei:*");
+      expect(PostgresSearchProvider.webSearchQuery("sub:title:here")).toBe(
+        "sub&title&here:*"
+      );
+    });
+    it("should escape colons inside a phrase", () => {
+      expect(PostgresSearchProvider.webSearchQuery(`"sub:title:here"`)).toBe(
+        `"sub\\:title\\:here"`
+      );
+      expect(PostgresSearchProvider.webSearchQuery(`'sub:title'`)).toBe(
+        `"sub\\:title":*`
+      );
+    });
   });
 });

@@ -40,16 +40,3 @@ export const sortNavigationNodes = (
     return { ...node, children: sortedChildren };
   });
 };
-
-export const colorPalette = [
-  "#4E5C6E",
-  "#0366D6",
-  "#9E5CF7",
-  "#FF825C",
-  "#FF5C80",
-  "#FFBE0B",
-  "#42DED1",
-  "#00D084",
-  "#FF4DFA",
-  "#2F362F",
-];

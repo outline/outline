@@ -28,7 +28,10 @@ export const RelationshipsListSchema = BaseSchema.extend({
         })
         .optional(),
     })
-    .optional(),
+    .refine(
+      (body) => !!body.documentId !== !!body.reverseDocumentId,
+      "One of documentId or reverseDocumentId is required"
+    ),
 });
 
 export type RelationshipsListReq = z.infer<typeof RelationshipsListSchema>;

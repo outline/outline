@@ -360,6 +360,10 @@ class Document extends ArchivableModel<
    * @deprecated Use `content` instead, or `DocumentHelper.toMarkdown` if exporting lossy markdown.
    * This column will be removed in a future migration.
    */
+  @SimpleLength({
+    max: DocumentValidation.maxLength,
+    msg: `Document text content must be ${DocumentValidation.maxLength} characters or less`,
+  })
   @Column(DataType.TEXT)
   @SkipChangeset
   text: string;
@@ -804,15 +808,17 @@ class Document extends ArchivableModel<
 
     if (isUUID(id)) {
       const document = await scope.findOne({
+        ...rest,
         where: {
           id,
         },
-        ...rest,
         rejectOnEmpty: false,
       });
 
       if (!document && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
+        throw rest.rejectOnEmpty instanceof Error
+          ? rest.rejectOnEmpty
+          : new EmptyResultError(`Document doesn't exist with id: ${id}`);
       }
 
       return document;
@@ -821,15 +827,17 @@ class Document extends ArchivableModel<
     const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
       const document = await scope.findOne({
+        ...rest,
         where: {
           urlId: match[1],
         },
-        ...rest,
         rejectOnEmpty: false,
       });
 
       if (!document && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
+        throw rest.rejectOnEmpty instanceof Error
+          ? rest.rejectOnEmpty
+          : new EmptyResultError(`Document doesn't exist with id: ${id}`);
       }
 
       return document;
@@ -879,14 +887,23 @@ class Document extends ArchivableModel<
       return documents;
     }
 
-    return documents.filter(
-      (doc) =>
-        (!doc.collection?.isPrivate && !user?.isGuest) ||
-        (doc.collection?.memberships.length || 0) > 0 ||
-        (doc.collection?.groupMemberships.length || 0) > 0 ||
-        doc.memberships.length > 0 ||
-        doc.groupMemberships.length > 0
-    );
+    return documents.filter((doc) => {
+      if (doc.memberships.length > 0 || doc.groupMemberships.length > 0) {
+        return true;
+      }
+
+      // A document without a collection is either an unfiled draft or lives in
+      // a collection the user cannot see – access is limited to the creator.
+      if (!doc.collection) {
+        return doc.createdById === userId;
+      }
+
+      return (
+        (!doc.collection.isPrivate && !user?.isGuest) ||
+        doc.collection.memberships.length > 0 ||
+        doc.collection.groupMemberships.length > 0
+      );
+    });
   }
 
   // instance methods
@@ -1072,7 +1089,7 @@ class Document extends ArchivableModel<
       const collection = await Collection.findByPk(this.collectionId, {
         includeDocumentStructure: true,
         transaction,
-        lock: Transaction.LOCK.UPDATE,
+        lock: Transaction.LOCK.NO_KEY_UPDATE,
       });
 
       if (collection) {

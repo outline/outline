@@ -53,6 +53,11 @@ const createKeyPredicate = (keyFilter: KeyFilter, options?: Options) =>
     ? keyFilter
     : typeof keyFilter === "string"
       ? (event: KeyboardEvent) => {
+          // Synthetic events may be dispatched without a key.
+          if (!event.key) {
+            return false;
+          }
+
           // Match case-insensitively only when Shift is required, since a
           // shifted letter reports an uppercase event.key (e.g. Cmd+Shift+P).
           // Otherwise match exactly so a bare shortcut does not fire when Shift

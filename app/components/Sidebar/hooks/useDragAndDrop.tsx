@@ -226,7 +226,7 @@ export function useDropToChangeCollection(
   parentRef: React.RefObject<HTMLDivElement>
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs } = useStores();
+  const { documents, collections, dialogs, policies } = useStores();
   const can = usePolicy(collection);
   const startHover = useHover(parentRef, expandNode);
 
@@ -281,7 +281,7 @@ export function useDropToChangeCollection(
         }
       }
     },
-    canDrop: () => can.createDocument,
+    canDrop: (item) => can.createDocument && !!policies.abilities(item.id).move,
     hover: (_, monitor) => {
       if (
         collection.hasDocuments &&
@@ -311,7 +311,7 @@ export function useDropToReparentDocument(
   parentRef: React.RefObject<HTMLDivElement>
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs } = useStores();
+  const { documents, collections, dialogs, policies } = useStores();
   const hasChildDocuments = !!node?.children.length;
   const document = node ? documents.get(node.id) : undefined;
   const pathToNode = React.useMemo(
@@ -373,7 +373,7 @@ export function useDropToReparentDocument(
       }
     },
     canDrop: (item) => {
-      if (!node || item.id === node.id) {
+      if (!node || item.id === node.id || !policies.abilities(item.id).move) {
         return false;
       }
 
@@ -425,7 +425,7 @@ export function useDropToReorderDocument(
       }
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs } = useStores();
+  const { documents, collections, dialogs, policies } = useStores();
 
   const document = documents.get(node.id);
 
@@ -435,7 +435,7 @@ export function useDropToReorderDocument(
       if (item.id === node.id || (document && !document.isActive)) {
         return false;
       }
-      return true;
+      return !!policies.abilities(item.id).move;
     },
     drop: async (item) => {
       if (!collection?.isManualSort && item.collectionId === collection?.id) {

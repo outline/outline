@@ -120,16 +120,6 @@ function useConnectionHandlers() {
         data,
       });
     });
-
-    // received a message from the API server that we should request
-    // to join or leave a specific room. Forward that to the ws server.
-    socket.on("join", (event) => {
-      socket.emit("join", event);
-    });
-
-    socket.on("leave", (event) => {
-      socket.emit("leave", event);
-    });
   };
 }
 
@@ -641,19 +631,24 @@ function useUserHandlers() {
       users.add(event);
     });
 
-    socket.on("users.demote", async (event: PartialExcept<User, "id">) => {
+    // the current user's role changed, so their policies are invalid and the
+    // set of accessible collections may have changed.
+    const handleRoleChange = async (event: PartialExcept<User, "id">) => {
       if (event.id === auth.user?.id) {
         documents.all.forEach((document) => policies.remove(document.id));
         try {
           await collections.fetchAll();
         } catch (err) {
           Logger.error(
-            "Failed to fetch collections after demote",
+            "Failed to fetch collections after role change",
             toError(err)
           );
         }
       }
-    });
+    };
+
+    socket.on("users.promote", handleRoleChange);
+    socket.on("users.demote", handleRoleChange);
 
     socket.on("users.delete", (event: WebsocketEntityDeletedEvent) => {
       users.remove(event.modelId);

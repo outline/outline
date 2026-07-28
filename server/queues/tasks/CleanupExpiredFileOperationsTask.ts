@@ -9,11 +9,14 @@ import { CronTask, TaskInterval } from "./base/CronTask";
 
 export default class CleanupExpiredFileOperationsTask extends CronTask {
   public async perform({ limit }: Props) {
-    Logger.info("task", `Expiring file operations older than 15 days…`);
+    Logger.info(
+      "task",
+      `Expiring file operations older than ${FileOperation.expiryDays} days…`
+    );
     const fileOperations = await FileOperation.unscoped().findAll({
       where: {
         createdAt: {
-          [Op.lt]: subDays(new Date(), 15),
+          [Op.lt]: subDays(new Date(), FileOperation.expiryDays),
         },
         state: {
           [Op.ne]: FileOperationState.Expired,
