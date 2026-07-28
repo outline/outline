@@ -1747,6 +1747,7 @@
   "Go to export": "Go to export",
   "Here's your request data export from {{ appName }}": "Here's your request data export from {{ appName }}",
   "Your requested data export is complete, you can download from the link below in a browser that is logged into your account.": "Your requested data export is complete, you can download from the link below in a browser that is logged into your account.",
+  "This export will be available to download for {{ days }} days.": "This export will be available to download for {{ days }} days.",
   "Download export": "Download export",
   "Your requested data export is complete - you can download from the link below in a browser that is logged into your account.": "Your requested data export is complete - you can download from the link below in a browser that is logged into your account.",
   "The {{ groupName }} group was mentioned in “{{ documentTitle }}”": "The {{ groupName }} group was mentioned in “{{ documentTitle }}”",
