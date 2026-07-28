@@ -6646,4 +6646,40 @@ describe("#documents.list property filters", () => {
     });
     expect(status).toEqual(403);
   });
+
+  it("should list rows in a private collection for a member", async () => {
+    const team = await buildTeam({
+      preferences: { documentDatabases: true },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      permission: null,
+    });
+    await UserMembership.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: CollectionPermission.Read,
+    });
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      databaseId: database.id,
+      title: "Private row",
+    });
+
+    const { status, titles } = await list(user, {
+      databaseId: database.id,
+    });
+    expect(status).toEqual(200);
+    expect(titles).toEqual(["Private row"]);
+  });
 });

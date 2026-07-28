@@ -189,9 +189,17 @@ router.post(
     // rows are scoped to their database rather than the collection, so that a
     // collection holding several databases lists each separately
     if (databaseId) {
-      database = await Database.findByPk(databaseId, {
-        include: [{ model: Collection, as: "collection" }],
-      });
+      database = await Database.findByPk(databaseId);
+      if (database) {
+        // load the collection through the user scope so that membership of a
+        // private collection is visible to the policy check
+        const collection = await Collection.findByPk(database.collectionId, {
+          userId: user.id,
+        });
+        if (collection) {
+          database.collection = collection;
+        }
+      }
       authorize(user, "read", database);
 
       where[Op.and].push({ databaseId });
