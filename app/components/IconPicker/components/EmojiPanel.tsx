@@ -146,9 +146,10 @@ const EmojiPanel = ({
     }
   }, []);
 
+  // Drop the preview when the grid contents change out from under it.
   React.useEffect(() => {
     setActiveEmoji(undefined);
-  }, [query]);
+  }, [query, skinTone]);
 
   const isSearch = query !== "";
   const templateData: DataNode[] = isSearch

@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { colorPalette } from "@shared/utils/collections";
+import { colorPalette } from "@shared/constants";
 import { SwatchButton } from "~/components/SwatchButton";
 import { ColorButton } from "~/components/ColorButton";
 

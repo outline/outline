@@ -10,7 +10,7 @@ import { s, depths, hover } from "@shared/styles";
 import { cloneDeep } from "es-toolkit/compat";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { colorPalette } from "@shared/utils/collections";
+import { colorPalette } from "@shared/constants";
 import Editor from "~/components/Editor";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
