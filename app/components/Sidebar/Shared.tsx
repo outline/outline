@@ -161,6 +161,7 @@ const SearchLabel = styled.span`
 const Shortcut = styled.span`
   flex-shrink: 0;
   font-size: 13px;
+  font-feature-settings: "cv08", "zero";
 `;
 
 export default observer(SharedSidebar);

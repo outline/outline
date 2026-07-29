@@ -174,6 +174,7 @@ export const MenuShortcut = styled.span`
   align-items: center;
   gap: 2px;
   font-size: 12px;
+  font-feature-settings: "cv08", "zero";
   color: currentColor;
   opacity: 0.5;
   margin-inline-start: 16px;
