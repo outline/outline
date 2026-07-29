@@ -170,11 +170,30 @@ describe("/s/:id", () => {
   });
 });
 
-describe("analytics content security policy", () => {
+describe("content security policy", () => {
   // Analytics integrations only extend the policy on self-hosted installations,
   // the cloud policy already includes these sources.
   beforeEach(() => {
     env.URL = "https://outline.example.com";
+  });
+
+  it.each([
+    [
+      "gitlab",
+      "https://gitlab.com/gitlab-org/gitlab/-/snippets/1",
+      "gitlab.com",
+    ],
+    ["github", "https://gist.github.com/user/abc123", "gist.github.com"],
+    ["dropbox", "https://www.dropbox.com/s/abc123/file.pdf", "www.dropbox.com"],
+    ["pinterest", "https://pinterest.com/user", "assets.pinterest.com"],
+  ])("should allow the %s embed script source", async (path, url, source) => {
+    const res = await server.get(
+      `/embeds/${path}?url=${encodeURIComponent(url)}`
+    );
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain(source);
+    expect(csp).toContain("nonce-");
   });
 
   it("should still send a policy for responses that do not render the app", async () => {

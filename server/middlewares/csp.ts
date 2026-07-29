@@ -51,6 +51,17 @@ export function allowScriptSrc(ctx: Context, sources: string[]) {
 }
 
 /**
+ * Allow additional origins as style sources in the Content Security Policy of
+ * the current response. Must be called before the response is sent.
+ *
+ * @param ctx The Koa context of the current request.
+ * @param sources The origins to allow.
+ */
+export function allowStyleSrc(ctx: Context, sources: string[]) {
+  ctx.state.cspStyleSrc = [...(ctx.state.cspStyleSrc ?? []), ...sources];
+}
+
+/**
  * Create a Content Security Policy middleware for the application.
  *
  * @param options Optional configuration for the CSP middleware.
@@ -96,12 +107,14 @@ export default function createCSPMiddleware(options?: CSPOptions) {
   return async function cspMiddleware(ctx: Context, next: Next) {
     ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
     ctx.state.cspScriptSrc = [];
+    ctx.state.cspStyleSrc = [];
 
     try {
       await next();
     } finally {
       // The policy is written once downstream middleware has had the chance to
-      // allow additional sources for the response, see `allowScriptSrc`.
+      // allow additional sources for the response, see `allowScriptSrc` and
+      // `allowStyleSrc`.
       if (!ctx.res.headersSent) {
         // Note: workerSrc is included even though it's missing from the
         // koa-helmet type definitions — the underlying helmet supports it. The
@@ -110,7 +123,7 @@ export default function createCSPMiddleware(options?: CSPOptions) {
         const directives = {
           baseUri: ["'none'"],
           defaultSrc,
-          styleSrc,
+          styleSrc: uniq([...styleSrc, ...(ctx.state.cspStyleSrc as string[])]),
           scriptSrc: uniq([
             ...scriptSrc,
             // Allow the service worker to importScripts the workbox runtime,
