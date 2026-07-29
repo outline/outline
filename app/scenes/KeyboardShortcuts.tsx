@@ -109,7 +109,7 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
         title: t("Collaboration"),
         items: [
           {
-            shortcut: <KeyboardShortcut keys={["meta", "Alt", "m"]} />,
+            shortcut: <KeyboardShortcut keys={["meta", "alt", "m"]} />,
             label: t("Comment"),
           },
         ],
