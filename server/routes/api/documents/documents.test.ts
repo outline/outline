@@ -5829,6 +5829,110 @@ describe("#documents.duplicate", () => {
     expect(body.data.documents[0].fullWidth).toBe(true);
     expect(body.data.documents[1].fullWidth).toBe(true);
   });
+
+  it("should allow duplicating from a read-only collection into a writable one", async () => {
+    const user = await buildUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: source.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        collectionId: destination.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].collectionId).toEqual(destination.id);
+  });
+
+  it("should allow duplicating from a read-only collection under a writable parent", async () => {
+    const user = await buildUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: source.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      collectionId: destination.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        collectionId: destination.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].parentDocumentId).toEqual(parent.id);
+    expect(body.data.documents[0].collectionId).toEqual(destination.id);
+  });
+
+  it("should not allow duplicating into a read-only collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow a viewer to duplicate", async () => {
+    const user = await buildViewer();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
 });
 
 describe("#documents.empty_trash", () => {

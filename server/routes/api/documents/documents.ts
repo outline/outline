@@ -1340,7 +1340,7 @@ router.post(
       userId: user.id,
       transaction,
     });
-    authorize(user, "read", document);
+    authorize(user, "duplicate", document);
 
     const collection = collectionId
       ? await Collection.findByPk(collectionId, {
@@ -1348,10 +1348,6 @@ router.post(
           transaction,
         })
       : document?.collection;
-
-    if (collection) {
-      authorize(user, "updateDocument", collection);
-    }
 
     if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
@@ -1363,6 +1359,8 @@ router.post(
       if (!parent.publishedAt) {
         throw InvalidRequestError("Cannot duplicate document inside a draft");
       }
+    } else if (collection) {
+      authorize(user, "createDocument", collection);
     }
 
     const response = await documentDuplicator(ctx, {
