@@ -34,6 +34,26 @@ type Props = {
 
 type ResolvedKey = { display: string; label: string; symbol: boolean };
 
+/** Keys that have a platform-specific display, or a name that differs from it. */
+const namedKeys: Record<string, ResolvedKey> = {
+  meta: {
+    display: metaDisplay,
+    label: isMac ? "Command" : "Control",
+    symbol: true,
+  },
+  ctrl: { display: "Ctrl", label: "Control", symbol: false },
+  alt: { display: altDisplay, label: isMac ? "Option" : "Alt", symbol: true },
+  shift: { display: "⇧", label: "Shift", symbol: true },
+  enter: isMac
+    ? { display: "Return", label: "Return", symbol: false }
+    : { display: "Enter", label: "Enter", symbol: false },
+  tab: { display: "Tab", label: "Tab", symbol: false },
+  space: { display: "Space", label: "Space", symbol: false },
+  esc: { display: "Esc", label: "Escape", symbol: false },
+  up: { display: "↑", label: "Up arrow", symbol: true },
+  down: { display: "↓", label: "Down arrow", symbol: true },
+};
+
 /**
  * Displays a keyboard shortcut as a series of keys, announced to screen readers
  * as a single instruction such as "Command plus K".
@@ -44,31 +64,10 @@ type ResolvedKey = { display: string; label: string; symbol: boolean };
 export function KeyboardShortcut({ keys, combination = "hold" }: Props) {
   const { t } = useTranslation();
 
-  const named: Record<string, ResolvedKey> = {
-    meta: {
-      display: metaDisplay,
-      label: isMac ? t("Command") : t("Control"),
-      symbol: true,
-    },
-    ctrl: { display: "Ctrl", label: t("Control"), symbol: false },
-    alt: {
-      display: altDisplay,
-      label: isMac ? t("Option") : t("Alt"),
-      symbol: true,
-    },
-    shift: { display: "⇧", label: t("Shift"), symbol: true },
-    enter: { display: t("Enter"), label: t("Enter"), symbol: false },
-    tab: { display: t("Tab"), label: t("Tab"), symbol: false },
-    space: { display: t("Space"), label: t("Space"), symbol: false },
-    esc: { display: "Esc", label: t("Escape"), symbol: false },
-    up: { display: "↑", label: t("Up arrow"), symbol: true },
-    down: { display: "↓", label: t("Down arrow"), symbol: true },
-  };
-
   const resolved = keys.map((key): ResolvedKey => {
     if (typeof key === "string") {
       return (
-        named[key] ?? {
+        namedKeys[key] ?? {
           display: key,
           label: key.length === 1 ? key.toLocaleUpperCase() : key,
           symbol: false,
