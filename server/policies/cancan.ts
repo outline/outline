@@ -24,6 +24,11 @@ type Ability = {
   condition?: Condition<Constructor, Constructor>;
 };
 
+/** A model class, which may be a throwaway subclass produced by `Model.scope()`. */
+interface ModelClass extends Function {
+  scoped?: boolean;
+}
+
 /** A single evaluation, within which memoized answers may be shared. */
 interface Scope {
   cache: Map<Model, Map<Model | null, Map<string, boolean | string[]>>> | null;
@@ -138,8 +143,8 @@ export class CanCan {
 
     // The set of actions worth checking depends only on the classes involved,
     // so scanning the whole ability index is done once per class pair.
-    const performerClass = performer?.constructor ?? null;
-    const targetClass = target?.constructor ?? null;
+    const performerClass = this.unscopedClass(performer);
+    const targetClass = this.unscopedClass(target);
     let byTargetClass = this.actionsByClass.get(performerClass);
     if (!byTargetClass) {
       byTargetClass = new Map();
@@ -221,6 +226,19 @@ export class CanCan {
     Function | null,
     Map<Function | null, Set<string>>
   > = new Map();
+
+  /**
+   * Resolves the class a model should be cached under. `Model.scope()` mints a
+   * fresh subclass on every call, so the scoped ones are walked past to reach
+   * the stable class the abilities were actually registered against.
+   */
+  private unscopedClass = (model: Model | null): ModelClass | null => {
+    let klass: ModelClass | null = model?.constructor ?? null;
+    while (klass?.scoped) {
+      klass = Object.getPrototypeOf(klass);
+    }
+    return klass;
+  };
 
   /**
    * Resolves the per-(performer, target) action cache, or null when the call
