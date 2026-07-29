@@ -27,6 +27,7 @@ import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import { DialogTitle } from "~/components/DialogTitle";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
@@ -105,7 +106,7 @@ export const editCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Edit collection"),
+      title: <DialogTitle title={t("Edit collection")} model={collection} />,
       content: (
         <CollectionEdit
           onSubmit={stores.dialogs.closeAllModals}
@@ -131,7 +132,9 @@ export const editCollectionPermissions = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Share this collection"),
+      title: (
+        <DialogTitle title={t("Share this collection")} model={collection} />
+      ),
       content: (
         <SharePopover
           collection={collection}
@@ -425,7 +428,7 @@ export const archiveCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Archive collection"),
+      title: <DialogTitle title={t("Archive collection")} model={collection} />,
       content: (
         <ConfirmationDialog
           onSubmit={async () => {
@@ -477,7 +480,7 @@ export const deleteCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Delete collection"),
+      title: <DialogTitle title={t("Delete collection")} model={collection} />,
       content: (
         <CollectionDeleteDialog
           collection={collection}
@@ -502,7 +505,7 @@ export const exportCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Export collection"),
+      title: <DialogTitle title={t("Export collection")} model={collection} />,
       content: (
         <ExportDialog
           collection={collection}
