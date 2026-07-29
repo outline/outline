@@ -1,4 +1,4 @@
-import { validateColorHex } from "./color";
+import { toColorFormats, validateColorHex } from "./color";
 
 describe("validateColorHex", () => {
   it("accepts 3-digit hex", () => {
@@ -52,5 +52,43 @@ describe("validateColorHex", () => {
       validateColorHex("#fff; background-image: url(https://evil.example)")
     ).toBe(false);
     expect(validateColorHex("#fff;")).toBe(false);
+  });
+});
+
+describe("toColorFormats", () => {
+  it("translates hex into rgb and hsl", () => {
+    expect(toColorFormats("#ff0000")).toEqual({
+      hex: "#FF0000",
+      rgb: "rgb(255, 0, 0)",
+      hsl: "hsl(0, 100%, 50%)",
+    });
+  });
+
+  it("expands shorthand hex", () => {
+    expect(toColorFormats("#fff")).toEqual({
+      hex: "#FFFFFF",
+      rgb: "rgb(255, 255, 255)",
+      hsl: "hsl(0, 0%, 100%)",
+    });
+  });
+
+  it("preserves alpha across notations", () => {
+    expect(toColorFormats("#ff000080")).toEqual({
+      hex: "#FF000080",
+      rgb: "rgba(255, 0, 0, 0.5)",
+      hsl: "hsla(0, 100%, 50%, 0.5)",
+    });
+  });
+
+  it("accepts rgb and hsl input", () => {
+    expect(toColorFormats("rgb(0, 0, 255)").hex).toBe("#0000FF");
+    expect(toColorFormats("hsl(120, 100%, 50%)").hex).toBe("#00FF00");
+    expect(toColorFormats("rgba(0, 0, 0, 0.25)").hsl).toBe(
+      "hsla(0, 0%, 0%, 0.25)"
+    );
+  });
+
+  it("throws for values that are not colors", () => {
+    expect(() => toColorFormats("rgb(foo)")).toThrow();
   });
 });
