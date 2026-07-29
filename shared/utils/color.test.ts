@@ -64,12 +64,20 @@ describe("toColorFormats", () => {
     });
   });
 
-  it("expands shorthand hex", () => {
+  it("returns shorthand hex without expanding it", () => {
     expect(toColorFormats("#fff")).toEqual({
-      hex: "#FFFFFF",
+      hex: "#FFF",
       rgb: "rgb(255, 255, 255)",
       hsl: "hsl(0, 0%, 100%)",
     });
+  });
+
+  it("returns the input notation unchanged", () => {
+    expect(toColorFormats("hsl(68, 69%, 45%)").hsl).toBe("hsl(68, 69%, 45%)");
+    expect(toColorFormats("rgba(0,0,0,.25)").rgb).toBe("rgba(0,0,0,.25)");
+    expect(toColorFormats("hsla(0, 0%, 0%, 0.253)").hsl).toBe(
+      "hsla(0, 0%, 0%, 0.253)"
+    );
   });
 
   it("preserves alpha across notations", () => {

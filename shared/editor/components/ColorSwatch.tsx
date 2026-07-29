@@ -1,12 +1,20 @@
-import * as PopoverPrimitive from "@radix-ui/react-popover";
 import copy from "copy-to-clipboard";
 import type { MouseEvent } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
-import { depths, s } from "../../styles";
 import type { EditorNotice } from "../types";
-import { ColorPreview } from "./ColorPreview";
+
+// Loaded lazily so its browser-only dependency on Radix doesn't enter the
+// editor schema's static import graph, which is also used on the server.
+const ColorHoverCard = lazy(() => import("./ColorHoverCard"));
 
 /** Time in ms the pointer must rest on the swatch before the card opens. */
 const OPEN_DELAY = 400;
@@ -78,30 +86,25 @@ export function ColorSwatch({ color, luminance, onNotice }: Props) {
     </SwatchTarget>
   );
 
-  // A document can contain many swatches, so the popover is only mounted once
-  // the pointer has actually reached one.
+  // A document can contain many swatches, so the card is only loaded and
+  // mounted once the pointer has actually reached one.
   if (!hovered) {
     return trigger;
   }
 
   return (
-    <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
-      <PopoverPrimitive.Trigger asChild>{trigger}</PopoverPrimitive.Trigger>
-      <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Content
-          asChild
-          side="top"
-          align="center"
-          sideOffset={6}
-          onOpenAutoFocus={(event) => event.preventDefault()}
-          onCloseAutoFocus={(event) => event.preventDefault()}
-        >
-          <Card onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-            <ColorPreview color={color} onNotice={onNotice} />
-          </Card>
-        </PopoverPrimitive.Content>
-      </PopoverPrimitive.Portal>
-    </PopoverPrimitive.Root>
+    <Suspense fallback={trigger}>
+      <ColorHoverCard
+        color={color}
+        open={open}
+        onOpenChange={setOpen}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onNotice={onNotice}
+      >
+        {trigger}
+      </ColorHoverCard>
+    </Suspense>
   );
 }
 
@@ -139,30 +142,5 @@ const SwatchTarget = styled.span`
 
   &:active ${Swatch} {
     transform: scale(0.9);
-  }
-`;
-
-const Card = styled.div`
-  /* Sized to the widest notation so that no value has to wrap. */
-  width: max-content;
-  min-width: 180px;
-  padding: 8px;
-  z-index: ${depths.modal};
-  background: ${s("menuBackground")};
-  box-shadow: ${s("menuShadow")};
-  border-radius: 8px;
-  outline: none;
-
-  &[data-state="open"] {
-    animation: fadeIn 150ms ease;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
   }
 `;

@@ -77,7 +77,9 @@ export interface ColorFormats {
 }
 
 /**
- * Translates a CSS color into the equivalent hex, rgb, and hsl notations.
+ * Translates a CSS color into the equivalent hex, rgb, and hsl notations. The
+ * notation the color was given in is returned unchanged, so that no precision
+ * is lost to a round trip through another color space.
  *
  * @param color - a color string in any notation understood by polished.
  * @returns the same color expressed in each notation.
@@ -93,7 +95,7 @@ export const toColorFormats = (color: string): ColorFormats => {
   const lightness = round(hsl.lightness * 100);
   const opacity = round(alpha, 2);
 
-  return {
+  const formats: ColorFormats = {
     hex: rgbaToHex({ ...rgb, alpha }).toUpperCase(),
     rgb:
       alpha < 1
@@ -104,6 +106,16 @@ export const toColorFormats = (color: string): ColorFormats => {
         ? `hsla(${hue}, ${saturation}%, ${lightness}%, ${opacity})`
         : `hsl(${hue}, ${saturation}%, ${lightness}%)`,
   };
+
+  if (validateColorHex(color)) {
+    formats.hex = color.toUpperCase();
+  } else if (/^rgba?\(/i.test(color)) {
+    formats.rgb = color;
+  } else if (/^hsla?\(/i.test(color)) {
+    formats.hsl = color;
+  }
+
+  return formats;
 };
 
 interface PresetColor {
