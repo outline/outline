@@ -44,6 +44,7 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
 
   const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);
   const commentingEnabled = team.commentingEnabled;
+  const commentsOpen = ui.getRightSidebar(pane) === "comments";
 
   const handleClickMeta = useCallback(() => {
     if (to) {
@@ -56,11 +57,8 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
       pathname: documentPath(document as Document),
       state: { sidebarContext },
     });
-    ui.setRightSidebar(
-      ui.getRightSidebar(pane) === "comments" ? null : "comments",
-      pane
-    );
-  }, [history, document, sidebarContext, ui, pane]);
+    ui.setRightSidebar(commentsOpen ? null : "comments", pane);
+  }, [history, document, sidebarContext, ui, pane, commentsOpen]);
 
   return (
     <Meta
@@ -73,7 +71,7 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
       {commentingEnabled && can.comment && (
         <>
           <Separator />
-          <MetaButton onClick={handleClickComment}>
+          <MetaButton onClick={handleClickComment} aria-expanded={commentsOpen}>
             <CommentIcon size={18} />
             {commentsCount
               ? t("{{ count }} comment", { count: commentsCount })
