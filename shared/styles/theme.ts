@@ -47,8 +47,8 @@ const spacing = {
   sidebarWidth: 260,
   sidebarRightWidth: 300,
   sidebarCollapsedWidth: 16,
-  sidebarMinWidth: 200,
-  sidebarMaxWidth: 600,
+  sidebarMinWidth: 240,
+  sidebarMaxWidth: 500,
 };
 
 const buildBaseTheme = (input: Partial<Colors>) => {

@@ -155,9 +155,15 @@ class UiStore {
     const data: PersistedData = Storage.get(UI_STORE) || {};
     this.languagePromptDismissed = data.languagePromptDismissed;
     this.sidebarCollapsed = !!data.sidebarCollapsed;
-    this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
-    this.sidebarRightWidth =
-      data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
+    // Clamped as a drag can be interrupted while stretched beyond the maximum.
+    this.sidebarWidth = Math.min(
+      data.sidebarWidth || defaultTheme.sidebarWidth,
+      defaultTheme.sidebarMaxWidth
+    );
+    this.sidebarRightWidth = Math.min(
+      data.sidebarRightWidth || defaultTheme.sidebarRightWidth,
+      defaultTheme.sidebarMaxWidth
+    );
     this.tocVisible = data.tocVisible;
     this.rightSidebar = data.rightSidebar ?? null;
     this.theme = data.theme || Theme.System;
