@@ -1,4 +1,5 @@
 import type { Mock } from "vitest";
+import { randomString } from "@shared/random";
 import { UnfurlResourceType } from "@shared/types";
 import env from "@server/env";
 import type { User } from "@server/models";
@@ -6,6 +7,7 @@ import {
   buildCollection,
   buildDocument,
   buildShare,
+  buildTeam,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -204,6 +206,74 @@ Usage instructions here.`,
     expect(res.status).toEqual(200);
     expect(body.type).toEqual(UnfurlResourceType.Document);
     expect(body.url).toEqual(`${document.url}#h-installation`);
+    expect(body.summary).toEqual(
+      `## Installation
+
+Install instructions here.`
+    );
+  });
+
+  it("should succeed when document url is on the team custom domain", async () => {
+    const team = await buildTeam({
+      domain: `${randomString(10)}.example.com`,
+    });
+    const teamUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: teamUser.id,
+      text: `Intro paragraph.
+
+## Installation
+
+Install instructions here.`,
+    });
+
+    const res = await server.post("/api/urls.unfurl", teamUser, {
+      body: {
+        url: `${team.url}/${document.url}#h-installation`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.type).toEqual(UnfurlResourceType.Document);
+    expect(body.id).toEqual(document.id);
+    expect(body.summary).toEqual(
+      `## Installation
+
+Install instructions here.`
+    );
+  });
+
+  it("should succeed when document url is on the team subdomain", async () => {
+    vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(true);
+
+    const team = await buildTeam({
+      subdomain: randomString({
+        length: 10,
+        charset: "alphabetic",
+        capitalization: "lowercase",
+      }),
+    });
+    const teamUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: teamUser.id,
+      text: `Intro paragraph.
+
+## Installation
+
+Install instructions here.`,
+    });
+
+    const res = await server.post("/api/urls.unfurl", teamUser, {
+      body: {
+        url: `${team.url}/${document.url}#h-installation`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.type).toEqual(UnfurlResourceType.Document);
+    expect(body.id).toEqual(document.id);
     expect(body.summary).toEqual(
       `## Installation
 

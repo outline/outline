@@ -3,7 +3,7 @@ import Router from "koa-router";
 import { traceFunction } from "@server/logging/tracing";
 import isUUID from "validator/lib/isUUID";
 import { MentionType, UnfurlResourceType } from "@shared/types";
-import { getBaseDomain, parseDomain } from "@shared/utils/domains";
+import { getBaseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { isInternalUrl, parseShareIdFromUrl } from "@shared/utils/urls";
@@ -45,8 +45,13 @@ router.post(
     const { url, documentId } = ctx.input.body;
     const urlObj = new URL(url);
 
+    // A url may point at this installation without matching the default env.URL
+    // when the team is on a custom domain or hosted subdomain.
+    const isTeamUrl =
+      isInternalUrl(url) || !!ctx.state.auth.user?.team.isTeamUrl(url);
+
     // Public share URLs – does not require authentication
-    if (isInternalUrl(url)) {
+    if (isTeamUrl) {
       const shareId = parseShareIdFromUrl(url);
 
       if (shareId) {
@@ -159,7 +164,7 @@ router.post(
     }
 
     // Internal resources
-    if (isInternalUrl(url) || parseDomain(url).host === actor.team.domain) {
+    if (isTeamUrl) {
       const previewDocumentId = parseDocumentSlug(url);
       if (previewDocumentId) {
         const document = await Document.findByPk(previewDocumentId, {
