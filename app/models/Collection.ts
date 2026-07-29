@@ -422,6 +422,13 @@ export default class Collection extends ParanoidModel {
 
   restore = () => this.store.restore(this);
 
+  /**
+   * Duplicates the collection and the published documents within it.
+   *
+   * @returns A promise that resolves to the duplicated collection.
+   */
+  duplicate = () => this.store.duplicate(this);
+
   export = (format: FileOperationFormat, includeAttachments: boolean) =>
     client.post("/collections.export", {
       id: this.id,

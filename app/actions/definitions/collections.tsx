@@ -3,6 +3,7 @@ import {
   SortAlphabeticalIcon,
   ArchiveIcon,
   CollectionIcon,
+  DuplicateIcon,
   EditIcon,
   ExportIcon,
   ImportIcon,
@@ -143,6 +144,27 @@ export const editCollectionPermissions = createAction({
         />
       ),
     });
+  },
+});
+
+export const duplicateCollection = createAction({
+  name: ({ t, isMenu }) =>
+    isMenu ? t("Duplicate") : t("Duplicate collection"),
+  analyticsName: "Duplicate collection",
+  section: ActiveCollectionSection,
+  icon: <DuplicateIcon />,
+  keywords: "copy",
+  visible: ({ getActivePolicies }) =>
+    getActivePolicies(Collection).some((policy) => policy.abilities.duplicate),
+  perform: async ({ getActiveModel, t }) => {
+    const collection = getActiveModel(Collection);
+    if (!collection) {
+      return;
+    }
+
+    const duplicated = await collection.duplicate();
+    toast.success(t("Collection duplicated"));
+    history.push(duplicated.path);
   },
 });
 
@@ -558,6 +580,7 @@ export const rootCollectionActions = [
   openCollection,
   openCollectionInSplit,
   createCollection,
+  duplicateCollection,
   starCollection,
   unstarCollection,
   subscribeCollection,

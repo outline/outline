@@ -63,6 +63,17 @@ export const CollectionsCreateSchema = BaseSchema.extend({
 
 export type CollectionsCreateReq = z.infer<typeof CollectionsCreateSchema>;
 
+export const CollectionsDuplicateSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    /** New collection name */
+    name: z.string().optional(),
+  }),
+});
+
+export type CollectionsDuplicateReq = z.infer<
+  typeof CollectionsDuplicateSchema
+>;
+
 export const CollectionsInfoSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Share Id, if available */

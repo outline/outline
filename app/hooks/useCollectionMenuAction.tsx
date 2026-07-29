@@ -3,6 +3,7 @@ import { useMenuAction } from "./useMenuAction";
 import { ActionSeparator } from "~/actions";
 import {
   deleteCollection,
+  duplicateCollection,
   editCollection,
   editCollectionPermissions,
   starCollection,
@@ -49,6 +50,7 @@ export function useCollectionMenuAction({ collectionId, onRename }: Props) {
       editCollection,
       editCollectionPermissions,
       createTemplate,
+      duplicateCollection,
       sortCollection,
       exportCollection,
       archiveCollection,
