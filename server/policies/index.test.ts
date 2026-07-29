@@ -1,11 +1,12 @@
 import { CollectionPermission, UserRole } from "@shared/types";
-import { Document } from "@server/models";
+import { Document, User } from "@server/models";
 import {
   buildUser,
   buildTeam,
   buildCollection,
   buildDocument,
 } from "@server/test/factories";
+import { CanCan } from "./cancan";
 import { can, serialize } from "./index";
 
 describe("serialize", () => {
@@ -76,5 +77,28 @@ describe("memoization", () => {
     expect(can(user, "update", document)).toBeTruthy();
     user.role = UserRole.Viewer;
     expect(can(user, "update", document)).toEqual(false);
+  });
+
+  it("should cache actions once per model, not once per scope", async () => {
+    const cancan = new CanCan();
+    cancan.allow(User, "read", Document, () => true);
+    const user = await buildUser();
+
+    // Reaching into the cache directly, as its size is the whole point here.
+    const cache: Map<unknown, Map<unknown, unknown>> = Reflect.get(
+      cancan,
+      "actionsByClass"
+    );
+
+    // Endpoints reach documents through Document.findByPk and
+    // Document.withMembershipScope, and every scope() mints a fresh subclass.
+    for (let i = 0; i < 10; i++) {
+      const scoped = Document.scope([
+        { method: ["withMembership", user.id, false] },
+      ]);
+      cancan.serialize(user, scoped.build());
+    }
+
+    expect(cache.get(User)?.size).toEqual(1);
   });
 });
