@@ -1,3 +1,4 @@
+import { clamp } from "es-toolkit";
 import { action, computed, observable } from "mobx";
 import { flushSync } from "react-dom";
 import { light as defaultTheme } from "@shared/styles/theme";
@@ -155,9 +156,20 @@ class UiStore {
     const data: PersistedData = Storage.get(UI_STORE) || {};
     this.languagePromptDismissed = data.languagePromptDismissed;
     this.sidebarCollapsed = !!data.sidebarCollapsed;
-    this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
-    this.sidebarRightWidth =
-      data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
+    // Widths are clamped as a drag may have been interrupted while stretched beyond the bounds,
+    // or the bounds themselves may have since changed.
+    const { sidebarResizeMinWidth: minWidth, sidebarMaxWidth: maxWidth } =
+      defaultTheme;
+    this.sidebarWidth = clamp(
+      data.sidebarWidth || defaultTheme.sidebarWidth,
+      minWidth,
+      maxWidth
+    );
+    this.sidebarRightWidth = clamp(
+      data.sidebarRightWidth || defaultTheme.sidebarRightWidth,
+      minWidth,
+      maxWidth
+    );
     this.tocVisible = data.tocVisible;
     this.rightSidebar = data.rightSidebar ?? null;
     this.theme = data.theme || Theme.System;

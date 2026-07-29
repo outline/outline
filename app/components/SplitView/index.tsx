@@ -16,6 +16,7 @@ import {
 } from "~/components/RightSidebarContext";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useMobile from "~/hooks/useMobile";
+import { useResizeHandle } from "~/hooks/useResizeHandle";
 import useStores from "~/hooks/useStores";
 import history, { patchLocation, toLocationDescriptor } from "~/utils/history";
 import type { SplitViewPane } from "~/utils/splitView";
@@ -45,7 +46,6 @@ export const SplitView = observer(function SplitView({ children }: Props) {
   const isMobile = useMobile();
   const direction = useDirection();
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const [isResizing, setResizing] = React.useState(false);
   const splitPath = isMobile ? undefined : getSplitPath(location.search);
   const focusedPane = getFocusedSplitPane();
 
@@ -59,48 +59,31 @@ export const SplitView = observer(function SplitView({ children }: Props) {
     }
   }, [splitPath, ui]);
 
-  const handleDrag = React.useCallback(
+  const measure = React.useCallback(
     (event: MouseEvent) => {
-      // suppresses text selection
-      event.preventDefault();
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect || rect.width === 0) {
-        return;
+        return undefined;
       }
 
       const offset =
         direction === "rtl"
           ? rect.right - event.clientX
           : event.clientX - rect.left;
-      ui.setSplitViewRatio(offset / rect.width);
+      return offset / rect.width;
     },
-    [direction, ui]
+    [direction]
   );
 
-  const handleStopDrag = React.useCallback(() => {
-    setResizing(false);
-  }, []);
-
-  const handleResizeStart = React.useCallback((event: React.MouseEvent) => {
-    event.preventDefault();
-    setResizing(true);
-  }, []);
+  // Panes divide the available space, so the ratio is clamped by the store rather than stretched.
+  const { startResize } = useResizeHandle({
+    measure,
+    onResize: ui.setSplitViewRatio,
+  });
 
   const handleResizeReset = React.useCallback(() => {
     ui.setSplitViewRatio(0.5);
   }, [ui]);
-
-  React.useEffect(() => {
-    if (isResizing) {
-      document.addEventListener("mousemove", handleDrag);
-      document.addEventListener("mouseup", handleStopDrag);
-    }
-
-    return () => {
-      document.removeEventListener("mousemove", handleDrag);
-      document.removeEventListener("mouseup", handleStopDrag);
-    };
-  }, [isResizing, handleDrag, handleStopDrag]);
 
   if (!splitPath) {
     return <>{children}</>;
@@ -124,7 +107,7 @@ export const SplitView = observer(function SplitView({ children }: Props) {
               dir="right"
               $transparent
               data-resize-handle
-              onMouseDown={handleResizeStart}
+              onMouseDown={startResize}
               onDoubleClick={handleResizeReset}
             />
           }
