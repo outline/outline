@@ -54,7 +54,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   const width = ui.sidebarWidth;
   const collapsed = ui.sidebarIsClosed && canCollapse;
   const maxWidth = theme.sidebarMaxWidth;
-  const minWidth = theme.sidebarMinWidth + 16; // padding
+  const minWidth = theme.sidebarResizeMinWidth;
   const direction = useDirection();
 
   const [offset, setOffset] = React.useState(0);

@@ -80,6 +80,7 @@ export function useResizeHandle({
 
   useEventListener("mousemove", handleDrag, isResizing ? document : null);
   useEventListener("mouseup", handleStopDrag, isResizing ? document : null);
+  useEventListener("blur", handleStopDrag, isResizing ? window : null);
 
   React.useEffect(() => {
     if (!isResizing) {

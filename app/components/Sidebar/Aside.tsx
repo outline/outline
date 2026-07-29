@@ -24,7 +24,7 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
   const { ui } = useStores();
   const positionRef = React.useRef<HTMLDivElement>(null);
   const maxWidth = theme.sidebarMaxWidth;
-  const minWidth = theme.sidebarMinWidth + 16; // padding
+  const minWidth = theme.sidebarResizeMinWidth;
   const windowScrollbarWidth = useWindowScrollbarWidth();
   const direction = useDirection();
 
