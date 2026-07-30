@@ -110,17 +110,19 @@ function DatabaseAddProperty({ existingNames, onAdd }: Props) {
         width={180}
         shrink
       >
-        {simpleTypes.map((item) => (
-          <TypeItem
-            key={item.type}
-            type="button"
-            onClick={() => void handleSelect(item.type, item.label)}
-            disabled={isSaving}
-          >
-            {item.icon}
-            {t(item.label)}
-          </TypeItem>
-        ))}
+        <Content>
+          {simpleTypes.map((item) => (
+            <TypeItem
+              key={item.type}
+              type="button"
+              onClick={() => void handleSelect(item.type, item.label)}
+              disabled={isSaving}
+            >
+              {item.icon}
+              {t(item.label)}
+            </TypeItem>
+          ))}
+        </Content>
       </PopoverContent>
     </Popover>
   );
@@ -143,6 +145,10 @@ function uniqueName(base: string, existingNames: string[]): string {
   }
   return `${base} ${counter}`;
 }
+
+const Content = styled.div`
+  padding: 0 6px;
+`;
 
 const AddButton = styled(NudeButton)`
   color: ${s("textSecondary")};

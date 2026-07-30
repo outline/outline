@@ -1,9 +1,11 @@
 import { observer } from "mobx-react";
+import { SettingsIcon, SortManualIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { v4 as uuidv4 } from "uuid";
+import { s } from "@shared/styles";
 import type {
   DataView,
   DataViewSummaries,
@@ -13,7 +15,7 @@ import type {
   PropertyValue,
   SummaryAggregation,
 } from "@shared/types";
-import { DataViewType } from "@shared/types";
+import { DataViewType, PropertyType } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import {
   isGroupableProperty,
@@ -22,10 +24,13 @@ import {
 import type Database from "~/models/Database";
 import type Document from "~/models/Document";
 import Button from "~/components/Button";
+import DatabaseSchemaEditor from "~/components/Database/DatabaseSchemaEditor";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import { InputSelect } from "~/components/InputSelect";
 import PlaceholderList from "~/components/List/Placeholder";
+import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -55,7 +60,7 @@ const NO_GROUPING = "";
  */
 function DatabaseView({ database }: Props) {
   const { t } = useTranslation();
-  const { documents } = useStores();
+  const { documents, dialogs } = useStores();
   const can = usePolicy(database);
 
   const [persistedViewId, setPersistedViewId] = usePersistedState<
@@ -66,6 +71,8 @@ function DatabaseView({ database }: Props) {
   const [hasMore, setHasMore] = React.useState(false);
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
   const [newRowId, setNewRowId] = React.useState<string>();
+  const [isFilterOpen, setIsFilterOpen] = React.useState(false);
+  const [isSortOpen, setIsSortOpen] = React.useState(false);
   const isCreatingRef = React.useRef(false);
 
   const schema = React.useMemo(
@@ -81,6 +88,22 @@ function DatabaseView({ database }: Props) {
   const filter = activeView?.filter?.conditions?.[0] as
     | FilterCondition
     | undefined;
+
+  // reveal the toolbar on first render when the view already filters or
+  // sorts, so the active configuration is not invisible
+  const didAutoOpenRef = React.useRef(false);
+  React.useEffect(() => {
+    if (didAutoOpenRef.current) {
+      return;
+    }
+    didAutoOpenRef.current = true;
+    if (filter) {
+      setIsFilterOpen(true);
+    }
+    if (sort) {
+      setIsSortOpen(true);
+    }
+  }, [filter, sort]);
 
   const groupByProperty = activeView?.groupBy
     ? database.getProperty(activeView.groupBy)
@@ -357,9 +380,30 @@ function DatabaseView({ database }: Props) {
     [updateActiveView]
   );
 
+  const handleEditSchema = React.useCallback(() => {
+    dialogs.openModal({
+      title: t("Database properties"),
+      content: (
+        <DatabaseSchemaEditor
+          databaseId={database.id}
+          onSubmit={dialogs.closeAllModals}
+        />
+      ),
+    });
+  }, [t, dialogs, database.id]);
+
   if (!rows) {
     return <PlaceholderList count={5} />;
   }
+
+  const sortableProperties = schema.filter(
+    (property) => property.type !== PropertyType.Rollup
+  );
+  const showGroupSelect =
+    (viewType === DataViewType.Board || viewType === DataViewType.List) &&
+    groupableProperties.length > 0 &&
+    can.update;
+  const toolbarVisible = isFilterOpen || isSortOpen || showGroupSelect;
 
   return (
     <Fade>
@@ -371,17 +415,121 @@ function DatabaseView({ database }: Props) {
         onCreate={handleCreateView}
         onRename={handleRenameView}
         onDelete={handleDeleteView}
+        trailing={
+          <>
+            <Tooltip content={t("Filter")}>
+              <ToolbarIconButton
+                type="button"
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                aria-label={t("Filter")}
+                $active={!!filter}
+                size={26}
+              >
+                <FilterFunnelIcon />
+              </ToolbarIconButton>
+            </Tooltip>
+            <Tooltip content={t("Sort")}>
+              <ToolbarIconButton
+                type="button"
+                onClick={() => setIsSortOpen(!isSortOpen)}
+                aria-label={t("Sort")}
+                $active={!!sort}
+                size={26}
+              >
+                <SortManualIcon size={20} />
+              </ToolbarIconButton>
+            </Tooltip>
+            {can.update && (
+              <Tooltip content={t("Database properties")}>
+                <ToolbarIconButton
+                  type="button"
+                  onClick={handleEditSchema}
+                  aria-label={t("Database properties")}
+                  size={26}
+                >
+                  <SettingsIcon size={20} />
+                </ToolbarIconButton>
+              </Tooltip>
+            )}
+            {can.update &&
+              schema.length > 0 &&
+              viewType !== DataViewType.Table && (
+                <DatabaseViewProperties
+                  schema={schema}
+                  view={activeView}
+                  onToggle={handleToggleProperty}
+                />
+              )}
+          </>
+        }
       />
 
-      <Toolbar align="center" gap={8}>
-        <DatabaseTableFilter
-          schema={schema}
-          filter={filter}
-          onChange={handleFilter}
-        />
-        {(viewType === DataViewType.Board || viewType === DataViewType.List) &&
-          groupableProperties.length > 0 &&
-          can.update && (
+      {toolbarVisible && (
+        <Toolbar align="center" gap={8}>
+          {isFilterOpen && (
+            <DatabaseTableFilter
+              schema={schema}
+              filter={filter}
+              onChange={handleFilter}
+            />
+          )}
+          {isSortOpen && (
+            <>
+              <InputSelect
+                options={[
+                  {
+                    type: "item" as const,
+                    label: t("No sorting"),
+                    value: NO_GROUPING,
+                  },
+                  ...sortableProperties.map((property) => ({
+                    type: "item" as const,
+                    label: t("Sort by {{ propertyName }}", {
+                      propertyName: property.name,
+                    }),
+                    value: property.id,
+                  })),
+                ]}
+                value={sort?.propertyId ?? NO_GROUPING}
+                onChange={(value) =>
+                  handleSetSort(
+                    value,
+                    value === NO_GROUPING ? null : (sort?.direction ?? "asc")
+                  )
+                }
+                label={t("Sort by")}
+                labelHidden
+                short
+              />
+              {sort && (
+                <InputSelect
+                  options={[
+                    {
+                      type: "item" as const,
+                      label: t("Ascending"),
+                      value: "asc",
+                    },
+                    {
+                      type: "item" as const,
+                      label: t("Descending"),
+                      value: "desc",
+                    },
+                  ]}
+                  value={sort.direction}
+                  onChange={(value) =>
+                    handleSetSort(
+                      sort.propertyId,
+                      value === "desc" ? "desc" : "asc"
+                    )
+                  }
+                  label={t("Direction")}
+                  labelHidden
+                  short
+                />
+              )}
+            </>
+          )}
+          {showGroupSelect && (
             <InputSelect
               options={[
                 ...(viewType === DataViewType.List
@@ -408,14 +556,8 @@ function DatabaseView({ database }: Props) {
               short
             />
           )}
-        {can.update && schema.length > 0 && viewType !== DataViewType.Table && (
-          <DatabaseViewProperties
-            schema={schema}
-            view={activeView}
-            onToggle={handleToggleProperty}
-          />
-        )}
-      </Toolbar>
+        </Toolbar>
+      )}
 
       {viewType === DataViewType.Board && boardGroupByProperty ? (
         <DatabaseBoard
@@ -511,6 +653,29 @@ function viewTypeName(type: DataViewType): string {
       return "Table";
   }
 }
+
+/** A simple funnel glyph, as outline-icons has no filter icon. */
+function FilterFunnelIcon() {
+  return (
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M5.5 6h13a1 1 0 0 1 .8 1.6L14 14v4.6a1 1 0 0 1-1.4.9l-2-.9a1 1 0 0 1-.6-.9V14L4.7 7.6A1 1 0 0 1 5.5 6z" />
+    </svg>
+  );
+}
+
+const ToolbarIconButton = styled(NudeButton)<{ $active?: boolean }>`
+  color: ${(props) =>
+    props.$active ? props.theme.accent : props.theme.textSecondary};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: ${s("backgroundSecondary")};
+    color: ${(props) =>
+      props.$active ? props.theme.accent : props.theme.text};
+  }
+`;
 
 const Toolbar = styled(Flex)`
   margin: 12px 0;

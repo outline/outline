@@ -26,6 +26,8 @@ type Props = {
   onRename: (viewId: string, name: string) => void;
   /** Callback when a view is removed. */
   onDelete: (viewId: string) => void;
+  /** Content rendered at the right edge of the bar, e.g. toolbar toggles. */
+  trailing?: React.ReactNode;
 };
 
 /**
@@ -41,6 +43,7 @@ function DatabaseViewTabs({
   onCreate,
   onRename,
   onDelete,
+  trailing,
 }: Props) {
   const { t } = useTranslation();
   const [isAdding, setIsAdding] = React.useState(false);
@@ -136,6 +139,7 @@ function DatabaseViewTabs({
           )}
         </AddContainer>
       )}
+      {trailing && <Trailing>{trailing}</Trailing>}
     </Bar>
   );
 }
@@ -144,6 +148,14 @@ const Bar = styled(Flex)`
   flex-wrap: wrap;
   border-bottom: 1px solid ${s("divider")};
   margin-bottom: 12px;
+`;
+
+const Trailing = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding: 0 2px;
 `;
 
 const TabButton = styled.button<{ $active: boolean }>`

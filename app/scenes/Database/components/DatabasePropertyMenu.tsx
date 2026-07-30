@@ -111,66 +111,68 @@ function DatabasePropertyMenu({
         side="bottom"
         align="start"
         aria-label={property.name}
-        width={260}
+        width={280}
         shrink
       >
-        <NameInput
-          type="text"
-          value={name}
-          placeholder={t("Property name")}
-          maxLength={PropertyValidation.maxNameLength}
-          onChange={(ev) => setName(ev.target.value)}
-          onKeyDown={handleNameKeyDown}
-          onBlur={handleRenameCommit}
-        />
-        {isSortable && (
-          <>
-            <MenuItem type="button" onClick={() => handleSort("asc")}>
-              <SortAscendingIcon />
-              {t("Sort ascending")}
-              {activeDirection === "asc" && <ActiveCheck />}
-            </MenuItem>
-            <MenuItem type="button" onClick={() => handleSort("desc")}>
-              <SortDescendingIcon />
-              {t("Sort descending")}
-              {activeDirection === "desc" && <ActiveCheck />}
-            </MenuItem>
-          </>
-        )}
-        <MenuItem
-          type="button"
-          onClick={() => {
-            onHide();
-            setIsOpen(false);
-          }}
-        >
-          <EyeIcon />
-          {t("Hide in view")}
-        </MenuItem>
-        {supportsOptions && (
-          <>
-            <Separator />
-            <SectionLabel type="tertiary" size="xsmall">
-              {t("Options")}
-            </SectionLabel>
-            <PropertyOptionsEditor
-              options={property.options ?? []}
-              onChange={onChangeOptions}
-            />
-          </>
-        )}
-        <Separator />
-        <MenuItem
-          type="button"
-          $danger
-          onClick={() => {
-            onDelete();
-            setIsOpen(false);
-          }}
-        >
-          <TrashIcon />
-          {t("Delete property")}
-        </MenuItem>
+        <Content>
+          <NameInput
+            type="text"
+            value={name}
+            placeholder={t("Property name")}
+            maxLength={PropertyValidation.maxNameLength}
+            onChange={(ev) => setName(ev.target.value)}
+            onKeyDown={handleNameKeyDown}
+            onBlur={handleRenameCommit}
+          />
+          {isSortable && (
+            <>
+              <MenuItem type="button" onClick={() => handleSort("asc")}>
+                <SortAscendingIcon />
+                {t("Sort ascending")}
+                {activeDirection === "asc" && <ActiveCheck />}
+              </MenuItem>
+              <MenuItem type="button" onClick={() => handleSort("desc")}>
+                <SortDescendingIcon />
+                {t("Sort descending")}
+                {activeDirection === "desc" && <ActiveCheck />}
+              </MenuItem>
+            </>
+          )}
+          <MenuItem
+            type="button"
+            onClick={() => {
+              onHide();
+              setIsOpen(false);
+            }}
+          >
+            <EyeIcon />
+            {t("Hide in view")}
+          </MenuItem>
+          {supportsOptions && (
+            <>
+              <Separator />
+              <SectionLabel type="tertiary" size="xsmall">
+                {t("Options")}
+              </SectionLabel>
+              <PropertyOptionsEditor
+                options={property.options ?? []}
+                onChange={onChangeOptions}
+              />
+            </>
+          )}
+          <Separator />
+          <MenuItem
+            type="button"
+            $danger
+            onClick={() => {
+              onDelete();
+              setIsOpen(false);
+            }}
+          >
+            <TrashIcon />
+            {t("Delete property")}
+          </MenuItem>
+        </Content>
       </PopoverContent>
     </Popover>
   );
@@ -178,6 +180,10 @@ function DatabasePropertyMenu({
 
 const ActiveCheck = styled(CheckmarkIcon)`
   margin-left: auto;
+`;
+
+const Content = styled.div`
+  padding: 4px 10px;
 `;
 
 const HeaderButton = styled.button`

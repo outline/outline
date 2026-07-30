@@ -56,17 +56,19 @@ function DatabaseViewProperties({ schema, view, onToggle }: Props) {
         width={220}
         shrink
       >
-        {schema.map((property) => (
-          <PanelRow key={property.id}>
-            <Switch
-              label={property.name}
-              labelPosition="right"
-              checked={!hidden.has(property.id)}
-              onChange={(checked) => onToggle(property.id, checked)}
-              inForm={false}
-            />
-          </PanelRow>
-        ))}
+        <Content>
+          {schema.map((property) => (
+            <PanelRow key={property.id}>
+              <Switch
+                label={property.name}
+                labelPosition="right"
+                checked={!hidden.has(property.id)}
+                onChange={(checked) => onToggle(property.id, checked)}
+                inForm={false}
+              />
+            </PanelRow>
+          ))}
+        </Content>
       </PopoverContent>
     </Popover>
   );
@@ -82,6 +84,10 @@ const IconButton = styled(NudeButton)`
     background: ${s("backgroundSecondary")};
     color: ${s("text")};
   }
+`;
+
+const Content = styled.div`
+  padding: 2px 12px;
 `;
 
 const PanelRow = styled.div`

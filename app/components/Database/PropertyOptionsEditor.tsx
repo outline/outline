@@ -110,11 +110,13 @@ function PropertyOptionsEditor({ options, onChange }: Props) {
         const isPending = pendingIds.has(option.id);
         return (
           <Flex key={option.id} align="center" gap={8}>
-            <SwatchButton
-              color={option.color}
-              size={20}
-              onChange={(color) => handleColor(option, color)}
-            />
+            <SwatchWrapper>
+              <SwatchButton
+                color={option.color}
+                size={20}
+                onChange={(color) => handleColor(option, color)}
+              />
+            </SwatchWrapper>
             <OptionNameInput
               value={names[option.id] ?? option.name}
               placeholder={t("Option name")}
@@ -131,13 +133,13 @@ function PropertyOptionsEditor({ options, onChange }: Props) {
               margin={0}
               autoFocus={isPending}
             />
-            <NudeButton
+            <RemoveButton
               type="button"
               onClick={() => handleRemove(option)}
               aria-label={t("Remove")}
             >
               <CloseIcon size={16} />
-            </NudeButton>
+            </RemoveButton>
           </Flex>
         );
       })}
@@ -158,6 +160,16 @@ function PropertyOptionsEditor({ options, onChange }: Props) {
 
 const OptionNameInput = styled(Input)`
   flex-grow: 1;
+  min-width: 0;
+`;
+
+const SwatchWrapper = styled.span`
+  display: inline-flex;
+  flex-shrink: 0;
+`;
+
+const RemoveButton = styled(NudeButton)`
+  flex-shrink: 0;
 `;
 
 export default observer(PropertyOptionsEditor);
