@@ -6,7 +6,14 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import type { DataViewSort, Property, PropertyOption } from "@shared/types";
+import type {
+  DataView,
+  DataViewSort,
+  DataViewSummaries,
+  Property,
+  PropertyOption,
+  SummaryAggregation,
+} from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import type Document from "~/models/Document";
 import PropertyValueEditor from "~/components/DocumentProperties/PropertyValueEditor";
@@ -15,6 +22,7 @@ import NudeButton from "~/components/NudeButton";
 import usePolicy from "~/hooks/usePolicy";
 import DatabaseAddProperty from "./DatabaseAddProperty";
 import DatabasePropertyMenu from "./DatabasePropertyMenu";
+import DatabaseSummaryRow from "./DatabaseSummaryRow";
 import RowTitleInput from "./RowTitleInput";
 
 type Props = {
@@ -46,6 +54,17 @@ type Props = {
   onDeleteProperty: (propertyId: string) => void;
   /** The property-visibility toggle to render beside the add button. */
   propertiesToggle?: React.ReactNode;
+  /** The active view, holding each column's chosen summary. */
+  view?: DataView;
+  /** The computed summary values, keyed by property id. */
+  summaries?: DataViewSummaries;
+  /** Whether the user may change which summaries are shown. */
+  canEditSummaries: boolean;
+  /** Callback when a column's summary is changed; null clears it. */
+  onChangeSummary: (
+    propertyId: string,
+    summary: SummaryAggregation | null
+  ) => void;
 };
 
 /**
@@ -70,6 +89,10 @@ function DatabaseTable({
   onHideProperty,
   onDeleteProperty,
   propertiesToggle,
+  view,
+  summaries,
+  canEditSummaries,
+  onChangeSummary,
 }: Props) {
   const { t } = useTranslation();
   const hasControlsColumn = !!onAddProperty || !!propertiesToggle;
@@ -95,7 +118,11 @@ function DatabaseTable({
                 </>
               );
               return (
-                <HeaderCell as="th" key={property.id}>
+                <HeaderCell
+                  as="th"
+                  key={property.id}
+                  $flush={!!onUpdateProperty}
+                >
                   {onUpdateProperty ? (
                     <DatabasePropertyMenu
                       property={property}
@@ -171,6 +198,16 @@ function DatabaseTable({
             </tr>
           )}
         </tbody>
+        <tfoot>
+          <DatabaseSummaryRow
+            properties={properties}
+            view={view}
+            summaries={summaries}
+            canEdit={canEditSummaries}
+            onChange={onChangeSummary}
+            hasControlsColumn={hasControlsColumn}
+          />
+        </tfoot>
       </Grid>
     </ScrollContainer>
   );
@@ -206,7 +243,9 @@ const DatabaseTableRow = observer(function DatabaseTableRow_({
     <Row>
       <TitleCell>
         {isEditingTitle ? (
-          <RowTitleInput document={document} onDone={onTitleDone} />
+          <TitleInputPadding>
+            <RowTitleInput document={document} onDone={onTitleDone} />
+          </TitleInputPadding>
         ) : (
           <TitleLink to={document.path}>{document.titleWithDefault}</TitleLink>
         )}
@@ -237,11 +276,11 @@ const Grid = styled.table`
   font-size: 14px;
 `;
 
-const HeaderCell = styled.th<{ $minWidth?: number }>`
+const HeaderCell = styled.th<{ $minWidth?: number; $flush?: boolean }>`
   text-align: left;
   font-weight: 500;
   color: ${s("textSecondary")};
-  padding: 8px 10px;
+  padding: ${(props) => (props.$flush ? 0 : "8px 10px")};
   border-bottom: 1px solid ${s("divider")};
   white-space: nowrap;
   min-width: ${(props) => props.$minWidth ?? 140}px;
@@ -276,12 +315,18 @@ const Cell = styled.td`
 `;
 
 const TitleCell = styled(Cell)`
-  padding: 8px 10px;
+  padding: 0;
+`;
+
+const TitleInputPadding = styled.div`
+  padding: 6px;
 `;
 
 const TitleLink = styled(Link)`
+  display: block;
   color: ${s("text")};
   font-weight: 500;
+  padding: 8px 10px;
 
   &:hover {
     text-decoration: underline;

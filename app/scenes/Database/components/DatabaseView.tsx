@@ -35,7 +35,6 @@ import DatabaseList from "./DatabaseList";
 import DatabaseTable from "./DatabaseTable";
 import DatabaseTableFilter from "./DatabaseTableFilter";
 import DatabaseViewProperties from "./DatabaseViewProperties";
-import DatabaseSummaryBar from "./DatabaseSummaryBar";
 import DatabaseViewTabs from "./DatabaseViewTabs";
 
 type Props = {
@@ -476,16 +475,10 @@ function DatabaseView({ database }: Props) {
               />
             ) : undefined
           }
-        />
-      )}
-
-      {viewType === DataViewType.Table && (
-        <DatabaseSummaryBar
-          properties={visibleProperties}
           view={activeView}
           summaries={summaries}
-          canEdit={can.update}
-          onChange={handleChangeSummary}
+          canEditSummaries={can.update}
+          onChangeSummary={handleChangeSummary}
         />
       )}
 

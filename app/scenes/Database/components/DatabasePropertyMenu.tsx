@@ -185,13 +185,16 @@ const HeaderButton = styled.button`
   background: none;
   color: inherit;
   font: inherit;
-  padding: 0;
+  padding: 8px 10px;
   cursor: var(--pointer);
-  display: inline-flex;
+  display: flex;
+  width: 100%;
   align-items: center;
   gap: 2px;
+  text-align: left;
 
   &:hover {
+    background: ${s("backgroundSecondary")};
     color: ${s("text")};
   }
 `;

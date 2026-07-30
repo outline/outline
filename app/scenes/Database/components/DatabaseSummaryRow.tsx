@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -22,22 +21,26 @@ type Props = {
   canEdit: boolean;
   /** Callback when a column's summary is changed; null clears it. */
   onChange: (propertyId: string, summary: SummaryAggregation | null) => void;
+  /** Whether the table has a trailing controls column to pad for. */
+  hasControlsColumn: boolean;
 };
 
 const NONE = "";
 
 /**
- * The footer beneath a table view showing one aggregate per column.
+ * The footer row of a table view showing one aggregate per column, aligned
+ * beneath the column it describes.
  *
  * Values describe every row matching the view's filter rather than the rows
  * currently loaded, so they stay meaningful as more pages are fetched.
  */
-function DatabaseSummaryBar({
+function DatabaseSummaryRow({
   properties,
   view,
   summaries,
   canEdit,
   onChange,
+  hasControlsColumn,
 }: Props) {
   const { t } = useTranslation();
 
@@ -60,14 +63,15 @@ function DatabaseSummaryBar({
   }
 
   return (
-    <Bar>
+    <tr>
+      <SummaryCell />
       {properties.map((property) => {
         const available = summaryAggregationsForProperty(property);
         const selected = summaryFor(property.id);
         const value = summaries?.[property.id];
 
         return (
-          <Cell key={property.id}>
+          <SummaryCell key={property.id}>
             {canEdit && available.length > 0 ? (
               <InputSelect
                 options={[
@@ -96,10 +100,11 @@ function DatabaseSummaryBar({
                 {formatValue(value, selected)}
               </Value>
             )}
-          </Cell>
+          </SummaryCell>
         );
       })}
-    </Bar>
+      {hasControlsColumn && <SummaryCell />}
+    </tr>
   );
 }
 
@@ -120,25 +125,20 @@ function formatValue(
   return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }
 
-const Bar = styled.div`
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+const SummaryCell = styled.td`
   border-top: 1px solid ${s("divider")};
-  padding: 8px 0;
-`;
+  padding: 4px;
+  vertical-align: top;
 
-const Cell = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 120px;
+  &:not(:last-child) {
+    border-right: 1px solid ${s("divider")};
+  }
 `;
 
 const Value = styled.div`
   font-size: 14px;
   color: ${s("text")};
-  padding: 0 4px;
+  padding: 2px 4px;
 `;
 
 const Label = styled.span`
@@ -149,4 +149,4 @@ const Label = styled.span`
   margin-right: 6px;
 `;
 
-export default observer(DatabaseSummaryBar);
+export default observer(DatabaseSummaryRow);
