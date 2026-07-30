@@ -42,6 +42,10 @@ export default class DuplicateCollectionDocumentsTask extends BaseTask<Props> {
       },
     });
 
+    if (!rootDocuments.length) {
+      return;
+    }
+
     const structure = await original.getCachedDocumentStructure();
     const sorted = DocumentHelper.sortDocumentsByStructure(
       rootDocuments,

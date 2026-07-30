@@ -427,7 +427,8 @@ export default class Collection extends ParanoidModel {
    *
    * @returns A promise that resolves to the duplicated collection.
    */
-  duplicate = () => this.store.duplicate(this);
+  duplicate = (options?: { name?: string }) =>
+    this.store.duplicate(this, options);
 
   export = (format: FileOperationFormat, includeAttachments: boolean) =>
     client.post("/collections.export", {
