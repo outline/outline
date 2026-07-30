@@ -12,6 +12,7 @@ import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
+import { getTokenFromCookie } from "@server/utils/csrf";
 import BaseStorage from "./BaseStorage";
 import { CSRF } from "@shared/constants";
 import type { AppContext } from "@server/types";
@@ -37,7 +38,7 @@ export default class LocalStorage extends BaseStorage {
         maxUploadSize: String(maxUploadSize),
         contentType,
         sig,
-        [CSRF.fieldName]: ctx.cookies.get(CSRF.cookieName) || "",
+        [CSRF.fieldName]: getTokenFromCookie(ctx) ?? "",
       },
     });
   }
