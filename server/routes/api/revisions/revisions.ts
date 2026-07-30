@@ -42,11 +42,14 @@ router.post(
 
       const document = await Document.findByPk(revision.documentId, {
         userId: user.id,
+        includeContent: false,
+        includeViews: false,
       });
       authorize(user, "listRevisions", document);
     } else if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
+        includeViews: false,
       });
       authorize(user, "listRevisions", document);
       revision = Revision.buildFromDocument(document);
@@ -76,6 +79,8 @@ router.post(
     });
     const document = await Document.findByPk(revision.documentId, {
       userId: user.id,
+      includeContent: false,
+      includeViews: false,
     });
     authorize(user, "update", document);
     authorize(user, "update", revision);
@@ -110,6 +115,8 @@ router.post(
     });
     const document = await Document.findByPk(revision.documentId, {
       userId: user.id,
+      includeContent: false,
+      includeViews: false,
     });
     authorize(user, "read", document);
     authorize(user, "delete", revision);
@@ -139,6 +146,8 @@ router.post(
     const document = await Document.findByPk(revision.documentId, {
       userId: user.id,
       rejectOnEmpty: true,
+      includeContent: false,
+      includeViews: false,
     });
     authorize(user, "listRevisions", document);
 
@@ -239,10 +248,15 @@ router.post(
     const document = await Document.findByPk(documentId, {
       userId: user.id,
       paranoid: false,
+      includeContent: false,
+      includeViews: false,
     });
     authorize(user, "listRevisions", document);
 
     const revisions = await Revision.findAll({
+      attributes: {
+        exclude: ["content", "text"],
+      },
       where: {
         documentId: document.id,
       },
