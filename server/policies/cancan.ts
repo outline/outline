@@ -11,11 +11,17 @@ type Policy = Record<string, boolean | string[]>;
 /** Default so option-free calls share one object and stay cacheable. */
 const noOptions: Readonly<Record<string, never>> = Object.freeze({});
 
+/**
+ * The result of an ability condition. Strings are the IDs of the memberships
+ * that granted access, and may be nested in arrays by the `and` / `or` helpers.
+ */
+type ConditionResult = boolean | string | ConditionResult[];
+
 type Condition<T extends Constructor, P extends Constructor> = (
   performer: InstanceType<P>,
   target: InstanceType<T> | null,
   options?: unknown
-) => boolean | string;
+) => ConditionResult;
 
 type Ability = {
   model: Constructor;
@@ -281,28 +287,37 @@ export class CanCan {
     );
 
     // Check conditions only for matching abilities
-    const seenConditions = new Set<boolean | string>();
     const membershipIds: string[] = [];
     let hasNonMembershipMatch = false;
+
+    const collect = (result: ConditionResult) => {
+      if (!result) {
+        return;
+      }
+      if (typeof result === "string") {
+        if (!membershipIds.includes(result)) {
+          membershipIds.push(result);
+        }
+        return;
+      }
+      // Conditions are composed with the `and` / `or` helpers, which return the
+      // operands themselves rather than a boolean, so the membership IDs that
+      // granted access can be nested at any depth.
+      if (Array.isArray(result)) {
+        for (const value of result) {
+          collect(value);
+        }
+        return;
+      }
+      hasNonMembershipMatch = true;
+    };
 
     for (const ability of matchingAbilities) {
       if (!ability.condition) {
         continue;
       }
 
-      const result = ability.condition(performer, target, options);
-
-      if (!result || seenConditions.has(result)) {
-        continue;
-      }
-
-      seenConditions.add(result);
-
-      if (typeof result === "string") {
-        membershipIds.push(result);
-      } else {
-        hasNonMembershipMatch = true;
-      }
+      collect(ability.condition(performer, target, options));
     }
 
     return membershipIds.length > 0 ? membershipIds : hasNonMembershipMatch;
