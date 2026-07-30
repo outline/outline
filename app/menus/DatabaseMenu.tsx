@@ -1,5 +1,13 @@
+import copy from "copy-to-clipboard";
 import { observer } from "mobx-react";
-import { DatabaseIcon, EditIcon, TrashIcon } from "outline-icons";
+import {
+  CopyIcon,
+  DatabaseIcon,
+  EditIcon,
+  MoveIcon,
+  PrintIcon,
+  TrashIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -9,6 +17,7 @@ import { s } from "@shared/styles";
 import { errToString } from "@shared/utils/error";
 import type Database from "~/models/Database";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import DatabaseMove from "~/components/Database/DatabaseMove";
 import DatabaseSchemaEditor from "~/components/Database/DatabaseSchemaEditor";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
@@ -21,6 +30,7 @@ import { createAction } from "~/actions";
 import { ActiveCollectionSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import history from "~/utils/history";
+import { urlify } from "~/utils/routeHelpers";
 
 type Props = {
   /** The database to show the menu for. */
@@ -62,6 +72,20 @@ function DatabaseMenu({ database }: Props) {
     }
   }, [t, database]);
 
+  const handleMove = React.useCallback(() => {
+    dialogs.openModal({
+      title: t("Move database"),
+      content: (
+        <DatabaseMove database={database} onSubmit={dialogs.closeAllModals} />
+      ),
+    });
+  }, [t, dialogs, database]);
+
+  const handleCopyLink = React.useCallback(() => {
+    copy(urlify(database.path));
+    toast.success(t("Link copied to clipboard"));
+  }, [t, database]);
+
   const handleDelete = React.useCallback(() => {
     dialogs.openModal({
       title: t("Delete database"),
@@ -101,6 +125,29 @@ function DatabaseMenu({ database }: Props) {
         perform: handleRename,
       }),
       createAction({
+        name: `${t("Move")}…`,
+        section: ActiveCollectionSection,
+        icon: <MoveIcon />,
+        visible: can.update,
+        perform: handleMove,
+      }),
+      createAction({
+        name: t("Copy link"),
+        section: ActiveCollectionSection,
+        keywords: "clipboard",
+        icon: <CopyIcon />,
+        perform: handleCopyLink,
+      }),
+      createAction({
+        name: t("Print"),
+        section: ActiveCollectionSection,
+        icon: <PrintIcon />,
+        visible: !!window.print,
+        perform: () => {
+          setTimeout(window.print, 0);
+        },
+      }),
+      createAction({
         name: `${t("Delete")}…`,
         section: ActiveCollectionSection,
         icon: <TrashIcon />,
@@ -109,7 +156,16 @@ function DatabaseMenu({ database }: Props) {
         perform: handleDelete,
       }),
     ],
-    [t, can.update, can.delete, handleEditSchema, handleRename, handleDelete]
+    [
+      t,
+      can.update,
+      can.delete,
+      handleEditSchema,
+      handleRename,
+      handleMove,
+      handleCopyLink,
+      handleDelete,
+    ]
   );
   const rootAction = useMenuAction(actions);
 
