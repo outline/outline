@@ -300,6 +300,23 @@ describe("#findByPk", () => {
     ).rejects.toThrow(EmptyResultError);
   });
 
+  it("should omit content columns when includeContent is false", async () => {
+    const document = await buildDocument({ text: "# Heading" });
+
+    const response = await Document.findByPk(document.id, {
+      includeContent: false,
+    });
+    expect(response?.id).toBe(document.id);
+    expect(response?.title).toBe(document.title);
+    expect(response?.dataValues.content).toBeUndefined();
+    expect(response?.dataValues.text).toBeUndefined();
+    expect(response?.dataValues.state).toBeUndefined();
+
+    const withContent = await Document.findByPk(document.id);
+    expect(withContent?.dataValues.content).toBeDefined();
+    expect(withContent?.dataValues.text).toBeDefined();
+  });
+
   it("should not allow a passed where to override the id", async () => {
     const document = await buildDocument();
     const other = await buildDocument();

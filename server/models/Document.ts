@@ -99,7 +99,12 @@ type AdditionalFindOptions = {
   userId?: string;
   /** Whether to include the state column in the attributes. */
   includeState?: boolean;
-  /** Whether to views (default: true). */
+  /**
+   * Whether to include the content columns in the attributes (default: true).
+   * Pass false when the document is only needed for authorization.
+   */
+  includeContent?: boolean;
+  /** Whether to include views (default: true). */
   includeViews?: boolean;
   /** Whether to reject the query if no document is found. */
   rejectOnEmpty?: boolean | Error;
@@ -149,6 +154,11 @@ interface QueryGeneratorWithWhere {
     attributes: {
       exclude: ["state"],
       include: [stateIfContentEmpty],
+    },
+  },
+  withoutContent: {
+    attributes: {
+      exclude: ["state", "content", "text"],
     },
   },
   withCollection: {
@@ -797,15 +807,21 @@ class Document extends ArchivableModel<
     const {
       includeViews = true,
       includeState = false,
+      includeContent = true,
       userId,
       ...rest
     } = options;
+
+    let contentScope = includeState ? "withState" : "withoutState";
+    if (!includeContent) {
+      contentScope = "withoutContent";
+    }
 
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
       "withDrafts",
-      includeState ? "withState" : "withoutState",
+      contentScope,
       ...((includeViews
         ? [
             {
