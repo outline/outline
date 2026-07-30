@@ -23,8 +23,8 @@ import {
   UnprocessableEntityError,
   UpdateRequiredError,
 } from "./errors";
-import { getCookie } from "tiny-cookie";
 import { CSRF } from "@shared/constants";
+import { getCSRFToken } from "./csrf";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 
 type Options = {
@@ -186,7 +186,7 @@ class ApiClient {
     // rotation of the cookie since the request was prepared.
     const fetchWithFreshCsrfToken: typeof fetch = (input, init) => {
       if (requiresCsrfToken) {
-        const csrfToken = getCookie(CSRF.cookieName);
+        const csrfToken = getCSRFToken();
         if (csrfToken) {
           headers.set(CSRF.headerName, csrfToken);
         }

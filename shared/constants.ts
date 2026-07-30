@@ -33,8 +33,13 @@ export const Pagination = {
 };
 
 export const CSRF = {
+  /** Cookie name used on secure origins. */
+  secureCookieName: "__Host-csrfToken",
+  /** Cookie name used over HTTP, where the `__Host-` prefix is not accepted. */
   cookieName: "csrfToken",
+  /** Request header that carries the token for API requests. */
   headerName: "x-csrf-token",
+  /** Hidden field that carries the token for native form submissions. */
   fieldName: "_csrf",
 };
 

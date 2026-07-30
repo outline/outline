@@ -3,7 +3,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { getCookie } from "tiny-cookie";
 import { CSRF } from "@shared/constants";
 import { Client } from "@shared/types";
 import { errToString } from "@shared/utils/error";
@@ -12,6 +11,7 @@ import PluginIcon from "~/components/PluginIcon";
 import useQuery from "~/hooks/useQuery";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
+import { getCSRFToken } from "~/utils/csrf";
 
 type Props = React.ComponentProps<typeof ButtonLarge>;
 
@@ -99,7 +99,7 @@ export function PasskeyAuthenticationProvider(props: Props) {
         flattenFormFields({
           ...authResp,
           challengeId,
-          [CSRF.fieldName]: getCookie(CSRF.cookieName),
+          [CSRF.fieldName]: getCSRFToken(),
           client: verifyClient,
         })
       );

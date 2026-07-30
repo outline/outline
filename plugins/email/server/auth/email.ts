@@ -15,6 +15,7 @@ import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import { signIn } from "@server/utils/authentication";
+import { getTokenFromCookie } from "@server/utils/csrf";
 import { getUserForEmailSigninToken } from "@server/utils/jwt";
 import { getTeamFromContext } from "@server/utils/passport";
 import * as T from "./schema";
@@ -112,7 +113,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   // and spending the token before the user clicks on it. Instead we redirect
   // to the same URL with the follow query param added from the client side.
   if (!follow) {
-    const csrfToken = ctx.cookies.get(CSRF.cookieName);
+    const csrfToken = getTokenFromCookie(ctx);
 
     // Parse the current URL to extract existing query parameters
     const url = new URL(ctx.request.href);
