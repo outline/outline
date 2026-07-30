@@ -20,71 +20,127 @@ type Props = {
 
 /**
  * Edits the options of a select or multi-select property as a list of rows,
- * each with a color swatch, a name input and a remove button. Name edits are
- * committed on blur; color, add and remove commit immediately.
+ * each with a color swatch, a name input and a remove button. "Add option"
+ * appends a row immediately, but the new option is only propagated once it
+ * has a name, so an empty name is never persisted. Renames are committed on
+ * blur; color and remove commit immediately.
  */
 function PropertyOptionsEditor({ options, onChange }: Props) {
   const { t } = useTranslation();
   // names are typed locally and committed on blur so every keystroke does
   // not propagate a change upstream
   const [names, setNames] = React.useState<Record<string, string>>({});
+  // freshly added rows are kept local until they are given a name
+  const [pending, setPending] = React.useState<PropertyOption[]>([]);
+  const pendingIds = new Set(pending.map((option) => option.id));
 
+  /**
+   * Applies pending name edits on top of the given options and propagates
+   * the result. An edit blanked out reverts to the previous name so an
+   * empty name is never committed.
+   */
   const commit = (next: PropertyOption[]) => {
-    setNames({});
+    // keep in-progress text of rows that are still pending
+    setNames((current) => {
+      const kept: Record<string, string> = {};
+      for (const id of Object.keys(current)) {
+        if (pendingIds.has(id)) {
+          kept[id] = current[id];
+        }
+      }
+      return kept;
+    });
     onChange(
-      next.map((option) => ({
-        ...option,
-        name: (names[option.id] ?? option.name).trim(),
-      }))
+      next.map((option) => {
+        const name = (names[option.id] ?? option.name).trim();
+        return { ...option, name: name || option.name };
+      })
     );
   };
 
   const handleAdd = () => {
-    commit([...options, { id: uuidv4(), name: "" }]);
+    setPending((current) => [...current, { id: uuidv4(), name: "" }]);
   };
 
-  const handleRemove = (optionId: string) => {
-    commit(options.filter((option) => option.id !== optionId));
+  /** Moves a pending row into the committed options once it has a name. */
+  const handlePendingNameCommit = (option: PropertyOption) => {
+    const name = (names[option.id] ?? "").trim();
+    if (!name) {
+      return;
+    }
+    setPending((current) => current.filter((item) => item.id !== option.id));
+    commit([...options, { ...option, name }]);
   };
 
-  const handleColor = (optionId: string, color: string) => {
+  const handleRemove = (option: PropertyOption) => {
+    if (pendingIds.has(option.id)) {
+      setPending((current) => current.filter((item) => item.id !== option.id));
+      return;
+    }
+    commit(options.filter((item) => item.id !== option.id));
+  };
+
+  const handleColor = (option: PropertyOption, color: string) => {
+    if (pendingIds.has(option.id)) {
+      setPending((current) =>
+        current.map((item) =>
+          item.id === option.id ? { ...item, color } : item
+        )
+      );
+      return;
+    }
     commit(
-      options.map((option) =>
-        option.id === optionId ? { ...option, color } : option
-      )
+      options.map((item) => (item.id === option.id ? { ...item, color } : item))
     );
+  };
+
+  const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+    if (ev.nativeEvent.isComposing) {
+      return;
+    }
+    if (ev.key === "Enter") {
+      ev.preventDefault();
+      ev.currentTarget.blur();
+    }
   };
 
   return (
     <Flex column gap={4}>
-      {options.map((option) => (
-        <Flex key={option.id} align="center" gap={8}>
-          <SwatchButton
-            color={option.color}
-            size={20}
-            onChange={(color) => handleColor(option.id, color)}
-          />
-          <OptionNameInput
-            value={names[option.id] ?? option.name}
-            placeholder={t("Option name")}
-            onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
-              setNames((current) => ({
-                ...current,
-                [option.id]: ev.target.value,
-              }))
-            }
-            onBlur={() => commit(options)}
-            margin={0}
-          />
-          <NudeButton
-            type="button"
-            onClick={() => handleRemove(option.id)}
-            aria-label={t("Remove")}
-          >
-            <CloseIcon size={16} />
-          </NudeButton>
-        </Flex>
-      ))}
+      {[...options, ...pending].map((option) => {
+        const isPending = pendingIds.has(option.id);
+        return (
+          <Flex key={option.id} align="center" gap={8}>
+            <SwatchButton
+              color={option.color}
+              size={20}
+              onChange={(color) => handleColor(option, color)}
+            />
+            <OptionNameInput
+              value={names[option.id] ?? option.name}
+              placeholder={t("Option name")}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
+                setNames((current) => ({
+                  ...current,
+                  [option.id]: ev.target.value,
+                }))
+              }
+              onKeyDown={handleKeyDown}
+              onBlur={() =>
+                isPending ? handlePendingNameCommit(option) : commit(options)
+              }
+              margin={0}
+              autoFocus={isPending}
+            />
+            <NudeButton
+              type="button"
+              onClick={() => handleRemove(option)}
+              aria-label={t("Remove")}
+            >
+              <CloseIcon size={16} />
+            </NudeButton>
+          </Flex>
+        );
+      })}
       <div>
         <Button
           type="button"
