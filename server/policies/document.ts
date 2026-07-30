@@ -122,15 +122,14 @@ allow(User, "manageUsers", Document, (actor, document) =>
   )
 );
 
+// Note that read access to the source document is sufficient – the destination
+// collection is chosen separately and authorized at that point.
 allow(User, "duplicate", Document, (actor, document) =>
   and(
-    can(actor, "update", document),
-    or(
-      includesMembership(document, [DocumentPermission.Admin]),
-      and(isTeamAdmin(actor, document), can(actor, "read", document)),
-      can(actor, "updateDocument", document?.collection),
-      !!document?.isDraft && actor.id === document?.createdById
-    )
+    !!document?.isActive,
+    isTeamMutable(actor),
+    can(actor, "read", document),
+    can(actor, "createDocument", actor.team)
   )
 );
 

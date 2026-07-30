@@ -1340,18 +1340,9 @@ router.post(
       userId: user.id,
       transaction,
     });
-    authorize(user, "read", document);
+    authorize(user, "duplicate", document);
 
-    const collection = collectionId
-      ? await Collection.findByPk(collectionId, {
-          userId: user.id,
-          transaction,
-        })
-      : document?.collection;
-
-    if (collection) {
-      authorize(user, "updateDocument", collection);
-    }
+    let collection: Collection | null | undefined;
 
     if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
@@ -1362,6 +1353,34 @@ router.post(
 
       if (!parent.publishedAt) {
         throw InvalidRequestError("Cannot duplicate document inside a draft");
+      }
+
+      if (collectionId && collectionId !== parent.collectionId) {
+        throw InvalidRequestError(
+          "collectionId must match the collection of the parent document"
+        );
+      }
+
+      // The copy is nested under the parent, so it belongs to the parent's
+      // collection.
+      collection = parent.collectionId
+        ? await Collection.findByPk(parent.collectionId, {
+            userId: user.id,
+            transaction,
+          })
+        : undefined;
+    } else {
+      collection = collectionId
+        ? await Collection.findByPk(collectionId, {
+            userId: user.id,
+            transaction,
+          })
+        : document?.collection;
+
+      // The copy is created in the destination collection, so create permission
+      // is required there rather than on the source.
+      if (collection) {
+        authorize(user, "createDocument", collection);
       }
     }
 
