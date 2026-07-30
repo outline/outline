@@ -8,7 +8,7 @@ import {
   buildDocument,
   buildTeam,
 } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import { getTestServer, mockTaskSchedule } from "@server/test/support";
 
 const server = getTestServer();
 
@@ -1438,6 +1438,144 @@ describe("#collections.create", () => {
     expect(createdCollection.data.index).toEqual("aP");
     expect(createdCollection.data.index > "a").toBeTruthy();
     expect(createdCollection.data.index < "b").toBeTruthy();
+  });
+});
+
+describe("#collections.duplicate", () => {
+  const schedule = mockTaskSchedule();
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/collections.duplicate");
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should duplicate collection with properties", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+      icon: "flame",
+      color: "#FF0000",
+      sharing: false,
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).not.toEqual(collection.id);
+    expect(body.data.name).toEqual(collection.name);
+    expect(body.data.icon).toEqual("flame");
+    expect(body.data.color).toEqual("#FF0000");
+    expect(body.data.sharing).toEqual(false);
+    expect(body.data.permission).toEqual(collection.permission);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+  });
+
+  it("should allow overriding the name", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+        name: "Copied collection",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual("Copied collection");
+  });
+
+  it("should schedule documents in the collection to be duplicated", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(schedule).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collectionId: body.data.id,
+        originalCollectionId: collection.id,
+        actorId: user.id,
+      })
+    );
+  });
+
+  it("should require read permission on a private collection", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: team.id,
+      permission: null,
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow members when collection creation is restricted", async () => {
+    const team = await buildTeam({
+      memberCollectionCreate: false,
+    });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow duplicating an archived collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+      archivedAt: new Date(),
+    });
+
+    const res = await server.post("/api/collections.duplicate", user, {
+      body: {
+        id: collection.id,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 });
 

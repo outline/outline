@@ -390,6 +390,8 @@ export type SourceMetadata = {
   trial?: boolean;
   /** The ID of the original document when this document was duplicated. */
   originalDocumentId?: string;
+  /** The ID of the original collection when this collection was duplicated. */
+  originalCollectionId?: string;
 };
 
 export type CustomTheme = {

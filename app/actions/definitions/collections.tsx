@@ -3,6 +3,7 @@ import {
   SortAlphabeticalIcon,
   ArchiveIcon,
   CollectionIcon,
+  DuplicateIcon,
   EditIcon,
   ExportIcon,
   ImportIcon,
@@ -26,6 +27,7 @@ import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
+import CollectionDuplicateDialog from "~/components/CollectionDuplicateDialog";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { DialogTitle } from "~/components/DialogTitle";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
@@ -140,6 +142,35 @@ export const editCollectionPermissions = createAction({
           collection={collection}
           onRequestClose={stores.dialogs.closeAllModals}
           visible
+        />
+      ),
+    });
+  },
+});
+
+export const duplicateCollection = createAction({
+  name: ({ t, isMenu }) =>
+    isMenu ? `${t("Duplicate")}…` : t("Duplicate collection"),
+  analyticsName: "Duplicate collection",
+  section: ActiveCollectionSection,
+  icon: <DuplicateIcon />,
+  keywords: "copy",
+  visible: ({ getActivePolicies }) =>
+    getActivePolicies(Collection).some((policy) => policy.abilities.duplicate),
+  perform: ({ getActiveModel, t, stores }) => {
+    const collection = getActiveModel(Collection);
+    if (!collection) {
+      return;
+    }
+
+    stores.dialogs.openModal({
+      title: (
+        <DialogTitle title={t("Duplicate collection")} model={collection} />
+      ),
+      content: (
+        <CollectionDuplicateDialog
+          collection={collection}
+          onSubmit={stores.dialogs.closeAllModals}
         />
       ),
     });
@@ -558,6 +589,7 @@ export const rootCollectionActions = [
   openCollection,
   openCollectionInSplit,
   createCollection,
+  duplicateCollection,
   starCollection,
   unstarCollection,
   subscribeCollection,

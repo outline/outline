@@ -890,7 +890,8 @@ export const copyDocument = createActionWithChildren({
 });
 
 export const duplicateDocument = createAction({
-  name: ({ t, isMenu }) => (isMenu ? t("Duplicate") : t("Duplicate document")),
+  name: ({ t, isMenu }) =>
+    isMenu ? `${t("Duplicate")}…` : t("Duplicate document"),
   analyticsName: "Duplicate document",
   section: ActiveDocumentSection,
   icon: <DuplicateIcon />,
@@ -906,7 +907,7 @@ export const duplicateDocument = createAction({
     invariant(document, "Document must exist");
 
     stores.dialogs.openModal({
-      title: <DialogTitle title={t("Copy document")} model={document} />,
+      title: <DialogTitle title={t("Duplicate document")} model={document} />,
       content: (
         <DocumentCopy
           document={document}
