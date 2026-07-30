@@ -132,6 +132,7 @@ const CollectionLink: React.FC<Props> = ({
       <CollectionLinkChildren
         collection={collection}
         expanded={!!expanded}
+        depth={depth}
         prefetchDocument={documents.prefetchDocument}
       />
     </CollectionRow>
