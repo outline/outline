@@ -1,8 +1,6 @@
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { v4 as uuidv4 } from "uuid";
@@ -11,6 +9,8 @@ import type {
   DataViewSummaries,
   DataViewSort,
   FilterCondition,
+  Property,
+  PropertyValue,
   SummaryAggregation,
 } from "@shared/types";
 import { DataViewType } from "@shared/types";
@@ -57,7 +57,6 @@ const NO_GROUPING = "";
 function DatabaseView({ database }: Props) {
   const { t } = useTranslation();
   const { documents } = useStores();
-  const history = useHistory();
   const can = usePolicy(database);
 
   const [persistedViewId, setPersistedViewId] = usePersistedState<
@@ -67,7 +66,8 @@ function DatabaseView({ database }: Props) {
   const [summaries, setSummaries] = React.useState<DataViewSummaries>();
   const [hasMore, setHasMore] = React.useState(false);
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
-  const [isCreating, setIsCreating] = React.useState(false);
+  const [newRowId, setNewRowId] = React.useState<string>();
+  const isCreatingRef = React.useRef(false);
 
   const schema = React.useMemo(
     () => database.dataSchema ?? [],
@@ -187,24 +187,54 @@ function DatabaseView({ database }: Props) {
     [updateActiveView]
   );
 
-  const handleNewRow = React.useCallback(async () => {
-    setIsCreating(true);
-    try {
-      const document = await documents.create(
-        {
-          title: "",
-          collectionId: database.collectionId,
-          databaseId: database.id,
-        },
-        { publish: true }
-      );
-      history.push(document.path);
-    } catch (error) {
-      toast.error(errToString(error));
-    } finally {
-      setIsCreating(false);
-    }
-  }, [documents, database, history]);
+  const handleNewRow = React.useCallback(
+    async (group?: { propertyId: string; value: PropertyValue }) => {
+      if (isCreatingRef.current) {
+        return;
+      }
+      isCreatingRef.current = true;
+      try {
+        const document = await documents.create(
+          {
+            title: "",
+            collectionId: database.collectionId,
+            databaseId: database.id,
+          },
+          { publish: true }
+        );
+        if (group && group.value !== null) {
+          await document.setProperty(group.propertyId, group.value);
+        }
+        setRows((current) => [...(current ?? []), document]);
+        setNewRowId(document.id);
+      } catch (error) {
+        toast.error(errToString(error));
+      } finally {
+        isCreatingRef.current = false;
+      }
+    },
+    [documents, database]
+  );
+
+  const handleNewRowDone = React.useCallback(() => {
+    setNewRowId(undefined);
+  }, []);
+
+  // plain-row variant for views that create without a preset group value, so
+  // DOM click events are never mistaken for the group argument.
+  const handleNewRowPlain = React.useCallback(
+    () => void handleNewRow(),
+    [handleNewRow]
+  );
+
+  const handleAddProperty = React.useCallback(
+    async (property: Property) => {
+      await database.save({
+        dataSchema: [...(database.dataSchema ?? []), property],
+      });
+    },
+    [database]
+  );
 
   const handleCreateView = React.useCallback(
     async (type: DataViewType) => {
@@ -362,17 +392,6 @@ function DatabaseView({ database }: Props) {
             onToggle={handleToggleProperty}
           />
         )}
-        {can.createRow && (
-          <Button
-            type="button"
-            onClick={handleNewRow}
-            disabled={isCreating}
-            icon={<PlusIcon />}
-            neutral
-          >
-            {t("New row")}
-          </Button>
-        )}
       </Toolbar>
 
       {viewType === DataViewType.Board && boardGroupByProperty ? (
@@ -380,6 +399,9 @@ function DatabaseView({ database }: Props) {
           rows={rows}
           properties={visibleProperties}
           groupByProperty={boardGroupByProperty}
+          onNewRow={can.createRow ? handleNewRow : undefined}
+          newRowId={newRowId}
+          onNewRowDone={handleNewRowDone}
         />
       ) : viewType === DataViewType.List ? (
         <DatabaseList
@@ -391,12 +413,18 @@ function DatabaseView({ database }: Props) {
               : undefined
           }
           hasFilter={!!filter}
+          onNewRow={can.createRow ? handleNewRowPlain : undefined}
+          newRowId={newRowId}
+          onNewRowDone={handleNewRowDone}
         />
       ) : viewType === DataViewType.Gallery ? (
         <DatabaseGallery
           rows={rows}
           properties={visibleProperties}
           hasFilter={!!filter}
+          onNewRow={can.createRow ? handleNewRowPlain : undefined}
+          newRowId={newRowId}
+          onNewRowDone={handleNewRowDone}
         />
       ) : (
         <DatabaseTable
@@ -405,6 +433,11 @@ function DatabaseView({ database }: Props) {
           sort={sort}
           onSort={handleSort}
           hasFilter={!!filter}
+          onNewRow={can.createRow ? handleNewRowPlain : undefined}
+          newRowId={newRowId}
+          onNewRowDone={handleNewRowDone}
+          schemaNames={schema.map((property) => property.name)}
+          onAddProperty={can.update ? handleAddProperty : undefined}
         />
       )}
 

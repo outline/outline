@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -9,7 +10,10 @@ import { PropertyType } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import type Document from "~/models/Document";
 import PropertyValueEditor from "~/components/DocumentProperties/PropertyValueEditor";
+import NudeButton from "~/components/NudeButton";
 import usePolicy from "~/hooks/usePolicy";
+import DatabaseAddProperty from "./DatabaseAddProperty";
+import RowTitleInput from "./RowTitleInput";
 
 type Props = {
   /** The documents to render as rows, in order. */
@@ -22,15 +26,38 @@ type Props = {
   onSort: (propertyId: string) => void;
   /** Whether a filter is currently applied, to phrase the empty state. */
   hasFilter: boolean;
+  /** Callback to create a new row; absent when the user cannot create rows. */
+  onNewRow?: () => void;
+  /** The id of a freshly created row whose title is being typed inline. */
+  newRowId?: string;
+  /** Callback when the inline title editing of a new row has finished. */
+  onNewRowDone: () => void;
+  /** All property names in the schema, to reject duplicates when adding. */
+  schemaNames: string[];
+  /** Callback to append a property to the schema; absent when not allowed. */
+  onAddProperty?: (property: Property) => Promise<void>;
 };
 
 /**
  * Renders the documents of a database collection as a table: rows are
  * documents, columns are the properties from the collection's data schema.
- * Cells are editable in place and headers toggle sorting.
+ * Cells are editable in place and headers toggle sorting. A trailing "+"
+ * column adds new properties and a footer row adds new rows.
  */
-function DatabaseTable({ rows, properties, sort, onSort, hasFilter }: Props) {
+function DatabaseTable({
+  rows,
+  properties,
+  sort,
+  onSort,
+  hasFilter,
+  onNewRow,
+  newRowId,
+  onNewRowDone,
+  schemaNames,
+  onAddProperty,
+}: Props) {
   const { t } = useTranslation();
+  const columnCount = properties.length + 1 + (onAddProperty ? 1 : 0);
 
   return (
     <ScrollContainer>
@@ -59,6 +86,14 @@ function DatabaseTable({ rows, properties, sort, onSort, hasFilter }: Props) {
                   : ""}
               </HeaderCell>
             ))}
+            {onAddProperty && (
+              <AddPropertyCell as="th">
+                <DatabaseAddProperty
+                  existingNames={schemaNames}
+                  onAdd={onAddProperty}
+                />
+              </AddPropertyCell>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -67,15 +102,33 @@ function DatabaseTable({ rows, properties, sort, onSort, hasFilter }: Props) {
               key={document.id}
               document={document}
               properties={properties}
+              isEditingTitle={document.id === newRowId}
+              onTitleDone={onNewRowDone}
+              hasAddColumn={!!onAddProperty}
             />
           ))}
-          {rows.length === 0 && (
+          {rows.length === 0 && !onNewRow && (
             <tr>
-              <EmptyCell colSpan={properties.length + 1}>
+              <EmptyCell colSpan={columnCount}>
                 {hasFilter
                   ? t("No documents match the filter")
                   : t("No documents yet")}
               </EmptyCell>
+            </tr>
+          )}
+          {onNewRow && (
+            <tr>
+              <NewRowCell colSpan={columnCount}>
+                <NewRowButton
+                  type="button"
+                  onClick={onNewRow}
+                  width="100%"
+                  height={32}
+                >
+                  <PlusIcon size={18} />
+                  {t("New row")}
+                </NewRowButton>
+              </NewRowCell>
             </tr>
           )}
         </tbody>
@@ -87,9 +140,15 @@ function DatabaseTable({ rows, properties, sort, onSort, hasFilter }: Props) {
 const DatabaseTableRow = observer(function DatabaseTableRow_({
   document,
   properties,
+  isEditingTitle,
+  onTitleDone,
+  hasAddColumn,
 }: {
   document: Document;
   properties: Property[];
+  isEditingTitle: boolean;
+  onTitleDone: () => void;
+  hasAddColumn: boolean;
 }) {
   const can = usePolicy(document);
 
@@ -107,7 +166,11 @@ const DatabaseTableRow = observer(function DatabaseTableRow_({
   return (
     <Row>
       <TitleCell>
-        <TitleLink to={document.path}>{document.titleWithDefault}</TitleLink>
+        {isEditingTitle ? (
+          <RowTitleInput document={document} onDone={onTitleDone} />
+        ) : (
+          <TitleLink to={document.path}>{document.titleWithDefault}</TitleLink>
+        )}
       </TitleCell>
       {properties.map((property) => (
         <Cell key={property.id}>
@@ -119,6 +182,7 @@ const DatabaseTableRow = observer(function DatabaseTableRow_({
           />
         </Cell>
       ))}
+      {hasAddColumn && <Cell />}
     </Row>
   );
 });
@@ -149,6 +213,14 @@ const HeaderCell = styled.th<{ $sortable?: boolean; $minWidth?: number }>`
   &:not(:last-child) {
     border-right: 1px solid ${s("divider")};
   }
+`;
+
+const AddPropertyCell = styled.th`
+  border-bottom: 1px solid ${s("divider")};
+  padding: 4px 6px;
+  width: 36px;
+  min-width: 36px;
+  vertical-align: middle;
 `;
 
 const Row = styled.tr`
@@ -183,6 +255,25 @@ const EmptyCell = styled.td`
   padding: 24px;
   text-align: center;
   color: ${s("textSecondary")};
+`;
+
+const NewRowCell = styled.td`
+  padding: 2px 4px;
+`;
+
+const NewRowButton = styled(NudeButton)`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: ${s("textSecondary")};
+  font-size: 14px;
+  padding: 0 6px;
+  justify-content: flex-start;
+
+  &:hover {
+    background: ${s("backgroundSecondary")};
+    color: ${s("text")};
+  }
 `;
 
 export default observer(DatabaseTable);

@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -7,6 +8,8 @@ import { s } from "@shared/styles";
 import PropertyValueLabel from "@shared/editor/components/PropertyValueLabel";
 import type { Property } from "@shared/types";
 import type Document from "~/models/Document";
+import NudeButton from "~/components/NudeButton";
+import RowTitleInput from "./RowTitleInput";
 
 type Props = {
   /** The documents to render as cards, in order. */
@@ -15,16 +18,29 @@ type Props = {
   properties: Property[];
   /** Whether a filter is currently applied, to phrase the empty state. */
   hasFilter: boolean;
+  /** Callback to create a new row; absent when the user cannot create rows. */
+  onNewRow?: () => void;
+  /** The id of a freshly created row whose title is being typed inline. */
+  newRowId?: string;
+  /** Callback when the inline title editing of a new row has finished. */
+  onNewRowDone: () => void;
 };
 
 /**
  * Renders the documents of a database collection as a responsive card grid:
  * each card shows the document title and its property values stacked.
  */
-function DatabaseGallery({ rows, properties, hasFilter }: Props) {
+function DatabaseGallery({
+  rows,
+  properties,
+  hasFilter,
+  onNewRow,
+  newRowId,
+  onNewRowDone,
+}: Props) {
   const { t } = useTranslation();
 
-  if (rows.length === 0) {
+  if (rows.length === 0 && !onNewRow) {
     return (
       <Empty>
         {hasFilter ? t("No documents match the filter") : t("No documents yet")}
@@ -39,8 +55,16 @@ function DatabaseGallery({ rows, properties, hasFilter }: Props) {
           key={document.id}
           document={document}
           properties={properties}
+          isEditingTitle={document.id === newRowId}
+          onTitleDone={onNewRowDone}
         />
       ))}
+      {onNewRow && (
+        <NewCardButton type="button" onClick={onNewRow} width="100%">
+          <PlusIcon size={18} />
+          {t("New row")}
+        </NewCardButton>
+      )}
     </Grid>
   );
 }
@@ -48,13 +72,21 @@ function DatabaseGallery({ rows, properties, hasFilter }: Props) {
 const GalleryCard = observer(function GalleryCard_({
   document,
   properties,
+  isEditingTitle,
+  onTitleDone,
 }: {
   document: Document;
   properties: Property[];
+  isEditingTitle: boolean;
+  onTitleDone: () => void;
 }) {
   return (
     <Card>
-      <CardTitle to={document.path}>{document.titleWithDefault}</CardTitle>
+      {isEditingTitle ? (
+        <RowTitleInput document={document} onDone={onTitleDone} />
+      ) : (
+        <CardTitle to={document.path}>{document.titleWithDefault}</CardTitle>
+      )}
       {properties.map((property) => {
         const value = document.propertyValue(property.id);
         if (value === undefined || value === null) {
@@ -102,6 +134,25 @@ const CardTitle = styled(Link)`
 
   &:hover {
     text-decoration: underline;
+  }
+`;
+
+const NewCardButton = styled(NudeButton)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px dashed ${s("divider")};
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 48px;
+  height: auto;
+  color: ${s("textSecondary")};
+  font-size: 14px;
+
+  &:hover {
+    background: ${s("backgroundSecondary")};
+    color: ${s("text")};
   }
 `;
 

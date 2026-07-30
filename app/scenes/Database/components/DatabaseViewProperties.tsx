@@ -1,11 +1,13 @@
 import { observer } from "mobx-react";
+import { EyeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import type { DataView, Property } from "@shared/types";
-import Button from "~/components/Button";
+import NudeButton from "~/components/NudeButton";
 import Switch from "~/components/Switch";
+import Tooltip from "~/components/Tooltip";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 
 type Props = {
@@ -18,9 +20,9 @@ type Props = {
 };
 
 /**
- * A toolbar popover listing the schema's properties with a visibility
- * toggle for each, controlling which properties the active database view
- * displays.
+ * An eye-icon toolbar popover listing the schema's properties with a
+ * visibility toggle for each, controlling which properties the active
+ * database view displays.
  */
 function DatabaseViewProperties({ schema, view, onToggle }: Props) {
   const { t } = useTranslation();
@@ -37,9 +39,16 @@ function DatabaseViewProperties({ schema, view, onToggle }: Props) {
 
   return (
     <Container ref={containerRef}>
-      <Button type="button" onClick={() => setIsOpen(!isOpen)} neutral>
-        {t("Properties")}
-      </Button>
+      <Tooltip content={t("Visible properties")}>
+        <IconButton
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label={t("Visible properties")}
+          size={28}
+        >
+          <EyeIcon size={20} />
+        </IconButton>
+      </Tooltip>
       {isOpen && (
         <Panel>
           {schema.map((property) => (
@@ -61,6 +70,18 @@ function DatabaseViewProperties({ schema, view, onToggle }: Props) {
 
 const Container = styled.div`
   position: relative;
+`;
+
+const IconButton = styled(NudeButton)`
+  color: ${s("textSecondary")};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: ${s("backgroundSecondary")};
+    color: ${s("text")};
+  }
 `;
 
 const Panel = styled.div`

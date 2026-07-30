@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -7,6 +8,8 @@ import PropertyValueLabel from "@shared/editor/components/PropertyValueLabel";
 import type { Property } from "@shared/types";
 import { groupByProperty } from "@shared/utils/properties";
 import type Document from "~/models/Document";
+import NudeButton from "~/components/NudeButton";
+import RowTitleInput from "./RowTitleInput";
 
 type Props = {
   /** The documents to render, in order. */
@@ -17,6 +20,12 @@ type Props = {
   groupByProperty?: Property;
   /** Whether a filter is currently applied, to phrase the empty state. */
   hasFilter: boolean;
+  /** Callback to create a new row; absent when the user cannot create rows. */
+  onNewRow?: () => void;
+  /** The id of a freshly created row whose title is being typed inline. */
+  newRowId?: string;
+  /** Callback when the inline title editing of a new row has finished. */
+  onNewRowDone: () => void;
 };
 
 /**
@@ -30,10 +39,22 @@ function DatabaseList({
   properties,
   groupByProperty: groupProperty,
   hasFilter,
+  onNewRow,
+  newRowId,
+  onNewRowDone,
 }: Props) {
   const { t } = useTranslation();
 
-  if (rows.length === 0) {
+  const newRowButton = onNewRow ? (
+    <NewRow>
+      <NewRowButton type="button" onClick={onNewRow} width="100%" height={32}>
+        <PlusIcon size={18} />
+        {t("New row")}
+      </NewRowButton>
+    </NewRow>
+  ) : null;
+
+  if (rows.length === 0 && !onNewRow) {
     return (
       <Empty>
         {hasFilter ? t("No documents match the filter") : t("No documents yet")}
@@ -49,8 +70,11 @@ function DatabaseList({
             key={document.id}
             document={document}
             properties={properties}
+            isEditingTitle={document.id === newRowId}
+            onTitleDone={onNewRowDone}
           />
         ))}
+        {newRowButton}
       </Container>
     );
   }
@@ -80,11 +104,14 @@ function DatabaseList({
                 key={document.id}
                 document={document}
                 properties={rowProperties}
+                isEditingTitle={document.id === newRowId}
+                onTitleDone={onNewRowDone}
               />
             ))}
           </Container>
         </Section>
       ))}
+      {newRowButton && <Container>{newRowButton}</Container>}
     </>
   );
 }
@@ -92,10 +119,24 @@ function DatabaseList({
 const ListRow = observer(function ListRow_({
   document,
   properties,
+  isEditingTitle,
+  onTitleDone,
 }: {
   document: Document;
   properties: Property[];
+  isEditingTitle: boolean;
+  onTitleDone: () => void;
 }) {
+  if (isEditingTitle) {
+    return (
+      <Row>
+        <TitleInputWrapper>
+          <RowTitleInput document={document} onDone={onTitleDone} />
+        </TitleInputWrapper>
+      </Row>
+    );
+  }
+
   return (
     <Row>
       <RowTitle to={document.path}>{document.titleWithDefault}</RowTitle>
@@ -184,6 +225,33 @@ const RowValues = styled.div`
 const RowValue = styled.span`
   display: inline-flex;
   align-items: center;
+`;
+
+const TitleInputWrapper = styled.div`
+  flex-grow: 1;
+`;
+
+const NewRow = styled.div`
+  padding: 2px 4px;
+
+  &:not(:first-child) {
+    border-top: 1px solid ${s("divider")};
+  }
+`;
+
+const NewRowButton = styled(NudeButton)`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: ${s("textSecondary")};
+  font-size: 14px;
+  padding: 0 6px;
+  justify-content: flex-start;
+
+  &:hover {
+    background: ${s("backgroundSecondary")};
+    color: ${s("text")};
+  }
 `;
 
 const Empty = styled.div`

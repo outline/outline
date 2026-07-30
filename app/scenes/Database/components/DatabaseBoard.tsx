@@ -8,6 +8,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -23,7 +24,9 @@ import {
   groupOptionIdForValue,
 } from "@shared/utils/properties";
 import type Document from "~/models/Document";
+import NudeButton from "~/components/NudeButton";
 import usePolicy from "~/hooks/usePolicy";
+import RowTitleInput from "./RowTitleInput";
 
 type Props = {
   /** The documents to render as cards, in order. */
@@ -32,6 +35,13 @@ type Props = {
   properties: Property[];
   /** The groupable property whose options form the board columns. */
   groupByProperty: Property;
+  /** Callback to create a new row, optionally preset to a column's option;
+   * absent when the user cannot create rows. */
+  onNewRow?: (group?: { propertyId: string; value: PropertyValue }) => void;
+  /** The id of a freshly created row whose title is being typed inline. */
+  newRowId?: string;
+  /** Callback when the inline title editing of a new row has finished. */
+  onNewRowDone: () => void;
 };
 
 const EMPTY_COLUMN_ID = "__none__";
@@ -42,7 +52,14 @@ const EMPTY_COLUMN_ID = "__none__";
  * "No value" column. Dragging a card between columns updates the document's
  * group property value.
  */
-function DatabaseBoard({ rows, properties, groupByProperty: property }: Props) {
+function DatabaseBoard({
+  rows,
+  properties,
+  groupByProperty: property,
+  onNewRow,
+  newRowId,
+  onNewRowDone,
+}: Props) {
   const { t } = useTranslation();
 
   const sensors = useSensors(
@@ -100,6 +117,9 @@ function DatabaseBoard({ rows, properties, groupByProperty: property }: Props) {
             properties={properties}
             groupByProperty={property}
             emptyLabel={t("No value")}
+            onNewRow={onNewRow}
+            newRowId={newRowId}
+            onNewRowDone={onNewRowDone}
           />
         ))}
       </Columns>
@@ -113,16 +133,35 @@ const BoardColumn = observer(function BoardColumn_({
   properties,
   groupByProperty: property,
   emptyLabel,
+  onNewRow,
+  newRowId,
+  onNewRowDone,
 }: {
   option: PropertyOption | null;
   documents: Document[];
   properties: Property[];
   groupByProperty: Property;
   emptyLabel: string;
+  onNewRow?: (group?: { propertyId: string; value: PropertyValue }) => void;
+  newRowId?: string;
+  onNewRowDone: () => void;
 }) {
+  const { t } = useTranslation();
   const { setNodeRef, isOver } = useDroppable({
     id: option?.id ?? EMPTY_COLUMN_ID,
   });
+
+  const handleNewRow = React.useCallback(() => {
+    if (!onNewRow) {
+      return;
+    }
+    const value: PropertyValue = option
+      ? property.type === PropertyType.MultiSelect
+        ? [option.id]
+        : option.id
+      : null;
+    onNewRow({ propertyId: property.id, value });
+  }, [onNewRow, option, property]);
 
   return (
     <Column ref={setNodeRef} $isOver={isOver}>
@@ -140,8 +179,21 @@ const BoardColumn = observer(function BoardColumn_({
           document={document}
           properties={properties}
           groupByProperty={property}
+          isEditingTitle={document.id === newRowId}
+          onTitleDone={onNewRowDone}
         />
       ))}
+      {onNewRow && (
+        <NewCardButton
+          type="button"
+          onClick={handleNewRow}
+          width="100%"
+          height={28}
+        >
+          <PlusIcon size={16} />
+          {t("New row")}
+        </NewCardButton>
+      )}
     </Column>
   );
 });
@@ -150,16 +202,20 @@ const BoardCard = observer(function BoardCard_({
   document,
   properties,
   groupByProperty: property,
+  isEditingTitle,
+  onTitleDone,
 }: {
   document: Document;
   properties: Property[];
   groupByProperty: Property;
+  isEditingTitle: boolean;
+  onTitleDone: () => void;
 }) {
   const can = usePolicy(document);
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: document.id,
-      disabled: !can.update,
+      disabled: !can.update || isEditingTitle,
     });
   const cardProperties = properties.filter((item) => item.id !== property.id);
 
@@ -175,7 +231,11 @@ const BoardCard = observer(function BoardCard_({
       {...listeners}
       {...attributes}
     >
-      <CardTitle to={document.path}>{document.titleWithDefault}</CardTitle>
+      {isEditingTitle ? (
+        <RowTitleInput document={document} onDone={onTitleDone} />
+      ) : (
+        <CardTitle to={document.path}>{document.titleWithDefault}</CardTitle>
+      )}
       {cardProperties.map((item) => {
         const value = document.propertyValue(item.id);
         if (value === undefined || value === null) {
@@ -234,6 +294,21 @@ const EmptyChip = styled.span`
 const Count = styled.span`
   color: ${s("textTertiary")};
   font-size: 13px;
+`;
+
+const NewCardButton = styled(NudeButton)`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: ${s("textSecondary")};
+  font-size: 13px;
+  padding: 0 6px;
+  justify-content: flex-start;
+
+  &:hover {
+    background: ${s("backgroundSecondary")};
+    color: ${s("text")};
+  }
 `;
 
 const Card = styled.div<{ $isDragging: boolean }>`
