@@ -6,6 +6,7 @@ export default function presentDatabase(database: Database) {
     name: database.name,
     icon: database.icon,
     color: database.color,
+    fullWidth: database.fullWidth,
     dataSchema: database.dataSchema,
     views: database.views,
     collectionId: database.collectionId,

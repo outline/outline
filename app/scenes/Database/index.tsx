@@ -9,8 +9,12 @@ import { toError } from "@shared/utils/error";
 import { errToString } from "@shared/utils/error";
 import { toast } from "sonner";
 import { DatabaseValidation } from "@shared/validations";
+import { DatabaseIcon } from "outline-icons";
 import type Database from "~/models/Database";
+import { Action } from "~/components/Actions";
 import CenteredContent from "~/components/CenteredContent";
+import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
+import DatabaseMenu from "~/menus/DatabaseMenu";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import PlaceholderList from "~/components/List/Placeholder";
@@ -27,7 +31,6 @@ import DatabaseView from "./components/DatabaseView";
  */
 const DatabaseScene = observer(function DatabaseScene_() {
   const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
   const { databases, collections } = useStores();
   const [error, setError] = useState<Error>();
 
@@ -57,20 +60,35 @@ const DatabaseScene = observer(function DatabaseScene_() {
   }
 
   return (
-    <Scene title={database?.name} centered={false}>
-      <CenteredContent withStickyHeader>
+    <Scene
+      title={database?.name}
+      icon={<DatabaseIcon />}
+      textTitle={database?.name}
+      // the parent collection stands in for a document's breadcrumb, and the
+      // overflow menu carries the same display options a document page has
+      left={
+        database?.collection ? (
+          <CollectionBreadcrumb collection={database.collection} />
+        ) : undefined
+      }
+      actions={
+        database ? (
+          <Action>
+            <DatabaseMenu database={database} />
+          </Action>
+        ) : undefined
+      }
+      centered={false}
+    >
+      <CenteredContent
+        withStickyHeader
+        maxWidth={database?.fullWidth ? "100%" : undefined}
+      >
         {database ? (
           <>
             <Flex align="center" gap={8}>
               <DatabaseHeading database={database} />
             </Flex>
-            {database.collection && (
-              <Subtitle>
-                {t("In {{ collectionName }}", {
-                  collectionName: database.collection.name,
-                })}
-              </Subtitle>
-            )}
             <DatabaseView database={database} />
           </>
         ) : (
@@ -184,12 +202,6 @@ const HeadingInput = styled.input`
   &::placeholder {
     color: ${s("placeholder")};
   }
-`;
-
-const Subtitle = styled.p`
-  color: ${s("textTertiary")};
-  font-size: 14px;
-  margin: -8px 0 4px;
 `;
 
 export default DatabaseScene;

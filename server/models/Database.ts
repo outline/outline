@@ -65,6 +65,11 @@ class Database extends ParanoidModel<
   @Column(DataType.STRING)
   color: string | null;
 
+  /** Whether the database's page ignores the usual reading width. */
+  @Default(false)
+  @Column(DataType.BOOLEAN)
+  fullWidth: boolean;
+
   /** The typed property definitions that describe this database's columns. */
   @Default([])
   @Column({

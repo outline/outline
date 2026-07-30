@@ -132,6 +132,8 @@ export const DatabasesUpdateSchema = BaseSchema.extend({
       .string()
       .regex(ValidateColor.regex, { error: ValidateColor.message })
       .nullish(),
+    /** Whether the database's page ignores the usual reading width */
+    fullWidth: z.boolean().optional(),
     /** Moves the database, and all of its rows, to another collection */
     collectionId: zodIdType().optional(),
     /** The typed property definitions describing the database's columns */

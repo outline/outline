@@ -3,12 +3,18 @@ import { DatabaseIcon, EditIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import { errToString } from "@shared/utils/error";
 import type Database from "~/models/Database";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DatabaseSchemaEditor from "~/components/Database/DatabaseSchemaEditor";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import { MenuSeparator } from "~/components/primitives/components/Menu";
+import Switch from "~/components/Switch";
+import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { createAction } from "~/actions";
@@ -30,6 +36,7 @@ function DatabaseMenu({ database }: Props) {
   const { t } = useTranslation();
   const { dialogs } = useStores();
   const can = usePolicy(database);
+  const isMobile = useMobile();
 
   const handleEditSchema = React.useCallback(() => {
     dialogs.openModal({
@@ -106,6 +113,40 @@ function DatabaseMenu({ database }: Props) {
   );
   const rootAction = useMenuAction(actions);
 
+  const handleFullWidthToggle = React.useCallback(
+    (checked: boolean) => {
+      database.fullWidth = checked;
+      void database.save({ fullWidth: checked });
+    },
+    [database]
+  );
+
+  // the display options a document page offers in the same place, minus the
+  // ones that describe a document's text
+  const toggleSwitches = React.useMemo<React.ReactNode>(() => {
+    if (!can.update || isMobile) {
+      return;
+    }
+
+    return (
+      <>
+        <MenuSeparator />
+        <DisplayOptions>
+          <Style>
+            <ToggleMenuItem
+              width={26}
+              height={14}
+              label={t("Full width")}
+              labelPosition="left"
+              checked={database.fullWidth}
+              onChange={handleFullWidthToggle}
+            />
+          </Style>
+        </DisplayOptions>
+      </>
+    );
+  }, [t, can.update, isMobile, database.fullWidth, handleFullWidthToggle]);
+
   if (!can.update && !can.delete) {
     return null;
   }
@@ -115,10 +156,31 @@ function DatabaseMenu({ database }: Props) {
       action={rootAction}
       align="end"
       ariaLabel={t("Database options")}
+      append={toggleSwitches}
     >
       <OverflowMenuButton />
     </DropdownMenu>
   );
 }
+
+const ToggleMenuItem = styled(Switch)`
+  * {
+    font-weight: normal;
+    color: ${s("textSecondary")};
+  }
+`;
+
+const DisplayOptions = styled.div`
+  padding: 8px 0 0;
+`;
+
+const Style = styled.div`
+  padding: 12px;
+
+  ${breakpoint("tablet")`
+    padding: 4px 12px;
+    font-size: 14px;
+  `};
+`;
 
 export default observer(DatabaseMenu);

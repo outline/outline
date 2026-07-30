@@ -29,6 +29,11 @@ export default class Database extends ParanoidModel {
   @observable
   color: string | null;
 
+  /** Whether the database's page ignores the usual reading width. */
+  @Field
+  @observable
+  fullWidth: boolean;
+
   /** The collection this database belongs to. */
   @Field
   @observable

@@ -171,8 +171,16 @@ router.post(
   validate(T.DatabasesUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.DatabasesUpdateReq>) => {
-    const { id, name, icon, color, collectionId, dataSchema, views } =
-      ctx.input.body;
+    const {
+      id,
+      name,
+      icon,
+      color,
+      fullWidth,
+      collectionId,
+      dataSchema,
+      views,
+    } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     authorizeFeature(ctx);
@@ -200,6 +208,9 @@ router.post(
     }
     if (color !== undefined) {
       database.color = color ?? null;
+    }
+    if (fullWidth !== undefined) {
+      database.fullWidth = fullWidth;
     }
     if (dataSchema !== undefined) {
       database.dataSchema = dataSchema as Property[];
