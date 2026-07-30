@@ -15,10 +15,10 @@ import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import { InputSelect } from "~/components/InputSelect";
 import NudeButton from "~/components/NudeButton";
-import { SwatchButton } from "~/components/SwatchButton";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
+import PropertyOptionsEditor from "./PropertyOptionsEditor";
 
 type Props = {
   /** The database whose data schema to edit. */
@@ -137,30 +137,8 @@ function DatabaseSchemaEditor({ databaseId, onSubmit }: Props) {
     });
   };
 
-  const updateOption = (
-    index: number,
-    optionId: string,
-    updates: Partial<PropertyOption>
-  ) => {
-    updateProperty(index, {
-      options: (draft[index].options ?? []).map((option) =>
-        option.id === optionId ? { ...option, ...updates } : option
-      ),
-    });
-  };
-
-  const handleAddOption = (index: number) => {
-    updateProperty(index, {
-      options: [...(draft[index].options ?? []), { id: uuidv4(), name: "" }],
-    });
-  };
-
-  const handleRemoveOption = (index: number, optionId: string) => {
-    updateProperty(index, {
-      options: (draft[index].options ?? []).filter(
-        (option) => option.id !== optionId
-      ),
-    });
+  const handleOptionsChange = (index: number, options: PropertyOption[]) => {
+    updateProperty(index, { options });
   };
 
   const handleSave = async () => {
@@ -363,47 +341,10 @@ function DatabaseSchemaEditor({ databaseId, onSubmit }: Props) {
               </Flex>
             )}
             {supportsOptions && (
-              <Flex column gap={4}>
-                {(property.options ?? []).map((option) => (
-                  <Flex key={option.id} align="center" gap={8}>
-                    <SwatchButton
-                      color={option.color}
-                      size={20}
-                      onChange={(color) =>
-                        updateOption(index, option.id, { color })
-                      }
-                    />
-                    <OptionNameInput
-                      value={option.name}
-                      placeholder={t("Option name")}
-                      onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
-                        updateOption(index, option.id, {
-                          name: ev.target.value,
-                        })
-                      }
-                      margin={0}
-                    />
-                    <NudeButton
-                      type="button"
-                      onClick={() => handleRemoveOption(index, option.id)}
-                      aria-label={t("Remove")}
-                    >
-                      <CloseIcon size={16} />
-                    </NudeButton>
-                  </Flex>
-                ))}
-                <div>
-                  <Button
-                    type="button"
-                    onClick={() => handleAddOption(index)}
-                    icon={<PlusIcon />}
-                    neutral
-                    borderOnHover
-                  >
-                    {t("Add option")}
-                  </Button>
-                </div>
-              </Flex>
+              <PropertyOptionsEditor
+                options={property.options ?? []}
+                onChange={(options) => handleOptionsChange(index, options)}
+              />
             )}
           </PropertyRow>
         );
@@ -450,10 +391,6 @@ const PropertyRow = styled(Flex)`
 `;
 
 const NameInput = styled(Input)`
-  flex-grow: 1;
-`;
-
-const OptionNameInput = styled(Input)`
   flex-grow: 1;
 `;
 

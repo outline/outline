@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { EyeIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -8,7 +7,11 @@ import type { DataView, Property } from "@shared/types";
 import NudeButton from "~/components/NudeButton";
 import Switch from "~/components/Switch";
 import Tooltip from "~/components/Tooltip";
-import useOnClickOutside from "~/hooks/useOnClickOutside";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/primitives/Popover";
 
 type Props = {
   /** The collection's data schema. */
@@ -20,16 +23,12 @@ type Props = {
 };
 
 /**
- * An eye-icon toolbar popover listing the schema's properties with a
- * visibility toggle for each, controlling which properties the active
- * database view displays.
+ * An eye-icon popover listing the schema's properties with a visibility
+ * toggle for each, controlling which properties the active database view
+ * displays.
  */
 function DatabaseViewProperties({ schema, view, onToggle }: Props) {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = React.useState(false);
-  const containerRef = React.useRef<HTMLDivElement>(null);
-
-  useOnClickOutside(containerRef, () => setIsOpen(false));
 
   const hidden = new Set(
     (view?.columns ?? [])
@@ -38,39 +37,40 @@ function DatabaseViewProperties({ schema, view, onToggle }: Props) {
   );
 
   return (
-    <Container ref={containerRef}>
+    <Popover>
       <Tooltip content={t("Visible properties")}>
-        <IconButton
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label={t("Visible properties")}
-          size={28}
-        >
-          <EyeIcon size={20} />
-        </IconButton>
+        <PopoverTrigger>
+          <IconButton
+            type="button"
+            aria-label={t("Visible properties")}
+            size={24}
+          >
+            <EyeIcon size={18} />
+          </IconButton>
+        </PopoverTrigger>
       </Tooltip>
-      {isOpen && (
-        <Panel>
-          {schema.map((property) => (
-            <PanelRow key={property.id}>
-              <Switch
-                label={property.name}
-                labelPosition="right"
-                checked={!hidden.has(property.id)}
-                onChange={(checked) => onToggle(property.id, checked)}
-                inForm={false}
-              />
-            </PanelRow>
-          ))}
-        </Panel>
-      )}
-    </Container>
+      <PopoverContent
+        side="bottom"
+        align="end"
+        aria-label={t("Visible properties")}
+        width={220}
+        shrink
+      >
+        {schema.map((property) => (
+          <PanelRow key={property.id}>
+            <Switch
+              label={property.name}
+              labelPosition="right"
+              checked={!hidden.has(property.id)}
+              onChange={(checked) => onToggle(property.id, checked)}
+              inForm={false}
+            />
+          </PanelRow>
+        ))}
+      </PopoverContent>
+    </Popover>
   );
 }
-
-const Container = styled.div`
-  position: relative;
-`;
 
 const IconButton = styled(NudeButton)`
   color: ${s("textSecondary")};
@@ -82,21 +82,6 @@ const IconButton = styled(NudeButton)`
     background: ${s("backgroundSecondary")};
     color: ${s("text")};
   }
-`;
-
-const Panel = styled.div`
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  z-index: 100;
-  min-width: 220px;
-  max-height: 320px;
-  overflow-y: auto;
-  background: ${s("menuBackground")};
-  border: 1px solid ${s("divider")};
-  border-radius: 8px;
-  box-shadow: ${s("menuShadow")};
-  padding: 8px 12px;
 `;
 
 const PanelRow = styled.div`

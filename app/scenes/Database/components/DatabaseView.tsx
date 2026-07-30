@@ -162,18 +162,12 @@ function DatabaseView({ database }: Props) {
     [database, activeView]
   );
 
-  const handleSort = React.useCallback(
-    (propertyId: string) => {
-      const current = activeView?.sorts?.[0];
-      const next: DataViewSort[] =
-        current?.propertyId !== propertyId
-          ? [{ propertyId, direction: "asc" }]
-          : current.direction === "asc"
-            ? [{ propertyId, direction: "desc" }]
-            : [];
+  const handleSetSort = React.useCallback(
+    (propertyId: string, direction: "asc" | "desc" | null) => {
+      const next: DataViewSort[] = direction ? [{ propertyId, direction }] : [];
       void updateActiveView({ sorts: next });
     },
-    [activeView, updateActiveView]
+    [updateActiveView]
   );
 
   const handleFilter = React.useCallback(
@@ -232,6 +226,36 @@ function DatabaseView({ database }: Props) {
       await database.save({
         dataSchema: [...(database.dataSchema ?? []), property],
       });
+    },
+    [database]
+  );
+
+  const handleUpdateProperty = React.useCallback(
+    async (propertyId: string, updates: Partial<Property>) => {
+      try {
+        await database.save({
+          dataSchema: (database.dataSchema ?? []).map((property) =>
+            property.id === propertyId ? { ...property, ...updates } : property
+          ),
+        });
+      } catch (error) {
+        toast.error(errToString(error));
+      }
+    },
+    [database]
+  );
+
+  const handleDeleteProperty = React.useCallback(
+    async (propertyId: string) => {
+      try {
+        await database.save({
+          dataSchema: (database.dataSchema ?? []).filter(
+            (property) => property.id !== propertyId
+          ),
+        });
+      } catch (error) {
+        toast.error(errToString(error));
+      }
     },
     [database]
   );
@@ -385,7 +409,7 @@ function DatabaseView({ database }: Props) {
               short
             />
           )}
-        {can.update && schema.length > 0 && (
+        {can.update && schema.length > 0 && viewType !== DataViewType.Table && (
           <DatabaseViewProperties
             schema={schema}
             view={activeView}
@@ -431,13 +455,27 @@ function DatabaseView({ database }: Props) {
           rows={rows}
           properties={visibleProperties}
           sort={sort}
-          onSort={handleSort}
+          onSetSort={handleSetSort}
           hasFilter={!!filter}
           onNewRow={can.createRow ? handleNewRowPlain : undefined}
           newRowId={newRowId}
           onNewRowDone={handleNewRowDone}
           schemaNames={schema.map((property) => property.name)}
           onAddProperty={can.update ? handleAddProperty : undefined}
+          onUpdateProperty={can.update ? handleUpdateProperty : undefined}
+          onHideProperty={(propertyId) =>
+            handleToggleProperty(propertyId, false)
+          }
+          onDeleteProperty={handleDeleteProperty}
+          propertiesToggle={
+            can.update && schema.length > 0 ? (
+              <DatabaseViewProperties
+                schema={schema}
+                view={activeView}
+                onToggle={handleToggleProperty}
+              />
+            ) : undefined
+          }
         />
       )}
 

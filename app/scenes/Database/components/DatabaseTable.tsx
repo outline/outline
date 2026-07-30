@@ -1,18 +1,20 @@
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
+import type * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import type { DataViewSort, Property } from "@shared/types";
-import { PropertyType } from "@shared/types";
+import type { DataViewSort, Property, PropertyOption } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import type Document from "~/models/Document";
 import PropertyValueEditor from "~/components/DocumentProperties/PropertyValueEditor";
+import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import usePolicy from "~/hooks/usePolicy";
 import DatabaseAddProperty from "./DatabaseAddProperty";
+import DatabasePropertyMenu from "./DatabasePropertyMenu";
 import RowTitleInput from "./RowTitleInput";
 
 type Props = {
@@ -22,8 +24,8 @@ type Props = {
   properties: Property[];
   /** The active sort, reflected in the column headers. */
   sort?: DataViewSort;
-  /** Callback when a column header is clicked to change the sort. */
-  onSort: (propertyId: string) => void;
+  /** Callback when a sort direction is chosen for a property; null clears. */
+  onSetSort: (propertyId: string, direction: "asc" | "desc" | null) => void;
   /** Whether a filter is currently applied, to phrase the empty state. */
   hasFilter: boolean;
   /** Callback to create a new row; absent when the user cannot create rows. */
@@ -32,32 +34,46 @@ type Props = {
   newRowId?: string;
   /** Callback when the inline title editing of a new row has finished. */
   onNewRowDone: () => void;
-  /** All property names in the schema, to reject duplicates when adding. */
+  /** All property names in the schema, to derive unique names when adding. */
   schemaNames: string[];
   /** Callback to append a property to the schema; absent when not allowed. */
   onAddProperty?: (property: Property) => Promise<void>;
+  /** Callback merging updates into a property; absent when not allowed. */
+  onUpdateProperty?: (propertyId: string, updates: Partial<Property>) => void;
+  /** Callback hiding a property from the active view. */
+  onHideProperty: (propertyId: string) => void;
+  /** Callback removing a property from the schema. */
+  onDeleteProperty: (propertyId: string) => void;
+  /** The property-visibility toggle to render beside the add button. */
+  propertiesToggle?: React.ReactNode;
 };
 
 /**
  * Renders the documents of a database collection as a table: rows are
  * documents, columns are the properties from the collection's data schema.
- * Cells are editable in place and headers toggle sorting. A trailing "+"
- * column adds new properties and a footer row adds new rows.
+ * Cells are editable in place, clicking a column header opens the property's
+ * settings menu, a trailing "+" adds new properties and a footer row adds
+ * new rows.
  */
 function DatabaseTable({
   rows,
   properties,
   sort,
-  onSort,
+  onSetSort,
   hasFilter,
   onNewRow,
   newRowId,
   onNewRowDone,
   schemaNames,
   onAddProperty,
+  onUpdateProperty,
+  onHideProperty,
+  onDeleteProperty,
+  propertiesToggle,
 }: Props) {
   const { t } = useTranslation();
-  const columnCount = properties.length + 1 + (onAddProperty ? 1 : 0);
+  const hasControlsColumn = !!onAddProperty || !!propertiesToggle;
+  const columnCount = properties.length + 1 + (hasControlsColumn ? 1 : 0);
 
   return (
     <ScrollContainer>
@@ -67,32 +83,55 @@ function DatabaseTable({
             <HeaderCell as="th" $minWidth={220}>
               {t("Title")}
             </HeaderCell>
-            {properties.map((property) => (
-              <HeaderCell
-                as="th"
-                key={property.id}
-                onClick={
-                  property.type === PropertyType.Rollup
-                    ? undefined
-                    : () => onSort(property.id)
-                }
-                $sortable={property.type !== PropertyType.Rollup}
-              >
-                {property.name}
-                {sort?.propertyId === property.id
-                  ? sort.direction === "asc"
-                    ? " ↑"
-                    : " ↓"
-                  : ""}
-              </HeaderCell>
-            ))}
-            {onAddProperty && (
-              <AddPropertyCell as="th">
-                <DatabaseAddProperty
-                  existingNames={schemaNames}
-                  onAdd={onAddProperty}
-                />
-              </AddPropertyCell>
+            {properties.map((property) => {
+              const headerContent = (
+                <>
+                  {property.name}
+                  {sort?.propertyId === property.id
+                    ? sort.direction === "asc"
+                      ? " ↑"
+                      : " ↓"
+                    : ""}
+                </>
+              );
+              return (
+                <HeaderCell as="th" key={property.id}>
+                  {onUpdateProperty ? (
+                    <DatabasePropertyMenu
+                      property={property}
+                      sort={sort}
+                      onRename={(name) =>
+                        onUpdateProperty(property.id, { name })
+                      }
+                      onSetSort={(direction) =>
+                        onSetSort(property.id, direction)
+                      }
+                      onHide={() => onHideProperty(property.id)}
+                      onChangeOptions={(options: PropertyOption[]) =>
+                        onUpdateProperty(property.id, { options })
+                      }
+                      onDelete={() => onDeleteProperty(property.id)}
+                    >
+                      {headerContent}
+                    </DatabasePropertyMenu>
+                  ) : (
+                    headerContent
+                  )}
+                </HeaderCell>
+              );
+            })}
+            {hasControlsColumn && (
+              <ControlsCell as="th">
+                <Flex align="center" gap={2}>
+                  {onAddProperty && (
+                    <DatabaseAddProperty
+                      existingNames={schemaNames}
+                      onAdd={onAddProperty}
+                    />
+                  )}
+                  {propertiesToggle}
+                </Flex>
+              </ControlsCell>
             )}
           </tr>
         </thead>
@@ -104,7 +143,7 @@ function DatabaseTable({
               properties={properties}
               isEditingTitle={document.id === newRowId}
               onTitleDone={onNewRowDone}
-              hasAddColumn={!!onAddProperty}
+              hasControlsColumn={hasControlsColumn}
             />
           ))}
           {rows.length === 0 && !onNewRow && (
@@ -142,13 +181,13 @@ const DatabaseTableRow = observer(function DatabaseTableRow_({
   properties,
   isEditingTitle,
   onTitleDone,
-  hasAddColumn,
+  hasControlsColumn,
 }: {
   document: Document;
   properties: Property[];
   isEditingTitle: boolean;
   onTitleDone: () => void;
-  hasAddColumn: boolean;
+  hasControlsColumn: boolean;
 }) {
   const can = usePolicy(document);
 
@@ -182,15 +221,14 @@ const DatabaseTableRow = observer(function DatabaseTableRow_({
           />
         </Cell>
       ))}
-      {hasAddColumn && <Cell />}
+      {hasControlsColumn && <Cell />}
     </Row>
   );
 });
 
 const ScrollContainer = styled.div`
   overflow-x: auto;
-  border: 1px solid ${s("divider")};
-  border-radius: 8px;
+  border-top: 1px solid ${s("divider")};
 `;
 
 const Grid = styled.table`
@@ -199,7 +237,7 @@ const Grid = styled.table`
   font-size: 14px;
 `;
 
-const HeaderCell = styled.th<{ $sortable?: boolean; $minWidth?: number }>`
+const HeaderCell = styled.th<{ $minWidth?: number }>`
   text-align: left;
   font-weight: 500;
   color: ${s("textSecondary")};
@@ -208,18 +246,17 @@ const HeaderCell = styled.th<{ $sortable?: boolean; $minWidth?: number }>`
   white-space: nowrap;
   min-width: ${(props) => props.$minWidth ?? 140}px;
   user-select: none;
-  ${(props) => (props.$sortable ? "cursor: var(--pointer);" : "")}
 
   &:not(:last-child) {
     border-right: 1px solid ${s("divider")};
   }
 `;
 
-const AddPropertyCell = styled.th`
+const ControlsCell = styled.th`
   border-bottom: 1px solid ${s("divider")};
   padding: 4px 6px;
-  width: 36px;
-  min-width: 36px;
+  width: 60px;
+  min-width: 60px;
   vertical-align: middle;
 `;
 
