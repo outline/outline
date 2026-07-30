@@ -216,6 +216,11 @@ export default async function documentCreator(
           )
         : ProsemirrorHelper.toProsemirror("").toJSON();
 
+  // new rows are appended to the end of their database's manual order
+  const databaseIndex = databaseId
+    ? await Document.nextDatabaseIndex(databaseId, transaction)
+    : null;
+
   const document = Document.build({
     id,
     urlId,
@@ -223,6 +228,7 @@ export default async function documentCreator(
     editorVersion,
     collectionId,
     databaseId,
+    databaseIndex,
     teamId: user.teamId,
     createdAt,
     updatedAt: updatedAt ?? createdAt,

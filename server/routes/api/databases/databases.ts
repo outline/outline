@@ -251,6 +251,51 @@ router.post(
 );
 
 router.post(
+  "databases.move_row",
+  auth(),
+  validate(T.DatabasesMoveRowSchema),
+  transaction(),
+  async (ctx: APIContext<T.DatabasesMoveRowReq>) => {
+    const { id, documentId, index } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+    authorizeFeature(ctx);
+
+    const database = await Database.findByPk(id, { transaction });
+    if (database) {
+      database.collection = await Collection.findByPk(database.collectionId, {
+        userId: user.id,
+        transaction,
+        rejectOnEmpty: true,
+      });
+    }
+    // the manual order is a property of the database, not of the row, so it is
+    // the database the actor has to be able to update
+    authorize(user, "update", database);
+
+    // loaded without the user scope, and without a row lock: the scope's
+    // joins put the row on the nullable side of an outer join, which Postgres
+    // will not lock, and a single index written by whoever dragged last needs
+    // no more serializing than that. Reading the row is authorized by the
+    // check below — it has to belong to the database the actor may update.
+    const document = await Document.findByPk(documentId, {
+      transaction,
+      rejectOnEmpty: true,
+    });
+    if (document.databaseId !== database.id) {
+      throw ValidationError("Document is not a row of this database");
+    }
+
+    document.databaseIndex = index;
+    await document.save({ transaction, silent: true, hooks: false });
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
   "databases.delete",
   auth(),
   validate(T.DatabasesDeleteSchema),

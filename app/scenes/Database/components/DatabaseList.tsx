@@ -3,6 +3,7 @@ import { PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { PropertyChip } from "@shared/components/PropertyChip";
 import { s } from "@shared/styles";
 import PropertyValueLabel from "@shared/editor/components/PropertyValueLabel";
 import type { Property } from "@shared/types";
@@ -176,12 +177,7 @@ const SectionHeader = styled.div`
   margin-bottom: 6px;
 `;
 
-const Chip = styled.span<{ $color?: string }>`
-  display: inline-block;
-  background: ${(props) => props.$color ?? props.theme.backgroundSecondary};
-  border-radius: 10px;
-  padding: 1px 8px;
-  font-size: 13px;
+const Chip = styled(PropertyChip)`
   font-weight: 500;
 `;
 

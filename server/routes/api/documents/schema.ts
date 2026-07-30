@@ -27,6 +27,7 @@ const DocumentsSortParamsSchema = z.object({
         "updatedAt",
         "publishedAt",
         "index",
+        "databaseIndex",
         "title",
         "popularityScore",
       ].includes(val)

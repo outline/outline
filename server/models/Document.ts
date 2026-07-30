@@ -1,4 +1,5 @@
 /* oxlint-disable lines-between-class-members */
+import fractionalIndex from "fractional-index";
 import { compact, isNil, uniq } from "es-toolkit/compat";
 import type {
   Identifier,
@@ -779,6 +780,19 @@ class Document extends ArchivableModel<
   @Column(DataType.UUID)
   databaseId?: string | null;
 
+  /**
+   * The fractional index that orders this row among the other rows of its
+   * database, letting rows be reordered by hand. Null for documents that are
+   * not database rows, and for rows that have never been ordered — those sort
+   * last, by creation date.
+   */
+  @Length({
+    max: 256,
+    msg: `databaseIndex must be 256 characters or less`,
+  })
+  @Column(DataType.TEXT)
+  databaseIndex?: string | null;
+
   @HasMany(() => UserMembership)
   memberships: UserMembership[];
 
@@ -803,6 +817,47 @@ class Document extends ArchivableModel<
     where: { resolvedAt: { [Op.is]: null } },
   })
   commentCount: Promise<number>;
+
+  /**
+   * Returns a fractional index that sorts after every ordered row of the given
+   * database, for appending a new row at the end of the manual order.
+   *
+   * `fractionalIndex(last, null)` would do, but it lands halfway between the
+   * last key and the end of the character range, so appending rows one by one
+   * lengthens the key every sixth row. Stepping the final character on instead
+   * keeps keys short — a character lasts for the width of the range — while
+   * still sorting after everything before it.
+   *
+   * @param databaseId the database the row belongs to.
+   * @param transaction an optional transaction to run the lookup in.
+   * @returns a fractional index.
+   */
+  static async nextDatabaseIndex(
+    databaseId: string,
+    transaction?: Transaction
+  ) {
+    const last = await this.unscoped().findOne({
+      attributes: ["databaseIndex"],
+      where: {
+        databaseId,
+        databaseIndex: { [Op.ne]: null },
+      },
+      // byte order, matching the order rows are listed in
+      order: [[Sequelize.literal(`"databaseIndex" collate "C"`), "DESC"]],
+      transaction,
+    });
+
+    const previous = last?.databaseIndex;
+    if (!previous) {
+      return fractionalIndex(null, null);
+    }
+    const code = previous.charCodeAt(previous.length - 1);
+    // 126 is the last character fractional-index uses, so a key ending there
+    // can only be extended rather than stepped on
+    return code < 126
+      ? previous.slice(0, -1) + String.fromCharCode(code + 1)
+      : previous + fractionalIndex(null, null);
+  }
 
   /**
    * Returns an array of unique userIds that are members of a document

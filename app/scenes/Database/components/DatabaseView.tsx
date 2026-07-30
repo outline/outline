@@ -1,3 +1,5 @@
+import { arrayMove } from "@dnd-kit/sortable";
+import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import { SettingsIcon, SortManualIcon } from "outline-icons";
 import * as React from "react";
@@ -19,6 +21,8 @@ import { DataViewType, PropertyType } from "@shared/types";
 import { errToString } from "@shared/utils/error";
 import {
   isGroupableProperty,
+  normalizedColumnsForView,
+  orderedPropertiesForView,
   visiblePropertiesForView,
 } from "@shared/utils/properties";
 import type Database from "~/models/Database";
@@ -60,7 +64,7 @@ const NO_GROUPING = "";
  */
 function DatabaseView({ database }: Props) {
   const { t } = useTranslation();
-  const { documents, dialogs } = useStores();
+  const { databases, documents, dialogs } = useStores();
   const can = usePolicy(database);
 
   const [persistedViewId, setPersistedViewId] = usePersistedState<
@@ -82,6 +86,7 @@ function DatabaseView({ database }: Props) {
   const groupableProperties = schema.filter(isGroupableProperty);
 
   const activeView = database.resolveView(persistedViewId);
+  const orderedProperties = orderedPropertiesForView(schema, activeView);
   const visibleProperties = visiblePropertiesForView(schema, activeView);
 
   const sort: DataViewSort | undefined = activeView?.sorts?.[0];
@@ -340,35 +345,79 @@ function DatabaseView({ database }: Props) {
 
   const handleToggleProperty = React.useCallback(
     (propertyId: string, visible: boolean) => {
-      const columns = [...(activeView?.columns ?? [])];
-      const index = columns.findIndex(
-        (column) => column.propertyId === propertyId
+      const columns = normalizedColumnsForView(schema, activeView).map(
+        (column) =>
+          column.propertyId === propertyId ? { ...column, visible } : column
       );
-      if (index >= 0) {
-        columns[index] = { ...columns[index], visible };
-      } else {
-        columns.push({ propertyId, visible });
-      }
       void updateActiveView({ columns });
     },
-    [activeView, updateActiveView]
+    [schema, activeView, updateActiveView]
   );
 
   const handleChangeSummary = React.useCallback(
     (propertyId: string, summary: SummaryAggregation | null) => {
-      const columns = [...(activeView?.columns ?? [])];
-      const index = columns.findIndex(
-        (column) => column.propertyId === propertyId
+      const columns = normalizedColumnsForView(schema, activeView).map(
+        (column) =>
+          column.propertyId === propertyId
+            ? { ...column, summary: summary ?? undefined }
+            : column
       );
-      const next = summary ?? undefined;
-      if (index >= 0) {
-        columns[index] = { ...columns[index], summary: next };
-      } else {
-        columns.push({ propertyId, visible: true, summary: next });
-      }
       void updateActiveView({ columns });
     },
-    [activeView, updateActiveView]
+    [schema, activeView, updateActiveView]
+  );
+
+  const handleMoveRow = React.useCallback(
+    (documentId: string, overDocumentId: string) => {
+      if (!rows) {
+        return;
+      }
+      const from = rows.findIndex((row) => row.id === documentId);
+      const to = rows.findIndex((row) => row.id === overDocumentId);
+      if (from === -1 || to === -1 || from === to) {
+        return;
+      }
+
+      const previousRows = rows;
+      const reordered = arrayMove(rows, from, to);
+      // the neighbours the row lands between decide its new index; a neighbour
+      // without one has never been ordered and sorts last regardless, so an
+      // unbounded index on that side is what we want
+      const before = reordered[to - 1]?.databaseIndex ?? null;
+      const after = reordered[to + 1]?.databaseIndex ?? null;
+
+      let index: string;
+      try {
+        index = fractionalIndex(before, after);
+      } catch (error) {
+        toast.error(errToString(error));
+        return;
+      }
+
+      setRows(reordered);
+      void databases.moveRow(database, reordered[to], index).catch((error) => {
+        toast.error(errToString(error));
+        setRows(previousRows);
+      });
+    },
+    [rows, databases, database]
+  );
+
+  const handleMoveProperty = React.useCallback(
+    (propertyId: string, overPropertyId: string) => {
+      const columns = normalizedColumnsForView(schema, activeView);
+      const from = columns.findIndex(
+        (column) => column.propertyId === propertyId
+      );
+      const to = columns.findIndex(
+        (column) => column.propertyId === overPropertyId
+      );
+      if (from === -1 || to === -1 || from === to) {
+        return;
+      }
+      void updateActiveView({ columns: arrayMove(columns, from, to) });
+    },
+    [schema, activeView, updateActiveView]
   );
 
   const handleChangeGroupBy = React.useCallback(
@@ -455,7 +504,7 @@ function DatabaseView({ database }: Props) {
               schema.length > 0 &&
               viewType !== DataViewType.Table && (
                 <DatabaseViewProperties
-                  schema={schema}
+                  schema={orderedProperties}
                   view={activeView}
                   onToggle={handleToggleProperty}
                 />
@@ -608,10 +657,14 @@ function DatabaseView({ database }: Props) {
             handleToggleProperty(propertyId, false)
           }
           onDeleteProperty={handleDeleteProperty}
+          onMoveProperty={can.update ? handleMoveProperty : undefined}
+          // a sorted view derives its order from the sort, so rows can only be
+          // arranged by hand while no sort is applied
+          onMoveRow={can.update && !sort ? handleMoveRow : undefined}
           propertiesToggle={
             can.update && schema.length > 0 ? (
               <DatabaseViewProperties
-                schema={schema}
+                schema={orderedProperties}
                 view={activeView}
                 onToggle={handleToggleProperty}
               />

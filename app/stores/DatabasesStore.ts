@@ -2,6 +2,7 @@ import invariant from "invariant";
 import { action, computed, runInAction } from "mobx";
 import type { DataView } from "@shared/types";
 import Database from "~/models/Database";
+import type Document from "~/models/Document";
 import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
 import Store from "./base/Store";
@@ -71,6 +72,38 @@ export default class DatabasesStore extends Store<Database> {
       view.id === viewId ? { ...view, ...attrs } : view
     );
     await database.save({ views });
+  };
+
+  /**
+   * Moves a row to a new position in its database's manual order, applying the
+   * new index locally straight away and rolling it back if the request fails.
+   *
+   * @param database the database the row belongs to.
+   * @param document the row to move.
+   * @param index the fractional index to move the row to.
+   * @throws if the row could not be moved.
+   */
+  @action
+  moveRow = async (
+    database: Database,
+    document: Document,
+    index: string
+  ): Promise<void> => {
+    const previousIndex = document.databaseIndex;
+    document.databaseIndex = index;
+
+    try {
+      await client.post("/databases.move_row", {
+        id: database.id,
+        documentId: document.id,
+        index,
+      });
+    } catch (error) {
+      runInAction("DatabasesStore#moveRow", () => {
+        document.databaseIndex = previousIndex;
+      });
+      throw error;
+    }
   };
 
   @computed

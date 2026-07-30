@@ -1,11 +1,13 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+import { propertyChipStyles } from "@shared/components/PropertyChip";
 import { s } from "@shared/styles";
 import type { Property, PropertyValue } from "@shared/types";
 import { PropertyType } from "@shared/types";
 import { sanitizeUrl } from "@shared/utils/urls";
+import { Inner } from "~/components/Button";
 import { InputSelect } from "~/components/InputSelect";
 import Switch from "~/components/Switch";
 import useStores from "~/hooks/useStores";
@@ -169,20 +171,32 @@ function PropertyValueEditor({ property, value, onChange, readOnly }: Props) {
         );
       }
       return (
-        <InputSelect
+        <ChipSelect
           options={[
             { type: "item", label: t("None"), value: EMPTY_VALUE },
             ...options.map((option) => ({
               type: "item" as const,
               label: option.name,
               value: option.id,
+              icon: <ColorDot $color={option.color} />,
             })),
           ]}
           value={typeof value === "string" ? value : EMPTY_VALUE}
           onChange={handleSelectChange}
+          displayValue={(selected) => {
+            const option = options.find((item) => item.id === selected?.value);
+            return option ? (
+              <Chip $color={option.color}>{option.name}</Chip>
+            ) : (
+              <Placeholder>–</Placeholder>
+            );
+          }}
           label={property.name}
           labelHidden
           short
+          // the value is a chip that carries its own color, so the control
+          // around it only draws itself once the cell is pointed at
+          borderOnHover
         />
       );
     }
@@ -447,11 +461,25 @@ const ChipList = styled.div`
 `;
 
 const Chip = styled.span<{ $color?: string }>`
+  ${propertyChipStyles}
+`;
+
+/** A select whose trigger stays out of the way of the chip it displays. */
+const ChipSelect = styled(InputSelect)`
+  && ${Inner} {
+    line-height: 26px;
+    padding-inline-start: 6px;
+    padding-inline-end: 2px;
+  }
+`;
+
+const ColorDot = styled.span<{ $color?: string }>`
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
   background: ${(props) => props.$color ?? props.theme.backgroundSecondary};
-  color: ${s("text")};
-  border-radius: 12px;
-  padding: 2px 8px;
-  font-size: 13px;
+  box-shadow: inset 0 0 0 1px ${s("inputBorder")};
 `;
 
 const ChipRemove = styled.button`
@@ -468,17 +496,19 @@ const ChipRemove = styled.button`
 `;
 
 const ChipButton = styled.button<{ $selected: boolean; $color?: string }>`
-  border: 1px solid
-    ${(props) => (props.$selected ? "transparent" : props.theme.inputBorder)};
-  background: ${(props) =>
-    props.$selected
-      ? (props.$color ?? props.theme.backgroundSecondary)
-      : "none"};
-  color: ${(props) => (props.$selected ? s("text") : s("textSecondary"))};
-  border-radius: 12px;
-  padding: 2px 8px;
-  font-size: 13px;
+  ${propertyChipStyles}
+  // a transparent border on the selected state too, so toggling an option
+  // does not shift the chips beside it
+  border: 1px solid transparent;
   cursor: var(--pointer);
+
+  ${(props) =>
+    !props.$selected &&
+    css`
+      background: none;
+      border-color: ${s("inputBorder")};
+      color: ${s("textSecondary")};
+    `}
 
   &:disabled {
     cursor: default;

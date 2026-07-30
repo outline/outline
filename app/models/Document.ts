@@ -128,6 +128,14 @@ export default class Document extends ArchivableModel implements Searchable {
   databaseId?: string | null;
 
   /**
+   * The fractional index ordering this row among the other rows of its
+   * database. Null for documents that are not rows, and for rows that have
+   * never been ordered — those sort last, by creation date.
+   */
+  @observable
+  databaseIndex?: string | null;
+
+  /**
    * The collection that this document belongs to.
    */
   @Relation(() => Collection, { onDelete: "cascade" })

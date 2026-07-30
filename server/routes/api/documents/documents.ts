@@ -157,6 +157,9 @@ router.post(
         );
       }
     }
+    if (sort === "databaseIndex" && !databaseId) {
+      throw ValidationError("databaseIndex sort requires a databaseId");
+    }
     const where: WhereOptions<Document> & {
       [Op.and]: WhereOptions<Document>[];
     } = {
@@ -386,7 +389,21 @@ router.post(
               ],
             ]
           : undefined
-        : [...propertyOrder, [sort, direction]];
+        : sort === "databaseIndex"
+          ? [
+              ...propertyOrder,
+              // byte order, so the fractional indexes compare the same way
+              // here as they do when a new one is calculated. Always ascending
+              // — a manual order reads in one direction, and `direction`
+              // defaults to DESC, which would silently reverse it
+              [
+                Sequelize.literal(`"document"."databaseIndex" collate "C"`),
+                "ASC",
+              ],
+              // rows that have never been ordered sort last, oldest first
+              ["createdAt", "ASC"],
+            ]
+          : [...propertyOrder, [sort, direction]];
 
     const includeDrafts = !!statusFilter?.includes(StatusFilter.Draft);
 

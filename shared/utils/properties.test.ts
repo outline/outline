@@ -5,6 +5,7 @@ import {
   FilterOperator,
   PropertyType,
   RollupAggregation,
+  SummaryAggregation,
 } from "../types";
 import {
   coerceDocumentProperties,
@@ -12,6 +13,8 @@ import {
   groupByProperty,
   groupOptionIdForValue,
   isGroupableProperty,
+  normalizedColumnsForView,
+  orderedPropertiesForView,
   validateDataSchema,
   validateDataViews,
   visiblePropertiesForView,
@@ -658,13 +661,20 @@ describe("visiblePropertiesForView", () => {
     );
   });
 
-  it("should keep properties without a column entry visible in schema order", () => {
+  it("should keep properties without a column entry visible, after the ones with", () => {
     const visible = visiblePropertiesForView(schema, view);
-    expect(visible.map((property) => property.id)).toEqual(
-      schema
-        .filter((property) => property.id !== numberProperty.id)
-        .map((property) => property.id)
-    );
+    expect(visible.map((property) => property.id)).toEqual([
+      // the only visible property the view has a column for leads
+      selectProperty.id,
+      // the rest follow in schema order, minus the hidden one
+      ...schema
+        .filter(
+          (property) =>
+            property.id !== numberProperty.id &&
+            property.id !== selectProperty.id
+        )
+        .map((property) => property.id),
+    ]);
   });
 
   it("should show all properties without a view or column config", () => {
@@ -672,6 +682,113 @@ describe("visiblePropertiesForView", () => {
     expect(visiblePropertiesForView(schema, null)).toEqual(schema);
     expect(visiblePropertiesForView(schema, { ...view, columns: [] })).toEqual(
       schema
+    );
+  });
+
+  it("should order visible properties by the view's columns", () => {
+    const reordered = {
+      ...view,
+      columns: [
+        { propertyId: checkboxProperty.id, visible: true },
+        { propertyId: textProperty.id, visible: true },
+        { propertyId: numberProperty.id, visible: false },
+      ],
+    };
+    expect(
+      visiblePropertiesForView(schema, reordered)
+        .slice(0, 2)
+        .map((property) => property.id)
+    ).toEqual([checkboxProperty.id, textProperty.id]);
+  });
+});
+
+describe("orderedPropertiesForView", () => {
+  const view = {
+    id: uuidv4(),
+    name: "Table",
+    type: DataViewType.Table,
+    columns: [
+      { propertyId: selectProperty.id, visible: true },
+      { propertyId: textProperty.id, visible: false },
+    ],
+    sorts: [],
+  };
+
+  it("should order by the view's columns, hidden ones included", () => {
+    expect(
+      orderedPropertiesForView(schema, view)
+        .slice(0, 2)
+        .map((property) => property.id)
+    ).toEqual([selectProperty.id, textProperty.id]);
+  });
+
+  it("should append properties the view has no column for, in schema order", () => {
+    expect(
+      orderedPropertiesForView(schema, view)
+        .slice(2)
+        .map((property) => property.id)
+    ).toEqual(
+      schema
+        .filter(
+          (property) =>
+            property.id !== selectProperty.id && property.id !== textProperty.id
+        )
+        .map((property) => property.id)
+    );
+  });
+
+  it("should ignore columns referring to properties not in the schema", () => {
+    const stale = {
+      ...view,
+      columns: [{ propertyId: uuidv4(), visible: true }, ...view.columns],
+    };
+    expect(orderedPropertiesForView(schema, stale)).toHaveLength(schema.length);
+  });
+
+  it("should fall back to schema order without a view or columns", () => {
+    expect(orderedPropertiesForView(schema)).toEqual(schema);
+    expect(orderedPropertiesForView(schema, { ...view, columns: [] })).toEqual(
+      schema
+    );
+  });
+});
+
+describe("normalizedColumnsForView", () => {
+  const view = {
+    id: uuidv4(),
+    name: "Table",
+    type: DataViewType.Table,
+    columns: [
+      {
+        propertyId: selectProperty.id,
+        visible: false,
+        summary: SummaryAggregation.Count,
+      },
+    ],
+    sorts: [],
+  };
+
+  it("should return one column per property, in the view's order", () => {
+    const columns = normalizedColumnsForView(schema, view);
+    expect(columns.map((column) => column.propertyId)).toEqual(
+      orderedPropertiesForView(schema, view).map((property) => property.id)
+    );
+    expect(columns).toHaveLength(schema.length);
+  });
+
+  it("should preserve the settings of columns that already exist", () => {
+    const columns = normalizedColumnsForView(schema, view);
+    expect(columns[0]).toEqual(view.columns[0]);
+  });
+
+  it("should default properties without a column to visible", () => {
+    const columns = normalizedColumnsForView(schema, view);
+    expect(columns.slice(1).every((column) => column.visible)).toBe(true);
+  });
+
+  it("should cover the whole schema without a view", () => {
+    expect(normalizedColumnsForView(schema)).toEqual(
+      schema.map((property) => ({ propertyId: property.id, visible: true }))
     );
   });
 });

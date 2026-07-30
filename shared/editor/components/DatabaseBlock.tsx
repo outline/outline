@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { PropertyChip } from "../../components/PropertyChip";
 import { s } from "../../styles";
 import type { DataView, Property, PropertyValue } from "../../types";
 import { DataViewType } from "../../types";
@@ -284,7 +285,9 @@ const BlockBoard = observer(function BlockBoard_({
           <Column key={group.option?.id ?? "none"}>
             <ColumnHeader>
               {group.option ? (
-                <Chip $color={group.option.color}>{group.option.name}</Chip>
+                <PropertyChip $color={group.option.color}>
+                  {group.option.name}
+                </PropertyChip>
               ) : (
                 <MutedLabel>{noValueLabel}</MutedLabel>
               )}
@@ -537,14 +540,6 @@ const GalleryCard = styled.div`
   border-radius: 6px;
   padding: 8px 10px;
   font-size: 14px;
-`;
-
-const Chip = styled.span<{ $color?: string }>`
-  display: inline-block;
-  background: ${(props) => props.$color ?? props.theme.backgroundSecondary};
-  border-radius: 10px;
-  padding: 1px 8px;
-  font-size: 13px;
 `;
 
 const MutedLabel = styled.span`

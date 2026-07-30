@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { PropertyChip } from "../../components/PropertyChip";
 import { s } from "../../styles";
 import type { Property, PropertyValue } from "../../types";
 import { PropertyType } from "../../types";
@@ -139,12 +140,7 @@ const DocumentChip = styled(Link)`
   }
 `;
 
-const Chip = styled.span<{ $color?: string }>`
-  display: inline-block;
-  background: ${(props) => props.$color ?? props.theme.backgroundSecondary};
-  border-radius: 10px;
-  padding: 1px 8px;
-  font-size: 13px;
+const Chip = styled(PropertyChip)`
   margin-right: 4px;
 `;
 

@@ -345,6 +345,182 @@ describe("#databases.update", () => {
   });
 });
 
+describe("#databases.move_row", () => {
+  it("should persist the index of the moved row", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const row = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      databaseId: database.id,
+      databaseIndex: "P",
+    });
+
+    const res = await server.post("/api/databases.move_row", user, {
+      body: { id: database.id, documentId: row.id, index: "Q" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toBe(true);
+
+    await row.reload();
+    expect(row.databaseIndex).toEqual("Q");
+  });
+
+  it("should order a row that has never been ordered", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const row = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      databaseId: database.id,
+    });
+    expect(row.databaseIndex).toBeFalsy();
+
+    const res = await server.post("/api/databases.move_row", user, {
+      body: { id: database.id, documentId: row.id, index: "P" },
+    });
+    expect(res.status).toEqual(200);
+
+    await row.reload();
+    expect(row.databaseIndex).toEqual("P");
+  });
+
+  it("should reject a row belonging to another database", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const other = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const row = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      databaseId: other.id,
+    });
+
+    const res = await server.post("/api/databases.move_row", user, {
+      body: { id: database.id, documentId: row.id, index: "P" },
+    });
+    expect(res.status).toEqual(400);
+
+    await row.reload();
+    expect(row.databaseIndex).toBeFalsy();
+  });
+
+  it("should reject a document that is not a row", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/databases.move_row", user, {
+      body: { id: database.id, documentId: document.id, index: "P" },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should require write access", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const row = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      databaseId: database.id,
+      databaseIndex: "P",
+    });
+    const viewer = await buildViewer({ teamId: team.id });
+
+    const res = await server.post("/api/databases.move_row", viewer, {
+      body: { id: database.id, documentId: row.id, index: "Q" },
+    });
+    expect(res.status).toEqual(403);
+
+    await row.reload();
+    expect(row.databaseIndex).toEqual("P");
+  });
+
+  it("should reject an invalid index", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const row = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      databaseId: database.id,
+    });
+
+    // an index has to be there, has to be printable ASCII, and a trailing space
+    // would break calculating an index next to it later on
+    for (const index of ["", "P ", "P\n", "Pé", "P".repeat(257)]) {
+      const res = await server.post("/api/databases.move_row", user, {
+        body: { id: database.id, documentId: row.id, index },
+      });
+      expect(res.status).toEqual(400);
+    }
+
+    await row.reload();
+    expect(row.databaseIndex).toBeFalsy();
+  });
+
+  it("should fail when the feature is disabled", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const database = await buildDatabase({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const row = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      databaseId: database.id,
+    });
+
+    const res = await server.post("/api/databases.move_row", user, {
+      body: { id: database.id, documentId: row.id, index: "P" },
+    });
+    expect(res.status).toEqual(400);
+  });
+});
+
 describe("#databases.delete", () => {
   it("should delete the database and keep its rows as documents", async () => {
     const { team, user, collection } = await buildEnabledTeam();

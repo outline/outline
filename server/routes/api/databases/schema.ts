@@ -7,6 +7,7 @@ import {
   RollupAggregation,
   SummaryAggregation,
 } from "@shared/types";
+import { DatabaseValidation } from "@shared/validations";
 import { zodIconType, zodIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
 import { BaseSchema } from "../schema";
@@ -147,3 +148,23 @@ export const DatabasesDeleteSchema = BaseSchema.extend({
 });
 
 export type DatabasesDeleteReq = z.infer<typeof DatabasesDeleteSchema>;
+
+export const DatabasesMoveRowSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    /** The row to move, which must belong to the database */
+    documentId: zodIdType(),
+    /** The fractional index to move the row to */
+    index: z
+      .string()
+      .min(1)
+      .max(DatabaseValidation.maxIndexLength)
+      // fractional indexes compare bytewise, so only printable ASCII sorts
+      // predictably, and a trailing space is the one value that would break
+      // calculating an index next to this one later on
+      .regex(/^[\x20-\x7e]*[\x21-\x7e]$/, {
+        error: "index must be printable ASCII and not end with a space",
+      }),
+  }),
+});
+
+export type DatabasesMoveRowReq = z.infer<typeof DatabasesMoveRowSchema>;

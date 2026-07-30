@@ -23,6 +23,8 @@ type Props = {
   onChange: (propertyId: string, summary: SummaryAggregation | null) => void;
   /** Whether the table has a trailing controls column to pad for. */
   hasControlsColumn: boolean;
+  /** Whether the table has a leading row-grip column to pad for. */
+  hasGripColumn: boolean;
 };
 
 const NONE = "";
@@ -41,6 +43,7 @@ function DatabaseSummaryRow({
   canEdit,
   onChange,
   hasControlsColumn,
+  hasGripColumn,
 }: Props) {
   const { t } = useTranslation();
 
@@ -64,6 +67,7 @@ function DatabaseSummaryRow({
 
   return (
     <tr>
+      {hasGripColumn && <SummaryCell />}
       <SummaryCell />
       {properties.map((property) => {
         const available = summaryAggregationsForProperty(property);

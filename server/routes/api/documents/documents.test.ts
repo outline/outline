@@ -6718,3 +6718,71 @@ describe("#documents.list property filters", () => {
     expect(titles).toEqual(["Private row"]);
   });
 });
+
+describe("#documents.list databaseIndex sort", () => {
+  const buildFixture = async () => {
+    const team = await buildTeam({
+      preferences: { documentDatabases: true },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+    });
+
+    const build = (title: string, databaseIndex: string | null) =>
+      buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: database.collectionId,
+        databaseId: database.id,
+        title,
+        databaseIndex,
+      });
+
+    // built out of order, and with keys whose byte order ("Z" < "a") differs
+    // from the database's default collation, so a wrong collation would show
+    for (const [title, index] of [
+      ["Third", "a0"],
+      ["Fourth", null],
+      ["Second", "Z1"],
+      ["First", "Z0"],
+    ] as const) {
+      await build(title, index);
+    }
+
+    return { team, user, database };
+  };
+
+  const titlesOf = (data: { title: string }[]) =>
+    data.map((document) => document.title);
+
+  it("should order rows by databaseIndex in byte order", async () => {
+    const { user, database } = await buildFixture();
+
+    const res = await server.post("/api/documents.list", user, {
+      body: {
+        databaseId: database.id,
+        sort: "databaseIndex",
+        direction: "ASC",
+      },
+    });
+    const json = await res.json();
+
+    expect(res.status).toEqual(200);
+    // the unordered row sorts last, the rest by their index
+    expect(titlesOf(json.data)).toEqual(["First", "Second", "Third", "Fourth"]);
+    expect(
+      json.data.map((doc: { databaseIndex: string }) => doc.databaseIndex)
+    ).toEqual(["Z0", "Z1", "a0", null]);
+  });
+
+  it("should fail without a databaseId", async () => {
+    const { user } = await buildFixture();
+
+    const res = await server.post("/api/documents.list", user, {
+      body: { sort: "databaseIndex", direction: "ASC" },
+    });
+    expect(res.status).toEqual(400);
+  });
+});

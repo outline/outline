@@ -1,6 +1,7 @@
 import { isUUID } from "validator";
 import type {
   DataView,
+  DataViewColumn,
   DocumentProperties,
   FilterCondition,
   FilterGroup,
@@ -408,14 +409,51 @@ export function groupByProperty<T>(
 }
 
 /**
- * Resolves the properties visible in a view. A view's columns act as
- * visibility overrides: properties explicitly marked `visible: false` are
- * hidden, and every other schema property — including ones the view has no
- * column entry for — is visible, in schema order.
+ * Resolves every property of a schema in the order the given view arranges
+ * them. A view's columns define the order; properties the view has no column
+ * entry for — a property added to the schema after the view was created —
+ * follow in schema order.
  *
- * @param schema the collection's data schema.
+ * @param schema the database's data schema.
  * @param view the view whose column config applies, if any.
- * @returns the visible properties in schema order.
+ * @returns all schema properties, in the view's order.
+ */
+export function orderedPropertiesForView(
+  schema: Property[],
+  view?: DataView | null
+): Property[] {
+  if (!view?.columns.length) {
+    return schema;
+  }
+  const byId = new Map(schema.map((property) => [property.id, property]));
+  const ordered: Property[] = [];
+  const seen = new Set<string>();
+
+  for (const column of view.columns) {
+    const property = byId.get(column.propertyId);
+    if (property && !seen.has(property.id)) {
+      seen.add(property.id);
+      ordered.push(property);
+    }
+  }
+  for (const property of schema) {
+    if (!seen.has(property.id)) {
+      ordered.push(property);
+    }
+  }
+
+  return ordered;
+}
+
+/**
+ * Resolves the properties visible in a view, in the view's column order. A
+ * view's columns act as visibility overrides: properties explicitly marked
+ * `visible: false` are hidden, and every other schema property — including
+ * ones the view has no column entry for — is visible.
+ *
+ * @param schema the database's data schema.
+ * @param view the view whose column config applies, if any.
+ * @returns the visible properties in the view's order.
  */
 export function visiblePropertiesForView(
   schema: Property[],
@@ -429,7 +467,31 @@ export function visiblePropertiesForView(
       .filter((column) => !column.visible)
       .map((column) => column.propertyId)
   );
-  return schema.filter((property) => !hidden.has(property.id));
+  return orderedPropertiesForView(schema, view).filter(
+    (property) => !hidden.has(property.id)
+  );
+}
+
+/**
+ * Builds a complete column list for a view: one entry per schema property, in
+ * the view's current order, preserving each column's existing settings. Used
+ * before writing a reordered column list so the stored order is unambiguous.
+ *
+ * @param schema the database's data schema.
+ * @param view the view to normalize the columns of, if any.
+ * @returns a column entry for every property in the schema.
+ */
+export function normalizedColumnsForView(
+  schema: Property[],
+  view?: DataView | null
+): DataViewColumn[] {
+  const existing = new Map(
+    (view?.columns ?? []).map((column) => [column.propertyId, column])
+  );
+  return orderedPropertiesForView(schema, view).map(
+    (property) =>
+      existing.get(property.id) ?? { propertyId: property.id, visible: true }
+  );
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

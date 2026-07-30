@@ -4,12 +4,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type { PropertyOption } from "@shared/types";
+import { colorPalette } from "@shared/constants";
 import { v4 as uuidv4 } from "uuid";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
-import { SwatchButton } from "~/components/SwatchButton";
+import { PaletteSwatchButton } from "~/components/PaletteSwatchButton";
 
 type Props = {
   /** The options to edit. */
@@ -20,10 +21,11 @@ type Props = {
 
 /**
  * Edits the options of a select or multi-select property as a list of rows,
- * each with a color swatch, a name input and a remove button. "Add option"
- * appends a row immediately, but the new option is only propagated once it
- * has a name, so an empty name is never persisted. Renames are committed on
- * blur; color and remove commit immediately.
+ * each with a color swatch drawn from the app's predefined palette, a name
+ * input and a remove button. "Add option" appends a row immediately, but the
+ * new option is only propagated once it has a name, so an empty name is never
+ * persisted. Renames are committed on blur; color and remove commit
+ * immediately.
  */
 function PropertyOptionsEditor({ options, onChange }: Props) {
   const { t } = useTranslation();
@@ -59,7 +61,17 @@ function PropertyOptionsEditor({ options, onChange }: Props) {
   };
 
   const handleAdd = () => {
-    setPending((current) => [...current, { id: uuidv4(), name: "" }]);
+    setPending((current) => [
+      ...current,
+      {
+        id: uuidv4(),
+        name: "",
+        // cycle the palette so options are distinguishable without the user
+        // having to choose a color for each one
+        color:
+          colorPalette[(options.length + current.length) % colorPalette.length],
+      },
+    ]);
   };
 
   /** Moves a pending row into the committed options once it has a name. */
@@ -111,7 +123,7 @@ function PropertyOptionsEditor({ options, onChange }: Props) {
         return (
           <Flex key={option.id} align="center" gap={8}>
             <SwatchWrapper>
-              <SwatchButton
+              <PaletteSwatchButton
                 color={option.color}
                 size={20}
                 onChange={(color) => handleColor(option, color)}

@@ -763,3 +763,87 @@ describe("properties", () => {
     expect(document.properties).toEqual({});
   });
 });
+
+describe("#nextDatabaseIndex", () => {
+  const buildRows = async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const addRow = (databaseIndex: string | null, databaseId = database.id) =>
+      buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        databaseId,
+        databaseIndex,
+      });
+    return { team, user, collection, database, addRow };
+  };
+
+  test("should return an index for the first row of a database", async () => {
+    const { database } = await buildRows();
+
+    const index = await Document.nextDatabaseIndex(database.id);
+    expect(typeof index).toBe("string");
+    expect(index.length).toBeGreaterThan(0);
+  });
+
+  test("should return an index sorting after the last row", async () => {
+    const { database, addRow } = await buildRows();
+
+    const first = await Document.nextDatabaseIndex(database.id);
+    await addRow(first);
+    const second = await Document.nextDatabaseIndex(database.id);
+
+    expect(second > first).toBe(true);
+  });
+
+  test("should keep appended indexes increasing and short", async () => {
+    const { database, addRow } = await buildRows();
+
+    let previous: string | null = null;
+    for (let i = 0; i < 12; i++) {
+      const index = await Document.nextDatabaseIndex(database.id);
+      expect(previous === null || index > previous).toBe(true);
+      // a single character covers the whole range before it has to grow
+      expect(index).toHaveLength(1);
+      await addRow(index);
+      previous = index;
+    }
+  });
+
+  test("should ignore rows that have never been ordered", async () => {
+    const { database, addRow } = await buildRows();
+    await addRow(null);
+
+    const first = await Document.nextDatabaseIndex(database.id);
+    await addRow(first);
+    const second = await Document.nextDatabaseIndex(database.id);
+
+    expect(second > first).toBe(true);
+  });
+
+  test("should ignore rows of other databases", async () => {
+    const { team, user, collection, database, addRow } = await buildRows();
+    const other = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    // the last character of the range, so an index stepped on from it would be
+    // visible as a longer key
+    await addRow("~", other.id);
+
+    const index = await Document.nextDatabaseIndex(database.id);
+    expect(index < "~").toBe(true);
+    expect(index).toHaveLength(1);
+  });
+});

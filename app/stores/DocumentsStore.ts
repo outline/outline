@@ -360,6 +360,9 @@ export default class DocumentsStore extends Store<Document> {
    * Fetches the rows of a database, optionally filtered and sorted by their
    * typed property values, along with the column summaries of a saved view.
    *
+   * Rows fall back to the database's manual order, so that dragging a row to a
+   * new position is what decides the order of an unsorted view.
+   *
    * Summaries cover every row matching the filter rather than the returned
    * page, so they are computed by the server rather than from the result.
    *
@@ -379,7 +382,11 @@ export default class DocumentsStore extends Store<Document> {
     this.isFetching = true;
 
     try {
-      const res = await client.post("/documents.list", options);
+      const res = await client.post("/documents.list", {
+        sort: "databaseIndex",
+        direction: "ASC",
+        ...options,
+      });
       invariant(res?.data, "Document list not available");
       runInAction("DocumentsStore#fetchInDatabase", () => {
         res.data.forEach(this.add);

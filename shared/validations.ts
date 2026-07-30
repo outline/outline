@@ -58,6 +58,9 @@ export const DatabaseValidation = {
 
   /** The maximum number of databases within a single collection */
   maxPerCollection: 100,
+
+  /** The maximum length of a row's fractional index */
+  maxIndexLength: 256,
 };
 
 export const DataViewValidation = {
