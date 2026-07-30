@@ -104,7 +104,7 @@ type AdditionalFindOptions = {
    * Pass false when the document is only needed for authorization.
    */
   includeContent?: boolean;
-  /** Whether to views (default: true). */
+  /** Whether to include views (default: true). */
   includeViews?: boolean;
   /** Whether to reject the query if no document is found. */
   rejectOnEmpty?: boolean | Error;
