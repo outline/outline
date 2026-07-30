@@ -326,7 +326,11 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                     };
                   }
                 | { serviceTeamId: string }
-                | { measurementId: string }
+                | {
+                    measurementId: string;
+                    instanceUrl?: string;
+                    scriptName?: string;
+                  }
                 | undefined;
 
 export enum UserPreference {
