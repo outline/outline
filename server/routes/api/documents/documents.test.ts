@@ -5892,6 +5892,103 @@ describe("#documents.duplicate", () => {
     expect(body.data.documents[0].collectionId).toEqual(destination.id);
   });
 
+  it("should not allow a collectionId that disagrees with the parent document", async () => {
+    const user = await buildUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: source.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      collectionId: destination.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        // deliberately mismatched with the parent's collection
+        collectionId: source.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "collectionId must match the collection of the parent document"
+    );
+  });
+
+  it("should place the copy in the parent's collection when no collectionId is given", async () => {
+    const user = await buildUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: source.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      collectionId: destination.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].collectionId).toEqual(destination.id);
+    expect(body.data.documents[0].parentDocumentId).toEqual(parent.id);
+  });
+
+  it("should not allow duplicating under a parent in a read-only collection", async () => {
+    const user = await buildUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: source.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      collectionId: destination.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        parentDocumentId: parent.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should not allow duplicating into a read-only collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
