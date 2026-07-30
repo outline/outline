@@ -40,12 +40,12 @@ import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import { ExportContentType } from "@shared/types";
+import { ExportContentType, IconType } from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
 import { getEventFiles } from "@shared/utils/files";
+import { determineIconType } from "@shared/utils/icon";
 import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
-import { client } from "~/utils/ApiClient";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
@@ -71,6 +71,7 @@ import {
   TrashSection,
 } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
+import { attachmentsToSignedUrls } from "~/utils/files";
 import history from "~/utils/history";
 import {
   documentHistoryPath,
@@ -802,16 +803,26 @@ export const copyDocumentAsMarkdown = createAction({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: async ({ stores, activeDocumentId, t }) => {
+  perform: async ({ stores, activeDocumentId, getEditorData, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const res = await client.post("/documents.export", {
-        id: document.id,
-        signedUrls: Week.seconds, // 7 days (AWS S3 max for presigned URLs)
-      });
-      copy(res.data);
+      // Serialize from the editor rather than asking the server for the
+      // document, as the collaboration server persists on a delay and edits
+      // made in the last few seconds would otherwise be missing.
+      const data = getEditorData(document.id) ?? document.data;
+
+      // Attachment urls are then signed in a second pass so that they resolve
+      // for anyone the Markdown is pasted to, without a session.
+      const markdown = await attachmentsToSignedUrls(
+        ProsemirrorHelper.toMarkdown({ data }).trim(),
+        Week.seconds // 7 days (AWS S3 max for presigned URLs)
+      );
+
+      const iconType = determineIconType(document.icon);
+      const title = `${iconType === IconType.Emoji ? `${document.icon} ` : ""}${document.title}`;
+      copy(`# ${title}\n\n${markdown}`);
       toast.success(t("Markdown copied to clipboard"));
     }
   },

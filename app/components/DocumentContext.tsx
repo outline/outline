@@ -1,6 +1,7 @@
 import { action, computed, observable } from "mobx";
 import type { PropsWithChildren } from "react";
 import { createContext, useContext, useMemo } from "react";
+import type { ProsemirrorData } from "@shared/types";
 import type { Heading } from "@shared/utils/ProsemirrorHelper";
 import type Document from "~/models/Document";
 import type { Editor } from "~/editor";
@@ -55,6 +56,19 @@ class DocumentContext {
     this.focusedCommentId = commentId;
   };
 
+  /**
+   * Returns the editor contents for the given document, including changes that
+   * have not been persisted yet, or undefined if the document is not open in
+   * this context.
+   *
+   * @param documentId The id of the document to read
+   * @returns The current editor data, if available
+   */
+  getEditorData = (documentId: string): ProsemirrorData | undefined =>
+    this.document?.id === documentId
+      ? (this.editor?.value(false) as ProsemirrorData | undefined)
+      : undefined;
+
   @action
   updateState = () => {
     this.updateHeadings();
@@ -81,6 +95,11 @@ class DocumentContext {
 }
 
 const Context = createContext<DocumentContext | null>(null);
+
+/**
+ * Returns the document context, or null when rendered outside of a provider.
+ */
+export const useOptionalDocumentContext = () => useContext(Context);
 
 export const useDocumentContext = () => {
   const ctx = useContext(Context);

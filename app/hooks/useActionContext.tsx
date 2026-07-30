@@ -7,6 +7,7 @@ import useStores from "~/hooks/useStores";
 import type Model from "~/models/base/Model";
 import type Policy from "~/models/Policy";
 import type { ActionContext as ActionContextType } from "~/types";
+import { useOptionalDocumentContext } from "~/components/DocumentContext";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 
 export const ActionContext = createContext<ActionContextType | undefined>(
@@ -55,6 +56,7 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
   const parentContext = useContext(ActionContext);
   const stores = useStores();
   const { t } = useTranslation();
+  const documentContext = useOptionalDocumentContext();
 
   // Use history (stable reference) and read location lazily via a getter so
   // navigation does not invalidate the context value. Action perform/visible
@@ -127,6 +129,11 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     [allActiveModels]
   );
 
+  const getEditorData = useCallback(
+    (documentId: string) => documentContext?.getEditorData(documentId),
+    [documentContext]
+  );
+
   const contextValue = useMemo<ActionContextType>(() => {
     const baseContext: ActionContextType = parentContext ?? {
       isMenu: false,
@@ -142,6 +149,7 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
       getActivePolicies,
       isModelActive,
       activeModels: allActiveModels,
+      getEditorData,
 
       currentUserId,
       currentTeamId,
@@ -176,6 +184,7 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
       getActivePolicies,
       isModelActive,
       activeModels: allActiveModels,
+      getEditorData,
     };
 
     // Define `location` as a getter so reads always return the current
@@ -207,6 +216,7 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     getActivePolicies,
     isModelActive,
     allActiveModels,
+    getEditorData,
   ]);
 
   return (

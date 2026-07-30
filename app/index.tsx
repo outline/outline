@@ -11,6 +11,7 @@ import { Router } from "react-router-dom";
 import stores from "~/stores";
 import Analytics from "~/components/Analytics";
 import Dialogs from "~/components/Dialogs";
+import { DocumentContextProvider } from "~/components/DocumentContext";
 import Presentation from "~/components/Presentation";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import PageTheme from "~/components/PageTheme";
@@ -67,26 +68,30 @@ if (element) {
           <Analytics>
             <Router history={history}>
               <Theme>
-                <ActionContextProvider>
-                  <ErrorBoundary showTitle>
-                    <KBarProvider actions={[]} options={commandBarOptions}>
-                      <LazyPolyfill>
-                        <LazyMotion features={domMax}>
-                          <PageScroll>
-                            <PageTheme />
-                            <ScrollToTop>
-                              <Routes />
-                            </ScrollToTop>
-                            <Toasts />
-                            <Dialogs />
-                            <Presentation />
-                            <Desktop />
-                          </PageScroll>
-                        </LazyMotion>
-                      </LazyPolyfill>
-                    </KBarProvider>
-                  </ErrorBoundary>
-                </ActionContextProvider>
+                {/* Above the action context so that actions can read the
+                    contents of the editor that is currently in view. */}
+                <DocumentContextProvider>
+                  <ActionContextProvider>
+                    <ErrorBoundary showTitle>
+                      <KBarProvider actions={[]} options={commandBarOptions}>
+                        <LazyPolyfill>
+                          <LazyMotion features={domMax}>
+                            <PageScroll>
+                              <PageTheme />
+                              <ScrollToTop>
+                                <Routes />
+                              </ScrollToTop>
+                              <Toasts />
+                              <Dialogs />
+                              <Presentation />
+                              <Desktop />
+                            </PageScroll>
+                          </LazyMotion>
+                        </LazyPolyfill>
+                      </KBarProvider>
+                    </ErrorBoundary>
+                  </ActionContextProvider>
+                </DocumentContextProvider>
               </Theme>
             </Router>
           </Analytics>

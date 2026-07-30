@@ -297,6 +297,41 @@ router.post(
   }
 );
 
+router.post(
+  "attachments.signUrls",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  auth(),
+  validate(T.AttachmentsSignUrlsSchema),
+  async (ctx: APIContext<T.AttachmentsSignUrlsReq>) => {
+    const { ids, expiresIn } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    // Attachments are owned by the workspace rather than by individual
+    // documents, so team membership is the check applied here – the same rule
+    // as attachments.redirect.
+    const attachments = await Attachment.findAll({
+      where: {
+        id: ids,
+        teamId: user.teamId,
+      },
+    });
+
+    const data: Record<string, string> = {};
+
+    await Promise.all(
+      attachments.map(async (attachment) => {
+        data[attachment.id] = attachment.isStoredInPublicBucket
+          ? attachment.canonicalUrl
+          : await FileStorage.getSignedUrl(attachment.key, expiresIn);
+      })
+    );
+
+    ctx.body = {
+      data,
+    };
+  }
+);
+
 const handleAttachmentsRedirect = async (
   ctx: APIContext<T.AttachmentsRedirectReq>
 ) => {

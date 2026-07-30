@@ -1,6 +1,9 @@
+import { escapeRegExp, uniq } from "es-toolkit/compat";
 import invariant from "invariant";
+import env from "@shared/env";
 import { AttachmentPreset } from "@shared/types";
 import { dataUrlToBlob } from "@shared/utils/files";
+import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { client } from "./ApiClient";
 import Logger from "./Logger";
 
@@ -141,6 +144,38 @@ export const uploadFile = async (
   }
 
   return attachment;
+};
+
+/**
+ * Converts attachment urls in the given text to signed equivalents that allow
+ * direct access without a session cookie, the client-side counterpart of the
+ * server's TextHelper.attachmentsToSignedUrls.
+ *
+ * @param text The text, either markdown or HTML, which contains urls to convert
+ * @param expiresIn The time that signed urls should expire (in seconds)
+ * @returns The replaced text
+ */
+export const attachmentsToSignedUrls = async (
+  text: string,
+  expiresIn?: number
+) => {
+  // Urls may be absolute or relative depending on how the text was generated.
+  const regex = new RegExp(
+    `(?:${escapeRegExp(env.URL ?? "")})?${attachmentRedirectRegex.source}`,
+    "gi"
+  );
+  const ids = uniq(Array.from(text.matchAll(regex), ([, id]) => id));
+
+  if (!ids.length) {
+    return text;
+  }
+
+  const res = await client.post<{ data: Record<string, string> }>(
+    "/attachments.signUrls",
+    { ids, expiresIn }
+  );
+
+  return text.replace(regex, (match, id: string) => res.data[id] ?? match);
 };
 
 export { dataUrlToBlob };
