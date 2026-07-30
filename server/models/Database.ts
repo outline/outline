@@ -13,8 +13,9 @@ import {
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import type { DataView, Property } from "@shared/types";
-import { DataViewType } from "@shared/types";
+import { DataViewType, PropertyType } from "@shared/types";
 import {
+  pruneFilterReferences,
   removeFilterReferences,
   validateDataSchema,
   validateDataViews,
@@ -174,6 +175,45 @@ class Database extends ParanoidModel<
         ? removeFilterReferences(view.filter, propertyId)
         : undefined,
       groupBy: view.groupBy === propertyId ? undefined : view.groupBy,
+    }));
+    return this.dataSchema;
+  };
+
+  /**
+   * Drops schema and view references that no longer resolve: rollups whose
+   * relation has gone, and view columns, sorts, filters and grouping that
+   * point at a property that is no longer in the schema.
+   *
+   * A caller that replaces the whole schema — which is what deleting a column
+   * in the UI does — has no way to know what else referenced the property it
+   * dropped. Without this the database would be left in a state its own
+   * validation rejects, making the property impossible to delete.
+   *
+   * @returns The current data schema.
+   */
+  pruneDanglingReferences = (): Property[] => {
+    // a rollup aggregates across a relation in the same schema; with that
+    // relation gone there is nothing left for it to walk
+    this.dataSchema = this.dataSchema.filter((property) => {
+      if (property.type !== PropertyType.Rollup) {
+        return true;
+      }
+      const relation = this.dataSchema.find(
+        (item) => item.id === property.config?.relationPropertyId
+      );
+      return relation?.type === PropertyType.Relation;
+    });
+
+    const known = new Set(this.dataSchema.map((property) => property.id));
+    this.views = this.views.map((view) => ({
+      ...view,
+      columns: view.columns.filter((column) => known.has(column.propertyId)),
+      sorts: view.sorts.filter((sort) => known.has(sort.propertyId)),
+      filter: view.filter
+        ? pruneFilterReferences(view.filter, known)
+        : undefined,
+      groupBy:
+        view.groupBy && known.has(view.groupBy) ? view.groupBy : undefined,
     }));
     return this.dataSchema;
   };

@@ -239,6 +239,13 @@ router.post(
       );
     }
 
+    // deleting a column replaces the whole schema, and the caller cannot know
+    // what else pointed at the property it dropped — so clear those references
+    // here rather than rejecting an update the client had no way to get right
+    if (dataSchema !== undefined) {
+      database.pruneDanglingReferences();
+    }
+
     // views may only reference properties that exist in the schema
     try {
       validateDataViews(database.views, database.dataSchema);

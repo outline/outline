@@ -1,5 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { CollectionPermission, PropertyType } from "@shared/types";
+import {
+  CollectionPermission,
+  DataViewType,
+  FilterOperator,
+  PropertyType,
+  RollupAggregation,
+} from "@shared/types";
 import { Database, Document, UserMembership } from "@server/models";
 import {
   buildCollection,
@@ -226,6 +232,122 @@ describe("#databases.update", () => {
       },
     });
     expect(res.status).toEqual(400);
+  });
+
+  it("should drop view references to a property removed from the schema", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const keptId = randomUUID();
+    const removedId = randomUUID();
+    const viewId = randomUUID();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      dataSchema: [
+        { id: keptId, name: "Name", type: PropertyType.Text },
+        {
+          id: removedId,
+          name: "Stage",
+          type: PropertyType.Select,
+          options: [],
+        },
+      ],
+      views: [
+        {
+          id: viewId,
+          name: "Table",
+          type: DataViewType.Table,
+          columns: [
+            { propertyId: keptId, visible: true },
+            { propertyId: removedId, visible: true },
+          ],
+          sorts: [{ propertyId: removedId, direction: "asc" }],
+          filter: {
+            conjunction: "and",
+            conditions: [
+              { propertyId: removedId, operator: FilterOperator.IsNotEmpty },
+            ],
+          },
+          groupBy: removedId,
+        },
+      ],
+    });
+
+    // deleting a column sends the remaining schema, and nothing else — the
+    // client cannot know the view still points at what it dropped
+    const res = await server.post("/api/databases.update", user, {
+      body: {
+        id: database.id,
+        dataSchema: [{ id: keptId, name: "Name", type: PropertyType.Text }],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.dataSchema).toHaveLength(1);
+
+    const view = body.data.views[0];
+    expect(view.columns).toHaveLength(1);
+    expect(view.columns[0].propertyId).toEqual(keptId);
+    expect(view.sorts).toHaveLength(0);
+    expect(view.filter).toBeFalsy();
+    expect(view.groupBy).toBeFalsy();
+  });
+
+  it("should drop a rollup when the relation it walks is removed", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const target = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const relationId = randomUUID();
+    const rollupId = randomUUID();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      dataSchema: [
+        {
+          id: relationId,
+          name: "Area",
+          type: PropertyType.Relation,
+          config: { targetDatabaseId: target.id },
+        },
+        {
+          id: rollupId,
+          name: "How many",
+          type: PropertyType.Rollup,
+          config: {
+            relationPropertyId: relationId,
+            rollupAggregation: RollupAggregation.Count,
+          },
+        },
+      ],
+    });
+
+    // the relation is deleted but the rollup is still sent, which is what
+    // deleting the relation's column in the UI produces
+    const res = await server.post("/api/databases.update", user, {
+      body: {
+        id: database.id,
+        dataSchema: [
+          {
+            id: rollupId,
+            name: "How many",
+            type: PropertyType.Rollup,
+            config: {
+              relationPropertyId: relationId,
+              rollupAggregation: RollupAggregation.Count,
+            },
+          },
+        ],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.dataSchema).toHaveLength(0);
   });
 
   it("should accept several views of the same type", async () => {

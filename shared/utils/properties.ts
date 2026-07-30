@@ -283,6 +283,33 @@ export function removeFilterReferences(
   return conditions.length > 0 ? { ...filter, conditions } : undefined;
 }
 
+/**
+ * Removes filter conditions referencing properties outside the given set, so
+ * that a filter cannot outlive the properties it was built from.
+ *
+ * @param filter the filter group to prune.
+ * @param knownPropertyIds the ids of the properties that still exist.
+ * @returns the pruned filter, or undefined when no conditions remain.
+ */
+export function pruneFilterReferences(
+  filter: FilterGroup,
+  knownPropertyIds: Set<string>
+): FilterGroup | undefined {
+  const conditions = filter.conditions
+    .map((condition) => {
+      if ("conjunction" in condition) {
+        return pruneFilterReferences(condition, knownPropertyIds);
+      }
+      return knownPropertyIds.has(condition.propertyId) ? condition : undefined;
+    })
+    .filter(
+      (condition): condition is FilterCondition | FilterGroup =>
+        condition !== undefined
+    );
+
+  return conditions.length > 0 ? { ...filter, conditions } : undefined;
+}
+
 /** Summaries that count rows, and so apply to every property type. */
 const countingAggregations = [
   SummaryAggregation.Count,

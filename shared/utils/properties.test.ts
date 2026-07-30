@@ -15,6 +15,7 @@ import {
   isGroupableProperty,
   normalizedColumnsForView,
   orderedPropertiesForView,
+  pruneFilterReferences,
   validateDataSchema,
   validateDataViews,
   visiblePropertiesForView,
@@ -790,5 +791,60 @@ describe("normalizedColumnsForView", () => {
     expect(normalizedColumnsForView(schema)).toEqual(
       schema.map((property) => ({ propertyId: property.id, visible: true }))
     );
+  });
+});
+
+describe("pruneFilterReferences", () => {
+  const kept = uuidv4();
+  const removed = uuidv4();
+
+  it("should drop conditions referencing an unknown property", () => {
+    const filter = pruneFilterReferences(
+      {
+        conjunction: "and",
+        conditions: [
+          { propertyId: kept, operator: FilterOperator.IsNotEmpty },
+          { propertyId: removed, operator: FilterOperator.IsNotEmpty },
+        ],
+      },
+      new Set([kept])
+    );
+    expect(filter?.conditions).toHaveLength(1);
+    expect(filter?.conditions[0]).toHaveProperty("propertyId", kept);
+  });
+
+  it("should prune nested groups", () => {
+    const filter = pruneFilterReferences(
+      {
+        conjunction: "and",
+        conditions: [
+          {
+            conjunction: "or",
+            conditions: [
+              { propertyId: removed, operator: FilterOperator.IsNotEmpty },
+            ],
+          },
+          { propertyId: kept, operator: FilterOperator.IsNotEmpty },
+        ],
+      },
+      new Set([kept])
+    );
+    // the nested group emptied out, so it is dropped rather than left blank
+    expect(filter?.conditions).toHaveLength(1);
+    expect(filter?.conditions[0]).toHaveProperty("propertyId", kept);
+  });
+
+  it("should return undefined when nothing survives", () => {
+    expect(
+      pruneFilterReferences(
+        {
+          conjunction: "and",
+          conditions: [
+            { propertyId: removed, operator: FilterOperator.IsNotEmpty },
+          ],
+        },
+        new Set([kept])
+      )
+    ).toBeUndefined();
   });
 });
