@@ -63,6 +63,47 @@ function invalidateChildPolicies(
   }
 }
 
+/**
+ * Re-check the current user's access to a collection with the server and
+ * discard whatever they can no longer read. Abilities cannot be recalculated on
+ * the client, so access is never inferred from the cached policy.
+ *
+ * @param collectionId the ID of the collection access may have been lost to.
+ * @param stores the stores to remove the collection and its documents from.
+ */
+async function revokeCollectionAccess(
+  collectionId: string,
+  {
+    collections,
+    documents,
+    memberships,
+    policies,
+  }: Pick<RootStore, "collections" | "documents" | "memberships" | "policies">
+) {
+  policies.remove(collectionId);
+
+  try {
+    await collections.fetch(collectionId, { force: true });
+  } catch (err) {
+    if (err instanceof AuthorizationError || err instanceof NotFoundError) {
+      memberships.removeAll({ collectionId });
+      collections.remove(collectionId, { permanent: true });
+    } else {
+      Logger.error(
+        "Failed to fetch collection after access change",
+        toError(err)
+      );
+    }
+    return;
+  }
+
+  // Admins keep visibility of the collection itself, but may no longer be able
+  // to read the documents within it.
+  if (!policies.abilities(collectionId).readDocument) {
+    documents.removeInCollection(collectionId);
+  }
+}
+
 function useConnectionHandlers() {
   const { auth } = useStores();
 
@@ -161,8 +202,8 @@ function useEntityHandlers() {
                 err instanceof AuthorizationError ||
                 err instanceof NotFoundError
               ) {
-                documents.remove(documentId);
-                return;
+                documents.remove(documentId, { permanent: true });
+                continue;
               }
             }
 
@@ -215,8 +256,8 @@ function useEntityHandlers() {
                 err instanceof NotFoundError
               ) {
                 memberships.removeAll({ collectionId });
-                collections.remove(collectionId);
-                return;
+                collections.remove(collectionId, { permanent: true });
+                continue;
               }
             }
           }
@@ -266,7 +307,7 @@ function useDocumentHandlers() {
             !document.collectionId &&
             document.createdBy?.id !== currentUserId
           ) {
-            documents.remove(document.id);
+            documents.remove(document.id, { permanent: true });
           } else {
             documents.add(document);
           }
@@ -313,7 +354,7 @@ function useDocumentHandlers() {
     socket.on(
       "documents.permanent_delete",
       (event: WebsocketEntityDeletedEvent) => {
-        documents.remove(event.modelId);
+        documents.remove(event.modelId, { permanent: true });
       }
     );
 
@@ -352,7 +393,7 @@ function useDocumentHandlers() {
 
         const policy = policies.get(event.documentId!);
         if (policy && policy.abilities.read === false) {
-          documents.remove(event.documentId!);
+          documents.remove(event.documentId!, { permanent: true });
         }
       }
     );
@@ -385,6 +426,11 @@ function useDocumentHandlers() {
       "documents.remove_group",
       (event: PartialExcept<GroupMembership, "id">) => {
         groupMemberships.remove(event.id);
+
+        const policy = policies.get(event.documentId!);
+        if (policy && policy.abilities.read === false) {
+          documents.remove(event.documentId!, { permanent: true });
+        }
       }
     );
   };
@@ -509,12 +555,16 @@ function useCollectionHandlers() {
       }
     });
 
-    socket.on("collections.remove_user", (event: Membership) => {
+    socket.on("collections.remove_user", async (event: Membership) => {
       memberships.remove(event.id);
 
-      const policy = policies.get(event.collectionId);
-      if (policy && policy.abilities.read === false) {
-        collections.remove(event.collectionId);
+      if (event.userId === currentUserId) {
+        await revokeCollectionAccess(event.collectionId, {
+          collections,
+          documents,
+          memberships,
+          policies,
+        });
       }
     });
 
@@ -535,11 +585,29 @@ function useCollectionHandlers() {
     socket.on("collections.remove_group", async (event: GroupMembership) => {
       groupMemberships.remove(event.id);
 
+      // The event reaches everyone with access to the collection, so the policy
+      // narrows it to those that may have held it through the group.
       const policy = policies.get(event.collectionId!);
-      if (policy && policy.abilities.read === false) {
-        collections.remove(event.collectionId!);
+      if (!policy || policy.abilities.read === false) {
+        await revokeCollectionAccess(event.collectionId!, {
+          collections,
+          documents,
+          memberships,
+          policies,
+        });
       }
     });
+
+    socket.on(
+      "collections.revoke_access",
+      async (event: WebsocketEntityDeletedEvent) =>
+        revokeCollectionAccess(event.modelId, {
+          collections,
+          documents,
+          memberships,
+          policies,
+        })
+    );
 
     socket.on(
       "collections.update_index",
