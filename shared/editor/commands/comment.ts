@@ -27,7 +27,10 @@ export interface CommentAnchor {
 }
 
 /** Amount of surrounding plain text captured to disambiguate an anchor. */
-const anchorContextLength = 30;
+const anchorContextLength = 15;
+
+/** Anchor text at least this long is treated as unambiguous on its own. */
+const unambiguousAnchorLength = 30;
 
 export const addComment = (attrs: Attrs): Command =>
   chainCommands(addCommentTextSelection(attrs), addCommentNodeSelection(attrs));
@@ -81,16 +84,22 @@ export const addDraftCommentAnchor =
         return false;
       }
 
-      anchor = {
-        anchorText,
-        anchorPrefix: textBetween(doc, 0, selection.from).slice(
-          -anchorContextLength
-        ),
-        anchorSuffix: textBetween(doc, selection.to, doc.content.size).slice(
-          0,
-          anchorContextLength
-        ),
-      };
+      anchor = { anchorText };
+
+      // Short selections are more likely to be ambiguous, so capture a small
+      // window of surrounding text to disambiguate.
+      if (anchorText.length < unambiguousAnchorLength) {
+        anchor.anchorPrefix = textBetween(
+          doc,
+          Math.max(0, selection.from - anchorContextLength),
+          selection.from
+        );
+        anchor.anchorSuffix = textBetween(
+          doc,
+          selection.to,
+          Math.min(doc.content.size, selection.to + anchorContextLength)
+        );
+      }
       from = selection.from;
       to = selection.to;
     } else {
