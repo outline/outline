@@ -11,7 +11,9 @@ import Icon from "@shared/components/Icon";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
+import DatabaseRowMenu from "~/scenes/Database/components/DatabaseRowMenu";
 import DatabaseMenu from "~/menus/DatabaseMenu";
+import useDeleteRow from "~/hooks/useDeleteRow";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import SidebarLink from "./SidebarLink";
@@ -37,6 +39,7 @@ function DatabaseLink({ database, depth = 2 }: Props) {
   const history = useHistory();
   const location = useLocation();
   const can = usePolicy(database);
+  const handleDeleteRow = useDeleteRow();
   const [expanded, setExpanded] = React.useState(false);
 
   const rows = documents.inDatabase(database.id);
@@ -118,6 +121,11 @@ function DatabaseLink({ database, depth = 2 }: Props) {
               label={row.titleWithDefault}
               depth={depth + 1}
               isActive={() => location.pathname === row.path}
+              menu={
+                <Fade>
+                  <DatabaseRowMenu document={row} onDelete={handleDeleteRow} />
+                </Fade>
+              }
             />
           ))}
           {rows.length === 0 && (

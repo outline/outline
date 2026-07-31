@@ -37,6 +37,7 @@ import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
+import useDeleteRow from "~/hooks/useDeleteRow";
 import useStores from "~/hooks/useStores";
 import DatabaseBoard from "./DatabaseBoard";
 import DatabaseGallery from "./DatabaseGallery";
@@ -78,6 +79,16 @@ function DatabaseView({ database }: Props) {
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const [isSortOpen, setIsSortOpen] = React.useState(false);
   const isCreatingRef = React.useRef(false);
+
+  // rows are held in local state here, so the deleted one has to be dropped
+  // by hand — the store cannot reach into it
+  const handleDeleteRow = useDeleteRow(
+    React.useCallback(
+      (row: Document) =>
+        setRows((current) => current?.filter((item) => item.id !== row.id)),
+      []
+    )
+  );
 
   const schema = React.useMemo(
     () => database.dataSchema ?? [],
@@ -657,6 +668,7 @@ function DatabaseView({ database }: Props) {
             handleToggleProperty(propertyId, false)
           }
           onDeleteProperty={handleDeleteProperty}
+          onDeleteRow={handleDeleteRow}
           onMoveProperty={can.update ? handleMoveProperty : undefined}
           // a sorted view derives its order from the sort, so rows can only be
           // arranged by hand while no sort is applied

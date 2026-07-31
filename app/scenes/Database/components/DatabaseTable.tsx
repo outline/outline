@@ -43,6 +43,7 @@ import NudeButton from "~/components/NudeButton";
 import usePolicy from "~/hooks/usePolicy";
 import DatabaseAddProperty from "./DatabaseAddProperty";
 import DatabasePropertyMenu from "./DatabasePropertyMenu";
+import DatabaseRowMenu from "./DatabaseRowMenu";
 import DatabaseSummaryRow from "./DatabaseSummaryRow";
 import RowTitleInput from "./RowTitleInput";
 
@@ -77,6 +78,8 @@ type Props = {
   onMoveProperty?: (propertyId: string, overPropertyId: string) => void;
   /** Callback moving a row to the position of another; absent when not allowed. */
   onMoveRow?: (documentId: string, overDocumentId: string) => void;
+  /** Callback deleting a row; absent when the user may not delete rows. */
+  onDeleteRow?: (document: Document) => void;
   /** The property-visibility toggle to render beside the add button. */
   propertiesToggle?: React.ReactNode;
   /** The active view, holding each column's chosen summary. */
@@ -115,6 +118,7 @@ function DatabaseTable({
   onDeleteProperty,
   onMoveProperty,
   onMoveRow,
+  onDeleteRow,
   propertiesToggle,
   view,
   summaries,
@@ -122,7 +126,8 @@ function DatabaseTable({
   onChangeSummary,
 }: Props) {
   const { t } = useTranslation();
-  const hasControlsColumn = !!onAddProperty || !!propertiesToggle;
+  const hasControlsColumn =
+    !!onAddProperty || !!propertiesToggle || !!onDeleteRow;
   const hasGripColumn = !!onMoveRow;
   const columnCount =
     properties.length +
@@ -197,6 +202,7 @@ function DatabaseTable({
           onTitleDone={onNewRowDone}
           hasControlsColumn={hasControlsColumn}
           isSortable={hasGripColumn}
+          onDelete={onDeleteRow}
         />
       ))}
       {rows.length === 0 && !onNewRow && (
@@ -367,6 +373,7 @@ const DatabaseTableRow = observer(function DatabaseTableRow_({
   onTitleDone,
   hasControlsColumn,
   isSortable,
+  onDelete,
 }: {
   document: Document;
   properties: Property[];
@@ -374,6 +381,7 @@ const DatabaseTableRow = observer(function DatabaseTableRow_({
   onTitleDone: () => void;
   hasControlsColumn: boolean;
   isSortable: boolean;
+  onDelete?: (document: Document) => void;
 }) {
   const { t } = useTranslation();
   const can = usePolicy(document);
@@ -397,17 +405,37 @@ const DatabaseTableRow = observer(function DatabaseTableRow_({
     }
   };
 
+  // the grip is the row's only focusable handle, so it doubles as the row
+  // selection that Delete acts on. Keydown is taken on the row rather than the
+  // grip so it cannot shadow the drag sensor's own key handling, and the
+  // target is checked so Delete stays harmless while a cell is being edited.
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key !== "Delete" && event.key !== "Backspace") {
+      return;
+    }
+    if (!onDelete || !can.delete || isDragging) {
+      return;
+    }
+    if (!(event.target as HTMLElement).hasAttribute("data-row-grip")) {
+      return;
+    }
+    event.preventDefault();
+    onDelete(document);
+  };
+
   return (
     <Row
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       $dragging={isDragging}
+      onKeyDown={handleKeyDown}
     >
       {isSortable && (
         <GripCell>
           <RowGrip
             {...attributes}
             {...listeners}
+            data-row-grip=""
             aria-label={t("Reorder row")}
           />
         </GripCell>
@@ -431,7 +459,13 @@ const DatabaseTableRow = observer(function DatabaseTableRow_({
           />
         </Cell>
       ))}
-      {hasControlsColumn && <Cell />}
+      {hasControlsColumn && (
+        <RowControlsCell>
+          {onDelete && (
+            <DatabaseRowMenu document={document} onDelete={onDelete} />
+          )}
+        </RowControlsCell>
+      )}
     </Row>
   );
 });
@@ -525,6 +559,24 @@ const GripCell = styled.td`
   width: 20px;
   min-width: 20px;
   vertical-align: middle;
+`;
+
+/** The trailing cell of a body row, holding that row's overflow menu. */
+const RowControlsCell = styled.td`
+  padding: 2px 6px;
+  width: 60px;
+  min-width: 60px;
+  vertical-align: middle;
+
+  /* the menu is chrome rather than data, so it stays out of the way until the
+     row is pointed at or the menu itself has focus */
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+
+  ${Row}:hover &,
+  &:focus-within {
+    opacity: 1;
+  }
 `;
 
 /** The shared look of a drag grip: a rounded bar that appears on hover. */
