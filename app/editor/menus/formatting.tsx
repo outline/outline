@@ -25,8 +25,10 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import HighlightColorPicker from "../components/HighlightColorPicker";
+import TextColorPicker from "../components/TextColorPicker";
 
 import { getDocumentHighlightColors } from "@shared/editor/queries/getDocumentHighlightColors";
+import { getDocumentTextColors } from "@shared/editor/queries/getDocumentTextColors";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInList } from "@shared/editor/queries/isInList";
 import { isListActive } from "@shared/editor/queries/isListActive";
@@ -47,7 +49,110 @@ import {
 import type { CellSelection } from "prosemirror-tables";
 import TableCell from "@shared/editor/nodes/TableCell";
 import Highlight from "@shared/editor/marks/Highlight";
+import TextColor from "@shared/editor/marks/TextColor";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
+
+function TextColorIcon({
+  size = 24,
+  color = "currentColor",
+  ...rest
+}: {
+  size?: number;
+  color?: string;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...rest}
+    >
+      <line x1="4" y1="20" x2="20" y2="20" stroke={color} />
+      <path d="M17 18L12 5L7 18" />
+      <path d="M9 13h6" />
+    </svg>
+  );
+}
+
+function getTextColorMenuItems({
+  schema,
+  state,
+  hasTextColorMark,
+  currentTextColor,
+}: {
+  schema: SelectionContext["schema"];
+  state: SelectionContext["state"];
+  hasTextColorMark: boolean;
+  currentTextColor: string | null | undefined;
+}): MenuItem[] {
+  const documentTextColors = getDocumentTextColors(state);
+  const noneColor = currentTextColor ?? null;
+  const nonPresetDocumentColors = documentTextColors.filter(
+    (color: string) =>
+      !TextColor.isPresetColor(color) && color !== currentTextColor
+  );
+
+  return [
+    ...(hasTextColorMark
+      ? [
+          {
+            name: "textColor",
+            label: t("None"),
+            icon: <DottedCircleIcon retainColor color="transparent" />,
+            active: () => false,
+            attrs: { color: noneColor },
+          },
+        ]
+      : []),
+    ...TextColor.presetColors.map((preset) => ({
+      name: "textColor",
+      label: preset.name,
+      icon: <CircleIcon retainColor color={preset.hex} />,
+      active: isMarkActive(schema.marks.textColor, { color: preset.hex }),
+      attrs: { color: preset.hex },
+    })),
+    ...(currentTextColor && !TextColor.isPresetColor(currentTextColor)
+      ? [
+          {
+            name: "textColor",
+            label: currentTextColor,
+            icon: <CircleIcon retainColor color={currentTextColor} />,
+            active: isMarkActive(schema.marks.textColor, {
+              color: currentTextColor,
+            }),
+            attrs: { color: currentTextColor },
+          },
+        ]
+      : []),
+    ...nonPresetDocumentColors.map((color: string) => ({
+      name: "textColor",
+      label: color,
+      icon: <CircleIcon retainColor color={color} />,
+      active: () => currentTextColor === color,
+      attrs: { color },
+    })),
+    {
+      icon: <CircleIcon retainColor color="rainbow" />,
+      label: "Custom",
+      children: [
+        {
+          content: (
+            <TextColorPicker
+              activeColor={currentTextColor || TextColor.presetColors[0].hex}
+            />
+          ),
+          preventCloseCondition: () =>
+            !!document.activeElement?.matches(".ProseMirror.ProseMirror-focused"),
+        },
+      ],
+    },
+  ];
+}
 
 /**
  * Returns menu items for the default formatting selection toolbar.
@@ -74,6 +179,13 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
     state.selection.to,
     state
   ).find(({ mark }) => mark.type === state.schema.marks.highlight);
+
+  const textColorMark = getMarksBetween(
+    state.selection.from,
+    state.selection.to,
+    state
+  ).find(({ mark }) => mark.type === state.schema.marks.textColor);
+  const currentTextColor = textColorMark?.mark.attrs.color;
 
   const cellSelectionHasBackground = isTableCell
     ? hasNodeAttrMarkCellSelection(
@@ -304,6 +416,25 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
           },
         ];
       },
+    },
+    {
+      tooltip: t("Text color"),
+      icon: textColorMark ? (
+        <TextColorIcon
+          color={currentTextColor || TextColor.presetColors[0].hex}
+        />
+      ) : (
+        <TextColorIcon />
+      ),
+      active: () => !!textColorMark,
+      visible: !isInCode && (!isMobile || !isEmpty) && !isTableCell,
+      children: (): MenuItem[] =>
+        getTextColorMenuItems({
+          schema,
+          state,
+          hasTextColorMark: !!textColorMark,
+          currentTextColor,
+        }),
     },
     {
       name: "code_inline",
