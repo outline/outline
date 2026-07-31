@@ -200,7 +200,6 @@ interface QueryGeneratorWithWhere {
             userId,
           },
           required: false,
-          separate: true,
         },
       ],
     };
@@ -228,7 +227,6 @@ interface QueryGeneratorWithWhere {
             userId,
           },
           required: false,
-          separate: true,
         },
         {
           association: "groupMemberships",
