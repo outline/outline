@@ -1,6 +1,11 @@
+import { Node } from "prosemirror-model";
+import { prosemirrorToYDoc, yDocToProsemirrorJSON } from "y-prosemirror";
+import * as Y from "yjs";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import { CommentStatusFilter } from "@shared/types";
-import { Comment, Reaction } from "@server/models";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { schema } from "@server/editor";
+import { Comment, Document, Reaction } from "@server/models";
 import {
   buildAdmin,
   buildCollection,
@@ -11,6 +16,7 @@ import {
   buildResolvedComment,
   buildTeam,
   buildUser,
+  buildViewer,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -746,6 +752,161 @@ describe("#comments.create", () => {
           ],
         },
       },
+    });
+  });
+
+  describe("anchoring", () => {
+    const imageAttrs = { src: "https://example.com/a.png" };
+    const documentContent = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "The quick brown fox" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "image", attrs: imageAttrs }],
+        },
+      ],
+    } as ProsemirrorData;
+
+    const buildAnchorableDocument = async (overrides: {
+      userId: string;
+      teamId: string;
+    }) => {
+      const doc = Node.fromJSON(schema, documentContent);
+      const ydoc = prosemirrorToYDoc(doc, "default");
+      return buildDocument({
+        ...overrides,
+        content: documentContent,
+        state: Buffer.from(Y.encodeStateAsUpdate(ydoc)),
+      });
+    };
+
+    const imageNodeId = () =>
+      SharedProsemirrorHelper.getNodeHash(
+        Node.fromJSON(schema, documentContent).child(1).child(0)
+      );
+
+    it("should create a comment anchored to a node", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const document = await buildAnchorableDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/comments.create", user, {
+        body: {
+          documentId: document.id,
+          text: "comment on image",
+          anchorNodeId: imageNodeId(),
+        },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+
+      const updated = await Document.findByPk(document.id, {
+        userId: user.id,
+        includeState: true,
+      });
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, updated!.state!);
+      const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+      const image = doc.child(1).child(0);
+      expect(image.attrs.marks).toEqual([
+        {
+          type: "comment",
+          attrs: {
+            id: body.data.id,
+            userId: user.id,
+            draft: false,
+            resolved: false,
+          },
+        },
+      ]);
+    });
+
+    it("should allow a viewer to create an anchored comment", async () => {
+      const team = await buildTeam();
+      const author = await buildUser({ teamId: team.id });
+      const viewer = await buildViewer({ teamId: team.id });
+      const document = await buildAnchorableDocument({
+        userId: author.id,
+        teamId: team.id,
+      });
+
+      const res = await server.post("/api/comments.create", viewer, {
+        body: {
+          documentId: document.id,
+          text: "viewer comment",
+          anchorText: "brown fox",
+        },
+      });
+
+      expect(res.status).toEqual(200);
+    });
+
+    it("should not allow both anchorText and anchorNodeId", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const document = await buildAnchorableDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/comments.create", user, {
+        body: {
+          documentId: document.id,
+          text: "comment",
+          anchorText: "brown fox",
+          anchorNodeId: imageNodeId(),
+        },
+      });
+
+      expect(res.status).toEqual(400);
+    });
+
+    it("should error when no node matches the anchorNodeId", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const document = await buildAnchorableDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/comments.create", user, {
+        body: {
+          documentId: document.id,
+          text: "comment",
+          anchorNodeId: "unknown-hash",
+        },
+      });
+
+      // The "was not found" message is transformed to a 404 by the API error
+      // handler, matching the behavior of a missing anchorText.
+      expect(res.status).toEqual(404);
+    });
+
+    it("should error when the document has no collaborative state", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/comments.create", user, {
+        body: {
+          documentId: document.id,
+          text: "comment",
+          anchorNodeId: imageNodeId(),
+        },
+      });
+
+      expect(res.status).toEqual(400);
     });
   });
 });

@@ -60,9 +60,10 @@ type Props = {
   onUpArrowAtStart?: () => void;
   /**
    * Callback invoked when a new top-level comment is about to be created,
-   * just before it is added to the store. Receives the generated comment id.
+   * just before it is added to the store. Receives the comment model, which
+   * may be modified, e.g. to set a pending anchor before submission.
    */
-  onBeforeCreate?: (commentId: string) => void;
+  onBeforeCreate?: (comment: Comment) => void;
 };
 
 function CommentForm({
@@ -136,7 +137,11 @@ function CommentForm({
       .save({
         documentId,
         data: draft,
+        ...thread?.pendingAnchor,
       })
+      // Note: pendingAnchor is intentionally kept after saving — it continues
+      // to provide the highlighted snippet until the server-applied mark
+      // arrives through the collaboration sync.
       .then(() => onSubmit?.())
       .catch(() => {
         onSaveDraft(commentDraft);
@@ -204,12 +209,17 @@ function CommentForm({
 
     comment.id = uuidv4();
     if (!thread) {
-      onBeforeCreate?.(comment.id);
+      onBeforeCreate?.(comment);
     }
     comments.add(comment);
 
     comment
-      .save()
+      .save({
+        documentId,
+        parentCommentId: thread?.id,
+        data: draft,
+        ...comment.pendingAnchor,
+      })
       .then(() => onSubmit?.())
       .catch(() => {
         onSaveDraft(commentDraft);

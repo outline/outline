@@ -5,6 +5,7 @@ import { prosemirrorToYDoc, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import type { ProsemirrorData } from "@shared/types";
 import { MentionType } from "@shared/types";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
@@ -1796,6 +1797,155 @@ describe("ProsemirrorHelper", () => {
         expect(plain.slice(start, end)).toBe("aba");
         expect(start).toBe(2);
       });
+    });
+  });
+
+  describe("#applyCommentMarkByNode", () => {
+    const buildDocState = (content: object[]) => {
+      const doc = Node.fromJSON(schema, { type: "doc", content });
+      const ydoc = prosemirrorToYDoc(doc, "default");
+      return Y.encodeStateAsUpdate(ydoc);
+    };
+
+    const image = (src: string, marks: object[] = []) => ({
+      type: "paragraph",
+      content: [{ type: "image", attrs: { src, marks } }],
+    });
+
+    const hashOf = (inlineNode: object) =>
+      SharedProsemirrorHelper.getNodeHash(
+        Node.fromJSON(schema, {
+          type: "doc",
+          content: [{ type: "paragraph", content: [inlineNode] }],
+        }).firstChild!.firstChild!
+      );
+
+    const getImageCommentMarks = (result: Uint8Array) => {
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, result);
+      const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+
+      const images: { src: string; marks: { attrs: { id: string } }[] }[] = [];
+      doc.descendants((node) => {
+        if (node.type.name === "image") {
+          images.push({
+            src: node.attrs.src,
+            marks: node.attrs.marks ?? [],
+          });
+        }
+        return true;
+      });
+      return images;
+    };
+
+    it("applies a comment mark to the node's marks attribute", () => {
+      const content = image("https://example.com/a.png");
+      const docState = buildDocState([content]);
+
+      const result = ProsemirrorHelper.applyCommentMarkByNode({
+        docState,
+        anchorNodeId: hashOf(content.content[0]),
+        commentId: "comment-1",
+        userId: "user-1",
+      });
+
+      expect(result).toBeInstanceOf(Uint8Array);
+      const images = getImageCommentMarks(result!);
+      expect(images).toHaveLength(1);
+      expect(images[0].marks).toHaveLength(1);
+      expect(images[0].marks[0]).toEqual({
+        type: "comment",
+        attrs: {
+          id: "comment-1",
+          userId: "user-1",
+          draft: false,
+          resolved: false,
+        },
+      });
+    });
+
+    it("applies to the first occurrence when nodes are identical", () => {
+      const content = image("https://example.com/a.png");
+      const docState = buildDocState([
+        image("https://example.com/a.png"),
+        image("https://example.com/a.png"),
+      ]);
+
+      const result = ProsemirrorHelper.applyCommentMarkByNode({
+        docState,
+        anchorNodeId: hashOf(content.content[0]),
+        commentId: "comment-1",
+        userId: "user-1",
+      });
+
+      const images = getImageCommentMarks(result!);
+      expect(images[0].marks).toHaveLength(1);
+      expect(images[1].marks).toHaveLength(0);
+    });
+
+    it("matches a node regardless of existing comment marks", () => {
+      const existingMark = {
+        type: "comment",
+        attrs: {
+          id: "comment-0",
+          userId: "user-1",
+          draft: false,
+          resolved: false,
+        },
+      };
+      const docState = buildDocState([
+        image("https://example.com/a.png", [existingMark]),
+      ]);
+
+      const result = ProsemirrorHelper.applyCommentMarkByNode({
+        docState,
+        // Hash computed without any marks must still match the marked node.
+        anchorNodeId: hashOf(image("https://example.com/a.png").content[0]),
+        commentId: "comment-1",
+        userId: "user-1",
+      });
+
+      const images = getImageCommentMarks(result!);
+      expect(images[0].marks).toHaveLength(2);
+      expect(images[0].marks.map((m) => m.attrs.id)).toEqual([
+        "comment-0",
+        "comment-1",
+      ]);
+    });
+
+    it("throws when no node matches the hash", () => {
+      const docState = buildDocState([image("https://example.com/a.png")]);
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByNode({
+          docState,
+          anchorNodeId: hashOf(
+            image("https://example.com/other.png").content[0]
+          ),
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(/not found/);
+    });
+
+    it("throws when the matched node cannot hold comment marks", () => {
+      const paragraph = {
+        type: "paragraph",
+        content: [{ type: "text", text: "plain text" }],
+      };
+      const docState = buildDocState([paragraph]);
+      const hash = SharedProsemirrorHelper.getNodeHash(
+        Node.fromJSON(schema, { type: "doc", content: [paragraph] }).firstChild!
+      );
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByNode({
+          docState,
+          anchorNodeId: hash,
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(/cannot be commented/);
     });
   });
 });
