@@ -302,7 +302,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
                   );
                 }
 
-                const updatedState = ProsemirrorHelper.applyCommentMarkByText({
+                const updated = ProsemirrorHelper.applyCommentMarkByText({
                   docState: document.state,
                   anchorText,
                   commentId,
@@ -311,13 +311,16 @@ export function commentTools(server: McpServer, scopes: string[]) {
                   suffix: anchorSuffix,
                 });
 
-                if (!updatedState) {
+                if (!updated) {
                   throw ValidationError(
                     "Could not anchor comment to the provided text in the document"
                   );
                 }
 
-                await document.updateWithCtx(ctx, { state: updatedState });
+                await document.updateWithCtx(ctx, {
+                  state: updated.state,
+                  content: updated.content,
+                });
               }
 
               const created = await Comment.createWithCtx(ctx, {

@@ -4,6 +4,7 @@ import * as Y from "yjs";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import { CommentStatusFilter } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import documentCollaborativeUpdater from "@server/commands/documentCollaborativeUpdater";
 import { schema } from "@server/editor";
 import { Comment, Document, Reaction } from "@server/models";
 import {
@@ -847,6 +848,68 @@ describe("#comments.create", () => {
       });
 
       expect(res.status).toEqual(200);
+    });
+
+    it("should not update the document updatedAt timestamp when anchoring", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const document = await buildAnchorableDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const updatedAt = document.updatedAt;
+
+      const res = await server.post("/api/comments.create", user, {
+        body: {
+          documentId: document.id,
+          text: "comment",
+          anchorText: "brown fox",
+        },
+      });
+
+      expect(res.status).toEqual(200);
+      await document.reload();
+      expect(document.updatedAt).toEqual(updatedAt);
+    });
+
+    it("should not register an edit when the collaboration server persists after anchoring", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const document = await buildAnchorableDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/comments.create", user, {
+        body: {
+          documentId: document.id,
+          text: "comment",
+          anchorText: "brown fox",
+        },
+      });
+      expect(res.status).toEqual(200);
+
+      // Simulate the collaboration server persisting the session after it has
+      // merged the server-applied comment mark — no further edits were made,
+      // so the document must not be marked as updated.
+      const updated = await Document.findByPk(document.id, {
+        userId: user.id,
+        includeState: true,
+      });
+      const updatedAt = updated!.updatedAt;
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, updated!.state!);
+
+      await documentCollaborativeUpdater({
+        documentId: document.id,
+        ydoc,
+        sessionCollaboratorIds: [user.id],
+        isLastConnection: true,
+        clientVersion: null,
+      });
+
+      await document.reload();
+      expect(document.updatedAt).toEqual(updatedAt);
     });
 
     it("should not allow both anchorText and anchorNodeId", async () => {

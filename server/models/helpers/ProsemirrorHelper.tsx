@@ -1096,7 +1096,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * @param params.userId The user identifier.
    * @param params.prefix Optional plain text immediately preceding the match.
    * @param params.suffix Optional plain text immediately following the match.
-   * @returns Updated Yjs state, or null if the mark cannot be applied.
+   * @returns Updated Yjs state and content, or null if the mark cannot be applied.
    * @throws ValidationError when no match satisfies the prefix/suffix.
    */
   static applyCommentMarkByText({
@@ -1113,7 +1113,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     userId: string;
     prefix?: string;
     suffix?: string;
-  }): Buffer | null {
+  }): { state: Buffer; content: ProsemirrorData } | null {
     const yjsDoc = new Y.Doc();
     Y.applyUpdate(yjsDoc, docState);
     const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(yjsDoc, "default"));
@@ -1151,7 +1151,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * @param params.anchorNodeId The hash of the node to anchor the comment to.
    * @param params.commentId The comment identifier.
    * @param params.userId The user identifier.
-   * @returns Updated Yjs state, or null if the mark cannot be applied.
+   * @returns Updated Yjs state and content, or null if the mark cannot be applied.
    * @throws ValidationError when no node matches or the node cannot hold comments.
    */
   static applyCommentMarkByNode({
@@ -1164,7 +1164,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     anchorNodeId: string;
     commentId: string;
     userId: string;
-  }): Buffer | null {
+  }): { state: Buffer; content: ProsemirrorData } | null {
     const yjsDoc = new Y.Doc();
     Y.applyUpdate(yjsDoc, docState);
     const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(yjsDoc, "default"));
@@ -1212,7 +1212,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     rangeEnd: number,
     commentId: string,
     userId: string
-  ): Buffer | null {
+  ): { state: Buffer; content: ProsemirrorData } | null {
     const docSize = doc.content.size;
     if (rangeStart < 0 || rangeEnd > docSize || rangeStart > rangeEnd) {
       Logger.warn("Invalid position range for comment anchor", {
@@ -1249,7 +1249,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * history — rather than a fresh Y.Doc whose content would merge as
    * duplicates against any client still holding the original state.
    */
-  private static applyDocToYDoc(yjsDoc: Y.Doc, doc: Node): Buffer {
+  private static applyDocToYDoc(
+    yjsDoc: Y.Doc,
+    doc: Node
+  ): { state: Buffer; content: ProsemirrorData } {
     const yFragment = yjsDoc.get("default", Y.XmlFragment) as Y.XmlFragment;
     if (!yFragment.doc) {
       throw new Error("yFragment.doc not found");
@@ -1259,7 +1262,13 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       isOMark: new Map(),
     });
 
-    return Buffer.from(Y.encodeStateAsUpdate(yjsDoc));
+    return {
+      state: Buffer.from(Y.encodeStateAsUpdate(yjsDoc)),
+      content: Node.fromJSON(
+        schema,
+        yDocToProsemirrorJSON(yjsDoc, "default")
+      ).toJSON() as ProsemirrorData,
+    };
   }
 
   /**

@@ -82,7 +82,7 @@ router.post(
         throw ValidationError("Cannot inline comment on this document");
       }
 
-      const updatedState = anchorText
+      const updated = anchorText
         ? ProsemirrorHelper.applyCommentMarkByText({
             docState: document.state,
             anchorText,
@@ -100,15 +100,19 @@ router.post(
             })
           : null;
 
-      if (!updatedState) {
+      if (!updated) {
         throw ValidationError(
           "Could not anchor comment to the provided location in the document"
         );
       }
 
-      // Save through the context so the AfterUpdate hook notifies the
-      // collaboration server and connected clients receive the new mark.
-      await document.updateWithCtx(ctx, { state: updatedState });
+      // Save with hooks enabled so the AfterUpdate hook notifies the
+      // collaboration server, but silently so the document is not marked
+      // as updated by adding a comment.
+      await document.update(
+        { state: updated.state, content: updated.content },
+        { ...ctx.context, transaction, silent: true }
+      );
     }
 
     const comment = await Comment.createWithCtx(ctx, {

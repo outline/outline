@@ -1374,8 +1374,8 @@ describe("ProsemirrorHelper", () => {
         userId: "user-1",
       });
 
-      expect(result).toBeInstanceOf(Uint8Array);
-      const marks = getCommentMarks(result!);
+      expect(result?.state).toBeInstanceOf(Uint8Array);
+      const marks = getCommentMarks(result!.state);
       expect(marks).toHaveLength(1);
       expect(marks[0]).toEqual({ id: "comment-1", text: "brown fox" });
     });
@@ -1399,8 +1399,8 @@ describe("ProsemirrorHelper", () => {
         userId: "user-1",
       });
 
-      expect(result).toBeInstanceOf(Uint8Array);
-      const marks = getCommentMarks(result!);
+      expect(result?.state).toBeInstanceOf(Uint8Array);
+      const marks = getCommentMarks(result!.state);
       expect(marks.map((m) => m.text)).toEqual(["paragraph", "second"]);
       expect(marks.every((m) => m.id === "comment-1")).toBe(true);
     });
@@ -1439,9 +1439,9 @@ describe("ProsemirrorHelper", () => {
         userId: "user-1",
       });
 
-      expect(result).toBeInstanceOf(Uint8Array);
+      expect(result?.state).toBeInstanceOf(Uint8Array);
 
-      const marks = getCommentMarks(result!);
+      const marks = getCommentMarks(result!.state);
       // Both text nodes flanking the mention should carry the comment mark,
       // confirming the resolved range spans the leaf atom.
       expect(marks.map((m) => m.text)).toEqual(["Hello ", ", how"]);
@@ -1504,8 +1504,8 @@ describe("ProsemirrorHelper", () => {
         userId: "user-1",
       });
 
-      expect(result).toBeInstanceOf(Uint8Array);
-      const marks = getCommentMarks(result!);
+      expect(result?.state).toBeInstanceOf(Uint8Array);
+      const marks = getCommentMarks(result!.state);
       expect(marks.map((m) => m.text).join("")).toBe("the brown fox");
       expect(marks.every((m) => m.id === "comment-1")).toBe(true);
     });
@@ -1581,8 +1581,8 @@ describe("ProsemirrorHelper", () => {
           commentId: "comment-1",
           userId: "user-1",
         });
-        expect(result).toBeInstanceOf(Uint8Array);
-        const { plain, start, end } = findMarkedRange(result!);
+        expect(result?.state).toBeInstanceOf(Uint8Array);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start, end)).toBe("fox");
         expect(start).toBe(plain.indexOf("fox"));
       });
@@ -1596,7 +1596,7 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           prefix: "lazy ",
         });
-        const { plain, start, end } = findMarkedRange(result!);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start, end)).toBe("fox");
         expect(start).toBe(plain.lastIndexOf("fox"));
       });
@@ -1610,7 +1610,7 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           suffix: " jumps",
         });
-        const { plain, start, end } = findMarkedRange(result!);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start, end)).toBe("fox");
         expect(plain.slice(end, end + 6)).toBe(" jumps");
       });
@@ -1635,7 +1635,7 @@ describe("ProsemirrorHelper", () => {
           prefix: "beta ",
           suffix: " gamma",
         });
-        const { plain, start, end } = findMarkedRange(result!);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start - 5, end + 6)).toBe("beta word gamma");
       });
 
@@ -1649,7 +1649,7 @@ describe("ProsemirrorHelper", () => {
           prefix: "",
           suffix: "",
         });
-        const { plain, start } = findMarkedRange(result!);
+        const { plain, start } = findMarkedRange(result!.state);
         expect(start).toBe(plain.indexOf("fox"));
       });
 
@@ -1667,7 +1667,7 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           prefix: "",
         });
-        const { start } = findMarkedRange(result!);
+        const { start } = findMarkedRange(result!.state);
         expect(start).toBe(0);
       });
 
@@ -1685,7 +1685,7 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           suffix: "",
         });
-        const { plain, start } = findMarkedRange(result!);
+        const { plain, start } = findMarkedRange(result!.state);
         // With no suffix constraint we still get the first occurrence.
         expect(start).toBe(plain.indexOf("fox"));
       });
@@ -1708,7 +1708,7 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           prefix: "second ",
         });
-        const { plain, start, end } = findMarkedRange(result!);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start - 7, end)).toBe("second fox");
       });
 
@@ -1793,7 +1793,7 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           prefix: "ab",
         });
-        const { plain, start, end } = findMarkedRange(result!);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start, end)).toBe("aba");
         expect(start).toBe(2);
       });
@@ -1849,8 +1849,8 @@ describe("ProsemirrorHelper", () => {
         userId: "user-1",
       });
 
-      expect(result).toBeInstanceOf(Uint8Array);
-      const images = getImageCommentMarks(result!);
+      expect(result?.state).toBeInstanceOf(Uint8Array);
+      const images = getImageCommentMarks(result!.state);
       expect(images).toHaveLength(1);
       expect(images[0].marks).toHaveLength(1);
       expect(images[0].marks[0]).toEqual({
@@ -1878,7 +1878,7 @@ describe("ProsemirrorHelper", () => {
         userId: "user-1",
       });
 
-      const images = getImageCommentMarks(result!);
+      const images = getImageCommentMarks(result!.state);
       expect(images[0].marks).toHaveLength(1);
       expect(images[1].marks).toHaveLength(0);
     });
@@ -1905,7 +1905,7 @@ describe("ProsemirrorHelper", () => {
         userId: "user-1",
       });
 
-      const images = getImageCommentMarks(result!);
+      const images = getImageCommentMarks(result!.state);
       expect(images[0].marks).toHaveLength(2);
       expect(images[0].marks.map((m) => m.attrs.id)).toEqual([
         "comment-0",

@@ -106,16 +106,20 @@ export const addDraftCommentAnchor =
       return false;
     }
 
-    const id = uuidv4();
-    dispatch?.(
-      state.tr.setMeta(draftCommentAnchorPluginKey, {
-        add: { id, from, to, isNode, userId: options.userId },
-      })
-    );
-    if (options.userId) {
-      options.onCreate?.(id, options.userId, { focus: true, anchor });
+    // Commands are also invoked without `dispatch` purely to check whether
+    // they are available, so all side effects must be guarded behind it.
+    if (dispatch) {
+      const id = uuidv4();
+      dispatch(
+        state.tr.setMeta(draftCommentAnchorPluginKey, {
+          add: { id, from, to, isNode, userId: options.userId },
+        })
+      );
+      if (options.userId) {
+        options.onCreate?.(id, options.userId, { focus: true, anchor });
+      }
+      options.onOpenCommentsSidebar?.();
     }
-    options.onOpenCommentsSidebar?.();
     return true;
   };
 
