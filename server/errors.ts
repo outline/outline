@@ -250,3 +250,10 @@ export function ClientClosedRequestError(
     isReportable: false,
   });
 }
+
+export function ResourceExpiredError(message = "Resource has expired") {
+  return httpErrors(410, message, {
+    id: "resource_expired",
+    isReportable: false,
+  });
+}

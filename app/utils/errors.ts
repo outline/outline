@@ -38,3 +38,6 @@ export class RequestError extends ExtendableError {}
 
 /** Error thrown when the client version is too old to use the API. */
 export class UpdateRequiredError extends ExtendableError {}
+
+/** Error thrown when the link is expired or has been deactivated. */
+export class ResourceExpiredError extends ExtendableError {}

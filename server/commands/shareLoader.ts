@@ -8,6 +8,7 @@ import {
   InvalidRequestError,
   NotFoundError,
   PaymentRequiredError,
+  ResourceExpiredError,
 } from "@server/errors";
 import type { User } from "@server/models";
 import { Collection, Document, Share } from "@server/models";
@@ -67,6 +68,10 @@ export async function loadPublicShare({
       },
     ],
   });
+
+  if (share?.expiresAt && share.expiresAt < new Date()) {
+    throw ResourceExpiredError("Share link has expired");
+  }
 
   if (
     !share ||

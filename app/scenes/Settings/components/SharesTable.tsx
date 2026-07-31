@@ -15,10 +15,13 @@ import {
 import { type Column as TableColumn } from "~/components/Table";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useShareMenuActions } from "~/hooks/useShareMenuActions";
+import useUserLocale from "~/hooks/useUserLocale";
 import Time from "~/components/Time";
 import ShareMenu from "~/menus/ShareMenu";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
 import { HStack } from "~/components/primitives/HStack";
+import Text from "~/components/Text";
+import { dateToExpiry } from "~/utils/date";
 
 const ROW_HEIGHT = 50;
 
@@ -46,6 +49,7 @@ const ShareRowContextMenu = observer(function ShareRowContextMenu({
 export function SharesTable({ data, canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const formatNumber = useFormatNumber();
+  const userLocale = useUserLocale();
   const hasDomain = data.some((share) => share.domain);
 
   const applyContextMenu = useCallback(
@@ -114,6 +118,25 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             ) : null,
           width: "2fr",
         },
+        {
+          type: "data",
+          id: "expiresAt",
+          header: t("Expires"),
+          accessor: (share) => share.expiresAt,
+          component: (share) =>
+            share.expiresAt && new Date(share.expiresAt) <= new Date() ? (
+              <Text type="danger">
+                {t("Expired")} <Time dateTime={share.expiresAt} addSuffix />
+              </Text>
+            ) : share.expiresAt ? (
+              <Text type="tertiary">
+                {dateToExpiry(share.expiresAt, t, userLocale)}
+              </Text>
+            ) : (
+              <Text type="tertiary">{t("Never")}</Text>
+            ),
+          width: "2fr",
+        },
         hasDomain
           ? {
               type: "data",
@@ -146,7 +169,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             }
           : undefined,
       ]),
-    [t, hasDomain, canManage, formatNumber]
+    [t, hasDomain, canManage, formatNumber, userLocale]
   );
 
   return (

@@ -31,6 +31,7 @@ export default function presentShare(share: Share, options: Options = {}) {
       ? {}
       : { createdBy: presentUser(share.user) }),
     includeChildDocuments: share.includeChildDocuments,
+    expiresAt: share.expiresAt,
     allowIndexing: share.allowIndexing,
     allowSubscriptions: share.allowSubscriptions,
     showLastUpdated: share.showLastUpdated,
