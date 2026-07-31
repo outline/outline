@@ -170,7 +170,11 @@ describe("ChangesetHelper.getChangeset", () => {
     /**
      * Builds a paragraph where the given word carries a comment mark.
      */
-    function commented(before: string, word: string, after: string) {
+    function commented(
+      before: string,
+      word: string,
+      after: string
+    ): ProsemirrorData {
       return {
         type: "doc",
         content: [
@@ -189,7 +193,7 @@ describe("ChangesetHelper.getChangeset", () => {
             ],
           },
         ],
-      } as ProsemirrorData;
+      };
     }
 
     it("ignores a comment mark added to otherwise unchanged text", () => {

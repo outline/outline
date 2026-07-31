@@ -294,10 +294,15 @@ export class ChangesetHelper {
       });
 
       // Parse documents from JSON (old = previous revision, new = current revision)
+      const original = Node.fromJSON(schema, revision);
+
+      // Diffing runs against copies without the ignored marks. Stripping marks
+      // leaves every position unchanged, so the resulting changes still line up
+      // with the original document.
       const docOld = removeIgnoredMarks(
         Node.fromJSON(schema, previousRevision)
       );
-      const docNew = removeIgnoredMarks(Node.fromJSON(schema, revision));
+      const docNew = removeIgnoredMarks(original);
 
       // Calculate the transform and changeset
       const tr = recreateTransform(docOld, docNew, {
@@ -449,7 +454,7 @@ export class ChangesetHelper {
 
       return {
         changes: extendedChanges,
-        doc: tr.doc,
+        doc: original,
       };
     } catch {
       return null;
