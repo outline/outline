@@ -85,9 +85,15 @@ const Toolbar = observer(function Toolbar_({
       const openModals = dialogs.modalStack.size;
       await performAction(action, context);
 
-      // If the action opened a dialog, leave the selection alone — cancelling
-      // keeps it, and it clears once the documents leave the list on confirm.
-      if (dialogs.modalStack.size === openModals) {
+      // `openModal` adds to the stack on a macrotask, so wait one before
+      // checking (its timer, scheduled first, runs before ours). If the action
+      // opened a dialog, leave the selection alone — cancelling keeps it and it
+      // clears once the documents leave the list on confirm; otherwise the
+      // action completed inline, so clear it.
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 0);
+      });
+      if (dialogs.modalStack.size <= openModals) {
         selection.clear();
       }
     },

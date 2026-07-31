@@ -25,6 +25,7 @@ import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
+import usePolicy from "~/hooks/usePolicy";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentPath } from "~/utils/routeHelpers";
@@ -90,11 +91,15 @@ function DocumentListItem(
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar = !document.isArchived;
 
+  // Multi-select is only offered for documents the user can update.
+  const can = usePolicy(document.id);
+  const selectable = !!selection && !!can.update;
   const isSelected = selection?.isSelected(document.id) ?? false;
-  const isSelecting = (selection?.isActive ?? false) || isSelected;
+  const isSelecting =
+    selectable && ((selection?.isActive ?? false) || isSelected);
 
   const inSelectArea = (event: React.MouseEvent) =>
-    !!selection && !!iconRef.current?.contains(event.target as Node);
+    selectable && !!iconRef.current?.contains(event.target as Node);
 
   // Handled on the link so preventDefault reliably suppresses navigation.
   const handleLinkClick = (event: React.MouseEvent) => {
@@ -168,7 +173,7 @@ function DocumentListItem(
           $isStarred={document.isStarred}
           $isDragging={isDragging}
           $menuOpen={menuOpen}
-          $selectable={!!selection}
+          $selectable={selectable}
           to={{
             pathname: documentPath(document),
             search: highlight
@@ -186,7 +191,7 @@ function DocumentListItem(
         >
           <Flex gap={4} auto>
             <IconWrapper ref={iconRef}>
-              {selection && (
+              {selectable && (
                 <SelectButton
                   role="checkbox"
                   aria-checked={isSelected}

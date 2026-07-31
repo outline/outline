@@ -46,7 +46,7 @@ import useMobile from "~/hooks/useMobile";
 
 function Search() {
   const { t } = useTranslation();
-  const { documents, searches } = useStores();
+  const { documents, searches, policies } = useStores();
   const isMobile = useMobile();
 
   // routing
@@ -153,9 +153,13 @@ function Search() {
     limit: Pagination.defaultLimit,
   });
 
+  // Only updatable documents are selectable, matching the per-item checkboxes.
   const itemIds = React.useMemo(
-    () => data?.map((result) => result.document.id) ?? [],
-    [data]
+    () =>
+      data
+        ?.filter((result) => policies.abilities(result.document.id).update)
+        .map((result) => result.document.id) ?? [],
+    [data, policies]
   );
 
   const updateLocation = (query: string) => {

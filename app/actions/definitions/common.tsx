@@ -2,7 +2,26 @@ import type { TFunction } from "i18next";
 import { InputIcon } from "outline-icons";
 import stores from "~/stores";
 import type { Action } from "~/types";
+import { client } from "~/utils/ApiClient";
 import { createAction } from "..";
+
+/**
+ * Runs a batchable per-item operation across the given items, coalescing the
+ * requests into a single batch request.
+ *
+ * @param items The items to operate on.
+ * @param operation The operation to perform on each item.
+ * @returns the number of operations that succeeded.
+ */
+export async function performBatch<T>(
+  items: T[],
+  operation: (item: T) => Promise<unknown> | undefined
+): Promise<number> {
+  const results = await Promise.allSettled(
+    client.batch(() => items.map((item) => Promise.resolve(operation(item))))
+  );
+  return results.filter((result) => result.status === "fulfilled").length;
+}
 
 /**
  * Creates an action that opens a dialog, taking care of wiring the dialog's

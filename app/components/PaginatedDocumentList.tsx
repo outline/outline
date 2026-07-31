@@ -6,6 +6,7 @@ import DocumentSelectionToolbar from "~/components/DocumentSelectionToolbar";
 import Error from "~/components/List/Error";
 import { ModelSelectionProvider } from "~/components/ModelSelectionContext";
 import PaginatedList from "~/components/PaginatedList";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   documents: Document[];
@@ -36,9 +37,15 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
   ...rest
 }: Props) {
   const { t } = useTranslation();
+  const { policies } = useStores();
+  // Only updatable documents are selectable, so that is what feeds range and
+  // select-all; per-item checkboxes are gated on the same ability.
   const itemIds = React.useMemo(
-    () => documents.map((document) => document.id),
-    [documents]
+    () =>
+      documents
+        .filter((document) => policies.abilities(document.id).update)
+        .map((document) => document.id),
+    [documents, policies]
   );
 
   return (

@@ -65,6 +65,7 @@ import {
   createActionWithChildren,
   createInternalLinkAction,
 } from "~/actions";
+import { performBatch } from "~/actions/definitions/common";
 import {
   ActiveDocumentSection,
   DocumentSection,
@@ -446,26 +447,6 @@ export const createNewDocumentInAlphabeticalCollection =
     },
   });
 
-/**
- * Runs a batchable per-document operation across the given documents,
- * coalescing the requests into a single batch request.
- *
- * @param documents The documents to operate on.
- * @param operation The operation to perform on each document.
- * @returns the number of operations that succeeded.
- */
-async function batchDocuments(
-  documents: Document[],
-  operation: (document: Document) => Promise<unknown> | undefined
-): Promise<number> {
-  const results = await Promise.allSettled(
-    client.batch(() =>
-      documents.map((document) => Promise.resolve(operation(document)))
-    )
-  );
-  return results.filter((result) => result.status === "fulfilled").length;
-}
-
 export const starDocument = createAction({
   name: ({ t }) => t("Star"),
   analyticsName: "Star document",
@@ -488,7 +469,7 @@ export const starDocument = createAction({
       return;
     }
 
-    const succeeded = await batchDocuments(documents, (document) =>
+    const succeeded = await performBatch(documents, (document) =>
       document.star()
     );
     setPersistedState(getHeaderExpandedKey("starred"), true);
@@ -521,7 +502,7 @@ export const unstarDocument = createAction({
       return;
     }
 
-    const succeeded = await batchDocuments(documents, (document) =>
+    const succeeded = await performBatch(documents, (document) =>
       document.unstar()
     );
 
@@ -593,7 +574,7 @@ export const unpublishDocument = createAction({
       return;
     }
 
-    const succeeded = await batchDocuments(documents, (document) =>
+    const succeeded = await performBatch(documents, (document) =>
       document.unpublish()
     );
 
@@ -999,7 +980,7 @@ export const pinDocumentToCollection = createAction({
       return;
     }
 
-    const succeeded = await batchDocuments(documents, (document) =>
+    const succeeded = await performBatch(documents, (document) =>
       document.pin(document.collectionId)
     );
 
@@ -1078,7 +1059,7 @@ export const unpinDocument = createAction({
       return;
     }
 
-    const succeeded = await batchDocuments(documents, (document) =>
+    const succeeded = await performBatch(documents, (document) =>
       document.unpin(document.collectionId ?? undefined)
     );
 
@@ -1410,7 +1391,7 @@ export const archiveDocument = createAction({
       content: (
         <ConfirmationDialog
           onSubmit={async () => {
-            const succeeded = await batchDocuments(documents, (document) =>
+            const succeeded = await performBatch(documents, (document) =>
               document.archive()
             );
             toast.success(
@@ -1458,7 +1439,7 @@ export const restoreDocument = createAction({
       return;
     }
 
-    const succeeded = await batchDocuments(documents, (document) =>
+    const succeeded = await performBatch(documents, (document) =>
       document.restore()
     );
 
@@ -1578,7 +1559,7 @@ export const deleteDocument = createAction({
           submitText={t("Delete")}
           savingText={`${t("Deleting")}…`}
           onSubmit={async () => {
-            const succeeded = await batchDocuments(documents, (document) =>
+            const succeeded = await performBatch(documents, (document) =>
               document.delete()
             );
             toast.success(
