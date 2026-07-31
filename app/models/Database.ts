@@ -49,6 +49,16 @@ export default class Database extends ParanoidModel {
   @observable.shallow
   views: DataView[];
 
+  /** When the database was archived, hiding it and its rows. */
+  @observable
+  archivedAt: string | null;
+
+  /** Whether the database is archived. */
+  @computed
+  get isArchived(): boolean {
+    return !!this.archivedAt;
+  }
+
   @computed
   get searchContent(): string {
     return this.name;

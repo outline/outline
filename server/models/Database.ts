@@ -1,12 +1,14 @@
 import { isNil } from "es-toolkit/compat";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
+  AllowNull,
   BelongsTo,
   Column,
   DataType,
   Default,
   ForeignKey,
   HasMany,
+  IsDate,
   IsIn,
   Length,
   Table,
@@ -70,6 +72,20 @@ class Database extends ParanoidModel<
   @Default(false)
   @Column(DataType.BOOLEAN)
   fullWidth: boolean;
+
+  /** When the database was archived, hiding it and its rows. */
+  @AllowNull
+  @IsDate
+  @Column(DataType.DATE)
+  archivedAt?: Date | null;
+
+  @BelongsTo(() => User, "archivedById")
+  archivedBy?: User | null;
+
+  @AllowNull
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  archivedById?: string | null;
 
   /** The typed property definitions that describe this database's columns. */
   @Default([])

@@ -726,3 +726,155 @@ describe("#databases.delete", () => {
     expect(res.status).toEqual(403);
   });
 });
+
+describe("#databases.archive", () => {
+  it("should hide the database and its rows, then restore both", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const row = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      databaseId: database.id,
+    });
+
+    const archived = await server.post("/api/databases.archive", user, {
+      body: { id: database.id },
+    });
+    expect(archived.status).toEqual(200);
+
+    // gone from the active list, and its rows with it
+    const list = await (
+      await server.post("/api/databases.list", user, {
+        body: { collectionId: collection.id },
+      })
+    ).json();
+    expect(list.data).toHaveLength(0);
+
+    const rows = await (
+      await server.post("/api/documents.list", user, {
+        body: { databaseId: database.id },
+      })
+    ).json();
+    expect(rows.data).toHaveLength(0);
+
+    // the row keeps everything that made it a row
+    await row.reload({ paranoid: false });
+    expect(row.databaseId).toEqual(database.id);
+    expect(row.archivedAt).toBeTruthy();
+
+    const restored = await server.post("/api/databases.restore", user, {
+      body: { id: database.id },
+    });
+    expect(restored.status).toEqual(200);
+
+    const after = await (
+      await server.post("/api/databases.list", user, {
+        body: { collectionId: collection.id },
+      })
+    ).json();
+    expect(after.data).toHaveLength(1);
+
+    await row.reload();
+    expect(row.archivedAt).toBeNull();
+  });
+
+  it("should list archived databases only when asked", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    await server.post("/api/databases.archive", user, {
+      body: { id: database.id },
+    });
+
+    const res = await server.post("/api/databases.list", user, {
+      body: { collectionId: collection.id, archived: true },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(database.id);
+  });
+
+  it("should leave a separately archived row archived on restore", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const row = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      databaseId: database.id,
+      archivedAt: new Date("2020-01-01"),
+    });
+
+    await server.post("/api/databases.archive", user, {
+      body: { id: database.id },
+    });
+    await server.post("/api/databases.restore", user, {
+      body: { id: database.id },
+    });
+
+    // it was not the database that archived this row, so restoring must not
+    // bring it back
+    await row.reload({ paranoid: false });
+    expect(row.archivedAt).toBeTruthy();
+  });
+
+  it("should require write access to archive", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const viewer = await buildViewer({ teamId: team.id });
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/databases.archive", viewer, {
+      body: { id: database.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#databases.delete", () => {
+  it("should keep the rows and their property values", async () => {
+    const { team, user, collection } = await buildEnabledTeam();
+    const propertyId = randomUUID();
+    const database = await buildDatabase({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      dataSchema: [{ id: propertyId, name: "Stage", type: PropertyType.Text }],
+    });
+    const row = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      databaseId: database.id,
+    });
+    await row.update({ properties: { [propertyId]: "shipped" } });
+
+    const res = await server.post("/api/databases.delete", user, {
+      body: { id: database.id },
+    });
+    expect(res.status).toEqual(200);
+
+    await row.reload();
+    expect(row.databaseId).toBeNull();
+    // values are keyed by property id and simply stop resolving, so deleting
+    // the database does not destroy them
+    expect(row.properties).toEqual({ [propertyId]: "shipped" });
+  });
+});

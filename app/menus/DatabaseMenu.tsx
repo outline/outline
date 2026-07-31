@@ -1,11 +1,13 @@
 import copy from "copy-to-clipboard";
 import { observer } from "mobx-react";
 import {
+  ArchiveIcon,
   CopyIcon,
   DatabaseIcon,
   EditIcon,
   MoveIcon,
   PrintIcon,
+  RestoreIcon,
   TrashIcon,
 } from "outline-icons";
 import * as React from "react";
@@ -44,7 +46,7 @@ type Props = {
  */
 function DatabaseMenu({ database }: Props) {
   const { t } = useTranslation();
-  const { dialogs } = useStores();
+  const { dialogs, databases } = useStores();
   const can = usePolicy(database);
   const isMobile = useMobile();
 
@@ -86,6 +88,25 @@ function DatabaseMenu({ database }: Props) {
     toast.success(t("Link copied to clipboard"));
   }, [t, database]);
 
+  const handleArchive = React.useCallback(async () => {
+    try {
+      await databases.archive(database);
+      toast.success(t("Database archived"));
+      history.push(database.collection?.path ?? "/home");
+    } catch (error) {
+      toast.error(errToString(error));
+    }
+  }, [t, databases, database]);
+
+  const handleRestore = React.useCallback(async () => {
+    try {
+      await databases.restore(database);
+      toast.success(t("Database restored"));
+    } catch (error) {
+      toast.error(errToString(error));
+    }
+  }, [t, databases, database]);
+
   const handleDelete = React.useCallback(() => {
     dialogs.openModal({
       title: t("Delete database"),
@@ -100,7 +121,7 @@ function DatabaseMenu({ database }: Props) {
           danger
         >
           {t(
-            "Are you sure? Deleting the {{ databaseName }} database removes its property schema and views. Its rows remain as documents in the collection.",
+            "Are you sure? Deleting the {{ databaseName }} database removes its property schema and views, and cannot be undone. Its rows remain as documents in the collection. To hide it reversibly, archive it instead.",
             { databaseName: database.name }
           )}
         </ConfirmationDialog>
@@ -148,6 +169,20 @@ function DatabaseMenu({ database }: Props) {
         },
       }),
       createAction({
+        name: t("Archive"),
+        section: ActiveCollectionSection,
+        icon: <ArchiveIcon />,
+        visible: can.archive && !database.isArchived,
+        perform: handleArchive,
+      }),
+      createAction({
+        name: t("Restore"),
+        section: ActiveCollectionSection,
+        icon: <RestoreIcon />,
+        visible: can.restore && database.isArchived,
+        perform: handleRestore,
+      }),
+      createAction({
         name: `${t("Delete")}…`,
         section: ActiveCollectionSection,
         icon: <TrashIcon />,
@@ -160,10 +195,15 @@ function DatabaseMenu({ database }: Props) {
       t,
       can.update,
       can.delete,
+      can.archive,
+      can.restore,
+      database.isArchived,
       handleEditSchema,
       handleRename,
       handleMove,
       handleCopyLink,
+      handleArchive,
+      handleRestore,
       handleDelete,
     ]
   );

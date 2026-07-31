@@ -10,6 +10,7 @@ export default function presentDatabase(database: Database) {
     dataSchema: database.dataSchema,
     views: database.views,
     collectionId: database.collectionId,
+    archivedAt: database.archivedAt,
     createdAt: database.createdAt,
     updatedAt: database.updatedAt,
   };

@@ -102,6 +102,8 @@ export const DatabasesListSchema = BaseSchema.extend({
   body: z.object({
     /** Restrict results to databases within this collection */
     collectionId: zodIdType().optional(),
+    /** Return archived databases instead of active ones */
+    archived: z.boolean().optional(),
   }),
 });
 
@@ -148,6 +150,18 @@ export type DatabasesUpdateReq = z.infer<typeof DatabasesUpdateSchema>;
 export const DatabasesDeleteSchema = BaseSchema.extend({
   body: BaseIdSchema,
 });
+
+export const DatabasesArchiveSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DatabasesArchiveReq = z.infer<typeof DatabasesArchiveSchema>;
+
+export const DatabasesRestoreSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DatabasesRestoreReq = z.infer<typeof DatabasesRestoreSchema>;
 
 export type DatabasesDeleteReq = z.infer<typeof DatabasesDeleteSchema>;
 

@@ -19,13 +19,17 @@ allow(User, "read", Database, (actor, database) =>
   )
 );
 
-allow(User, ["update", "delete", "createRow"], Database, (actor, database) =>
-  and(
-    isTeamModel(actor, database),
-    isTeamMutable(actor),
-    !actor.isGuest,
-    !actor.isViewer,
-    !!actor.team?.getPreference(TeamPreference.DocumentDatabases),
-    can(actor, "updateDocument", database?.collection)
-  )
+allow(
+  User,
+  ["update", "delete", "createRow", "archive", "restore"],
+  Database,
+  (actor, database) =>
+    and(
+      isTeamModel(actor, database),
+      isTeamMutable(actor),
+      !actor.isGuest,
+      !actor.isViewer,
+      !!actor.team?.getPreference(TeamPreference.DocumentDatabases),
+      can(actor, "updateDocument", database?.collection)
+    )
 );

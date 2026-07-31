@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { Op } from "sequelize";
 import type { Property } from "@shared/types";
 import { TeamPreference } from "@shared/types";
 import { errToString } from "@shared/utils/error";
@@ -30,7 +31,7 @@ router.post(
   auth(),
   validate(T.DatabasesListSchema),
   async (ctx: APIContext<T.DatabasesListReq>) => {
-    const { collectionId } = ctx.input.body;
+    const { collectionId, archived } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorizeFeature(ctx);
 
@@ -51,6 +52,7 @@ router.post(
       where: {
         teamId: user.teamId,
         collectionId: collectionIds,
+        archivedAt: archived ? { [Op.ne]: null } : { [Op.is]: null },
       },
       order: [["createdAt", "ASC"]],
     });
@@ -359,8 +361,11 @@ router.post(
     });
 
     for (const row of rows) {
+      // the property values are left in place: they are keyed by property id,
+      // so with the schema gone they simply resolve to nothing, and keeping
+      // them means deleting a database never destroys data that cannot be
+      // recovered. Archiving is the reversible option; this is not.
       row.databaseId = null;
-      row.properties = {};
       await row.save({ transaction, hooks: false, silent: true });
 
       if (collection && row.publishedAt && !row.deletedAt && !row.archivedAt) {
@@ -377,6 +382,106 @@ router.post(
     await database.destroy({ transaction });
 
     ctx.body = { success: true };
+  }
+);
+
+router.post(
+  "databases.archive",
+  auth(),
+  validate(T.DatabasesArchiveSchema),
+  transaction(),
+  async (ctx: APIContext<T.DatabasesArchiveReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+    authorizeFeature(ctx);
+
+    const database = await Database.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+    });
+    database.collection = await Collection.findByPk(database.collectionId, {
+      userId: user.id,
+      transaction,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "archive", database);
+
+    const archivedAt = new Date();
+    database.archivedAt = archivedAt;
+    database.archivedById = user.id;
+    await database.save({ transaction });
+
+    // rows keep their databaseId and their property values — archiving hides
+    // them, it does not unpick the database. Rows already archived on their
+    // own are left alone so restoring cannot un-archive them by accident.
+    await Document.update(
+      { lastModifiedById: user.id, archivedAt },
+      {
+        where: {
+          teamId: user.teamId,
+          databaseId: database.id,
+          archivedAt: { [Op.is]: null },
+        },
+        transaction,
+        hooks: false,
+      }
+    );
+
+    ctx.body = {
+      data: presentDatabase(database),
+      policies: presentPolicies(user, [database]),
+    };
+  }
+);
+
+router.post(
+  "databases.restore",
+  auth(),
+  validate(T.DatabasesRestoreSchema),
+  transaction(),
+  async (ctx: APIContext<T.DatabasesRestoreReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+    authorizeFeature(ctx);
+
+    const database = await Database.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+    });
+    database.collection = await Collection.findByPk(database.collectionId, {
+      userId: user.id,
+      transaction,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "restore", database);
+
+    // only the rows this archive took down come back, matched on the exact
+    // timestamp it stamped them with
+    await Document.update(
+      { lastModifiedById: user.id, archivedAt: null },
+      {
+        where: {
+          teamId: user.teamId,
+          databaseId: database.id,
+          archivedAt: database.archivedAt,
+        },
+        transaction,
+        hooks: false,
+      }
+    );
+
+    database.archivedAt = null;
+    database.archivedById = null;
+    await database.save({ transaction });
+
+    ctx.body = {
+      data: presentDatabase(database),
+      policies: presentPolicies(user, [database]),
+    };
   }
 );
 

@@ -22,6 +22,7 @@ export default class DatabasesStore extends Store<Database> {
   @action
   fetchAll = async (params?: {
     collectionId?: string;
+    archived?: boolean;
   }): Promise<Database[]> => {
     this.isFetching = true;
 
@@ -33,7 +34,7 @@ export default class DatabasesStore extends Store<Database> {
       runInAction("DatabasesStore#fetchAll", () => {
         models = res.data.map(this.add);
         this.addPolicies(res.policies);
-        if (!params?.collectionId) {
+        if (!params?.collectionId && !params?.archived) {
           this.isLoaded = true;
         }
       });
@@ -51,8 +52,45 @@ export default class DatabasesStore extends Store<Database> {
    */
   inCollection = (collectionId: string): Database[] =>
     this.orderedData.filter(
-      (database) => database.collectionId === collectionId
+      (database) =>
+        database.collectionId === collectionId && !database.isArchived
     );
+
+  /** The archived databases currently loaded, in creation order. */
+  @computed
+  get archived(): Database[] {
+    return this.orderedData.filter((database) => database.isArchived);
+  }
+
+  /**
+   * Archives a database, hiding it and its rows until restored.
+   *
+   * @param database the database to archive.
+   */
+  @action
+  archive = async (database: Database) => {
+    const res = await client.post("/databases.archive", { id: database.id });
+    invariant(res?.data, "Data not available");
+    runInAction("DatabasesStore#archive", () => {
+      this.add(res.data);
+      this.addPolicies(res.policies);
+    });
+  };
+
+  /**
+   * Restores an archived database, bringing back the rows it took down.
+   *
+   * @param database the database to restore.
+   */
+  @action
+  restore = async (database: Database) => {
+    const res = await client.post("/databases.restore", { id: database.id });
+    invariant(res?.data, "Data not available");
+    runInAction("DatabasesStore#restore", () => {
+      this.add(res.data);
+      this.addPolicies(res.policies);
+    });
+  };
 
   /**
    * Persists a change to one of a database's saved views, leaving the other
