@@ -3,10 +3,9 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { isMac } from "@shared/utils/browser";
-import { metaDisplay, altDisplay } from "@shared/utils/keyboard";
 import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
-import Key from "~/components/Key";
+import { KeyboardShortcut } from "~/components/KeyboardShortcut";
 
 type Props = {
   /** Initial search query to filter shortcuts */
@@ -21,125 +20,86 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
         title: t("Navigation"),
         items: [
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>k</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "k"]} />,
             label: t("Open command menu"),
           },
           {
             shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key symbol>[</Key>
-              </>
+              <KeyboardShortcut
+                keys={["meta", { display: "[", symbol: true }]}
+              />
             ),
             label: t("Back"),
           },
           {
             shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key symbol>]</Key>
-              </>
+              <KeyboardShortcut
+                keys={["meta", { display: "]", symbol: true }]}
+              />
             ),
             label: t("Forward"),
           },
           {
-            shortcut: <Key>n</Key>,
+            shortcut: <KeyboardShortcut keys={["n"]} />,
             label: t("New document"),
           },
           {
-            shortcut: <Key>e</Key>,
+            shortcut: <KeyboardShortcut keys={["e"]} />,
             label: t("Edit current document"),
           },
           {
-            shortcut: <Key>m</Key>,
+            shortcut: <KeyboardShortcut keys={["m"]} />,
             label: t("Move current document"),
           },
           {
-            shortcut: <Key>h</Key>,
+            shortcut: <KeyboardShortcut keys={["h"]} />,
             label: t("Open document history"),
           },
           {
             shortcut: (
-              <>
-                <Key>/</Key> or <Key>t</Key>
-              </>
+              <KeyboardShortcut keys={["/", "t"]} combination="alternative" />
             ),
             label: t("Jump to search"),
           },
           {
-            shortcut: <Key>d</Key>,
+            shortcut: <KeyboardShortcut keys={["d"]} />,
             label: t("Jump to home"),
           },
           {
-            shortcut: (
-              <>
-                <Key>Ctrl</Key> + <Key symbol>{altDisplay}</Key> + <Key>h</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["ctrl", "alt", "h"]} />,
             label: t("Table of contents"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>.</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "."]} />,
             label: t("Toggle sidebar"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
-                <Key>l</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "shift", "l"]} />,
             label: t("Toggle theme"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>f</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "f"]} />,
             label: t("Focus search input"),
           },
           {
-            shortcut: <Key>?</Key>,
+            shortcut: <KeyboardShortcut keys={["?"]} />,
             label: t("Open this guide"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>{t("Enter")}</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "enter"]} />,
             label: t("Go to link"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key symbol>{altDisplay}</Key>{" "}
-                + <Key>p</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "alt", "p"]} />,
             label: t("Present document"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
-                <Key>p</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "shift", "p"]} />,
             label: t("Publish document and exit"),
           },
           {
             shortcut: (
-              <>
-                <Key symbol>{isMac ? metaDisplay : "⇧"}</Key> + <Key>Esc</Key>
-              </>
+              <KeyboardShortcut keys={[isMac ? "meta" : "shift", "esc"]} />
             ),
             label: t("Cancel editing"),
           },
@@ -149,11 +109,7 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
         title: t("Collaboration"),
         items: [
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>Alt</Key> + <Key>m</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "alt", "m"]} />,
             label: t("Comment"),
           },
         ],
@@ -162,136 +118,67 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
         title: t("Formatting"),
         items: [
           {
-            shortcut: (
-              <>
-                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>0</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["ctrl", "shift", "0"]} />,
             label: t("Paragraph"),
           },
           {
-            shortcut: (
-              <>
-                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>1</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["ctrl", "shift", "1"]} />,
             label: t("Large header"),
           },
           {
-            shortcut: (
-              <>
-                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>2</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["ctrl", "shift", "2"]} />,
             label: t("Medium header"),
           },
           {
-            shortcut: (
-              <>
-                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>3</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["ctrl", "shift", "3"]} />,
             label: t("Small header"),
           },
           {
-            shortcut: (
-              <>
-                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>\</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["ctrl", "shift", "\\"]} />,
             label: t("Code block"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>b</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "b"]} />,
             label: t("Bold"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
-                <Key>c</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "shift", "c"]} />,
             label: t("Code"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
-                <Key>h</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "shift", "h"]} />,
             label: t("Highlight"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>i</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "i"]} />,
             label: t("Italic"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>k</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "k"]} />,
             label: t("Link"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>d</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "d"]} />,
             label: t("Strikethrough"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>u</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "u"]} />,
             label: t("Underline"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>z</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "z"]} />,
             label: t("Undo"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
-                <Key>z</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "shift", "z"]} />,
             label: t("Redo"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key symbol>{altDisplay}</Key>{" "}
-                + <Key symbol>↑</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "alt", "up"]} />,
             label: t("Move block up"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key symbol>{altDisplay}</Key>{" "}
-                + <Key symbol>↓</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "alt", "down"]} />,
             label: t("Move block down"),
           },
         ],
@@ -300,63 +187,35 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
         title: t("Lists"),
         items: [
           {
-            shortcut: (
-              <>
-                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>7</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["ctrl", "shift", "7"]} />,
             label: t("Todo list"),
           },
           {
-            shortcut: (
-              <>
-                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>8</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["ctrl", "shift", "8"]} />,
             label: t("Bulleted list"),
           },
           {
-            shortcut: (
-              <>
-                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>9</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["ctrl", "shift", "9"]} />,
             label: t("Ordered list"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>Enter</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "enter"]} />,
             label: t("Toggle task list item"),
           },
           {
-            shortcut: <Key>{t("Tab")}</Key>,
+            shortcut: <KeyboardShortcut keys={["tab"]} />,
             label: t("Indent list item"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>⇧</Key> + <Key>{t("Tab")}</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["shift", "tab"]} />,
             label: t("Outdent list item"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{altDisplay}</Key> + <Key symbol>↑</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["alt", "up"]} />,
             label: t("Move list item up"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>{altDisplay}</Key> + <Key symbol>↓</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["alt", "down"]} />,
             label: t("Move list item down"),
           },
         ],
@@ -365,23 +224,15 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
         title: t("Toggle blocks"),
         items: [
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>Enter</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "enter"]} />,
             label: t("Open / close"),
           },
           {
-            shortcut: <Key>{t("Tab")}</Key>,
+            shortcut: <KeyboardShortcut keys={["tab"]} />,
             label: t("Indent item"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>⇧</Key> + <Key>{t("Tab")}</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["shift", "tab"]} />,
             label: t("Outdent item"),
           },
         ],
@@ -390,23 +241,15 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
         title: t("Tables"),
         items: [
           {
-            shortcut: (
-              <>
-                <Key symbol>{metaDisplay}</Key> + <Key>{t("Enter")}</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["meta", "enter"]} />,
             label: t("Insert row"),
           },
           {
-            shortcut: <Key>{t("Tab")}</Key>,
+            shortcut: <KeyboardShortcut keys={["tab"]} />,
             label: t("Next cell"),
           },
           {
-            shortcut: (
-              <>
-                <Key symbol>⇧</Key> + <Key>{t("Tab")}</Key>
-              </>
-            ),
+            shortcut: <KeyboardShortcut keys={["shift", "tab"]} />,
             label: t("Previous cell"),
           },
         ],
@@ -416,90 +259,84 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
         items: [
           {
             shortcut: (
-              <>
-                <Key>#</Key> <Key>{t("Space")}</Key>
-              </>
+              <KeyboardShortcut keys={["#", "space"]} combination="sequence" />
             ),
             label: t("Large header"),
           },
           {
             shortcut: (
-              <>
-                <Key>##</Key> <Key>{t("Space")}</Key>
-              </>
+              <KeyboardShortcut keys={["##", "space"]} combination="sequence" />
             ),
             label: t("Medium header"),
           },
           {
             shortcut: (
-              <>
-                <Key>###</Key> <Key>{t("Space")}</Key>
-              </>
+              <KeyboardShortcut
+                keys={["###", "space"]}
+                combination="sequence"
+              />
             ),
             label: t("Small header"),
           },
           {
             shortcut: (
-              <>
-                <Key>1.</Key> <Key>{t("Space")}</Key>
-              </>
+              <KeyboardShortcut keys={["1.", "space"]} combination="sequence" />
             ),
             label: t("Numbered list"),
           },
           {
             shortcut: (
-              <>
-                <Key>-</Key> <Key>{t("Space")}</Key>
-              </>
+              <KeyboardShortcut keys={["-", "space"]} combination="sequence" />
             ),
             label: t("Bulleted list"),
           },
           {
             shortcut: (
-              <>
-                <Key>[ ]</Key> <Key>{t("Space")}</Key>
-              </>
+              <KeyboardShortcut
+                keys={["[ ]", "space"]}
+                combination="sequence"
+              />
             ),
             label: t("Todo list"),
           },
           {
             shortcut: (
-              <>
-                <Key>&gt;</Key> <Key>{t("Space")}</Key>
-              </>
+              <KeyboardShortcut keys={[">", "space"]} combination="sequence" />
             ),
             label: t("Blockquote"),
           },
           {
-            shortcut: <Key>---</Key>,
+            shortcut: <KeyboardShortcut keys={["---"]} />,
             label: t("Horizontal divider"),
           },
           {
-            shortcut: <Key>{"|--"}</Key>,
+            shortcut: <KeyboardShortcut keys={["|--"]} />,
             label: t("Table"),
           },
           {
-            shortcut: <Key>{"```"}</Key>,
+            shortcut: <KeyboardShortcut keys={["```"]} />,
             label: t("Code block"),
           },
           {
             shortcut: (
-              <>
-                <Key>$$$</Key> <Key>{t("Space")}</Key>
-              </>
+              <KeyboardShortcut
+                keys={["$$$", "space"]}
+                combination="sequence"
+              />
             ),
             label: t("LaTeX block"),
           },
           {
             shortcut: (
-              <>
-                <Key>+++</Key> <Key>{t("Space")}</Key>
-              </>
+              <KeyboardShortcut
+                keys={["+++", "space"]}
+                combination="sequence"
+              />
             ),
             label: t("Toggle block"),
           },
           {
-            shortcut: <Key>{":::"}</Key>,
+            shortcut: <KeyboardShortcut keys={[":::"]} />,
             label: t("Info notice"),
           },
           {

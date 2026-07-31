@@ -10,6 +10,21 @@ import {
 
 export const MAX_AVATAR_DISPLAY = 6;
 
+/** Preset colors offered when choosing an icon color. */
+export const colorPalette = [
+  "#4E5C6E",
+  "#0366D6",
+  "#2BC2FF",
+  "#9E5CF7",
+  "#FF825C",
+  "#FF5C80",
+  "#FFBE0B",
+  "#42DED1",
+  "#00D084",
+  "#FF4DFA",
+  "#2F362F",
+];
+
 export const Pagination = {
   defaultLimit: 25,
   defaultOffset: 0,
@@ -18,8 +33,13 @@ export const Pagination = {
 };
 
 export const CSRF = {
+  /** Cookie name used on secure origins. */
+  secureCookieName: "__Host-csrfToken",
+  /** Cookie name used over HTTP, where the `__Host-` prefix is not accepted. */
   cookieName: "csrfToken",
+  /** Request header that carries the token for API requests. */
   headerName: "x-csrf-token",
+  /** Hidden field that carries the token for native form submissions. */
   fieldName: "_csrf",
 };
 

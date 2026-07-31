@@ -5,7 +5,7 @@ import Koa from "koa";
 import Router from "koa-router";
 import send from "koa-send";
 import { languages } from "@shared/i18n";
-import { IntegrationType, TeamPreference } from "@shared/types";
+import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import { Day } from "@shared/utils/time";
 import env from "@server/env";
@@ -264,14 +264,9 @@ router.get("*", async (ctx, next) => {
     }
   }
 
-  const analytics = team
-    ? await Integration.findAll({
-        where: {
-          teamId: team.id,
-          type: IntegrationType.Analytics,
-        },
-      })
-    : [];
+  const analytics = await Integration.findAnalyticsIntegrationsForTeam(
+    team?.id
+  );
 
   const publicBranding =
     team?.getPreference(TeamPreference.PublicBranding) ?? false;

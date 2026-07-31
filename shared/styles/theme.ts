@@ -43,12 +43,19 @@ const defaultColors: Colors = {
   },
 };
 
+/** The narrowest the content of a sidebar can be, excluding its padding. */
+const sidebarMinWidth = 240;
+
+const sidebarPadding = 16;
+
 const spacing = {
   sidebarWidth: 260,
   sidebarRightWidth: 300,
   sidebarCollapsedWidth: 16,
-  sidebarMinWidth: 200,
-  sidebarMaxWidth: 600,
+  sidebarMinWidth,
+  sidebarMaxWidth: 500,
+  /** The narrowest a sidebar can be resized to, including its padding. */
+  sidebarResizeMinWidth: sidebarMinWidth + sidebarPadding,
 };
 
 const buildBaseTheme = (input: Partial<Colors>) => {

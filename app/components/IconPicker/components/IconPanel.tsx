@@ -7,8 +7,9 @@ import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import { DisplayCategory } from "../utils";
 import IconColorPicker from "./IconColorPicker";
-import type { DataNode } from "./GridTemplate";
+import type { DataNode, IconNode } from "./GridTemplate";
 import GridTemplate from "./GridTemplate";
+import { IconPreview, PREVIEW_HEIGHT } from "./IconPreview";
 import { useIconState } from "../useIconState";
 
 const IconNames = Object.keys(IconLibrary.mapping);
@@ -18,7 +19,7 @@ const TotalIcons = IconNames.length;
  * This is needed as a constant for react-window.
  * Calculated from the heights of TabPanel, ColorPicker and InputSearch.
  */
-const GRID_HEIGHT = 314;
+const GRID_HEIGHT = 314 - PREVIEW_HEIGHT;
 
 type Props = {
   panelWidth: number;
@@ -74,6 +75,24 @@ const IconPanel = ({
     },
     [onIconChange, incrementIconCount]
   );
+
+  const [activeIcon, setActiveIcon] = React.useState<string>();
+  const [hasMoreBelow, setHasMoreBelow] = React.useState(false);
+
+  const handleIconActive = React.useCallback((icon: IconNode) => {
+    if (icon.type === IconType.SVG) {
+      setActiveIcon(icon.name);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    setActiveIcon(undefined);
+  }, [query]);
+
+  // Preview the first icon shown in the grid until the user hovers another.
+  const previewIcon =
+    activeIcon ??
+    (isSearch ? filteredIcons[0] : (freqIcons[0] ?? filteredIcons[0]));
 
   const baseIcons: DataNode = {
     category,
@@ -133,6 +152,22 @@ const IconPanel = ({
         height={GRID_HEIGHT}
         data={templateData}
         onIconSelect={handleIconSelection}
+        onIconActive={handleIconActive}
+        onOverflowChange={setHasMoreBelow}
+      />
+      <IconPreview
+        showFade={hasMoreBelow}
+        icon={
+          previewIcon
+            ? {
+                type: IconType.SVG,
+                name: previewIcon,
+                color,
+                initial,
+                delay: 0,
+              }
+            : undefined
+        }
       />
     </Flex>
   );

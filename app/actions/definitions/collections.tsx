@@ -3,6 +3,7 @@ import {
   SortAlphabeticalIcon,
   ArchiveIcon,
   CollectionIcon,
+  DuplicateIcon,
   EditIcon,
   ExportIcon,
   ImportIcon,
@@ -26,7 +27,9 @@ import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
+import CollectionDuplicateDialog from "~/components/CollectionDuplicateDialog";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import { DialogTitle } from "~/components/DialogTitle";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
@@ -105,7 +108,7 @@ export const editCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Edit collection"),
+      title: <DialogTitle title={t("Edit collection")} model={collection} />,
       content: (
         <CollectionEdit
           onSubmit={stores.dialogs.closeAllModals}
@@ -131,12 +134,43 @@ export const editCollectionPermissions = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Share this collection"),
+      title: (
+        <DialogTitle title={t("Share this collection")} model={collection} />
+      ),
       content: (
         <SharePopover
           collection={collection}
           onRequestClose={stores.dialogs.closeAllModals}
           visible
+        />
+      ),
+    });
+  },
+});
+
+export const duplicateCollection = createAction({
+  name: ({ t, isMenu }) =>
+    isMenu ? `${t("Duplicate")}…` : t("Duplicate collection"),
+  analyticsName: "Duplicate collection",
+  section: ActiveCollectionSection,
+  icon: <DuplicateIcon />,
+  keywords: "copy",
+  visible: ({ getActivePolicies }) =>
+    getActivePolicies(Collection).some((policy) => policy.abilities.duplicate),
+  perform: ({ getActiveModel, t, stores }) => {
+    const collection = getActiveModel(Collection);
+    if (!collection) {
+      return;
+    }
+
+    stores.dialogs.openModal({
+      title: (
+        <DialogTitle title={t("Duplicate collection")} model={collection} />
+      ),
+      content: (
+        <CollectionDuplicateDialog
+          collection={collection}
+          onSubmit={stores.dialogs.closeAllModals}
         />
       ),
     });
@@ -425,7 +459,7 @@ export const archiveCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Archive collection"),
+      title: <DialogTitle title={t("Archive collection")} model={collection} />,
       content: (
         <ConfirmationDialog
           onSubmit={async () => {
@@ -477,7 +511,7 @@ export const deleteCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Delete collection"),
+      title: <DialogTitle title={t("Delete collection")} model={collection} />,
       content: (
         <CollectionDeleteDialog
           collection={collection}
@@ -502,7 +536,7 @@ export const exportCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Export collection"),
+      title: <DialogTitle title={t("Export collection")} model={collection} />,
       content: (
         <ExportDialog
           collection={collection}
@@ -555,6 +589,7 @@ export const rootCollectionActions = [
   openCollection,
   openCollectionInSplit,
   createCollection,
+  duplicateCollection,
   starCollection,
   unstarCollection,
   subscribeCollection,

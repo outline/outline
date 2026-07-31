@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -47,15 +47,9 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
     >
       <Flex column gap={12}>
         <div>
-          <Trans
-            defaults="Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents."
-            values={{
-              titleWithDefault: document.titleWithDefault,
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />
+          {t(
+            "Creating a template is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents."
+          )}
         </div>
         <SelectLocation
           defaultCollectionId={collectionId}

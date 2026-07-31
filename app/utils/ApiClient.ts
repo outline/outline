@@ -12,6 +12,7 @@ import {
   AuthorizationError,
   BadGatewayError,
   BadRequestError,
+  ClientClosedRequestError,
   NetworkError,
   NotFoundError,
   OfflineError,
@@ -22,8 +23,8 @@ import {
   UnprocessableEntityError,
   UpdateRequiredError,
 } from "./errors";
-import { getCookie } from "tiny-cookie";
 import { BatchableApiMethods, BatchMaxRequests, CSRF } from "@shared/constants";
+import { getCSRFToken } from "./csrf";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 
 type Options = {
@@ -208,7 +209,7 @@ class ApiClient {
     // rotation of the cookie since the request was prepared.
     const fetchWithFreshCsrfToken: typeof fetch = (input, init) => {
       if (requiresCsrfToken) {
-        const csrfToken = getCookie(CSRF.cookieName);
+        const csrfToken = getCSRFToken();
         if (csrfToken) {
           headers.set(CSRF.headerName, csrfToken);
         }
@@ -332,6 +333,12 @@ class ApiClient {
       throw new RateLimitExceededError(
         `Too many requests, try again in a minute.`
       );
+    }
+
+    // The client, or an intermediate proxy, closed the connection before the
+    // response was received – there is nothing actionable to report.
+    if (response.status === 499) {
+      throw new ClientClosedRequestError(error.message);
     }
 
     const err = new RequestError(`Error ${response.status}`);

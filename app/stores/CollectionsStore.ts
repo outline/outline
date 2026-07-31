@@ -94,6 +94,23 @@ export default class CollectionsStore extends Store<Collection> {
   };
 
   @action
+  duplicate = async (
+    collection: Collection,
+    options?: {
+      name?: string;
+    }
+  ): Promise<Collection> => {
+    const res = await client.post("/collections.duplicate", {
+      id: collection.id,
+      ...options,
+    });
+    invariant(res?.data, "Data should be available");
+
+    this.addPolicies(res.policies);
+    return this.add(res.data);
+  };
+
+  @action
   move = async (collectionId: string, index: string) => {
     const res = await client.post("/collections.move", {
       id: collectionId,

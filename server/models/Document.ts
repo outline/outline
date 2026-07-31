@@ -99,7 +99,12 @@ type AdditionalFindOptions = {
   userId?: string;
   /** Whether to include the state column in the attributes. */
   includeState?: boolean;
-  /** Whether to views (default: true). */
+  /**
+   * Whether to include the content columns in the attributes (default: true).
+   * Pass false when the document is only needed for authorization.
+   */
+  includeContent?: boolean;
+  /** Whether to include views (default: true). */
   includeViews?: boolean;
   /** Whether to reject the query if no document is found. */
   rejectOnEmpty?: boolean | Error;
@@ -149,6 +154,11 @@ interface QueryGeneratorWithWhere {
     attributes: {
       exclude: ["state"],
       include: [stateIfContentEmpty],
+    },
+  },
+  withoutContent: {
+    attributes: {
+      exclude: ["state", "content", "text"],
     },
   },
   withCollection: {
@@ -356,6 +366,10 @@ class Document extends ArchivableModel<
    * @deprecated Use `content` instead, or `DocumentHelper.toMarkdown` if exporting lossy markdown.
    * This column will be removed in a future migration.
    */
+  @SimpleLength({
+    max: DocumentValidation.maxLength,
+    msg: `Document text content must be ${DocumentValidation.maxLength} characters or less`,
+  })
   @Column(DataType.TEXT)
   @SkipChangeset
   text: string;
@@ -793,15 +807,21 @@ class Document extends ArchivableModel<
     const {
       includeViews = true,
       includeState = false,
+      includeContent = true,
       userId,
       ...rest
     } = options;
+
+    let contentScope = includeState ? "withState" : "withoutState";
+    if (!includeContent) {
+      contentScope = "withoutContent";
+    }
 
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
       "withDrafts",
-      includeState ? "withState" : "withoutState",
+      contentScope,
       ...((includeViews
         ? [
             {
@@ -816,15 +836,17 @@ class Document extends ArchivableModel<
 
     if (isUUID(id)) {
       const document = await scope.findOne({
+        ...rest,
         where: {
           id,
         },
-        ...rest,
         rejectOnEmpty: false,
       });
 
       if (!document && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
+        throw rest.rejectOnEmpty instanceof Error
+          ? rest.rejectOnEmpty
+          : new EmptyResultError(`Document doesn't exist with id: ${id}`);
       }
 
       return document;
@@ -833,15 +855,17 @@ class Document extends ArchivableModel<
     const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
       const document = await scope.findOne({
+        ...rest,
         where: {
           urlId: match[1],
         },
-        ...rest,
         rejectOnEmpty: false,
       });
 
       if (!document && rest.rejectOnEmpty) {
-        throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
+        throw rest.rejectOnEmpty instanceof Error
+          ? rest.rejectOnEmpty
+          : new EmptyResultError(`Document doesn't exist with id: ${id}`);
       }
 
       return document;
@@ -891,14 +915,23 @@ class Document extends ArchivableModel<
       return documents;
     }
 
-    return documents.filter(
-      (doc) =>
-        (!doc.collection?.isPrivate && !user?.isGuest) ||
-        (doc.collection?.memberships.length || 0) > 0 ||
-        (doc.collection?.groupMemberships.length || 0) > 0 ||
-        doc.memberships.length > 0 ||
-        doc.groupMemberships.length > 0
-    );
+    return documents.filter((doc) => {
+      if (doc.memberships.length > 0 || doc.groupMemberships.length > 0) {
+        return true;
+      }
+
+      // A document without a collection is either an unfiled draft or lives in
+      // a collection the user cannot see – access is limited to the creator.
+      if (!doc.collection) {
+        return doc.createdById === userId;
+      }
+
+      return (
+        (!doc.collection.isPrivate && !user?.isGuest) ||
+        doc.collection.memberships.length > 0 ||
+        doc.collection.groupMemberships.length > 0
+      );
+    });
   }
 
   // instance methods
@@ -1084,7 +1117,7 @@ class Document extends ArchivableModel<
       const collection = await Collection.findByPk(this.collectionId, {
         includeDocumentStructure: true,
         transaction,
-        lock: Transaction.LOCK.UPDATE,
+        lock: Transaction.LOCK.NO_KEY_UPDATE,
       });
 
       if (collection) {

@@ -3,6 +3,7 @@ import { TrashIcon } from "outline-icons";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import DocumentDelete from "~/scenes/DocumentDelete";
+import { DialogTitle } from "~/components/DialogTitle";
 import useStores from "~/hooks/useStores";
 import { trashPath } from "~/utils/routeHelpers";
 import type { DragObject } from "../hooks/useDragAndDrop";
@@ -21,9 +22,14 @@ function TrashLink() {
       }
 
       dialogs.openModal({
-        title: t("Delete {{ documentName }}", {
-          documentName: document?.noun,
-        }),
+        title: (
+          <DialogTitle
+            title={t("Delete {{ documentName }}", {
+              documentName: document.noun,
+            })}
+            model={document}
+          />
+        ),
         content: (
           <DocumentDelete
             document={document}

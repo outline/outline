@@ -8,6 +8,7 @@ import {
   TextEditMode,
   SortFilter,
 } from "@shared/types";
+import { DocumentValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
@@ -264,7 +265,7 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     title: z.string().optional(),
 
     /** Doc text to be updated */
-    text: z.string().optional(),
+    text: z.string().max(DocumentValidation.maxLength).optional(),
 
     /** Icon displayed alongside doc title */
     icon: zodIconType().nullish(),
@@ -428,7 +429,7 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     title: z.string().optional(),
 
     /** Document text */
-    text: z.string().optional(),
+    text: z.string().max(DocumentValidation.maxLength).optional(),
 
     /** Icon displayed alongside doc title */
     icon: zodIconType().optional(),

@@ -337,17 +337,14 @@ const handleAttachmentsRedirect = async (
   }
 };
 
-router.get(
+router.register(
   "attachments.redirect",
-  auth({ optional: true }),
-  validate(T.AttachmentsRedirectSchema),
-  handleAttachmentsRedirect
-);
-router.post(
-  "attachments.redirect",
-  auth({ optional: true }),
-  validate(T.AttachmentsRedirectSchema),
-  handleAttachmentsRedirect
+  ["get", "post"],
+  [
+    auth({ optional: true }),
+    validate(T.AttachmentsRedirectSchema),
+    handleAttachmentsRedirect,
+  ]
 );
 
 export default router;

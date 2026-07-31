@@ -71,7 +71,6 @@ class Iframely {
         parsedData.meta.site === "Figma"
           ? cdnPath("/images/figma.png")
           : ((parsedData.links.icon ?? [])[0]?.href ?? ""),
-      transformedUnfurl: true,
     };
   };
 }
