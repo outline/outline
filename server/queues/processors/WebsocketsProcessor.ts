@@ -702,6 +702,12 @@ export default class WebsocketsProcessor {
         return socketio.to(`user-${event.userId}`).emit(event.name, data);
       }
 
+      case "notifications.delete": {
+        return socketio.to(`user-${event.userId}`).emit(event.name, {
+          modelId: event.modelId,
+        });
+      }
+
       case "stars.create":
       case "stars.update": {
         const star = await Star.findByPk(event.modelId);
