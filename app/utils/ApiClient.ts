@@ -69,6 +69,8 @@ interface BatchSubResponse {
   status: number;
   data?: unknown;
   policies?: unknown;
+  /** Structured error code, mirroring a top-level error response's `error`. */
+  error?: string;
   message?: string;
 }
 
@@ -257,14 +259,8 @@ class ApiClient {
       return response.json();
     }
 
-    // Handle 401, notify session owner to log out
-    if (response.status === 401) {
-      if (!this.shareId) {
-        await this.onUnauthorized?.("unauthorized");
-      }
-      throw new AuthorizationError();
-    }
-
+    // The gateway or an upstream proxy failed before the app could respond; the
+    // raw body is captured for diagnosis.
     if (response.status === 502) {
       const text = await response.text();
       const err = new BadGatewayError(text);
@@ -278,9 +274,8 @@ class ApiClient {
       throw err;
     }
 
-    // Handle failed responses
+    // Parse the structured error payload, if present.
     const error: ApiErrorResponse = {};
-
     try {
       const parsed: ApiErrorResponse = await response.json();
       error.message = parsed.message || "";
@@ -290,65 +285,92 @@ class ApiClient {
       // we're trying to parse an error so JSON may not be valid
     }
 
-    if (response.status === 400 && error.error === "editor_update_required") {
+    const err = await this.toError(response.status, error.error, error.message);
+
+    // Log failures that aren't mapped to a specific error type.
+    if (err.constructor === RequestError) {
+      Logger.error("Request failed", err, { ...error, url: urlToFetch });
+    }
+
+    // Still need to throw to trigger retry
+    throw err;
+  };
+
+  /**
+   * Maps a failed response's status and error code to the corresponding error
+   * type, triggering the unauthorized handler for authentication failures.
+   * Shared by top-level requests and batched sub-requests so both surface
+   * identical errors and side effects.
+   *
+   * @param status The response status code.
+   * @param code The structured error code, if any.
+   * @param message The human-readable error message, if any.
+   * @returns the error to throw or reject with.
+   */
+  private toError = async (
+    status: number,
+    code: string | undefined,
+    message: string | undefined
+  ): Promise<Error> => {
+    if (status === 401) {
+      if (!this.shareId) {
+        await this.onUnauthorized?.("unauthorized");
+      }
+      return new AuthorizationError();
+    }
+
+    if (status === 400 && code === "editor_update_required") {
       window.location.reload();
-      throw new UpdateRequiredError(error.message);
+      return new UpdateRequiredError(message);
     }
 
-    if (response.status === 400) {
-      throw new BadRequestError(error.message);
+    if (status === 400) {
+      return new BadRequestError(message);
     }
 
-    if (response.status === 402) {
-      throw new PaymentRequiredError(error.message);
+    if (status === 402) {
+      return new PaymentRequiredError(message);
     }
 
-    if (response.status === 403) {
-      if (error.error === "user_suspended") {
+    if (status === 403) {
+      if (code === "user_suspended") {
         await this.onUnauthorized?.("user_suspended");
       }
 
-      if (error.error === "csrf_error") {
-        throw new AuthorizationError(
+      if (code === "csrf_error") {
+        return new AuthorizationError(
           "CSRF token invalid, please try reloading."
         );
       }
 
-      throw new AuthorizationError(error.message);
+      return new AuthorizationError(message);
     }
 
-    if (response.status === 404) {
-      throw new NotFoundError(error.message);
+    if (status === 404) {
+      return new NotFoundError(message);
     }
 
-    if (response.status === 503) {
-      throw new ServiceUnavailableError(error.message);
+    if (status === 503) {
+      return new ServiceUnavailableError(message);
     }
 
-    if (response.status === 422) {
-      throw new UnprocessableEntityError(error.message);
+    if (status === 422) {
+      return new UnprocessableEntityError(message);
     }
 
-    if (response.status === 429) {
-      throw new RateLimitExceededError(
+    if (status === 429) {
+      return new RateLimitExceededError(
         `Too many requests, try again in a minute.`
       );
     }
 
     // The client, or an intermediate proxy, closed the connection before the
     // response was received – there is nothing actionable to report.
-    if (response.status === 499) {
-      throw new ClientClosedRequestError(error.message);
+    if (status === 499) {
+      return new ClientClosedRequestError(message);
     }
 
-    const err = new RequestError(`Error ${response.status}`);
-    Logger.error("Request failed", err, {
-      ...error,
-      url: urlToFetch,
-    });
-
-    // Still need to throw to trigger retry
-    throw err;
+    return new RequestError(`Error ${status}`);
   };
 
   /**
@@ -491,16 +513,21 @@ class ApiClient {
           "POST",
           { requests: group.map(({ method, body }) => ({ method, body })) }
         );
-        group.forEach((request, index) => {
+        for (let index = 0; index < group.length; index++) {
+          const request = group[index];
           const result = res?.data?.[index];
           if (result?.ok) {
             request.resolve({ data: result.data, policies: result.policies });
           } else {
             request.reject(
-              new RequestError(result?.message || "Request failed")
+              await this.toError(
+                result?.status ?? 500,
+                result?.error,
+                result?.message
+              )
             );
           }
-        });
+        }
       } catch (err) {
         group.forEach((request) => request.reject(err));
       }
