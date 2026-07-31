@@ -627,6 +627,7 @@ function DatabaseView({ database }: Props) {
           onNewRow={can.createRow ? handleNewRow : undefined}
           newRowId={newRowId}
           onNewRowDone={handleNewRowDone}
+          onDeleteRow={handleDeleteRow}
         />
       ) : viewType === DataViewType.List ? (
         <DatabaseList
@@ -650,6 +651,7 @@ function DatabaseView({ database }: Props) {
           onNewRow={can.createRow ? handleNewRowPlain : undefined}
           newRowId={newRowId}
           onNewRowDone={handleNewRowDone}
+          onDeleteRow={handleDeleteRow}
         />
       ) : (
         <DatabaseTable

@@ -27,6 +27,7 @@ import {
 import type Document from "~/models/Document";
 import NudeButton from "~/components/NudeButton";
 import usePolicy from "~/hooks/usePolicy";
+import DatabaseRowMenu from "./DatabaseRowMenu";
 import RowTitleInput from "./RowTitleInput";
 
 type Props = {
@@ -43,6 +44,8 @@ type Props = {
   newRowId?: string;
   /** Callback when the inline title editing of a new row has finished. */
   onNewRowDone: () => void;
+  /** Callback deleting a row; absent when the user may not delete rows. */
+  onDeleteRow?: (document: Document) => void;
 };
 
 const EMPTY_COLUMN_ID = "__none__";
@@ -60,6 +63,7 @@ function DatabaseBoard({
   onNewRow,
   newRowId,
   onNewRowDone,
+  onDeleteRow,
 }: Props) {
   const { t } = useTranslation();
 
@@ -121,6 +125,7 @@ function DatabaseBoard({
             onNewRow={onNewRow}
             newRowId={newRowId}
             onNewRowDone={onNewRowDone}
+            onDeleteRow={onDeleteRow}
           />
         ))}
       </Columns>
@@ -137,6 +142,7 @@ const BoardColumn = observer(function BoardColumn_({
   onNewRow,
   newRowId,
   onNewRowDone,
+  onDeleteRow,
 }: {
   option: PropertyOption | null;
   documents: Document[];
@@ -146,6 +152,7 @@ const BoardColumn = observer(function BoardColumn_({
   onNewRow?: (group?: { propertyId: string; value: PropertyValue }) => void;
   newRowId?: string;
   onNewRowDone: () => void;
+  onDeleteRow?: (document: Document) => void;
 }) {
   const { t } = useTranslation();
   const { setNodeRef, isOver } = useDroppable({
@@ -182,6 +189,7 @@ const BoardColumn = observer(function BoardColumn_({
           groupByProperty={property}
           isEditingTitle={document.id === newRowId}
           onTitleDone={onNewRowDone}
+          onDelete={onDeleteRow}
         />
       ))}
       {onNewRow && (
@@ -205,12 +213,14 @@ const BoardCard = observer(function BoardCard_({
   groupByProperty: property,
   isEditingTitle,
   onTitleDone,
+  onDelete,
 }: {
   document: Document;
   properties: Property[];
   groupByProperty: Property;
   isEditingTitle: boolean;
   onTitleDone: () => void;
+  onDelete?: (document: Document) => void;
 }) {
   const can = usePolicy(document);
   const { attributes, listeners, setNodeRef, transform, isDragging } =
@@ -232,6 +242,13 @@ const BoardCard = observer(function BoardCard_({
       {...listeners}
       {...attributes}
     >
+      {onDelete && (
+        // the whole card is the drag handle, so the menu has to keep its own
+        // pointer events away from the drag sensor
+        <CardMenu onPointerDown={(event) => event.stopPropagation()}>
+          <DatabaseRowMenu document={document} onDelete={onDelete} />
+        </CardMenu>
+      )}
       {isEditingTitle ? (
         <RowTitleInput document={document} onDone={onTitleDone} />
       ) : (
@@ -316,6 +333,20 @@ const Card = styled.div<{ $isDragging: boolean }>`
   opacity: ${(props) => (props.$isDragging ? 0.6 : 1)};
   position: relative;
   z-index: ${(props) => (props.$isDragging ? 2 : "auto")};
+`;
+
+/** The card's overflow menu, kept out of the way until the card is pointed at. */
+const CardMenu = styled.div`
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+
+  ${Card}:hover &,
+  &:focus-within {
+    opacity: 1;
+  }
 `;
 
 const CardTitle = styled(Link)`

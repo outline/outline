@@ -9,6 +9,7 @@ import PropertyValueLabel from "@shared/editor/components/PropertyValueLabel";
 import type { Property } from "@shared/types";
 import type Document from "~/models/Document";
 import NudeButton from "~/components/NudeButton";
+import DatabaseRowMenu from "./DatabaseRowMenu";
 import RowTitleInput from "./RowTitleInput";
 
 type Props = {
@@ -24,6 +25,8 @@ type Props = {
   newRowId?: string;
   /** Callback when the inline title editing of a new row has finished. */
   onNewRowDone: () => void;
+  /** Callback deleting a row; absent when the user may not delete rows. */
+  onDeleteRow?: (document: Document) => void;
 };
 
 /**
@@ -37,6 +40,7 @@ function DatabaseGallery({
   onNewRow,
   newRowId,
   onNewRowDone,
+  onDeleteRow,
 }: Props) {
   const { t } = useTranslation();
 
@@ -57,6 +61,7 @@ function DatabaseGallery({
           properties={properties}
           isEditingTitle={document.id === newRowId}
           onTitleDone={onNewRowDone}
+          onDelete={onDeleteRow}
         />
       ))}
       {onNewRow && (
@@ -74,14 +79,21 @@ const GalleryCard = observer(function GalleryCard_({
   properties,
   isEditingTitle,
   onTitleDone,
+  onDelete,
 }: {
   document: Document;
   properties: Property[];
   isEditingTitle: boolean;
   onTitleDone: () => void;
+  onDelete?: (document: Document) => void;
 }) {
   return (
     <Card>
+      {onDelete && (
+        <CardMenu>
+          <DatabaseRowMenu document={document} onDelete={onDelete} />
+        </CardMenu>
+      )}
       {isEditingTitle ? (
         <RowTitleInput document={document} onDone={onTitleDone} />
       ) : (
@@ -120,9 +132,24 @@ const Grid = styled.div`
 `;
 
 const Card = styled.div`
+  position: relative;
   border: 1px solid ${s("divider")};
   border-radius: 8px;
   padding: 12px;
+`;
+
+/** The card's overflow menu, kept out of the way until the card is pointed at. */
+const CardMenu = styled.div`
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+
+  ${Card}:hover &,
+  &:focus-within {
+    opacity: 1;
+  }
 `;
 
 const CardTitle = styled(Link)`
