@@ -55,6 +55,19 @@ describe("ModelSelection", () => {
     expect(selection.selectedIds).toEqual([]);
   });
 
+  it("prunes selected models no longer present in the list order", () => {
+    const selection = new ModelSelection();
+    selection.setOrder(["a", "b", "c"]);
+    selection.toggle("a");
+    selection.toggle("b");
+
+    // "b" leaves the list (e.g. archived); the selection drops it.
+    selection.setOrder(["a", "c"]);
+
+    expect(selection.selectedIds).toEqual(["a"]);
+    expect(selection.isSelected("b")).toBe(false);
+  });
+
   describe("selectRange", () => {
     it("falls back to toggle when there is no anchor", () => {
       const selection = new ModelSelection();

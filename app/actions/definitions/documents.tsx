@@ -45,6 +45,7 @@ import { isMobile } from "@shared/utils/browser";
 import { getEventFiles } from "@shared/utils/files";
 import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
+import Document from "~/models/Document";
 import { client } from "~/utils/ApiClient";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
@@ -444,29 +445,56 @@ export const createNewDocumentInAlphabeticalCollection =
     },
   });
 
+/**
+ * Runs a batchable per-document operation across the given documents,
+ * coalescing the requests into a single batch request.
+ *
+ * @param documents The documents to operate on.
+ * @param operation The operation to perform on each document.
+ * @returns the number of operations that succeeded.
+ */
+async function batchDocuments(
+  documents: Document[],
+  operation: (document: Document) => Promise<unknown> | undefined
+): Promise<number> {
+  const results = await Promise.allSettled(
+    client.batch(() =>
+      documents.map((document) => Promise.resolve(operation(document)))
+    )
+  );
+  return results.filter((result) => result.status === "fulfilled").length;
+}
+
 export const starDocument = createAction({
   name: ({ t }) => t("Star"),
   analyticsName: "Star document",
   section: ActiveDocumentSection,
   icon: <StarredIcon />,
   keywords: "favorite bookmark",
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
-    }
-    const document = stores.documents.get(activeDocumentId);
+  visible: ({ getActiveModels, stores }) => {
+    const documents = getActiveModels(Document);
     return (
-      !document?.isStarred && stores.policies.abilities(activeDocumentId).star
+      documents.length > 0 &&
+      documents.every(
+        (document) =>
+          !document.isStarred && stores.policies.abilities(document.id).star
+      )
     );
   },
-  perform: async ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  perform: async ({ getActiveModels, t }) => {
+    const documents = getActiveModels(Document);
+    if (!documents.length) {
       return;
     }
 
-    const document = stores.documents.get(activeDocumentId);
-    await document?.star();
+    const succeeded = await batchDocuments(documents, (document) =>
+      document.star()
+    );
     setPersistedState(getHeaderExpandedKey("starred"), true);
+
+    if (documents.length > 1 && succeeded) {
+      toast.success(t("{{ count }} documents starred", { count: succeeded }));
+    }
   },
 });
 
@@ -476,23 +504,29 @@ export const unstarDocument = createAction({
   section: ActiveDocumentSection,
   icon: <UnstarredIcon />,
   keywords: "unfavorite unbookmark",
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
-    }
-    const document = stores.documents.get(activeDocumentId);
+  visible: ({ getActiveModels, stores }) => {
+    const documents = getActiveModels(Document);
     return (
-      !!document?.isStarred &&
-      stores.policies.abilities(activeDocumentId).unstar
+      documents.length > 0 &&
+      documents.every(
+        (document) =>
+          document.isStarred && stores.policies.abilities(document.id).unstar
+      )
     );
   },
-  perform: async ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  perform: async ({ getActiveModels, t }) => {
+    const documents = getActiveModels(Document);
+    if (!documents.length) {
       return;
     }
 
-    const document = stores.documents.get(activeDocumentId);
-    await document?.unstar();
+    const succeeded = await batchDocuments(documents, (document) =>
+      document.unstar()
+    );
+
+    if (documents.length > 1 && succeeded) {
+      toast.success(t("{{ count }} documents unstarred", { count: succeeded }));
+    }
   },
 });
 
@@ -543,29 +577,34 @@ export const unpublishDocument = createAction({
   analyticsName: "Unpublish document",
   section: ActiveDocumentSection,
   icon: <UnpublishIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
-    }
-    return stores.policies.abilities(activeDocumentId).unpublish;
-  },
-  perform: async ({ activeDocumentId, stores, t }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
-      return;
-    }
-
-    await document.unpublish();
-
-    toast.success(
-      t("Unpublished {{ documentName }}", {
-        documentName: document.noun,
-      })
+  visible: ({ getActiveModels, stores }) => {
+    const documents = getActiveModels(Document);
+    return (
+      documents.length > 0 &&
+      documents.every(
+        (document) => !!stores.policies.abilities(document.id).unpublish
+      )
     );
+  },
+  perform: async ({ getActiveModels, t }) => {
+    const documents = getActiveModels(Document);
+    if (!documents.length) {
+      return;
+    }
+
+    const succeeded = await batchDocuments(documents, (document) =>
+      document.unpublish()
+    );
+
+    if (succeeded) {
+      toast.success(
+        documents.length === 1
+          ? t("Unpublished {{ documentName }}", {
+              documentName: documents[0].noun,
+            })
+          : t("{{ count }} documents unpublished", { count: succeeded })
+      );
+    }
   },
 });
 
@@ -924,42 +963,50 @@ export const duplicateDocument = createAction({
  * of the collection for all collection members to see.
  */
 export const pinDocumentToCollection = createAction({
-  name: ({ activeDocumentId = "", t, stores }) => {
-    const selectedDocument = stores.documents.get(activeDocumentId);
-    const collectionName = selectedDocument
-      ? stores.documents.getCollectionForDocument(selectedDocument)?.name
-      : t("collection");
-
-    return t("Pin to {{collectionName}}", {
-      collectionName,
-    });
+  name: ({ getActiveModels, t, stores }) => {
+    const documents = getActiveModels(Document);
+    if (documents.length === 1) {
+      const collectionName = stores.documents.getCollectionForDocument(
+        documents[0]
+      )?.name;
+      return t("Pin to {{collectionName}}", {
+        collectionName: collectionName ?? t("collection"),
+      });
+    }
+    return t("Pin");
   },
   analyticsName: "Pin document to collection",
   section: ActiveDocumentSection,
   icon: <PinIcon />,
   iconInContextMenu: false,
-  visible: ({ activeCollectionId, activeDocumentId, stores }) => {
-    if (!activeDocumentId || !activeCollectionId) {
-      return false;
-    }
-
-    const document = stores.documents.get(activeDocumentId);
+  visible: ({ getActiveModels, stores }) => {
+    const documents = getActiveModels(Document);
     return (
-      !!stores.policies.abilities(activeDocumentId).pin && !document?.pinned
+      documents.length > 0 &&
+      documents.every(
+        (document) =>
+          !!document.collectionId &&
+          !document.pinned &&
+          !!stores.policies.abilities(document.id).pin
+      )
     );
   },
-  perform: async ({ activeDocumentId, activeCollectionId, t, stores }) => {
-    if (!activeDocumentId || !activeCollectionId) {
+  perform: async ({ getActiveModels, t }) => {
+    const documents = getActiveModels(Document);
+    if (!documents.length) {
       return;
     }
 
-    const document = stores.documents.get(activeDocumentId);
-    await document?.pin(document.collectionId);
+    const succeeded = await batchDocuments(documents, (document) =>
+      document.pin(document.collectionId)
+    );
 
-    const collection = stores.collections.get(activeCollectionId);
-
-    if (!collection || !location.pathname.startsWith(collection?.url)) {
-      toast.success(t("Pinned to collection"));
+    if (succeeded) {
+      toast.success(
+        documents.length === 1
+          ? t("Pinned to collection")
+          : t("{{ count }} documents pinned", { count: succeeded })
+      );
     }
   },
 });
@@ -1006,6 +1053,41 @@ export const pinDocument = createActionWithChildren({
   section: ActiveDocumentSection,
   icon: <PinIcon />,
   children: [pinDocumentToCollection, pinDocumentToHome],
+});
+
+export const unpinDocument = createAction({
+  name: ({ t }) => t("Unpin"),
+  analyticsName: "Unpin document",
+  section: ActiveDocumentSection,
+  icon: <PinIcon />,
+  visible: ({ getActiveModels, stores }) => {
+    const documents = getActiveModels(Document);
+    return (
+      documents.length > 0 &&
+      documents.every(
+        (document) =>
+          document.pinned && !!stores.policies.abilities(document.id).unpin
+      )
+    );
+  },
+  perform: async ({ getActiveModels, t }) => {
+    const documents = getActiveModels(Document);
+    if (!documents.length) {
+      return;
+    }
+
+    const succeeded = await batchDocuments(documents, (document) =>
+      document.unpin(document.collectionId ?? undefined)
+    );
+
+    if (succeeded) {
+      toast.success(
+        documents.length === 1
+          ? t("Unpinned")
+          : t("{{ count }} documents unpinned", { count: succeeded })
+      );
+    }
+  },
 });
 
 export const searchInDocument = createInternalLinkAction({
@@ -1287,38 +1369,52 @@ export const archiveDocument = createAction({
   analyticsName: "Archive document",
   section: ActiveDocumentSection,
   icon: <ArchiveIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
-    }
-    return !!stores.policies.abilities(activeDocumentId).archive;
+  visible: ({ getActiveModels, stores }) => {
+    const documents = getActiveModels(Document);
+    return (
+      documents.length > 0 &&
+      documents.every(
+        (document) => !!stores.policies.abilities(document.id).archive
+      )
+    );
   },
-  perform: async ({ activeDocumentId, stores, t }) => {
-    const { dialogs, documents } = stores;
-
-    if (activeDocumentId) {
-      const document = documents.get(activeDocumentId);
-      if (!document) {
-        return;
-      }
-
-      dialogs.openModal({
-        title: t("Are you sure you want to archive this document?"),
-        content: (
-          <ConfirmationDialog
-            onSubmit={async () => {
-              await document.archive();
-              toast.success(t("Document archived"));
-            }}
-            savingText={`${t("Archiving")}…`}
-          >
-            {t(
-              "Archiving this document will remove it from the collection and search results."
-            )}
-          </ConfirmationDialog>
-        ),
-      });
+  perform: async ({ getActiveModels, stores, t }) => {
+    const documents = getActiveModels(Document);
+    if (!documents.length) {
+      return;
     }
+
+    stores.dialogs.openModal({
+      title:
+        documents.length === 1
+          ? t("Are you sure you want to archive this document?")
+          : t("Are you sure you want to archive {{ count }} documents?", {
+              count: documents.length,
+            }),
+      content: (
+        <ConfirmationDialog
+          onSubmit={async () => {
+            const succeeded = await batchDocuments(documents, (document) =>
+              document.archive()
+            );
+            toast.success(
+              documents.length === 1
+                ? t("Document archived")
+                : t("{{ count }} documents archived", { count: succeeded })
+            );
+          }}
+          savingText={`${t("Archiving")}…`}
+        >
+          {documents.length === 1
+            ? t(
+                "Archiving this document will remove it from the collection and search results."
+              )
+            : t(
+                "Archiving these documents will remove them from their collections and search results."
+              )}
+        </ConfirmationDialog>
+      ),
+    });
   },
 });
 
@@ -1327,35 +1423,38 @@ export const restoreDocument = createAction({
   analyticsName: "Restore document",
   section: ActiveDocumentSection,
   icon: <RestoreIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
-      return false;
-    }
-
-    const collection = document.collectionId
-      ? stores.collections.get(document.collectionId)
-      : undefined;
-    const can = stores.policies.abilities(document.id);
-
-    return !!collection?.isActive && !!(can.restore || can.unarchive);
+  visible: ({ getActiveModels, stores }) => {
+    const documents = getActiveModels(Document);
+    return (
+      documents.length > 0 &&
+      documents.every((document) => {
+        const collection = document.collectionId
+          ? stores.collections.get(document.collectionId)
+          : undefined;
+        const can = stores.policies.abilities(document.id);
+        return !!collection?.isActive && !!(can.restore || can.unarchive);
+      })
+    );
   },
-  perform: async ({ t, stores, activeDocumentId }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
+  perform: async ({ t, getActiveModels }) => {
+    const documents = getActiveModels(Document);
+    if (!documents.length) {
       return;
     }
 
-    await document.restore();
-    toast.success(
-      t("{{ documentName }} restored", {
-        documentName: capitalize(document.noun),
-      })
+    const succeeded = await batchDocuments(documents, (document) =>
+      document.restore()
     );
+
+    if (succeeded) {
+      toast.success(
+        documents.length === 1
+          ? t("{{ documentName }} restored", {
+              documentName: capitalize(documents[0].noun),
+            })
+          : t("{{ count }} documents restored", { count: succeeded })
+      );
+    }
   },
 });
 
@@ -1417,19 +1516,25 @@ export const deleteDocument = createAction({
   section: ActiveDocumentSection,
   icon: <TrashIcon />,
   dangerous: true,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
-    }
-    return !!stores.policies.abilities(activeDocumentId).delete;
+  visible: ({ getActiveModels, stores }) => {
+    const documents = getActiveModels(Document);
+    return (
+      documents.length > 0 &&
+      documents.every(
+        (document) => !!stores.policies.abilities(document.id).delete
+      )
+    );
   },
-  perform: ({ activeDocumentId, stores, t }) => {
-    if (activeDocumentId) {
-      const document = stores.documents.get(activeDocumentId);
-      if (!document) {
-        return;
-      }
+  perform: ({ getActiveModels, stores, t }) => {
+    const documents = getActiveModels(Document);
+    if (!documents.length) {
+      return;
+    }
 
+    // A single document uses the richer delete dialog (permanent delete, child
+    // handling); multiple documents use a simple confirmation to move to trash.
+    if (documents.length === 1) {
+      const document = documents[0];
       stores.dialogs.openModal({
         title: t("Delete {{ documentName }}", {
           documentName: document.noun,
@@ -1441,7 +1546,29 @@ export const deleteDocument = createAction({
           />
         ),
       });
+      return;
     }
+
+    stores.dialogs.openModal({
+      title: t("Delete {{ count }} documents", { count: documents.length }),
+      content: (
+        <ConfirmationDialog
+          danger
+          submitText={t("Delete")}
+          savingText={`${t("Deleting")}…`}
+          onSubmit={async () => {
+            const succeeded = await batchDocuments(documents, (document) =>
+              document.delete()
+            );
+            toast.success(
+              t("{{ count }} documents moved to trash", { count: succeeded })
+            );
+          }}
+        >
+          {t("Deleting these documents will move them to the trash.")}
+        </ConfirmationDialog>
+      ),
+    });
   },
 });
 

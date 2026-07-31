@@ -36,12 +36,20 @@ export class ModelSelection {
 
   /**
    * Update the ordered identifiers of the list so that shift-click range
-   * selection follows the rendered order.
+   * selection follows the rendered order, dropping any selected identifiers
+   * that are no longer present (e.g. models removed from the list by an action).
    *
    * @param order The identifiers in the order they are displayed.
    */
+  @action
   setOrder = (order: string[]): void => {
     this.order = order;
+    const present = new Set(order);
+    for (const id of Array.from(this.ids)) {
+      if (!present.has(id)) {
+        this.ids.delete(id);
+      }
+    }
   };
 
   /**

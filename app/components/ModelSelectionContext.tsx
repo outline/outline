@@ -35,7 +35,9 @@ type Props = {
 export function ModelSelectionProvider({ items, toolbar, children }: Props) {
   const [selection] = React.useState(() => new ModelSelection());
 
-  selection.setOrder(items);
+  React.useEffect(() => {
+    selection.setOrder(items);
+  }, [selection, items]);
 
   useEventListener("keydown", (event: KeyboardEvent) => {
     if (event.key === "Escape" && selection.isActive) {
