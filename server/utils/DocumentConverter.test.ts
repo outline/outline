@@ -135,6 +135,16 @@ John,25`;
       });
     });
 
+    describe("txt", () => {
+      it("should convert txt when the mime type is not recognized", async () => {
+        const txt = "Plain text content";
+
+        const result = await DocumentConverter.convert(txt, "test.txt", "");
+
+        expect(result.text).toContain("Plain text content");
+      });
+    });
+
     describe("html", () => {
       it("should extract title from H1", async () => {
         const html = "<h1>My Title</h1><p>Content here</p>";

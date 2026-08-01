@@ -180,10 +180,10 @@ export const importDocument = dialogActionFactory({
   analyticsName: "Import document",
   section: ActiveCollectionSection,
   icon: <ImportIcon />,
-  name: (t) => `${t("Import document")}…`,
+  name: (t) => `${t("Import documents")}…`,
   title: (t, { getActiveModel }) => (
     <DialogTitle
-      title={t("Import document")}
+      title={t("Import documents")}
       model={getActiveModel(Collection)}
     />
   ),

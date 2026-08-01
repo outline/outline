@@ -1149,10 +1149,10 @@ export const importDocument = dialogActionFactory({
   section: DocumentSection,
   icon: <ImportIcon />,
   keywords: "upload",
-  name: (t) => `${t("Import document")}…`,
+  name: (t) => `${t("Import documents")}…`,
   title: (t, context) => (
     <DialogTitle
-      title={t("Import document")}
+      title={t("Import documents")}
       model={getImportParent(context)}
     />
   ),

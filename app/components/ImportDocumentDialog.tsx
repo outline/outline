@@ -53,7 +53,7 @@ export const ImportDocumentDialog = observer(function ImportDocumentDialog({
       {
         name: "HTML",
         extensions: ".html, .htm",
-        icon: <FileFormatIcon label="HTML" size={28} />,
+        icon: <FileFormatIcon label="HTM" size={28} />,
       },
       {
         name: t("Plain text"),

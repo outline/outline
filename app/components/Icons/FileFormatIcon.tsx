@@ -44,7 +44,7 @@ export function FileFormatIcon({
         y="12.07"
         fill={color}
         fontSize="7"
-        fontWeight="600"
+        fontWeight="700"
         textAnchor="middle"
         dominantBaseline="central"
         textLength={label.length > 2 ? 13 : undefined}

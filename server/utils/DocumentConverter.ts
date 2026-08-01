@@ -258,6 +258,7 @@ export class DocumentConverter {
         switch (extension) {
           case "md":
           case "markdown":
+          case "txt":
             markdown = this.bufferToString(content);
             break;
           case "csv":
