@@ -10,12 +10,12 @@ import Avatar from "./Avatar";
  * it represents is a user.
  */
 const AvatarWithHoverCard = React.forwardRef(function AvatarWithHoverCard_(
-  { showTooltip, ...props }: AvatarProps,
+  { showTooltip, showHoverCard = true, ...props }: AvatarProps,
   ref: React.Ref<HTMLDivElement>
 ) {
   const { model } = props;
 
-  if (!(model instanceof User)) {
+  if (!showHoverCard || !(model instanceof User)) {
     return <Avatar ref={ref} showTooltip={showTooltip} {...props} />;
   }
 

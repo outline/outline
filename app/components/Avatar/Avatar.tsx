@@ -47,6 +47,8 @@ export type AvatarProps = {
   style?: React.CSSProperties;
   /** Whether to show a tooltip */
   showTooltip?: boolean;
+  /** Whether to show a profile card on hover for users, defaults to true */
+  showHoverCard?: boolean;
 } & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "onClick" | "className" | "style"
@@ -63,6 +65,7 @@ const Avatar = React.forwardRef(function Avatar_(
     size = AvatarSize.Medium,
     className,
     showTooltip,
+    showHoverCard: _showHoverCard,
     src: srcProp,
     alt,
     onClick,
