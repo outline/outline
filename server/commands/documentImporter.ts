@@ -57,7 +57,10 @@ async function documentImporter({
     "docx",
     "md",
     "markdown",
+    "htm",
     "html",
+    "csv",
+    "tsv",
     ...(mime.extensions[mimeType] ?? []),
   ];
   const fileTitle = fileName.replace(

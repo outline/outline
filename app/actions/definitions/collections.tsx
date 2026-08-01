@@ -22,7 +22,6 @@ import {
   UnsubscribeIcon,
 } from "outline-icons";
 import { toast } from "sonner";
-import { errToString } from "@shared/utils/error";
 import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
@@ -31,6 +30,7 @@ import CollectionDuplicateDialog from "~/components/CollectionDuplicateDialog";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { DialogTitle } from "~/components/DialogTitle";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
+import { ImportDocumentDialog } from "~/components/ImportDocumentDialog";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
   createAction,
@@ -46,7 +46,6 @@ import {
   searchPath,
 } from "~/utils/routeHelpers";
 import ExportDialog from "~/components/ExportDialog";
-import { getEventFiles } from "@shared/utils/files";
 import { isMobile } from "@shared/utils/browser";
 import history from "~/utils/history";
 import lazyWithRetry from "~/utils/lazyWithRetry";
@@ -177,44 +176,27 @@ export const duplicateCollection = createAction({
   },
 });
 
-export const importDocument = createAction({
-  name: ({ t }) => t("Import document"),
+export const importDocument = dialogActionFactory({
   analyticsName: "Import document",
   section: ActiveCollectionSection,
   icon: <ImportIcon />,
+  name: (t) => `${t("Import documents")}…`,
+  title: (t, { getActiveModel }) => (
+    <DialogTitle
+      title={t("Import documents")}
+      model={getActiveModel(Collection)}
+    />
+  ),
+  content: (onSubmit, { getActiveModel }) => {
+    const collection = getActiveModel(Collection);
+    return collection ? (
+      <ImportDocumentDialog collectionId={collection.id} onSubmit={onSubmit} />
+    ) : null;
+  },
   visible: ({ getActivePolicies }) =>
     getActivePolicies(Collection).some(
       (policy) => policy.abilities.createDocument
     ),
-  perform: ({ t, getActiveModel, stores }) => {
-    const { documents } = stores;
-    const collection = getActiveModel(Collection);
-    if (!collection) {
-      return;
-    }
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = documents.importFileTypesString;
-
-    input.onchange = async (ev) => {
-      const files = getEventFiles(ev);
-      const file = files[0];
-      const toastId = toast.loading(`${t("Uploading")}…`);
-
-      try {
-        const document = await documents.import(file, null, collection.id, {
-          publish: true,
-        });
-        history.push(document.path);
-      } catch (err) {
-        toast.error(errToString(err));
-      } finally {
-        toast.dismiss(toastId);
-      }
-    };
-
-    input.click();
-  },
 });
 
 export const sortCollection = createActionWithChildren({

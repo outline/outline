@@ -85,9 +85,9 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("images");
   });
 
-  it("should error when a file with application/octet-stream mimetype doesn't have .docx extension", async () => {
+  it("should error when a file with application/octet-stream mimetype has an unsupported extension", async () => {
     const user = await buildUser();
-    const fileName = "normal.docx.txt";
+    const fileName = "corrupt.zip";
     const content = await fs.readFile(
       path.resolve(__dirname, "..", "test", "fixtures", fileName)
     );

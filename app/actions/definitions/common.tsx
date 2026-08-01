@@ -14,6 +14,7 @@ import { createAction } from "..";
  * @param content - renders the dialog, given a handler to close it and the
  * action context.
  * @param name - the menu item label, defaults to the title with an ellipsis.
+ * Required when the title is not a plain string.
  * @param icon - optional icon for the menu item.
  * @param keywords - optional additional search terms for the command bar.
  * @param visible - optional visibility predicate.
@@ -37,19 +38,33 @@ export const dialogActionFactory = ({
 }: {
   analyticsName: string;
   section: Action["section"];
-  title: (t: TFunction, context: ActionContext) => string;
   content: (onSubmit: () => void, context: ActionContext) => React.ReactNode;
-  name?: (t: TFunction) => string;
   icon?: React.ReactNode;
   keywords?: string;
   visible?: Action["visible"];
   dangerous?: boolean;
   width?: string | number;
   stopEvent?: boolean;
-}) =>
+} & (
+  | {
+      title: (t: TFunction, context: ActionContext) => string;
+      name?: (t: TFunction) => string;
+    }
+  | {
+      title: (t: TFunction, context: ActionContext) => React.ReactNode;
+      name: (t: TFunction) => string;
+    }
+)) =>
   createAction({
-    name: (context) =>
-      name ? name(context.t) : `${title(context.t, context)}…`,
+    // The title is only used as a label when it's a plain string, the type
+    // requires a name otherwise.
+    name: (context) => {
+      if (name) {
+        return name(context.t);
+      }
+      const value = title(context.t, context);
+      return typeof value === "string" ? `${value}…` : "";
+    },
     analyticsName,
     section,
     icon,
