@@ -1,19 +1,22 @@
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { Slot } from "@radix-ui/react-slot";
+import { set } from "date-fns";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { RemoveScroll } from "react-remove-scroll";
 import styled from "styled-components";
 import { Calendar } from "../../components/Calendar";
 import { depths, s } from "../../styles";
-import { dateLocale, toISODate } from "../../utils/date";
+import { dateLocale, toISODate, toISODateTime } from "../../utils/date";
 
 type Props = {
   /** The currently selected date, if any. */
   selectedDate?: Date;
+  /** Whether the selected date is time-specific. */
+  includeTime?: boolean;
   /** The user's language, used to localise the calendar. */
   language?: Parameters<typeof dateLocale>[0];
-  /** Called with the new date-only ISO string when a day is picked. */
+  /** Called with the new ISO string when a day is picked. */
   onChange: (modelId: string) => void;
   /** The trigger element the calendar popover is anchored to. */
   children: React.ReactNode;
@@ -29,6 +32,7 @@ type Props = {
  */
 export default function DateMentionPicker({
   selectedDate,
+  includeTime,
   language,
   onChange,
   children,
@@ -39,9 +43,23 @@ export default function DateMentionPicker({
   const handleSelect = React.useCallback(
     (date: Date) => {
       setOpen(false);
+
+      // The calendar only changes the day, so an existing time is carried over.
+      if (includeTime && selectedDate) {
+        onChange(
+          toISODateTime(
+            set(date, {
+              hours: selectedDate.getHours(),
+              minutes: selectedDate.getMinutes(),
+            })
+          )
+        );
+        return;
+      }
+
       onChange(toISODate(date));
     },
-    [onChange]
+    [onChange, includeTime, selectedDate]
   );
 
   return (
