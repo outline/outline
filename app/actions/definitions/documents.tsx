@@ -66,7 +66,9 @@ import {
 } from "~/actions";
 import {
   dialogActionFactory,
+  everyActiveModel,
   performBatch,
+  performBatchOnActiveModels,
 } from "~/actions/definitions/common";
 import {
   ActiveDocumentSection,
@@ -455,30 +457,25 @@ export const starDocument = createAction({
   section: ActiveDocumentSection,
   icon: <StarredIcon />,
   keywords: "favorite bookmark",
-  visible: ({ getActiveModels, stores }) => {
-    const documents = getActiveModels(Document);
-    return (
-      documents.length > 0 &&
-      documents.every(
-        (document) =>
-          !document.isStarred && stores.policies.abilities(document.id).star
-      )
-    );
-  },
-  perform: async ({ getActiveModels, t }) => {
-    const documents = getActiveModels(Document);
-    if (!documents.length) {
-      return;
-    }
-
-    const succeeded = await performBatch(documents, (document) =>
-      document.star()
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Document,
+      (document) =>
+        !document.isStarred &&
+        context.stores.policies.abilities(document.id).star
+    ),
+  perform: async (context) => {
+    await performBatchOnActiveModels(
+      context,
+      Document,
+      (document) => document.star(),
+      (documents, succeeded, t) =>
+        documents.length > 1
+          ? t("{{ count }} documents starred", { count: succeeded })
+          : undefined
     );
     setPersistedState(getHeaderExpandedKey("starred"), true);
-
-    if (documents.length > 1 && succeeded) {
-      toast.success(t("{{ count }} documents starred", { count: succeeded }));
-    }
   },
 });
 
@@ -488,30 +485,24 @@ export const unstarDocument = createAction({
   section: ActiveDocumentSection,
   icon: <UnstarredIcon />,
   keywords: "unfavorite unbookmark",
-  visible: ({ getActiveModels, stores }) => {
-    const documents = getActiveModels(Document);
-    return (
-      documents.length > 0 &&
-      documents.every(
-        (document) =>
-          document.isStarred && stores.policies.abilities(document.id).unstar
-      )
-    );
-  },
-  perform: async ({ getActiveModels, t }) => {
-    const documents = getActiveModels(Document);
-    if (!documents.length) {
-      return;
-    }
-
-    const succeeded = await performBatch(documents, (document) =>
-      document.unstar()
-    );
-
-    if (documents.length > 1 && succeeded) {
-      toast.success(t("{{ count }} documents unstarred", { count: succeeded }));
-    }
-  },
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Document,
+      (document) =>
+        document.isStarred &&
+        context.stores.policies.abilities(document.id).unstar
+    ),
+  perform: (context) =>
+    performBatchOnActiveModels(
+      context,
+      Document,
+      (document) => document.unstar(),
+      (documents, succeeded, t) =>
+        documents.length > 1
+          ? t("{{ count }} documents unstarred", { count: succeeded })
+          : undefined
+    ),
 });
 
 export const publishDocument = createAction({
@@ -561,35 +552,24 @@ export const unpublishDocument = createAction({
   analyticsName: "Unpublish document",
   section: ActiveDocumentSection,
   icon: <UnpublishIcon />,
-  visible: ({ getActiveModels, stores }) => {
-    const documents = getActiveModels(Document);
-    return (
-      documents.length > 0 &&
-      documents.every(
-        (document) => !!stores.policies.abilities(document.id).unpublish
-      )
-    );
-  },
-  perform: async ({ getActiveModels, t }) => {
-    const documents = getActiveModels(Document);
-    if (!documents.length) {
-      return;
-    }
-
-    const succeeded = await performBatch(documents, (document) =>
-      document.unpublish()
-    );
-
-    if (succeeded) {
-      toast.success(
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Document,
+      (document) => !!context.stores.policies.abilities(document.id).unpublish
+    ),
+  perform: (context) =>
+    performBatchOnActiveModels(
+      context,
+      Document,
+      (document) => document.unpublish(),
+      (documents, succeeded, t) =>
         documents.length === 1
           ? t("Unpublished {{ documentName }}", {
               documentName: documents[0].noun,
             })
           : t("{{ count }} documents unpublished", { count: succeeded })
-      );
-    }
-  },
+    ),
 });
 
 export const subscribeDocument = createAction({
@@ -964,36 +944,25 @@ export const pinDocumentToCollection = createAction({
   section: ActiveDocumentSection,
   icon: <PinIcon />,
   iconInContextMenu: false,
-  visible: ({ getActiveModels, stores }) => {
-    const documents = getActiveModels(Document);
-    return (
-      documents.length > 0 &&
-      documents.every(
-        (document) =>
-          !!document.collectionId &&
-          !document.pinned &&
-          !!stores.policies.abilities(document.id).pin
-      )
-    );
-  },
-  perform: async ({ getActiveModels, t }) => {
-    const documents = getActiveModels(Document);
-    if (!documents.length) {
-      return;
-    }
-
-    const succeeded = await performBatch(documents, (document) =>
-      document.pin(document.collectionId)
-    );
-
-    if (succeeded) {
-      toast.success(
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Document,
+      (document) =>
+        !!document.collectionId &&
+        !document.pinned &&
+        !!context.stores.policies.abilities(document.id).pin
+    ),
+  perform: (context) =>
+    performBatchOnActiveModels(
+      context,
+      Document,
+      (document) => document.pin(document.collectionId),
+      (documents, succeeded, t) =>
         documents.length === 1
           ? t("Pinned to collection")
           : t("{{ count }} documents pinned", { count: succeeded })
-      );
-    }
-  },
+    ),
 });
 
 /**
@@ -1045,34 +1014,24 @@ export const unpinDocument = createAction({
   analyticsName: "Unpin document",
   section: ActiveDocumentSection,
   icon: <PinIcon />,
-  visible: ({ getActiveModels, stores }) => {
-    const documents = getActiveModels(Document);
-    return (
-      documents.length > 0 &&
-      documents.every(
-        (document) =>
-          document.pinned && !!stores.policies.abilities(document.id).unpin
-      )
-    );
-  },
-  perform: async ({ getActiveModels, t }) => {
-    const documents = getActiveModels(Document);
-    if (!documents.length) {
-      return;
-    }
-
-    const succeeded = await performBatch(documents, (document) =>
-      document.unpin(document.collectionId ?? undefined)
-    );
-
-    if (succeeded) {
-      toast.success(
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Document,
+      (document) =>
+        document.pinned &&
+        !!context.stores.policies.abilities(document.id).unpin
+    ),
+  perform: (context) =>
+    performBatchOnActiveModels(
+      context,
+      Document,
+      (document) => document.unpin(document.collectionId ?? undefined),
+      (documents, succeeded, t) =>
         documents.length === 1
           ? t("Unpinned")
           : t("{{ count }} documents unpinned", { count: succeeded })
-      );
-    }
-  },
+    ),
 });
 
 export const searchInDocument = createInternalLinkAction({
@@ -1365,15 +1324,12 @@ export const archiveDocument = createAction({
   analyticsName: "Archive document",
   section: ActiveDocumentSection,
   icon: <ArchiveIcon />,
-  visible: ({ getActiveModels, stores }) => {
-    const documents = getActiveModels(Document);
-    return (
-      documents.length > 0 &&
-      documents.every(
-        (document) => !!stores.policies.abilities(document.id).archive
-      )
-    );
-  },
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Document,
+      (document) => !!context.stores.policies.abilities(document.id).archive
+    ),
   perform: async ({ getActiveModels, stores, t }) => {
     const documents = getActiveModels(Document);
     if (!documents.length) {
@@ -1424,39 +1380,26 @@ export const restoreDocument = createAction({
   analyticsName: "Restore document",
   section: ActiveDocumentSection,
   icon: <RestoreIcon />,
-  visible: ({ getActiveModels, stores }) => {
-    const documents = getActiveModels(Document);
-    return (
-      documents.length > 0 &&
-      documents.every((document) => {
-        const collection = document.collectionId
-          ? stores.collections.get(document.collectionId)
-          : undefined;
-        const can = stores.policies.abilities(document.id);
-        return !!collection?.isActive && !!(can.restore || can.unarchive);
-      })
-    );
-  },
-  perform: async ({ t, getActiveModels }) => {
-    const documents = getActiveModels(Document);
-    if (!documents.length) {
-      return;
-    }
-
-    const succeeded = await performBatch(documents, (document) =>
-      document.restore()
-    );
-
-    if (succeeded) {
-      toast.success(
+  visible: (context) =>
+    everyActiveModel(context, Document, (document) => {
+      const collection = document.collectionId
+        ? context.stores.collections.get(document.collectionId)
+        : undefined;
+      const can = context.stores.policies.abilities(document.id);
+      return !!collection?.isActive && !!(can.restore || can.unarchive);
+    }),
+  perform: (context) =>
+    performBatchOnActiveModels(
+      context,
+      Document,
+      (document) => document.restore(),
+      (documents, succeeded, t) =>
         documents.length === 1
           ? t("{{ documentName }} restored", {
               documentName: capitalize(documents[0].noun),
             })
           : t("{{ count }} documents restored", { count: succeeded })
-      );
-    }
-  },
+    ),
 });
 
 export const restoreDocumentToCollection = createActionWithChildren({
@@ -1517,15 +1460,12 @@ export const deleteDocument = createAction({
   section: ActiveDocumentSection,
   icon: <TrashIcon />,
   dangerous: true,
-  visible: ({ getActiveModels, stores }) => {
-    const documents = getActiveModels(Document);
-    return (
-      documents.length > 0 &&
-      documents.every(
-        (document) => !!stores.policies.abilities(document.id).delete
-      )
-    );
-  },
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Document,
+      (document) => !!context.stores.policies.abilities(document.id).delete
+    ),
   perform: ({ getActiveModels, stores, t }) => {
     const documents = getActiveModels(Document);
     if (!documents.length) {
