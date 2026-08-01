@@ -12,6 +12,7 @@ jobs:
     secrets: inherit
     with:
       ref: main
+      environment: dockerhub-nightly
       flavor: |
         latest=false
       tags: |
