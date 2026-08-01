@@ -1,4 +1,4 @@
-commit_message: 'fix: New %language% translations from Crowdin [ci skip]'
+commit_message: 'fix: New %language% translations'
 append_commit_message: 
 files:
   - source: /shared/i18n/locales/en_US/translation.json
