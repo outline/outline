@@ -15,6 +15,10 @@ export class GroupPermissionHelper {
         return t("Group admin");
       case GroupPermission.Member:
         return t("Member");
+      default: {
+        const exhaustive: never = permission;
+        return exhaustive;
+      }
     }
   }
 
