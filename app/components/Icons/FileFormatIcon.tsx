@@ -1,3 +1,5 @@
+import styled from "styled-components";
+
 type Props = {
   /** A short label rendered inside the badge, four characters or less */
   label: string;
@@ -22,7 +24,7 @@ export function FileFormatIcon({
   ...rest
 }: Props) {
   return (
-    <svg
+    <Svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
@@ -50,6 +52,10 @@ export function FileFormatIcon({
       >
         {label}
       </text>
-    </svg>
+    </Svg>
   );
 }
+
+const Svg = styled.svg`
+  user-select: none;
+`;

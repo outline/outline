@@ -176,31 +176,27 @@ export const duplicateCollection = createAction({
   },
 });
 
-export const importDocument = createAction({
-  name: ({ t }) => t("Import document"),
+export const importDocument = dialogActionFactory({
   analyticsName: "Import document",
   section: ActiveCollectionSection,
   icon: <ImportIcon />,
+  name: (t) => `${t("Import document")}…`,
+  title: (t, { getActiveModel }) => (
+    <DialogTitle
+      title={t("Import document")}
+      model={getActiveModel(Collection)}
+    />
+  ),
+  content: (onSubmit, { getActiveModel }) => {
+    const collection = getActiveModel(Collection);
+    return collection ? (
+      <ImportDocumentDialog collectionId={collection.id} onSubmit={onSubmit} />
+    ) : null;
+  },
   visible: ({ getActivePolicies }) =>
     getActivePolicies(Collection).some(
       (policy) => policy.abilities.createDocument
     ),
-  perform: ({ t, getActiveModel, stores }) => {
-    const collection = getActiveModel(Collection);
-    if (!collection) {
-      return;
-    }
-
-    stores.dialogs.openModal({
-      title: t("Import document"),
-      content: (
-        <ImportDocumentDialog
-          collectionId={collection.id}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
-      ),
-    });
-  },
 });
 
 export const sortCollection = createActionWithChildren({

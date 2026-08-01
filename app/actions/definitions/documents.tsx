@@ -63,6 +63,7 @@ import {
   createActionWithChildren,
   createInternalLinkAction,
 } from "~/actions";
+import { dialogActionFactory } from "~/actions/definitions/common";
 import {
   ActiveDocumentSection,
   DocumentSection,
@@ -1124,12 +1125,44 @@ export const presentDocument = createAction({
   },
 });
 
-export const importDocument = createAction({
-  name: ({ t }) => t("Import document"),
+/**
+ * Returns the document or collection that an import will be nested inside.
+ *
+ * @param context - the action context.
+ * @returns the parent model, if it is loaded.
+ */
+function getImportParent({
+  activeDocumentId,
+  activeCollectionId,
+  stores,
+}: ActionContext) {
+  if (activeDocumentId) {
+    return stores.documents.get(activeDocumentId);
+  }
+  return activeCollectionId
+    ? stores.collections.get(activeCollectionId)
+    : undefined;
+}
+
+export const importDocument = dialogActionFactory({
   analyticsName: "Import document",
   section: DocumentSection,
   icon: <ImportIcon />,
   keywords: "upload",
+  name: (t) => `${t("Import document")}…`,
+  title: (t, context) => (
+    <DialogTitle
+      title={t("Import document")}
+      model={getImportParent(context)}
+    />
+  ),
+  content: (onSubmit, { activeDocumentId, activeCollectionId }) => (
+    <ImportDocumentDialog
+      documentId={activeDocumentId}
+      collectionId={activeCollectionId}
+      onSubmit={onSubmit}
+    />
+  ),
   visible: ({ activeCollectionId, activeDocumentId, stores }) => {
     if (activeDocumentId) {
       return !!stores.policies.abilities(activeDocumentId).createChildDocument;
@@ -1140,18 +1173,6 @@ export const importDocument = createAction({
     }
 
     return false;
-  },
-  perform: ({ t, activeDocumentId, activeCollectionId, stores }) => {
-    stores.dialogs.openModal({
-      title: t("Import document"),
-      content: (
-        <ImportDocumentDialog
-          documentId={activeDocumentId}
-          collectionId={activeCollectionId}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
-      ),
-    });
   },
 });
 

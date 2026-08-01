@@ -5,7 +5,10 @@ import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { hover, s } from "@shared/styles";
+import {
+  DropzoneContainer,
+  dropzoneIcon,
+} from "~/components/DropzoneContainer";
 import Flex from "~/components/Flex";
 import { FileFormatIcon } from "~/components/Icons/FileFormatIcon";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
@@ -127,10 +130,7 @@ export const ImportDocumentDialog = observer(function ImportDocumentDialog({
 });
 
 const Icon = styled(ImportIcon)`
-  padding: 4px;
-  border-radius: 50%;
-  background: ${(props) => props.theme.brand.blue};
-  color: white;
+  ${dropzoneIcon}
 `;
 
 const Formats = styled.div`
@@ -142,22 +142,5 @@ const Formats = styled.div`
 const Format = styled(Flex)`
   svg {
     flex-shrink: 0;
-  }
-`;
-
-const DropzoneContainer = styled.div<{ $isDragActive: boolean }>`
-  background: ${(props) =>
-    props.$isDragActive
-      ? props.theme.backgroundSecondary
-      : props.theme.background};
-  border-radius: 8px;
-  border: 1px dashed ${s("divider")};
-  padding: 44px 24px;
-  text-align: center;
-  font-size: 15px;
-  cursor: var(--pointer);
-
-  &: ${hover} {
-    background: ${s("backgroundSecondary")};
   }
 `;
