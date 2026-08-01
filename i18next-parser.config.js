@@ -70,6 +70,10 @@ module.exports = {
 
   customValueTemplate: null,
 
+  // Plural keys must be emitted as `key` / `key_plural` to match the runtime and
+  // the translated catalogs. Support for this format was dropped in i18next 24,
+  // so the `i18next-parser/i18next` resolution in package.json holds the parser
+  // on 23.x – removing it silently changes the format of the generated catalog.
   i18nextOptions: {
     compatibilityJSON: "v3",
   },
