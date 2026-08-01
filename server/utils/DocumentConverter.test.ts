@@ -240,6 +240,40 @@ John,25`;
         expect(result.text).toMatch(/!\[.*?\]\(data:image\/png;base64,/);
       });
 
+      it("should discard a malformed content type when inlining a part", async () => {
+        const content = [
+          "From: alice@example.com",
+          "Subject: Malformed content type",
+          "MIME-Version: 1.0",
+          'Content-Type: multipart/related; boundary="B"',
+          "",
+          "--B",
+          "Content-Type: text/html",
+          "",
+          '<html><body><p>hi</p><img src="cid:x@example.com"></body></html>',
+          "--B",
+          'Content-Type: image/png"><script>alert(1)</script><img src="x',
+          "Content-Transfer-Encoding: base64",
+          "Content-ID: <x@example.com>",
+          "",
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+          "",
+          "--B--",
+          "",
+        ].join("\r\n");
+
+        const result = await DocumentConverter.convert(
+          content,
+          "malformed.eml",
+          "message/rfc822"
+        );
+
+        expect(result.text).not.toContain("alert(1)");
+        expect(result.text).toMatch(
+          /!\[.*?\]\(data:application\/octet-stream;base64,/
+        );
+      });
+
       it("should fall back to plain text when there is no HTML part", async () => {
         const content = await fixture("email-plain-text.eml");
         const result = await DocumentConverter.convert(

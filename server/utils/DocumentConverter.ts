@@ -322,6 +322,9 @@ export class DocumentConverter {
   /** Maximum combined size of MIME archive parts that will be inlined as data URIs. */
   private static readonly MIME_ARCHIVE_MAX_TOTAL_BYTES = 50 * 1024 * 1024;
 
+  /** Matches a well-formed mime type, e.g. `image/png`. */
+  private static readonly MIME_TYPE_REGEX = /^[\w.+-]+\/[\w.+-]+$/;
+
   /**
    * Convert a Confluence Word export to HTML.
    *
@@ -476,10 +479,16 @@ export class DocumentConverter {
         references.add(`cid:${attachment.cid}`);
       }
 
+      // The content type comes from the archive's own headers, so anything that
+      // isn't a well-formed mime type is discarded rather than interpolated.
+      const contentType = this.MIME_TYPE_REGEX.test(attachment.contentType)
+        ? attachment.contentType
+        : "application/octet-stream";
+
       let replaced = false;
       for (const reference of references) {
         if (html.includes(reference)) {
-          const dataUri = `data:${attachment.contentType};base64,${attachment.content.toString(
+          const dataUri = `data:${contentType};base64,${attachment.content.toString(
             "base64"
           )}`;
           html = html.split(reference).join(dataUri);
