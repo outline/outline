@@ -27,6 +27,7 @@ import {
   attachToggleBlockBody,
 } from "../queries/toggleBlock";
 import { isInList } from "../queries/isInList";
+import { isInTable } from "../queries/isInTable";
 import {
   ancestors,
   atBlockEnd,
@@ -205,16 +206,23 @@ export const indentBlock: Command = (state, dispatch) => {
   const { $from } = state.selection;
 
   let before = -1;
+  let beforeDepth = -1;
   for (let d = $from.depth; d >= 0; d--) {
     const nodeBefore = prevSibling($from, d);
     if (nodeBefore && nodeBefore.type === state.schema.nodes.container_toggle) {
       // before of nodeBefore
       before = $from.posAtIndex($from.index(d) - 1, d);
+      beforeDepth = d;
       break;
     }
   }
 
   if (before === -1) {
+    return false;
+  }
+
+  // If inside a nested table, allow the table's Tab handler to move cells instead.
+  if (isInTable(state, { below: beforeDepth })) {
     return false;
   }
 
@@ -249,6 +257,12 @@ export const toggleBlock: Command = (state, dispatch) => {
   }
 
   const d = getToggleBlockDepth($cursor!, toggle);
+
+  // If inside a nested table, allow the table's handler to add a row instead.
+  if (isInTable(state, { below: d })) {
+    return false;
+  }
+
   const pos = $cursor!.before(d);
   const isFolded = isToggleBlockFolded(state, toggle);
 
@@ -363,6 +377,12 @@ export const dedentBlocks: Command = (state, dispatch) => {
   }
 
   const d = getToggleBlockDepth($from, ancestor);
+
+  // If inside a nested table, allow the table's Shift-Tab handler to move cells instead.
+  if (isInTable(state, { below: d })) {
+    return false;
+  }
+
   const $fr_ =
     state.selection instanceof NodeSelection
       ? state.doc.resolve($from.pos + 1)
