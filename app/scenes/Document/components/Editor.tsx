@@ -5,6 +5,7 @@ import { mergeRefs } from "react-merge-refs";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
+import type { CommentAnchor } from "@shared/editor/commands/comment";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import { colorPalette } from "@shared/constants";
 import Comment from "~/models/Comment";
@@ -134,7 +135,11 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
   // Create a Comment model in local store when a comment mark is created, this
   // acts as a local draft before submission.
   const handleDraftComment = React.useCallback(
-    (commentId: string, createdById: string, options?: { focus: boolean }) => {
+    (
+      commentId: string,
+      createdById: string,
+      options?: { focus: boolean; anchor?: CommentAnchor }
+    ) => {
       if (comments.get(commentId) || createdById !== user?.id) {
         return;
       }
@@ -149,6 +154,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         comments
       );
       comment.id = commentId;
+      comment.pendingAnchor = options?.anchor;
       comments.add(comment);
 
       if (options?.focus) {
@@ -276,6 +282,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         extensions={extensions}
         editorStyle={editorStyle}
         {...rest}
+        canComment={commentingEnabled && can.comment}
       />
       <div ref={childRef}>{children}</div>
     </Flex>

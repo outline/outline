@@ -24,7 +24,9 @@ import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import type { DefaultTheme, ThemeProps } from "styled-components";
 import styled, { css } from "styled-components";
+import type { CommentAnchor } from "@shared/editor/commands/comment";
 import insertFiles from "@shared/editor/commands/insertFiles";
+import { draftCommentAnchorPluginKey } from "@shared/editor/plugins/DraftCommentAnchorPlugin";
 import Styles from "@shared/editor/components/Styles";
 import type { EmbedDescriptor } from "@shared/editor/embeds";
 import type { CommandFactory, WidgetProps } from "@shared/editor/lib/Extension";
@@ -134,12 +136,13 @@ export type Props = {
    *
    * @param commentId - the id of the comment mark.
    * @param userId - the id of the user who created the mark.
-   * @param options - options for the comment mark creation.
+   * @param options - options for the comment mark creation, including the
+   * anchor location when the user cannot write the mark into the document.
    */
   onCreateCommentMark?: (
     commentId: string,
     userId: string,
-    options?: { focus: boolean }
+    options?: { focus: boolean; anchor?: CommentAnchor }
   ) => void;
   /** Callback when a comment mark is removed */
   onDeleteCommentMark?: (commentId: string) => void;
@@ -790,13 +793,18 @@ export class Editor extends React.PureComponent<
         const updatedMarks = existingMarks.filter(
           (mark) => mark.attrs?.id !== commentId
         );
-        const attrs = {
-          ...node.attrs,
-          marks: updatedMarks,
-        };
-        tr.setNodeMarkup(pos, undefined, attrs);
+        if (updatedMarks.length !== existingMarks.length) {
+          const attrs = {
+            ...node.attrs,
+            marks: updatedMarks,
+          };
+          tr.setNodeMarkup(pos, undefined, attrs);
+        }
       }
     });
+
+    // Also remove any local pending anchor decoration for the comment.
+    tr.setMeta(draftCommentAnchorPluginKey, { remove: { id: commentId } });
 
     dispatch(tr);
   };
@@ -832,16 +840,22 @@ export class Editor extends React.PureComponent<
 
       if (isArray(node.attrs?.marks)) {
         const existingMarks = node.attrs.marks as ProsemirrorMark[];
-        const updatedMarks = existingMarks.map((mark) =>
-          mark.type === "comment" && mark.attrs?.id === commentId
-            ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
-            : mark
-        );
-        const newAttrs = {
-          ...node.attrs,
-          marks: updatedMarks,
-        };
-        tr.setNodeMarkup(pos, undefined, newAttrs);
+        if (
+          existingMarks.some(
+            (mark) => mark.type === "comment" && mark.attrs?.id === commentId
+          )
+        ) {
+          const updatedMarks = existingMarks.map((mark) =>
+            mark.type === "comment" && mark.attrs?.id === commentId
+              ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
+              : mark
+          );
+          const newAttrs = {
+            ...node.attrs,
+            marks: updatedMarks,
+          };
+          tr.setNodeMarkup(pos, undefined, newAttrs);
+        }
       }
     });
 

@@ -13,6 +13,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import type Comment from "~/models/Comment";
 import type Document from "~/models/Document";
 import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
@@ -52,9 +53,11 @@ function LightboxComments({ document, pos }: Props) {
   // When submitting a new comment from the bottom form, anchor it to the image
   // by adding a draft comment mark to the image node's `attrs.marks`. The mark
   // is flipped to `draft: false` in `handleSubmit` once the comment has been
-  // persisted on the server.
+  // persisted on the server. Users without edit access cannot write the mark
+  // into the document, so instead a pending anchor is set and the server
+  // applies the mark on submission.
   const handleBeforeCreate = useCallback(
-    (commentId: string) => {
+    (comment: Comment) => {
       if (!editor) {
         return;
       }
@@ -64,11 +67,18 @@ function LightboxComments({ document, pos }: Props) {
         return;
       }
 
+      if (!can.update) {
+        comment.pendingAnchor = {
+          anchorNodeId: ProsemirrorHelper.getNodeHash(node),
+        };
+        return;
+      }
+
       const existingMarks = (node.attrs.marks ?? []) as ProsemirrorMark[];
       const newMark: ProsemirrorMark = {
         type: "comment",
         attrs: {
-          id: commentId,
+          id: comment.id,
           userId: user.id,
           draft: true,
         },
@@ -78,9 +88,9 @@ function LightboxComments({ document, pos }: Props) {
         marks: [...existingMarks, newMark],
       };
       dispatch(state.tr.setNodeMarkup(pos, undefined, newAttrs));
-      draftCommentIdRef.current = commentId;
+      draftCommentIdRef.current = comment.id;
     },
-    [editor, pos, user.id]
+    [editor, pos, user.id, can.update]
   );
 
   const handleSubmit = useCallback(() => {
