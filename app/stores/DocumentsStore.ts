@@ -58,10 +58,16 @@ export default class DocumentsStore extends Store<Document> {
 
   importFileTypes: string[] = [
     ".md",
+    ".markdown",
     ".doc",
     ".docx",
+    ".txt",
+    ".htm",
+    ".html",
+    ".csv",
     ".tsv",
     "text/csv",
+    "text/tab-separated-values",
     "text/markdown",
     "text/plain",
     "text/html",

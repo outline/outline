@@ -37,12 +37,10 @@ import {
   SplitIcon,
 } from "outline-icons";
 import { toast } from "sonner";
-import { errToString } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import { ExportContentType } from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
-import { getEventFiles } from "@shared/utils/files";
 import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
 import { client } from "~/utils/ApiClient";
@@ -56,6 +54,7 @@ import { DialogTitle } from "~/components/DialogTitle";
 import DocumentCopy from "~/components/DocumentExplorer/DocumentCopy";
 import { DocumentDownload } from "~/components/DocumentDownload";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
+import { ImportDocumentDialog } from "~/components/ImportDocumentDialog";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
 import {
@@ -1143,34 +1142,16 @@ export const importDocument = createAction({
     return false;
   },
   perform: ({ t, activeDocumentId, activeCollectionId, stores }) => {
-    const { documents } = stores;
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = documents.importFileTypesString;
-
-    input.onchange = async (ev) => {
-      const files = getEventFiles(ev);
-      const file = files[0];
-      const toastId = toast.loading(`${t("Uploading")}…`);
-
-      try {
-        const document = await documents.import(
-          file,
-          activeDocumentId,
-          activeCollectionId,
-          {
-            publish: true,
-          }
-        );
-        history.push(document.url);
-      } catch (err) {
-        toast.error(errToString(err));
-      } finally {
-        toast.dismiss(toastId);
-      }
-    };
-
-    input.click();
+    stores.dialogs.openModal({
+      title: t("Import document"),
+      content: (
+        <ImportDocumentDialog
+          documentId={activeDocumentId}
+          collectionId={activeCollectionId}
+          onSubmit={stores.dialogs.closeAllModals}
+        />
+      ),
+    });
   },
 });
 
