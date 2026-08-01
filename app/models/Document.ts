@@ -181,8 +181,11 @@ export default class Document extends ArchivableModel implements Searchable {
   @Relation(() => Document, { onArchive: "cascade", onDelete: "cascade" })
   parentDocument?: Document;
 
+  /**
+   * The ids of users that have edited this document.
+   */
   @observable
-  collaboratorIds: string[] = [];
+  collaboratorIds: string[] | undefined;
 
   @Relation(() => User)
   createdBy: User | undefined;
@@ -309,7 +312,7 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @computed
   get collaborators(): User[] {
-    return this.collaboratorIds
+    return (this.collaboratorIds ?? [])
       .map((id) => this.store.rootStore.users.get(id))
       .filter(Boolean) as User[];
   }
