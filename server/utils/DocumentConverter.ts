@@ -1,5 +1,5 @@
 import { escape, escapeRegExp } from "es-toolkit/compat";
-import type { Attachment as MailAttachment } from "mailparser";
+import type { Attachment as MailAttachment, ParsedMail } from "mailparser";
 import type { Node } from "prosemirror-model";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import yaml from "js-yaml";
@@ -409,7 +409,7 @@ export class DocumentConverter {
     // than mailparser inlining every matching part unconditionally.
     const { simpleParser } = await import("mailparser");
 
-    let parsed;
+    let parsed: ParsedMail;
     try {
       parsed = await simpleParser(content, { keepCidLinks: true });
     } catch (_err) {
