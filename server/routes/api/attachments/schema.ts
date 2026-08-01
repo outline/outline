@@ -1,6 +1,7 @@
 import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
 import { AttachmentPreset } from "@shared/types";
+import { Week } from "@shared/utils/time";
 import { BaseSchema } from "@server/routes/api/schema";
 
 export const AttachmentsListSchema = BaseSchema.extend({
@@ -70,6 +71,18 @@ export const AttachmentDeleteSchema = BaseSchema.extend({
 });
 
 export type AttachmentDeleteReq = z.infer<typeof AttachmentDeleteSchema>;
+
+export const AttachmentsSignUrlsSchema = BaseSchema.extend({
+  body: z.object({
+    /** Ids of the attachments to sign */
+    ids: z.array(z.uuid()).min(1).max(1000),
+
+    /** Number of seconds the signatures remain valid for */
+    expiresIn: z.number().int().positive().max(Week.seconds).optional(),
+  }),
+});
+
+export type AttachmentsSignUrlsReq = z.infer<typeof AttachmentsSignUrlsSchema>;
 
 export const AttachmentsRedirectSchema = BaseSchema.extend({
   body: z.object({

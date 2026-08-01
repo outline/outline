@@ -633,3 +633,52 @@ describe("#attachments.redirect", () => {
     expect(body.message).toEqual("id is required");
   });
 });
+
+describe("#attachments.signUrls", () => {
+  it("should return a signed url for each attachment", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      acl: "private",
+    });
+    const res = await server.post("/api/attachments.signUrls", user, {
+      body: {
+        ids: [attachment.id],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data[attachment.id]).toEqual("http://s3mock");
+  });
+
+  it("should omit attachments from another team", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({ acl: "private" });
+    const res = await server.post("/api/attachments.signUrls", user, {
+      body: {
+        ids: [attachment.id],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toEqual({});
+  });
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/attachments.signUrls");
+    expect(res.status).toEqual(401);
+  });
+
+  it("should fail in absence of ids", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/attachments.signUrls", user, {
+      body: {
+        ids: [],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+});

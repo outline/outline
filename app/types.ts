@@ -5,6 +5,7 @@ import type {
   CollectionPermission,
   DocumentPermission,
   GroupPermission,
+  ProsemirrorData,
 } from "@shared/types";
 import type RootStore from "~/stores/RootStore";
 import type { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
@@ -126,6 +127,12 @@ export type ActionContext = {
   ) => Policy[];
   isModelActive: (model: Model) => boolean;
   activeModels: ReadonlySet<Model>;
+
+  /**
+   * Returns the editor contents for a document that is currently in view,
+   * including changes that have not been persisted yet, or undefined.
+   */
+  getEditorData: (documentId: string) => ProsemirrorData | undefined;
 
   currentUserId: string | undefined;
   currentTeamId: string | undefined;

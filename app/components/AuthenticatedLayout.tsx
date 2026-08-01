@@ -22,7 +22,6 @@ import {
   settingsPath,
   homePath,
 } from "~/utils/routeHelpers";
-import { DocumentContextProvider } from "./DocumentContext";
 import Fade from "./Fade";
 import NotificationBadge from "./NotificationBadge";
 import { PortalContext } from "./Portal";
@@ -98,27 +97,25 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   );
 
   return (
-    <DocumentContextProvider>
-      <RightSidebarProvider>
-        <PortalContext.Provider value={layoutRef.current}>
-          <DndProvider backend={EditorAwareHTML5Backend}>
-            <Layout
-              title={team.name}
-              sidebar={sidebar}
-              sidebarCanCollapse={!isSettings}
-              ref={layoutRef}
-            >
-              <RegisterKeyDown trigger="n" handler={goToNewDocument} />
-              <RegisterKeyDown trigger="t" handler={goToSearch} />
-              <RegisterKeyDown trigger="/" handler={goToSearch} />
-              {children}
-              <CommandBar />
-              <NotificationBadge />
-            </Layout>
-          </DndProvider>
-        </PortalContext.Provider>
-      </RightSidebarProvider>
-    </DocumentContextProvider>
+    <RightSidebarProvider>
+      <PortalContext.Provider value={layoutRef.current}>
+        <DndProvider backend={EditorAwareHTML5Backend}>
+          <Layout
+            title={team.name}
+            sidebar={sidebar}
+            sidebarCanCollapse={!isSettings}
+            ref={layoutRef}
+          >
+            <RegisterKeyDown trigger="n" handler={goToNewDocument} />
+            <RegisterKeyDown trigger="t" handler={goToSearch} />
+            <RegisterKeyDown trigger="/" handler={goToSearch} />
+            {children}
+            <CommandBar />
+            <NotificationBadge />
+          </Layout>
+        </DndProvider>
+      </PortalContext.Provider>
+    </RightSidebarProvider>
   );
 };
 
