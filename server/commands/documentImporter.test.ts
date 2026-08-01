@@ -176,6 +176,58 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("Heading 1");
   });
 
+  it("should convert MHTML Document to markdown", async () => {
+    const user = await buildUser();
+    const fileName = "webpage.mhtml";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const response = await sequelize.transaction((transaction) =>
+      documentImporter({
+        user,
+        mimeType: "multipart/related",
+        fileName,
+        content,
+        ctx: createContext({ user, transaction }),
+      })
+    );
+    const attachments = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
+    expect(attachments).toEqual(1);
+    expect(response.text).toContain("Text paragraph with a logo below");
+    expect(response.text).toContain("/api/attachments.redirect?id=");
+    expect(response.title).toEqual("Heading 1");
+  });
+
+  it("should convert an .eml Document to markdown, using the Subject as the title", async () => {
+    const user = await buildUser();
+    const fileName = "email-with-image.eml";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const response = await sequelize.transaction((transaction) =>
+      documentImporter({
+        user,
+        mimeType: "message/rfc822",
+        fileName,
+        content,
+        ctx: createContext({ user, transaction }),
+      })
+    );
+    const attachments = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
+    expect(attachments).toEqual(1);
+    expect(response.text).toContain("Text paragraph with our logo");
+    expect(response.text).toContain("![](/api/attachments.redirect?id=");
+    expect(response.title).toEqual("Meeting notes");
+  });
+
   it("should load markdown", async () => {
     const user = await buildUser();
     const fileName = "markdown.md";

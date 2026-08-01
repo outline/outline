@@ -66,6 +66,9 @@ export default class DocumentsStore extends Store<Document> {
     ".html",
     ".csv",
     ".tsv",
+    ".mhtml",
+    ".mht",
+    ".eml",
     "text/csv",
     "text/tab-separated-values",
     "text/markdown",
@@ -73,6 +76,9 @@ export default class DocumentsStore extends Store<Document> {
     "text/html",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "message/rfc822",
+    "multipart/related",
+    "application/x-mimearchive",
   ];
 
   constructor(rootStore: RootStore) {

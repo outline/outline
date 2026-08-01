@@ -52,7 +52,7 @@ export const ImportDocumentDialog = observer(function ImportDocumentDialog({
       },
       {
         name: "HTML",
-        extensions: ".html, .htm",
+        extensions: ".html, .htm, .mhtml, .mht",
         icon: <FileFormatIcon label="HTM" size={28} />,
       },
       {
@@ -64,6 +64,11 @@ export const ImportDocumentDialog = observer(function ImportDocumentDialog({
         name: "CSV",
         extensions: ".csv, .tsv",
         icon: <FileFormatIcon label="CSV" size={28} />,
+      },
+      {
+        name: t("Email"),
+        extensions: ".eml",
+        icon: <FileFormatIcon label="EML" size={28} />,
       },
     ],
     [t]
