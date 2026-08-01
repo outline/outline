@@ -21,6 +21,7 @@ import {
 // (~90) into memory rather than only those supported by the app.
 import { ca } from "date-fns/locale/ca";
 import { cs } from "date-fns/locale/cs";
+import { da } from "date-fns/locale/da";
 import { de } from "date-fns/locale/de";
 import { enGB } from "date-fns/locale/en-GB";
 import { enUS } from "date-fns/locale/en-US";
@@ -29,6 +30,7 @@ import { faIR } from "date-fns/locale/fa-IR";
 import { fr } from "date-fns/locale/fr";
 import { he } from "date-fns/locale/he";
 import { hu } from "date-fns/locale/hu";
+import { id } from "date-fns/locale/id";
 import { it } from "date-fns/locale/it";
 import { ja } from "date-fns/locale/ja";
 import { ko } from "date-fns/locale/ko";
@@ -269,6 +271,7 @@ export function getCurrentDateTimeAsString(locale?: Intl.LocalesArgument) {
 const locales = {
   ca_ES: ca,
   cs_CZ: cs,
+  da_DK: da,
   de_DE: de,
   en_GB: enGB,
   en_US: enUS,
@@ -277,6 +280,7 @@ const locales = {
   fr_FR: fr,
   he_IL: he,
   hu_HU: hu,
+  id_ID: id,
   it_IT: it,
   ja_JP: ja,
   ko_KR: ko,
