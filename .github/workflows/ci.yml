@@ -67,6 +67,16 @@ jobs:
       - uses: ./.github/actions/install
       - run: yarn lint --quiet
 
+  actionlint:
+    needs: changes
+    if: ${{ needs.changes.outputs.config == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color
+
   types:
     needs: changes
     if: ${{ needs.changes.outputs.code == 'true' }}
@@ -135,7 +145,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
       - name: Set environment to production
-        run: echo "NODE_ENV=production" >> $GITHUB_ENV
+        run: echo "NODE_ENV=production" >> "$GITHUB_ENV"
       - run: yarn vite:build
       - name: Send bundle stats to RelativeCI
         if: ${{ env.RELATIVE_CI_KEY != '' }}
@@ -150,7 +160,7 @@ jobs:
   # Always runs, so it can be used as the single required status check. Jobs
   # above are skipped when irrelevant to the changes, which is a pass here.
   ci:
-    needs: [changes, lint, types, audit, test, test-server, bundle-size]
+    needs: [changes, lint, actionlint, types, audit, test, test-server, bundle-size]
     if: always()
     runs-on: ubuntu-latest
     steps:
