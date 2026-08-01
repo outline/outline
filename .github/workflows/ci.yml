@@ -21,6 +21,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
+      code: ${{ steps.filter.outputs.code }}
       config: ${{ steps.filter.outputs.config }}
       server: ${{ steps.filter.outputs.server }}
       app: ${{ steps.filter.outputs.app }}
@@ -31,6 +32,12 @@ jobs:
         id: filter
         with:
           filters: |
+            code:
+              - '**'
+              - '!**/*.md'
+              - '!docs/**'
+              - '!public/**'
+              - '!shared/i18n/locales/**'
             config:
               - '.github/**'
               - 'vite.config.ts'
@@ -38,6 +45,7 @@ jobs:
             server:
               - 'server/**'
               - 'shared/**'
+              - 'plugins/**'
               - 'package.json'
               - 'yarn.lock'
             app:
@@ -51,6 +59,8 @@ jobs:
               - '.yarnrc.yml'
 
   lint:
+    needs: changes
+    if: ${{ needs.changes.outputs.code == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -58,6 +68,8 @@ jobs:
       - run: yarn lint --quiet
 
   types:
+    needs: changes
+    if: ${{ needs.changes.outputs.code == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -134,3 +146,16 @@ jobs:
           key: ${{ secrets.RELATIVE_CI_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
           webpackStatsFile: ./build/app/webpack-stats.json
+
+  # Always runs, so it can be used as the single required status check. Jobs
+  # above are skipped when irrelevant to the changes, which is a pass here.
+  ci:
+    needs: [changes, lint, types, audit, test, test-server, bundle-size]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check job results
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: |
+          echo "One or more jobs failed or were cancelled."
+          exit 1
