@@ -270,6 +270,53 @@ describe("private collection", () => {
   });
 });
 
+describe("membership ids", () => {
+  it("should return the collection membership that grants access", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const membership = await UserMembership.create({
+      collectionId: collection.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual([membership.id]);
+    expect(abilities.update).toEqual([membership.id]);
+  });
+
+  it("should return the document membership that grants access", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const membership = await UserMembership.create({
+      documentId: doc.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: DocumentPermission.Read,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual([membership.id]);
+  });
+});
+
 describe("no collection", () => {
   it("should allow no permissions for team member", async () => {
     const team = await buildTeam();

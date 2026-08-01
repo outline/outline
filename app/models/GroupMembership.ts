@@ -3,7 +3,6 @@ import type { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
-import { AfterRemove } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
 import NavigableModel from "./base/NavigableModel";
 
@@ -56,13 +55,6 @@ class GroupMembership extends NavigableModel {
       params: { id: this.documentId },
       ...options,
     });
-  }
-
-  // hooks
-
-  @AfterRemove
-  public static removeFromPolicies(model: GroupMembership) {
-    model.store.rootStore.policies.removeForMembership(model.id);
   }
 }
 
