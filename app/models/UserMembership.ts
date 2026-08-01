@@ -4,7 +4,6 @@ import type UserMembershipsStore from "~/stores/UserMembershipsStore";
 import Document from "./Document";
 import User from "./User";
 import Field from "./decorators/Field";
-import { AfterRemove } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
 import NavigableModel from "./base/NavigableModel";
 
@@ -84,13 +83,6 @@ class UserMembership extends NavigableModel {
     });
     const index = memberships.indexOf(this);
     return memberships[index + 1];
-  }
-
-  // hooks
-
-  @AfterRemove
-  public static removeFromPolicies(model: UserMembership) {
-    model.store.rootStore.policies.removeForMembership(model.id);
   }
 }
 

@@ -4,6 +4,7 @@ import {
   splitBlock,
 } from "prosemirror-commands";
 import { Slice, Fragment } from "prosemirror-model";
+import { isInTable } from "prosemirror-tables";
 import type { Command } from "prosemirror-state";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
@@ -202,6 +203,11 @@ export const indentBlock: Command = (state, dispatch) => {
     return false;
   }
 
+  // If inside a table, allow the table's Tab handler to move cells instead.
+  if (isInTable(state)) {
+    return false;
+  }
+
   const { $from } = state.selection;
 
   let before = -1;
@@ -239,6 +245,11 @@ export const indentBlock: Command = (state, dispatch) => {
 export const toggleBlock: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
   if (!isSelectionInToggleBlock(state)) {
+    return false;
+  }
+
+  // If inside a table, allow the table's handler to add a row instead.
+  if (isInTable(state)) {
     return false;
   }
 
@@ -350,6 +361,11 @@ export const liftAllChildBlocksOfNodeAfter: Command = (state, dispatch) => {
 export const dedentBlocks: Command = (state, dispatch) => {
   // If inside a list, allow the list's Shift-Tab handler to handle outdentation instead.
   if (isInList(state)) {
+    return false;
+  }
+
+  // If inside a table, allow the table's Shift-Tab handler to move cells instead.
+  if (isInTable(state)) {
     return false;
   }
 

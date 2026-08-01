@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
 import type { UnfurlResponse } from "../../types";
 import { MentionType, UnfurlResourceType } from "../../types";
+import { dateToReadable } from "../../utils/date";
 import {
   MentionCollection,
   MentionDocument,
@@ -34,16 +35,35 @@ import mentionRule from "../rules/mention";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
 
+/**
+ * Formats a date mention's stored value (a date-only or time-specific ISO
+ * string) into a human-readable label for display and serialization.
+ *
+ * @param node the date mention node.
+ * @returns the readable label, e.g. "February 3rd at 1:00 PM".
+ */
+function dateMentionLabel(node: ProsemirrorNode): string {
+  const modelId = node.attrs.modelId;
+  return typeof modelId === "string"
+    ? dateToReadable(modelId)
+    : node.attrs.label;
+}
+
 export default class Mention extends Node {
   get name() {
     return "mention";
   }
 
   get schema(): NodeSpec {
-    const toPlainText = (node: ProsemirrorNode) =>
-      node.attrs.type === MentionType.User
-        ? `@${node.attrs.label}`
-        : node.attrs.label;
+    const toPlainText = (node: ProsemirrorNode) => {
+      if (node.attrs.type === MentionType.User) {
+        return `@${node.attrs.label}`;
+      }
+      if (node.attrs.type === MentionType.Date) {
+        return dateMentionLabel(node);
+      }
+      return node.attrs.label;
+    };
 
     return {
       attrs: {
@@ -341,7 +361,10 @@ export default class Mention extends Node {
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     const mType = node.attrs.type;
     const mId = node.attrs.modelId;
-    const label = node.attrs.label;
+    // Date mentions store a machine-readable value, so the label is derived to
+    // keep the serialized output legible outside of the editor.
+    const label =
+      mType === MentionType.Date ? dateMentionLabel(node) : node.attrs.label;
     const id = node.attrs.id;
 
     // Use regular links for document and collection mentions

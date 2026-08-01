@@ -25,9 +25,7 @@ const DropToImport: React.FC<Props> = ({
   const { t } = useTranslation();
 
   const handleRejection = React.useCallback(() => {
-    toast.error(
-      t("Document not supported – try Markdown, Plain text, HTML, or Word")
-    );
+    toast.error(t("This file type is not supported"));
   }, [t]);
 
   return (

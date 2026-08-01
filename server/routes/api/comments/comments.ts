@@ -39,11 +39,13 @@ router.post(
       anchorText,
       anchorPrefix,
       anchorSuffix,
+      anchorNodeId,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
+    const anchored = !!(anchorText || anchorNodeId);
 
-    if (anchorText) {
+    if (anchored) {
       // Acquire the row lock on the document directly when anchoring so a
       // concurrent inline comment can't overwrite our state update.
       await Document.unscoped().findOne({
@@ -58,7 +60,7 @@ router.post(
       userId: user.id,
       transaction,
       // We only need to load the state binary if applying a comment mark
-      includeState: !!anchorText,
+      includeState: anchored,
     });
     authorize(user, "comment", document);
 
@@ -75,29 +77,41 @@ router.post(
 
     const commentId = id || uuidv4();
 
-    if (anchorText) {
+    if (anchored) {
       if (!document.state) {
         throw ValidationError("Cannot inline comment on this document");
       }
 
-      const updatedState = ProsemirrorHelper.applyCommentMarkByText({
-        docState: document.state,
-        anchorText,
-        commentId,
-        userId: user.id,
-        prefix: anchorPrefix,
-        suffix: anchorSuffix,
-      });
+      const updated = anchorText
+        ? ProsemirrorHelper.applyCommentMarkByText({
+            docState: document.state,
+            anchorText,
+            commentId,
+            userId: user.id,
+            prefix: anchorPrefix,
+            suffix: anchorSuffix,
+          })
+        : anchorNodeId
+          ? ProsemirrorHelper.applyCommentMarkByNode({
+              docState: document.state,
+              anchorNodeId,
+              commentId,
+              userId: user.id,
+            })
+          : null;
 
-      if (!updatedState) {
+      if (!updated) {
         throw ValidationError(
-          "Could not anchor comment to the provided text in the document"
+          "Could not anchor comment to the provided location in the document"
         );
       }
 
+      // Save with hooks enabled so the AfterUpdate hook notifies the
+      // collaboration server, but silently so the document is not marked
+      // as updated by adding a comment.
       await document.update(
-        { state: updatedState },
-        { transaction, hooks: false, silent: true }
+        { state: updated.state, content: updated.content },
+        { ...ctx.context, transaction, silent: true }
       );
     }
 

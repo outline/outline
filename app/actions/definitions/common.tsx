@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import { InputIcon } from "outline-icons";
 import stores from "~/stores";
-import type { Action } from "~/types";
+import type { Action, ActionContext } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { createAction } from "..";
 
@@ -29,9 +29,11 @@ export async function performBatch<T>(
  *
  * @param analyticsName - untranslated name for analytics.
  * @param section - the section the action belongs to.
- * @param title - the dialog title.
- * @param content - renders the dialog, given a handler to close it.
+ * @param title - the dialog title, given the action context.
+ * @param content - renders the dialog, given a handler to close it and the
+ * action context.
  * @param name - the menu item label, defaults to the title with an ellipsis.
+ * Required when the title is not a plain string.
  * @param icon - optional icon for the menu item.
  * @param keywords - optional additional search terms for the command bar.
  * @param visible - optional visibility predicate.
@@ -55,33 +57,48 @@ export const dialogActionFactory = ({
 }: {
   analyticsName: string;
   section: Action["section"];
-  title: (t: TFunction) => string;
-  content: (onSubmit: () => void) => React.ReactNode;
-  name?: (t: TFunction) => string;
+  content: (onSubmit: () => void, context: ActionContext) => React.ReactNode;
   icon?: React.ReactNode;
   keywords?: string;
   visible?: Action["visible"];
   dangerous?: boolean;
   width?: string | number;
   stopEvent?: boolean;
-}) =>
+} & (
+  | {
+      title: (t: TFunction, context: ActionContext) => string;
+      name?: (t: TFunction) => string;
+    }
+  | {
+      title: (t: TFunction, context: ActionContext) => React.ReactNode;
+      name: (t: TFunction) => string;
+    }
+)) =>
   createAction({
-    name: ({ t }) => (name ? name(t) : `${title(t)}…`),
+    // The title is only used as a label when it's a plain string, the type
+    // requires a name otherwise.
+    name: (context) => {
+      if (name) {
+        return name(context.t);
+      }
+      const value = title(context.t, context);
+      return typeof value === "string" ? `${value}…` : "";
+    },
     analyticsName,
     section,
     icon,
     keywords,
     visible,
     dangerous,
-    perform: ({ t, event }) => {
+    perform: (context) => {
       if (stopEvent) {
-        event?.preventDefault();
-        event?.stopPropagation();
+        context.event?.preventDefault();
+        context.event?.stopPropagation();
       }
 
       stores.dialogs.openModal({
-        title: title(t),
-        content: content(stores.dialogs.closeAllModals),
+        title: title(context.t, context),
+        content: content(stores.dialogs.closeAllModals, context),
         width,
       });
     },

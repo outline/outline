@@ -51,6 +51,13 @@ class Model<
   TCreationAttributes extends object = TModelAttributes,
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
   /**
+   * Disables Sequelize's public class field detection, which reports a false positive for the
+   * per-instance accessors that sequelize-strict-attributes installs on attributes omitted from
+   * a query's selection.
+   */
+  static _overwrittenAttributesChecked = true;
+
+  /**
    * The namespace to use for events - defaults to the table name if none is provided.
    */
   static eventNamespace: string | undefined;

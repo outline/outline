@@ -171,8 +171,16 @@ export default abstract class Store<T extends Model> {
     return item;
   };
 
+  /**
+   * Remove a model, and any models that cascade from it, from the store.
+   *
+   * @param id the ID of the model to remove.
+   * @param options.permanent whether soft-deletable models should be evicted
+   * from the store entirely rather than marked as deleted. Use when the model
+   * is gone for good, or is no longer accessible to the current user.
+   */
   @action
-  remove(id: string): void {
+  remove(id: string, options?: { permanent?: boolean }): void {
     const model = this.data.get(id);
     if (!model) {
       return;
@@ -195,7 +203,7 @@ export default abstract class Store<T extends Model> {
           }
 
           if (deleteBehavior === "cascade") {
-            store.remove(item.id);
+            store.remove(item.id, options);
           } else if (deleteBehavior === "null") {
             // @ts-expect-error TODO
             item[relation.idKey] = null;
@@ -211,7 +219,7 @@ export default abstract class Store<T extends Model> {
 
     LifecycleManager.executeHooks(model.constructor, "beforeRemove", model);
 
-    if (model instanceof ParanoidModel) {
+    if (model instanceof ParanoidModel && !options?.permanent) {
       model.deletedAt = new Date().toISOString();
     } else {
       this.data.delete(id);

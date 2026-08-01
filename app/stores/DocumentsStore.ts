@@ -58,10 +58,16 @@ export default class DocumentsStore extends Store<Document> {
 
   importFileTypes: string[] = [
     ".md",
+    ".markdown",
     ".doc",
     ".docx",
+    ".txt",
+    ".htm",
+    ".html",
+    ".csv",
     ".tsv",
     "text/csv",
+    "text/tab-separated-values",
     "text/markdown",
     "text/plain",
     "text/html",
@@ -189,6 +195,19 @@ export default class DocumentsStore extends Store<Document> {
 
   popularInCollection(collectionId: string): Document[] {
     return orderBy(this.inCollection(collectionId), "popularityScore", "desc");
+  }
+
+  /**
+   * Evict every document belonging to a collection from the store, for use when
+   * the current user has lost access to the collection's documents.
+   *
+   * @param collectionId the ID of the collection to evict documents for.
+   */
+  @action
+  removeInCollection(collectionId: string) {
+    this.orderedData
+      .filter((document) => document.collectionId === collectionId)
+      .forEach((document) => this.remove(document.id, { permanent: true }));
   }
 
   get(id: string): Document | undefined {

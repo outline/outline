@@ -218,8 +218,9 @@ export class DocumentConverter {
     }
 
     // Try to convert based on the file extension
-    const extension = fileName.split(".").pop();
+    const extension = fileName.split(".").pop()?.toLowerCase();
     switch (extension) {
+      case "htm":
       case "html":
         return typeof content === "string" ? content : content.toString("utf8");
       case "docx":
@@ -250,14 +251,19 @@ export class DocumentConverter {
         markdown = this.bufferToString(content);
         break;
       case "text/csv":
+      case "text/tab-separated-values":
         return this.csvToMarkdown(content);
       default: {
-        const extension = fileName.split(".").pop();
+        const extension = fileName.split(".").pop()?.toLowerCase();
         switch (extension) {
           case "md":
           case "markdown":
+          case "txt":
             markdown = this.bufferToString(content);
             break;
+          case "csv":
+          case "tsv":
+            return this.csvToMarkdown(content);
           default:
             throw FileImportError(`File type ${mimeType} not supported`);
         }

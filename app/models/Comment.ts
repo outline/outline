@@ -2,6 +2,7 @@ import invariant from "invariant";
 import { uniq } from "es-toolkit/compat";
 import { action, computed, observable } from "mobx";
 import { Pagination } from "@shared/constants";
+import type { CommentAnchor } from "@shared/editor/commands/comment";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
@@ -57,6 +58,14 @@ class Comment extends Model {
    * The ID of the user who created this comment.
    */
   createdById: string;
+
+  /**
+   * The anchor location for a draft inline comment created by a user without
+   * edit access. Sent with the create request so the server can apply the
+   * comment mark to the document, and not otherwise persisted.
+   */
+  @observable
+  pendingAnchor?: CommentAnchor;
 
   /**
    * The date and time that this comment was resolved, if it has been resolved.

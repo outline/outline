@@ -1096,7 +1096,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * @param params.userId The user identifier.
    * @param params.prefix Optional plain text immediately preceding the match.
    * @param params.suffix Optional plain text immediately following the match.
-   * @returns Updated Yjs state, or null if the mark cannot be applied.
+   * @returns Updated Yjs state and content, or null if the mark cannot be applied.
    * @throws ValidationError when no match satisfies the prefix/suffix.
    */
   static applyCommentMarkByText({
@@ -1113,7 +1113,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     userId: string;
     prefix?: string;
     suffix?: string;
-  }): Buffer | null {
+  }): { state: Buffer; content: ProsemirrorData } | null {
     const yjsDoc = new Y.Doc();
     Y.applyUpdate(yjsDoc, docState);
     const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(yjsDoc, "default"));
@@ -1141,6 +1141,70 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
   }
 
+  /**
+   * Applies a comment mark to a node in a document's Yjs state, identified by
+   * a hash of the node's attributes, see `ProsemirrorHelper.getNodeHash`. The
+   * first matching node in document order is used, and the mark is stored in
+   * the node's `marks` attribute.
+   *
+   * @param params.docState The current Yjs document state.
+   * @param params.anchorNodeId The hash of the node to anchor the comment to.
+   * @param params.commentId The comment identifier.
+   * @param params.userId The user identifier.
+   * @returns Updated Yjs state and content, or null if the mark cannot be applied.
+   * @throws ValidationError when no node matches or the node cannot hold comments.
+   */
+  static applyCommentMarkByNode({
+    docState,
+    anchorNodeId,
+    commentId,
+    userId,
+  }: {
+    docState: Uint8Array;
+    anchorNodeId: string;
+    commentId: string;
+    userId: string;
+  }): { state: Buffer; content: ProsemirrorData } | null {
+    const yjsDoc = new Y.Doc();
+    Y.applyUpdate(yjsDoc, docState);
+    const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(yjsDoc, "default"));
+    const match = SharedProsemirrorHelper.findNodeByHash(doc, anchorNodeId);
+
+    if (!match) {
+      throw ValidationError("anchorNodeId was not found in the document");
+    }
+    if (!("marks" in (match.node.type.spec.attrs ?? {}))) {
+      throw ValidationError("This node cannot be commented on");
+    }
+
+    try {
+      const initialState = EditorState.create({
+        doc,
+        schema,
+      });
+      const stateTransform = initialState.tr.setNodeMarkup(
+        match.pos,
+        undefined,
+        {
+          ...match.node.attrs,
+          marks: [
+            ...(match.node.attrs.marks ?? []),
+            {
+              type: "comment",
+              attrs: { id: commentId, userId, draft: false, resolved: false },
+            },
+          ],
+        }
+      );
+      const transformedState = initialState.apply(stateTransform);
+
+      return ProsemirrorHelper.applyDocToYDoc(yjsDoc, transformedState.doc);
+    } catch (error) {
+      Logger.error("Error applying comment mark by node", error as Error);
+      return null;
+    }
+  }
+
   private static applyCommentMarkAtRange(
     yjsDoc: Y.Doc,
     doc: Node,
@@ -1148,7 +1212,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     rangeEnd: number,
     commentId: string,
     userId: string
-  ): Buffer | null {
+  ): { state: Buffer; content: ProsemirrorData } | null {
     const docSize = doc.content.size;
     if (rangeStart < 0 || rangeEnd > docSize || rangeStart > rangeEnd) {
       Logger.warn("Invalid position range for comment anchor", {
@@ -1176,20 +1240,35 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     );
     const transformedState = initialState.apply(stateTransform);
 
-    // Mutate the existing yjsDoc in place so the resulting state is a
-    // continuation of the original document — same client IDs, same operation
-    // history — rather than a fresh Y.Doc whose content would merge as
-    // duplicates against any client still holding the original state.
+    return ProsemirrorHelper.applyDocToYDoc(yjsDoc, transformedState.doc);
+  }
+
+  /**
+   * Mutate the existing yjsDoc in place so the resulting state is a
+   * continuation of the original document — same client IDs, same operation
+   * history — rather than a fresh Y.Doc whose content would merge as
+   * duplicates against any client still holding the original state.
+   */
+  private static applyDocToYDoc(
+    yjsDoc: Y.Doc,
+    doc: Node
+  ): { state: Buffer; content: ProsemirrorData } {
     const yFragment = yjsDoc.get("default", Y.XmlFragment) as Y.XmlFragment;
     if (!yFragment.doc) {
       throw new Error("yFragment.doc not found");
     }
-    updateYFragment(yFragment.doc, yFragment, transformedState.doc, {
+    updateYFragment(yFragment.doc, yFragment, doc, {
       mapping: new Map(),
       isOMark: new Map(),
     });
 
-    return Buffer.from(Y.encodeStateAsUpdate(yjsDoc));
+    return {
+      state: Buffer.from(Y.encodeStateAsUpdate(yjsDoc)),
+      content: Node.fromJSON(
+        schema,
+        yDocToProsemirrorJSON(yjsDoc, "default")
+      ).toJSON() as ProsemirrorData,
+    };
   }
 
   /**
