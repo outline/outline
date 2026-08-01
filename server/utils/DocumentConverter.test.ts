@@ -1,4 +1,9 @@
+import path from "node:path";
+import fs from "fs-extra";
 import { DocumentConverter } from "./DocumentConverter";
+
+const fixture = (fileName: string) =>
+  fs.readFile(path.resolve(__dirname, "..", "test", "fixtures", fileName));
 
 describe("DocumentConverter", () => {
   describe("convert", () => {
@@ -177,6 +182,76 @@ John,25`;
 
         expect(result.title).toEqual("My Title");
         expect(result.text).toContain("Content here");
+      });
+    });
+
+    describe("mhtml", () => {
+      it("should convert a Chrome-saved MHTML page with an inline image", async () => {
+        const content = await fixture("webpage.mhtml");
+        const result = await DocumentConverter.convert(
+          content,
+          "webpage.mhtml",
+          "multipart/related"
+        );
+
+        expect(result.title).toEqual("Heading 1");
+        expect(result.text).toContain("Text paragraph with a logo below");
+        // The tracking script and stylesheet should not leak into the content
+        expect(result.text).not.toContain("tracking pixel");
+        expect(result.text).not.toContain("font-family");
+        // The image referenced by Content-Location should be inlined as a data URI
+        expect(result.text).toMatch(/!\[.*?\]\(data:image\/png;base64,/);
+      });
+
+      it("should fall back to the .mhtml extension when the mime type is unrecognized", async () => {
+        const content = await fixture("webpage.mhtml");
+        const result = await DocumentConverter.convert(
+          content,
+          "webpage.mhtml",
+          "application/octet-stream"
+        );
+
+        expect(result.title).toEqual("Heading 1");
+        expect(result.text).toContain("Text paragraph with a logo below");
+      });
+
+      it("should throw a clean error for a malformed archive", async () => {
+        const content = "This is not a MIME archive, just plain garbage.";
+
+        await expect(
+          DocumentConverter.convert(content, "broken.mhtml", "")
+        ).rejects.toThrow("Unsupported MHTML file (No content found)");
+      });
+    });
+
+    describe("eml", () => {
+      it("should convert an .eml with a cid: referenced inline image", async () => {
+        const content = await fixture("email-with-image.eml");
+        const result = await DocumentConverter.convert(
+          content,
+          "email-with-image.eml",
+          "message/rfc822"
+        );
+
+        // The Subject header becomes the document title
+        expect(result.title).toEqual("Meeting notes");
+        expect(result.text).toContain("Text paragraph with our logo");
+        // The image referenced by cid: should be inlined as a data URI
+        expect(result.text).toMatch(/!\[.*?\]\(data:image\/png;base64,/);
+      });
+
+      it("should fall back to plain text when there is no HTML part", async () => {
+        const content = await fixture("email-plain-text.eml");
+        const result = await DocumentConverter.convert(
+          content,
+          "email-plain-text.eml",
+          "message/rfc822"
+        );
+
+        expect(result.title).toEqual("Plain text note");
+        expect(result.text).toContain(
+          "This is a plain text email with no HTML part"
+        );
       });
     });
 

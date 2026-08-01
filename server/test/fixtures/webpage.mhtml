@@ -1,0 +1,36 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: https://example.com/article/page.html
+Subject: Example Article
+Date: Mon, 1 Jan 2024 00:00:00 -0000
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--kx7f92hslq----"
+
+------MultipartBoundary--kx7f92hslq----
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://example.com/article/page.html
+
+<html>
+<head>
+<meta charset=3D"utf-8">
+<title>Example Article</title>
+<style>body { font-family: sans-serif; }</style>
+<script>console.log("tracking pixel loaded");</script>
+</head>
+<body>
+<h1>Heading 1</h1>
+<p>Text paragraph with a logo below.</p>
+<img src=3D"https://example.com/images/logo.png" alt=3D"Logo">
+</body>
+</html>
+------MultipartBoundary--kx7f92hslq----
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: https://example.com/images/logo.png
+
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YA
+AAAASUVORK5CYII=
+
+------MultipartBoundary--kx7f92hslq------
