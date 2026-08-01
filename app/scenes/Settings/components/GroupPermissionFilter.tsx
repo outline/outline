@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { GroupPermission } from "@shared/types";
+import { GroupPermissionHelper } from "@shared/utils/GroupPermissionHelper";
 import FilterOptions from "~/components/FilterOptions";
 
 type Props = {
@@ -23,11 +24,11 @@ const GroupPermissionFilter = ({ activeKey, onSelect, ...rest }: Props) => {
       },
       {
         key: GroupPermission.Admin,
-        label: t("Group admin"),
+        label: GroupPermissionHelper.displayName(GroupPermission.Admin, t),
       },
       {
         key: GroupPermission.Member,
-        label: t("Member"),
+        label: GroupPermissionHelper.displayName(GroupPermission.Member, t),
       },
     ],
     [t]

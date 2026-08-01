@@ -1,32 +1,38 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
 import type Group from "~/models/Group";
+import type User from "~/models/User";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { ActionContextProvider } from "~/hooks/useActionContext";
-import { useGroupMenuActions } from "~/hooks/useGroupMenuActions";
+import { useGroupUserMenuActions } from "~/hooks/useGroupUserMenuActions";
 
 type Props = {
+  /** The group the user is a member of. */
   group: Group;
-  /** Whether to hide the "Members" navigation action. */
-  hideMembers?: boolean;
+  /** The member of the group. */
+  user: User;
 };
 
-function GroupMenu({ group, hideMembers }: Props) {
+/**
+ * Overflow menu with the actions available for a member of a group.
+ */
+export const GroupMemberMenu = observer(function GroupMemberMenu({
+  group,
+  user,
+}: Props) {
   const { t } = useTranslation();
-  const rootAction = useGroupMenuActions({ hideMembers });
+  const rootAction = useGroupUserMenuActions();
 
   return (
-    <ActionContextProvider value={{ activeModels: [group] }}>
+    <ActionContextProvider value={{ activeModels: [group, user] }}>
       <DropdownMenu
         action={rootAction}
         align="end"
-        ariaLabel={t("Group options")}
+        ariaLabel={t("Group member options")}
       >
         <OverflowMenuButton />
       </DropdownMenu>
     </ActionContextProvider>
   );
-}
-
-export default observer(GroupMenu);
+});

@@ -4,6 +4,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
+import { GroupPermissionHelper } from "@shared/utils/GroupPermissionHelper";
 import Group from "~/models/Group";
 import type User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -375,11 +376,11 @@ const GroupMemberListItem = observer(function ({
     () =>
       [
         {
-          label: t("Group admin"),
+          label: GroupPermissionHelper.displayName(GroupPermission.Admin, t),
           value: GroupPermission.Admin,
         },
         {
-          label: t("Member"),
+          label: GroupPermissionHelper.displayName(GroupPermission.Member, t),
           value: GroupPermission.Member,
         },
         {
