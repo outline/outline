@@ -150,7 +150,7 @@ jobs:
   # Always runs, so it can be used as the single required status check. Jobs
   # above are skipped when irrelevant to the changes, which is a pass here.
   ci:
-    needs: [changes, lint, types, audit, test, test-server]
+    needs: [changes, lint, types, audit, test, test-server, bundle-size]
     if: always()
     runs-on: ubuntu-latest
     steps:
