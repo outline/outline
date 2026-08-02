@@ -56,7 +56,8 @@ export function everyActiveModel<T extends Model>(
  * @param modelClass The class of models to operate on.
  * @param operation The operation to perform on each model.
  * @param message Given the models and how many succeeded, returns the toast to
- * show, or undefined to show none (e.g. to stay silent for a single model).
+ * show, or undefined to show none (e.g. to stay silent for a single model). No
+ * toast is shown when every operation failed.
  * @returns the number of operations that succeeded.
  */
 export async function performBatchOnActiveModels<T extends Model>(
@@ -71,7 +72,7 @@ export async function performBatchOnActiveModels<T extends Model>(
   }
 
   const succeeded = await performBatch(models, operation);
-  const text = message?.(models, succeeded, context.t);
+  const text = succeeded ? message?.(models, succeeded, context.t) : undefined;
   if (text) {
     toast.success(text);
   }
