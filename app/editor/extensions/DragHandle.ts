@@ -252,7 +252,10 @@ export default class DragHandle extends Extension {
           };
 
           window.addEventListener("mousemove", onMouseMove);
-          window.addEventListener("scroll", onScroll, true);
+          window.addEventListener("scroll", onScroll, {
+            capture: true,
+            passive: true,
+          });
           handle.addEventListener("dragstart", onDragStart);
           handle.addEventListener("dragend", onDragEnd);
           handle.addEventListener("click", onClick);
@@ -260,12 +263,15 @@ export default class DragHandle extends Extension {
           return {
             destroy: () => {
               window.removeEventListener("mousemove", onMouseMove);
-              window.removeEventListener("scroll", onScroll, true);
+              window.removeEventListener("scroll", onScroll, { capture: true });
               handle.removeEventListener("dragstart", onDragStart);
               handle.removeEventListener("dragend", onDragEnd);
               handle.removeEventListener("click", onClick);
               handle.remove();
-              onDragEnd();
+              // Only clean up the DOM class here — the plugin state is
+              // discarded on unmount, so avoid dispatching onto a view that
+              // is being torn down (e.g. unmounted mid-drag).
+              view.dom.classList.remove("dragging");
             },
           };
         },
