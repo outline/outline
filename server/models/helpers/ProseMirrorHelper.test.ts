@@ -7,6 +7,7 @@ import type { ProsemirrorData } from "@shared/types";
 import { MentionType } from "@shared/types";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
+import env from "@server/env";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
@@ -970,6 +971,113 @@ describe("ProsemirrorHelper", () => {
       expect(thirdItem.type.name).toBe("checkbox_item");
       expect(thirdItem.attrs.checked).toBe(true);
       expect(thirdItem.textContent).toBe("Third");
+    });
+  });
+
+  describe("replaceDocumentReferences", () => {
+    const replacement = {
+      id: "ca3a20ba-0eab-4b04-b45c-b9d0e9d6d3f0",
+      path: "/doc/copy-of-a-document-hLpJHTvIRW",
+    };
+    const references = new Map([
+      ["7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e", replacement],
+      ["oCB0mUOc5f", replacement],
+    ]);
+
+    const linkedParagraph = (href: string) => ({
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "A link",
+          marks: [{ type: "link", attrs: { href } }],
+        },
+      ],
+    });
+
+    const mentionParagraph = (type: MentionType, modelId: string) => ({
+      type: "paragraph",
+      content: [
+        {
+          type: "mention",
+          attrs: {
+            type,
+            modelId,
+            label: "A mention",
+            id: "d4f6a3ee-0d59-4e2e-b1a8-2f0c5f6b3f8d",
+          },
+        },
+      ],
+    });
+
+    const hrefAfterReplace = (href: string) => {
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([linkedParagraph(href)]),
+        references
+      );
+      return result.content![0].content![0].marks![0].attrs!.href;
+    };
+
+    const modelIdAfterReplace = (type: MentionType, modelId: string) => {
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([mentionParagraph(type, modelId)]),
+        references
+      );
+      return result.content![0].content![0].attrs!.modelId;
+    };
+
+    it("should replace a link to a document by slug", () => {
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f")).toBe(
+        replacement.path
+      );
+    });
+
+    it("should replace a link to a document by id", () => {
+      expect(
+        hrefAfterReplace("/doc/7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e")
+      ).toBe(replacement.path);
+    });
+
+    it("should retain the hash and query of a replaced link", () => {
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f#heading")).toBe(
+        `${replacement.path}#heading`
+      );
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f?foo=bar")).toBe(
+        `${replacement.path}?foo=bar`
+      );
+    });
+
+    it("should not replace links to other documents", () => {
+      const href = "/doc/another-document-Iz6qBGZQIU";
+      expect(hrefAfterReplace(href)).toBe(href);
+    });
+
+    it("should not replace absolute links", () => {
+      const href = `${env.URL}/doc/a-document-oCB0mUOc5f`;
+      expect(hrefAfterReplace(href)).toBe(href);
+    });
+
+    it("should not replace links that are not to a document", () => {
+      const href = "/search?query=oCB0mUOc5f";
+      expect(hrefAfterReplace(href)).toBe(href);
+    });
+
+    it("should replace the model of a document mention", () => {
+      expect(
+        modelIdAfterReplace(
+          MentionType.Document,
+          "7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e"
+        )
+      ).toBe(replacement.id);
+    });
+
+    it("should not replace the model of a user mention", () => {
+      expect(
+        modelIdAfterReplace(
+          MentionType.User,
+          "7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e"
+        )
+      ).toBe("7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e");
     });
   });
 
