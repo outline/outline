@@ -2,7 +2,6 @@ import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Collection, Team } from "@server/models";
-import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import { authorize } from "@server/policies";
@@ -22,25 +21,18 @@ import {
 } from "./util";
 
 /**
- * Presents a collection for a tool response. Replaces the ProseMirror JSON
- * from the standard collection presenter with a markdown description so that
- * MCP consumers (typically AI agents) can read it directly.
+ * Presents a collection for a tool response. Includes a markdown description
+ * instead of ProseMirror JSON so that MCP consumers (typically AI agents) can
+ * read it directly.
  *
  * @param collection - the collection to present.
  * @returns the presented collection object.
  */
-export async function presentCollection(collection: Collection) {
-  const { data: _data, ...presented } = await presentCollectionBase(
-    undefined,
-    collection
-  );
-  const description = await DocumentHelper.toMarkdown(collection, {
-    includeTitle: false,
+export function presentCollection(collection: Collection) {
+  return presentCollectionBase(undefined, collection, {
+    includeData: false,
+    includeText: true,
   });
-  return {
-    ...presented,
-    description: description || null,
-  };
 }
 
 /**
