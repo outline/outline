@@ -761,6 +761,60 @@ class Document extends ArchivableModel<
     return uniq(membershipUserIds);
   }
 
+  /**
+   * Returns an array of unique document IDs that the user is a member of,
+   * either via direct membership or through a group membership.
+   *
+   * @param userId The user ID to find document memberships for.
+   * @returns A promise resolving to an array of document IDs.
+   */
+  static async membershipDocumentIds(userId: string): Promise<string[]> {
+    const [memberships, groupMemberships] = await Promise.all([
+      UserMembership.findAll({
+        attributes: ["documentId"],
+        where: {
+          userId,
+          documentId: {
+            [Op.ne]: null,
+          },
+        },
+      }),
+      GroupMembership.findAll({
+        attributes: ["documentId"],
+        where: {
+          documentId: {
+            [Op.ne]: null,
+          },
+        },
+        include: [
+          {
+            model: Group,
+            as: "group",
+            attributes: [],
+            required: true,
+            include: [
+              {
+                model: GroupUser,
+                as: "groupUsers",
+                attributes: [],
+                required: true,
+                where: {
+                  userId,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    ]);
+
+    return uniq(
+      [...memberships, ...groupMemberships]
+        .map((membership) => membership.documentId)
+        .filter((id): id is string => !isNil(id))
+    );
+  }
+
   static withMembershipScope(
     userId: string,
     options?: FindOptions<Document> & { includeDrafts?: boolean }

@@ -9,11 +9,13 @@ import {
   buildCollection,
   buildComment,
   buildResolvedComment,
+  buildGroup,
   buildTeam,
   buildUser,
   buildGuestUser,
 } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
+import GroupMembership from "./GroupMembership";
 import UserMembership from "./UserMembership";
 
 beforeEach(() => {
@@ -254,6 +256,135 @@ describe("#findAllChildDocumentIds", () => {
     expect(
       await document.findAllChildDocumentIds(undefined, { paranoid: false })
     ).toEqual([child.id]);
+  });
+});
+
+describe("#membershipDocumentIds", () => {
+  it("should return empty array when the user has no document memberships", async () => {
+    const user = await buildUser();
+    const ids = await Document.membershipDocumentIds(user.id);
+    expect(ids).toEqual([]);
+  });
+
+  it("should return documents shared directly with the user", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const otherUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: otherUser.id,
+    });
+    await UserMembership.create({
+      createdById: otherUser.id,
+      documentId: document.id,
+      userId: user.id,
+      permission: DocumentPermission.Read,
+    });
+
+    const ids = await Document.membershipDocumentIds(user.id);
+    expect(ids).toEqual([document.id]);
+  });
+
+  it("should return documents shared with the user through a group", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const otherUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: otherUser.id,
+    });
+    const group = await buildGroup({ teamId: team.id });
+    await group.$add("user", user, { through: { createdById: otherUser.id } });
+    await GroupMembership.create({
+      createdById: otherUser.id,
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+    });
+
+    const ids = await Document.membershipDocumentIds(user.id);
+    expect(ids).toEqual([document.id]);
+  });
+
+  it("should deduplicate documents shared both directly and through a group", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const otherUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: otherUser.id,
+    });
+    await UserMembership.create({
+      createdById: otherUser.id,
+      documentId: document.id,
+      userId: user.id,
+      permission: DocumentPermission.Read,
+    });
+    const group = await buildGroup({ teamId: team.id });
+    await group.$add("user", user, { through: { createdById: otherUser.id } });
+    await GroupMembership.create({
+      createdById: otherUser.id,
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+    });
+
+    const ids = await Document.membershipDocumentIds(user.id);
+    expect(ids).toEqual([document.id]);
+  });
+
+  it("should not return memberships of other users or collections", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const otherUser = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: otherUser.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: otherUser.id,
+      collectionId: collection.id,
+    });
+    // document membership for another user
+    await UserMembership.create({
+      createdById: otherUser.id,
+      documentId: document.id,
+      userId: otherUser.id,
+      permission: DocumentPermission.Read,
+    });
+    // collection-level membership for this user
+    await UserMembership.create({
+      createdById: otherUser.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: CollectionPermission.Read,
+    });
+
+    const ids = await Document.membershipDocumentIds(user.id);
+    expect(ids).toEqual([]);
+  });
+
+  it("should not return documents from deleted group memberships", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const otherUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: otherUser.id,
+    });
+    const group = await buildGroup({ teamId: team.id });
+    await group.$add("user", user, { through: { createdById: otherUser.id } });
+    const membership = await GroupMembership.create({
+      createdById: otherUser.id,
+      groupId: group.id,
+      documentId: document.id,
+      permission: DocumentPermission.Read,
+    });
+    await membership.destroy();
+
+    const ids = await Document.membershipDocumentIds(user.id);
+    expect(ids).toEqual([]);
   });
 });
 
