@@ -276,7 +276,7 @@ class Notification extends Model {
           : this.document?.path;
       }
       case NotificationEventType.InviteAccepted: {
-        return settingsPath("members");
+        return settingsPath("users");
       }
       case NotificationEventType.Onboarding:
       case NotificationEventType.Features: {

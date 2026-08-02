@@ -108,9 +108,9 @@ describe("split view navigation", () => {
   it("closes the split view when navigating to a non-splitable route", () => {
     navigate("/doc/my-doc?split=%2Fdoc%2Fother-doc");
 
-    history.push("/settings/members");
+    history.push("/settings/users");
 
-    expect(history.location.pathname).toEqual("/settings/members");
+    expect(history.location.pathname).toEqual("/settings/users");
     expect(getSplitPath(history.location.search)).toBeUndefined();
   });
 
