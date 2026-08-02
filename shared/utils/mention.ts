@@ -1,19 +1,14 @@
-import type { IntegrationSettings, IntegrationType } from "@shared/types";
-import { IntegrationService, MentionType } from "@shared/types";
-import type Integration from "~/models/Integration";
+import type { IntegrationSettings, IntegrationType } from "../types";
+import { IntegrationService, MentionType } from "../types";
 
-const gitlabSystemPaths = new Set([
-  "explore",
-  "help",
-  "admin",
-  "dashboard",
-  "users",
-  "groups",
-  "projects",
-  "snippets",
-  "search",
-  "-",
-]);
+/**
+ * The minimal integration shape required to resolve mentions from a URL, so
+ * that both the client model and the server model can be passed in.
+ */
+export interface MentionableIntegration {
+  service: IntegrationService;
+  settings?: unknown;
+}
 
 /**
  * Checks whether a URL can be converted to a mention for the given
@@ -27,7 +22,7 @@ export const isURLMentionable = ({
   integration,
 }: {
   url: URL;
-  integration: Integration;
+  integration: MentionableIntegration;
 }): boolean => {
   const { hostname, pathname } = url;
 
@@ -38,8 +33,7 @@ export const isURLMentionable = ({
 
     case IntegrationService.Linear: {
       const pathParts = pathname.split("/");
-      const settings =
-        integration.settings as IntegrationSettings<IntegrationType.Embed>;
+      const settings = embedSettings(integration);
 
       return (
         hostname === "linear.app" &&
@@ -48,8 +42,7 @@ export const isURLMentionable = ({
     }
 
     case IntegrationService.GitLab: {
-      const settings =
-        integration.settings as IntegrationSettings<IntegrationType.Embed>;
+      const settings = embedSettings(integration);
       let gitlabHostname: string | undefined;
       try {
         gitlabHostname = settings.gitlab?.url
@@ -80,12 +73,65 @@ export const determineMentionType = ({
   integration,
 }: {
   url: URL;
-  integration: Integration;
-}): MentionType | undefined => {
+  integration: MentionableIntegration;
+}): MentionType | undefined =>
+  determineMentionTypeForService({ url, service: integration.service });
+
+/**
+ * Determines the type of mention a URL represents without any integration
+ * context, using well-known hostnames. Any URL that isn't recognized as
+ * belonging to a service falls back to a generic URL mention.
+ *
+ * @param url the URL to evaluate.
+ * @returns the mention type.
+ */
+export const determineMentionTypeFromURL = (url: URL): MentionType => {
+  const service = wellKnownServices[url.hostname];
+
+  return (
+    (service ? determineMentionTypeForService({ url, service }) : undefined) ??
+    MentionType.URL
+  );
+};
+
+const gitlabSystemPaths = new Set([
+  "explore",
+  "help",
+  "admin",
+  "dashboard",
+  "users",
+  "groups",
+  "projects",
+  "snippets",
+  "search",
+  "-",
+]);
+
+/** Hostnames that identify a service without needing a connected integration. */
+const wellKnownServices: Record<string, IntegrationService> = {
+  "github.com": IntegrationService.GitHub,
+  "gitlab.com": IntegrationService.GitLab,
+  "linear.app": IntegrationService.Linear,
+};
+
+function embedSettings(
+  integration: MentionableIntegration
+): IntegrationSettings<IntegrationType.Embed> {
+  return (integration.settings ??
+    {}) as IntegrationSettings<IntegrationType.Embed>;
+}
+
+function determineMentionTypeForService({
+  url,
+  service,
+}: {
+  url: URL;
+  service: IntegrationService;
+}): MentionType | undefined {
   const { pathname } = url;
   const pathParts = pathname.split("/");
 
-  switch (integration.service) {
+  switch (service) {
     case IntegrationService.GitHub: {
       const type = pathParts[3];
       return type === "pull"
@@ -133,4 +179,4 @@ export const determineMentionType = ({
     default:
       return;
   }
-};
+}

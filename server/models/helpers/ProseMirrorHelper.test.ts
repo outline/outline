@@ -7,7 +7,7 @@ import type { ProsemirrorData } from "@shared/types";
 import { MentionType } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
-import { schema } from "@server/editor";
+import { schema, serializer } from "@server/editor";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
@@ -971,6 +971,47 @@ describe("ProsemirrorHelper", () => {
       expect(thirdItem.type.name).toBe("checkbox_item");
       expect(thirdItem.attrs.checked).toBe(true);
       expect(thirdItem.textContent).toBe("Third");
+    });
+
+    it("should convert an @ prefixed GitHub link to an issue mention", () => {
+      const markdown =
+        "Please review @[Fix parser](https://github.com/acme/infra/issues/2)";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+      const paragraph = doc.content.child(0);
+      const mention = paragraph.content.child(1);
+
+      expect(mention.type.name).toBe("mention");
+      expect(mention.attrs.type).toBe(MentionType.Issue);
+      expect(mention.attrs.href).toBe("https://github.com/acme/infra/issues/2");
+      expect(mention.attrs.label).toBe("Fix parser");
+      expect(paragraph.content.child(0).text).toBe("Please review ");
+    });
+
+    it("should keep a link without an @ prefix as a link", () => {
+      const markdown =
+        "Please review [Fix parser](https://github.com/acme/infra/issues/2)";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+      const paragraph = doc.content.child(0);
+
+      expect(
+        paragraph.content
+          .child(1)
+          .marks.some((mark) => mark.type.name === "link")
+      ).toBe(true);
+    });
+
+    it("should round-trip an issue mention through Markdown", () => {
+      const markdown = "@[Fix parser](https://github.com/acme/infra/issues/2)";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+      const mention = doc.content.child(0).content.child(0);
+
+      expect(mention.type.name).toBe("mention");
+      expect(serializer.serialize(doc).trim()).toBe(
+        "@[Fix parser](https://github.com/acme/infra/issues/2)"
+      );
     });
   });
 

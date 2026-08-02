@@ -49,6 +49,14 @@ function dateMentionLabel(node: ProsemirrorNode): string {
     : node.attrs.label;
 }
 
+/** Mention types that point at a resource outside of Outline. */
+const ExternalMentionTypes: MentionType[] = [
+  MentionType.Issue,
+  MentionType.PullRequest,
+  MentionType.Project,
+  MentionType.URL,
+];
+
 export default class Mention extends Node {
   get name() {
     return "mention";
@@ -366,6 +374,15 @@ export default class Mention extends Node {
     const label =
       mType === MentionType.Date ? dateMentionLabel(node) : node.attrs.label;
     const id = node.attrs.id;
+    const href = node.attrs.href;
+
+    // Mentions of external resources serialize to their real URL so that the
+    // reference resolves outside of Outline, and the "@" prefix allows them to
+    // be parsed back into a mention.
+    if (ExternalMentionTypes.includes(mType) && href) {
+      state.write(`@[${label}](${sanitizeUrl(href)})`);
+      return;
+    }
 
     // Use regular links for document and collection mentions
     if (mType === MentionType.Document) {
@@ -389,6 +406,7 @@ export default class Mention extends Node {
         id: tok.attrGet("id"),
         type: tok.attrGet("type"),
         modelId: tok.attrGet("modelId"),
+        href: tok.attrGet("href") ?? undefined,
         label: tok.content,
       }),
     };
