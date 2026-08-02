@@ -1219,6 +1219,8 @@ export const createTemplateFromDocument = createAction({
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {
+    event?.preventDefault();
+    event?.stopPropagation();
     if (!activeDocumentId) {
       return;
     }
@@ -1226,8 +1228,6 @@ export const createTemplateFromDocument = createAction({
     if (!document) {
       return;
     }
-    event?.preventDefault();
-    event?.stopPropagation();
     stores.dialogs.openModal({
       title: <DialogTitle title={t("Create template")} model={document} />,
       content: <DocumentTemplatizeDialog documentId={activeDocumentId} />,
