@@ -763,6 +763,66 @@ describe("PostgresSearchProvider", () => {
       expect(results[0].ranking).toBeTruthy();
       expect(results[0].document?.id).toBe(document.id);
     });
+
+    it("should return no results for a user with no collection or document access", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const otherUser = await buildUser({ teamId: team.id });
+      const privateCollection = await buildCollection({
+        teamId: team.id,
+        userId: otherUser.id,
+        permission: null,
+      });
+      await buildDocument({
+        teamId: team.id,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+        title: "test",
+      });
+
+      const { results, total } = await provider.searchForUser(user, {
+        query: "test",
+      });
+
+      expect(results.length).toBe(0);
+      expect(total).toBe(0);
+    });
+
+    it("should include drafts shared with the user through a group", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const otherUser = await buildUser({ teamId: team.id });
+      const draft = await buildDraftDocument({
+        teamId: team.id,
+        userId: otherUser.id,
+        createdById: otherUser.id,
+        collectionId: null,
+        title: "group draft test",
+      });
+
+      const group = await buildGroup({
+        teamId: team.id,
+      });
+      await group.$add("user", user, {
+        through: {
+          createdById: otherUser.id,
+        },
+      });
+      await GroupMembership.create({
+        createdById: otherUser.id,
+        groupId: group.id,
+        documentId: draft.id,
+        permission: DocumentPermission.Read,
+      });
+
+      const { results } = await provider.searchForUser(user, {
+        query: "group draft",
+        statusFilter: [StatusFilter.Draft],
+      });
+
+      expect(results.length).toBe(1);
+      expect(results[0].document?.id).toBe(draft.id);
+    });
   });
 
   describe("#searchTitlesForUser", () => {

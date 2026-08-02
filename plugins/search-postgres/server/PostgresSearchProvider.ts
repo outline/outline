@@ -230,33 +230,35 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     });
 
     try {
-      const resultsQuery = Document.unscoped().findAll({
+      const results = (await Document.unscoped().findAll({
         ...findOptions,
         where,
         limit,
         offset,
-      }) as unknown as Promise<RankedDocument[]>;
-
-      const countQuery = Document.unscoped().count({
-        // @ts-expect-error Types are incorrect for count
-        replacements: findOptions.replacements,
-        where,
-      }) as unknown as Promise<number>;
-      const [results, count] = await Promise.all([resultsQuery, countQuery]);
+      })) as unknown as RankedDocument[];
 
       // Final query to get associated document data
-      const documents = await Document.findAll({
-        where: {
-          id: map(results, "id"),
-          teamId: team.id,
-        },
-        include: [
-          {
-            model: Collection,
-            as: "collection",
+      const [documents, count] = await Promise.all([
+        Document.findAll({
+          where: {
+            id: map(results, "id"),
+            teamId: team.id,
           },
-        ],
-      });
+          include: [
+            {
+              model: Collection,
+              as: "collection",
+            },
+          ],
+        }),
+        PostgresSearchProvider.countResults({
+          results,
+          limit,
+          offset,
+          replacements: findOptions.replacements,
+          where,
+        }),
+      ]);
 
       return PostgresSearchProvider.buildResponse({
         query,
@@ -288,59 +290,16 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       });
     }
 
-    const include = [
-      {
-        association: "memberships",
-        where: {
-          userId: user.id,
-        },
-        required: false,
-        separate: false,
-      },
-      {
-        association: "groupMemberships",
-        required: false,
-        separate: false,
-        include: [
-          {
-            association: "group",
-            required: true,
-            include: [
-              {
-                association: "groupUsers",
-                required: true,
-                where: {
-                  userId: user.id,
-                },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        model: User,
-        as: "createdBy",
-        paranoid: false,
-      },
-      {
-        model: User,
-        as: "updatedBy",
-        paranoid: false,
-      },
-    ];
-
     return Document.withMembershipScope(user.id, {
       includeDrafts: true,
     }).findAll({
       where,
-      subQuery: false,
       order: [
         [
           options.sort ?? SortFilter.UpdatedAt,
           options.direction ?? DirectionFilter.DESC,
         ],
       ],
-      include,
       offset,
       limit,
     });
@@ -389,54 +348,13 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       direction: options.direction,
     });
 
-    const include = [
-      {
-        association: "memberships",
-        where: {
-          userId: user.id,
-        },
-        required: false,
-        separate: false,
-      },
-      {
-        association: "groupMemberships",
-        required: false,
-        separate: false,
-        include: [
-          {
-            association: "group",
-            required: true,
-            include: [
-              {
-                association: "groupUsers",
-                required: true,
-                where: {
-                  userId: user.id,
-                },
-              },
-            ],
-          },
-        ],
-      },
-    ];
-
     try {
       const results = (await Document.unscoped().findAll({
         ...findOptions,
-        subQuery: false,
-        include,
         where,
         limit,
         offset,
       })) as unknown as RankedDocument[];
-
-      const countQuery = Document.unscoped().count({
-        // @ts-expect-error Types are incorrect for count
-        subQuery: false,
-        include,
-        replacements: findOptions.replacements,
-        where,
-      }) as unknown as Promise<number>;
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
@@ -446,9 +364,13 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
             id: map(results, "id"),
           },
         }),
-        results.length < limit && offset === 0
-          ? Promise.resolve(results.length)
-          : countQuery,
+        PostgresSearchProvider.countResults({
+          results,
+          limit,
+          offset,
+          replacements: findOptions.replacements,
+          where,
+        }),
       ]);
 
       return PostgresSearchProvider.buildResponse({
@@ -509,6 +431,35 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     _metadata: Record<string, unknown>
   ): Promise<void> {
     // PostgreSQL metadata lives in the same row as the document
+  }
+
+  /**
+   * Returns the total number of documents matching the search, avoiding a
+   * second query over the search conditions when the requested page was not
+   * filled and the total can be inferred.
+   */
+  private static countResults({
+    results,
+    limit,
+    offset,
+    replacements,
+    where,
+  }: {
+    results: RankedDocument[];
+    limit: number;
+    offset: number;
+    replacements?: BindOrReplacements;
+    where: WhereOptions<Document>;
+  }): Promise<number> {
+    if (results.length < limit && (offset === 0 || results.length > 0)) {
+      return Promise.resolve(offset + results.length);
+    }
+
+    return Document.unscoped().count({
+      // @ts-expect-error Types are incorrect for count
+      replacements,
+      where,
+    }) as unknown as Promise<number>;
   }
 
   private static buildFindOptions({
@@ -632,11 +583,23 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       ],
     };
 
+    // Resolve the collections and individual documents accessible to the
+    // model upfront so the search query needs no membership joins. If
+    // collectionId is passed as an option it is assumed that the
+    // authorization has already been done in the router.
+    const [membershipDocumentIds, collectionIds] = await Promise.all([
+      model instanceof User
+        ? Document.membershipDocumentIds(model.id)
+        : Promise.resolve([]),
+      options.collectionId
+        ? Promise.resolve([options.collectionId])
+        : model.collectionIds(),
+    ]);
+
     if (model instanceof User) {
-      where[Op.or].push(
-        { "$memberships.id$": { [Op.ne]: null } },
-        { "$groupMemberships.id$": { [Op.ne]: null } }
-      );
+      if (membershipDocumentIds.length) {
+        where[Op.or].push({ id: membershipDocumentIds });
+      }
 
       // Allow users to see their own drafts that have no collection, where no
       // membership or collection access applies. Drafts in collections remain
@@ -650,13 +613,6 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         });
       }
     }
-
-    // Ensure we're filtering by the users accessible collections. If
-    // collectionId is passed as an option it is assumed that the authorization
-    // has already been done in the router
-    const collectionIds = options.collectionId
-      ? [options.collectionId]
-      : await model.collectionIds();
 
     if (options.collectionId) {
       where[Op.and].push({ collectionId: options.collectionId });
@@ -707,7 +663,8 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
     if (
       options.statusFilter?.includes(StatusFilter.Draft) &&
-      // Only ever include draft results for the user's own documents
+      // Only include draft results for the user's own documents, or those
+      // explicitly shared with them
       model instanceof User
     ) {
       statusQuery.push({
@@ -721,7 +678,9 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
             },
             [Op.or]: [
               { createdById: model.id },
-              { "$memberships.id$": { [Op.ne]: null } },
+              ...(membershipDocumentIds.length
+                ? [{ id: membershipDocumentIds }]
+                : []),
             ],
           },
         ],
