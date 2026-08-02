@@ -15,8 +15,10 @@ export interface LRUCacheOptions {
  * once full. Reading or writing an entry marks it as the most recently used.
  *
  * Entries are optionally mirrored to sessionStorage so that they survive a
- * reload, in which case values must be JSON-serializable. Storage failures are
- * ignored, leaving the cache to operate in memory alone.
+ * reload, in which case values must be JSON-serializable. Persisted values are
+ * read back only when they are first accessed, so the cache holds no more in
+ * memory than the session has used. Storage failures are ignored, leaving the
+ * cache to operate in memory alone.
  */
 export class LRUCache<T> {
   public constructor(options: LRUCacheOptions) {
@@ -34,7 +36,11 @@ export class LRUCache<T> {
   public get(key: string): T | undefined {
     this.hydrate();
 
-    const value = this.data.get(key);
+    // `has` distinguishes a missing key from one that is persisted but has not
+    // been read into memory yet.
+    const value = this.data.has(key)
+      ? (this.data.get(key) ?? this.load(key))
+      : undefined;
     if (value === undefined) {
       return undefined;
     }
@@ -123,7 +129,8 @@ export class LRUCache<T> {
   private max: number;
   private namespace?: string;
   private persistToSession?: boolean;
-  private data = new Map<string, T>();
+  // An entry is undefined while it is persisted but not yet read into memory.
+  private data = new Map<string, T | undefined>();
   private storage?: Storage;
   private hydrated = false;
 
@@ -159,14 +166,26 @@ export class LRUCache<T> {
     }
 
     for (const key of keys.slice(-this.max)) {
-      if (typeof key !== "string") {
-        continue;
-      }
-      const value: T | undefined = this.storage.get(this.valueKey(key));
-      if (value !== undefined) {
-        this.data.set(key, value);
+      if (typeof key === "string") {
+        this.data.set(key, undefined);
       }
     }
+  }
+
+  /**
+   * Reads a persisted value into memory, dropping the key if its value is no
+   * longer stored, which happens when an earlier write exceeded the quota.
+   */
+  private load(key: string): T | undefined {
+    const value: T | undefined = this.storage?.get(this.valueKey(key));
+    if (value === undefined) {
+      this.data.delete(key);
+      this.writeKeys();
+      return undefined;
+    }
+
+    this.data.set(key, value);
+    return value;
   }
 
   private writeValue(key: string, value: T) {

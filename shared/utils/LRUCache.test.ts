@@ -97,6 +97,54 @@ describe("LRUCache", () => {
       expect(restored.get("b")).toBe("two");
     });
 
+    it("reads persisted values only when they are accessed", () => {
+      const cache = new LRUCache<string>({
+        max: 3,
+        namespace: "test",
+        persistToSession: true,
+      });
+      cache.set("a", "one");
+      cache.set("b", "two");
+
+      const restored = new LRUCache<string>({
+        max: 3,
+        namespace: "test",
+        persistToSession: true,
+      });
+      const getItem = vi.spyOn(Storage.prototype, "getItem");
+
+      // Hydrating reads the index alone, not either of the two values.
+      expect(restored.size).toBe(2);
+      expect(getItem).toHaveBeenCalledTimes(1);
+
+      expect(restored.get("a")).toBe("one");
+      expect(getItem).toHaveBeenCalledTimes(2);
+
+      // Once in memory the value is not read from storage again.
+      expect(restored.get("a")).toBe("one");
+      expect(getItem).toHaveBeenCalledTimes(2);
+
+      getItem.mockRestore();
+    });
+
+    it("drops an indexed key whose value is missing", () => {
+      const cache = new LRUCache<string>({
+        max: 3,
+        namespace: "test",
+        persistToSession: true,
+      });
+      cache.set("a", "one");
+      sessionStorage.removeItem("test:a");
+
+      const restored = new LRUCache<string>({
+        max: 3,
+        namespace: "test",
+        persistToSession: true,
+      });
+      expect(restored.get("a")).toBeUndefined();
+      expect(restored.size).toBe(0);
+    });
+
     it("does not restore entries from another namespace", () => {
       const cache = new LRUCache<string>({
         max: 3,
