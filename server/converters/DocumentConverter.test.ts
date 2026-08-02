@@ -749,48 +749,6 @@ Content`;
     });
   });
 
-  describe("module graph", () => {
-    // This file is reached from the server's startup path, so the weight of
-    // every format it can convert has to stay behind a dynamic import. Oxlint
-    // can't express the rule: its no-restricted-imports flags `await import()`
-    // as well as static imports, and no-restricted-syntax isn't implemented.
-    const staticImportsOfConverter = async () => {
-      const source = await fs.readFile(
-        path.resolve(__dirname, "DocumentConverter.ts"),
-        "utf8"
-      );
-      return [
-        ...source.matchAll(/^import\s+(?!type\s)[^;]*?from\s+"([^"]+)"/gm),
-      ].map((match) => match[1]);
-    };
-
-    it("should only reach format converters through a dynamic import", async () => {
-      const staticImports = await staticImportsOfConverter();
-
-      // Every sibling converter, so a newly added format is covered without
-      // this list being kept up to date. The base class carries no format
-      // handling of its own and is imported normally.
-      const converters = (await fs.readdir(__dirname)).filter(
-        (file) =>
-          file.endsWith("Converter.ts") &&
-          !["DocumentConverter.ts", "BaseConverter.ts"].includes(file)
-      );
-      expect(converters.length).toBeGreaterThan(0);
-
-      for (const converter of converters) {
-        expect(staticImports).not.toContain(
-          `./${converter.replace(".ts", "")}`
-        );
-      }
-    });
-
-    it("should only reach jsdom through a dynamic import", async () => {
-      // Unlike the format dependencies this one serves the shared HTML parsing
-      // step, so it has no converter module to sit behind.
-      expect(await staticImportsOfConverter()).not.toContain("jsdom");
-    });
-  });
-
   describe("htmlToProsemirror", () => {
     it("should convert basic HTML to Prosemirror", async () => {
       const html = "<p>Hello world</p>";

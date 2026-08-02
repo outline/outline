@@ -1,5 +1,6 @@
 import mime from "mime-types";
 import { AttachmentPreset } from "@shared/types";
+import { replaceMarkdownLinks } from "@shared/utils/markdown";
 import { DocumentValidation } from "@shared/validations";
 import { FileImportError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -66,13 +67,6 @@ const TEXTBUNDLE_MAX_ASSET_SIZE = 15 * 1024 * 1024;
 
 /** Maximum combined size of all assets, in bytes. */
 const TEXTBUNDLE_MAX_TOTAL_ASSETS_SIZE = 50 * 1024 * 1024;
-
-/**
- * Matches a markdown link or image and captures its destination, e.g.
- * `[alt](assets/image.png "Title")`. A destination containing an unescaped
- * closing parenthesis is not matched.
- */
-const MARKDOWN_LINK_REGEX = /(!?\[[^\]]*\]\()([^)]*)(\))/g;
 
 interface TextBundleEntry {
   fileName: string;
@@ -352,7 +346,7 @@ export class TextPackConverter extends BaseConverter {
   /**
    * Replace TextBundle asset references (e.g. `![](assets/image.png)`) in
    * markdown with their base64 data URI, resolving relative and
-   * percent-encoded links. Any link title is preserved.
+   * percent-encoded links.
    *
    * @param markdown The bundle's markdown text.
    * @param assets Map of lowercased asset path (relative to the bundle root)
@@ -363,60 +357,15 @@ export class TextPackConverter extends BaseConverter {
     markdown: string,
     assets: Map<string, string>
   ): string {
-    return markdown.replace(
-      MARKDOWN_LINK_REGEX,
-      (match, prefix: string, target: string, suffix: string) => {
-        const destination = this.parseLinkDestination(target);
-        if (!destination) {
-          return match;
-        }
-
-        let key = destination.href.replace(/^\.\//, "");
-        try {
-          key = decodeURIComponent(key);
-        } catch {
-          // Leave as-is if not validly percent-encoded.
-        }
-
-        const dataUri = assets.get(key.toLowerCase());
-        return dataUri
-          ? `${prefix}${dataUri}${destination.title}${suffix}`
-          : match;
+    return replaceMarkdownLinks(markdown, (href) => {
+      let key = href.replace(/^\.\//, "");
+      try {
+        key = decodeURIComponent(key);
+      } catch {
+        // Leave as-is if not validly percent-encoded.
       }
-    );
-  }
 
-  /**
-   * Split the inside of a markdown link's parentheses into its destination and
-   * its optional title, understanding the angle-bracket form used when a
-   * destination contains spaces.
-   *
-   * @param target Everything between the link's parentheses.
-   * @returns The destination and the title as written (including its leading
-   *   whitespace), or null if the target is not a well-formed destination.
-   */
-  private static parseLinkDestination(
-    target: string
-  ): { href: string; title: string } | null {
-    const leading = target.length - target.trimStart().length;
-    const trimmed = target.trim();
-
-    if (trimmed.startsWith("<")) {
-      const end = trimmed.indexOf(">");
-      if (end === -1) {
-        return null;
-      }
-      return {
-        href: trimmed.slice(1, end),
-        title: target.slice(leading + end + 1),
-      };
-    }
-
-    const [href] = trimmed.split(/\s/, 1);
-    if (!href) {
-      return null;
-    }
-
-    return { href, title: target.slice(leading + href.length) };
+      return assets.get(key.toLowerCase());
+    });
   }
 }
