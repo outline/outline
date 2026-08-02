@@ -219,8 +219,6 @@
   "Print template": "Imprimir plantilla",
   "Invite people": "Invitar personas",
   "Invite to workspace": "Invitar al espacio de trabajo",
-  "Promote to {{ role }}": "Promocionar a {{ role }}",
-  "Demote to {{ role }}": "Degradar a {{ role }}",
   "Update role": "Actualizar rol",
   "Change profile picture": "Cambiar la imagen de perfil",
   "Change name": "Cambiar nombre",
