@@ -56,6 +56,52 @@ describe("#userMemberships.list", () => {
     expect(body.policies[1].abilities).not.toBeFalsy();
     expect(body.policies[1].abilities.update).toBeTruthy();
   });
+
+  it("should not return memberships for deleted or archived documents", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      createdById: user.id,
+      permission: null,
+    });
+    const member = await buildUser({
+      teamId: user.teamId,
+    });
+
+    const documents = await Promise.all(
+      [0, 1, 2].map(() =>
+        buildDocument({
+          collectionId: collection.id,
+          createdById: user.id,
+          teamId: user.teamId,
+        })
+      )
+    );
+
+    for (const document of documents) {
+      await server.post("/api/documents.add_user", user, {
+        body: {
+          id: document.id,
+          userId: member.id,
+        },
+      });
+    }
+
+    await server.post("/api/documents.delete", user, {
+      body: { id: documents[0].id },
+    });
+    await server.post("/api/documents.archive", user, {
+      body: { id: documents[1].id },
+    });
+
+    const res = await server.post("/api/userMemberships.list", member);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships).toHaveLength(1);
+    expect(body.data.memberships[0].documentId).toEqual(documents[2].id);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].id).toEqual(documents[2].id);
+  });
 });
 
 describe("#userMemberships.update", () => {

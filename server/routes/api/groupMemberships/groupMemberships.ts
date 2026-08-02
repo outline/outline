@@ -39,6 +39,17 @@ router.post(
       },
       include: [
         {
+          model: Document.unscoped(),
+          as: "document",
+          required: true,
+          attributes: [],
+          where: {
+            archivedAt: {
+              [Op.eq]: null,
+            },
+          },
+        },
+        {
           association: "group",
           required: true,
           where: groupId ? { id: groupId } : undefined,
