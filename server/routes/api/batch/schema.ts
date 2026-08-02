@@ -1,8 +1,6 @@
 import { z } from "zod";
+import { BatchMaxRequests } from "@shared/constants";
 import { BaseSchema } from "../schema";
-
-/** The maximum number of sub-requests permitted in a single batch. */
-export const BatchMaxRequests = 25;
 
 export const BatchSchema = BaseSchema.extend({
   body: z.object({
