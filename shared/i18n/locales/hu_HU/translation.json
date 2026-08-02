@@ -219,8 +219,6 @@
   "Print template": "Print template",
   "Invite people": "Mások meghívása",
   "Invite to workspace": "Meghívása a munkaterületbe",
-  "Promote to {{ role }}": "Előléptetés {{ role }} szerepbe",
-  "Demote to {{ role }}": "Lefokozás {{ role }} szerepbe",
   "Update role": "Szerep frissítése",
   "Change profile picture": "Change profile picture",
   "Change name": "Név módosítása",
