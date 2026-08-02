@@ -33,8 +33,19 @@ async function presentUnfurl(
   }
 }
 
-const presentURL = (data: UnfurlData): UnfurlResponse[UnfurlResourceType.URL] =>
-  data as UnfurlResponse[UnfurlResourceType.URL]; // this would have been transformed by the unfurl plugin.
+// The data will have been transformed by the unfurl plugin, fields are picked
+// individually so that additional metadata is never exposed in the response.
+const presentURL = (
+  data: UnfurlData
+): UnfurlResponse[UnfurlResourceType.URL] => ({
+  type: UnfurlResourceType.URL,
+  url: data.url,
+  title: data.title,
+  description: data.description,
+  color: data.color,
+  thumbnailUrl: data.thumbnailUrl,
+  faviconUrl: data.faviconUrl,
+});
 
 const presentMention = async (
   data: UnfurlData,
