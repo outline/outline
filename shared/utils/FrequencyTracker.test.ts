@@ -88,17 +88,4 @@ describe("FrequencyTracker", () => {
     tracker.track("b");
     expect(tracker.frequent).toEqual(["a", "b"]);
   });
-
-  it("notifies subscribers when an item is tracked", () => {
-    const tracker = createTracker();
-    const listener = vi.fn();
-
-    const unsubscribe = tracker.subscribe(listener);
-    tracker.track("a");
-    expect(listener).toHaveBeenCalledTimes(1);
-
-    unsubscribe();
-    tracker.track("b");
-    expect(listener).toHaveBeenCalledTimes(1);
-  });
 });

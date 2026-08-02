@@ -1,4 +1,3 @@
-import { isBrowser } from "./browser";
 import Storage from "./Storage";
 
 export interface FrequencyTrackerOptions<T extends string> {
@@ -82,53 +81,9 @@ export class FrequencyTracker<T extends string> {
 
     Storage.set(this.options.key, Object.fromEntries(entries));
     Storage.set(this.options.recentKey, item);
-    this.notify();
   }
-
-  /**
-   * Subscribes to changes, including those made in other browser tabs.
-   *
-   * @param listener called whenever the tracked items change.
-   * @returns a function that removes the subscription.
-   */
-  public subscribe = (listener: () => void) => {
-    if (isBrowser && this.listeners.size === 0) {
-      window.addEventListener("storage", this.handleStorage);
-    }
-    this.listeners.add(listener);
-
-    return () => {
-      this.listeners.delete(listener);
-      if (isBrowser && this.listeners.size === 0) {
-        window.removeEventListener("storage", this.handleStorage);
-      }
-    };
-  };
-
-  /**
-   * Returns a value that changes whenever the tracked items change.
-   */
-  public getVersion = () => this.version;
 
   private options: FrequencyTrackerOptions<T>;
-
-  private listeners = new Set<() => void>();
-
-  private version = 0;
-
-  private handleStorage = (event: StorageEvent) => {
-    if (
-      event.key === this.options.key ||
-      event.key === this.options.recentKey
-    ) {
-      this.notify();
-    }
-  };
-
-  private notify() {
-    this.version++;
-    this.listeners.forEach((listener) => listener());
-  }
 
   private get counts(): Record<T, number> {
     return (Storage.get(this.options.key) ?? {}) as Record<T, number>;
