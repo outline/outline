@@ -219,8 +219,6 @@
   "Print template": "چاپ قالب",
   "Invite people": "دعوت از افراد",
   "Invite to workspace": "وارد شدن به workspace",
-  "Promote to {{ role }}": "تغییر نقش به {{ role }}",
-  "Demote to {{ role }}": "تغییر نقش به {{ role }}",
   "Update role": "به روزرسانی نقش",
   "Change profile picture": "Change profile picture",
   "Change name": "تغییر نام",
