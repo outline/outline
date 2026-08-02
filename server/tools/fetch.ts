@@ -10,12 +10,9 @@ import {
 } from "@server/models";
 import { authorize, can } from "@server/policies";
 import { AuthorizationError } from "@server/errors";
-import {
-  presentCollection,
-  presentNavigationNode,
-  presentUser,
-} from "@server/presenters";
+import { presentNavigationNode, presentUser } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
+import { presentCollection } from "./collections";
 import { presentDocument } from "./documents";
 import { presentTemplate } from "./templates";
 import {
@@ -172,7 +169,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
             authorize(actor, "read", collection);
 
             const [presented, shareUrl] = await Promise.all([
-              presentCollection(undefined, collection),
+              presentCollection(collection),
               getPublicShareUrlForCollection(actor.team, collection.id),
             ]);
             return success([

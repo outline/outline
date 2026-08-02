@@ -2,10 +2,11 @@ import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Collection, Team } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import { authorize } from "@server/policies";
-import { presentCollection } from "@server/presenters";
+import { presentCollection as presentCollectionBase } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
@@ -19,6 +20,28 @@ import {
   pathToUrl,
   withTracing,
 } from "./util";
+
+/**
+ * Presents a collection for a tool response. Replaces the ProseMirror JSON
+ * from the standard collection presenter with a markdown description so that
+ * MCP consumers (typically AI agents) can read it directly.
+ *
+ * @param collection - the collection to present.
+ * @returns the presented collection object.
+ */
+export async function presentCollection(collection: Collection) {
+  const { data: _data, ...presented } = await presentCollectionBase(
+    undefined,
+    collection
+  );
+  const description = await DocumentHelper.toMarkdown(collection, {
+    includeTitle: false,
+  });
+  return {
+    ...presented,
+    description: description || null,
+  };
+}
 
 /**
  * Registers collection-related MCP tools on the given server, filtered by
@@ -125,7 +148,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
                   collection,
                   presented: pathToUrl(
                     user.team,
-                    await presentCollection(undefined, collection)
+                    await presentCollection(collection)
                   ),
                 }))
               ),
@@ -201,7 +224,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           const presented = pathToUrl(
             user.team,
-            await presentCollection(undefined, reloaded)
+            await presentCollection(reloaded)
           );
           return success(presented);
         } catch (message) {
@@ -288,10 +311,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             collection.id
           );
           const presented = {
-            ...pathToUrl(
-              user.team,
-              await presentCollection(undefined, collection)
-            ),
+            ...pathToUrl(user.team, await presentCollection(collection)),
             ...(shareUrl !== undefined && { shareUrl }),
           };
           return success(presented);
