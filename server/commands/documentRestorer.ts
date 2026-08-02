@@ -24,6 +24,7 @@ type Props = {
  * @param props - the document and restore options.
  * @returns the restored document.
  * @throws ValidationError if the destination collection is not active.
+ * @throws NotFoundError if the given revision does not exist.
  */
 async function documentRestorer(
   ctx: APIContext,
@@ -81,7 +82,10 @@ async function documentRestorer(
   } else if (revisionId) {
     // restore a document to a specific revision
     authorize(user, "update", document);
-    const revision = await Revision.findByPk(revisionId, { transaction });
+    const revision = await Revision.findByPk(revisionId, {
+      transaction,
+      rejectOnEmpty: true,
+    });
     authorize(document, "restore", revision);
 
     await document.restoreFromRevision(revision);
