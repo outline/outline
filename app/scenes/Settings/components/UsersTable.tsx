@@ -46,7 +46,7 @@ const UserRowContextMenu = observer(function UserRowContextMenu({
   );
 });
 
-export function MembersTable({ canManage, ...rest }: Props) {
+export function UsersTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const isMobile = useMobile();
