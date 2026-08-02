@@ -195,6 +195,43 @@ John,25`;
         expect(result.text).not.toMatch(/^🚀/);
       });
 
+      it("should extract emoji leading the title", async () => {
+        const html = "<h1>🚀 My Title</h1><p>Content here</p>";
+        const result = await DocumentConverter.convert(
+          html,
+          "test.html",
+          "text/html"
+        );
+
+        expect(result.icon).toEqual("🚀");
+        expect(result.title).toEqual("My Title");
+      });
+
+      it("should leave the body alone when the title supplied an emoji", async () => {
+        const html = "<h1>🚀 My Title</h1><p>🎉 Content here</p>";
+        const result = await DocumentConverter.convert(
+          html,
+          "test.html",
+          "text/html"
+        );
+
+        expect(result.icon).toEqual("🚀");
+        expect(result.title).toEqual("My Title");
+        expect(result.text).toContain("🎉 Content here");
+      });
+
+      it("should not treat an emoji later in the title as an icon", async () => {
+        const html = "<h1>My Title 🚀</h1><p>Content here</p>";
+        const result = await DocumentConverter.convert(
+          html,
+          "test.html",
+          "text/html"
+        );
+
+        expect(result.icon).toBeUndefined();
+        expect(result.title).toEqual("My Title 🚀");
+      });
+
       it("should convert htm when the mime type is not recognized", async () => {
         const html = "<h1>My Title</h1><p>Content here</p>";
         const result = await DocumentConverter.convert(html, "test.HTM", "");
@@ -473,6 +510,22 @@ Content`;
         expect(result.text).not.toContain("assets/image.png");
       });
 
+      it("should lift an emoji leading the title into the icon", async () => {
+        const content = await buildZip({
+          "Note.textbundle/text.markdown": "# 🚀 My Note\n\nHello world!\n",
+        });
+
+        const result = await DocumentConverter.convert(
+          content,
+          "My Note.textpack",
+          "application/octet-stream"
+        );
+
+        expect(result.icon).toEqual("🚀");
+        expect(result.title).toEqual("My Note");
+        expect(result.text).toContain("Hello world!");
+      });
+
       it("should convert a flat TextBundle (no wrapper folder, text.md) to markdown", async () => {
         const content = await buildZip({
           "info.json": JSON.stringify({
@@ -697,29 +750,44 @@ Content`;
   });
 
   describe("module graph", () => {
-    // Oxlint can't express this: its no-restricted-imports flags `await
-    // import()` as well as static imports, and no-restricted-syntax isn't
-    // implemented, so the constraint is asserted here instead.
-    it("should only reach format-specific dependencies through a dynamic import", async () => {
-      const lazyOnly = [
-        "jsdom",
-        "mammoth",
-        "mailparser",
-        "@fast-csv/parse",
-        "./ZipHelper",
-        "@server/utils/ZipHelper",
-      ];
+    // This file is reached from the server's startup path, so the weight of
+    // every format it can convert has to stay behind a dynamic import. Oxlint
+    // can't express the rule: its no-restricted-imports flags `await import()`
+    // as well as static imports, and no-restricted-syntax isn't implemented.
+    const staticImportsOfConverter = async () => {
       const source = await fs.readFile(
         path.resolve(__dirname, "DocumentConverter.ts"),
         "utf8"
       );
-      const staticImports = [
+      return [
         ...source.matchAll(/^import\s+(?!type\s)[^;]*?from\s+"([^"]+)"/gm),
       ].map((match) => match[1]);
+    };
 
-      for (const dependency of lazyOnly) {
-        expect(staticImports).not.toContain(dependency);
+    it("should only reach format converters through a dynamic import", async () => {
+      const staticImports = await staticImportsOfConverter();
+
+      // Every sibling converter, so a newly added format is covered without
+      // this list being kept up to date. The base class carries no format
+      // handling of its own and is imported normally.
+      const converters = (await fs.readdir(__dirname)).filter(
+        (file) =>
+          file.endsWith("Converter.ts") &&
+          !["DocumentConverter.ts", "BaseConverter.ts"].includes(file)
+      );
+      expect(converters.length).toBeGreaterThan(0);
+
+      for (const converter of converters) {
+        expect(staticImports).not.toContain(
+          `./${converter.replace(".ts", "")}`
+        );
       }
+    });
+
+    it("should only reach jsdom through a dynamic import", async () => {
+      // Unlike the format dependencies this one serves the shared HTML parsing
+      // step, so it has no converter module to sit behind.
+      expect(await staticImportsOfConverter()).not.toContain("jsdom");
     });
   });
 

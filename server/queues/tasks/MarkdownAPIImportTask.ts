@@ -28,7 +28,7 @@ import type { ZipTreeNode } from "@server/utils/ZipHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import type { ProcessOutput } from "./APIImportTask";
 import APIImportTask from "./APIImportTask";
-import { DocumentConverter } from "@server/utils/DocumentConverter";
+import { DocumentConverter } from "@server/converters/DocumentConverter";
 
 type Markdown = IntegrationService.Markdown;
 

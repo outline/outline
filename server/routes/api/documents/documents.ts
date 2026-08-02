@@ -13,6 +13,7 @@ import { errToString } from "@shared/utils/error";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
+  ExportContentType,
   FileOperationFormat,
   FileOperationState,
   FileOperationType,
@@ -68,6 +69,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import TextBundleHelper from "@server/models/helpers/TextBundleHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, cannot } from "@server/policies";
@@ -812,8 +814,12 @@ router.post(
     const document = await documentLoader({
       id,
       user,
-      // We need the collaborative state to generate HTML.
-      includeState: !accept?.includes("text/markdown"),
+      // We need the collaborative state to generate HTML, but not for the
+      // formats that are written from markdown.
+      includeState: !(
+        accept?.includes("text/markdown") ||
+        accept?.includes(ExportContentType.TextBundle)
+      ),
     });
 
     authorize(user, "download", document);
@@ -822,9 +828,11 @@ router.post(
       ? FileOperationFormat.HTMLZip
       : accept?.includes("text/markdown")
         ? FileOperationFormat.MarkdownZip
-        : accept?.includes("application/pdf")
-          ? FileOperationFormat.PDF
-          : null;
+        : accept?.includes(ExportContentType.TextBundle)
+          ? FileOperationFormat.TextBundleZip
+          : accept?.includes("application/pdf")
+            ? FileOperationFormat.PDF
+            : null;
 
     if (format === FileOperationFormat.PDF) {
       throw IncorrectEditionError(
@@ -876,13 +884,17 @@ router.post(
         teamId: user.teamId,
       });
 
+    // A TextBundle is a directory of files, so unlike the other formats it has
+    // no self-contained single-file form to fall back to.
+    const isTextBundle = format === FileOperationFormat.TextBundleZip;
+
     if (format === FileOperationFormat.HTMLZip) {
       contentType = "text/html";
       content = await DocumentHelper.toHTML(document, {
         centered: true,
         includeMermaid: true,
       });
-    } else if (format === FileOperationFormat.MarkdownZip) {
+    } else if (isTextBundle || format === FileOperationFormat.MarkdownZip) {
       contentType = "text/markdown";
       content = await toMarkdown();
     } else {
@@ -942,6 +954,44 @@ router.post(
       }
 
       externalAttachments.push({ attachment, buffer });
+    }
+
+    if (isTextBundle) {
+      const root = `${fileName}.${TextBundleHelper.bundleExtension}`;
+      const usedAssetNames = new Set<string>();
+
+      streamZipResponse(
+        ctx,
+        `${fileName}.${TextBundleHelper.packExtension}`,
+        (zip) => {
+          for (const { attachment, buffer } of externalAttachments) {
+            const reference = TextBundleHelper.assetPath(
+              attachment.name,
+              usedAssetNames
+            );
+            zip.addBuffer(buffer, path.join(root, reference), {
+              mtime: attachment.updatedAt,
+            });
+
+            content = content.replace(
+              new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+              encodeURI(reference)
+            );
+          }
+
+          zip.addBuffer(
+            Buffer.from(TextBundleHelper.info(document)),
+            path.join(root, TextBundleHelper.infoFileName),
+            { mtime: document.updatedAt }
+          );
+          zip.addBuffer(
+            Buffer.from(content),
+            path.join(root, TextBundleHelper.textFileName),
+            { mtime: document.updatedAt }
+          );
+        }
+      );
+      return;
     }
 
     // When there are no external attachments the document is self-contained and

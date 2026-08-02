@@ -6,6 +6,7 @@ import FormData from "form-data";
 import {
   CollectionPermission,
   DocumentPermission,
+  ExportContentType,
   StatusFilter,
   UserRole,
 } from "@shared/types";
@@ -734,6 +735,78 @@ describe("#documents.export", () => {
     expect(entries[location]).toEqual("image-data");
     expect(entries["export-test.md"]).toContain(location);
     expect(entries["export-test.md"]).not.toContain(attachment.redirectUrl);
+  });
+
+  it("should stream a textpack when TextBundle is requested", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment(
+      { teamId: user.teamId, userId: user.id, contentType: "image/png" },
+      "photo.png"
+    );
+    const document = await buildDocument({
+      title: "Export Test",
+      userId: user.id,
+      teamId: user.teamId,
+      text: `![image](${attachment.redirectUrl})`,
+    });
+    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
+      Buffer.from("image-data")
+    );
+
+    const res = await server.post("/api/documents.export", user, {
+      body: {
+        id: document.id,
+      },
+      headers: {
+        accept: ExportContentType.TextBundle,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-disposition")).toContain(
+      `filename="export-test.textpack"`
+    );
+
+    const bundle = "export-test.textbundle";
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([
+      `${bundle}/assets/photo.png`,
+      `${bundle}/info.json`,
+      `${bundle}/text.markdown`,
+    ]);
+    expect(entries[`${bundle}/assets/photo.png`]).toEqual("image-data");
+    expect(entries[`${bundle}/text.markdown`]).toContain("assets/photo.png");
+    expect(JSON.parse(entries[`${bundle}/info.json`]).type).toEqual(
+      "net.daringfireball.markdown"
+    );
+  });
+
+  it("should stream a textpack when TextBundle is requested for a document with no attachments", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      title: "Plain Export",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.export", user, {
+      body: {
+        id: document.id,
+      },
+      headers: {
+        accept: ExportContentType.TextBundle,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+
+    // A bundle is a directory, so there is no self-contained single file form
+    // to fall back to when nothing is referenced.
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([
+      "plain-export.textbundle/info.json",
+      "plain-export.textbundle/text.markdown",
+    ]);
   });
 
   it("should require authorization without token", async () => {
