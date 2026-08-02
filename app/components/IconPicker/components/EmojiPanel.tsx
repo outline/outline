@@ -114,21 +114,14 @@ const EmojiPanel = ({
   );
 
   React.useEffect(() => {
-    // Load frequent custom emojis
-    freqCustomEmojiIds.forEach((id) => {
-      emojis
-        .fetch(id)
-        .then((emoji) => {
-          setFreqCustomEmojis((prev) => {
-            if (prev.some((item) => item.id === id)) {
-              return prev;
-            }
-            return [...prev, toIcon(emoji)];
-          });
-        })
-        .catch(() => {
-          // ignore
-        });
+    // Load frequent custom emojis, preserving frequency order and skipping
+    // any that no longer exist.
+    void Promise.all(
+      freqCustomEmojiIds.map((id) => emojis.fetch(id).catch(() => undefined))
+    ).then((fetched) => {
+      setFreqCustomEmojis(
+        fetched.flatMap((emoji) => (emoji ? [toIcon(emoji)] : []))
+      );
     });
   }, [emojis, freqCustomEmojiIds]);
 
