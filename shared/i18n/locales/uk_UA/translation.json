@@ -219,8 +219,6 @@
   "Print template": "Друкувати шаблон",
   "Invite people": "Запросити інших",
   "Invite to workspace": "Запросити в робоче середовище",
-  "Promote to {{ role }}": "Підвищити до {{ role }}",
-  "Demote to {{ role }}": "Понизити до {{ role }}",
   "Update role": "Оновити роль",
   "Change profile picture": "Change profile picture",
   "Change name": "Змінити ім'я",
