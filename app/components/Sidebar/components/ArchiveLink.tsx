@@ -8,6 +8,7 @@ import type Collection from "~/models/Collection";
 import PaginatedList from "~/components/PaginatedList";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import * as Scenes from "~/routes/scenes";
 import { archivePath } from "~/utils/routeHelpers";
 import { useDropToArchive } from "../hooks/useDragAndDrop";
 import { ArchivedCollectionLink } from "./ArchivedCollectionLink";
@@ -61,6 +62,7 @@ function ArchiveLink() {
         <div ref={dropToArchiveRef}>
           <SidebarLink
             to={archivePath()}
+            onClickIntent={Scenes.Archive.preload}
             icon={<ArchiveIcon open={isOverArchiveSection && isDragging} />}
             exact={false}
             label={t("Archive")}

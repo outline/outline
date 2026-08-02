@@ -14,6 +14,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQueryNotices from "~/hooks/useQueryNotices";
 import lazy from "~/utils/lazyWithRetry";
+import * as Scenes from "./scenes";
 import {
   archivePath,
   draftsPath,
@@ -28,13 +29,6 @@ import {
 import env from "~/env";
 
 const SettingsRoutes = lazy(() => import("./settings"));
-const Archive = lazy(() => import("~/scenes/Archive"));
-const Collection = lazy(() => import("~/scenes/Collection"));
-const Document = lazy(() => import("~/scenes/Document"));
-const Drafts = lazy(() => import("~/scenes/Drafts"));
-const Home = lazy(() => import("~/scenes/Home"));
-const Search = lazy(() => import("~/scenes/Search"));
-const Trash = lazy(() => import("~/scenes/Trash"));
 const Debug = lazy(() => import("~/scenes/Developer/Debug"));
 const Changesets = lazy(() => import("~/scenes/Developer/Changesets"));
 
@@ -72,15 +66,30 @@ function AuthenticatedRoutes() {
           <SplitView>
             <Switch>
               {can.createDocument && (
-                <Route exact path={draftsPath()} component={Drafts} />
+                <Route
+                  exact
+                  path={draftsPath()}
+                  component={Scenes.Drafts.Component}
+                />
               )}
               {can.createDocument && (
-                <Route exact path={archivePath()} component={Archive} />
+                <Route
+                  exact
+                  path={archivePath()}
+                  component={Scenes.Archive.Component}
+                />
               )}
               {can.createDocument && (
-                <Route exact path={trashPath()} component={Trash} />
+                <Route
+                  exact
+                  path={trashPath()}
+                  component={Scenes.Trash.Component}
+                />
               )}
-              <Route path={`${homePath()}/:tab?`} component={Home} />
+              <Route
+                path={`${homePath()}/:tab?`}
+                component={Scenes.Home.Component}
+              />
               <Redirect from="/dashboard" to={homePath()} />
               <Redirect exact from="/starred" to={homePath()} />
               <Redirect
@@ -97,12 +106,12 @@ function AuthenticatedRoutes() {
               <Route
                 exact
                 path={`/collection/${collectionSlug}/overview/edit`}
-                component={Collection}
+                component={Scenes.Collection.Component}
               />
               <Route
                 exact
                 path={`/collection/${collectionSlug}/:tab?`}
-                component={Collection}
+                component={Scenes.Collection.Component}
               />
               <Route exact path="/doc/new" component={DocumentNew} />
               <Route
@@ -113,19 +122,22 @@ function AuthenticatedRoutes() {
               <Route
                 exact
                 path={`/doc/${documentSlug}/history/:revisionId?`}
-                component={Document}
+                component={Scenes.Document.Component}
               />
 
               <Route
                 exact
                 path={`/doc/${documentSlug}/edit`}
-                component={Document}
+                component={Scenes.Document.Component}
               />
-              <Route path={`/doc/${documentSlug}`} component={Document} />
+              <Route
+                path={`/doc/${documentSlug}`}
+                component={Scenes.Document.Component}
+              />
               <Route
                 exact
                 path={`${searchPath()}/:query?`}
-                component={Search}
+                component={Scenes.Search.Component}
               />
               {env.isDevelopment && (
                 <Route exact path={debugPath()} component={Debug} />

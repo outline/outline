@@ -10,6 +10,7 @@ import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
+import * as Scenes from "~/routes/scenes";
 import {
   useDragMembership,
   useDropToReorderUserMembership,
@@ -181,6 +182,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       documentId={documentId ?? ""}
       document={document}
       to={{ pathname: document.path, state: { sidebarContext } }}
+      onClickIntent={Scenes.Document.preload}
       depth={depth}
       icon={icon}
       canEdit={false}
