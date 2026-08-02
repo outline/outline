@@ -33,6 +33,7 @@ import {
   pathToUrl,
   withTracing,
 } from "./util";
+import { ValidationError } from "@server/errors";
 import { StatusFilter, TextEditMode } from "@shared/types";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 
@@ -443,29 +444,16 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     : undefined,
                 });
 
-          const [{ text, ...attributes }, breadcrumb] = await Promise.all([
-            presentDocument(document, {
-              includeData: false,
-              includeText: true,
-              includeUpdatedAt: true,
+          const breadcrumb = await getDocumentBreadcrumb(document, user);
+          return success({
+            success: true,
+            ...pathToUrl(user.team, {
+              id: document.id,
+              title: document.title,
+              url: document.url,
             }),
-            getDocumentBreadcrumb(document, user),
-          ]);
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: JSON.stringify({
-                  document: pathToUrl(user.team, attributes),
-                  ...(breadcrumb !== undefined && { breadcrumb }),
-                }),
-              },
-              {
-                type: "text" as const,
-                text: typeof text === "string" ? text : "",
-              },
-            ],
-          } satisfies CallToolResult;
+            ...(breadcrumb !== undefined && { breadcrumb }),
+          });
         } catch (message) {
           return error(message);
         }
@@ -509,7 +497,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          return await sequelize.transaction(async (transaction) => {
+          const document = await sequelize.transaction(async (transaction) => {
             ctx.state.transaction = transaction;
             ctx.context.transaction = transaction;
 
@@ -525,7 +513,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             if (input.parentDocumentId) {
               if (input.parentDocumentId === input.id) {
-                return error("Cannot nest a document inside itself");
+                throw ValidationError("Cannot nest a document inside itself");
               }
 
               const parent = await Document.findByPk(input.parentDocumentId, {
@@ -538,10 +526,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
               collectionId = parent.collectionId!;
 
               if (!parent.publishedAt) {
-                return error("Cannot move document inside a draft");
+                throw ValidationError("Cannot move document inside a draft");
               }
             } else if (!collectionId) {
-              return error(
+              throw ValidationError(
                 "Either collectionId or parentDocumentId is required"
               );
             } else {
@@ -553,53 +541,26 @@ export function documentTools(server: McpServer, scopes: string[]) {
               authorize(user, "updateDocument", collection);
             }
 
-            const { documents, collections } = await documentMover(ctx, {
+            await documentMover(ctx, {
               document,
               collectionId: collectionId ?? null,
               parentDocumentId: input.parentDocumentId ?? null,
               index: input.index,
             });
 
-            const indexMap = new Map<string, number>();
-            for (const col of collections) {
-              if (col.documentStructure) {
-                for (const [id, idx] of buildSiblingIndexMap(
-                  col.documentStructure
-                )) {
-                  indexMap.set(id, idx);
-                }
-              }
-            }
+            return document;
+          });
 
-            const [breadcrumbs, shareUrls] = await Promise.all([
-              getBreadcrumbsForDocuments(documents, user),
-              getPublicShareUrlsForDocuments(
-                user.team,
-                documents.map((document) => document.id)
-              ),
-            ]);
-
-            const presented = await Promise.all(
-              documents.map(async (document) => {
-                const doc = pathToUrl(
-                  user.team,
-                  await presentDocument(document, {
-                    includeData: false,
-                    includeText: false,
-                  })
-                );
-                const breadcrumb = breadcrumbs.get(document.id);
-                const shareUrl = shareUrls.get(document.id);
-                const siblingIndex = indexMap.get(document.id);
-                return {
-                  document: doc,
-                  ...(breadcrumb !== undefined && { breadcrumb }),
-                  ...(shareUrl !== undefined && { shareUrl }),
-                  ...(siblingIndex !== undefined && { index: siblingIndex }),
-                };
-              })
-            );
-            return success(presented);
+          // Resolved after commit so the breadcrumb reflects the new location.
+          const breadcrumb = await getDocumentBreadcrumb(document, user);
+          return success({
+            success: true,
+            ...pathToUrl(user.team, {
+              id: document.id,
+              title: document.title,
+              url: document.url,
+            }),
+            ...(breadcrumb !== undefined && { breadcrumb }),
           });
         } catch (message) {
           return error(message);
@@ -715,6 +676,22 @@ export function documentTools(server: McpServer, scopes: string[]) {
             }
           }
 
+          // A patch only rewrites part of the document, so the resulting
+          // content is echoed back for the caller to verify what was applied.
+          // Other modes have nothing to report beyond the write succeeding.
+          if (input.editMode !== TextEditMode.Patch) {
+            const breadcrumb = await getDocumentBreadcrumb(updated, user);
+            return success({
+              success: true,
+              ...pathToUrl(user.team, {
+                id: updated.id,
+                title: updated.title,
+                url: updated.url,
+              }),
+              ...(breadcrumb !== undefined && { breadcrumb }),
+            });
+          }
+
           const [{ text, ...attributes }, breadcrumb, shareUrl] =
             await Promise.all([
               presentDocument(updated, {
@@ -828,7 +805,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          return await sequelize.transaction(async (transaction) => {
+          const document = await sequelize.transaction(async (transaction) => {
             ctx.state.transaction = transaction;
             ctx.context.transaction = transaction;
 
@@ -840,37 +817,24 @@ export function documentTools(server: McpServer, scopes: string[]) {
             });
 
             if (!document.deletedAt && !document.archivedAt) {
-              return error("Document is not archived or trashed");
+              throw ValidationError("Document is not archived or trashed");
             }
 
             await documentRestorer(ctx, { document, collectionId });
 
-            const [{ text, ...attributes }, breadcrumb, shareUrl] =
-              await Promise.all([
-                presentDocument(document, {
-                  includeData: false,
-                  includeText: true,
-                  includeUpdatedAt: true,
-                }),
-                getDocumentBreadcrumb(document, user),
-                getPublicShareUrlForDocument(user.team, document.id),
-              ]);
-            return {
-              content: [
-                {
-                  type: "text" as const,
-                  text: JSON.stringify({
-                    document: pathToUrl(user.team, attributes),
-                    ...(breadcrumb !== undefined && { breadcrumb }),
-                    ...(shareUrl !== undefined && { shareUrl }),
-                  }),
-                },
-                {
-                  type: "text" as const,
-                  text: typeof text === "string" ? text : "",
-                },
-              ],
-            } satisfies CallToolResult;
+            return document;
+          });
+
+          // Resolved after commit so the breadcrumb reflects the new location.
+          const breadcrumb = await getDocumentBreadcrumb(document, user);
+          return success({
+            success: true,
+            ...pathToUrl(user.team, {
+              id: document.id,
+              title: document.title,
+              url: document.url,
+            }),
+            ...(breadcrumb !== undefined && { breadcrumb }),
           });
         } catch (message) {
           return error(message);

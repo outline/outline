@@ -310,10 +310,13 @@ describe("create_document", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-    expect(data.document.title).toEqual("New Document");
-    expect(data.document.collectionId).toEqual(collection.id);
-    expect(data.document.id).toBeDefined();
-    expect(data.document.url).toMatch(/^https?:\/\//);
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("New Document");
+    expect(data.id).toBeDefined();
+    expect(data.url).toMatch(/^https?:\/\//);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.collectionId).toEqual(collection.id);
   });
 
   it("creates from HTML and preserves images as attachments", async () => {
@@ -341,13 +344,14 @@ describe("create_document", () => {
     });
 
     expect(res?.result?.isError).toBeUndefined();
-    expect(data.document.title).toEqual("HTML Document");
-    expect(data.document.collectionId).toEqual(collection.id);
-    expect(res?.result?.content?.[1]?.text).toContain("Hello **HTML**");
-    expect(res?.result?.content?.[1]?.text).toContain(
-      "/api/attachments.redirect?id="
-    );
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("HTML Document");
     expect(attachmentCount).toEqual(1);
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.collectionId).toEqual(collection.id);
+    expect(document.text).toContain("Hello **HTML**");
+    expect(document.text).toContain("/api/attachments.redirect?id=");
   });
 
   it("creates nested under parent document", async () => {
@@ -369,8 +373,11 @@ describe("create_document", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-    expect(data.document.title).toEqual("Child Document");
-    expect(data.document.parentDocumentId).toEqual(parent.id);
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("Child Document");
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.parentDocumentId).toEqual(parent.id);
   });
 
   it("creates from a template", async () => {
@@ -392,12 +399,14 @@ describe("create_document", () => {
       templateId: template.id,
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-    const text = res?.result?.content?.[1]?.text ?? "";
 
     expect(res?.result?.isError).not.toBe(true);
-    expect(data.document.title).toEqual("From Template");
-    expect(data.document.templateId).toEqual(template.id);
-    expect(text).toContain("Content from the template");
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("From Template");
+
+    const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
+    expect(document.templateId).toEqual(template.id);
+    expect(document.text).toContain("Content from the template");
   });
 
   it("defaults the title to the template title", async () => {
@@ -420,7 +429,8 @@ describe("create_document", () => {
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(res?.result?.isError).not.toBe(true);
-    expect(data.document.title).toEqual("Template Title");
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("Template Title");
   });
 
   it("does not allow creating from a template the user cannot access", async () => {
@@ -525,8 +535,37 @@ describe("update_document", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-    expect(data.document.title).toEqual("Updated Title");
-    expect(data.document.url).toMatch(/^https?:\/\//);
+    expect(data.success).toBe(true);
+    expect(data.title).toEqual("Updated Title");
+    expect(data.url).toMatch(/^https?:\/\//);
+    expect(res?.result?.content?.length).toEqual(1);
+
+    await document.reload();
+    expect(document.text).toContain("Updated content");
+  });
+
+  it("returns the resulting content when patching", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: "the original sentence",
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      editMode: "patch",
+      findText: "original",
+      text: "patched",
+    });
+
+    expect(res?.result?.isError).toBeUndefined();
+    expect(res?.result?.content?.[1]?.text).toContain("the patched sentence");
   });
 
   it("errors when no fields are provided to update", async () => {
@@ -596,7 +635,8 @@ describe("update_document", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-    expect(data.document.id).toEqual(document.id);
+    expect(data.success).toBe(true);
+    expect(data.id).toEqual(document.id);
     expect(res?.result?.isError).toBeUndefined();
   });
 
@@ -683,16 +723,15 @@ describe("move_document", () => {
       id: document.id,
       collectionId: collection2.id,
     });
-    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-      JSON.parse(c.text)
-    );
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(res?.result?.isError).toBeUndefined();
-    const moved = data.find(
-      (d: { document: { id: string } }) => d.document.id === document.id
-    ) as { document: { collectionId: string } };
-    expect(moved).toBeDefined();
-    expect(moved.document.collectionId).toEqual(collection2.id);
+    expect(data.success).toBe(true);
+    expect(data.id).toEqual(document.id);
+    expect(data.breadcrumb).toEqual(collection2.name);
+
+    await document.reload();
+    expect(document.collectionId).toEqual(collection2.id);
   });
 
   it("moves under a parent document", async () => {
@@ -716,16 +755,14 @@ describe("move_document", () => {
       id: child.id,
       parentDocumentId: parent.id,
     });
-    const data = (res?.result?.content ?? []).map((c: { text: string }) =>
-      JSON.parse(c.text)
-    );
+    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(res?.result?.isError).toBeUndefined();
-    const moved = data.find(
-      (d: { document: { id: string } }) => d.document.id === child.id
-    ) as { document: { parentDocumentId: string } };
-    expect(moved).toBeDefined();
-    expect(moved.document.parentDocumentId).toEqual(parent.id);
+    expect(data.success).toBe(true);
+    expect(data.id).toEqual(child.id);
+
+    await child.reload();
+    expect(child.parentDocumentId).toEqual(parent.id);
   });
 
   it("fails without collectionId or parentDocumentId", async () => {
@@ -788,7 +825,8 @@ describe("restore_document", () => {
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(res?.result?.isError).toBeUndefined();
-    expect(data.document.id).toEqual(document.id);
+    expect(data.success).toBe(true);
+    expect(data.id).toEqual(document.id);
 
     const reloaded = await Document.unscoped().findByPk(document.id);
     expect(reloaded?.archivedAt).toBeNull();
@@ -840,10 +878,10 @@ describe("restore_document", () => {
       id: document.id,
       collectionId: destination.id,
     });
-    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
     expect(res?.result?.isError).toBeUndefined();
-    expect(data.document.collectionId).toEqual(destination.id);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded?.collectionId).toEqual(destination.id);
   });
 
   it("fails when the document is not archived or trashed", async () => {
