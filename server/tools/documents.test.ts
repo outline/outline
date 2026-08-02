@@ -344,6 +344,7 @@ describe("create_document", () => {
     });
 
     expect(res?.result?.isError).toBeUndefined();
+    expect(data.success).toBe(true);
     expect(data.title).toEqual("HTML Document");
     expect(attachmentCount).toEqual(1);
 
@@ -372,6 +373,7 @@ describe("create_document", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
+    expect(data.success).toBe(true);
     expect(data.title).toEqual("Child Document");
 
     const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
@@ -399,6 +401,7 @@ describe("create_document", () => {
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(res?.result?.isError).not.toBe(true);
+    expect(data.success).toBe(true);
     expect(data.title).toEqual("From Template");
 
     const document = await Document.findByPk(data.id, { rejectOnEmpty: true });
@@ -426,6 +429,7 @@ describe("create_document", () => {
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(res?.result?.isError).not.toBe(true);
+    expect(data.success).toBe(true);
     expect(data.title).toEqual("Template Title");
   });
 
@@ -631,6 +635,7 @@ describe("update_document", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
+    expect(data.success).toBe(true);
     expect(data.id).toEqual(document.id);
     expect(res?.result?.isError).toBeUndefined();
   });
@@ -753,6 +758,7 @@ describe("move_document", () => {
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(res?.result?.isError).toBeUndefined();
+    expect(data.success).toBe(true);
     expect(data.id).toEqual(child.id);
 
     await child.reload();
