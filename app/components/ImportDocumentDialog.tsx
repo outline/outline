@@ -70,6 +70,11 @@ export const ImportDocumentDialog = observer(function ImportDocumentDialog({
         extensions: ".eml",
         icon: <FileFormatIcon label="EML" size={28} />,
       },
+      {
+        name: "TextPack",
+        extensions: ".textpack",
+        icon: <FileFormatIcon label="PACK" size={28} />,
+      },
     ],
     [t]
   );

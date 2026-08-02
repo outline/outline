@@ -8,6 +8,7 @@ import { MentionType } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
+import { Attachment } from "@server/models";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
@@ -1331,6 +1332,78 @@ describe("ProsemirrorHelper", () => {
       );
 
       expect(result.toJSON()).toEqual(doc.toJSON());
+    });
+
+    it("should turn a link pointing at a data URI into an attachment", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "the spec",
+              marks: [
+                {
+                  type: "link",
+                  attrs: {
+                    href: "data:application/pdf;base64,JVBERi0xLjQK",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      const link = result.content
+        .child(0)
+        .content.child(0)
+        .marks.find((mark) => mark.type.name === "link");
+
+      expect(link?.attrs.href).toMatch(/^\/api\/attachments\.redirect\?id=/);
+      expect(await Attachment.count({ where: { teamId: user.teamId } })).toBe(
+        1
+      );
+    });
+
+    it("should leave an ordinary external link untouched", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "example",
+              marks: [
+                { type: "link", attrs: { href: "https://example.com/page" } },
+              ],
+            },
+          ],
+        },
+      ]);
+
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      expect(result.toJSON()).toEqual(doc.toJSON());
+      expect(await Attachment.count({ where: { teamId: user.teamId } })).toBe(
+        0
+      );
     });
   });
 

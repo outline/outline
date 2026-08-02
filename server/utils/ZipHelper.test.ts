@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import tmp from "tmp";
 import { vi } from "vitest";
 import { ZipFile } from "yazl";
+import { buildZip } from "@server/test/support";
 import ZipHelper from "./ZipHelper";
 
 async function writeZip(
@@ -226,5 +227,38 @@ describe("ZipHelper.toFileTree", () => {
     });
 
     expect(sizes).toEqual({ "Collection/page.md": 11 });
+  });
+});
+
+describe("ZipHelper.walk", () => {
+  it("walks an archive held in memory", async () => {
+    const buffer = await buildZip({
+      "Collection/page.md": "hello world",
+      "Collection/image.png": "binary",
+    });
+
+    const contents: Record<string, string> = {};
+    await ZipHelper.walk(buffer, async (entry) => {
+      if (!entry.isDirectory) {
+        contents[entry.fileName] = (await entry.readBuffer(1024)).toString(
+          "utf8"
+        );
+      }
+    });
+
+    expect(contents).toEqual({
+      "Collection/page.md": "hello world",
+      "Collection/image.png": "binary",
+    });
+  });
+
+  it("rejects an oversized entry in an archive held in memory", async () => {
+    const buffer = await buildZip({ "Collection/page.md": "hello world" });
+
+    await expect(
+      ZipHelper.walk(buffer, async (entry) => {
+        await entry.readBuffer(4);
+      })
+    ).rejects.toThrow("Collection/page.md is too large");
   });
 });

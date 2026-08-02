@@ -4,6 +4,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { faker } from "@faker-js/faker";
 import type { Transaction } from "sequelize";
+import { ZipFile } from "yazl";
 import { afterEach, beforeEach, vi } from "vitest";
 import sharedEnv from "@shared/env";
 import { createContext } from "@server/context";
@@ -106,6 +107,35 @@ export async function readZipResponse(
   } finally {
     await fs.rm(filePath, { force: true });
   }
+}
+
+/**
+ * Build a zip archive in memory from a map of entry path to contents. Useful
+ * for describing an archive's structure inline in a test rather than carrying
+ * an opaque binary fixture.
+ *
+ * @param files Map of path within the archive to its contents.
+ * @returns The zip archive as a Buffer.
+ */
+export function buildZip(
+  files: Record<string, string | Buffer>
+): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const zip = new ZipFile();
+    const chunks: Buffer[] = [];
+
+    zip.outputStream.on("data", (chunk: Buffer) => chunks.push(chunk));
+    zip.outputStream.on("end", () => resolve(Buffer.concat(chunks)));
+    zip.outputStream.on("error", reject);
+
+    for (const [name, contents] of Object.entries(files)) {
+      zip.addBuffer(
+        Buffer.isBuffer(contents) ? contents : Buffer.from(contents, "utf8"),
+        name
+      );
+    }
+    zip.end();
+  });
 }
 
 /**

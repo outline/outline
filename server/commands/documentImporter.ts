@@ -64,6 +64,7 @@ async function documentImporter({
     "mhtml",
     "mht",
     "eml",
+    "textpack",
     ...(mime.extensions[mimeType] ?? []),
   ];
   const fileTitle = fileName.replace(
