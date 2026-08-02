@@ -29,6 +29,7 @@ import { DocumentChip } from "~/components/DocumentChip";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
+import useMobile from "~/hooks/useMobile";
 import usePersistedState from "~/hooks/usePersistedState";
 import useStores from "~/hooks/useStores";
 import { ResizingHeightContainer } from "./ResizingHeightContainer";
@@ -59,13 +60,16 @@ function PinnedDocuments({
 }: Props) {
   const { t } = useTranslation();
   const { documents } = useStores();
+  const isMobile = useMobile();
   const [items, setItems] = useState(pins.map((pin) => pin.documentId));
   const showPlaceholderRef = useRef(true);
+  // Only ever read or written when the section is collapsible
   const [collapsed, setCollapsed] = usePersistedState<boolean>(
-    `pins-collapsed-${collapseKey}`,
+    collapseKey ? `pins-collapsed-${collapseKey}` : "pins-collapsed",
     false
   );
-  const isCollapsible = !!collapseKey && (!!items.length || !!placeholderCount);
+  const isCollapsible =
+    !isMobile && !!collapseKey && (!!items.length || !!placeholderCount);
   const isCollapsed = isCollapsible && collapsed;
   const showPlaceholder =
     placeholderCount && !items.length && showPlaceholderRef.current;
