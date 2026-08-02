@@ -1,5 +1,6 @@
 import { Scope } from "@shared/types";
 import type { ProsemirrorData } from "@shared/types";
+import { Comment } from "@server/models";
 import {
   buildCollection,
   buildComment,
@@ -136,10 +137,12 @@ describe("create_comment", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
+    expect(data.success).toBe(true);
     expect(data.id).toBeDefined();
     expect(data.documentId).toEqual(document.id);
-    expect(data.text).toEqual("This is a **test** comment");
-    expect(data.data).toBeUndefined();
+
+    const comment = await Comment.findByPk(data.id, { rejectOnEmpty: true });
+    expect(comment.toMarkdown()).toContain("This is a **test** comment");
   });
 
   it("creates a reply to an existing comment", async () => {
@@ -165,31 +168,11 @@ describe("create_comment", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
+    expect(data.success).toBe(true);
     expect(data.id).toBeDefined();
-    expect(data.parentCommentId).toEqual(parentComment.id);
-  });
 
-  it("includes anchorText in response", async () => {
-    const { user, accessToken } = await buildOAuthUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      userId: user.id,
-    });
-    const document = await buildDocument({
-      teamId: user.teamId,
-      userId: user.id,
-      collectionId: collection.id,
-    });
-
-    const res = await callMcpTool(server, accessToken, "create_comment", {
-      documentId: document.id,
-      text: "A new comment",
-    });
-    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
-    // New comments have no anchor mark in the document, so anchorText is undefined
-    expect(data.id).toBeDefined();
-    expect(data.anchorText).toBeUndefined();
+    const comment = await Comment.findByPk(data.id, { rejectOnEmpty: true });
+    expect(comment.parentCommentId).toEqual(parentComment.id);
   });
 });
 
@@ -216,52 +199,11 @@ describe("update_comment", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
+    expect(data.success).toBe(true);
     expect(data.id).toEqual(comment.id);
-    expect(data.text).toContain("Updated comment text");
-  });
 
-  it("includes anchorText in response", async () => {
-    const { user, accessToken } = await buildOAuthUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      userId: user.id,
-    });
-    const document = await buildDocument({
-      teamId: user.teamId,
-      userId: user.id,
-      collectionId: collection.id,
-    });
-    const comment = await buildComment({
-      userId: user.id,
-      documentId: document.id,
-    });
-
-    const anchorText = "anchored content";
-    const content = {
-      type: "doc",
-      content: [
-        {
-          type: "paragraph",
-          content: [
-            {
-              type: "text",
-              text: anchorText,
-              marks: [buildCommentMark({ id: comment.id, userId: user.id })],
-            },
-          ],
-        },
-      ],
-    } as ProsemirrorData;
-    await document.update({ content });
-
-    const res = await callMcpTool(server, accessToken, "update_comment", {
-      id: comment.id,
-      text: "Updated text",
-    });
-    const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-
-    expect(data.id).toEqual(comment.id);
-    expect(data.anchorText).toEqual(anchorText);
+    await comment.reload();
+    expect(comment.toMarkdown()).toContain("Updated comment text");
   });
 
   it("errors when no fields are provided to update", async () => {

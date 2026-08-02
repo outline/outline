@@ -13,7 +13,6 @@ import {
   error,
   getActorFromContext,
   buildAPIContext,
-  getPublicShareUrlForCollection,
   getPublicShareUrlsForCollections,
   optionalString,
   pathToUrl,
@@ -209,16 +208,14 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           await collection.saveWithCtx(ctx);
 
-          const reloaded = await Collection.findByPk(collection.id, {
-            userId: user.id,
-            rejectOnEmpty: true,
+          return success({
+            success: true,
+            ...pathToUrl(user.team, {
+              id: collection.id,
+              name: collection.name,
+              url: collection.path,
+            }),
           });
-
-          const presented = pathToUrl(
-            user.team,
-            await presentCollection(reloaded)
-          );
-          return success(presented);
         } catch (message) {
           return error(message);
         }
@@ -298,15 +295,14 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           await collection.saveWithCtx(ctx);
 
-          const shareUrl = await getPublicShareUrlForCollection(
-            user.team,
-            collection.id
-          );
-          const presented = {
-            ...pathToUrl(user.team, await presentCollection(collection)),
-            ...(shareUrl !== undefined && { shareUrl }),
-          };
-          return success(presented);
+          return success({
+            success: true,
+            ...pathToUrl(user.team, {
+              id: collection.id,
+              name: collection.name,
+              url: collection.path,
+            }),
+          });
         } catch (message) {
           return error(message);
         }
