@@ -34,12 +34,12 @@ export class LRUCache<T> {
   public get(key: string): T | undefined {
     this.hydrate();
 
-    if (!this.data.has(key)) {
+    const value = this.data.get(key);
+    if (value === undefined) {
       return undefined;
     }
 
     // Re-insert so that the entry becomes the most recently used.
-    const value = this.data.get(key) as T;
     this.data.delete(key);
     this.data.set(key, value);
     this.writeKeys();
