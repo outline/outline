@@ -111,20 +111,15 @@ describe("LRUCache", () => {
         namespace: "test",
         persistToSession: true,
       });
-      const getItem = vi.spyOn(Storage.prototype, "getItem");
-
-      // Hydrating reads the index alone, not either of the two values.
+      // Hydrating reads the index alone, so a value replaced afterwards is
+      // still the one returned on first access.
       expect(restored.size).toBe(2);
-      expect(getItem).toHaveBeenCalledTimes(1);
-
-      expect(restored.get("a")).toBe("one");
-      expect(getItem).toHaveBeenCalledTimes(2);
+      sessionStorage.setItem("test:a", JSON.stringify("updated"));
+      expect(restored.get("a")).toBe("updated");
 
       // Once in memory the value is not read from storage again.
-      expect(restored.get("a")).toBe("one");
-      expect(getItem).toHaveBeenCalledTimes(2);
-
-      getItem.mockRestore();
+      sessionStorage.setItem("test:a", JSON.stringify("ignored"));
+      expect(restored.get("a")).toBe("updated");
     });
 
     it("drops an indexed key whose value is missing", () => {
