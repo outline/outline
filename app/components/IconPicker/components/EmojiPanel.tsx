@@ -56,18 +56,13 @@ const EmojiPanel = ({
     emojiSkinTone: skinTone,
     setEmojiSkinTone,
     incrementIconCount,
-    getFrequentIcons,
+    frequentIcons: freqEmojis,
   } = useIconState(IconType.Emoji);
 
   const {
     incrementIconCount: incrementCustomIconCount,
-    getFrequentIcons: getFrequentCustomIcons,
+    frequentIcons: freqCustomEmojiIds,
   } = useIconState(IconType.Custom);
-
-  const freqEmojis = React.useMemo(
-    () => getFrequentIcons(),
-    [getFrequentIcons]
-  );
 
   const [freqCustomEmojis, setFreqCustomEmojis] = React.useState<EmojiNode[]>(
     []
@@ -120,7 +115,7 @@ const EmojiPanel = ({
 
   React.useEffect(() => {
     // Load frequent custom emojis
-    getFrequentCustomIcons().forEach((id) => {
+    freqCustomEmojiIds.forEach((id) => {
       emojis
         .fetch(id)
         .then((emoji) => {
@@ -135,7 +130,7 @@ const EmojiPanel = ({
           // ignore
         });
     });
-  }, [emojis, getFrequentCustomIcons]);
+  }, [emojis, freqCustomEmojiIds]);
 
   const [activeEmoji, setActiveEmoji] = React.useState<EmojiNode>();
   const [hasMoreBelow, setHasMoreBelow] = React.useState(false);

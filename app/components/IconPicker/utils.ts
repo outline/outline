@@ -1,4 +1,6 @@
 import i18next from "i18next";
+import { IconType } from "@shared/types";
+import { FrequencyTracker } from "@shared/utils/FrequencyTracker";
 
 export enum DisplayCategory {
   All = "All",
@@ -21,11 +23,6 @@ export const TRANSLATED_CATEGORIES = {
   Custom: i18next.t("Custom"),
 };
 
-export const FREQUENTLY_USED_COUNT = {
-  Get: 24,
-  Track: 30,
-};
-
 const STORAGE_KEYS = {
   Base: "icon-state",
   EmojiSkinTone: "emoji-skintone",
@@ -41,19 +38,26 @@ const getStorageKey = (key: string) => `${STORAGE_KEYS.Base}.${key}`;
 
 export const emojiSkinToneKey = getStorageKey(STORAGE_KEYS.EmojiSkinTone);
 
-export const iconsFreqKey = getStorageKey(STORAGE_KEYS.IconsFrequency);
+const createFrequencyTracker = (freqKey: string, lastKey: string) =>
+  new FrequencyTracker<string>({
+    key: getStorageKey(freqKey),
+    recentKey: getStorageKey(lastKey),
+    track: 30,
+    get: 24,
+  });
 
-export const emojisFreqKey = getStorageKey(STORAGE_KEYS.EmojisFrequency);
-
-export const lastIconKey = getStorageKey(STORAGE_KEYS.LastIcon);
-
-export const lastEmojiKey = getStorageKey(STORAGE_KEYS.LastEmoji);
-
-export const customEmojisFreqKey = getStorageKey(
-  STORAGE_KEYS.CustomEmojisFrequency
-);
-
-export const lastCustomEmojiKey = getStorageKey(STORAGE_KEYS.LastCustomEmoji);
-
-export const sortFrequencies = (freqs: [string, number][]) =>
-  freqs.sort((a, b) => (a[1] >= b[1] ? -1 : 1));
+/** Tracks the icons used most frequently, by type of icon. */
+export const iconFrequencies: Record<IconType, FrequencyTracker<string>> = {
+  [IconType.SVG]: createFrequencyTracker(
+    STORAGE_KEYS.IconsFrequency,
+    STORAGE_KEYS.LastIcon
+  ),
+  [IconType.Emoji]: createFrequencyTracker(
+    STORAGE_KEYS.EmojisFrequency,
+    STORAGE_KEYS.LastEmoji
+  ),
+  [IconType.Custom]: createFrequencyTracker(
+    STORAGE_KEYS.CustomEmojisFrequency,
+    STORAGE_KEYS.LastCustomEmoji
+  ),
+};
