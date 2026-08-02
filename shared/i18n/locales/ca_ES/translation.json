@@ -219,8 +219,6 @@
   "Print template": "Plantilla d'impressió",
   "Invite people": "Convida a persones",
   "Invite to workspace": "Convida a l'espai de treball",
-  "Promote to {{ role }}": "Promoure a {{ role }}",
-  "Demote to {{ role }}": "Degrada a {{ role }}",
   "Update role": "Actualitza el rol",
   "Change profile picture": "Canviar imatge del perfil",
   "Change name": "Canvia el nom",
