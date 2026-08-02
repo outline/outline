@@ -219,8 +219,6 @@
   "Print template": "Şablonu yazdır",
   "Invite people": "Kişileri davet et",
   "Invite to workspace": "Çalışma alanına davet et",
-  "Promote to {{ role }}": "{{ role }} rolüne terfi et",
-  "Demote to {{ role }}": "{{ role }} rolüne düşür",
   "Update role": "Rolü güncelle",
   "Change profile picture": "Change profile picture",
   "Change name": "Adı değiştir",
