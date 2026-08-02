@@ -16,6 +16,7 @@ import type { NodeWithPos } from "../types";
 import type { Editor } from "../../../app/editor";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import { hashString } from "../../utils/string";
+import { LRUCache } from "../../utils/LRUCache";
 import { sanitizeUrl } from "../../utils/urls";
 import { isModKey } from "../../utils/keyboard";
 
@@ -29,73 +30,11 @@ export type MermaidState = {
 
 // The `v3` namespace discards entries cached before the foreignObject fix, so
 // previously mis-sized diagrams are re-rendered instead of served from cache.
-const STORAGE_PREFIX = "mermaid:v3:";
-const MAX_STORAGE_ENTRIES = 20;
-
-class Cache {
-  /** Get a cached SVG by diagram text and theme. */
-  static get(key: string): string | undefined {
-    try {
-      const hash = hashString(key);
-      const value = sessionStorage.getItem(STORAGE_PREFIX + hash);
-      if (value) {
-        this.touchLru(hash);
-        return value;
-      }
-    } catch {
-      // sessionStorage unavailable
-    }
-    return undefined;
-  }
-
-  /** Cache a rendered SVG in sessionStorage. */
-  static set(key: string, value: string) {
-    try {
-      const hash = hashString(key);
-      this.touchLru(hash);
-      this.pruneStorage();
-      sessionStorage.setItem(STORAGE_PREFIX + hash, value);
-    } catch {
-      // sessionStorage full or unavailable
-    }
-  }
-
-  /** Move or append a hash to the end (most recent) of the LRU list. */
-  private static touchLru(hash: string) {
-    const lru = this.getLru();
-    const idx = lru.indexOf(hash);
-    if (idx !== -1) {
-      lru.splice(idx, 1);
-    }
-    lru.push(hash);
-    sessionStorage.setItem(STORAGE_PREFIX + "lru", JSON.stringify(lru));
-  }
-
-  /** Evict least-recently-used entries when over the limit. */
-  private static pruneStorage() {
-    const lru = this.getLru();
-
-    while (lru.length > MAX_STORAGE_ENTRIES) {
-      const evict = lru.shift()!;
-      sessionStorage.removeItem(STORAGE_PREFIX + evict);
-    }
-
-    sessionStorage.setItem(STORAGE_PREFIX + "lru", JSON.stringify(lru));
-  }
-
-  /** Read the LRU order list from sessionStorage. */
-  private static getLru(): string[] {
-    try {
-      const raw = sessionStorage.getItem(STORAGE_PREFIX + "lru");
-      if (raw) {
-        return JSON.parse(raw);
-      }
-    } catch {
-      // corrupted or unavailable
-    }
-    return [];
-  }
-}
+const cache = new LRUCache<string>({
+  max: 20,
+  namespace: "mermaid:v3",
+  persistToSession: true,
+});
 
 let mermaid: typeof MermaidUnsafe;
 
@@ -151,11 +90,11 @@ class MermaidRenderer {
     const element = this.element;
     const text = block.node.textContent;
 
-    const cacheKey = `${isDark ? "dark" : "light"}-${text}`;
-    const cache = Cache.get(cacheKey);
-    if (cache) {
+    const cacheKey = hashString(`${isDark ? "dark" : "light"}-${text}`);
+    const cached = cache.get(cacheKey);
+    if (cached) {
       element.classList.remove("parse-error", "empty");
-      element.innerHTML = cache;
+      element.innerHTML = cached;
       return;
     }
 
@@ -260,7 +199,7 @@ class MermaidRenderer {
 
       // Cache the corrected SVG so we won't need to calculate it again this session
       if (text) {
-        Cache.set(cacheKey, element.innerHTML);
+        cache.set(cacheKey, element.innerHTML);
       }
     } catch (error) {
       const isEmpty = block.node.textContent.trim().length === 0;
