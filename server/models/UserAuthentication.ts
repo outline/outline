@@ -15,6 +15,7 @@ import {
   Table,
   Unique,
 } from "sequelize-typescript";
+import { errToId } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
@@ -122,11 +123,7 @@ class UserAuthentication extends IdModel<
 
       return true;
     } catch (error) {
-      if (
-        error instanceof Error &&
-        "id" in error &&
-        error.id === "authentication_required"
-      ) {
+      if (errToId(error) === "authentication_required") {
         return false;
       }
 
