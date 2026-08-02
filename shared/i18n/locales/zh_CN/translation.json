@@ -219,8 +219,6 @@
   "Print template": "打印模板",
   "Invite people": "邀请其他人",
   "Invite to workspace": "邀请到工作区",
-  "Promote to {{ role }}": "提升为 {{ role }}",
-  "Demote to {{ role }}": "降级为 {{ role }}",
   "Update role": "更新角色",
   "Change profile picture": "更改用户头像",
   "Change name": "更换名称",
