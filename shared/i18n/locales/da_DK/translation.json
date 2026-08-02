@@ -219,8 +219,6 @@
   "Print template": "Print skabelon",
   "Invite people": "Invitér personer",
   "Invite to workspace": "Inviter til arbejdsområde",
-  "Promote to {{ role }}": "Fremme til {{ role }}",
-  "Demote to {{ role }}": "Degradér til {{ role }}",
   "Update role": "Opdatér rolle",
   "Change profile picture": "Skift profilbillede",
   "Change name": "Skift navn",
