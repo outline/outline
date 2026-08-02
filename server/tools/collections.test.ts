@@ -50,13 +50,15 @@ describe("collection tools", () => {
 
     const res = await callMcpTool(server, accessToken, "create_collection", {
       name: "Test Collection",
-      description: "A test description",
+      description: "A **test** description",
       icon: "rocket",
       color: "#FF0000",
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(data.name).toEqual("Test Collection");
+    expect(data.description).toEqual("A **test** description");
+    expect(data.data).toBeUndefined();
     expect(data.icon).toEqual("rocket");
     expect(data.color).toEqual("#FF0000");
     expect(data.id).toBeDefined();

@@ -25,25 +25,25 @@ import {
 import { ValidationError } from "@server/errors";
 
 /**
- * Presents a comment with a plain-text rendering of its content so that
+ * Presents a comment with a markdown rendering of its content so that
  * MCP consumers (typically AI agents) can read it without parsing
- * ProseMirror JSON.
+ * ProseMirror JSON, which is omitted from the response.
  *
  * @param comment - the comment model instance.
  * @param commentMarks - optional precomputed comment marks to avoid reparsing.
- * @returns the presented comment with an additional `text` field.
+ * @returns the presented comment with a markdown `text` field.
  */
 function presentCommentWithText(
   comment: Comment,
   commentMarks?: CommentMark[]
 ) {
-  const presented = presentComment(comment, {
+  const { data: _data, ...presented } = presentComment(comment, {
     includeAnchorText: true,
     commentMarks,
   });
   return {
     ...presented,
-    text: comment.toPlainText(),
+    text: comment.toMarkdown(),
   };
 }
 

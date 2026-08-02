@@ -132,12 +132,14 @@ describe("create_comment", () => {
 
     const res = await callMcpTool(server, accessToken, "create_comment", {
       documentId: document.id,
-      text: "This is a test comment",
+      text: "This is a **test** comment",
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
     expect(data.id).toBeDefined();
     expect(data.documentId).toEqual(document.id);
+    expect(data.text).toEqual("This is a **test** comment");
+    expect(data.data).toBeUndefined();
   });
 
   it("creates a reply to an existing comment", async () => {

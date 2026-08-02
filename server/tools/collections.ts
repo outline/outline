@@ -5,7 +5,7 @@ import { Collection, Team } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import { authorize } from "@server/policies";
-import { presentCollection } from "@server/presenters";
+import { presentCollection as presentCollectionBase } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
@@ -19,6 +19,21 @@ import {
   pathToUrl,
   withTracing,
 } from "./util";
+
+/**
+ * Presents a collection for a tool response. Includes a markdown description
+ * instead of ProseMirror JSON so that MCP consumers (typically AI agents) can
+ * read it directly.
+ *
+ * @param collection - the collection to present.
+ * @returns the presented collection object.
+ */
+export function presentCollection(collection: Collection) {
+  return presentCollectionBase(undefined, collection, {
+    includeData: false,
+    includeText: true,
+  });
+}
 
 /**
  * Registers collection-related MCP tools on the given server, filtered by
@@ -125,7 +140,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
                   collection,
                   presented: pathToUrl(
                     user.team,
-                    await presentCollection(undefined, collection)
+                    await presentCollection(collection)
                   ),
                 }))
               ),
@@ -201,7 +216,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           const presented = pathToUrl(
             user.team,
-            await presentCollection(undefined, reloaded)
+            await presentCollection(reloaded)
           );
           return success(presented);
         } catch (message) {
@@ -288,10 +303,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             collection.id
           );
           const presented = {
-            ...pathToUrl(
-              user.team,
-              await presentCollection(undefined, collection)
-            ),
+            ...pathToUrl(user.team, await presentCollection(collection)),
             ...(shareUrl !== undefined && { shareUrl }),
           };
           return success(presented);
