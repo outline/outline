@@ -24,6 +24,12 @@ export default async function loadDocument({
     throw NotFoundError();
   }
 
+  // Documents that have left the trash are pending permanent deletion, they are
+  // treated as if they no longer exist.
+  if (document.isDestroyed) {
+    throw NotFoundError();
+  }
+
   if (document.deletedAt) {
     // don't send data if user cannot restore deleted doc
     if (user) {

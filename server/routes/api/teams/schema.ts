@@ -5,19 +5,14 @@ import {
   TOCPosition,
   UserRole,
 } from "@shared/types";
+import { isRetentionPeriodPreset } from "@shared/constants";
+import type { RetentionPeriodPreset } from "@shared/types";
 import { TeamValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 
+// Derived from the presets offered in the UI so that the two cannot diverge.
 const retentionDaysSchema = z
-  .union([
-    z.literal(0),
-    z.literal(7),
-    z.literal(14),
-    z.literal(30),
-    z.literal(90),
-    z.literal(180),
-    z.literal(365),
-  ])
+  .custom<RetentionPeriodPreset>(isRetentionPeriodPreset)
   .optional();
 
 export const TeamsUpdateSchema = BaseSchema.extend({

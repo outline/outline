@@ -35,7 +35,7 @@ function Trash() {
         documents={documents.deleted}
         fetch={documents.fetchDeleted}
         options={{
-          direction: "asc",
+          direction: "ASC",
           sort: "deletedAt",
         }}
         heading={<Subheading sticky>{t("Recently deleted")}</Subheading>}

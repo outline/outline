@@ -1,12 +1,15 @@
-import { Op, Sequelize } from "sequelize";
+import { Op } from "sequelize";
 import { subDays } from "date-fns";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import Logger from "@server/logging/Logger";
 import { Document } from "@server/models";
-import { TeamPreferenceDefaults } from "@shared/constants";
+import type { RetentionPreference } from "@server/utils/retention";
+import { teamRetentionPeriodFilter } from "@server/utils/retention";
 import { TeamPreference } from "@shared/types";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 import type { PartitionInfo } from "./base/BaseTask";
+
+const preference: RetentionPreference = TeamPreference.DataRetentionDays;
 
 export type Props = {
   /** The retention period in days to process in this tranche. */
@@ -27,14 +30,15 @@ export default class CleanupPermanentlyDeletedDocumentsByRetentionTask extends B
       return;
     }
 
-    const defaultRetentionDays = TeamPreferenceDefaults[
-      TeamPreference.DataRetentionDays
-    ] as number;
-    const isDefault = retentionDays === defaultRetentionDays;
-
     Logger.debug(
       "task",
       `Permanently destroying upto ${limit} documents past ${retentionDays} day retention timeout…`
+    );
+
+    const team = teamRetentionPeriodFilter(
+      preference,
+      retentionDays,
+      "document"
     );
 
     const documents = await Document.scope([
@@ -45,30 +49,10 @@ export default class CleanupPermanentlyDeletedDocumentsByRetentionTask extends B
         destroyedAt: {
           [Op.lt]: subDays(new Date(), retentionDays),
         },
-        [Op.and]: [
-          Sequelize.literal(
-            isDefault
-              ? `EXISTS (
-                  SELECT 1 FROM teams
-                  WHERE teams.id = "document"."teamId"
-                  AND (
-                    preferences->> :preference IS NULL
-                    OR (preferences->> :preference)::int = :retentionDays
-                  )
-                )`
-              : `EXISTS (
-                  SELECT 1 FROM teams
-                  WHERE teams.id = "document"."teamId"
-                  AND (preferences->> :preference)::int = :retentionDays
-                )`
-          ),
-        ],
+        [Op.and]: [team.where],
         ...this.getPartitionWhereClause("id", partition),
       },
-      replacements: {
-        preference: TeamPreference.DataRetentionDays,
-        retentionDays,
-      },
+      replacements: team.replacements,
       paranoid: false,
       limit,
     });

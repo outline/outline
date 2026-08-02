@@ -420,10 +420,14 @@ class Document extends ArchivableModel<
   @Column(DataType.DATE)
   publishedAt: Date | null;
 
-  /** Whether the document has been destroyed (hard deleted), and if so when. */
+  /**
+   * When the document left the trash and entered the data retention period. Once
+   * set the document is no longer visible or restorable, and the row is removed
+   * entirely once the team's data retention period has elapsed.
+   */
   @AllowNull
   @IsDate
-  @Column
+  @Column(DataType.DATE)
   destroyedAt: Date | null;
 
   @BeforeRestore
@@ -954,6 +958,17 @@ class Document extends ArchivableModel<
    */
   get isActive(): boolean {
     return !this.archivedAt && !this.deletedAt;
+  }
+
+  /**
+   * Whether this document has left the trash and is pending permanent deletion.
+   * Destroyed documents are not readable or restorable, they only remain in the
+   * database until the team's data retention period has elapsed.
+   *
+   * @returns boolean
+   */
+  get isDestroyed(): boolean {
+    return !!this.destroyedAt;
   }
 
   /**

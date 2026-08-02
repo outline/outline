@@ -17,6 +17,18 @@ export const RetentionPeriodPresets: readonly RetentionPeriodPreset[] = [
   0, 7, 14, 30, 90, 180, 365,
 ];
 
+/**
+ * Whether the given value is a retention period that can be configured.
+ *
+ * @param value the value to check.
+ * @returns true if the value is a supported retention period.
+ */
+export function isRetentionPeriodPreset(
+  value: unknown
+): value is RetentionPeriodPreset {
+  return RetentionPeriodPresets.some((days) => days === value);
+}
+
 export const MAX_AVATAR_DISPLAY = 6;
 
 /** Preset colors offered when choosing an icon color. */
