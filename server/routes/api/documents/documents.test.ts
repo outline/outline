@@ -2935,6 +2935,23 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(403);
   });
 
+  it("should fail with not found for a revision that does not exist", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        revisionId: faker.string.uuid(),
+      },
+    });
+
+    expect(res.status).toEqual(404);
+  });
+
   it("should require id", async () => {
     const user = await buildUser();
     const document = await buildDocument({
