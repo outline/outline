@@ -45,7 +45,6 @@ type Props = {
   showPublished?: boolean;
   showDraft?: boolean;
   showLastViewed?: boolean;
-  showTemplate?: boolean;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -85,7 +84,6 @@ function DocumentListItem(
     showPublished,
     showDraft = true,
     showLastViewed = true,
-    showTemplate,
     highlight,
     context,
     ...rest
@@ -237,6 +235,21 @@ function DocumentListItem(
                     <Badge>{t("Draft")}</Badge>
                   </Tooltip>
                 )}
+                {document.destroysInDays !== undefined && (
+                  <Tooltip
+                    content={t(
+                      "Will be permanently deleted in {{ count }} days unless restored",
+                      { count: document.destroysInDays }
+                    )}
+                    placement="top"
+                  >
+                    <Badge>
+                      {t("{{ count }} days", {
+                        count: document.destroysInDays,
+                      })}
+                    </Badge>
+                  </Tooltip>
+                )}
                 {canStar && !isMobile && <StarButton document={document} />}
               </Heading>
 
@@ -263,22 +276,6 @@ function DocumentListItem(
               onClose={handleMenuClose}
             />
           </Actions>
-          {document.deletedAt &&
-            document.destroysInDays !== undefined &&
-            document.destroysInDays >= 0 && (
-              <Tooltip
-                content={t("Permanently deletes in {{ days }} days", {
-                  days: document.destroysInDays,
-                })}
-                placement="bottom"
-              >
-                <Badge>
-                  {t("{{ days }} days", {
-                    days: document.destroysInDays,
-                  })}
-                </Badge>
-              </Tooltip>
-            )}
         </DocumentLink>
       </ContextMenu>
     </ActionContextProvider>

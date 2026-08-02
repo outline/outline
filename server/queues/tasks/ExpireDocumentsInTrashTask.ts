@@ -1,5 +1,6 @@
 import Logger from "@server/logging/Logger";
-import { RetentionPeriodPresets } from "@shared/constants";
+import { getRetentionPeriodsInUse } from "@server/utils/retention";
+import { TeamPreference } from "@shared/types";
 import { Minute } from "@shared/utils/time";
 import { TaskPriority } from "./base/BaseTask";
 import { CronTask, TaskInterval } from "./base/CronTask";
@@ -8,26 +9,27 @@ import ExpireDocumentsInTrashByRetentionTask from "./ExpireDocumentsInTrashByRet
 
 export default class ExpireDocumentsInTrashTask extends CronTask {
   /**
-   * Schedules a worker task for each retention period preset.
+   * Schedules a worker task for each trash retention period in use.
    *
    * @param props Properties to be used by the task.
    */
   public async perform(props: Props) {
     const task = new ExpireDocumentsInTrashByRetentionTask();
+    const retentionPeriods = await getRetentionPeriodsInUse(
+      TeamPreference.TrashRetentionDays
+    );
 
-    for (const days of RetentionPeriodPresets) {
-      if (days === 0) {
-        continue;
-      }
+    for (const retentionDays of retentionPeriods) {
       await task.schedule({
-        retentionDays: days,
+        limit: props.limit,
+        retentionDays,
         partition: props.partition,
       });
     }
 
     Logger.debug(
       "task",
-      `Scheduled ${RetentionPeriodPresets.length - 1} tranches for marking documents for permanent deletion`
+      `Scheduled ${retentionPeriods.length} tranches for marking documents for permanent deletion`
     );
   }
 

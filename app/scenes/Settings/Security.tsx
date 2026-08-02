@@ -6,6 +6,11 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
+import {
+  RetentionPeriodPresets,
+  isRetentionPeriodPreset,
+} from "@shared/constants";
+import type { RetentionPeriodPreset } from "@shared/types";
 import { CommentingAccess, TeamPreference, EmailDisplay } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
@@ -18,6 +23,17 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
+
+/**
+ * Resolves a select value back to a supported retention period.
+ *
+ * @param value the raw value from the select input.
+ * @returns the retention period in days, or undefined if unsupported.
+ */
+function toRetentionPeriod(value: string): RetentionPeriodPreset | undefined {
+  const days = Number(value);
+  return isRetentionPeriodPreset(days) ? days : undefined;
+}
 
 function Security() {
   const { dialogs } = useStores();
@@ -69,6 +85,17 @@ function Security() {
           value: EmailDisplay.None,
         },
       ] satisfies Option[],
+    [t]
+  );
+
+  const retentionOptions: Option[] = React.useMemo(
+    () =>
+      RetentionPeriodPresets.map((days) => ({
+        type: "item",
+        label:
+          days === 0 ? t("Forever") : t("{{ count }} days", { count: days }),
+        value: String(days),
+      })) satisfies Option[],
     [t]
   );
 
@@ -188,6 +215,36 @@ function Security() {
       const preferences = {
         ...team.preferences,
         [TeamPreference.EmailDisplay]: emailDisplay,
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
+  );
+
+  const handleTrashRetentionChange = React.useCallback(
+    async (value: string) => {
+      const retentionDays = toRetentionPeriod(value);
+      if (retentionDays === undefined) {
+        return;
+      }
+      const preferences = {
+        ...team.preferences,
+        [TeamPreference.TrashRetentionDays]: retentionDays,
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
+  );
+
+  const handleDataRetentionChange = React.useCallback(
+    async (value: string) => {
+      const retentionDays = toRetentionPeriod(value);
+      if (retentionDays === undefined) {
+        return;
+      }
+      const preferences = {
+        ...team.preferences,
+        [TeamPreference.DataRetentionDays]: retentionDays,
       };
       await saveData({ preferences });
     },
@@ -412,6 +469,38 @@ function Security() {
           />
         </SettingRow>
       )}
+      <SettingRow
+        label={t("Trash retention")}
+        name={TeamPreference.TrashRetentionDays}
+        description={t(
+          "How long deleted documents remain in the trash, where they can still be restored"
+        )}
+      >
+        <InputSelect
+          value={String(team.getPreference(TeamPreference.TrashRetentionDays))}
+          options={retentionOptions}
+          onChange={handleTrashRetentionChange}
+          label={t("Trash retention")}
+          labelHidden
+          short
+        />
+      </SettingRow>
+      <SettingRow
+        label={t("Data retention")}
+        name={TeamPreference.DataRetentionDays}
+        description={t(
+          "How long documents are retained after leaving the trash, before they are permanently erased"
+        )}
+      >
+        <InputSelect
+          value={String(team.getPreference(TeamPreference.DataRetentionDays))}
+          options={retentionOptions}
+          onChange={handleDataRetentionChange}
+          label={t("Data retention")}
+          labelHidden
+          short
+        />
+      </SettingRow>
     </Scene>
   );
 }

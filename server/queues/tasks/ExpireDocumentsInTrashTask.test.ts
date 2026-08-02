@@ -43,6 +43,7 @@ describe("ExpireDocumentsInTrashTask", () => {
     // Verify that the custom retention task was scheduled.
     expect(scheduleSpy).toHaveBeenCalledWith(
       expect.objectContaining({
+        limit: props.limit,
         retentionDays: customDays,
         partition: props.partition,
       })
@@ -66,6 +67,27 @@ describe("ExpireDocumentsInTrashTask", () => {
         partition: props.partition,
       })
     );
+
+    scheduleSpy.mockRestore();
+  });
+
+  it("should not schedule a worker for infinite retention", async () => {
+    const scheduleSpy = vi.spyOn(
+      ExpireDocumentsInTrashByRetentionTask.prototype,
+      "schedule"
+    );
+
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.TrashRetentionDays, 0);
+    await team.save();
+
+    const task = new ExpireDocumentsInTrashTask();
+    await task.perform(props);
+
+    const scheduled = scheduleSpy.mock.calls.map(
+      ([{ retentionDays }]) => retentionDays
+    );
+    expect(scheduled).not.toContain(0);
 
     scheduleSpy.mockRestore();
   });

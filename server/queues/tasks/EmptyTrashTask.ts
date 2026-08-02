@@ -24,6 +24,11 @@ export default class EmptyTrashTask extends BaseTask<Props> {
           deletedAt: {
             [Op.ne]: null,
           },
+          // documents already pending permanent deletion keep their original
+          // timestamp, so emptying the trash cannot extend their retention.
+          destroyedAt: {
+            [Op.is]: null,
+          },
         },
         paranoid: false,
       }

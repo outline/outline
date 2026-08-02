@@ -180,6 +180,22 @@ describe("#documents.info", () => {
     expect(body.data.id).toEqual(document.id);
   });
 
+  it("should not return a document pending permanent deletion", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      deletedAt: new Date(),
+      destroyedAt: new Date(),
+    });
+    const res = await server.post("/api/documents.info", user, {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(404);
+  });
+
   it("should return published document for urlId", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -4691,6 +4707,20 @@ describe("#documents.archived", () => {
 });
 
 describe("#documents.deleted", () => {
+  it("should not return documents pending permanent deletion", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      deletedAt: new Date(),
+      destroyedAt: new Date(),
+    });
+    const res = await server.post("/api/documents.deleted", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
   it("should return deleted documents", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -5103,6 +5133,45 @@ describe("#documents.move", () => {
 });
 
 describe("#documents.restore", () => {
+  it("should not restore a document pending permanent deletion", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      deletedAt: new Date(),
+      destroyedAt: new Date(),
+    });
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: { id: document.id },
+    });
+    expect(res.status).toEqual(404);
+
+    const stillDestroyed = await Document.findByPk(document.id, {
+      paranoid: false,
+    });
+    expect(stillDestroyed?.deletedAt).not.toBe(null);
+    expect(stillDestroyed?.destroyedAt).not.toBe(null);
+  });
+
+  it("should clear destroyedAt when a document is restored", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: { id: document.id },
+    });
+    expect(res.status).toEqual(200);
+
+    const restored = await Document.findByPk(document.id, { paranoid: false });
+    expect(restored?.deletedAt).toBe(null);
+    expect(restored?.destroyedAt).toBe(null);
+  });
+
   it("should fail if attempting to restore document to an archived collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -6857,6 +6926,40 @@ describe("#documents.delete", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
+  });
+
+  it("should mark a permanently deleted document as destroyed", async () => {
+    const user = await buildAdmin();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await server.post("/api/documents.delete", user, {
+      body: { id: document.id },
+    });
+    await server.post("/api/documents.delete", user, {
+      body: { id: document.id, permanent: true },
+    });
+
+    const destroyed = await Document.findByPk(document.id, {
+      paranoid: false,
+    });
+    expect(destroyed?.destroyedAt).not.toBe(null);
+  });
+
+  it("should not allow permanently deleting a document twice", async () => {
+    const user = await buildAdmin();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      deletedAt: new Date(),
+      destroyedAt: new Date(),
+    });
+
+    const res = await server.post("/api/documents.delete", user, {
+      body: { id: document.id, permanent: true },
+    });
+    expect(res.status).toEqual(403);
   });
 
   it("should not allow permanently deleting a document as non-admin", async () => {

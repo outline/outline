@@ -399,6 +399,11 @@ export default class Document extends ArchivableModel implements Searchable {
     return this.title === "";
   }
 
+  /**
+   * The point at which this document leaves the trash and can no longer be
+   * restored, based on the workspace trash retention period. Undefined when the
+   * document is not deleted, or when the workspace retains trash indefinitely.
+   */
   @computed
   get willDestroyAt(): string | undefined {
     if (!this.deletedAt) {
@@ -409,24 +414,30 @@ export default class Document extends ArchivableModel implements Searchable {
     if (!team) {
       return undefined;
     }
-    const retentionDays = team.getPreference(
-      TeamPreference.TrashRetentionDays,
-      30
-    );
+
+    const retentionDays = team.getPreference(TeamPreference.TrashRetentionDays);
     if (!retentionDays) {
       return undefined;
     }
 
-    return addDays(new Date(this.deletedAt), retentionDays).toString();
+    return addDays(new Date(this.deletedAt), retentionDays).toISOString();
   }
 
+  /**
+   * The number of whole days remaining before this document leaves the trash.
+   * Never negative – a document past its retention period is reported as zero
+   * days, as the cleanup task will remove it on its next run.
+   */
   @computed
   get destroysInDays(): number | undefined {
     if (!this.willDestroyAt) {
       return undefined;
     }
 
-    return differenceInDays(new Date(this.willDestroyAt), new Date());
+    return Math.max(
+      0,
+      differenceInDays(new Date(this.willDestroyAt), new Date())
+    );
   }
 
   @computed
