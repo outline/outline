@@ -663,7 +663,8 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
     if (
       options.statusFilter?.includes(StatusFilter.Draft) &&
-      // Only ever include draft results for the user's own documents
+      // Only include draft results for the user's own documents, or those
+      // explicitly shared with them
       model instanceof User
     ) {
       statusQuery.push({
