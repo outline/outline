@@ -219,8 +219,6 @@
   "Print template": "템플릿 인쇄",
   "Invite people": "초대하기",
   "Invite to workspace": "워크스페이스에 초대",
-  "Promote to {{ role }}": "{{ role }} (으)로 승격",
-  "Demote to {{ role }}": "{{ role }} (으)로 강등",
   "Update role": "역할 업데이트",
   "Change profile picture": "프로필 사진 변경",
   "Change name": "이름 변경",
