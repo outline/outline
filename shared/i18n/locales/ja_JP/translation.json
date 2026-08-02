@@ -219,8 +219,6 @@
   "Print template": "テンプレートを印刷",
   "Invite people": "ユーザーを招待",
   "Invite to workspace": "ワークスペースに招待",
-  "Promote to {{ role }}": "{{ role }} に昇格",
-  "Demote to {{ role }}": "{{ role }} に降格",
   "Update role": "ロールを更新",
   "Change profile picture": "プロフィール画像を変更",
   "Change name": "名前を変更",
