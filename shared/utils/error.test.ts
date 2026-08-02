@@ -1,4 +1,4 @@
-import { toError, errToString } from "./error";
+import { toError, errToString, errToId } from "./error";
 
 describe("toError", () => {
   it("returns the same Error instance when given an Error", () => {
@@ -32,5 +32,26 @@ describe("errToString", () => {
     expect(errToString("boom")).toBe("boom");
     expect(errToString(42)).toBe("42");
     expect(errToString(undefined)).toBe("undefined");
+  });
+});
+
+describe("errToId", () => {
+  it("returns the id of an Error", () => {
+    const error = Object.assign(new Error("boom"), { id: "invalid_request" });
+    expect(errToId(error)).toBe("invalid_request");
+  });
+
+  it("returns the id of a plain object", () => {
+    expect(errToId({ id: "invalid_request", message: "boom" })).toBe(
+      "invalid_request"
+    );
+  });
+
+  it("returns undefined when there is no string id", () => {
+    expect(errToId(new Error("boom"))).toBeUndefined();
+    expect(errToId({ id: 42 })).toBeUndefined();
+    expect(errToId("boom")).toBeUndefined();
+    expect(errToId(null)).toBeUndefined();
+    expect(errToId(undefined)).toBeUndefined();
   });
 });
