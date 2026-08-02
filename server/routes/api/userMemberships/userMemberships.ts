@@ -34,6 +34,12 @@ router.post(
           [Op.eq]: null,
         },
       },
+      include: [
+        {
+          association: "document",
+          required: true,
+        },
+      ],
       order: [
         Sequelize.literal('"user_permission"."index" collate "C"'),
         ["updatedAt", "DESC"],
