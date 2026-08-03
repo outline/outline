@@ -56,6 +56,7 @@ export enum Client {
 export enum ExportContentType {
   Markdown = "text/markdown",
   Html = "text/html",
+  TextBundle = "application/x-textbundle",
   Pdf = "application/pdf",
 }
 
@@ -63,6 +64,7 @@ export enum FileOperationFormat {
   JSON = "json",
   MarkdownZip = "outline-markdown",
   HTMLZip = "html",
+  TextBundleZip = "textbundle",
   PDF = "pdf",
   Notion = "notion",
 }

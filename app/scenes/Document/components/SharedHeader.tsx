@@ -35,6 +35,7 @@ import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import type Document from "~/models/Document";
 import { documentEditPath } from "~/utils/routeHelpers";
 import PublicBreadcrumb from "./PublicBreadcrumb";
+import { SearchHighlightChip } from "./SearchHighlightChip";
 
 type Props = {
   document: Document;
@@ -180,6 +181,7 @@ function SharedDocumentHeader({ document }: Props) {
       }
       actions={
         <>
+          <SearchHighlightChip />
           {hasHeadings && !isMobile && !tocInLeft && <Action>{toc}</Action>}
           {allowSubscriptions !== false && !user && env.EMAIL_ENABLED && (
             <SubscribeAction shareId={shareId} documentId={document.id} />

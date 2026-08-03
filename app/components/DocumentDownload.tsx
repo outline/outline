@@ -90,6 +90,13 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
         ),
         value: ExportContentType.Html,
       },
+      {
+        title: "TextBundle",
+        description: t(
+          "A file containing the selected documents and their images in TextBundle format."
+        ),
+        value: ExportContentType.TextBundle,
+      },
     ];
 
     if (env.PDF_EXPORT_ENABLED) {

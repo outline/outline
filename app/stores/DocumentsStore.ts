@@ -58,15 +58,28 @@ export default class DocumentsStore extends Store<Document> {
 
   importFileTypes: string[] = [
     ".md",
+    ".markdown",
     ".doc",
     ".docx",
+    ".txt",
+    ".htm",
+    ".html",
+    ".csv",
     ".tsv",
+    ".mhtml",
+    ".mht",
+    ".eml",
+    ".textpack",
     "text/csv",
+    "text/tab-separated-values",
     "text/markdown",
     "text/plain",
     "text/html",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "message/rfc822",
+    "multipart/related",
+    "application/x-mimearchive",
   ];
 
   constructor(rootStore: RootStore) {

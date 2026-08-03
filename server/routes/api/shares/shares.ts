@@ -4,6 +4,7 @@ import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { subMinutes } from "date-fns";
 import { randomString } from "@shared/random";
+import { errToId } from "@shared/utils/error";
 import { QueryNotices, TeamPreference } from "@shared/types";
 import {
   AuthenticationError,
@@ -147,7 +148,7 @@ router.post(
         policies: presentPolicies(user, shares),
       };
     } catch (err) {
-      if (err instanceof Error && "id" in err && err.id === "not_found") {
+      if (errToId(err) === "not_found") {
         ctx.response.status = 204;
         return;
       }

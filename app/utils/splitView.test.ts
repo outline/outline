@@ -77,7 +77,7 @@ describe("isSplittablePath", () => {
   it("rejects routes that render their own chrome", () => {
     expect(isSplittablePath("/")).toBe(false);
     expect(isSplittablePath("/settings")).toBe(false);
-    expect(isSplittablePath("/settings/members")).toBe(false);
+    expect(isSplittablePath("/settings/users")).toBe(false);
     expect(isSplittablePath("/s/abc123")).toBe(false);
     expect(isSplittablePath("/logout")).toBe(false);
     expect(isSplittablePath("/oauth/authorize")).toBe(false);

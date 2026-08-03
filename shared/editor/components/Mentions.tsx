@@ -10,7 +10,11 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { dateToRelativeReadable, parseISODate } from "../../utils/date";
+import {
+  dateToRelativeReadable,
+  hasTimeComponent,
+  parseISODate,
+} from "../../utils/date";
 import { Backticks } from "../../components/Backticks";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
@@ -554,6 +558,7 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
     <React.Suspense fallback={content}>
       <DateMentionPicker
         selectedDate={selectedDate}
+        includeTime={hasTimeComponent(iso)}
         language={language}
         onChange={onChangeDate}
       >

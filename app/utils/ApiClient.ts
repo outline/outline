@@ -1,5 +1,5 @@
 import retry from "fetch-retry";
-import { trim } from "es-toolkit/compat";
+import { chunk, trim } from "es-toolkit/compat";
 import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import type { JSONObject } from "@shared/types";
@@ -23,7 +23,7 @@ import {
   UnprocessableEntityError,
   UpdateRequiredError,
 } from "./errors";
-import { CSRF } from "@shared/constants";
+import { BatchableApiMethods, BatchMaxRequests, CSRF } from "@shared/constants";
 import { getCSRFToken } from "./csrf";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 
@@ -55,6 +55,28 @@ interface FetchOptions {
   baseUrl?: string;
 }
 
+/** A request captured during a batch, awaiting dispatch in a `/batch` call. */
+interface BatchedRequest {
+  method: string;
+  body?: JSONObject;
+  resolve: (value: unknown) => void;
+  reject: (reason: unknown) => void;
+}
+
+/** A single sub-response within a `/batch` response. */
+interface BatchSubResponse {
+  ok: boolean;
+  status: number;
+  data?: unknown;
+  policies?: unknown;
+  /** Structured error code, mirroring a top-level error response's `error`. */
+  error?: string;
+  message?: string;
+}
+
+/** Methods that may be collected into a single `/batch` request. */
+const batchableMethods = new Set<string>(BatchableApiMethods);
+
 class ApiClient {
   baseUrl: string;
 
@@ -63,6 +85,9 @@ class ApiClient {
   /** Map of in-flight requests for deduplication, keyed by method + path + body. */
   // oxlint-disable-next-line no-explicit-any
   private inflightRequests = new Map<string, Promise<any>>();
+
+  /** Requests collected while a batch is open, or undefined when not batching. */
+  private batchQueue?: BatchedRequest[];
 
   private onUnauthorized?: UnauthorizedHandler;
 
@@ -234,14 +259,8 @@ class ApiClient {
       return response.json();
     }
 
-    // Handle 401, notify session owner to log out
-    if (response.status === 401) {
-      if (!this.shareId) {
-        await this.onUnauthorized?.("unauthorized");
-      }
-      throw new AuthorizationError();
-    }
-
+    // The gateway or an upstream proxy failed before the app could respond; the
+    // raw body is captured for diagnosis.
     if (response.status === 502) {
       const text = await response.text();
       const err = new BadGatewayError(text);
@@ -255,9 +274,8 @@ class ApiClient {
       throw err;
     }
 
-    // Handle failed responses
+    // Parse the structured error payload, if present.
     const error: ApiErrorResponse = {};
-
     try {
       const parsed: ApiErrorResponse = await response.json();
       error.message = parsed.message || "";
@@ -267,65 +285,92 @@ class ApiClient {
       // we're trying to parse an error so JSON may not be valid
     }
 
-    if (response.status === 400 && error.error === "editor_update_required") {
+    const err = await this.toError(response.status, error.error, error.message);
+
+    // Log failures that aren't mapped to a specific error type.
+    if (err.constructor === RequestError) {
+      Logger.error("Request failed", err, { ...error, url: urlToFetch });
+    }
+
+    // Still need to throw to trigger retry
+    throw err;
+  };
+
+  /**
+   * Maps a failed response's status and error code to the corresponding error
+   * type, triggering the unauthorized handler for authentication failures.
+   * Shared by top-level requests and batched sub-requests so both surface
+   * identical errors and side effects.
+   *
+   * @param status The response status code.
+   * @param code The structured error code, if any.
+   * @param message The human-readable error message, if any.
+   * @returns the error to throw or reject with.
+   */
+  private toError = async (
+    status: number,
+    code: string | undefined,
+    message: string | undefined
+  ): Promise<Error> => {
+    if (status === 401) {
+      if (!this.shareId) {
+        await this.onUnauthorized?.("unauthorized");
+      }
+      return new AuthorizationError();
+    }
+
+    if (status === 400 && code === "editor_update_required") {
       window.location.reload();
-      throw new UpdateRequiredError(error.message);
+      return new UpdateRequiredError(message);
     }
 
-    if (response.status === 400) {
-      throw new BadRequestError(error.message);
+    if (status === 400) {
+      return new BadRequestError(message);
     }
 
-    if (response.status === 402) {
-      throw new PaymentRequiredError(error.message);
+    if (status === 402) {
+      return new PaymentRequiredError(message);
     }
 
-    if (response.status === 403) {
-      if (error.error === "user_suspended") {
+    if (status === 403) {
+      if (code === "user_suspended") {
         await this.onUnauthorized?.("user_suspended");
       }
 
-      if (error.error === "csrf_error") {
-        throw new AuthorizationError(
+      if (code === "csrf_error") {
+        return new AuthorizationError(
           "CSRF token invalid, please try reloading."
         );
       }
 
-      throw new AuthorizationError(error.message);
+      return new AuthorizationError(message);
     }
 
-    if (response.status === 404) {
-      throw new NotFoundError(error.message);
+    if (status === 404) {
+      return new NotFoundError(message);
     }
 
-    if (response.status === 503) {
-      throw new ServiceUnavailableError(error.message);
+    if (status === 503) {
+      return new ServiceUnavailableError(message);
     }
 
-    if (response.status === 422) {
-      throw new UnprocessableEntityError(error.message);
+    if (status === 422) {
+      return new UnprocessableEntityError(message);
     }
 
-    if (response.status === 429) {
-      throw new RateLimitExceededError(
+    if (status === 429) {
+      return new RateLimitExceededError(
         `Too many requests, try again in a minute.`
       );
     }
 
     // The client, or an intermediate proxy, closed the connection before the
     // response was received – there is nothing actionable to report.
-    if (response.status === 499) {
-      throw new ClientClosedRequestError(error.message);
+    if (status === 499) {
+      return new ClientClosedRequestError(message);
     }
 
-    const err = new RequestError(`Error ${response.status}`);
-    Logger.error("Request failed", err, {
-      ...error,
-      url: urlToFetch,
-    });
-
-    // Still need to throw to trigger retry
-    throw err;
+    return new RequestError(`Error ${status}`);
   };
 
   /**
@@ -357,7 +402,48 @@ class ApiClient {
     path: string,
     data?: JSONObject | FormData,
     options?: FetchOptions
-  ): Promise<T> => this.deduplicate<T>(path, "POST", data, options);
+  ): Promise<T> => {
+    const method = path.replace(/^\//, "");
+    if (
+      this.batchQueue &&
+      !(data instanceof FormData) &&
+      batchableMethods.has(method)
+    ) {
+      return new Promise<T>((resolve, reject) => {
+        this.batchQueue!.push({
+          method,
+          body: data,
+          resolve: resolve as (value: unknown) => void,
+          reject,
+        });
+      });
+    }
+    return this.deduplicate<T>(path, "POST", data, options);
+  };
+
+  /**
+   * Collects every batchable POST request issued during the synchronous
+   * execution of `fn` and dispatches them as a single `/batch` request once
+   * `fn` returns. Non-batchable requests, and requests made after `fn` returns,
+   * are sent normally; nested calls join the enclosing batch.
+   *
+   * @param fn A function that issues the requests to be batched.
+   * @returns whatever `fn` returns.
+   */
+  batch = <T>(fn: () => T): T => {
+    if (this.batchQueue) {
+      return fn();
+    }
+
+    const queue: BatchedRequest[] = [];
+    this.batchQueue = queue;
+    try {
+      return fn();
+    } finally {
+      this.batchQueue = undefined;
+      void this.flushBatch(queue);
+    }
+  };
 
   /**
    * Performs a PUT request against the API. Identical in-flight requests are
@@ -409,6 +495,43 @@ class ApiClient {
     });
     this.inflightRequests.set(key, promise);
     return promise;
+  };
+
+  /**
+   * Dispatches the requests collected during a batch, splitting them into
+   * serial `/batch` calls that respect the server's per-batch limit, and
+   * settles each caller's promise with its corresponding sub-response — shaped
+   * like a standard API envelope so callers need no special handling.
+   *
+   * @param queue The requests collected during a batch.
+   */
+  private flushBatch = async (queue: BatchedRequest[]): Promise<void> => {
+    for (const group of chunk(queue, BatchMaxRequests)) {
+      try {
+        const res = await this.fetch<{ data: BatchSubResponse[] }>(
+          "/batch",
+          "POST",
+          { requests: group.map(({ method, body }) => ({ method, body })) }
+        );
+        for (let index = 0; index < group.length; index++) {
+          const request = group[index];
+          const result = res?.data?.[index];
+          if (result?.ok) {
+            request.resolve({ data: result.data, policies: result.policies });
+          } else {
+            request.reject(
+              await this.toError(
+                result?.status ?? 500,
+                result?.error,
+                result?.message
+              )
+            );
+          }
+        }
+      } catch (err) {
+        group.forEach((request) => request.reject(err));
+      }
+    }
   };
 }
 

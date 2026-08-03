@@ -5,7 +5,7 @@ import { Collection, Team } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import { authorize } from "@server/policies";
-import { presentCollection } from "@server/presenters";
+import { presentCollection as presentCollectionBase } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
@@ -13,12 +13,26 @@ import {
   error,
   getActorFromContext,
   buildAPIContext,
-  getPublicShareUrlForCollection,
   getPublicShareUrlsForCollections,
   optionalString,
   pathToUrl,
   withTracing,
 } from "./util";
+
+/**
+ * Presents a collection for a tool response. Includes a markdown description
+ * instead of ProseMirror JSON so that MCP consumers (typically AI agents) can
+ * read it directly.
+ *
+ * @param collection - the collection to present.
+ * @returns the presented collection object.
+ */
+export function presentCollection(collection: Collection) {
+  return presentCollectionBase(undefined, collection, {
+    includeData: false,
+    includeText: true,
+  });
+}
 
 /**
  * Registers collection-related MCP tools on the given server, filtered by
@@ -125,7 +139,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
                   collection,
                   presented: pathToUrl(
                     user.team,
-                    await presentCollection(undefined, collection)
+                    await presentCollection(collection)
                   ),
                 }))
               ),
@@ -194,16 +208,14 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           await collection.saveWithCtx(ctx);
 
-          const reloaded = await Collection.findByPk(collection.id, {
-            userId: user.id,
-            rejectOnEmpty: true,
+          return success({
+            success: true,
+            ...pathToUrl(user.team, {
+              id: collection.id,
+              name: collection.name,
+              url: collection.path,
+            }),
           });
-
-          const presented = pathToUrl(
-            user.team,
-            await presentCollection(undefined, reloaded)
-          );
-          return success(presented);
         } catch (message) {
           return error(message);
         }
@@ -283,18 +295,14 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           await collection.saveWithCtx(ctx);
 
-          const shareUrl = await getPublicShareUrlForCollection(
-            user.team,
-            collection.id
-          );
-          const presented = {
-            ...pathToUrl(
-              user.team,
-              await presentCollection(undefined, collection)
-            ),
-            ...(shareUrl !== undefined && { shareUrl }),
-          };
-          return success(presented);
+          return success({
+            success: true,
+            ...pathToUrl(user.team, {
+              id: collection.id,
+              name: collection.name,
+              url: collection.path,
+            }),
+          });
         } catch (message) {
           return error(message);
         }

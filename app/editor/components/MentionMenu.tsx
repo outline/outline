@@ -20,6 +20,7 @@ import {
   dateToRelativeReadable,
   parseISODate,
   toISODate,
+  toISODateTime,
 } from "@shared/utils/date";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { parseNaturalLanguageDate } from "@shared/utils/parseNaturalLanguageDate";
@@ -68,7 +69,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
   const maxResultsInSection = search ? 25 : 5;
 
   // Surface a date suggestion when the search query parses as a natural
-  // language date (e.g. "tomorrow", "next friday", "jan 2"). Parsing is
+  // language date (e.g. "tomorrow", "next friday", "jan 2", "1pm"). Parsing is
   // asynchronous as chrono-node is loaded lazily, so the result is held in
   // state and applied once resolved.
   const [parsedISODate, setParsedISODate] = useState<string | undefined>();
@@ -80,9 +81,15 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
     }
     let cancelled = false;
     void parseNaturalLanguageDate(search)
-      .then((date) => {
+      .then((parsed) => {
         if (!cancelled) {
-          setParsedISODate(date ? toISODate(date) : undefined);
+          setParsedISODate(
+            parsed
+              ? parsed.hasTime
+                ? toISODateTime(parsed.date)
+                : toISODate(parsed.date)
+              : undefined
+          );
         }
       })
       .catch(() => {

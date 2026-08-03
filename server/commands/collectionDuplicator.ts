@@ -1,3 +1,5 @@
+import { toError } from "@shared/utils/error";
+import Logger from "@server/logging/Logger";
 import { Collection } from "@server/models";
 import DuplicateCollectionDocumentsTask from "@server/queues/tasks/DuplicateCollectionDocumentsTask";
 import type { APIContext } from "@server/types";
@@ -55,7 +57,19 @@ export default async function collectionDuplicator(
     });
 
   if (transaction) {
-    transaction.afterCommit(() => void scheduleTask());
+    transaction.afterCommit(async () => {
+      try {
+        await scheduleTask();
+      } catch (err) {
+        Logger.error(
+          "Failed to schedule duplicate collection documents task",
+          toError(err),
+          {
+            collectionId: duplicated.id,
+          }
+        );
+      }
+    });
   } else {
     await scheduleTask();
   }

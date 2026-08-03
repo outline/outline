@@ -16,6 +16,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import TeamMenu from "~/menus/TeamMenu";
+import * as Scenes from "~/routes/scenes";
 import { homePath, searchPath } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
@@ -110,6 +111,7 @@ function AppSidebar() {
               icon={<HomeIcon />}
               exact={false}
               label={t("Home")}
+              onClickIntent={Scenes.Home.preload}
             />
             <SidebarLink
               to={searchPath()}
@@ -117,6 +119,7 @@ function AppSidebar() {
               label={t("Search")}
               exact={false}
               onClick={handleSearchClick}
+              onClickIntent={Scenes.Search.preload}
             />
             {can.createDocument && <DraftsLink />}
           </Section>

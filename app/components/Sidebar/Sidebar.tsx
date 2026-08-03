@@ -290,6 +290,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
                   alt={t("Avatar of {{ name }}", { name: user.name })}
                   model={user}
                   size={24}
+                  showHoverCard={false}
                 />
               }
             >

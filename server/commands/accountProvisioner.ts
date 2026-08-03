@@ -1,7 +1,7 @@
 import path from "node:path";
 import { readFile } from "fs-extra";
 import invariant from "invariant";
-import { toError, errToString } from "@shared/utils/error";
+import { toError, errToString, errToId } from "@shared/utils/error";
 import { CollectionPermission, UserRole } from "@shared/types";
 import env from "@server/env";
 import {
@@ -137,11 +137,7 @@ async function accountProvisioner(
   } catch (err) {
     // The account could not be provisioned for the provided teamId
     // check to see if we can try authentication using email matching only
-    if (
-      err instanceof Error &&
-      "id" in err &&
-      err.id === "invalid_authentication"
-    ) {
+    if (errToId(err) === "invalid_authentication") {
       const authProvider = await AuthenticationProvider.findOne({
         where: {
           name: authenticationProviderParams.name,
@@ -168,7 +164,7 @@ async function accountProvisioner(
     }
 
     if (!result) {
-      if (err instanceof Error && "id" in err && err.id) {
+      if (errToId(err)) {
         throw err;
       } else {
         throw InvalidAuthenticationError(errToString(err));

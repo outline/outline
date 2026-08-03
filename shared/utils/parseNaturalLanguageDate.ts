@@ -23,25 +23,31 @@ function loadChrono(): Promise<typeof Chrono> {
   return chronoPromise;
 }
 
+export interface ParsedNaturalLanguageDate {
+  /** The matched date, at local midnight unless a time was given. */
+  date: Date;
+  /** Whether the input named a specific time of day. */
+  hasTime: boolean;
+}
+
 /**
  * Parse a natural language string such as "tomorrow", "next friday",
- * "jan 2" or "in 3 days" into a calendar date.
+ * "jan 2", "in 3 days" or "1pm" into a calendar date.
  *
- * The time component is intentionally discarded as date mentions are
- * day-granular; only the year, month and day of the matched date are
- * returned. chrono-node is loaded asynchronously the first time this is
- * called.
+ * The time component is only kept when the input actually named one,
+ * otherwise the matched date is normalized to local midnight. chrono-node is
+ * loaded asynchronously the first time this is called.
  *
  * @param input the natural language string to parse.
  * @param referenceDate the date relative to which terms like "tomorrow"
  * are resolved, defaults to now.
- * @returns a promise resolving to the matched date with the time set to
- * local midnight, or null when no date could be confidently parsed.
+ * @returns a promise resolving to the matched date and whether it is
+ * time-specific, or null when no date could be confidently parsed.
  */
 export async function parseNaturalLanguageDate(
   input: string,
   referenceDate: Date = new Date()
-): Promise<Date | null> {
+): Promise<ParsedNaturalLanguageDate | null> {
   const trimmed = input.trim();
   if (!trimmed) {
     return null;
@@ -61,5 +67,18 @@ export async function parseNaturalLanguageDate(
   }
 
   const date = result.start.date();
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const hasTime = result.start.isCertain("hour");
+
+  return {
+    date: hasTime
+      ? new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          date.getHours(),
+          date.getMinutes()
+        )
+      : new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+    hasTime,
+  };
 }

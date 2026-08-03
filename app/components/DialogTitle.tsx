@@ -13,7 +13,7 @@ type Props = {
   /** The title of the dialog. */
   title: React.ReactNode;
   /** The document or collection that the dialog acts upon. */
-  model: Document | Collection;
+  model?: Document | Collection;
 };
 
 /**
@@ -27,6 +27,11 @@ export const DialogTitle = observer(function DialogTitle_({
   model,
 }: Props) {
   const { ui } = useStores();
+
+  if (!model) {
+    return <>{title}</>;
+  }
+
   const isDocument = model instanceof Document;
 
   if (

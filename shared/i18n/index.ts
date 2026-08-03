@@ -25,6 +25,10 @@ export const languageOptions: LanguageOption[] = [
     value: "cs_CZ",
   },
   {
+    label: "Dansk (Danish)",
+    value: "da_DK",
+  },
+  {
     label: "Nederlands (Dutch, Netherlands)",
     value: "nl_NL",
   },
@@ -51,6 +55,10 @@ export const languageOptions: LanguageOption[] = [
   {
     label: "Magyar (Hungarian)",
     value: "hu_HU",
+  },
+  {
+    label: "Bahasa Indonesia (Indonesian)",
+    value: "id_ID",
   },
   {
     label: "Italiano (Italian)",

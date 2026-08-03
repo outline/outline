@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type Document from "~/models/Document";
+import { LRUCache } from "@shared/utils/LRUCache";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import {
   SearchIndex,
@@ -7,12 +8,15 @@ import {
   type SearchIndexResult,
 } from "./SearchIndex";
 
-const plainTextCache = new Map<string, { updatedAt: string; text: string }>();
+const plainTextCache = new LRUCache<{ updatedAt: string; text: string }>({
+  max: 100,
+});
 
 /**
  * Returns the plain text content of a document, memoized so that repeated
  * indexing passes do not reparse unchanged ProseMirror data. The cache holds at
- * most one entry per document, invalidated when the document is edited.
+ * most one entry per document, invalidated when the document is edited, and is
+ * bounded to the most recently used documents.
  */
 function getPlainText(doc: Document): string {
   const updatedAt = String(doc.updatedAt ?? "");
@@ -71,7 +75,7 @@ export interface UseSearchIndex {
   results: SearchIndexResult[];
   /** Merges documents into the index, re-running the search if anything changed. */
   feed: (documents: SearchIndexDocument[]) => void;
-  /** Empties the index. */
+  /** Empties the index and any cached document content. */
   reset: () => void;
 }
 
@@ -104,6 +108,7 @@ export function useSearchIndex(query: string): UseSearchIndex {
 
   const reset = useCallback(() => {
     index.clear();
+    plainTextCache.clear();
     setVersion((v) => v + 1);
   }, [index]);
 
