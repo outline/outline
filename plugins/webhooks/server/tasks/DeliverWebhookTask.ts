@@ -1,7 +1,7 @@
 import { FetchError } from "node-fetch";
 import { Op, QueryTypes } from "sequelize";
 import { toError } from "@shared/utils/error";
-import { colorPalette } from "@shared/utils/collections";
+import { colorPalette } from "@shared/constants";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";

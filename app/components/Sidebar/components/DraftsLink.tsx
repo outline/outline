@@ -5,6 +5,7 @@ import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
+import * as Scenes from "~/routes/scenes";
 import { draftsPath } from "~/utils/routeHelpers";
 import { useDropToUnpublish } from "../hooks/useDragAndDrop";
 import SidebarLink from "./SidebarLink";
@@ -18,6 +19,7 @@ export const DraftsLink = observer(() => {
     <div ref={dropRef}>
       <SidebarLink
         to={draftsPath()}
+        onClickIntent={Scenes.Drafts.preload}
         icon={<DraftsIcon />}
         label={
           <Flex align="center" justify="space-between">

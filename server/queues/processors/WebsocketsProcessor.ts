@@ -203,11 +203,12 @@ export default class WebsocketsProcessor {
       }
 
       case "documents.permanent_delete": {
-        return socketio
-          .to(`collection-${event.collectionId}`)
-          .emit(event.name, {
-            modelId: event.documentId,
-          });
+        // The document is already gone, so the channels it was published to
+        // cannot be resolved. The payload is an ID only, so it is broadcast to
+        // the team to ensure everyone holding a copy discards it.
+        return socketio.to(`team-${event.teamId}`).emit(event.name, {
+          modelId: event.documentId,
+        });
       }
 
       case "documents.archive":
@@ -231,8 +232,19 @@ export default class WebsocketsProcessor {
           },
           paranoid: false,
         });
+        // Documents are invalidated in both the source and destination
+        // collections – members of the former may no longer have access to
+        // them. This is distinct from the collection invalidation below, which
+        // only refreshes the document structure.
+        const documentChannels = uniq(
+          concat(
+            event.data.collectionIds.map((id) => `collection-${id}`),
+            `collection-${event.collectionId}`
+          )
+        );
+
         documents.forEach((document) => {
-          socketio.to(`collection-${document.collectionId}`).emit("entities", {
+          socketio.to(documentChannels).emit("entities", {
             event: event.name,
             invalidatedPolicies: [document.id],
             documentIds: [
@@ -332,16 +344,17 @@ export default class WebsocketsProcessor {
           return;
         }
 
+        // guests are excluded as they cannot read team-visible collections
+        // without an explicit membership.
+        const rooms = collection.isPrivate
+          ? [`user-${event.actorId}`]
+          : [`user-${event.actorId}`, `team-${collection.teamId}.members`];
+
         socketio
-          .to(this.getCollectionEventChannels(event, collection))
+          .to(rooms)
           .emit(event.name, await presentCollection(undefined, collection));
 
-        return socketio
-          .to(this.getCollectionEventChannels(event, collection))
-          .emit("join", {
-            event: event.name,
-            collectionId: collection.id,
-          });
+        return socketio.in(rooms).socketsJoin(`collection-${collection.id}`);
       }
 
       case "collections.update": {
@@ -352,9 +365,52 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        return socketio
+        socketio
           .to(this.getCollectionEventChannels(event, collection))
           .emit(event.name, await presentCollection(undefined, collection));
+
+        const { attributes, previous } = event.changes ?? {};
+
+        // the collection became team-visible, all team members gain access.
+        if (attributes?.permission && previous?.permission === null) {
+          return socketio
+            .in(`team-${collection.teamId}.members`)
+            .socketsJoin(`collection-${collection.id}`);
+        }
+
+        // the collection became private, rebuild the channel from explicit
+        // memberships only.
+        if (attributes?.permission === null && previous?.permission) {
+          const [memberships, groupMemberships] = await Promise.all([
+            UserMembership.findAll({
+              where: { collectionId: collection.id },
+            }),
+            GroupMembership.findAll({
+              where: { collectionId: collection.id },
+            }),
+          ]);
+          const rooms = [
+            ...memberships.map((m) => `user-${m.userId}`),
+            ...groupMemberships.map((m) => `group-${m.groupId}`),
+          ];
+
+          // Everyone in the channel without an explicit membership has lost
+          // access to the documents within and must discard them.
+          socketio
+            .in(`collection-${collection.id}`)
+            .except(rooms)
+            .emit("collections.revoke_access", { modelId: collection.id });
+
+          socketio
+            .in(`collection-${collection.id}`)
+            .socketsLeave(`collection-${collection.id}`);
+
+          if (rooms.length) {
+            socketio.in(rooms).socketsJoin(`collection-${collection.id}`);
+          }
+        }
+
+        return;
       }
 
       case "collections.delete": {
@@ -412,12 +468,9 @@ export default class WebsocketsProcessor {
           .to(`user-${membership.userId}`)
           .to(`collection-${membership.collectionId}`)
           .emit(event.name, presentMembership(membership));
-
-        // tell any user clients to connect to the websocket channel for the collection
-        socketio.to(`user-${event.userId}`).emit("join", {
-          event: event.name,
-          collectionId: event.collectionId,
-        });
+        socketio
+          .in(`user-${event.userId}`)
+          .socketsJoin(`collection-${event.collectionId}`);
         return;
       }
 
@@ -444,11 +497,9 @@ export default class WebsocketsProcessor {
           .emit("collections.remove_user", membership);
 
         if (cannot(user, "read", collection)) {
-          // tell any user clients to disconnect from the websocket channel for the collection
-          socketio.to(`user-${event.userId}`).emit("leave", {
-            event: event.name,
-            collectionId: event.collectionId,
-          });
+          socketio
+            .in(`user-${event.userId}`)
+            .socketsLeave(`collection-${event.collectionId}`);
         }
 
         return;
@@ -466,11 +517,9 @@ export default class WebsocketsProcessor {
           .to(`group-${membership.groupId}`)
           .to(`collection-${membership.collectionId}`)
           .emit(event.name, presentGroupMembership(membership));
-
-        socketio.to(`group-${membership.groupId}`).emit("join", {
-          event: event.name,
-          collectionId: event.collectionId,
-        });
+        socketio
+          .in(`group-${membership.groupId}`)
+          .socketsJoin(`collection-${event.collectionId}`);
 
         return;
       }
@@ -504,11 +553,9 @@ export default class WebsocketsProcessor {
               }
 
               if (cannot(user, "read", collection)) {
-                // tell any user clients to disconnect from the websocket channel for the collection
-                socketio.to(`user-${groupUser.userId}`).emit("leave", {
-                  event: event.name,
-                  collectionId: event.collectionId,
-                });
+                socketio
+                  .in(`user-${groupUser.userId}`)
+                  .socketsLeave(`collection-${event.collectionId}`);
               }
             }
           }
@@ -700,11 +747,9 @@ export default class WebsocketsProcessor {
         socketio
           .to(`team-${event.teamId}`)
           .emit("groups.add_user", presentGroupUser(groupUser));
-
-        socketio.to(`user-${event.userId}`).emit("join", {
-          event: event.name,
-          groupId: event.modelId,
-        });
+        socketio
+          .in(`user-${event.userId}`)
+          .socketsJoin(`group-${event.modelId}`);
 
         await GroupMembership.findAllInBatches<GroupMembership>(
           {
@@ -722,12 +767,9 @@ export default class WebsocketsProcessor {
                     "collections.add_group",
                     presentGroupMembership(groupMembership)
                   );
-
-                // tell any user clients to connect to the websocket channel for the collection
-                socketio.to(`user-${event.userId}`).emit("join", {
-                  event: event.name,
-                  collectionId: groupMembership.collectionId,
-                });
+                socketio
+                  .in(`user-${event.userId}`)
+                  .socketsJoin(`collection-${groupMembership.collectionId}`);
               }
               if (groupMembership.documentId) {
                 socketio
@@ -755,11 +797,9 @@ export default class WebsocketsProcessor {
         socketio
           .to(`team-${event.teamId}`)
           .emit("groups.remove_user", membership);
-
-        socketio.to(`user-${event.userId}`).emit("leave", {
-          event: event.name,
-          groupId: event.modelId,
-        });
+        socketio
+          .in(`user-${event.userId}`)
+          .socketsLeave(`group-${event.modelId}`);
 
         const user = await User.findByPk(event.userId);
         if (!user) {
@@ -794,11 +834,9 @@ export default class WebsocketsProcessor {
               );
 
               if (cannot(user, "read", collection)) {
-                // tell any user clients to disconnect from the websocket channel for the collection
-                socketio.to(`user-${event.userId}`).emit("leave", {
-                  event: event.name,
-                  collectionId: groupMembership.collectionId,
-                });
+                socketio
+                  .in(`user-${event.userId}`)
+                  .socketsLeave(`collection-${groupMembership.collectionId}`);
               }
             }
           }
@@ -811,10 +849,9 @@ export default class WebsocketsProcessor {
         socketio.to(`team-${event.teamId}`).emit(event.name, {
           modelId: event.modelId,
         });
-        socketio.to(`group-${event.modelId}`).emit("leave", {
-          event: event.name,
-          groupId: event.modelId,
-        });
+        socketio
+          .in(`group-${event.modelId}`)
+          .socketsLeave(`group-${event.modelId}`);
 
         const groupMemberships = await GroupMembership.findAll({
           where: {
@@ -853,11 +890,11 @@ export default class WebsocketsProcessor {
                   );
 
                   if (cannot(groupUser.user, "read", collection)) {
-                    // tell any user clients to disconnect from the websocket channel for the collection
-                    socketio.to(`user-${groupUser.userId}`).emit("leave", {
-                      event: event.name,
-                      collectionId: groupMembership.collectionId,
-                    });
+                    socketio
+                      .in(`user-${groupUser.userId}`)
+                      .socketsLeave(
+                        `collection-${groupMembership.collectionId}`
+                      );
                   }
                 }
               }
@@ -915,16 +952,60 @@ export default class WebsocketsProcessor {
         return;
       }
 
+      case "users.promote":
       case "users.demote": {
-        return socketio
+        socketio
           .to(`user-${event.userId}`)
           .emit(event.name, { id: event.userId });
+
+        // the user's accessible collections may have changed with their role.
+        const user = await User.findByPk(event.userId);
+        if (!user) {
+          return;
+        }
+
+        const membersRoom = `team-${user.teamId}.members`;
+        const accessibleCollectionIds = await user.collectionIds({
+          skipCache: true,
+        });
+
+        if (user.isGuest) {
+          const teamCollections = await Collection.findAll({
+            attributes: ["id"],
+            where: { teamId: user.teamId },
+          });
+          const accessibleCollectionIdsSet = new Set(accessibleCollectionIds);
+          const inaccessibleRooms = teamCollections
+            .map((collection) => collection.id)
+            .filter((id) => !accessibleCollectionIdsSet.has(id))
+            .map((id) => `collection-${id}`);
+
+          return socketio
+            .in(`user-${user.id}`)
+            .socketsLeave([membersRoom, ...inaccessibleRooms]);
+        }
+
+        return socketio
+          .in(`user-${user.id}`)
+          .socketsJoin([
+            membersRoom,
+            ...accessibleCollectionIds.map((id) => `collection-${id}`),
+          ]);
+      }
+
+      case "users.signout":
+      case "users.suspend": {
+        // authentication is no longer valid, disconnect all of the user's clients.
+        return socketio.in(`user-${event.userId}`).disconnectSockets(true);
       }
 
       case "users.delete": {
-        return socketio
+        socketio
           .to(`team-${event.teamId}`)
           .emit(event.name, { modelId: event.userId });
+
+        // authentication is no longer valid, disconnect all of the user's clients.
+        return socketio.in(`user-${event.userId}`).disconnectSockets(true);
       }
 
       case "userMemberships.update": {
@@ -948,10 +1029,11 @@ export default class WebsocketsProcessor {
       channels.push(`user-${event.actorId}`);
     }
 
-    if (collection.isPrivate) {
-      channels.push(`collection-${collection.id}`);
-    } else {
-      channels.push(`team-${collection.teamId}`);
+    // guests are never included in the team members channel, they receive
+    // events via the collection channel when they have an explicit membership.
+    channels.push(`collection-${collection.id}`);
+    if (!collection.isPrivate) {
+      channels.push(`team-${collection.teamId}.members`);
     }
 
     return channels;

@@ -23,13 +23,13 @@ import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { ExportCSV } from "./components/ExportCSV";
-import { MembersTable } from "./components/MembersTable";
+import { UsersTable } from "./components/UsersTable";
 import { StickyFilters } from "./components/StickyFilters";
 import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
 import { HStack } from "~/components/primitives/HStack";
 
-function Members() {
+function Users() {
   const appName = env.APP_NAME;
   const location = useLocation();
   const history = useHistory();
@@ -106,7 +106,7 @@ function Members() {
 
   useEffect(() => {
     if (error) {
-      toast.error(t("Could not load members"));
+      toast.error(t("Could not load users"));
     }
   }, [t, error]);
 
@@ -117,7 +117,7 @@ function Members() {
 
   return (
     <Scene
-      title={t("Members")}
+      title={t("Users")}
       icon={<UserIcon />}
       actions={
         <>
@@ -139,7 +139,7 @@ function Members() {
       }
       wide
     >
-      <Heading>{t("Members")}</Heading>
+      <Heading>{t("Users")}</Heading>
       <Text as="p" type="secondary">
         <Trans>
           Everyone that has signed into {{ appName }} is listed here. It’s
@@ -167,7 +167,7 @@ function Members() {
         <ExportCSV reqParams={reqParams} />
       </StickyFilters>
       <ConditionalFade animate={!data}>
-        <MembersTable
+        <UsersTable
           data={data ?? []}
           sort={sort}
           canManage={can.update}
@@ -228,4 +228,4 @@ const LargeUserRoleFilter = styled(UserRoleFilter)`
   height: 32px;
 `;
 
-export default observer(Members);
+export default observer(Users);

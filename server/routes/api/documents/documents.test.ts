@@ -6,10 +6,12 @@ import FormData from "form-data";
 import {
   CollectionPermission,
   DocumentPermission,
+  ExportContentType,
   StatusFilter,
   UserRole,
 } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
+import { DocumentValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Group, User } from "@server/models";
@@ -38,8 +40,13 @@ import {
   buildGroup,
   buildAdmin,
   buildTemplate,
+  buildAttachment,
 } from "@server/test/factories";
-import { getTestServer, withAPIContext } from "@server/test/support";
+import {
+  getTestServer,
+  readZipResponse,
+  withAPIContext,
+} from "@server/test/support";
 
 const server = getTestServer();
 
@@ -603,6 +610,10 @@ describe("#documents.info", () => {
 });
 
 describe("#documents.export", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("should return published document", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -685,6 +696,117 @@ describe("#documents.export", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data).toEqual(await DocumentHelper.toMarkdown(document));
+  });
+
+  it("should stream a zip when the document has attachments", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      title: "Export Test",
+      userId: user.id,
+      teamId: user.teamId,
+      text: `![image](${attachment.redirectUrl})`,
+    });
+    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
+      Buffer.from("image-data")
+    );
+
+    const res = await server.post("/api/documents.export", user, {
+      body: {
+        id: document.id,
+      },
+      headers: {
+        accept: "text/markdown",
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toEqual("application/zip");
+    expect(res.headers.get("content-disposition")).toContain(
+      `filename="export-test.zip"`
+    );
+
+    const location = `attachments/${attachment.id}.png`;
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([location, "export-test.md"]);
+    expect(entries[location]).toEqual("image-data");
+    expect(entries["export-test.md"]).toContain(location);
+    expect(entries["export-test.md"]).not.toContain(attachment.redirectUrl);
+  });
+
+  it("should stream a textpack when TextBundle is requested", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment(
+      { teamId: user.teamId, userId: user.id, contentType: "image/png" },
+      "photo.png"
+    );
+    const document = await buildDocument({
+      title: "Export Test",
+      userId: user.id,
+      teamId: user.teamId,
+      text: `![image](${attachment.redirectUrl})`,
+    });
+    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
+      Buffer.from("image-data")
+    );
+
+    const res = await server.post("/api/documents.export", user, {
+      body: {
+        id: document.id,
+      },
+      headers: {
+        accept: ExportContentType.TextBundle,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-disposition")).toContain(
+      `filename="export-test.textpack"`
+    );
+
+    const bundle = "export-test.textbundle";
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([
+      `${bundle}/assets/photo.png`,
+      `${bundle}/info.json`,
+      `${bundle}/text.markdown`,
+    ]);
+    expect(entries[`${bundle}/assets/photo.png`]).toEqual("image-data");
+    expect(entries[`${bundle}/text.markdown`]).toContain("assets/photo.png");
+    expect(JSON.parse(entries[`${bundle}/info.json`]).type).toEqual(
+      "net.daringfireball.markdown"
+    );
+  });
+
+  it("should stream a textpack when TextBundle is requested for a document with no attachments", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      title: "Plain Export",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.export", user, {
+      body: {
+        id: document.id,
+      },
+      headers: {
+        accept: ExportContentType.TextBundle,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+
+    // A bundle is a directory, so there is no self-contained single file form
+    // to fall back to when nothing is referenced.
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([
+      "plain-export.textbundle/info.json",
+      "plain-export.textbundle/text.markdown",
+    ]);
   });
 
   it("should require authorization without token", async () => {
@@ -2886,6 +3008,23 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(403);
   });
 
+  it("should fail with not found for a revision that does not exist", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.restore", user, {
+      body: {
+        id: document.id,
+        revisionId: faker.string.uuid(),
+      },
+    });
+
+    expect(res.status).toEqual(404);
+  });
+
   it("should require id", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -3456,6 +3595,17 @@ describe("#documents.create", () => {
     expect(body.data.title).toEqual("");
   });
 
+  it("should not create a document with text over the maximum length", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "title",
+        text: "a".repeat(DocumentValidation.maxLength + 1),
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should use template title when doc is created using a template and title is not explicitly passed", async () => {
     const user = await buildUser();
     const template = await buildTemplate({
@@ -3792,6 +3942,21 @@ describe("#documents.update", () => {
       },
     });
     expect(events.length).toEqual(1);
+  });
+
+  it("should not update a document with text over the maximum length", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        text: "a".repeat(DocumentValidation.maxLength + 1),
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should not allow publishing a draft without specifying the collection", async () => {
@@ -5753,6 +5918,207 @@ describe("#documents.duplicate", () => {
     expect(body.data.documents).toHaveLength(2);
     expect(body.data.documents[0].fullWidth).toBe(true);
     expect(body.data.documents[1].fullWidth).toBe(true);
+  });
+
+  it("should allow duplicating from a read-only collection into a writable one", async () => {
+    const user = await buildUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: source.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        collectionId: destination.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].collectionId).toEqual(destination.id);
+  });
+
+  it("should allow duplicating from a read-only collection under a writable parent", async () => {
+    const user = await buildUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: source.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      collectionId: destination.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        collectionId: destination.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].parentDocumentId).toEqual(parent.id);
+    expect(body.data.documents[0].collectionId).toEqual(destination.id);
+  });
+
+  it("should not allow a collectionId that disagrees with the parent document", async () => {
+    const user = await buildUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: source.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      collectionId: destination.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        // deliberately mismatched with the parent's collection
+        collectionId: source.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "collectionId must match the collection of the parent document"
+    );
+  });
+
+  it("should place the copy in the parent's collection when no collectionId is given", async () => {
+    const user = await buildUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: source.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      collectionId: destination.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].collectionId).toEqual(destination.id);
+    expect(body.data.documents[0].parentDocumentId).toEqual(parent.id);
+  });
+
+  it("should not allow duplicating under a parent in a read-only collection", async () => {
+    const user = await buildUser();
+    const source = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const destination = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: source.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      collectionId: destination.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        parentDocumentId: parent.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow duplicating into a read-only collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.Read,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow a viewer to duplicate", async () => {
+    const user = await buildViewer();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.duplicate", user, {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
   });
 });
 

@@ -1,10 +1,5 @@
 import type { RefractorSyntax } from "refractor";
-import Storage from "../../utils/Storage";
-
-const RecentlyUsedStorageKey = "rme-code-language";
-const StorageKey = "frequent-code-languages";
-const frequentLanguagesToGet = 5;
-const frequentLanguagesToTrack = 10;
+import { FrequencyTracker } from "../../utils/FrequencyTracker";
 
 /**
  * Describes a code language supported by the editor.
@@ -394,89 +389,35 @@ const nonPersistableLanguages = ["mermaid", "mermaidjs"];
 const isPersistableCodeLanguage = (language: string) =>
   !nonPersistableLanguages.includes(language);
 
+const codeLanguageFrequency = new FrequencyTracker<keyof typeof codeLanguages>({
+  key: "frequent-code-languages",
+  recentKey: "rme-code-language",
+  track: 10,
+  get: 5,
+  filter: isPersistableCodeLanguage,
+});
+
 /**
  * Set the most recent code language used.
  *
  * @param language The language identifier.
  */
-export const setRecentlyUsedCodeLanguage = (language: string) => {
-  if (!isPersistableCodeLanguage(language)) {
-    return;
-  }
-
-  const frequentLangs = (Storage.get(StorageKey) ?? {}) as Record<
-    string,
-    number
-  >;
-
-  if (Object.keys(frequentLangs).length === 0) {
-    const lastUsedLang = Storage.get(RecentlyUsedStorageKey);
-    if (lastUsedLang) {
-      frequentLangs[lastUsedLang] = 1;
-    }
-  }
-
-  frequentLangs[language] = (frequentLangs[language] ?? 0) + 1;
-
-  const frequentLangEntries = Object.entries(frequentLangs);
-
-  if (frequentLangEntries.length > frequentLanguagesToTrack) {
-    sortFrequencies(frequentLangEntries);
-
-    const lastEntry = frequentLangEntries[frequentLanguagesToTrack];
-    if (lastEntry[0] === language) {
-      frequentLangEntries.splice(frequentLanguagesToTrack - 1, 1);
-    } else {
-      frequentLangEntries.splice(frequentLanguagesToTrack);
-    }
-  }
-
-  Storage.set(StorageKey, Object.fromEntries(frequentLangEntries));
-  Storage.set(RecentlyUsedStorageKey, language);
-};
+export const setRecentlyUsedCodeLanguage = (language: string) =>
+  codeLanguageFrequency.track(language as keyof typeof codeLanguages);
 
 /**
  * Get the most recent code language used.
  *
  * @returns The most recent code language used, or undefined if none is set.
  */
-export const getRecentlyUsedCodeLanguage = () => {
-  const language = Storage.get(RecentlyUsedStorageKey) as
-    | keyof typeof codeLanguages
-    | undefined;
-  return language && isPersistableCodeLanguage(language) ? language : undefined;
-};
+export const getRecentlyUsedCodeLanguage = () => codeLanguageFrequency.recent;
 
 /**
  * Get the most frequent code languages used.
  *
  * @returns An array of the most frequent code languages used.
  */
-export const getFrequentCodeLanguages = () => {
-  const recentLang = getRecentlyUsedCodeLanguage();
-  const frequentLangEntries = (
-    Object.entries(Storage.get(StorageKey) ?? {}) as [
-      keyof typeof codeLanguages,
-      number,
-    ][]
-  ).filter(([lang]) => isPersistableCodeLanguage(lang));
-
-  const frequentLangs = sortFrequencies(frequentLangEntries)
-    .slice(0, frequentLanguagesToGet)
-    .map(([lang]) => lang);
-
-  const isRecentLangPresent =
-    !!recentLang && frequentLangs.includes(recentLang);
-  if (recentLang && !isRecentLangPresent) {
-    frequentLangs.pop();
-    frequentLangs.push(recentLang);
-  }
-
-  return frequentLangs;
-};
-
-const sortFrequencies = <T>(freqs: [T, number][]) =>
-  freqs.sort((a, b) => (a[1] >= b[1] ? -1 : 1));
+export const getFrequentCodeLanguages = () => codeLanguageFrequency.frequent;
 
 export const languagesWithFourSpaceIndent = [
   "python",

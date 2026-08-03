@@ -38,9 +38,15 @@ jobs:
           echo "latest=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
           echo "Latest Node.js LTS version: $LATEST_VERSION"
 
+          # Only update when the latest LTS is strictly newer, never downgrade
+          NEWEST=$(printf '%s\n%s\n' "$CURRENT_VERSION" "$LATEST_VERSION" | sort -V | tail -n1)
+
           if [ "$CURRENT_VERSION" = "$LATEST_VERSION" ]; then
             echo "updated=false" >> "$GITHUB_OUTPUT"
             echo "Already up to date."
+          elif [ "$NEWEST" = "$CURRENT_VERSION" ]; then
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+            echo "Current version $CURRENT_VERSION is newer than the latest LTS $LATEST_VERSION, skipping."
           else
             echo "updated=true" >> "$GITHUB_OUTPUT"
             echo "Update available: $CURRENT_VERSION -> $LATEST_VERSION"

@@ -20,7 +20,7 @@ type Props = {
 };
 
 /**
- * A button that exports all members to a CSV file.
+ * A button that exports all users to a CSV file.
  */
 export function ExportCSV({ reqParams }: Props) {
   const { t } = useTranslation();
@@ -60,10 +60,10 @@ export function ExportCSV({ reqParams }: Props) {
       const csv = CSVHelper.convertToCSV(csvData, headers);
 
       // Trigger download
-      download(csv, "members.csv", "text/csv");
-      toast.success(t("Members exported successfully"));
+      download(csv, "users.csv", "text/csv");
+      toast.success(t("Users exported successfully"));
     } catch {
-      toast.error(t("Failed to export members"));
+      toast.error(t("Failed to export users"));
     } finally {
       setIsExporting(false);
     }

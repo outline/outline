@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import tmp from "tmp";
 import type { Entry } from "yauzl";
 import yauzl, { validateFileName } from "yauzl";
-import type { ZipFile } from "yazl";
+import { ZipFile } from "yazl";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -46,31 +46,54 @@ export default class ZipHelper {
   /**
    * Write a zip file to a temporary disk location.
    *
-   * The caller is responsible for adding entries to the `ZipFile`; this method
-   * calls `end()` and waits for the output stream to drain to disk.
+   * Entries are added by the `addEntries` callback, which receives an archive
+   * that is already draining to disk. Adding entries only after a reader is
+   * attached keeps memory proportional to a single entry rather than to the
+   * size of the whole archive.
    *
-   * @param zip yazl ZipFile object with entries already added.
+   * @param addEntries Callback that populates the archive.
    * @returns pathname of the temporary file where the zip was written to disk.
+   * @throws if the archive could not be built or written to disk.
    */
-  public static async toTmpFile(zip: ZipFile): Promise<string> {
+  public static async toTmpFile(
+    addEntries: (zip: ZipFile) => Promise<void>
+  ): Promise<string> {
     Logger.debug("utils", "Creating tmp file…");
     const filePath = await createTmpFile({
       prefix: "export-",
       postfix: ".zip",
     });
 
+    const zip = new ZipFile();
+    const writeStream = fs.createWriteStream(filePath);
+    // yazl reports failures on the archive rather than on its output stream,
+    // so route them into the pipeline to get a single failure path.
+    zip.on("error", (error: Error) => writeStream.destroy(error));
+
+    const writing = pipeline(zip.outputStream, writeStream);
+    // Resolve rather than reject, so that a write failure while entries are
+    // still being added is never an unhandled rejection.
+    const written = writing.then(
+      () => undefined,
+      (error: Error) => error
+    );
+
     try {
-      const writing = pipeline(
-        zip.outputStream,
-        fs.createWriteStream(filePath)
-      );
+      await addEntries(zip);
       zip.end();
-      await writing;
     } catch (error) {
-      await fs.remove(filePath).catch((rmErr) => {
-        Logger.error("Failed to remove tmp file", rmErr);
-      });
+      // Unblock the pipeline, which is still waiting on entries that will now
+      // never arrive.
+      writeStream.destroy();
+      await written;
+      await removeTmpFile(filePath);
       throw error;
+    }
+
+    const writeError = await written;
+    if (writeError) {
+      await removeTmpFile(filePath);
+      throw writeError;
     }
 
     Logger.debug("utils", "Writing zip complete", { path: filePath });
@@ -82,120 +105,139 @@ export default class ZipHelper {
    * Entries are visited serially in archive order. `onEntry` may be async; the
    * next entry is only read once the previous handler resolves.
    *
-   * @param filePath The file path where the zip is located.
+   * @param source The file path where the zip is located, or a Buffer holding
+   *               the zip contents already in memory.
    * @param onEntry Handler invoked for each entry. Skip an entry by returning
    *                without calling `entry.readBuffer(maxSize)`.
    * @returns Promise that resolves once the archive has been fully walked.
    */
   public static walk(
-    filePath: string,
+    source: string | Buffer,
     onEntry: (entry: ZipEntryHandle) => Promise<void> | void
   ): Promise<void> {
     return new Promise((resolve, reject) => {
-      yauzl.open(
-        filePath,
-        {
-          lazyEntries: true,
-          autoClose: true,
-          decodeStrings: false,
-        },
-        function (err, zipfile) {
-          if (err) {
-            return reject(err);
+      const options = {
+        lazyEntries: true,
+        autoClose: true,
+        decodeStrings: false,
+      };
+
+      const onOpen = function (
+        err: Error | null,
+        zipfile: yauzl.ZipFile
+      ): void {
+        if (err) {
+          return reject(err);
+        }
+
+        let settled = false;
+        const fail = (error: Error) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          zipfile.close();
+          reject(error);
+        };
+
+        zipfile.on("entry", (entry: Entry) => {
+          const fileName = Buffer.from(entry.fileName).toString("utf8");
+
+          if (validateFileName(fileName)) {
+            Logger.warn("Invalid zip entry", { fileName });
+            zipfile.readEntry();
+            return;
           }
 
-          let settled = false;
-          const fail = (error: Error) => {
-            if (settled) {
-              return;
-            }
-            settled = true;
-            zipfile.close();
-            reject(error);
+          const handle: ZipEntryHandle = {
+            fileName,
+            uncompressedSize: entry.uncompressedSize,
+            isDirectory: fileName.endsWith("/"),
+            readBuffer: (maxSize) =>
+              new Promise<Buffer>((res, rej) => {
+                if (entry.uncompressedSize > maxSize) {
+                  return rej(ZipHelper.entryTooLargeError(fileName, maxSize));
+                }
+
+                zipfile.openReadStream(entry, (rErr, readStream) => {
+                  if (rErr) {
+                    return rej(rErr);
+                  }
+                  const chunks: Buffer[] = [];
+                  let bytesRead = 0;
+                  let settled = false;
+                  readStream.on("data", (chunk: Buffer) => {
+                    bytesRead += chunk.length;
+                    if (bytesRead > maxSize) {
+                      readStream.destroy(
+                        ZipHelper.entryTooLargeError(fileName, maxSize)
+                      );
+                      return;
+                    }
+                    chunks.push(chunk);
+                  });
+                  readStream.on("end", () => {
+                    if (!settled) {
+                      settled = true;
+                      res(Buffer.concat(chunks));
+                    }
+                  });
+                  readStream.on("error", (err) => {
+                    if (!settled) {
+                      settled = true;
+                      rej(err);
+                    }
+                  });
+                  readStream.on("close", () => {
+                    if (!settled) {
+                      settled = true;
+                      rej(
+                        new Error(
+                          `Stream closed before completing read of ${fileName}`
+                        )
+                      );
+                    }
+                  });
+                });
+              }),
           };
 
-          zipfile.on("entry", (entry: Entry) => {
-            const fileName = Buffer.from(entry.fileName).toString("utf8");
+          Promise.resolve()
+            .then(() => onEntry(handle))
+            .then(() => {
+              if (!settled) {
+                zipfile.readEntry();
+              }
+            })
+            .catch(fail);
+        });
 
-            if (validateFileName(fileName)) {
-              Logger.warn("Invalid zip entry", { fileName });
-              zipfile.readEntry();
-              return;
-            }
+        const done = () => {
+          if (!settled) {
+            settled = true;
+            resolve();
+          }
+        };
 
-            const handle: ZipEntryHandle = {
-              fileName,
-              uncompressedSize: entry.uncompressedSize,
-              isDirectory: fileName.endsWith("/"),
-              readBuffer: (maxSize) =>
-                new Promise<Buffer>((res, rej) => {
-                  if (entry.uncompressedSize > maxSize) {
-                    return rej(ZipHelper.entryTooLargeError(fileName, maxSize));
-                  }
-
-                  zipfile.openReadStream(entry, (rErr, readStream) => {
-                    if (rErr) {
-                      return rej(rErr);
-                    }
-                    const chunks: Buffer[] = [];
-                    let bytesRead = 0;
-                    let settled = false;
-                    readStream.on("data", (chunk: Buffer) => {
-                      bytesRead += chunk.length;
-                      if (bytesRead > maxSize) {
-                        readStream.destroy(
-                          ZipHelper.entryTooLargeError(fileName, maxSize)
-                        );
-                        return;
-                      }
-                      chunks.push(chunk);
-                    });
-                    readStream.on("end", () => {
-                      if (!settled) {
-                        settled = true;
-                        res(Buffer.concat(chunks));
-                      }
-                    });
-                    readStream.on("error", (err) => {
-                      if (!settled) {
-                        settled = true;
-                        rej(err);
-                      }
-                    });
-                    readStream.on("close", () => {
-                      if (!settled) {
-                        settled = true;
-                        rej(
-                          new Error(
-                            `Stream closed before completing read of ${fileName}`
-                          )
-                        );
-                      }
-                    });
-                  });
-                }),
-            };
-
-            Promise.resolve()
-              .then(() => onEntry(handle))
-              .then(() => {
-                if (!settled) {
-                  zipfile.readEntry();
-                }
-              })
-              .catch(fail);
-          });
-
-          zipfile.on("close", () => {
-            if (!settled) {
-              settled = true;
-              resolve();
-            }
-          });
-          zipfile.on("error", (error) => fail(error));
-          zipfile.readEntry();
+        // A file-backed archive resolves on "close", so that its descriptor is
+        // released before the caller gets control back and can delete the file.
+        // A buffer-backed one has no descriptor and yauzl's BufferSlicer never
+        // emits "close", so "end" — every entry read — is the only signal.
+        if (typeof source === "string") {
+          zipfile.on("close", done);
+        } else {
+          zipfile.on("end", done);
         }
-      );
+
+        zipfile.on("error", (error) => fail(error));
+        zipfile.readEntry();
+      };
+
+      if (typeof source === "string") {
+        yauzl.open(source, options, onOpen);
+      } else {
+        yauzl.fromBuffer(source, options, onOpen);
+      }
     });
   }
 
@@ -293,12 +335,25 @@ export default class ZipHelper {
 /**
  * Promisified wrapper around tmp.file.
  *
+ * The descriptor tmp opens is discarded, as the file is written through a
+ * separate stream — retaining it would leak a descriptor per call.
+ *
  * @param options options passed through to tmp.
  * @returns the path of the created temporary file.
  */
 const createTmpFile = (options: tmp.FileOptions) =>
   new Promise<string>((resolve, reject) => {
-    tmp.file(options, (err, filePath) =>
+    tmp.file({ ...options, discardDescriptor: true }, (err, filePath) =>
       err ? reject(err) : resolve(filePath)
     );
+  });
+
+/**
+ * Delete a temporary file, logging rather than throwing on failure.
+ *
+ * @param filePath the path of the file to remove.
+ */
+const removeTmpFile = (filePath: string) =>
+  fs.remove(filePath).catch((error) => {
+    Logger.error("Failed to remove tmp file", error);
   });

@@ -1,22 +1,26 @@
 import type { Primitive } from "utility-types";
 
 /**
- * Storage is a wrapper class for localStorage that allow safe usage when
- * localStorage is not available.
+ * Storage is a wrapper class for web storage that allows safe usage when
+ * localStorage or sessionStorage are not available.
  */
-class Storage {
+export class Storage {
   interface: typeof localStorage | MemoryStorage;
 
-  public constructor() {
+  /**
+   * @param type whether to persist for the session only, or indefinitely.
+   */
+  public constructor(type: "local" | "session" = "local") {
     try {
-      // Avoid touching the `localStorage` global outside the browser; in Node it
-      // resolves to an experimental Web Storage API that emits a warning on access.
+      // Avoid touching the storage globals outside the browser; in Node they
+      // resolve to an experimental Web Storage API that emits a warning on access.
       if (typeof window === "undefined") {
-        throw new Error("localStorage is not available");
+        throw new Error("Web storage is not available");
       }
-      localStorage.setItem("test", "test");
-      localStorage.removeItem("test");
-      this.interface = localStorage;
+      const storage = type === "session" ? sessionStorage : localStorage;
+      storage.setItem("test", "test");
+      storage.removeItem("test");
+      this.interface = storage;
     } catch (_err) {
       this.interface = new MemoryStorage();
     }

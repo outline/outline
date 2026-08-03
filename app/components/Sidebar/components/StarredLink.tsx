@@ -20,6 +20,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import DocumentMenu from "~/menus/DocumentMenu";
+import * as Scenes from "~/routes/scenes";
 import { documentEditPath } from "~/utils/routeHelpers";
 import {
   useDragStar,
@@ -290,6 +291,7 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
   }, []);
 
   const handlePrefetch = React.useCallback(() => {
+    void Scenes.Collection.preload();
     void collection.fetchDocuments();
   }, [collection]);
 
@@ -432,6 +434,7 @@ function StarredLink({ star }: Props) {
 
   const handlePrefetch = React.useCallback(() => {
     if (documentId) {
+      void Scenes.Document.preload();
       void documents.prefetchDocument(documentId);
       const document = documents.get(documentId);
       const documentCollection = document?.collectionId

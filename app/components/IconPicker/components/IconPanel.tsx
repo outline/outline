@@ -7,8 +7,9 @@ import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import { DisplayCategory } from "../utils";
 import IconColorPicker from "./IconColorPicker";
-import type { DataNode } from "./GridTemplate";
+import type { DataNode, IconNode } from "./GridTemplate";
 import GridTemplate from "./GridTemplate";
+import { IconPreview, PREVIEW_HEIGHT } from "./IconPreview";
 import { useIconState } from "../useIconState";
 
 const IconNames = Object.keys(IconLibrary.mapping);
@@ -18,7 +19,7 @@ const TotalIcons = IconNames.length;
  * This is needed as a constant for react-window.
  * Calculated from the heights of TabPanel, ColorPicker and InputSearch.
  */
-const GRID_HEIGHT = 314;
+const GRID_HEIGHT = 314 - PREVIEW_HEIGHT;
 
 type Props = {
   panelWidth: number;
@@ -46,10 +47,9 @@ const IconPanel = ({
   const searchRef = React.useRef<HTMLInputElement | null>(null);
   const scrollableRef = React.useRef<HTMLDivElement | null>(null);
 
-  const { incrementIconCount, getFrequentIcons } = useIconState(IconType.SVG);
+  const { incrementIconCount, frequentIcons } = useIconState(IconType.SVG);
 
-  const freqIcons = React.useMemo(() => getFrequentIcons(), [getFrequentIcons]);
-  const totalFreqIcons = freqIcons.length;
+  const totalFrequentIcons = frequentIcons.length;
 
   const filteredIcons = React.useMemo(
     () => IconLibrary.findIcons(query),
@@ -58,7 +58,7 @@ const IconPanel = ({
 
   const isSearch = query !== "";
   const category = isSearch ? DisplayCategory.Search : DisplayCategory.All;
-  const delayPerIcon = 250 / (TotalIcons + totalFreqIcons);
+  const delayPerIcon = 250 / (TotalIcons + totalFrequentIcons);
 
   const handleFilter = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +75,24 @@ const IconPanel = ({
     [onIconChange, incrementIconCount]
   );
 
+  const [activeIcon, setActiveIcon] = React.useState<string>();
+  const [hasMoreBelow, setHasMoreBelow] = React.useState(false);
+
+  const handleIconActive = React.useCallback((icon: IconNode) => {
+    if (icon.type === IconType.SVG) {
+      setActiveIcon(icon.name);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    setActiveIcon(undefined);
+  }, [query]);
+
+  // Preview the first icon shown in the grid until the user hovers another.
+  const previewIcon =
+    activeIcon ??
+    (isSearch ? filteredIcons[0] : (frequentIcons[0] ?? filteredIcons[0]));
+
   const baseIcons: DataNode = {
     category,
     icons: filteredIcons.map((name, index) => ({
@@ -82,7 +100,7 @@ const IconPanel = ({
       name,
       color,
       initial,
-      delay: Math.round((index + totalFreqIcons) * delayPerIcon),
+      delay: Math.round((index + totalFrequentIcons) * delayPerIcon),
       onClick: handleIconSelection,
     })),
   };
@@ -92,12 +110,12 @@ const IconPanel = ({
     : [
         {
           category: DisplayCategory.Frequent,
-          icons: freqIcons.map((name, index) => ({
+          icons: frequentIcons.map((name, index) => ({
             type: IconType.SVG,
             name,
             color,
             initial,
-            delay: Math.round((index + totalFreqIcons) * delayPerIcon),
+            delay: Math.round((index + totalFrequentIcons) * delayPerIcon),
             onClick: handleIconSelection,
           })),
         },
@@ -133,6 +151,22 @@ const IconPanel = ({
         height={GRID_HEIGHT}
         data={templateData}
         onIconSelect={handleIconSelection}
+        onIconActive={handleIconActive}
+        onOverflowChange={setHasMoreBelow}
+      />
+      <IconPreview
+        showFade={hasMoreBelow}
+        icon={
+          previewIcon
+            ? {
+                type: IconType.SVG,
+                name: previewIcon,
+                color,
+                initial,
+                delay: 0,
+              }
+            : undefined
+        }
       />
     </Flex>
   );

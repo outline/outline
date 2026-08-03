@@ -6,14 +6,16 @@ import { escape } from "es-toolkit/compat";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import {
-  IntegrationType,
   TeamPreference,
+  type IntegrationType,
   type NavigationNode,
 } from "@shared/types";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import env from "@server/env";
+import { allowScriptSrc } from "@server/middlewares/csp";
 import { Integration } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import IntegrationHelper from "@server/models/helpers/IntegrationHelper";
 import presentEnv from "@server/presenters/env";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
@@ -99,18 +101,10 @@ export const renderApp = async (
     return next();
   }
 
-  if (!env.isCloudHosted) {
-    options.analytics?.forEach((integration) => {
-      if (integration.settings?.instanceUrl) {
-        const parsed = new URL(integration.settings?.instanceUrl);
-        const csp = ctx.response.get("Content-Security-Policy");
-        ctx.set(
-          "Content-Security-Policy",
-          csp.replace("script-src", `script-src ${parsed.host}`)
-        );
-      }
-    });
-  }
+  allowScriptSrc(
+    ctx,
+    IntegrationHelper.getAnalyticsScriptSrc(options.analytics)
+  );
 
   const { shareId } = ctx.params;
   const page = await readIndexFile();
@@ -235,12 +229,9 @@ export const renderShare = async (ctx: Context, next: Next) => {
       return;
     }
 
-    analytics = await Integration.findAll({
-      where: {
-        teamId: share.teamId,
-        type: IntegrationType.Analytics,
-      },
-    });
+    analytics = await Integration.findAnalyticsIntegrationsForTeam(
+      share.teamId
+    );
 
     if (share && !ctx.userAgent.isBot) {
       await share.update(

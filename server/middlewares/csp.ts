@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import type { Context, Next } from "koa";
 import { contentSecurityPolicy } from "koa-helmet";
+import { asyncNoop } from "es-toolkit";
 import { uniq } from "es-toolkit/compat";
 import env from "@server/env";
 
@@ -36,6 +37,28 @@ const getBucketOrigin = () => {
 interface CSPOptions {
   /** Additional origins to allow as script sources. */
   extraScriptSrc?: string[];
+}
+
+/**
+ * Allow additional origins as script sources in the Content Security Policy of
+ * the current response. Must be called before the response is sent.
+ *
+ * @param ctx The Koa context of the current request.
+ * @param sources The origins to allow.
+ */
+export function allowScriptSrc(ctx: Context, sources: string[]) {
+  ctx.state.cspScriptSrc = [...(ctx.state.cspScriptSrc ?? []), ...sources];
+}
+
+/**
+ * Allow additional origins as style sources in the Content Security Policy of
+ * the current response. Must be called before the response is sent.
+ *
+ * @param ctx The Koa context of the current request.
+ * @param sources The origins to allow.
+ */
+export function allowStyleSrc(ctx: Context, sources: string[]) {
+  ctx.state.cspStyleSrc = [...(ctx.state.cspStyleSrc ?? []), ...sources];
 }
 
 /**
@@ -81,39 +104,51 @@ export default function createCSPMiddleware(options?: CSPOptions) {
     objectSrc.push(bucketOrigin);
   }
 
-  return function cspMiddleware(ctx: Context, next: Next) {
+  return async function cspMiddleware(ctx: Context, next: Next) {
     ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
+    ctx.state.cspScriptSrc = [];
+    ctx.state.cspStyleSrc = [];
 
-    // Note: workerSrc is included even though it's missing from the koa-helmet
-    // type definitions — the underlying helmet supports it. The service worker
-    // is served from the same origin as the document, which may be a custom
-    // domain that is not present in scriptSrc.
-    const directives = {
-      baseUri: ["'none'"],
-      defaultSrc,
-      styleSrc,
-      scriptSrc: [
-        ...uniq(scriptSrc),
-        // Allow the service worker to importScripts the workbox runtime, which
-        // is served under /static on the document host.. Scoped to the /static
-        // path so only immutable build assets are permitted, not ugc served
-        // elsewhere on the same origin.
-        `${ctx.host}/static/`,
-        ...(options?.extraScriptSrc ?? []),
-        env.DEVELOPMENT_UNSAFE_INLINE_CSP
-          ? "'unsafe-inline'"
-          : `'nonce-${ctx.state.cspNonce}'`,
-      ],
-      mediaSrc: ["*", "data:", "blob:"],
-      imgSrc: ["*", "data:", "blob:"],
-      frameSrc: ["*", "data:"],
-      workerSrc: ["'self'"],
-      objectSrc,
-      // Do not use connect-src: because self + websockets does not work in
-      // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
-      connectSrc: ["*"],
-    };
+    try {
+      await next();
+    } finally {
+      // The policy is written once downstream middleware has had the chance to
+      // allow additional sources for the response, see `allowScriptSrc` and
+      // `allowStyleSrc`.
+      if (!ctx.res.headersSent) {
+        // Note: workerSrc is included even though it's missing from the
+        // koa-helmet type definitions — the underlying helmet supports it. The
+        // service worker is served from the same origin as the document, which
+        // may be a custom domain that is not present in scriptSrc.
+        const directives = {
+          baseUri: ["'none'"],
+          defaultSrc,
+          styleSrc: uniq([...styleSrc, ...(ctx.state.cspStyleSrc as string[])]),
+          scriptSrc: uniq([
+            ...scriptSrc,
+            // Allow the service worker to importScripts the workbox runtime,
+            // which is served under /static on the document host.. Scoped to
+            // the /static path so only immutable build assets are permitted,
+            // not ugc served elsewhere on the same origin.
+            `${ctx.host}/static/`,
+            ...(options?.extraScriptSrc ?? []),
+            ...(ctx.state.cspScriptSrc as string[]),
+            env.DEVELOPMENT_UNSAFE_INLINE_CSP
+              ? "'unsafe-inline'"
+              : `'nonce-${ctx.state.cspNonce}'`,
+          ]),
+          mediaSrc: ["*", "data:", "blob:"],
+          imgSrc: ["*", "data:", "blob:"],
+          frameSrc: ["*", "data:"],
+          workerSrc: ["'self'"],
+          objectSrc,
+          // Do not use connect-src: because self + websockets does not work in
+          // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
+          connectSrc: ["*"],
+        };
 
-    return contentSecurityPolicy({ directives })(ctx, next);
+        await contentSecurityPolicy({ directives })(ctx, asyncNoop);
+      }
+    }
   };
 }

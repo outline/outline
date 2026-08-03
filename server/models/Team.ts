@@ -28,7 +28,11 @@ import { isEmail } from "validator";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import type { TeamPreferences } from "@shared/types";
 import { TeamPreference, UserRole } from "@shared/types";
-import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import {
+  getBaseDomain,
+  parseDomain,
+  RESERVED_SUBDOMAINS,
+} from "@shared/utils/domains";
 import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { parseEmail } from "@shared/utils/email";
 import { TeamValidation } from "@shared/validations";
@@ -283,6 +287,20 @@ class Team extends ParanoidModel<
 
     url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
+  }
+
+  /**
+   * Returns whether the given url points at this team's installation, taking
+   * into account custom domains and hosted subdomains.
+   *
+   * @param url The url to check.
+   * @returns True if the url belongs to this team.
+   */
+  public isTeamUrl(url: string): boolean {
+    if (!url) {
+      return false;
+    }
+    return parseDomain(url).host === parseDomain(this.url).host;
   }
 
   /**

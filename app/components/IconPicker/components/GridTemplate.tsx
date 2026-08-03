@@ -21,7 +21,7 @@ const BUTTON_SIZE_MOBILE = 40;
 const ICON_SIZE_DESKTOP = 24;
 const ICON_SIZE_MOBILE = 32;
 
-type OutlineNode = {
+export type OutlineNode = {
   type: IconType.SVG;
   name: string;
   color: string;
@@ -36,9 +36,11 @@ export type EmojiNode = {
   name?: string;
 };
 
+export type IconNode = OutlineNode | EmojiNode;
+
 export type DataNode = {
   category: keyof typeof TRANSLATED_CATEGORIES;
-  icons: (OutlineNode | EmojiNode)[];
+  icons: IconNode[];
 };
 
 type Props = {
@@ -52,10 +54,22 @@ type Props = {
   empty?: React.ReactNode;
   /** Callback when an icon is selected */
   onIconSelect: ({ id, value }: { id: string; value: string }) => void;
+  /** Callback when an icon is hovered or focused */
+  onIconActive?: (icon: IconNode) => void;
+  /** Callback when whether the grid has content below the fold changes */
+  onOverflowChange?: (hasMoreBelow: boolean) => void;
 };
 
 const GridTemplate = (
-  { width, height, data, empty, onIconSelect }: Props,
+  {
+    width,
+    height,
+    data,
+    empty,
+    onIconSelect,
+    onIconActive,
+    onOverflowChange,
+  }: Props,
   ref: React.Ref<HTMLDivElement>
 ) => {
   const isMobile = useMobile();
@@ -85,11 +99,15 @@ const GridTemplate = (
       }
 
       const items = node.icons.map((item) => {
+        const handleActive = () => onIconActive?.(item);
+
         if (item.type === IconType.SVG) {
           return (
             <IconButton
               key={item.name}
               onClick={() => onIconSelect({ id: item.name, value: item.name })}
+              onMouseEnter={handleActive}
+              onFocus={handleActive}
               style={{ "--delay": `${item.delay}ms` } as React.CSSProperties}
             >
               <Icon
@@ -107,6 +125,8 @@ const GridTemplate = (
           <IconButton
             key={item.id}
             onClick={() => onIconSelect({ id: item.id, value: item.value })}
+            onMouseEnter={handleActive}
+            onFocus={handleActive}
           >
             <Emoji
               width={iconSize}
@@ -136,6 +156,7 @@ const GridTemplate = (
       data={gridItems}
       columns={itemsPerRow}
       itemWidth={buttonSize}
+      onOverflowChange={onOverflowChange}
     />
   );
 };

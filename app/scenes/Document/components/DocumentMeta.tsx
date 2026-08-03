@@ -1,15 +1,15 @@
 import type { LocationDescriptor } from "history";
 import { observer, useObserver } from "mobx-react";
 import { CommentIcon } from "outline-icons";
-import { useRef, Fragment } from "react";
+import { useRef, Fragment, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
 import type Template from "~/models/Template";
 import { openDocumentInsights } from "~/actions/definitions/documents";
-import DocumentMeta, { Separator } from "~/components/DocumentMeta";
+import DocumentMeta, { MetaButton, Separator } from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
 import { useSplitView } from "~/components/SplitView/context";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -18,7 +18,6 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import breakpoint from "styled-components-breakpoint";
 import { documentPath } from "~/utils/routeHelpers";
-import NudeButton from "~/components/NudeButton";
 
 type Props = {
   /* The document to display meta data for */
@@ -31,6 +30,7 @@ type Props = {
 function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
   const { views, comments, ui } = useStores();
   const { t } = useTranslation();
+  const history = useHistory();
   const { pane } = useSplitView();
   const sidebarContext = useLocationSidebarContext();
   const team = useCurrentTeam();
@@ -44,76 +44,57 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
 
   const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);
   const commentingEnabled = team.commentingEnabled;
+  const commentsOpen = ui.getRightSidebar(pane) === "comments";
+
+  const handleClickMeta = useCallback(() => {
+    if (to) {
+      history.replace(to);
+    }
+  }, [history, to]);
+
+  const handleClickComment = useCallback(() => {
+    history.push({
+      pathname: documentPath(document as Document),
+      state: { sidebarContext },
+    });
+    ui.setRightSidebar(commentsOpen ? null : "comments", pane);
+  }, [history, document, sidebarContext, ui, pane, commentsOpen]);
 
   return (
     <Meta
       document={document as Document}
       revision={revision}
-      to={to}
-      replace
+      onClick={to ? handleClickMeta : undefined}
       $rtl={rtl}
       {...rest}
     >
       {commentingEnabled && can.comment && (
         <>
           <Separator />
-          <CommentLink
-            to={{
-              pathname: documentPath(document as Document),
-              state: { sidebarContext },
-            }}
-            onClick={() =>
-              ui.setRightSidebar(
-                ui.getRightSidebar(pane) === "comments" ? null : "comments",
-                pane
-              )
-            }
-          >
+          <MetaButton onClick={handleClickComment} aria-expanded={commentsOpen}>
             <CommentIcon size={18} />
             {commentsCount
               ? t("{{ count }} comment", { count: commentsCount })
               : t("Comment")}
-          </CommentLink>
+          </MetaButton>
         </>
       )}
       {totalViewers && can.listViews && !(document as Document).isDraft ? (
         <Wrapper>
           <Separator />
-          <InsightsButton action={openDocumentInsights}>
+          <MetaButton action={openDocumentInsights}>
             {t("Viewed by")}{" "}
             {onlyYou
               ? t("only you")
               : `${totalViewers} ${
                   totalViewers === 1 ? t("person") : t("people")
                 }`}
-          </InsightsButton>
+          </MetaButton>
         </Wrapper>
       ) : null}
     </Meta>
   );
 }
-
-const CommentLink = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-`;
-
-const InsightsButton = styled(NudeButton)`
-  background: none;
-  border: none;
-  padding: 0;
-  width: auto;
-  height: auto;
-  color: inherit;
-  font: inherit;
-  text-decoration: none;
-  cursor: var(--pointer);
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
 
 export const Meta = styled(DocumentMeta)<{ $rtl?: boolean }>`
   justify-content: ${(props) => (props.$rtl ? "flex-end" : "flex-start")};

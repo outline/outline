@@ -4,6 +4,7 @@ import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { subMinutes } from "date-fns";
 import { randomString } from "@shared/random";
+import { errToId } from "@shared/utils/error";
 import { QueryNotices, TeamPreference } from "@shared/types";
 import {
   AuthenticationError,
@@ -104,7 +105,12 @@ router.post(
 
       ctx.body = {
         data: {
-          shares: [presentShare(share, user?.isAdmin ?? false)],
+          shares: [
+            presentShare(share, {
+              isAdmin: user?.isAdmin ?? false,
+              isPublic: cannot(user, "read", share),
+            }),
+          ],
           sharedTree,
           team: serializedTeam,
           collection: serializedCollection,
@@ -135,12 +141,14 @@ router.post(
 
       ctx.body = {
         data: {
-          shares: shares.map((s) => presentShare(s, user.isAdmin ?? false)),
+          shares: shares.map((s) =>
+            presentShare(s, { isAdmin: user.isAdmin ?? false })
+          ),
         },
         policies: presentPolicies(user, shares),
       };
     } catch (err) {
-      if (err instanceof Error && "id" in err && err.id === "not_found") {
+      if (errToId(err) === "not_found") {
         ctx.response.status = 204;
         return;
       }
@@ -221,7 +229,7 @@ router.post(
         },
         {
           model: User,
-          required: true,
+          required: false,
           as: "user",
         },
         {
@@ -245,7 +253,9 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data: shares.map((share) => presentShare(share, user.isAdmin)),
+      data: shares.map((share) =>
+        presentShare(share, { isAdmin: user.isAdmin })
+      ),
       policies: presentPolicies(user, shares),
     };
   }
@@ -406,7 +416,7 @@ router.post(
     await share.saveWithCtx(ctx);
 
     ctx.body = {
-      data: presentShare(share, user.isAdmin),
+      data: presentShare(share, { isAdmin: user.isAdmin }),
       policies: presentPolicies(user, [share]),
     };
   }

@@ -8,8 +8,9 @@ import { getEmojis, getEmojisWithCategory, search } from "@shared/utils/emoji";
 import Flex from "~/components/Flex";
 import { EmojiCreateDialog } from "~/components/EmojiDialog/EmojiCreateDialog";
 import { DisplayCategory } from "../utils";
-import type { DataNode, EmojiNode } from "./GridTemplate";
+import type { DataNode, EmojiNode, IconNode } from "./GridTemplate";
 import GridTemplate from "./GridTemplate";
+import { IconPreview, PREVIEW_HEIGHT } from "./IconPreview";
 import SkinTonePicker from "./SkinTonePicker";
 import { StyledInputSearch, UserInputContainer } from "./Components";
 import { useIconState } from "../useIconState";
@@ -55,18 +56,13 @@ const EmojiPanel = ({
     emojiSkinTone: skinTone,
     setEmojiSkinTone,
     incrementIconCount,
-    getFrequentIcons,
+    frequentIcons: freqEmojis,
   } = useIconState(IconType.Emoji);
 
   const {
     incrementIconCount: incrementCustomIconCount,
-    getFrequentIcons: getFrequentCustomIcons,
+    frequentIcons: freqCustomEmojiIds,
   } = useIconState(IconType.Custom);
-
-  const freqEmojis = React.useMemo(
-    () => getFrequentIcons(),
-    [getFrequentIcons]
-  );
 
   const [freqCustomEmojis, setFreqCustomEmojis] = React.useState<EmojiNode[]>(
     []
@@ -118,23 +114,30 @@ const EmojiPanel = ({
   );
 
   React.useEffect(() => {
-    // Load frequent custom emojis
-    getFrequentCustomIcons().forEach((id) => {
-      emojis
-        .fetch(id)
-        .then((emoji) => {
-          setFreqCustomEmojis((prev) => {
-            if (prev.some((item) => item.id === id)) {
-              return prev;
-            }
-            return [...prev, toIcon(emoji)];
-          });
-        })
-        .catch(() => {
-          // ignore
-        });
+    // Load frequent custom emojis, preserving frequency order and skipping
+    // any that no longer exist.
+    void Promise.all(
+      freqCustomEmojiIds.map((id) => emojis.fetch(id).catch(() => undefined))
+    ).then((fetched) => {
+      setFreqCustomEmojis(
+        fetched.flatMap((emoji) => (emoji ? [toIcon(emoji)] : []))
+      );
     });
-  }, [emojis, getFrequentCustomIcons]);
+  }, [emojis, freqCustomEmojiIds]);
+
+  const [activeEmoji, setActiveEmoji] = React.useState<EmojiNode>();
+  const [hasMoreBelow, setHasMoreBelow] = React.useState(false);
+
+  const handleEmojiActive = React.useCallback((icon: IconNode) => {
+    if (icon.type !== IconType.SVG) {
+      setActiveEmoji(icon);
+    }
+  }, []);
+
+  // Drop the preview when the grid contents change out from under it.
+  React.useEffect(() => {
+    setActiveEmoji(undefined);
+  }, [query, skinTone]);
 
   const isSearch = query !== "";
   const templateData: DataNode[] = isSearch
@@ -180,9 +183,11 @@ const EmojiPanel = ({
       <GridTemplate
         ref={scrollableRef}
         width={panelWidth}
-        height={height - 48}
+        height={height - 48 - PREVIEW_HEIGHT}
         data={templateData}
         onIconSelect={handleEmojiSelection}
+        onIconActive={handleEmojiActive}
+        onOverflowChange={setHasMoreBelow}
         empty={
           <IconButton
             onClick={handleUploadClick}
@@ -192,8 +197,18 @@ const EmojiPanel = ({
           </IconButton>
         }
       />
+      <IconPreview
+        icon={activeEmoji ?? firstIcon(templateData)}
+        showFade={hasMoreBelow}
+      />
     </Flex>
   );
+};
+
+/** The first icon shown in the grid, previewed until the user hovers another. */
+const firstIcon = (data: DataNode[]): EmojiNode | undefined => {
+  const icon = data.find((node) => node.icons.length)?.icons[0];
+  return icon && icon.type !== IconType.SVG ? icon : undefined;
 };
 
 const getSearchResults = ({
@@ -218,6 +233,7 @@ const getSearchResults = ({
       type: IconType.Emoji as const,
       id: emoji.id,
       value: emoji.value,
+      name: emoji.name,
     })),
   ];
 
@@ -251,6 +267,7 @@ const getAllEmojis = ({
         type: IconType.Emoji as const,
         id: emoji.id,
         value: emoji.value,
+        name: emoji.name,
       })),
       ...freqCustomEmojis,
     ];
@@ -269,6 +286,7 @@ const getAllEmojis = ({
         type: IconType.Emoji,
         id: emoji.id,
         value: emoji.value,
+        name: emoji.name,
       })),
     };
   };

@@ -93,11 +93,17 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
     success: true,
   };
 };
-router.get("cron.:period", validate(T.CronSchema), cronHandler);
-router.post("cron.:period", validate(T.CronSchema), cronHandler);
+router.register(
+  "cron.:period",
+  ["get", "post"],
+  [validate(T.CronSchema), cronHandler]
+);
 
 // For backwards compatibility
-router.get("utils.gc", validate(T.CronSchema), cronHandler);
-router.post("utils.gc", validate(T.CronSchema), cronHandler);
+router.register(
+  "utils.gc",
+  ["get", "post"],
+  [validate(T.CronSchema), cronHandler]
+);
 
 export default router;

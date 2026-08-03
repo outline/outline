@@ -58,7 +58,7 @@ function DraggableCollectionLink({
     canDrop: (item) =>
       collection.id !== item.id &&
       (!belowCollection || item.id !== belowCollection.id) &&
-      policies.abilities(item.id)?.move,
+      !!policies.abilities(item.id).move,
     collect: (monitor: DropTargetMonitor<Collection, Collection>) => ({
       isCollectionDropping: monitor.isOver(),
       isDraggingAnyCollection: monitor.canDrop(),

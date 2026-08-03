@@ -12,6 +12,7 @@ import {
   UserRole,
 } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
+import collectionDuplicator from "@server/commands/collectionDuplicator";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
@@ -102,6 +103,36 @@ router.post(
     ctx.body = {
       data: await presentCollection(ctx, reloaded),
       policies: presentPolicies(user, [reloaded]),
+    };
+  }
+);
+
+router.post(
+  "collections.duplicate",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  auth(),
+  validate(T.CollectionsDuplicateSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsDuplicateReq>) => {
+    const { transaction } = ctx.state;
+    const { id, name } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const collection = await Collection.findByPk(id, {
+      userId: user.id,
+      transaction,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "duplicate", collection);
+
+    const duplicated = await collectionDuplicator(ctx, {
+      collection,
+      name,
+    });
+
+    ctx.body = {
+      data: await presentCollection(ctx, duplicated),
+      policies: presentPolicies(user, [duplicated]),
     };
   }
 );
@@ -722,11 +753,17 @@ router.post(
       ],
     };
 
+    const includeArchived = !!statusFilter?.includes(
+      CollectionStatusFilter.Archived
+    );
+
     if (!statusFilter) {
       where[Op.and].push({ archivedAt: { [Op.eq]: null } });
     }
 
-    if (!includeListOnly || !user.isAdmin) {
+    // Admins can restore any archived collection, including private ones they
+    // are not a member of, so they must be able to see them listed.
+    if (!user.isAdmin || !(includeListOnly || includeArchived)) {
       where[Op.and].push({ id: collectionIds });
     }
 
@@ -737,7 +774,7 @@ router.post(
     }
 
     const statusQuery = [];
-    if (statusFilter?.includes(CollectionStatusFilter.Archived)) {
+    if (includeArchived) {
       statusQuery.push({
         archivedAt: {
           [Op.ne]: null,
@@ -755,7 +792,7 @@ router.post(
 
     const [collections, total] = await Promise.all([
       Collection.scope(
-        statusFilter?.includes(CollectionStatusFilter.Archived)
+        includeArchived
           ? [
               {
                 method: ["withMembership", user.id],

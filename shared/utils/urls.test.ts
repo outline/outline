@@ -140,6 +140,15 @@ describe("sanitizeUrl", () => {
     );
   });
 
+  it("should trim surrounding whitespace rather than append a scheme", () => {
+    expect(urlsUtils.sanitizeUrl("https://www.google.com\n")).toEqual(
+      "https://www.google.com"
+    );
+    expect(urlsUtils.sanitizeUrl(" https://www.google.com ")).toEqual(
+      "https://www.google.com"
+    );
+  });
+
   describe("special urls", () => {
     it("should return the url as it's if starting with /", () => {
       expect(urlsUtils.sanitizeUrl("/drafts")).toEqual("/drafts");

@@ -5,8 +5,11 @@ import { prosemirrorToYDoc, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import type { ProsemirrorData } from "@shared/types";
 import { MentionType } from "@shared/types";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
+import env from "@server/env";
+import { Attachment } from "@server/models";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
@@ -973,6 +976,157 @@ describe("ProsemirrorHelper", () => {
     });
   });
 
+  describe("replaceDocumentReferences", () => {
+    const replacement = {
+      id: "ca3a20ba-0eab-4b04-b45c-b9d0e9d6d3f0",
+      path: "/doc/copy-of-a-document-hLpJHTvIRW",
+    };
+    const references = new Map([
+      ["7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e", replacement],
+      ["oCB0mUOc5f", replacement],
+    ]);
+
+    const linkedParagraph = (href: string) => ({
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "A link",
+          marks: [{ type: "link", attrs: { href } }],
+        },
+      ],
+    });
+
+    const mentionParagraph = (type: MentionType, modelId: string) => ({
+      type: "paragraph",
+      content: [
+        {
+          type: "mention",
+          attrs: {
+            type,
+            modelId,
+            label: "A mention",
+            id: "d4f6a3ee-0d59-4e2e-b1a8-2f0c5f6b3f8d",
+          },
+        },
+      ],
+    });
+
+    const hrefAfterReplace = (href: string) => {
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([linkedParagraph(href)]),
+        references
+      );
+      return result.content![0].content![0].marks![0].attrs!.href;
+    };
+
+    const modelIdAfterReplace = (type: MentionType, modelId: string) => {
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([mentionParagraph(type, modelId)]),
+        references
+      );
+      return result.content![0].content![0].attrs!.modelId;
+    };
+
+    it("should replace a link to a document by slug", () => {
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f")).toBe(
+        replacement.path
+      );
+    });
+
+    it("should replace a link to a document by id", () => {
+      expect(
+        hrefAfterReplace("/doc/7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e")
+      ).toBe(replacement.path);
+    });
+
+    it("should retain the hash and query of a replaced link", () => {
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f#heading")).toBe(
+        `${replacement.path}#heading`
+      );
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f?foo=bar")).toBe(
+        `${replacement.path}?foo=bar`
+      );
+    });
+
+    it("should replace a fully qualified link, keeping it fully qualified", () => {
+      expect(hrefAfterReplace(`${env.URL}/doc/a-document-oCB0mUOc5f`)).toBe(
+        `${env.URL}${replacement.path}`
+      );
+      expect(
+        hrefAfterReplace(`${env.URL}/doc/a-document-oCB0mUOc5f#heading`)
+      ).toBe(`${env.URL}${replacement.path}#heading`);
+    });
+
+    it("should replace a fully qualified link written with another host", () => {
+      expect(
+        hrefAfterReplace("https://wiki.example.com/doc/a-document-oCB0mUOc5f")
+      ).toBe(`https://wiki.example.com${replacement.path}`);
+      expect(
+        hrefAfterReplace("http://localhost:3000/doc/a-document-oCB0mUOc5f")
+      ).toBe(`http://localhost:3000${replacement.path}`);
+    });
+
+    it("should replace the text of a link that is displayed as its url", () => {
+      const href = "/doc/a-document-oCB0mUOc5f";
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: href,
+                marks: [{ type: "link", attrs: { href } }],
+              },
+            ],
+          },
+        ]),
+        references
+      );
+      const text = result.content![0].content![0];
+
+      expect(text.text).toBe(replacement.path);
+      expect(text.marks![0].attrs!.href).toBe(replacement.path);
+    });
+
+    it("should not replace links to other documents", () => {
+      const relative = "/doc/another-document-Iz6qBGZQIU";
+      expect(hrefAfterReplace(relative)).toBe(relative);
+
+      const qualified = `${env.URL}/doc/another-document-Iz6qBGZQIU`;
+      expect(hrefAfterReplace(qualified)).toBe(qualified);
+    });
+
+    it("should not replace links that are not to a document", () => {
+      const href = "/search?query=oCB0mUOc5f";
+      expect(hrefAfterReplace(href)).toBe(href);
+    });
+
+    it("should not replace links with an unsupported protocol", () => {
+      const href = "mailto:oCB0mUOc5f@example.com";
+      expect(hrefAfterReplace(href)).toBe(href);
+    });
+
+    it("should replace the model of a document mention", () => {
+      expect(
+        modelIdAfterReplace(
+          MentionType.Document,
+          "7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e"
+        )
+      ).toBe(replacement.id);
+    });
+
+    it("should not replace the model of a user mention", () => {
+      expect(
+        modelIdAfterReplace(
+          MentionType.User,
+          "7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e"
+        )
+      ).toBe("7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e");
+    });
+  });
+
   describe("removeFirstHeading", () => {
     it("should remove an H1 that is the first child", () => {
       const doc = buildProseMirrorDoc([
@@ -1331,6 +1485,78 @@ describe("ProsemirrorHelper", () => {
 
       expect(result.toJSON()).toEqual(doc.toJSON());
     });
+
+    it("should turn a link pointing at a data URI into an attachment", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "the spec",
+              marks: [
+                {
+                  type: "link",
+                  attrs: {
+                    href: "data:application/pdf;base64,JVBERi0xLjQK",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      const link = result.content
+        .child(0)
+        .content.child(0)
+        .marks.find((mark) => mark.type.name === "link");
+
+      expect(link?.attrs.href).toMatch(/^\/api\/attachments\.redirect\?id=/);
+      expect(await Attachment.count({ where: { teamId: user.teamId } })).toBe(
+        1
+      );
+    });
+
+    it("should leave an ordinary external link untouched", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "example",
+              marks: [
+                { type: "link", attrs: { href: "https://example.com/page" } },
+              ],
+            },
+          ],
+        },
+      ]);
+
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      expect(result.toJSON()).toEqual(doc.toJSON());
+      expect(await Attachment.count({ where: { teamId: user.teamId } })).toBe(
+        0
+      );
+    });
   });
 
   describe("#applyCommentMarkByText", () => {
@@ -1373,8 +1599,8 @@ describe("ProsemirrorHelper", () => {
         userId: "user-1",
       });
 
-      expect(result).toBeInstanceOf(Uint8Array);
-      const marks = getCommentMarks(result!);
+      expect(result?.state).toBeInstanceOf(Uint8Array);
+      const marks = getCommentMarks(result!.state);
       expect(marks).toHaveLength(1);
       expect(marks[0]).toEqual({ id: "comment-1", text: "brown fox" });
     });
@@ -1398,8 +1624,8 @@ describe("ProsemirrorHelper", () => {
         userId: "user-1",
       });
 
-      expect(result).toBeInstanceOf(Uint8Array);
-      const marks = getCommentMarks(result!);
+      expect(result?.state).toBeInstanceOf(Uint8Array);
+      const marks = getCommentMarks(result!.state);
       expect(marks.map((m) => m.text)).toEqual(["paragraph", "second"]);
       expect(marks.every((m) => m.id === "comment-1")).toBe(true);
     });
@@ -1438,9 +1664,9 @@ describe("ProsemirrorHelper", () => {
         userId: "user-1",
       });
 
-      expect(result).toBeInstanceOf(Uint8Array);
+      expect(result?.state).toBeInstanceOf(Uint8Array);
 
-      const marks = getCommentMarks(result!);
+      const marks = getCommentMarks(result!.state);
       // Both text nodes flanking the mention should carry the comment mark,
       // confirming the resolved range spans the leaf atom.
       expect(marks.map((m) => m.text)).toEqual(["Hello ", ", how"]);
@@ -1503,8 +1729,8 @@ describe("ProsemirrorHelper", () => {
         userId: "user-1",
       });
 
-      expect(result).toBeInstanceOf(Uint8Array);
-      const marks = getCommentMarks(result!);
+      expect(result?.state).toBeInstanceOf(Uint8Array);
+      const marks = getCommentMarks(result!.state);
       expect(marks.map((m) => m.text).join("")).toBe("the brown fox");
       expect(marks.every((m) => m.id === "comment-1")).toBe(true);
     });
@@ -1580,8 +1806,8 @@ describe("ProsemirrorHelper", () => {
           commentId: "comment-1",
           userId: "user-1",
         });
-        expect(result).toBeInstanceOf(Uint8Array);
-        const { plain, start, end } = findMarkedRange(result!);
+        expect(result?.state).toBeInstanceOf(Uint8Array);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start, end)).toBe("fox");
         expect(start).toBe(plain.indexOf("fox"));
       });
@@ -1595,7 +1821,7 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           prefix: "lazy ",
         });
-        const { plain, start, end } = findMarkedRange(result!);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start, end)).toBe("fox");
         expect(start).toBe(plain.lastIndexOf("fox"));
       });
@@ -1609,7 +1835,7 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           suffix: " jumps",
         });
-        const { plain, start, end } = findMarkedRange(result!);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start, end)).toBe("fox");
         expect(plain.slice(end, end + 6)).toBe(" jumps");
       });
@@ -1634,7 +1860,7 @@ describe("ProsemirrorHelper", () => {
           prefix: "beta ",
           suffix: " gamma",
         });
-        const { plain, start, end } = findMarkedRange(result!);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start - 5, end + 6)).toBe("beta word gamma");
       });
 
@@ -1648,7 +1874,7 @@ describe("ProsemirrorHelper", () => {
           prefix: "",
           suffix: "",
         });
-        const { plain, start } = findMarkedRange(result!);
+        const { plain, start } = findMarkedRange(result!.state);
         expect(start).toBe(plain.indexOf("fox"));
       });
 
@@ -1666,7 +1892,7 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           prefix: "",
         });
-        const { start } = findMarkedRange(result!);
+        const { start } = findMarkedRange(result!.state);
         expect(start).toBe(0);
       });
 
@@ -1684,7 +1910,7 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           suffix: "",
         });
-        const { plain, start } = findMarkedRange(result!);
+        const { plain, start } = findMarkedRange(result!.state);
         // With no suffix constraint we still get the first occurrence.
         expect(start).toBe(plain.indexOf("fox"));
       });
@@ -1707,7 +1933,7 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           prefix: "second ",
         });
-        const { plain, start, end } = findMarkedRange(result!);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start - 7, end)).toBe("second fox");
       });
 
@@ -1792,10 +2018,159 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
           prefix: "ab",
         });
-        const { plain, start, end } = findMarkedRange(result!);
+        const { plain, start, end } = findMarkedRange(result!.state);
         expect(plain.slice(start, end)).toBe("aba");
         expect(start).toBe(2);
       });
+    });
+  });
+
+  describe("#applyCommentMarkByNode", () => {
+    const buildDocState = (content: object[]) => {
+      const doc = Node.fromJSON(schema, { type: "doc", content });
+      const ydoc = prosemirrorToYDoc(doc, "default");
+      return Y.encodeStateAsUpdate(ydoc);
+    };
+
+    const image = (src: string, marks: object[] = []) => ({
+      type: "paragraph",
+      content: [{ type: "image", attrs: { src, marks } }],
+    });
+
+    const hashOf = (inlineNode: object) =>
+      SharedProsemirrorHelper.getNodeHash(
+        Node.fromJSON(schema, {
+          type: "doc",
+          content: [{ type: "paragraph", content: [inlineNode] }],
+        }).firstChild!.firstChild!
+      );
+
+    const getImageCommentMarks = (result: Uint8Array) => {
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, result);
+      const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+
+      const images: { src: string; marks: { attrs: { id: string } }[] }[] = [];
+      doc.descendants((node) => {
+        if (node.type.name === "image") {
+          images.push({
+            src: node.attrs.src,
+            marks: node.attrs.marks ?? [],
+          });
+        }
+        return true;
+      });
+      return images;
+    };
+
+    it("applies a comment mark to the node's marks attribute", () => {
+      const content = image("https://example.com/a.png");
+      const docState = buildDocState([content]);
+
+      const result = ProsemirrorHelper.applyCommentMarkByNode({
+        docState,
+        anchorNodeId: hashOf(content.content[0]),
+        commentId: "comment-1",
+        userId: "user-1",
+      });
+
+      expect(result?.state).toBeInstanceOf(Uint8Array);
+      const images = getImageCommentMarks(result!.state);
+      expect(images).toHaveLength(1);
+      expect(images[0].marks).toHaveLength(1);
+      expect(images[0].marks[0]).toEqual({
+        type: "comment",
+        attrs: {
+          id: "comment-1",
+          userId: "user-1",
+          draft: false,
+          resolved: false,
+        },
+      });
+    });
+
+    it("applies to the first occurrence when nodes are identical", () => {
+      const content = image("https://example.com/a.png");
+      const docState = buildDocState([
+        image("https://example.com/a.png"),
+        image("https://example.com/a.png"),
+      ]);
+
+      const result = ProsemirrorHelper.applyCommentMarkByNode({
+        docState,
+        anchorNodeId: hashOf(content.content[0]),
+        commentId: "comment-1",
+        userId: "user-1",
+      });
+
+      const images = getImageCommentMarks(result!.state);
+      expect(images[0].marks).toHaveLength(1);
+      expect(images[1].marks).toHaveLength(0);
+    });
+
+    it("matches a node regardless of existing comment marks", () => {
+      const existingMark = {
+        type: "comment",
+        attrs: {
+          id: "comment-0",
+          userId: "user-1",
+          draft: false,
+          resolved: false,
+        },
+      };
+      const docState = buildDocState([
+        image("https://example.com/a.png", [existingMark]),
+      ]);
+
+      const result = ProsemirrorHelper.applyCommentMarkByNode({
+        docState,
+        // Hash computed without any marks must still match the marked node.
+        anchorNodeId: hashOf(image("https://example.com/a.png").content[0]),
+        commentId: "comment-1",
+        userId: "user-1",
+      });
+
+      const images = getImageCommentMarks(result!.state);
+      expect(images[0].marks).toHaveLength(2);
+      expect(images[0].marks.map((m) => m.attrs.id)).toEqual([
+        "comment-0",
+        "comment-1",
+      ]);
+    });
+
+    it("throws when no node matches the hash", () => {
+      const docState = buildDocState([image("https://example.com/a.png")]);
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByNode({
+          docState,
+          anchorNodeId: hashOf(
+            image("https://example.com/other.png").content[0]
+          ),
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(/not found/);
+    });
+
+    it("throws when the matched node cannot hold comment marks", () => {
+      const paragraph = {
+        type: "paragraph",
+        content: [{ type: "text", text: "plain text" }],
+      };
+      const docState = buildDocState([paragraph]);
+      const hash = SharedProsemirrorHelper.getNodeHash(
+        Node.fromJSON(schema, { type: "doc", content: [paragraph] }).firstChild!
+      );
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByNode({
+          docState,
+          anchorNodeId: hash,
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(/cannot be commented/);
     });
   });
 });

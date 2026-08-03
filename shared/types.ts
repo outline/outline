@@ -56,6 +56,7 @@ export enum Client {
 export enum ExportContentType {
   Markdown = "text/markdown",
   Html = "text/html",
+  TextBundle = "application/x-textbundle",
   Pdf = "application/pdf",
 }
 
@@ -63,6 +64,7 @@ export enum FileOperationFormat {
   JSON = "json",
   MarkdownZip = "outline-markdown",
   HTMLZip = "html",
+  TextBundleZip = "textbundle",
   PDF = "pdf",
   Notion = "notion",
 }
@@ -326,7 +328,11 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                     };
                   }
                 | { serviceTeamId: string }
-                | { measurementId: string }
+                | {
+                    measurementId: string;
+                    instanceUrl?: string;
+                    scriptName?: string;
+                  }
                 | undefined;
 
 export enum UserPreference {
@@ -386,6 +392,8 @@ export type SourceMetadata = {
   trial?: boolean;
   /** The ID of the original document when this document was duplicated. */
   originalDocumentId?: string;
+  /** The ID of the original collection when this collection was duplicated. */
+  originalCollectionId?: string;
 };
 
 export type CustomTheme = {

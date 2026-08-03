@@ -34,6 +34,7 @@ import {
 
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isRTL } from "@shared/utils/rtl";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isInternalUrl } from "@shared/utils/urls";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { plugins, schema, parser } from "@server/editor";
@@ -63,6 +64,14 @@ export type HTMLOptions = {
   changes?: readonly ExtendedChange[];
   /** CSP nonce to apply to injected inline scripts */
   cspNonce?: string;
+};
+
+/** The identifiers of a document that another document's content may link to. */
+export type DocumentReference = {
+  /** The id of the document */
+  id: string;
+  /** The path to the document */
+  path: string;
 };
 
 export type MentionAttrs = {
@@ -324,6 +333,88 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
     // Return a new top-level "doc" node to maintain structure during serialization.
     return doc.copy(Fragment.fromArray([node]));
+  }
+
+  /**
+   * Replaces links and mentions that point to the given documents so that they
+   * point to their replacements instead. A link is matched on the document it
+   * identifies rather than its host, as an installation can be reached through
+   * more than one, and a fully qualified link keeps the host it was written
+   * with.
+   *
+   * @param doc The prosemirror document or JSON data.
+   * @param documents A map keyed by both the id and urlId of each document to
+   * replace, with the id and path of its replacement.
+   * @returns The document data with references replaced.
+   */
+  static replaceDocumentReferences(
+    doc: Node | ProsemirrorData,
+    documents: Map<string, DocumentReference>
+  ): ProsemirrorData {
+    const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
+
+    function replaceHref(href: string) {
+      let origin = "";
+      let path = href;
+
+      if (!href.startsWith("/")) {
+        try {
+          const url = new URL(href);
+          if (url.protocol !== "http:" && url.protocol !== "https:") {
+            return href;
+          }
+          origin = url.origin;
+          path = `${url.pathname}${url.search}${url.hash}`;
+        } catch (_err) {
+          return href;
+        }
+      }
+
+      const match = /^\/doc\/([^/?#]+)(.*)$/.exec(path);
+      if (!match) {
+        return href;
+      }
+
+      // The identifier is either a document id or a `<slug>-<urlId>` pair.
+      const slug = UrlHelper.SLUG_URL_REGEX.exec(match[1]);
+      const replacement =
+        documents.get(match[1]) ?? (slug ? documents.get(slug[1]) : undefined);
+
+      return replacement ? `${origin}${replacement.path}${match[2]}` : href;
+    }
+
+    function replaceDocumentReferencesInner(node: ProsemirrorData) {
+      if (
+        node.type === "mention" &&
+        node.attrs?.type === MentionType.Document &&
+        typeof node.attrs.modelId === "string"
+      ) {
+        const replacement = documents.get(node.attrs.modelId);
+        if (replacement) {
+          node.attrs.modelId = replacement.id;
+        }
+      }
+
+      node.marks?.forEach((mark) => {
+        if (mark.type === "link" && typeof mark.attrs?.href === "string") {
+          const href = replaceHref(mark.attrs.href);
+
+          // A link that has the url as its own text is displayed as the url,
+          // so the two are kept in sync.
+          if (node.text === mark.attrs.href) {
+            node.text = href;
+          }
+
+          mark.attrs.href = href;
+        }
+      });
+
+      node.content?.forEach(replaceDocumentReferencesInner);
+
+      return node;
+    }
+
+    return replaceDocumentReferencesInner(json);
   }
 
   static async replaceInternalUrls(
@@ -975,12 +1066,15 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
   /**
    * Replaces remote and base64 encoded images in the given Prosemirror node
-   * with attachment urls and uploads the images to the storage provider.
+   * with attachment urls and uploads the images to the storage provider. Links
+   * pointing at a data URI are uploaded too, so that files which are not
+   * images — a PDF bundled alongside a document, for example — do not remain
+   * embedded in the document as base64.
    *
    * @param ctx The API context.
    * @param doc The Prosemirror node to process.
    * @param user The user context.
-   * @returns A new Prosemirror node with images replaced.
+   * @returns A new Prosemirror node with images and embedded files replaced.
    */
   static async replaceImagesWithAttachments(
     ctx: APIContext,
@@ -991,21 +1085,41 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const videos = ProsemirrorHelper.getVideos(doc);
     const nodes = [...images, ...videos];
 
-    if (!nodes.length) {
+    // Only data URIs are collected from links: an ordinary external link is a
+    // reference to a page, not a file the document should take a copy of.
+    const links: { href: string; name: string }[] = [];
+    doc.descendants((node) => {
+      const link = node.marks.find((mark) => mark.type.name === "link");
+      const href = String(link?.attrs.href ?? "");
+      if (href.startsWith("data:")) {
+        links.push({ href, name: node.textContent || "file" });
+      }
+      return true;
+    });
+
+    if (!nodes.length && !links.length) {
       return doc;
     }
 
+    const sources = [
+      ...nodes.map((node) => ({
+        href: String(node.attrs.src ?? ""),
+        name: String(node.attrs.alt ?? node.type.name),
+      })),
+      ...links,
+    ];
+
     const timeoutPerImage = Math.floor(
-      Math.min(env.REQUEST_TIMEOUT / nodes.length, 10000)
+      Math.min(env.REQUEST_TIMEOUT / sources.length, 10000)
     );
 
     const urlToAttachment: Map<string, Attachment> = new Map();
-    const chunks = chunk(nodes, 10);
+    const chunks = chunk(sources, 10);
 
-    for (const nodeChunk of chunks) {
+    for (const sourceChunk of chunks) {
       await Promise.all(
-        nodeChunk.map(async (node) => {
-          const src = String(node.attrs.src ?? "");
+        sourceChunk.map(async (source) => {
+          const src = source.href;
 
           // Skip invalid URLs
           try {
@@ -1026,7 +1140,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
           try {
             const attachment = await attachmentCreator({
-              name: String(node.attrs.alt ?? node.type.name),
+              name: source.name,
               url: src,
               preset: AttachmentPreset.DocumentAttachment,
               user,
@@ -1049,7 +1163,8 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       );
     }
 
-    // Transform the document to replace image/video src attributes
+    // Transform the document to replace image/video src attributes and the
+    // href of any link that was uploaded above.
     const transformFragment = (fragment: Fragment): Fragment => {
       const transformedNodes: Node[] = [];
 
@@ -1065,10 +1180,27 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
           } else {
             transformedNodes.push(node);
           }
-        } else if (node.content.size > 0) {
-          transformedNodes.push(node.copy(transformFragment(node.content)));
         } else {
-          transformedNodes.push(node);
+          const marks = node.marks.map((mark) => {
+            const attachment =
+              mark.type.name === "link"
+                ? urlToAttachment.get(String(mark.attrs.href ?? ""))
+                : undefined;
+
+            return attachment
+              ? mark.type.create({
+                  ...mark.attrs,
+                  href: attachment.redirectUrl,
+                })
+              : mark;
+          });
+
+          const content =
+            node.content.size > 0 ? transformFragment(node.content) : undefined;
+
+          transformedNodes.push(
+            (content ? node.copy(content) : node).mark(marks)
+          );
         }
       });
 
@@ -1096,7 +1228,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * @param params.userId The user identifier.
    * @param params.prefix Optional plain text immediately preceding the match.
    * @param params.suffix Optional plain text immediately following the match.
-   * @returns Updated Yjs state, or null if the mark cannot be applied.
+   * @returns Updated Yjs state and content, or null if the mark cannot be applied.
    * @throws ValidationError when no match satisfies the prefix/suffix.
    */
   static applyCommentMarkByText({
@@ -1113,7 +1245,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     userId: string;
     prefix?: string;
     suffix?: string;
-  }): Buffer | null {
+  }): { state: Buffer; content: ProsemirrorData } | null {
     const yjsDoc = new Y.Doc();
     Y.applyUpdate(yjsDoc, docState);
     const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(yjsDoc, "default"));
@@ -1141,6 +1273,70 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
   }
 
+  /**
+   * Applies a comment mark to a node in a document's Yjs state, identified by
+   * a hash of the node's attributes, see `ProsemirrorHelper.getNodeHash`. The
+   * first matching node in document order is used, and the mark is stored in
+   * the node's `marks` attribute.
+   *
+   * @param params.docState The current Yjs document state.
+   * @param params.anchorNodeId The hash of the node to anchor the comment to.
+   * @param params.commentId The comment identifier.
+   * @param params.userId The user identifier.
+   * @returns Updated Yjs state and content, or null if the mark cannot be applied.
+   * @throws ValidationError when no node matches or the node cannot hold comments.
+   */
+  static applyCommentMarkByNode({
+    docState,
+    anchorNodeId,
+    commentId,
+    userId,
+  }: {
+    docState: Uint8Array;
+    anchorNodeId: string;
+    commentId: string;
+    userId: string;
+  }): { state: Buffer; content: ProsemirrorData } | null {
+    const yjsDoc = new Y.Doc();
+    Y.applyUpdate(yjsDoc, docState);
+    const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(yjsDoc, "default"));
+    const match = SharedProsemirrorHelper.findNodeByHash(doc, anchorNodeId);
+
+    if (!match) {
+      throw ValidationError("anchorNodeId was not found in the document");
+    }
+    if (!("marks" in (match.node.type.spec.attrs ?? {}))) {
+      throw ValidationError("This node cannot be commented on");
+    }
+
+    try {
+      const initialState = EditorState.create({
+        doc,
+        schema,
+      });
+      const stateTransform = initialState.tr.setNodeMarkup(
+        match.pos,
+        undefined,
+        {
+          ...match.node.attrs,
+          marks: [
+            ...(match.node.attrs.marks ?? []),
+            {
+              type: "comment",
+              attrs: { id: commentId, userId, draft: false, resolved: false },
+            },
+          ],
+        }
+      );
+      const transformedState = initialState.apply(stateTransform);
+
+      return ProsemirrorHelper.applyDocToYDoc(yjsDoc, transformedState.doc);
+    } catch (error) {
+      Logger.error("Error applying comment mark by node", error as Error);
+      return null;
+    }
+  }
+
   private static applyCommentMarkAtRange(
     yjsDoc: Y.Doc,
     doc: Node,
@@ -1148,7 +1344,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     rangeEnd: number,
     commentId: string,
     userId: string
-  ): Buffer | null {
+  ): { state: Buffer; content: ProsemirrorData } | null {
     const docSize = doc.content.size;
     if (rangeStart < 0 || rangeEnd > docSize || rangeStart > rangeEnd) {
       Logger.warn("Invalid position range for comment anchor", {
@@ -1176,20 +1372,35 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     );
     const transformedState = initialState.apply(stateTransform);
 
-    // Mutate the existing yjsDoc in place so the resulting state is a
-    // continuation of the original document — same client IDs, same operation
-    // history — rather than a fresh Y.Doc whose content would merge as
-    // duplicates against any client still holding the original state.
+    return ProsemirrorHelper.applyDocToYDoc(yjsDoc, transformedState.doc);
+  }
+
+  /**
+   * Mutate the existing yjsDoc in place so the resulting state is a
+   * continuation of the original document — same client IDs, same operation
+   * history — rather than a fresh Y.Doc whose content would merge as
+   * duplicates against any client still holding the original state.
+   */
+  private static applyDocToYDoc(
+    yjsDoc: Y.Doc,
+    doc: Node
+  ): { state: Buffer; content: ProsemirrorData } {
     const yFragment = yjsDoc.get("default", Y.XmlFragment) as Y.XmlFragment;
     if (!yFragment.doc) {
       throw new Error("yFragment.doc not found");
     }
-    updateYFragment(yFragment.doc, yFragment, transformedState.doc, {
+    updateYFragment(yFragment.doc, yFragment, doc, {
       mapping: new Map(),
       isOMark: new Map(),
     });
 
-    return Buffer.from(Y.encodeStateAsUpdate(yjsDoc));
+    return {
+      state: Buffer.from(Y.encodeStateAsUpdate(yjsDoc)),
+      content: Node.fromJSON(
+        schema,
+        yDocToProsemirrorJSON(yjsDoc, "default")
+      ).toJSON() as ProsemirrorData,
+    };
   }
 
   /**

@@ -65,6 +65,7 @@ import { HStack } from "./primitives/HStack";
 import { useDocumentContext } from "./DocumentContext";
 import LightboxComments from "~/scenes/Document/components/Comments/LightboxComments";
 import { PortalContext } from "./Portal";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useHideElement from "~/hooks/useHideElement";
 import type { Status } from "./LightboxState";
 import {
@@ -272,10 +273,13 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   } | null>(null);
   const zoomPanPinchRef = useRef<ReactZoomPanPinchRef>(null);
   const editor = useEditor();
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const { document: contextDocument } = useDocumentContext();
   const activeNode = editor?.view?.state?.doc?.nodeAt(activeImage.pos);
+  // Comments are unavailable without a signed in session, for example when
+  // viewing a publicly shared document.
   const canShowComments =
-    !!contextDocument && activeNode?.type.name === "image";
+    !!user && !!contextDocument && activeNode?.type.name === "image";
 
   const currentImageIndex = findIndex(
     images,

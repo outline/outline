@@ -3,7 +3,9 @@ import { TrashIcon } from "outline-icons";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import DocumentDelete from "~/scenes/DocumentDelete";
+import { DialogTitle } from "~/components/DialogTitle";
 import useStores from "~/hooks/useStores";
+import * as Scenes from "~/routes/scenes";
 import { trashPath } from "~/utils/routeHelpers";
 import type { DragObject } from "../hooks/useDragAndDrop";
 import SidebarLink from "./SidebarLink";
@@ -21,9 +23,14 @@ function TrashLink() {
       }
 
       dialogs.openModal({
-        title: t("Delete {{ documentName }}", {
-          documentName: document?.noun,
-        }),
+        title: (
+          <DialogTitle
+            title={t("Delete {{ documentName }}", {
+              documentName: document.noun,
+            })}
+            model={document}
+          />
+        ),
         content: (
           <DocumentDelete
             document={document}
@@ -42,6 +49,7 @@ function TrashLink() {
     <div ref={dropToTrashRef}>
       <SidebarLink
         to={trashPath()}
+        onClickIntent={Scenes.Trash.preload}
         icon={<TrashIcon open={isDocumentDropping} />}
         exact={false}
         label={t("Trash")}

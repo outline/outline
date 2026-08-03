@@ -18,6 +18,17 @@ export default class MembershipsStore extends Store<Membership> {
     super(rootStore, Membership);
   }
 
+  /**
+   * Remove a membership, and the access that it granted.
+   *
+   * @param id the ID of the membership to remove.
+   */
+  @action
+  remove(id: string, options?: { permanent?: boolean }): void {
+    super.remove(id, options);
+    this.rootStore.policies.removeForMembership(id);
+  }
+
   @action
   fetchPage = async (
     params: (PaginationParams & { id?: string }) | undefined

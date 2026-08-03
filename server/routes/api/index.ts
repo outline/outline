@@ -131,11 +131,7 @@ if (env.isDevelopment) {
   router.use("/", developer.routes());
 }
 
-router.post("*", (ctx) => {
-  ctx.throw(NotFoundError("Endpoint not found"));
-});
-
-router.get("*", (ctx) => {
+router.register("*", ["get", "post"], (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
 });
 

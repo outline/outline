@@ -11,6 +11,10 @@ type Options = {
   shareId?: string;
   /** Whether to include the updatedAt timestamp. */
   includeUpdatedAt?: boolean;
+  /** Always include the markdown description in the payload. */
+  includeText?: boolean;
+  /** Always include the data of the collection in the payload. */
+  includeData?: boolean;
 };
 
 export default async function presentCollection(
@@ -25,19 +29,23 @@ export default async function presentCollection(
     url: collection.path,
     urlId: collection.urlId,
     name: collection.name,
-    data: asData
-      ? await DocumentHelper.toJSON(
-          collection,
-          options.isPublic
-            ? {
-                signedUrls: Hour.seconds,
-                teamId: collection.teamId,
-                internalUrlBase: `/s/${options.shareId}`,
-              }
-            : undefined
-        )
-      : undefined,
-    description: asData ? undefined : collection.description,
+    data:
+      options.includeData === false
+        ? undefined
+        : asData || options.includeData
+          ? await DocumentHelper.toJSON(
+              collection,
+              options.isPublic
+                ? {
+                    signedUrls: Hour.seconds,
+                    teamId: collection.teamId,
+                    internalUrlBase: `/s/${options.shareId}`,
+                  }
+                : undefined
+            )
+          : undefined,
+    description:
+      !asData || options.includeText ? collection.description : undefined,
     sort: collection.sort,
     icon: collection.icon,
     color: collection.color,

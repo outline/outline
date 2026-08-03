@@ -13,6 +13,7 @@ import { errToString } from "@shared/utils/error";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
+  ExportContentType,
   FileOperationFormat,
   FileOperationState,
   FileOperationType,
@@ -68,6 +69,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import TextBundleHelper from "@server/models/helpers/TextBundleHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, cannot } from "@server/policies";
@@ -812,8 +814,12 @@ router.post(
     const document = await documentLoader({
       id,
       user,
-      // We need the collaborative state to generate HTML.
-      includeState: !accept?.includes("text/markdown"),
+      // We need the collaborative state to generate HTML, but not for the
+      // formats that are written from markdown.
+      includeState: !(
+        accept?.includes("text/markdown") ||
+        accept?.includes(ExportContentType.TextBundle)
+      ),
     });
 
     authorize(user, "download", document);
@@ -822,9 +828,11 @@ router.post(
       ? FileOperationFormat.HTMLZip
       : accept?.includes("text/markdown")
         ? FileOperationFormat.MarkdownZip
-        : accept?.includes("application/pdf")
-          ? FileOperationFormat.PDF
-          : null;
+        : accept?.includes(ExportContentType.TextBundle)
+          ? FileOperationFormat.TextBundleZip
+          : accept?.includes("application/pdf")
+            ? FileOperationFormat.PDF
+            : null;
 
     if (format === FileOperationFormat.PDF) {
       throw IncorrectEditionError(
@@ -876,13 +884,17 @@ router.post(
         teamId: user.teamId,
       });
 
+    // A TextBundle is a directory of files, so unlike the other formats it has
+    // no self-contained single-file form to fall back to.
+    const isTextBundle = format === FileOperationFormat.TextBundleZip;
+
     if (format === FileOperationFormat.HTMLZip) {
       contentType = "text/html";
       content = await DocumentHelper.toHTML(document, {
         centered: true,
         includeMermaid: true,
       });
-    } else if (format === FileOperationFormat.MarkdownZip) {
+    } else if (isTextBundle || format === FileOperationFormat.MarkdownZip) {
       contentType = "text/markdown";
       content = await toMarkdown();
     } else {
@@ -944,6 +956,44 @@ router.post(
       externalAttachments.push({ attachment, buffer });
     }
 
+    if (isTextBundle) {
+      const root = `${fileName}.${TextBundleHelper.bundleExtension}`;
+      const usedAssetNames = new Set<string>();
+
+      streamZipResponse(
+        ctx,
+        `${fileName}.${TextBundleHelper.packExtension}`,
+        (zip) => {
+          for (const { attachment, buffer } of externalAttachments) {
+            const reference = TextBundleHelper.assetPath(
+              attachment.name,
+              usedAssetNames
+            );
+            zip.addBuffer(buffer, path.join(root, reference), {
+              mtime: attachment.updatedAt,
+            });
+
+            content = content.replace(
+              new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+              encodeURI(reference)
+            );
+          }
+
+          zip.addBuffer(
+            Buffer.from(TextBundleHelper.info(document)),
+            path.join(root, TextBundleHelper.infoFileName),
+            { mtime: document.updatedAt }
+          );
+          zip.addBuffer(
+            Buffer.from(content),
+            path.join(root, TextBundleHelper.textFileName),
+            { mtime: document.updatedAt }
+          );
+        }
+      );
+      return;
+    }
+
     // When there are no external attachments the document is self-contained and
     // can be served directly rather than bundled in a zip.
     if (externalAttachments.length === 0) {
@@ -958,7 +1008,7 @@ router.post(
       return;
     }
 
-    await streamZipResponse(ctx, `${fileName}.zip`, async (zip) => {
+    streamZipResponse(ctx, `${fileName}.zip`, (zip) => {
       for (const { attachment, buffer } of externalAttachments) {
         const location = path.join(
           "attachments",
@@ -982,6 +1032,7 @@ router.post(
 router.post(
   "documents.restore",
   auth({ role: UserRole.Member }),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsRestoreSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRestoreReq>) => {
@@ -1326,6 +1377,7 @@ router.post(
 router.post(
   "documents.duplicate",
   auth(),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsDuplicateSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsDuplicateReq>) => {
@@ -1338,18 +1390,9 @@ router.post(
       userId: user.id,
       transaction,
     });
-    authorize(user, "read", document);
+    authorize(user, "duplicate", document);
 
-    const collection = collectionId
-      ? await Collection.findByPk(collectionId, {
-          userId: user.id,
-          transaction,
-        })
-      : document?.collection;
-
-    if (collection) {
-      authorize(user, "updateDocument", collection);
-    }
+    let collection: Collection | null | undefined;
 
     if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
@@ -1360,6 +1403,34 @@ router.post(
 
       if (!parent.publishedAt) {
         throw InvalidRequestError("Cannot duplicate document inside a draft");
+      }
+
+      if (collectionId && collectionId !== parent.collectionId) {
+        throw InvalidRequestError(
+          "collectionId must match the collection of the parent document"
+        );
+      }
+
+      // The copy is nested under the parent, so it belongs to the parent's
+      // collection.
+      collection = parent.collectionId
+        ? await Collection.findByPk(parent.collectionId, {
+            userId: user.id,
+            transaction,
+          })
+        : undefined;
+    } else {
+      collection = collectionId
+        ? await Collection.findByPk(collectionId, {
+            userId: user.id,
+            transaction,
+          })
+        : document?.collection;
+
+      // The copy is created in the destination collection, so create permission
+      // is required there rather than on the source.
+      if (collection) {
+        authorize(user, "createDocument", collection);
       }
     }
 
@@ -1384,6 +1455,7 @@ router.post(
 router.post(
   "documents.move",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsMoveSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsMoveReq>) => {
@@ -1439,6 +1511,7 @@ router.post(
 router.post(
   "documents.archive",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsArchiveSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsArchiveReq>) => {
@@ -1465,6 +1538,7 @@ router.post(
 router.post(
   "documents.delete",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsDeleteReq>) => {
@@ -1509,6 +1583,7 @@ router.post(
 router.post(
   "documents.unpublish",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsUnpublishSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
@@ -1793,6 +1868,7 @@ router.post(
 router.post(
   "documents.remove_user",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsRemoveUserSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRemoveUserReq>) => {
@@ -1838,6 +1914,7 @@ router.post(
 router.post(
   "documents.add_group",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsAddGroupSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsAddGroupsReq>) => {
@@ -1898,6 +1975,7 @@ router.post(
 router.post(
   "documents.remove_group",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.DocumentsRemoveGroupSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRemoveGroupReq>) => {
@@ -2064,6 +2142,7 @@ router.post(
 router.post(
   "documents.empty_trash",
   auth({ role: UserRole.Admin }),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
 

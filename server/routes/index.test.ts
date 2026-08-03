@@ -1,4 +1,10 @@
-import { buildShare, buildDocument } from "@server/test/factories";
+import { IntegrationService, IntegrationType } from "@shared/types";
+import env from "@server/env";
+import {
+  buildShare,
+  buildDocument,
+  buildIntegration,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -161,6 +167,97 @@ describe("/s/:id", () => {
     expect(body).toContain(`# ${parent.title}`);
     expect(body).not.toContain("**Documents**");
     expect(body).not.toContain("[Child Document]");
+  });
+});
+
+describe("content security policy", () => {
+  // Analytics integrations only extend the policy on self-hosted installations,
+  // the cloud policy already includes these sources.
+  beforeEach(() => {
+    env.URL = "https://outline.example.com";
+  });
+
+  it.each([
+    [
+      "gitlab",
+      "https://gitlab.com/gitlab-org/gitlab/-/snippets/1",
+      "gitlab.com",
+    ],
+    ["github", "https://gist.github.com/user/abc123", "gist.github.com"],
+    ["dropbox", "https://www.dropbox.com/s/abc123/file.pdf", "www.dropbox.com"],
+    ["pinterest", "https://pinterest.com/user", "assets.pinterest.com"],
+  ])("should allow the %s embed script source", async (path, url, source) => {
+    const res = await server.get(
+      `/embeds/${path}?url=${encodeURIComponent(url)}`
+    );
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain(source);
+    expect(csp).toContain("nonce-");
+  });
+
+  it("should still send a policy for responses that do not render the app", async () => {
+    const res = await server.get(`/s/junk`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(404);
+    expect(csp).toContain("script-src");
+    expect(csp).toContain("nonce-");
+  });
+
+  it("should allow the Google Tag Manager script source when integration is enabled", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    await buildIntegration({
+      teamId: document.teamId,
+      type: IntegrationType.Analytics,
+      service: IntegrationService.GoogleAnalytics,
+      settings: { measurementId: "G-TEST123456" },
+    });
+
+    const res = await server.get(`/s/${share.id}`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("www.googletagmanager.com");
+    expect(csp).toContain(`nonce-`);
+    expect(csp).not.toContain("'unsafe-inline'; script-src");
+  });
+
+  it("should not allow the Google Tag Manager script source without integration", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+
+    const res = await server.get(`/s/${share.id}`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).not.toContain("www.googletagmanager.com");
+  });
+
+  it("should allow the instance host for self-hosted analytics integrations", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    await buildIntegration({
+      teamId: document.teamId,
+      type: IntegrationType.Analytics,
+      service: IntegrationService.Matomo,
+      settings: {
+        measurementId: "1",
+        instanceUrl: "https://matomo.example.com/",
+      },
+    });
+
+    const res = await server.get(`/s/${share.id}`);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("matomo.example.com");
   });
 });
 

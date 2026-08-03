@@ -33,24 +33,19 @@ async function presentUnfurl(
   }
 }
 
+// The data will have been transformed by the unfurl plugin, fields are picked
+// individually so that additional metadata is never exposed in the response.
 const presentURL = (
   data: UnfurlData
-): UnfurlResponse[UnfurlResourceType.URL] => {
-  // TODO: For backwards compatibility, remove once cache has expired in next release.
-  if (data.transformedUnfurl) {
-    delete data.transformedUnfurl;
-    return data as UnfurlResponse[UnfurlResourceType.URL]; // this would have been transformed by the unfurl plugin.
-  }
-
-  return {
-    type: UnfurlResourceType.URL,
-    url: data.url,
-    title: data.meta.title,
-    description: data.meta.description,
-    thumbnailUrl: (data.links.thumbnail ?? [])[0]?.href ?? "",
-    faviconUrl: (data.links.icon ?? [])[0]?.href ?? "",
-  };
-};
+): UnfurlResponse[UnfurlResourceType.URL] => ({
+  type: UnfurlResourceType.URL,
+  url: data.url,
+  title: data.title,
+  description: data.description,
+  color: data.color,
+  thumbnailUrl: data.thumbnailUrl,
+  faviconUrl: data.faviconUrl,
+});
 
 const presentMention = async (
   data: UnfurlData,

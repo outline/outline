@@ -38,3 +38,57 @@ export const escape = function (text: string) {
 export const unescape = function (text: string) {
   return text.replace(/\\([\\*+-\d.])/g, "$1");
 };
+
+/**
+ * Matches a markdown link or image, capturing the text between its
+ * parentheses. A destination containing an unescaped closing parenthesis is
+ * not matched.
+ */
+const linkRegex = /(!?\[[^\]]*\]\()([^)]*)(\))/g;
+
+/**
+ * Replaces the destination of every markdown link and image in a string.
+ *
+ * Understands the angle-bracket form used when a destination contains spaces,
+ * and preserves any link title.
+ *
+ * @param text The markdown text to rewrite.
+ * @param replace Called with each destination; return the replacement, or
+ *   undefined to leave the link as it was written.
+ * @returns The markdown with replaced destinations.
+ */
+export function replaceMarkdownLinks(
+  text: string,
+  replace: (href: string) => string | undefined
+): string {
+  return text.replace(
+    linkRegex,
+    (match, prefix: string, target: string, suffix: string) => {
+      const leading = target.length - target.trimStart().length;
+      const trimmed = target.trim();
+
+      let href: string;
+      let title: string;
+
+      if (trimmed.startsWith("<")) {
+        const end = trimmed.indexOf(">");
+        if (end === -1) {
+          return match;
+        }
+        href = trimmed.slice(1, end);
+        title = target.slice(leading + end + 1);
+      } else {
+        [href] = trimmed.split(/\s/, 1);
+        if (!href) {
+          return match;
+        }
+        title = target.slice(leading + href.length);
+      }
+
+      const replacement = replace(href);
+      return replacement === undefined
+        ? match
+        : `${prefix}${replacement}${title}${suffix}`;
+    }
+  );
+}

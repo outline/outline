@@ -31,30 +31,45 @@ export const inviteUser = dialogActionFactory({
     stores.policies.abilities(stores.auth.team?.id || "").inviteUser,
 });
 
+/**
+ * Creates an action that sets the given user's role, marked as selected when
+ * it is the role they already have.
+ *
+ * @param user - the user to update.
+ * @param role - the role to assign.
+ * @returns an action for use in menus.
+ */
 export const updateUserRoleActionFactory = (user: User, role: UserRole) =>
-  dialogActionFactory({
+  createAction({
+    name: ({ t }) => UserRoleHelper.displayName(role, t),
     analyticsName: "Update user role",
     section: UserSection,
-    name: (t) =>
-      UserRoleHelper.isRoleHigher(role, user.role)
-        ? `${t("Promote to {{ role }}", {
-            role: UserRoleHelper.displayName(role, t),
-          })}…`
-        : `${t("Demote to {{ role }}", {
-            role: UserRoleHelper.displayName(role, t),
-          })}…`,
-    title: (t) => t("Update role"),
-    content: (onSubmit) => (
-      <UserChangeRoleDialog user={user} role={role} onSubmit={onSubmit} />
-    ),
+    selected: () => user.role === role,
     visible: () => {
-      const can = stores.policies.abilities(user.id);
+      if (user.role === role) {
+        return true;
+      }
 
+      const can = stores.policies.abilities(user.id);
       return UserRoleHelper.isRoleHigher(role, user.role)
         ? can.promote
-        : UserRoleHelper.isRoleLower(role, user.role)
-          ? can.demote
-          : false;
+        : can.demote;
+    },
+    perform: ({ t }) => {
+      if (user.role === role) {
+        return;
+      }
+
+      stores.dialogs.openModal({
+        title: t("Update role"),
+        content: (
+          <UserChangeRoleDialog
+            user={user}
+            role={role}
+            onSubmit={stores.dialogs.closeAllModals}
+          />
+        ),
+      });
     },
   });
 

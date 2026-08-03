@@ -28,9 +28,9 @@ export interface IAvatar {
   id?: string;
 }
 
-type Props = {
+export type AvatarProps = {
   /** The size of the avatar */
-  size: AvatarSize;
+  size?: AvatarSize;
   /** The variant of the avatar */
   variant?: AvatarVariant;
   /** The source of the avatar image, if not passing a model. */
@@ -40,58 +40,78 @@ type Props = {
   /** The alt text for the image */
   alt?: string;
   /** Optional click handler */
-  onClick?: React.MouseEventHandler<HTMLImageElement>;
+  onClick?: React.MouseEventHandler<HTMLElement>;
   /** Optional class name */
   className?: string;
   /** Optional style */
   style?: React.CSSProperties;
   /** Whether to show a tooltip */
   showTooltip?: boolean;
-};
+  /** Whether to show a profile card on hover for users, defaults to true */
+  showHoverCard?: boolean;
+} & Omit<
+  React.ComponentPropsWithoutRef<"div">,
+  "onClick" | "className" | "style"
+>;
 
-function Avatar(props: Props) {
+const Avatar = React.forwardRef(function Avatar_(
+  props: AvatarProps,
+  ref: React.Ref<HTMLDivElement>
+) {
   const {
     model,
     style,
     variant = AvatarVariant.Round,
+    size = AvatarSize.Medium,
     className,
     showTooltip,
+    showHoverCard: _showHoverCard,
+    src: srcProp,
+    alt,
+    onClick,
     ...rest
   } = props;
-  const src = props.src || model?.avatarUrl;
+  const src = srcProp || model?.avatarUrl;
   const [error, handleError] = useBoolean(false);
   const initial =
     model?.initial || (model?.name ? model.name[0] : "").toUpperCase();
 
   const content = (
     <Relative
+      ref={ref}
       style={style}
       $variant={variant}
-      $size={props.size}
+      $size={size}
       className={className}
+      {...rest}
     >
       {src && !error ? (
-        <Image onError={handleError} src={src} {...rest} />
-      ) : model ? (
-        <Initials color={model.color} {...rest}>
-          {initial}
-        </Initials>
+        <Image
+          onError={handleError}
+          onClick={onClick}
+          src={src}
+          alt={alt}
+          size={size}
+        />
       ) : (
-        <Initials {...rest} />
+        <Initials
+          color={model?.color}
+          onClick={onClick}
+          aria-label={alt}
+          size={size}
+        >
+          {model ? initial : null}
+        </Initials>
       )}
     </Relative>
   );
 
   return showTooltip ? (
-    <Tooltip content={props.alt || model?.name || ""}>{content}</Tooltip>
+    <Tooltip content={alt || model?.name || ""}>{content}</Tooltip>
   ) : (
     content
   );
-}
-
-Avatar.defaultProps = {
-  size: AvatarSize.Medium,
-};
+});
 
 const Relative = styled.div<{ $variant: AvatarVariant; $size: AvatarSize }>`
   position: relative;

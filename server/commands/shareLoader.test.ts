@@ -340,6 +340,17 @@ describe("shareLoader", () => {
       await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
     });
 
+    it("should throw error when team is suspended", async () => {
+      const team = await buildTeam({
+        suspendedAt: new Date(),
+      });
+      const share = await buildShare({
+        teamId: team.id,
+      });
+
+      await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
+    });
+
     it("should throw error when collection has disabled sharing", async () => {
       const collection = await buildCollection({
         sharing: false,

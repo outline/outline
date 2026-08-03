@@ -1,0 +1,20 @@
+From: Alice <alice@example.com>
+To: Bob <bob@example.com>
+Subject: Meeting notes
+Date: Mon, 1 Jan 2024 00:00:00 -0000
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="----EmailBoundary--9f2hd8sq----"
+
+------EmailBoundary--9f2hd8sq----
+Content-Type: text/html; charset=utf-8
+
+<html><body><p>Text paragraph with our logo:</p><img src="cid:logo123@example.com"></body></html>
+------EmailBoundary--9f2hd8sq----
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-ID: <logo123@example.com>
+
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YA
+AAAASUVORK5CYII=
+
+------EmailBoundary--9f2hd8sq------

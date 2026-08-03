@@ -72,7 +72,7 @@ export type CollectionRowProps = {
   canCreateChild?: boolean;
   /** Submit handler for the inline new-child title input. */
   onCreateChild?: (title: string) => Promise<void>;
-  /** Depth of the inline new-child SidebarLink. Defaults to 2. */
+  /** Depth of the inline new-child SidebarLink. Defaults to one level below the row. */
   newChildDepth?: number;
 
   /** Ref forwarded to the outer Relative; for drag hover timers. */
@@ -107,7 +107,7 @@ function CollectionRow({
   menuOpen,
   canCreateChild,
   onCreateChild,
-  newChildDepth = 2,
+  newChildDepth,
   parentRef,
   dropRef,
   isActiveDropTarget,
@@ -236,7 +236,7 @@ function CollectionRow({
       {isAddingNewChild && onCreateChild && (
         <SidebarLink
           isActive={() => true}
-          depth={newChildDepth}
+          depth={newChildDepth ?? Math.max(depth + 1, 2)}
           ellipsis={false}
           label={
             <EditableTitle

@@ -61,7 +61,7 @@ function Collaborators(props: Props) {
   // ensure currently present via websocket are always ordered first
   // Memoize collaboratorIds as a Set for efficient lookup
   const collaboratorIdsSet = useMemo(
-    () => new Set(document.collaboratorIds),
+    () => new Set(document.collaboratorIds ?? []),
     [document.collaboratorIds]
   );
   const collaborators = useMemo(

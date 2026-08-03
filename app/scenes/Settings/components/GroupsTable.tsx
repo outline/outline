@@ -18,6 +18,7 @@ import {
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useGroupMenuActions } from "~/hooks/useGroupMenuActions";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
@@ -43,11 +44,13 @@ const GroupRowContextMenu = observer(function GroupRowContextMenu({
   menuLabel: string;
   children: React.ReactNode;
 }) {
-  const action = useGroupMenuActions(group);
+  const action = useGroupMenuActions();
   return (
-    <ContextMenu action={action} ariaLabel={menuLabel}>
-      {children}
-    </ContextMenu>
+    <ActionContextProvider value={{ activeModels: [group] }}>
+      <ContextMenu action={action} ariaLabel={menuLabel}>
+        {children}
+      </ContextMenu>
+    </ActionContextProvider>
   );
 });
 

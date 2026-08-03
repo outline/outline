@@ -11,20 +11,32 @@ import type Revision from "~/models/Revision";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import DocumentTasks from "~/components/DocumentTasks";
 import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
 type Props = {
+  /** Additional content appended to the end of the meta. */
   children?: React.ReactNode;
+  /** Show the collection that the document belongs to. */
   showCollection?: boolean;
+  /** Show the published time, even when the document has since been updated. */
   showPublished?: boolean;
+  /** Show when the current user last viewed the document. */
   showLastViewed?: boolean;
+  /** Show the number of documents nested under this one. */
   showParentDocuments?: boolean;
+  /** The document to display meta information for. */
   document: Document;
+  /** A revision of the document, when displaying meta for a point in history. */
   revision?: Revision;
+  /** Replace the current history entry instead of pushing a new one when `to` is set. */
   replace?: boolean;
+  /** Destination to link the meta content to. */
   to?: LocationDescriptor;
+  /** Called when the meta content is clicked, renders it as a button. Takes precedence over `to`. */
+  onClick?: () => void;
 };
 
 const DocumentMeta: React.FC<Props> = ({
@@ -37,6 +49,7 @@ const DocumentMeta: React.FC<Props> = ({
   children,
   replace,
   to,
+  onClick,
   ...rest
 }: Props) => {
   const { t } = useTranslation();
@@ -176,7 +189,9 @@ const DocumentMeta: React.FC<Props> = ({
 
   return (
     <Container align="center" $rtl={document.dir === "rtl"} {...rest} dir="ltr">
-      {to ? (
+      {onClick ? (
+        <MetaButton onClick={onClick}>{content}</MetaButton>
+      ) : to ? (
         <Link to={to} replace={replace}>
           {content}
         </Link>
@@ -211,6 +226,23 @@ const DocumentMeta: React.FC<Props> = ({
     </Container>
   );
 };
+
+/** A button that visually matches the surrounding meta text. */
+export const MetaButton = styled(NudeButton)`
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
 
 export const Separator = styled.span`
   padding: 0 0.4em;
