@@ -1,15 +1,19 @@
 import { observer } from "mobx-react";
+import { ArchiveIcon, CodeIcon, PDFIcon } from "outline-icons";
 import { useCallback, useMemo, useState } from "react";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { s, hover } from "@shared/styles";
 import { ExportContentType, NotificationEventType } from "@shared/types";
 import type Document from "~/models/Document";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
+import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePersistedState from "~/hooks/usePersistedState";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -23,17 +27,58 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
   const user = useCurrentUser();
   const hasChildDocuments = !!document.childDocuments.length;
 
-  const [contentType, setContentType] = useState<ExportContentType>(
-    ExportContentType.Markdown
-  );
+  const [lastContentType, setContentType] =
+    usePersistedState<ExportContentType>(
+      "document-download-format",
+      ExportContentType.Markdown
+    );
   const [includeChildDocuments, setIncludeChildDocuments] =
     useState<boolean>(hasChildDocuments);
+
+  const items = useMemo(() => {
+    const radioItems = [
+      {
+        title: "Markdown",
+        extension: ".md",
+        value: ExportContentType.Markdown,
+        icon: <MarkdownIcon />,
+      },
+      {
+        title: "HTML",
+        extension: ".html",
+        value: ExportContentType.Html,
+        icon: <CodeIcon />,
+      },
+      {
+        title: "TextBundle",
+        extension: ".textpack",
+        value: ExportContentType.TextBundle,
+        icon: <ArchiveIcon />,
+      },
+    ];
+
+    if (env.PDF_EXPORT_ENABLED) {
+      radioItems.push({
+        title: "PDF",
+        extension: ".pdf",
+        value: ExportContentType.Pdf,
+        icon: <PDFIcon />,
+      });
+    }
+
+    return radioItems;
+  }, []);
+
+  // The last chosen format may no longer be available, fallback to the first.
+  const contentType = items.some((item) => item.value === lastContentType)
+    ? lastContentType
+    : items[0].value;
 
   const handleContentTypeChange = useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       setContentType(ev.target.value as ExportContentType);
     },
-    []
+    [setContentType]
   );
 
   const handleIncludeChildDocumentsChange = useCallback(
@@ -74,70 +119,28 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
     onSubmit();
   }, [t, ui, document, contentType, includeChildDocuments, onSubmit]);
 
-  const items = useMemo(() => {
-    const radioItems = [
-      {
-        title: "Markdown",
-        description: t(
-          "A file containing the selected documents in Markdown format."
-        ),
-        value: ExportContentType.Markdown,
-      },
-      {
-        title: "HTML",
-        description: t(
-          "A file containing the selected documents in HTML format."
-        ),
-        value: ExportContentType.Html,
-      },
-      {
-        title: "TextBundle",
-        description: t(
-          "A file containing the selected documents and their images in TextBundle format."
-        ),
-        value: ExportContentType.TextBundle,
-      },
-    ];
-
-    if (env.PDF_EXPORT_ENABLED) {
-      radioItems.push({
-        title: "PDF",
-        description: t(
-          "A file containing the selected documents in PDF format."
-        ),
-        value: ExportContentType.Pdf,
-      });
-    }
-
-    return radioItems;
-  }, [t]);
-
   return (
-    <ConfirmationDialog
-      onSubmit={handleSubmit}
-      submitText={includeChildDocuments ? t("Export") : t("Download")}
-    >
-      <Flex gap={12} column>
+    <ConfirmationDialog onSubmit={handleSubmit} submitText={t("Download")}>
+      <Flex gap={8} column>
         {items.map((item) => (
-          <Option key={item.value}>
-            <StyledInput
+          <Format key={item.value}>
+            <HiddenInput
               type="radio"
               name="format"
               value={item.value}
               checked={contentType === item.value}
               onChange={handleContentTypeChange}
             />
-            <div>
-              <Text as="p" size="small" weight="bold">
+            <FormatIcon>{item.icon}</FormatIcon>
+            <Flex align="center" gap={6}>
+              <Text size="small" weight="xbold">
                 {item.title}
               </Text>
-              {item.description ? (
-                <Text size="small" type="secondary">
-                  {item.description}
-                </Text>
-              ) : null}
-            </div>
-          </Option>
+              <Text size="small" type="secondary">
+                {item.extension}
+              </Text>
+            </Flex>
+          </Format>
         ))}
       </Flex>
       {hasChildDocuments && (
@@ -155,15 +158,9 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
                 {t("Include child documents")}
               </Text>
               <Text as="p" size="small" type="secondary">
-                <Trans
-                  defaults="When selected, exporting the document <em>{{documentName}}</em> may take some time."
-                  values={{
-                    documentName: document.titleWithDefault,
-                  }}
-                  components={{
-                    em: <strong />,
-                  }}
-                />{" "}
+                {t(
+                  "When selected, exporting the document will take extra time."
+                )}{" "}
                 {user.subscribedToEventType(
                   NotificationEventType.ExportCompleted
                 ) && t("You will receive an email when it's complete.")}
@@ -183,6 +180,49 @@ const Option = styled.label`
 
   p {
     margin: 0;
+  }
+`;
+
+const HiddenInput = styled.input`
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+`;
+
+const FormatIcon = styled.span`
+  display: flex;
+  flex-shrink: 0;
+  color: ${s("textSecondary")};
+  transition: color 100ms ease-in-out;
+`;
+
+const Format = styled.label`
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: var(--pointer);
+  background: ${s("backgroundSecondary")};
+  box-shadow: inset 0 0 0 2px transparent;
+  transition: box-shadow 100ms ease-in-out;
+
+  &: ${hover} {
+    background: ${s("backgroundTertiary")};
+  }
+
+  &:has(input:checked) {
+    box-shadow: inset 0 0 0 2px ${s("accent")};
+
+    ${FormatIcon} {
+      color: ${s("text")};
+    }
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid ${s("accent")};
+    outline-offset: 2px;
   }
 `;
 
