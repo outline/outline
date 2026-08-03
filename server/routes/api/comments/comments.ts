@@ -13,6 +13,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { ValidationError } from "@server/errors";
 import { Document, Comment, Collection, Reaction, Emoji } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize } from "@server/policies";
@@ -78,13 +79,11 @@ router.post(
     const commentId = id || uuidv4();
 
     if (anchored) {
-      if (!document.state) {
-        throw ValidationError("Cannot inline comment on this document");
-      }
+      const docState = DocumentHelper.toState(document);
 
       const updated = anchorText
         ? ProsemirrorHelper.applyCommentMarkByText({
-            docState: document.state,
+            docState,
             anchorText,
             commentId,
             userId: user.id,
@@ -93,7 +92,7 @@ router.post(
           })
         : anchorNodeId
           ? ProsemirrorHelper.applyCommentMarkByNode({
-              docState: document.state,
+              docState,
               anchorNodeId,
               commentId,
               userId: user.id,
