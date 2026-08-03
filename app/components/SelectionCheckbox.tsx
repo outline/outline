@@ -18,6 +18,8 @@ type Props = {
 
 /**
  * A checkbox used to add an item, or every item in a list, to a multi-selection.
+ * It is positioned absolutely, vertically centered within the nearest
+ * positioned ancestor.
  *
  * @param props The component props.
  * @returns the checkbox element.
@@ -52,6 +54,9 @@ export function SelectionCheckbox({
 }
 
 const Checkbox = styled(NudeButton)<{ $checked: boolean }>`
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   width: 18px;
   height: 18px;
   display: flex;

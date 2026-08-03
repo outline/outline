@@ -560,11 +560,12 @@ const TR = styled.div<{ $columns: string }>`
   }
 
   &[aria-selected="true"] {
-    background: ${(props) => transparentize(0.9, props.theme.accent)};
+    background: ${(props) => transparentize(0.95, props.theme.accent)};
   }
 `;
 
 const TH = styled.span`
+  position: relative;
   padding: 6px 6px 2px;
 
   &:first-child {
@@ -594,6 +595,7 @@ const TD = styled.span`
   }
 
   &.select {
+    position: relative;
     overflow: visible;
   }
 
@@ -608,7 +610,6 @@ const TD = styled.span`
   }
 
   &.actions {
-    background: ${s("background")};
     position: sticky;
     right: 0;
   }
