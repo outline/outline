@@ -23,6 +23,27 @@ type Props = {
   recursive?: boolean;
 };
 
+type ManyProps = {
+  /** The documents to duplicate, in the order they should be created */
+  documents: Document[];
+  /** The collection to add the duplicated documents to */
+  collection?: Collection | null;
+  /** Override of the duplicated documents publish state */
+  publish?: boolean;
+  /** Whether to duplicate child documents */
+  recursive?: boolean;
+};
+
+/** A document to duplicate, and where its duplicate should be placed. */
+type Root = {
+  /** The document to duplicate */
+  document: Document;
+  /** Override of the duplicated document title */
+  title?: string;
+  /** Override of the parent document to add the duplicate to */
+  parentDocumentId?: string;
+};
+
 /** A document to duplicate, with the identifiers assigned to its duplicate. */
 type DuplicateItem = {
   /** The document being duplicated */
@@ -37,27 +58,85 @@ type DuplicateItem = {
   children: DuplicateItem[];
 };
 
+/**
+ * Duplicates a document, optionally including its child documents. Links
+ * between the duplicated documents are remapped to point at the copies.
+ *
+ * @param ctx the API context containing the acting user and transaction.
+ * @param props the document to duplicate and optional overrides.
+ * @returns the duplicated documents.
+ */
 export default async function documentDuplicator(
   ctx: APIContext,
   { document, collection, parentDocumentId, title, publish, recursive }: Props
 ): Promise<Document[]> {
+  return duplicateRoots(ctx, {
+    roots: [{ document, title, parentDocumentId }],
+    collection,
+    publish,
+    recursive,
+  });
+}
+
+/**
+ * Duplicates several documents as one unit, so that links between them are
+ * remapped to the copies no matter which of the documents they cross between.
+ *
+ * @param ctx the API context containing the acting user and transaction.
+ * @param props the documents to duplicate and optional overrides.
+ * @returns the duplicated documents.
+ */
+export async function documentsDuplicator(
+  ctx: APIContext,
+  { documents, collection, publish, recursive }: ManyProps
+): Promise<Document[]> {
+  return duplicateRoots(ctx, {
+    roots: documents.map((document) => ({ document })),
+    collection,
+    publish,
+    recursive,
+  });
+}
+
+async function duplicateRoots(
+  ctx: APIContext,
+  {
+    roots,
+    collection,
+    publish,
+    recursive,
+  }: {
+    roots: Root[];
+    collection?: Collection | null;
+    publish?: boolean;
+    recursive?: boolean;
+  }
+): Promise<Document[]> {
   const newDocuments: Document[] = [];
   const references = new Map<string, DocumentReference>();
-  const sharedProperties = {
-    collectionId: collection?.id,
-    publish: publish ?? !!document.publishedAt,
-  };
+  const originalCollections = new Map<string, Collection | null>();
 
-  const originalCollection = document?.collectionId
-    ? await Collection.findByPk(document.collectionId, {
-        attributes: {
-          include: ["documentStructure"],
-        },
-      })
-    : null;
+  async function originalCollectionFor(original: Document) {
+    const collectionId = original.collectionId;
+    if (!collectionId) {
+      return null;
+    }
+    if (!originalCollections.has(collectionId)) {
+      originalCollections.set(
+        collectionId,
+        await Collection.findByPk(collectionId, {
+          attributes: {
+            include: ["documentStructure"],
+          },
+        })
+      );
+    }
+    return originalCollections.get(collectionId) ?? null;
+  }
 
   async function buildItem(
     original: Document,
+    originalCollection: Collection | null,
     titleOverride?: string
   ): Promise<DuplicateItem> {
     const id = randomUUID();
@@ -76,11 +155,16 @@ export default async function documentDuplicator(
       id,
       urlId,
       title: itemTitle,
-      children: recursive ? await buildChildItems(original) : [],
+      children: recursive
+        ? await buildChildItems(original, originalCollection)
+        : [],
     };
   }
 
-  async function buildChildItems(original: Document) {
+  async function buildChildItems(
+    original: Document,
+    originalCollection: Collection | null
+  ) {
     const childDocuments = await original.findChildDocuments(
       {
         archivedAt: original.archivedAt
@@ -101,21 +185,21 @@ export default async function documentDuplicator(
 
     const items: DuplicateItem[] = [];
     for (const childDocument of sorted) {
-      items.push(await buildItem(childDocument));
+      items.push(await buildItem(childDocument, originalCollection));
     }
     return items;
   }
 
-  // The identifiers of every duplicate are assigned before any content is
-  // written so that links between the documents being duplicated can be
-  // remapped to the copies, leaving the duplicated tree self-contained.
-  const root = await buildItem(document, title);
-
-  async function duplicateItem(item: DuplicateItem, parentId?: string) {
+  async function duplicateItem(
+    item: DuplicateItem,
+    options: { parentDocumentId?: string; publish: boolean }
+  ) {
     const duplicated = await documentCreator(ctx, {
       id: item.id,
       urlId: item.urlId,
-      parentDocumentId: parentId,
+      parentDocumentId: options.parentDocumentId,
+      publish: options.publish,
+      collectionId: collection?.id,
       icon: item.original.icon,
       color: item.original.color,
       fullWidth: item.original.fullWidth,
@@ -131,18 +215,39 @@ export default async function documentDuplicator(
         ...item.original.sourceMetadata,
         originalDocumentId: item.original.id,
       },
-      ...sharedProperties,
     });
 
     duplicated.collection = collection ?? null;
     newDocuments.push(duplicated);
 
     for (const child of item.children) {
-      await duplicateItem(child, duplicated.id);
+      await duplicateItem(child, {
+        ...options,
+        parentDocumentId: duplicated.id,
+      });
     }
   }
 
-  await duplicateItem(root, parentDocumentId);
+  // The identifiers of every duplicate are assigned before any content is
+  // written so that links between the documents being duplicated can be
+  // remapped to the copies, leaving the duplicate self-contained.
+  const items: DuplicateItem[] = [];
+  for (const root of roots) {
+    items.push(
+      await buildItem(
+        root.document,
+        await originalCollectionFor(root.document),
+        root.title
+      )
+    );
+  }
+
+  for (const [index, item] of items.entries()) {
+    await duplicateItem(item, {
+      parentDocumentId: roots[index].parentDocumentId,
+      publish: publish ?? !!roots[index].document.publishedAt,
+    });
+  }
 
   return newDocuments;
 }
