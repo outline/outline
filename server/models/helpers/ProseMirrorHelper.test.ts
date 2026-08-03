@@ -1058,6 +1058,15 @@ describe("ProsemirrorHelper", () => {
       ).toBe(`${env.URL}${replacement.path}#heading`);
     });
 
+    it("should replace a fully qualified link written with another host", () => {
+      expect(
+        hrefAfterReplace("https://wiki.example.com/doc/a-document-oCB0mUOc5f")
+      ).toBe(`https://wiki.example.com${replacement.path}`);
+      expect(
+        hrefAfterReplace("http://localhost:3000/doc/a-document-oCB0mUOc5f")
+      ).toBe(`http://localhost:3000${replacement.path}`);
+    });
+
     it("should replace the text of a link that is displayed as its url", () => {
       const href = "/doc/a-document-oCB0mUOc5f";
       const result = ProsemirrorHelper.replaceDocumentReferences(
@@ -1082,17 +1091,20 @@ describe("ProsemirrorHelper", () => {
     });
 
     it("should not replace links to other documents", () => {
-      const href = "/doc/another-document-Iz6qBGZQIU";
-      expect(hrefAfterReplace(href)).toBe(href);
-    });
+      const relative = "/doc/another-document-Iz6qBGZQIU";
+      expect(hrefAfterReplace(relative)).toBe(relative);
 
-    it("should not replace links to another installation", () => {
-      const href = "https://example.com/doc/a-document-oCB0mUOc5f";
-      expect(hrefAfterReplace(href)).toBe(href);
+      const qualified = `${env.URL}/doc/another-document-Iz6qBGZQIU`;
+      expect(hrefAfterReplace(qualified)).toBe(qualified);
     });
 
     it("should not replace links that are not to a document", () => {
       const href = "/search?query=oCB0mUOc5f";
+      expect(hrefAfterReplace(href)).toBe(href);
+    });
+
+    it("should not replace links with an unsupported protocol", () => {
+      const href = "mailto:oCB0mUOc5f@example.com";
       expect(hrefAfterReplace(href)).toBe(href);
     });
 

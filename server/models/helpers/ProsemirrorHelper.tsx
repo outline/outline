@@ -337,8 +337,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
   /**
    * Replaces links and mentions that point to the given documents so that they
-   * point to their replacements instead. Only links within this installation
-   * are considered, and a link that is fully qualified stays fully qualified.
+   * point to their replacements instead. A link is matched on the document it
+   * identifies rather than its host, as an installation can be reached through
+   * more than one, and a fully qualified link keeps the host it was written
+   * with.
    *
    * @param doc The prosemirror document or JSON data.
    * @param documents A map keyed by both the id and urlId of each document to
@@ -352,16 +354,15 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
 
     function replaceHref(href: string) {
-      if (!isInternalUrl(href)) {
-        return href;
-      }
-
       let origin = "";
       let path = href;
 
       if (!href.startsWith("/")) {
         try {
           const url = new URL(href);
+          if (url.protocol !== "http:" && url.protocol !== "https:") {
+            return href;
+          }
           origin = url.origin;
           path = `${url.pathname}${url.search}${url.hash}`;
         } catch (_err) {

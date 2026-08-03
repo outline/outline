@@ -72,7 +72,10 @@ describe("DuplicateCollectionDocumentsTask", () => {
       teamId: user.teamId,
       collectionId: original.id,
       title: "first",
-      text: `See [second](${second.path}).`,
+      text: [
+        `Relative [second](${second.path}).`,
+        `Qualified [second](https://wiki.example.com${second.path}).`,
+      ].join("\n\n"),
     });
 
     await new DuplicateCollectionDocumentsTask().perform({
@@ -94,7 +97,10 @@ describe("DuplicateCollectionDocumentsTask", () => {
       (d) => d.sourceMetadata?.originalDocumentId === second.id
     );
 
-    expect(duplicatedFirst?.text).toContain(duplicatedSecond?.path);
+    expect(duplicatedFirst?.text).toContain(`(${duplicatedSecond?.path})`);
+    expect(duplicatedFirst?.text).toContain(
+      `(https://wiki.example.com${duplicatedSecond?.path})`
+    );
     expect(duplicatedFirst?.text).not.toContain(second.urlId);
   });
 
