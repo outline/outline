@@ -8,6 +8,7 @@ import { MentionType } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
+import env from "@server/env";
 import { Attachment } from "@server/models";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
@@ -972,6 +973,157 @@ describe("ProsemirrorHelper", () => {
       expect(thirdItem.type.name).toBe("checkbox_item");
       expect(thirdItem.attrs.checked).toBe(true);
       expect(thirdItem.textContent).toBe("Third");
+    });
+  });
+
+  describe("replaceDocumentReferences", () => {
+    const replacement = {
+      id: "ca3a20ba-0eab-4b04-b45c-b9d0e9d6d3f0",
+      path: "/doc/copy-of-a-document-hLpJHTvIRW",
+    };
+    const references = new Map([
+      ["7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e", replacement],
+      ["oCB0mUOc5f", replacement],
+    ]);
+
+    const linkedParagraph = (href: string) => ({
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "A link",
+          marks: [{ type: "link", attrs: { href } }],
+        },
+      ],
+    });
+
+    const mentionParagraph = (type: MentionType, modelId: string) => ({
+      type: "paragraph",
+      content: [
+        {
+          type: "mention",
+          attrs: {
+            type,
+            modelId,
+            label: "A mention",
+            id: "d4f6a3ee-0d59-4e2e-b1a8-2f0c5f6b3f8d",
+          },
+        },
+      ],
+    });
+
+    const hrefAfterReplace = (href: string) => {
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([linkedParagraph(href)]),
+        references
+      );
+      return result.content![0].content![0].marks![0].attrs!.href;
+    };
+
+    const modelIdAfterReplace = (type: MentionType, modelId: string) => {
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([mentionParagraph(type, modelId)]),
+        references
+      );
+      return result.content![0].content![0].attrs!.modelId;
+    };
+
+    it("should replace a link to a document by slug", () => {
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f")).toBe(
+        replacement.path
+      );
+    });
+
+    it("should replace a link to a document by id", () => {
+      expect(
+        hrefAfterReplace("/doc/7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e")
+      ).toBe(replacement.path);
+    });
+
+    it("should retain the hash and query of a replaced link", () => {
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f#heading")).toBe(
+        `${replacement.path}#heading`
+      );
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f?foo=bar")).toBe(
+        `${replacement.path}?foo=bar`
+      );
+    });
+
+    it("should replace a fully qualified link, keeping it fully qualified", () => {
+      expect(hrefAfterReplace(`${env.URL}/doc/a-document-oCB0mUOc5f`)).toBe(
+        `${env.URL}${replacement.path}`
+      );
+      expect(
+        hrefAfterReplace(`${env.URL}/doc/a-document-oCB0mUOc5f#heading`)
+      ).toBe(`${env.URL}${replacement.path}#heading`);
+    });
+
+    it("should replace a fully qualified link written with another host", () => {
+      expect(
+        hrefAfterReplace("https://wiki.example.com/doc/a-document-oCB0mUOc5f")
+      ).toBe(`https://wiki.example.com${replacement.path}`);
+      expect(
+        hrefAfterReplace("http://localhost:3000/doc/a-document-oCB0mUOc5f")
+      ).toBe(`http://localhost:3000${replacement.path}`);
+    });
+
+    it("should replace the text of a link that is displayed as its url", () => {
+      const href = "/doc/a-document-oCB0mUOc5f";
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: href,
+                marks: [{ type: "link", attrs: { href } }],
+              },
+            ],
+          },
+        ]),
+        references
+      );
+      const text = result.content![0].content![0];
+
+      expect(text.text).toBe(replacement.path);
+      expect(text.marks![0].attrs!.href).toBe(replacement.path);
+    });
+
+    it("should not replace links to other documents", () => {
+      const relative = "/doc/another-document-Iz6qBGZQIU";
+      expect(hrefAfterReplace(relative)).toBe(relative);
+
+      const qualified = `${env.URL}/doc/another-document-Iz6qBGZQIU`;
+      expect(hrefAfterReplace(qualified)).toBe(qualified);
+    });
+
+    it("should not replace links that are not to a document", () => {
+      const href = "/search?query=oCB0mUOc5f";
+      expect(hrefAfterReplace(href)).toBe(href);
+    });
+
+    it("should not replace links with an unsupported protocol", () => {
+      const href = "mailto:oCB0mUOc5f@example.com";
+      expect(hrefAfterReplace(href)).toBe(href);
+    });
+
+    it("should replace the model of a document mention", () => {
+      expect(
+        modelIdAfterReplace(
+          MentionType.Document,
+          "7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e"
+        )
+      ).toBe(replacement.id);
+    });
+
+    it("should not replace the model of a user mention", () => {
+      expect(
+        modelIdAfterReplace(
+          MentionType.User,
+          "7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e"
+        )
+      ).toBe("7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e");
     });
   });
 

@@ -34,6 +34,7 @@ import {
 
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isRTL } from "@shared/utils/rtl";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isInternalUrl } from "@shared/utils/urls";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { plugins, schema, parser } from "@server/editor";
@@ -63,6 +64,14 @@ export type HTMLOptions = {
   changes?: readonly ExtendedChange[];
   /** CSP nonce to apply to injected inline scripts */
   cspNonce?: string;
+};
+
+/** The identifiers of a document that another document's content may link to. */
+export type DocumentReference = {
+  /** The id of the document */
+  id: string;
+  /** The path to the document */
+  path: string;
 };
 
 export type MentionAttrs = {
@@ -324,6 +333,88 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
     // Return a new top-level "doc" node to maintain structure during serialization.
     return doc.copy(Fragment.fromArray([node]));
+  }
+
+  /**
+   * Replaces links and mentions that point to the given documents so that they
+   * point to their replacements instead. A link is matched on the document it
+   * identifies rather than its host, as an installation can be reached through
+   * more than one, and a fully qualified link keeps the host it was written
+   * with.
+   *
+   * @param doc The prosemirror document or JSON data.
+   * @param documents A map keyed by both the id and urlId of each document to
+   * replace, with the id and path of its replacement.
+   * @returns The document data with references replaced.
+   */
+  static replaceDocumentReferences(
+    doc: Node | ProsemirrorData,
+    documents: Map<string, DocumentReference>
+  ): ProsemirrorData {
+    const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
+
+    function replaceHref(href: string) {
+      let origin = "";
+      let path = href;
+
+      if (!href.startsWith("/")) {
+        try {
+          const url = new URL(href);
+          if (url.protocol !== "http:" && url.protocol !== "https:") {
+            return href;
+          }
+          origin = url.origin;
+          path = `${url.pathname}${url.search}${url.hash}`;
+        } catch (_err) {
+          return href;
+        }
+      }
+
+      const match = /^\/doc\/([^/?#]+)(.*)$/.exec(path);
+      if (!match) {
+        return href;
+      }
+
+      // The identifier is either a document id or a `<slug>-<urlId>` pair.
+      const slug = UrlHelper.SLUG_URL_REGEX.exec(match[1]);
+      const replacement =
+        documents.get(match[1]) ?? (slug ? documents.get(slug[1]) : undefined);
+
+      return replacement ? `${origin}${replacement.path}${match[2]}` : href;
+    }
+
+    function replaceDocumentReferencesInner(node: ProsemirrorData) {
+      if (
+        node.type === "mention" &&
+        node.attrs?.type === MentionType.Document &&
+        typeof node.attrs.modelId === "string"
+      ) {
+        const replacement = documents.get(node.attrs.modelId);
+        if (replacement) {
+          node.attrs.modelId = replacement.id;
+        }
+      }
+
+      node.marks?.forEach((mark) => {
+        if (mark.type === "link" && typeof mark.attrs?.href === "string") {
+          const href = replaceHref(mark.attrs.href);
+
+          // A link that has the url as its own text is displayed as the url,
+          // so the two are kept in sync.
+          if (node.text === mark.attrs.href) {
+            node.text = href;
+          }
+
+          mark.attrs.href = href;
+        }
+      });
+
+      node.content?.forEach(replaceDocumentReferencesInner);
+
+      return node;
+    }
+
+    return replaceDocumentReferencesInner(json);
   }
 
   static async replaceInternalUrls(
