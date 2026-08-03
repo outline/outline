@@ -21,6 +21,12 @@ export default class PersistenceExtension implements Extension {
   /** The names of documents that have changed since they were last persisted. */
   private unsavedDocumentNames = new Set<string>();
 
+  /** Tracks how many consecutive persist failures have occurred per document. */
+  private persistFailures = new Map<string, number>();
+
+  /** Maximum number of consecutive failures before giving up on retry. */
+  private static MAX_PERSIST_RETRIES = 5;
+
   async onLoadDocument({
     documentName,
     ...data
@@ -166,13 +172,30 @@ export default class PersistenceExtension implements Extension {
         isLastConnection: clientsCount === 0,
         clientVersion,
       });
+      // Reset failure count on success.
+      this.persistFailures.delete(documentName);
     } catch (err) {
-      // Restore the flag so that a subsequent store will retry the write.
+      // Restore the flag so that a subsequent store will retry the write,
+      // but only up to MAX_PERSIST_RETRIES consecutive failures to prevent
+      // an infinite retry loop for permanent errors.
+      const failures = (this.persistFailures.get(documentName) ?? 0) + 1;
+      this.persistFailures.set(documentName, failures);
+
+      if (failures > PersistenceExtension.MAX_PERSIST_RETRIES) {
+        Logger.error(
+          "Unable to persist document after max retries",
+          toError(err),
+          { documentId, userId: context.user?.id, failures }
+        );
+        return;
+      }
+
       this.unsavedDocumentNames.add(documentName);
 
       Logger.error("Unable to persist document", toError(err), {
         documentId,
         userId: context.user?.id,
+        failures,
       });
     }
   }
