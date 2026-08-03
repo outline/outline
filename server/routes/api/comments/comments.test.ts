@@ -7,6 +7,7 @@ import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/Pros
 import documentCollaborativeUpdater from "@server/commands/documentCollaborativeUpdater";
 import { schema } from "@server/editor";
 import { Comment, Document, Reaction } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import {
   buildAdmin,
   buildCollection,
@@ -980,10 +981,11 @@ describe("#comments.create", () => {
       });
       expect(updated!.state).toBeTruthy();
 
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, updated!.state!);
-      const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
-      expect(SharedProsemirrorHelper.getComments(doc)).toMatchObject([
+      expect(
+        SharedProsemirrorHelper.getComments(
+          DocumentHelper.toProsemirror(updated!)
+        )
+      ).toMatchObject([
         { id: body.data.id, userId: user.id, text: "brown fox" },
       ]);
     });
