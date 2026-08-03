@@ -181,10 +181,18 @@ export const MenuShortcut = styled.span`
   flex-shrink: 0;
 `;
 
-export const MenuContent = styled(Scrollable)<{
+type MenuContentProps = {
   maxHeightVar: string;
   transformOriginVar: string;
-}>`
+};
+
+export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
+  (props) => ({
+    // Fades the last item out at the bottom edge when the menu is scrollable.
+    fadeTo: props.theme.menuBackground,
+    bottomShadow: true,
+  })
+)<MenuContentProps>`
   z-index: ${depths.menu};
   min-width: 180px;
   max-width: 320px;
@@ -195,8 +203,17 @@ export const MenuContent = styled(Scrollable)<{
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
   border-radius: 6px;
-  padding: 6px;
+  // Vertical spacing comes from spacers rather than padding so that the bottom
+  // fade, which is confined to the content box, can reach the menu's edge.
+  padding: 0 6px;
   outline: none;
+
+  &::before,
+  &::after {
+    content: "";
+    display: block;
+    height: 6px;
+  }
 
   transform-origin: ${({ transformOriginVar }) => `var(${transformOriginVar})`};
 
