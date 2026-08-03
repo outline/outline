@@ -49,6 +49,7 @@ import useSwipe from "~/hooks/useSwipe";
 import { toast } from "sonner";
 import { findIndex } from "es-toolkit/compat";
 import type { LightboxImage } from "@shared/editor/lib/Lightbox";
+import { ImageSource } from "@shared/editor/lib/FileHelper";
 import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import {
   TransformWrapper,
@@ -59,7 +60,6 @@ import { transparentize } from "polished";
 import { mergeRefs } from "react-merge-refs";
 import { useEditor } from "~/editor/components/EditorContext";
 import { NodeSelection } from "prosemirror-state";
-import { ImageSource } from "@shared/editor/lib/FileHelper";
 import Desktop from "~/utils/Desktop";
 import { HStack } from "./primitives/HStack";
 import { useDocumentContext } from "./DocumentContext";
@@ -923,6 +923,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
               ref={imgRef}
               src={activeImage.src}
               alt={activeImage.alt}
+              invert={activeNode?.attrs.source === ImageSource.Excalidraw}
               onLoading={handleImageLoading}
               onLoad={handleImageLoad}
               onError={handleImageError}
@@ -981,6 +982,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
 type ImageProps = {
   src: string;
   alt: string;
+  invert: boolean;
   onLoading: () => void;
   onLoad: () => void;
   onError: () => void;
@@ -999,6 +1001,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function Image_(
   {
     src,
     alt,
+    invert,
     onLoading,
     onLoad,
     onError,
@@ -1081,6 +1084,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function Image_(
           }
           $zoomedOut={status.image === ImageStatus.MIN_ZOOM}
           $panning={isImagePanning}
+          $invert={invert}
         />
         <Caption>
           {status.image === ImageStatus.MIN_ZOOM &&
@@ -1142,6 +1146,7 @@ const StyledImg = styled.img<{
   $zoomedIn: boolean;
   $zoomedOut: boolean;
   $panning: boolean;
+  $invert: boolean;
   animation: Animation | null;
 }>`
   visibility: ${(props) => (props.$hidden ? "hidden" : "visible")};
@@ -1149,6 +1154,10 @@ const StyledImg = styled.img<{
   max-width: 100%;
   min-height: 0;
   object-fit: contain;
+  filter: ${(props) =>
+    props.$invert && props.theme.isDark
+      ? "invert(93%) hue-rotate(180deg)"
+      : "none"};
   cursor: ${(props) =>
     props.$panning
       ? "grabbing"

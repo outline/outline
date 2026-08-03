@@ -1,4 +1,4 @@
-import FileHelper from "./FileHelper";
+import FileHelper, { ImageSource } from "./FileHelper";
 
 describe("FileHelper", () => {
   it("isImage", () => {
@@ -30,5 +30,35 @@ describe("FileHelper", () => {
     expect(FileHelper.isAudio("audio/vnd.lucent.voice")).toBe(true);
     expect(FileHelper.isAudio("text/plain")).toBe(false);
     expect(FileHelper.isAudio("application/json")).toBe(false);
+  });
+
+  it("detects an embedded Excalidraw scene in an SVG", async () => {
+    const file = new File(
+      [
+        '<svg xmlns="http://www.w3.org/2000/svg">',
+        "<!-- payload-type:application/vnd.excalidraw+json -->",
+        "</svg>",
+      ],
+      "diagram.svg",
+      { type: "image/svg+xml" }
+    );
+    Object.defineProperty(file, "text", {
+      value: async () =>
+        "<svg><!-- payload-type:application/vnd.excalidraw+json --></svg>",
+    });
+
+    await expect(FileHelper.getImageSourceAttr(file)).resolves.toBe(
+      ImageSource.Excalidraw
+    );
+  });
+
+  it("does not detect Excalidraw from non-SVG files", async () => {
+    const file = new File(
+      ["payload-type:application/vnd.excalidraw+json"],
+      "diagram.txt",
+      { type: "text/plain" }
+    );
+
+    await expect(FileHelper.getImageSourceAttr(file)).resolves.toBeUndefined();
   });
 });

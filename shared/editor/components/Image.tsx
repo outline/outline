@@ -1,13 +1,14 @@
 import { CrossIcon, DownloadIcon, GlobeIcon, ZoomInIcon } from "outline-icons";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { useTranslation } from "react-i18next";
 import { find } from "es-toolkit/compat";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { isExternalUrl, sanitizeImageSrc } from "../../utils/urls";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import { ImageSource } from "../lib/FileHelper";
 import type { ComponentProps } from "../types";
 import {
   ResizeLeft,
@@ -85,6 +86,7 @@ export function imageClassName(options: ImageClassNameOptions): string {
 
 const Image = (props: Props) => {
   const { isSelected, node, isEditable, onChangeSize, onClick } = props;
+  const theme = useTheme();
   const { src, layoutClass } = node.attrs;
   const { t } = useTranslation();
   const [loaded, setLoaded] = React.useState(false);
@@ -233,6 +235,10 @@ const Image = (props: Props) => {
               style={{
                 ...widthStyle,
                 display: loaded ? "block" : "none",
+                filter:
+                  node.attrs.source === ImageSource.Excalidraw && theme.isDark
+                    ? "invert(93%) hue-rotate(180deg)"
+                    : undefined,
               }}
               src={sanitizedSrc}
               alt={node.attrs.alt || ""}

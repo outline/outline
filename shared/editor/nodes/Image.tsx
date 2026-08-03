@@ -133,6 +133,10 @@ export default class Image extends SimpleImage {
     return {
       inline: true,
       attrs: {
+        id: {
+          default: null,
+          validate: "string|null",
+        },
         src: {
           default: "",
           validate: "string",
@@ -456,19 +460,24 @@ export default class Image extends SimpleImage {
   handleEditDiagram =
     ({ getPos, view }: ComponentProps) =>
     () => {
-      const { commands } = this.editor;
-      if (!commands.editDiagram) {
+      const commandName =
+        view.state.doc.nodeAt(getPos())?.attrs.source === ImageSource.Excalidraw
+          ? "editExcalidraw"
+          : "editDiagram";
+      const command = this.editor.commands[commandName];
+      if (!command) {
         return;
       }
       const pos = getPos();
       const $pos = view.state.doc.resolve(pos);
       view.dispatch(view.state.tr.setSelection(new NodeSelection($pos)));
-      commands.editDiagram();
+      command();
     };
 
   component = (props: ComponentProps) => {
     if (
-      props.node.attrs.source === ImageSource.DiagramsNet &&
+      (props.node.attrs.source === ImageSource.DiagramsNet ||
+        props.node.attrs.source === ImageSource.Excalidraw) &&
       !props.node.attrs.src
     ) {
       return (
