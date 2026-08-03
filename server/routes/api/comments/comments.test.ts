@@ -1,5 +1,5 @@
 import { Node } from "prosemirror-model";
-import { prosemirrorToYDoc, yDocToProsemirrorJSON } from "y-prosemirror";
+import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import { CommentStatusFilter } from "@shared/types";
@@ -7,6 +7,7 @@ import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/Pros
 import documentCollaborativeUpdater from "@server/commands/documentCollaborativeUpdater";
 import { schema } from "@server/editor";
 import { Comment, Document, Reaction } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import {
   buildAdmin,
   buildCollection,
@@ -811,12 +812,8 @@ describe("#comments.create", () => {
 
       const updated = await Document.findByPk(document.id, {
         userId: user.id,
-        includeState: true,
       });
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, updated!.state!);
-      const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
-      const image = doc.child(1).child(0);
+      const image = DocumentHelper.toProsemirror(updated!).child(1).child(0);
       expect(image.attrs.marks).toEqual([
         {
           type: "comment",
@@ -953,7 +950,43 @@ describe("#comments.create", () => {
       expect(res.status).toEqual(404);
     });
 
-    it("should error when the document has no collaborative state", async () => {
+    it("should create state when the document has no collaborative state", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        content: documentContent,
+      });
+      expect(document.state).toBeFalsy();
+
+      const res = await server.post("/api/comments.create", user, {
+        body: {
+          documentId: document.id,
+          text: "comment",
+          anchorText: "brown fox",
+        },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+
+      const updated = await Document.findByPk(document.id, {
+        userId: user.id,
+        includeState: true,
+      });
+      expect(updated!.state).toBeTruthy();
+
+      expect(
+        SharedProsemirrorHelper.getComments(
+          DocumentHelper.toProsemirror(updated!)
+        )
+      ).toMatchObject([
+        { id: body.data.id, userId: user.id, text: "brown fox" },
+      ]);
+    });
+
+    it("should error when the anchor node is not in a document without state", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const document = await buildDocument({
@@ -969,7 +1002,7 @@ describe("#comments.create", () => {
         },
       });
 
-      expect(res.status).toEqual(400);
+      expect(res.status).toEqual(404);
     });
   });
 });

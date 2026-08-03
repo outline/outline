@@ -295,14 +295,8 @@ export function commentTools(server: McpServer, scopes: string[]) {
               authorize(user, "comment", document);
 
               if (anchorText) {
-                if (!document.state) {
-                  throw ValidationError(
-                    "Cannot inline comment on this document"
-                  );
-                }
-
                 const updated = ProsemirrorHelper.applyCommentMarkByText({
-                  docState: document.state,
+                  docState: DocumentHelper.toState(document),
                   anchorText,
                   commentId,
                   userId: user.id,
