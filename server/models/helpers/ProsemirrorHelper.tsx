@@ -337,8 +337,8 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
   /**
    * Replaces links and mentions that point to the given documents so that they
-   * point to their replacements instead. Only relative urls are considered so
-   * that links to other installations are left untouched.
+   * point to their replacements instead. Only links within this installation
+   * are considered, and a link that is fully qualified stays fully qualified.
    *
    * @param doc The prosemirror document or JSON data.
    * @param documents A map keyed by both the id and urlId of each document to
@@ -352,7 +352,24 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
 
     function replaceHref(href: string) {
-      const match = /^\/doc\/([^/?#]+)(.*)$/.exec(href);
+      if (!isInternalUrl(href)) {
+        return href;
+      }
+
+      let origin = "";
+      let path = href;
+
+      if (!href.startsWith("/")) {
+        try {
+          const url = new URL(href);
+          origin = url.origin;
+          path = `${url.pathname}${url.search}${url.hash}`;
+        } catch (_err) {
+          return href;
+        }
+      }
+
+      const match = /^\/doc\/([^/?#]+)(.*)$/.exec(path);
       if (!match) {
         return href;
       }
@@ -362,7 +379,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       const replacement =
         documents.get(match[1]) ?? (slug ? documents.get(slug[1]) : undefined);
 
-      return replacement ? `${replacement.path}${match[2]}` : href;
+      return replacement ? `${origin}${replacement.path}${match[2]}` : href;
     }
 
     function replaceDocumentReferencesInner(node: ProsemirrorData) {
@@ -379,7 +396,15 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
       node.marks?.forEach((mark) => {
         if (mark.type === "link" && typeof mark.attrs?.href === "string") {
-          mark.attrs.href = replaceHref(mark.attrs.href);
+          const href = replaceHref(mark.attrs.href);
+
+          // A link that has the url as its own text is displayed as the url,
+          // so the two are kept in sync.
+          if (node.text === mark.attrs.href) {
+            node.text = href;
+          }
+
+          mark.attrs.href = href;
         }
       });
 

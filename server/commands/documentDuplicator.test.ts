@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { MentionType } from "@shared/types";
 import { createContext } from "@server/context";
+import env from "@server/env";
 import { sequelize } from "@server/storage/database";
 import {
   buildCollection,
@@ -369,17 +370,24 @@ describe("documentDuplicator", () => {
       collectionId: collection.id,
       title: "parent",
       urlId,
-      text: `Back to the [top](/doc/parent-${urlId}).`,
+      text: [
+        `Relative [top](/doc/parent-${urlId}).`,
+        `Qualified [top](${env.URL}/doc/parent-${urlId}).`,
+        `Plain <${env.URL}/doc/parent-${urlId}>`,
+      ].join("\n\n"),
     });
 
     const response = await withAPIContext(user, (ctx) =>
       documentDuplicator(ctx, {
         document: original,
         collection,
+        title: "parent (copy)",
       })
     );
 
-    expect(response[0].text).toContain(response[0].path);
+    expect(response[0].text).toContain(`(${response[0].path})`);
+    expect(response[0].text).toContain(`(${env.URL}${response[0].path})`);
+    expect(response[0].text).toContain(`<${env.URL}${response[0].path}>`);
     expect(response[0].text).not.toContain(original.urlId);
   });
 

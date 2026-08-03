@@ -1047,13 +1047,45 @@ describe("ProsemirrorHelper", () => {
       );
     });
 
+    it("should replace a fully qualified link, keeping it fully qualified", () => {
+      expect(hrefAfterReplace(`${env.URL}/doc/a-document-oCB0mUOc5f`)).toBe(
+        `${env.URL}${replacement.path}`
+      );
+      expect(
+        hrefAfterReplace(`${env.URL}/doc/a-document-oCB0mUOc5f#heading`)
+      ).toBe(`${env.URL}${replacement.path}#heading`);
+    });
+
+    it("should replace the text of a link that is displayed as its url", () => {
+      const href = "/doc/a-document-oCB0mUOc5f";
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: href,
+                marks: [{ type: "link", attrs: { href } }],
+              },
+            ],
+          },
+        ]),
+        references
+      );
+      const text = result.content![0].content![0];
+
+      expect(text.text).toBe(replacement.path);
+      expect(text.marks![0].attrs!.href).toBe(replacement.path);
+    });
+
     it("should not replace links to other documents", () => {
       const href = "/doc/another-document-Iz6qBGZQIU";
       expect(hrefAfterReplace(href)).toBe(href);
     });
 
-    it("should not replace absolute links", () => {
-      const href = `${env.URL}/doc/a-document-oCB0mUOc5f`;
+    it("should not replace links to another installation", () => {
+      const href = "https://example.com/doc/a-document-oCB0mUOc5f";
       expect(hrefAfterReplace(href)).toBe(href);
     });
 
