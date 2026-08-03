@@ -1583,11 +1583,10 @@ export const permanentlyDeleteDocument = createAction({
 });
 
 export const permanentlyDeleteDocumentsInTrash = createAction({
-  name: ({ t }) => t("Empty trash"),
+  name: ({ t }) => `${t("Empty trash")}…`,
   analyticsName: "Empty trash",
   section: TrashSection,
   icon: <TrashIcon />,
-  dangerous: true,
   visible: ({ stores }) =>
     stores.documents.deleted.length > 0 && !!stores.auth.user?.isAdmin,
   perform: ({ stores, t, location }) => {
