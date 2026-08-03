@@ -1,4 +1,28 @@
+import path from "node:path";
+import fs from "fs-extra";
+import { buildZip } from "@server/test/support";
 import { DocumentConverter } from "./DocumentConverter";
+
+const fixture = (fileName: string) =>
+  fs.readFile(path.resolve(__dirname, "..", "test", "fixtures", fileName));
+
+/** A 1x1 transparent PNG, small enough to embed in a test bundle. */
+const PNG_PIXEL = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+  "base64"
+);
+
+/** A TextBundle as an app would write it: wrapper folder, metadata and assets. */
+const BASIC_BUNDLE = {
+  "Note.textbundle/info.json": JSON.stringify({
+    version: 2,
+    type: "net.daringfireball.markdown",
+    transient: false,
+  }),
+  "Note.textbundle/text.markdown":
+    "# My Note\n\nHello world!\n\n![a photo](assets/image.png)\n",
+  "Note.textbundle/assets/image.png": PNG_PIXEL,
+};
 
 describe("DocumentConverter", () => {
   describe("convert", () => {
@@ -94,6 +118,55 @@ Jane,24,`;
         // Jane's row should have 3 columns (empty city preserved)
         expect(result.text).toMatch(/\| Jane \| 24\s*\|\s*\|/);
       });
+
+      it("should convert csv when the mime type is not recognized", async () => {
+        const csv = `name,age
+John,25`;
+
+        const result = await DocumentConverter.convert(
+          csv,
+          "test.csv",
+          "application/vnd.ms-excel"
+        );
+
+        expect(result.text).toContain("| name | age |");
+        expect(result.text).toContain("John");
+      });
+    });
+
+    describe("tsv", () => {
+      it("should convert tsv to markdown table", async () => {
+        const tsv = "name\tage\nJohn\t25\nJane\t24";
+
+        const result = await DocumentConverter.convert(
+          tsv,
+          "test.tsv",
+          "text/tab-separated-values"
+        );
+
+        expect(result.text).toContain("| name | age |");
+        expect(result.text).toContain("John");
+        expect(result.text).toContain("Jane");
+      });
+
+      it("should convert tsv when the mime type is not recognized", async () => {
+        const tsv = "name\tage\nJohn\t25";
+
+        const result = await DocumentConverter.convert(tsv, "test.tsv", "");
+
+        expect(result.text).toContain("| name | age |");
+        expect(result.text).toContain("John");
+      });
+    });
+
+    describe("txt", () => {
+      it("should convert txt when the mime type is not recognized", async () => {
+        const txt = "Plain text content";
+
+        const result = await DocumentConverter.convert(txt, "test.txt", "");
+
+        expect(result.text).toContain("Plain text content");
+      });
     });
 
     describe("html", () => {
@@ -120,6 +193,155 @@ Jane,24,`;
 
         expect(result.icon).toEqual("🚀");
         expect(result.text).not.toMatch(/^🚀/);
+      });
+
+      it("should extract emoji leading the title", async () => {
+        const html = "<h1>🚀 My Title</h1><p>Content here</p>";
+        const result = await DocumentConverter.convert(
+          html,
+          "test.html",
+          "text/html"
+        );
+
+        expect(result.icon).toEqual("🚀");
+        expect(result.title).toEqual("My Title");
+      });
+
+      it("should leave the body alone when the title supplied an emoji", async () => {
+        const html = "<h1>🚀 My Title</h1><p>🎉 Content here</p>";
+        const result = await DocumentConverter.convert(
+          html,
+          "test.html",
+          "text/html"
+        );
+
+        expect(result.icon).toEqual("🚀");
+        expect(result.title).toEqual("My Title");
+        expect(result.text).toContain("🎉 Content here");
+      });
+
+      it("should not treat an emoji later in the title as an icon", async () => {
+        const html = "<h1>My Title 🚀</h1><p>Content here</p>";
+        const result = await DocumentConverter.convert(
+          html,
+          "test.html",
+          "text/html"
+        );
+
+        expect(result.icon).toBeUndefined();
+        expect(result.title).toEqual("My Title 🚀");
+      });
+
+      it("should convert htm when the mime type is not recognized", async () => {
+        const html = "<h1>My Title</h1><p>Content here</p>";
+        const result = await DocumentConverter.convert(html, "test.HTM", "");
+
+        expect(result.title).toEqual("My Title");
+        expect(result.text).toContain("Content here");
+      });
+    });
+
+    describe("mhtml", () => {
+      it("should convert a Chrome-saved MHTML page with an inline image", async () => {
+        const content = await fixture("webpage.mhtml");
+        const result = await DocumentConverter.convert(
+          content,
+          "webpage.mhtml",
+          "multipart/related"
+        );
+
+        expect(result.title).toEqual("Heading 1");
+        expect(result.text).toContain("Text paragraph with a logo below");
+        // The tracking script and stylesheet should not leak into the content
+        expect(result.text).not.toContain("tracking pixel");
+        expect(result.text).not.toContain("font-family");
+        // The image referenced by Content-Location should be inlined as a data URI
+        expect(result.text).toMatch(/!\[.*?\]\(data:image\/png;base64,/);
+      });
+
+      it("should fall back to the .mhtml extension when the mime type is unrecognized", async () => {
+        const content = await fixture("webpage.mhtml");
+        const result = await DocumentConverter.convert(
+          content,
+          "webpage.mhtml",
+          "application/octet-stream"
+        );
+
+        expect(result.title).toEqual("Heading 1");
+        expect(result.text).toContain("Text paragraph with a logo below");
+      });
+
+      it("should throw a clean error for a malformed archive", async () => {
+        const content = "This is not a MIME archive, just plain garbage.";
+
+        await expect(
+          DocumentConverter.convert(content, "broken.mhtml", "")
+        ).rejects.toThrow("Unsupported MHTML file (No content found)");
+      });
+    });
+
+    describe("eml", () => {
+      it("should convert an .eml with a cid: referenced inline image", async () => {
+        const content = await fixture("email-with-image.eml");
+        const result = await DocumentConverter.convert(
+          content,
+          "email-with-image.eml",
+          "message/rfc822"
+        );
+
+        // The Subject header becomes the document title
+        expect(result.title).toEqual("Meeting notes");
+        expect(result.text).toContain("Text paragraph with our logo");
+        // The image referenced by cid: should be inlined as a data URI
+        expect(result.text).toMatch(/!\[.*?\]\(data:image\/png;base64,/);
+      });
+
+      it("should discard a malformed content type when inlining a part", async () => {
+        const content = [
+          "From: alice@example.com",
+          "Subject: Malformed content type",
+          "MIME-Version: 1.0",
+          'Content-Type: multipart/related; boundary="B"',
+          "",
+          "--B",
+          "Content-Type: text/html",
+          "",
+          '<html><body><p>hi</p><img src="cid:x@example.com"></body></html>',
+          "--B",
+          'Content-Type: image/png"><script>alert(1)</script><img src="x',
+          "Content-Transfer-Encoding: base64",
+          "Content-ID: <x@example.com>",
+          "",
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+          "",
+          "--B--",
+          "",
+        ].join("\r\n");
+
+        const result = await DocumentConverter.convert(
+          content,
+          "malformed.eml",
+          "message/rfc822"
+        );
+
+        expect(result.text).not.toContain("alert(1)");
+        expect(result.text).toMatch(
+          /!\[.*?\]\(data:application\/octet-stream;base64,/
+        );
+      });
+
+      it("should fall back to plain text when there is no HTML part", async () => {
+        const content = await fixture("email-plain-text.eml");
+        const result = await DocumentConverter.convert(
+          content,
+          "email-plain-text.eml",
+          "message/rfc822"
+        );
+
+        expect(result.title).toEqual("Plain text note");
+        expect(result.text).toContain(
+          "This is a plain text email with no HTML part"
+        );
       });
     });
 
@@ -269,6 +491,260 @@ Content`;
 
         // Should not convert invalid YAML
         expect(result.text).not.toContain("```yaml");
+      });
+    });
+
+    describe("textpack", () => {
+      it("should convert a wrapped TextBundle to markdown and embed its assets", async () => {
+        const content = await buildZip(BASIC_BUNDLE);
+
+        const result = await DocumentConverter.convert(
+          content,
+          "My Note.textpack",
+          "application/octet-stream"
+        );
+
+        expect(result.title).toEqual("My Note");
+        expect(result.text).toContain("Hello world!");
+        expect(result.text).toContain("data:image/png;base64,");
+        expect(result.text).not.toContain("assets/image.png");
+      });
+
+      it("should lift an emoji leading the title into the icon", async () => {
+        const content = await buildZip({
+          "Note.textbundle/text.markdown": "# 🚀 My Note\n\nHello world!\n",
+        });
+
+        const result = await DocumentConverter.convert(
+          content,
+          "My Note.textpack",
+          "application/octet-stream"
+        );
+
+        expect(result.icon).toEqual("🚀");
+        expect(result.title).toEqual("My Note");
+        expect(result.text).toContain("Hello world!");
+      });
+
+      it("should convert a flat TextBundle (no wrapper folder, text.md) to markdown", async () => {
+        const content = await buildZip({
+          "info.json": JSON.stringify({
+            version: 1,
+            type: "net.daringfireball.markdown",
+          }),
+          "text.md": "# Flat Note\n\nSee ![](assets/photo.jpg) here.\n",
+          "assets/photo.jpg": PNG_PIXEL,
+        });
+
+        const result = await DocumentConverter.convert(
+          content,
+          "Flat.textpack",
+          "application/octet-stream"
+        );
+
+        expect(result.title).toEqual("Flat Note");
+        expect(result.text).toContain("data:image/jpeg;base64,");
+        expect(result.text).not.toContain("assets/photo.jpg");
+      });
+
+      it("should tolerate a bundle with no info.json", async () => {
+        const content = await buildZip({
+          "Plain.textbundle/text.txt":
+            "Just plain text content, no heading here.\n",
+        });
+
+        const result = await DocumentConverter.convert(
+          content,
+          "Plain.textpack",
+          "application/octet-stream"
+        );
+
+        expect(result.text).toContain(
+          "Just plain text content, no heading here."
+        );
+      });
+
+      it("should fall back to extension-based routing when mimetype is unrecognized", async () => {
+        const content = await buildZip(BASIC_BUNDLE);
+
+        const result = await DocumentConverter.convert(
+          content,
+          "My Note.textpack",
+          "application/zip"
+        );
+
+        expect(result.title).toEqual("My Note");
+      });
+
+      it("should skip path-traversal entries and still import the legitimate text file", async () => {
+        const content = await fixture("textbundle-traversal.textpack");
+
+        const result = await DocumentConverter.convert(
+          content,
+          "Note.textpack",
+          "application/octet-stream"
+        );
+
+        expect(result.title).toEqual("Safe");
+        expect(result.text).toContain("Content here.");
+      });
+
+      it("should reject a bundle with no recognizable text file", async () => {
+        const content = await buildZip({
+          "Empty.textbundle/info.json": JSON.stringify({
+            version: 2,
+            type: "net.daringfireball.markdown",
+          }),
+          "Empty.textbundle/assets/image.png": PNG_PIXEL,
+        });
+
+        await expect(
+          DocumentConverter.convert(
+            content,
+            "Empty.textpack",
+            "application/octet-stream"
+          )
+        ).rejects.toThrow(
+          "TextPack file does not contain a recognizable text file"
+        );
+      });
+
+      it("should reject an asset larger than the maximum, however well it compresses", async () => {
+        const content = await buildZip({
+          "text.markdown": "# Note\n\n![big](assets/big.png)",
+          // Compresses to almost nothing, so the archive stays small while the
+          // asset is far past what may be held in memory as a data URI.
+          "assets/big.png": Buffer.alloc(20 * 1024 * 1024),
+        });
+
+        await expect(
+          DocumentConverter.convert(content, "Note.textpack", "")
+        ).rejects.toThrow("too large");
+      });
+
+      it("should reject a bundle with an absurd number of entries", async () => {
+        const files: Record<string, string> = {
+          "text.markdown": "# Note",
+        };
+        for (let i = 0; i < 2001; i++) {
+          files[`assets/file-${i}.txt`] = "x";
+        }
+        const content = await buildZip(files);
+
+        await expect(
+          DocumentConverter.convert(content, "Note.textpack", "")
+        ).rejects.toThrow("TextPack file contains too many entries");
+      });
+
+      it("should read a text file with an extension the spec leaves open", async () => {
+        const content = await buildZip({
+          "Note.textbundle/info.json": JSON.stringify({
+            version: 2,
+            type: "net.daringfireball.markdown",
+          }),
+          "Note.textbundle/text.fountain": "# Screenplay\n\nFade in.",
+        });
+
+        const result = await DocumentConverter.convert(
+          content,
+          "Note.textpack",
+          ""
+        );
+
+        expect(result.title).toEqual("Screenplay");
+        expect(result.text).toContain("Fade in.");
+      });
+
+      it("should reject a bundle whose info.json declares a format we cannot read", async () => {
+        const content = await buildZip({
+          "Note.textbundle/info.json": JSON.stringify({
+            version: 2,
+            type: "public.rtf",
+          }),
+          "Note.textbundle/text.rtf": "{\\rtf1 hello}",
+        });
+
+        await expect(
+          DocumentConverter.convert(content, "Note.textpack", "")
+        ).rejects.toThrow("public.rtf");
+      });
+
+      it("should reject an unreadable text extension when info.json is absent", async () => {
+        const content = await buildZip({
+          "text.rtf": "{\\rtf1 hello}",
+        });
+
+        await expect(
+          DocumentConverter.convert(content, "Note.textpack", "")
+        ).rejects.toThrow(".rtf");
+      });
+
+      it("should embed an asset referenced by a link carrying a title", async () => {
+        const content = await buildZip({
+          "text.markdown": '# Note\n\n![a photo](assets/img.png "Caption")',
+          "assets/img.png": PNG_PIXEL,
+        });
+
+        const result = await DocumentConverter.convert(
+          content,
+          "Note.textpack",
+          ""
+        );
+
+        expect(result.text).toContain("data:image/png;base64,");
+        expect(result.text).not.toContain("assets/img.png");
+      });
+
+      it("should embed an asset whose destination is wrapped in angle brackets", async () => {
+        const content = await buildZip({
+          "text.markdown": "# Note\n\n![a photo](<assets/my photo.png>)",
+          "assets/my photo.png": PNG_PIXEL,
+        });
+
+        const result = await DocumentConverter.convert(
+          content,
+          "Note.textpack",
+          ""
+        );
+
+        expect(result.text).toContain("data:image/png;base64,");
+        expect(result.text).not.toContain("my photo.png");
+      });
+
+      it("should embed an asset when the assets folder is not lowercased", async () => {
+        const content = await buildZip({
+          "text.markdown": "# Note\n\n![a photo](assets/photo.png)",
+          "Assets/photo.png": PNG_PIXEL,
+        });
+
+        const result = await DocumentConverter.convert(
+          content,
+          "Note.textpack",
+          ""
+        );
+
+        expect(result.text).toContain("data:image/png;base64,");
+      });
+
+      it("should leave an asset markdown-it cannot accept as a data URI alone", async () => {
+        const content = await buildZip({
+          "text.markdown":
+            "# Note\n\n[the spec](assets/spec.pdf)\n\n![vector](assets/logo.svg)",
+          "assets/spec.pdf": Buffer.from("%PDF-1.4\n"),
+          "assets/logo.svg": Buffer.from("<svg></svg>"),
+        });
+
+        const result = await DocumentConverter.convert(
+          content,
+          "Note.textpack",
+          ""
+        );
+
+        // Inlining these would leave the base64 in the document as literal
+        // text, since markdown-it rejects the destination.
+        expect(result.text).not.toContain("base64");
+        expect(result.text).toContain("assets/spec.pdf");
+        expect(result.text).toContain("assets/logo.svg");
       });
     });
   });

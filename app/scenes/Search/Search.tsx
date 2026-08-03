@@ -16,9 +16,11 @@ import type {
 import { StatusFilter as TStatusFilter } from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
+import DocumentSelectionToolbar from "~/components/DocumentSelectionToolbar";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import { ModelSelectionProvider } from "~/components/ModelSelectionContext";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
@@ -44,7 +46,7 @@ import useMobile from "~/hooks/useMobile";
 
 function Search() {
   const { t } = useTranslation();
-  const { documents, searches } = useStores();
+  const { documents, searches, policies } = useStores();
   const isMobile = useMobile();
 
   // routing
@@ -150,6 +152,15 @@ function Search() {
   const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,
   });
+
+  // Only updatable documents are selectable, matching the per-item checkboxes.
+  const itemIds = React.useMemo(
+    () =>
+      data
+        ?.filter((result) => policies.abilities(result.document.id).update)
+        .map((result) => result.document.id) ?? [],
+    [data, policies]
+  );
 
   const updateLocation = (query: string) => {
     // If query came from route params, navigate to base search path
@@ -352,33 +363,38 @@ function Search() {
                 </Centered>
               </Fade>
             ) : null}
-            <ResultList column>
-              <StyledArrowKeyNavigation
-                ref={resultListRef}
-                onEscape={handleEscape}
-                aria-label={t("Search Results")}
-                items={data ?? []}
-              >
-                {() =>
-                  data?.length && !error
-                    ? data.map((result) => (
-                        <DocumentListItem
-                          key={result.document.id}
-                          document={result.document}
-                          highlight={query}
-                          context={result.context}
-                          showCollection
-                        />
-                      ))
-                    : null
-                }
-              </StyledArrowKeyNavigation>
-              <Waypoint
-                key={data?.length}
-                onEnter={end || loading ? undefined : next}
-                debug={env.ENVIRONMENT === "development"}
-              />
-            </ResultList>
+            <ModelSelectionProvider
+              items={itemIds}
+              toolbar={<DocumentSelectionToolbar />}
+            >
+              <ResultList column>
+                <StyledArrowKeyNavigation
+                  ref={resultListRef}
+                  onEscape={handleEscape}
+                  aria-label={t("Search Results")}
+                  items={data ?? []}
+                >
+                  {() =>
+                    data?.length && !error
+                      ? data.map((result) => (
+                          <DocumentListItem
+                            key={result.document.id}
+                            document={result.document}
+                            highlight={query}
+                            context={result.context}
+                            showCollection
+                          />
+                        ))
+                      : null
+                  }
+                </StyledArrowKeyNavigation>
+                <Waypoint
+                  key={data?.length}
+                  onEnter={end || loading ? undefined : next}
+                  debug={env.ENVIRONMENT === "development"}
+                />
+              </ResultList>
+            </ModelSelectionProvider>
           </>
         ) : documentId ? null : (
           <RecentSearches ref={recentSearchesRef} onEscape={handleEscape} />

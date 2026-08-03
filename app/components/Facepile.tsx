@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type User from "~/models/User";
+import type { AvatarProps } from "~/components/Avatar";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import { s } from "@shared/styles";
@@ -18,11 +19,7 @@ type Props = {
   /** The maximum number of users to display, defaults to 8 */
   limit?: number;
   /** A component to render the avatar, defaults to Avatar. */
-  renderAvatar?: React.ComponentType<
-    React.ComponentProps<typeof Avatar> & {
-      model: User;
-    }
-  >;
+  renderAvatar?: React.ComponentType<AvatarProps>;
   /** Whether to show tooltips on hover, defaults to true */
   showTooltip?: boolean;
 };

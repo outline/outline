@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { errToString } from "@shared/utils/error";
-import { s } from "@shared/styles";
 import {
   AttachmentPreset,
   CollectionPermission,
@@ -14,6 +13,10 @@ import {
 } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Button from "~/components/Button";
+import {
+  DropzoneContainer,
+  dropzoneIcon,
+} from "~/components/DropzoneContainer";
 import Flex from "~/components/Flex";
 import { InputSelectPermission } from "~/components/InputSelectPermission";
 import LoadingIndicator from "~/components/LoadingIndicator";
@@ -104,7 +107,7 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
           disabled={isImporting}
         >
           {({ getRootProps, getInputProps, isDragActive }) => (
-            <DropzoneContainer
+            <Container
               {...getRootProps()}
               $disabled={isImporting}
               $isDragActive={isDragActive}
@@ -117,7 +120,7 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
                   ? t(`${file.name} (${bytesToHumanReadable(file.size)})`)
                   : children}
               </Flex>
-            </DropzoneContainer>
+            </Container>
           )}
         </Dropzone>
       </Text>
@@ -149,31 +152,11 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
 }
 
 const Icon = styled(NewDocumentIcon)`
-  padding: 4px;
-  border-radius: 50%;
-  background: ${(props) => props.theme.brand.blue};
-  color: white;
+  ${dropzoneIcon}
 `;
 
-const DropzoneContainer = styled.div<{
-  $disabled: boolean;
-  $isDragActive: boolean;
-}>`
-  background: ${(props) =>
-    props.$isDragActive
-      ? props.theme.backgroundSecondary
-      : props.theme.background};
-  border-radius: 8px;
-  border: 1px dashed ${s("divider")};
+const Container = styled(DropzoneContainer)`
   padding: 52px;
-  text-align: center;
-  font-size: 15px;
-  cursor: var(--pointer);
-  opacity: ${(props) => (props.$disabled ? 0.5 : 1)};
-
-  &:hover {
-    background: ${s("backgroundSecondary")};
-  }
 `;
 
 export default observer(DropToImport);

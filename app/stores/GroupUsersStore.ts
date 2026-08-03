@@ -120,4 +120,14 @@ export default class GroupUsersStore extends Store<GroupUser> {
 
   inGroup = (groupId: string) =>
     filter(this.orderedData, (member) => member.groupId === groupId);
+
+  /**
+   * Returns the membership of a user in a group, if loaded.
+   *
+   * @param groupId - the identifier of the group.
+   * @param userId - the identifier of the user.
+   * @returns the membership, if present in the store.
+   */
+  membership = (groupId: string, userId: string) =>
+    this.get(`${userId}-${groupId}`);
 }

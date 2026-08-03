@@ -49,9 +49,7 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
   const canDocument = usePolicy(documentId);
 
   const handleRejection = useCallback(() => {
-    toast.error(
-      t("Document not supported – try Markdown, Plain text, HTML, or Word")
-    );
+    toast.error(t("This file type is not supported"));
   }, [t]);
 
   if (

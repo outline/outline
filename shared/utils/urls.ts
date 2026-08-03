@@ -209,16 +209,19 @@ export function sanitizeUrl(url: string | null | undefined) {
     return undefined;
   }
 
-  const lower = url.toLowerCase();
+  // Surrounding whitespace, a newline in particular, would otherwise fail
+  // validation and have a scheme prepended to an already qualified url.
+  const trimmed = url.trim();
+  const lower = trimmed.toLowerCase();
   if (
-    !isUrl(url, { requireHostname: false }) &&
-    !url.startsWith("/") &&
-    !url.startsWith("#") &&
+    !isUrl(trimmed, { requireHostname: false }) &&
+    !trimmed.startsWith("/") &&
+    !trimmed.startsWith("#") &&
     !allowedSchemes.some((scheme) => lower.startsWith(scheme))
   ) {
-    return `https://${url}`;
+    return `https://${trimmed}`;
   }
-  return url;
+  return trimmed;
 }
 
 /**

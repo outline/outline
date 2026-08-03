@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import documentDuplicator from "@server/commands/documentDuplicator";
+import { documentsDuplicator } from "@server/commands/documentDuplicator";
 import { createContext } from "@server/context";
 import { Collection, Document, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -59,13 +59,13 @@ export default class DuplicateCollectionDocumentsTask extends BaseTask<Props> {
         transaction,
       });
 
-      for (const document of sorted) {
-        await documentDuplicator(ctx, {
-          document,
-          collection,
-          recursive: true,
-        });
-      }
+      // The whole collection is duplicated as one unit so that links between
+      // documents in different trees are remapped to the copies.
+      await documentsDuplicator(ctx, {
+        documents: sorted,
+        collection,
+        recursive: true,
+      });
     });
   }
 }

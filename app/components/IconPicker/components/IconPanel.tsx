@@ -47,10 +47,9 @@ const IconPanel = ({
   const searchRef = React.useRef<HTMLInputElement | null>(null);
   const scrollableRef = React.useRef<HTMLDivElement | null>(null);
 
-  const { incrementIconCount, getFrequentIcons } = useIconState(IconType.SVG);
+  const { incrementIconCount, frequentIcons } = useIconState(IconType.SVG);
 
-  const freqIcons = React.useMemo(() => getFrequentIcons(), [getFrequentIcons]);
-  const totalFreqIcons = freqIcons.length;
+  const totalFrequentIcons = frequentIcons.length;
 
   const filteredIcons = React.useMemo(
     () => IconLibrary.findIcons(query),
@@ -59,7 +58,7 @@ const IconPanel = ({
 
   const isSearch = query !== "";
   const category = isSearch ? DisplayCategory.Search : DisplayCategory.All;
-  const delayPerIcon = 250 / (TotalIcons + totalFreqIcons);
+  const delayPerIcon = 250 / (TotalIcons + totalFrequentIcons);
 
   const handleFilter = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,7 +91,7 @@ const IconPanel = ({
   // Preview the first icon shown in the grid until the user hovers another.
   const previewIcon =
     activeIcon ??
-    (isSearch ? filteredIcons[0] : (freqIcons[0] ?? filteredIcons[0]));
+    (isSearch ? filteredIcons[0] : (frequentIcons[0] ?? filteredIcons[0]));
 
   const baseIcons: DataNode = {
     category,
@@ -101,7 +100,7 @@ const IconPanel = ({
       name,
       color,
       initial,
-      delay: Math.round((index + totalFreqIcons) * delayPerIcon),
+      delay: Math.round((index + totalFrequentIcons) * delayPerIcon),
       onClick: handleIconSelection,
     })),
   };
@@ -111,12 +110,12 @@ const IconPanel = ({
     : [
         {
           category: DisplayCategory.Frequent,
-          icons: freqIcons.map((name, index) => ({
+          icons: frequentIcons.map((name, index) => ({
             type: IconType.SVG,
             name,
             color,
             initial,
-            delay: Math.round((index + totalFreqIcons) * delayPerIcon),
+            delay: Math.round((index + totalFrequentIcons) * delayPerIcon),
             onClick: handleIconSelection,
           })),
         },

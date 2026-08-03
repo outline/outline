@@ -1,22 +1,28 @@
-import { transparentize } from "polished";
+import { darken, transparentize } from "polished";
 import styled from "styled-components";
 
 const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
   padding: 1.5px 5.5px;
   margin: 0 2px;
-  background-color: ${({ yellow, primary, theme }) =>
-    yellow ? theme.yellow : primary ? theme.accent : "transparent"};
+  background: ${({ yellow, primary, theme }) =>
+    yellow
+      ? transparentize(0.85, theme.yellow)
+      : primary
+        ? transparentize(0.85, theme.accent)
+        : "transparent"};
   color: ${({ primary, yellow, theme }) =>
     primary
-      ? theme.accentText
+      ? theme.accent
       : yellow
-        ? theme.almostBlack
+        ? darken(0.1, theme.yellow)
         : theme.textTertiary};
   border: 1px solid
-    ${({ primary, yellow, theme }) =>
-      primary || yellow
-        ? "transparent"
-        : transparentize(0.4, theme.textTertiary)};
+    ${({ yellow, primary, theme }) =>
+      yellow
+        ? transparentize(0.25, theme.yellow)
+        : primary
+          ? transparentize(0.25, theme.accent)
+          : theme.textTertiary};
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;

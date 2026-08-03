@@ -51,6 +51,7 @@ function Home() {
         pins={pins}
         canUpdate={can.update}
         placeholderCount={count}
+        collapseKey="home"
       />
       <Documents>
         <Tabs>
