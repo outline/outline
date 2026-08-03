@@ -1,5 +1,5 @@
 import { Node } from "prosemirror-model";
-import { prosemirrorToYDoc, yDocToProsemirrorJSON } from "y-prosemirror";
+import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import { CommentStatusFilter } from "@shared/types";
@@ -812,12 +812,8 @@ describe("#comments.create", () => {
 
       const updated = await Document.findByPk(document.id, {
         userId: user.id,
-        includeState: true,
       });
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, updated!.state!);
-      const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
-      const image = doc.child(1).child(0);
+      const image = DocumentHelper.toProsemirror(updated!).child(1).child(0);
       expect(image.attrs.marks).toEqual([
         {
           type: "comment",
