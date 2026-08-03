@@ -225,6 +225,17 @@ const Header = styled(Flex)`
   font-weight: 600;
   padding: 24px 24px 12px;
   flex-shrink: 0;
+  gap: 8px;
+
+  // Allows a long title to wrap or truncate instead of pushing out the close
+  // button
+  > :first-child {
+    min-width: 0;
+  }
+
+  > :last-child {
+    flex-shrink: 0;
+  }
 `;
 
 const Wrapper = styled.div<{
