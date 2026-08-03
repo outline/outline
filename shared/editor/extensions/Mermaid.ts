@@ -532,6 +532,12 @@ export default function Mermaid({
             return false;
           }
 
+          // Let clicks on a link within the diagram through, they are handled
+          // on mouseup and should not select the node or open the lightbox.
+          if (target?.closest("a") instanceof SVGAElement) {
+            return false;
+          }
+
           const codeBlock = diagram.previousElementSibling;
           if (!codeBlock) {
             return false;
