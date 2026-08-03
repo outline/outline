@@ -45,7 +45,7 @@ import {
   newTemplatePath,
   searchPath,
 } from "~/utils/routeHelpers";
-import ExportDialog from "~/components/ExportDialog";
+import { ExportDialog } from "~/components/Export/ExportDialog";
 import { isMobile } from "@shared/utils/browser";
 import history from "~/utils/history";
 import lazyWithRetry from "~/utils/lazyWithRetry";

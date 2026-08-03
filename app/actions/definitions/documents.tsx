@@ -53,7 +53,7 @@ import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInT
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { DialogTitle } from "~/components/DialogTitle";
 import DocumentCopy from "~/components/DocumentExplorer/DocumentCopy";
-import { DocumentDownload } from "~/components/DocumentDownload";
+import { DocumentDownload } from "~/components/Export/DocumentDownload";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import { ImportDocumentDialog } from "~/components/ImportDocumentDialog";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";

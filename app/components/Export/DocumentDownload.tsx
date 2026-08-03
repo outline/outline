@@ -4,11 +4,12 @@ import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { s, hover } from "@shared/styles";
 import { ExportContentType, NotificationEventType } from "@shared/types";
 import type Document from "~/models/Document";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
+import { FileFormatSelector } from "~/components/Export/FileFormatSelector";
+import type { FileFormat } from "~/components/Export/FileFormatSelector";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import Text from "~/components/Text";
 import env from "~/env";
@@ -35,8 +36,8 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
   const [includeChildDocuments, setIncludeChildDocuments] =
     useState<boolean>(hasChildDocuments);
 
-  const items = useMemo(() => {
-    const radioItems = [
+  const formats = useMemo(() => {
+    const items: FileFormat<ExportContentType>[] = [
       {
         title: "Markdown",
         extension: ".md",
@@ -58,7 +59,7 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
     ];
 
     if (env.PDF_EXPORT_ENABLED) {
-      radioItems.push({
+      items.push({
         title: "PDF",
         extension: ".pdf",
         value: ExportContentType.Pdf,
@@ -66,20 +67,13 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
       });
     }
 
-    return radioItems;
+    return items;
   }, []);
 
   // The last chosen format may no longer be available, fallback to the first.
-  const contentType = items.some((item) => item.value === lastContentType)
+  const contentType = formats.some((format) => format.value === lastContentType)
     ? lastContentType
-    : items[0].value;
-
-  const handleContentTypeChange = useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setContentType(ev.target.value as ExportContentType);
-    },
-    [setContentType]
-  );
+    : formats[0].value;
 
   const handleIncludeChildDocumentsChange = useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,28 +115,11 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
 
   return (
     <ConfirmationDialog onSubmit={handleSubmit} submitText={t("Download")}>
-      <Flex gap={8} column>
-        {items.map((item) => (
-          <Format key={item.value}>
-            <HiddenInput
-              type="radio"
-              name="format"
-              value={item.value}
-              checked={contentType === item.value}
-              onChange={handleContentTypeChange}
-            />
-            <FormatIcon>{item.icon}</FormatIcon>
-            <Flex align="center" gap={6}>
-              <Text size="small" weight="xbold">
-                {item.title}
-              </Text>
-              <Text size="small" type="secondary">
-                {item.extension}
-              </Text>
-            </Flex>
-          </Format>
-        ))}
-      </Flex>
+      <FileFormatSelector
+        formats={formats}
+        value={contentType}
+        onChange={setContentType}
+      />
       {hasChildDocuments && (
         <>
           <hr style={{ margin: "16px 0 " }} />
@@ -180,49 +157,6 @@ const Option = styled.label`
 
   p {
     margin: 0;
-  }
-`;
-
-const HiddenInput = styled.input`
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-`;
-
-const FormatIcon = styled.span`
-  display: flex;
-  flex-shrink: 0;
-  color: ${s("textSecondary")};
-  transition: color 100ms ease-in-out;
-`;
-
-const Format = styled.label`
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 8px;
-  cursor: var(--pointer);
-  background: ${s("backgroundSecondary")};
-  box-shadow: inset 0 0 0 2px transparent;
-  transition: box-shadow 100ms ease-in-out;
-
-  &: ${hover} {
-    background: ${s("backgroundTertiary")};
-  }
-
-  &:has(input:checked) {
-    box-shadow: inset 0 0 0 2px ${s("accent")};
-
-    ${FormatIcon} {
-      color: ${s("text")};
-    }
-  }
-
-  &:has(input:focus-visible) {
-    outline: 2px solid ${s("accent")};
-    outline-offset: 2px;
   }
 `;
 
