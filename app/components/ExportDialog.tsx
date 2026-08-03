@@ -104,6 +104,13 @@ function ExportDialog({ collection, onSubmit }: Props) {
       value: FileOperationFormat.HTMLZip,
     },
     {
+      title: "TextBundle",
+      description: t(
+        "A ZIP file containing each document and its images as a TextBundle."
+      ),
+      value: FileOperationFormat.TextBundleZip,
+    },
+    {
       title: "JSON",
       description: t(
         "Structured data that can be used to transfer data to another compatible {{ appName }} instance.",

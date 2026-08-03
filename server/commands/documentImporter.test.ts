@@ -5,6 +5,7 @@ import { createContext } from "@server/context";
 import Attachment from "@server/models/Attachment";
 import { sequelize } from "@server/storage/database";
 import { buildUser } from "@server/test/factories";
+import { buildZip } from "@server/test/support";
 import documentImporter from "./documentImporter";
 
 vi.mock("@server/storage/files");
@@ -36,6 +37,66 @@ describe("documentImporter", () => {
     expect(response.text).toContain("This is a test document for images");
     expect(response.text).toContain("![](/api/attachments.redirect?id=");
     expect(response.title).toEqual("images");
+  });
+
+  it("should convert a TextPack bundle to markdown and turn its assets into attachments", async () => {
+    const user = await buildUser();
+    const fileName = "My Note.textpack";
+    const content = await buildZip({
+      "Note.textbundle/info.json": JSON.stringify({
+        version: 2,
+        type: "net.daringfireball.markdown",
+      }),
+      "Note.textbundle/text.markdown":
+        "# My Note\n\nHello world!\n\n![a photo](assets/image.png)\n",
+      "Note.textbundle/assets/image.png": Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+        "base64"
+      ),
+    });
+
+    const response = await sequelize.transaction((transaction) =>
+      documentImporter({
+        user,
+        mimeType: "application/octet-stream",
+        fileName,
+        content,
+        ctx: createContext({ user, transaction }),
+      })
+    );
+    const attachments = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
+    expect(attachments).toEqual(1);
+    expect(response.text).toContain("Hello world!");
+    expect(response.text).toContain("![a photo](/api/attachments.redirect?id=");
+    expect(response.title).toEqual("My Note");
+  });
+
+  it("should turn a file embedded in HTML into an attachment", async () => {
+    const user = await buildUser();
+    const html = `<h1>Notes</h1><p><a href="data:application/pdf;base64,JVBERi0xLjQK">the spec</a></p>`;
+
+    const response = await sequelize.transaction((transaction) =>
+      documentImporter({
+        user,
+        mimeType: "text/html",
+        fileName: "notes.html",
+        content: html,
+        ctx: createContext({ user, transaction }),
+      })
+    );
+
+    const attachments = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
+    expect(attachments).toEqual(1);
+    expect(response.text).toContain("[the spec](/api/attachments.redirect?id=");
+    expect(response.text).not.toContain("data:application/pdf");
   });
 
   it("should not strip content after period in title", async () => {

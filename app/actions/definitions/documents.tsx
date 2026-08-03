@@ -771,6 +771,27 @@ export const downloadDocumentAsHTML = createAction({
   },
 });
 
+export const downloadDocumentAsTextBundle = createAction({
+  name: ({ t }) => t("Download as TextBundle"),
+  analyticsName: "Download document as TextBundle",
+  section: ActiveDocumentSection,
+  keywords: "textbundle textpack bear ulysses export",
+  icon: <DownloadIcon />,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
+  perform: async ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    await document?.download({
+      contentType: ExportContentType.TextBundle,
+      includeChildDocuments: false,
+    });
+  },
+});
+
 export const downloadDocumentAsPDF = createAction({
   name: ({ t }) => t("Download as PDF"),
   analyticsName: "Download document as PDF",
@@ -1740,6 +1761,7 @@ export const rootDocumentActions = [
   downloadDocument,
   downloadDocumentAsMarkdown,
   downloadDocumentAsHTML,
+  downloadDocumentAsTextBundle,
   downloadDocumentAsPDF,
   copyDocumentLink,
   copyDocumentShareLink,

@@ -11,17 +11,37 @@ import Document from "@server/models/Document";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import TextBundleHelper from "@server/models/helpers/TextBundleHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
 import ExportTask from "./ExportTask";
 
 export default abstract class ExportDocumentTreeTask extends ExportTask {
   /**
+   * The extension given to each document's entry in the archive. For TextBundle
+   * this names a directory rather than a file.
+   *
+   * @param format The format being exported.
+   * @returns The extension, without a leading dot.
+   */
+  private static extensionForFormat(format: FileOperationFormat): string {
+    switch (format) {
+      case FileOperationFormat.HTMLZip:
+        return "html";
+      case FileOperationFormat.TextBundleZip:
+        return TextBundleHelper.bundleExtension;
+      default:
+        return "md";
+    }
+  }
+
+  /**
    * Exports the document tree to the given zip instance.
    *
    * @param zip The yazl ZipFile to add files to
    * @param documentId The document ID to export
-   * @param pathInZip The path in the zip to add the document to
+   * @param pathInZip The path in the zip to add the document to. For TextBundle
+   *   this is the bundle directory rather than a file.
    * @param format The format to export in
    */
   protected async processDocument({
@@ -49,6 +69,15 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       format === FileOperationFormat.HTMLZip
         ? await DocumentHelper.toHTML(document, { centered: true })
         : await DocumentHelper.toMarkdown(document);
+
+    const isTextBundle = format === FileOperationFormat.TextBundleZip;
+
+    // A TextBundle is a directory, so its text and assets sit inside the path
+    // reserved for the document rather than beside it.
+    const textPathInZip = isTextBundle
+      ? path.join(pathInZip, TextBundleHelper.textFileName)
+      : pathInZip;
+    const usedAssetNames = new Set<string>();
 
     const attachmentIds = includeAttachments
       ? ProsemirrorHelper.parseAttachmentIds(
@@ -123,15 +152,23 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         }
       }
 
+      // TextBundle requires assets to live in the bundle's own assets folder,
+      // referenced relative to the text file, rather than at their storage key.
+      const reference = isTextBundle
+        ? TextBundleHelper.assetPath(attachment.name, usedAssetNames)
+        : attachment.key;
+
       this.addAttachmentToArchive(
         zip,
         attachment,
-        path.join(dir, attachment.key)
+        isTextBundle
+          ? path.join(pathInZip, reference)
+          : path.join(dir, reference)
       );
 
       text = text.replace(
         new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
-        encodeURI(attachment.key)
+        encodeURI(reference)
       );
     }
 
@@ -144,7 +181,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       const matchedDocPath = pathMap.get(matchedLink);
 
       if (matchedDocPath) {
-        const relativePath = path.relative(pathInZip, matchedDocPath);
+        const relativePath = path.relative(textPathInZip, matchedDocPath);
         if (relativePath.startsWith(".")) {
           text = text.replace(
             matchedLink,
@@ -154,8 +191,16 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       }
     });
 
+    if (isTextBundle) {
+      zip.addBuffer(
+        Buffer.from(TextBundleHelper.info(document)),
+        path.join(pathInZip, TextBundleHelper.infoFileName),
+        { mtime: document.updatedAt }
+      );
+    }
+
     // Finally, add the document to the zip file
-    zip.addBuffer(Buffer.from(text), pathInZip, {
+    zip.addBuffer(Buffer.from(text), textPathInZip, {
       mtime: document.updatedAt,
       fileComment: JSON.stringify({
         createdAt: document.createdAt,
@@ -204,11 +249,13 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
   }) {
     const pathMap = new Map<string, string>();
 
-    const extension = format === FileOperationFormat.HTMLZip ? "html" : "md";
     const rootFolderName = serializeFilename(document.titleWithDefault);
 
     // entry for root document
-    pathMap.set(document.path, `${rootFolderName}.${extension}`);
+    pathMap.set(
+      document.path,
+      `${rootFolderName}.${ExportDocumentTreeTask.extensionForFormat(format)}`
+    );
 
     this.addDocumentTreeToPathMap(
       pathMap,
@@ -313,7 +360,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
   ) {
     for (const node of nodes) {
       const title = serializeFilename(node.title) || "Untitled";
-      const extension = format === FileOperationFormat.HTMLZip ? "html" : "md";
+      const extension = ExportDocumentTreeTask.extensionForFormat(format);
 
       // Ensure the document is given a unique path in zip, even if it has
       // the same title as another document in the same collection.

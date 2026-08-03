@@ -975,12 +975,15 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
   /**
    * Replaces remote and base64 encoded images in the given Prosemirror node
-   * with attachment urls and uploads the images to the storage provider.
+   * with attachment urls and uploads the images to the storage provider. Links
+   * pointing at a data URI are uploaded too, so that files which are not
+   * images — a PDF bundled alongside a document, for example — do not remain
+   * embedded in the document as base64.
    *
    * @param ctx The API context.
    * @param doc The Prosemirror node to process.
    * @param user The user context.
-   * @returns A new Prosemirror node with images replaced.
+   * @returns A new Prosemirror node with images and embedded files replaced.
    */
   static async replaceImagesWithAttachments(
     ctx: APIContext,
@@ -991,21 +994,41 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const videos = ProsemirrorHelper.getVideos(doc);
     const nodes = [...images, ...videos];
 
-    if (!nodes.length) {
+    // Only data URIs are collected from links: an ordinary external link is a
+    // reference to a page, not a file the document should take a copy of.
+    const links: { href: string; name: string }[] = [];
+    doc.descendants((node) => {
+      const link = node.marks.find((mark) => mark.type.name === "link");
+      const href = String(link?.attrs.href ?? "");
+      if (href.startsWith("data:")) {
+        links.push({ href, name: node.textContent || "file" });
+      }
+      return true;
+    });
+
+    if (!nodes.length && !links.length) {
       return doc;
     }
 
+    const sources = [
+      ...nodes.map((node) => ({
+        href: String(node.attrs.src ?? ""),
+        name: String(node.attrs.alt ?? node.type.name),
+      })),
+      ...links,
+    ];
+
     const timeoutPerImage = Math.floor(
-      Math.min(env.REQUEST_TIMEOUT / nodes.length, 10000)
+      Math.min(env.REQUEST_TIMEOUT / sources.length, 10000)
     );
 
     const urlToAttachment: Map<string, Attachment> = new Map();
-    const chunks = chunk(nodes, 10);
+    const chunks = chunk(sources, 10);
 
-    for (const nodeChunk of chunks) {
+    for (const sourceChunk of chunks) {
       await Promise.all(
-        nodeChunk.map(async (node) => {
-          const src = String(node.attrs.src ?? "");
+        sourceChunk.map(async (source) => {
+          const src = source.href;
 
           // Skip invalid URLs
           try {
@@ -1026,7 +1049,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
           try {
             const attachment = await attachmentCreator({
-              name: String(node.attrs.alt ?? node.type.name),
+              name: source.name,
               url: src,
               preset: AttachmentPreset.DocumentAttachment,
               user,
@@ -1049,7 +1072,8 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       );
     }
 
-    // Transform the document to replace image/video src attributes
+    // Transform the document to replace image/video src attributes and the
+    // href of any link that was uploaded above.
     const transformFragment = (fragment: Fragment): Fragment => {
       const transformedNodes: Node[] = [];
 
@@ -1065,10 +1089,27 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
           } else {
             transformedNodes.push(node);
           }
-        } else if (node.content.size > 0) {
-          transformedNodes.push(node.copy(transformFragment(node.content)));
         } else {
-          transformedNodes.push(node);
+          const marks = node.marks.map((mark) => {
+            const attachment =
+              mark.type.name === "link"
+                ? urlToAttachment.get(String(mark.attrs.href ?? ""))
+                : undefined;
+
+            return attachment
+              ? mark.type.create({
+                  ...mark.attrs,
+                  href: attachment.redirectUrl,
+                })
+              : mark;
+          });
+
+          const content =
+            node.content.size > 0 ? transformFragment(node.content) : undefined;
+
+          transformedNodes.push(
+            (content ? node.copy(content) : node).mark(marks)
+          );
         }
       });
 

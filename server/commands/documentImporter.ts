@@ -7,7 +7,7 @@ import { traceFunction } from "@server/logging/tracing";
 import type { User } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import type { APIContext } from "@server/types";
-import { DocumentConverter } from "@server/utils/DocumentConverter";
+import { DocumentConverter } from "@server/converters/DocumentConverter";
 import { InvalidRequestError } from "../errors";
 
 type Props = {
@@ -64,6 +64,7 @@ async function documentImporter({
     "mhtml",
     "mht",
     "eml",
+    "textpack",
     ...(mime.extensions[mimeType] ?? []),
   ];
   const fileTitle = fileName.replace(

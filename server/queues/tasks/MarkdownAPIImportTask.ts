@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { escapeRegExp, truncate } from "es-toolkit/compat";
 import mime from "mime-types";
 import { UniqueConstraintError } from "sequelize";
+import { replaceMarkdownLinks } from "@shared/utils/markdown";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import type {
   ImportTaskInput,
@@ -28,7 +29,7 @@ import type { ZipTreeNode } from "@server/utils/ZipHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import type { ProcessOutput } from "./APIImportTask";
 import APIImportTask from "./APIImportTask";
-import { DocumentConverter } from "@server/utils/DocumentConverter";
+import { DocumentConverter } from "@server/converters/DocumentConverter";
 
 type Markdown = IntegrationService.Markdown;
 
@@ -133,22 +134,18 @@ export function rewriteInternalLinks(
   docMap: Record<string, string>
 ): string {
   const basePath = path.dirname(documentPath);
-  const internalLinks = [...markdown.matchAll(/\[[^\]]+\]\(([^)]+\.md)\)/g)];
 
-  let text = markdown;
-  for (const match of internalLinks) {
-    const referredDocPath = match[1];
-    const normalizedDocPath = decodeURI(
-      path.normalize(`${basePath}/${referredDocPath}`)
-    );
+  return replaceMarkdownLinks(markdown, (href) => {
+    let normalizedDocPath: string;
+    try {
+      normalizedDocPath = decodeURI(path.normalize(`${basePath}/${href}`));
+    } catch {
+      return undefined;
+    }
 
     const referredDocId = docMap[normalizedDocPath];
-    if (referredDocId) {
-      text = text.replace(referredDocPath, `<<${referredDocId}>>`);
-    }
-  }
-
-  return text;
+    return referredDocId ? `<<${referredDocId}>>` : undefined;
+  });
 }
 
 export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {

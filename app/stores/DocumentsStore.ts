@@ -69,6 +69,7 @@ export default class DocumentsStore extends Store<Document> {
     ".mhtml",
     ".mht",
     ".eml",
+    ".textpack",
     "text/csv",
     "text/tab-separated-values",
     "text/markdown",
