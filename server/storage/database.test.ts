@@ -2,13 +2,9 @@ import type { Sequelize } from "sequelize-typescript";
 import Document from "@server/models/Document";
 import { buildDocument, buildTeam } from "@server/test/factories";
 import env from "@server/env";
-import {
-  applyReadOnlyRouting,
-  createDatabaseInstance,
-  sequelize,
-} from "./database";
+import { createDatabaseInstance } from "./database";
 
-describe("read-only query routing", () => {
+describe("read replica transactions", () => {
   let replica: Sequelize;
 
   beforeAll(() => {
@@ -47,42 +43,5 @@ describe("read-only query routing", () => {
     });
 
     expect(documents.map((d) => d.id)).toEqual([document.id]);
-  });
-
-  it("should route a findAll with the readOnly option to the replica connection", async () => {
-    const team = await buildTeam();
-    const document = await buildDocument({ teamId: team.id });
-
-    applyReadOnlyRouting(sequelize, replica);
-    const spy = vi.spyOn(replica, "query");
-
-    try {
-      const documents = await Document.unscoped().findAll({
-        attributes: ["id"],
-        where: { teamId: team.id },
-        readOnly: true,
-      });
-
-      expect(spy).toHaveBeenCalled();
-      expect(documents.map((d) => d.id)).toEqual([document.id]);
-    } finally {
-      spy.mockRestore();
-    }
-  });
-
-  it("should not route queries without the readOnly option", async () => {
-    const team = await buildTeam();
-    const spy = vi.spyOn(replica, "query");
-
-    try {
-      await Document.unscoped().findAll({
-        attributes: ["id"],
-        where: { teamId: team.id },
-      });
-
-      expect(spy).not.toHaveBeenCalled();
-    } finally {
-      spy.mockRestore();
-    }
   });
 });

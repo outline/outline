@@ -352,29 +352,6 @@ export function monkeyPatchSequelizeErrorsForTests(instance: Sequelize) {
   return instance;
 }
 
-/**
- * Routes queries flagged with `readOnly: true` from the primary connection to
- * the read replica. Queries carrying a `transaction` are left untouched — they
- * always execute on the transaction's own connection, so replica execution for
- * transactional reads is achieved by opening the transaction on the replica.
- *
- * @param primary The primary database connection models are bound to.
- * @param replica The read-replica database connection.
- */
-export function applyReadOnlyRouting(primary: Sequelize, replica: Sequelize) {
-  const origQuery = primary.query.bind(primary) as Sequelize["query"];
-
-  primary.query = ((
-    sql: Parameters<Sequelize["query"]>[0],
-    options?: Parameters<Sequelize["query"]>[1]
-  ) => {
-    if (options?.readOnly && !options.transaction) {
-      return replica.query(sql as string, options);
-    }
-    return origQuery(sql, options);
-  }) as Sequelize["query"];
-}
-
 export const sequelize = createDatabaseInstance(databaseConfig, models);
 
 /**
@@ -393,10 +370,6 @@ export const sequelizeReadOnly =
         }
       )
     : sequelize;
-
-if (sequelizeReadOnly !== sequelize) {
-  applyReadOnlyRouting(sequelize, sequelizeReadOnly);
-}
 
 export const migrations = createMigrationRunner(sequelize, [
   "migrations/*.js",
