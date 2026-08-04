@@ -70,6 +70,7 @@ export default class DocumentsStore extends Store<Document> {
     ".mht",
     ".eml",
     ".textpack",
+    ".pdf",
     "text/csv",
     "text/tab-separated-values",
     "text/markdown",
@@ -80,6 +81,7 @@ export default class DocumentsStore extends Store<Document> {
     "message/rfc822",
     "multipart/related",
     "application/x-mimearchive",
+    "application/pdf",
   ];
 
   constructor(rootStore: RootStore) {

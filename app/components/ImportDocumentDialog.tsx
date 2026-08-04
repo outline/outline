@@ -5,13 +5,12 @@ import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import {
   DropzoneContainer,
   dropzoneIcon,
 } from "~/components/DropzoneContainer";
 import Flex from "~/components/Flex";
-import { FileFormatIcon } from "~/components/Icons/FileFormatIcon";
-import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import Text from "~/components/Text";
 import useImportDocument from "~/hooks/useImportDocument";
 import useStores from "~/hooks/useStores";
@@ -43,37 +42,34 @@ export const ImportDocumentDialog = observer(function ImportDocumentDialog({
       {
         name: t("Markdown"),
         extensions: ".md, .markdown",
-        icon: <MarkdownIcon size={28} />,
       },
       {
         name: t("Word"),
         extensions: ".docx",
-        icon: <FileFormatIcon label="DOC" size={28} />,
       },
       {
         name: "HTML",
         extensions: ".html, .htm, .mhtml, .mht",
-        icon: <FileFormatIcon label="HTM" size={28} />,
+      },
+      {
+        name: "PDF",
+        extensions: ".pdf",
       },
       {
         name: t("Plain text"),
         extensions: ".txt",
-        icon: <FileFormatIcon label="TXT" size={28} />,
       },
       {
         name: "CSV",
         extensions: ".csv, .tsv",
-        icon: <FileFormatIcon label="CSV" size={28} />,
       },
       {
         name: t("Email"),
         extensions: ".eml",
-        icon: <FileFormatIcon label="EML" size={28} />,
       },
       {
         name: "TextPack",
         extensions: ".textpack",
-        icon: <FileFormatIcon label="PACK" size={28} />,
       },
     ],
     [t]
@@ -94,7 +90,7 @@ export const ImportDocumentDialog = observer(function ImportDocumentDialog({
   }, [t]);
 
   return (
-    <Flex gap={20} column>
+    <Columns gap={20}>
       <Dropzone
         accept={documents.importFileTypesString}
         onDropAccepted={handleDropAccepted}
@@ -102,7 +98,7 @@ export const ImportDocumentDialog = observer(function ImportDocumentDialog({
         multiple
       >
         {({ getRootProps, getInputProps, isDragActive }) => (
-          <DropzoneContainer {...getRootProps()} $isDragActive={isDragActive}>
+          <DropTarget {...getRootProps()} $isDragActive={isDragActive}>
             <input {...getInputProps()} />
             <Flex align="center" justify="center" gap={8} column>
               <Icon size={32} color="#fff" />
@@ -112,28 +108,25 @@ export const ImportDocumentDialog = observer(function ImportDocumentDialog({
                 )}
               </Text>
             </Flex>
-          </DropzoneContainer>
+          </DropTarget>
         )}
       </Dropzone>
-      <Flex gap={8} column>
-        <Text size="xsmall" weight="bold" type="tertiary">
+      <Formats gap={12} column>
+        <Text type="secondary" size="small" weight="bold">
           {t("Supported formats")}
         </Text>
-        <Formats>
-          {formats.map((format) => (
-            <Format key={format.extensions} align="center" gap={8}>
-              {format.icon}
-              <Flex column>
-                <Text size="small">{format.name}</Text>
-                <Text size="xsmall" type="tertiary">
-                  {format.extensions}
-                </Text>
-              </Flex>
-            </Format>
-          ))}
-        </Formats>
-      </Flex>
-    </Flex>
+        {formats.map((format) => (
+          <Flex key={format.extensions} align="center" gap={8}>
+            <Text size="small" weight="bold">
+              {format.name}
+            </Text>
+            <Text size="small" type="tertiary">
+              {format.extensions}
+            </Text>
+          </Flex>
+        ))}
+      </Formats>
+    </Columns>
   );
 });
 
@@ -141,14 +134,25 @@ const Icon = styled(ImportIcon)`
   ${dropzoneIcon}
 `;
 
-const Formats = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
+/** Below tablet width there is no room for two columns, so they stack. */
+const Columns = styled(Flex)`
+  flex-direction: column;
+
+  ${breakpoint("tablet")`
+    flex-direction: row;
+  `}
 `;
 
-const Format = styled(Flex)`
-  svg {
-    flex-shrink: 0;
-  }
+/** Fills its half so that the drop target is as tall as the format list. */
+const DropTarget = styled(DropzoneContainer)`
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+`;
+
+const Formats = styled(Flex)`
+  flex: 1 1 0;
 `;

@@ -1192,6 +1192,7 @@ function getImportParent({
 export const importDocument = dialogActionFactory({
   analyticsName: "Import document",
   section: DocumentSection,
+  width: "640px",
   icon: <ImportIcon />,
   keywords: "upload",
   name: (t) => `${t("Import documents")}…`,
