@@ -10,7 +10,7 @@ import {
 } from "~/components/primitives/Drawer";
 import { Menu, MenuContent, MenuTrigger } from "~/components/primitives/Menu";
 import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
-import { actionToMenuItem } from "~/actions";
+import { actionToMenuItem, hasVisibleActions } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import { preventDefault } from "~/utils/events";
@@ -85,6 +85,17 @@ export const DropdownMenu = observer(
         );
       }, [open, action, actionContext]);
 
+      // Only visibility is resolved while the menu is closed, the remainder of
+      // each item is resolved when it is opened.
+      const isEmpty = useComputed(() => {
+        const resolvedAction = typeof action === "function" ? action() : action;
+
+        return !hasVisibleActions(
+          resolvedAction.children as ActionVariant[],
+          actionContext
+        );
+      }, [action, actionContext]);
+
       const handleOpenChange = React.useCallback(
         (open: boolean) => {
           setOpen(open);
@@ -108,6 +119,10 @@ export const DropdownMenu = observer(
           contentRef.current.style.pointerEvents = "none";
         }
       }, []);
+
+      if (isEmpty && !append) {
+        return null;
+      }
 
       if (isMobile) {
         return (

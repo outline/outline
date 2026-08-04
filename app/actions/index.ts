@@ -112,6 +112,42 @@ export function createRootMenuAction(
   };
 }
 
+/**
+ * Determines whether any of the given actions are visible in the context,
+ * without resolving the remainder of the menu items.
+ *
+ * @param actions - the actions to check.
+ * @param context - the context to resolve visibility against.
+ * @returns true if at least one action is visible.
+ */
+export function hasVisibleActions(
+  actions: (ActionVariant | ActionGroup | TActionSeparator)[],
+  context: ActionContext
+): boolean {
+  return actions.some((action) => {
+    switch (action.type) {
+      case "action": {
+        if (resolve<boolean>(action.visible, context) === false) {
+          return false;
+        }
+        if (action.variant === "action_with_children") {
+          const children = resolve<
+            (ActionVariant | ActionGroup | TActionSeparator)[]
+          >(action.children, context);
+          return hasVisibleActions(children, context);
+        }
+        return true;
+      }
+
+      case "action_group":
+        return hasVisibleActions(action.actions, context);
+
+      case "action_separator":
+        return false;
+    }
+  });
+}
+
 export function actionToMenuItem(
   action: ActionVariant | ActionGroup | TActionSeparator,
   context: ActionContext
