@@ -886,6 +886,7 @@
   "{{userName}} published": "{{userName}} ha publicat",
   "{{userName}} unpublished": "{{userName}} ha despublicat",
   "{{userName}} moved": "{{userName}} ha mogut",
+  "via {{ authType }}": "mitjançant {{ authType }}",
   "Previous version": "Versió anterior",
   "Highlight changes": "Ressalta els canvis",
   "Compare to": "Compara amb",
