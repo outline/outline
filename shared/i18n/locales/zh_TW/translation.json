@@ -886,6 +886,7 @@
   "{{userName}} published": "{{userName}} 已將其發布",
   "{{userName}} unpublished": "{{userName}} 已取消發布",
   "{{userName}} moved": "{{userName}} 將其移動",
+  "via {{ authType }}": "透過 {{ authType }}",
   "Previous version": "上一個版本",
   "Highlight changes": "顯示差異",
   "Compare to": "比較對象",
