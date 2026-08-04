@@ -352,21 +352,51 @@ export function monkeyPatchSequelizeErrorsForTests(instance: Sequelize) {
   return instance;
 }
 
+/**
+ * Routes queries flagged with `readOnly: true` from the primary connection to
+ * the read replica. Queries carrying a `transaction` are left untouched — they
+ * always execute on the transaction's own connection, so replica execution for
+ * transactional reads is achieved by opening the transaction on the replica.
+ *
+ * @param primary The primary database connection models are bound to.
+ * @param replica The read-replica database connection.
+ */
+export function applyReadOnlyRouting(primary: Sequelize, replica: Sequelize) {
+  const origQuery = primary.query.bind(primary) as Sequelize["query"];
+
+  primary.query = ((
+    sql: Parameters<Sequelize["query"]>[0],
+    options?: Parameters<Sequelize["query"]>[1]
+  ) => {
+    if (options?.readOnly && !options.transaction) {
+      return replica.query(sql as string, options);
+    }
+    return origQuery(sql, options);
+  }) as Sequelize["query"];
+}
+
 export const sequelize = createDatabaseInstance(databaseConfig, models);
 
 /**
  * Read-only database connection for read replicas.
- * Falls back to the main connection if DATABASE_READ_ONLY_URL is not set.
+ * Falls back to the main connection if DATABASE_READ_ONLY_URL is not set, and
+ * in the test environment, where DATABASE_READ_ONLY_URL would not point at
+ * the isolated per-worker test database.
  */
-export const sequelizeReadOnly = env.DATABASE_READ_ONLY_URL
-  ? createDatabaseInstance(
-      env.DATABASE_READ_ONLY_URL,
-      {},
-      {
-        readOnly: true,
-      }
-    )
-  : sequelize;
+export const sequelizeReadOnly =
+  env.DATABASE_READ_ONLY_URL && !env.isTest
+    ? createDatabaseInstance(
+        env.DATABASE_READ_ONLY_URL,
+        {},
+        {
+          readOnly: true,
+        }
+      )
+    : sequelize;
+
+if (sequelizeReadOnly !== sequelize) {
+  applyReadOnlyRouting(sequelize, sequelizeReadOnly);
+}
 
 export const migrations = createMigrationRunner(sequelize, [
   "migrations/*.js",

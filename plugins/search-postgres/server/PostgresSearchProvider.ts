@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { escapeRegExp, find, map } from "es-toolkit/compat";
+import { compact, escapeRegExp, find, map } from "es-toolkit/compat";
 import queryParser from "pg-tsquery";
 import type {
   BindOrReplacements,
@@ -20,7 +20,7 @@ import Document from "@server/models/Document";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { sequelize } from "@server/storage/database";
+import { sequelize, sequelizeReadOnly } from "@server/storage/database";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import type {
   SearchOptions,
@@ -434,9 +434,11 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   }
 
   /**
-   * Executes the ranked search query inside a transaction so the statement
-   * timeout for request-handling processes applies, ensuring a pathological
-   * query is cancelled at the database rather than running unbounded.
+   * Executes the ranked search query inside a transaction opened on the
+   * read-replica connection, offloading the most expensive query from the
+   * primary. The transaction also ensures the statement timeout for
+   * request-handling processes applies, cancelling a pathological query at
+   * the database rather than letting it run unbounded.
    */
   private static findRankedResults({
     findOptions,
@@ -449,15 +451,16 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     limit: number;
     offset: number;
   }): Promise<RankedDocument[]> {
-    return sequelize.transaction((transaction) =>
-      Document.unscoped().findAll({
-        ...findOptions,
-        where,
-        limit,
-        offset,
-        transaction,
-      })
-    ) as unknown as Promise<RankedDocument[]>;
+    return sequelizeReadOnly.transaction(
+      (transaction) =>
+        Document.unscoped().findAll({
+          ...findOptions,
+          where,
+          limit,
+          offset,
+          transaction,
+        }) as unknown as Promise<RankedDocument[]>
+    );
   }
 
   /**
@@ -482,14 +485,15 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       return Promise.resolve(offset + results.length);
     }
 
-    return sequelize.transaction((transaction) =>
-      Document.unscoped().count({
-        // @ts-expect-error Types are incorrect for count
-        replacements,
-        where,
-        transaction,
-      })
-    ) as unknown as Promise<number>;
+    return sequelizeReadOnly.transaction(
+      (transaction) =>
+        Document.unscoped().count({
+          // @ts-expect-error Types are incorrect for count
+          replacements,
+          where,
+          transaction,
+        }) as unknown as Promise<number>
+    );
   }
 
   private static buildFindOptions({
@@ -804,19 +808,27 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     count: number;
   }): SearchResponse {
     return {
-      results: map(results, (result) => {
-        const document = find(documents, {
-          id: result.id,
-        }) as Document;
+      results: compact(
+        map(results, (result) => {
+          const document = find(documents, {
+            id: result.id,
+          });
 
-        return {
-          ranking: result.dataValues.searchRanking,
-          context: query
-            ? PostgresSearchProvider.buildResultContext(document, query)
-            : undefined,
-          document,
-        };
-      }),
+          // The ranked query may run on a read replica, so a document can be
+          // returned that has since been removed on the primary.
+          if (!document) {
+            return null;
+          }
+
+          return {
+            ranking: result.dataValues.searchRanking,
+            context: query
+              ? PostgresSearchProvider.buildResultContext(document, query)
+              : undefined,
+            document,
+          };
+        })
+      ),
       total: count,
     };
   }
