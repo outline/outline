@@ -48,6 +48,14 @@ type Root = {
 type DuplicateItem = {
   /** The document being duplicated */
   original: Document;
+  /**
+   * Whether `original` has its content loaded. Child documents are fetched
+   * without content while identifiers are being assigned across the whole
+   * tree, so their content is re-fetched immediately before it is written –
+   * this keeps peak memory bounded to one document's content at a time
+   * rather than the entire tree's.
+   */
+  hasContent: boolean;
   /** The id assigned to the duplicate */
   id: string;
   /** The url identifier assigned to the duplicate */
@@ -137,7 +145,8 @@ async function duplicateRoots(
   async function buildItem(
     original: Document,
     originalCollection: Collection | null,
-    titleOverride?: string
+    titleOverride?: string,
+    hasContent = true
   ): Promise<DuplicateItem> {
     const id = randomUUID();
     const urlId = generateUrlId();
@@ -152,6 +161,7 @@ async function duplicateRoots(
 
     return {
       original,
+      hasContent,
       id,
       urlId,
       title: itemTitle,
@@ -165,6 +175,11 @@ async function duplicateRoots(
     original: Document,
     originalCollection: Collection | null
   ) {
+    // Identifiers are assigned across the whole tree before any content is
+    // written, so this pass only needs each document's structural fields –
+    // fetching content/text here as well would hold every document's full
+    // content in memory at once for the entire duration of a large tree
+    // duplication. It is re-fetched per document in `duplicateItem` instead.
     const childDocuments = await original.findChildDocuments(
       {
         archivedAt: original.archivedAt
@@ -175,7 +190,10 @@ async function duplicateRoots(
               [Op.eq]: null,
             },
       },
-      ctx
+      {
+        ...ctx,
+        attributes: { exclude: ["state", "content", "text"] },
+      }
     );
 
     const sorted = DocumentHelper.sortDocumentsByStructure(
@@ -185,7 +203,9 @@ async function duplicateRoots(
 
     const items: DuplicateItem[] = [];
     for (const childDocument of sorted) {
-      items.push(await buildItem(childDocument, originalCollection));
+      items.push(
+        await buildItem(childDocument, originalCollection, undefined, false)
+      );
     }
     return items;
   }
@@ -194,26 +214,36 @@ async function duplicateRoots(
     item: DuplicateItem,
     options: { parentDocumentId?: string; publish: boolean }
   ) {
+    // Content was deliberately left unfetched for child documents while
+    // building the tree above (see `buildChildItems`) – load it now, right
+    // before it's needed, so at most one document's content is held at a
+    // time instead of the whole tree's.
+    const original = item.hasContent
+      ? item.original
+      : await Document.findByPk(item.original.id, {
+          transaction: ctx.state.transaction,
+          rejectOnEmpty: true,
+        });
+
     const duplicated = await documentCreator(ctx, {
       id: item.id,
       urlId: item.urlId,
       parentDocumentId: options.parentDocumentId,
       publish: options.publish,
       collectionId: collection?.id,
-      icon: item.original.icon,
-      color: item.original.color,
-      fullWidth: item.original.fullWidth,
+      icon: original.icon,
+      color: original.color,
+      fullWidth: original.fullWidth,
       title: item.title,
       content: ProsemirrorHelper.replaceDocumentReferences(
-        ProsemirrorHelper.removeMarks(
-          DocumentHelper.toProsemirror(item.original),
-          ["comment"]
-        ),
+        ProsemirrorHelper.removeMarks(DocumentHelper.toProsemirror(original), [
+          "comment",
+        ]),
         references
       ),
       sourceMetadata: {
-        ...item.original.sourceMetadata,
-        originalDocumentId: item.original.id,
+        ...original.sourceMetadata,
+        originalDocumentId: original.id,
       },
     });
 
