@@ -13,6 +13,14 @@ export enum Scope {
   Create = "create",
 }
 
+/** The method used to authenticate a request. */
+export enum AuthenticationType {
+  API = "api",
+  APP = "app",
+  MCP = "mcp",
+  OAUTH = "oauth",
+}
+
 export type DateFilter = "day" | "week" | "month" | "year";
 
 export enum StatusFilter {

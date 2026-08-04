@@ -1,3 +1,4 @@
+import type { AuthenticationType } from "@shared/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
@@ -32,6 +33,8 @@ class Event<T extends Model> extends Model {
   actor: User;
 
   actorId: string;
+
+  authType: AuthenticationType | null;
 
   data: Partial<T> | null;
 
