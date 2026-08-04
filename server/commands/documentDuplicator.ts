@@ -165,6 +165,8 @@ async function duplicateRoots(
     original: Document,
     originalCollection: Collection | null
   ) {
+    // Structural fields only – content is re-fetched per document in
+    // `duplicateItem`, so a large tree isn't held in memory at once.
     const childDocuments = await original.findChildDocuments(
       {
         archivedAt: original.archivedAt
@@ -175,7 +177,10 @@ async function duplicateRoots(
               [Op.eq]: null,
             },
       },
-      ctx
+      {
+        ...ctx,
+        attributes: { exclude: ["state", "content", "text"] },
+      }
     );
 
     const sorted = DocumentHelper.sortDocumentsByStructure(
@@ -194,26 +199,33 @@ async function duplicateRoots(
     item: DuplicateItem,
     options: { parentDocumentId?: string; publish: boolean }
   ) {
+    const original =
+      item.original.dataValues.content !== undefined
+        ? item.original
+        : await Document.findByPk(item.original.id, {
+            transaction: ctx.state.transaction,
+            rejectOnEmpty: true,
+          });
+
     const duplicated = await documentCreator(ctx, {
       id: item.id,
       urlId: item.urlId,
       parentDocumentId: options.parentDocumentId,
       publish: options.publish,
       collectionId: collection?.id,
-      icon: item.original.icon,
-      color: item.original.color,
-      fullWidth: item.original.fullWidth,
+      icon: original.icon,
+      color: original.color,
+      fullWidth: original.fullWidth,
       title: item.title,
       content: ProsemirrorHelper.replaceDocumentReferences(
-        ProsemirrorHelper.removeMarks(
-          DocumentHelper.toProsemirror(item.original),
-          ["comment"]
-        ),
+        ProsemirrorHelper.removeMarks(DocumentHelper.toProsemirror(original), [
+          "comment",
+        ]),
         references
       ),
       sourceMetadata: {
-        ...item.original.sourceMetadata,
-        originalDocumentId: item.original.id,
+        ...original.sourceMetadata,
+        originalDocumentId: original.id,
       },
     });
 

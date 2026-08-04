@@ -1,6 +1,13 @@
+import { isEqualWith } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import type { ReactNode } from "react";
-import React, { createContext, useCallback, useContext, useMemo } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router";
 import useStores from "~/hooks/useStores";
@@ -217,6 +224,30 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
 });
 
 /**
+ * Returns the same object reference across calls as long as `value`'s own
+ * enumerable properties are shallowly equal to the previous call's. Callers
+ * that pass overrides to `useActionContext` supply a fresh object literal on
+ * every render, which would otherwise give the merged result a new identity
+ * each time and defeat memoization (e.g. useMemo/useComputed) in consumers.
+ *
+ * @param value the object to stabilize.
+ * @returns `value`, or the previous call's return value if shallowly equal.
+ */
+function useStableValue<T extends object>(value: T): T {
+  const ref = useRef(value);
+
+  const isEqual = isEqualWith(ref.current, value, (x, y, key) =>
+    key === undefined ? undefined : Object.is(x, y)
+  );
+
+  if (!isEqual) {
+    ref.current = value;
+  }
+
+  return ref.current;
+}
+
+/**
  * Hook to get the current action context, an object that is passed to all
  * action definitions.
  *
@@ -240,14 +271,12 @@ export default function useActionContext(
     );
   }
 
-  // Short-circuit when no overrides are provided so consumers get a stable
-  // reference and don't re-render unnecessarily.
-  if (!overrides || Object.keys(overrides).length === 0) {
-    return contextValue;
-  }
+  const hasOverrides = !!overrides && Object.keys(overrides).length > 0;
 
-  return {
-    ...contextValue,
-    ...overrides,
-  };
+  // Stabilize the reference so callers that memoize on the returned context
+  // (e.g. DropdownMenu's `useComputed`) don't invalidate on every render
+  // just because `overrides` is a new object literal each time.
+  return useStableValue(
+    hasOverrides ? { ...contextValue, ...overrides } : contextValue
+  );
 }
