@@ -224,23 +224,6 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
 });
 
 /**
- * Compares two objects' own enumerable properties with `Object.is`, one
- * level deep.
- *
- * @param a the first object.
- * @param b the second object.
- * @returns true if `a` and `b` have the same keys with the same values.
- */
-export function shallowEqual(
-  a: Record<string, unknown>,
-  b: Record<string, unknown>
-): boolean {
-  return isEqualWith(a, b, (x, y, key) =>
-    key === undefined ? undefined : Object.is(x, y)
-  );
-}
-
-/**
  * Returns the same object reference across calls as long as `value`'s own
  * enumerable properties are shallowly equal to the previous call's. Callers
  * that pass overrides to `useActionContext` supply a fresh object literal on
@@ -253,12 +236,11 @@ export function shallowEqual(
 function useStableValue<T extends object>(value: T): T {
   const ref = useRef(value);
 
-  if (
-    !shallowEqual(
-      ref.current as Record<string, unknown>,
-      value as Record<string, unknown>
-    )
-  ) {
+  const isEqual = isEqualWith(ref.current, value, (x, y, key) =>
+    key === undefined ? undefined : Object.is(x, y)
+  );
+
+  if (!isEqual) {
     ref.current = value;
   }
 
