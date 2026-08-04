@@ -234,12 +234,20 @@ export function shallowEqual(
   a: Record<string, unknown>,
   b: Record<string, unknown>
 ): boolean {
+  if (a === b) {
+    return true;
+  }
+
   const aKeys = Object.keys(a);
   const bKeys = Object.keys(b);
 
   return (
     aKeys.length === bKeys.length &&
-    aKeys.every((key) => Object.is(a[key], b[key]))
+    aKeys.every(
+      (key) =>
+        Object.prototype.hasOwnProperty.call(b, key) &&
+        Object.is(a[key], b[key])
+    )
   );
 }
 

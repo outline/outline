@@ -35,6 +35,10 @@ describe("shallowEqual", () => {
     expect(shallowEqual({ a: 1 }, { b: 1 })).toBe(false);
   });
 
+  it("returns false when the key sets differ but both missing properties are undefined", () => {
+    expect(shallowEqual({ a: undefined }, { b: undefined })).toBe(false);
+  });
+
   it("returns true for two empty objects", () => {
     expect(shallowEqual({}, {})).toBe(true);
   });
