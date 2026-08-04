@@ -87,9 +87,11 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       await this.cleanupStaleWorkingTables();
 
       // Setup: Create working table and populate with active document IDs
-      await this.setupWorkingTable(thresholdDate, today, partition);
-
-      const activeCount = await this.getWorkingTableCount();
+      const activeCount = await this.setupWorkingTable(
+        thresholdDate,
+        today,
+        partition
+      );
 
       if (activeCount === 0) {
         Logger.info("task", "No documents with recent activity found");
@@ -107,11 +109,6 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       let batchNumber = 0;
 
       while (true) {
-        const remaining = await this.getWorkingTableCount();
-        if (remaining === 0) {
-          break;
-        }
-
         batchNumber++;
 
         try {
@@ -120,13 +117,16 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
 
           Logger.debug(
             "task",
-            `Batch ${batchNumber}: updated ${updated} documents, ${remaining - updated} remaining`
+            `Batch ${batchNumber}: updated ${updated} documents`
           );
 
-          // Add delay between batches to reduce sustained pressure on the database
-          if (remaining - updated > 0) {
-            await setTimeout(INTER_BATCH_DELAY_MS);
+          // A short batch means the working table is drained.
+          if (updated < BATCH_SIZE) {
+            break;
           }
+
+          // Add delay between batches to reduce sustained pressure on the database
+          await setTimeout(INTER_BATCH_DELAY_MS);
         } catch (error) {
           totalErrors++;
           Logger.error(
@@ -159,12 +159,14 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
    * Creates an unlogged working table and populates it with document IDs
    * that have recent activity. Unlogged tables are faster because they
    * skip WAL logging, and data loss on crash is acceptable here.
+   *
+   * @returns the number of documents added to the working table.
    */
   private async setupWorkingTable(
     thresholdDate: string,
     today: string,
     partition: PartitionInfo
-  ): Promise<void> {
+  ): Promise<number> {
     // Drop any existing table first to avoid type conflicts from previous crashed runs
     await sequelize.query(`DROP TABLE IF EXISTS ${this.workingTable} CASCADE`);
 
@@ -287,17 +289,8 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     await sequelize.query(`
       CREATE INDEX ON ${this.workingTable} (processed) WHERE NOT processed
     `);
-  }
 
-  /**
-   * Returns count of unprocessed documents in working table
-   */
-  private async getWorkingTableCount(): Promise<number> {
-    const [result] = await sequelize.query<{ count: string }>(
-      `SELECT COUNT(*) as count FROM ${this.workingTable} WHERE NOT processed`,
-      { type: QueryTypes.SELECT }
-    );
-    return parseInt(result.count, 10);
+    return insertedCount;
   }
 
   /**
