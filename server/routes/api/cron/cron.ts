@@ -28,6 +28,8 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
 
   receivedPeriods.add(period);
 
+  const scheduledAt = Date.now();
+
   for (const name in tasks) {
     const TaskClass = tasks[name];
     if (!(TaskClass.prototype instanceof CronTask)) {
@@ -72,7 +74,10 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
             }/${partitions}) with delay of ${delay / 1000}s`
           );
 
-          await taskInstance.schedule({ limit, partition }, { delay });
+          await taskInstance.schedule(
+            { limit, partition, scheduledAt },
+            { delay }
+          );
         }
       } else {
         await taskInstance.schedule(
@@ -82,6 +87,7 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
               partitionIndex: 0,
               partitionCount: 1,
             },
+            scheduledAt,
           },
           { delay: taskDelay }
         );

@@ -19,7 +19,11 @@ export default function init() {
       const taskInstance = new TaskClass() as CronTask;
 
       if (taskInstance.cron.interval === schedule) {
-        await taskInstance.schedule({ limit: 10000, partition });
+        await taskInstance.schedule({
+          limit: 10000,
+          partition,
+          scheduledAt: Date.now(),
+        });
       }
     }
   }

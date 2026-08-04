@@ -65,6 +65,14 @@ export type PartitionInfo = {
 export type Props = {
   limit: number;
   partition: PartitionInfo;
+  /**
+   * Epoch milliseconds at which the run this partition belongs to was
+   * scheduled. Tasks spread over a long `partitionWindow` should derive any
+   * time-of-day decisions from this rather than the execution time, which may
+   * be hours later. Optional for backwards compatibility with jobs enqueued
+   * before this field existed.
+   */
+  scheduledAt?: number;
 };
 
 export abstract class CronTask extends BaseTask<Props> {

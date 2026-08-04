@@ -3,7 +3,7 @@ import { setTimeout } from "node:timers/promises";
 import { subDays } from "date-fns";
 import { QueryTypes } from "sequelize";
 import { toError } from "@shared/utils/error";
-import { Minute } from "@shared/utils/time";
+import { Hour } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { TaskPriority } from "./base/BaseTask";
@@ -43,6 +43,12 @@ const INTER_BATCH_DELAY_MS = 500;
  */
 const WORKING_TABLE_PREFIX = "popularity_score_working";
 
+/**
+ * Number of hours over which to spread a single run. Partitions are scheduled
+ * one minute apart across this window, so each handles a small slice of teams.
+ */
+const SPREAD_HOURS = 6;
+
 interface DocumentScore {
   documentId: string;
   score: number;
@@ -54,13 +60,15 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
    */
   private workingTable: string = "";
 
-  public async perform({ partition }: Props) {
-    // Only run every X hours, skip other hours
-    const currentHour = new Date().getHours();
-    if (currentHour % env.POPULARITY_UPDATE_INTERVAL_HOURS !== 0) {
+  public async perform({ partition, scheduledAt }: Props) {
+    // Only run every X hours, skip other hours. Partitions of a single run are
+    // spread over several hours, so this is based on when the run was
+    // scheduled rather than when this partition happens to execute.
+    const scheduledHour = new Date(scheduledAt ?? Date.now()).getHours();
+    if (scheduledHour % env.POPULARITY_UPDATE_INTERVAL_HOURS !== 0) {
       Logger.debug(
         "task",
-        `Skipping popularity score update, will run at next ${env.POPULARITY_UPDATE_INTERVAL_HOURS}-hour interval (current hour: ${currentHour})`
+        `Skipping popularity score update, will run at next ${env.POPULARITY_UPDATE_INTERVAL_HOURS}-hour interval (scheduled hour: ${scheduledHour})`
       );
       return;
     }
@@ -178,22 +186,19 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       )
     `);
 
-    const [startUuid, endUuid] = this.getPartitionBounds(partition);
+    const [startTeamId, endTeamId] = this.getPartitionBounds(partition);
 
     // Populate with documents that have recent activity OR a current non-zero
     // score (so dormant docs decay back to zero once activity falls out of the
     // window). Must be valid: published and not deleted. Process in chunks to
     // avoid long-running queries. Read from replica to avoid excessive locking.
-    let lastId = startUuid;
-    let isFirstChunk = true;
+    // The nil UUID is never generated, so no real document can be skipped by
+    // starting the cursor there.
+    let lastId = "00000000-0000-0000-0000-000000000000";
     let insertedCount = 0;
     const chunkSize = 1000;
 
     while (true) {
-      // The first chunk starts at the inclusive lower bound of the partition,
-      // subsequent chunks resume after the last candidate seen.
-      const idOperator = isFirstChunk ? ">=" : ">";
-
       // Step 1: Read candidate document IDs from readonly replica to avoid
       // locking. The two sources are queried separately so that each can be
       // served by an index — combining them into a single OR forces a scan of
@@ -209,10 +214,11 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
           (
             SELECT DISTINCT di."documentId" AS id
             FROM document_insights di
-            WHERE di."documentId" ${idOperator} :lastId
-              AND di."documentId" <= :endUuid
+            WHERE di."teamId" >= :startTeamId
+              AND di."teamId" <= :endTeamId
               AND di.date >= :thresholdDate::date
               AND di.date <= :today::date
+              AND di."documentId" > :lastId
             ORDER BY id
             LIMIT :limit
           )
@@ -220,9 +226,10 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
           (
             SELECT d.id
             FROM documents d
-            WHERE d.id ${idOperator} :lastId
-              AND d.id <= :endUuid
+            WHERE d."teamId" >= :startTeamId
+              AND d."teamId" <= :endTeamId
               AND d."popularityScore" > 0
+              AND d.id > :lastId
             ORDER BY id
             LIMIT :limit
           )
@@ -241,7 +248,8 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
             thresholdDate,
             today,
             lastId,
-            endUuid,
+            startTeamId,
+            endTeamId,
             limit: chunkSize,
           },
           type: QueryTypes.SELECT,
@@ -273,7 +281,6 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       }
 
       lastId = candidates[candidates.length - 1].id;
-      isFirstChunk = false;
 
       if (candidates.length < chunkSize) {
         break;
@@ -519,7 +526,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
   public get cron() {
     return {
       interval: TaskInterval.Hour,
-      partitionWindow: 30 * Minute.ms,
+      partitionWindow: SPREAD_HOURS * Hour.ms,
     };
   }
 
