@@ -91,6 +91,7 @@ export async function performBatchOnActiveModels<T extends Model>(
  * @param name - the menu item label, defaults to the title with an ellipsis.
  * Required when the title is not a plain string.
  * @param icon - optional icon for the menu item.
+ * @param iconInContextMenu - whether the icon is shown in context menus.
  * @param keywords - optional additional search terms for the command bar.
  * @param visible - optional visibility predicate.
  * @param dangerous - whether the action is destructive.
@@ -105,6 +106,7 @@ export const dialogActionFactory = ({
   content,
   name,
   icon,
+  iconInContextMenu,
   keywords,
   visible,
   dangerous,
@@ -115,6 +117,7 @@ export const dialogActionFactory = ({
   section: Action["section"];
   content: (onSubmit: () => void, context: ActionContext) => React.ReactNode;
   icon?: React.ReactNode;
+  iconInContextMenu?: boolean;
   keywords?: string;
   visible?: Action["visible"];
   dangerous?: boolean;
@@ -143,6 +146,7 @@ export const dialogActionFactory = ({
     analyticsName,
     section,
     icon,
+    iconInContextMenu,
     keywords,
     visible,
     dangerous,

@@ -13,12 +13,14 @@ import {
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useUserMenuActions } from "~/hooks/useUserMenuActions";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import UserMenu from "~/menus/UserMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import UserSelectionToolbar from "./UserSelectionToolbar";
 import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
 
@@ -38,11 +40,13 @@ const UserRowContextMenu = observer(function UserRowContextMenu({
   menuLabel: string;
   children: React.ReactNode;
 }) {
-  const action = useUserMenuActions(user);
+  const action = useUserMenuActions();
   return (
-    <ContextMenu action={action} ariaLabel={menuLabel}>
-      {children}
-    </ContextMenu>
+    <ActionContextProvider value={{ activeModels: [user] }}>
+      <ContextMenu action={action} ariaLabel={menuLabel}>
+        {children}
+      </ContextMenu>
+    </ActionContextProvider>
   );
 });
 
@@ -50,6 +54,12 @@ export function UsersTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const isMobile = useMobile();
+
+  // The current user is excluded, none of the bulk actions apply to yourself.
+  const isRowSelectable = useCallback(
+    (user: User) => canManage && user.id !== currentUser.id,
+    [canManage, currentUser.id]
+  );
 
   const applyContextMenu = useCallback(
     (user: User, rowElement: React.ReactNode) => {
@@ -155,6 +165,8 @@ export function UsersTable({ canManage, ...rest }: Props) {
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
       decorateRow={canManage ? applyContextMenu : undefined}
+      isRowSelectable={canManage ? isRowSelectable : undefined}
+      selectionToolbar={<UserSelectionToolbar />}
       {...rest}
     />
   );

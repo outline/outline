@@ -24,6 +24,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { GroupMemberMenu } from "~/menus/GroupMemberMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import GroupMemberSelectionToolbar from "./GroupMemberSelectionToolbar";
 import { HStack } from "~/components/primitives/HStack";
 
 const ROW_HEIGHT = 50;
@@ -65,6 +66,11 @@ export const GroupMembersTable = observer(function GroupMembersTable({
   const { groupUsers } = useStores();
   const can = usePolicy(group);
   const canManage = can.update && !group.isExternallyManaged;
+
+  const isRowSelectable = useCallback(
+    (user: User) => !!groupUsers.membership(group.id, user.id),
+    [groupUsers, group.id]
+  );
 
   const applyContextMenu = useCallback(
     (user: User, rowElement: React.ReactNode) => (
@@ -153,6 +159,8 @@ export const GroupMembersTable = observer(function GroupMembersTable({
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
       decorateRow={canManage ? applyContextMenu : undefined}
+      isRowSelectable={canManage ? isRowSelectable : undefined}
+      selectionToolbar={<GroupMemberSelectionToolbar group={group} />}
       {...rest}
     />
   );

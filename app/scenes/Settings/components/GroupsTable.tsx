@@ -23,7 +23,9 @@ import { useGroupMenuActions } from "~/hooks/useGroupMenuActions";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import GroupMenu from "~/menus/GroupMenu";
+import useStores from "~/hooks/useStores";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import GroupSelectionToolbar from "./GroupSelectionToolbar";
 import NudeButton from "~/components/NudeButton";
 import { AvatarSize } from "~/components/Avatar";
 import { HStack } from "~/components/primitives/HStack";
@@ -58,6 +60,12 @@ export function GroupsTable(props: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   const history = useHistory();
+  const { policies } = useStores();
+
+  const isRowSelectable = useCallback(
+    (group: Group) => !!policies.abilities(group.id).delete,
+    [policies]
+  );
 
   const handleViewMembers = useCallback(
     (group: Group) => {
@@ -204,6 +212,8 @@ export function GroupsTable(props: Props) {
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
       decorateRow={applyContextMenu}
+      isRowSelectable={isRowSelectable}
+      selectionToolbar={<GroupSelectionToolbar />}
       {...props}
     />
   );

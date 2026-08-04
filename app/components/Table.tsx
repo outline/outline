@@ -23,8 +23,14 @@ import { s } from "@shared/styles";
 import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
+import type { ModelSelection } from "~/components/ModelSelection";
+import {
+  ModelSelectionProvider,
+  useModelSelection,
+} from "~/components/ModelSelectionContext";
 import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
+import { SelectionCheckbox } from "~/components/SelectionCheckbox";
 import usePrevious from "~/hooks/usePrevious";
 import { transparentize } from "polished";
 
@@ -39,7 +45,7 @@ type DataColumn<TData> = {
 
 type ActionColumn = {
   type: "action";
-  header?: string;
+  header?: string | (() => React.ReactNode);
 };
 
 export type Column<TData> = {
@@ -47,6 +53,11 @@ export type Column<TData> = {
   component: (data: TData) => React.ReactNode;
   width: string;
 } & (DataColumn<TData> | ActionColumn);
+
+/** The minimum shape of a row, rows are identified by the model identifier. */
+export type RowData = {
+  id: string;
+};
 
 export type Props<TData> = {
   data: TData[];
@@ -61,9 +72,43 @@ export type Props<TData> = {
   rowHeight: number;
   stickyOffset?: number;
   decorateRow?: (item: TData, rowElement: React.ReactNode) => React.ReactNode;
+  /**
+   * Enables multi-selection of rows, returns whether the given row may be
+   * selected. Rows that cannot be selected are shown without a checkbox.
+   */
+  isRowSelectable?: (data: TData) => boolean;
+  /** Toolbar of bulk actions, rendered while a selection is active. */
+  selectionToolbar?: React.ReactNode;
 };
 
-function Table<TData>({
+/**
+ * Wraps the table in a selection provider when multi-selection is enabled, so
+ * that any table can offer bulk actions by supplying `isRowSelectable` and a
+ * `selectionToolbar`.
+ */
+function Table<TData extends RowData>(props: Props<TData>) {
+  const { data, isRowSelectable, selectionToolbar } = props;
+
+  const selectableIds = React.useMemo(
+    () =>
+      isRowSelectable
+        ? data.filter(isRowSelectable).map((item) => item.id)
+        : [],
+    [data, isRowSelectable]
+  );
+
+  if (!isRowSelectable) {
+    return <TableView {...props} />;
+  }
+
+  return (
+    <ModelSelectionProvider items={selectableIds} toolbar={selectionToolbar}>
+      <TableView {...props} selectableCount={selectableIds.length} />
+    </ModelSelectionProvider>
+  );
+}
+
+function TableViewInner<TData extends RowData>({
   data,
   columns,
   sort,
@@ -73,16 +118,48 @@ function Table<TData>({
   rowHeight,
   stickyOffset = 0,
   decorateRow,
-}: Props<TData>) {
+  isRowSelectable,
+  selectableCount = 0,
+}: Props<TData> & { selectableCount?: number }) {
   const { t } = useTranslation();
+  const selection = useModelSelection();
   const virtualContainerRef = React.useRef<HTMLDivElement>(null);
   const [virtualContainerTop, setVirtualContainerTop] =
     React.useState<number>();
 
+  const allColumns = React.useMemo(() => {
+    if (!selection || !isRowSelectable) {
+      return columns;
+    }
+
+    const selectColumn: Column<TData> = {
+      type: "action",
+      id: "select",
+      header: () => (
+        <SelectAllCheckbox
+          selection={selection}
+          count={selectableCount}
+          label={t("Select all")}
+        />
+      ),
+      component: (item) =>
+        isRowSelectable(item) ? (
+          <RowSelectCheckbox
+            selection={selection}
+            id={item.id}
+            label={t("Select")}
+          />
+        ) : null,
+      width: "28px",
+    };
+
+    return [selectColumn, ...columns];
+  }, [columns, selection, isRowSelectable, selectableCount, t]);
+
   const columnHelper = React.useMemo(() => createColumnHelper<TData>(), []);
   const observedColumns = React.useMemo(
     () =>
-      columns.map((column) => {
+      allColumns.map((column) => {
         const cell = ({ row }: CellContext<TData, unknown>) => (
           <ObservedCell data={row.original} render={column.component} />
         );
@@ -100,12 +177,12 @@ function Table<TData>({
               cell,
             });
       }),
-    [columns, columnHelper]
+    [allColumns, columnHelper]
   );
 
   const gridColumns = React.useMemo(
-    () => columns.map((column) => column.width).join(" "),
-    [columns]
+    () => allColumns.map((column) => column.width).join(" "),
+    [allColumns]
   );
 
   const handleChangeSort = React.useCallback(
@@ -238,30 +315,43 @@ function Table<TData>({
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const row = rows[virtualRow.index] as TRow<TData>;
-            const baseRow = (
-              <TR
-                role="row"
+            const rowProps = {
+              role: "row",
+              "data-index": virtualRow.index,
+              style: {
+                position: "absolute" as const,
+                transform: `translateY(${
+                  virtualRow.start - rowVirtualizer.options.scrollMargin
+                }px)`,
+                height: `${virtualRow.size}px`,
+              },
+              $columns: gridColumns,
+              children: row.getAllCells().map((cell) => (
+                <TD
+                  role="cell"
+                  key={cell.id}
+                  className={
+                    cell.column.id === "action"
+                      ? "actions"
+                      : cell.column.id === "select"
+                        ? "select"
+                        : ""
+                  }
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TD>
+              )),
+            };
+
+            const baseRow = selection ? (
+              <SelectableRow
                 key={row.id}
-                data-index={virtualRow.index}
-                style={{
-                  position: "absolute",
-                  transform: `translateY(${
-                    virtualRow.start - rowVirtualizer.options.scrollMargin
-                  }px)`,
-                  height: `${virtualRow.size}px`,
-                }}
-                $columns={gridColumns}
-              >
-                {row.getAllCells().map((cell) => (
-                  <TD
-                    role="cell"
-                    key={cell.id}
-                    className={cell.column.id === "action" ? "actions" : ""}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TD>
-                ))}
-              </TR>
+                selection={selection}
+                id={row.original.id}
+                {...rowProps}
+              />
+            ) : (
+              <TR key={row.id} {...rowProps} />
             );
 
             return decorateRow ? (
@@ -274,7 +364,7 @@ function Table<TData>({
           })}
         </TBody>
         {showPlaceholder && (
-          <Placeholder columns={columns.length} gridColumns={gridColumns} />
+          <Placeholder columns={allColumns.length} gridColumns={gridColumns} />
         )}
       </InnerTable>
       {page.hasNext && (
@@ -288,6 +378,77 @@ function Table<TData>({
     </>
   );
 }
+
+// The observer wrapper does not preserve the generic signature of the table.
+const TableView = observer(TableViewInner) as typeof TableViewInner;
+
+const SelectableRow = observer(function SelectableRow_({
+  selection,
+  id,
+  ...rest
+}: {
+  selection: ModelSelection;
+  id: string;
+} & React.ComponentProps<typeof TR>) {
+  return <TR aria-selected={selection.isSelected(id)} {...rest} />;
+});
+
+const RowSelectCheckbox = observer(function RowSelectCheckbox_({
+  selection,
+  id,
+  label,
+}: {
+  selection: ModelSelection;
+  id: string;
+  label: string;
+}) {
+  const handleClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (event.shiftKey) {
+      selection.selectRange(id);
+    } else {
+      selection.toggle(id);
+    }
+  };
+
+  return (
+    <SelectionCheckbox
+      checked={selection.isSelected(id)}
+      label={label}
+      onClick={handleClick}
+    />
+  );
+});
+
+const SelectAllCheckbox = observer(function SelectAllCheckbox_({
+  selection,
+  count,
+  label,
+}: {
+  selection: ModelSelection;
+  count: number;
+  label: string;
+}) {
+  const checked = count > 0 && selection.size === count;
+
+  const handleClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (selection.isActive) {
+      selection.clear();
+    } else {
+      selection.selectAll();
+    }
+  };
+
+  return (
+    <SelectionCheckbox
+      checked={checked}
+      indeterminate={selection.isActive && !checked}
+      label={label}
+      onClick={handleClick}
+    />
+  );
+});
 
 const ObservedCell = observer(function <TData>({
   data,
@@ -388,7 +549,6 @@ const TR = styled.div<{ $columns: string }>`
   align-items: center;
   border-bottom: 1px solid
     ${(props) => transparentize(0.3, props.theme.divider)};
-  overflow: hidden;
 
   &:last-child {
     border-bottom: 0;
@@ -397,10 +557,31 @@ const TR = styled.div<{ $columns: string }>`
   &:hover ${NudeButton}[aria-haspopup="menu"] {
     opacity: 1;
   }
+
+  /* Drawn behind the cells so the highlight can bleed past the table edges. */
+  &[aria-selected="true"]::before {
+    content: "";
+    position: absolute;
+    inset: 0 -8px;
+    border-radius: 8px;
+    background: ${(props) => transparentize(0.95, props.theme.accent)};
+  }
+
+  /* Adjacent selected rows join into a single rounded block. */
+  [aria-selected="true"] + &[aria-selected="true"]::before {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  &[aria-selected="true"]:has(+ [aria-selected="true"])::before {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
 `;
 
 const TH = styled.span`
-  padding: 6px 6px 2px;
+  position: relative;
+  padding: 6px;
 
   &:first-child {
     padding-left: 0;
@@ -412,6 +593,8 @@ const TH = styled.span`
 `;
 
 const TD = styled.span`
+  /* Positioned so cells paint above the row's selected highlight. */
+  position: relative;
   padding: 10px 6px;
   font-size: 14px;
   text-wrap: wrap;
@@ -419,9 +602,17 @@ const TD = styled.span`
   text-overflow: ellipsis;
 
   &:first-child {
+    padding-left: 0;
+  }
+
+  &:first-child:not(.select),
+  .select + & {
     font-size: 15px;
     font-weight: 500;
-    padding-left: 0;
+  }
+
+  &.select {
+    overflow: visible;
   }
 
   &:last-child {
@@ -435,7 +626,6 @@ const TD = styled.span`
   }
 
   &.actions {
-    background: ${s("background")};
     position: sticky;
     right: 0;
   }
