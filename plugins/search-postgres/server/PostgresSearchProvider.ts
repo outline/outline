@@ -230,12 +230,12 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     });
 
     try {
-      const results = (await Document.unscoped().findAll({
-        ...findOptions,
+      const results = await PostgresSearchProvider.findRankedResults({
+        findOptions,
         where,
         limit,
         offset,
-      })) as unknown as RankedDocument[];
+      });
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
@@ -349,12 +349,12 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     });
 
     try {
-      const results = (await Document.unscoped().findAll({
-        ...findOptions,
+      const results = await PostgresSearchProvider.findRankedResults({
+        findOptions,
         where,
         limit,
         offset,
-      })) as unknown as RankedDocument[];
+      });
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
@@ -434,6 +434,33 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   }
 
   /**
+   * Executes the ranked search query inside a transaction so the statement
+   * timeout for request-handling processes applies, ensuring a pathological
+   * query is cancelled at the database rather than running unbounded.
+   */
+  private static findRankedResults({
+    findOptions,
+    where,
+    limit,
+    offset,
+  }: {
+    findOptions: FindOptions;
+    where: WhereOptions<Document>;
+    limit: number;
+    offset: number;
+  }): Promise<RankedDocument[]> {
+    return sequelize.transaction((transaction) =>
+      Document.unscoped().findAll({
+        ...findOptions,
+        where,
+        limit,
+        offset,
+        transaction,
+      })
+    ) as unknown as Promise<RankedDocument[]>;
+  }
+
+  /**
    * Returns the total number of documents matching the search, avoiding a
    * second query over the search conditions when the requested page was not
    * filled and the total can be inferred.
@@ -455,11 +482,14 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       return Promise.resolve(offset + results.length);
     }
 
-    return Document.unscoped().count({
-      // @ts-expect-error Types are incorrect for count
-      replacements,
-      where,
-    }) as unknown as Promise<number>;
+    return sequelize.transaction((transaction) =>
+      Document.unscoped().count({
+        // @ts-expect-error Types are incorrect for count
+        replacements,
+        where,
+        transaction,
+      })
+    ) as unknown as Promise<number>;
   }
 
   private static buildFindOptions({
