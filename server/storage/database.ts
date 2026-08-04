@@ -75,7 +75,12 @@ const isApiProcess =
 // to the transaction.
 const statementTimeout =
   isApiProcess && cluster.isWorker
-    ? Math.max(env.REQUEST_TIMEOUT - StatementTimeoutMargin, 1000)
+    ? Math.max(
+        env.REQUEST_TIMEOUT - StatementTimeoutMargin,
+        // Fall back to a fraction of the request timeout when it is shorter
+        // than the margin, so the query is always canceled first.
+        Math.round(env.REQUEST_TIMEOUT / 2)
+      )
     : undefined;
 
 /**
