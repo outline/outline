@@ -183,29 +183,55 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     // window). Must be valid: published and not deleted. Process in chunks to
     // avoid long-running queries. Read from replica to avoid excessive locking.
     let lastId = startUuid;
+    let isFirstChunk = true;
     let insertedCount = 0;
     const chunkSize = 1000;
 
     while (true) {
-      // Step 1: Read document IDs from readonly replica to avoid locking
-      const documentIds = await sequelizeReadOnly.query<{ id: string }>(
+      // The first chunk starts at the inclusive lower bound of the partition,
+      // subsequent chunks resume after the last candidate seen.
+      const idOperator = isFirstChunk ? ">=" : ">";
+
+      // Step 1: Read candidate document IDs from readonly replica to avoid
+      // locking. The two sources are queried separately so that each can be
+      // served by an index — combining them into a single OR forces a scan of
+      // every document in the partition. Limiting each branch and then the
+      // union still yields the globally lowest `chunkSize` ids, so keyset
+      // pagination remains correct.
+      const candidates = await sequelizeReadOnly.query<{
+        id: string;
+        eligible: boolean;
+      }>(
         `
-        SELECT d.id
-        FROM documents d
-        WHERE d."publishedAt" IS NOT NULL
-          AND d."deletedAt" IS NULL
-          ${lastId ? (insertedCount === 0 ? "AND d.id >= :lastId" : "AND d.id > :lastId") : ""}
-          ${endUuid ? "AND d.id <= :endUuid" : ""}
-          AND (
-            d."popularityScore" > 0
-            OR EXISTS (
-              SELECT 1 FROM document_insights di
-              WHERE di."documentId" = d.id
-                AND di.date >= :thresholdDate::date
-                AND di.date <= :today::date
-            )
+        WITH candidates AS (
+          (
+            SELECT DISTINCT di."documentId" AS id
+            FROM document_insights di
+            WHERE di."documentId" ${idOperator} :lastId
+              AND di."documentId" <= :endUuid
+              AND di.date >= :thresholdDate::date
+              AND di.date <= :today::date
+            ORDER BY id
+            LIMIT :limit
           )
-        ORDER BY d.id
+          UNION
+          (
+            SELECT d.id
+            FROM documents d
+            WHERE d.id ${idOperator} :lastId
+              AND d.id <= :endUuid
+              AND d."popularityScore" > 0
+            ORDER BY id
+            LIMIT :limit
+          )
+        )
+        SELECT c.id, (d.id IS NOT NULL) AS eligible
+        FROM candidates c
+        LEFT JOIN documents d
+          ON d.id = c.id
+          AND d."publishedAt" IS NOT NULL
+          AND d."deletedAt" IS NULL
+        ORDER BY c.id
         LIMIT :limit
         `,
         {
@@ -220,29 +246,34 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
         }
       );
 
-      if (documentIds.length === 0) {
+      if (candidates.length === 0) {
         break;
       }
 
-      // Step 2: Insert the IDs into the working table on primary
-      const ids = documentIds.map((d) => d.id);
-      const result = await sequelize.query<{ documentId: string }>(
-        `
-        INSERT INTO ${this.workingTable} ("documentId")
-        SELECT * FROM unnest(ARRAY[:ids]::uuid[])
-        ON CONFLICT ("documentId") DO NOTHING
-        RETURNING "documentId"
-        `,
-        {
-          replacements: { ids },
-          type: QueryTypes.SELECT,
-        }
-      );
+      // Step 2: Insert the eligible IDs into the working table on primary
+      const ids = candidates.filter((c) => c.eligible).map((c) => c.id);
 
-      insertedCount += result.length;
-      lastId = documentIds[documentIds.length - 1].id;
+      if (ids.length > 0) {
+        const result = await sequelize.query<{ documentId: string }>(
+          `
+          INSERT INTO ${this.workingTable} ("documentId")
+          SELECT * FROM unnest(ARRAY[:ids]::uuid[])
+          ON CONFLICT ("documentId") DO NOTHING
+          RETURNING "documentId"
+          `,
+          {
+            replacements: { ids },
+            type: QueryTypes.SELECT,
+          }
+        );
 
-      if (documentIds.length < chunkSize) {
+        insertedCount += result.length;
+      }
+
+      lastId = candidates[candidates.length - 1].id;
+      isFirstChunk = false;
+
+      if (candidates.length < chunkSize) {
         break;
       }
     }
