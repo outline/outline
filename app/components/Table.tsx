@@ -566,6 +566,17 @@ const TR = styled.div<{ $columns: string }>`
     border-radius: 8px;
     background: ${(props) => transparentize(0.95, props.theme.accent)};
   }
+
+  /* Adjacent selected rows join into a single rounded block. */
+  [aria-selected="true"] + &[aria-selected="true"]::before {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  &[aria-selected="true"]:has(+ [aria-selected="true"])::before {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
 `;
 
 const TH = styled.span`
