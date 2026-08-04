@@ -1,4 +1,4 @@
-import { CloseIcon, PlusIcon } from "outline-icons";
+import { PlusIcon, UserRemoveIcon } from "outline-icons";
 import type { GroupPermission } from "@shared/types";
 import { GroupPermissionHelper } from "@shared/utils/GroupPermissionHelper";
 import stores from "~/stores";
@@ -94,7 +94,7 @@ export const removeGroupUser = createAction({
   },
   analyticsName: "Remove group member",
   section: GroupSection,
-  icon: <CloseIcon />,
+  icon: <UserRemoveIcon />,
   iconInContextMenu: false,
   dangerous: true,
   visible: (context) =>

@@ -85,7 +85,6 @@ function ModelSelectionToolbar({ selection, actions }: Props) {
                   <Action
                     aria-label={action.label}
                     disabled={isProcessing}
-                    $dangerous={action.dangerous}
                     onClick={() => handlePerform(action)}
                   >
                     {action.icon}
@@ -156,16 +155,19 @@ const Divider = styled.div`
   flex-shrink: 0;
 `;
 
-const Action = styled(NudeButton)<{ $dangerous?: boolean }>`
+const Action = styled(NudeButton)`
   width: 28px;
   height: 28px;
   color: ${s("textSecondary")};
 
+  &:last-child {
+    color: ${s("textTertiary")};
+  }
+
   &:hover:enabled,
   &[aria-expanded="true"] {
     background: ${s("sidebarControlHoverBackground")};
-    color: ${(props) =>
-      props.$dangerous ? props.theme.danger : props.theme.text};
+    color: ${s("text")};
   }
 
   &:disabled {

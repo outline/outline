@@ -1,10 +1,9 @@
 import {
-  CloseIcon,
   DoneIcon,
   EmailIcon,
-  PadlockIcon,
   PlusIcon,
   TrashIcon,
+  UserRemoveIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import { UserRole } from "@shared/types";
@@ -152,7 +151,7 @@ export const suspendUser = dialogActionFactory({
   content: (onSubmit, { getActiveModels }) => (
     <UserSuspendDialog users={getActiveModels(User)} onSubmit={onSubmit} />
   ),
-  icon: <PadlockIcon />,
+  icon: <UserRemoveIcon />,
   iconInContextMenu: false,
   dangerous: true,
   visible: (context) =>
@@ -233,7 +232,7 @@ export const revokeInvite = createAction({
   name: ({ t }) => `${t("Revoke invite")}…`,
   analyticsName: "Revoke invite",
   section: UserSection,
-  icon: <CloseIcon />,
+  icon: <UserRemoveIcon />,
   iconInContextMenu: false,
   dangerous: true,
   visible: (context) =>
