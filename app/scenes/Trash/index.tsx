@@ -14,11 +14,7 @@ function Trash() {
   const { documents } = useStores();
 
   return (
-    <Scene
-      icon={<TrashIcon />}
-      title={t("Trash")}
-      actions={documents.deleted.length > 0 && <TrashMenu />}
-    >
+    <Scene icon={<TrashIcon />} title={t("Trash")} actions={<TrashMenu />}>
       <Heading>{t("Trash")}</Heading>
       <PaginatedDocumentList
         documents={documents.deleted}
