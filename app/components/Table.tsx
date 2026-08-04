@@ -581,7 +581,7 @@ const TR = styled.div<{ $columns: string }>`
 
 const TH = styled.span`
   position: relative;
-  padding: 6px 6px 2px;
+  padding: 6px;
 
   &:first-child {
     padding-left: 0;
