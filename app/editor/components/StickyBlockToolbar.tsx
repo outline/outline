@@ -88,11 +88,23 @@ const StickyBlockToolbar = React.forwardRef(function StickyBlockToolbar_(
   const { view } = useEditor();
   const trackRef = ref || React.createRef<HTMLDivElement>();
   const [rect, setRect] = React.useState<TrackRect | null>(null);
+  const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
 
   // Re-measure when the window resizes; scroll is handled by `position: sticky`.
   useWindowSize();
 
   const element = getBlockElement(view);
+
+  // Re-measure when the block's size changes (e.g. after an auto-expand that
+  // settles after the initial mount, or a font load that shifts layout).
+  React.useEffect(() => {
+    if (!element) {
+      return;
+    }
+    const observer = new ResizeObserver(forceUpdate);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [element, forceUpdate]);
 
   // Measure the block relative to the portal's offset parent. Runs after every
   // render by design, the rect comparison prevents a loop.
