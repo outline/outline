@@ -886,6 +886,7 @@
   "{{userName}} published": "{{userName}} a publié",
   "{{userName}} unpublished": "{{userName}} a annulé la publication",
   "{{userName}} moved": "{{userName}} a déplacé",
+  "via {{ authType }}": "via {{ authType }}",
   "Previous version": "Version précédente",
   "Highlight changes": "Surligner les changements",
   "Compare to": "Comparer à",
