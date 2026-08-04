@@ -3,6 +3,7 @@ import type { IRouterParamContext } from "koa-router";
 import type { InferAttributes, Model, Transaction } from "sequelize";
 import type { z } from "zod";
 import type {
+  AuthenticationType,
   CollectionSort,
   NavigationNode,
   Client,
@@ -43,12 +44,7 @@ import type {
   OAuthClient,
 } from "./models";
 
-export enum AuthenticationType {
-  API = "api",
-  APP = "app",
-  MCP = "mcp",
-  OAUTH = "oauth",
-}
+export { AuthenticationType } from "@shared/types";
 
 export type AuthenticationResult = AccountProvisionerResult & {
   client: Client;

@@ -886,6 +886,7 @@
   "{{userName}} published": "{{userName}} published",
   "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "{{userName}} moved",
+  "via {{ authType }}": "via {{ authType }}",
   "Previous version": "Previous version",
   "Highlight changes": "Highlight changes",
   "Compare to": "Compare to",
