@@ -1,3 +1,4 @@
+import { isEqualWith } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import type { ReactNode } from "react";
 import React, {
@@ -234,20 +235,8 @@ export function shallowEqual(
   a: Record<string, unknown>,
   b: Record<string, unknown>
 ): boolean {
-  if (a === b) {
-    return true;
-  }
-
-  const aKeys = Object.keys(a);
-  const bKeys = Object.keys(b);
-
-  return (
-    aKeys.length === bKeys.length &&
-    aKeys.every(
-      (key) =>
-        Object.prototype.hasOwnProperty.call(b, key) &&
-        Object.is(a[key], b[key])
-    )
+  return isEqualWith(a, b, (x, y, key) =>
+    key === undefined ? undefined : Object.is(x, y)
   );
 }
 
