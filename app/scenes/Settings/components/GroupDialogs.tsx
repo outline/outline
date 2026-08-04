@@ -240,12 +240,10 @@ export function DeleteGroupDialog({
           }}
         />
       ) : (
-        <Trans
-          defaults="Are you sure about that? Deleting {{ count }} groups will cause their members to lose access to collections and documents that they are associated with."
-          values={{
-            count: groups.length,
-          }}
-        />
+        t(
+          "Are you sure about that? Deleting {{ count }} group will cause their members to lose access to collections and documents that they are associated with.",
+          { count: groups.length }
+        )
       )}
     </ConfirmationDialog>
   );

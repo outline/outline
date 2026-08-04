@@ -67,7 +67,7 @@ export const updateGroupUserPermissionActionFactory = (
         (users, succeeded, t) =>
           users.length === 1
             ? undefined
-            : t("{{ count }} members updated", { count: succeeded })
+            : t("{{ count }} member updated", { count: succeeded })
       );
     },
   });
@@ -116,7 +116,7 @@ export const removeGroupUser = createAction({
         }),
       (users, succeeded, t) => {
         if (users.length > 1) {
-          return t("{{ count }} members removed from the group", {
+          return t("{{ count }} member removed from the group", {
             count: succeeded,
           });
         }

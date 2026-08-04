@@ -145,7 +145,7 @@ export const suspendUser = dialogActionFactory({
   title: (t, { getActiveModels }) =>
     getActiveModels(User).length === 1
       ? t("Suspend user")
-      : t("Suspend {{ count }} users", {
+      : t("Suspend {{ count }} user", {
           count: getActiveModels(User).length,
         }),
   content: (onSubmit, { getActiveModels }) => (
@@ -188,7 +188,7 @@ export const activateUser = createAction({
       (users, succeeded, t) =>
         users.length === 1
           ? undefined
-          : t("{{ count }} users activated", { count: succeeded })
+          : t("{{ count }} user activated", { count: succeeded })
     ),
 });
 
@@ -215,12 +215,12 @@ export const resendInvite = createAction({
           ? t("Invite was resent to {{ userName }}", {
               userName: models[0].name,
             })
-          : t("{{ count }} invites resent", { count })
+          : t("{{ count }} invite resent", { count })
     );
 
     if (succeeded < users.length) {
       toast.error(
-        context.t("Could not resend {{ count }} invites", {
+        context.t("Could not resend {{ count }} invite", {
           count: users.length - succeeded,
         })
       );
@@ -245,7 +245,7 @@ export const revokeInvite = createAction({
       (users, succeeded, t) =>
         users.length === 1
           ? undefined
-          : t("{{ count }} invites revoked", { count: succeeded })
+          : t("{{ count }} invite revoked", { count: succeeded })
     ),
 });
 
@@ -256,7 +256,7 @@ export const deleteUser = dialogActionFactory({
   title: (t, { getActiveModels }) =>
     getActiveModels(User).length === 1
       ? t("Delete user")
-      : t("Delete {{ count }} users", { count: getActiveModels(User).length }),
+      : t("Delete {{ count }} user", { count: getActiveModels(User).length }),
   content: (onSubmit, { getActiveModels }) => (
     <UserDeleteDialog users={getActiveModels(User)} onSubmit={onSubmit} />
   ),

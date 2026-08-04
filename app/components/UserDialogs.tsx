@@ -62,7 +62,7 @@ export function UserChangeRoleDialog({
             role,
             userName: users[0].name,
           })
-        : t("Are you sure you want to make {{ count }} users a {{ role }}?", {
+        : t("Are you sure you want to make {{ count }} user a {{ role }}?", {
             role,
             count: users.length,
           })}{" "}
@@ -94,7 +94,7 @@ export function UserDeleteDialog({ users, onSubmit }: BulkProps) {
             }
           )
         : t(
-            "Are you sure you want to permanently delete {{ count }} users? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending them instead.",
+            "Are you sure you want to permanently delete {{ count }} user? This operation is unrecoverable. Any API keys, webhooks, and integrations they created will stop working — consider suspending them instead.",
             {
               count: users.length,
             }
@@ -126,7 +126,7 @@ export function UserSuspendDialog({ users, onSubmit }: BulkProps) {
             }
           )
         : t(
-            "Are you sure you want to suspend {{ count }} users? Suspended users will be prevented from logging in.",
+            "Are you sure you want to suspend {{ count }} user? Suspended users will be prevented from logging in.",
             {
               count: users.length,
             }

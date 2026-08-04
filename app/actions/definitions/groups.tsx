@@ -47,7 +47,7 @@ export const deleteGroup = dialogActionFactory({
   title: (t, { getActiveModels }) =>
     getActiveModels(Group).length === 1
       ? t("Delete group")
-      : t("Delete {{ count }} groups", {
+      : t("Delete {{ count }} group", {
           count: getActiveModels(Group).length,
         }),
   content: (onSubmit, { getActiveModels }) => (
