@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { escapeRegExp, find, map } from "es-toolkit/compat";
+import { compact, escapeRegExp, find, map } from "es-toolkit/compat";
 import queryParser from "pg-tsquery";
 import type {
   BindOrReplacements,
@@ -20,7 +20,7 @@ import Document from "@server/models/Document";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { sequelize } from "@server/storage/database";
+import { sequelize, sequelizeReadOnly } from "@server/storage/database";
 import { QueryHelper } from "@server/storage/QueryHelper";
 import type {
   SearchOptions,
@@ -230,12 +230,12 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     });
 
     try {
-      const results = (await Document.unscoped().findAll({
-        ...findOptions,
+      const results = await PostgresSearchProvider.findRankedResults({
+        findOptions,
         where,
         limit,
         offset,
-      })) as unknown as RankedDocument[];
+      });
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
@@ -349,12 +349,12 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     });
 
     try {
-      const results = (await Document.unscoped().findAll({
-        ...findOptions,
+      const results = await PostgresSearchProvider.findRankedResults({
+        findOptions,
         where,
         limit,
         offset,
-      })) as unknown as RankedDocument[];
+      });
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
@@ -434,6 +434,36 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
   }
 
   /**
+   * Executes the ranked search query inside a transaction opened on the
+   * read-replica connection, offloading the most expensive query from the
+   * primary. The transaction also ensures the statement timeout for
+   * request-handling processes applies, cancelling a pathological query at
+   * the database rather than letting it run unbounded.
+   */
+  private static findRankedResults({
+    findOptions,
+    where,
+    limit,
+    offset,
+  }: {
+    findOptions: FindOptions;
+    where: WhereOptions<Document>;
+    limit: number;
+    offset: number;
+  }): Promise<RankedDocument[]> {
+    return sequelizeReadOnly.transaction(
+      (transaction) =>
+        Document.unscoped().findAll({
+          ...findOptions,
+          where,
+          limit,
+          offset,
+          transaction,
+        }) as unknown as Promise<RankedDocument[]>
+    );
+  }
+
+  /**
    * Returns the total number of documents matching the search, avoiding a
    * second query over the search conditions when the requested page was not
    * filled and the total can be inferred.
@@ -455,11 +485,15 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       return Promise.resolve(offset + results.length);
     }
 
-    return Document.unscoped().count({
-      // @ts-expect-error Types are incorrect for count
-      replacements,
-      where,
-    }) as unknown as Promise<number>;
+    return sequelizeReadOnly.transaction(
+      (transaction) =>
+        Document.unscoped().count({
+          // @ts-expect-error Types are incorrect for count
+          replacements,
+          where,
+          transaction,
+        }) as unknown as Promise<number>
+    );
   }
 
   private static buildFindOptions({
@@ -774,19 +808,27 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     count: number;
   }): SearchResponse {
     return {
-      results: map(results, (result) => {
-        const document = find(documents, {
-          id: result.id,
-        }) as Document;
+      results: compact(
+        map(results, (result) => {
+          const document = find(documents, {
+            id: result.id,
+          });
 
-        return {
-          ranking: result.dataValues.searchRanking,
-          context: query
-            ? PostgresSearchProvider.buildResultContext(document, query)
-            : undefined,
-          document,
-        };
-      }),
+          // The ranked query may run on a read replica, so a document can be
+          // returned that has since been removed on the primary.
+          if (!document) {
+            return null;
+          }
+
+          return {
+            ranking: result.dataValues.searchRanking,
+            context: query
+              ? PostgresSearchProvider.buildResultContext(document, query)
+              : undefined,
+            document,
+          };
+        })
+      ),
       total: count,
     };
   }

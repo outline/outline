@@ -356,17 +356,20 @@ export const sequelize = createDatabaseInstance(databaseConfig, models);
 
 /**
  * Read-only database connection for read replicas.
- * Falls back to the main connection if DATABASE_READ_ONLY_URL is not set.
+ * Falls back to the main connection if DATABASE_READ_ONLY_URL is not set, and
+ * in the test environment, where DATABASE_READ_ONLY_URL would not point at
+ * the isolated per-worker test database.
  */
-export const sequelizeReadOnly = env.DATABASE_READ_ONLY_URL
-  ? createDatabaseInstance(
-      env.DATABASE_READ_ONLY_URL,
-      {},
-      {
-        readOnly: true,
-      }
-    )
-  : sequelize;
+export const sequelizeReadOnly =
+  env.DATABASE_READ_ONLY_URL && !env.isTest
+    ? createDatabaseInstance(
+        env.DATABASE_READ_ONLY_URL,
+        {},
+        {
+          readOnly: true,
+        }
+      )
+    : sequelize;
 
 export const migrations = createMigrationRunner(sequelize, [
   "migrations/*.js",
