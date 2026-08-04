@@ -549,7 +549,6 @@ const TR = styled.div<{ $columns: string }>`
   align-items: center;
   border-bottom: 1px solid
     ${(props) => transparentize(0.3, props.theme.divider)};
-  overflow: hidden;
 
   &:last-child {
     border-bottom: 0;
@@ -559,7 +558,12 @@ const TR = styled.div<{ $columns: string }>`
     opacity: 1;
   }
 
-  &[aria-selected="true"] {
+  /* Drawn behind the cells so the highlight can bleed past the table edges. */
+  &[aria-selected="true"]::before {
+    content: "";
+    position: absolute;
+    inset: 0 -8px;
+    border-radius: 8px;
     background: ${(props) => transparentize(0.95, props.theme.accent)};
   }
 `;
@@ -578,6 +582,8 @@ const TH = styled.span`
 `;
 
 const TD = styled.span`
+  /* Positioned so cells paint above the row's selected highlight. */
+  position: relative;
   padding: 10px 6px;
   font-size: 14px;
   text-wrap: wrap;
@@ -595,7 +601,6 @@ const TD = styled.span`
   }
 
   &.select {
-    position: relative;
     overflow: visible;
   }
 
