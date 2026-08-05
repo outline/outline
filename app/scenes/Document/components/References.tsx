@@ -26,12 +26,17 @@ function References({ document }: Props) {
   const locationSidebarContext = useLocationSidebarContext();
   const { sharedTree, isShare } = useShare();
   const [activeTab, setActiveTab] = useState<TabType>("children");
+  const isJustCreated = useMemo(
+    () => document.isJustCreated,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [document.id]
+  );
 
   useEffect(() => {
-    if (!isShare) {
+    if (!isShare && !isJustCreated) {
       void documents.fetchRelationships(document.id);
     }
-  }, [isShare, documents, document.id]);
+  }, [isShare, documents, document.id, isJustCreated]);
 
   const children = useChildren(document, sharedTree);
   const backlinks = useBacklinks(document, sharedTree);

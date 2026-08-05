@@ -1,4 +1,4 @@
-import { addDays, differenceInDays } from "date-fns";
+import { addDays, differenceInDays, differenceInSeconds } from "date-fns";
 import i18n, { t } from "i18next";
 import { capitalize, floor } from "es-toolkit/compat";
 import { action, autorun, comparer, computed, observable, set } from "mobx";
@@ -407,6 +407,16 @@ export default class Document extends ArchivableModel implements Searchable {
   @computed
   get isPersistedOnce(): boolean {
     return this.createdAt === this.updatedAt;
+  }
+
+  /**
+   * Whether the document was created moments ago, and so cannot yet have views, comments, shares,
+   * or backlinks of its own.
+   *
+   * @returns true if the document was created within the last ten seconds.
+   */
+  get isJustCreated(): boolean {
+    return differenceInSeconds(new Date(), new Date(this.createdAt)) < 10;
   }
 
   @computed
