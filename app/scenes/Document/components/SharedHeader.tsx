@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import useMeasure from "react-use-measure";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
+import { HEADER_HEIGHT } from "@shared/constants";
 import useShare from "@shared/hooks/useShare";
 import type { PublicTeam } from "@shared/types";
 import { TOCPosition } from "@shared/types";
@@ -52,7 +53,7 @@ function SharedDocumentHeader({ document }: Props) {
   useEffect(() => {
     window.document.documentElement.style.setProperty(
       "--header-offset",
-      isEditingFocus ? "0px" : "64px"
+      isEditingFocus ? "0px" : `${HEADER_HEIGHT}px`
     );
   }, [isEditingFocus]);
 
