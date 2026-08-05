@@ -50,6 +50,14 @@ describe.runIf(typeof document !== "undefined")("highlight parsing", () => {
     expect(cell.content[0].content[0].marks).toBeUndefined();
   });
 
+  it("ignores a background inherited through transparent ancestors", () => {
+    const doc = parseHTML(
+      `<table><tbody><tr><td style="background-color: #FDEA9B"><p style="background-color: transparent"><span style="background-color: #FDEA9B">text</span></p></td></tr></tbody></table>`
+    );
+    const cell = doc.content[0].content[0].content[0];
+    expect(cell.content[0].content[0].marks).toBeUndefined();
+  });
+
   it("keeps a highlight that differs from the table cell background", () => {
     const doc = parseHTML(
       `<table><tbody><tr><td style="background-color: #93c47d"><p><span style="background-color: #FDEA9B">text</span></p></td></tr></tbody></table>`

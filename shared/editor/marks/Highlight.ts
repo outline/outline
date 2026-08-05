@@ -18,12 +18,18 @@ import {
  */
 function isInheritedBackground(dom: HTMLElement, color: string): boolean {
   const hex = toHexColor(color);
-  let parent = dom.parentElement;
+  if (!hex) {
+    return false;
+  }
 
+  let parent = dom.parentElement;
   while (parent) {
+    // Ancestors that paint nothing, such as a transparent background, are
+    // skipped so that the closest painted background is the one compared.
     const background = parent.style?.backgroundColor;
-    if (background) {
-      return !!hex && toHexColor(background) === hex;
+    const parentHex = background ? toHexColor(background) : null;
+    if (parentHex) {
+      return parentHex === hex;
     }
     parent = parent.parentElement;
   }
