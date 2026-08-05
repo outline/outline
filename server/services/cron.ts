@@ -8,6 +8,7 @@ export default function init() {
       partitionIndex: 0,
       partitionCount: 1,
     };
+    const scheduledAt = Date.now();
 
     for (const name in tasks) {
       const TaskClass = tasks[name];
@@ -19,7 +20,11 @@ export default function init() {
       const taskInstance = new TaskClass() as CronTask;
 
       if (taskInstance.cron.interval === schedule) {
-        await taskInstance.schedule({ limit: 10000, partition });
+        await taskInstance.schedule({
+          limit: 10000,
+          partition,
+          scheduledAt,
+        });
       }
     }
   }
