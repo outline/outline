@@ -29,7 +29,7 @@ import { documentHistoryPath } from "~/utils/routeHelpers";
 import { EventItem, lineStyle } from "./EventListItem";
 import Facepile from "~/components/Facepile";
 import Text from "~/components/Text";
-import { revisionCollaboratorText } from "./utils";
+import { authTypeSuffix, revisionCollaboratorText } from "./utils";
 
 type Props = {
   document: Document;
@@ -76,9 +76,10 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
     meta = isLatestRevision ? (
       <>
         {t("Current version")} &middot; {collaboratorText}
+        {authTypeSuffix(item.sourceMetadata?.authType, t)}
       </>
     ) : (
-      t("{{userName}} edited", { userName: collaboratorText })
+      `${t("{{userName}} edited", { userName: collaboratorText })}${authTypeSuffix(item.sourceMetadata?.authType, t)}`
     );
     to = {
       pathname: documentHistoryPath(

@@ -1,6 +1,7 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import { Op } from "sequelize";
 import {
+  AllowNull,
   DataType,
   BelongsTo,
   Column,
@@ -11,7 +12,7 @@ import {
   Length as SimpleLength,
   BeforeDestroy,
 } from "sequelize-typescript";
-import type { ProsemirrorData } from "@shared/types";
+import type { ProsemirrorData, SourceMetadata } from "@shared/types";
 import { DocumentValidation, RevisionValidation } from "@shared/validations";
 import type { APIContext } from "@server/types";
 import Document from "./Document";
@@ -93,6 +94,12 @@ class Revision extends ParanoidModel<
   @Column(DataType.STRING)
   @SkipChangeset
   color: string | null;
+
+  /** Metadata about how the revision came to be, such as the authentication type used. */
+  @AllowNull
+  @Column(DataType.JSONB)
+  @SkipChangeset
+  sourceMetadata: SourceMetadata | null;
 
   // associations
 
@@ -199,6 +206,8 @@ class Revision extends ParanoidModel<
     collaboratorIds?: string[]
   ) {
     const revision = this.buildFromDocument(document);
+    const authType = ctx.context.auth?.type;
+    revision.sourceMetadata = authType ? { authType } : null;
 
     if (collaboratorIds) {
       revision.collaboratorIds = collaboratorIds;

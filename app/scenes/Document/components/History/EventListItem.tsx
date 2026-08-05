@@ -13,22 +13,15 @@ import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import Text from "@shared/components/Text";
-import { AuthenticationType } from "@shared/types";
 import type Document from "~/models/Document";
 import type Event from "~/models/Event";
 import Time from "~/components/Time";
 import Logger from "~/utils/Logger";
+import { authTypeSuffix } from "./utils";
 
 type Props = {
   document: Document;
   item: Event<Document>;
-};
-
-/** Authentication types that are surfaced in history, mapped to a display name. */
-const authTypeNames: Partial<Record<AuthenticationType, string>> = {
-  [AuthenticationType.API]: "API",
-  [AuthenticationType.OAUTH]: "API",
-  [AuthenticationType.MCP]: "MCP",
 };
 
 const EventListItem = ({ item }: Props) => {
@@ -96,8 +89,6 @@ const EventListItem = ({ item }: Props) => {
     return null;
   }
 
-  const authTypeName = item.authType ? authTypeNames[item.authType] : undefined;
-
   return (
     <EventItem>
       <IconWrapper size="xsmall" type="secondary">
@@ -105,10 +96,8 @@ const EventListItem = ({ item }: Props) => {
       </IconWrapper>
       <Text size="xsmall" type="secondary">
         {meta}
-        {authTypeName
-          ? ` ${t("via {{ authType }}", { authType: authTypeName })}`
-          : ""}{" "}
-        &middot; <Time dateTime={item.createdAt} relative shorten addSuffix />
+        {authTypeSuffix(item.authType, t)} &middot;{" "}
+        <Time dateTime={item.createdAt} relative shorten addSuffix />
       </Text>
     </EventItem>
   );
