@@ -1,3 +1,4 @@
+import { errToString, toError } from "@shared/utils/error";
 import { FileImportError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { traceFunction } from "@server/logging/tracing";
@@ -32,7 +33,7 @@ export class PdfConverter extends BaseConverter {
       ));
     } catch (err) {
       throw FileImportError(
-        `There was an error parsing the PDF file: ${err instanceof Error ? err.message : String(err)}`
+        `There was an error parsing the PDF file: ${errToString(err)}`
       );
     }
 
@@ -92,7 +93,7 @@ export class PdfConverter extends BaseConverter {
     try {
       return await import("@firecrawl/pdf-inspector");
     } catch (err) {
-      Logger.error("Failed to load the PDF parser", err as Error);
+      Logger.error("Failed to load the PDF parser", toError(err));
       throw FileImportError(
         "PDF files cannot be imported on this server's platform"
       );
