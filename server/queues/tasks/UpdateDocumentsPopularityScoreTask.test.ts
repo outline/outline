@@ -243,7 +243,7 @@ describe("UpdateDocumentsPopularityScoreTask", () => {
     expect(Number(updatedDocument?.popularityScore)).toBe(0);
   });
 
-  it("should only process teams within its partition", async () => {
+  it("should only process documents within its partition", async () => {
     const team = await buildTeam();
     const document = await buildDocument({
       teamId: team.id,
@@ -258,7 +258,7 @@ describe("UpdateDocumentsPopularityScoreTask", () => {
 
     // Partition 0 of 2 covers the lower half of the UUID space
     const partitionIndex =
-      team.id < "80000000-0000-0000-0000-000000000000" ? 0 : 1;
+      document.id < "80000000-0000-0000-0000-000000000000" ? 0 : 1;
 
     await task.perform({
       limit: 10000,

@@ -45,9 +45,10 @@ const WORKING_TABLE_PREFIX = "popularity_score_working";
 
 /**
  * Number of hours over which to spread a single run. Partitions are scheduled
- * one minute apart across this window, so each handles a small slice of teams.
+ * one minute apart across this window, so each handles a small slice of
+ * documents.
  */
-const SPREAD_HOURS = 6;
+const SPREAD_HOURS = 1;
 
 interface DocumentScore {
   documentId: string;
@@ -186,7 +187,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       )
     `);
 
-    const [startTeamId, endTeamId] = this.getPartitionBounds(partition);
+    const [startId, endId] = this.getPartitionBounds(partition);
 
     // Populate with documents that have recent activity OR a current non-zero
     // score (so dormant docs decay back to zero once activity falls out of the
@@ -214,10 +215,10 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
           (
             SELECT DISTINCT di."documentId" AS id
             FROM document_insights di
-            WHERE di."teamId" >= :startTeamId
-              AND di."teamId" <= :endTeamId
-              AND di.date >= :thresholdDate::date
+            WHERE di.date >= :thresholdDate::date
               AND di.date <= :today::date
+              AND di."documentId" >= :startId
+              AND di."documentId" <= :endId
               AND di."documentId" > :lastId
             ORDER BY id
             LIMIT :limit
@@ -226,9 +227,9 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
           (
             SELECT d.id
             FROM documents d
-            WHERE d."teamId" >= :startTeamId
-              AND d."teamId" <= :endTeamId
-              AND d."popularityScore" > 0
+            WHERE d."popularityScore" > 0
+              AND d.id >= :startId
+              AND d.id <= :endId
               AND d.id > :lastId
             ORDER BY id
             LIMIT :limit
@@ -248,8 +249,8 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
             thresholdDate,
             today,
             lastId,
-            startTeamId,
-            endTeamId,
+            startId,
+            endId,
             limit: chunkSize,
           },
           type: QueryTypes.SELECT,
@@ -476,14 +477,17 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
   }
 
   /**
-   * Drops any stale working tables from previous dates that were left behind
-   * by runs interrupted before cleanup could occur (e.g. worker killed mid-run).
-   * Only removes tables from before the current date to avoid race conditions
-   * with concurrent runs.
+   * Drops any stale working tables that were left behind by runs interrupted
+   * before cleanup could occur (e.g. worker killed mid-run). Only removes
+   * tables created well before the current run's window to avoid race
+   * conditions with concurrent runs.
    */
   private async cleanupStaleWorkingTables(): Promise<void> {
     try {
-      const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const cutoff = new Date(Date.now() - (SPREAD_HOURS + 2) * Hour.ms)
+        .toISOString()
+        .slice(0, 19)
+        .replace(/[-:T]/g, "");
       const tables = await sequelize.query<{ tablename: string }>(
         `SELECT tablename FROM pg_tables
          WHERE schemaname = 'public'
@@ -499,8 +503,8 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       const prefixLen = WORKING_TABLE_PREFIX.length + 1; // +1 for underscore
 
       for (const { tablename } of tables) {
-        const dateStr = tablename.slice(prefixLen, prefixLen + 8);
-        if (dateStr < todayStr) {
+        const timestamp = tablename.slice(prefixLen, prefixLen + 14);
+        if (timestamp < cutoff) {
           Logger.info("task", `Dropping stale working table: ${tablename}`);
           await sequelize.query(`DROP TABLE IF EXISTS "${tablename}" CASCADE`);
         }

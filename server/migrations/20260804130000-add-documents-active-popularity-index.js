@@ -3,11 +3,11 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface) {
-    // Covers the popularity score task, which walks a slice of teams to find
-    // documents that already carry a score so they decay back to zero. Partial
-    // so it only indexes the small subset with a non-zero score.
+    // Covers the popularity score task's scan for documents that already
+    // carry a score so they decay back to zero. Partial so it only indexes
+    // the small subset with a non-zero score.
     await queryInterface.sequelize.query(
-      'CREATE INDEX CONCURRENTLY IF NOT EXISTS "documents_active_popularity_score" ON "documents" ("teamId", "id") WHERE "popularityScore" > 0;'
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS "documents_active_popularity_score" ON "documents" ("id") WHERE "popularityScore" > 0;'
     );
   },
 
