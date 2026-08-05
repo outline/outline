@@ -11,6 +11,7 @@ import PlaceholderDocument from "~/components/PlaceholderDocument";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import { preloadEditor } from "~/routes/scenes";
 import { documentEditPath, documentPath } from "~/utils/routeHelpers";
 
 function DocumentNew() {
@@ -25,6 +26,10 @@ function DocumentNew() {
   const id = match.params.collectionSlug || query.get("collectionId");
 
   useEffect(() => {
+    // Download the editor while the document is being created on the server so
+    // that the two do not happen one after the other.
+    preloadEditor();
+
     async function createDocument() {
       const index = parseInt(query.get("index") || "0", 10);
       const parentDocumentId = query.get("parentDocumentId") ?? undefined;
