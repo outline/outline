@@ -26,8 +26,7 @@ function DocumentNew() {
   const id = match.params.collectionSlug || query.get("collectionId");
 
   useEffect(() => {
-    // Download the editor while the document is being created on the server so
-    // that the two do not happen one after the other.
+    // Download the editor while the document is being created on the server
     preloadEditor();
 
     async function createDocument() {
