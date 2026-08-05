@@ -13,6 +13,7 @@ import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQueryNotices from "~/hooks/useQueryNotices";
+import useKeyboardShortcutsQuery from "~/hooks/useKeyboardShortcutsQuery";
 import lazy from "~/utils/lazyWithRetry";
 import * as Scenes from "./scenes";
 import {
@@ -50,6 +51,7 @@ const RedirectDocument = ({
  */
 function AuthenticatedRoutes() {
   useQueryNotices();
+  useKeyboardShortcutsQuery();
   const team = useCurrentTeam();
   const can = usePolicy(team);
 

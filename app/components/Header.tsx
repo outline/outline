@@ -8,6 +8,7 @@ import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import useMeasure from "react-use-measure";
+import { HEADER_HEIGHT } from "@shared/constants";
 import { depths, s } from "@shared/styles";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import Button from "~/components/Button";
@@ -24,7 +25,7 @@ import history from "~/utils/history";
 import { closeSplitPane } from "~/utils/splitView";
 import { TooltipProvider } from "./TooltipContext";
 
-export const HEADER_HEIGHT = 64;
+export { HEADER_HEIGHT };
 
 type Props = {
   left?: React.ReactNode;
@@ -207,7 +208,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
   }
 
   ${breakpoint("tablet")`
-    padding: 16px;
+    padding: 12px;
     ${(props: WrapperProps) => props.$insetTitleAdjust && `padding-left: 64px;`}
     `};
 `;

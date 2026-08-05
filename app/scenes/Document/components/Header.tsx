@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import useMeasure from "react-use-measure";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
+import { HEADER_HEIGHT } from "@shared/constants";
 import { s } from "@shared/styles";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import { publishDocument } from "~/actions/definitions/documents";
@@ -84,7 +85,7 @@ function DocumentHeader({
   useEffect(() => {
     window.document.documentElement.style.setProperty(
       "--header-offset",
-      isEditingFocus ? "0px" : "64px"
+      isEditingFocus ? "0px" : `${HEADER_HEIGHT}px`
     );
   }, [isEditingFocus]);
 
