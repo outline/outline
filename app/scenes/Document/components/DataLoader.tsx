@@ -280,26 +280,21 @@ function DataLoader({ match, children }: Props) {
     );
   }
 
-  // Redirect to the canonical URL if the document slug has changed, e.g.
-  // after a rename, so the browser address bar stays in sync.
   const canonicalUrl = updateDocumentPath(match.url, document);
-  if (location.pathname !== canonicalUrl) {
-    return (
-      <Redirect
-        to={{
-          pathname: canonicalUrl,
-          state: location.state,
-          hash: location.hash,
-        }}
-      />
-    );
-  }
-
   const canEdit = can.update && !document.isArchived && !revisionId;
   const readOnly = !isEditing || !canEdit;
 
   return (
     <>
+      {location.pathname !== canonicalUrl && (
+        <Redirect
+          to={{
+            pathname: canonicalUrl,
+            state: location.state,
+            hash: location.hash,
+          }}
+        />
+      )}
       {!revision && <MarkAsViewed document={document} />}
       <React.Fragment key={canEdit ? "edit" : "read"}>
         {children({
