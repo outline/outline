@@ -242,6 +242,15 @@ export function UnprocessableEntityError(
   });
 }
 
+export function RequestTimeoutError(
+  message = "Request took too long to complete"
+) {
+  return httpErrors(503, message, {
+    id: "request_timeout",
+    isReportable: true,
+  });
+}
+
 export function ClientClosedRequestError(
   message = "Client closed request before response was received"
 ) {

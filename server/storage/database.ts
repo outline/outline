@@ -1,5 +1,6 @@
 import cluster from "node:cluster";
 import path from "node:path";
+import { DatabaseError } from "sequelize";
 import type {
   InferAttributes,
   InferCreationAttributes,
@@ -46,6 +47,12 @@ function getDatabaseConfig() {
   );
 }
 
+/** Postgres error code for `query_canceled`. */
+const QueryCanceledErrorCode = "57014";
+
+/** Headroom between the statement timeout and the HTTP request timeout. */
+const StatementTimeoutMargin = 500;
+
 const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
 const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
@@ -60,12 +67,37 @@ const isApiProcess =
   !env.SERVICES.includes("worker") &&
   !env.SERVICES.includes("cron");
 
-// Request-handling processes get a Postgres `statement_timeout` matching the
-// HTTP request timeout, so a single slow query cannot hold a connection past
-// the point at which its response could be delivered. Applied as `SET LOCAL`
-// inside each transaction so the value is scoped to the transaction.
+// Request-handling processes get a Postgres `statement_timeout` slightly under
+// the HTTP request timeout, so a single slow query cannot hold a connection
+// past the point at which its response could be delivered, and the cancelation
+// still leaves enough headroom to write an error response before the socket is
+// closed. Applied as `SET LOCAL` inside each transaction so the value is scoped
+// to the transaction.
 const statementTimeout =
-  isApiProcess && cluster.isWorker ? env.REQUEST_TIMEOUT : undefined;
+  isApiProcess && cluster.isWorker
+    ? Math.max(
+        env.REQUEST_TIMEOUT - StatementTimeoutMargin,
+        // Fall back to a fraction of the request timeout when it is shorter
+        // than the margin, so the query is always canceled first.
+        Math.round(env.REQUEST_TIMEOUT / 2)
+      )
+    : undefined;
+
+/**
+ * Whether an error was caused by Postgres canceling a query, most commonly
+ * because it exceeded the configured `statement_timeout`.
+ *
+ * @param err the error to inspect.
+ * @returns true if the query was canceled by the database.
+ */
+export function isQueryCanceledError(err: unknown): boolean {
+  return (
+    err instanceof DatabaseError &&
+    !!err.parent &&
+    "code" in err.parent &&
+    err.parent.code === QueryCanceledErrorCode
+  );
+}
 
 export function createDatabaseInstance(
   databaseConfig: string | object,
