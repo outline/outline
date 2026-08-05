@@ -24,7 +24,7 @@ import history from "~/utils/history";
 import { closeSplitPane } from "~/utils/splitView";
 import { TooltipProvider } from "./TooltipContext";
 
-export const HEADER_HEIGHT = 64;
+export const HEADER_HEIGHT = 56;
 
 type Props = {
   left?: React.ReactNode;
@@ -207,7 +207,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
   }
 
   ${breakpoint("tablet")`
-    padding: 16px;
+    padding: 12px;
     ${(props: WrapperProps) => props.$insetTitleAdjust && `padding-left: 64px;`}
     `};
 `;
