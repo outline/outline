@@ -747,6 +747,53 @@ Content`;
         expect(result.text).toContain("assets/logo.svg");
       });
     });
+
+    describe("pdf", () => {
+      it("should convert a pdf to markdown by mime type", async () => {
+        const content = await fixture("document.pdf");
+
+        const result = await DocumentConverter.convert(
+          content,
+          "document.pdf",
+          "application/pdf"
+        );
+
+        expect(result.title).toEqual("Sample PDF");
+        expect(result.text).toContain("Hello from a PDF document.");
+        expect(result.text).toContain("Second line of text.");
+      });
+
+      it("should convert a pdf to markdown by file extension", async () => {
+        const content = await fixture("document.pdf");
+
+        const result = await DocumentConverter.convert(
+          content,
+          "document.pdf",
+          "application/octet-stream"
+        );
+
+        expect(result.title).toEqual("Sample PDF");
+        expect(result.text).toContain("Hello from a PDF document.");
+      });
+
+      it("should throw for a pdf without extractable text", async () => {
+        const content = await fixture("scanned.pdf");
+
+        await expect(
+          DocumentConverter.convert(content, "scanned.pdf", "application/pdf")
+        ).rejects.toThrow(/no text/);
+      });
+
+      it("should throw for a file that is not a pdf", async () => {
+        await expect(
+          DocumentConverter.convert(
+            Buffer.from("not really a pdf"),
+            "document.pdf",
+            "application/pdf"
+          )
+        ).rejects.toThrow(/error parsing the PDF file/);
+      });
+    });
   });
 
   describe("htmlToProsemirror", () => {

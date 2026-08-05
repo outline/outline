@@ -222,6 +222,8 @@ export class DocumentConverter extends BaseConverter {
       case "text/csv":
       case "text/tab-separated-values":
         return (await this.csv()).toMarkdown(content);
+      case "application/pdf":
+        return (await this.pdf()).toMarkdown(content);
       default: {
         const extension = fileName.split(".").pop()?.toLowerCase();
         switch (extension) {
@@ -235,6 +237,8 @@ export class DocumentConverter extends BaseConverter {
             return (await this.csv()).toMarkdown(content);
           case "textpack":
             return (await this.textPack()).toMarkdown(content);
+          case "pdf":
+            return (await this.pdf()).toMarkdown(content);
           default:
             throw FileImportError(`File type ${mimeType} not supported`);
         }
@@ -247,7 +251,7 @@ export class DocumentConverter extends BaseConverter {
 
   /**
    * Converters are loaded on demand so that the dependencies of a format —
-   * jsdom, mammoth, mailparser, fast-csv, yauzl — stay off the server startup
+   * jsdom, mammoth, mailparser, fast-csv, yauzl, pdf-inspector — stay off the server startup
    * path, and are only paid for by an import that actually needs them.
    */
   private static async docx() {
@@ -264,5 +268,9 @@ export class DocumentConverter extends BaseConverter {
 
   private static async textPack() {
     return (await import("./TextPackConverter")).TextPackConverter;
+  }
+
+  private static async pdf() {
+    return (await import("./PdfConverter")).PdfConverter;
   }
 }
