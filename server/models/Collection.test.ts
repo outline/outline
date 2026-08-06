@@ -376,6 +376,36 @@ describe("#removeDocument", () => {
     expect(collectionDocuments.count).toBe(0);
   });
 
+  it("should remove a document with deeply nested child documents", async () => {
+    const collection = await buildCollection();
+    const document = await buildDocument({ collectionId: collection.id });
+    await collection.reload();
+
+    let parentDocumentId = document.id;
+    for (let depth = 0; depth < 5; depth++) {
+      const child = await buildDocument({
+        parentDocumentId,
+        collectionId: collection.id,
+        teamId: collection.teamId,
+        lastModifiedById: collection.createdById,
+        createdById: collection.createdById,
+        title: `Child document ${depth}`,
+        text: "content",
+      });
+      await collection.addDocumentToStructure(child);
+      parentDocumentId = child.id;
+    }
+
+    await collection.deleteDocument(document);
+    expect(collection.documentStructure!.length).toBe(0);
+    const collectionDocuments = await Document.findAndCountAll({
+      where: {
+        collectionId: collection.id,
+      },
+    });
+    expect(collectionDocuments.count).toBe(0);
+  });
+
   it("should remove a child document", async () => {
     const collection = await buildCollection();
     const document = await buildDocument({ collectionId: collection.id });
