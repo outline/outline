@@ -31,6 +31,7 @@ import {
 import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
 import { SelectionCheckbox } from "~/components/SelectionCheckbox";
+import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import { transparentize } from "polished";
 
@@ -52,6 +53,8 @@ export type Column<TData> = {
   id: string;
   component: (data: TData) => React.ReactNode;
   width: string;
+  /** Whether the column is hidden on narrow viewports (defaults to false). */
+  hideOnMobile?: boolean;
 } & (DataColumn<TData> | ActionColumn);
 
 /** The minimum shape of a row, rows are identified by the model identifier. */
@@ -122,14 +125,19 @@ function TableViewInner<TData extends RowData>({
   selectableCount = 0,
 }: Props<TData> & { selectableCount?: number }) {
   const { t } = useTranslation();
+  const isMobile = useMobile();
   const selection = useModelSelection();
   const virtualContainerRef = React.useRef<HTMLDivElement>(null);
   const [virtualContainerTop, setVirtualContainerTop] =
     React.useState<number>();
 
   const allColumns = React.useMemo(() => {
+    const visibleColumns = isMobile
+      ? columns.filter((column) => !column.hideOnMobile)
+      : columns;
+
     if (!selection || !isRowSelectable) {
-      return columns;
+      return visibleColumns;
     }
 
     const selectColumn: Column<TData> = {
@@ -153,8 +161,8 @@ function TableViewInner<TData extends RowData>({
       width: "28px",
     };
 
-    return [selectColumn, ...columns];
-  }, [columns, selection, isRowSelectable, selectableCount, t]);
+    return [selectColumn, ...visibleColumns];
+  }, [columns, isMobile, selection, isRowSelectable, selectableCount, t]);
 
   const columnHelper = React.useMemo(() => createColumnHelper<TData>(), []);
   const observedColumns = React.useMemo(

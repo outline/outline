@@ -102,7 +102,7 @@ export function UsersTable({ canManage, ...rest }: Props) {
           ),
           width: "4fr",
         },
-        canManage && !isMobile
+        canManage
           ? {
               type: "data",
               id: "email",
@@ -110,22 +110,22 @@ export function UsersTable({ canManage, ...rest }: Props) {
               accessor: (user) => user.email,
               component: (user) => <>{user.email}</>,
               width: "4fr",
+              hideOnMobile: true,
             }
           : undefined,
-        isMobile
-          ? undefined
-          : {
-              type: "data",
-              id: "lastActiveAt",
-              header: t("Last active"),
-              accessor: (user) => user.lastActiveAt,
-              component: (user) =>
-                user.lastActiveAt ? (
-                  <Time dateTime={user.lastActiveAt} addSuffix shorten />
-                ) : null,
-              width: "2fr",
-            },
-        canManage && !isMobile
+        {
+          type: "data",
+          id: "lastActiveAt",
+          header: t("Last active"),
+          accessor: (user) => user.lastActiveAt,
+          component: (user) =>
+            user.lastActiveAt ? (
+              <Time dateTime={user.lastActiveAt} addSuffix shorten />
+            ) : null,
+          width: "2fr",
+          hideOnMobile: true,
+        },
+        canManage
           ? {
               type: "data",
               id: "invitedBy",
@@ -141,21 +141,21 @@ export function UsersTable({ canManage, ...rest }: Props) {
                 ) : null,
               sortable: false,
               width: "2fr",
+              hideOnMobile: true,
             }
           : undefined,
-        isMobile
-          ? undefined
-          : {
-              type: "data",
-              id: "createdAt",
-              header: t("Joined"),
-              accessor: (user) => user.createdAt,
-              component: (user) =>
-                user.createdAt ? (
-                  <Time dateTime={user.createdAt} addSuffix shorten />
-                ) : null,
-              width: "2fr",
-            },
+        {
+          type: "data",
+          id: "createdAt",
+          header: t("Joined"),
+          accessor: (user) => user.createdAt,
+          component: (user) =>
+            user.createdAt ? (
+              <Time dateTime={user.createdAt} addSuffix shorten />
+            ) : null,
+          width: "2fr",
+          hideOnMobile: true,
+        },
         {
           type: "data",
           id: "role",
