@@ -136,7 +136,16 @@ export default function init(
       Logger.debug("websockets", `Authenticated socket ${socket.id}`);
 
       socket.emit("authenticated", true);
-      void authenticated(io, socket, user);
+      void authenticated(io, socket, user).catch((err) => {
+        Logger.error("Failed to join rooms for authenticated socket", err, {
+          socketId: socket.id,
+          userId: user.id,
+        });
+
+        // The socket receives no events without its rooms, disconnect so that
+        // the client reconnects and tries again.
+        socket.disconnect();
+      });
     } catch (err) {
       const message = errToString(err);
       Logger.debug("websockets", `Authentication error socket ${socket.id}`, {
