@@ -955,7 +955,7 @@ router.post(
 
     let collection = await Collection.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: transaction.LOCK.NO_KEY_UPDATE,
     });
     authorize(user, "move", collection);
 

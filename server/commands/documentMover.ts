@@ -45,7 +45,7 @@ async function documentMover(
   const collection = await Collection.findByPk(document.collectionId!, {
     includeDocumentStructure: true,
     transaction,
-    lock: Transaction.LOCK.UPDATE,
+    lock: Transaction.LOCK.NO_KEY_UPDATE,
     paranoid: false,
   });
 
@@ -54,7 +54,7 @@ async function documentMover(
     newCollection = await Collection.findByPk(collectionId, {
       includeDocumentStructure: true,
       transaction,
-      lock: Transaction.LOCK.UPDATE,
+      lock: Transaction.LOCK.NO_KEY_UPDATE,
     });
   } else if (!collectionId) {
     newCollection = null;
