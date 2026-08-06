@@ -402,6 +402,8 @@ export type SourceMetadata = {
   originalDocumentId?: string;
   /** The ID of the original collection when this collection was duplicated. */
   originalCollectionId?: string;
+  /** The type of authentication used to make the change. */
+  authType?: AuthenticationType;
 };
 
 export type CustomTheme = {

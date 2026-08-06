@@ -1,5 +1,9 @@
 import { computed, observable } from "mobx";
-import { type ExportContentType, type ProsemirrorData } from "@shared/types";
+import {
+  type AuthenticationType,
+  type ExportContentType,
+  type ProsemirrorData,
+} from "@shared/types";
 import { isRTL } from "@shared/utils/rtl";
 import Document from "./Document";
 import User from "./User";
@@ -43,6 +47,12 @@ class Revision extends ParanoidModel {
   /** HTML string representing the revision as a diff from the previous version */
   @observable
   html: string;
+
+  /** Metadata about how the revision came to be */
+  sourceMetadata?: {
+    /** The type of authentication used to create the revision */
+    authType?: AuthenticationType;
+  };
 
   /** @deprecated The ID of the user who created the revision */
   createdById: string;
