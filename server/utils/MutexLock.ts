@@ -119,9 +119,7 @@ export class MutexLock {
       }
       return false;
     } catch (err) {
-      Logger.warn("Failed to release Redlock lock", {
-        message: toError(err).message,
-      });
+      Logger.warn("Failed to release Redlock lock", toError(err));
       return false;
     } finally {
       // @ts-expect-error Attach resource for use in shutdown

@@ -5,7 +5,7 @@ import cookie from "cookie";
 import type Koa from "koa";
 import IO from "socket.io";
 import { createAdapter } from "socket.io-redis";
-import { errToString } from "@shared/utils/error";
+import { errToString, toError } from "@shared/utils/error";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -137,10 +137,14 @@ export default function init(
 
       socket.emit("authenticated", true);
       void authenticated(io, socket, user).catch((err) => {
-        Logger.error("Failed to join rooms for authenticated socket", err, {
-          socketId: socket.id,
-          userId: user.id,
-        });
+        Logger.error(
+          "Failed to join rooms for authenticated socket",
+          toError(err),
+          {
+            socketId: socket.id,
+            userId: user.id,
+          }
+        );
 
         // The socket receives no events without its rooms, disconnect so that
         // the client reconnects and tries again.
