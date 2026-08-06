@@ -208,11 +208,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         const commentIds = comments.orderedData.map((c) => c.id);
         const commentMarkIds = commentMarks?.map((c) => c.id);
 
-        // Comment marks that arrive through a remote or sync transaction, such
-        // as the initial load of a collaborative document containing a draft
-        // comment, should not steal focus – only marks created locally should.
+        // Only marks created by a local change should steal focus. Marks that
+        // arrive through a remote or sync transaction, or that are discovered
+        // by a rescan outside of a change event – such as the initial load of
+        // a document containing a draft comment – should not.
         const focus =
-          previousCommentIds.current !== undefined && !event?.remote;
+          previousCommentIds.current !== undefined && !!event && !event.remote;
         const newCommentIds = difference(
           commentMarkIds,
           previousCommentIds.current ?? [],
