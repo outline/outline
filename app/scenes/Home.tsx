@@ -14,11 +14,9 @@ import PinnedDocuments from "~/components/PinnedDocuments";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scene from "~/components/Scene";
 import { Tab, Tabs } from "~/components/Tabs";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePersistedState from "~/hooks/usePersistedState";
-import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 
@@ -31,12 +29,10 @@ enum HomeTab {
 
 function Home() {
   const { documents, ui } = useStores();
-  const team = useCurrentTeam();
   const user = useCurrentUser();
   const { t } = useTranslation();
   const userId = user?.id;
   const { pins, count } = usePinnedDocuments("home");
-  const can = usePolicy(team);
   const [homeTab, setHomeTab] = usePersistedState<HomeTab>(
     "home-tab",
     HomeTab.Viewed,
@@ -85,7 +81,6 @@ function Home() {
       <Heading>{t("Home")}</Heading>
       <PinnedDocuments
         pins={pins}
-        canUpdate={can.update}
         placeholderCount={count}
         collapseKey="home"
       />

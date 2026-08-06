@@ -41,8 +41,6 @@ type Props = {
   limit?: number;
   /** Number of placeholder pins to display */
   placeholderCount?: number;
-  /** Whether the user has permission to update pins */
-  canUpdate?: boolean;
   /**
    * When provided the section can be collapsed by the user, the preference is
    * persisted locally under this key.
@@ -54,7 +52,6 @@ function PinnedDocuments({
   limit,
   pins,
   placeholderCount,
-  canUpdate,
   collapseKey,
   ...rest
 }: Props) {
@@ -188,7 +185,6 @@ function PinnedDocuments({
                         <DocumentCard
                           key={documentId}
                           document={document}
-                          canUpdatePin={canUpdate}
                           isDraggable={items.length > 1}
                           pin={pin}
                           {...rest}
