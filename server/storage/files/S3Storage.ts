@@ -39,7 +39,7 @@ export default class S3Storage extends BaseStorage {
       Fields: {
         "Content-Disposition": this.getContentDisposition(contentType),
         key,
-        ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
+        ...(env.AWS_S3_CANNED_ACL ? { ACL: env.AWS_S3_CANNED_ACL } : {}),
       },
       Expires: 3600,
     };
@@ -76,7 +76,7 @@ export default class S3Storage extends BaseStorage {
       ContentLength: contentLength,
       ContentDisposition: contentDisposition,
       CacheControl: cacheControl,
-      ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
+      ...this.cannedAcl,
     });
 
     const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
@@ -138,6 +138,10 @@ export default class S3Storage extends BaseStorage {
   }
 
   public getUrlForKey(key: string): string {
+    if (env.FILE_STORAGE_PUBLIC_URL) {
+      const base = env.FILE_STORAGE_PUBLIC_URL.replace(/\/$/, "");
+      return `${base}/${key}`;
+    }
     if (env.AWS_CLOUDFRONT_URL) {
       const base = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
       return `${base}/${key}`;
@@ -161,7 +165,7 @@ export default class S3Storage extends BaseStorage {
     const upload = new Upload({
       client,
       params: {
-        ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
+        ...this.cannedAcl,
         Bucket: this.getBucket(),
         Key: key,
         ContentType: contentType,
@@ -344,6 +348,16 @@ export default class S3Storage extends BaseStorage {
       }
     }
     return undefined;
+  }
+
+  /**
+   * The canned ACL to include in upload requests, or an empty object when
+   * ACLs are not supported by the storage provider (e.g. Cloudflare R2).
+   */
+  private get cannedAcl() {
+    return env.AWS_S3_CANNED_ACL
+      ? { ACL: env.AWS_S3_CANNED_ACL as ObjectCannedACL }
+      : {};
   }
 
   private s3Promise?: Promise<{ sdk: typeof AwsS3; client: S3Client }>;
