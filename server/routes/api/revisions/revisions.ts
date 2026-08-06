@@ -260,6 +260,9 @@ router.post(
       where: {
         documentId: document.id,
       },
+      attributes: {
+        exclude: ["content", "text"],
+      },
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
