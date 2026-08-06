@@ -465,6 +465,12 @@ export const DocumentsCreateSchema = BaseSchema.extend({
 
     /** Boolean to denote if the document should occupy full width */
     fullWidth: z.boolean().optional(),
+
+    /**
+     * Optionally attribute the document to an existing user in the same team.
+     * Admin-only; mirrors the JSON importer's author-mapping behavior.
+     */
+    createdById: z.uuid().optional(),
   }),
 }).refine(
   (req) =>

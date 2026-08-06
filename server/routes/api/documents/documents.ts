@@ -1719,16 +1719,65 @@ router.post(
       fullWidth,
       templateId,
       createdAt,
+      createdById,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
 
+    // Attributing a document to another user is an admin-only capability. The
+    // gate is on the mere presence of createdById — supplying an author is
+    // admin-only, even when it is the acting user's own id — so the code
+    // enforces exactly the contract the schema documents. It runs before
+    // collection resolution so a non-admin is rejected without probing user
+    // existence (no oracle) or touching unrelated state.
+    if (createdById) {
+      authorize(user, "update", user.team);
+    }
+
     const { collection } = await authorizeDocumentCreate(ctx, {
       collectionId,
       parentDocumentId,
     });
+
+    // Resolve the author once the destination is known. The target must belong
+    // to the same team and must themselves be able to read the collection the
+    // document will live in, so a document cannot be attributed to someone who
+    // could not see it. This mirrors the JSON importer's author-mapping
+    // (#11879) but fails closed on an unresolved, cross-team or unauthorized
+    // target rather than silently falling back to the acting user, since an
+    // explicit API argument asserts intent.
+    if (createdById) {
+      const author = await User.findByPk(createdById, { transaction });
+      if (!author || author.teamId !== user.teamId) {
+        throw ValidationError(
+          "createdById must reference a user in the same team"
+        );
+      }
+      if (author.isSuspended) {
+        throw ValidationError("createdById must reference an active user");
+      }
+      // A draft with no collection has no collection ACL to consult, so only
+      // the team and active-user checks above apply. This is intentional: an
+      // admin may place a draft in another member's drafts. Do not add a
+      // soft fallback here — there is nothing to authorize against.
+      if (collection) {
+        // Re-load the collection in the author's scope. The collection read
+        // policy consults memberships preloaded by withMembership(userId), so
+        // testing the author against the acting admin's instance would
+        // evaluate the wrong user's memberships on a private collection.
+        const authorCollection = await Collection.findByPk(collection.id, {
+          userId: author.id,
+          transaction,
+        });
+        if (cannot(author, "read", authorCollection)) {
+          throw ValidationError(
+            "createdById must reference a user who can access the collection"
+          );
+        }
+      }
+    }
 
     let template: Template | null | undefined;
 
@@ -1763,6 +1812,7 @@ router.post(
       template,
       fullWidth,
       editorVersion,
+      createdById,
     });
 
     if (collection) {
