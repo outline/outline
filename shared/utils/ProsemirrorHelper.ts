@@ -368,6 +368,37 @@ export class ProsemirrorHelper {
   }
 
   /**
+   * Iterates through the document to find text nodes whose link mark points to
+   * a file with a known attachment extension (e.g. .pdf, .xlsx). These are
+   * produced when a markdown importer converts file attachments that were
+   * represented as plain hyperlinks in the source (e.g. Slab exports).
+   *
+   * @param doc Prosemirror document node
+   * @returns Array<Node> of text nodes carrying a file-attachment link mark
+   */
+  static getExternalFileLinks(doc: Node): Node[] {
+    const fileExtensions = /\.(pdf|xlsx|xls|docx|doc|pptx|ppt|zip|csv|txt)$/i;
+    const nodes: Node[] = [];
+
+    doc.descendants((node) => {
+      const linkMark = node.marks.find((m) => m.type.name === "link");
+      if (linkMark) {
+        try {
+          const pathname = new URL(linkMark.attrs.href as string).pathname;
+          if (fileExtensions.test(pathname)) {
+            nodes.push(node);
+          }
+        } catch {
+          // ignore invalid URLs
+        }
+      }
+      return true;
+    });
+
+    return nodes;
+  }
+
+  /**
    * Iterates through the document to find all of the tasks and their completion state.
    *
    * @param doc Prosemirror document node
