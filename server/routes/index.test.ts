@@ -4,6 +4,7 @@ import {
   buildShare,
   buildDocument,
   buildIntegration,
+  buildTeam,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -194,6 +195,35 @@ describe("content security policy", () => {
     expect(res.status).toEqual(200);
     expect(csp).toContain(source);
     expect(csp).toContain("nonce-");
+  });
+
+  it("should allow the gitlab embed script source for a team's self-hosted instance", async () => {
+    const team = await buildTeam({ domain: "outline.example.com" });
+    await buildIntegration({
+      teamId: team.id,
+      type: IntegrationType.Embed,
+      service: IntegrationService.GitLab,
+      settings: { gitlab: { url: "https://gitlab.example.com" } },
+    });
+
+    const url = "https://gitlab.example.com/group/project/-/snippets/1";
+    const res = await server.get(
+      `/embeds/gitlab?url=${encodeURIComponent(url)}`
+    );
+    const csp = res.headers.get("content-security-policy") ?? "";
+
+    expect(res.status).toEqual(200);
+    expect(csp).toContain("gitlab.example.com");
+  });
+
+  it("should not allow a gitlab embed script source for an unconfigured self-hosted instance", async () => {
+    const url = "https://gitlab.example.com/group/project/-/snippets/1";
+    const res = await server.get(
+      `/embeds/gitlab?url=${encodeURIComponent(url)}`
+    );
+    const csp = res.headers.get("content-security-policy") ?? "";
+
+    expect(csp).not.toContain("gitlab.example.com");
   });
 
   it("should still send a policy for responses that do not render the app", async () => {

@@ -1,8 +1,12 @@
 import escape from "escape-html";
 import type { Context, Next } from "koa";
+import { IntegrationService } from "@shared/types";
+import type { IntegrationType } from "@shared/types";
 import env from "@server/env";
 import { InvalidRequestError } from "@server/errors";
 import { allowScriptSrc, allowStyleSrc } from "@server/middlewares/csp";
+import { Integration } from "@server/models";
+import { getTeamFromContext } from "@server/utils/passport";
 
 /**
  * Resize observer script that sends a message to the parent window when content is resized. Inject
@@ -32,6 +36,42 @@ const iframeCheckScript = (
 </script>`;
 
 /**
+ * Resolves whether the given host is allowed to be embedded as a GitLab
+ * snippet, checking gitlab.com as well as any self-hosted GitLab instance
+ * configured for the team the request belongs to.
+ *
+ * @param ctx The koa context.
+ * @param host The host of the URL being embedded.
+ * @returns The allowed host, or undefined if the host is not permitted.
+ */
+async function resolveGitLabHost(ctx: Context, host: string) {
+  if (host === "gitlab.com") {
+    return host;
+  }
+
+  const team = await getTeamFromContext(ctx);
+  if (!team) {
+    return undefined;
+  }
+
+  const integration = (await Integration.findOne({
+    where: { teamId: team.id, service: IntegrationService.GitLab },
+  })) as Integration<IntegrationType.Embed> | null;
+
+  const customUrl = integration?.settings?.gitlab?.url;
+
+  if (!customUrl) {
+    return undefined;
+  }
+
+  try {
+    return new URL(customUrl).host === host ? host : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Render an embed for a GitLab or GitHub snippet, injecting the necessary scripts to handle resizing
  * and iframe checks.
  *
@@ -53,19 +93,18 @@ export const renderEmbed = async (ctx: Context, next: Next) => {
     ctx.throw(InvalidRequestError("Invalid URL provided"));
   }
 
-  if (
-    parsed.host === "gitlab.com" &&
-    parsed.protocol === "https:" &&
-    ctx.path === "/embeds/gitlab"
-  ) {
-    const snippetLink = `${url}.js`;
+  if (parsed.protocol === "https:" && ctx.path === "/embeds/gitlab") {
+    const allowedHost = await resolveGitLabHost(ctx, parsed.host);
 
-    allowScriptSrc(ctx, ["gitlab.com"]);
-    allowStyleSrc(ctx, ["gitlab.com"]);
-    ctx.set("X-Frame-Options", "sameorigin");
+    if (allowedHost) {
+      const snippetLink = `${url}.js`;
 
-    ctx.type = "html";
-    ctx.body = `
+      allowScriptSrc(ctx, [allowedHost]);
+      allowStyleSrc(ctx, [allowedHost]);
+      ctx.set("X-Frame-Options", "sameorigin");
+
+      ctx.type = "html";
+      ctx.body = `
 <html>
 <head>
 <style>body { margin: 0; .gitlab-embed-snippets { margin: 0; } }</style>
@@ -77,7 +116,8 @@ ${iframeCheckScript(ctx)}
 ${resizeObserverScript(ctx)}
 </body>
 `;
-    return;
+      return;
+    }
   }
 
   if (
