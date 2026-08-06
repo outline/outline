@@ -27,6 +27,7 @@ type UserPresentation = {
   preferences?: UserPreferences | null;
   notificationSettings?: NotificationSettings;
   timezone?: string | null;
+  invitedBy?: UserPresentation;
 };
 
 export default function presentUser(
@@ -56,6 +57,11 @@ export default function presentUser(
 
   if (options.includeEmail) {
     userData.email = user.email;
+  }
+
+  // Only included when the association has been eager-loaded by the caller.
+  if (user.invitedBy) {
+    userData.invitedBy = presentUser(user.invitedBy);
   }
 
   return userData;
