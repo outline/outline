@@ -360,6 +360,8 @@ export enum UserPreference {
   CommentsInGutter = "commentsInGutter",
   /** Whether smart text replacements should be enabled. */
   EnableSmartText = "enableSmartText",
+  /** Whether live word, character, and paragraph counts are shown in documents. */
+  ShowDocumentStats = "showDocumentStats",
   /** The style of notification badge to display. */
   NotificationBadge = "notificationBadge",
 }
@@ -382,6 +384,7 @@ export type UserPreferences = {
   [UserPreference.SortCommentsByOrderInDocument]?: boolean;
   [UserPreference.CommentsInGutter]?: boolean;
   [UserPreference.EnableSmartText]?: boolean;
+  [UserPreference.ShowDocumentStats]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
 };
 
