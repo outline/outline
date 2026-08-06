@@ -173,10 +173,14 @@ export default async function documentCreator(
     lastModifiedById,
   }: Props
 ): Promise<Document> {
-  const { user } = ctx.state.auth;
+  const { user, type: authType } = ctx.state.auth;
   const { transaction } = ctx.state;
   const templateId = template ? template.id : undefined;
   const eventData = importId || apiImportId ? { source: "import" } : undefined;
+  // Note authType is applied last so that it always reflects the current
+  // request, even when metadata is inherited from another document.
+  const metadata =
+    authType || sourceMetadata ? { ...sourceMetadata, authType } : null;
 
   if (state && template) {
     throw new Error(
@@ -227,7 +231,7 @@ export default async function documentCreator(
     publishedAt,
     importId,
     apiImportId,
-    sourceMetadata,
+    sourceMetadata: metadata,
     fullWidth: fullWidth ?? template?.fullWidth,
     icon: icon ?? template?.icon,
     color: color ?? template?.color,

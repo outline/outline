@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { MentionType } from "@shared/types";
+import { AuthenticationType, MentionType } from "@shared/types";
 import { createContext } from "@server/context";
 import env from "@server/env";
 import { sequelize } from "@server/storage/database";
@@ -163,6 +163,7 @@ describe("documentDuplicator", () => {
       fileName: "test.md",
       externalId: "ext123",
       originalDocumentId: original.id,
+      authType: AuthenticationType.APP,
     });
   });
 

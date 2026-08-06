@@ -1,3 +1,4 @@
+import { AuthenticationType } from "@shared/types";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import {
   buildUser,
@@ -317,7 +318,10 @@ describe("documentCreator", () => {
       );
 
       expect(document.importId).toBe(fileOperation.id);
-      expect(document.sourceMetadata).toEqual(sourceMetadata);
+      expect(document.sourceMetadata).toEqual({
+        ...sourceMetadata,
+        authType: AuthenticationType.APP,
+      });
     });
   });
 
