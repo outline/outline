@@ -14,23 +14,28 @@ import RateLimiter from "@server/utils/RateLimiter";
 import { parseAuthentication } from "./authentication";
 
 /**
- * Returns a unique identifier for rate limiting based on the request context.
- * Keys on the user id (so users behind a shared NAT don't share a bucket) when
- * a token can be associated with a user, otherwise falls back to the client's
- * IP address.
+ * Returns the identifiers a request is rate limited against. Identifiers are
+ * consumed in order and every one must have quota remaining for the request
+ * to proceed.
+ *
+ * Session tokens are keyed on the user id, so that users behind a shared NAT
+ * do not share a bucket. API keys and OAuth access tokens are additionally
+ * keyed on the credential, as one credential may be presented from many
+ * addresses – they remain keyed on the address too because the credential is
+ * only pattern matched at this point, not yet verified.
  *
  * @param ctx The application context.
- * @returns A string identifier for rate limiting.
+ * @returns The identifiers to consume for this request.
  */
-async function getRateLimiterIdentifier(ctx: AppContext): Promise<string> {
+async function getRateLimiterIdentifiers(ctx: AppContext): Promise<string[]> {
   try {
     const { token } = parseAuthentication(ctx);
     if (!token) {
-      return ctx.ip;
+      return [ctx.ip];
     }
 
     if (ApiKey.match(token) || OAuthAuthentication.match(token)) {
-      return ctx.ip;
+      return [ctx.ip, RateLimiter.identifierForCredential(token)];
     }
 
     let userId = await RateLimiter.getCachedUserIdForToken(token);
@@ -39,12 +44,12 @@ async function getRateLimiterIdentifier(ctx: AppContext): Promise<string> {
       userId = user.id;
       void RateLimiter.cacheUserForToken(token, userId);
     }
-    return userId;
+    return [userId];
   } catch {
     // Fall through to IP-based rate limiting
   }
 
-  return ctx.ip;
+  return [ctx.ip];
 }
 
 /**
@@ -61,15 +66,16 @@ export function defaultRateLimiter() {
     }
 
     const fullPath = `${ctx.mountPath ?? ""}${ctx.path}`;
-    const identifier = await getRateLimiterIdentifier(ctx);
-
-    const key = RateLimiter.hasRateLimiter(fullPath)
-      ? `${fullPath}:${identifier}`
-      : identifier;
+    const identifiers = await getRateLimiterIdentifiers(ctx);
+    const isPathScoped = RateLimiter.hasRateLimiter(fullPath);
     const limiter = RateLimiter.getRateLimiter(fullPath);
 
     try {
-      await limiter.consume(key);
+      for (const identifier of identifiers) {
+        await limiter.consume(
+          isPathScoped ? `${fullPath}:${identifier}` : identifier
+        );
+      }
     } catch (rateLimiterRes) {
       if (
         rateLimiterRes instanceof Error ||
