@@ -14,7 +14,7 @@ import {
 } from "@tanstack/react-table";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { observer } from "mobx-react";
-import { CollapsedIcon } from "outline-icons";
+import { CollapsedIcon, SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
@@ -30,8 +30,19 @@ import {
 } from "~/components/ModelSelectionContext";
 import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
+import {
+  Menu,
+  MenuButton,
+  MenuContent,
+  MenuTrigger,
+} from "~/components/primitives/Menu";
+import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 import { SelectionCheckbox } from "~/components/SelectionCheckbox";
+import Tooltip from "~/components/Tooltip";
+import useMobile from "~/hooks/useMobile";
+import usePersistedState from "~/hooks/usePersistedState";
 import usePrevious from "~/hooks/usePrevious";
+import { preventDefault } from "~/utils/events";
 import { transparentize } from "polished";
 
 const HEADER_HEIGHT = 40;
@@ -60,6 +71,11 @@ export type RowData = {
 };
 
 export type Props<TData> = {
+  /**
+   * Unique identifier for this table. When provided the visibility of columns
+   * can be toggled from a context menu on the header and is persisted locally.
+   */
+  id?: string;
   data: TData[];
   columns: Column<TData>[];
   sort: ColumnSort;
@@ -109,6 +125,7 @@ function Table<TData extends RowData>(props: Props<TData>) {
 }
 
 function TableViewInner<TData extends RowData>({
+  id,
   data,
   columns,
   sort,
@@ -123,13 +140,41 @@ function TableViewInner<TData extends RowData>({
 }: Props<TData> & { selectableCount?: number }) {
   const { t } = useTranslation();
   const selection = useModelSelection();
+  const isMobile = useMobile();
   const virtualContainerRef = React.useRef<HTMLDivElement>(null);
   const [virtualContainerTop, setVirtualContainerTop] =
     React.useState<number>();
 
+  const [hiddenColumns, setHiddenColumns] = usePersistedState<string[]>(
+    `hiddenTableColumns-${id}`,
+    []
+  );
+
+  const handleToggleColumn = React.useCallback(
+    (columnId: string) => {
+      setHiddenColumns((hidden) =>
+        hidden.includes(columnId)
+          ? hidden.filter((hiddenId) => hiddenId !== columnId)
+          : [...hidden, columnId]
+      );
+    },
+    [setHiddenColumns]
+  );
+
+  const visibleColumns = React.useMemo(
+    () =>
+      id
+        ? columns.filter(
+            (column) =>
+              column.type !== "data" || !hiddenColumns.includes(column.id)
+          )
+        : columns,
+    [id, columns, hiddenColumns]
+  );
+
   const allColumns = React.useMemo(() => {
     if (!selection || !isRowSelectable) {
-      return columns;
+      return visibleColumns;
     }
 
     const selectColumn: Column<TData> = {
@@ -153,8 +198,8 @@ function TableViewInner<TData extends RowData>({
       width: "28px",
     };
 
-    return [selectColumn, ...columns];
-  }, [columns, selection, isRowSelectable, selectableCount, t]);
+    return [selectColumn, ...visibleColumns];
+  }, [visibleColumns, selection, isRowSelectable, selectableCount, t]);
 
   const columnHelper = React.useMemo(() => createColumnHelper<TData>(), []);
   const observedColumns = React.useMemo(
@@ -251,61 +296,83 @@ function TableViewInner<TData extends RowData>({
     <>
       <InnerTable role="table">
         <THead role="rowgroup" $topPos={stickyOffset}>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TR role="row" key={headerGroup.id} $columns={gridColumns}>
-              {headerGroup.headers.map((header) => {
-                const sorted = header.column.getIsSorted();
-                const canSort = header.column.getCanSort();
-                const toggleSorting = header.column.getToggleSortingHandler();
-                const handleSortKeyDown = (
-                  ev: React.KeyboardEvent<HTMLDivElement>
-                ) => {
-                  if (!ev.repeat && (ev.key === "Enter" || ev.key === " ")) {
-                    ev.preventDefault();
-                    toggleSorting?.(ev);
-                  }
-                };
-
-                return (
-                  <TH
-                    role="columnheader"
-                    key={header.id}
-                    aria-sort={
-                      !canSort
-                        ? undefined
-                        : sorted === "asc"
-                          ? "ascending"
-                          : sorted === "desc"
-                            ? "descending"
-                            : "none"
+          {table.getHeaderGroups().map((headerGroup) => {
+            const headerRow = (
+              <TR role="row" $columns={gridColumns}>
+                {headerGroup.headers.map((header) => {
+                  const sorted = header.column.getIsSorted();
+                  const canSort = header.column.getCanSort();
+                  const toggleSorting = header.column.getToggleSortingHandler();
+                  const handleSortKeyDown = (
+                    ev: React.KeyboardEvent<HTMLDivElement>
+                  ) => {
+                    if (!ev.repeat && (ev.key === "Enter" || ev.key === " ")) {
+                      ev.preventDefault();
+                      toggleSorting?.(ev);
                     }
-                  >
-                    <SortWrapper
-                      align="center"
-                      gap={4}
-                      onClick={toggleSorting}
-                      onKeyDown={canSort ? handleSortKeyDown : undefined}
-                      role={canSort ? "button" : undefined}
-                      tabIndex={canSort ? 0 : undefined}
-                      $sortable={canSort}
+                  };
+
+                  return (
+                    <TH
+                      role="columnheader"
+                      key={header.id}
+                      aria-sort={
+                        !canSort
+                          ? undefined
+                          : sorted === "asc"
+                            ? "ascending"
+                            : sorted === "desc"
+                              ? "descending"
+                              : "none"
+                      }
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {sorted === "asc" ? (
-                        <AscSortIcon />
-                      ) : sorted === "desc" ? (
-                        <DescSortIcon />
-                      ) : (
-                        <div />
-                      )}
-                    </SortWrapper>
-                  </TH>
-                );
-              })}
-            </TR>
-          ))}
+                      <SortWrapper
+                        align="center"
+                        gap={4}
+                        onClick={toggleSorting}
+                        onKeyDown={canSort ? handleSortKeyDown : undefined}
+                        role={canSort ? "button" : undefined}
+                        tabIndex={canSort ? 0 : undefined}
+                        $sortable={canSort}
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        {sorted === "asc" ? (
+                          <AscSortIcon />
+                        ) : sorted === "desc" ? (
+                          <DescSortIcon />
+                        ) : (
+                          <div />
+                        )}
+                      </SortWrapper>
+                    </TH>
+                  );
+                })}
+              </TR>
+            );
+
+            return id && !isMobile ? (
+              <ColumnVisibilityMenu
+                key={headerGroup.id}
+                columns={columns}
+                hiddenColumns={hiddenColumns}
+                onToggleColumn={handleToggleColumn}
+              >
+                {headerRow}
+              </ColumnVisibilityMenu>
+            ) : (
+              <React.Fragment key={headerGroup.id}>{headerRow}</React.Fragment>
+            );
+          })}
+          {id && !isMobile && (
+            <ColumnVisibilityButton
+              columns={columns}
+              hiddenColumns={hiddenColumns}
+              onToggleColumn={handleToggleColumn}
+            />
+          )}
         </THead>
 
         <TBody
@@ -381,6 +448,96 @@ function TableViewInner<TData extends RowData>({
 
 // The observer wrapper does not preserve the generic signature of the table.
 const TableView = observer(TableViewInner) as typeof TableViewInner;
+
+type ColumnVisibilityProps<TData> = {
+  columns: Column<TData>[];
+  hiddenColumns: string[];
+  onToggleColumn: (columnId: string) => void;
+};
+
+/**
+ * Menu items that toggle the visibility of individual columns. Only columns
+ * that display data can be hidden, and at least one must remain visible.
+ */
+function ColumnVisibilityItems<TData>({
+  columns,
+  hiddenColumns,
+  onToggleColumn,
+}: ColumnVisibilityProps<TData>) {
+  const dataColumns = columns.filter(
+    (column): column is Column<TData> & DataColumn<TData> =>
+      column.type === "data"
+  );
+  const visibleCount = dataColumns.filter(
+    (column) => !hiddenColumns.includes(column.id)
+  ).length;
+
+  return (
+    <>
+      {dataColumns.map((column) => {
+        const visible = !hiddenColumns.includes(column.id);
+
+        return (
+          <MenuButton
+            key={column.id}
+            label={column.header}
+            selected={visible}
+            disabled={visible && visibleCount === 1}
+            onSelect={preventDefault}
+            onClick={() => onToggleColumn(column.id)}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+/** Column visibility options, opened by right-clicking the header row. */
+function ColumnVisibilityMenu<TData>({
+  children,
+  ...rest
+}: ColumnVisibilityProps<TData> & { children: React.ReactNode }) {
+  const { t } = useTranslation();
+  const label = t("Columns");
+
+  return (
+    <MenuProvider variant="context">
+      <Menu>
+        <MenuTrigger aria-label={label}>{children}</MenuTrigger>
+        <MenuContent aria-label={label} onCloseAutoFocus={preventDefault}>
+          <ColumnVisibilityItems {...rest} />
+        </MenuContent>
+      </Menu>
+    </MenuProvider>
+  );
+}
+
+/** Column visibility options, opened by a button at the end of the header row. */
+function ColumnVisibilityButton<TData>(props: ColumnVisibilityProps<TData>) {
+  const { t } = useTranslation();
+  const label = t("Columns");
+
+  return (
+    <MenuProvider variant="dropdown">
+      <Menu>
+        <Tooltip content={label} placement="bottom">
+          <MenuTrigger aria-label={label}>
+            <ColumnOptions>
+              <SettingsIcon size={18} />
+            </ColumnOptions>
+          </MenuTrigger>
+        </Tooltip>
+        <MenuContent
+          align="end"
+          aria-label={label}
+          onCloseAutoFocus={preventDefault}
+        >
+          <ColumnVisibilityItems {...props} />
+        </MenuContent>
+      </Menu>
+    </MenuProvider>
+  );
+}
 
 const SelectableRow = observer(function SelectableRow_({
   selection,
@@ -519,6 +676,21 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
   }
 `;
 
+const ColumnOptions = styled(NudeButton)`
+  position: absolute;
+  top: ${(HEADER_HEIGHT - 24) / 2}px;
+  right: 0;
+  color: ${s("placeholder")};
+  background: ${s("background")};
+
+  &:hover,
+  &:focus-visible,
+  &[aria-expanded="true"] {
+    color: ${s("textSecondary")};
+    background: ${s("sidebarControlHoverBackground")};
+  }
+`;
+
 const InnerTable = styled.div`
   width: 100%;
 `;
@@ -529,7 +701,7 @@ const THead = styled.div<{ $topPos: number }>`
   height: ${HEADER_HEIGHT}px;
   z-index: 1;
   font-size: 14px;
-  color: ${s("textSecondary")};
+  color: ${s("text")};
   font-weight: 500;
 
   border-bottom: 1px solid
@@ -551,6 +723,11 @@ const TR = styled.div<{ $columns: string }>`
     ${(props) => transparentize(0.3, props.theme.divider)};
 
   &:last-child {
+    border-bottom: 0;
+  }
+
+  /* The header has its own border, avoid doubling the divider beneath it. */
+  ${THead} & {
     border-bottom: 0;
   }
 

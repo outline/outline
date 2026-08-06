@@ -4,21 +4,19 @@ import * as React from "react";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type Share from "~/models/Share";
-import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
-import Flex from "~/components/Flex";
 import { HEADER_HEIGHT } from "~/components/Header";
 import {
   type Props as TableProps,
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { UserLabel } from "~/components/UserLabel";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useShareMenuActions } from "~/hooks/useShareMenuActions";
 import Time from "~/components/Time";
 import ShareMenu from "~/menus/ShareMenu";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
-import { HStack } from "~/components/primitives/HStack";
 
 const ROW_HEIGHT = 50;
 
@@ -80,16 +78,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
           header: t("Shared by"),
           accessor: (share) => share.createdBy,
           sortable: false,
-          component: (share) => (
-            <HStack>
-              {share.createdBy && (
-                <>
-                  <Avatar model={share.createdBy} size={AvatarSize.Small} />
-                  {share.createdBy.name}
-                </>
-              )}
-            </HStack>
-          ),
+          component: (share) => <UserLabel user={share.createdBy} />,
           width: "2fr",
         },
         {
@@ -137,11 +126,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
           ? {
               type: "action",
               id: "action",
-              component: (share) => (
-                <Flex align="center">
-                  <ShareMenu share={share} />
-                </Flex>
-              ),
+              component: (share) => <ShareMenu share={share} />,
               width: "50px",
             }
           : undefined,
@@ -151,6 +136,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
 
   return (
     <SortableTable
+      id="shares"
       data={data}
       columns={columns}
       rowHeight={ROW_HEIGHT}
