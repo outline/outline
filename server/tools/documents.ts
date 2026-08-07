@@ -426,22 +426,27 @@ export function documentTools(server: McpServer, scopes: string[]) {
                   authType: ctx.state.auth.type,
                   ip: ctx.context.ip,
                 })
-              : await documentCreator(ctx, {
-                  title: input.title,
-                  text: input.text,
-                  icon: input.icon,
-                  color: input.color,
-                  parentDocumentId,
-                  publish: input.publish !== false,
-                  collectionId: collection?.id,
-                  template,
-                  fullWidth: input.fullWidth,
-                  sourceMetadata: input.sourceFileName
-                    ? {
-                        fileName: input.sourceFileName,
-                        mimeType: "text/markdown",
-                      }
-                    : undefined,
+              : await sequelize.transaction(async (transaction) => {
+                  ctx.state.transaction = transaction;
+                  ctx.context.transaction = transaction;
+
+                  return documentCreator(ctx, {
+                    title: input.title,
+                    text: input.text,
+                    icon: input.icon,
+                    color: input.color,
+                    parentDocumentId,
+                    publish: input.publish !== false,
+                    collectionId: collection?.id,
+                    template,
+                    fullWidth: input.fullWidth,
+                    sourceMetadata: input.sourceFileName
+                      ? {
+                          fileName: input.sourceFileName,
+                          mimeType: "text/markdown",
+                        }
+                      : undefined,
+                  });
                 });
 
           const breadcrumb = await getDocumentBreadcrumb(document, user);
