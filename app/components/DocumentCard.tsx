@@ -41,8 +41,15 @@ function DocumentCard(props: Props) {
   const { collections } = useStores();
   const theme = useTheme();
   const { document, pin, isDraggable } = props;
-  const can = usePolicy(pin);
+  const canPin = usePolicy(pin);
+  const canDocument = usePolicy(document);
   const pinnedToHome = useRef(!pin?.collectionId).current;
+
+  // Pins in a collection are governed by the document policy, pins on home by
+  // the policy of the pin itself.
+  const canReorder = pin?.collectionId ? canDocument.pin : canPin.update;
+  const canUnpin = pin?.collectionId ? canDocument.unpin : canPin.delete;
+
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
@@ -55,7 +62,7 @@ function DocumentCard(props: Props) {
     isDragging,
   } = useSortable({
     id: props.document.id,
-    disabled: !isDraggable || !can.update,
+    disabled: !isDraggable || !canReorder,
   });
 
   const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
@@ -168,7 +175,7 @@ function DocumentCard(props: Props) {
               </DocumentMeta>
             </div>
           </Content>
-          {can.delete && !isDragging && pin && (
+          {canUnpin && !isDragging && pin && (
             <Actions dir={document.dir} gap={4}>
               <Tooltip content={t("Unpin")}>
                 <PinButton onClick={handleUnpin} aria-label={t("Unpin")}>
