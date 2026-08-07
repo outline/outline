@@ -1,9 +1,8 @@
 import type { CustomTheme } from "@shared/types";
 import { randomString } from "@shared/random";
 import { CommentingAccess, TeamPreference } from "@shared/types";
-import env from "@server/env";
 import { buildTeam, buildUser } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import { setCloudHosted, withAPIContext } from "@server/test/support";
 import teamUpdater from "./teamUpdater";
 
 describe("teamUpdater", () => {
@@ -143,9 +142,7 @@ describe("teamUpdater", () => {
   });
 
   describe("subdomain", () => {
-    beforeEach(() => {
-      vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(true);
-    });
+    beforeEach(setCloudHosted);
 
     it("should update subdomain when available", async () => {
       const subdomain = `available-${randomString({ length: 10, charset: "alphabetic", capitalization: "lowercase" })}`;

@@ -42,6 +42,13 @@ export function setSelfHosted() {
 }
 
 /**
+ * Set the environment to be cloud hosted.
+ */
+export function setCloudHosted() {
+  env.URL = sharedEnv.URL = "https://app.outline.dev";
+}
+
+/**
  * Mock scheduling for all task subclasses in the current test file.
  *
  * @returns the schedule mock for assertions.
