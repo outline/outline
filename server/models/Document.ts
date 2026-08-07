@@ -56,6 +56,8 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
+import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { generateUrlId } from "@server/utils/url";
 import Collection from "./Collection";
 import Comment from "./Comment";
@@ -299,6 +301,9 @@ class Document extends ArchivableModel<
   InferAttributes<Document>,
   Partial<InferCreationAttributes<Document>>
 > {
+  /** Seconds for which a user's document membership IDs are cached. */
+  static membershipDocumentIdsCacheTTL = 10;
+
   @SimpleLength({
     min: 10,
     max: 10,
@@ -765,53 +770,74 @@ class Document extends ArchivableModel<
    * Returns an array of unique document IDs that the user is a member of,
    * either via direct membership or through a group membership.
    *
+   * The result is cached briefly, mirroring `User.collectionIds`, as it is
+   * resolved on every search request.
+   *
    * @param userId The user ID to find document memberships for.
+   * @param options Set `skipCache` to always read through to the database.
    * @returns A promise resolving to an array of document IDs.
    */
-  static async membershipDocumentIds(userId: string): Promise<string[]> {
-    const [memberships, groupMemberships] = await Promise.all([
-      UserMembership.findAll({
-        attributes: ["documentId"],
-        where: {
-          userId,
-          documentId: {
-            [Op.ne]: null,
+  static async membershipDocumentIds(
+    userId: string,
+    options: { skipCache?: boolean } = {}
+  ): Promise<string[]> {
+    const fetchDocumentIds = async () => {
+      const [memberships, groupMemberships] = await Promise.all([
+        UserMembership.findAll({
+          attributes: ["documentId"],
+          where: {
+            userId,
+            documentId: {
+              [Op.ne]: null,
+            },
           },
-        },
-      }),
-      GroupMembership.findAll({
-        attributes: ["documentId"],
-        where: {
-          documentId: {
-            [Op.ne]: null,
+        }),
+        GroupMembership.findAll({
+          attributes: ["documentId"],
+          where: {
+            documentId: {
+              [Op.ne]: null,
+            },
           },
-        },
-        include: [
-          {
-            model: Group,
-            as: "group",
-            attributes: [],
-            required: true,
-            include: [
-              {
-                model: GroupUser,
-                as: "groupUsers",
-                attributes: [],
-                required: true,
-                where: {
-                  userId,
+          include: [
+            {
+              model: Group,
+              as: "group",
+              attributes: [],
+              required: true,
+              include: [
+                {
+                  model: GroupUser,
+                  as: "groupUsers",
+                  attributes: [],
+                  required: true,
+                  where: {
+                    userId,
+                  },
                 },
-              },
-            ],
-          },
-        ],
-      }),
-    ]);
+              ],
+            },
+          ],
+        }),
+      ]);
 
-    return uniq(
-      [...memberships, ...groupMemberships]
-        .map((membership) => membership.documentId)
-        .filter((id): id is string => !isNil(id))
+      return uniq(
+        [...memberships, ...groupMemberships]
+          .map((membership) => membership.documentId)
+          .filter((id): id is string => !isNil(id))
+      );
+    };
+
+    if (options.skipCache) {
+      return fetchDocumentIds();
+    }
+
+    return (
+      (await CacheHelper.getDataOrSet<string[]>(
+        RedisPrefixHelper.getUserMembershipDocumentIdsKey(userId),
+        fetchDocumentIds,
+        Document.membershipDocumentIdsCacheTTL
+      )) ?? []
     );
   }
 

@@ -386,6 +386,29 @@ describe("#membershipDocumentIds", () => {
     const ids = await Document.membershipDocumentIds(user.id);
     expect(ids).toEqual([]);
   });
+
+  it("should read through to the database when skipCache is set", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const otherUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: otherUser.id,
+    });
+
+    expect(await Document.membershipDocumentIds(user.id)).toEqual([]);
+
+    await UserMembership.create({
+      createdById: otherUser.id,
+      documentId: document.id,
+      userId: user.id,
+      permission: DocumentPermission.Read,
+    });
+
+    expect(
+      await Document.membershipDocumentIds(user.id, { skipCache: true })
+    ).toEqual([document.id]);
+  });
 });
 
 describe("#findByPk", () => {
