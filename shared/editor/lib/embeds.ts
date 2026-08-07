@@ -16,6 +16,28 @@ export function getMatchingEmbed(
   return undefined;
 }
 
+/**
+ * Find the embed that should claim a URL the user did not explicitly ask to
+ * embed — one pasted into the editor, or parsed out of markdown.
+ *
+ * Descriptors with `matchOnInput` disabled are skipped. The generic iframe
+ * embed is one of them and matches every http(s) URL, so including it would
+ * make any URL look like a match.
+ *
+ * @param embeds the descriptors to search.
+ * @param href the URL to match.
+ * @returns the matching descriptor and its regex matches, or undefined.
+ */
+export function getMatchingEmbedOnInput(
+  embeds: EmbedDescriptor[],
+  href: string
+): { embed: EmbedDescriptor; matches: RegExpMatchArray } | undefined {
+  return getMatchingEmbed(
+    embeds.filter((embed) => embed.matchOnInput),
+    href
+  );
+}
+
 export function transformListToEmbeds(listNode: Node, schema: Schema): Node[] {
   const nodes: Node[] = [];
 
