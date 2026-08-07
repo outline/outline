@@ -186,11 +186,7 @@ const CollectionScene = observer(function CollectionScene_() {
             isEditing={isEditRoute || !user?.separateEditMode}
           />
 
-          <PinnedDocuments
-            pins={pins}
-            canUpdate={can.update}
-            placeholderCount={count}
-          />
+          <PinnedDocuments pins={pins} placeholderCount={count} />
 
           <Content>
             <Navigation
