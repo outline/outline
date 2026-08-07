@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import {
   FileOperationFormat,
   FileOperationType,
@@ -7,7 +6,6 @@ import {
 import { traceFunction } from "@server/logging/tracing";
 import type { Collection, Team, User } from "@server/models";
 import { FileOperation } from "@server/models";
-import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import { type APIContext } from "@server/types";
 
 type Props = {
@@ -20,16 +18,6 @@ type Props = {
   ctx: APIContext;
 };
 
-function getKeyForFileOp(
-  teamId: string,
-  format: FileOperationFormat,
-  name: string
-) {
-  return `${
-    Buckets.uploads
-  }/${teamId}/${randomUUID()}/${name}-export.${format.replace(/outline-/, "")}.zip`;
-}
-
 async function collectionExporter({
   collection,
   team,
@@ -40,11 +28,11 @@ async function collectionExporter({
   ctx,
 }: Props) {
   const collectionId = collection?.id;
-  const key = getKeyForFileOp(
-    user.teamId,
+  const key = FileOperation.getExportKey({
+    name: collection?.name || team.name,
+    teamId: user.teamId,
     format,
-    collection?.name || team.name
-  );
+  });
   const fileOperation = await FileOperation.createWithCtx(ctx, {
     type: FileOperationType.Export,
     state: FileOperationState.Creating,

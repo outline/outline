@@ -21,6 +21,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { CollectionPermission, FileOperationFormat } from "@shared/types";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import FileStorage from "@server/storage/files";
+import { ValidateKey } from "@server/validation";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -277,6 +278,14 @@ class FileOperation extends ParanoidModel<
     });
   }
 
+  /**
+   * Get the storage key to write an export archive to.
+   *
+   * @param name The user-provided name of the exported source
+   * @param teamId The team id
+   * @param format The format of the export
+   * @returns a storage key
+   */
   static getExportKey({
     name,
     teamId,
@@ -286,9 +295,11 @@ class FileOperation extends ParanoidModel<
     teamId: string;
     format: FileOperationFormat;
   }) {
-    return `${
-      Buckets.uploads
-    }/${teamId}/${uuidv4()}/${name}-export.${format.replace(/outline-/, "")}.zip`;
+    const fileName = ValidateKey.sanitizeSegment(
+      `${name}-export.${format.replace(/outline-/, "")}.zip`
+    );
+
+    return `${Buckets.uploads}/${teamId}/${uuidv4()}/${fileName}`;
   }
 }
 
