@@ -21,6 +21,9 @@ export default class RateLimiter {
 
   static readonly TOKEN_CACHE_TTL_SECONDS = 3600;
 
+  /** Distinguishes credential-derived identifiers from user ids and IPs. */
+  static readonly CREDENTIAL_IDENTIFIER_PREFIX = "cred:";
+
   static readonly rateLimiterMap = new Map<string, RateLimiterRedis>();
 
   static readonly insuranceRateLimiter = new RateLimiterMemory({
@@ -80,6 +83,18 @@ export default class RateLimiter {
   }
 
   /**
+   * Derives a stable rate limiting identifier for a long-lived credential such
+   * as an API key or OAuth access token. The credential itself is never used
+   * as an identifier so that it does not reach the rate limiter store.
+   *
+   * @param token The credential presented on the request.
+   * @returns An identifier scoped to the credential.
+   */
+  static identifierForCredential(token: string): string {
+    return `${this.CREDENTIAL_IDENTIFIER_PREFIX}${this.hashToken(token)}`;
+  }
+
+  /**
    * Caches the user id associated with a verified authentication token so that
    * subsequent requests can be keyed by user without re-validating the token.
    * Errors are swallowed — a failed cache write just means the next request
@@ -135,8 +150,11 @@ export default class RateLimiter {
   }
 
   private static tokenCacheKey(token: string): string {
-    const hash = createHash("sha256").update(token).digest("hex");
-    return `${this.TOKEN_CACHE_KEY_PREFIX}${hash}`;
+    return `${this.TOKEN_CACHE_KEY_PREFIX}${this.hashToken(token)}`;
+  }
+
+  private static hashToken(token: string): string {
+    return createHash("sha256").update(token).digest("hex");
   }
 }
 

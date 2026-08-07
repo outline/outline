@@ -105,6 +105,7 @@ const router = new Router();
 
 router.post(
   "documents.list",
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   auth(),
   pagination(),
   validate(T.DocumentsListSchema),
