@@ -1,9 +1,11 @@
+import { randomUUID } from "node:crypto";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import env from "@server/env";
 import {
   buildShare,
   buildDocument,
   buildIntegration,
+  buildTeam,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -291,5 +293,56 @@ describe("scanner path 404s", () => {
     expect(res.status).toEqual(200);
     const body = await res.json();
     expect(body.issuer).toBeDefined();
+  });
+});
+
+describe("canonical host redirects", () => {
+  it("should redirect to the current subdomain when a previous one is used", async () => {
+    const id = randomUUID();
+    const subdomain = `current-${id}`;
+    const previousSubdomain = `previous-${id}`;
+    await buildTeam({
+      subdomain,
+      previousSubdomains: [previousSubdomain],
+    });
+
+    const res = await server.get("/search?query=hello", {
+      headers: { Host: `${previousSubdomain}.outline.dev` },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(
+      `https://${subdomain}.outline.dev/search?query=hello`
+    );
+  });
+
+  it("should redirect to the custom domain when one is set", async () => {
+    const id = randomUUID();
+    const subdomain = `wombat-${id}`;
+    const domain = `docs-${id}.example.com`;
+    await buildTeam({ subdomain, domain });
+
+    const res = await server.get("/doc/getting-started", {
+      headers: { Host: `${subdomain}.outline.dev` },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toEqual(
+      `https://${domain}/doc/getting-started`
+    );
+  });
+
+  it("should not redirect a request already on the canonical host", async () => {
+    const subdomain = `canonical-${randomUUID()}`;
+    await buildTeam({ subdomain });
+
+    const res = await server.get("/search", {
+      headers: { Host: `${subdomain}.outline.dev` },
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(200);
   });
 });
