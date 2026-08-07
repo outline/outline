@@ -193,6 +193,7 @@ export function UsersTable({ canManage, ...rest }: Props) {
 
   return (
     <SortableTable
+      id="users"
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
