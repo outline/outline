@@ -231,6 +231,13 @@ class UserMembership extends IdModel<
     }
   }
 
+  @AfterCreate
+  static async invalidateDocumentIdsAfterCreate(model: UserMembership) {
+    if (model.documentId) {
+      await Document.invalidateMembershipDocumentIds([model.userId]);
+    }
+  }
+
   @AfterUpdate
   static async updateSourcedMemberships(
     model: UserMembership,
@@ -312,6 +319,13 @@ class UserMembership extends IdModel<
       await CacheHelper.clearData(
         RedisPrefixHelper.getUserCollectionIdsKey(model.userId)
       );
+    }
+  }
+
+  @AfterDestroy
+  static async invalidateDocumentIdsAfterDestroy(model: UserMembership) {
+    if (model.documentId) {
+      await Document.invalidateMembershipDocumentIds([model.userId]);
     }
   }
 

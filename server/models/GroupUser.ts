@@ -1,5 +1,7 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
+  AfterCreate,
+  AfterDestroy,
   BelongsTo,
   ForeignKey,
   Column,
@@ -8,6 +10,7 @@ import {
   Scopes,
 } from "sequelize-typescript";
 import { GroupPermission } from "@shared/types";
+import Document from "./Document";
 import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
@@ -61,6 +64,18 @@ class GroupUser extends Model<
 
   get modelId() {
     return this.groupId;
+  }
+
+  // hooks
+
+  @AfterCreate
+  static async invalidateDocumentIdsAfterCreate(model: GroupUser) {
+    await Document.invalidateMembershipDocumentIds([model.userId]);
+  }
+
+  @AfterDestroy
+  static async invalidateDocumentIdsAfterDestroy(model: GroupUser) {
+    await Document.invalidateMembershipDocumentIds([model.userId]);
   }
 }
 

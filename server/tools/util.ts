@@ -204,6 +204,38 @@ export function buildBreadcrumb(
 }
 
 /**
+ * Builds breadcrumb strings for every document in a collection's structure in
+ * a single traversal. Prefer this over repeated `buildBreadcrumb` calls when
+ * more than one document from the same collection needs a breadcrumb.
+ *
+ * @param structure - the collection's documentStructure tree, may be null.
+ * @param collectionName - the name of the containing collection.
+ * @returns a map from document ID to breadcrumb string.
+ */
+function buildBreadcrumbMap(
+  structure: NavigationNode[] | null | undefined,
+  collectionName: string
+): Map<string, string> {
+  const breadcrumbs = new Map<string, string>();
+
+  const walk = (nodes: NavigationNode[], chain: string[]) => {
+    const breadcrumb = [collectionName, ...chain].join(" › ");
+    for (const node of nodes) {
+      breadcrumbs.set(node.id, breadcrumb);
+      if (node.children.length) {
+        walk(node.children, [...chain, node.title]);
+      }
+    }
+  };
+
+  if (structure) {
+    walk(structure, []);
+  }
+
+  return breadcrumbs;
+}
+
+/**
  * Resolves a breadcrumb string for a document by loading its collection's
  * cached documentStructure. Returns undefined when the document has no
  * collection, the collection cannot be loaded, or the user lacks read
@@ -211,21 +243,39 @@ export function buildBreadcrumb(
  * ancestor names to users granted access to a single nested document via
  * direct membership without wider collection access.
  *
+ * The document's `collection` association is used when it is already loaded
+ * with the user's memberships, avoiding a second query for it.
+ *
  * @param document - the document to build a breadcrumb for.
  * @param user - the user performing the action, used to authorize collection access.
  * @returns the breadcrumb string, or undefined.
  */
 export async function getDocumentBreadcrumb(
-  document: { id: string; collectionId?: string | null },
+  document: {
+    id: string;
+    collectionId?: string | null;
+    collection?: Collection | null;
+  },
   user: User
 ): Promise<string | undefined> {
   if (!document.collectionId) {
     return undefined;
   }
 
-  const collection = await Collection.findByPk(document.collectionId, {
-    userId: user.id,
-  });
+  // Both membership associations must be present, as the read policy consults
+  // each of them — an unscoped collection would fail the check incorrectly.
+  const loaded =
+    document.collection?.id === document.collectionId &&
+    document.collection.memberships !== undefined &&
+    document.collection.groupMemberships !== undefined
+      ? document.collection
+      : null;
+
+  const collection =
+    loaded ??
+    (await Collection.findByPk(document.collectionId, {
+      userId: user.id,
+    }));
   if (!collection || !can(user, "read", collection)) {
     return undefined;
   }
@@ -268,24 +318,42 @@ export async function getBreadcrumbsForDocuments(
     where: { id: collectionIds },
   });
 
-  const collectionsById = new Map(
-    collections
-      .filter((collection) => can(user, "read", collection))
-      .map((collection) => [collection.id, collection])
+  // Each collection's structure is resolved once, concurrently, and walked
+  // once — the same collection is typically shared by many of the documents.
+  const readable = collections.filter((collection) =>
+    can(user, "read", collection)
+  );
+  const byCollection = new Map(
+    await Promise.all(
+      readable.map(
+        async (collection) =>
+          [
+            collection.id,
+            {
+              name: collection.name,
+              breadcrumbs: buildBreadcrumbMap(
+                await collection.getCachedDocumentStructure(),
+                collection.name
+              ),
+            },
+          ] as const
+      )
+    )
   );
 
   for (const doc of documents) {
     if (!doc.collectionId) {
       continue;
     }
-    const collection = collectionsById.get(doc.collectionId);
+    const collection = byCollection.get(doc.collectionId);
     if (!collection) {
       continue;
     }
-    const structure = await collection.getCachedDocumentStructure();
+    // A document absent from the structure — a draft, or one added since the
+    // structure was cached — is reported at the collection root.
     breadcrumbs.set(
       doc.id,
-      buildBreadcrumb(doc.id, structure, collection.name)
+      collection.breadcrumbs.get(doc.id) ?? collection.name
     );
   }
 
