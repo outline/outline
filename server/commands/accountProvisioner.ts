@@ -285,9 +285,10 @@ async function provisionFirstCollection(
 ) {
   await sequelize.transaction(async (transaction) => {
     const context = createContext({
-      ...ctx,
-      transaction,
       user,
+      authType: ctx.context.auth?.type,
+      ip: ctx.context.ip,
+      transaction,
     });
 
     const collection = await Collection.createWithCtx(context, {
