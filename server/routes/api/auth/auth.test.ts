@@ -1,7 +1,9 @@
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
+import { Scope } from "@shared/types";
 import {
   buildApiKey,
+  buildOAuthAuthentication,
   buildUser,
   buildTeam,
   buildUserPasskey,
@@ -63,6 +65,22 @@ describe("#auth.info", () => {
     const res = await server.post("/api/auth.info", {
       headers: {
         Authorization: `Bearer ${key.value}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collaborationToken).toBeUndefined();
+  });
+
+  it("should not return a collaboration token for an OAuth access token", async () => {
+    const user = await buildUser();
+    const authentication = await buildOAuthAuthentication({
+      user,
+      scope: [Scope.Read],
+    });
+    const res = await server.post("/api/auth.info", {
+      headers: {
+        Authorization: `Bearer ${authentication.accessToken}`,
       },
     });
     const body = await res.json();

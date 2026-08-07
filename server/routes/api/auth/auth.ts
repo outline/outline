@@ -141,9 +141,9 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
   // to have access to the workspace they are signed into. This only applies
   // to SSO sessions - email and passkey logins don't have associated
   // UserAuthentication records that need validation.
-  const isOAuthSession = !service || !NON_SSO_SERVICES.includes(service);
+  const requiresSSOValidation = !service || !NON_SSO_SERVICES.includes(service);
   if (
-    isOAuthSession &&
+    requiresSSOValidation &&
     user.lastSignedInAt &&
     user.lastSignedInAt < subHours(new Date(), 1)
   ) {
