@@ -1,5 +1,7 @@
 import type { CustomTheme } from "@shared/types";
+import { randomString } from "@shared/random";
 import { CommentingAccess, TeamPreference } from "@shared/types";
+import env from "@server/env";
 import { buildTeam, buildUser } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
 import teamUpdater from "./teamUpdater";
@@ -137,6 +139,45 @@ describe("teamUpdater", () => {
       );
 
       expect(updatedTeam.name).toEqual("Updated Team Name");
+    });
+  });
+
+  describe("subdomain", () => {
+    beforeEach(() => {
+      vi.spyOn(env, "isCloudHosted", "get").mockReturnValue(true);
+    });
+
+    it("should update subdomain when available", async () => {
+      const subdomain = `available-${randomString({ length: 10, charset: "alphabetic", capitalization: "lowercase" })}`;
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+
+      const updatedTeam = await withAPIContext(user, (ctx) =>
+        teamUpdater(ctx, {
+          params: { subdomain },
+          user,
+          team,
+        })
+      );
+
+      expect(updatedTeam.subdomain).toEqual(subdomain);
+    });
+
+    it("should throw a validation error when subdomain is taken", async () => {
+      const subdomain = `taken-${randomString({ length: 10, charset: "alphabetic", capitalization: "lowercase" })}`;
+      await buildTeam({ subdomain });
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+
+      await expect(
+        withAPIContext(user, (ctx) =>
+          teamUpdater(ctx, {
+            params: { subdomain },
+            user,
+            team,
+          })
+        )
+      ).rejects.toThrow("Subdomain is already in use");
     });
   });
 });

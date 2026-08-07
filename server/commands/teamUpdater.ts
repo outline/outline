@@ -1,8 +1,9 @@
 import { has, isEqual } from "es-toolkit/compat";
 import { TeamPreference } from "@shared/types";
 import env from "@server/env";
-import type { Team, User } from "@server/models";
-import { TeamDomain } from "@server/models";
+import { ValidationError } from "@server/errors";
+import type { User } from "@server/models";
+import { Team, TeamDomain } from "@server/models";
 import type { APIContext } from "@server/types";
 
 type Props = {
@@ -16,7 +17,21 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   team.setAttributes(attributes);
 
   if (subdomain !== undefined && env.isCloudHosted) {
-    team.subdomain = subdomain === "" ? null : subdomain;
+    const newSubdomain = subdomain === "" ? null : subdomain;
+
+    if (newSubdomain && newSubdomain !== team.subdomain) {
+      const existing = await Team.findOne({
+        where: { subdomain: newSubdomain },
+        paranoid: false,
+        transaction: ctx.state.transaction,
+      });
+
+      if (existing) {
+        throw ValidationError("Subdomain is already in use");
+      }
+    }
+
+    team.subdomain = newSubdomain;
   }
 
   if (allowedDomains !== undefined) {

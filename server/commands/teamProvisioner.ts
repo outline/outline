@@ -1,3 +1,4 @@
+import { UniqueConstraintError } from "sequelize";
 import teamCreator from "@server/commands/teamCreator";
 import { createContext } from "@server/context";
 import env from "@server/env";
@@ -128,15 +129,19 @@ async function teamProvisioner(
     throw InvalidAuthenticationError();
   }
 
-  // We cannot find an existing team, so we create a new one
-  const team = await sequelize.transaction((transaction) =>
-    teamCreator(createContext({ transaction }), {
-      name,
-      domain,
-      subdomain,
-      avatarUrl,
-      authenticationProviders: [authenticationProvider],
-    })
+  // We cannot find an existing team, so we create a new one. Two concurrent
+  // signups can pick the same available subdomain, so retry on a conflict –
+  // the next attempt will see the committed team and choose another.
+  const team = await retryOnUniqueConstraintError(() =>
+    sequelize.transaction((transaction) =>
+      teamCreator(createContext({ transaction }), {
+        name,
+        domain,
+        subdomain,
+        avatarUrl,
+        authenticationProviders: [authenticationProvider],
+      })
+    )
   );
 
   return {
@@ -144,6 +149,25 @@ async function teamProvisioner(
     authenticationProvider: team.authenticationProviders[0],
     isNewTeam: true,
   };
+}
+
+async function retryOnUniqueConstraintError<T>(
+  fn: () => Promise<T>,
+  attempts = 3
+): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (!(err instanceof UniqueConstraintError) || attempt >= attempts) {
+        throw err;
+      }
+      Logger.info("commands", "Retrying team creation after unique conflict", {
+        attempt,
+        fields: err.fields,
+      });
+    }
+  }
 }
 
 export default traceFunction({
