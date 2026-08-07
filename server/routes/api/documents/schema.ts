@@ -466,19 +466,32 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** Boolean to denote if the document should occupy full width */
     fullWidth: z.boolean().optional(),
 
-    /**
-     * Optionally attribute the document to an existing user in the same team.
-     * Admin-only; mirrors the JSON importer's author-mapping behavior.
-     */
+    /** Attribute the document to an existing user in the same team, admin-only */
     createdById: z.uuid().optional(),
   }),
-}).refine(
-  (req) =>
-    !(req.body.publish && !req.body.parentDocumentId && !req.body.collectionId),
-  {
-    message: "collectionId or parentDocumentId is required to publish",
-  }
-);
+})
+  .refine(
+    (req) =>
+      !(
+        req.body.publish &&
+        !req.body.parentDocumentId &&
+        !req.body.collectionId
+      ),
+    {
+      message: "collectionId or parentDocumentId is required to publish",
+    }
+  )
+  .refine(
+    (req) =>
+      !(
+        req.body.createdById &&
+        !req.body.parentDocumentId &&
+        !req.body.collectionId
+      ),
+    {
+      message: "collectionId or parentDocumentId is required with createdById",
+    }
+  );
 
 export type DocumentsCreateReq = z.infer<typeof DocumentsCreateSchema>;
 
