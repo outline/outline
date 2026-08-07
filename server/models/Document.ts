@@ -841,6 +841,22 @@ class Document extends ArchivableModel<
     );
   }
 
+  /**
+   * Invalidates the cached result of `membershipDocumentIds` so a permission
+   * change takes effect immediately rather than at the end of the cache TTL.
+   *
+   * @param userIds The users whose document memberships changed.
+   */
+  static async invalidateMembershipDocumentIds(userIds: string[]) {
+    await Promise.all(
+      uniq(userIds).map((userId) =>
+        CacheHelper.removeData(
+          RedisPrefixHelper.getUserMembershipDocumentIdsKey(userId)
+        )
+      )
+    );
+  }
+
   static withMembershipScope(
     userId: string,
     options?: FindOptions<Document> & { includeDrafts?: boolean }
