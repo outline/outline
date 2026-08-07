@@ -22,8 +22,10 @@ describe("google-maps", () => {
     "https://www.google.com/maps/embed/v1/directions?key=K&origin=A&destination=B&waypoints=C%7CD",
     "https://www.google.com/maps/embed/v1/streetview?key=K&location=46.4,2.9",
     "https://www.google.com/maps/embed/v1/search?key=K&q=record+stores+in+Seattle",
-    // My Maps
+    // My Maps, with and without the multi-account /u/<n> segment
     "https://www.google.com/maps/d/embed?mid=1a2b3c",
+    "https://www.google.com/maps/d/u/0/embed?mid=1a2b3c",
+    "https://www.google.com/maps/d/u/12/embed?mid=1a2b3c",
   ];
 
   const rejected = [
@@ -35,6 +37,9 @@ describe("google-maps", () => {
     // Mode is not one of the documented five
     "https://www.google.com/maps/embed/v1/hack?key=K",
     "https://www.google.com/maps/embed/v1/../../evil?x=1",
+    // The My Maps account segment is an index, not an arbitrary path
+    "https://www.google.com/maps/d/u/x/embed?mid=1a2b3c",
+    "https://www.google.com/maps/d/evil/embed?mid=1a2b3c",
     // Lookalike hosts
     "https://www.google.com.evil.tld/maps/embed?pb=1",
     "https://evil-www.google.com.co/maps/embed?pb=1",
