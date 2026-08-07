@@ -19,6 +19,7 @@ import {
 } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import type { APIContext } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import { getSessionsInCookie } from "@server/utils/authentication";
 import RateLimiter from "@server/utils/RateLimiter";
 import type * as T from "./schema";
@@ -119,7 +120,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
 const NON_SSO_SERVICES = ["email", "passkeys"];
 
 router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
-  const { user, service } = ctx.state.auth;
+  const { user, service, type } = ctx.state.auth;
   const sessions = getSessionsInCookie(ctx);
   const signedInTeamIds = Object.keys(sessions);
 
@@ -168,7 +169,12 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
       team: presentTeam(team),
       groups: await Promise.all(groups.map(presentGroup)),
       groupUsers: groups.map((group) => presentGroupUser(group.groupUsers[0])),
-      collaborationToken: user.getCollaborationToken(),
+      // The collaboration token is only for the client and should not be issued
+      // to API or OAuth consumers
+      collaborationToken:
+        type === AuthenticationType.APP
+          ? user.getCollaborationToken()
+          : undefined,
       availableTeams: uniqBy([...signedInTeams, ...availableTeams], "id").map(
         (availableTeam) =>
           presentAvailableTeam(

@@ -1,6 +1,11 @@
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
-import { buildUser, buildTeam, buildUserPasskey } from "@server/test/factories";
+import {
+  buildApiKey,
+  buildUser,
+  buildTeam,
+  buildUserPasskey,
+} from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const mockTeamInSessionId = randomUUID();
@@ -42,6 +47,27 @@ describe("#auth.info", () => {
     expect(body.data.user.name).toBe(user.name);
     expect(body.data.team.name).toBe(team.name);
     expect(body.data.team.allowedDomains).toEqual([]);
+  });
+
+  it("should return a collaboration token for a session", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/auth.info", user);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collaborationToken).toBeTruthy();
+  });
+
+  it("should not return a collaboration token for an API key", async () => {
+    const user = await buildUser();
+    const key = await buildApiKey({ userId: user.id });
+    const res = await server.post("/api/auth.info", {
+      headers: {
+        Authorization: `Bearer ${key.value}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collaborationToken).toBeUndefined();
   });
 
   it("should require the team to not be deleted", async () => {
