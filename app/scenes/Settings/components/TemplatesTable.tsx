@@ -8,7 +8,6 @@ import Flex from "@shared/components/Flex";
 import Icon from "@shared/components/Icon";
 import { hover } from "@shared/styles";
 import type Template from "~/models/Template";
-import { Avatar, AvatarSize } from "~/components/Avatar";
 import ButtonLink from "~/components/ButtonLink";
 import { HEADER_HEIGHT } from "~/components/Header";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
@@ -18,6 +17,7 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { UserLabel } from "~/components/UserLabel";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import { ActionContextProvider } from "~/hooks/useActionContext";
@@ -99,12 +99,7 @@ export function TemplatesTable(props: Props) {
           header: t("Updated by"),
           accessor: (template) => template.updatedBy?.name,
           sortable: false,
-          component: (template) => (
-            <Flex align="center" gap={8}>
-              <Avatar model={template.updatedBy} size={AvatarSize.Small} />{" "}
-              {template.updatedBy?.name}{" "}
-            </Flex>
-          ),
+          component: (template) => <UserLabel user={template.updatedBy} />,
           width: "2fr",
         },
         {
@@ -135,6 +130,7 @@ export function TemplatesTable(props: Props) {
 
   return (
     <SortableTable
+      id="templates"
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
