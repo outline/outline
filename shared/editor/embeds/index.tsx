@@ -336,7 +336,14 @@ const embeds: EmbedDescriptor[] = [
     id: "google-maps",
     title: "Google Maps",
     keywords: "maps",
-    regexMatch: [new RegExp("^https?://www\\.google\\.com/maps/embed\\?(.*)$")],
+    // Covers the `pb=` URL from the "Share > Embed a map" dialog, the five
+    // Maps Embed API modes, and My Maps. The mode segment is an allowlist so
+    // that invented paths under /maps/embed/ are not accepted.
+    regexMatch: [
+      new RegExp(
+        "^https?://(?:www\\.)?google\\.com/maps(?:/d)?/embed(?:/v1/(?:place|view|directions|streetview|search))?\\?(.*)$"
+      ),
+    ],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/google-maps.png" alt="Google Maps" />,
   }),
