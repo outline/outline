@@ -38,6 +38,38 @@ describe("#users.list", () => {
     expect(body.data[0].id).toEqual(user.id);
   });
 
+  it("should return the inviting user for admins", async () => {
+    const admin = await buildAdmin();
+    const invite = await buildInvite({ teamId: admin.teamId });
+
+    const res = await server.post("/api/users.list", admin, {
+      body: { filter: "all" },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const invited = body.data.find(
+      (item: { id: string }) => item.id === invite.id
+    );
+    expect(invited.invitedBy.id).toEqual(invite.invitedById);
+  });
+
+  it("should not return the inviting user for non-admins", async () => {
+    const invite = await buildInvite();
+    const user = await buildUser({ teamId: invite.teamId });
+
+    const res = await server.post("/api/users.list", user, {
+      body: { filter: "all" },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const invited = body.data.find(
+      (item: { id: string }) => item.id === invite.id
+    );
+    expect(invited.invitedBy).toEqual(undefined);
+  });
+
   it("should treat LIKE wildcards in the query as literal characters", async () => {
     const user = await buildUser({
       name: "Underscore",

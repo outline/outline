@@ -131,10 +131,10 @@ router.post(
         [Op.and]: {
           [Op.or]: [
             Sequelize.literal(
-              `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+              `unaccent(LOWER("user"."email")) like unaccent(LOWER(:query))`
             ),
             Sequelize.literal(
-              `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+              `unaccent(LOWER("user"."name")) like unaccent(LOWER(:query))`
             ),
           ],
         },
@@ -161,6 +161,10 @@ router.post(
       User.findAll({
         where,
         replacements,
+        // Only admins can see who invited a user.
+        include: actor.isAdmin
+          ? [{ association: "invitedBy", required: false }]
+          : undefined,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,

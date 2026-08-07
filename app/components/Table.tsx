@@ -63,6 +63,8 @@ export type Column<TData> = {
   id: string;
   component: (data: TData) => React.ReactNode;
   width: string;
+  /** Whether the column is hidden on narrow viewports (defaults to false). */
+  hideOnMobile?: boolean;
 } & (DataColumn<TData> | ActionColumn);
 
 /** The minimum shape of a row, rows are identified by the model identifier. */
@@ -163,13 +165,12 @@ function TableViewInner<TData extends RowData>({
 
   const visibleColumns = React.useMemo(
     () =>
-      id
-        ? columns.filter(
-            (column) =>
-              column.type !== "data" || !hiddenColumns.includes(column.id)
-          )
-        : columns,
-    [id, columns, hiddenColumns]
+      columns.filter(
+        (column) =>
+          (!isMobile || !column.hideOnMobile) &&
+          (!id || column.type !== "data" || !hiddenColumns.includes(column.id))
+      ),
+    [id, columns, hiddenColumns, isMobile]
   );
 
   const allColumns = React.useMemo(() => {
