@@ -1,4 +1,3 @@
-import { UniqueConstraintError } from "sequelize";
 import teamCreator from "@server/commands/teamCreator";
 import { createContext } from "@server/context";
 import env from "@server/env";
@@ -10,7 +9,10 @@ import {
 import Logger from "@server/logging/Logger";
 import { traceFunction } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
-import { sequelize } from "@server/storage/database";
+import {
+  retryOnUniqueConstraintError,
+  sequelize,
+} from "@server/storage/database";
 import type { APIContext } from "@server/types";
 
 type TeamProvisionerResult = {
@@ -149,25 +151,6 @@ async function teamProvisioner(
     authenticationProvider: team.authenticationProviders[0],
     isNewTeam: true,
   };
-}
-
-async function retryOnUniqueConstraintError<T>(
-  fn: () => Promise<T>,
-  attempts = 3
-): Promise<T> {
-  for (let attempt = 1; ; attempt++) {
-    try {
-      return await fn();
-    } catch (err) {
-      if (!(err instanceof UniqueConstraintError) || attempt >= attempts) {
-        throw err;
-      }
-      Logger.info("commands", "Retrying team creation after unique conflict", {
-        attempt,
-        fields: err.fields,
-      });
-    }
-  }
 }
 
 export default traceFunction({
