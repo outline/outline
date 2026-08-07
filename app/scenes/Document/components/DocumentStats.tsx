@@ -76,6 +76,7 @@ const Container = styled(Flex)<{ $hidden: boolean }>`
   display: none;
   white-space: nowrap;
   user-select: none;
+  pointer-events: none;
   background: ${s("background")};
   border-start-start-radius: 4px;
   padding-block: 6px 12px;
