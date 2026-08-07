@@ -1,6 +1,6 @@
 import cluster from "node:cluster";
 import path from "node:path";
-import { DatabaseError } from "sequelize";
+import { DatabaseError, UniqueConstraintError } from "sequelize";
 import type {
   InferAttributes,
   InferCreationAttributes,
@@ -97,6 +97,37 @@ export function isQueryCanceledError(err: unknown): boolean {
     "code" in err.parent &&
     err.parent.code === QueryCanceledErrorCode
   );
+}
+
+/**
+ * Run the given function, retrying it when it fails due to a unique constraint
+ * violation. Useful for operations that choose a unique value based on a prior
+ * read, where a concurrent request may claim the same value first.
+ *
+ * @param fn the function to run, this should include any transaction as a
+ * violation leaves the surrounding transaction unusable.
+ * @param attempts the maximum number of times to run the function.
+ * @returns the result of the function.
+ * @throws the last error if it is not a unique constraint violation, or the
+ * maximum number of attempts has been reached.
+ */
+export async function retryOnUniqueConstraintError<T>(
+  fn: () => Promise<T>,
+  attempts = 3
+): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (!(err instanceof UniqueConstraintError) || attempt >= attempts) {
+        throw err;
+      }
+      Logger.info("database", "Retrying after unique constraint violation", {
+        attempt,
+        fields: err.fields,
+      });
+    }
+  }
 }
 
 export function createDatabaseInstance(
