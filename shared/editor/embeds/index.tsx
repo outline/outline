@@ -1,3 +1,4 @@
+import { escapeRegExp } from "es-toolkit/compat";
 import { BrowserIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -72,6 +73,13 @@ export class EmbedDescriptor {
   /** A regex that will be used to match the embed from a URL. */
   regexMatch?: RegExp[];
   /**
+   * A function that will be used to build an additional regex from the team's
+   * configured integration URL (e.g. a self-hosted instance), used to match
+   * the embed alongside `regexMatch`. Falls back to a plain domain match
+   * against `settings.url` when not provided.
+   */
+  buildSettingsRegex?: (url: string) => RegExp;
+  /**
    * A function that will be used to transform the URL. The resulting string is passed as the src
    * to the iframe. You can perform any transformations you want here, including changing the domain
    *
@@ -106,6 +114,7 @@ export class EmbedDescriptor {
     this.hideToolbar = options.hideToolbar;
     this.matchOnInput = options.matchOnInput ?? true;
     this.regexMatch = options.regexMatch;
+    this.buildSettingsRegex = options.buildSettingsRegex;
     this.transformMatch = options.transformMatch;
     this.attrs = options.attrs;
     this.visible = options.visible;
@@ -114,8 +123,9 @@ export class EmbedDescriptor {
 
   matcher(url: string): false | RegExpMatchArray {
     const regexes = this.regexMatch ?? [];
-    const settingsDomainRegex = this.settings?.url
-      ? urlRegex(this.settings?.url)
+    const settingsUrl = this.settings?.gitlab?.url ?? this.settings?.url;
+    const settingsDomainRegex = settingsUrl
+      ? (this.buildSettingsRegex?.(settingsUrl) ?? urlRegex(settingsUrl))
       : undefined;
 
     if (settingsDomainRegex) {
@@ -317,10 +327,15 @@ const embeds: EmbedDescriptor[] = [
   new EmbedDescriptor({
     id: "gitlab-snippet",
     title: "GitLab Snippet",
+    name: IntegrationService.GitLab,
     keywords: "code",
     regexMatch: [
       new RegExp(`^https://gitlab\\.com/(([a-zA-Z\\d-]+)/)*-/snippets/\\d+$`),
     ],
+    buildSettingsRegex: (url) =>
+      new RegExp(
+        `^${escapeRegExp(url.replace(/\/+$/, ""))}/(([a-zA-Z\\d-]+)/)*-/snippets/\\d+$`
+      ),
     icon: <Img src="/images/gitlab.png" alt="GitLab" />,
     component: GitLabSnippet,
   }),
