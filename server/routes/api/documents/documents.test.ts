@@ -3515,9 +3515,11 @@ describe("#documents.import", () => {
     vi.spyOn(FileStorage, "store").mockResolvedValue(
       undefined as unknown as string
     );
-    vi.spyOn(DocumentImportTask.prototype, "schedule").mockResolvedValue({
-      finished: vi.fn().mockResolvedValue({ documentId: childDocument.id }),
-    } as unknown as Awaited<ReturnType<DocumentImportTask["schedule"]>>);
+    const schedule = vi
+      .spyOn(DocumentImportTask.prototype, "schedule")
+      .mockResolvedValue({
+        finished: vi.fn().mockResolvedValue({ documentId: childDocument.id }),
+      } as unknown as Awaited<ReturnType<DocumentImportTask["schedule"]>>);
 
     const content = await readFile(
       path.resolve(
@@ -3543,6 +3545,9 @@ describe("#documents.import", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(childDocument.id);
+    expect(schedule).toHaveBeenCalledWith(
+      expect.objectContaining({ collectionId: collection.id })
+    );
 
     vi.restoreAllMocks();
   });
