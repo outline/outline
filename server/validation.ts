@@ -223,8 +223,8 @@ export class ValidateKey {
    * Sanitizes a string for use as a single segment of a key, removing any
    * characters that would allow it to change the location the key points to.
    *
-   * @param name
-   * @returns the sanitized segment
+   * @param name the string to sanitize.
+   * @returns the sanitized segment.
    */
   public static sanitizeSegment = (name: string) =>
     sanitize(name.replace(/#/g, ""));

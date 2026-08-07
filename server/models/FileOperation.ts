@@ -281,10 +281,10 @@ class FileOperation extends ParanoidModel<
   /**
    * Get the storage key to write an export archive to.
    *
-   * @param name The user-provided name of the exported source
-   * @param teamId The team id
-   * @param format The format of the export
-   * @returns a storage key
+   * @param name the user-provided name of the exported source.
+   * @param teamId the team id.
+   * @param format the format of the export.
+   * @returns a storage key.
    */
   static getExportKey({
     name,
