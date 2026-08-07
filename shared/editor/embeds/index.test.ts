@@ -1,3 +1,4 @@
+import env from "../../env";
 import { getMatchingEmbed } from "../lib/embeds";
 import embeds from "./index";
 
@@ -58,5 +59,74 @@ describe("google-maps", () => {
     const match = getMatchingEmbed(embeds, url);
 
     expect(match?.embed.transformMatch?.(match.matches)).toBe(url);
+  });
+});
+
+describe("google-maps api key injection", () => {
+  // shared/env resolves to process.env on the server and window.env in the
+  // browser; mutating the resolved object covers both test environments.
+  // Assigning undefined is not the same as unsetting — process.env coerces it
+  // to the string "undefined" — so absence has to be expressed with delete.
+  const original = env.GOOGLE_MAPS_EMBED_API_KEY;
+
+  const setKey = (value?: string) => {
+    if (value === undefined) {
+      delete env.GOOGLE_MAPS_EMBED_API_KEY;
+      return;
+    }
+    env.GOOGLE_MAPS_EMBED_API_KEY = value;
+  };
+
+  const src = (url: string) => {
+    const match = getMatchingEmbed(embeds, url);
+    return match?.embed.transformMatch?.(match.matches);
+  };
+
+  afterEach(() => {
+    setKey(original);
+  });
+
+  it("appends the configured key to a Maps Embed API URL", () => {
+    setKey("AIzaSyTest");
+
+    expect(src("https://www.google.com/maps/embed/v1/view?center=1,2")).toBe(
+      "https://www.google.com/maps/embed/v1/view?center=1,2&key=AIzaSyTest"
+    );
+  });
+
+  it("percent-encodes the key", () => {
+    setKey("a b&c");
+
+    expect(src("https://www.google.com/maps/embed/v1/view?center=1,2")).toBe(
+      "https://www.google.com/maps/embed/v1/view?center=1,2&key=a%20b%26c"
+    );
+  });
+
+  it("leaves a key already present in the URL alone", () => {
+    setKey("AIzaSyTest");
+    const url = "https://www.google.com/maps/embed/v1/view?key=Inline&zoom=8";
+
+    expect(src(url)).toBe(url);
+  });
+
+  it("does not touch the legacy share URL, which takes no key", () => {
+    setKey("AIzaSyTest");
+    const url = "https://www.google.com/maps/embed?pb=!1m18!1m12";
+
+    expect(src(url)).toBe(url);
+  });
+
+  it("does not touch My Maps, which takes no key", () => {
+    setKey("AIzaSyTest");
+    const url = "https://www.google.com/maps/d/embed?mid=1a2b3c";
+
+    expect(src(url)).toBe(url);
+  });
+
+  it("returns the URL untouched when no key is configured", () => {
+    setKey(undefined);
+    const url = "https://www.google.com/maps/embed/v1/view?center=1,2";
+
+    expect(src(url)).toBe(url);
   });
 });

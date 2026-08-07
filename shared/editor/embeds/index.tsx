@@ -346,7 +346,24 @@ const embeds: EmbedDescriptor[] = [
         "^https?://(?:www\\.)?google\\.com/maps(?:/d(?:/u/\\d+)?)?/embed(?:/v1/(?:place|view|directions|streetview|search))?\\?(.*)$"
       ),
     ],
-    transformMatch: (matches: RegExpMatchArray) => matches[0],
+    // The key goes on the iframe src, never on the node's href, so it stays
+    // out of document content, exports and shares, and rotating it does not
+    // mean editing documents.
+    transformMatch: (matches: RegExpMatchArray) => {
+      const url = matches[0];
+      const key = env.GOOGLE_MAPS_EMBED_API_KEY;
+
+      // Only the Maps Embed API takes a key; the legacy `?pb=` share URL and
+      // My Maps do not. A key already in the URL wins, so documents written
+      // before this existed keep working.
+      if (!key || !url.includes("/maps/embed/v1/") || /[?&]key=/.test(url)) {
+        return url;
+      }
+
+      // The matcher requires a query string, so there is always a `?` to
+      // append to.
+      return `${url}&key=${encodeURIComponent(key)}`;
+    },
     icon: <Img src="/images/google-maps.png" alt="Google Maps" />,
   }),
   new EmbedDescriptor({

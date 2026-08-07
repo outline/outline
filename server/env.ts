@@ -870,6 +870,20 @@ export class Environment {
     this.toOptionalString(environment.SEARCH_PROVIDER) ?? "postgres";
 
   /**
+   * API key used to render Google Maps embeds. Injected into the iframe src at
+   * render time so that authors do not have to paste it into document content,
+   * where it would end up in exports, backups and public shares.
+   *
+   * This is a browser key and is visible in the rendered page source by design;
+   * restrict it by HTTP referrer rather than treating it as a secret.
+   */
+  @Public
+  @IsOptional()
+  public GOOGLE_MAPS_EMBED_API_KEY = this.toOptionalString(
+    environment.GOOGLE_MAPS_EMBED_API_KEY
+  );
+
+  /**
    * The product name
    */
   @Public
