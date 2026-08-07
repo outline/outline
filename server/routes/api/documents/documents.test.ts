@@ -3547,6 +3547,70 @@ describe("#documents.import", () => {
     vi.restoreAllMocks();
   });
 
+  it("should ignore a collectionId the user cannot write when a parent document is given", async () => {
+    const team = await buildTeam();
+    const author = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const ownCollection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const privateCollection = await buildCollection({
+      userId: author.id,
+      teamId: team.id,
+      permission: null,
+    });
+    const parentDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: ownCollection.id,
+    });
+    const childDocument = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: ownCollection.id,
+      parentDocumentId: parentDocument.id,
+    });
+
+    vi.spyOn(FileStorage, "store").mockResolvedValue(
+      undefined as unknown as string
+    );
+    const schedule = vi
+      .spyOn(DocumentImportTask.prototype, "schedule")
+      .mockResolvedValue({
+        finished: vi.fn().mockResolvedValue({ documentId: childDocument.id }),
+      } as unknown as Awaited<ReturnType<DocumentImportTask["schedule"]>>);
+
+    const content = await readFile(
+      path.resolve(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "test",
+        "fixtures",
+        "markdown.md"
+      )
+    );
+    const form = new FormData();
+    form.append("file", content, "markdown.md");
+    form.append("token", user.getSessionToken());
+    form.append("collectionId", privateCollection.id);
+    form.append("parentDocumentId", parentDocument.id);
+    form.append("publish", "true");
+
+    const res = await server.post("/api/documents.import", {
+      headers: form.getHeaders(),
+      body: form,
+    });
+    expect(res.status).toEqual(200);
+    expect(schedule).toHaveBeenCalledWith(
+      expect.objectContaining({ collectionId: ownCollection.id })
+    );
+
+    vi.restoreAllMocks();
+  });
+
   it("should require authentication", async () => {
     const document = await buildDocument();
     const res = await server.post("/api/documents.import", {
