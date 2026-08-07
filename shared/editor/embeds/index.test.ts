@@ -123,6 +123,34 @@ describe("google-maps api key injection", () => {
     expect(src(url)).toBe(url);
   });
 
+  it("keeps the key in the query string when the URL has a fragment", () => {
+    setKey("AIzaSyTest");
+
+    expect(
+      src("https://www.google.com/maps/embed/v1/view?center=1,2#map")
+    ).toBe(
+      "https://www.google.com/maps/embed/v1/view?center=1,2&key=AIzaSyTest#map"
+    );
+  });
+
+  it("does not mistake a key= inside a fragment for a real one", () => {
+    setKey("AIzaSyTest");
+
+    expect(
+      src("https://www.google.com/maps/embed/v1/view?center=1,2#key=nope")
+    ).toBe(
+      "https://www.google.com/maps/embed/v1/view?center=1,2&key=AIzaSyTest#key=nope"
+    );
+  });
+
+  it("does not emit ?&key= when the query string is empty", () => {
+    setKey("AIzaSyTest");
+
+    expect(src("https://www.google.com/maps/embed/v1/view?")).toBe(
+      "https://www.google.com/maps/embed/v1/view?key=AIzaSyTest"
+    );
+  });
+
   it("returns the URL untouched when no key is configured", () => {
     setKey(undefined);
     const url = "https://www.google.com/maps/embed/v1/view?center=1,2";

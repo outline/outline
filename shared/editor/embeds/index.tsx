@@ -354,15 +354,29 @@ const embeds: EmbedDescriptor[] = [
       const key = env.GOOGLE_MAPS_EMBED_API_KEY;
 
       // Only the Maps Embed API takes a key; the legacy `?pb=` share URL and
-      // My Maps do not. A key already in the URL wins, so documents written
-      // before this existed keep working.
-      if (!key || !url.includes("/maps/embed/v1/") || /[?&]key=/.test(url)) {
+      // My Maps do not.
+      if (!key || !url.includes("/maps/embed/v1/")) {
         return url;
       }
 
-      // The matcher requires a query string, so there is always a `?` to
-      // append to.
-      return `${url}&key=${encodeURIComponent(key)}`;
+      // Separate any fragment before touching the query: a parameter appended
+      // after `#` is never sent, and a `key=` that appears inside a fragment
+      // is not one either.
+      const hashIndex = url.indexOf("#");
+      const query = hashIndex === -1 ? url : url.slice(0, hashIndex);
+      const fragment = hashIndex === -1 ? "" : url.slice(hashIndex);
+
+      // A key already in the URL wins, so documents written before this
+      // existed keep working.
+      if (/[?&]key=/.test(query)) {
+        return url;
+      }
+
+      // The matcher requires a `?`, but it may be the last character, in which
+      // case there is no preceding parameter to separate from.
+      const separator = query.endsWith("?") ? "" : "&";
+
+      return `${query}${separator}key=${encodeURIComponent(key)}${fragment}`;
     },
     icon: <Img src="/images/google-maps.png" alt="Google Maps" />,
   }),
