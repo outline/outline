@@ -64,13 +64,20 @@ type Props = {
   children?: React.ReactNode;
 };
 
+/**
+ * Namespaces the shared layout animation of the tabs it contains, so that
+ * multiple tab bars on screen at once don't share the "underline" layoutId and
+ * animate between each other. Only needed when composing `Tab` outside of `Tabs`.
+ */
+export const TabsGroup: React.FC = ({ children }: Props) => {
+  const layoutGroupId = React.useMemo(() => uniqueId("tabs-"), []);
+  return <LayoutGroup id={layoutGroupId}>{children}</LayoutGroup>;
+};
+
 export const Tabs: React.FC = ({ children }: Props) => {
   const ref = React.useRef<HTMLElement>(null);
   const [shadowVisible, setShadow] = React.useState(false);
   const { width } = useWindowSize();
-  // Namespace the shared layout animation so multiple tab bars on screen at
-  // once don't share the "underline" layoutId and animate between each other.
-  const layoutGroupId = React.useMemo(() => uniqueId("tabs-"), []);
 
   const updateShadows = React.useCallback(() => {
     const c = ref.current;
@@ -91,12 +98,12 @@ export const Tabs: React.FC = ({ children }: Props) => {
   }, [width, updateShadows]);
 
   return (
-    <LayoutGroup id={layoutGroupId}>
+    <TabsGroup>
       <Sticky>
         <Nav ref={ref} onScroll={updateShadows} $shadowVisible={shadowVisible}>
           {children}
         </Nav>
       </Sticky>
-    </LayoutGroup>
+    </TabsGroup>
   );
 };
