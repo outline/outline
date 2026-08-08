@@ -17,6 +17,10 @@ const ReadingTime = ({ document }: { document: Document }) => {
   const hours = Math.floor(readingTimeMinutes / 60);
   const minutes = readingTimeMinutes % 60;
 
+  if (!readingTimeMinutes) {
+    return null;
+  }
+
   let readingTimeText;
   if (hours > 0) {
     if (minutes > 0) {

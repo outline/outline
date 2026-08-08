@@ -21,5 +21,10 @@ describe("getTextStats", () => {
     expect(stats.words).toBe(0);
     expect(stats.characters).toBe(0);
     expect(stats.paragraphs).toBe(0);
+    expect(stats.readingTime).toBe(0);
+  });
+
+  it("rounds reading time up to a minute for short text", () => {
+    expect(getTextStats("Hello world").readingTime).toBe(1);
   });
 });

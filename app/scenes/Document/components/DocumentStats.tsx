@@ -61,11 +61,13 @@ function DocumentStats() {
               number: formatNumber(stats.paragraphs),
             })}
           </Text>
-          <Text type="tertiary" size="xsmall">
-            {t(`{{ number }} minute read`, {
-              number: formatNumber(stats.readingTime),
-            })}
-          </Text>
+          {stats.readingTime > 0 && (
+            <Text type="tertiary" size="xsmall">
+              {t(`{{ number }} minute read`, {
+                number: formatNumber(stats.readingTime),
+              })}
+            </Text>
+          )}
         </>
       )}
     </Container>
