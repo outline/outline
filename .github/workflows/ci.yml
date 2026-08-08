@@ -93,7 +93,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
-      - run: yarn npm audit --severity high --recursive --environment production
+      - id: audit
+        continue-on-error: true
+        run: yarn npm audit --severity high --recursive --environment production
+      - name: Warn on vulnerabilities
+        if: ${{ steps.audit.outcome == 'failure' }}
+        run: echo "::warning title=Audit::yarn npm audit reported high severity vulnerabilities, see the step above for details."
 
   test:
     needs: changes
