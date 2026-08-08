@@ -11,6 +11,18 @@ export const Document = lazy(() => import("~/scenes/Document"));
 export const Drafts = lazy(() => import("~/scenes/Drafts"));
 export const Home = lazy(() => import("~/scenes/Home"));
 export const Search = lazy(() => import("~/scenes/Search"));
+export const PetStoreDashboard = lazy(
+  () => import("~/scenes/PetStore/Dashboard")
+);
+export const PetStoreBoardings = lazy(
+  () => import("~/scenes/PetStore/Boardings")
+);
+export const PetStoreProducts = lazy(
+  () => import("~/scenes/PetStore/Products")
+);
+export const PetStoreCustomers = lazy(
+  () => import("~/scenes/PetStore/Customers")
+);
 export const Trash = lazy(() => import("~/scenes/Trash"));
 
 /**

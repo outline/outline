@@ -28,6 +28,7 @@ import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
 import HistoryNavigation from "./components/HistoryNavigation";
+import { PetStoreLinks } from "./components/PetStoreLinks";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
 import SidebarButton from "./components/SidebarButton";
@@ -127,6 +128,9 @@ function AppSidebar() {
         </Overflow>
         <Scrollable flex shadow ref={scrollRef}>
           <SidebarScrollProvider value={scrollArea}>
+            <Section>
+              <PetStoreLinks />
+            </Section>
             <Section>
               <Starred />
             </Section>

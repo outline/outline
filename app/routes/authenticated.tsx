@@ -92,6 +92,26 @@ function AuthenticatedRoutes() {
                 path={`${homePath()}/:tab?`}
                 component={Scenes.Home.Component}
               />
+              <Route
+                exact
+                path="/store"
+                component={Scenes.PetStoreDashboard.Component}
+              />
+              <Route
+                exact
+                path="/store/boardings"
+                component={Scenes.PetStoreBoardings.Component}
+              />
+              <Route
+                exact
+                path="/store/products"
+                component={Scenes.PetStoreProducts.Component}
+              />
+              <Route
+                exact
+                path="/store/customers"
+                component={Scenes.PetStoreCustomers.Component}
+              />
               <Redirect from="/dashboard" to={homePath()} />
               <Redirect exact from="/starred" to={homePath()} />
               <Redirect
