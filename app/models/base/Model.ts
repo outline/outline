@@ -243,6 +243,16 @@ export default abstract class Model {
     );
   }
 
+  /**
+   * Restores all fields to the values last persisted to the server, discarding
+   * any local changes that have not been saved.
+   */
+  revert(): void {
+    const { isNew } = this;
+    this.updateData({ ...this.persistedAttributes });
+    this.isNew = isNew;
+  }
+
   protected persistedAttributes: Partial<Model> = {};
 
   /** A promise that resolves when all relations have been loaded. */

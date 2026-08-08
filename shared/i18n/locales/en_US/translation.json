@@ -617,6 +617,7 @@
   "Select a color": "Select a color",
   "Select all": "Select all",
   "Columns": "Columns",
+  "You have unsaved changes.\nAre you sure you want to discard them?": "You have unsaved changes.\nAre you sure you want to discard them?",
   "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents",
   "You’re editing a template": "You’re editing a template",
   "Template created, go ahead and customize it": "Template created, go ahead and customize it",

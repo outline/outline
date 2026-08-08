@@ -1,7 +1,8 @@
 import { observer } from "mobx-react";
 import { InputIcon, ShapesIcon } from "outline-icons";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { Prompt } from "react-router-dom";
 import styled from "styled-components";
 import type { ProsemirrorData } from "@shared/types";
 import type Template from "~/models/Template";
@@ -10,6 +11,7 @@ import { DocumentContextProvider } from "~/components/DocumentContext";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Notice from "~/components/Notice";
 import useBoolean from "~/hooks/useBoolean";
+import useEventListener from "~/hooks/useEventListener";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 
@@ -53,12 +55,31 @@ export const TemplateForm = observer(function TemplateForm_({
     dialogs.closeAllModals();
   };
 
+  const handleUnload = (event: BeforeUnloadEvent) => {
+    if (template.isDirty()) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+  };
+
+  const handleBlockNavigation = () =>
+    template.isDirty()
+      ? t(`You have unsaved changes.\nAre you sure you want to discard them?`)
+      : true;
+
+  useEventListener("beforeunload", handleUnload);
+
+  // Edits are applied directly to the model, so anything left unsaved must be
+  // rolled back to avoid leaking into other views that render the same record.
+  useEffect(() => () => template.revert(), [template]);
+
   if (!template) {
     return null;
   }
 
   return (
     <DocumentContextProvider>
+      <Prompt message={handleBlockNavigation} />
       <React.Suspense fallback={null}>
         {isUploading && <LoadingIndicator />}
         <Notice
