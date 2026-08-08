@@ -6,30 +6,26 @@ import webpackStats from "rollup-plugin-webpack-stats";
 import type { ServerOptions } from "vite";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
-import environment from "./server/utils/environment";
+const NODE_ENV = process.env.NODE_ENV || "development";
+const CDN_URL = process.env.CDN_URL ?? "";
+const URL_ENV = process.env.URL || "http://localhost:3001";
 
 let httpsConfig: ServerOptions["https"] | undefined;
 let host: string | undefined;
 
-if (environment.NODE_ENV === "development") {
-  host = host = new URL(environment.URL!).hostname;
-
+if (NODE_ENV === "development") {
   try {
-    httpsConfig = {
-      key: fs.readFileSync("./server/config/certs/private.key"),
-      cert: fs.readFileSync("./server/config/certs/public.cert"),
-    };
+    host = new URL(URL_ENV).hostname;
   } catch (_err) {
-    // oxlint-disable-next-line no-console
-    console.warn("No local SSL certs found, HTTPS will not be available");
+    host = "localhost";
   }
 }
 
 export default () =>
   defineConfig({
     root: "./",
-    publicDir: "./server/static",
-    base: (environment.CDN_URL ?? "") + "/static/",
+    publicDir: "./public",
+    base: (CDN_URL ?? "") + "/static/",
     server: {
       port: 3001,
       host: true,
@@ -55,7 +51,7 @@ export default () =>
           globPatterns: ["**/*.{js,css,ico,png,svg}"],
           navigateFallback: null,
           modifyURLPrefix: {
-            "": `${environment.CDN_URL ?? ""}/static/`,
+            "": `${CDN_URL ?? ""}/static/`,
           },
           skipWaiting: true,
           clientsClaim: true,
