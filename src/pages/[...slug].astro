@@ -1,0 +1,17 @@
+---
+import "../styles/global.css";
+import App from "../../app/index";
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Outline</title>
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+  </head>
+  <body class="bg-white text-gray-900 antialiased">
+    <App client:only="react" />
+  </body>
+</html>
