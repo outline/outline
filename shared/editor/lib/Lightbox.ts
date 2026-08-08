@@ -1,5 +1,5 @@
 import type { Node } from "prosemirror-model";
-import { isMermaid } from "./isCode";
+import { isCode, isMermaid } from "./isCode";
 import type { EditorView } from "prosemirror-view";
 import { sanitizeImageSrc } from "@shared/utils/urls";
 
@@ -64,6 +64,38 @@ class LightboxMermaidImage extends LightboxImage {
   }
 }
 
+class LightboxDiagramServiceImage extends LightboxImage {
+  constructor(view: EditorView, pos: number) {
+    super();
+    this.element = view.nodeDOM(pos) as HTMLDivElement;
+    this.pos = pos;
+    this.src = this.svgToSrc(this.extractSvg());
+    this.alt = "";
+  }
+
+  private svgToSrc(svg: string): string {
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  }
+
+  private extractSvg(): string {
+    const wrapper = this.element.nextElementSibling;
+    if (!wrapper) {
+      return "";
+    }
+    const svg = wrapper.querySelector("svg");
+    if (!svg) {
+      return "";
+    }
+
+    const serializer = new XMLSerializer();
+    return serializer.serializeToString(svg);
+  }
+
+  getElement() {
+    return this.element.nextElementSibling?.querySelector("svg");
+  }
+}
+
 export class LightboxImageFactory {
   static createLightboxImage(view: EditorView, pos: number): LightboxImage {
     const node = view.state.doc.nodeAt(pos)!;
@@ -75,10 +107,15 @@ export class LightboxImageFactory {
       return new LightboxMermaidImage(view, pos);
     }
 
+    if (isCode(node)) {
+      return new LightboxDiagramServiceImage(view, pos);
+    }
+
     throw new Error("Unsupported node type for LightboxImage");
   }
 }
 
 const isImage = (node: Node) => node.type.name === "image";
 
-export const isLightboxNode = (node: Node) => isImage(node) || isMermaid(node);
+export const isLightboxNode = (node: Node) =>
+  isImage(node) || isMermaid(node) || isCode(node);

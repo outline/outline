@@ -276,6 +276,20 @@ export default function blockMenuItems(
       attrs: { language: "mermaid" },
     },
     {
+      name: "code_block",
+      title: "D2 Diagram",
+      icon: <Img src="/images/d2.png" alt="D2 Diagram" />,
+      keywords: "diagram d2 architecture",
+      attrs: { language: "d2" },
+    },
+    {
+      name: "code_block",
+      title: "PlantUML Diagram",
+      icon: <Img src="/images/plantuml.png" alt="PlantUML Diagram" />,
+      keywords: "diagram plantuml uml sequence class",
+      attrs: { language: "plantuml" },
+    },
+    {
       name: "editDiagram",
       title: "Diagrams.net Diagram",
       icon: <Img src="/images/diagrams.png" alt="Diagrams.net Diagram" />,
