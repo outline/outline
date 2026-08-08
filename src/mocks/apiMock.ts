@@ -38,6 +38,18 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
 
   switch (action) {
     case "auth.info":
+      return {
+        data: {
+          user: state.user,
+          team: state.team,
+          groups: [],
+          groupUsers: [],
+          availableTeams: [state.team],
+          collaborationToken: "mock-collaboration-token",
+        },
+        policies: [],
+      };
+
     case "users.info":
       return {
         data: {

@@ -58,42 +58,44 @@ const commandBarOptions = {
   },
 };
 
-if (element) {
-  const App = () => (
-    <StrictMode>
-      <HelmetProvider>
-        <Provider rootStore={stores}>
-          <Analytics>
-            <Router history={history}>
-              <Theme>
-                <ActionContextProvider>
-                  <ErrorBoundary showTitle>
-                    <KBarProvider actions={[]} options={commandBarOptions}>
-                      <LazyPolyfill>
-                        <LazyMotion features={domMax}>
-                          <PageScroll>
-                            <PageTheme />
-                            <ScrollToTop>
-                              <Routes />
-                            </ScrollToTop>
-                            <Toasts />
-                            <Dialogs />
-                            <Presentation />
-                            <Desktop />
-                          </PageScroll>
-                        </LazyMotion>
-                      </LazyPolyfill>
-                    </KBarProvider>
-                  </ErrorBoundary>
-                </ActionContextProvider>
-              </Theme>
-            </Router>
-          </Analytics>
-        </Provider>
-      </HelmetProvider>
-    </StrictMode>
-  );
+export const App = () => (
+  <StrictMode>
+    <HelmetProvider>
+      <Provider rootStore={stores}>
+        <Analytics>
+          <Router history={history}>
+            <Theme>
+              <ActionContextProvider>
+                <ErrorBoundary showTitle>
+                  <KBarProvider actions={[]} options={commandBarOptions}>
+                    <LazyPolyfill>
+                      <LazyMotion features={domMax}>
+                        <PageScroll>
+                          <PageTheme />
+                          <ScrollToTop>
+                            <Routes />
+                          </ScrollToTop>
+                          <Toasts />
+                          <Dialogs />
+                          <Presentation />
+                          <Desktop />
+                        </PageScroll>
+                      </LazyMotion>
+                    </LazyPolyfill>
+                  </KBarProvider>
+                </ErrorBoundary>
+              </ActionContextProvider>
+            </Theme>
+          </Router>
+        </Analytics>
+      </Provider>
+    </HelmetProvider>
+  </StrictMode>
+);
 
+export default App;
+
+if (element) {
   render(<App />, element);
 }
 
