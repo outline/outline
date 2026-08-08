@@ -10,6 +10,8 @@ import type {
   PetStoreBatch,
   PetStoreMovement,
   PetStorePurchaseOrder,
+  PetStoreBranch,
+  PetStoreStaff,
 } from "../../src/mocks/petstore";
 
 /** A room with the guests currently occupying it. */
@@ -58,6 +60,8 @@ interface PetStoreState {
   batches: PetStoreBatch[];
   movements: PetStoreMovement[];
   purchaseOrders: PetStorePurchaseOrder[];
+  branches: PetStoreBranch[];
+  staff: PetStoreStaff[];
   isLoading: boolean;
   error?: string;
   fetchAll: () => Promise<void>;
@@ -72,6 +76,21 @@ interface PetStoreState {
   ) => Promise<PetStoreOrder>;
   markOrderPaid: (id: string) => Promise<void>;
   receivePurchaseOrder: (id: string) => Promise<void>;
+  setStaffStatus: (
+    id: string,
+    status: PetStoreStaff["status"]
+  ) => Promise<void>;
+  createRoom: (room: {
+    name: string;
+    branch: string;
+    capacity: number;
+    type: string;
+  }) => Promise<void>;
+  updateRoom: (
+    id: string,
+    changes: { name?: string; capacity?: number; type?: string }
+  ) => Promise<void>;
+  deleteRoom: (id: string) => Promise<boolean>;
 }
 
 /**
@@ -91,6 +110,8 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
   batches: [],
   movements: [],
   purchaseOrders: [],
+  branches: [],
+  staff: [],
   isLoading: false,
 
   fetchAll: async () => {
@@ -109,6 +130,8 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
         batches,
         movements,
         purchaseOrders,
+        branches,
+        staff,
       ] = await Promise.all([
         client.post("/petstore.dashboard"),
         client.post("/petstore.products.list"),
@@ -121,6 +144,8 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
         client.post("/petstore.batches.list"),
         client.post("/petstore.movements.list"),
         client.post("/petstore.purchaseOrders.list"),
+        client.post("/petstore.branches.list"),
+        client.post("/petstore.staff.list"),
       ]);
 
       set({
@@ -135,6 +160,8 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
         batches: batches.data,
         movements: movements.data,
         purchaseOrders: purchaseOrders.data,
+        branches: branches.data,
+        staff: staff.data,
         isLoading: false,
       });
     } catch (err) {
@@ -187,5 +214,26 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
   receivePurchaseOrder: async (id) => {
     await client.post("/petstore.purchaseOrders.receive", { id });
     await get().fetchAll();
+  },
+
+  setStaffStatus: async (id, status) => {
+    await client.post("/petstore.staff.setStatus", { id, status });
+    await get().fetchAll();
+  },
+
+  createRoom: async (room) => {
+    await client.post("/petstore.rooms.create", room);
+    await get().fetchAll();
+  },
+
+  updateRoom: async (id, changes) => {
+    await client.post("/petstore.rooms.update", { id, ...changes });
+    await get().fetchAll();
+  },
+
+  deleteRoom: async (id) => {
+    const response = await client.post("/petstore.rooms.delete", { id });
+    await get().fetchAll();
+    return Boolean(response.data?.deleted);
   },
 }));

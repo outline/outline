@@ -22,6 +22,10 @@ export const PetStoreOrderDetail = lazy(
 export const PetStoreInventory = lazy(
   () => import("~/scenes/PetStore/Inventory")
 );
+export const PetStoreStaff = lazy(() => import("~/scenes/PetStore/Staff"));
+export const PetStoreBranches = lazy(
+  () => import("~/scenes/PetStore/Branches")
+);
 export const PetStoreOccupancy = lazy(
   () => import("~/scenes/PetStore/Occupancy")
 );

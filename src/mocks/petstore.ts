@@ -107,6 +107,24 @@ export interface PetStorePurchaseOrder {
   items: { productId: string; name: string; quantity: number; cost: number }[];
 }
 
+export interface PetStoreBranch {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  manager: string;
+}
+
+export interface PetStoreStaff {
+  id: string;
+  name: string;
+  role: "owner" | "manager" | "groomer" | "cashier" | "caretaker";
+  branch: string;
+  phone: string;
+  status: "active" | "on_leave" | "inactive";
+  commissionRate: number;
+}
+
 export interface PetStoreState {
   products: PetStoreProduct[];
   customers: PetStoreCustomer[];
@@ -118,9 +136,11 @@ export interface PetStoreState {
   batches: PetStoreBatch[];
   movements: PetStoreMovement[];
   purchaseOrders: PetStorePurchaseOrder[];
+  branches: PetStoreBranch[];
+  staff: PetStoreStaff[];
 }
 
-const STORAGE_KEY = "outline_petstore_db_v3";
+const STORAGE_KEY = "outline_petstore_db_v4";
 
 const daysFromNow = (days: number) =>
   new Date(Date.now() + days * 86400000).toISOString();
@@ -503,6 +523,69 @@ const seed: PetStoreState = {
       ],
     },
   ],
+  branches: [
+    {
+      id: "br-1",
+      name: "Kemang",
+      address: "Jl. Kemang Raya 42, Jakarta Selatan",
+      phone: "+62 21 555 1000",
+      manager: "Sinta Wijaya",
+    },
+    {
+      id: "br-2",
+      name: "Bintaro",
+      address: "Jl. Bintaro Utama 8, Tangerang Selatan",
+      phone: "+62 21 555 2000",
+      manager: "Bayu Pratama",
+    },
+  ],
+  staff: [
+    {
+      id: "stf-1",
+      name: "Sinta Wijaya",
+      role: "manager",
+      branch: "Kemang",
+      phone: "+62 812-1111-2222",
+      status: "active",
+      commissionRate: 5,
+    },
+    {
+      id: "stf-2",
+      name: "Dimas Aditya",
+      role: "groomer",
+      branch: "Kemang",
+      phone: "+62 815-7777-8888",
+      status: "active",
+      commissionRate: 12,
+    },
+    {
+      id: "stf-3",
+      name: "Putri Ayu",
+      role: "cashier",
+      branch: "Kemang",
+      phone: "+62 816-9999-0000",
+      status: "on_leave",
+      commissionRate: 0,
+    },
+    {
+      id: "stf-4",
+      name: "Bayu Pratama",
+      role: "manager",
+      branch: "Bintaro",
+      phone: "+62 813-3333-4444",
+      status: "active",
+      commissionRate: 5,
+    },
+    {
+      id: "stf-5",
+      name: "Rizky Hakim",
+      role: "caretaker",
+      branch: "Bintaro",
+      phone: "+62 817-4444-5555",
+      status: "active",
+      commissionRate: 3,
+    },
+  ],
 };
 
 /**
@@ -693,6 +776,78 @@ export function handlePetStoreRequest(
       };
       persist();
       return { data: state.orders.find((order) => order.id === id) };
+    }
+
+    case "petstore.branches.list":
+      return { data: state.branches };
+
+    case "petstore.staff.list":
+      return { data: state.staff };
+
+    case "petstore.staff.setStatus": {
+      const id = String(body.id ?? "");
+      const status = String(body.status ?? "") as PetStoreStaff["status"];
+      state = {
+        ...state,
+        staff: state.staff.map((member) =>
+          member.id === id ? { ...member, status } : member
+        ),
+      };
+      persist();
+      return { data: state.staff.find((member) => member.id === id) };
+    }
+
+    case "petstore.rooms.create": {
+      const room: PetStoreRoom = {
+        id: `rm-${Date.now()}`,
+        name: String(body.name ?? "New room"),
+        branch: String(body.branch ?? state.branches[0]?.name ?? "Kemang"),
+        capacity: Math.max(1, Number(body.capacity ?? 1)),
+        type: String(body.type ?? "standard") as PetStoreRoom["type"],
+      };
+      state = { ...state, rooms: [...state.rooms, room] };
+      persist();
+      return { data: room };
+    }
+
+    case "petstore.rooms.update": {
+      const id = String(body.id ?? "");
+      state = {
+        ...state,
+        rooms: state.rooms.map((room) =>
+          room.id === id
+            ? {
+                ...room,
+                name: body.name !== undefined ? String(body.name) : room.name,
+                capacity:
+                  body.capacity !== undefined
+                    ? Math.max(1, Number(body.capacity))
+                    : room.capacity,
+                type:
+                  body.type !== undefined
+                    ? (String(body.type) as PetStoreRoom["type"])
+                    : room.type,
+              }
+            : room
+        ),
+      };
+      persist();
+      return { data: state.rooms.find((room) => room.id === id) };
+    }
+
+    case "petstore.rooms.delete": {
+      const id = String(body.id ?? "");
+      // A room with guests in it cannot be removed.
+      const occupied = roomOccupancy().find((room) => room.id === id);
+      if (occupied && occupied.occupied > 0) {
+        return { data: { deleted: false, reason: "occupied" } };
+      }
+      state = {
+        ...state,
+        rooms: state.rooms.filter((room) => room.id !== id),
+      };
+      persist();
+      return { data: { deleted: true } };
     }
 
     case "petstore.suppliers.list":
