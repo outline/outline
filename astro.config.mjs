@@ -3,6 +3,9 @@ import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  devToolbar: {
+    enabled: false,
+  },
   integrations: [react()],
   server: {
     port: 3001,
