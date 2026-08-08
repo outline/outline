@@ -42,7 +42,7 @@ export default class ComponentView {
   isSelected = false;
   /** The DOM element that the node is rendered into. */
   dom: HTMLElement | null;
-  /** The DOM element that the node's editable content is rendered into, if the node has content. */
+  /** The DOM element that the node's editable content is rendered into, if the node has editable content. */
   contentDOM: HTMLElement | null = null;
   /** The base class name for the node's DOM element. */
   className?: string;
@@ -70,7 +70,9 @@ export default class ComponentView {
       ? document.createElement("span")
       : document.createElement("div");
 
-    if (!node.isLeaf) {
+    // Atoms have no directly editable content, and ProseMirror only marks a node
+    // view uneditable when it has no contentDOM.
+    if (!node.type.isAtom) {
       this.contentDOM = document.createElement(
         node.type.spec.inline ? "span" : "div"
       );

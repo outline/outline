@@ -82,29 +82,39 @@ export default class Suggestion<
   inputRules = (_options: { type: NodeType; schema: Schema }) => [
     new InputRule(
       this.openRegex,
-      action(
-        (
-          state: EditorState,
-          match: RegExpMatchArray,
-          _start: number,
-          end: number
-        ) => {
-          const { parent } = state.selection.$from;
-          if (
-            match &&
-            (parent.type.name === "paragraph" ||
-              parent.type.name === "heading") &&
-            (!isInCode(state) || this.options.enabledInCode) &&
-            (this.enabledInMarks || !isTriggerMarked(state, end, match))
-          ) {
-            if (match[0].length <= 2) {
-              this.state.open = true;
-            }
-            this.state.query = match[1];
-          }
-          return null;
+      (
+        state: EditorState,
+        match: RegExpMatchArray,
+        _start: number,
+        end: number
+      ) => {
+        const { parent } = state.selection.$from;
+        if (
+          match &&
+          (parent.type.name === "paragraph" ||
+            parent.type.name === "heading") &&
+          (!isInCode(state) || this.options.enabledInCode) &&
+          (this.enabledInMarks || !isTriggerMarked(state, end, match))
+        ) {
+          const open = match[0].length <= 2;
+          const query = match[1];
+
+          // Input rules run while ProseMirror is reading a DOM change, at which
+          // point its view descriptors are marked dirty and do not match the
+          // DOM. Opening the menu here would render it – and measure the caret –
+          // inside that window, so defer until the view has re-synced.
+          setTimeout(
+            action(() => {
+              if (open) {
+                this.state.open = true;
+              }
+              this.state.query = query;
+            }),
+            0
+          );
         }
-      )
+        return null;
+      }
     ),
   ];
 
