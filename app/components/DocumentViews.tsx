@@ -8,9 +8,9 @@ import type User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import ListItem from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
-import { useComputed } from "~/hooks/useComputed";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { useDocumentPresence } from "~/stores/presence";
 
 type Props = {
   document: Document;
@@ -18,29 +18,32 @@ type Props = {
 
 function DocumentViews({ document }: Props) {
   const { t } = useTranslation();
-  const { views, presence } = useStores();
+  const { views } = useStores();
+  const documentPresence = useDocumentPresence(document.id);
   const user = useCurrentUser();
   const locale = dateLocale(user.language);
-  // Use Set for O(1) lookups, computed so the identity is only replaced when
-  // the observable presence for the document actually changes.
-  const presentIds = useComputed(() => {
-    const documentPresence = presence.get(document.id);
-    return new Set(
-      documentPresence
-        ? Array.from(documentPresence.values()).map((p) => p.userId)
-        : []
-    );
-  }, [presence, document.id]);
-  const editingIds = useComputed(() => {
-    const documentPresence = presence.get(document.id);
-    return new Set(
-      documentPresence
-        ? Array.from(documentPresence.values())
-            .filter((p) => p.isEditing)
-            .map((p) => p.userId)
-        : []
-    );
-  }, [presence, document.id]);
+  // Use Set for O(1) lookups; the identity is only replaced when the
+  // presence for the document actually changes.
+  const presentIds = useMemo(
+    () =>
+      new Set(
+        documentPresence
+          ? Array.from(documentPresence.values()).map((p) => p.userId)
+          : []
+      ),
+    [documentPresence]
+  );
+  const editingIds = useMemo(
+    () =>
+      new Set(
+        documentPresence
+          ? Array.from(documentPresence.values())
+              .filter((p) => p.isEditing)
+              .map((p) => p.userId)
+          : []
+      ),
+    [documentPresence]
+  );
 
   // ensure currently present via websocket are always ordered first
   const documentViews = useMemo(

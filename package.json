@@ -268,7 +268,8 @@
     "yauzl": "^3.3.1",
     "yazl": "^3.3.1",
     "yjs": "^13.6.31",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "zustand": "^4"
   },
   "devDependencies": {
     "@astrojs/react": "^6.0.2",

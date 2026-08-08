@@ -146,7 +146,8 @@ function MultiplayerEditor(
       presence.updateFromAwarenessChangeEvent(
         documentId,
         provider.awareness.clientID,
-        event
+        event,
+        currentUser.id
       );
 
       event.states.forEach(({ user, scrollY }) => {

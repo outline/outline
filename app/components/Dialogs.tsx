@@ -1,15 +1,16 @@
-import { observer } from "mobx-react";
 import { Suspense } from "react";
-import useStores from "~/hooks/useStores";
+import { useDialogs } from "~/stores/dialogs";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { DialogProvider } from "./DialogContext";
 
 const Guide = lazyWithRetry(() => import("~/components/Guide"));
 const Modal = lazyWithRetry(() => import("~/components/Modal"));
 
-function Dialogs() {
-  const { dialogs } = useStores();
-  const { guide, modalStack } = dialogs;
+export function Dialogs() {
+  const guide = useDialogs((state) => state.guide);
+  const modalStack = useDialogs((state) => state.modalStack);
+  const closeGuide = useDialogs((state) => state.closeGuide);
+  const closeModal = useDialogs((state) => state.closeModal);
   const modals = [...modalStack];
 
   return (
@@ -18,7 +19,7 @@ function Dialogs() {
         {guide ? (
           <Guide
             isOpen={guide.isOpen}
-            onRequestClose={dialogs.closeGuide}
+            onRequestClose={closeGuide}
             title={guide.title}
           >
             {guide.content}
@@ -30,7 +31,7 @@ function Dialogs() {
             isOpen={modal.isOpen}
             onRequestClose={() => {
               modal.onClose?.();
-              dialogs.closeModal(id);
+              closeModal(id);
             }}
             title={modal.title}
             style={modal.style}
@@ -45,4 +46,4 @@ function Dialogs() {
   );
 }
 
-export default observer(Dialogs);
+export default Dialogs;

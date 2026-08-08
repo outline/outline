@@ -14,6 +14,7 @@ import {
 } from "~/components/primitives/Popover";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { useDocumentPresence } from "~/stores/presence";
 
 type Props = {
   /** The document to display live collaborators for */
@@ -32,10 +33,10 @@ function Collaborators(props: Props) {
   const user = useCurrentUser();
   const currentUserId = user?.id;
   const [requestedUserIds, setRequestedUserIds] = useState<string[]>([]);
-  const { users, presence, ui } = useStores();
+  const { users, ui } = useStores();
   const { document } = props;
   const { observingUserId } = ui;
-  const documentPresence = presence.get(document.id);
+  const documentPresence = useDocumentPresence(document.id);
   const documentPresenceArray = useMemo(
     () => (documentPresence ? Array.from(documentPresence.values()) : []),
     [documentPresence]

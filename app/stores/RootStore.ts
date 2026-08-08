@@ -6,8 +6,8 @@ import AuthStore from "./AuthStore";
 import AuthenticationProvidersStore from "./AuthenticationProvidersStore";
 import CollectionsStore from "./CollectionsStore";
 import CommentsStore from "./CommentsStore";
-import DialogsStore from "./DialogsStore";
-import DocumentPresenceStore from "./DocumentPresenceStore";
+import { useDialogs } from "./dialogs";
+import { usePresence } from "./presence";
 import DocumentsStore from "./DocumentsStore";
 import EventsStore from "./EventsStore";
 import EmojisStore from "./EmojiStore";
@@ -37,6 +37,9 @@ import ViewsStore from "./ViewsStore";
 import WebhookSubscriptionsStore from "./WebhookSubscriptionStore";
 import type Store from "./base/Store";
 
+/** Stores that RootStore instantiates and assigns; `dialogs` is a getter. */
+type WritableStoreName = Exclude<keyof RootStore, "dialogs" | "presence">;
+
 export default class RootStore {
   apiKeys: ApiKeysStore;
   auth: AuthStore;
@@ -44,7 +47,6 @@ export default class RootStore {
   collections: CollectionsStore;
   groupMemberships: GroupMembershipsStore;
   comments: CommentsStore;
-  dialogs: DialogsStore;
   documents: DocumentsStore;
   emojis: EmojisStore;
   events: EventsStore;
@@ -56,7 +58,6 @@ export default class RootStore {
   notifications: NotificationsStore;
   oauthAuthentications: OAuthAuthenticationsStore;
   oauthClients: OAuthClientsStore;
-  presence: DocumentPresenceStore;
   pins: PinsStore;
   policies: PoliciesStore;
   revisions: RevisionsStore;
@@ -107,12 +108,32 @@ export default class RootStore {
     this.registerStore(UserMembershipsStore);
 
     // Non-models
-    this.registerStore(DocumentPresenceStore, "presence");
-    this.registerStore(DialogsStore, "dialogs");
     this.registerStore(UiStore, "ui");
 
     // AuthStore must be initialized last as it makes use of the other stores.
     this.registerStore(AuthStore, "auth");
+  }
+
+  /**
+   * Dialog state, held in a zustand store rather than a mobx one.
+   *
+   * Read through a getter so callers outside React always see current
+   * state; components that render from it should use the `useDialogs`
+   * hook so they subscribe to changes.
+   *
+   * @returns the dialogs store state and actions.
+   */
+  public get dialogs() {
+    return useDialogs.getState();
+  }
+
+  /**
+   * Document presence, held in a zustand store rather than a mobx one.
+   *
+   * @returns the presence store state and actions.
+   */
+  public get presence() {
+    return usePresence.getState();
   }
 
   /**
@@ -132,6 +153,10 @@ export default class RootStore {
    * Clear all data from the stores except for auth and ui.
    */
   public clear() {
+    // The zustand stores are accessors, so they are not own properties and
+    // are not reached by the loop below.
+    this.presence.clear();
+
     Object.getOwnPropertyNames(this)
       .filter((key) => ["auth", "ui"].includes(key) === false)
       .forEach((key: keyof RootStore) => {
@@ -149,7 +174,7 @@ export default class RootStore {
    */
   private registerStore<T = typeof Store>(
     StoreClass: T,
-    name?: keyof RootStore
+    name?: WritableStoreName
   ) {
     // @ts-expect-error TS thinks we are instantiating an abstract class.
     const store = new StoreClass(this);
@@ -163,11 +188,11 @@ export default class RootStore {
     for (const key of Object.keys(this)) {
       const store = this[key as keyof RootStore];
       if (store && "modelName" in store && store.modelName === modelName) {
-        return key as keyof RootStore;
+        return key as WritableStoreName;
       }
     }
 
-    const storeName = pluralize(lowerFirst(modelName)) as keyof RootStore;
+    const storeName = pluralize(lowerFirst(modelName)) as WritableStoreName;
     if (storeName) {
       return storeName;
     }
