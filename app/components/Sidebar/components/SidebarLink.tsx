@@ -149,27 +149,26 @@ function SidebarLink(
 
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
 
-  const innerContent = (
-    <>
-      <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
-        <Content>
-          {hasDisclosure && (
-            <DisclosureComponent
-              as={!to && !href ? "span" : undefined}
-              expanded={expanded}
-              onClick={handleDisclosureClick}
-              onMouseDown={stopPropagation}
-              tabIndex={-1}
-            />
-          )}
-          {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
-          <Label $ellipsis={ellipsis}>{label}</Label>
-          {unreadBadge && <UnreadBadge style={unreadStyle} />}
-        </Content>
-      </ContextMenu>
-      {menu && <Actions $showActions={$showActions}>{menu}</Actions>}
-    </>
+  const linkContent = (
+    <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
+      <Content>
+        {hasDisclosure && (
+          <DisclosureComponent
+            as={!to && !href ? "span" : undefined}
+            expanded={expanded}
+            onClick={handleDisclosureClick}
+            onMouseDown={stopPropagation}
+            tabIndex={-1}
+          />
+        )}
+        {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
+        <Label $ellipsis={ellipsis}>{label}</Label>
+        {unreadBadge && <UnreadBadge style={unreadStyle} />}
+      </Content>
+    </ContextMenu>
   );
+
+  const actionsContent = menu ? <Actions $showActions={$showActions}>{menu}</Actions> : null;
 
   if (!to) {
     return (
@@ -188,7 +187,8 @@ function SidebarLink(
         ref={ref}
         {...rest}
       >
-        {innerContent}
+        {linkContent}
+        {actionsContent}
       </Link>
     );
   }
@@ -213,7 +213,8 @@ function SidebarLink(
       ref={ref}
       {...rest}
     >
-      {innerContent}
+      {linkContent}
+      {actionsContent}
     </Link>
   );
 }
