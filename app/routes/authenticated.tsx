@@ -99,6 +99,16 @@ function AuthenticatedRoutes() {
               />
               <Route
                 exact
+                path="/store/pos"
+                component={Scenes.PetStorePos.Component}
+              />
+              <Route
+                exact
+                path="/store/occupancy"
+                component={Scenes.PetStoreOccupancy.Component}
+              />{" "}
+              <Route
+                exact
                 path="/store/boardings"
                 component={Scenes.PetStoreBoardings.Component}
               />
@@ -146,7 +156,6 @@ function AuthenticatedRoutes() {
                 path={`/doc/${documentSlug}/history/:revisionId?`}
                 component={Scenes.Document.Component}
               />
-
               <Route
                 exact
                 path={`/doc/${documentSlug}/edit`}

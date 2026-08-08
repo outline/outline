@@ -1,4 +1,11 @@
-import { HomeIcon, ArchiveIcon, ShapesIcon, UserIcon } from "outline-icons";
+import {
+  HomeIcon,
+  ArchiveIcon,
+  ShapesIcon,
+  UserIcon,
+  BuildingBlocksIcon,
+  TableIcon,
+} from "outline-icons";
 import { useTranslation } from "react-i18next";
 import Header from "./Header";
 import Relative from "./Relative";
@@ -22,6 +29,16 @@ export function PetStoreLinks() {
           icon={<HomeIcon />}
           exact
           label={t("Dashboard")}
+        />
+        <SidebarLink
+          to="/store/pos"
+          icon={<TableIcon />}
+          label={t("Point of sale")}
+        />
+        <SidebarLink
+          to="/store/occupancy"
+          icon={<BuildingBlocksIcon />}
+          label={t("Occupancy")}
         />
         <SidebarLink
           to="/store/boardings"

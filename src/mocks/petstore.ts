@@ -48,7 +48,6 @@ export interface PetStoreRoom {
   name: string;
   branch: string;
   capacity: number;
-  occupied: number;
   type: "standard" | "deluxe" | "suite";
 }
 
@@ -71,7 +70,7 @@ export interface PetStoreState {
   orders: PetStoreOrder[];
 }
 
-const STORAGE_KEY = "outline_petstore_db_v1";
+const STORAGE_KEY = "outline_petstore_db_v2";
 
 const daysFromNow = (days: number) =>
   new Date(Date.now() + days * 86400000).toISOString();
@@ -172,7 +171,6 @@ const seed: PetStoreState = {
       name: "Kandang A1",
       branch: "Kemang",
       capacity: 2,
-      occupied: 2,
       type: "standard",
     },
     {
@@ -180,7 +178,6 @@ const seed: PetStoreState = {
       name: "Kandang A2",
       branch: "Kemang",
       capacity: 2,
-      occupied: 1,
       type: "standard",
     },
     {
@@ -188,7 +185,6 @@ const seed: PetStoreState = {
       name: "Suite B1",
       branch: "Kemang",
       capacity: 1,
-      occupied: 1,
       type: "suite",
     },
     {
@@ -196,7 +192,6 @@ const seed: PetStoreState = {
       name: "Deluxe C1",
       branch: "Bintaro",
       capacity: 3,
-      occupied: 0,
       type: "deluxe",
     },
   ],
@@ -351,6 +346,47 @@ function persist() {
 }
 
 /**
+ * Whether a boarding occupies its room right now.
+ *
+ * @param boarding the boarding to test.
+ * @returns true when it is checked in, or booked and within its date range.
+ */
+function isOccupyingToday(boarding: PetStoreBoarding): boolean {
+  if (boarding.status === "checked_out" || boarding.status === "cancelled") {
+    return false;
+  }
+  const now = Date.now();
+  return (
+    new Date(boarding.checkIn).getTime() <= now &&
+    new Date(boarding.checkOut).getTime() >= now
+  );
+}
+
+/**
+ * Occupancy per room, derived from the boardings rather than stored.
+ *
+ * @returns each room with the guests currently in it.
+ */
+export function roomOccupancy() {
+  return state.rooms.map((room) => {
+    const guests = state.boardings.filter(
+      (boarding) => boarding.roomId === room.id && isOccupyingToday(boarding)
+    );
+    return {
+      ...room,
+      occupied: guests.length,
+      isFull: guests.length >= room.capacity,
+      guests: guests.map((guest) => ({
+        id: guest.id,
+        petName: guest.petName,
+        customerName: guest.customerName,
+        checkOut: guest.checkOut,
+      })),
+    };
+  });
+}
+
+/**
  * Aggregates the figures shown on the pet store dashboard.
  *
  * @returns today's revenue, occupancy, and counts of pending work.
@@ -359,14 +395,9 @@ function dashboard() {
   const activeBoardings = state.boardings.filter(
     (boarding) => boarding.status === "checked_in"
   );
-  const capacity = state.rooms.reduce(
-    (total, room) => total + room.capacity,
-    0
-  );
-  const occupied = state.rooms.reduce(
-    (total, room) => total + room.occupied,
-    0
-  );
+  const occupancy = roomOccupancy();
+  const capacity = occupancy.reduce((total, room) => total + room.capacity, 0);
+  const occupied = occupancy.reduce((total, room) => total + room.occupied, 0);
   const paidToday = state.orders.filter(
     (order) =>
       order.paidAt && Date.now() - new Date(order.paidAt).getTime() < 86400000
@@ -417,7 +448,39 @@ export function handlePetStoreRequest(
       return { data: state.boardings };
 
     case "petstore.rooms.list":
-      return { data: state.rooms };
+      return { data: roomOccupancy() };
+
+    case "petstore.orders.create": {
+      const items = (body.items ?? []) as PetStoreOrder["items"];
+      const total = items.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+      const order: PetStoreOrder = {
+        id: `ord-${Date.now()}`,
+        number: `INV-${2042 + state.orders.length}`,
+        customerName: String(body.customerName ?? "Walk-in"),
+        channel: "pos",
+        total,
+        paidAt: new Date().toISOString(),
+        status: "paid",
+        items,
+      };
+
+      // Selling stock reduces it, so the catalogue and dashboard stay in step.
+      state = {
+        ...state,
+        orders: [order, ...state.orders],
+        products: state.products.map((product) => {
+          const sold = items.find((item) => item.productId === product.id);
+          return sold
+            ? { ...product, stock: Math.max(0, product.stock - sold.quantity) }
+            : product;
+        }),
+      };
+      persist();
+      return { data: order };
+    }
 
     case "petstore.orders.list":
       return { data: state.orders };

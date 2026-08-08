@@ -6,6 +6,26 @@ import type {
   PetStoreProduct,
   PetStoreRoom,
 } from "../../src/mocks/petstore";
+
+/** A room with the guests currently occupying it. */
+export type PetStoreRoomOccupancy = PetStoreRoom & {
+  occupied: number;
+  isFull: boolean;
+  guests: {
+    id: string;
+    petName: string;
+    customerName: string;
+    checkOut: string;
+  }[];
+};
+
+/** A line on a point of sale ticket. */
+export type PetStoreCartLine = {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+};
 import { client } from "~/utils/ApiClient";
 
 /** The figures shown across the top of the pet store dashboard. */
@@ -26,7 +46,7 @@ interface PetStoreState {
   products: PetStoreProduct[];
   customers: PetStoreCustomer[];
   boardings: PetStoreBoarding[];
-  rooms: PetStoreRoom[];
+  rooms: PetStoreRoomOccupancy[];
   orders: PetStoreOrder[];
   isLoading: boolean;
   error?: string;
@@ -36,6 +56,10 @@ interface PetStoreState {
     status: PetStoreBoarding["status"]
   ) => Promise<void>;
   adjustStock: (id: string, delta: number) => Promise<void>;
+  createOrder: (
+    items: PetStoreCartLine[],
+    customerName: string
+  ) => Promise<PetStoreOrder>;
 }
 
 /**
@@ -106,5 +130,14 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
 
     await client.post("/petstore.products.adjustStock", { id, delta });
     await get().fetchAll();
+  },
+
+  createOrder: async (items, customerName) => {
+    const response = await client.post("/petstore.orders.create", {
+      items,
+      customerName,
+    });
+    await get().fetchAll();
+    return response.data;
   },
 }));
