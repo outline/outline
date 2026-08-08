@@ -6,7 +6,9 @@ import { DocumentHelper } from "./DocumentHelper";
 
 describe("DocumentHelper", () => {
   beforeAll(() => {
-    vi.useFakeTimers();
+    // Fake only Date (for a deterministic system time); leave real timers so
+    // toHTML's React effect flush, which awaits setTimeout, is not deadlocked.
+    vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(Date.parse("2021-01-01T00:00:00.000Z"));
   });
 
@@ -160,6 +162,122 @@ describe("DocumentHelper", () => {
         changes: changeset!.changes,
       });
 
+      expect(result).toContain(EditorStyleHelper.diffInsertion);
+    });
+
+    it("should render a notice through its React component with icon", async () => {
+      const document = await buildDocument({
+        text: ":::info\nHeads up\n:::",
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      // Rendered via the React component NodeView, not the plain toDOM spec.
+      expect(result).toContain("component-container_notice");
+      // The icon moved into the React component (#13109); it must reappear.
+      expect(result).toMatch(/class="icon"[^>]*>\s*<svg/);
+      // The content hole is preserved and holds the child text.
+      expect(result).toMatch(/class="content"[\s\S]*Heads up/);
+    });
+
+    it("should render an embed through its React component as an iframe", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "embed",
+              attrs: {
+                href: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+              },
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      expect(result).toContain("<iframe");
+      expect(result).toContain("youtube.com/embed/dQw4w9WgXcQ");
+    });
+
+    it("should fall back to toDOM for mentions", async () => {
+      const document = await buildDocument({
+        text: `@[Alan Kay](mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/34095ac1-c808-45c0-8c6e-6c554497de64)`,
+      });
+
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      // Mention's component depends on stores/router and cannot render
+      // server-side, so it degrades to the toDOM markup without throwing.
+      expect(result).toContain('data-type="user"');
+      expect(result).toContain("Alan Kay");
+    });
+
+    it("should include component styles unless styles are disabled", async () => {
+      const document = await buildDocument({
+        text: ":::info\nStyled\n:::",
+      });
+
+      const withStyles = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+      });
+      expect(withStyles).toMatch(/<style[^>]*data-styled/);
+
+      const withoutStyles = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+      expect(withoutStyles).not.toContain("data-styled");
+    });
+
+    it("should isolate concurrent exports", async () => {
+      const first = await buildDocument({ text: "First unique alpha content" });
+      const second = await buildDocument({
+        text: "Second unique beta content",
+      });
+
+      const [firstResult, secondResult] = await Promise.all([
+        DocumentHelper.toHTML(first, {
+          includeTitle: false,
+          includeStyles: false,
+        }),
+        DocumentHelper.toHTML(second, {
+          includeTitle: false,
+          includeStyles: false,
+        }),
+      ]);
+
+      expect(firstResult).toContain("First unique alpha content");
+      expect(firstResult).not.toContain("beta");
+      expect(secondResult).toContain("Second unique beta content");
+      expect(secondResult).not.toContain("alpha");
+    });
+
+    it("should render diff decorations on component nodes", async () => {
+      const doc1 = await buildDocument({ text: ":::info\nHello\n:::" });
+      const doc2 = await buildDocument({ text: ":::info\nHello world\n:::" });
+
+      const changeset = ChangesetHelper.getChangeset(
+        doc2.content,
+        doc1.content
+      );
+      expect(changeset).not.toBeNull();
+
+      const result = await DocumentHelper.toHTML(doc2, {
+        includeTitle: false,
+        includeStyles: false,
+        changes: changeset!.changes,
+      });
+
+      expect(result).toContain("component-container_notice");
       expect(result).toContain(EditorStyleHelper.diffInsertion);
     });
   });
