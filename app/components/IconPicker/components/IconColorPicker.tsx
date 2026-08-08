@@ -31,6 +31,7 @@ const IconColorPicker = ({ activeColor, onSelect }: Props) => {
       <PresetColors activeColor={selectedColor} onClick={handleSelect} />
       <SwatchButton
         color={color}
+        pickerColor={selectedColor}
         active={!isBuiltInColor}
         size={SWATCH_SIZE}
         onChange={handleSelect}
