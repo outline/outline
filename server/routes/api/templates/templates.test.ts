@@ -1,4 +1,5 @@
 import { CollectionPermission } from "@shared/types";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { UserMembership } from "@server/models";
 import {
   buildAdmin,
@@ -26,6 +27,21 @@ describe("#templates.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(template.id);
+  });
+
+  it("should return an empty document for templates without content", async () => {
+    const user = await buildUser();
+    await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+      content: null,
+    });
+
+    const res = await server.post("/api/templates.list", user);
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data[0].data).toEqual(ProsemirrorDataHelper.getEmpty());
   });
 
   it("should list templates in collection", async () => {
