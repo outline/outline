@@ -1,7 +1,15 @@
 import { useState } from "react";
-import { useShop } from "~/stores/shop";
+import { useTranslation } from "react-i18next";
+import Button from "~/components/Button";
+import Empty from "~/components/Empty";
+import Flex from "~/components/Flex";
+import ListItem from "~/components/List/Item";
+import { StatusChip } from "~/components/StatusChip";
+import { Tab, Tabs } from "~/components/Tabs";
+import Text from "~/components/Text";
 import { AppPage } from "~/components/AppPage";
-import { formatCurrency, formatDate, statusBadge } from "~/utils/format";
+import { useShop } from "~/stores/shop";
+import { formatCurrency, formatDate } from "~/utils/format";
 
 const TABS = ["Batches", "Movements", "Purchase orders", "Suppliers"] as const;
 
@@ -19,12 +27,16 @@ function movementTone(type: string): string {
 }
 
 /**
- * Inventory across warehouses: stock batches and their expiry, the movement
- * ledger, purchase orders and the suppliers behind them.
+ * Inventory across warehouses.
+ *
+ * Batches and movements stay tabular because they are ledgers – a lot number
+ * against a quantity and a date. Purchase orders and suppliers are records
+ * about a thing rather than rows of figures, so they read as list items.
  *
  * @returns the rendered inventory page.
  */
 function Inventory() {
+  const { t } = useTranslation();
   const batches = useShop((state) => state.batches);
   const movements = useShop((state) => state.movements);
   const purchaseOrders = useShop((state) => state.purchaseOrders);
@@ -47,35 +59,28 @@ function Inventory() {
 
   return (
     <AppPage
-      title="Inventory"
-      description="Stock by warehouse, movements, and what is on order."
+      title={t("Inventory")}
+      description={t("Stock by warehouse, movements, and what is on order.")}
       actions={
-        <span className="text-sm text-gray-500">
-          {expired} expired · {expiringSoon} expiring soon
-        </span>
+        <Text type="tertiary" size="small">
+          {expired} {t("expired")} · {expiringSoon} {t("expiring soon")}
+        </Text>
       }
     >
-      <div className="mb-4 border-b border-gray-200">
-        <nav className="-mb-px flex gap-6" aria-label="Inventory sections">
-          {TABS.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setTab(option)}
-              className={`border-b-2 px-1 pb-3 text-sm font-medium ${
-                tab === option
-                  ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              }`}
-            >
-              {option}
-            </button>
-          ))}
-        </nav>
-      </div>
+      <Tabs>
+        {TABS.map((option) => (
+          <Tab
+            key={option}
+            active={tab === option}
+            onClick={() => setTab(option)}
+          >
+            {t(option)}
+          </Tab>
+        ))}
+      </Tabs>
 
-      <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200">
-        {tab === "Batches" ? (
+      {tab === "Batches" ? (
+        <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -121,7 +126,7 @@ function Inventory() {
                       </span>
                       {days < 0 ? (
                         <span className="block text-xs text-red-600">
-                          expired
+                          {t("expired")}
                         </span>
                       ) : null}
                     </td>
@@ -130,9 +135,11 @@ function Inventory() {
               })}
             </tbody>
           </table>
-        ) : null}
+        </div>
+      ) : null}
 
-        {tab === "Movements" ? (
+      {tab === "Movements" ? (
+        <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -182,108 +189,88 @@ function Inventory() {
               ))}
             </tbody>
           </table>
-        ) : null}
+        </div>
+      ) : null}
 
-        {tab === "Purchase orders" ? (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                {["Number", "Supplier", "Expected", "Value", "Status", ""].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
-                    >
-                      {h}
-                    </th>
-                  )
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {purchaseOrders.map((order) => (
-                <tr key={order.id}>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                    {order.number}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {order.supplierName}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
+      {tab === "Purchase orders" ? (
+        <Flex column>
+          {purchaseOrders.map((order) => {
+            const value = order.items.reduce(
+              (total, item) => total + item.cost * item.quantity,
+              0
+            );
+            const units = order.items.reduce(
+              (total, item) => total + item.quantity,
+              0
+            );
+
+            return (
+              <ListItem
+                key={order.id}
+                title={order.number}
+                subtitle={
+                  <>
+                    {order.supplierName} · {units} {t("units")} ·{" "}
+                    {formatCurrency(value)} · {t("expected")}{" "}
                     {formatDate(order.expectedAt)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {formatCurrency(
-                      order.items.reduce(
-                        (total, item) => total + item.cost * item.quantity,
-                        0
-                      )
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={statusBadge(order.status)}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
+                  </>
+                }
+                actions={
+                  <Flex align="center" gap={8}>
+                    <StatusChip status={order.status} />
                     {order.status !== "received" &&
                     order.status !== "cancelled" ? (
-                      <button
-                        type="button"
+                      <Button
                         onClick={() => void receivePurchaseOrder(order.id)}
-                        className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-500"
                       >
-                        Receive
-                      </button>
+                        {t("Receive")}
+                      </Button>
                     ) : null}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : null}
+                  </Flex>
+                }
+                border
+              />
+            );
+          })}
+          {purchaseOrders.length === 0 ? (
+            <Empty>{t("Nothing on order.")}</Empty>
+          ) : null}
+        </Flex>
+      ) : null}
 
-        {tab === "Suppliers" ? (
-          <ul
-            role="list"
-            className="grid grid-cols-1 gap-px bg-gray-100 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            {suppliers.map((supplier) => {
-              const open = purchaseOrders.filter(
-                (order) =>
-                  order.supplierId === supplier.id &&
-                  order.status !== "received"
-              ).length;
+      {tab === "Suppliers" ? (
+        <Flex column>
+          {suppliers.map((supplier) => {
+            const open = purchaseOrders.filter(
+              (order) =>
+                order.supplierId === supplier.id && order.status !== "received"
+            ).length;
 
-              return (
-                <li key={supplier.id} className="bg-white p-6">
-                  <p className="text-sm font-semibold text-gray-900">
-                    {supplier.name}
-                  </p>
-                  <dl className="mt-3 space-y-1 text-sm text-gray-500">
-                    <div className="flex justify-between gap-2">
-                      <dt>Contact</dt>
-                      <dd className="text-gray-900">{supplier.contact}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt>Phone</dt>
-                      <dd className="text-gray-900">{supplier.phone}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt>Terms</dt>
-                      <dd className="text-gray-900">{supplier.terms}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt>Open orders</dt>
-                      <dd className="text-gray-900">{open}</dd>
-                    </div>
-                  </dl>
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
-      </div>
+            return (
+              <ListItem
+                key={supplier.id}
+                title={supplier.name}
+                subtitle={
+                  <>
+                    {supplier.contact} · {supplier.phone} · {supplier.terms}
+                  </>
+                }
+                actions={
+                  <Text type="tertiary" size="small">
+                    {open === 0
+                      ? t("No open orders")
+                      : `${open} ${open === 1 ? t("open order") : t("open orders")}`}
+                  </Text>
+                }
+                border
+              />
+            );
+          })}
+          {suppliers.length === 0 ? (
+            <Empty>{t("No suppliers yet.")}</Empty>
+          ) : null}
+        </Flex>
+      ) : null}
     </AppPage>
   );
 }
