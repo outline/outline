@@ -22,6 +22,7 @@ import {
   ShuffleIcon,
   HistoryIcon,
   GraphIcon,
+  HashtagIcon,
   UnpublishIcon,
   PublishIcon,
   CommentIcon,
@@ -39,7 +40,7 @@ import {
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import { ExportContentType } from "@shared/types";
+import { ExportContentType, UserPreference } from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
 import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
@@ -1690,6 +1691,29 @@ export const openDocumentInsights = createAction({
   },
 });
 
+export const toggleDocumentStats = createAction({
+  name: ({ t }) => t("Show editing stats"),
+  analyticsName: "Toggle document stats",
+  section: ActiveDocumentSection,
+  shortcut: [`Meta+Shift+G`],
+  icon: <HashtagIcon />,
+  selected: ({ stores }) =>
+    !!stores.auth.user?.getPreference(UserPreference.ShowDocumentStats),
+  visible: ({ activeDocumentId }) => !!activeDocumentId && !isMobile(),
+  perform: async ({ stores }) => {
+    const { user } = stores.auth;
+    if (!user) {
+      return;
+    }
+
+    user.setPreference(
+      UserPreference.ShowDocumentStats,
+      !user.getPreference(UserPreference.ShowDocumentStats)
+    );
+    await user.save();
+  },
+});
+
 export const leaveDocument = createAction({
   name: ({ t }) => t("Leave document"),
   analyticsName: "Leave document",
@@ -1790,4 +1814,5 @@ export const rootDocumentActions = [
   openDocumentInDesktop,
   openDocumentInSplit,
   shareDocument,
+  toggleDocumentStats,
 ];

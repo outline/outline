@@ -3,10 +3,14 @@ import { useCallback } from "react";
 import styled from "styled-components";
 import { depths } from "@shared/styles";
 import { UserPreference } from "@shared/types";
+import { performAction } from "~/actions";
+import { toggleDocumentStats } from "~/actions/definitions/documents";
 import Flex from "~/components/Flex";
+import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useKeyDown from "~/hooks/useKeyDown";
 import type Document from "~/models/Document";
+import isTextInput from "~/utils/isTextInput";
 import ConnectionStatus from "./ConnectionStatus";
 import DocumentStats from "./DocumentStats";
 import { SizeWarning } from "./SizeWarning";
@@ -18,17 +22,20 @@ type Props = {
 export const Footer = observer(({ document }: Props) => {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const showStats = !!user?.getPreference(UserPreference.ShowDocumentStats);
+  const context = useActionContext();
 
   const handleToggleStats = useCallback(
-    async (event: KeyboardEvent) => {
-      if (!user) {
+    (event: KeyboardEvent) => {
+      // The command bar handles this shortcut everywhere else, it ignores
+      // keystrokes while focus is in a text input.
+      const target = event.target;
+      if (!(target instanceof Element) || !isTextInput(target)) {
         return;
       }
       event.preventDefault();
-      user.setPreference(UserPreference.ShowDocumentStats, !showStats);
-      await user.save();
+      void performAction(toggleDocumentStats, context);
     },
-    [user, showStats]
+    [context]
   );
 
   useKeyDown("g", handleToggleStats, { metaKey: true, shiftKey: true });
