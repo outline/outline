@@ -1,6 +1,15 @@
 ---
 export function getStaticPaths() {
   return [
+    { params: { slug: "home" } },
+    { params: { slug: "collection" } },
+    { params: { slug: "doc" } },
+    { params: { slug: "search" } },
+    { params: { slug: "settings" } },
+    { params: { slug: "drafts" } },
+    { params: { slug: "archive" } },
+    { params: { slug: "trash" } },
+    { params: { slug: "create" } },
     { params: { slug: "404" } },
   ];
 }
