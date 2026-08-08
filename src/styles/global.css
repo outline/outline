@@ -1,2 +1,142 @@
 @import "tailwindcss";
 
+/* Tailwind v4 ignores a legacy JS config unless it is referenced explicitly. */
+@config "../../tailwind.config.mjs";
+
+/* The Tailwind UI components in app/components were authored against Tailwind
+   v3 and rely on its form styling. */
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+
+/* Outline's font stack names Inter but this build shipped no @font-face for it,
+   so the bundled variable font in public/fonts was never loaded. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/Inter.var.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/Inter-italic.var.woff2") format("woff2");
+}
+
+/* Match the typography of the rest of the app, so the Tailwind UI components
+   in app/components render in the same faces as Outline's own components.
+   Mirrors `fontFamily` / `fontFamilyMono` in shared/styles/theme.ts. */
+@theme {
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", Roboto, Oxygen,
+    sans-serif;
+  --font-mono:
+    "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+
+  /* Tailwind v4 re-derived its palette in oklch; the shades drift from the
+     v3 values these components were designed against by up to 69/255 on
+     saturated colours. Pin the shades in use to their v3 sRGB values. */
+  --color-blue-100: rgb(219 234 254);
+  --color-blue-400: rgb(96 165 250);
+  --color-blue-50: rgb(239 246 255);
+  --color-blue-500: rgb(59 130 246);
+  --color-blue-600: rgb(37 99 235);
+  --color-blue-700: rgb(29 78 216);
+  --color-blue-800: rgb(30 64 175);
+  --color-emerald-500: rgb(16 185 129);
+  --color-gray-100: rgb(243 244 246);
+  --color-gray-200: rgb(229 231 235);
+  --color-gray-300: rgb(209 213 219);
+  --color-gray-400: rgb(156 163 175);
+  --color-gray-50: rgb(249 250 251);
+  --color-gray-500: rgb(107 114 128);
+  --color-gray-600: rgb(75 85 99);
+  --color-gray-700: rgb(55 65 81);
+  --color-gray-800: rgb(31 41 55);
+  --color-gray-900: rgb(17 24 39);
+  --color-green-100: rgb(220 252 231);
+  --color-green-400: rgb(74 222 128);
+  --color-green-50: rgb(240 253 244);
+  --color-green-500: rgb(34 197 94);
+  --color-green-600: rgb(22 163 74);
+  --color-green-700: rgb(21 128 61);
+  --color-green-800: rgb(22 101 52);
+  --color-indigo-100: rgb(224 231 255);
+  --color-indigo-200: rgb(199 210 254);
+  --color-indigo-300: rgb(165 180 252);
+  --color-indigo-400: rgb(129 140 248);
+  --color-indigo-50: rgb(238 242 255);
+  --color-indigo-500: rgb(99 102 241);
+  --color-indigo-600: rgb(79 70 229);
+  --color-indigo-700: rgb(67 56 202);
+  --color-indigo-800: rgb(55 48 163);
+  --color-indigo-900: rgb(49 46 129);
+  --color-pink-100: rgb(252 231 243);
+  --color-pink-400: rgb(244 114 182);
+  --color-pink-50: rgb(253 242 248);
+  --color-pink-500: rgb(236 72 153);
+  --color-pink-600: rgb(219 39 119);
+  --color-pink-700: rgb(190 24 93);
+  --color-pink-800: rgb(157 23 77);
+  --color-purple-100: rgb(243 232 255);
+  --color-purple-400: rgb(192 132 252);
+  --color-purple-50: rgb(250 245 255);
+  --color-purple-500: rgb(168 85 247);
+  --color-purple-600: rgb(147 51 234);
+  --color-purple-700: rgb(126 34 206);
+  --color-red-100: rgb(254 226 226);
+  --color-red-300: rgb(252 165 165);
+  --color-red-400: rgb(248 113 113);
+  --color-red-50: rgb(254 242 242);
+  --color-red-500: rgb(239 68 68);
+  --color-red-600: rgb(220 38 38);
+  --color-red-700: rgb(185 28 28);
+  --color-red-800: rgb(153 27 27);
+  --color-red-900: rgb(127 29 29);
+  --color-rose-400: rgb(251 113 133);
+  --color-rose-50: rgb(255 241 242);
+  --color-rose-600: rgb(225 29 72);
+  --color-rose-700: rgb(190 18 60);
+  --color-sky-50: rgb(240 249 255);
+  --color-sky-700: rgb(3 105 161);
+  --color-teal-50: rgb(240 253 250);
+  --color-teal-700: rgb(15 118 110);
+  --color-violet-600: rgb(124 58 237);
+  --color-violet-700: rgb(109 40 217);
+  --color-yellow-100: rgb(254 249 195);
+  --color-yellow-400: rgb(250 204 21);
+  --color-yellow-50: rgb(254 252 232);
+  --color-yellow-500: rgb(234 179 8);
+  --color-yellow-600: rgb(202 138 4);
+  --color-yellow-700: rgb(161 98 7);
+  --color-yellow-800: rgb(133 77 14);
+}
+
+/* Tailwind v4 changed several defaults that the v3-era markup depends on.
+   Restoring them in `base` keeps component styles able to override. */
+@layer base {
+  /* v3 defaulted an uncoloured border to gray-200; v4 uses currentColor, which
+     renders every uncoloured border and divider in the text colour. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  /* v3 defaulted placeholders to gray-400; v4 uses the text colour at 50%. */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  /* v4 sets buttons to `cursor: default`. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
