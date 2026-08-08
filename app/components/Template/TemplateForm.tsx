@@ -21,6 +21,9 @@ import useStores from "~/hooks/useStores";
 
 const AUTOSAVE_DELAY = 1000;
 
+/** The fields this form is able to edit. */
+type TemplateEdits = Pick<Template, "title" | "data" | "icon" | "color">;
+
 export const TemplateForm = observer(function TemplateForm_({
   handleSubmit,
   template,
@@ -32,8 +35,7 @@ export const TemplateForm = observer(function TemplateForm_({
   const { t } = useTranslation();
   const user = useCurrentUser();
   const can = usePolicy(template);
-  const dataRef = useRef(template.data);
-  const titleRef = useRef(template.title);
+  const editsRef = useRef<Partial<TemplateEdits>>({});
   const ref = useRef(null);
   const [isUploading, handleStartUpload, handleStopUpload] = useBoolean();
   const readOnly = !can.update && !template.isNew;
@@ -49,8 +51,7 @@ export const TemplateForm = observer(function TemplateForm_({
   // The API response is applied back over the model, so anything edited while a
   // request is in flight has to be re-applied once it lands.
   const applyEdits = useCallback(() => {
-    template.title = titleRef.current;
-    template.data = dataRef.current;
+    Object.assign(template, editsRef.current);
   }, [template]);
 
   const save = useCallback(async () => {
@@ -83,20 +84,21 @@ export const TemplateForm = observer(function TemplateForm_({
   });
 
   const handleChangeTitle = (title: string) => {
-    titleRef.current = title;
-    template.title = title;
+    editsRef.current.title = title;
+    applyEdits();
     autosave();
   };
 
   const handleChangeIcon = (icon: string, color: string) => {
-    template.icon = icon;
-    template.color = color;
+    editsRef.current.icon = icon;
+    editsRef.current.color = color;
+    applyEdits();
     autosave();
   };
 
   const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
-    dataRef.current = value(false);
-    template.data = dataRef.current;
+    editsRef.current.data = value(false);
+    applyEdits();
     autosave();
   };
 
