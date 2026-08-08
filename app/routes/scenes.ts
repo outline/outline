@@ -15,6 +15,13 @@ export const PetStoreDashboard = lazy(
   () => import("~/scenes/PetStore/Dashboard")
 );
 export const PetStorePos = lazy(() => import("~/scenes/PetStore/Pos"));
+export const PetStoreOrders = lazy(() => import("~/scenes/PetStore/Orders"));
+export const PetStoreOrderDetail = lazy(
+  () => import("~/scenes/PetStore/OrderDetail")
+);
+export const PetStoreInventory = lazy(
+  () => import("~/scenes/PetStore/Inventory")
+);
 export const PetStoreOccupancy = lazy(
   () => import("~/scenes/PetStore/Occupancy")
 );

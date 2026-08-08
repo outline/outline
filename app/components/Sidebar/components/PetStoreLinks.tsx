@@ -5,6 +5,8 @@ import {
   UserIcon,
   BuildingBlocksIcon,
   TableIcon,
+  DocumentIcon,
+  BeakerIcon,
 } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import Header from "./Header";
@@ -44,6 +46,16 @@ export function PetStoreLinks() {
           to="/store/boardings"
           icon={<ArchiveIcon />}
           label={t("Boardings")}
+        />
+        <SidebarLink
+          to="/store/orders"
+          icon={<DocumentIcon />}
+          label={t("Orders")}
+        />
+        <SidebarLink
+          to="/store/inventory"
+          icon={<BeakerIcon />}
+          label={t("Inventory")}
         />
         <SidebarLink
           to="/store/products"

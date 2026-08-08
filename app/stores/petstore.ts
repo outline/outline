@@ -5,6 +5,11 @@ import type {
   PetStoreOrder,
   PetStoreProduct,
   PetStoreRoom,
+  PetStoreSupplier,
+  PetStoreWarehouse,
+  PetStoreBatch,
+  PetStoreMovement,
+  PetStorePurchaseOrder,
 } from "../../src/mocks/petstore";
 
 /** A room with the guests currently occupying it. */
@@ -48,6 +53,11 @@ interface PetStoreState {
   boardings: PetStoreBoarding[];
   rooms: PetStoreRoomOccupancy[];
   orders: PetStoreOrder[];
+  suppliers: PetStoreSupplier[];
+  warehouses: PetStoreWarehouse[];
+  batches: PetStoreBatch[];
+  movements: PetStoreMovement[];
+  purchaseOrders: PetStorePurchaseOrder[];
   isLoading: boolean;
   error?: string;
   fetchAll: () => Promise<void>;
@@ -60,6 +70,8 @@ interface PetStoreState {
     items: PetStoreCartLine[],
     customerName: string
   ) => Promise<PetStoreOrder>;
+  markOrderPaid: (id: string) => Promise<void>;
+  receivePurchaseOrder: (id: string) => Promise<void>;
 }
 
 /**
@@ -74,21 +86,42 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
   boardings: [],
   rooms: [],
   orders: [],
+  suppliers: [],
+  warehouses: [],
+  batches: [],
+  movements: [],
+  purchaseOrders: [],
   isLoading: false,
 
   fetchAll: async () => {
     set({ isLoading: true, error: undefined });
 
     try {
-      const [dashboard, products, customers, boardings, rooms, orders] =
-        await Promise.all([
-          client.post("/petstore.dashboard"),
-          client.post("/petstore.products.list"),
-          client.post("/petstore.customers.list"),
-          client.post("/petstore.boardings.list"),
-          client.post("/petstore.rooms.list"),
-          client.post("/petstore.orders.list"),
-        ]);
+      const [
+        dashboard,
+        products,
+        customers,
+        boardings,
+        rooms,
+        orders,
+        suppliers,
+        warehouses,
+        batches,
+        movements,
+        purchaseOrders,
+      ] = await Promise.all([
+        client.post("/petstore.dashboard"),
+        client.post("/petstore.products.list"),
+        client.post("/petstore.customers.list"),
+        client.post("/petstore.boardings.list"),
+        client.post("/petstore.rooms.list"),
+        client.post("/petstore.orders.list"),
+        client.post("/petstore.suppliers.list"),
+        client.post("/petstore.warehouses.list"),
+        client.post("/petstore.batches.list"),
+        client.post("/petstore.movements.list"),
+        client.post("/petstore.purchaseOrders.list"),
+      ]);
 
       set({
         dashboard: dashboard.data,
@@ -97,6 +130,11 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
         boardings: boardings.data,
         rooms: rooms.data,
         orders: orders.data,
+        suppliers: suppliers.data,
+        warehouses: warehouses.data,
+        batches: batches.data,
+        movements: movements.data,
+        purchaseOrders: purchaseOrders.data,
         isLoading: false,
       });
     } catch (err) {
@@ -139,5 +177,15 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
     });
     await get().fetchAll();
     return response.data;
+  },
+
+  markOrderPaid: async (id) => {
+    await client.post("/petstore.orders.markPaid", { id });
+    await get().fetchAll();
+  },
+
+  receivePurchaseOrder: async (id) => {
+    await client.post("/petstore.purchaseOrders.receive", { id });
+    await get().fetchAll();
   },
 }));

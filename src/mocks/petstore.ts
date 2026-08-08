@@ -62,15 +62,65 @@ export interface PetStoreOrder {
   items: { productId: string; name: string; quantity: number; price: number }[];
 }
 
+export interface PetStoreSupplier {
+  id: string;
+  name: string;
+  contact: string;
+  phone: string;
+  terms: string;
+}
+
+export interface PetStoreWarehouse {
+  id: string;
+  name: string;
+  branch: string;
+}
+
+export interface PetStoreBatch {
+  id: string;
+  productId: string;
+  productName: string;
+  warehouseId: string;
+  lot: string;
+  quantity: number;
+  expiresAt: string;
+}
+
+export interface PetStoreMovement {
+  id: string;
+  productId: string;
+  productName: string;
+  warehouseId: string;
+  type: "in" | "out" | "transfer" | "adjustment";
+  quantity: number;
+  reference: string;
+  createdAt: string;
+}
+
+export interface PetStorePurchaseOrder {
+  id: string;
+  number: string;
+  supplierId: string;
+  supplierName: string;
+  status: "draft" | "ordered" | "received" | "cancelled";
+  expectedAt: string;
+  items: { productId: string; name: string; quantity: number; cost: number }[];
+}
+
 export interface PetStoreState {
   products: PetStoreProduct[];
   customers: PetStoreCustomer[];
   boardings: PetStoreBoarding[];
   rooms: PetStoreRoom[];
   orders: PetStoreOrder[];
+  suppliers: PetStoreSupplier[];
+  warehouses: PetStoreWarehouse[];
+  batches: PetStoreBatch[];
+  movements: PetStoreMovement[];
+  purchaseOrders: PetStorePurchaseOrder[];
 }
 
-const STORAGE_KEY = "outline_petstore_db_v2";
+const STORAGE_KEY = "outline_petstore_db_v3";
 
 const daysFromNow = (days: number) =>
   new Date(Date.now() + days * 86400000).toISOString();
@@ -312,6 +362,147 @@ const seed: PetStoreState = {
       ],
     },
   ],
+  suppliers: [
+    {
+      id: "sup-1",
+      name: "Anugrah Pet Supply",
+      contact: "Pak Anwar",
+      phone: "+62 21 555 0101",
+      terms: "Net 30",
+    },
+    {
+      id: "sup-2",
+      name: "Pet Gear Nusantara",
+      contact: "Bu Dewi",
+      phone: "+62 21 555 0202",
+      terms: "Net 14",
+    },
+    {
+      id: "sup-3",
+      name: "Bersih Hewan",
+      contact: "Pak Joko",
+      phone: "+62 21 555 0303",
+      terms: "Cash on delivery",
+    },
+  ],
+  warehouses: [
+    { id: "wh-1", name: "Kemang Store Room", branch: "Kemang" },
+    { id: "wh-2", name: "Bintaro Store Room", branch: "Bintaro" },
+  ],
+  batches: [
+    {
+      id: "bat-1",
+      productId: "prd-1",
+      productName: "Royal Canin Adult 2kg",
+      warehouseId: "wh-1",
+      lot: "RC-2409",
+      quantity: 30,
+      expiresAt: daysFromNow(240),
+    },
+    {
+      id: "bat-2",
+      productId: "prd-1",
+      productName: "Royal Canin Adult 2kg",
+      warehouseId: "wh-2",
+      lot: "RC-2410",
+      quantity: 12,
+      expiresAt: daysFromNow(20),
+    },
+    {
+      id: "bat-3",
+      productId: "prd-2",
+      productName: "Whiskas Tuna 1kg",
+      warehouseId: "wh-1",
+      lot: "WK-1122",
+      quantity: 8,
+      expiresAt: daysFromNow(-5),
+    },
+    {
+      id: "bat-4",
+      productId: "prd-4",
+      productName: "Grooming Shampoo 500ml",
+      warehouseId: "wh-1",
+      lot: "SH-0301",
+      quantity: 3,
+      expiresAt: daysFromNow(400),
+    },
+  ],
+  movements: [
+    {
+      id: "mv-1",
+      productId: "prd-1",
+      productName: "Royal Canin Adult 2kg",
+      warehouseId: "wh-1",
+      type: "in",
+      quantity: 40,
+      reference: "PO-3001",
+      createdAt: daysFromNow(-14),
+    },
+    {
+      id: "mv-2",
+      productId: "prd-2",
+      productName: "Whiskas Tuna 1kg",
+      warehouseId: "wh-1",
+      type: "out",
+      quantity: 2,
+      reference: "INV-2040",
+      createdAt: daysFromNow(-1),
+    },
+    {
+      id: "mv-3",
+      productId: "prd-1",
+      productName: "Royal Canin Adult 2kg",
+      warehouseId: "wh-2",
+      type: "transfer",
+      quantity: 12,
+      reference: "TRF-119",
+      createdAt: daysFromNow(-6),
+    },
+    {
+      id: "mv-4",
+      productId: "prd-4",
+      productName: "Grooming Shampoo 500ml",
+      warehouseId: "wh-1",
+      type: "adjustment",
+      quantity: -1,
+      reference: "Stock count",
+      createdAt: daysFromNow(-3),
+    },
+  ],
+  purchaseOrders: [
+    {
+      id: "po-1",
+      number: "PO-3002",
+      supplierId: "sup-1",
+      supplierName: "Anugrah Pet Supply",
+      status: "ordered",
+      expectedAt: daysFromNow(4),
+      items: [
+        {
+          productId: "prd-2",
+          name: "Whiskas Tuna 1kg",
+          quantity: 24,
+          cost: 52000,
+        },
+      ],
+    },
+    {
+      id: "po-2",
+      number: "PO-3003",
+      supplierId: "sup-3",
+      supplierName: "Bersih Hewan",
+      status: "draft",
+      expectedAt: daysFromNow(9),
+      items: [
+        {
+          productId: "prd-4",
+          name: "Grooming Shampoo 500ml",
+          quantity: 20,
+          cost: 61000,
+        },
+      ],
+    },
+  ],
 };
 
 /**
@@ -484,6 +675,83 @@ export function handlePetStoreRequest(
 
     case "petstore.orders.list":
       return { data: state.orders };
+
+    case "petstore.orders.info":
+      return {
+        data: state.orders.find((order) => order.id === body.id) ?? null,
+      };
+
+    case "petstore.orders.markPaid": {
+      const id = String(body.id ?? "");
+      state = {
+        ...state,
+        orders: state.orders.map((order) =>
+          order.id === id
+            ? { ...order, status: "paid", paidAt: new Date().toISOString() }
+            : order
+        ),
+      };
+      persist();
+      return { data: state.orders.find((order) => order.id === id) };
+    }
+
+    case "petstore.suppliers.list":
+      return { data: state.suppliers };
+
+    case "petstore.warehouses.list":
+      return { data: state.warehouses };
+
+    case "petstore.batches.list":
+      return { data: state.batches };
+
+    case "petstore.movements.list":
+      return { data: state.movements };
+
+    case "petstore.purchaseOrders.list":
+      return { data: state.purchaseOrders };
+
+    case "petstore.purchaseOrders.receive": {
+      const id = String(body.id ?? "");
+      const order = state.purchaseOrders.find((item) => item.id === id);
+      if (!order) {
+        return { data: null };
+      }
+
+      // Receiving a purchase order books the stock in and records a movement
+      // against the first warehouse, mirroring the reference app.
+      const warehouseId = state.warehouses[0]?.id ?? "wh-1";
+      const receivedAt = new Date().toISOString();
+
+      state = {
+        ...state,
+        purchaseOrders: state.purchaseOrders.map((item) =>
+          item.id === id ? { ...item, status: "received" } : item
+        ),
+        products: state.products.map((product) => {
+          const line = order.items.find(
+            (item) => item.productId === product.id
+          );
+          return line
+            ? { ...product, stock: product.stock + line.quantity }
+            : product;
+        }),
+        movements: [
+          ...order.items.map((line, index) => ({
+            id: `mv-${Date.now()}-${index}`,
+            productId: line.productId,
+            productName: line.name,
+            warehouseId,
+            type: "in" as const,
+            quantity: line.quantity,
+            reference: order.number,
+            createdAt: receivedAt,
+          })),
+          ...state.movements,
+        ],
+      };
+      persist();
+      return { data: state.purchaseOrders.find((item) => item.id === id) };
+    }
 
     case "petstore.boardings.updateStatus": {
       const id = String(body.id ?? "");

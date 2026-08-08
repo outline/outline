@@ -104,6 +104,21 @@ function AuthenticatedRoutes() {
               />
               <Route
                 exact
+                path="/store/orders"
+                component={Scenes.PetStoreOrders.Component}
+              />
+              <Route
+                exact
+                path="/store/orders/:orderId"
+                component={Scenes.PetStoreOrderDetail.Component}
+              />
+              <Route
+                exact
+                path="/store/inventory"
+                component={Scenes.PetStoreInventory.Component}
+              />
+              <Route
+                exact
                 path="/store/occupancy"
                 component={Scenes.PetStoreOccupancy.Component}
               />{" "}
