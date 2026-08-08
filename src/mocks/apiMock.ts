@@ -185,6 +185,13 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
     }
 
     case "notifications.list":
+      return {
+        data: {
+          notifications: [],
+        },
+        policies: [],
+      };
+
     case "subscriptions.list":
     case "groups.list":
     case "memberships.list":
@@ -207,6 +214,9 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
 
     default:
       // Generic fallback for any .list, .info, .count, .create, .update, .delete
+      if (action.startsWith("documents.")) {
+        return { data: [], policies: [] };
+      }
       if (action.endsWith(".list")) {
         return { data: [], policies: [] };
       }
