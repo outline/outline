@@ -62,6 +62,48 @@ export default () =>
           cleanupOutdatedCaches: true,
           runtimeCaching: [
             {
+              // Cache the server-rendered HTML shell so that navigations and
+              // reloads work offline. Without this the document request fails
+              // before the precached bundle can run, leaving the precache
+              // effectively unreachable offline.
+              //
+              // Every same-origin app navigation is collapsed onto a single
+              // cache entry: the shell is identical for all client-routed paths
+              // (empty SSR content, the router reads the location on boot), so
+              // any route can cold-start or reload offline, not only URLs that
+              // were previously visited. The cached response carries its own CSP
+              // header, whose nonce matches the inline scripts in the same
+              // cached body, so the shell still executes when served from cache.
+              //
+              // Public shares (`/s/`) and embeds (`/embeds/`) render
+              // document-specific HTML and are excluded from the shared shell.
+              urlPattern: ({ request, url, sameOrigin }) =>
+                sameOrigin &&
+                request.mode === "navigate" &&
+                !url.pathname.startsWith("/s/") &&
+                !url.pathname.startsWith("/embeds/"),
+              handler: "NetworkFirst",
+              options: {
+                cacheName: "html-cache",
+                networkTimeoutSeconds: 3,
+                expiration: {
+                  maxEntries: 1,
+                  maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+                plugins: [
+                  {
+                    // Normalize every navigation onto one shell key so that any
+                    // path resolves to the cached shell when offline.
+                    cacheKeyWillBeUsed: async ({ request }) =>
+                      new URL("/", request.url).href,
+                  },
+                ],
+              },
+            },
+            {
               urlPattern: /api\/urls\.unfurl$/,
               handler: "CacheOnly",
               options: {
