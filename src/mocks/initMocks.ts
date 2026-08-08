@@ -18,6 +18,8 @@ export function initMocks(): void {
     setupApiMock();
     setupWebsocketMock();
     // oxlint-disable-next-line no-console
-    console.log("[Outline Mock] Window environment, API & WebSocket Mock System initialized successfully!");
+    console.log(
+      "[Outline Mock] Window environment, API & WebSocket Mock System initialized successfully!"
+    );
   }
 }

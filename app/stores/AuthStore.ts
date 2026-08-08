@@ -104,6 +104,12 @@ export default class AuthStore extends Store<Team> {
 
     // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
+      // Don't persist the empty state we hold while the initial auth request is
+      // still in flight – the resulting storage event would be seen by other
+      // tabs as a sign-out and log them out.
+      if (this.isFetching && !this.authenticated) {
+        return;
+      }
       Storage.set(this.name, this.asJson);
     });
 

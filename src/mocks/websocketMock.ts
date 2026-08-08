@@ -24,7 +24,9 @@ export function setupWebsocketMock(): void {
       }, 50);
     }
 
-    public send(_data: string | ArrayBufferLike | Blob | ArrayBufferView): void {
+    public send(
+      _data: string | ArrayBufferLike | Blob | ArrayBufferView
+    ): void {
       // Mock sending data silently
     }
 

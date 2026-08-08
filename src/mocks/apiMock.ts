@@ -1,12 +1,112 @@
-import { mockDb } from "./db";
+import { documentPath, mockDb, textToProsemirror } from "./db";
+import type { MockCollection, MockDocument } from "./db";
+
+/**
+ * Adds the editor payload the client expects alongside a document's markdown.
+ *
+ * @param document the stored document.
+ * @returns the document with its ProseMirror `data` attached.
+ */
+function presentDocument(document: MockDocument) {
+  // `pinned` is derived from the pins list on the client and is read-only on
+  // the model, so it is not part of the document payload.
+  const { pinned: _pinned, ...rest } = document;
+  return { ...rest, data: textToProsemirror(document.text) };
+}
+
+/**
+ * The abilities granted to the mock user. Every `can.*` check in the app reads
+ * from the policies returned alongside a record, so without these the UI hides
+ * essentially every action.
+ */
+const GRANTED_ABILITIES = [
+  "read",
+  "update",
+  "delete",
+  "restore",
+  "share",
+  "star",
+  "unstar",
+  "subscribe",
+  "unsubscribe",
+  "comment",
+  "createChildDocument",
+  "createDocument",
+  "createCollection",
+  "archive",
+  "unarchive",
+  "publish",
+  "unpublish",
+  "move",
+  "duplicate",
+  "pin",
+  "unpin",
+  "pinToHome",
+  "download",
+  "manage",
+  "readDocument",
+  "listUsers",
+  "inviteUser",
+  "createGroup",
+  "createTemplate",
+  "updateTemplate",
+  "listShares",
+  "listViews",
+];
+
+/**
+ * Builds the policy payload for a set of records.
+ *
+ * @param ids the record ids the policies apply to.
+ * @returns a policy granting all mocked abilities for each id.
+ */
+function policiesFor(ids: string[]) {
+  const abilities = Object.fromEntries(
+    GRANTED_ABILITIES.map((ability) => [ability, true])
+  );
+  return ids.map((id) => ({ id, abilities }));
+}
+
+/**
+ * Attaches the nested document structure the sidebar renders for a collection.
+ * The real API embeds this tree on every collection it returns.
+ *
+ * @param collection the collection to decorate.
+ * @returns the collection with its `documents` navigation tree.
+ */
+function withDocumentStructure(collection: MockCollection) {
+  const documents = mockDb.getDocuments(collection.id);
+
+  const toNode = (parentDocumentId: string | null): unknown[] =>
+    documents
+      .filter((doc) => doc.parentDocumentId === parentDocumentId)
+      .map((doc) => ({
+        id: doc.id,
+        title: doc.title,
+        url: documentPath(doc.title, doc.urlId),
+        emoji: doc.emoji ?? undefined,
+        collectionId: collection.id,
+        children: toNode(doc.id),
+      }));
+
+  return { ...collection, documents: toNode(null) };
+}
 
 export function setupApiMock(): void {
   if (typeof window === "undefined") return;
 
   const originalFetch = window.fetch.bind(window);
 
-  window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const urlString = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+  window.fetch = async (
+    input: RequestInfo | URL,
+    init?: RequestInit
+  ): Promise<Response> => {
+    const urlString =
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : input.url;
 
     // Only intercept /api/ requests
     if (urlString.includes("/api/")) {
@@ -23,12 +123,22 @@ export function setupApiMock(): void {
 
       const responsePayload = handleApiRequest(action, body);
 
-      if (responsePayload && typeof responsePayload === "object" && !responsePayload.pagination) {
-        const count = Array.isArray(responsePayload.data)
-          ? responsePayload.data.length
-          : responsePayload.data && typeof responsePayload.data === "object" && Array.isArray(responsePayload.data.pins)
-          ? responsePayload.data.pins.length
-          : 0;
+      if (
+        responsePayload &&
+        typeof responsePayload === "object" &&
+        !responsePayload.policies?.length
+      ) {
+        responsePayload.policies = policiesFor(
+          collectIds(responsePayload.data)
+        );
+      }
+
+      if (
+        responsePayload &&
+        typeof responsePayload === "object" &&
+        !responsePayload.pagination
+      ) {
+        const count = countRecords(responsePayload.data);
 
         responsePayload.pagination = {
           total: count,
@@ -48,10 +158,76 @@ export function setupApiMock(): void {
   };
 }
 
+/**
+ * Collects the record ids in a response payload so a policy can be issued for
+ * each one. Walks one level into object envelopes and nested records.
+ *
+ * @param data the `data` property of a response payload.
+ * @returns the ids found in the payload.
+ */
+function collectIds(data: unknown): string[] {
+  if (!data || typeof data !== "object") {
+    return [];
+  }
+
+  if (Array.isArray(data)) {
+    return data.flatMap(collectIds);
+  }
+
+  const record = data as Record<string, unknown>;
+  const ids = typeof record.id === "string" ? [record.id] : [];
+
+  return [
+    ...ids,
+    ...Object.entries(record)
+      .filter(([key]) => key !== "parent")
+      .flatMap(([, value]) =>
+        Array.isArray(value) || (value && typeof value === "object")
+          ? collectIds(value)
+          : []
+      ),
+  ];
+}
+
+/**
+ * Counts the records in a response payload so pagination metadata reflects the
+ * page size. Handles both plain array payloads and the object envelopes used by
+ * endpoints such as `stars.list`, where the records live under a named key.
+ *
+ * @param data the `data` property of a response payload.
+ * @returns the number of records in the payload.
+ */
+function countRecords(data: unknown): number {
+  if (Array.isArray(data)) {
+    return data.length;
+  }
+  if (data && typeof data === "object") {
+    const arrays = Object.values(data).filter(Array.isArray);
+    return arrays.length ? Math.max(...arrays.map((value) => value.length)) : 0;
+  }
+  return 0;
+}
+
 function handleApiRequest(action: string, body: Record<string, any>): any {
   const state = mockDb.getState();
 
   switch (action) {
+    case "auth.config":
+      return {
+        data: {
+          name: state.team.name,
+          hostname: window.location.hostname,
+          providers: [
+            {
+              id: "email",
+              name: "Email",
+              authUrl: "/auth/email",
+            },
+          ],
+        },
+        policies: [],
+      };
+
     case "auth.info":
       return {
         data: {
@@ -67,12 +243,33 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
 
     case "users.info":
       return {
-        data: {
-          user: state.user,
-          team: state.team,
-        },
+        data: state.user,
         policies: [],
       };
+
+    case "users.update": {
+      Object.assign(state.user, body);
+      mockDb.saveState();
+      return {
+        data: state.user,
+        policies: [],
+      };
+    }
+
+    case "teams.info":
+      return {
+        data: state.team,
+        policies: [],
+      };
+
+    case "teams.update": {
+      Object.assign(state.team, body);
+      mockDb.saveState();
+      return {
+        data: state.team,
+        policies: [],
+      };
+    }
 
     case "users.list":
       return {
@@ -82,17 +279,29 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
 
     case "collections.list":
       return {
-        data: mockDb.getCollections(),
+        data: mockDb.getCollections().map(withDocumentStructure),
         policies: [],
       };
 
     case "collections.info": {
       const col = mockDb.getCollection(body.id);
       return {
-        data: col || null,
+        data: col ? withDocumentStructure(col) : null,
         policies: [],
       };
     }
+
+    case "relationships.list":
+      return {
+        data: { relationships: [], documents: [] },
+        policies: [],
+      };
+
+    case "shares.info":
+      return {
+        data: { shares: [] },
+        policies: [],
+      };
 
     case "collections.create": {
       const col = mockDb.createCollection(body);
@@ -105,15 +314,16 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
     case "documents.list": {
       const docs = mockDb.getDocuments(body.collectionId);
       return {
-        data: docs,
+        data: docs.map(presentDocument),
         policies: [],
       };
     }
 
     case "documents.info": {
       const doc = mockDb.getDocument(body.id);
+      // The client reads the document off a `document` key on the envelope.
       return {
-        data: doc || null,
+        data: doc ? { document: presentDocument(doc) } : null,
         policies: [],
       };
     }
@@ -121,7 +331,7 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
     case "documents.create": {
       const newDoc = mockDb.createDocument(body);
       return {
-        data: newDoc,
+        data: presentDocument(newDoc),
         policies: [],
       };
     }
@@ -129,7 +339,7 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
     case "documents.update": {
       const updated = mockDb.updateDocument(body.id, body);
       return {
-        data: updated || null,
+        data: updated ? presentDocument(updated) : null,
         policies: [],
       };
     }
@@ -153,11 +363,15 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
 
     case "documents.search": {
       const query = (body.query || "").toLowerCase();
-      const results = mockDb.getDocuments().filter(
-        (d) => d.title.toLowerCase().includes(query) || d.text.toLowerCase().includes(query)
-      );
+      const results = mockDb
+        .getDocuments()
+        .filter(
+          (d) =>
+            d.title.toLowerCase().includes(query) ||
+            d.text.toLowerCase().includes(query)
+        );
       return {
-        data: results,
+        data: results.map(presentDocument),
         policies: [],
       };
     }
@@ -176,12 +390,69 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
       };
     }
 
-    case "pins.list":
+    case "pins.list": {
+      const pinnedIds = state.pins.map((pin) => pin.documentId);
       return {
         data: {
           pins: state.pins,
-          documents: [],
+          documents: mockDb
+            .getDocuments()
+            .filter((doc) => pinnedIds.includes(doc.id))
+            .map(presentDocument),
         },
+        policies: [],
+      };
+    }
+
+    case "stars.list": {
+      const starred = mockDb
+        .getDocuments()
+        .filter((doc) => state.starredDocumentIds.includes(doc.id));
+      return {
+        data: {
+          stars: starred.map((doc, index) => ({
+            id: `star-${doc.id}`,
+            documentId: doc.id,
+            collectionId: null,
+            index: String.fromCharCode(97 + index),
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt,
+          })),
+          documents: starred.map(presentDocument),
+        },
+        policies: [],
+      };
+    }
+
+    // These endpoints return an object envelope rather than a plain array, and
+    // the stores read the individual keys off it directly.
+    case "userMemberships.list":
+      return {
+        data: { memberships: [], documents: [], users: [] },
+        policies: [],
+      };
+
+    case "groupMemberships.list":
+      return {
+        data: { groupMemberships: [], documents: [], groups: [] },
+        policies: [],
+      };
+
+    case "groups.list":
+      return {
+        data: { groups: [], groupMemberships: [] },
+        policies: [],
+      };
+
+    case "groups.memberships":
+      return {
+        data: { groupMemberships: [], groups: [], users: [] },
+        policies: [],
+      };
+
+    case "collections.memberships":
+      return {
+        data: { memberships: [], users: [] },
         policies: [],
       };
 
@@ -211,7 +482,6 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
       };
 
     case "subscriptions.list":
-    case "groups.list":
     case "memberships.list":
     case "shares.list":
     case "revisions.list":

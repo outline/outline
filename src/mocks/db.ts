@@ -5,6 +5,10 @@ export interface MockUser {
   avatarUrl: string;
   role: string;
   isSuspended: boolean;
+  language: string;
+  timezone: string;
+  preferences: Record<string, boolean>;
+  lastActiveAt: string;
   createdAt: string;
 }
 
@@ -19,11 +23,17 @@ export interface MockTeam {
 
 export interface MockCollection {
   id: string;
+  /** The short id that appears at the end of the collection slug. */
+  urlId: string;
+  /** The path the collection is reachable at, as returned by the real API. */
+  url: string;
   name: string;
   description: string | null;
   color: string;
   icon: string | null;
   index: string;
+  /** The sort field and direction for documents in this collection. */
+  sort: { field: string; direction: "asc" | "desc" };
   permission: string;
   createdAt: string;
   updatedAt: string;
@@ -32,6 +42,10 @@ export interface MockCollection {
 
 export interface MockDocument {
   id: string;
+  /** The short id that appears at the end of the document slug. */
+  urlId: string;
+  /** The path the document is reachable at, as returned by the real API. */
+  url: string;
   title: string;
   text: string;
   emoji: string | null;
@@ -40,6 +54,13 @@ export interface MockDocument {
   createdById: string;
   collaboratorIds: string[];
   pinned: boolean;
+  /** When the document was published; drafts have no published date. */
+  publishedAt: string | null;
+  lastModifiedById: string;
+  /** Checklist task counts shown in the document meta. */
+  tasks: { total: number; completed: number };
+  /** Whether the document's collection has been deleted. */
+  isCollectionDeleted: boolean;
   archivedAt: string | null;
   deletedAt: string | null;
   createdAt: string;
@@ -75,22 +96,201 @@ export interface MockState {
   starredDocumentIds: string[];
 }
 
-const STORAGE_KEY = "outline_mock_db_v2";
+const STORAGE_KEY = "outline_mock_db_v3";
+
+/**
+ * Builds the url-safe slug the app uses in collection and document paths.
+ *
+ * @param title the collection or document title.
+ * @returns the slugified title, or an empty string when there is no title.
+ */
+function slugifyTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+/**
+ * Builds the path a collection is reachable at, matching the real API's `url`.
+ *
+ * @param name the collection name.
+ * @param urlId the collection's short url id.
+ * @returns the collection path.
+ */
+function collectionUrl(name: string, urlId: string): string {
+  return `/collection/${slugifyTitle(name)}-${urlId}`;
+}
+
+/**
+ * Builds the path a document is reachable at.
+ *
+ * @param title the document title.
+ * @param urlId the document's short url id.
+ * @returns the document path.
+ */
+export function documentPath(title: string, urlId: string): string {
+  return `/doc/${slugifyTitle(title) || "untitled"}-${urlId}`;
+}
+
+/** Inline markdown spans, mapped to the mark names in Outline's schema. */
+const INLINE_MARKS: { pattern: RegExp; mark: string }[] = [
+  { pattern: /\*\*([^*]+)\*\*/, mark: "strong" },
+  { pattern: /(?<![*\w])\*([^*]+)\*(?!\*)/, mark: "em" },
+  { pattern: /(?<![_\w])_([^_]+)_(?!\w)/, mark: "em" },
+  { pattern: /~~([^~]+)~~/, mark: "strikethrough" },
+  { pattern: /`([^`]+)`/, mark: "code_inline" },
+];
+
+const LINK = /\[([^\]]+)\]\(([^)\s]+)\)/;
+
+/**
+ * Splits a line of markdown into ProseMirror text nodes, applying the inline
+ * marks the seed content uses. Marks are not nested – the first match wins.
+ *
+ * @param value the line to convert.
+ * @returns the text nodes for the line.
+ */
+function toText(value: string): unknown[] {
+  if (!value) {
+    return [];
+  }
+
+  const link = LINK.exec(value);
+  if (link) {
+    return [
+      ...toText(value.slice(0, link.index)),
+      {
+        type: "text",
+        text: link[1],
+        marks: [{ type: "link", attrs: { href: link[2], title: null } }],
+      },
+      ...toText(value.slice(link.index + link[0].length)),
+    ];
+  }
+
+  for (const { pattern, mark } of INLINE_MARKS) {
+    const match = pattern.exec(value);
+    if (match) {
+      return [
+        ...toText(value.slice(0, match.index)),
+        { type: "text", text: match[1], marks: [{ type: mark }] },
+        ...toText(value.slice(match.index + match[0].length)),
+      ];
+    }
+  }
+
+  return [{ type: "text", text: value }];
+}
+
+/**
+ * Converts the markdown-ish seed text into the ProseMirror document the editor
+ * renders. Headings, bullet lists, paragraphs and inline marks are recognised –
+ * enough for the sample content without pulling the markdown parser into the
+ * mock.
+ *
+ * @param text the document text.
+ * @returns a ProseMirror document node.
+ */
+export function textToProsemirror(text: string): {
+  type: string;
+  content: unknown[];
+} {
+  const content: unknown[] = [];
+  let listItems: unknown[] = [];
+
+  const flushList = () => {
+    if (listItems.length) {
+      content.push({ type: "bullet_list", content: listItems });
+      listItems = [];
+    }
+  };
+
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+
+    if (!trimmed || trimmed.startsWith("```")) {
+      flushList();
+      continue;
+    }
+
+    const heading = /^(#{1,4})\s+(.*)$/.exec(trimmed);
+    if (heading) {
+      flushList();
+      content.push({
+        type: "heading",
+        attrs: { level: heading[1].length },
+        content: toText(heading[2]),
+      });
+      continue;
+    }
+
+    const bullet = /^[-*]\s+(.*)$/.exec(trimmed);
+    if (bullet) {
+      listItems.push({
+        type: "list_item",
+        content: [{ type: "paragraph", content: toText(bullet[1]) }],
+      });
+      continue;
+    }
+
+    flushList();
+    content.push({ type: "paragraph", content: toText(trimmed) });
+  }
+
+  flushList();
+
+  return { type: "doc", content };
+}
+
+/**
+ * Generates a short, url-safe id in the same shape as the real API's urlId.
+ *
+ * @returns a random 10 character identifier.
+ */
+function generateUrlId(): string {
+  return Math.random().toString(36).slice(2, 12);
+}
+
+/**
+ * Whether a requested identifier refers to a record. The app sends either the
+ * raw id, the urlId, or the full `title-urlId` slug taken from the address bar.
+ *
+ * @param id the record's id.
+ * @param urlId the record's short url id.
+ * @param requested the identifier from the request.
+ * @returns true when the identifier refers to this record.
+ */
+function matchesIdentifier(
+  id: string,
+  urlId: string,
+  requested: string
+): boolean {
+  return (
+    id === requested || urlId === requested || requested.endsWith(`-${urlId}`)
+  );
+}
 
 const initialSeedState: MockState = {
   user: {
     id: "usr-1001",
     name: "Jane Doe",
     email: "jane@outline.dev",
-    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
     role: "admin",
     isSuspended: false,
+    language: "en_US",
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    preferences: {},
+    lastActiveAt: new Date().toISOString(),
     createdAt: new Date().toISOString(),
   },
   team: {
     id: "team-1001",
     name: "Acme Corp",
-    avatarUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150",
     subdomain: "acme",
     customDomain: null,
     allowedDomains: ["outline.dev", "acme.com"],
@@ -98,11 +298,15 @@ const initialSeedState: MockState = {
   collections: [
     {
       id: "col-eng",
+      urlId: "engineering1",
+      url: collectionUrl("Engineering", "engineering1"),
       name: "Engineering",
-      description: "Technical guides, system architecture, and API documentation",
+      description:
+        "Technical guides, system architecture, and API documentation",
       color: "#4E5BA6",
       icon: "code",
       index: "a",
+      sort: { field: "index", direction: "asc" },
       permission: "read_write",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -110,11 +314,14 @@ const initialSeedState: MockState = {
     },
     {
       id: "col-prod",
+      urlId: "product0001",
+      url: collectionUrl("Product", "product0001"),
       name: "Product",
       description: "Roadmaps, feature specs, and design assets",
       color: "#D9534F",
-      icon: "compass",
+      icon: "target",
       index: "b",
+      sort: { field: "index", direction: "asc" },
       permission: "read_write",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -122,11 +329,14 @@ const initialSeedState: MockState = {
     },
     {
       id: "col-gen",
+      urlId: "general0001",
+      url: collectionUrl("General & Onboarding", "general0001"),
       name: "General & Onboarding",
       description: "Company policies, team directory, and welcome resources",
       color: "#00B0FF",
       icon: "book",
       index: "c",
+      sort: { field: "index", direction: "asc" },
       permission: "read_write",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -136,6 +346,8 @@ const initialSeedState: MockState = {
   documents: [
     {
       id: "doc-welcome",
+      urlId: "welcome0001",
+      url: documentPath("Welcome to Outline", "welcome0001"),
       title: "Welcome to Outline",
       text: "# Welcome to Outline! 🎉\n\nOutline is a fast, collaborative knowledge base built for teams.\n\n### 🚀 Features Included in this Standalone Frontend:\n- **Astro & React Integration**\n- **Tailwind CSS Utility Styling**\n- **Persistent In-Browser LocalStorage Database**\n- **Rich Text & Collaborative ProseMirror Editor**\n\nFeel free to create new documents, edit content, and explore collections!",
       emoji: "👋",
@@ -144,6 +356,10 @@ const initialSeedState: MockState = {
       createdById: "usr-1001",
       collaboratorIds: ["usr-1001"],
       pinned: true,
+      publishedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+      lastModifiedById: "usr-1001",
+      tasks: { total: 0, completed: 0 },
+      isCollectionDeleted: false,
       archivedAt: null,
       deletedAt: null,
       createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
@@ -151,6 +367,8 @@ const initialSeedState: MockState = {
     },
     {
       id: "doc-arch-guide",
+      urlId: "archguide01",
+      url: documentPath("System Architecture Guide", "archguide01"),
       title: "System Architecture Guide",
       text: "# System Architecture\n\nOverview of the system modules:\n\n1. **Frontend**: React + Astro + Tailwind CSS\n2. **State Management**: MobX Stores\n3. **Editor Engine**: ProseMirror & Y.js\n4. **Mock API**: LocalStorage Fetch Interceptor\n\n```ts\n// Standalone initialization\nimport { initMocks } from './mocks/initMocks';\ninitMocks();\n```",
       emoji: "🏗️",
@@ -159,6 +377,10 @@ const initialSeedState: MockState = {
       createdById: "usr-1001",
       collaboratorIds: ["usr-1001"],
       pinned: false,
+      publishedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+      lastModifiedById: "usr-1001",
+      tasks: { total: 0, completed: 0 },
+      isCollectionDeleted: false,
       archivedAt: null,
       deletedAt: null,
       createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
@@ -166,6 +388,8 @@ const initialSeedState: MockState = {
     },
     {
       id: "doc-roadmap-2026",
+      urlId: "roadmap2026",
+      url: documentPath("Product Roadmap 2026", "roadmap2026"),
       title: "Product Roadmap 2026",
       text: "# Product Roadmap 2026 🗺️\n\n### Q1 Goals\n- Full Standalone Frontend Client\n- Tailwind UI component library\n- Instant document search\n\n### Q2 Goals\n- Offline PWA caching\n- Real-time client sync",
       emoji: "🚀",
@@ -174,6 +398,10 @@ const initialSeedState: MockState = {
       createdById: "usr-1001",
       collaboratorIds: ["usr-1001"],
       pinned: true,
+      publishedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+      lastModifiedById: "usr-1001",
+      tasks: { total: 0, completed: 0 },
+      isCollectionDeleted: false,
       archivedAt: null,
       deletedAt: null,
       createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
@@ -186,7 +414,15 @@ const initialSeedState: MockState = {
       documentId: "doc-welcome",
       parentCommentId: null,
       createdById: "usr-1001",
-      data: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Great documentation!" }] }] },
+      data: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Great documentation!" }],
+          },
+        ],
+      },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -253,14 +489,26 @@ export class MockDatabase {
     });
   }
 
+  /**
+   * Looks up a document by its id, its urlId, or the full slug used in urls.
+   *
+   * @param id an id, urlId, or `title-urlId` slug.
+   * @returns the matching document, or undefined.
+   */
   public getDocument(id: string): MockDocument | undefined {
-    return this.state.documents.find((d) => d.id === id && !d.deletedAt);
+    return this.state.documents.find(
+      (d) => !d.deletedAt && matchesIdentifier(d.id, d.urlId, id)
+    );
   }
 
   public createDocument(data: Partial<MockDocument>): MockDocument {
+    const urlId = generateUrlId();
+    const title = data.title || "Untitled Document";
     const doc: MockDocument = {
       id: `doc-${Date.now()}`,
-      title: data.title || "Untitled Document",
+      urlId,
+      url: documentPath(title, urlId),
+      title,
       text: data.text || "",
       emoji: data.emoji || "📝",
       collectionId: data.collectionId || "col-gen",
@@ -268,6 +516,10 @@ export class MockDatabase {
       createdById: this.state.user.id,
       collaboratorIds: [this.state.user.id],
       pinned: false,
+      publishedAt: data.publishedAt ?? new Date().toISOString(),
+      lastModifiedById: this.state.user.id,
+      tasks: { total: 0, completed: 0 },
+      isCollectionDeleted: false,
       archivedAt: null,
       deletedAt: null,
       createdAt: new Date().toISOString(),
@@ -278,7 +530,10 @@ export class MockDatabase {
     return doc;
   }
 
-  public updateDocument(id: string, updates: Partial<MockDocument>): MockDocument | undefined {
+  public updateDocument(
+    id: string,
+    updates: Partial<MockDocument>
+  ): MockDocument | undefined {
     const doc = this.getDocument(id);
     if (!doc) return undefined;
     Object.assign(doc, updates, { updatedAt: new Date().toISOString() });
@@ -299,18 +554,31 @@ export class MockDatabase {
     return this.state.collections.filter((c) => !c.deletedAt);
   }
 
+  /**
+   * Looks up a collection by its id, its urlId, or the full slug used in urls.
+   *
+   * @param id an id, urlId, or `name-urlId` slug.
+   * @returns the matching collection, or undefined.
+   */
   public getCollection(id: string): MockCollection | undefined {
-    return this.state.collections.find((c) => c.id === id && !c.deletedAt);
+    return this.state.collections.find(
+      (c) => !c.deletedAt && matchesIdentifier(c.id, c.urlId, id)
+    );
   }
 
   public createCollection(data: Partial<MockCollection>): MockCollection {
+    const name = data.name || "New Collection";
+    const urlId = generateUrlId();
     const col: MockCollection = {
       id: `col-${Date.now()}`,
-      name: data.name || "New Collection",
+      urlId,
+      url: collectionUrl(name, urlId),
+      name,
       description: data.description || null,
       color: data.color || "#4E5BA6",
-      icon: data.icon || "folder",
+      icon: data.icon || "collection",
       index: String.fromCharCode(97 + this.state.collections.length),
+      sort: { field: "index", direction: "asc" },
       permission: "read_write",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
