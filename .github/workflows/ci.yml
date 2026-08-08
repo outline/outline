@@ -93,12 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
-      - id: audit
-        continue-on-error: true
-        run: yarn npm audit --severity high --recursive --environment production
-      - name: Warn on vulnerabilities
-        if: ${{ steps.audit.outcome == 'failure' }}
-        run: echo "::warning title=Audit::yarn npm audit reported high severity vulnerabilities, see the step above for details."
+      - run: yarn npm audit --severity high --recursive --environment production
 
   test:
     needs: changes
@@ -164,8 +159,10 @@ jobs:
 
   # Always runs, so it can be used as the single required status check. Jobs
   # above are skipped when irrelevant to the changes, which is a pass here.
+  # Audit is intentionally excluded, it reports advisories that often have no
+  # fix available and should not block merging.
   ci:
-    needs: [changes, lint, actionlint, types, audit, test, test-server, bundle-size]
+    needs: [changes, lint, actionlint, types, test, test-server, bundle-size]
     if: always()
     runs-on: ubuntu-latest
     steps:
