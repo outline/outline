@@ -12,6 +12,10 @@ import App from "../../app/index";
     <link rel="icon" type="image/png" href="/images/favicon.png" />
   </head>
   <body class="bg-white text-gray-900 antialiased">
+    <script>
+      import { initMocks } from "../mocks/initMocks";
+      initMocks();
+    </script>
     <App client:only="react" />
   </body>
 </html>
