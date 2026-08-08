@@ -155,6 +155,7 @@ function SidebarLink(
         <Content>
           {hasDisclosure && (
             <DisclosureComponent
+              as={!to && !href ? "span" : undefined}
               expanded={expanded}
               onClick={handleDisclosureClick}
               onMouseDown={stopPropagation}

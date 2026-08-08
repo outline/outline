@@ -10,11 +10,12 @@ type Props = React.ComponentProps<typeof Button> & {
   expanded: boolean;
 };
 
-function Disclosure({ onClick, expanded, ...rest }: Props) {
+function Disclosure({ onClick, expanded, as, ...rest }: Props) {
   const { t } = useTranslation();
 
   return (
     <Button
+      as={as}
       size={20}
       onClick={onClick}
       aria-label={expanded ? t("Collapse") : t("Expand")}
