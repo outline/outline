@@ -135,15 +135,72 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
       };
     }
 
+    case "comments.list":
+      return {
+        data: mockDb.getComments(body.documentId),
+        policies: [],
+      };
+
+    case "comments.create": {
+      const cmt = mockDb.createComment(body);
+      return {
+        data: cmt,
+        policies: [],
+      };
+    }
+
+    case "pins.list":
+      return {
+        data: state.pins,
+        policies: [],
+      };
+
+    case "pins.create": {
+      const newPin = {
+        id: `pin-${Date.now()}`,
+        documentId: body.documentId,
+        collectionId: body.collectionId || null,
+        index: "a",
+        createdById: state.user.id,
+        createdAt: new Date().toISOString(),
+      };
+      state.pins.push(newPin);
+      mockDb.saveState();
+      return {
+        data: newPin,
+        policies: [],
+      };
+    }
+
+    case "notifications.list":
+    case "subscriptions.list":
+    case "groups.list":
+    case "memberships.list":
     case "shares.list":
     case "revisions.list":
     case "events.list":
+    case "templates.list":
+    case "views.list":
+    case "unfurls.list":
       return {
         data: [],
         policies: [],
       };
 
+    case "notifications.count":
+      return {
+        data: { count: 0 },
+        policies: [],
+      };
+
     default:
+      // Generic fallback for any .list, .info, .count, .create, .update, .delete
+      if (action.endsWith(".list")) {
+        return { data: [], policies: [] };
+      }
+      if (action.endsWith(".count")) {
+        return { data: { count: 0 }, policies: [] };
+      }
       return {
         data: {},
         policies: [],

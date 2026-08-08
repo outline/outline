@@ -46,15 +46,36 @@ export interface MockDocument {
   updatedAt: string;
 }
 
+export interface MockComment {
+  id: string;
+  documentId: string;
+  parentCommentId: string | null;
+  createdById: string;
+  data: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MockPin {
+  id: string;
+  documentId: string;
+  collectionId: string | null;
+  index: string;
+  createdById: string;
+  createdAt: string;
+}
+
 export interface MockState {
   user: MockUser;
   team: MockTeam;
   collections: MockCollection[];
   documents: MockDocument[];
+  comments: MockComment[];
+  pins: MockPin[];
   starredDocumentIds: string[];
 }
 
-const STORAGE_KEY = "outline_mock_db_v1";
+const STORAGE_KEY = "outline_mock_db_v2";
 
 const initialSeedState: MockState = {
   user: {
@@ -116,7 +137,7 @@ const initialSeedState: MockState = {
     {
       id: "doc-welcome",
       title: "Welcome to Outline",
-      text: "# Welcome to Outline! 🎉\n\nOutline is a fast, collaborative knowledge base built for teams.\n\n### 🚀 Features Included in this Frontend:\n- **Astro & React Integration**\n- **Tailwind CSS Utility Styling**\n- **Persistent LocalStorage Database**\n- **Rich Text & Collaborative ProseMirror Editor**\n\nFeel free to create new documents, edit content, and explore collections!",
+      text: "# Welcome to Outline! 🎉\n\nOutline is a fast, collaborative knowledge base built for teams.\n\n### 🚀 Features Included in this Standalone Frontend:\n- **Astro & React Integration**\n- **Tailwind CSS Utility Styling**\n- **Persistent In-Browser LocalStorage Database**\n- **Rich Text & Collaborative ProseMirror Editor**\n\nFeel free to create new documents, edit content, and explore collections!",
       emoji: "👋",
       collectionId: "col-gen",
       parentDocumentId: null,
@@ -157,6 +178,27 @@ const initialSeedState: MockState = {
       deletedAt: null,
       createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
       updatedAt: new Date().toISOString(),
+    },
+  ],
+  comments: [
+    {
+      id: "cmt-1001",
+      documentId: "doc-welcome",
+      parentCommentId: null,
+      createdById: "usr-1001",
+      data: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Great documentation!" }] }] },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ],
+  pins: [
+    {
+      id: "pin-1",
+      documentId: "doc-welcome",
+      collectionId: "col-gen",
+      index: "a",
+      createdById: "usr-1001",
+      createdAt: new Date().toISOString(),
     },
   ],
   starredDocumentIds: ["doc-welcome", "doc-roadmap-2026"],
@@ -277,6 +319,29 @@ export class MockDatabase {
     this.state.collections.push(col);
     this.saveState();
     return col;
+  }
+
+  // --- Comments ---
+  public getComments(documentId?: string): MockComment[] {
+    if (documentId) {
+      return this.state.comments.filter((c) => c.documentId === documentId);
+    }
+    return this.state.comments;
+  }
+
+  public createComment(data: Partial<MockComment>): MockComment {
+    const comment: MockComment = {
+      id: `cmt-${Date.now()}`,
+      documentId: data.documentId || "",
+      parentCommentId: data.parentCommentId || null,
+      createdById: this.state.user.id,
+      data: data.data || {},
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.state.comments.push(comment);
+    this.saveState();
+    return comment;
   }
 
   // --- Star Operations ---
