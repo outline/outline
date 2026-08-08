@@ -34,13 +34,11 @@ interface LinkProps extends BaseProps {
 }
 
 interface ButtonProps
-  extends
-    BaseProps,
-    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> {
+  extends BaseProps, React.ButtonHTMLAttributes<HTMLButtonElement> {
   /**
    * Click handler for button mode, optional when the parent handles selection.
    */
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   /**
    * Whether the tab is currently active (only used in button mode).
    */
@@ -112,6 +110,7 @@ const horizontalOnly = (transform: Record<string, string>, generated: string) =>
 /**
  * A single tab with an animated active underline, rendered either as a link
  * matched against the current location, or as a button in controlled mode.
+ * A forwarded ref is only attached in button mode.
  */
 export const Tab = React.forwardRef<HTMLButtonElement, Props>(function Tab(
   props: Props,
