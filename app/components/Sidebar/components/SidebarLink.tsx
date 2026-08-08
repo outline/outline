@@ -147,6 +147,20 @@ function SidebarLink(
     [onDisclosureClick, hasDisclosure]
   );
 
+  const handleKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent<HTMLElement>) => {
+      // Let nested controls (menu buttons, disclosure) handle their own keys.
+      if (ev.target !== ev.currentTarget) {
+        return;
+      }
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        ev.currentTarget.click();
+      }
+    },
+    []
+  );
+
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
 
   const linkContent = (
@@ -154,7 +168,6 @@ function SidebarLink(
       <Content>
         {hasDisclosure && (
           <DisclosureComponent
-            as={!to && !href ? "span" : undefined}
             expanded={expanded}
             onClick={handleDisclosureClick}
             onMouseDown={stopPropagation}
@@ -168,12 +181,24 @@ function SidebarLink(
     </ContextMenu>
   );
 
-  const actionsContent = menu ? <Actions $showActions={$showActions}>{menu}</Actions> : null;
+  const actionsContent = menu ? (
+    <Actions $showActions={$showActions}>{menu}</Actions>
+  ) : null;
 
   if (!to) {
+    // A row that contains its own controls (a disclosure, or action buttons)
+    // cannot be a <button> itself, nested interactive elements are invalid
+    // HTML. Fall back to a focusable element with an explicit button role.
+    const element = href ? "a" : menu || hasDisclosure ? "div" : "button";
+    const isRoleButton = element === "div";
+
     return (
       <Link
-        as={href ? "a" : "button"}
+        as={element}
+        role={isRoleButton ? "button" : undefined}
+        tabIndex={isRoleButton ? (disabled ? -1 : 0) : undefined}
+        aria-disabled={isRoleButton && disabled ? true : undefined}
+        onKeyDown={isRoleButton ? handleKeyDown : undefined}
         $isActiveDrop={isActiveDrop}
         $isDraft={isDraft}
         $disabled={disabled}
