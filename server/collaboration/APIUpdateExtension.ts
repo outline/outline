@@ -7,10 +7,16 @@ import type {
 } from "@hocuspocus/server";
 import type { Document as HocuspocusDocument } from "@hocuspocus/server";
 import * as Y from "yjs";
+import {
+  MultiplayerEntityType,
+  parseMultiplayerName,
+} from "@shared/collaboration/EntityName";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
+import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
+import type { HookContext } from "@server/models/base/Model";
 import RedisAdapter from "@server/storage/redis";
 
 /**
@@ -93,8 +99,7 @@ export class APIUpdateExtension implements Extension {
     documentName,
     document,
   }: afterLoadDocumentPayload): Promise<void> {
-    const [, documentId] = documentName.split(".");
-    this.documents.set(documentId, document);
+    this.documents.set(documentName, document);
   }
 
   async onDestroy(_data: onDestroyPayload): Promise<void> {
@@ -114,8 +119,7 @@ export class APIUpdateExtension implements Extension {
     clientsCount,
   }: onDisconnectPayload): Promise<void> {
     if (clientsCount === 0) {
-      const [, documentId] = documentName.split(".");
-      this.documents.delete(documentId);
+      this.documents.delete(documentName);
     }
   }
 
@@ -128,8 +132,8 @@ export class APIUpdateExtension implements Extension {
     message: string
   ): Promise<void> => {
     try {
-      const documentId = channel.replace(`${CHANNEL_PREFIX}:`, "");
-      const document = this.documents.get(documentId);
+      const documentName = channel.replace(`${CHANNEL_PREFIX}:`, "");
+      const document = this.documents.get(documentName);
 
       if (!document) {
         // Document not loaded in this instance, ignore
@@ -137,31 +141,38 @@ export class APIUpdateExtension implements Extension {
       }
 
       const data = JSON.parse(message);
+      const { type, id } = parseMultiplayerName(documentName);
 
-      Logger.debug("multiplayer", `Received API update for document`, {
-        documentId,
+      Logger.debug("multiplayer", `Received API update for ${type}`, {
+        documentId: id,
         actorId: data.actorId,
       });
 
       // Fetch the latest state from the database
-      const dbDocument = await Document.unscoped().findOne({
-        attributes: ["state", "content", "text"],
-        where: { id: documentId },
-      });
+      const dbEntity =
+        type === MultiplayerEntityType.Collection
+          ? await Collection.unscoped().findOne({
+              attributes: ["state"],
+              where: { id },
+            })
+          : await Document.unscoped().findOne({
+              attributes: ["state"],
+              where: { id },
+            });
 
-      if (!dbDocument) {
-        Logger.warn(`Document ${documentId} not found in database`);
+      if (!dbEntity) {
+        Logger.warn(`${documentName} not found in database`);
         return;
       }
 
-      if (!dbDocument.state) {
-        Logger.warn(`Document ${documentId} has no state in database`);
+      if (!dbEntity.state) {
+        Logger.warn(`${documentName} has no state in database`);
         return;
       }
 
       // Create a Y.Doc from the database state
       const dbYdoc = new Y.Doc();
-      Y.applyUpdate(dbYdoc, dbDocument.state);
+      Y.applyUpdate(dbYdoc, dbEntity.state);
 
       // Calculate the diff between the current in-memory state and the database state
       const currentStateVector = Y.encodeStateVector(document);
@@ -171,8 +182,8 @@ export class APIUpdateExtension implements Extension {
       if (update.length > 0) {
         Y.applyUpdate(document, update);
 
-        Logger.info("multiplayer", `Applied API update to document`, {
-          documentId,
+        Logger.info("multiplayer", `Applied API update to ${type}`, {
+          documentId: id,
           updateSize: update.length,
         });
       }
@@ -184,17 +195,41 @@ export class APIUpdateExtension implements Extension {
   };
 
   /**
-   * Publish a notification that a document was updated via the API.
-   * This should be called from the document update command.
+   * Publish a notification that an entity was updated via the API once the
+   * current transaction, if any, has committed. This should be called from
+   * the entity's update hook.
    *
-   * @param documentId - the id of the document that was updated.
+   * @param documentName - the multiplayer name of the entity that was updated, eg "document.123".
+   * @param ctx - the hook context of the update.
+   */
+  static notifyUpdateAfterCommit(documentName: string, ctx: HookContext) {
+    const actorId = ctx.auth?.user?.id;
+    if (!actorId) {
+      return;
+    }
+
+    const notify = () => APIUpdateExtension.notifyUpdate(documentName, actorId);
+
+    if (ctx.transaction) {
+      const transaction = ctx.transaction.parent || ctx.transaction;
+      transaction.afterCommit(notify);
+    } else {
+      void notify();
+    }
+  }
+
+  /**
+   * Publish a notification that an entity was updated via the API.
+   * This should be called from the entity's update command.
+   *
+   * @param documentName - the multiplayer name of the entity that was updated, eg "document.123".
    * @param actorId - the id of the user who made the update.
    */
   static async notifyUpdate(
-    documentId: string,
+    documentName: string,
     actorId: string
   ): Promise<void> {
-    const channel = `${CHANNEL_PREFIX}:${documentId}`;
+    const channel = `${CHANNEL_PREFIX}:${documentName}`;
     const message = JSON.stringify({
       actorId,
       timestamp: Date.now(),
@@ -203,7 +238,7 @@ export class APIUpdateExtension implements Extension {
     await RedisAdapter.defaultClient.publish(channel, message);
 
     Logger.debug("multiplayer", `Published API update notification`, {
-      documentId,
+      documentName,
       actorId,
     });
   }
