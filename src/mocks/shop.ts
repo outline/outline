@@ -222,6 +222,15 @@ export interface BillingInvoice {
   status: "paid" | "open";
 }
 
+export interface Business {
+  slug: string;
+  name: string;
+  tagline: string;
+  address: string;
+  phone: string;
+  hours: string;
+}
+
 export interface State {
   products: Product[];
   customers: Customer[];
@@ -245,9 +254,10 @@ export interface State {
   whatsappMessages: WhatsappMessage[];
   subscription: Subscription;
   billingInvoices: BillingInvoice[];
+  business: Business;
 }
 
-const STORAGE_KEY = "shop_db_v4";
+const STORAGE_KEY = "shop_db_v5";
 
 const daysFromNow = (days: number) =>
   new Date(Date.now() + days * 86400000).toISOString();
@@ -938,6 +948,14 @@ const seed: State = {
       status: "paid",
     },
   ],
+  business: {
+    slug: "acme-pets",
+    name: "Acme Pet Care",
+    tagline: "Boarding, grooming and everything your pet needs.",
+    address: "Jl. Kemang Raya 42, Jakarta Selatan",
+    phone: "+62 21 555 1000",
+    hours: "Mon–Sat 08:00–19:00, Sun 09:00–15:00",
+  },
 };
 
 /**
@@ -1541,6 +1559,102 @@ export function handleShopRequest(
       };
       persist();
       return { data: state.subscription };
+    }
+
+    case "public.business": {
+      const slug = String(body.slug ?? "");
+      // A slug that is not ours must not resolve, or every tenant would share
+      // the same shopfront.
+      return {
+        data: state.business.slug === slug ? state.business : null,
+      };
+    }
+
+    case "public.featured":
+      return {
+        data: state.products
+          .filter((product) => product.status === "active" && product.stock > 0)
+          .slice(0, 6)
+          .map((product) => ({
+            id: product.id,
+            name: product.name,
+            category: product.category,
+            price: product.price,
+          })),
+      };
+
+    case "public.availability": {
+      // Only what a visitor needs: room types and whether any are free.
+      const occupancy = roomOccupancy();
+      const byType = new Map<
+        string,
+        { type: string; free: number; total: number; from: number }
+      >();
+
+      occupancy.forEach((room) => {
+        const rate =
+          room.type === "suite"
+            ? 275000
+            : room.type === "deluxe"
+              ? 210000
+              : 150000;
+        const entry = byType.get(room.type) ?? {
+          type: room.type,
+          free: 0,
+          total: 0,
+          from: rate,
+        };
+        entry.total += room.capacity;
+        entry.free += Math.max(0, room.capacity - room.occupied);
+        byType.set(room.type, entry);
+      });
+
+      return { data: Array.from(byType.values()) };
+    }
+
+    case "public.booking.create": {
+      const petName = String(body.petName ?? "").trim();
+      const customerName = String(body.customerName ?? "").trim();
+      const roomType = String(body.roomType ?? "standard");
+
+      if (!petName || !customerName) {
+        return { data: { created: false, reason: "missing_details" } };
+      }
+
+      const room = roomOccupancy().find(
+        (item) => item.type === roomType && !item.isFull
+      );
+
+      if (!room) {
+        return { data: { created: false, reason: "no_room" } };
+      }
+
+      const rate =
+        roomType === "suite" ? 275000 : roomType === "deluxe" ? 210000 : 150000;
+      const code = `BRD-${1044 + state.boardings.length}`;
+
+      state = {
+        ...state,
+        boardings: [
+          ...state.boardings,
+          {
+            id: `bd-${Date.now()}`,
+            code,
+            customerId: "public",
+            customerName,
+            petName,
+            roomId: room.id,
+            roomName: room.name,
+            branch: room.branch,
+            checkIn: String(body.checkIn ?? daysFromNow(1)),
+            checkOut: String(body.checkOut ?? daysFromNow(3)),
+            status: "booked",
+            ratePerNight: rate,
+          },
+        ],
+      };
+      persist();
+      return { data: { created: true, code, room: room.name } };
     }
 
     case "suppliers.list":

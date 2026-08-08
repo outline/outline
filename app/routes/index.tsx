@@ -15,6 +15,9 @@ const Shared = lazy(() => import("~/scenes/Shared"));
 const Login = lazy(() => import("~/scenes/Login"));
 const Logout = lazy(() => import("~/scenes/Logout"));
 const OAuthAuthorize = lazy(() => import("~/scenes/Login/OAuthAuthorize"));
+const PublicBooking = lazy(() => import("~/scenes/Public/Booking"));
+const PublicBoarding = lazy(() => import("~/scenes/Public/Boarding"));
+const PublicFeatured = lazy(() => import("~/scenes/Public/Featured"));
 
 export default function Routes() {
   useAutoRefresh();
@@ -45,6 +48,29 @@ export default function Routes() {
           <Route exact path="/logout" component={Logout} />
           <Route exact path="/desktop-redirect" component={DesktopRedirect} />
           <Route exact path="/oauth/authorize" component={OAuthAuthorize} />
+
+          {/* Public, per-business pages. These sit outside Authenticated
+              because a visitor booking a stay has no account. */}
+          <Route
+            exact
+            path="/p/:businessSlug/booking"
+            component={PublicBooking}
+          />
+          <Route
+            exact
+            path="/p/:businessSlug/boarding"
+            component={PublicBoarding}
+          />
+          <Route
+            exact
+            path="/p/:businessSlug/featured"
+            component={PublicFeatured}
+          />
+          <Redirect
+            exact
+            from="/p/:businessSlug"
+            to="/p/:businessSlug/booking"
+          />
 
           <Redirect exact from="/share/:shareId" to="/s/:shareId" />
           <Route exact path="/s/:shareId" component={Shared} />
