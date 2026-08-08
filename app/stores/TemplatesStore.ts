@@ -12,9 +12,19 @@ export default class TemplatesStore extends Store<Template> {
     super(rootStore, Template);
   }
 
+  /**
+   * Templates that are published, and so available to insert into documents.
+   */
+  @computed
+  get published(): Template[] {
+    return this.orderedData.filter(
+      (template) => template.isActive && !template.isDraft
+    );
+  }
+
   @computed
   get alphabetical(): Template[] {
-    return naturalSort(Array.from(this.data.values()), "title");
+    return naturalSort(this.published, "title");
   }
 
   @computed

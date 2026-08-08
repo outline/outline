@@ -1,19 +1,25 @@
+import { debounce } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { InputIcon, ShapesIcon } from "outline-icons";
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Prompt } from "react-router-dom";
+import { toast } from "sonner";
 import styled from "styled-components";
 import type { ProsemirrorData } from "@shared/types";
+import { errToString } from "@shared/utils/error";
 import type Template from "~/models/Template";
 import Editor from "~/scenes/Document/components/Editor";
 import { DocumentContextProvider } from "~/components/DocumentContext";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Notice from "~/components/Notice";
 import useBoolean from "~/hooks/useBoolean";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useEventListener from "~/hooks/useEventListener";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+
+const AUTOSAVE_DELAY = 1000;
 
 export const TemplateForm = observer(function TemplateForm_({
   handleSubmit,
@@ -24,31 +30,84 @@ export const TemplateForm = observer(function TemplateForm_({
 }) {
   const { dialogs } = useStores();
   const { t } = useTranslation();
+  const user = useCurrentUser();
   const can = usePolicy(template);
   const dataRef = useRef(template.data);
+  const titleRef = useRef(template.title);
   const ref = useRef(null);
   const [isUploading, handleStartUpload, handleStopUpload] = useBoolean();
   const readOnly = !can.update && !template.isNew;
 
+  const saveRef = useRef<() => Promise<void>>(() => Promise.resolve());
+  const saveFailedRef = useRef(false);
+
+  const autosave = useMemo(
+    () => debounce(() => void saveRef.current(), AUTOSAVE_DELAY),
+    []
+  );
+
+  // The API response is applied back over the model, so anything edited while a
+  // request is in flight has to be re-applied once it lands.
+  const applyEdits = useCallback(() => {
+    template.title = titleRef.current;
+    template.data = dataRef.current;
+  }, [template]);
+
+  const save = useCallback(async () => {
+    if (template.isSaving) {
+      return;
+    }
+
+    applyEdits();
+    if (!template.isDirty()) {
+      return;
+    }
+
+    try {
+      await template.save();
+      saveFailedRef.current = false;
+    } catch (error) {
+      saveFailedRef.current = true;
+      toast.error(errToString(error));
+      return;
+    }
+
+    applyEdits();
+    if (template.isDirty()) {
+      autosave();
+    }
+  }, [template, applyEdits, autosave]);
+
+  useEffect(() => {
+    saveRef.current = save;
+  });
+
   const handleChangeTitle = (title: string) => {
+    titleRef.current = title;
     template.title = title;
+    autosave();
   };
 
   const handleChangeIcon = (icon: string, color: string) => {
     template.icon = icon;
     template.color = color;
+    autosave();
   };
 
   const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
     dataRef.current = value(false);
     template.data = dataRef.current;
+    autosave();
   };
 
-  const handleSave = (options: { autosave?: boolean }) => {
-    if (options.autosave) {
+  const handleSave = (options: { done?: boolean; autosave?: boolean }) => {
+    if (options.done) {
+      handleSubmit(template);
       return;
     }
-    handleSubmit(template);
+
+    autosave.cancel();
+    void save();
   };
 
   const handleCancel = () => {
@@ -62,16 +121,40 @@ export const TemplateForm = observer(function TemplateForm_({
     }
   };
 
+  // Changes are flushed on unmount, so navigation is only worth blocking when
+  // saving them has already failed.
   const handleBlockNavigation = () =>
-    template.isDirty()
-      ? t(`You have unsaved changes.\nAre you sure you want to discard them?`)
+    saveFailedRef.current && template.isDirty()
+      ? t(`Your changes couldn’t be saved.\nAre you sure you want to leave?`)
       : true;
 
   useEventListener("beforeunload", handleUnload);
 
-  // Edits are applied directly to the model, so anything left unsaved must be
-  // rolled back to avoid leaking into other views that render the same record.
-  useEffect(() => () => template.revert(), [template]);
+  // Flush anything the debounce hasn't caught yet, and clean up after a draft
+  // that was opened but never written to.
+  useEffect(
+    () => () => {
+      autosave.cancel();
+
+      if (readOnly) {
+        return;
+      }
+
+      applyEdits();
+
+      if (
+        template.isDraft &&
+        template.isEmpty &&
+        template.createdBy?.id === user.id
+      ) {
+        void template.delete();
+      } else if (template.isDirty()) {
+        void template.save();
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   if (!template) {
     return null;
@@ -82,7 +165,7 @@ export const TemplateForm = observer(function TemplateForm_({
       <Prompt message={handleBlockNavigation} />
       <React.Suspense fallback={null}>
         {isUploading && <LoadingIndicator />}
-        <Notice
+        <EditingNotice
           icon={<ShapesIcon />}
           description={
             <Trans>
@@ -92,7 +175,7 @@ export const TemplateForm = observer(function TemplateForm_({
           }
         >
           {t("You’re editing a template")}
-        </Notice>
+        </EditingNotice>
         <Editor
           id={template.id}
           ref={ref}
@@ -116,6 +199,12 @@ export const TemplateForm = observer(function TemplateForm_({
     </DocumentContextProvider>
   );
 });
+
+const EditingNotice = styled(Notice)`
+  @media print {
+    display: none;
+  }
+`;
 
 const PlaceholderIcon = styled(InputIcon)`
   position: relative;

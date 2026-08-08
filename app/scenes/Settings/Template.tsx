@@ -16,6 +16,7 @@ import Scene from "~/components/Scene";
 import { TemplateForm } from "~/components/Template/TemplateForm";
 import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
+import { ActionContextProvider } from "~/hooks/useActionContext";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import TemplateMenu from "~/menus/TemplateMenu";
@@ -99,7 +100,7 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
 
     setSaving(true);
     try {
-      await template.save();
+      await (template.isDraft ? template.publish() : template.save());
       history.push(settingsPath("templates"));
     } catch (error) {
       toast.error(errToString(error));
@@ -109,24 +110,26 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
   }, [template, t]);
 
   return (
-    <Scene
-      title={template.title}
-      left={<Breadcrumb actions={breadcrumbActions} />}
-      actions={
-        <>
-          <Action>
-            <Button onClick={handleSubmit} disabled={saving}>
-              {t("Save")}
-            </Button>
-          </Action>
-          <Action>
-            <TemplateMenu template={template} />
-          </Action>
-        </>
-      }
-    >
-      <TemplateForm template={template} handleSubmit={handleSubmit} />
-    </Scene>
+    <ActionContextProvider value={{ activeModels: [template] }}>
+      <Scene
+        title={template.title}
+        left={<Breadcrumb actions={breadcrumbActions} />}
+        actions={
+          <>
+            <Action>
+              <Button onClick={handleSubmit} disabled={saving}>
+                {template.isDraft ? t("Publish") : t("Done")}
+              </Button>
+            </Action>
+            <Action>
+              <TemplateMenu template={template} neutral />
+            </Action>
+          </>
+        }
+      >
+        <TemplateForm template={template} handleSubmit={handleSubmit} />
+      </Scene>
+    </ActionContextProvider>
   );
 });
 

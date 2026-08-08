@@ -10,9 +10,11 @@ import { useTemplateSettingsActions } from "~/hooks/useTemplateSettingsActions";
 type Props = {
   template: Template;
   onEdit?: () => void;
+  /** Whether to render the trigger as a neutral button with a border on hover */
+  neutral?: boolean;
 };
 
-function TemplateMenu({ template, onEdit }: Props) {
+function TemplateMenu({ template, onEdit, neutral }: Props) {
   const { t } = useTranslation();
   const rootAction = useTemplateSettingsActions(template, onEdit);
 
@@ -23,7 +25,7 @@ function TemplateMenu({ template, onEdit }: Props) {
         align="end"
         ariaLabel={t("Template options")}
       >
-        <OverflowMenuButton />
+        <OverflowMenuButton neutral={neutral} />
       </DropdownMenu>
     </ActionContextProvider>
   );

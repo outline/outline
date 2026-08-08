@@ -8,10 +8,13 @@ import {
   NewDocumentIcon,
   PlusIcon,
   PrintIcon,
+  PublishIcon,
   TrashIcon,
 } from "outline-icons";
 import { Trans } from "react-i18next";
 import { toast } from "sonner";
+import { errToString } from "@shared/utils/error";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import TemplateMove from "~/components/DocumentExplorer/TemplateMove";
 import {
@@ -86,6 +89,34 @@ export const deleteTemplate = createAction({
   },
 });
 
+export const publishTemplate = createAction({
+  name: ({ t }) => t("Publish"),
+  analyticsName: "Publish template",
+  section: ActiveTemplateSection,
+  icon: <PublishIcon />,
+  visible: ({ getActiveModel, getActivePolicies }) =>
+    !!getActiveModel(Template)?.isDraft &&
+    getActivePolicies(Template).some((policy) => policy.abilities.update),
+  perform: async ({ getActiveModel, t }) => {
+    const template = getActiveModel(Template);
+    if (!template) {
+      return;
+    }
+
+    if (!template.data || ProsemirrorDataHelper.isEmpty(template.data)) {
+      toast.message(t("A template must have content"));
+      return;
+    }
+
+    try {
+      await template.publish();
+      toast.success(t("Template published"));
+    } catch (error) {
+      toast.error(errToString(error));
+    }
+  },
+});
+
 export const moveTemplateToWorkspace = createAction({
   name: ({ t }) => t("Move to workspace"),
   analyticsName: "Move template to workspace",
@@ -119,6 +150,7 @@ export const moveTemplateToCollection = createAction({
   analyticsName: "Move template to collection",
   section: ActiveTemplateSection,
   icon: <CollectionIcon />,
+  visible: ({ getActiveModel }) => !!getActiveModel(Template),
   perform: ({ getActiveModel, stores, t }) => {
     const template = getActiveModel(Template);
     if (!template) {
@@ -202,6 +234,7 @@ export const copyTemplateLink = createAction({
   section: ActiveTemplateSection,
   icon: <CopyIcon />,
   iconInContextMenu: false,
+  visible: ({ getActiveModel }) => !!getActiveModel(Template),
   perform: ({ getActiveModel, t }) => {
     const template = getActiveModel(Template);
     if (template) {
@@ -217,6 +250,7 @@ export const copyTemplateAsPlainText = createAction({
   section: ActiveTemplateSection,
   icon: <CaseSensitiveIcon />,
   iconInContextMenu: false,
+  visible: ({ getActiveModel }) => !!getActiveModel(Template),
   perform: async ({ getActiveModel, t }) => {
     const template = getActiveModel(Template);
     if (template) {
@@ -246,4 +280,13 @@ export const printTemplate = createAction({
   },
 });
 
-export const rootTemplateActions = [moveTemplate, createDocumentFromTemplate];
+export const rootTemplateActions = [
+  createTemplate,
+  publishTemplate,
+  duplicateTemplate,
+  moveTemplate,
+  createDocumentFromTemplate,
+  copyTemplate,
+  printTemplate,
+  deleteTemplate,
+];

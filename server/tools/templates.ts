@@ -90,7 +90,16 @@ export function templateTools(server: McpServer, scopes: string[]) {
               [Op.and]: WhereOptions<Template>[];
             } = {
               teamId: user.teamId,
-              [Op.and]: [{ deletedAt: { [Op.eq]: null } }],
+              [Op.and]: [
+                { deletedAt: { [Op.eq]: null } },
+                // drafts are only visible to the user that created them
+                {
+                  [Op.or]: [
+                    { publishedAt: { [Op.ne]: null } },
+                    { createdById: user.id },
+                  ],
+                },
+              ],
             };
 
             if (collectionId) {
