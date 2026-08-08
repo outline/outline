@@ -23,6 +23,21 @@ export function setupApiMock(): void {
 
       const responsePayload = handleApiRequest(action, body);
 
+      if (responsePayload && typeof responsePayload === "object" && !responsePayload.pagination) {
+        const count = Array.isArray(responsePayload.data)
+          ? responsePayload.data.length
+          : responsePayload.data && typeof responsePayload.data === "object" && Array.isArray(responsePayload.data.pins)
+          ? responsePayload.data.pins.length
+          : 0;
+
+        responsePayload.pagination = {
+          total: count,
+          limit: body.limit || 25,
+          offset: body.offset || 0,
+          nextPath: "",
+        };
+      }
+
       return new Response(JSON.stringify(responsePayload), {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -163,7 +178,10 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
 
     case "pins.list":
       return {
-        data: state.pins,
+        data: {
+          pins: state.pins,
+          documents: [],
+        },
         policies: [],
       };
 
