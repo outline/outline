@@ -61,6 +61,7 @@
     "@benrbray/prosemirror-math": "^0.2.2",
     "@bull-board/api": "^6.21.3",
     "@bull-board/koa": "^6.21.3",
+    "@bull-board/ui": "^6.21.3",
     "@css-inline/css-inline-wasm": "^0.20.2",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^6.0.1",
@@ -227,6 +228,7 @@
     "react-helmet-async": "^2.0.5",
     "react-hook-form": "^7.76.0",
     "react-i18next": "^12.3.1",
+    "react-is": "^17.0.2",
     "react-merge-refs": "^2.1.1",
     "react-portal": "^4.3.0",
     "react-remove-scroll": "^2.7.2",
@@ -348,7 +350,7 @@
     "@types/validator": "^13.15.10",
     "@types/yauzl": "^2.10.3",
     "@types/yazl": "^3.3.1",
-    "@vitest/ui": "^4.1.8",
+    "@vitest/ui": "^4.1.10",
     "browserslist-to-esbuild": "^1.2.0",
     "concurrently": "^8.2.2",
     "discord-api-types": "^0.38.48",
@@ -369,7 +371,7 @@
     "typescript": "^6.0.3",
     "unplugin-swc": "^1.5.9",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.10"
   },
   "resolutions": {
     "@types/react": "17.0.91",
