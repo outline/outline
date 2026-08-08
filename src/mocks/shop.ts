@@ -187,6 +187,41 @@ export interface LoyaltyMovement {
   reason: string;
 }
 
+export interface WhatsappTemplate {
+  id: string;
+  name: string;
+  category: "reminder" | "marketing" | "receipt";
+  body: string;
+  status: "approved" | "pending";
+}
+
+export interface WhatsappMessage {
+  id: string;
+  templateId: string;
+  templateName: string;
+  to: string;
+  customerName: string;
+  sentAt: string;
+  status: "sent" | "delivered" | "read" | "failed";
+}
+
+export interface Subscription {
+  plan: "free" | "pro" | "business";
+  price: number;
+  interval: "month" | "year";
+  renewsAt: string;
+  status: "active" | "past_due";
+  limits: { staff: number; branches: number; boardingsPerMonth: number };
+}
+
+export interface BillingInvoice {
+  id: string;
+  number: string;
+  date: string;
+  amount: number;
+  status: "paid" | "open";
+}
+
 export interface State {
   products: Product[];
   customers: Customer[];
@@ -206,9 +241,13 @@ export interface State {
   shifts: Shift[];
   grooming: Grooming[];
   loyalty: LoyaltyMovement[];
+  whatsappTemplates: WhatsappTemplate[];
+  whatsappMessages: WhatsappMessage[];
+  subscription: Subscription;
+  billingInvoices: BillingInvoice[];
 }
 
-const STORAGE_KEY = "shop_db_v3";
+const STORAGE_KEY = "shop_db_v4";
 
 const daysFromNow = (days: number) =>
   new Date(Date.now() + days * 86400000).toISOString();
@@ -832,6 +871,73 @@ const seed: State = {
       reason: "Grooming",
     },
   ],
+  whatsappTemplates: [
+    {
+      id: "wat-1",
+      name: "Boarding reminder",
+      category: "reminder",
+      body: "Hi {{name}}, {{pet}} is booked in with us on {{date}}. See you then!",
+      status: "approved",
+    },
+    {
+      id: "wat-2",
+      name: "Grooming ready",
+      category: "reminder",
+      body: "{{pet}} is all done and ready for collection.",
+      status: "approved",
+    },
+    {
+      id: "wat-3",
+      name: "Weekend promo",
+      category: "marketing",
+      body: "20% off grooming this weekend for {{name}}.",
+      status: "pending",
+    },
+  ],
+  whatsappMessages: [
+    {
+      id: "wam-1",
+      templateId: "wat-1",
+      templateName: "Boarding reminder",
+      to: "+62 812-1111-2222",
+      customerName: "Sinta Wijaya",
+      sentAt: daysFromNow(-1),
+      status: "read",
+    },
+    {
+      id: "wam-2",
+      templateId: "wat-2",
+      templateName: "Grooming ready",
+      to: "+62 813-3333-4444",
+      customerName: "Bayu Pratama",
+      sentAt: daysFromNow(-0.5),
+      status: "delivered",
+    },
+  ],
+  subscription: {
+    plan: "pro",
+    price: 499000,
+    interval: "month",
+    renewsAt: daysFromNow(18),
+    status: "active",
+    limits: { staff: 10, branches: 3, boardingsPerMonth: 200 },
+  },
+  billingInvoices: [
+    {
+      id: "bil-1",
+      number: "SUB-0007",
+      date: daysFromNow(-12),
+      amount: 499000,
+      status: "paid",
+    },
+    {
+      id: "bil-2",
+      number: "SUB-0006",
+      date: daysFromNow(-42),
+      amount: 499000,
+      status: "paid",
+    },
+  ],
 };
 
 /**
@@ -920,6 +1026,46 @@ function expenseAccountFor(category: string): string {
     Utilities: "acc-utilities",
   };
   return map[category] ?? "acc-supplies";
+}
+
+/** What each plan costs per month. */
+const PLAN_PRICES: Record<string, number> = {
+  free: 0,
+  pro: 499000,
+  business: 1290000,
+};
+
+/** What each plan allows. */
+const PLAN_LIMITS: Record<string, Subscription["limits"]> = {
+  free: { staff: 3, branches: 1, boardingsPerMonth: 30 },
+  pro: { staff: 10, branches: 3, boardingsPerMonth: 200 },
+  business: { staff: 50, branches: 20, boardingsPerMonth: 2000 },
+};
+
+/**
+ * Usage against the current plan's limits, counted from live records rather
+ * than tracked separately.
+ *
+ * @returns each limit with its current usage.
+ */
+export function planUsage() {
+  const monthAgo = Date.now() - 30 * 86400000;
+  return {
+    staff: {
+      used: state.staff.length,
+      limit: state.subscription.limits.staff,
+    },
+    branches: {
+      used: state.branches.length,
+      limit: state.subscription.limits.branches,
+    },
+    boardings: {
+      used: state.boardings.filter(
+        (boarding) => new Date(boarding.checkIn).getTime() >= monthAgo
+      ).length,
+      limit: state.subscription.limits.boardingsPerMonth,
+    },
+  };
 }
 
 /**
@@ -1333,6 +1479,68 @@ export function handleShopRequest(
       };
       persist();
       return { data: { redeemed: true } };
+    }
+
+    case "whatsapp.templates":
+      return { data: state.whatsappTemplates };
+
+    case "whatsapp.messages":
+      return { data: state.whatsappMessages };
+
+    case "billing.subscription":
+      return { data: state.subscription };
+
+    case "billing.invoices":
+      return { data: state.billingInvoices };
+
+    case "billing.usage":
+      return { data: planUsage() };
+
+    case "whatsapp.send": {
+      const templateId = String(body.templateId ?? "");
+      const customerId = String(body.customerId ?? "");
+      const template = state.whatsappTemplates.find(
+        (item) => item.id === templateId
+      );
+      const customer = state.customers.find((item) => item.id === customerId);
+
+      // Only approved templates can be sent, the same rule the provider applies.
+      if (!template || !customer || template.status !== "approved") {
+        return { data: { sent: false, reason: "not_approved" } };
+      }
+
+      state = {
+        ...state,
+        whatsappMessages: [
+          {
+            id: `wam-${Date.now()}`,
+            templateId: template.id,
+            templateName: template.name,
+            to: customer.phone,
+            customerName: customer.name,
+            sentAt: new Date().toISOString(),
+            status: "sent",
+          },
+          ...state.whatsappMessages,
+        ],
+      };
+      persist();
+      return { data: { sent: true } };
+    }
+
+    case "billing.changePlan": {
+      const plan = String(body.plan ?? "pro") as Subscription["plan"];
+      state = {
+        ...state,
+        subscription: {
+          ...state.subscription,
+          plan,
+          price: PLAN_PRICES[plan] ?? 0,
+          limits: PLAN_LIMITS[plan] ?? state.subscription.limits,
+        },
+      };
+      persist();
+      return { data: state.subscription };
     }
 
     case "suppliers.list":

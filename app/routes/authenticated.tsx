@@ -124,6 +124,11 @@ function AuthenticatedRoutes() {
                 path="/loyalty"
                 component={Scenes.Loyalty.Component}
               />
+              <Route
+                exact
+                path="/whatsapp"
+                component={Scenes.Whatsapp.Component}
+              />
               <Route exact path="/staff" component={Scenes.Staff.Component} />
               <Route
                 exact

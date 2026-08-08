@@ -19,6 +19,7 @@ export const Inventory = lazy(() => import("~/scenes/Inventory"));
 export const Accounting = lazy(() => import("~/scenes/Accounting"));
 export const Grooming = lazy(() => import("~/scenes/Grooming"));
 export const Loyalty = lazy(() => import("~/scenes/Loyalty"));
+export const Whatsapp = lazy(() => import("~/scenes/Whatsapp"));
 export const Staff = lazy(() => import("~/scenes/Staff"));
 export const Branches = lazy(() => import("~/scenes/Branches"));
 export const Occupancy = lazy(() => import("~/scenes/Occupancy"));

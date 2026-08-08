@@ -18,6 +18,10 @@ import type {
   Shift,
   Grooming,
   LoyaltyMovement,
+  WhatsappTemplate,
+  WhatsappMessage,
+  Subscription,
+  BillingInvoice,
 } from "../../src/mocks/shop";
 
 /** A room with the guests currently occupying it. */
@@ -48,6 +52,13 @@ export type CommissionRow = {
   rate: number;
   base: number;
   amount: number;
+};
+
+/** Usage of each plan limit. */
+export type PlanUsage = {
+  staff: { used: number; limit: number };
+  branches: { used: number; limit: number };
+  boardings: { used: number; limit: number };
 };
 
 /** A line on a point of sale ticket. */
@@ -92,6 +103,11 @@ interface State {
   shifts: Shift[];
   grooming: Grooming[];
   loyalty: LoyaltyMovement[];
+  whatsappTemplates: WhatsappTemplate[];
+  whatsappMessages: WhatsappMessage[];
+  subscription?: Subscription;
+  billingInvoices: BillingInvoice[];
+  usage?: PlanUsage;
   trialBalance: TrialBalanceRow[];
   commissions: CommissionRow[];
   isLoading: boolean;
@@ -122,6 +138,8 @@ interface State {
   }) => Promise<void>;
   setGroomingStatus: (id: string, status: Grooming["status"]) => Promise<void>;
   redeemPoints: (customerId: string, points: number) => Promise<boolean>;
+  sendWhatsapp: (templateId: string, customerId: string) => Promise<boolean>;
+  changePlan: (plan: "free" | "pro" | "business") => Promise<void>;
 }
 
 /**
@@ -149,6 +167,9 @@ export const useShop = create<State>((set, get) => ({
   shifts: [],
   grooming: [],
   loyalty: [],
+  whatsappTemplates: [],
+  whatsappMessages: [],
+  billingInvoices: [],
   trialBalance: [],
   commissions: [],
   isLoading: false,
@@ -179,6 +200,11 @@ export const useShop = create<State>((set, get) => ({
         commissions,
         grooming,
         loyalty,
+        whatsappTemplates,
+        whatsappMessages,
+        subscription,
+        billingInvoices,
+        usage,
       ] = await Promise.all([
         client.post("/dashboard"),
         client.post("/products.list"),
@@ -201,6 +227,11 @@ export const useShop = create<State>((set, get) => ({
         client.post("/accounting.commissions"),
         client.post("/grooming.list"),
         client.post("/loyalty.list"),
+        client.post("/whatsapp.templates"),
+        client.post("/whatsapp.messages"),
+        client.post("/billing.subscription"),
+        client.post("/billing.invoices"),
+        client.post("/billing.usage"),
       ]);
 
       set({
@@ -225,6 +256,11 @@ export const useShop = create<State>((set, get) => ({
         commissions: commissions.data,
         grooming: grooming.data,
         loyalty: loyalty.data,
+        whatsappTemplates: whatsappTemplates.data,
+        whatsappMessages: whatsappMessages.data,
+        subscription: subscription.data,
+        billingInvoices: billingInvoices.data,
+        usage: usage.data,
         isLoading: false,
       });
     } catch (err) {
@@ -307,6 +343,20 @@ export const useShop = create<State>((set, get) => ({
 
   setGroomingStatus: async (id, status) => {
     await client.post("/grooming.setStatus", { id, status });
+    await get().fetchAll();
+  },
+
+  sendWhatsapp: async (templateId, customerId) => {
+    const response = await client.post("/whatsapp.send", {
+      templateId,
+      customerId,
+    });
+    await get().fetchAll();
+    return Boolean(response.data?.sent);
+  },
+
+  changePlan: async (plan) => {
+    await client.post("/billing.changePlan", { plan });
     await get().fetchAll();
   },
 

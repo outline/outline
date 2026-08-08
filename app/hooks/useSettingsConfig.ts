@@ -34,6 +34,7 @@ const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const Applications = lazy(() => import("~/scenes/Settings/Applications"));
 const APIAndAccess = lazy(() => import("~/scenes/Settings/APIAndAccess"));
 const Authentication = lazy(() => import("~/scenes/Settings/Authentication"));
+const Billing = lazy(() => import("~/scenes/Settings/Billing"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
@@ -117,6 +118,15 @@ const useSettingsConfig = () => {
         icon: PadlockIcon,
       },
       // Workspace
+      {
+        name: t("Billing"),
+        path: settingsPath("billing"),
+        component: Billing.Component,
+        preload: Billing.preload,
+        enabled: can.update,
+        group: t("Workspace"),
+        icon: TeamIcon,
+      },
       {
         name: t("Details"),
         path: settingsPath("details"),

@@ -10,6 +10,7 @@ import {
   MathIcon,
   StarredIcon,
   SmileyIcon,
+  EmailIcon,
   TeamIcon,
   BuildingBlocksIcon as BranchIcon,
 } from "outline-icons";
@@ -67,6 +68,11 @@ export function ShopLinks() {
           to="/loyalty"
           icon={<StarredIcon />}
           label={t("Loyalty")}
+        />
+        <SidebarLink
+          to="/whatsapp"
+          icon={<EmailIcon />}
+          label={t("WhatsApp")}
         />
         <SidebarLink
           to="/accounting"
