@@ -10,6 +10,16 @@ import App from "../../app/index";
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Outline</title>
     <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <script is:inline>
+      window.env = {
+        ENVIRONMENT: "development",
+        URL: window.location.origin,
+        COLLABORATION_URL: "ws://" + window.location.host,
+        CDN_URL: "",
+        DEFAULT_LANGUAGE: "en_US",
+        MAX_UPLOAD_SIZE: 26214400
+      };
+    </script>
   </head>
   <body class="bg-white text-gray-900 antialiased">
     <script>
