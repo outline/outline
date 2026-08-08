@@ -10832,14 +10832,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:^0.7.1, cookie@npm:^0.7.2, cookie@npm:~0.7.2":
+"cookie@npm:^0.7.1, cookie@npm:~0.7.2":
   version: 0.7.2
   resolution: "cookie@npm:0.7.2"
   checksum: 10c0/9596e8ccdbf1a3a88ae02cf5ee80c1c50959423e1022e4e60b91dd87c622af1da309253d8abdb258fb5e3eacb4f08e579dc58b4897b8087574eee0fd35dfa5d2
   languageName: node
   linkType: hard
 
-"cookie@npm:^1.1.1":
+"cookie@npm:^1.0.2, cookie@npm:^1.1.1":
   version: 1.1.1
   resolution: "cookie@npm:1.1.1"
   checksum: 10c0/79c4ddc0fcad9c4f045f826f42edf54bcc921a29586a4558b0898277fa89fb47be95bc384c2253f493af7b29500c830da28341274527328f18eba9f58afa112c
@@ -17802,7 +17802,7 @@ __metadata:
     compressorjs: "npm:^1.3.0"
     concurrently: "npm:^8.2.2"
     content-disposition: "npm:^0.5.4"
-    cookie: "npm:^0.7.2"
+    cookie: "npm:^1.0.2"
     copy-to-clipboard: "npm:^3.3.3"
     core-js: "npm:^3.49.0"
     crypto-js: "npm:^4.2.0"

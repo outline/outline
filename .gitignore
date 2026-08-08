@@ -1,4 +1,5 @@
 dist
+.astro
 build
 node_modules/*
 .env

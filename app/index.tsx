@@ -1,6 +1,5 @@
-// oxlint-disable-next-line import/no-unresolved
-import "vite/modulepreload-polyfill";
 import { LazyMotion, domMax } from "framer-motion";
+
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
 import { configure as configureMobx } from "mobx";

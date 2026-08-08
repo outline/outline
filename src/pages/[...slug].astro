@@ -1,4 +1,10 @@
 ---
+export function getStaticPaths() {
+  return [
+    { params: { slug: "404" } },
+  ];
+}
+
 import "../styles/global.css";
 import App from "../../app/index";
 ---
