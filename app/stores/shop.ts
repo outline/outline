@@ -12,6 +12,10 @@ import type {
   PurchaseOrder,
   Branch,
   Staff,
+  Account,
+  JournalEntry,
+  Expense,
+  Shift,
 } from "../../src/mocks/shop";
 
 /** A room with the guests currently occupying it. */
@@ -24,6 +28,24 @@ export type RoomOccupancy = Room & {
     customerName: string;
     checkOut: string;
   }[];
+};
+
+/** An account with its journal totals and resulting balance. */
+export type TrialBalanceRow = Account & {
+  debit: number;
+  credit: number;
+  balance: number;
+};
+
+/** Commission owed to one staff member. */
+export type CommissionRow = {
+  id: string;
+  name: string;
+  branch: string;
+  role: string;
+  rate: number;
+  base: number;
+  amount: number;
 };
 
 /** A line on a point of sale ticket. */
@@ -62,6 +84,12 @@ interface State {
   purchaseOrders: PurchaseOrder[];
   branches: Branch[];
   staff: Staff[];
+  accounts: Account[];
+  journal: JournalEntry[];
+  expenses: Expense[];
+  shifts: Shift[];
+  trialBalance: TrialBalanceRow[];
+  commissions: CommissionRow[];
   isLoading: boolean;
   error?: string;
   fetchAll: () => Promise<void>;
@@ -82,6 +110,12 @@ interface State {
     changes: { name?: string; capacity?: number; type?: string }
   ) => Promise<void>;
   deleteRoom: (id: string) => Promise<boolean>;
+  createExpense: (expense: {
+    category: string;
+    description: string;
+    amount: number;
+    paidFrom: string;
+  }) => Promise<void>;
 }
 
 /**
@@ -103,6 +137,12 @@ export const useShop = create<State>((set, get) => ({
   purchaseOrders: [],
   branches: [],
   staff: [],
+  accounts: [],
+  journal: [],
+  expenses: [],
+  shifts: [],
+  trialBalance: [],
+  commissions: [],
   isLoading: false,
 
   fetchAll: async () => {
@@ -123,6 +163,12 @@ export const useShop = create<State>((set, get) => ({
         purchaseOrders,
         branches,
         staff,
+        accounts,
+        journal,
+        expenses,
+        shifts,
+        trialBalance,
+        commissions,
       ] = await Promise.all([
         client.post("/dashboard"),
         client.post("/products.list"),
@@ -137,6 +183,12 @@ export const useShop = create<State>((set, get) => ({
         client.post("/purchaseOrders.list"),
         client.post("/branches.list"),
         client.post("/staff.list"),
+        client.post("/accounts.list"),
+        client.post("/journal.list"),
+        client.post("/expenses.list"),
+        client.post("/shifts.list"),
+        client.post("/accounting.trialBalance"),
+        client.post("/accounting.commissions"),
       ]);
 
       set({
@@ -153,6 +205,12 @@ export const useShop = create<State>((set, get) => ({
         purchaseOrders: purchaseOrders.data,
         branches: branches.data,
         staff: staff.data,
+        accounts: accounts.data,
+        journal: journal.data,
+        expenses: expenses.data,
+        shifts: shifts.data,
+        trialBalance: trialBalance.data,
+        commissions: commissions.data,
         isLoading: false,
       });
     } catch (err) {
@@ -226,5 +284,10 @@ export const useShop = create<State>((set, get) => ({
     const response = await client.post("/rooms.delete", { id });
     await get().fetchAll();
     return Boolean(response.data?.deleted);
+  },
+
+  createExpense: async (expense) => {
+    await client.post("/expenses.create", expense);
+    await get().fetchAll();
   },
 }));

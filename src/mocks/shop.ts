@@ -125,6 +125,45 @@ export interface Staff {
   commissionRate: number;
 }
 
+export interface Account {
+  id: string;
+  code: string;
+  name: string;
+  type: "asset" | "liability" | "equity" | "income" | "expense";
+}
+
+export interface JournalLine {
+  accountId: string;
+  debit: number;
+  credit: number;
+}
+
+export interface JournalEntry {
+  id: string;
+  date: string;
+  reference: string;
+  memo: string;
+  lines: JournalLine[];
+}
+
+export interface Expense {
+  id: string;
+  date: string;
+  category: string;
+  description: string;
+  amount: number;
+  paidFrom: string;
+}
+
+export interface Shift {
+  id: string;
+  staffId: string;
+  staffName: string;
+  date: string;
+  clockIn: string;
+  clockOut: string | null;
+}
+
 export interface State {
   products: Product[];
   customers: Customer[];
@@ -138,9 +177,13 @@ export interface State {
   purchaseOrders: PurchaseOrder[];
   branches: Branch[];
   staff: Staff[];
+  accounts: Account[];
+  journal: JournalEntry[];
+  expenses: Expense[];
+  shifts: Shift[];
 }
 
-const STORAGE_KEY = "shop_db_v1";
+const STORAGE_KEY = "shop_db_v2";
 
 const daysFromNow = (days: number) =>
   new Date(Date.now() + days * 86400000).toISOString();
@@ -586,6 +629,109 @@ const seed: State = {
       commissionRate: 3,
     },
   ],
+  accounts: [
+    { id: "acc-cash", code: "1010", name: "Cash", type: "asset" },
+    { id: "acc-bank", code: "1020", name: "Bank", type: "asset" },
+    { id: "acc-petty", code: "1030", name: "Petty cash", type: "asset" },
+    { id: "acc-stock", code: "1200", name: "Inventory", type: "asset" },
+    { id: "acc-ap", code: "2010", name: "Accounts payable", type: "liability" },
+    { id: "acc-sales", code: "4010", name: "Sales", type: "income" },
+    {
+      id: "acc-boarding",
+      code: "4020",
+      name: "Boarding income",
+      type: "income",
+    },
+    {
+      id: "acc-cogs",
+      code: "5010",
+      name: "Cost of goods sold",
+      type: "expense",
+    },
+    { id: "acc-wages", code: "6010", name: "Wages", type: "expense" },
+    { id: "acc-rent", code: "6020", name: "Rent", type: "expense" },
+    { id: "acc-supplies", code: "6030", name: "Supplies", type: "expense" },
+    { id: "acc-utilities", code: "6040", name: "Utilities", type: "expense" },
+  ],
+  journal: [
+    {
+      id: "je-1",
+      date: daysFromNow(-30),
+      reference: "OPEN",
+      memo: "Opening balances",
+      lines: [
+        { accountId: "acc-bank", debit: 25000000, credit: 0 },
+        { accountId: "acc-cash", debit: 2000000, credit: 0 },
+        { accountId: "acc-petty", debit: 500000, credit: 0 },
+        { accountId: "acc-stock", debit: 8000000, credit: 0 },
+        { accountId: "acc-ap", debit: 0, credit: 35500000 },
+      ],
+    },
+    {
+      id: "je-2",
+      date: daysFromNow(-7),
+      reference: "RENT-08",
+      memo: "Monthly rent, Kemang",
+      lines: [
+        { accountId: "acc-rent", debit: 6500000, credit: 0 },
+        { accountId: "acc-bank", debit: 0, credit: 6500000 },
+      ],
+    },
+    {
+      id: "je-3",
+      date: daysFromNow(-3),
+      reference: "BRD-1039",
+      memo: "Boarding, Luna",
+      lines: [
+        { accountId: "acc-cash", debit: 1050000, credit: 0 },
+        { accountId: "acc-boarding", debit: 0, credit: 1050000 },
+      ],
+    },
+  ],
+  expenses: [
+    {
+      id: "exp-1",
+      date: daysFromNow(-7),
+      category: "Rent",
+      description: "Monthly rent, Kemang",
+      amount: 6500000,
+      paidFrom: "acc-bank",
+    },
+    {
+      id: "exp-2",
+      date: daysFromNow(-2),
+      category: "Supplies",
+      description: "Cleaning supplies",
+      amount: 180000,
+      paidFrom: "acc-petty",
+    },
+  ],
+  shifts: [
+    {
+      id: "sh-1",
+      staffId: "stf-2",
+      staffName: "Dimas Aditya",
+      date: daysFromNow(0),
+      clockIn: "08:02",
+      clockOut: null,
+    },
+    {
+      id: "sh-2",
+      staffId: "stf-1",
+      staffName: "Sinta Wijaya",
+      date: daysFromNow(0),
+      clockIn: "07:55",
+      clockOut: "16:10",
+    },
+    {
+      id: "sh-3",
+      staffId: "stf-5",
+      staffName: "Rizky Hakim",
+      date: daysFromNow(-1),
+      clockIn: "08:10",
+      clockOut: "17:02",
+    },
+  ],
 };
 
 /**
@@ -658,6 +804,79 @@ export function roomOccupancy() {
       })),
     };
   });
+}
+
+/**
+ * The expense account a category posts to.
+ *
+ * @param category the expense category.
+ * @returns the account id to debit.
+ */
+function expenseAccountFor(category: string): string {
+  const map: Record<string, string> = {
+    Rent: "acc-rent",
+    Wages: "acc-wages",
+    Supplies: "acc-supplies",
+    Utilities: "acc-utilities",
+  };
+  return map[category] ?? "acc-supplies";
+}
+
+/**
+ * Sums the journal into a balance per account.
+ *
+ * Income and liability accounts are credit-natured, so their balance is
+ * credits less debits; everything else is the other way round.
+ *
+ * @returns each account with its balance.
+ */
+export function trialBalance() {
+  return state.accounts.map((account) => {
+    const lines = state.journal.flatMap((entry) =>
+      entry.lines.filter((line) => line.accountId === account.id)
+    );
+    const debit = lines.reduce((total, line) => total + line.debit, 0);
+    const credit = lines.reduce((total, line) => total + line.credit, 0);
+    const creditNatured =
+      account.type === "income" ||
+      account.type === "liability" ||
+      account.type === "equity";
+
+    return {
+      ...account,
+      debit,
+      credit,
+      balance: creditNatured ? credit - debit : debit - credit,
+    };
+  });
+}
+
+/**
+ * Commission owed per staff member, from the sales their branch has taken.
+ *
+ * @returns each active staff member with their commission.
+ */
+export function commissions() {
+  const paid = state.orders.filter((order) => order.status === "paid");
+  const revenue = paid.reduce((total, order) => total + order.total, 0);
+  const branchCount = Math.max(1, state.branches.length);
+
+  return state.staff
+    .filter((member) => member.commissionRate > 0)
+    .map((member) => {
+      // Sales are not attributed to a till operator yet, so revenue is split
+      // evenly across branches before the rate is applied.
+      const base = revenue / branchCount;
+      return {
+        id: member.id,
+        name: member.name,
+        branch: member.branch,
+        role: member.role,
+        rate: member.commissionRate,
+        base,
+        amount: Math.round((base * member.commissionRate) / 100),
+      };
+    });
 }
 
 /**
@@ -848,6 +1067,68 @@ export function handleShopRequest(
       };
       persist();
       return { data: { deleted: true } };
+    }
+
+    case "accounts.list":
+      return { data: state.accounts };
+
+    case "journal.list":
+      return { data: state.journal };
+
+    case "expenses.list":
+      return { data: state.expenses };
+
+    case "shifts.list":
+      return { data: state.shifts };
+
+    case "accounting.trialBalance":
+      return { data: trialBalance() };
+
+    case "accounting.commissions":
+      return { data: commissions() };
+
+    case "expenses.create": {
+      const amount = Number(body.amount ?? 0);
+      const category = String(body.category ?? "Supplies");
+      const paidFrom = String(body.paidFrom ?? "acc-cash");
+      const date = new Date().toISOString();
+      const id = `exp-${Date.now()}`;
+
+      // Every expense posts a balanced entry: debit the expense, credit
+      // whatever it was paid from.
+      state = {
+        ...state,
+        expenses: [
+          {
+            id,
+            date,
+            category,
+            description: String(body.description ?? category),
+            amount,
+            paidFrom,
+          },
+          ...state.expenses,
+        ],
+        journal: [
+          {
+            id: `je-${Date.now()}`,
+            date,
+            reference: id.toUpperCase(),
+            memo: String(body.description ?? category),
+            lines: [
+              {
+                accountId: expenseAccountFor(category),
+                debit: amount,
+                credit: 0,
+              },
+              { accountId: paidFrom, debit: 0, credit: amount },
+            ],
+          },
+          ...state.journal,
+        ],
+      };
+      persist();
+      return { data: state.expenses[0] };
     }
 
     case "suppliers.list":

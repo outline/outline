@@ -7,6 +7,7 @@ import {
   TableIcon,
   DocumentIcon,
   BeakerIcon,
+  MathIcon,
   TeamIcon,
   BuildingBlocksIcon as BranchIcon,
 } from "outline-icons";
@@ -54,6 +55,11 @@ export function ShopLinks() {
           to="/inventory"
           icon={<BeakerIcon />}
           label={t("Inventory")}
+        />
+        <SidebarLink
+          to="/accounting"
+          icon={<MathIcon />}
+          label={t("Accounting")}
         />
         <SidebarLink
           to="/products"
