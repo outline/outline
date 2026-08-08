@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf build",
-    "copy:i18n": "mkdir -p ./public/locales && cp -R ./shared/i18n/locales/* ./public/locales/",
+    "copy:i18n": "mkdir -p ./public/locales && for d in ./shared/i18n/locales/*; do if [ -f \"$d/translation.json\" ]; then lang=$(basename \"$d\"); cp \"$d/translation.json\" \"./public/locales/${lang}.json\"; fi; done",
     "build:i18n": "i18next --silent '{shared,app,plugins}/**/*.{ts,tsx}' && yarn copy:i18n",
     "build": "yarn clean && yarn vite:build && yarn build:i18n",
     "dev": "VITE_CJS_IGNORE_WARNING=true vite",
