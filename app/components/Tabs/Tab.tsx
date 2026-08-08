@@ -33,11 +33,14 @@ interface LinkProps extends BaseProps {
   active?: never;
 }
 
-interface ButtonProps extends BaseProps {
+interface ButtonProps
+  extends
+    BaseProps,
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> {
   /**
-   * Click handler for button mode.
+   * Click handler for button mode, optional when the parent handles selection.
    */
-  onClick: () => void;
+  onClick?: () => void;
   /**
    * Whether the tab is currently active (only used in button mode).
    */
@@ -106,7 +109,14 @@ const horizontalOnly = (transform: Record<string, string>, generated: string) =>
     "translate3d($1, 0px, $2)"
   );
 
-export const Tab: React.FC<Props> = (props: Props) => {
+/**
+ * A single tab with an animated active underline, rendered either as a link
+ * matched against the current location, or as a button in controlled mode.
+ */
+export const Tab = React.forwardRef<HTMLButtonElement, Props>(function Tab(
+  props: Props,
+  ref
+) {
   const { children, exact, exactQueryString } = props;
   const theme = useTheme();
   const activeStyle = {
@@ -115,10 +125,17 @@ export const Tab: React.FC<Props> = (props: Props) => {
 
   // Button mode - controlled by onClick and active props (no `to` prop)
   if ("active" in props && !("to" in props)) {
+    const {
+      active,
+      exact: _exact,
+      exactQueryString: _exactQueryString,
+      ...rest
+    } = props;
+
     return (
-      <TabButton $active={props.active} onClick={props.onClick}>
+      <TabButton {...rest} ref={ref} type="button" $active={active}>
         {children}
-        {props.active && (
+        {active && (
           <Active
             layoutId="underline"
             initial={false}
@@ -159,4 +176,4 @@ export const Tab: React.FC<Props> = (props: Props) => {
       )}
     </TabLink>
   );
-};
+});
