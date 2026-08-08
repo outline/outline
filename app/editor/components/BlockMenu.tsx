@@ -34,7 +34,7 @@ function useTemplateMenuItem(): MenuItem | undefined {
     }
 
     const allTemplates = templatesStore.orderedData.filter(
-      (template) => template.isActive
+      (template) => template.isActive && !!template.data
     );
     const hasTemplates = allTemplates.some(
       (template) =>
