@@ -202,7 +202,7 @@ export default () =>
               },
               {
                 name: "vendor-collab",
-                test: /node_modules[\\/](yjs|y-prosemirror|y-indexeddb|@hocuspocus|lib0)/,
+                test: /node_modules[\\/](yjs|y-prosemirror|@hocuspocus|lib0)/,
                 priority: 20,
               },
               {
