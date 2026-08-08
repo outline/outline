@@ -293,11 +293,19 @@ const PaneContainer = styled.div<{ $secondary: boolean }>`
 `;
 
 const PaneContent = styled.div`
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+
+  /* Route content fills the pane, as it would the window outside of a split
+   * view, so that sticky footers sit at the bottom of the pane. */
+  && > * {
+    flex: 1 0 auto;
+  }
 `;
 
 const SplitResizeBorder = styled(ResizeBorder)`
