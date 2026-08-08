@@ -164,6 +164,29 @@ export interface Shift {
   clockOut: string | null;
 }
 
+export interface Grooming {
+  id: string;
+  customerId: string;
+  customerName: string;
+  petName: string;
+  service: string;
+  groomerId: string;
+  groomerName: string;
+  branch: string;
+  scheduledAt: string;
+  status: "booked" | "in_progress" | "done" | "cancelled";
+  price: number;
+}
+
+export interface LoyaltyMovement {
+  id: string;
+  customerId: string;
+  customerName: string;
+  date: string;
+  points: number;
+  reason: string;
+}
+
 export interface State {
   products: Product[];
   customers: Customer[];
@@ -181,9 +204,11 @@ export interface State {
   journal: JournalEntry[];
   expenses: Expense[];
   shifts: Shift[];
+  grooming: Grooming[];
+  loyalty: LoyaltyMovement[];
 }
 
-const STORAGE_KEY = "shop_db_v2";
+const STORAGE_KEY = "shop_db_v3";
 
 const daysFromNow = (days: number) =>
   new Date(Date.now() + days * 86400000).toISOString();
@@ -732,6 +757,81 @@ const seed: State = {
       clockOut: "17:02",
     },
   ],
+  grooming: [
+    {
+      id: "grm-1",
+      customerId: "cus-1",
+      customerName: "Sinta Wijaya",
+      petName: "Milo",
+      service: "Full groom",
+      groomerId: "stf-2",
+      groomerName: "Dimas Aditya",
+      branch: "Kemang",
+      scheduledAt: daysFromNow(0),
+      status: "in_progress",
+      price: 250000,
+    },
+    {
+      id: "grm-2",
+      customerId: "cus-3",
+      customerName: "Rina Kartika",
+      petName: "Coco",
+      service: "Bath and dry",
+      groomerId: "stf-2",
+      groomerName: "Dimas Aditya",
+      branch: "Kemang",
+      scheduledAt: daysFromNow(0.3),
+      status: "booked",
+      price: 120000,
+    },
+    {
+      id: "grm-3",
+      customerId: "cus-2",
+      customerName: "Bayu Pratama",
+      petName: "Bruno",
+      service: "Nail trim",
+      groomerId: "stf-5",
+      groomerName: "Rizky Hakim",
+      branch: "Bintaro",
+      scheduledAt: daysFromNow(-1),
+      status: "done",
+      price: 60000,
+    },
+  ],
+  loyalty: [
+    {
+      id: "loy-1",
+      customerId: "cus-1",
+      customerName: "Sinta Wijaya",
+      date: daysFromNow(-20),
+      points: 1200,
+      reason: "Boarding, 8 nights",
+    },
+    {
+      id: "loy-2",
+      customerId: "cus-1",
+      customerName: "Sinta Wijaya",
+      date: daysFromNow(-5),
+      points: 40,
+      reason: "Retail purchase",
+    },
+    {
+      id: "loy-3",
+      customerId: "cus-2",
+      customerName: "Bayu Pratama",
+      date: daysFromNow(-12),
+      points: 380,
+      reason: "Boarding, 3 nights",
+    },
+    {
+      id: "loy-4",
+      customerId: "cus-3",
+      customerName: "Rina Kartika",
+      date: daysFromNow(-3),
+      points: 90,
+      reason: "Grooming",
+    },
+  ],
 };
 
 /**
@@ -1129,6 +1229,110 @@ export function handleShopRequest(
       };
       persist();
       return { data: state.expenses[0] };
+    }
+
+    case "grooming.list":
+      return { data: state.grooming };
+
+    case "loyalty.list":
+      return { data: state.loyalty };
+
+    case "grooming.setStatus": {
+      const id = String(body.id ?? "");
+      const status = String(body.status ?? "") as Grooming["status"];
+      const appointment = state.grooming.find((item) => item.id === id);
+
+      state = {
+        ...state,
+        grooming: state.grooming.map((item) =>
+          item.id === id ? { ...item, status } : item
+        ),
+      };
+
+      // Finishing a groom takes the money and earns the customer points, the
+      // same way a sale does.
+      if (appointment && status === "done" && appointment.status !== "done") {
+        const now = new Date().toISOString();
+        const earned = Math.round(appointment.price / 1000);
+
+        state = {
+          ...state,
+          orders: [
+            {
+              id: `ord-${Date.now()}`,
+              number: `INV-${2042 + state.orders.length}`,
+              customerName: appointment.customerName,
+              channel: "pos",
+              total: appointment.price,
+              paidAt: now,
+              status: "paid",
+              items: [
+                {
+                  productId: appointment.id,
+                  name: `${appointment.service} · ${appointment.petName}`,
+                  quantity: 1,
+                  price: appointment.price,
+                },
+              ],
+            },
+            ...state.orders,
+          ],
+          loyalty: [
+            {
+              id: `loy-${Date.now()}`,
+              customerId: appointment.customerId,
+              customerName: appointment.customerName,
+              date: now,
+              points: earned,
+              reason: `Grooming, ${appointment.service}`,
+            },
+            ...state.loyalty,
+          ],
+          customers: state.customers.map((customer) =>
+            customer.id === appointment.customerId
+              ? {
+                  ...customer,
+                  loyaltyPoints: customer.loyaltyPoints + earned,
+                }
+              : customer
+          ),
+        };
+      }
+
+      persist();
+      return { data: state.grooming.find((item) => item.id === id) };
+    }
+
+    case "loyalty.redeem": {
+      const customerId = String(body.customerId ?? "");
+      const points = Math.abs(Number(body.points ?? 0));
+      const customer = state.customers.find((item) => item.id === customerId);
+
+      if (!customer || customer.loyaltyPoints < points) {
+        return { data: { redeemed: false, reason: "insufficient" } };
+      }
+
+      state = {
+        ...state,
+        customers: state.customers.map((item) =>
+          item.id === customerId
+            ? { ...item, loyaltyPoints: item.loyaltyPoints - points }
+            : item
+        ),
+        loyalty: [
+          {
+            id: `loy-${Date.now()}`,
+            customerId,
+            customerName: customer.name,
+            date: new Date().toISOString(),
+            points: -points,
+            reason: "Redeemed",
+          },
+          ...state.loyalty,
+        ],
+      };
+      persist();
+      return { data: { redeemed: true } };
     }
 
     case "suppliers.list":

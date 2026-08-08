@@ -114,6 +114,16 @@ function AuthenticatedRoutes() {
                 path="/accounting"
                 component={Scenes.Accounting.Component}
               />
+              <Route
+                exact
+                path="/grooming"
+                component={Scenes.Grooming.Component}
+              />
+              <Route
+                exact
+                path="/loyalty"
+                component={Scenes.Loyalty.Component}
+              />
               <Route exact path="/staff" component={Scenes.Staff.Component} />
               <Route
                 exact

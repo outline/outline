@@ -16,6 +16,8 @@ import type {
   JournalEntry,
   Expense,
   Shift,
+  Grooming,
+  LoyaltyMovement,
 } from "../../src/mocks/shop";
 
 /** A room with the guests currently occupying it. */
@@ -88,6 +90,8 @@ interface State {
   journal: JournalEntry[];
   expenses: Expense[];
   shifts: Shift[];
+  grooming: Grooming[];
+  loyalty: LoyaltyMovement[];
   trialBalance: TrialBalanceRow[];
   commissions: CommissionRow[];
   isLoading: boolean;
@@ -116,6 +120,8 @@ interface State {
     amount: number;
     paidFrom: string;
   }) => Promise<void>;
+  setGroomingStatus: (id: string, status: Grooming["status"]) => Promise<void>;
+  redeemPoints: (customerId: string, points: number) => Promise<boolean>;
 }
 
 /**
@@ -141,6 +147,8 @@ export const useShop = create<State>((set, get) => ({
   journal: [],
   expenses: [],
   shifts: [],
+  grooming: [],
+  loyalty: [],
   trialBalance: [],
   commissions: [],
   isLoading: false,
@@ -169,6 +177,8 @@ export const useShop = create<State>((set, get) => ({
         shifts,
         trialBalance,
         commissions,
+        grooming,
+        loyalty,
       ] = await Promise.all([
         client.post("/dashboard"),
         client.post("/products.list"),
@@ -189,6 +199,8 @@ export const useShop = create<State>((set, get) => ({
         client.post("/shifts.list"),
         client.post("/accounting.trialBalance"),
         client.post("/accounting.commissions"),
+        client.post("/grooming.list"),
+        client.post("/loyalty.list"),
       ]);
 
       set({
@@ -211,6 +223,8 @@ export const useShop = create<State>((set, get) => ({
         shifts: shifts.data,
         trialBalance: trialBalance.data,
         commissions: commissions.data,
+        grooming: grooming.data,
+        loyalty: loyalty.data,
         isLoading: false,
       });
     } catch (err) {
@@ -289,5 +303,19 @@ export const useShop = create<State>((set, get) => ({
   createExpense: async (expense) => {
     await client.post("/expenses.create", expense);
     await get().fetchAll();
+  },
+
+  setGroomingStatus: async (id, status) => {
+    await client.post("/grooming.setStatus", { id, status });
+    await get().fetchAll();
+  },
+
+  redeemPoints: async (customerId, points) => {
+    const response = await client.post("/loyalty.redeem", {
+      customerId,
+      points,
+    });
+    await get().fetchAll();
+    return Boolean(response.data?.redeemed);
   },
 }));
