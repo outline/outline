@@ -3,7 +3,7 @@ import { setupWebsocketMock } from "./websocketMock";
 
 export function initMocks(): void {
   if (typeof window !== "undefined") {
-    // Provide default window.env required by Outline React app (app/env.ts)
+    // Provide default window.env required by Outline React app (app/env.ts & Analytics.tsx)
     window.env = {
       ENVIRONMENT: "development",
       URL: window.location.origin,
@@ -11,6 +11,7 @@ export function initMocks(): void {
       CDN_URL: "",
       DEFAULT_LANGUAGE: "en_US",
       MAX_UPLOAD_SIZE: 26214400,
+      analytics: [],
       ...window.env,
     };
 
