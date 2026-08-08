@@ -35,6 +35,7 @@ import {
   deleteDocument,
   leaveDocument,
   permanentlyDeleteDocument,
+  toggleDocumentStats,
 } from "~/actions/definitions/documents";
 import { renameActionFactory } from "~/actions/definitions/common";
 import { ActiveDocumentSection } from "~/actions/sections";
@@ -106,6 +107,7 @@ export function useDocumentMenuAction({
         openDocumentComments,
         openDocumentHistory,
         openDocumentInsights,
+        toggleDocumentStats,
         openDocumentInSplit,
         openDocumentInDesktop,
         presentDocument,

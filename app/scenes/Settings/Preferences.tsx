@@ -82,6 +82,15 @@ function Preferences() {
     [user, t]
   );
 
+  const handleShowDocumentStatsChange = React.useCallback(
+    async (checked: boolean) => {
+      user.setPreference(UserPreference.ShowDocumentStats, checked);
+      await user.save();
+      toast.success(t("Preferences saved"));
+    },
+    [user, t]
+  );
+
   const handleSeamlessEditChange = React.useCallback(
     async (checked: boolean) => {
       user.setPreference(UserPreference.SeamlessEdit, !checked);
@@ -246,13 +255,27 @@ function Preferences() {
         description={t(
           "Display a marker beside lines in the editor that contain comments."
         )}
-        border={false}
       >
         <Switch
           id={UserPreference.CommentsInGutter}
           name={UserPreference.CommentsInGutter}
           checked={user.getPreference(UserPreference.CommentsInGutter)}
           onChange={handleCommentsInGutterChange}
+        />
+      </SettingRow>
+      <SettingRow
+        name={UserPreference.ShowDocumentStats}
+        label={t("Show editing stats")}
+        description={t(
+          "Display live word, character, and paragraph counts while editing."
+        )}
+        border={false}
+      >
+        <Switch
+          id={UserPreference.ShowDocumentStats}
+          name={UserPreference.ShowDocumentStats}
+          checked={user.getPreference(UserPreference.ShowDocumentStats)}
+          onChange={handleShowDocumentStatsChange}
         />
       </SettingRow>
 

@@ -318,7 +318,7 @@ function DocumentScene({
       >
         <PageTitle title={pageTitle} favicon={favicon} />
         {(isUploading || isSaving) && <LoadingIndicator />}
-        <Container column>
+        <Container column auto>
           {!readOnly && (
             <Prompt
               when={isUploading && !isEditorDirty}
