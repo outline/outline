@@ -783,6 +783,10 @@ function useNotificationHandlers() {
       }
     );
 
+    socket.on("notifications.delete", (event: WebsocketEntityDeletedEvent) => {
+      notifications.remove(event.modelId);
+    });
+
     socket.on(
       "subscriptions.create",
       (event: PartialExcept<Subscription, "id">) => {

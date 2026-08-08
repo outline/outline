@@ -452,7 +452,10 @@ export type WebhookSubscriptionEvent = BaseEvent<WebhookSubscription> & {
 };
 
 export type NotificationEvent = BaseEvent<Notification> & {
-  name: "notifications.create" | "notifications.update";
+  name:
+    | "notifications.create"
+    | "notifications.update"
+    | "notifications.delete";
   modelId: string;
   teamId: string;
   userId: string;
