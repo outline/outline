@@ -94,60 +94,47 @@ function AuthenticatedRoutes() {
               />
               <Route
                 exact
-                path="/store"
-                component={Scenes.PetStoreDashboard.Component}
+                path="/dashboard"
+                component={Scenes.Dashboard.Component}
+              />
+              <Route exact path="/pos" component={Scenes.Pos.Component} />
+              <Route exact path="/orders" component={Scenes.Orders.Component} />
+              <Route
+                exact
+                path="/orders/:orderId"
+                component={Scenes.OrderDetail.Component}
               />
               <Route
                 exact
-                path="/store/pos"
-                component={Scenes.PetStorePos.Component}
+                path="/inventory"
+                component={Scenes.Inventory.Component}
+              />
+              <Route exact path="/staff" component={Scenes.Staff.Component} />
+              <Route
+                exact
+                path="/branches"
+                component={Scenes.Branches.Component}
               />
               <Route
                 exact
-                path="/store/orders"
-                component={Scenes.PetStoreOrders.Component}
-              />
-              <Route
-                exact
-                path="/store/orders/:orderId"
-                component={Scenes.PetStoreOrderDetail.Component}
-              />
-              <Route
-                exact
-                path="/store/inventory"
-                component={Scenes.PetStoreInventory.Component}
-              />
-              <Route
-                exact
-                path="/store/staff"
-                component={Scenes.PetStoreStaff.Component}
-              />
-              <Route
-                exact
-                path="/store/branches"
-                component={Scenes.PetStoreBranches.Component}
-              />
-              <Route
-                exact
-                path="/store/occupancy"
-                component={Scenes.PetStoreOccupancy.Component}
+                path="/occupancy"
+                component={Scenes.Occupancy.Component}
               />{" "}
               <Route
                 exact
-                path="/store/boardings"
-                component={Scenes.PetStoreBoardings.Component}
+                path="/boardings"
+                component={Scenes.Boardings.Component}
               />
               <Route
                 exact
-                path="/store/products"
-                component={Scenes.PetStoreProducts.Component}
+                path="/products"
+                component={Scenes.Products.Component}
               />
               <Route
                 exact
-                path="/store/customers"
-                component={Scenes.PetStoreCustomers.Component}
+                path="/customers"
+                component={Scenes.Customers.Component}
               />
-              <Redirect from="/dashboard" to={homePath()} />
               <Redirect exact from="/starred" to={homePath()} />
               <Redirect
                 exact

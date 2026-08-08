@@ -16,62 +16,58 @@ import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 
 /**
- * Navigation for the pet store pages.
+ * Navigation for the shop pages.
  *
  * Kept in its own section so the wiki navigation above it is untouched.
  *
  * @returns the rendered sidebar section.
  */
-export function PetStoreLinks() {
+export function ShopLinks() {
   const { t } = useTranslation();
 
   return (
     <Relative>
       <Header id="store" title={t("Store")}>
         <SidebarLink
-          to="/store"
+          to="/dashboard"
           icon={<HomeIcon />}
           exact
           label={t("Dashboard")}
         />
         <SidebarLink
-          to="/store/pos"
+          to="/pos"
           icon={<TableIcon />}
           label={t("Point of sale")}
         />
         <SidebarLink
-          to="/store/occupancy"
+          to="/occupancy"
           icon={<BuildingBlocksIcon />}
           label={t("Occupancy")}
         />
         <SidebarLink
-          to="/store/boardings"
+          to="/boardings"
           icon={<ArchiveIcon />}
           label={t("Boardings")}
         />
+        <SidebarLink to="/orders" icon={<DocumentIcon />} label={t("Orders")} />
         <SidebarLink
-          to="/store/orders"
-          icon={<DocumentIcon />}
-          label={t("Orders")}
-        />
-        <SidebarLink
-          to="/store/inventory"
+          to="/inventory"
           icon={<BeakerIcon />}
           label={t("Inventory")}
         />
         <SidebarLink
-          to="/store/products"
+          to="/products"
           icon={<ShapesIcon />}
           label={t("Products")}
         />
         <SidebarLink
-          to="/store/customers"
+          to="/customers"
           icon={<UserIcon />}
           label={t("Customers")}
         />
-        <SidebarLink to="/store/staff" icon={<TeamIcon />} label={t("Staff")} />
+        <SidebarLink to="/staff" icon={<TeamIcon />} label={t("Staff")} />
         <SidebarLink
-          to="/store/branches"
+          to="/branches"
           icon={<BranchIcon />}
           label={t("Branches")}
         />

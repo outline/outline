@@ -1,39 +1,39 @@
 import { Link, useParams } from "react-router-dom";
-import { usePetStore } from "~/stores/petstore";
-import { PetStoreScene } from "./components/PetStoreScene";
-import { formatCurrency, formatDate, statusBadge } from "./format";
+import { useShop } from "~/stores/shop";
+import { AppPage } from "~/components/AppPage";
+import { formatCurrency, formatDate, statusBadge } from "~/utils/format";
 
 /**
  * A single invoice with its lines.
  *
  * @returns the rendered order detail.
  */
-function PetStoreOrderDetail() {
+function OrderDetail() {
   const { orderId } = useParams<{ orderId: string }>();
-  const orders = usePetStore((state) => state.orders);
-  const isLoading = usePetStore((state) => state.isLoading);
-  const markOrderPaid = usePetStore((state) => state.markOrderPaid);
+  const orders = useShop((state) => state.orders);
+  const isLoading = useShop((state) => state.isLoading);
+  const markOrderPaid = useShop((state) => state.markOrderPaid);
 
   const order = orders.find((item) => item.id === orderId);
 
   if (!order) {
     return (
-      <PetStoreScene title="Invoice">
+      <AppPage title="Invoice">
         <p className="text-sm text-gray-500">
           {isLoading ? "Loading…" : "That invoice no longer exists."}
         </p>
         <Link
-          to="/store/orders"
+          to="/orders"
           className="mt-4 inline-block text-sm text-indigo-600 hover:text-indigo-500"
         >
           Back to orders
         </Link>
-      </PetStoreScene>
+      </AppPage>
     );
   }
 
   return (
-    <PetStoreScene
+    <AppPage
       title={order.number}
       description={`${order.customerName} · ${order.channel.toUpperCase()}`}
       actions={
@@ -126,13 +126,13 @@ function PetStoreOrderDetail() {
       </div>
 
       <Link
-        to="/store/orders"
+        to="/orders"
         className="mt-4 inline-block text-sm text-indigo-600 hover:text-indigo-500"
       >
         Back to orders
       </Link>
-    </PetStoreScene>
+    </AppPage>
   );
 }
 
-export default PetStoreOrderDetail;
+export default OrderDetail;

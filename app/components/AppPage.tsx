@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import Scene from "~/components/Scene";
-import { usePetStore } from "~/stores/petstore";
+import { useShop } from "~/stores/shop";
 
 interface Props {
   /** Title shown in the scene header and browser tab. */
@@ -23,15 +23,10 @@ interface Props {
  *
  * @returns the rendered scene.
  */
-export function PetStoreScene({
-  title,
-  description,
-  actions,
-  children,
-}: Props) {
-  const fetchAll = usePetStore((state) => state.fetchAll);
-  const isLoading = usePetStore((state) => state.isLoading);
-  const error = usePetStore((state) => state.error);
+export function AppPage({ title, description, actions, children }: Props) {
+  const fetchAll = useShop((state) => state.fetchAll);
+  const isLoading = useShop((state) => state.isLoading);
+  const error = useShop((state) => state.error);
 
   useEffect(() => {
     void fetchAll();

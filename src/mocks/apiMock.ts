@@ -1,5 +1,5 @@
 import { documentPath, mockDb, textToProsemirror } from "./db";
-import { handlePetStoreRequest } from "./petstore";
+import { handleShopRequest } from "./shop";
 import type { MockCollection, MockDocument } from "./db";
 
 /**
@@ -212,9 +212,9 @@ function countRecords(data: unknown): number {
 function handleApiRequest(action: string, body: Record<string, any>): any {
   const state = mockDb.getState();
 
-  const petStore = handlePetStoreRequest(action, body);
-  if (petStore) {
-    return { ...petStore, policies: [] };
+  const shop = handleShopRequest(action, body);
+  if (shop) {
+    return { ...shop, policies: [] };
   }
 
   switch (action) {

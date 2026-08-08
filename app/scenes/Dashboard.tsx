@@ -1,6 +1,6 @@
-import { usePetStore } from "~/stores/petstore";
-import { PetStoreScene } from "./components/PetStoreScene";
-import { formatCurrency, formatDate, statusBadge } from "./format";
+import { useShop } from "~/stores/shop";
+import { AppPage } from "~/components/AppPage";
+import { formatCurrency, formatDate, statusBadge } from "~/utils/format";
 
 /**
  * Operational overview for the store: today's takings, boarding occupancy and
@@ -8,10 +8,10 @@ import { formatCurrency, formatDate, statusBadge } from "./format";
  *
  * @returns the rendered dashboard.
  */
-function PetStoreDashboard() {
-  const dashboard = usePetStore((state) => state.dashboard);
-  const boardings = usePetStore((state) => state.boardings);
-  const orders = usePetStore((state) => state.orders);
+function Dashboard() {
+  const dashboard = useShop((state) => state.dashboard);
+  const boardings = useShop((state) => state.boardings);
+  const orders = useShop((state) => state.orders);
 
   const stats = [
     {
@@ -47,7 +47,7 @@ function PetStoreDashboard() {
     .slice(0, 5);
 
   return (
-    <PetStoreScene
+    <AppPage
       title="Dashboard"
       description="Today across the store, boarding and point of sale."
     >
@@ -148,8 +148,8 @@ function PetStoreDashboard() {
           </ul>
         </section>
       </div>
-    </PetStoreScene>
+    </AppPage>
   );
 }
 
-export default PetStoreDashboard;
+export default Dashboard;

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { usePetStore } from "~/stores/petstore";
-import { PetStoreScene } from "./components/PetStoreScene";
-import { formatCurrency, formatDate, statusBadge } from "./format";
+import { useShop } from "~/stores/shop";
+import { AppPage } from "~/components/AppPage";
+import { formatCurrency, formatDate, statusBadge } from "~/utils/format";
 
 const FILTERS = ["All", "Paid", "Unpaid"] as const;
 
@@ -12,9 +12,9 @@ const FILTERS = ["All", "Paid", "Unpaid"] as const;
  *
  * @returns the rendered orders list.
  */
-function PetStoreOrders() {
-  const orders = usePetStore((state) => state.orders);
-  const markOrderPaid = usePetStore((state) => state.markOrderPaid);
+function Orders() {
+  const orders = useShop((state) => state.orders);
+  const markOrderPaid = useShop((state) => state.markOrderPaid);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
 
   const visible = orders.filter((order) => {
@@ -32,7 +32,7 @@ function PetStoreOrders() {
     .reduce((total, order) => total + order.total, 0);
 
   return (
-    <PetStoreScene
+    <AppPage
       title="Orders"
       description="Every sale, from the till and online."
       actions={
@@ -86,7 +86,7 @@ function PetStoreOrders() {
               <tr key={order.id}>
                 <td className="px-4 py-3 text-sm font-medium">
                   <Link
-                    to={`/store/orders/${order.id}`}
+                    to={`/orders/${order.id}`}
                     className="text-indigo-600 hover:text-indigo-500"
                   >
                     {order.number}
@@ -128,8 +128,8 @@ function PetStoreOrders() {
           <p className="px-4 py-6 text-sm text-gray-500">No orders here.</p>
         ) : null}
       </div>
-    </PetStoreScene>
+    </AppPage>
   );
 }
 
-export default PetStoreOrders;
+export default Orders;

@@ -1,12 +1,12 @@
 /**
- * Seed data and request handlers for the pet store domains.
+ * Seed data and request handlers for the shop domains.
  *
- * Mirrors the feature surface of the reference pet-store-app so the pages in
- * `app/scenes/PetStore` can be built against the same shapes, served from the
- * existing in-browser mock rather than a backend.
+ * Mirrors the feature surface of the reference pet-store-app so the scenes can
+ * be built against the same shapes, served from the existing in-browser mock
+ * rather than a backend.
  */
 
-export interface PetStoreProduct {
+export interface Product {
   id: string;
   sku: string;
   name: string;
@@ -18,7 +18,7 @@ export interface PetStoreProduct {
   status: "active" | "archived";
 }
 
-export interface PetStoreCustomer {
+export interface Customer {
   id: string;
   name: string;
   phone: string;
@@ -28,7 +28,7 @@ export interface PetStoreCustomer {
   joinedAt: string;
 }
 
-export interface PetStoreBoarding {
+export interface Boarding {
   id: string;
   code: string;
   customerId: string;
@@ -43,7 +43,7 @@ export interface PetStoreBoarding {
   ratePerNight: number;
 }
 
-export interface PetStoreRoom {
+export interface Room {
   id: string;
   name: string;
   branch: string;
@@ -51,7 +51,7 @@ export interface PetStoreRoom {
   type: "standard" | "deluxe" | "suite";
 }
 
-export interface PetStoreOrder {
+export interface Order {
   id: string;
   number: string;
   customerName: string;
@@ -62,7 +62,7 @@ export interface PetStoreOrder {
   items: { productId: string; name: string; quantity: number; price: number }[];
 }
 
-export interface PetStoreSupplier {
+export interface Supplier {
   id: string;
   name: string;
   contact: string;
@@ -70,13 +70,13 @@ export interface PetStoreSupplier {
   terms: string;
 }
 
-export interface PetStoreWarehouse {
+export interface Warehouse {
   id: string;
   name: string;
   branch: string;
 }
 
-export interface PetStoreBatch {
+export interface Batch {
   id: string;
   productId: string;
   productName: string;
@@ -86,7 +86,7 @@ export interface PetStoreBatch {
   expiresAt: string;
 }
 
-export interface PetStoreMovement {
+export interface Movement {
   id: string;
   productId: string;
   productName: string;
@@ -97,7 +97,7 @@ export interface PetStoreMovement {
   createdAt: string;
 }
 
-export interface PetStorePurchaseOrder {
+export interface PurchaseOrder {
   id: string;
   number: string;
   supplierId: string;
@@ -107,7 +107,7 @@ export interface PetStorePurchaseOrder {
   items: { productId: string; name: string; quantity: number; cost: number }[];
 }
 
-export interface PetStoreBranch {
+export interface Branch {
   id: string;
   name: string;
   address: string;
@@ -115,7 +115,7 @@ export interface PetStoreBranch {
   manager: string;
 }
 
-export interface PetStoreStaff {
+export interface Staff {
   id: string;
   name: string;
   role: "owner" | "manager" | "groomer" | "cashier" | "caretaker";
@@ -125,27 +125,27 @@ export interface PetStoreStaff {
   commissionRate: number;
 }
 
-export interface PetStoreState {
-  products: PetStoreProduct[];
-  customers: PetStoreCustomer[];
-  boardings: PetStoreBoarding[];
-  rooms: PetStoreRoom[];
-  orders: PetStoreOrder[];
-  suppliers: PetStoreSupplier[];
-  warehouses: PetStoreWarehouse[];
-  batches: PetStoreBatch[];
-  movements: PetStoreMovement[];
-  purchaseOrders: PetStorePurchaseOrder[];
-  branches: PetStoreBranch[];
-  staff: PetStoreStaff[];
+export interface State {
+  products: Product[];
+  customers: Customer[];
+  boardings: Boarding[];
+  rooms: Room[];
+  orders: Order[];
+  suppliers: Supplier[];
+  warehouses: Warehouse[];
+  batches: Batch[];
+  movements: Movement[];
+  purchaseOrders: PurchaseOrder[];
+  branches: Branch[];
+  staff: Staff[];
 }
 
-const STORAGE_KEY = "outline_petstore_db_v4";
+const STORAGE_KEY = "shop_db_v1";
 
 const daysFromNow = (days: number) =>
   new Date(Date.now() + days * 86400000).toISOString();
 
-const seed: PetStoreState = {
+const seed: State = {
   products: [
     {
       id: "prd-1",
@@ -593,7 +593,7 @@ const seed: PetStoreState = {
  *
  * @returns the persisted pet store state.
  */
-function loadState(): PetStoreState {
+function loadState(): State {
   if (typeof window === "undefined") {
     return seed;
   }
@@ -625,7 +625,7 @@ function persist() {
  * @param boarding the boarding to test.
  * @returns true when it is checked in, or booked and within its date range.
  */
-function isOccupyingToday(boarding: PetStoreBoarding): boolean {
+function isOccupyingToday(boarding: Boarding): boolean {
   if (boarding.status === "checked_out" || boarding.status === "cancelled") {
     return false;
   }
@@ -704,33 +704,33 @@ function dashboard() {
  * @param body the parsed request body.
  * @returns a response payload, or undefined when the action is not ours.
  */
-export function handlePetStoreRequest(
+export function handleShopRequest(
   action: string,
   body: Record<string, unknown>
 ): { data: unknown } | undefined {
   switch (action) {
-    case "petstore.dashboard":
+    case "dashboard":
       return { data: dashboard() };
 
-    case "petstore.products.list":
+    case "products.list":
       return { data: state.products };
 
-    case "petstore.customers.list":
+    case "customers.list":
       return { data: state.customers };
 
-    case "petstore.boardings.list":
+    case "boardings.list":
       return { data: state.boardings };
 
-    case "petstore.rooms.list":
+    case "rooms.list":
       return { data: roomOccupancy() };
 
-    case "petstore.orders.create": {
-      const items = (body.items ?? []) as PetStoreOrder["items"];
+    case "orders.create": {
+      const items = (body.items ?? []) as Order["items"];
       const total = items.reduce(
         (sum, item) => sum + item.price * item.quantity,
         0
       );
-      const order: PetStoreOrder = {
+      const order: Order = {
         id: `ord-${Date.now()}`,
         number: `INV-${2042 + state.orders.length}`,
         customerName: String(body.customerName ?? "Walk-in"),
@@ -756,15 +756,15 @@ export function handlePetStoreRequest(
       return { data: order };
     }
 
-    case "petstore.orders.list":
+    case "orders.list":
       return { data: state.orders };
 
-    case "petstore.orders.info":
+    case "orders.info":
       return {
         data: state.orders.find((order) => order.id === body.id) ?? null,
       };
 
-    case "petstore.orders.markPaid": {
+    case "orders.markPaid": {
       const id = String(body.id ?? "");
       state = {
         ...state,
@@ -778,15 +778,15 @@ export function handlePetStoreRequest(
       return { data: state.orders.find((order) => order.id === id) };
     }
 
-    case "petstore.branches.list":
+    case "branches.list":
       return { data: state.branches };
 
-    case "petstore.staff.list":
+    case "staff.list":
       return { data: state.staff };
 
-    case "petstore.staff.setStatus": {
+    case "staff.setStatus": {
       const id = String(body.id ?? "");
-      const status = String(body.status ?? "") as PetStoreStaff["status"];
+      const status = String(body.status ?? "") as Staff["status"];
       state = {
         ...state,
         staff: state.staff.map((member) =>
@@ -797,20 +797,20 @@ export function handlePetStoreRequest(
       return { data: state.staff.find((member) => member.id === id) };
     }
 
-    case "petstore.rooms.create": {
-      const room: PetStoreRoom = {
+    case "rooms.create": {
+      const room: Room = {
         id: `rm-${Date.now()}`,
         name: String(body.name ?? "New room"),
         branch: String(body.branch ?? state.branches[0]?.name ?? "Kemang"),
         capacity: Math.max(1, Number(body.capacity ?? 1)),
-        type: String(body.type ?? "standard") as PetStoreRoom["type"],
+        type: String(body.type ?? "standard") as Room["type"],
       };
       state = { ...state, rooms: [...state.rooms, room] };
       persist();
       return { data: room };
     }
 
-    case "petstore.rooms.update": {
+    case "rooms.update": {
       const id = String(body.id ?? "");
       state = {
         ...state,
@@ -825,7 +825,7 @@ export function handlePetStoreRequest(
                     : room.capacity,
                 type:
                   body.type !== undefined
-                    ? (String(body.type) as PetStoreRoom["type"])
+                    ? (String(body.type) as Room["type"])
                     : room.type,
               }
             : room
@@ -835,7 +835,7 @@ export function handlePetStoreRequest(
       return { data: state.rooms.find((room) => room.id === id) };
     }
 
-    case "petstore.rooms.delete": {
+    case "rooms.delete": {
       const id = String(body.id ?? "");
       // A room with guests in it cannot be removed.
       const occupied = roomOccupancy().find((room) => room.id === id);
@@ -850,22 +850,22 @@ export function handlePetStoreRequest(
       return { data: { deleted: true } };
     }
 
-    case "petstore.suppliers.list":
+    case "suppliers.list":
       return { data: state.suppliers };
 
-    case "petstore.warehouses.list":
+    case "warehouses.list":
       return { data: state.warehouses };
 
-    case "petstore.batches.list":
+    case "batches.list":
       return { data: state.batches };
 
-    case "petstore.movements.list":
+    case "movements.list":
       return { data: state.movements };
 
-    case "petstore.purchaseOrders.list":
+    case "purchaseOrders.list":
       return { data: state.purchaseOrders };
 
-    case "petstore.purchaseOrders.receive": {
+    case "purchaseOrders.receive": {
       const id = String(body.id ?? "");
       const order = state.purchaseOrders.find((item) => item.id === id);
       if (!order) {
@@ -908,9 +908,9 @@ export function handlePetStoreRequest(
       return { data: state.purchaseOrders.find((item) => item.id === id) };
     }
 
-    case "petstore.boardings.updateStatus": {
+    case "boardings.updateStatus": {
       const id = String(body.id ?? "");
-      const status = String(body.status ?? "") as PetStoreBoarding["status"];
+      const status = String(body.status ?? "") as Boarding["status"];
       state = {
         ...state,
         boardings: state.boardings.map((boarding) =>
@@ -921,7 +921,7 @@ export function handlePetStoreRequest(
       return { data: state.boardings.find((boarding) => boarding.id === id) };
     }
 
-    case "petstore.products.adjustStock": {
+    case "products.adjustStock": {
       const id = String(body.id ?? "");
       const delta = Number(body.delta ?? 0);
       state = {

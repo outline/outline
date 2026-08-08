@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { usePetStore } from "~/stores/petstore";
-import { PetStoreScene } from "./components/PetStoreScene";
-import { formatCurrency, formatDate, statusBadge } from "./format";
+import { useShop } from "~/stores/shop";
+import { AppPage } from "~/components/AppPage";
+import { formatCurrency, formatDate, statusBadge } from "~/utils/format";
 
 const TABS = ["Batches", "Movements", "Purchase orders", "Suppliers"] as const;
 
@@ -24,15 +24,13 @@ function movementTone(type: string): string {
  *
  * @returns the rendered inventory page.
  */
-function PetStoreInventory() {
-  const batches = usePetStore((state) => state.batches);
-  const movements = usePetStore((state) => state.movements);
-  const purchaseOrders = usePetStore((state) => state.purchaseOrders);
-  const suppliers = usePetStore((state) => state.suppliers);
-  const warehouses = usePetStore((state) => state.warehouses);
-  const receivePurchaseOrder = usePetStore(
-    (state) => state.receivePurchaseOrder
-  );
+function Inventory() {
+  const batches = useShop((state) => state.batches);
+  const movements = useShop((state) => state.movements);
+  const purchaseOrders = useShop((state) => state.purchaseOrders);
+  const suppliers = useShop((state) => state.suppliers);
+  const warehouses = useShop((state) => state.warehouses);
+  const receivePurchaseOrder = useShop((state) => state.receivePurchaseOrder);
 
   const [tab, setTab] = useState<(typeof TABS)[number]>("Batches");
 
@@ -48,7 +46,7 @@ function PetStoreInventory() {
   }).length;
 
   return (
-    <PetStoreScene
+    <AppPage
       title="Inventory"
       description="Stock by warehouse, movements, and what is on order."
       actions={
@@ -246,42 +244,48 @@ function PetStoreInventory() {
         ) : null}
 
         {tab === "Suppliers" ? (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                {["Supplier", "Contact", "Phone", "Terms"].map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {suppliers.map((supplier) => (
-                <tr key={supplier.id}>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">
+          <ul
+            role="list"
+            className="grid grid-cols-1 gap-px bg-gray-100 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {suppliers.map((supplier) => {
+              const open = purchaseOrders.filter(
+                (order) =>
+                  order.supplierId === supplier.id &&
+                  order.status !== "received"
+              ).length;
+
+              return (
+                <li key={supplier.id} className="bg-white p-6">
+                  <p className="text-sm font-semibold text-gray-900">
                     {supplier.name}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {supplier.contact}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {supplier.phone}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {supplier.terms}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </p>
+                  <dl className="mt-3 space-y-1 text-sm text-gray-500">
+                    <div className="flex justify-between gap-2">
+                      <dt>Contact</dt>
+                      <dd className="text-gray-900">{supplier.contact}</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt>Phone</dt>
+                      <dd className="text-gray-900">{supplier.phone}</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt>Terms</dt>
+                      <dd className="text-gray-900">{supplier.terms}</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt>Open orders</dt>
+                      <dd className="text-gray-900">{open}</dd>
+                    </div>
+                  </dl>
+                </li>
+              );
+            })}
+          </ul>
         ) : null}
       </div>
-    </PetStoreScene>
+    </AppPage>
   );
 }
 
-export default PetStoreInventory;
+export default Inventory;

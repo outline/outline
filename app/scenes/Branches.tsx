@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { usePetStore } from "~/stores/petstore";
-import { PetStoreScene } from "./components/PetStoreScene";
+import { useShop } from "~/stores/shop";
+import { AppPage } from "~/components/AppPage";
 
 const ROOM_TYPES = ["standard", "deluxe", "suite"] as const;
 
@@ -12,12 +12,12 @@ const ROOM_TYPES = ["standard", "deluxe", "suite"] as const;
  *
  * @returns the rendered branches page.
  */
-function PetStoreBranches() {
-  const branches = usePetStore((state) => state.branches);
-  const rooms = usePetStore((state) => state.rooms);
-  const createRoom = usePetStore((state) => state.createRoom);
-  const updateRoom = usePetStore((state) => state.updateRoom);
-  const deleteRoom = usePetStore((state) => state.deleteRoom);
+function Branches() {
+  const branches = useShop((state) => state.branches);
+  const rooms = useShop((state) => state.rooms);
+  const createRoom = useShop((state) => state.createRoom);
+  const updateRoom = useShop((state) => state.updateRoom);
+  const deleteRoom = useShop((state) => state.deleteRoom);
 
   const [draftBranch, setDraftBranch] = useState<string | undefined>();
   const [name, setName] = useState("");
@@ -46,7 +46,7 @@ function PetStoreBranches() {
   };
 
   return (
-    <PetStoreScene
+    <AppPage
       title="Branches"
       description="Locations and the rooms available at each."
     >
@@ -251,8 +251,8 @@ function PetStoreBranches() {
       {branches.length === 0 ? (
         <p className="text-sm text-gray-500">No branches configured.</p>
       ) : null}
-    </PetStoreScene>
+    </AppPage>
   );
 }
 
-export default PetStoreBranches;
+export default Branches;

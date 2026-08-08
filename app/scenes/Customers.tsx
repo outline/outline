@@ -1,16 +1,16 @@
-import { usePetStore } from "~/stores/petstore";
-import { PetStoreScene } from "./components/PetStoreScene";
+import { useShop } from "~/stores/shop";
+import { AppPage } from "~/components/AppPage";
 
 /**
  * Customer directory, with the pets registered against each owner.
  *
  * @returns the rendered customers page.
  */
-function PetStoreCustomers() {
-  const customers = usePetStore((state) => state.customers);
+function Customers() {
+  const customers = useShop((state) => state.customers);
 
   return (
-    <PetStoreScene
+    <AppPage
       title="Customers"
       description="Owners, their pets and loyalty standing."
     >
@@ -62,8 +62,8 @@ function PetStoreCustomers() {
       {customers.length === 0 ? (
         <p className="text-sm text-gray-500">No customers yet.</p>
       ) : null}
-    </PetStoreScene>
+    </AppPage>
   );
 }
 
-export default PetStoreCustomers;
+export default Customers;

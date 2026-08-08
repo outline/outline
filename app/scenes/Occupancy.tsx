@@ -1,6 +1,6 @@
-import { usePetStore } from "~/stores/petstore";
-import { PetStoreScene } from "./components/PetStoreScene";
-import { formatDate } from "./format";
+import { useShop } from "~/stores/shop";
+import { AppPage } from "~/components/AppPage";
+import { formatDate } from "~/utils/format";
 
 /**
  * Room-by-room occupancy for today, derived from the boardings that overlap
@@ -8,8 +8,8 @@ import { formatDate } from "./format";
  *
  * @returns the rendered occupancy board.
  */
-function PetStoreOccupancy() {
-  const rooms = usePetStore((state) => state.rooms);
+function Occupancy() {
+  const rooms = useShop((state) => state.rooms);
 
   const capacity = rooms.reduce((total, room) => total + room.capacity, 0);
   const occupied = rooms.reduce((total, room) => total + room.occupied, 0);
@@ -37,7 +37,7 @@ function PetStoreOccupancy() {
   ];
 
   return (
-    <PetStoreScene
+    <AppPage
       title="Occupancy"
       description="Which rooms are in use today, and who is in them."
     >
@@ -144,8 +144,8 @@ function PetStoreOccupancy() {
       {rooms.length === 0 ? (
         <p className="text-sm text-gray-500">No rooms configured.</p>
       ) : null}
-    </PetStoreScene>
+    </AppPage>
   );
 }
 
-export default PetStoreOccupancy;
+export default Occupancy;

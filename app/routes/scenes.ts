@@ -11,33 +11,17 @@ export const Document = lazy(() => import("~/scenes/Document"));
 export const Drafts = lazy(() => import("~/scenes/Drafts"));
 export const Home = lazy(() => import("~/scenes/Home"));
 export const Search = lazy(() => import("~/scenes/Search"));
-export const PetStoreDashboard = lazy(
-  () => import("~/scenes/PetStore/Dashboard")
-);
-export const PetStorePos = lazy(() => import("~/scenes/PetStore/Pos"));
-export const PetStoreOrders = lazy(() => import("~/scenes/PetStore/Orders"));
-export const PetStoreOrderDetail = lazy(
-  () => import("~/scenes/PetStore/OrderDetail")
-);
-export const PetStoreInventory = lazy(
-  () => import("~/scenes/PetStore/Inventory")
-);
-export const PetStoreStaff = lazy(() => import("~/scenes/PetStore/Staff"));
-export const PetStoreBranches = lazy(
-  () => import("~/scenes/PetStore/Branches")
-);
-export const PetStoreOccupancy = lazy(
-  () => import("~/scenes/PetStore/Occupancy")
-);
-export const PetStoreBoardings = lazy(
-  () => import("~/scenes/PetStore/Boardings")
-);
-export const PetStoreProducts = lazy(
-  () => import("~/scenes/PetStore/Products")
-);
-export const PetStoreCustomers = lazy(
-  () => import("~/scenes/PetStore/Customers")
-);
+export const Dashboard = lazy(() => import("~/scenes/Dashboard"));
+export const Pos = lazy(() => import("~/scenes/Pos"));
+export const Orders = lazy(() => import("~/scenes/Orders"));
+export const OrderDetail = lazy(() => import("~/scenes/OrderDetail"));
+export const Inventory = lazy(() => import("~/scenes/Inventory"));
+export const Staff = lazy(() => import("~/scenes/Staff"));
+export const Branches = lazy(() => import("~/scenes/Branches"));
+export const Occupancy = lazy(() => import("~/scenes/Occupancy"));
+export const Boardings = lazy(() => import("~/scenes/Boardings"));
+export const Products = lazy(() => import("~/scenes/Products"));
+export const Customers = lazy(() => import("~/scenes/Customers"));
 export const Trash = lazy(() => import("~/scenes/Trash"));
 
 /**

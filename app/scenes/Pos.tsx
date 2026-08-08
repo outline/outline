@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import type { PetStoreCartLine } from "~/stores/petstore";
-import { usePetStore } from "~/stores/petstore";
-import { PetStoreScene } from "./components/PetStoreScene";
-import { formatCurrency } from "./format";
+import type { CartLine } from "~/stores/shop";
+import { useShop } from "~/stores/shop";
+import { AppPage } from "~/components/AppPage";
+import { formatCurrency } from "~/utils/format";
 
 /**
  * Point of sale: pick products into a ticket and take payment.
@@ -12,14 +12,14 @@ import { formatCurrency } from "./format";
  *
  * @returns the rendered till.
  */
-function PetStorePos() {
-  const products = usePetStore((state) => state.products);
-  const customers = usePetStore((state) => state.customers);
-  const createOrder = usePetStore((state) => state.createOrder);
+function Pos() {
+  const products = useShop((state) => state.products);
+  const customers = useShop((state) => state.customers);
+  const createOrder = useShop((state) => state.createOrder);
 
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
-  const [cart, setCart] = useState<PetStoreCartLine[]>([]);
+  const [cart, setCart] = useState<CartLine[]>([]);
   const [customerName, setCustomerName] = useState("Walk-in");
   const [receipt, setReceipt] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
@@ -103,7 +103,7 @@ function PetStorePos() {
   };
 
   return (
-    <PetStoreScene
+    <AppPage
       title="Point of sale"
       description="Ring up a sale; stock and takings update as you go."
     >
@@ -282,8 +282,8 @@ function PetStorePos() {
           </div>
         </aside>
       </div>
-    </PetStoreScene>
+    </AppPage>
   );
 }
 
-export default PetStorePos;
+export default Pos;

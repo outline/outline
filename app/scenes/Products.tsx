@@ -1,6 +1,6 @@
-import { usePetStore } from "~/stores/petstore";
-import { PetStoreScene } from "./components/PetStoreScene";
-import { formatCurrency, statusBadge } from "./format";
+import { useShop } from "~/stores/shop";
+import { AppPage } from "~/components/AppPage";
+import { formatCurrency, statusBadge } from "~/utils/format";
 
 /**
  * Product catalogue with stock levels, flagging anything at or below its
@@ -8,12 +8,12 @@ import { formatCurrency, statusBadge } from "./format";
  *
  * @returns the rendered products page.
  */
-function PetStoreProducts() {
-  const products = usePetStore((state) => state.products);
-  const adjustStock = usePetStore((state) => state.adjustStock);
+function Products() {
+  const products = useShop((state) => state.products);
+  const adjustStock = useShop((state) => state.adjustStock);
 
   return (
-    <PetStoreScene
+    <AppPage
       title="Products"
       description="Catalogue, pricing and stock on hand."
     >
@@ -111,8 +111,8 @@ function PetStoreProducts() {
           <p className="px-4 py-6 text-sm text-gray-500">No products yet.</p>
         ) : null}
       </div>
-    </PetStoreScene>
+    </AppPage>
   );
 }
 
-export default PetStoreProducts;
+export default Products;
