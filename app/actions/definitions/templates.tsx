@@ -13,7 +13,6 @@ import {
 } from "outline-icons";
 import { Trans } from "react-i18next";
 import { toast } from "sonner";
-import { errToString } from "@shared/utils/error";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import TemplateMove from "~/components/DocumentExplorer/TemplateMove";
@@ -22,6 +21,13 @@ import {
   createActionWithChildren,
   createInternalLinkAction,
 } from "~/actions";
+import {
+  dialogActionFactory,
+  everyActiveModel,
+  performBatch,
+  performBatchOnActiveModels,
+} from "~/actions/definitions/common";
+import type { ActionContext } from "~/types";
 import history from "~/utils/history";
 import {
   newDocumentPath,
@@ -46,47 +52,61 @@ export const createTemplate = createInternalLinkAction({
   to: newTemplatePath(),
 });
 
-export const deleteTemplate = createAction({
-  name: ({ t }) => `${t("Delete")}…`,
+export const deleteTemplate = dialogActionFactory({
   analyticsName: "Delete template",
   section: ActiveTemplateSection,
-  icon: <TrashIcon />,
-  dangerous: true,
-  visible: ({ getActivePolicies }) =>
-    getActivePolicies(Template).some((policy) => policy.abilities.delete),
-  perform: ({ getActiveModel, stores, t }) => {
-    const template = getActiveModel(Template);
-    if (!template) {
-      return;
-    }
+  name: (t) => `${t("Delete")}…`,
+  title: (t, { getActiveModels }) =>
+    getActiveModels(Template).length === 1
+      ? t("Delete template")
+      : t("Delete {{ count }} template", {
+          count: getActiveModels(Template).length,
+        }),
+  content: (onSubmit, { getActiveModels, t }) => {
+    const templates = getActiveModels(Template);
 
-    stores.dialogs.openModal({
-      title: t("Delete {{ documentName }}", {
-        documentName: t("template"),
-      }),
-      content: (
-        <ConfirmationDialog
-          onSubmit={async () => {
-            await template.delete();
-            history.push(settingsPath("templates"));
-            toast.success(t("Template deleted"));
-          }}
-          savingText={`${t("Deleting")}…`}
-          danger
-        >
+    return (
+      <ConfirmationDialog
+        onSubmit={async () => {
+          await performBatch(templates, (template) => template.delete());
+          onSubmit();
+          history.push(settingsPath("templates"));
+          toast.success(
+            templates.length === 1
+              ? t("Template deleted")
+              : t("{{ count }} template deleted", { count: templates.length })
+          );
+        }}
+        savingText={`${t("Deleting")}…`}
+        danger
+      >
+        {templates.length === 1 ? (
           <Trans
             defaults="Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent."
             values={{
-              templateName: template.titleWithDefault,
+              templateName: templates[0].titleWithDefault,
             }}
             components={{
               em: <strong />,
             }}
           />
-        </ConfirmationDialog>
-      ),
-    });
+        ) : (
+          t(
+            "Are you sure about that? Deleting {{ count }} template is permanent.",
+            { count: templates.length }
+          )
+        )}
+      </ConfirmationDialog>
+    );
   },
+  icon: <TrashIcon />,
+  dangerous: true,
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Template,
+      (template) => context.stores.policies.abilities(template.id).delete
+    ),
 });
 
 export const publishTemplate = createAction({
@@ -94,25 +114,43 @@ export const publishTemplate = createAction({
   analyticsName: "Publish template",
   section: ActiveTemplateSection,
   icon: <PublishIcon />,
-  visible: ({ getActiveModel, getActivePolicies }) =>
-    !!getActiveModel(Template)?.isDraft &&
-    getActivePolicies(Template).some((policy) => policy.abilities.update),
-  perform: async ({ getActiveModel, t }) => {
-    const template = getActiveModel(Template);
-    if (!template) {
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Template,
+      (template) =>
+        template.isDraft &&
+        context.stores.policies.abilities(template.id).update
+    ),
+  perform: async (context) => {
+    const templates = context.getActiveModels(Template);
+
+    if (
+      templates.some(
+        (template) =>
+          !template.data || ProsemirrorDataHelper.isEmpty(template.data)
+      )
+    ) {
+      toast.message(context.t("A template must have content"));
       return;
     }
 
-    if (!template.data || ProsemirrorDataHelper.isEmpty(template.data)) {
-      toast.message(t("A template must have content"));
-      return;
-    }
+    const succeeded = await performBatchOnActiveModels(
+      context,
+      Template,
+      (template) => template.publish(),
+      (models, count, t) =>
+        models.length === 1
+          ? t("Template published")
+          : t("{{ count }} template published", { count })
+    );
 
-    try {
-      await template.publish();
-      toast.success(t("Template published"));
-    } catch (error) {
-      toast.error(errToString(error));
+    if (succeeded < templates.length) {
+      toast.error(
+        context.t("Could not publish {{ count }} template", {
+          count: templates.length - succeeded,
+        })
+      );
     }
   },
 });
@@ -125,12 +163,10 @@ export const moveTemplateToWorkspace = createAction({
     const { team } = stores.auth;
     return <TeamLogo model={team} size={AvatarSize.Small} />;
   },
-  visible: ({ getActiveModel }) => {
-    const template = getActiveModel(Template);
-    return !!template?.collectionId;
-  },
-  perform: async ({ getActiveModel, stores, t }) => {
-    const template = getActiveModel(Template);
+  visible: (context) => !!singleActiveTemplate(context)?.collectionId,
+  perform: async (context) => {
+    const { stores, t } = context;
+    const template = singleActiveTemplate(context);
     if (!template) {
       return;
     }
@@ -150,9 +186,10 @@ export const moveTemplateToCollection = createAction({
   analyticsName: "Move template to collection",
   section: ActiveTemplateSection,
   icon: <CollectionIcon />,
-  visible: ({ getActiveModel }) => !!getActiveModel(Template),
-  perform: ({ getActiveModel, stores, t }) => {
-    const template = getActiveModel(Template);
+  visible: (context) => !!singleActiveTemplate(context),
+  perform: (context) => {
+    const { stores, t } = context;
+    const template = singleActiveTemplate(context);
     if (!template) {
       return;
     }
@@ -169,8 +206,10 @@ export const moveTemplate = createActionWithChildren({
   analyticsName: "Move template",
   section: ActiveTemplateSection,
   icon: <MoveIcon />,
-  visible: ({ getActivePolicies }) =>
-    getActivePolicies(Template).some((policy) => policy.abilities.move),
+  visible: (context) => {
+    const template = singleActiveTemplate(context);
+    return !!template && context.stores.policies.abilities(template.id).move;
+  },
   children: [moveTemplateToWorkspace, moveTemplateToCollection],
 });
 
@@ -180,8 +219,9 @@ export const createDocumentFromTemplate = createInternalLinkAction({
   section: ActiveTemplateSection,
   icon: <NewDocumentIcon />,
   keywords: "create",
-  visible: ({ currentTeamId, getActiveModel, stores }) => {
-    const template = getActiveModel(Template);
+  visible: (context) => {
+    const { currentTeamId, stores } = context;
+    const template = singleActiveTemplate(context);
     if (!template || !currentTeamId) {
       return false;
     }
@@ -191,8 +231,9 @@ export const createDocumentFromTemplate = createInternalLinkAction({
     }
     return !!stores.policies.abilities(currentTeamId).createDocument;
   },
-  to: ({ getActiveModel, activeCollectionId, sidebarContext }) => {
-    const template = getActiveModel(Template);
+  to: (context) => {
+    const { activeCollectionId, sidebarContext } = context;
+    const template = singleActiveTemplate(context);
     if (!template) {
       return "";
     }
@@ -216,16 +257,22 @@ export const duplicateTemplate = createAction({
   section: ActiveTemplateSection,
   icon: <DuplicateIcon />,
   keywords: "copy",
-  visible: ({ getActivePolicies }) =>
-    getActivePolicies(Template).some((policy) => policy.abilities.duplicate),
-  perform: async ({ getActiveModel, stores }) => {
-    const template = getActiveModel(Template);
-    if (!template) {
-      return;
-    }
-
-    await stores.templates.duplicate(template);
-  },
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Template,
+      (template) => context.stores.policies.abilities(template.id).duplicate
+    ),
+  perform: (context) =>
+    performBatchOnActiveModels(
+      context,
+      Template,
+      (template) => context.stores.templates.duplicate(template),
+      (templates, succeeded, t) =>
+        templates.length === 1
+          ? undefined
+          : t("{{ count }} template duplicated", { count: succeeded })
+    ),
 });
 
 export const copyTemplateLink = createAction({
@@ -234,12 +281,12 @@ export const copyTemplateLink = createAction({
   section: ActiveTemplateSection,
   icon: <CopyIcon />,
   iconInContextMenu: false,
-  visible: ({ getActiveModel }) => !!getActiveModel(Template),
-  perform: ({ getActiveModel, t }) => {
-    const template = getActiveModel(Template);
+  visible: (context) => !!singleActiveTemplate(context),
+  perform: (context) => {
+    const template = singleActiveTemplate(context);
     if (template) {
       copy(urlify(template.path));
-      toast.success(t("Link copied to clipboard"));
+      toast.success(context.t("Link copied to clipboard"));
     }
   },
 });
@@ -250,12 +297,12 @@ export const copyTemplateAsPlainText = createAction({
   section: ActiveTemplateSection,
   icon: <CaseSensitiveIcon />,
   iconInContextMenu: false,
-  visible: ({ getActiveModel }) => !!getActiveModel(Template),
-  perform: async ({ getActiveModel, t }) => {
-    const template = getActiveModel(Template);
+  visible: (context) => !!singleActiveTemplate(context),
+  perform: (context) => {
+    const template = singleActiveTemplate(context);
     if (template) {
       copy(ProsemirrorHelper.toPlainText(template));
-      toast.success(t("Text copied to clipboard"));
+      toast.success(context.t("Text copied to clipboard"));
     }
   },
 });
@@ -266,7 +313,7 @@ export const copyTemplate = createActionWithChildren({
   section: ActiveTemplateSection,
   icon: <CopyIcon />,
   keywords: "clipboard",
-  visible: ({ getActiveModel }) => !!getActiveModel(Template),
+  visible: (context) => !!singleActiveTemplate(context),
   children: [copyTemplateLink, copyTemplateAsPlainText],
 });
 
@@ -275,7 +322,7 @@ export const printTemplate = createAction({
   analyticsName: "Print template",
   section: ActiveTemplateSection,
   icon: <PrintIcon />,
-  visible: ({ getActiveModel }) => !!getActiveModel(Template) && !!window.print,
+  visible: (context) => !!singleActiveTemplate(context) && !!window.print,
   perform: () => {
     setTimeout(window.print, 0);
   },
@@ -291,3 +338,9 @@ export const rootTemplateActions = [
   printTemplate,
   deleteTemplate,
 ];
+
+/** The active template, when a single one is active. */
+const singleActiveTemplate = ({ getActiveModels }: ActionContext) => {
+  const templates = getActiveModels(Template);
+  return templates.length === 1 ? templates[0] : undefined;
+};

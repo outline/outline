@@ -25,8 +25,10 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useTemplateSettingsActions } from "~/hooks/useTemplateSettingsActions";
 import TemplateMenu from "~/menus/TemplateMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import TemplateSelectionToolbar from "./TemplateSelectionToolbar";
 import history from "~/utils/history";
 import usePolicy from "~/hooks/usePolicy";
+import useStores from "~/hooks/useStores";
 import { Link } from "react-router-dom";
 
 const ROW_HEIGHT = 50;
@@ -57,10 +59,16 @@ const TemplateRowContextMenu = observer(function TemplateRowContextMenu({
 
 export function TemplatesTable(props: Props) {
   const { t } = useTranslation();
+  const { policies } = useStores();
 
   const handleOpen = (template: Template) => {
     history.push(template.path);
   };
+
+  const isRowSelectable = useCallback(
+    (template: Template) => !!policies.abilities(template.id).delete,
+    [policies]
+  );
 
   const applyContextMenu = useCallback(
     (template: Template, rowElement: React.ReactNode) => (
@@ -135,6 +143,8 @@ export function TemplatesTable(props: Props) {
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
       decorateRow={applyContextMenu}
+      isRowSelectable={isRowSelectable}
+      selectionToolbar={<TemplateSelectionToolbar />}
       {...props}
     />
   );
