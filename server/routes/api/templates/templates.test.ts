@@ -29,6 +29,39 @@ describe("#templates.list", () => {
     expect(body.data[0].id).toEqual(template.id);
   });
 
+  it("should list the user's own drafts", async () => {
+    const user = await buildUser();
+    const template = await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/templates.list", user);
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(template.id);
+  });
+
+  it("should not list drafts created by another user", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    await buildTemplate({
+      userId: other.id,
+      teamId: user.teamId,
+      collectionId: null,
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/templates.list", user);
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
   it("should return an empty document for templates without content", async () => {
     const user = await buildUser();
     await buildTemplate({
@@ -101,6 +134,60 @@ describe("#templates.list", () => {
   });
 });
 
+describe("#templates.create", () => {
+  it("should publish by default", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/templates.create", admin, {
+      body: {
+        title: "My template",
+        data: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "hello" }],
+            },
+          ],
+        },
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.publishedAt).toBeTruthy();
+  });
+
+  it("should not publish a template without content", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/templates.create", admin, {
+      body: {
+        title: "My template",
+        data: ProsemirrorDataHelper.getEmpty(),
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should create an empty draft when publish is false", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/templates.create", admin, {
+      body: {
+        title: "",
+        publish: false,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual("");
+    expect(body.data.publishedAt).toEqual(null);
+  });
+});
+
 describe("#templates.info", () => {
   it("should return template data", async () => {
     const user = await buildUser();
@@ -121,6 +208,44 @@ describe("#templates.info", () => {
     expect(body.data.title).toEqual(template.title);
   });
 
+  it("should return a draft to the user that created it", async () => {
+    const user = await buildUser();
+    const template = await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/templates.info", user, {
+      body: {
+        id: template.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(template.id);
+  });
+
+  it("should not return a draft created by another user", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const template = await buildTemplate({
+      userId: other.id,
+      teamId: user.teamId,
+      collectionId: null,
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/templates.info", user, {
+      body: {
+        id: template.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/templates.info");
     expect(res.status).toEqual(401);
@@ -139,6 +264,66 @@ describe("#templates.info", () => {
 });
 
 describe("#templates.update", () => {
+  it("should accept an empty document while drafting", async () => {
+    const user = await buildUser();
+    const template = await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/templates.update", user, {
+      body: {
+        id: template.id,
+        title: "Still writing",
+        data: ProsemirrorDataHelper.getEmpty(),
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual("Still writing");
+  });
+
+  it("should not publish a draft without content", async () => {
+    const user = await buildUser();
+    const template = await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+      content: ProsemirrorDataHelper.getEmpty(),
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/templates.update", user, {
+      body: {
+        id: template.id,
+        publish: true,
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should publish a draft when publish is true", async () => {
+    const user = await buildUser();
+    const template = await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/templates.update", user, {
+      body: {
+        id: template.id,
+        publish: true,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.publishedAt).toBeTruthy();
+  });
+
   it("should update template title", async () => {
     const user = await buildUser();
     const template = await buildTemplate({
