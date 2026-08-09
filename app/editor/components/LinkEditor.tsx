@@ -80,6 +80,15 @@ const LinkEditor: React.FC<Props> = ({
     }
   }, [trimmedQuery, request]);
 
+  // Focus imperatively rather than with the autoFocus attribute, which only
+  // applies on mount – the editor can already be open when focus is requested.
+  useEffect(() => {
+    if (autoFocus) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [autoFocus]);
+
   useOnClickOutside(wrapperRef, (ev) => {
     // If the link is totally empty or only spaces then remove the mark
     if (!trimmedQuery) {
@@ -214,7 +223,6 @@ const LinkEditor: React.FC<Props> = ({
           onKeyDown={handleKeyDown}
           onChange={handleSearch}
           onFocus={handleSearch}
-          autoFocus={autoFocus}
           readOnly={!view.editable}
         />
         {actions.map((action, index) => {

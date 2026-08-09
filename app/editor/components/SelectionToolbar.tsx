@@ -199,9 +199,7 @@ export function SelectionToolbar(props: Props) {
         ev.preventDefault();
         ev.stopPropagation();
         setAutoFocusLinkInput(true);
-        setActiveToolbar(
-          activeToolbar === Toolbar.Link ? Toolbar.Menu : Toolbar.Link
-        );
+        setActiveToolbar(Toolbar.Link);
       }
     },
     view.dom,
