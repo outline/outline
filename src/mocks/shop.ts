@@ -222,6 +222,14 @@ export interface BillingInvoice {
   status: "paid" | "open";
 }
 
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  sentAt: string;
+}
+
 export interface Business {
   slug: string;
   name: string;
@@ -258,6 +266,7 @@ export interface State {
   subscription: Subscription;
   billingInvoices: BillingInvoice[];
   business: Business;
+  contactMessages: ContactMessage[];
 }
 
 /** Where the signed-in session is remembered. */
@@ -982,6 +991,7 @@ const seed: State = {
       status: "paid",
     },
   ],
+  contactMessages: [],
   business: {
     slug: "acme-pets",
     name: "Acme Pet Care",
@@ -1748,6 +1758,32 @@ export function handleShopRequest(
       if (password !== confirm) {
         return { data: { ok: false, reason: "mismatch" } };
       }
+      return { data: { ok: true } };
+    }
+
+    case "contact.submit": {
+      const name = String(body.name ?? "").trim();
+      const email = String(body.email ?? "").trim();
+      const message = String(body.message ?? "").trim();
+
+      if (!name || !email.includes("@") || message.length < 10) {
+        return { data: { ok: false, reason: "incomplete" } };
+      }
+
+      state = {
+        ...state,
+        contactMessages: [
+          {
+            id: `msg-${Date.now()}`,
+            name,
+            email,
+            message,
+            sentAt: new Date().toISOString(),
+          },
+          ...state.contactMessages,
+        ],
+      };
+      persist();
       return { data: { ok: true } };
     }
 
