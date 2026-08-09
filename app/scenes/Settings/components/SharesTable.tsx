@@ -13,10 +13,13 @@ import {
 import { type Column as TableColumn } from "~/components/Table";
 import { UserLabel } from "~/components/UserLabel";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useShareMenuActions } from "~/hooks/useShareMenuActions";
 import Time from "~/components/Time";
 import ShareMenu from "~/menus/ShareMenu";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
+import useStores from "~/hooks/useStores";
+import ShareSelectionToolbar from "./ShareSelectionToolbar";
 
 const ROW_HEIGHT = 50;
 
@@ -33,18 +36,26 @@ const ShareRowContextMenu = observer(function ShareRowContextMenu({
   menuLabel: string;
   children: React.ReactNode;
 }) {
-  const action = useShareMenuActions(share);
+  const action = useShareMenuActions();
   return (
-    <ContextMenu action={action} ariaLabel={menuLabel}>
-      {children}
-    </ContextMenu>
+    <ActionContextProvider value={{ activeModels: [share] }}>
+      <ContextMenu action={action} ariaLabel={menuLabel}>
+        {children}
+      </ContextMenu>
+    </ActionContextProvider>
   );
 });
 
 export function SharesTable({ data, canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const formatNumber = useFormatNumber();
+  const { policies } = useStores();
   const hasDomain = data.some((share) => share.domain);
+
+  const isRowSelectable = useCallback(
+    (share: Share) => !!policies.abilities(share.id).revoke,
+    [policies]
+  );
 
   const applyContextMenu = useCallback(
     (share: Share, rowElement: React.ReactNode) => (
@@ -142,6 +153,8 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
       rowHeight={ROW_HEIGHT}
       stickyOffset={HEADER_HEIGHT}
       decorateRow={canManage ? applyContextMenu : undefined}
+      isRowSelectable={canManage ? isRowSelectable : undefined}
+      selectionToolbar={<ShareSelectionToolbar />}
       {...rest}
     />
   );
