@@ -225,6 +225,9 @@ export interface BillingInvoice {
 export interface Business {
   slug: string;
   name: string;
+  /** The account that signs in to manage this business. */
+  ownerEmail: string;
+  ownerName: string;
   tagline: string;
   address: string;
   phone: string;
@@ -951,6 +954,8 @@ const seed: State = {
   business: {
     slug: "acme-pets",
     name: "Acme Pet Care",
+    ownerEmail: "sinta@acmepets.id",
+    ownerName: "Sinta Wijaya",
     tagline: "Boarding, grooming and everything your pet needs.",
     address: "Jl. Kemang Raya 42, Jakarta Selatan",
     phone: "+62 21 555 1000",
@@ -1655,6 +1660,58 @@ export function handleShopRequest(
       };
       persist();
       return { data: { created: true, code, room: room.name } };
+    }
+
+    case "auth.signIn": {
+      const email = String(body.email ?? "")
+        .trim()
+        .toLowerCase();
+      const password = String(body.password ?? "");
+
+      if (!email || !password) {
+        return { data: { ok: false, reason: "missing" } };
+      }
+      // The mock has one account; anything else is an unknown sign-in.
+      if (email !== state.business.ownerEmail.toLowerCase()) {
+        return { data: { ok: false, reason: "unknown" } };
+      }
+      if (password.length < 8) {
+        return { data: { ok: false, reason: "invalid" } };
+      }
+      return { data: { ok: true, name: state.business.ownerName } };
+    }
+
+    case "auth.signUp": {
+      const email = String(body.email ?? "").trim();
+      const businessName = String(body.businessName ?? "").trim();
+
+      if (!email.includes("@") || !businessName) {
+        return { data: { ok: false, reason: "missing" } };
+      }
+      if (email.toLowerCase() === state.business.ownerEmail.toLowerCase()) {
+        return { data: { ok: false, reason: "taken" } };
+      }
+      return { data: { ok: true, businessName } };
+    }
+
+    case "auth.forgotPassword": {
+      const email = String(body.email ?? "").trim();
+      // Always reports success so the form cannot be used to discover which
+      // addresses have an account.
+      return { data: { ok: email.includes("@") } };
+    }
+
+    case "auth.resetPassword": {
+      const password = String(body.password ?? "");
+      const confirm = String(body.confirm ?? "");
+
+      if (password.length < 8) {
+        return { data: { ok: false, reason: "short" } };
+      }
+      if (password !== confirm) {
+        return { data: { ok: false, reason: "mismatch" } };
+      }
+      return { data: { ok: true } };
     }
 
     case "suppliers.list":

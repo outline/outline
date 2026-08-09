@@ -15,6 +15,10 @@ const Shared = lazy(() => import("~/scenes/Shared"));
 const Login = lazy(() => import("~/scenes/Login"));
 const Logout = lazy(() => import("~/scenes/Logout"));
 const OAuthAuthorize = lazy(() => import("~/scenes/Login/OAuthAuthorize"));
+const ShopLogin = lazy(() => import("~/scenes/Auth/Login"));
+const ShopSignup = lazy(() => import("~/scenes/Auth/Signup"));
+const ShopForgotPassword = lazy(() => import("~/scenes/Auth/ForgotPassword"));
+const ShopResetPassword = lazy(() => import("~/scenes/Auth/ResetPassword"));
 const PublicBooking = lazy(() => import("~/scenes/Public/Booking"));
 const PublicBoarding = lazy(() => import("~/scenes/Public/Boarding"));
 const PublicFeatured = lazy(() => import("~/scenes/Public/Featured"));
@@ -48,6 +52,13 @@ export default function Routes() {
           <Route exact path="/logout" component={Logout} />
           <Route exact path="/desktop-redirect" component={DesktopRedirect} />
           <Route exact path="/oauth/authorize" component={OAuthAuthorize} />
+
+          {/* The shop's own sign-in pages. Outline's existing auth stays on
+              "/" – these are the routes the product uses. */}
+          <Route exact path="/login" component={ShopLogin} />
+          <Route exact path="/signup" component={ShopSignup} />
+          <Route exact path="/forgot-password" component={ShopForgotPassword} />
+          <Route exact path="/reset-password" component={ShopResetPassword} />
 
           {/* Public, per-business pages. These sit outside Authenticated
               because a visitor booking a stay has no account. */}
