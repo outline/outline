@@ -260,6 +260,37 @@ export interface State {
   business: Business;
 }
 
+/** Where the signed-in session is remembered. */
+const SESSION_KEY = "shop_session";
+
+/**
+ * Whether someone is signed in.
+ *
+ * @returns true when a session exists.
+ */
+export function hasSession(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  return Boolean(localStorage.getItem(SESSION_KEY));
+}
+
+/**
+ * Starts or ends the session.
+ *
+ * @param email the signed-in address, or null to sign out.
+ */
+function setSession(email: string | null) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (email) {
+    localStorage.setItem(SESSION_KEY, email);
+  } else {
+    localStorage.removeItem(SESSION_KEY);
+  }
+}
+
 const STORAGE_KEY = "shop_db_v5";
 
 const daysFromNow = (days: number) =>
@@ -1678,8 +1709,14 @@ export function handleShopRequest(
       if (password.length < 8) {
         return { data: { ok: false, reason: "invalid" } };
       }
+
+      setSession(email);
       return { data: { ok: true, name: state.business.ownerName } };
     }
+
+    case "auth.delete":
+      setSession(null);
+      return { data: { ok: true } };
 
     case "auth.signUp": {
       const email = String(body.email ?? "").trim();

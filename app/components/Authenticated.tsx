@@ -54,7 +54,7 @@ const Authenticated = ({ children }: Props) => {
     return <LoadingIndicator />;
   }
 
-  return <Redirect to="/" />;
+  return <Redirect to="/login" />;
 };
 
 export default observer(Authenticated);

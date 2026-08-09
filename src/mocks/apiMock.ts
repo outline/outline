@@ -1,5 +1,5 @@
 import { documentPath, mockDb, textToProsemirror } from "./db";
-import { handleShopRequest } from "./shop";
+import { handleShopRequest, hasSession } from "./shop";
 import type { MockCollection, MockDocument } from "./db";
 
 /**
@@ -149,8 +149,11 @@ export function setupApiMock(): void {
         };
       }
 
+      const status = responsePayload?.__status ?? 200;
+      delete responsePayload?.__status;
+
       return new Response(JSON.stringify(responsePayload), {
-        status: 200,
+        status,
         headers: { "Content-Type": "application/json" },
       });
     }
@@ -235,6 +238,13 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
       };
 
     case "auth.info":
+      if (!hasSession()) {
+        return {
+          __status: 401,
+          error: "authentication_required",
+          message: "Authentication required",
+        };
+      }
       return {
         data: {
           user: state.user,

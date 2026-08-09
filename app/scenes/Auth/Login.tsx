@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useHistory } from "react-router-dom";
+import { Link } from "react-router-dom";
+import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import { AuthLayout, fieldClass, submitClass } from "./AuthLayout";
 
@@ -15,7 +16,7 @@ const MESSAGES: Record<string, string> = {
  * @returns the rendered login page.
  */
 function Login() {
-  const history = useHistory();
+  const { auth } = useStores();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | undefined>();
@@ -28,7 +29,12 @@ function Login() {
     try {
       const response = await client.post("/auth.signIn", { email, password });
       if (response.data?.ok) {
-        history.push("/dashboard");
+        // The session is open. Navigate with a full load rather than a
+        // client-side push: AuthStore is populated asynchronously, and
+        // Authenticated redirects straight back to /login if it mounts before
+        // the observable has propagated.
+        await auth.fetchAuth();
+        window.location.href = "/dashboard";
         return;
       }
       setError(MESSAGES[response.data?.reason] ?? "Could not sign you in.");
