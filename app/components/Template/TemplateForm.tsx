@@ -151,7 +151,7 @@ export const TemplateForm = observer(function TemplateForm_({
       ) {
         void template.delete();
       } else if (template.isDirty()) {
-        void template.save();
+        void saveRef.current();
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -266,6 +266,7 @@ export const copyTemplate = createActionWithChildren({
   section: ActiveTemplateSection,
   icon: <CopyIcon />,
   keywords: "clipboard",
+  visible: ({ getActiveModel }) => !!getActiveModel(Template),
   children: [copyTemplateLink, copyTemplateAsPlainText],
 });
 
