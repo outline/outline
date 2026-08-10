@@ -22,10 +22,13 @@ export interface Panels {
  * machine is shared and the names differ from page to page; what matters is
  * that there is one of them.
  *
+ * @param initial which panel to start on, for a tab strip that always has one.
  * @returns which panel is open and how to change it.
  */
-export function usePanel(): Panels {
-  const [state, send] = useMachine(panelMachine);
+export function usePanel(initial?: string): Panels {
+  const [state, send] = useMachine(panelMachine, {
+    input: { open: initial },
+  });
 
   const open = useCallback(
     (panel: string) => send({ type: "OPEN", panel }),

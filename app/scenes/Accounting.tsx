@@ -1,6 +1,7 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { useFields } from "~/hooks/useFields";
+import { usePanel } from "~/hooks/usePanel";
 import { Capitalize } from "~/components/Surface";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
@@ -45,11 +46,14 @@ function Accounting() {
   const commissions = useShop((state) => state.commissions);
   const createExpense = useShop((state) => state.createExpense);
 
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Journal");
-  const [category, setCategory] = useState(CATEGORIES[0]);
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
-  const [paidFrom, setPaidFrom] = useState("acc-cash");
+  const tabs = usePanel("Journal");
+  const tab = tabs.current;
+  const fields = useFields({
+    category: CATEGORIES[0],
+    description: "",
+    amount: "",
+    paidFrom: "acc-cash",
+  });
 
   const accountName = (id: string) =>
     accounts.find((account) => account.id === id)?.name ?? id;
@@ -74,18 +78,20 @@ function Accounting() {
     trialBalance.find((row) => row.id === "acc-petty")?.balance ?? 0;
 
   const handleRecord = async () => {
-    const value = Number(amount);
-    if (!value || !description.trim()) {
+    const value = Number(fields.get("amount"));
+    if (!value || !fields.get("description").trim()) {
       return;
     }
     await createExpense({
-      category,
-      description: description.trim(),
+      category: fields.get("category"),
+      description: fields.get("description").trim(),
       amount: value,
-      paidFrom,
+      paidFrom: fields.get("paidFrom"),
     });
-    setDescription("");
-    setAmount("");
+    // Only what was written for this expense is cleared: the category and
+    // the account stay chosen for the next one.
+    fields.set("description", "");
+    fields.set("amount", "");
   };
 
   return (
@@ -107,7 +113,7 @@ function Accounting() {
           <Tab
             key={option}
             active={tab === option}
-            onClick={() => setTab(option)}
+            onClick={() => tabs.open(option)}
           >
             {t(option)}
           </Tab>
@@ -154,8 +160,8 @@ function Accounting() {
           <Flex align="flex-end" gap={8} style={{ padding: "8px 0 16px" }}>
             <InputSelect
               label={t("Category")}
-              value={category}
-              onChange={setCategory}
+              value={fields.get("category")}
+              onChange={(value) => fields.set("category", value)}
               options={CATEGORIES.map((option) => ({
                 type: "item",
                 label: t(option),
@@ -164,20 +170,22 @@ function Accounting() {
             />
             <Input
               label={t("Description")}
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
+              value={fields.get("description")}
+              onChange={(event) =>
+                fields.set("description", event.target.value)
+              }
               short
             />
             <Input
               label={t("Amount")}
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
+              value={fields.get("amount")}
+              onChange={(event) => fields.set("amount", event.target.value)}
               short
             />
             <InputSelect
               label={t("Paid from")}
-              value={paidFrom}
-              onChange={setPaidFrom}
+              value={fields.get("paidFrom")}
+              onChange={(value) => fields.set("paidFrom", value)}
               options={accounts
                 .filter((account) => account.type === "asset")
                 .map((account) => ({

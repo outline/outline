@@ -6,6 +6,11 @@ interface PanelContext {
   panel?: string;
 }
 
+/** Which panel, if any, is open to begin with. */
+export interface PanelInput {
+  open?: string;
+}
+
 /** What can be asked of the panels on a page. */
 export type PanelEvent = { type: "OPEN"; panel: string } | { type: "CLOSE" };
 
@@ -23,8 +28,14 @@ export type PanelEvent = { type: "OPEN"; panel: string } | { type: "CLOSE" };
 export const panelMachine = createMachine({
   id: "panel",
   initial: "closed",
-  context: {} as PanelContext,
-  types: {} as { context: PanelContext; events: PanelEvent },
+  // A tab strip uses this too. It starts already carrying a panel, which is
+  // the only thing separating it from a page whose forms all start shut.
+  context: ({ input }: { input?: PanelInput }) => ({ panel: input?.open }),
+  types: {} as {
+    context: PanelContext;
+    events: PanelEvent;
+    input: PanelInput | undefined;
+  },
   states: {
     closed: {
       on: {
