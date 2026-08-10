@@ -76,19 +76,23 @@ export function nextOrderState(
   return { ok: true, next: after.value as OrderState };
 }
 
-/** Names the reason a move was refused, for the caller to report. */
+/**
+ * Names the reason a move was refused, for the caller to report.
+ *
+ * A refused VOID keeps the wording the endpoint already used, including
+ * "not_paid" for a sale that is void or refunded. It reads oddly, but the
+ * answer is on the wire and one scene already switches on it, so renaming it
+ * belongs to its own change rather than riding along with the machine.
+ */
 function refusalFor(status: OrderState, event: OrderEvent): OrderRefusal {
+  if (event.type === "VOID") {
+    return status === "paid" ? "has_returns" : "not_paid";
+  }
   if (status === "void") {
     return "already_void";
   }
   if (status === "refunded") {
     return "already_refunded";
   }
-  if (event.type === "PAY") {
-    return "already_paid";
-  }
-  if (event.type === "VOID") {
-    return status === "paid" ? "has_returns" : "not_paid";
-  }
-  return "not_paid";
+  return "already_paid";
 }
