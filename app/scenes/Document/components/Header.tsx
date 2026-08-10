@@ -287,7 +287,7 @@ function DocumentHeader({
                 hideOnActionDisabled
                 hideIcon
               >
-                {t("Publish")}…
+                {document.collectionId ? t("Publish") : `${t("Publish")}…`}
               </Button>
             </Action>
           )}

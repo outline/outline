@@ -15,7 +15,17 @@ import type {
 } from "~/types";
 import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
-import type { Action as KbarAction } from "kbar";
+import type { ActionImpl, Action as KbarAction } from "kbar";
+
+/** A command bar action, with the additional properties that Outline renders. */
+export type CommandBarAction = KbarAction & {
+  badge?: React.ReactNode;
+};
+
+/** A registered command bar action, as handed back by the command bar. */
+export type CommandBarActionImpl = ActionImpl & {
+  badge?: React.ReactNode;
+};
 
 export function resolve<T>(value: unknown, context: ActionContext): T {
   return (
@@ -244,7 +254,7 @@ export function actionToMenuItem(
 export function actionToKBar(
   action: ActionVariant,
   context: ActionContext
-): KbarAction[] {
+): CommandBarAction[] {
   const visible = resolve<boolean>(action.visible, context);
   if (visible === false) {
     return [];
@@ -252,6 +262,7 @@ export function actionToKBar(
 
   const name = resolve<string>(action.name, context);
   const icon = resolve<React.ReactElement>(action.icon, context);
+  const badge = resolve<React.ReactNode>(action.badge, context);
   const section = resolve<string>(action.section, context);
   const subtitle = resolve<string>(action.description, context);
 
@@ -282,6 +293,7 @@ export function actionToKBar(
           shortcut: action.shortcut,
           subtitle,
           icon,
+          badge,
           priority,
           perform: () => performAction(action, context),
         },
@@ -306,6 +318,7 @@ export function actionToKBar(
           keywords: action.keywords,
           shortcut: action.shortcut,
           icon,
+          badge,
           subtitle,
           priority,
         },

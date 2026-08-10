@@ -126,21 +126,20 @@ export function SelectionToolbar(props: Props) {
     isNoticeSelection,
   ]);
 
-  React.useLayoutEffect(() => {
-    if (autoFocusLinkInput && activeToolbar !== Toolbar.Link) {
-      setAutoFocusLinkInput(false);
-    }
-  }, [activeToolbar, autoFocusLinkInput]);
-
+  // Focus is re-armed when the link editor closes rather than whenever the
+  // active toolbar isn't the link editor – the two pieces of state are not
+  // always updated in the same render.
   const prevActiveToolbar = React.useRef(activeToolbar);
   React.useLayoutEffect(() => {
     if (
       prevActiveToolbar.current === Toolbar.Link &&
-      activeToolbar !== Toolbar.Link &&
-      !readOnly &&
-      isActive
+      activeToolbar !== Toolbar.Link
     ) {
-      view.focus();
+      setAutoFocusLinkInput(false);
+
+      if (!readOnly && isActive) {
+        view.focus();
+      }
     }
     prevActiveToolbar.current = activeToolbar;
   }, [activeToolbar, readOnly, isActive, view]);
@@ -199,9 +198,7 @@ export function SelectionToolbar(props: Props) {
         ev.preventDefault();
         ev.stopPropagation();
         setAutoFocusLinkInput(true);
-        setActiveToolbar(
-          activeToolbar === Toolbar.Link ? Toolbar.Menu : Toolbar.Link
-        );
+        setActiveToolbar(Toolbar.Link);
       }
     },
     view.dom,

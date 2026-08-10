@@ -1,11 +1,13 @@
 import { useKBar } from "kbar";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Minute } from "@shared/utils/time";
 import { createInternalLinkAction } from "~/actions";
 import { searchDocumentsForQueryActionFactory } from "~/actions/definitions/documents";
 import { navigateToRecentSearchQueryActionFactory } from "~/actions/definitions/navigation";
 import { SearchResultsSection } from "~/actions/sections";
+import Badge from "~/components/Badge";
 import { SearchResultIcon } from "~/components/CommandBar/SearchResultIcon";
 import {
   toActionPriority,
@@ -20,6 +22,7 @@ const serverSearchDelay = 350;
 
 function SearchActions() {
   const { searches, documents } = useStores();
+  const { t } = useTranslation();
 
   // Tracks the timestamp of the last server search for each query.
   const searchCache = React.useRef<Map<string, number>>(new Map());
@@ -91,10 +94,13 @@ function SearchActions() {
           section: SearchResultsSection,
           priority: toActionPriority(index, results.length),
           icon: <SearchResultIcon document={result.document} />,
+          badge: result.document.isArchived ? (
+            <Badge>{t("Archived")}</Badge>
+          ) : undefined,
           to: result.document.url,
         })
       ),
-    [results, searchQuery]
+    [results, searchQuery, t]
   );
 
   // Enriching the index can change snippets without changing which documents
