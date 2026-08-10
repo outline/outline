@@ -10,6 +10,7 @@ import { StatusChip } from "~/components/StatusChip";
 import { Tab, Tabs } from "~/components/Tabs";
 import Text from "~/components/Text";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import {
   Card,
   TBody,
@@ -84,7 +85,43 @@ function Inventory() {
 
   /** Whether a tab's content may be rendered, not merely offered. */
   const allowed = (name: string) => tabs.some((option) => option.name === name);
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
+
+  const handleRemoveSupplier = (id: string, name: string) =>
+    submission.run(async () => {
+      const result = await deleteSupplier(id);
+      return result?.removed
+        ? undefined
+        : t("{{name}} still has an order open, so it was kept.", { name });
+    });
+
+  const handleAddSupplier = (values: Record<string, string>) =>
+    submission.run(async () => {
+      const result = await saveSupplier({
+        name: values.name ?? "",
+        contact: values.contact ?? "",
+        phone: values.phone ?? "",
+        terms: values.terms ?? "Net 30",
+      });
+      return result?.saved ? undefined : t("A supplier needs a name.");
+    });
+
+  const handleRemoveWarehouse = (id: string, name: string) =>
+    submission.run(async () => {
+      const result = await deleteWarehouse(id);
+      return result?.removed
+        ? undefined
+        : t("{{name}} still holds stock, so it was kept.", { name });
+    });
+
+  const handleAddWarehouse = (values: Record<string, string>) =>
+    submission.run(async () => {
+      const result = await saveWarehouse({
+        name: values.name ?? "",
+        branch: values.branch ?? branches[0]?.name ?? "",
+      });
+      return result?.saved ? undefined : t("A warehouse needs a name.");
+    });
 
   const warehouseName = (id: string) =>
     warehouses.find((warehouse) => warehouse.id === id)?.name ?? id;
@@ -119,9 +156,9 @@ function Inventory() {
         ))}
       </Tabs>
 
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="inventory-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 
@@ -298,16 +335,7 @@ function Inventory() {
                       neutral
                       borderOnHover
                       onClick={() =>
-                        void deleteSupplier(supplier.id).then((result) => {
-                          if (!result?.removed) {
-                            setNotice(
-                              t(
-                                "{{name}} still has an order open, so it was kept.",
-                                { name: supplier.name }
-                              )
-                            );
-                          }
-                        })
+                        void handleRemoveSupplier(supplier.id, supplier.name)
                       }
                     >
                       {t("Remove")}
@@ -326,19 +354,7 @@ function Inventory() {
           <SchemaForm
             doctype={SupplierDocType}
             submitLabel={t("Add supplier")}
-            onSubmit={(values) => {
-              setNotice(undefined);
-              void saveSupplier({
-                name: values.name ?? "",
-                contact: values.contact ?? "",
-                phone: values.phone ?? "",
-                terms: values.terms ?? "Net 30",
-              }).then((result) => {
-                if (!result?.saved) {
-                  setNotice(t("A supplier needs a name."));
-                }
-              });
-            }}
+            onSubmit={(values) => void handleAddSupplier(values)}
           />
         </Flex>
       ) : null}
@@ -367,15 +383,7 @@ function Inventory() {
                     neutral
                     borderOnHover
                     onClick={() =>
-                      void deleteWarehouse(warehouse.id).then((result) => {
-                        if (!result?.removed) {
-                          setNotice(
-                            t("{{name}} still holds stock, so it was kept.", {
-                              name: warehouse.name,
-                            })
-                          );
-                        }
-                      })
+                      void handleRemoveWarehouse(warehouse.id, warehouse.name)
                     }
                   >
                     {t("Remove")}
@@ -393,17 +401,7 @@ function Inventory() {
           <SchemaForm
             doctype={warehouseDocType(branches.map((branch) => branch.name))}
             submitLabel={t("Add warehouse")}
-            onSubmit={(values) => {
-              setNotice(undefined);
-              void saveWarehouse({
-                name: values.name ?? "",
-                branch: values.branch ?? branches[0]?.name ?? "",
-              }).then((result) => {
-                if (!result?.saved) {
-                  setNotice(t("A warehouse needs a name."));
-                }
-              });
-            }}
+            onSubmit={(values) => void handleAddWarehouse(values)}
           />
         </Flex>
       ) : null}

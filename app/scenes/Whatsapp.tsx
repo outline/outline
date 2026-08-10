@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -29,21 +30,20 @@ function Whatsapp() {
 
   const [templateId, setTemplateId] = useState("");
   const [customerId, setCustomerId] = useState("");
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
   const selectedTemplate = templateId || templates[0]?.id || "";
   const selectedCustomer = customerId || customers[0]?.id || "";
 
-  const handleSend = async () => {
-    const sent = await sendWhatsapp(selectedTemplate, selectedCustomer);
-    const name =
-      templates.find((item) => item.id === selectedTemplate)?.name ?? "";
-    setNotice(
-      sent
+  const handleSend = () =>
+    submission.run(async () => {
+      const sent = await sendWhatsapp(selectedTemplate, selectedCustomer);
+      const name =
+        templates.find((item) => item.id === selectedTemplate)?.name ?? "";
+      return sent
         ? t("Sent “{{name}}”.", { name })
-        : t("“{{name}}” is not approved yet, so nothing was sent.", { name })
-    );
-  };
+        : t("“{{name}}” is not approved yet, so nothing was sent.", { name });
+    });
 
   const approved = templates.filter(
     (template) => template.status === "approved"
@@ -59,9 +59,9 @@ function Whatsapp() {
         </Text>
       }
     >
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="whatsapp-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 

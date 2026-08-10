@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -46,27 +47,29 @@ function Loyalty() {
 
   const [customerId, setCustomerId] = useState("");
   const [points, setPoints] = useState("");
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
   const selected = customerId || customers[0]?.id || "";
 
-  const handleRedeem = async () => {
-    const value = Number(points);
-    if (!value || !selected) {
-      return;
-    }
-    const redeemed = await redeemPoints(selected, value);
-    const name = customers.find((item) => item.id === selected)?.name ?? "";
-    setNotice(
-      redeemed
-        ? t("Redeemed {{points}} points for {{name}}.", { points: value, name })
+  const handleRedeem = () =>
+    submission.run(async () => {
+      const value = Number(points);
+      if (!value || !selected) {
+        return undefined;
+      }
+      const redeemed = await redeemPoints(selected, value);
+      const name = customers.find((item) => item.id === selected)?.name ?? "";
+      setPoints("");
+      return redeemed
+        ? t("Redeemed {{points}} points for {{name}}.", {
+            points: value,
+            name,
+          })
         : t("{{name}} does not have {{points}} points.", {
             name,
             points: value,
-          })
-    );
-    setPoints("");
-  };
+          });
+    });
 
   const outstanding = customers.reduce(
     (total, customer) => total + customer.loyaltyPoints,
@@ -91,9 +94,9 @@ function Loyalty() {
         </Text>
       }
     >
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="loyalty-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 

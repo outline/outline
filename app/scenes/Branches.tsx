@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import { Capitalize } from "~/components/Surface";
 import { formatDate } from "~/utils/format";
 import Button from "~/components/Button";
@@ -44,7 +45,47 @@ function Branches() {
   const [isAddingBranch, setIsAddingBranch] = useState(false);
   const [openBranch, setOpenBranch] = useState<string | undefined>();
   const [editing, setEditing] = useState<string | undefined>();
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
+
+  const handleAddBranch = (values: FormValues) =>
+    submission.run(async () => {
+      const result = await saveBranch({
+        name: values.name ?? "",
+        address: values.address ?? "",
+        phone: values.phone ?? "",
+        manager: values.manager ?? "",
+      });
+      if (result?.saved) {
+        setIsAddingBranch(false);
+        return undefined;
+      }
+      return t("A branch needs a name.");
+    });
+
+  const handleDeleteBranch = (id: string, name: string) =>
+    submission.run(async () => {
+      const result = await deleteBranch(id);
+      return result?.removed
+        ? undefined
+        : t("{{name}} still has rooms or staff, so it was kept.", { name });
+    });
+
+  const handleCloseDay = (branchName: string, values: FormValues) =>
+    submission.run(async () => {
+      const result = await addHoliday({
+        branch: branchName,
+        date: values.date ?? "",
+        reason: values.reason ?? "",
+      });
+      if (result?.saved) {
+        return undefined;
+      }
+      return result?.reason === "has_guests"
+        ? t("Guests are booked in that day, so it was left open.")
+        : result?.reason === "duplicate"
+          ? t("That day is already closed.")
+          : t("Give a day to close.");
+    });
 
   const resetForm = () => {
     setOpenBranch(undefined);
@@ -70,16 +111,15 @@ function Branches() {
     resetForm();
   };
 
-  const handleDelete = async (id: string, roomName: string) => {
-    const deleted = await deleteRoom(id);
-    setNotice(
-      deleted
+  const handleDelete = (id: string, roomName: string) =>
+    submission.run(async () => {
+      const deleted = await deleteRoom(id);
+      return deleted
         ? t("{{name}} removed.", { name: roomName })
         : t("{{name}} still has a guest in it, so it was kept.", {
             name: roomName,
-          })
-    );
-  };
+          });
+    });
 
   // The room form is built from its DocType, so what appears on screen and
   // what counts as valid come from one description.
@@ -113,27 +153,14 @@ function Branches() {
           <SchemaForm
             doctype={BranchDocType}
             submitLabel={t("Add branch")}
-            onSubmit={(values) => {
-              void saveBranch({
-                name: values.name ?? "",
-                address: values.address ?? "",
-                phone: values.phone ?? "",
-                manager: values.manager ?? "",
-              }).then((result) => {
-                if (result?.saved) {
-                  setIsAddingBranch(false);
-                } else {
-                  setNotice(t("A branch needs a name."));
-                }
-              });
-            }}
+            onSubmit={(values) => void handleAddBranch(values)}
             onCancel={() => setIsAddingBranch(false)}
           />
         </>
       ) : null}
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="branches-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 
@@ -151,18 +178,7 @@ function Branches() {
               <Button
                 neutral
                 borderOnHover
-                onClick={() =>
-                  void deleteBranch(branch.id).then((result) => {
-                    if (!result?.removed) {
-                      setNotice(
-                        t(
-                          "{{name}} still has rooms or staff, so it was kept.",
-                          { name: branch.name }
-                        )
-                      );
-                    }
-                  })
-                }
+                onClick={() => void handleDeleteBranch(branch.id, branch.name)}
               >
                 {t("Remove branch")}
               </Button>
@@ -225,26 +241,9 @@ function Branches() {
                       ],
                     }}
                     submitLabel={t("Close that day")}
-                    onSubmit={(values) => {
-                      setNotice(undefined);
-                      void addHoliday({
-                        branch: branch.name,
-                        date: values.date ?? "",
-                        reason: values.reason ?? "",
-                      }).then((result) => {
-                        if (!result?.saved) {
-                          setNotice(
-                            result?.reason === "has_guests"
-                              ? t(
-                                  "Guests are booked in that day, so it was left open."
-                                )
-                              : result?.reason === "duplicate"
-                                ? t("That day is already closed.")
-                                : t("Give a day to close.")
-                          );
-                        }
-                      });
-                    }}
+                    onSubmit={(values) =>
+                      void handleCloseDay(branch.name, values)
+                    }
                   />
                 </>
               );
