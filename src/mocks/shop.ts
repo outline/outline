@@ -2828,15 +2828,13 @@ function dispatch(
       if (!order) {
         return { data: { voided: false, reason: "not_found" } };
       }
-      // Only a sale that stands can be undone; anything else has already been
-      // dealt with.
-      if (order.status !== "paid") {
-        return { data: { voided: false, reason: "not_paid" } };
-      }
-      // Money has already moved back for part of it, so voiding the whole
-      // thing would refund it twice.
-      if (state.returns.some((record) => record.orderId === id)) {
-        return { data: { voided: false, reason: "has_returns" } };
+
+      const move = nextOrderState(order.status, {
+        type: "VOID",
+        hasReturns: state.returns.some((record) => record.orderId === id),
+      });
+      if (!move.ok) {
+        return { data: { voided: false, reason: move.reason } };
       }
 
       const voidedAt = new Date().toISOString();
@@ -2845,7 +2843,7 @@ function dispatch(
       state = {
         ...state,
         orders: state.orders.map((item) =>
-          item.id === id ? { ...item, status: "void" as const } : item
+          item.id === id ? { ...item, status: move.next } : item
         ),
         // Everything goes back on the shelf, down to the size that was sold.
         products: state.products.map((product) => {
@@ -2908,16 +2906,27 @@ function dispatch(
 
     case "orders.markPaid": {
       const id = String(body.id ?? "");
+      const order = state.orders.find((item) => item.id === id);
+
+      if (!order) {
+        return { data: { paid: false, reason: "not_found" } };
+      }
+
+      const move = nextOrderState(order.status, { type: "PAY" });
+      if (!move.ok) {
+        return { data: { paid: false, reason: move.reason } };
+      }
+
       state = {
         ...state,
-        orders: state.orders.map((order) =>
-          order.id === id
-            ? { ...order, status: "paid", paidAt: new Date().toISOString() }
-            : order
+        orders: state.orders.map((item) =>
+          item.id === id
+            ? { ...item, status: move.next, paidAt: new Date().toISOString() }
+            : item
         ),
       };
       persist();
-      return { data: state.orders.find((order) => order.id === id) };
+      return { data: state.orders.find((item) => item.id === id) };
     }
 
     case "branches.holidays":
