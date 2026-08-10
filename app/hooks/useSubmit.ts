@@ -6,13 +6,13 @@ import { submitMachine } from "~/machines/submit";
 export interface Submission {
   /** True while the save is in flight. */
   isBusy: boolean;
-  /** What to tell the person when the last attempt did not go through. */
+  /** What to tell the person about the attempt that just finished. */
   notice: string | undefined;
   /**
    * Runs a save, if one is not already running.
    *
-   * The task resolves to a message when the save did not go through, and to
-   * nothing when it did.
+   * The task resolves to whatever the attempt has to say — a refusal, or a
+   * confirmation — and to nothing when there is nothing to say.
    */
   run: (task: () => Promise<string | void>) => Promise<void>;
 }
@@ -40,14 +40,9 @@ export function useSubmit(): Submission {
       send({ type: "SUBMIT" });
 
       try {
-        const notice = await task();
-        if (notice) {
-          send({ type: "FAIL", notice });
-          return;
-        }
-        send({ type: "DONE" });
+        send({ type: "SETTLED", notice: (await task()) || undefined });
       } catch (_err) {
-        send({ type: "FAIL", notice: "That did not go through." });
+        send({ type: "SETTLED", notice: "That did not go through." });
       }
     },
     [send, state]

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -37,7 +38,7 @@ function Returns() {
   const [method, setMethod] = useState("cash");
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [damaged, setDamaged] = useState<Record<string, boolean>>({});
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
   const paidOrders = orders.filter((order) => order.status === "paid");
   const selected = paidOrders.find((order) => order.id === orderId);
@@ -62,46 +63,41 @@ function Returns() {
     return bought - returned;
   };
 
-  const handleSubmit = async () => {
-    setNotice(undefined);
-    if (!selected) {
-      setNotice(t("Choose the order the goods came from."));
-      return;
-    }
+  const handleSubmit = () =>
+    submission.run(async () => {
+      if (!selected) {
+        return t("Choose the order the goods came from.");
+      }
 
-    const items = selected.items
-      .map((item) => ({
-        productId: item.productId,
-        variantId: item.variantId,
-        quantity: Number(quantities[keyOf(item)] ?? 0),
-        isDamaged: Boolean(damaged[keyOf(item)]),
-      }))
-      .filter((item) => item.quantity > 0);
+      const items = selected.items
+        .map((item) => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: Number(quantities[keyOf(item)] ?? 0),
+          isDamaged: Boolean(damaged[keyOf(item)]),
+        }))
+        .filter((item) => item.quantity > 0);
 
-    const result = await createReturn({
-      orderId: selected.id,
-      reason: reason.trim(),
-      refundMethod: method === "bank" ? "bank" : "cash",
-      items,
-    });
+      const result = await createReturn({
+        orderId: selected.id,
+        reason: reason.trim(),
+        refundMethod: method === "bank" ? "bank" : "cash",
+        items,
+      });
 
-    if (result?.created) {
-      setQuantities({});
-      setDamaged({});
-      setReason("");
-      setNotice(t("Refund recorded."));
-      return;
-    }
-    if (result?.reason === "too_many") {
-      setNotice(
-        t("Only {{count}} of that line can still be returned.", {
+      if (result?.created) {
+        setQuantities({});
+        setDamaged({});
+        setReason("");
+        return t("Refund recorded.");
+      }
+      if (result?.reason === "too_many") {
+        return t("Only {{count}} of that line can still be returned.", {
           count: result.refundable ?? 0,
-        })
-      );
-      return;
-    }
-    setNotice(t("Say how many of what is coming back."));
-  };
+        });
+      }
+      return t("Say how many of what is coming back.");
+    });
 
   const refunded = returns.reduce((sum, item) => sum + item.refundAmount, 0);
 
@@ -116,9 +112,9 @@ function Returns() {
         </Text>
       }
     >
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="returns-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 

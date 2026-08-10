@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useShop } from "~/stores/shop";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -41,7 +41,7 @@ function OrderDetail() {
   const markOrderPaid = useShop((state) => state.markOrderPaid);
   const voidOrder = useShop((state) => state.voidOrder);
   const staff = useShop((state) => state.staff);
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
   const order = orders.find((item) => item.id === orderId);
 
@@ -60,17 +60,18 @@ function OrderDetail() {
     );
   }
 
-  const handleVoid = async () => {
-    setNotice(undefined);
-    const result = await voidOrder(order.id);
-    if (!result?.voided) {
-      setNotice(
-        result?.reason === "has_returns"
-          ? "Something has already been returned against this order, so it cannot be voided."
-          : "That order could not be voided."
-      );
-    }
-  };
+  const handleVoid = () =>
+    submission.run(async () => {
+      const result = await voidOrder(order.id);
+      if (result?.voided) {
+        return undefined;
+      }
+      return result?.reason === "has_returns"
+        ? t(
+            "Something has already been returned against this order, so it cannot be voided."
+          )
+        : t("That order could not be voided.");
+    });
 
   return (
     <AppPage
@@ -97,9 +98,9 @@ function OrderDetail() {
         </Flex>
       }
     >
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" size="small" data-testid="order-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
       <Subheading>{t("The sale")}</Subheading>

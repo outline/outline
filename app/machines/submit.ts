@@ -2,15 +2,14 @@ import { assign, createMachine } from "xstate";
 
 /** What the machine remembers between moves. */
 interface SubmitContext {
-  /** What to tell the person when the last attempt did not go through. */
+  /** What to tell the person about the attempt that just finished. */
   notice?: string;
 }
 
 /** What can be asked of a submission. */
 export type SubmitEvent =
   | { type: "SUBMIT" }
-  | { type: "DONE" }
-  | { type: "FAIL"; notice: string };
+  | { type: "SETTLED"; notice?: string };
 
 /**
  * One attempt to save something.
@@ -24,6 +23,10 @@ export type SubmitEvent =
  *
  * SUBMIT is only accepted from idle, which closes the first. Starting an
  * attempt clears the notice, which closes the second.
+ *
+ * The notice is whatever the attempt has to say, not only why it failed:
+ * "Refund recorded." wants clearing on the next attempt for the same reason
+ * a refusal does.
  */
 export const submitMachine = createMachine({
   id: "submit",
@@ -41,8 +44,7 @@ export const submitMachine = createMachine({
     },
     submitting: {
       on: {
-        DONE: { target: "idle" },
-        FAIL: {
+        SETTLED: {
           target: "idle",
           actions: assign({ notice: ({ event }) => event.notice }),
         },
