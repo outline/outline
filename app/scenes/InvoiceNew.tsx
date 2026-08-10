@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -42,8 +43,10 @@ function InvoiceNew() {
   const [quantity, setQuantity] = useState("1");
   const [unitPrice, setUnitPrice] = useState("");
   const [discount, setDiscount] = useState("0");
-  const [notice, setNotice] = useState<string | undefined>();
-  const [isSaving, setIsSaving] = useState(false);
+  // Adding a line is checked here and now, so it keeps its own message.
+  // Issuing the invoice is a save, and that one belongs to the machine.
+  const [lineNotice, setLineNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
   const subtotal = lines.reduce(
     (sum, line) => sum + line.unitPrice * line.quantity - line.discount,
@@ -53,10 +56,10 @@ function InvoiceNew() {
 
   const handleAddLine = () => {
     if (!name.trim() || Number(unitPrice) <= 0) {
-      setNotice(t("A line needs a description and a price."));
+      setLineNotice(t("A line needs a description and a price."));
       return;
     }
-    setNotice(undefined);
+    setLineNotice(undefined);
     setLines([
       ...lines,
       {
@@ -72,10 +75,9 @@ function InvoiceNew() {
     setDiscount("0");
   };
 
-  const handleIssue = async () => {
-    setNotice(undefined);
-    setIsSaving(true);
-    try {
+  const handleIssue = () =>
+    void submission.run(async () => {
+      setLineNotice(undefined);
       const result = await createInvoice({
         customerName: customerName.trim(),
         dueDate,
@@ -87,20 +89,17 @@ function InvoiceNew() {
         history.push(`/invoices/${result.invoice.id}`);
         return;
       }
-      setNotice(t("Give us a customer and at least one line."));
-    } finally {
-      setIsSaving(false);
-    }
-  };
+      return t("Give us a customer and at least one line.");
+    });
 
   return (
     <AppPage
       title={t("New invoice")}
       description={t("Bill a customer for work already done.")}
     >
-      {notice ? (
+      {(submission.notice ?? lineNotice) ? (
         <Text as="p" type="secondary" data-testid="invoice-new-notice">
-          {notice}
+          {submission.notice ?? lineNotice}
         </Text>
       ) : null}
 
@@ -206,8 +205,8 @@ function InvoiceNew() {
       />
 
       <Flex gap={8} style={{ paddingTop: 16 }}>
-        <Button onClick={handleIssue} disabled={isSaving}>
-          {isSaving ? t("Issuing…") : t("Issue invoice")}
+        <Button onClick={handleIssue} disabled={submission.isBusy}>
+          {submission.isBusy ? t("Issuing…") : t("Issue invoice")}
         </Button>
         <Button neutral borderOnHover onClick={() => history.push("/invoices")}>
           {t("Cancel")}
