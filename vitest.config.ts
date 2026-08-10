@@ -8,6 +8,11 @@ import { defineConfig } from "vitest/config";
 // and before workers spawn, so this covers every test process.
 delete process.env.SSL_CERT_FILE;
 
+// Tests that pin the clock and assert on a formatted date or time only hold in
+// one timezone; without this they pass in UTC and fail everywhere else. Set it
+// the same way and for the same reason as the variable above.
+process.env.TZ = "UTC";
+
 const aliases = {
   "@server": path.resolve(__dirname, "./server"),
   "@shared": path.resolve(__dirname, "./shared"),
@@ -90,6 +95,21 @@ export default defineConfig({
           },
           include: ["app/**/*.test.{ts,tsx}"],
           setupFiles: ["./__mocks__/window.js", "./app/test/setup.ts"],
+        },
+      },
+      {
+        // The frontend-only shell and its in-browser mock. jsdom because the
+        // mock persists to localStorage at import time.
+        ...sharedConfig,
+        resolve: { alias: [fileMockAlias, ...aliasesAsArray] },
+        test: {
+          name: "src",
+          globals: true,
+          environment: "jsdom",
+          environmentOptions: {
+            jsdom: { url: "http://localhost" },
+          },
+          include: ["src/**/*.test.{ts,tsx}"],
         },
       },
       {
