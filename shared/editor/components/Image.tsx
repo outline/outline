@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { find } from "es-toolkit/compat";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
-import { isExternalUrl, sanitizeImageSrc } from "../../utils/urls";
+import { isExternalUrl, sanitizeImageSrc, sanitizeUrl } from "../../utils/urls";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import {
@@ -113,7 +113,7 @@ const Image = (props: Props) => {
 
   const sanitizedSrc = sanitizeImageSrc(src);
   const linkMarkType = props.view.state.schema.marks.link;
-  const imgLink =
+  const imageLink =
     find(node.attrs.marks ?? [], (mark) => mark.type === linkMarkType.name)
       ?.attrs.href ||
     // Coalescing to `undefined` to avoid empty string in href because empty string
@@ -166,7 +166,7 @@ const Image = (props: Props) => {
         <GlobeIcon />
       </Button>
     ),
-    imgLink && (
+    imageLink && (
       <Button
         key="zoom"
         // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
@@ -222,7 +222,7 @@ const Image = (props: Props) => {
           </Error>
         ) : (
           <a
-            href={imgLink}
+            href={sanitizeUrl(imageLink)}
             // Do not show hover preview when the image is selected
             className={!isSelected ? "use-hover-preview" : ""}
             target="_blank"

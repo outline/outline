@@ -221,10 +221,14 @@ export default class Attachment extends Node {
           return false;
         }
         const { node } = state.selection;
+        const href = sanitizeUrl(node.attrs.href);
+        if (!href) {
+          return false;
+        }
 
         // create a temporary link node and click it
         const link = document.createElement("a");
-        link.href = node.attrs.href;
+        link.href = href;
         link.target = "_blank";
         document.body.appendChild(link);
         link.click();
