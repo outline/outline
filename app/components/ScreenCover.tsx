@@ -101,7 +101,7 @@ export function ScreenCover({ onLifted }: Props) {
         <Button type="submit">{t("Uncover")}</Button>
         <Text as="p" type="tertiary" size="xsmall">
           {t(
-            "This hides the screen from passers-by. It is not a lock, and it protects nothing: anyone at this computer can lift it."
+            "This hides the screen from passers-by. It is not a lock and protects nothing — anyone at this computer can lift it."
           )}
         </Text>
       </Panel>

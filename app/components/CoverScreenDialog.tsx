@@ -41,7 +41,7 @@ export function CoverScreenDialog({ onCovered }: Props) {
     <form onSubmit={handleSubmit}>
       <Text as="p" type="secondary">
         {t(
-          "This hides the screen from passers-by. It is not a lock, and it protects nothing: anyone at this computer can lift it."
+          "This hides the screen from passers-by. It is not a lock and protects nothing — anyone at this computer can lift it."
         )}
       </Text>
       <Flex column>
