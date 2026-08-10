@@ -1,7 +1,7 @@
 import { useContext, useEffect } from "react";
 import { isModKey } from "@shared/utils/keyboard";
 import { SplitViewContext } from "~/components/SplitView/context";
-import isTextInput from "~/utils/isTextInput";
+import { isKeyboardWidget } from "~/utils/isKeyboardWidget";
 import { getFocusedSplitPane } from "~/utils/splitView";
 
 type Callback = (event: KeyboardEvent) => void;
@@ -9,6 +9,10 @@ type Callback = (event: KeyboardEvent) => void;
 export type KeyFilter = ((event: KeyboardEvent) => boolean) | string;
 
 export type Options = {
+  /**
+   * Fire even when focus is inside a control that handles its own keyboard
+   * input, such as a text input, menu, or dialog.
+   */
   allowInInput?: boolean;
   /** Require the platform modifier key (Cmd on macOS, Ctrl elsewhere) to be held. */
   metaKey?: boolean;
@@ -128,7 +132,7 @@ window.addEventListener("keydown", (event) => {
     }
 
     if (
-      !isTextInput(event.target as HTMLElement) ||
+      !isKeyboardWidget(event.target) ||
       registered.options?.allowInInput ||
       isModKey(event)
     ) {
