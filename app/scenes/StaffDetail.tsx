@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useParams } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import { Capitalize } from "~/components/Surface";
@@ -81,7 +82,8 @@ function StaffDetail() {
   const createAdvance = useShop((state) => state.createAdvance);
   const repayAdvance = useShop((state) => state.repayAdvance);
 
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Profile");
+  const tabs = usePanel<(typeof TABS)[number]>("Profile");
+  const tab = tabs.current ?? "Profile";
   const submission = useSubmit();
   const [amount, setAmount] = useState("");
   const [installment, setInstallment] = useState("");
@@ -204,7 +206,7 @@ function StaffDetail() {
           <Tab
             key={option}
             active={tab === option}
-            onClick={() => setTab(option)}
+            onClick={() => tabs.open(option)}
           >
             {t(option)}
           </Tab>

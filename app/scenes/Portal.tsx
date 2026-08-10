@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import { Tab, Tabs } from "~/components/Tabs";
@@ -59,7 +60,8 @@ function Portal() {
   const deletePortalService = useShop((state) => state.deletePortalService);
   const savePortalSettings = useShop((state) => state.savePortalSettings);
 
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
+  const tabs = usePanel<(typeof TABS)[number]>("Overview");
+  const tab = tabs.current ?? "Overview";
   const submission = useSubmit();
 
   const [serviceName, setServiceName] = useState("");
@@ -153,7 +155,7 @@ function Portal() {
           <Tab
             key={option}
             active={tab === option}
-            onClick={() => setTab(option)}
+            onClick={() => tabs.open(option)}
           >
             {t(option)}
           </Tab>

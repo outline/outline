@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { usePanel } from "~/hooks/usePanel";
 import Button from "~/components/Button";
 import { Tab, Tabs } from "~/components/Tabs";
 import Empty from "~/components/Empty";
@@ -28,7 +28,8 @@ function Invoices() {
   const { t } = useTranslation();
   const history = useHistory();
   const invoices = useShop((state) => state.invoices);
-  const [tab, setTab] = useState<(typeof TABS)[number]>("All");
+  const tabs = usePanel<(typeof TABS)[number]>("All");
+  const tab = tabs.current ?? "All";
 
   const shown =
     tab === "All"
@@ -67,7 +68,7 @@ function Invoices() {
           <Tab
             key={option}
             active={tab === option}
-            onClick={() => setTab(option)}
+            onClick={() => tabs.open(option)}
           >
             {t(option)}
           </Tab>

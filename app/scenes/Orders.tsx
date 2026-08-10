@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useShop } from "~/stores/shop";
 import { AppPage } from "~/components/AppPage";
+import { usePanel } from "~/hooks/usePanel";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -32,7 +32,8 @@ function Orders() {
   const { t } = useTranslation();
   const orders = useShop((state) => state.orders);
   const markOrderPaid = useShop((state) => state.markOrderPaid);
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
+  const chosen = usePanel<(typeof FILTERS)[number]>("All");
+  const filter = chosen.current ?? "All";
 
   const visible = orders.filter((order) => {
     if (filter === "Paid") {
@@ -63,7 +64,7 @@ function Orders() {
           <Button
             key={option}
             neutral={filter !== option}
-            onClick={() => setFilter(option)}
+            onClick={() => chosen.open(option)}
           >
             {option}
           </Button>

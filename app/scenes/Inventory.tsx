@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { useHistory } from "react-router-dom";
@@ -10,6 +9,7 @@ import { StatusChip } from "~/components/StatusChip";
 import { Tab, Tabs } from "~/components/Tabs";
 import Text from "~/components/Text";
 import { AppPage } from "~/components/AppPage";
+import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";
 import {
   Card,
@@ -81,7 +81,10 @@ function Inventory() {
   const tabs = TABS.filter(
     (option) => role && canAccessRoute(role, option.route)
   );
-  const [tab, setTab] = useState<string>("Batches");
+  // `tabs` is already the list a role may see, so the chosen one is named
+  // apart from it.
+  const chosen = usePanel<(typeof TABS)[number]["name"]>("Batches");
+  const tab = chosen.current ?? "Batches";
 
   /** Whether a tab's content may be rendered, not merely offered. */
   const allowed = (name: string) => tabs.some((option) => option.name === name);
@@ -149,7 +152,7 @@ function Inventory() {
           <Tab
             key={option.name}
             active={tab === option.name}
-            onClick={() => setTab(option.name)}
+            onClick={() => chosen.open(option.name)}
           >
             {t(option.name)}
           </Tab>

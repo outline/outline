@@ -46,7 +46,7 @@ function Accounting() {
   const commissions = useShop((state) => state.commissions);
   const createExpense = useShop((state) => state.createExpense);
 
-  const tabs = usePanel("Journal");
+  const tabs = usePanel<(typeof TABS)[number]>("Journal");
   const tab = tabs.current;
   const fields = useFields({
     category: CATEGORIES[0],
