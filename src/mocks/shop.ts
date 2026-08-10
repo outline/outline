@@ -1,5 +1,6 @@
 import { canAccessRoute } from "./access";
 import { nextBoardingState } from "./machines/boarding";
+import { nextGroomingState } from "./machines/grooming";
 import { nextInvoiceState } from "./machines/invoice";
 import { nextOrderState } from "./machines/order";
 import { mockDb } from "./db";
@@ -3316,8 +3317,19 @@ function dispatch(
 
     case "grooming.setStatus": {
       const id = String(body.id ?? "");
-      const status = String(body.status ?? "") as Grooming["status"];
       const appointment = state.grooming.find((item) => item.id === id);
+
+      if (!appointment) {
+        return { data: { moved: false, reason: "not_found" } };
+      }
+
+      const status = nextGroomingState(
+        appointment.status,
+        String(body.status ?? "")
+      );
+      if (!status) {
+        return { data: { moved: false, reason: "not_allowed" } };
+      }
 
       state = {
         ...state,
