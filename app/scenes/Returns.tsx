@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { useFields } from "~/hooks/useFields";
 import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
@@ -33,9 +34,8 @@ function Returns() {
   const returns = useShop((state) => state.returns);
   const createReturn = useShop((state) => state.createReturn);
 
-  const [orderId, setOrderId] = useState("");
-  const [reason, setReason] = useState("");
-  const [method, setMethod] = useState("cash");
+  const fields = useFields({ orderId: "", reason: "", method: "cash" });
+  const orderId = fields.get("orderId");
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [damaged, setDamaged] = useState<Record<string, boolean>>({});
   const submission = useSubmit();
@@ -80,15 +80,17 @@ function Returns() {
 
       const result = await createReturn({
         orderId: selected.id,
-        reason: reason.trim(),
-        refundMethod: method === "bank" ? "bank" : "cash",
+        reason: fields.get("reason").trim(),
+        refundMethod: fields.get("method") === "bank" ? "bank" : "cash",
         items,
       });
 
       if (result?.created) {
         setQuantities({});
         setDamaged({});
-        setReason("");
+        // The order and the refund method stay chosen: a second return
+        // against the same sale is the common next step.
+        fields.set("reason", "");
         return t("Refund recorded.");
       }
       if (result?.reason === "too_many") {
@@ -123,7 +125,7 @@ function Returns() {
         <InputSelect
           label={t("Order")}
           value={orderId}
-          onChange={setOrderId}
+          onChange={(value) => fields.set("orderId", value)}
           options={paidOrders.map((order) => ({
             type: "item",
             label: `${order.number} · ${order.customerName}`,
@@ -132,8 +134,8 @@ function Returns() {
         />
         <InputSelect
           label={t("Refund by")}
-          value={method}
-          onChange={setMethod}
+          value={fields.get("method")}
+          onChange={(value) => fields.set("method", value)}
           options={METHODS.map((option) => ({
             type: "item",
             label: t(option.label),
@@ -142,8 +144,8 @@ function Returns() {
         />
         <Input
           label={t("Reason")}
-          value={reason}
-          onChange={(event) => setReason(event.target.value)}
+          value={fields.get("reason")}
+          onChange={(event) => fields.set("reason", event.target.value)}
           // Input carries a bottom margin that InputSelect does not, which
           // bottom-aligns the margin rather than the field.
           margin={0}

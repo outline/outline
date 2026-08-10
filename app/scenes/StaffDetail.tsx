@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useParams } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { useFields } from "~/hooks/useFields";
 import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
@@ -85,9 +86,7 @@ function StaffDetail() {
   const tabs = usePanel<(typeof TABS)[number]>("Profile");
   const tab = tabs.current ?? "Profile";
   const submission = useSubmit();
-  const [amount, setAmount] = useState("");
-  const [installment, setInstallment] = useState("");
-  const [notes, setNotes] = useState("");
+  const fields = useFields({ amount: "", installment: "", notes: "" });
   const [repayments, setRepayments] = useState<Record<string, string>>({});
   const [sources, setSources] = useState<Record<string, string>>({});
 
@@ -115,18 +114,18 @@ function StaffDetail() {
 
   const handleLend = () =>
     submission.run(async () => {
-      if (Number(amount) <= 0) {
+      if (Number(fields.get("amount")) <= 0) {
         return t("An advance needs an amount.");
       }
       await createAdvance({
         staffId: member.id,
-        amount: Number(amount),
-        installment: Number(installment) || Math.round(Number(amount) / 5),
-        notes: notes.trim(),
+        amount: Number(fields.get("amount")),
+        installment:
+          Number(fields.get("installment")) ||
+          Math.round(Number(fields.get("amount")) / 5),
+        notes: fields.get("notes").trim(),
       });
-      setAmount("");
-      setInstallment("");
-      setNotes("");
+      fields.reset();
       return t("Advance recorded.");
     });
 
@@ -326,20 +325,22 @@ function StaffDetail() {
           <Flex gap={8} wrap align="flex-end">
             <Input
               label={t("Amount")}
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
+              value={fields.get("amount")}
+              onChange={(event) => fields.set("amount", event.target.value)}
               short
             />
             <Input
               label={t("Instalment")}
-              value={installment}
-              onChange={(event) => setInstallment(event.target.value)}
+              value={fields.get("installment")}
+              onChange={(event) =>
+                fields.set("installment", event.target.value)
+              }
               short
             />
             <Input
               label={t("Notes")}
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
+              value={fields.get("notes")}
+              onChange={(event) => fields.set("notes", event.target.value)}
             />
             <Button onClick={handleLend}>{t("Record advance")}</Button>
           </Flex>

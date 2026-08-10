@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { useFields } from "~/hooks/useFields";
 import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
@@ -64,14 +64,15 @@ function Portal() {
   const tab = tabs.current ?? "Overview";
   const submission = useSubmit();
 
-  const [serviceName, setServiceName] = useState("");
-  const [serviceCategory, setServiceCategory] = useState("Grooming");
-  const [serviceMinutes, setServiceMinutes] = useState("60");
-  const [servicePrice, setServicePrice] = useState("");
-
-  const [slug, setSlug] = useState("");
-  const [name, setName] = useState("");
-  const [tagline, setTagline] = useState("");
+  const fields = useFields({
+    serviceName: "",
+    serviceCategory: "Grooming",
+    serviceMinutes: "60",
+    servicePrice: "",
+    slug: "",
+    name: "",
+    tagline: "",
+  });
 
   const portalBookings = boardings.filter(
     (boarding) => boarding.customerId === "public"
@@ -104,18 +105,18 @@ function Portal() {
 
   const handleAddService = () =>
     submission.run(async () => {
-      if (!serviceName.trim()) {
+      if (!fields.get("serviceName").trim()) {
         return t("A service needs a name.");
       }
       await createPortalService({
-        name: serviceName.trim(),
+        name: fields.get("serviceName").trim(),
         description: "",
-        category: serviceCategory.trim() || "Grooming",
-        durationMinutes: Number(serviceMinutes) || 60,
-        price: Number(servicePrice) || 0,
+        category: fields.get("serviceCategory").trim() || "Grooming",
+        durationMinutes: Number(fields.get("serviceMinutes")) || 60,
+        price: Number(fields.get("servicePrice")) || 0,
       });
-      setServiceName("");
-      setServicePrice("");
+      fields.set("serviceName", "");
+      fields.set("servicePrice", "");
       return undefined;
     });
 
@@ -124,9 +125,9 @@ function Portal() {
       // Blank fields are left out rather than sent empty, so saving one
       // thing does not clear the rest.
       const result = await savePortalSettings({
-        name: name.trim() || undefined,
-        tagline: tagline.trim() || undefined,
-        slug: slug.trim() || undefined,
+        name: fields.get("name").trim() || undefined,
+        tagline: fields.get("tagline").trim() || undefined,
+        slug: fields.get("slug").trim() || undefined,
       });
       return result?.saved
         ? t("Saved.")
@@ -263,25 +264,33 @@ function Portal() {
           <Flex gap={8} wrap align="flex-end">
             <Input
               label={t("Name")}
-              value={serviceName}
-              onChange={(event) => setServiceName(event.target.value)}
+              value={fields.get("serviceName")}
+              onChange={(event) =>
+                fields.set("serviceName", event.target.value)
+              }
             />
             <Input
               label={t("Category")}
-              value={serviceCategory}
-              onChange={(event) => setServiceCategory(event.target.value)}
+              value={fields.get("serviceCategory")}
+              onChange={(event) =>
+                fields.set("serviceCategory", event.target.value)
+              }
               short
             />
             <Input
               label={t("Minutes")}
-              value={serviceMinutes}
-              onChange={(event) => setServiceMinutes(event.target.value)}
+              value={fields.get("serviceMinutes")}
+              onChange={(event) =>
+                fields.set("serviceMinutes", event.target.value)
+              }
               short
             />
             <Input
               label={t("Price")}
-              value={servicePrice}
-              onChange={(event) => setServicePrice(event.target.value)}
+              value={fields.get("servicePrice")}
+              onChange={(event) =>
+                fields.set("servicePrice", event.target.value)
+              }
               short
             />
             <Button onClick={handleAddService}>{t("Add")}</Button>
@@ -342,20 +351,20 @@ function Portal() {
           <Flex gap={8} wrap align="flex-end">
             <Input
               label={t("Web address")}
-              value={slug}
+              value={fields.get("slug")}
               placeholder={stats?.slug}
-              onChange={(event) => setSlug(event.target.value)}
+              onChange={(event) => fields.set("slug", event.target.value)}
               short
             />
             <Input
               label={t("Name")}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
+              value={fields.get("name")}
+              onChange={(event) => fields.set("name", event.target.value)}
             />
             <Input
               label={t("Tagline")}
-              value={tagline}
-              onChange={(event) => setTagline(event.target.value)}
+              value={fields.get("tagline")}
+              onChange={(event) => fields.set("tagline", event.target.value)}
             />
             <Button onClick={handleSaveSettings}>{t("Save")}</Button>
           </Flex>

@@ -8,6 +8,7 @@ import Input from "~/components/Input";
 import { InputSelect } from "~/components/InputSelect";
 import Text from "~/components/Text";
 import { Card, CardGrid, PlainList } from "~/components/Surface";
+import { useFields } from "~/hooks/useFields";
 import { useSubmit } from "~/hooks/useSubmit";
 import { CoverScreenDialog } from "~/components/CoverScreenDialog";
 import useStores from "~/hooks/useStores";
@@ -88,11 +89,16 @@ function Pos() {
   const customers = useShop((state) => state.customers);
   const createOrder = useShop((state) => state.createOrder);
 
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("All");
+  const fields = useFields({
+    query: "",
+    category: "All",
+    customerName: "Walk-in",
+  });
+  const query = fields.get("query");
+  const category = fields.get("category");
+  const customerName = fields.get("customerName");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [covered, setCovered] = useState(isCovered);
-  const [customerName, setCustomerName] = useState("Walk-in");
   const [receipt, setReceipt] = useState<string | undefined>();
   const submission = useSubmit();
 
@@ -214,7 +220,7 @@ function Pos() {
             <Input
               type="search"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => fields.set("query", event.target.value)}
               placeholder={t("Search name or SKU")}
               label={t("Search products")}
               labelHidden
@@ -222,7 +228,7 @@ function Pos() {
             />
             <InputSelect
               value={category}
-              onChange={setCategory}
+              onChange={(value) => fields.set("category", value)}
               label={t("Category")}
               labelHidden
               options={categories.map((option) => ({
@@ -286,7 +292,7 @@ function Pos() {
 
             <InputSelect
               value={customerName}
-              onChange={setCustomerName}
+              onChange={(value) => fields.set("customerName", value)}
               label={t("Customer")}
               options={[
                 { type: "item" as const, label: "Walk-in", value: "Walk-in" },

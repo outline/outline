@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -12,6 +11,7 @@ import { SchemaForm } from "~/components/SchemaForm";
 import { CustomerDocType } from "~/utils/doctypes";
 import { useShop } from "~/stores/shop";
 import { AppPage } from "~/components/AppPage";
+import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";
 import { Card, CardGrid, PlainList } from "~/components/Surface";
 
@@ -47,7 +47,7 @@ function Customers() {
   const saveCustomer = useShop((state) => state.saveCustomer);
   const deleteCustomer = useShop((state) => state.deleteCustomer);
 
-  const [isAdding, setIsAdding] = useState(false);
+  const panels = usePanel();
   const submission = useSubmit();
 
   const handleSave = (values: Record<string, string>) =>
@@ -71,7 +71,7 @@ function Customers() {
       });
 
       if (result?.saved) {
-        setIsAdding(false);
+        panels.close();
         return;
       }
       return t("A customer needs a name.");
@@ -92,7 +92,7 @@ function Customers() {
       title={t("Customers")}
       description={t("Owners, their pets and loyalty standing.")}
       actions={
-        <Button onClick={() => setIsAdding(true)}>{t("New customer")}</Button>
+        <Button onClick={() => panels.open("add")}>{t("New customer")}</Button>
       }
     >
       {submission.notice ? (
@@ -101,14 +101,14 @@ function Customers() {
         </Text>
       ) : null}
 
-      {isAdding ? (
+      {panels.isOpen("add") ? (
         <>
           <Subheading>{t("New customer")}</Subheading>
           <SchemaForm
             doctype={CustomerDocType}
             submitLabel={t("Add customer")}
             onSubmit={(values) => void handleSave(values)}
-            onCancel={() => setIsAdding(false)}
+            onCancel={panels.close}
           />
         </>
       ) : null}
