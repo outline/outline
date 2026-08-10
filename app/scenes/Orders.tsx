@@ -2,7 +2,22 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useShop } from "~/stores/shop";
 import { AppPage } from "~/components/AppPage";
-import { formatCurrency, formatDate, statusBadge } from "~/utils/format";
+import Button from "~/components/Button";
+import Empty from "~/components/Empty";
+import Flex from "~/components/Flex";
+import Text from "~/components/Text";
+import { StatusChip } from "~/components/StatusChip";
+import {
+  Card,
+  TBody,
+  THead,
+  Table,
+  Td,
+  TdMuted,
+  TextLink,
+  Th,
+} from "~/components/Surface";
+import { formatCurrency, formatDate } from "~/utils/format";
 
 const FILTERS = ["All", "Paid", "Unpaid"] as const;
 
@@ -36,31 +51,26 @@ function Orders() {
       title="Orders"
       description="Every sale, from the till and online."
       actions={
-        <span className="text-sm text-gray-500">
+        <Text type="secondary" size="small">
           Outstanding {formatCurrency(outstanding)}
-        </span>
+        </Text>
       }
     >
-      <div className="mb-4 flex gap-2">
+      <Flex gap={8} style={{ marginBottom: 16 }}>
         {FILTERS.map((option) => (
-          <button
+          <Button
             key={option}
-            type="button"
+            neutral={filter !== option}
             onClick={() => setFilter(option)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-              filter === option
-                ? "bg-indigo-600 text-white"
-                : "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            }`}
           >
             {option}
-          </button>
+          </Button>
         ))}
-      </div>
+      </Flex>
 
-      <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <Card>
+        <Table>
+          <THead>
             <tr>
               {[
                 "Invoice",
@@ -71,63 +81,44 @@ function Orders() {
                 "Status",
                 "",
               ].map((heading) => (
-                <th
-                  key={heading}
-                  scope="col"
-                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
-                >
+                <Th key={heading} scope="col">
                   {heading}
-                </th>
+                </Th>
               ))}
             </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
+          </THead>
+          <TBody>
             {visible.map((order) => (
               <tr key={order.id}>
-                <td className="px-4 py-3 text-sm font-medium">
-                  <Link
-                    to={`/orders/${order.id}`}
-                    className="text-indigo-600 hover:text-indigo-500"
-                  >
+                <Td>
+                  <TextLink as={Link} to={`/orders/${order.id}`}>
                     {order.number}
-                  </Link>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700">
-                  {order.customerName}
-                </td>
-                <td className="px-4 py-3 text-sm uppercase text-gray-500">
+                  </TextLink>
+                </Td>
+                <Td>{order.customerName}</Td>
+                <TdMuted style={{ textTransform: "uppercase" }}>
                   {order.channel}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700">
-                  {order.paidAt ? formatDate(order.paidAt) : "—"}
-                </td>
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                  {formatCurrency(order.total)}
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  <span className={statusBadge(order.status)}>
-                    {order.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
+                </TdMuted>
+                <Td>{order.paidAt ? formatDate(order.paidAt) : "—"}</Td>
+                <Td>{formatCurrency(order.total)}</Td>
+                <Td>
+                  <StatusChip status={order.status} />
+                </Td>
+                <Td style={{ textAlign: "right" }}>
                   {order.status !== "paid" ? (
-                    <button
-                      type="button"
-                      onClick={() => void markOrderPaid(order.id)}
-                      className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-500"
-                    >
+                    <Button onClick={() => void markOrderPaid(order.id)}>
                       Mark paid
-                    </button>
+                    </Button>
                   ) : null}
-                </td>
+                </Td>
               </tr>
             ))}
-          </tbody>
-        </table>
+          </TBody>
+        </Table>
         {visible.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-gray-500">No orders here.</p>
+          <Empty style={{ padding: "24px 16px" }}>No orders here.</Empty>
         ) : null}
-      </div>
+      </Card>
     </AppPage>
   );
 }

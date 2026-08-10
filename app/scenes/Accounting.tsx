@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { Capitalize } from "~/components/Surface";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -40,6 +41,7 @@ function Accounting() {
   const expenses = useShop((state) => state.expenses);
   const shifts = useShop((state) => state.shifts);
   const trialBalance = useShop((state) => state.trialBalance);
+  const cashFlow = useShop((state) => state.cashFlow);
   const commissions = useShop((state) => state.commissions);
   const createExpense = useShop((state) => state.createExpense);
 
@@ -241,11 +243,9 @@ function Accounting() {
               title={row.name}
               subtitle={
                 <>
-                  <span style={{ textTransform: "capitalize" }}>
-                    {row.role}
-                  </span>{" "}
-                  · {row.branch} · {row.rate}% {t("of")}{" "}
-                  {formatCurrency(row.base)}
+                  <Capitalize>{row.role}</Capitalize> · {row.branch} ·{" "}
+                  {row.rate}% {t("of")} {formatCurrency(row.base)}{" "}
+                  {t("they sold")}
                 </>
               }
               actions={<Text weight="bold">{formatCurrency(row.amount)}</Text>}
@@ -305,6 +305,33 @@ function Accounting() {
             border
           />
 
+          <Subheading>{t("Cash flow")}</Subheading>
+          {cashFlow.map((row) => (
+            <ListItem
+              key={row.accountId}
+              title={row.name}
+              subtitle={
+                <>
+                  {t("in")} {formatCurrency(row.received)} · {t("out")}{" "}
+                  {formatCurrency(row.paid)}
+                </>
+              }
+              actions={<Text weight="bold">{formatCurrency(row.closing)}</Text>}
+              border
+            />
+          ))}
+          <ListItem
+            title={t("Money on hand")}
+            actions={
+              <Text weight="bold">
+                {formatCurrency(
+                  cashFlow.reduce((sum, row) => sum + row.closing, 0)
+                )}
+              </Text>
+            }
+            border
+          />
+
           <Subheading>{t("Trial balance")}</Subheading>
           {trialBalance
             .filter((row) => row.debit || row.credit)
@@ -314,10 +341,8 @@ function Accounting() {
                 title={`${row.code} · ${row.name}`}
                 subtitle={
                   <>
-                    <span style={{ textTransform: "capitalize" }}>
-                      {row.type}
-                    </span>{" "}
-                    · Dr {formatCurrency(row.debit)} · Cr{" "}
+                    <Capitalize>{row.type}</Capitalize> · Dr{" "}
+                    {formatCurrency(row.debit)} · Cr{" "}
                     {formatCurrency(row.credit)}
                   </>
                 }

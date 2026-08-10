@@ -1,6 +1,19 @@
 import { useShop } from "~/stores/shop";
+import { currentBranch } from "../../src/mocks/shop";
+import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
-import { formatCurrency, formatDate, statusBadge } from "~/utils/format";
+import { Insights } from "~/components/Insights";
+import { StatsSimpleInCards } from "~/components/StatsSimpleInCards";
+import Empty from "~/components/Empty";
+import Flex from "~/components/Flex";
+import ListItem from "~/components/List/Item";
+import Text from "~/components/Text";
+import { StatusChip } from "~/components/StatusChip";
+import { OnboardingChecklist } from "~/components/OnboardingChecklist";
+import { TrendChart } from "~/components/TrendChart";
+import { TopSellers } from "~/components/TopSellers";
+import Subheading from "~/components/Subheading";
+import { formatCurrency, formatDate } from "~/utils/format";
 
 /**
  * Operational overview for the store: today's takings, boarding occupancy and
@@ -9,8 +22,16 @@ import { formatCurrency, formatDate, statusBadge } from "~/utils/format";
  * @returns the rendered dashboard.
  */
 function Dashboard() {
+  const { t } = useTranslation();
   const dashboard = useShop((state) => state.dashboard);
-  const boardings = useShop((state) => state.boardings);
+  const trend = useShop((state) => state.trend);
+  const topSellers = useShop((state) => state.topSellers);
+  const allBoardings = useShop((state) => state.boardings);
+  const scope = currentBranch();
+  // Narrowed to the branch being looked at, like the figures above it.
+  const boardings = scope
+    ? allBoardings.filter((boarding) => boarding.branch === scope)
+    : allBoardings;
   const orders = useShop((state) => state.orders);
 
   const stats = [
@@ -51,103 +72,77 @@ function Dashboard() {
       title="Dashboard"
       description="Today across the store, boarding and point of sale."
     >
-      <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.name}
-            className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-sm ring-1 ring-gray-200 sm:p-6"
-          >
-            <dt className="truncate text-sm font-medium text-gray-500">
-              {stat.name}
-            </dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-              {stat.value}
-            </dd>
-            {stat.hint ? (
-              <p className="mt-1 text-sm text-gray-500">{stat.hint}</p>
-            ) : null}
-          </div>
-        ))}
-      </dl>
+      <StatsSimpleInCards
+        title=""
+        stats={stats.map((stat) => ({
+          name: stat.name,
+          stat: stat.value,
+          hint: stat.hint,
+        }))}
+      />
 
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <section>
-          <h2 className="text-base font-semibold text-gray-900">
-            Boarding schedule
-          </h2>
-          <ul
-            role="list"
-            className="mt-3 divide-y divide-gray-100 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200"
-          >
-            {upcoming.map((boarding) => (
-              <li
-                key={boarding.id}
-                className="flex items-center justify-between gap-x-6 px-4 py-4 sm:px-6"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">
-                    {boarding.petName}{" "}
-                    <span className="font-normal text-gray-500">
-                      · {boarding.customerName}
-                    </span>
-                  </p>
-                  <p className="mt-1 truncate text-xs text-gray-500">
-                    {boarding.roomName} · {formatDate(boarding.checkIn)} –{" "}
-                    {formatDate(boarding.checkOut)}
-                  </p>
-                </div>
-                <span className={statusBadge(boarding.status)}>
-                  {boarding.status.replace("_", " ")}
-                </span>
-              </li>
-            ))}
-            {upcoming.length === 0 ? (
-              <li className="px-4 py-6 text-sm text-gray-500 sm:px-6">
-                Nothing scheduled.
-              </li>
-            ) : null}
-          </ul>
-        </section>
+      <Flex gap={24} wrap style={{ paddingTop: 8 }}>
+        <Flex column style={{ flex: "1 1 320px" }}>
+          <Subheading>{t("Boarding schedule")}</Subheading>
+          {upcoming.map((boarding) => (
+            <ListItem
+              key={boarding.id}
+              title={
+                <>
+                  {boarding.petName}{" "}
+                  <Text as="span" type="tertiary">
+                    {boarding.customerName}
+                  </Text>
+                </>
+              }
+              subtitle={
+                <>
+                  {boarding.roomName} · {formatDate(boarding.checkIn)} –{" "}
+                  {formatDate(boarding.checkOut)}
+                </>
+              }
+              actions={<StatusChip status={boarding.status} />}
+              border
+            />
+          ))}
+          {upcoming.length === 0 ? (
+            <Empty>{t("Nothing scheduled.")}</Empty>
+          ) : null}
+        </Flex>
 
-        <section>
-          <h2 className="text-base font-semibold text-gray-900">
-            Recent orders
-          </h2>
-          <ul
-            role="list"
-            className="mt-3 divide-y divide-gray-100 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200"
-          >
-            {orders.slice(0, 5).map((order) => (
-              <li
-                key={order.id}
-                className="flex items-center justify-between gap-x-6 px-4 py-4 sm:px-6"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">
-                    {order.number}
-                  </p>
-                  <p className="mt-1 truncate text-xs text-gray-500">
-                    {order.customerName} · {order.channel.toUpperCase()}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">
-                    {formatCurrency(order.total)}
-                  </p>
-                  <span className={statusBadge(order.status)}>
-                    {order.status}
-                  </span>
-                </div>
-              </li>
-            ))}
-            {orders.length === 0 ? (
-              <li className="px-4 py-6 text-sm text-gray-500 sm:px-6">
-                No orders yet.
-              </li>
-            ) : null}
-          </ul>
-        </section>
-      </div>
+        <Flex column style={{ flex: "1 1 320px" }}>
+          <Subheading>{t("Recent orders")}</Subheading>
+          {orders.slice(0, 5).map((order) => (
+            <ListItem
+              key={order.id}
+              title={order.number}
+              subtitle={
+                <>
+                  {order.customerName} · {order.channel.toUpperCase()}
+                </>
+              }
+              actions={
+                <Flex align="center" gap={8}>
+                  <Text weight="bold">{formatCurrency(order.total)}</Text>
+                  <StatusChip status={order.status} />
+                </Flex>
+              }
+              border
+            />
+          ))}
+          {orders.length === 0 ? <Empty>{t("No orders yet.")}</Empty> : null}
+        </Flex>
+      </Flex>
+
+      <OnboardingChecklist />
+
+      <Subheading>{t("Takings")}</Subheading>
+      <TrendChart points={trend} />
+
+      <Subheading>{t("Selling best")}</Subheading>
+      <TopSellers sellers={topSellers} />
+
+      <Insights limit={6} />
     </AppPage>
   );
 }

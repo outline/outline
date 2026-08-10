@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { client } from "~/utils/ApiClient";
 import { BusinessLayout } from "./BusinessLayout";
 
@@ -26,6 +27,7 @@ const money = (amount: number) =>
  * @returns the rendered featured products page.
  */
 function Featured() {
+  const { businessSlug } = useParams<{ businessSlug: string }>();
   const [products, setProducts] = useState<FeaturedProduct[]>([]);
 
   useEffect(() => {
@@ -52,15 +54,19 @@ function Featured() {
         className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
       >
         {products.map((product) => (
-          <li
-            key={product.id}
-            className="rounded-lg border border-gray-200 p-4"
-          >
-            <p className="text-sm font-medium text-gray-900">{product.name}</p>
-            <p className="mt-1 text-xs text-gray-500">{product.category}</p>
-            <p className="mt-3 text-sm font-semibold text-gray-900">
-              {money(product.price)}
-            </p>
+          <li key={product.id}>
+            <Link
+              to={`/p/${businessSlug}/products/${product.id}`}
+              className="block rounded-lg border border-gray-200 p-4 hover:border-indigo-300"
+            >
+              <p className="text-sm font-medium text-gray-900">
+                {product.name}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">{product.category}</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                {money(product.price)}
+              </p>
+            </Link>
           </li>
         ))}
         {products.length === 0 ? (

@@ -1,8 +1,76 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import styled from "styled-components";
+import { s } from "@shared/styles";
+import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import Input from "~/components/Input";
+import { InputSelect } from "~/components/InputSelect";
+import Text from "~/components/Text";
+import { Card, CardGrid, PlainList } from "~/components/Surface";
+import { CoverScreenDialog } from "~/components/CoverScreenDialog";
+import useStores from "~/hooks/useStores";
+import { isCovered, ScreenCover } from "~/components/ScreenCover";
 import type { CartLine } from "~/stores/shop";
 import { useShop } from "~/stores/shop";
 import { AppPage } from "~/components/AppPage";
 import { formatCurrency } from "~/utils/format";
+
+const Till = styled.div`
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 2fr 1fr;
+  }
+`;
+
+const Tile = styled.button`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  text-align: left;
+  border-radius: 8px;
+  cursor: pointer;
+  background: ${s("backgroundSecondary")};
+  border: 1px solid ${s("divider")};
+  color: ${s("text")};
+
+  &:hover:not(:disabled) {
+    border-color: ${s("inputBorderFocused")};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+`;
+
+const Sku = styled.span`
+  font-family: ${s("fontFamilyMono")};
+  font-size: 12px;
+  color: ${s("textSecondary")};
+`;
+
+const Totals = styled(Flex)`
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid ${s("divider")};
+`;
+
+const Receipt = styled.p`
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: ${s("text")};
+  background: ${s("backgroundTertiary")};
+`;
 
 /**
  * Point of sale: pick products into a ticket and take payment.
@@ -13,6 +81,8 @@ import { formatCurrency } from "~/utils/format";
  * @returns the rendered till.
  */
 function Pos() {
+  const { t } = useTranslation();
+  const { dialogs } = useStores();
   const products = useShop((state) => state.products);
   const customers = useShop((state) => state.customers);
   const createOrder = useShop((state) => state.createOrder);
@@ -20,6 +90,7 @@ function Pos() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [covered, setCovered] = useState(isCovered);
   const [customerName, setCustomerName] = useState("Walk-in");
   const [receipt, setReceipt] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
@@ -46,22 +117,34 @@ function Pos() {
 
   const total = cart.reduce((sum, line) => sum + line.price * line.quantity, 0);
 
-  const addToCart = (productId: string) => {
+  const addToCart = (productId: string, variantId?: string) => {
     const product = products.find((item) => item.id === productId);
-    if (!product || product.stock === 0) {
+    if (!product) {
+      return;
+    }
+    // A product sold in sizes is only ever added as one of them, so the stock
+    // and price come from the size rather than the parent.
+    const variant = variantId
+      ? product.variants?.find((item) => item.id === variantId)
+      : undefined;
+    const available = variant ? variant.stock : product.stock;
+    if (available === 0) {
       return;
     }
 
+    const key = variantId ?? productId;
     setReceipt(undefined);
     setCart((lines) => {
-      const existing = lines.find((line) => line.productId === productId);
+      const existing = lines.find(
+        (line) => (line.variantId ?? line.productId) === key
+      );
       if (existing) {
         // Never sell more than is on the shelf.
-        if (existing.quantity >= product.stock) {
+        if (existing.quantity >= available) {
           return lines;
         }
         return lines.map((line) =>
-          line.productId === productId
+          (line.variantId ?? line.productId) === key
             ? { ...line, quantity: line.quantity + 1 }
             : line
         );
@@ -70,20 +153,23 @@ function Pos() {
         ...lines,
         {
           productId,
-          name: product.name,
-          price: product.price,
+          variantId,
+          name: variant ? `${product.name} ${variant.name}` : product.name,
+          price: variant ? variant.price : product.price,
           quantity: 1,
         },
       ];
     });
   };
 
-  const setQuantity = (productId: string, quantity: number) => {
+  const setQuantity = (key: string, quantity: number) => {
     setCart((lines) =>
       quantity <= 0
-        ? lines.filter((line) => line.productId !== productId)
+        ? lines.filter((line) => (line.variantId ?? line.productId) !== key)
         : lines.map((line) =>
-            line.productId === productId ? { ...line, quantity } : line
+            (line.variantId ?? line.productId) === key
+              ? { ...line, quantity }
+              : line
           )
     );
   };
@@ -102,186 +188,205 @@ function Pos() {
     }
   };
 
+  if (covered) {
+    return <ScreenCover onLifted={() => setCovered(false)} />;
+  }
+
   return (
     <AppPage
       title="Point of sale"
       description="Ring up a sale; stock and takings update as you go."
+      actions={
+        <Button
+          neutral
+          onClick={() =>
+            dialogs.openModal({
+              title: t("Cover the screen"),
+              content: <CoverScreenDialog onCovered={() => setCovered(true)} />,
+            })
+          }
+        >
+          {t("Cover screen")}
+        </Button>
+      }
     >
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <input
+      <Till>
+        <div>
+          <Flex align="center" gap={12} wrap>
+            <Input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search name or SKU"
-              aria-label="Search products"
-              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm"
+              label="Search products"
+              labelHidden
+              margin={0}
             />
-            <select
+            <InputSelect
               value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              aria-label="Filter by category"
-              className="block rounded-md border-0 py-1.5 pr-10 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm"
-            >
-              {categories.map((option) => (
-                <option key={option}>{option}</option>
-              ))}
-            </select>
-          </div>
+              onChange={setCategory}
+              label="Category"
+              labelHidden
+              options={categories.map((option) => ({
+                type: "item" as const,
+                label: option,
+                value: option,
+              }))}
+            />
+          </Flex>
 
-          <ul
-            role="list"
-            className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
-          >
-            {visible.map((product) => (
-              <li key={product.id}>
-                <button
-                  type="button"
-                  onClick={() => addToCart(product.id)}
-                  disabled={product.stock === 0}
-                  className="flex h-full w-full flex-col items-start rounded-lg bg-white p-4 text-left shadow-sm ring-1 ring-gray-200 hover:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <span className="text-sm font-medium text-gray-900">
-                    {product.name}
-                  </span>
-                  <span className="mt-1 font-mono text-xs text-gray-500">
-                    {product.sku}
-                  </span>
-                  <span className="mt-3 text-sm font-semibold text-gray-900">
-                    {formatCurrency(product.price)}
-                  </span>
-                  <span
-                    className={`mt-1 text-xs ${
-                      product.stock === 0 ? "text-red-600" : "text-gray-500"
-                    }`}
+          <CardGrid role="list" $min={200}>
+            {visible.flatMap((product) =>
+              // A product sold in sizes gets a tile per size, because that is
+              // what the till actually rings up.
+              (product.variants ?? [undefined]).map((variant) => (
+                <li key={variant?.id ?? product.id}>
+                  <Tile
+                    type="button"
+                    onClick={() => addToCart(product.id, variant?.id)}
+                    disabled={(variant ? variant.stock : product.stock) === 0}
                   >
-                    {product.stock === 0
-                      ? "Out of stock"
-                      : `${product.stock} in stock`}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+                    <Text size="small" weight="bold">
+                      {variant
+                        ? `${product.name} ${variant.name}`
+                        : product.name}
+                    </Text>
+                    <Sku>{variant ? variant.sku : product.sku}</Sku>
+                    <Text size="small" weight="bold">
+                      {formatCurrency(variant ? variant.price : product.price)}
+                    </Text>
+                    <Text
+                      size="xsmall"
+                      type={
+                        (variant ? variant.stock : product.stock) === 0
+                          ? "danger"
+                          : "tertiary"
+                      }
+                    >
+                      {(variant ? variant.stock : product.stock) === 0
+                        ? "Out of stock"
+                        : `${variant ? variant.stock : product.stock} in stock`}
+                    </Text>
+                  </Tile>
+                </li>
+              ))
+            )}
+          </CardGrid>
 
           {visible.length === 0 ? (
-            <p className="mt-6 text-sm text-gray-500">
+            <Text as="p" type="tertiary" size="small">
               Nothing matches that search.
-            </p>
+            </Text>
           ) : null}
         </div>
 
-        <aside className="lg:col-span-1">
-          <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-            <h2 className="text-base font-semibold text-gray-900">Ticket</h2>
+        <aside>
+          <Card style={{ padding: 16 }}>
+            <Text as="h2" weight="bold">
+              Ticket
+            </Text>
 
-            <label
-              htmlFor="pos-customer"
-              className="mt-4 block text-xs font-medium text-gray-700"
-            >
-              Customer
-            </label>
-            <select
-              id="pos-customer"
+            <InputSelect
               value={customerName}
-              onChange={(event) => setCustomerName(event.target.value)}
-              className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm"
-            >
-              <option>Walk-in</option>
-              {customers.map((customer) => (
-                <option key={customer.id}>{customer.name}</option>
-              ))}
-            </select>
+              onChange={setCustomerName}
+              label="Customer"
+              options={[
+                { type: "item" as const, label: "Walk-in", value: "Walk-in" },
+                ...customers.map((customer) => ({
+                  type: "item" as const,
+                  label: customer.name,
+                  value: customer.name,
+                })),
+              ]}
+            />
 
-            <ul role="list" className="mt-4 divide-y divide-gray-100">
+            <PlainList $divided>
               {cart.map((line) => (
-                <li key={line.productId} className="py-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-gray-900">
+                <li
+                  key={line.variantId ?? line.productId}
+                  style={{ padding: "12px 0" }}
+                >
+                  <Flex align="flex-start" justify="space-between" gap={8}>
+                    <Flex column style={{ minWidth: 0 }}>
+                      <Text size="small" weight="bold">
                         {line.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
+                      </Text>
+                      <Text size="xsmall" type="tertiary">
                         {formatCurrency(line.price)} each
-                      </p>
-                    </div>
-                    <p className="text-sm font-medium text-gray-900">
+                      </Text>
+                    </Flex>
+                    <Text size="small" weight="bold">
                       {formatCurrency(line.price * line.quantity)}
-                    </p>
-                  </div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <button
-                      type="button"
+                    </Text>
+                  </Flex>
+                  <Flex align="center" gap={8} style={{ marginTop: 8 }}>
+                    <Button
+                      neutral
                       aria-label={`Decrease ${line.name}`}
                       onClick={() =>
-                        setQuantity(line.productId, line.quantity - 1)
+                        setQuantity(
+                          line.variantId ?? line.productId,
+                          line.quantity - 1
+                        )
                       }
-                      className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                     >
                       −
-                    </button>
-                    <span className="text-sm text-gray-900">
-                      {line.quantity}
-                    </span>
-                    <button
-                      type="button"
+                    </Button>
+                    <Text size="small">{line.quantity}</Text>
+                    <Button
+                      neutral
                       aria-label={`Increase ${line.name}`}
-                      onClick={() => addToCart(line.productId)}
-                      className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                      onClick={() => addToCart(line.productId, line.variantId)}
                     >
                       +
-                    </button>
-                  </div>
+                    </Button>
+                  </Flex>
                 </li>
               ))}
               {cart.length === 0 ? (
-                <li className="py-6 text-sm text-gray-500">
-                  Pick a product to start a ticket.
+                <li style={{ padding: "24px 0" }}>
+                  <Text type="tertiary" size="small">
+                    Pick a product to start a ticket.
+                  </Text>
                 </li>
               ) : null}
-            </ul>
+            </PlainList>
 
-            <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
-              <span className="text-sm font-medium text-gray-500">Total</span>
-              <span
-                data-testid="pos-total"
-                className="text-xl font-semibold text-gray-900"
-              >
+            <Totals align="center" justify="space-between">
+              <Text type="secondary" size="small" weight="bold">
+                Total
+              </Text>
+              <Text data-testid="pos-total" size="large" weight="bold">
                 {formatCurrency(total)}
-              </span>
-            </div>
+              </Text>
+            </Totals>
 
-            <button
-              type="button"
+            <Button
               onClick={() => void handleCheckout()}
               disabled={cart.length === 0 || isSaving}
-              className="mt-4 w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ marginTop: 16, width: "100%" }}
             >
               {isSaving ? "Taking payment…" : "Charge"}
-            </button>
+            </Button>
 
             {cart.length > 0 ? (
-              <button
-                type="button"
+              <Button
+                neutral
                 onClick={() => setCart([])}
-                className="mt-2 w-full rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                style={{ marginTop: 8, width: "100%" }}
               >
                 Clear ticket
-              </button>
+              </Button>
             ) : null}
 
             {receipt ? (
-              <p
-                data-testid="pos-receipt"
-                className="mt-4 rounded-md bg-green-50 p-3 text-sm text-green-800"
-              >
+              <Receipt data-testid="pos-receipt">
                 Paid — receipt {receipt}
-              </p>
+              </Receipt>
             ) : null}
-          </div>
+          </Card>
         </aside>
-      </div>
+      </Till>
     </AppPage>
   );
 }

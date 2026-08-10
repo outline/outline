@@ -33,6 +33,7 @@ const ShopResetPassword = lazy(() => import("~/scenes/Auth/ResetPassword"));
 const PublicBooking = lazy(() => import("~/scenes/Public/Booking"));
 const PublicBoarding = lazy(() => import("~/scenes/Public/Boarding"));
 const PublicFeatured = lazy(() => import("~/scenes/Public/Featured"));
+const PublicProduct = lazy(() => import("~/scenes/Public/Product"));
 
 export default function Routes() {
   useAutoRefresh();
@@ -95,6 +96,11 @@ export default function Routes() {
             exact
             path="/p/:businessSlug/featured"
             component={PublicFeatured}
+          />
+          <Route
+            exact
+            path="/p/:businessSlug/products/:productId"
+            component={PublicProduct}
           />
           <Redirect
             exact

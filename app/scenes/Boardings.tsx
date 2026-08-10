@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -6,6 +7,7 @@ import ListItem from "~/components/List/Item";
 import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
+import { currentBranch } from "../../src/mocks/shop";
 import { AppPage } from "~/components/AppPage";
 import { StatusChip } from "~/components/StatusChip";
 import { formatCurrency, formatDate } from "~/utils/format";
@@ -25,7 +27,13 @@ function nights(checkIn: string, checkOut: string): number {
  */
 function Boardings() {
   const { t } = useTranslation();
-  const boardings = useShop((state) => state.boardings);
+  const history = useHistory();
+  const allBoardings = useShop((state) => state.boardings);
+  const scope = currentBranch();
+  // Narrowed to the branch being looked at, when one is chosen.
+  const boardings = scope
+    ? allBoardings.filter((boarding) => boarding.branch === scope)
+    : allBoardings;
   const setBoardingStatus = useShop((state) => state.setBoardingStatus);
 
   const groups = [
@@ -40,6 +48,11 @@ function Boardings() {
       description={t(
         "Reservations across every branch, and who is in which room."
       )}
+      actions={
+        <Button onClick={() => history.push("/boardings/new")}>
+          {t("New boarding")}
+        </Button>
+      }
     >
       {groups.map((group) => {
         const inGroup = boardings.filter(
@@ -79,8 +92,20 @@ function Boardings() {
                     </>
                   }
                   actions={
+                    // Everything here is a button rather than a link:
+                    // ListItem's wrapper is an anchor, so a link in any of its
+                    // slots would nest anchors.
                     <Flex align="center" gap={8}>
                       <StatusChip status={boarding.status} />
+                      <Button
+                        neutral
+                        borderOnHover
+                        onClick={() =>
+                          history.push(`/boardings/${boarding.id}`)
+                        }
+                      >
+                        {t("Open")}
+                      </Button>
                       {boarding.status === "booked" ? (
                         <Button
                           onClick={() =>

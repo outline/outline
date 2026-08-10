@@ -12,28 +12,28 @@ import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
 
-/** Points needed for each tier. */
-const TIERS = [
-  { name: "Gold", from: 1000 },
-  { name: "Silver", from: 300 },
-  { name: "Bronze", from: 0 },
-];
-
 /**
  * The tier a points balance falls into.
  *
+ * Tiers come from the shop's own settings rather than being fixed here, so
+ * what the page says matches what the shop actually operates.
+ *
  * @param points the customer's balance.
- * @returns the tier name.
+ * @param tiers the configured tiers, highest first.
+ * @returns the tier name, or empty when no tier covers the balance.
  */
-function tierFor(points: number): string {
-  return TIERS.find((tier) => points >= tier.from)?.name ?? "Bronze";
+function tierFor(
+  points: number,
+  tiers: { name: string; from: number }[]
+): string {
+  return tiers.find((tier) => points >= tier.from)?.name ?? "";
 }
 
 /**
  * Loyalty standing per customer, and the ledger of how they got there.
  *
- * A point is worth a rupiah when redeemed, which is why the balance is shown
- * with its cash value beside it.
+ * Balances are shown in points, not money: redeeming deducts points and
+ * converts no cash, so the shop has not set a rate to convert them at.
  *
  * @returns the rendered loyalty page.
  */
@@ -42,6 +42,7 @@ function Loyalty() {
   const customers = useShop((state) => state.customers);
   const loyalty = useShop((state) => state.loyalty);
   const redeemPoints = useShop((state) => state.redeemPoints);
+  const config = useShop((state) => state.loyaltyConfig);
 
   const [customerId, setCustomerId] = useState("");
   const [points, setPoints] = useState("");
@@ -77,9 +78,16 @@ function Loyalty() {
       title={t("Loyalty")}
       description={t("Points earned, tiers, and what has been redeemed.")}
       actions={
+        // Balances stay in points: the shop sets what a point costs to earn,
+        // but nothing says what one is worth back, so no rupiah figure is put
+        // against a balance.
         <Text type="tertiary" size="small">
           {outstanding.toLocaleString("id-ID")} {t("points outstanding")} ·{" "}
-          {formatCurrency(outstanding)}
+          {customers.length}{" "}
+          {customers.length === 1 ? t("member") : t("members")}
+          {config
+            ? ` · ${t("1 point per")} ${formatCurrency(config.rupiahPerPoint)}`
+            : ""}
         </Text>
       }
     >
@@ -96,8 +104,8 @@ function Loyalty() {
           title={customer.name}
           subtitle={
             <>
-              {tierFor(customer.loyaltyPoints)} · {customer.email} ·{" "}
-              {customer.pets.length}{" "}
+              {tierFor(customer.loyaltyPoints, config?.tiers ?? [])} ·{" "}
+              {customer.email} · {customer.pets.length}{" "}
               {customer.pets.length === 1 ? t("pet") : t("pets")}
             </>
           }

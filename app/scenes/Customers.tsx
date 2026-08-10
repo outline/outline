@@ -1,5 +1,38 @@
+import { useState } from "react";
+import { useHistory } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import styled from "styled-components";
+import { s } from "@shared/styles";
+import Button from "~/components/Button";
+import Empty from "~/components/Empty";
+import Flex from "~/components/Flex";
+import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
+import { SchemaForm } from "~/components/SchemaForm";
+import { CustomerDocType } from "~/utils/doctypes";
 import { useShop } from "~/stores/shop";
 import { AppPage } from "~/components/AppPage";
+import { Card, CardGrid, PlainList } from "~/components/Surface";
+
+const Head = styled.div`
+  padding: 24px;
+  border-bottom: 1px solid ${s("divider")};
+`;
+
+const Body = styled.div`
+  padding: 16px 24px;
+`;
+
+const Points = styled.span`
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: ${s("accent")};
+  background: ${s("backgroundTertiary")};
+`;
 
 /**
  * Customer directory, with the pets registered against each owner.
@@ -7,61 +40,132 @@ import { AppPage } from "~/components/AppPage";
  * @returns the rendered customers page.
  */
 function Customers() {
+  const { t } = useTranslation();
+  const history = useHistory();
   const customers = useShop((state) => state.customers);
+  const saveCustomer = useShop((state) => state.saveCustomer);
+  const deleteCustomer = useShop((state) => state.deleteCustomer);
+
+  const [isAdding, setIsAdding] = useState(false);
+  const [notice, setNotice] = useState<string | undefined>();
+
+  const handleSave = async (values: Record<string, string>) => {
+    setNotice(undefined);
+    const pets = values.petName?.trim()
+      ? [
+          {
+            id: "",
+            name: values.petName.trim(),
+            species: values.petSpecies?.trim() || "Dog",
+            breed: values.petBreed?.trim() || "Mixed",
+          },
+        ]
+      : [];
+
+    const result = await saveCustomer({
+      name: values.name ?? "",
+      email: values.email ?? "",
+      phone: values.phone ?? "",
+      pets,
+    });
+
+    if (result?.saved) {
+      setIsAdding(false);
+      return;
+    }
+    setNotice(t("A customer needs a name."));
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    setNotice(undefined);
+    const result = await deleteCustomer(id);
+    if (!result?.removed) {
+      setNotice(
+        t("{{name}} has history with us, so their record was kept.", { name })
+      );
+    }
+  };
 
   return (
     <AppPage
       title="Customers"
       description="Owners, their pets and loyalty standing."
+      actions={
+        <Button onClick={() => setIsAdding(true)}>{t("New customer")}</Button>
+      }
     >
-      <ul
-        role="list"
-        className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
-      >
+      {notice ? (
+        <Text as="p" type="secondary" data-testid="customers-notice">
+          {notice}
+        </Text>
+      ) : null}
+
+      {isAdding ? (
+        <>
+          <Subheading>{t("New customer")}</Subheading>
+          <SchemaForm
+            doctype={CustomerDocType}
+            submitLabel="Add customer"
+            onSubmit={(values) => void handleSave(values)}
+            onCancel={() => setIsAdding(false)}
+          />
+        </>
+      ) : null}
+
+      <CardGrid role="list">
         {customers.map((customer) => (
-          <li
-            key={customer.id}
-            className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow-sm ring-1 ring-gray-200"
-          >
-            <div className="flex w-full items-center justify-between space-x-6 p-6">
-              <div className="flex-1 truncate">
-                <div className="flex items-center space-x-3">
-                  <h3 className="truncate text-sm font-medium text-gray-900">
-                    {customer.name}
-                  </h3>
-                  <span className="inline-flex shrink-0 items-center rounded-full bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
-                    {customer.loyaltyPoints} pts
-                  </span>
-                </div>
-                <p className="mt-1 truncate text-sm text-gray-500">
-                  {customer.email}
-                </p>
-                <p className="mt-1 truncate text-sm text-gray-500">
-                  {customer.phone}
-                </p>
-              </div>
-            </div>
-            <div className="px-6 py-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <Card as="li" key={customer.id}>
+            <Head>
+              <Flex align="center" gap={12}>
+                <Text as="h3" weight="bold" size="small">
+                  {customer.name}
+                </Text>
+                <Points>{customer.loyaltyPoints} pts</Points>
+              </Flex>
+              <Text as="p" type="tertiary" size="small">
+                {customer.email}
+              </Text>
+              <Text as="p" type="tertiary" size="small">
+                {customer.phone}
+              </Text>
+            </Head>
+            <Body>
+              <Text type="secondary" size="xsmall" weight="bold">
                 Pets
-              </p>
-              <ul className="mt-2 space-y-1">
+              </Text>
+              <PlainList>
                 {customer.pets.map((pet) => (
-                  <li key={pet.id} className="text-sm text-gray-700">
-                    <span className="font-medium text-gray-900">
+                  <li key={pet.id}>
+                    <Text size="small" weight="bold">
                       {pet.name}
-                    </span>{" "}
-                    · {pet.species} · {pet.breed}
+                    </Text>{" "}
+                    <Text size="small" type="secondary">
+                      · {pet.species} · {pet.breed}
+                    </Text>
                   </li>
                 ))}
-              </ul>
-            </div>
-          </li>
+              </PlainList>
+              <Flex gap={8} style={{ marginTop: 16 }}>
+                <Button
+                  neutral
+                  borderOnHover
+                  onClick={() => history.push(`/customers/${customer.id}`)}
+                >
+                  {t("Open")}
+                </Button>
+                <Button
+                  neutral
+                  borderOnHover
+                  onClick={() => void handleDelete(customer.id, customer.name)}
+                >
+                  {t("Remove")}
+                </Button>
+              </Flex>
+            </Body>
+          </Card>
         ))}
-      </ul>
-      {customers.length === 0 ? (
-        <p className="text-sm text-gray-500">No customers yet.</p>
-      ) : null}
+      </CardGrid>
+      {customers.length === 0 ? <Empty>No customers yet.</Empty> : null}
     </AppPage>
   );
 }

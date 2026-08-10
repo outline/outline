@@ -14,6 +14,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQueryNotices from "~/hooks/useQueryNotices";
 import useKeyboardShortcutsQuery from "~/hooks/useKeyboardShortcutsQuery";
+import { RequireRole } from "~/components/RequireRole";
 import lazy from "~/utils/lazyWithRetry";
 import * as Scenes from "./scenes";
 import {
@@ -66,156 +67,222 @@ function AuthenticatedRoutes() {
           }
         >
           <SplitView>
-            <Switch>
-              {can.createDocument && (
+            <RequireRole>
+              <Switch>
+                {can.createDocument && (
+                  <Route
+                    exact
+                    path={draftsPath()}
+                    component={Scenes.Drafts.Component}
+                  />
+                )}
+                {can.createDocument && (
+                  <Route
+                    exact
+                    path={archivePath()}
+                    component={Scenes.Archive.Component}
+                  />
+                )}
+                {can.createDocument && (
+                  <Route
+                    exact
+                    path={trashPath()}
+                    component={Scenes.Trash.Component}
+                  />
+                )}
+                <Route
+                  path={`${homePath()}/:tab?`}
+                  component={Scenes.Home.Component}
+                />
                 <Route
                   exact
-                  path={draftsPath()}
-                  component={Scenes.Drafts.Component}
+                  path="/dashboard"
+                  component={Scenes.Dashboard.Component}
                 />
-              )}
-              {can.createDocument && (
+                <Route exact path="/pos" component={Scenes.Pos.Component} />
                 <Route
                   exact
-                  path={archivePath()}
-                  component={Scenes.Archive.Component}
+                  path="/orders"
+                  component={Scenes.Orders.Component}
                 />
-              )}
-              {can.createDocument && (
                 <Route
                   exact
-                  path={trashPath()}
-                  component={Scenes.Trash.Component}
+                  path="/orders/:orderId"
+                  component={Scenes.OrderDetail.Component}
                 />
-              )}
-              <Route
-                path={`${homePath()}/:tab?`}
-                component={Scenes.Home.Component}
-              />
-              <Route
-                exact
-                path="/dashboard"
-                component={Scenes.Dashboard.Component}
-              />
-              <Route exact path="/pos" component={Scenes.Pos.Component} />
-              <Route exact path="/orders" component={Scenes.Orders.Component} />
-              <Route
-                exact
-                path="/orders/:orderId"
-                component={Scenes.OrderDetail.Component}
-              />
-              <Route
-                exact
-                path="/inventory"
-                component={Scenes.Inventory.Component}
-              />
-              <Route
-                exact
-                path="/accounting"
-                component={Scenes.Accounting.Component}
-              />
-              <Route
-                exact
-                path="/grooming"
-                component={Scenes.Grooming.Component}
-              />
-              <Route
-                exact
-                path="/loyalty"
-                component={Scenes.Loyalty.Component}
-              />
-              <Route
-                exact
-                path="/whatsapp"
-                component={Scenes.Whatsapp.Component}
-              />
-              <Route exact path="/staff" component={Scenes.Staff.Component} />
-              <Route
-                exact
-                path="/branches"
-                component={Scenes.Branches.Component}
-              />
-              <Route
-                exact
-                path="/occupancy"
-                component={Scenes.Occupancy.Component}
-              />{" "}
-              <Route
-                exact
-                path="/boardings"
-                component={Scenes.Boardings.Component}
-              />
-              <Route
-                exact
-                path="/products"
-                component={Scenes.Products.Component}
-              />
-              <Route
-                exact
-                path="/customers"
-                component={Scenes.Customers.Component}
-              />
-              <Redirect exact from="/starred" to={homePath()} />
-              <Redirect
-                exact
-                from="/templates"
-                to={settingsPath("templates")}
-              />
-              <Redirect exact from="/collections/*" to="/collection/*" />
-              <Route
-                exact
-                path={`/collection/${collectionSlug}/new`}
-                component={DocumentNew}
-              />
-              <Route
-                exact
-                path={`/collection/${collectionSlug}/overview/edit`}
-                component={Scenes.Collection.Component}
-              />
-              <Route
-                exact
-                path={`/collection/${collectionSlug}/:tab?`}
-                component={Scenes.Collection.Component}
-              />
-              <Route exact path="/doc/new" component={DocumentNew} />
-              <Route
-                exact
-                path={`/d/${documentSlug}`}
-                component={RedirectDocument}
-              />
-              <Route
-                exact
-                path={`/doc/${documentSlug}/history/:revisionId?`}
-                component={Scenes.Document.Component}
-              />
-              <Route
-                exact
-                path={`/doc/${documentSlug}/edit`}
-                component={Scenes.Document.Component}
-              />
-              <Route
-                path={`/doc/${documentSlug}`}
-                component={Scenes.Document.Component}
-              />
-              <Route
-                exact
-                path={`${searchPath()}/:query?`}
-                component={Scenes.Search.Component}
-              />
-              {env.isDevelopment && (
-                <Route exact path={debugPath()} component={Debug} />
-              )}
-              {env.isDevelopment && (
                 <Route
                   exact
-                  path={`${debugPath()}/changesets`}
-                  component={Changesets}
+                  path="/inventory"
+                  component={Scenes.Inventory.Component}
                 />
-              )}
-              <Route exact path="/404" component={Error404} />
-              <SettingsRoutes />
-              <Route component={Error404} />
-            </Switch>
+                <Route
+                  exact
+                  path="/accounting"
+                  component={Scenes.Accounting.Component}
+                />
+                <Route
+                  exact
+                  path="/grooming"
+                  component={Scenes.Grooming.Component}
+                />
+                <Route
+                  exact
+                  path="/loyalty"
+                  component={Scenes.Loyalty.Component}
+                />
+                <Route
+                  exact
+                  path="/whatsapp"
+                  component={Scenes.Whatsapp.Component}
+                />
+                <Route exact path="/staff" component={Scenes.Staff.Component} />
+                <Route
+                  exact
+                  path="/branches"
+                  component={Scenes.Branches.Component}
+                />
+                <Route
+                  exact
+                  path="/occupancy"
+                  component={Scenes.Occupancy.Component}
+                />{" "}
+                <Route
+                  exact
+                  path="/boardings"
+                  component={Scenes.Boardings.Component}
+                />
+                <Route
+                  exact
+                  path="/boardings/new"
+                  component={Scenes.BoardingNew.Component}
+                />
+                <Route
+                  exact
+                  path="/boardings/:boardingId"
+                  component={Scenes.BoardingDetail.Component}
+                />
+                <Route
+                  exact
+                  path="/invoices"
+                  component={Scenes.Invoices.Component}
+                />
+                <Route
+                  exact
+                  path="/invoices/new"
+                  component={Scenes.InvoiceNew.Component}
+                />
+                <Route
+                  exact
+                  path="/invoices/:invoiceId"
+                  component={Scenes.InvoiceDetail.Component}
+                />
+                <Route
+                  exact
+                  path="/portal"
+                  component={Scenes.Portal.Component}
+                />
+                <Route
+                  exact
+                  path="/returns"
+                  component={Scenes.Returns.Component}
+                />
+                <Route
+                  exact
+                  path="/customers/:customerId"
+                  component={Scenes.CustomerDetail.Component}
+                />
+                <Route
+                  exact
+                  path="/staff/:staffId"
+                  component={Scenes.StaffDetail.Component}
+                />
+                <Route
+                  exact
+                  path="/purchase-orders"
+                  component={Scenes.PurchaseOrders.Component}
+                />
+                <Route
+                  exact
+                  path="/purchase-orders/new"
+                  component={Scenes.PurchaseOrderNew.Component}
+                />
+                <Route
+                  exact
+                  path="/purchase-orders/:purchaseOrderId"
+                  component={Scenes.PurchaseOrderDetail.Component}
+                />
+                <Route
+                  exact
+                  path="/products"
+                  component={Scenes.Products.Component}
+                />
+                <Route
+                  exact
+                  path="/customers"
+                  component={Scenes.Customers.Component}
+                />
+                <Redirect exact from="/starred" to={homePath()} />
+                <Redirect
+                  exact
+                  from="/templates"
+                  to={settingsPath("templates")}
+                />
+                <Redirect exact from="/collections/*" to="/collection/*" />
+                <Route
+                  exact
+                  path={`/collection/${collectionSlug}/new`}
+                  component={DocumentNew}
+                />
+                <Route
+                  exact
+                  path={`/collection/${collectionSlug}/overview/edit`}
+                  component={Scenes.Collection.Component}
+                />
+                <Route
+                  exact
+                  path={`/collection/${collectionSlug}/:tab?`}
+                  component={Scenes.Collection.Component}
+                />
+                <Route exact path="/doc/new" component={DocumentNew} />
+                <Route
+                  exact
+                  path={`/d/${documentSlug}`}
+                  component={RedirectDocument}
+                />
+                <Route
+                  exact
+                  path={`/doc/${documentSlug}/history/:revisionId?`}
+                  component={Scenes.Document.Component}
+                />
+                <Route
+                  exact
+                  path={`/doc/${documentSlug}/edit`}
+                  component={Scenes.Document.Component}
+                />
+                <Route
+                  path={`/doc/${documentSlug}`}
+                  component={Scenes.Document.Component}
+                />
+                <Route
+                  exact
+                  path={`${searchPath()}/:query?`}
+                  component={Scenes.Search.Component}
+                />
+                {env.isDevelopment && (
+                  <Route exact path={debugPath()} component={Debug} />
+                )}
+                {env.isDevelopment && (
+                  <Route
+                    exact
+                    path={`${debugPath()}/changesets`}
+                    component={Changesets}
+                  />
+                )}
+                <Route exact path="/404" component={Error404} />
+                <SettingsRoutes />
+                <Route component={Error404} />
+              </Switch>
+            </RequireRole>
           </SplitView>
         </Suspense>
       </AuthenticatedLayout>

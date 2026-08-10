@@ -7,7 +7,10 @@ import ListItem from "~/components/List/Item";
 import { StatusChip } from "~/components/StatusChip";
 import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
+import { CalendarsMonthView } from "~/components/CalendarsMonthView";
+import { groomingToCalendar } from "~/components/scheduleDays";
 import { useShop } from "~/stores/shop";
+import { currentBranch } from "../../src/mocks/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
 
 /**
@@ -20,8 +23,13 @@ import { formatCurrency, formatDate } from "~/utils/format";
  */
 function Grooming() {
   const { t } = useTranslation();
-  const grooming = useShop((state) => state.grooming);
+  const allGrooming = useShop((state) => state.grooming);
+  const scope = currentBranch();
+  const grooming = scope
+    ? allGrooming.filter((item) => item.branch === scope)
+    : allGrooming;
   const setGroomingStatus = useShop((state) => state.setGroomingStatus);
+  const diary = useShop((state) => state.groomingCalendar);
 
   const groups = [
     { key: "booked", title: t("Booked") },
@@ -29,8 +37,15 @@ function Grooming() {
     { key: "done", title: t("Finished") },
   ] as const;
 
+  // Today's takings, not every groom ever finished: the label says today, and
+  // the Finished group below carries the full set.
+  const today = new Date().toDateString();
   const takings = grooming
-    .filter((item) => item.status === "done")
+    .filter(
+      (item) =>
+        item.status === "done" &&
+        new Date(item.scheduledAt).toDateString() === today
+    )
     .reduce((total, item) => total + item.price, 0);
 
   return (
@@ -43,6 +58,15 @@ function Grooming() {
         </Text>
       }
     >
+      <Subheading>{t("The fortnight ahead")}</Subheading>
+      <CalendarsMonthView
+        days={groomingToCalendar(diary)}
+        title={new Date().toLocaleDateString(undefined, {
+          month: "long",
+          year: "numeric",
+        })}
+      />
+
       {groups.map((group) => {
         const inGroup = grooming.filter((item) => item.status === group.key);
 

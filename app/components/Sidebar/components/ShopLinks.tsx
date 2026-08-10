@@ -13,88 +13,70 @@ import {
   EmailIcon,
   TeamIcon,
   BuildingBlocksIcon as BranchIcon,
+  BillingIcon,
+  GlobeIcon,
 } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import Header from "./Header";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
+import { canAccessRoute } from "../../../../src/mocks/access";
+import { currentRole } from "../../../../src/mocks/shop";
+import { BranchSwitcher } from "~/components/BranchSwitcher";
+
+/** Every shop destination, in the order the sidebar lists them. */
+const LINKS = [
+  { to: "/dashboard", label: "Dashboard", icon: <HomeIcon />, exact: true },
+  { to: "/pos", label: "Point of sale", icon: <TableIcon /> },
+  { to: "/occupancy", label: "Occupancy", icon: <BuildingBlocksIcon /> },
+  { to: "/boardings", label: "Boardings", icon: <ArchiveIcon /> },
+  { to: "/orders", label: "Orders", icon: <DocumentIcon /> },
+  { to: "/invoices", label: "Invoices", icon: <BillingIcon /> },
+  { to: "/returns", label: "Returns", icon: <ArchiveIcon /> },
+  { to: "/inventory", label: "Inventory", icon: <BeakerIcon /> },
+  { to: "/grooming", label: "Grooming", icon: <SmileyIcon /> },
+  { to: "/loyalty", label: "Loyalty", icon: <StarredIcon /> },
+  { to: "/whatsapp", label: "WhatsApp", icon: <EmailIcon /> },
+  { to: "/accounting", label: "Accounting", icon: <MathIcon /> },
+  { to: "/products", label: "Products", icon: <ShapesIcon /> },
+  { to: "/customers", label: "Customers", icon: <UserIcon /> },
+  { to: "/staff", label: "Staff", icon: <TeamIcon /> },
+  { to: "/branches", label: "Branches", icon: <BranchIcon /> },
+  { to: "/portal", label: "Portal", icon: <GlobeIcon /> },
+];
 
 /**
  * Navigation for the shop pages.
  *
- * Kept in its own section so the wiki navigation above it is untouched.
+ * Kept in its own section so the wiki navigation above it is untouched. Only
+ * the destinations this person's role can open are offered, so the sidebar is
+ * not a list of doors that turn them away.
  *
  * @returns the rendered sidebar section.
  */
 export function ShopLinks() {
   const { t } = useTranslation();
+  const role = currentRole();
+
+  const links = LINKS.filter((link) => role && canAccessRoute(role, link.to));
+
+  if (links.length === 0) {
+    return null;
+  }
 
   return (
     <Relative>
       <Header id="store" title={t("Store")}>
-        <SidebarLink
-          to="/dashboard"
-          icon={<HomeIcon />}
-          exact
-          label={t("Dashboard")}
-        />
-        <SidebarLink
-          to="/pos"
-          icon={<TableIcon />}
-          label={t("Point of sale")}
-        />
-        <SidebarLink
-          to="/occupancy"
-          icon={<BuildingBlocksIcon />}
-          label={t("Occupancy")}
-        />
-        <SidebarLink
-          to="/boardings"
-          icon={<ArchiveIcon />}
-          label={t("Boardings")}
-        />
-        <SidebarLink to="/orders" icon={<DocumentIcon />} label={t("Orders")} />
-        <SidebarLink
-          to="/inventory"
-          icon={<BeakerIcon />}
-          label={t("Inventory")}
-        />
-        <SidebarLink
-          to="/grooming"
-          icon={<SmileyIcon />}
-          label={t("Grooming")}
-        />
-        <SidebarLink
-          to="/loyalty"
-          icon={<StarredIcon />}
-          label={t("Loyalty")}
-        />
-        <SidebarLink
-          to="/whatsapp"
-          icon={<EmailIcon />}
-          label={t("WhatsApp")}
-        />
-        <SidebarLink
-          to="/accounting"
-          icon={<MathIcon />}
-          label={t("Accounting")}
-        />
-        <SidebarLink
-          to="/products"
-          icon={<ShapesIcon />}
-          label={t("Products")}
-        />
-        <SidebarLink
-          to="/customers"
-          icon={<UserIcon />}
-          label={t("Customers")}
-        />
-        <SidebarLink to="/staff" icon={<TeamIcon />} label={t("Staff")} />
-        <SidebarLink
-          to="/branches"
-          icon={<BranchIcon />}
-          label={t("Branches")}
-        />
+        <BranchSwitcher />
+        {links.map((link) => (
+          <SidebarLink
+            key={link.to}
+            to={link.to}
+            icon={link.icon}
+            exact={link.exact}
+            label={t(link.label)}
+          />
+        ))}
       </Header>
     </Relative>
   );

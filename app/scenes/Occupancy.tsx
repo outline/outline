@@ -1,6 +1,40 @@
+import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
+import styled from "styled-components";
+import Empty from "~/components/Empty";
+import Flex from "~/components/Flex";
+import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
+import { StatusChip } from "~/components/StatusChip";
+import {
+  Capitalize,
+  Card,
+  CardGrid,
+  Meter,
+  MeterFill,
+  PlainList,
+} from "~/components/Surface";
+import { CalendarsMonthView } from "~/components/CalendarsMonthView";
+import { StatsSimpleInCards } from "~/components/StatsSimpleInCards";
+import { boardingsToCalendar } from "~/components/scheduleDays";
 import { useShop } from "~/stores/shop";
+import { currentBranch } from "../../src/mocks/shop";
 import { AppPage } from "~/components/AppPage";
 import { formatDate } from "~/utils/format";
+
+const Gauge = styled.div`
+  margin-top: 12px;
+`;
+
+const BranchSection = styled.section`
+  margin-top: 32px;
+`;
+
+const RoomCard = styled(Card)<{ $isFull: boolean }>`
+  padding: 16px;
+  border-color: ${({ $isFull, theme }) =>
+    $isFull ? theme.danger : theme.divider};
+`;
 
 /**
  * Room-by-room occupancy for today, derived from the boardings that overlap
@@ -9,7 +43,14 @@ import { formatDate } from "~/utils/format";
  * @returns the rendered occupancy board.
  */
 function Occupancy() {
-  const rooms = useShop((state) => state.rooms);
+  const { t } = useTranslation();
+  const history = useHistory();
+  const allRooms = useShop((state) => state.rooms);
+  const scope = currentBranch();
+  const rooms = scope
+    ? allRooms.filter((room) => room.branch === scope)
+    : allRooms;
+  const calendar = useShop((state) => state.calendar);
 
   const capacity = rooms.reduce((total, room) => total + room.capacity, 0);
   const occupied = rooms.reduce((total, room) => total + room.occupied, 0);
@@ -41,109 +82,101 @@ function Occupancy() {
       title="Occupancy"
       description="Which rooms are in use today, and who is in them."
     >
-      <dl className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        {summary.map((stat) => (
-          <div
-            key={stat.name}
-            className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow-sm ring-1 ring-gray-200 sm:p-6"
-          >
-            <dt className="truncate text-sm font-medium text-gray-500">
-              {stat.name}
-            </dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-              {stat.value}
-            </dd>
-            <p className="mt-1 text-sm text-gray-500">{stat.hint}</p>
-          </div>
-        ))}
-      </dl>
+      <Subheading>{t("The fortnight ahead")}</Subheading>
+      <CalendarsMonthView
+        days={boardingsToCalendar(calendar)}
+        title={new Date().toLocaleDateString(undefined, {
+          month: "long",
+          year: "numeric",
+        })}
+        onSelectEvent={(event) => history.push(event.href)}
+        addLabel={t("New boarding")}
+        onAdd={() => history.push("/boardings/new")}
+      />
+
+      <StatsSimpleInCards
+        title=""
+        stats={summary.map((stat) => ({
+          name: stat.name,
+          stat: stat.value,
+          hint: stat.hint,
+        }))}
+      />
 
       {branches.map((branch) => (
-        <section key={branch} className="mt-8">
-          <h2 className="text-base font-semibold text-gray-900">{branch}</h2>
-          <ul
-            role="list"
-            className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-          >
+        <BranchSection key={branch}>
+          <Subheading>{branch}</Subheading>
+          <CardGrid role="list">
             {rooms
               .filter((room) => room.branch === branch)
               .map((room) => (
-                <li
-                  key={room.id}
-                  className={`rounded-lg bg-white p-4 shadow-sm ring-1 ${
-                    room.isFull ? "ring-red-200" : "ring-gray-200"
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
+                <RoomCard as="li" key={room.id} $isFull={room.isFull}>
+                  <Flex align="flex-start" justify="space-between" gap={8}>
+                    <Flex column>
+                      <Text size="small" weight="bold">
                         {room.name}
-                      </p>
-                      <p className="text-xs capitalize text-gray-500">
-                        {room.type}
-                      </p>
-                    </div>
-                    <span
-                      className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+                      </Text>
+                      <Text size="xsmall" type="tertiary">
+                        <Capitalize>{room.type}</Capitalize>
+                      </Text>
+                    </Flex>
+                    <StatusChip
+                      status={
                         room.isFull
-                          ? "bg-red-50 text-red-700 ring-red-600/10"
+                          ? "full"
                           : room.occupied > 0
-                            ? "bg-blue-50 text-blue-700 ring-blue-700/10"
-                            : "bg-green-50 text-green-700 ring-green-600/20"
-                      }`}
-                    >
-                      {room.isFull
-                        ? "Full"
-                        : room.occupied > 0
-                          ? "Partial"
-                          : "Free"}
-                    </span>
-                  </div>
+                            ? "partial"
+                            : "free"
+                      }
+                    />
+                  </Flex>
 
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>
+                  <Gauge>
+                    <Flex align="center" justify="space-between">
+                      <Text size="xsmall" type="tertiary">
                         {room.occupied} / {room.capacity}
-                      </span>
-                      <span>
+                      </Text>
+                      <Text size="xsmall" type="tertiary">
                         {Math.round((room.occupied / room.capacity) * 100)}%
-                      </span>
-                    </div>
-                    <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                      <div
-                        className={`h-2 rounded-full ${
-                          room.isFull ? "bg-red-500" : "bg-indigo-500"
-                        }`}
+                      </Text>
+                    </Flex>
+                    <Meter style={{ marginTop: 4 }}>
+                      <MeterFill
+                        $tone={room.isFull ? "full" : "some"}
                         style={{
                           width: `${Math.min(100, (room.occupied / room.capacity) * 100)}%`,
                         }}
                       />
-                    </div>
-                  </div>
+                    </Meter>
+                  </Gauge>
 
-                  <ul className="mt-3 space-y-1">
+                  <PlainList>
                     {room.guests.map((guest) => (
-                      <li key={guest.id} className="text-xs text-gray-700">
-                        <span className="font-medium text-gray-900">
+                      <li key={guest.id}>
+                        <Text size="xsmall" weight="bold">
                           {guest.petName}
-                        </span>{" "}
-                        · {guest.customerName} · out{" "}
-                        {formatDate(guest.checkOut)}
+                        </Text>{" "}
+                        <Text size="xsmall" type="secondary">
+                          · {guest.customerName} · out{" "}
+                          {formatDate(guest.checkOut)}
+                        </Text>
                       </li>
                     ))}
                     {room.guests.length === 0 ? (
-                      <li className="text-xs text-gray-400">Empty</li>
+                      <li>
+                        <Text size="xsmall" type="tertiary">
+                          Empty
+                        </Text>
+                      </li>
                     ) : null}
-                  </ul>
-                </li>
+                  </PlainList>
+                </RoomCard>
               ))}
-          </ul>
-        </section>
+          </CardGrid>
+        </BranchSection>
       ))}
 
-      {rooms.length === 0 ? (
-        <p className="text-sm text-gray-500">No rooms configured.</p>
-      ) : null}
+      {rooms.length === 0 ? <Empty>No rooms configured.</Empty> : null}
     </AppPage>
   );
 }

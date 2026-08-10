@@ -35,6 +35,12 @@ const Applications = lazy(() => import("~/scenes/Settings/Applications"));
 const APIAndAccess = lazy(() => import("~/scenes/Settings/APIAndAccess"));
 const Authentication = lazy(() => import("~/scenes/Settings/Authentication"));
 const Billing = lazy(() => import("~/scenes/Settings/Billing"));
+const Receipts = lazy(() => import("~/scenes/Settings/Receipts"));
+const Documents = lazy(() => import("~/scenes/Settings/Documents"));
+const Audit = lazy(() => import("~/scenes/Settings/Audit"));
+
+import { hasRequiredRole } from "../../src/mocks/access";
+import { currentRole } from "../../src/mocks/shop";
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
@@ -72,6 +78,10 @@ const useSettingsConfig = () => {
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const can = usePolicy(team);
+  // The shop's own settings pages are a manager's business; the rest of this
+  // list is Outline's and keeps its own rules.
+  const role = currentRole();
+  const isManager = Boolean(role && hasRequiredRole(role, "manager"));
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -123,7 +133,34 @@ const useSettingsConfig = () => {
         path: settingsPath("billing"),
         component: Billing.Component,
         preload: Billing.preload,
-        enabled: can.update,
+        enabled: can.update && isManager,
+        group: t("Workspace"),
+        icon: TeamIcon,
+      },
+      {
+        name: t("Receipts"),
+        path: settingsPath("receipts"),
+        component: Receipts.Component,
+        preload: Receipts.preload,
+        enabled: can.update && isManager,
+        group: t("Workspace"),
+        icon: TeamIcon,
+      },
+      {
+        name: t("Boarding agreement"),
+        path: settingsPath("documents"),
+        component: Documents.Component,
+        preload: Documents.preload,
+        enabled: can.update && isManager,
+        group: t("Workspace"),
+        icon: TeamIcon,
+      },
+      {
+        name: t("Activity"),
+        path: settingsPath("activity"),
+        component: Audit.Component,
+        preload: Audit.preload,
+        enabled: can.update && isManager,
         group: t("Workspace"),
         icon: TeamIcon,
       },

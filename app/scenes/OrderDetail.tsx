@@ -1,7 +1,31 @@
-import { Link, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useHistory, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useShop } from "~/stores/shop";
+import styled from "styled-components";
+import { s } from "@shared/styles";
 import { AppPage } from "~/components/AppPage";
-import { formatCurrency, formatDate, statusBadge } from "~/utils/format";
+import Button from "~/components/Button";
+import Empty from "~/components/Empty";
+import Flex from "~/components/Flex";
+import ListItem from "~/components/List/Item";
+import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
+import { StatusChip } from "~/components/StatusChip";
+import {
+  Card,
+  TBody,
+  THead,
+  Table,
+  Td,
+  TdMuted,
+  Th,
+} from "~/components/Surface";
+import { formatCurrency, formatDate } from "~/utils/format";
+
+const TotalRow = styled.tr`
+  border-top: 1px solid ${s("divider")};
+`;
 
 /**
  * A single invoice with its lines.
@@ -9,128 +33,134 @@ import { formatCurrency, formatDate, statusBadge } from "~/utils/format";
  * @returns the rendered order detail.
  */
 function OrderDetail() {
+  const { t } = useTranslation();
+  const history = useHistory();
   const { orderId } = useParams<{ orderId: string }>();
   const orders = useShop((state) => state.orders);
   const isLoading = useShop((state) => state.isLoading);
   const markOrderPaid = useShop((state) => state.markOrderPaid);
+  const voidOrder = useShop((state) => state.voidOrder);
+  const staff = useShop((state) => state.staff);
+  const [notice, setNotice] = useState<string | undefined>();
 
   const order = orders.find((item) => item.id === orderId);
 
   if (!order) {
     return (
-      <AppPage title="Invoice">
-        <p className="text-sm text-gray-500">
-          {isLoading ? "Loading…" : "That invoice no longer exists."}
-        </p>
-        <Link
-          to="/orders"
-          className="mt-4 inline-block text-sm text-indigo-600 hover:text-indigo-500"
-        >
-          Back to orders
-        </Link>
+      <AppPage title={t("Invoice")}>
+        <Empty>
+          {isLoading ? t("Loading…") : t("That invoice no longer exists.")}
+        </Empty>
+        <Flex style={{ paddingTop: 16 }}>
+          <Button neutral borderOnHover onClick={() => history.push("/orders")}>
+            {t("Back to orders")}
+          </Button>
+        </Flex>
       </AppPage>
     );
   }
 
+  const handleVoid = async () => {
+    setNotice(undefined);
+    const result = await voidOrder(order.id);
+    if (!result?.voided) {
+      setNotice(
+        result?.reason === "has_returns"
+          ? "Something has already been returned against this order, so it cannot be voided."
+          : "That order could not be voided."
+      );
+    }
+  };
+
   return (
     <AppPage
       title={order.number}
-      description={`${order.customerName} · ${order.channel.toUpperCase()}`}
+      description={(() => {
+        const soldBy = staff.find((member) => member.id === order.soldById);
+        return `${order.customerName} · ${order.channel.toUpperCase()}${
+          soldBy ? ` · served by ${soldBy.name}` : ""
+        }`;
+      })()}
       actions={
-        order.status !== "paid" ? (
-          <button
-            type="button"
-            onClick={() => void markOrderPaid(order.id)}
-            className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500"
-          >
-            Mark paid
-          </button>
-        ) : (
-          <span className={statusBadge(order.status)}>{order.status}</span>
-        )
+        <Flex align="center" gap={12}>
+          <StatusChip status={order.status} />
+          {order.status !== "paid" && order.status !== "void" ? (
+            <Button onClick={() => void markOrderPaid(order.id)}>
+              {t("Mark paid")}
+            </Button>
+          ) : null}
+          {order.status === "paid" ? (
+            <Button neutral onClick={() => void handleVoid()}>
+              {t("Void")}
+            </Button>
+          ) : null}
+        </Flex>
       }
     >
-      <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200">
-        <dl className="grid grid-cols-1 gap-x-6 gap-y-4 border-b border-gray-100 p-6 sm:grid-cols-3">
-          <div>
-            <dt className="text-xs font-medium uppercase text-gray-500">
-              Customer
-            </dt>
-            <dd className="mt-1 text-sm text-gray-900">{order.customerName}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase text-gray-500">
-              Paid
-            </dt>
-            <dd className="mt-1 text-sm text-gray-900">
-              {order.paidAt ? formatDate(order.paidAt) : "Not yet"}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase text-gray-500">
-              Status
-            </dt>
-            <dd className="mt-1">
-              <span className={statusBadge(order.status)}>{order.status}</span>
-            </dd>
-          </div>
-        </dl>
+      {notice ? (
+        <Text as="p" type="secondary" size="small" data-testid="order-notice">
+          {notice}
+        </Text>
+      ) : null}
+      <Subheading>{t("The sale")}</Subheading>
+      <ListItem
+        title={t("Customer")}
+        actions={<Text weight="bold">{order.customerName}</Text>}
+        border
+      />
+      <ListItem
+        title={t("Paid")}
+        actions={
+          <Text weight="bold">
+            {order.paidAt ? formatDate(order.paidAt) : t("Not yet")}
+          </Text>
+        }
+        border
+      />
+      <ListItem
+        title={t("Status")}
+        actions={<StatusChip status={order.status} />}
+        border
+      />
 
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <Subheading>{t("Lines")}</Subheading>
+      <Card>
+        <Table>
+          <THead>
             <tr>
-              {["Item", "Qty", "Price", "Amount"].map((heading) => (
-                <th
-                  key={heading}
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
-                >
+              {[t("Item"), t("Qty"), t("Price"), t("Amount")].map((heading) => (
+                <Th key={heading} scope="col">
                   {heading}
-                </th>
+                </Th>
               ))}
             </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
+          </THead>
+          <TBody>
             {order.items.map((item) => (
               <tr key={item.productId}>
-                <td className="px-6 py-3 text-sm text-gray-900">{item.name}</td>
-                <td className="px-6 py-3 text-sm text-gray-700">
-                  {item.quantity}
-                </td>
-                <td className="px-6 py-3 text-sm text-gray-700">
-                  {formatCurrency(item.price)}
-                </td>
-                <td className="px-6 py-3 text-sm font-medium text-gray-900">
-                  {formatCurrency(item.price * item.quantity)}
-                </td>
+                <Td>{item.name}</Td>
+                <Td>{item.quantity}</Td>
+                <Td>{formatCurrency(item.price)}</Td>
+                <Td>{formatCurrency(item.price * item.quantity)}</Td>
               </tr>
             ))}
-          </tbody>
+          </TBody>
           <tfoot>
-            <tr className="border-t border-gray-200">
-              <td
-                colSpan={3}
-                className="px-6 py-3 text-sm font-medium text-gray-500"
-              >
-                Total
-              </td>
-              <td
-                data-testid="order-total"
-                className="px-6 py-3 text-base font-semibold text-gray-900"
-              >
-                {formatCurrency(order.total)}
-              </td>
-            </tr>
+            <TotalRow>
+              <TdMuted colSpan={3}>{t("Total")}</TdMuted>
+              <Td data-testid="order-total">
+                <Text weight="bold">{formatCurrency(order.total)}</Text>
+              </Td>
+            </TotalRow>
           </tfoot>
-        </table>
-      </div>
+        </Table>
+      </Card>
 
-      <Link
-        to="/orders"
-        className="mt-4 inline-block text-sm text-indigo-600 hover:text-indigo-500"
-      >
-        Back to orders
-      </Link>
+      <Flex style={{ paddingTop: 16 }}>
+        <Button neutral borderOnHover onClick={() => history.push("/orders")}>
+          {t("Back to orders")}
+        </Button>
+      </Flex>
     </AppPage>
   );
 }
