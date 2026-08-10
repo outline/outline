@@ -3,6 +3,7 @@ import { nextBoardingState } from "./machines/boarding";
 import { nextGroomingState } from "./machines/grooming";
 import { nextInvoiceState } from "./machines/invoice";
 import { nextOrderState } from "./machines/order";
+import { nextPurchaseOrderState } from "./machines/purchaseOrder";
 import { nextStaffState } from "./machines/staff";
 import { mockDb } from "./db";
 
@@ -4566,7 +4567,15 @@ function dispatch(
       if (!order) {
         return { data: { received: false, reason: "not_found" } };
       }
-      if (order.status === "received" || order.status === "cancelled") {
+      // Whether this delivery closes the order is not known until the lines
+      // are worked out below, so the machine is asked twice: first whether a
+      // delivery is allowed at all, then where it lands.
+      if (
+        !nextPurchaseOrderState(order.status, {
+          type: "RECEIVE",
+          isComplete: false,
+        })
+      ) {
         return { data: { received: false, reason: "closed" } };
       }
 
@@ -4607,13 +4616,16 @@ function dispatch(
           : line;
       });
       const isComplete = items.every((line) => line.received >= line.quantity);
+      const landsOn =
+        nextPurchaseOrderState(order.status, {
+          type: "RECEIVE",
+          isComplete,
+        }) ?? order.status;
 
       state = {
         ...state,
         purchaseOrders: state.purchaseOrders.map((item) =>
-          item.id === id
-            ? { ...item, items, status: isComplete ? "received" : "partial" }
-            : item
+          item.id === id ? { ...item, items, status: landsOn } : item
         ),
         products: state.products.map((product) => {
           const entry = arriving.find(
