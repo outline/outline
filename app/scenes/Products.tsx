@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
@@ -9,6 +8,7 @@ import { SchemaForm } from "~/components/SchemaForm";
 import { ProductDocType } from "~/utils/doctypes";
 import { useShop } from "~/stores/shop";
 import { AppPage } from "~/components/AppPage";
+import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";
 import { StatusChip } from "~/components/StatusChip";
 import {
@@ -35,8 +35,11 @@ function Products() {
   const saveProduct = useShop((state) => state.saveProduct);
   const deleteProduct = useShop((state) => state.deleteProduct);
 
-  const [editing, setEditing] = useState<string | undefined>();
-  const [isAdding, setIsAdding] = useState(false);
+  const panels = usePanel();
+  // Editing carries which product, so the panel is named for it.
+  const editing = panels.current?.startsWith("edit:")
+    ? panels.current.slice("edit:".length)
+    : undefined;
   const submission = useSubmit();
 
   const handleSave = (values: Record<string, string>, id?: string) =>
@@ -51,8 +54,7 @@ function Products() {
       });
 
       if (result?.saved) {
-        setEditing(undefined);
-        setIsAdding(false);
+        panels.close();
         return undefined;
       }
       return result?.reason === "duplicate_sku"
@@ -75,7 +77,7 @@ function Products() {
       title={t("Products")}
       description={t("Catalogue, pricing and stock on hand.")}
       actions={
-        <Button onClick={() => setIsAdding(true)}>{t("New product")}</Button>
+        <Button onClick={() => panels.open("add")}>{t("New product")}</Button>
       }
     >
       {submission.notice ? (
@@ -84,14 +86,14 @@ function Products() {
         </Text>
       ) : null}
 
-      {isAdding ? (
+      {panels.isOpen("add") ? (
         <>
           <Subheading>{t("New product")}</Subheading>
           <SchemaForm
             doctype={ProductDocType}
             submitLabel={t("Add product")}
             onSubmit={(values) => void handleSave(values)}
-            onCancel={() => setIsAdding(false)}
+            onCancel={panels.close}
           />
         </>
       ) : null}
@@ -113,7 +115,7 @@ function Products() {
             })()}
             submitLabel={t("Save product")}
             onSubmit={(values) => void handleSave(values, editing)}
-            onCancel={() => setEditing(undefined)}
+            onCancel={panels.close}
           />
         </>
       ) : null}
@@ -222,7 +224,7 @@ function Products() {
                       <Button
                         neutral
                         borderOnHover
-                        onClick={() => setEditing(product.id)}
+                        onClick={() => panels.open(`edit:${product.id}`)}
                       >
                         {t("Edit")}
                       </Button>

@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";
 import { Capitalize } from "~/components/Surface";
 import { formatDate } from "~/utils/format";
@@ -42,9 +42,15 @@ function Branches() {
   const updateRoom = useShop((state) => state.updateRoom);
   const deleteRoom = useShop((state) => state.deleteRoom);
 
-  const [isAddingBranch, setIsAddingBranch] = useState(false);
-  const [openBranch, setOpenBranch] = useState<string | undefined>();
-  const [editing, setEditing] = useState<string | undefined>();
+  const panels = usePanel();
+  // Two of the three panels carry which record they are for, so the panel is
+  // named after it.
+  const openBranch = panels.current?.startsWith("room:")
+    ? panels.current.slice("room:".length)
+    : undefined;
+  const editing = panels.current?.startsWith("edit:")
+    ? panels.current.slice("edit:".length)
+    : undefined;
   const submission = useSubmit();
 
   const handleAddBranch = (values: FormValues) =>
@@ -56,7 +62,7 @@ function Branches() {
         manager: values.manager ?? "",
       });
       if (result?.saved) {
-        setIsAddingBranch(false);
+        panels.close();
         return undefined;
       }
       return t("A branch needs a name.");
@@ -87,10 +93,7 @@ function Branches() {
           : t("Give a day to close.");
     });
 
-  const resetForm = () => {
-    setOpenBranch(undefined);
-    setEditing(undefined);
-  };
+  const resetForm = () => panels.close();
 
   const handleCreate = async (branch: string, values: FormValues) => {
     await createRoom({
@@ -142,19 +145,19 @@ function Branches() {
       title={t("Branches")}
       description={t("Locations and the rooms available at each.")}
       actions={
-        <Button onClick={() => setIsAddingBranch(true)}>
+        <Button onClick={() => panels.open("addBranch")}>
           {t("New branch")}
         </Button>
       }
     >
-      {isAddingBranch ? (
+      {panels.isOpen("addBranch") ? (
         <>
           <Subheading>{t("New branch")}</Subheading>
           <SchemaForm
             doctype={BranchDocType}
             submitLabel={t("Add branch")}
             onSubmit={(values) => void handleAddBranch(values)}
-            onCancel={() => setIsAddingBranch(false)}
+            onCancel={panels.close}
           />
         </>
       ) : null}
@@ -277,12 +280,9 @@ function Branches() {
                       <Button
                         neutral
                         borderOnHover
-                        onClick={() => {
-                          // The form takes its starting values from the room
-                          // itself, so nothing has to be copied out first.
-                          setEditing(room.id);
-                          setOpenBranch(undefined);
-                        }}
+                        // The form takes its starting values from the room
+                        // itself, so nothing has to be copied out first.
+                        onClick={() => panels.open(`edit:${room.id}`)}
                       >
                         {t("Edit")}
                       </Button>
@@ -314,10 +314,7 @@ function Branches() {
                 <Button
                   neutral
                   borderOnHover
-                  onClick={() => {
-                    resetForm();
-                    setOpenBranch(branch.id);
-                  }}
+                  onClick={() => panels.open(`room:${branch.id}`)}
                 >
                   {t("Add a room")}
                 </Button>

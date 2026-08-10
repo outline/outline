@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { SchemaForm } from "~/components/SchemaForm";
@@ -13,6 +12,7 @@ import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
 import { currentBranch } from "../../src/mocks/shop";
 import { AppPage } from "~/components/AppPage";
+import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";
 import { Capitalize } from "~/components/Surface";
 import { StatusChip } from "~/components/StatusChip";
@@ -43,8 +43,7 @@ function Staff() {
   const acceptInvite = useShop((state) => state.acceptInvite);
   const withdrawInvite = useShop((state) => state.withdrawInvite);
 
-  const [isAdding, setIsAdding] = useState(false);
-  const [isInviting, setIsInviting] = useState(false);
+  const panels = usePanel();
   const submission = useSubmit();
 
   const handleSave = (values: Record<string, string>) =>
@@ -59,7 +58,7 @@ function Staff() {
       });
 
       if (result?.saved) {
-        setIsAdding(false);
+        panels.close();
         return undefined;
       }
       return result?.reason === "duplicate_email"
@@ -85,7 +84,7 @@ function Staff() {
       });
 
       if (result?.sent) {
-        setIsInviting(false);
+        panels.close();
         return undefined;
       }
       return result?.reason === "already_staff"
@@ -107,10 +106,10 @@ function Staff() {
           <Text type="tertiary" size="small">
             {active} / {staff.length} active · {onShift.length} {t("on shift")}
           </Text>
-          <Button neutral borderOnHover onClick={() => setIsInviting(true)}>
+          <Button neutral borderOnHover onClick={() => panels.open("invite")}>
             {t("Invite")}
           </Button>
-          <Button onClick={() => setIsAdding(true)}>{t("New staff")}</Button>
+          <Button onClick={() => panels.open("add")}>{t("New staff")}</Button>
         </Flex>
       }
     >
@@ -159,7 +158,7 @@ function Staff() {
         );
       })()}
 
-      {isInviting ? (
+      {panels.isOpen("invite") ? (
         <>
           <Subheading>{t("Invite someone")}</Subheading>
           <SchemaForm
@@ -197,19 +196,19 @@ function Staff() {
             }}
             submitLabel={t("Send invitation")}
             onSubmit={(values) => void handleInvite(values)}
-            onCancel={() => setIsInviting(false)}
+            onCancel={panels.close}
           />
         </>
       ) : null}
 
-      {isAdding ? (
+      {panels.isOpen("add") ? (
         <>
           <Subheading>{t("New staff")}</Subheading>
           <SchemaForm
             doctype={staffDocType(branchRecords.map((branch) => branch.name))}
             submitLabel={t("Add staff")}
             onSubmit={(values) => void handleSave(values)}
-            onCancel={() => setIsAdding(false)}
+            onCancel={panels.close}
           />
         </>
       ) : null}
