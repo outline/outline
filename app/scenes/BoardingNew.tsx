@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -44,16 +45,13 @@ function BoardingNew() {
   const [checkOut, setCheckOut] = useState(
     asDateValue(new Date(Date.now() + 3 * 86400000))
   );
-  const [notice, setNotice] = useState<string | undefined>();
-  const [isSaving, setIsSaving] = useState(false);
+  const submission = useSubmit();
 
   const room = rooms.find((item) => item.id === roomId);
   const stay = nights(checkIn, checkOut);
 
-  const handleSubmit = async () => {
-    setNotice(undefined);
-    setIsSaving(true);
-    try {
+  const handleSubmit = () =>
+    void submission.run(async () => {
       const result = await createBoarding({
         customerName: customerName.trim(),
         petName: petName.trim(),
@@ -66,29 +64,23 @@ function BoardingNew() {
         history.push(`/boardings/${result.boarding.id}`);
         return;
       }
-
       if (result?.reason === "no_room") {
-        setNotice(t("That room is taken for those nights."));
-        return;
+        return t("That room is taken for those nights.");
       }
       if (result?.reason === "bad_dates") {
-        setNotice(t("Check-out has to be after check-in."));
-        return;
+        return t("Check-out has to be after check-in.");
       }
-      setNotice(t("Give us the owner, the pet, and a room."));
-    } finally {
-      setIsSaving(false);
-    }
-  };
+      return t("Give us the owner, the pet, and a room.");
+    });
 
   return (
     <AppPage
       title={t("New boarding")}
       description={t("Book a room for a stay and open the reservation.")}
     >
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="boarding-new-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 
@@ -153,8 +145,8 @@ function BoardingNew() {
       ) : null}
 
       <Flex gap={8} style={{ paddingTop: 16 }}>
-        <Button onClick={handleSubmit} disabled={isSaving}>
-          {isSaving ? t("Booking…") : t("Book the stay")}
+        <Button onClick={handleSubmit} disabled={submission.isBusy}>
+          {submission.isBusy ? t("Booking…") : t("Book the stay")}
         </Button>
         <Button
           neutral
