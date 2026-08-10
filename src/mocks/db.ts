@@ -1,3 +1,4 @@
+import type { JSONObject } from "@shared/types";
 export interface MockUser {
   id: string;
   name: string;
@@ -72,7 +73,8 @@ export interface MockComment {
   documentId: string;
   parentCommentId: string | null;
   createdById: string;
-  data: any;
+  /** The comment body as ProseMirror JSON. */
+  data: JSONObject;
   createdAt: string;
   updatedAt: string;
 }
@@ -483,8 +485,12 @@ export class MockDatabase {
   // --- Document Operations ---
   public getDocuments(collectionId?: string): MockDocument[] {
     return this.state.documents.filter((d) => {
-      if (d.deletedAt) return false;
-      if (collectionId && d.collectionId !== collectionId) return false;
+      if (d.deletedAt) {
+        return false;
+      }
+      if (collectionId && d.collectionId !== collectionId) {
+        return false;
+      }
       return true;
     });
   }
@@ -535,7 +541,9 @@ export class MockDatabase {
     updates: Partial<MockDocument>
   ): MockDocument | undefined {
     const doc = this.getDocument(id);
-    if (!doc) return undefined;
+    if (!doc) {
+      return undefined;
+    }
     Object.assign(doc, updates, { updatedAt: new Date().toISOString() });
     this.saveState();
     return doc;
@@ -543,7 +551,9 @@ export class MockDatabase {
 
   public deleteDocument(id: string): boolean {
     const doc = this.getDocument(id);
-    if (!doc) return false;
+    if (!doc) {
+      return false;
+    }
     doc.deletedAt = new Date().toISOString();
     this.saveState();
     return true;

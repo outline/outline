@@ -3,6 +3,26 @@ import { handleShopRequest, hasSession } from "./shop";
 import type { MockCollection, MockDocument } from "./db";
 
 /**
+ * The envelope every mock endpoint answers with.
+ *
+ * `policies` and `pagination` are filled in afterwards for any handler that
+ * did not set them, and `__status` lets a handler answer non-200.
+ */
+interface ApiResponse {
+  data?: unknown;
+  policies?: { id: string; abilities: Record<string, boolean> }[];
+  pagination?: {
+    total: number;
+    limit: number;
+    offset: number;
+    nextPath: string;
+  };
+  /** Stripped before the response is sent; sets the HTTP status. */
+  __status?: number;
+  [key: string]: unknown;
+}
+
+/**
  * Adds the editor payload the client expects alongside a document's markdown.
  *
  * @param document the stored document.
@@ -53,6 +73,10 @@ const GRANTED_ABILITIES = [
   "updateTemplate",
   "listShares",
   "listViews",
+  "createWebhookSubscription",
+  "listWebhookSubscriptions",
+  "createApiKey",
+  "listApiKeys",
 ];
 
 /**
@@ -94,7 +118,9 @@ function withDocumentStructure(collection: MockCollection) {
 }
 
 export function setupApiMock(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
 
   const originalFetch = window.fetch.bind(window);
 
@@ -112,7 +138,7 @@ export function setupApiMock(): void {
     // Only intercept /api/ requests
     if (urlString.includes("/api/")) {
       const action = urlString.split("/api/")[1]?.split("?")[0];
-      let body: Record<string, any> = {};
+      let body: Record<string, unknown> = {};
 
       if (init?.body && typeof init.body === "string") {
         try {
@@ -143,8 +169,8 @@ export function setupApiMock(): void {
 
         responsePayload.pagination = {
           total: count,
-          limit: body.limit || 25,
-          offset: body.offset || 0,
+          limit: Number(body.limit ?? 25),
+          offset: Number(body.offset ?? 0),
           nextPath: "",
         };
       }
@@ -212,7 +238,10 @@ function countRecords(data: unknown): number {
   return 0;
 }
 
-function handleApiRequest(action: string, body: Record<string, any>): any {
+function handleApiRequest(
+  action: string,
+  body: Record<string, unknown>
+): ApiResponse | undefined {
   const state = mockDb.getState();
 
   const shop = handleShopRequest(action, body);
@@ -300,7 +329,7 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
       };
 
     case "collections.info": {
-      const col = mockDb.getCollection(body.id);
+      const col = mockDb.getCollection(String(body.id));
       return {
         data: col ? withDocumentStructure(col) : null,
         policies: [],
@@ -328,7 +357,9 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
     }
 
     case "documents.list": {
-      const docs = mockDb.getDocuments(body.collectionId);
+      const docs = mockDb.getDocuments(
+        body.collectionId === undefined ? undefined : String(body.collectionId)
+      );
       return {
         data: docs.map(presentDocument),
         policies: [],
@@ -336,7 +367,7 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
     }
 
     case "documents.info": {
-      const doc = mockDb.getDocument(body.id);
+      const doc = mockDb.getDocument(String(body.id));
       // The client reads the document off a `document` key on the envelope.
       return {
         data: doc ? { document: presentDocument(doc) } : null,
@@ -353,7 +384,7 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
     }
 
     case "documents.update": {
-      const updated = mockDb.updateDocument(body.id, body);
+      const updated = mockDb.updateDocument(String(body.id), body);
       return {
         data: updated ? presentDocument(updated) : null,
         policies: [],
@@ -361,7 +392,7 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
     }
 
     case "documents.delete": {
-      mockDb.deleteDocument(body.id);
+      mockDb.deleteDocument(String(body.id));
       return {
         data: { success: true },
         policies: [],
@@ -370,7 +401,7 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
 
     case "documents.star":
     case "documents.unstar": {
-      const isStarred = mockDb.toggleStar(body.id);
+      const isStarred = mockDb.toggleStar(String(body.id));
       return {
         data: { starred: isStarred },
         policies: [],
@@ -378,7 +409,7 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
     }
 
     case "documents.search": {
-      const query = (body.query || "").toLowerCase();
+      const query = String(body.query ?? "").toLowerCase();
       const results = mockDb
         .getDocuments()
         .filter(
@@ -394,7 +425,7 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
 
     case "comments.list":
       return {
-        data: mockDb.getComments(body.documentId),
+        data: mockDb.getComments(String(body.documentId)),
         policies: [],
       };
 
@@ -475,8 +506,8 @@ function handleApiRequest(action: string, body: Record<string, any>): any {
     case "pins.create": {
       const newPin = {
         id: `pin-${Date.now()}`,
-        documentId: body.documentId,
-        collectionId: body.collectionId || null,
+        documentId: String(body.documentId),
+        collectionId: body.collectionId ? String(body.collectionId) : null,
         index: "a",
         createdById: state.user.id,
         createdAt: new Date().toISOString(),

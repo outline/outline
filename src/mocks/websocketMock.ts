@@ -1,5 +1,7 @@
 export function setupWebsocketMock(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
 
   class DummyWebSocket extends EventTarget {
     public url: string;
@@ -20,7 +22,9 @@ export function setupWebsocketMock(): void {
       setTimeout(() => {
         const openEvent = new Event("open");
         this.dispatchEvent(openEvent);
-        if (this.onopen) this.onopen(openEvent);
+        if (this.onopen) {
+          this.onopen(openEvent);
+        }
       }, 50);
     }
 
@@ -34,10 +38,14 @@ export function setupWebsocketMock(): void {
       this.readyState = 3; // CLOSED
       const closeEvent = new CloseEvent("close");
       this.dispatchEvent(closeEvent);
-      if (this.onclose) this.onclose(closeEvent);
+      if (this.onclose) {
+        this.onclose(closeEvent);
+      }
     }
   }
 
-  // Intercept WebSocket constructor
-  (window as any).WebSocket = DummyWebSocket;
+  // Intercept the WebSocket constructor. The dummy implements only the parts
+  // the client touches, so it is widened through `unknown` rather than
+  // pretending to satisfy the full DOM interface.
+  window.WebSocket = DummyWebSocket as unknown as typeof WebSocket;
 }
