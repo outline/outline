@@ -13,7 +13,7 @@ import type Revision from "~/models/Revision";
 import { ActionSeparator } from "~/actions";
 import {
   copyLinkToRevisionActionFactory,
-  downloadRevisionActionFactory,
+  exportRevisionActionFactory,
   restoreRevision,
 } from "~/actions/definitions/revisions";
 import { Avatar, AvatarSize } from "~/components/Avatar";
@@ -51,7 +51,7 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
       restoreRevision,
       ActionSeparator,
       copyLinkToRevisionActionFactory(item.id),
-      downloadRevisionActionFactory(item.id),
+      exportRevisionActionFactory(item.id),
     ],
     [item.id]
   );
