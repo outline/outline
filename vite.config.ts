@@ -33,7 +33,7 @@ export default () =>
       allowedHosts: host ? [host] : undefined,
       cors: true,
       fs:
-        environment.NODE_ENV === "development"
+        NODE_ENV === "development"
           ? {
               // Allow serving files from one level up to the project root
               allow: [".."],
