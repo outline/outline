@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useParams } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -31,7 +32,7 @@ function PurchaseOrderDetail() {
   const receivePurchaseOrder = useShop((state) => state.receivePurchaseOrder);
 
   const [quantities, setQuantities] = useState<Record<string, string>>({});
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
   const order = purchaseOrders.find((item) => item.id === purchaseOrderId);
 
@@ -64,32 +65,29 @@ function PurchaseOrderDetail() {
   );
   const isOpen = order.status !== "received" && order.status !== "cancelled";
 
-  const handleReceive = async () => {
-    setNotice(undefined);
-    const asked: Record<string, number> = {};
-    order.items.forEach((item) => {
-      const typed = quantities[item.productId];
-      if (typed !== undefined && typed !== "") {
-        asked[item.productId] = Number(typed);
+  const handleReceive = () =>
+    submission.run(async () => {
+      const asked: Record<string, number> = {};
+      order.items.forEach((item) => {
+        const typed = quantities[item.productId];
+        if (typed !== undefined && typed !== "") {
+          asked[item.productId] = Number(typed);
+        }
+      });
+
+      const result = await receivePurchaseOrder(
+        order.id,
+        Object.keys(asked).length > 0 ? asked : undefined
+      );
+
+      if (result?.received) {
+        setQuantities({});
+        return t("Booked in.");
       }
-    });
-
-    const result = await receivePurchaseOrder(
-      order.id,
-      Object.keys(asked).length > 0 ? asked : undefined
-    );
-
-    if (result?.received) {
-      setQuantities({});
-      setNotice(t("Booked in."));
-      return;
-    }
-    setNotice(
-      result?.reason === "nothing_to_receive"
+      return result?.reason === "nothing_to_receive"
         ? t("Nothing to book in.")
-        : t("That delivery could not be booked in.")
-    );
-  };
+        : t("That delivery could not be booked in.");
+    });
 
   return (
     <AppPage
@@ -99,9 +97,9 @@ function PurchaseOrderDetail() {
       )}`}
       actions={<StatusChip status={order.status} />}
     >
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="po-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 

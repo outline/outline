@@ -8,6 +8,7 @@ import Input from "~/components/Input";
 import { InputSelect } from "~/components/InputSelect";
 import Text from "~/components/Text";
 import { Card, CardGrid, PlainList } from "~/components/Surface";
+import { useSubmit } from "~/hooks/useSubmit";
 import { CoverScreenDialog } from "~/components/CoverScreenDialog";
 import useStores from "~/hooks/useStores";
 import { isCovered, ScreenCover } from "~/components/ScreenCover";
@@ -93,7 +94,7 @@ function Pos() {
   const [covered, setCovered] = useState(isCovered);
   const [customerName, setCustomerName] = useState("Walk-in");
   const [receipt, setReceipt] = useState<string | undefined>();
-  const [isSaving, setIsSaving] = useState(false);
+  const submission = useSubmit();
 
   const categories = useMemo(
     () => ["All", ...new Set(products.map((product) => product.category))],
@@ -174,19 +175,16 @@ function Pos() {
     );
   };
 
-  const handleCheckout = async () => {
-    if (!cart.length) {
-      return;
-    }
-    setIsSaving(true);
-    try {
+  const handleCheckout = () =>
+    submission.run(async () => {
+      if (!cart.length) {
+        return undefined;
+      }
       const order = await createOrder(cart, customerName);
       setCart([]);
       setReceipt(order.number);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+      return undefined;
+    });
 
   if (covered) {
     return <ScreenCover onLifted={() => setCovered(false)} />;
@@ -363,10 +361,10 @@ function Pos() {
 
             <Button
               onClick={() => void handleCheckout()}
-              disabled={cart.length === 0 || isSaving}
+              disabled={cart.length === 0 || submission.isBusy}
               style={{ marginTop: 16, width: "100%" }}
             >
-              {isSaving ? t("Taking payment…") : t("Charge")}
+              {submission.isBusy ? t("Taking payment…") : t("Charge")}
             </Button>
 
             {cart.length > 0 ? (
