@@ -8,12 +8,13 @@ import Input from "~/components/Input";
 import { InputSelect } from "~/components/InputSelect";
 import Text from "~/components/Text";
 import { Card, CardGrid, PlainList } from "~/components/Surface";
+import { useMachine } from "@xstate/react";
+import { ticketMachine } from "~/machines/ticket";
 import { useFields } from "~/hooks/useFields";
 import { useSubmit } from "~/hooks/useSubmit";
 import { CoverScreenDialog } from "~/components/CoverScreenDialog";
 import useStores from "~/hooks/useStores";
 import { isCovered, ScreenCover } from "~/components/ScreenCover";
-import type { CartLine } from "~/stores/shop";
 import { useShop } from "~/stores/shop";
 import { AppPage } from "~/components/AppPage";
 import { formatCurrency } from "~/utils/format";
@@ -97,7 +98,8 @@ function Pos() {
   const query = fields.get("query");
   const category = fields.get("category");
   const customerName = fields.get("customerName");
-  const [cart, setCart] = useState<CartLine[]>([]);
+  const [ticket, sendTicket] = useMachine(ticketMachine);
+  const cart = ticket.context.lines;
   const [covered, setCovered] = useState(isCovered);
   const [receipt, setReceipt] = useState<string | undefined>();
   const submission = useSubmit();
@@ -139,47 +141,24 @@ function Pos() {
       return;
     }
 
-    const key = variantId ?? productId;
     setReceipt(undefined);
-    setCart((lines) => {
-      const existing = lines.find(
-        (line) => (line.variantId ?? line.productId) === key
-      );
-      if (existing) {
-        // Never sell more than is on the shelf.
-        if (existing.quantity >= available) {
-          return lines;
-        }
-        return lines.map((line) =>
-          (line.variantId ?? line.productId) === key
-            ? { ...line, quantity: line.quantity + 1 }
-            : line
-        );
-      }
-      return [
-        ...lines,
-        {
-          productId,
-          variantId,
-          name: variant ? `${product.name} ${variant.name}` : product.name,
-          price: variant ? variant.price : product.price,
-          quantity: 1,
-        },
-      ];
+    // The machine holds the rule about the shelf; the scene only says what
+    // is being added and how many there are.
+    sendTicket({
+      type: "ADD",
+      available,
+      line: {
+        productId,
+        variantId,
+        name: variant ? `${product.name} ${variant.name}` : product.name,
+        price: variant ? variant.price : product.price,
+        quantity: 1,
+      },
     });
   };
 
-  const setQuantity = (key: string, quantity: number) => {
-    setCart((lines) =>
-      quantity <= 0
-        ? lines.filter((line) => (line.variantId ?? line.productId) !== key)
-        : lines.map((line) =>
-            (line.variantId ?? line.productId) === key
-              ? { ...line, quantity }
-              : line
-          )
-    );
-  };
+  const setQuantity = (key: string, quantity: number) =>
+    sendTicket({ type: "SET_QUANTITY", key, quantity });
 
   const handleCheckout = () =>
     submission.run(async () => {
@@ -187,7 +166,7 @@ function Pos() {
         return undefined;
       }
       const order = await createOrder(cart, customerName);
-      setCart([]);
+      sendTicket({ type: "CLEAR" });
       setReceipt(order.number);
       return undefined;
     });
@@ -376,7 +355,7 @@ function Pos() {
             {cart.length > 0 ? (
               <Button
                 neutral
-                onClick={() => setCart([])}
+                onClick={() => sendTicket({ type: "CLEAR" })}
                 style={{ marginTop: 8, width: "100%" }}
               >
                 Clear ticket
