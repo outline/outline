@@ -112,7 +112,7 @@ function Branches() {
           <Subheading>{t("New branch")}</Subheading>
           <SchemaForm
             doctype={BranchDocType}
-            submitLabel="Add branch"
+            submitLabel={t("Add branch")}
             onSubmit={(values) => {
               void saveBranch({
                 name: values.name ?? "",
@@ -224,7 +224,7 @@ function Branches() {
                         },
                       ],
                     }}
-                    submitLabel="Close that day"
+                    submitLabel={t("Close that day")}
                     onSubmit={(values) => {
                       setNotice(undefined);
                       void addHoliday({

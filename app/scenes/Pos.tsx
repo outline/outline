@@ -194,8 +194,8 @@ function Pos() {
 
   return (
     <AppPage
-      title="Point of sale"
-      description="Ring up a sale; stock and takings update as you go."
+      title={t("Point of sale")}
+      description={t("Ring up a sale; stock and takings update as you go.")}
       actions={
         <Button
           neutral
@@ -217,15 +217,15 @@ function Pos() {
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search name or SKU"
-              label="Search products"
+              placeholder={t("Search name or SKU")}
+              label={t("Search products")}
               labelHidden
               margin={0}
             />
             <InputSelect
               value={category}
               onChange={setCategory}
-              label="Category"
+              label={t("Category")}
               labelHidden
               options={categories.map((option) => ({
                 type: "item" as const,
@@ -264,7 +264,7 @@ function Pos() {
                       }
                     >
                       {(variant ? variant.stock : product.stock) === 0
-                        ? "Out of stock"
+                        ? t("Out of stock")
                         : `${variant ? variant.stock : product.stock} in stock`}
                     </Text>
                   </Tile>
@@ -289,7 +289,7 @@ function Pos() {
             <InputSelect
               value={customerName}
               onChange={setCustomerName}
-              label="Customer"
+              label={t("Customer")}
               options={[
                 { type: "item" as const, label: "Walk-in", value: "Walk-in" },
                 ...customers.map((customer) => ({
@@ -366,7 +366,7 @@ function Pos() {
               disabled={cart.length === 0 || isSaving}
               style={{ marginTop: 16, width: "100%" }}
             >
-              {isSaving ? "Taking payment…" : "Charge"}
+              {isSaving ? t("Taking payment…") : t("Charge")}
             </Button>
 
             {cart.length > 0 ? (

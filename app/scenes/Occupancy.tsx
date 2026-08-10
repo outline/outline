@@ -61,17 +61,17 @@ function Occupancy() {
 
   const summary = [
     {
-      name: "Occupancy",
+      name: t("Occupancy"),
       value: `${rate}%`,
       hint: `${occupied} of ${capacity} spaces`,
     },
     {
-      name: "Rooms in use",
+      name: t("Rooms in use"),
       value: `${roomsInUse}`,
       hint: `of ${rooms.length} rooms`,
     },
     {
-      name: "Free spaces",
+      name: t("Free spaces"),
       value: `${Math.max(0, capacity - occupied)}`,
       hint: "available today",
     },
@@ -79,8 +79,8 @@ function Occupancy() {
 
   return (
     <AppPage
-      title="Occupancy"
-      description="Which rooms are in use today, and who is in them."
+      title={t("Occupancy")}
+      description={t("Which rooms are in use today, and who is in them.")}
     >
       <Subheading>{t("The fortnight ahead")}</Subheading>
       <CalendarsMonthView
@@ -176,7 +176,7 @@ function Occupancy() {
         </BranchSection>
       ))}
 
-      {rooms.length === 0 ? <Empty>No rooms configured.</Empty> : null}
+      {rooms.length === 0 ? <Empty>{t("No rooms configured.")}</Empty> : null}
     </AppPage>
   );
 }

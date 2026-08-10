@@ -88,8 +88,8 @@ function Customers() {
 
   return (
     <AppPage
-      title="Customers"
-      description="Owners, their pets and loyalty standing."
+      title={t("Customers")}
+      description={t("Owners, their pets and loyalty standing.")}
       actions={
         <Button onClick={() => setIsAdding(true)}>{t("New customer")}</Button>
       }
@@ -105,7 +105,7 @@ function Customers() {
           <Subheading>{t("New customer")}</Subheading>
           <SchemaForm
             doctype={CustomerDocType}
-            submitLabel="Add customer"
+            submitLabel={t("Add customer")}
             onSubmit={(values) => void handleSave(values)}
             onCancel={() => setIsAdding(false)}
           />
@@ -131,7 +131,7 @@ function Customers() {
             </Head>
             <Body>
               <Text type="secondary" size="xsmall" weight="bold">
-                Pets
+                {t("Pets")}
               </Text>
               <PlainList>
                 {customer.pets.map((pet) => (
@@ -165,7 +165,7 @@ function Customers() {
           </Card>
         ))}
       </CardGrid>
-      {customers.length === 0 ? <Empty>No customers yet.</Empty> : null}
+      {customers.length === 0 ? <Empty>{t("No customers yet.")}</Empty> : null}
     </AppPage>
   );
 }

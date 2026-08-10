@@ -36,24 +36,24 @@ function Dashboard() {
 
   const stats = [
     {
-      name: "Revenue today",
+      name: t("Revenue today"),
       value: dashboard ? formatCurrency(dashboard.revenueToday) : "—",
       hint: dashboard ? `${dashboard.ordersToday} orders` : undefined,
     },
     {
-      name: "Occupancy",
+      name: t("Occupancy"),
       value: dashboard ? `${dashboard.occupancyRate}%` : "—",
       hint: dashboard
         ? `${dashboard.occupied} of ${dashboard.capacity} spaces`
         : undefined,
     },
     {
-      name: "Guests boarding",
+      name: t("Guests boarding"),
       value: dashboard ? String(dashboard.activeBoardings) : "—",
       hint: dashboard ? `${dashboard.arrivalsToday} arriving today` : undefined,
     },
     {
-      name: "Needs attention",
+      name: t("Needs attention"),
       value: dashboard
         ? String(dashboard.lowStock + dashboard.unpaidOrders)
         : "—",
@@ -69,8 +69,8 @@ function Dashboard() {
 
   return (
     <AppPage
-      title="Dashboard"
-      description="Today across the store, boarding and point of sale."
+      title={t("Dashboard")}
+      description={t("Today across the store, boarding and point of sale.")}
     >
       <StatsSimpleInCards
         title=""

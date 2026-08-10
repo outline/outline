@@ -325,7 +325,7 @@ function Inventory() {
           <Subheading>{t("Add a supplier")}</Subheading>
           <SchemaForm
             doctype={SupplierDocType}
-            submitLabel="Add supplier"
+            submitLabel={t("Add supplier")}
             onSubmit={(values) => {
               setNotice(undefined);
               void saveSupplier({
@@ -392,7 +392,7 @@ function Inventory() {
           <Subheading>{t("Add a warehouse")}</Subheading>
           <SchemaForm
             doctype={warehouseDocType(branches.map((branch) => branch.name))}
-            submitLabel="Add warehouse"
+            submitLabel={t("Add warehouse")}
             onSubmit={(values) => {
               setNotice(undefined);
               void saveWarehouse({

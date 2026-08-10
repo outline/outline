@@ -178,7 +178,7 @@ function Staff() {
                 },
               ],
             }}
-            submitLabel="Send invitation"
+            submitLabel={t("Send invitation")}
             onSubmit={(values) => {
               setNotice(undefined);
               void inviteStaff({
@@ -210,7 +210,7 @@ function Staff() {
           <Subheading>{t("New staff")}</Subheading>
           <SchemaForm
             doctype={staffDocType(branchRecords.map((branch) => branch.name))}
-            submitLabel="Add staff"
+            submitLabel={t("Add staff")}
             onSubmit={(values) => void handleSave(values)}
             onCancel={() => setIsAdding(false)}
           />

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useShop } from "~/stores/shop";
 import { AppPage } from "~/components/AppPage";
@@ -28,6 +29,7 @@ const FILTERS = ["All", "Paid", "Unpaid"] as const;
  * @returns the rendered orders list.
  */
 function Orders() {
+  const { t } = useTranslation();
   const orders = useShop((state) => state.orders);
   const markOrderPaid = useShop((state) => state.markOrderPaid);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
@@ -48,11 +50,11 @@ function Orders() {
 
   return (
     <AppPage
-      title="Orders"
-      description="Every sale, from the till and online."
+      title={t("Orders")}
+      description={t("Every sale, from the till and online.")}
       actions={
         <Text type="secondary" size="small">
-          Outstanding {formatCurrency(outstanding)}
+          {t("Outstanding")} {formatCurrency(outstanding)}
         </Text>
       }
     >
@@ -116,7 +118,7 @@ function Orders() {
           </TBody>
         </Table>
         {visible.length === 0 ? (
-          <Empty style={{ padding: "24px 16px" }}>No orders here.</Empty>
+          <Empty style={{ padding: "24px 16px" }}>{t("No orders here.")}</Empty>
         ) : null}
       </Card>
     </AppPage>

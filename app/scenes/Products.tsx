@@ -75,8 +75,8 @@ function Products() {
 
   return (
     <AppPage
-      title="Products"
-      description="Catalogue, pricing and stock on hand."
+      title={t("Products")}
+      description={t("Catalogue, pricing and stock on hand.")}
       actions={
         <Button onClick={() => setIsAdding(true)}>{t("New product")}</Button>
       }
@@ -92,7 +92,7 @@ function Products() {
           <Subheading>{t("New product")}</Subheading>
           <SchemaForm
             doctype={ProductDocType}
-            submitLabel="Add product"
+            submitLabel={t("Add product")}
             onSubmit={(values) => void handleSave(values)}
             onCancel={() => setIsAdding(false)}
           />
@@ -114,7 +114,7 @@ function Products() {
                 reorderLevel: String(product?.reorderLevel ?? ""),
               };
             })()}
-            submitLabel="Save product"
+            submitLabel={t("Save product")}
             onSubmit={(values) => void handleSave(values, editing)}
             onCancel={() => setEditing(undefined)}
           />
