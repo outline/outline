@@ -1,5 +1,5 @@
 import { useMatches, useKBar, KBarResults, VisualState } from "kbar";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import styled from "styled-components";
 import Text from "~/components/Text";
 import CommandBarItem from "./CommandBarItem";
@@ -48,13 +48,17 @@ function useFrozenMatches() {
     isClosing: state.visualState === VisualState.animatingOut,
   }));
 
-  const frozen = useRef(matches);
+  // Only what was committed is worth freezing, so the last matches are recorded
+  // after render rather than during it.
+  const lastCommitted = useRef(matches);
 
-  if (!isClosing) {
-    frozen.current = matches;
-  }
+  useEffect(() => {
+    if (!isClosing) {
+      lastCommitted.current = matches;
+    }
+  }, [isClosing, matches]);
 
-  return frozen.current;
+  return isClosing ? lastCommitted.current : matches;
 }
 
 // Cannot style KBarResults unfortunately, so we must wrap and target the inner
