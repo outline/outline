@@ -542,19 +542,6 @@ export default class ToggleBlock extends Node {
             { nodeId: id, target: "container_toggle>:firstChild" }
           )
         );
-
-        // If doc is read-only, add a decoration to show pointer cursor on the head
-        // to indicate it's clickable for toggling
-        if (this.editor.props.readOnly) {
-          decorations.push(
-            Decoration.inline(
-              block.pos + 1,
-              block.pos + 1 + block.node.firstChild!.nodeSize,
-              { style: "cursor: pointer" },
-              { nodeId: id, target: "container_toggle>:firstChild" }
-            )
-          );
-        }
       });
 
     return DecorationSet.create(doc, decorations);
