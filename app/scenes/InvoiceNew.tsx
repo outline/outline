@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { useMachine } from "@xstate/react";
+import { linesMachine } from "~/machines/lines";
 import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -38,7 +40,8 @@ function InvoiceNew() {
     asDateValue(new Date(Date.now() + 14 * 86400000))
   );
   const [notes, setNotes] = useState("");
-  const [lines, setLines] = useState<InvoiceLine[]>([]);
+  const [document, sendLine] = useMachine(linesMachine);
+  const lines = document.context.lines as InvoiceLine[];
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [unitPrice, setUnitPrice] = useState("");
@@ -60,15 +63,15 @@ function InvoiceNew() {
       return;
     }
     setLineNotice(undefined);
-    setLines([
-      ...lines,
-      {
+    sendLine({
+      type: "ADD",
+      line: {
         name: name.trim(),
         quantity: Math.max(1, Number(quantity) || 1),
         unitPrice: Number(unitPrice),
         discount: Math.max(0, Number(discount) || 0),
       },
-    ]);
+    });
     setName("");
     setQuantity("1");
     setUnitPrice("");
@@ -146,9 +149,7 @@ function InvoiceNew() {
               <Button
                 neutral
                 borderOnHover
-                onClick={() =>
-                  setLines(lines.filter((_, position) => position !== index))
-                }
+                onClick={() => sendLine({ type: "REMOVE", at: index })}
               >
                 {t("Remove")}
               </Button>
