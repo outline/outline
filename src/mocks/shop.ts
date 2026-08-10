@@ -1,4 +1,5 @@
 import { canAccessRoute } from "./access";
+import { nextBoardingState } from "./machines/boarding";
 import { nextInvoiceState } from "./machines/invoice";
 import { nextOrderState } from "./machines/order";
 import { mockDb } from "./db";
@@ -4654,15 +4655,28 @@ function dispatch(
 
     case "boardings.updateStatus": {
       const id = String(body.id ?? "");
-      const status = String(body.status ?? "") as Boarding["status"];
+      const boarding = state.boardings.find((item) => item.id === id);
+
+      if (!boarding) {
+        return { data: { moved: false, reason: "not_found" } };
+      }
+
+      const next = nextBoardingState(
+        boarding.status,
+        String(body.status ?? "")
+      );
+      if (!next) {
+        return { data: { moved: false, reason: "not_allowed" } };
+      }
+
       state = {
         ...state,
-        boardings: state.boardings.map((boarding) =>
-          boarding.id === id ? { ...boarding, status } : boarding
+        boardings: state.boardings.map((item) =>
+          item.id === id ? { ...item, status: next } : item
         ),
       };
       persist();
-      return { data: state.boardings.find((boarding) => boarding.id === id) };
+      return { data: state.boardings.find((item) => item.id === id) };
     }
 
     case "invoices.list":
