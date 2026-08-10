@@ -9,7 +9,6 @@ import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
-import { errToString } from "@shared/utils/error";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
@@ -41,7 +40,6 @@ import {
   IncorrectEditionError,
   NotFoundError,
 } from "@server/errors";
-import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -929,17 +927,7 @@ router.post(
     const externalAttachments: { attachment: Attachment; buffer: Buffer }[] =
       [];
     for (const attachment of attachments) {
-      let buffer: Buffer;
-      try {
-        buffer = await attachment.buffer;
-      } catch (err) {
-        Logger.warn(`Failed to read attachment from storage`, {
-          attachmentId: attachment.id,
-          teamId: attachment.teamId,
-          error: errToString(err),
-        });
-        buffer = Buffer.from("");
-      }
+      const buffer = await AttachmentHelper.readBuffer(attachment);
 
       if (contentType === "text/html") {
         const inlined = HTMLHelper.inlineImage(

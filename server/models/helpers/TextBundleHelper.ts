@@ -32,9 +32,13 @@ export default class TextBundleHelper {
    * Builds the metadata entry that identifies a directory as a TextBundle.
    *
    * @param document The document the bundle was built from.
+   * @param revisionId The revision the bundle was built from, if not the
+   * current version of the document.
    * @returns The contents of the bundle's info.json.
    */
-  public static info(document: Document): string {
+  public static info(document: Document, revisionId?: string): string {
+    const documentURL = `${env.URL}${document.url}`;
+
     return JSON.stringify(
       {
         version: 2,
@@ -42,7 +46,9 @@ export default class TextBundleHelper {
         transient: false,
         creatorIdentifier: "com.getoutline.outline",
         creatorURL: env.URL,
-        sourceURL: `${env.URL}${document.url}`,
+        sourceURL: revisionId
+          ? `${documentURL}/history/${revisionId}`
+          : documentURL,
       },
       null,
       2
