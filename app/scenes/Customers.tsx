@@ -12,6 +12,7 @@ import { SchemaForm } from "~/components/SchemaForm";
 import { CustomerDocType } from "~/utils/doctypes";
 import { useShop } from "~/stores/shop";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import { Card, CardGrid, PlainList } from "~/components/Surface";
 
 const Head = styled.div`
@@ -47,44 +48,44 @@ function Customers() {
   const deleteCustomer = useShop((state) => state.deleteCustomer);
 
   const [isAdding, setIsAdding] = useState(false);
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
-  const handleSave = async (values: Record<string, string>) => {
-    setNotice(undefined);
-    const pets = values.petName?.trim()
-      ? [
-          {
-            id: "",
-            name: values.petName.trim(),
-            species: values.petSpecies?.trim() || "Dog",
-            breed: values.petBreed?.trim() || "Mixed",
-          },
-        ]
-      : [];
+  const handleSave = (values: Record<string, string>) =>
+    submission.run(async () => {
+      const pets = values.petName?.trim()
+        ? [
+            {
+              id: "",
+              name: values.petName.trim(),
+              species: values.petSpecies?.trim() || "Dog",
+              breed: values.petBreed?.trim() || "Mixed",
+            },
+          ]
+        : [];
 
-    const result = await saveCustomer({
-      name: values.name ?? "",
-      email: values.email ?? "",
-      phone: values.phone ?? "",
-      pets,
+      const result = await saveCustomer({
+        name: values.name ?? "",
+        email: values.email ?? "",
+        phone: values.phone ?? "",
+        pets,
+      });
+
+      if (result?.saved) {
+        setIsAdding(false);
+        return;
+      }
+      return t("A customer needs a name.");
     });
 
-    if (result?.saved) {
-      setIsAdding(false);
-      return;
-    }
-    setNotice(t("A customer needs a name."));
-  };
-
-  const handleDelete = async (id: string, name: string) => {
-    setNotice(undefined);
-    const result = await deleteCustomer(id);
-    if (!result?.removed) {
-      setNotice(
-        t("{{name}} has history with us, so their record was kept.", { name })
-      );
-    }
-  };
+  const handleDelete = (id: string, name: string) =>
+    submission.run(async () => {
+      const result = await deleteCustomer(id);
+      return result?.removed
+        ? undefined
+        : t("{{name}} has history with us, so their record was kept.", {
+            name,
+          });
+    });
 
   return (
     <AppPage
@@ -94,9 +95,9 @@ function Customers() {
         <Button onClick={() => setIsAdding(true)}>{t("New customer")}</Button>
       }
     >
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="customers-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 

@@ -9,6 +9,7 @@ import { SchemaForm } from "~/components/SchemaForm";
 import { ProductDocType } from "~/utils/doctypes";
 import { useShop } from "~/stores/shop";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import { StatusChip } from "~/components/StatusChip";
 import {
   Card,
@@ -36,42 +37,38 @@ function Products() {
 
   const [editing, setEditing] = useState<string | undefined>();
   const [isAdding, setIsAdding] = useState(false);
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
-  const handleSave = async (values: Record<string, string>, id?: string) => {
-    setNotice(undefined);
-    const result = await saveProduct({
-      id,
-      name: values.name ?? "",
-      sku: values.sku ?? "",
-      category: values.category ?? "Food",
-      price: Number(values.price) || 0,
-      reorderLevel: Number(values.reorderLevel) || 0,
+  const handleSave = (values: Record<string, string>, id?: string) =>
+    submission.run(async () => {
+      const result = await saveProduct({
+        id,
+        name: values.name ?? "",
+        sku: values.sku ?? "",
+        category: values.category ?? "Food",
+        price: Number(values.price) || 0,
+        reorderLevel: Number(values.reorderLevel) || 0,
+      });
+
+      if (result?.saved) {
+        setEditing(undefined);
+        setIsAdding(false);
+        return undefined;
+      }
+      return result?.reason === "duplicate_sku"
+        ? t("Another product already uses that code.")
+        : t("A product needs a name and a code.");
     });
 
-    if (result?.saved) {
-      setEditing(undefined);
-      setIsAdding(false);
-      return;
-    }
-    setNotice(
-      result?.reason === "duplicate_sku"
-        ? t("Another product already uses that code.")
-        : t("A product needs a name and a code.")
-    );
-  };
-
-  const handleDelete = async (id: string, name: string) => {
-    setNotice(undefined);
-    const result = await deleteProduct(id);
-    if (!result?.removed) {
-      setNotice(
-        t("{{name}} has been sold or ordered, so it was archived instead.", {
-          name,
-        })
-      );
-    }
-  };
+  const handleDelete = (id: string, name: string) =>
+    submission.run(async () => {
+      const result = await deleteProduct(id);
+      return result?.removed
+        ? undefined
+        : t("{{name}} has been sold or ordered, so it was archived instead.", {
+            name,
+          });
+    });
 
   return (
     <AppPage
@@ -81,9 +78,9 @@ function Products() {
         <Button onClick={() => setIsAdding(true)}>{t("New product")}</Button>
       }
     >
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="products-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 

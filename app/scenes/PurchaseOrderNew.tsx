@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -46,8 +47,10 @@ function PurchaseOrderNew() {
   const [productId, setProductId] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [cost, setCost] = useState("");
-  const [notice, setNotice] = useState<string | undefined>();
-  const [isSaving, setIsSaving] = useState(false);
+  // Adding a line is checked here and now, so it keeps its own message.
+  // Raising the order is a save, and that one belongs to the machine.
+  const [lineNotice, setLineNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
   const value = lines.reduce((sum, line) => sum + line.cost * line.quantity, 0);
 
@@ -60,10 +63,10 @@ function PurchaseOrderNew() {
       (item) => item.id === chosenVariantId
     );
     if (!product || Number(cost) <= 0) {
-      setNotice(t("A line needs a product and a unit cost."));
+      setLineNotice(t("A line needs a product and a unit cost."));
       return;
     }
-    setNotice(undefined);
+    setLineNotice(undefined);
     setLines([
       ...lines,
       {
@@ -79,10 +82,9 @@ function PurchaseOrderNew() {
     setCost("");
   };
 
-  const handleRaise = async () => {
-    setNotice(undefined);
-    setIsSaving(true);
-    try {
+  const handleRaise = () =>
+    void submission.run(async () => {
+      setLineNotice(undefined);
       const result = await createPurchaseOrder({
         supplierId,
         expectedAt,
@@ -93,20 +95,17 @@ function PurchaseOrderNew() {
         history.push(`/purchase-orders/${result.order.id}`);
         return;
       }
-      setNotice(t("Choose a supplier and add at least one line."));
-    } finally {
-      setIsSaving(false);
-    }
-  };
+      return t("Choose a supplier and add at least one line.");
+    });
 
   return (
     <AppPage
       title={t("New purchase order")}
       description={t("Order stock from a supplier.")}
     >
-      {notice ? (
+      {(submission.notice ?? lineNotice) ? (
         <Text as="p" type="secondary" data-testid="po-new-notice">
-          {notice}
+          {submission.notice ?? lineNotice}
         </Text>
       ) : null}
 
@@ -200,8 +199,8 @@ function PurchaseOrderNew() {
       ) : null}
 
       <Flex gap={8} style={{ paddingTop: 16 }}>
-        <Button onClick={handleRaise} disabled={isSaving}>
-          {isSaving ? t("Raising…") : t("Raise order")}
+        <Button onClick={handleRaise} disabled={submission.isBusy}>
+          {submission.isBusy ? t("Raising…") : t("Raise order")}
         </Button>
         <Button
           neutral
