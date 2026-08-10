@@ -13,6 +13,7 @@ import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
 import { currentBranch } from "../../src/mocks/shop";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import { Capitalize } from "~/components/Surface";
 import { StatusChip } from "~/components/StatusChip";
 
@@ -44,39 +45,55 @@ function Staff() {
 
   const [isAdding, setIsAdding] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
-  const handleSave = async (values: Record<string, string>) => {
-    setNotice(undefined);
-    const result = await saveStaff({
-      name: values.name ?? "",
-      email: values.email ?? "",
-      role: values.role ?? "caretaker",
-      branch: values.branch ?? branchRecords[0]?.name ?? "",
-      phone: values.phone ?? "",
-      commissionRate: Number(values.commissionRate) || 0,
+  const handleSave = (values: Record<string, string>) =>
+    submission.run(async () => {
+      const result = await saveStaff({
+        name: values.name ?? "",
+        email: values.email ?? "",
+        role: values.role ?? "caretaker",
+        branch: values.branch ?? branchRecords[0]?.name ?? "",
+        phone: values.phone ?? "",
+        commissionRate: Number(values.commissionRate) || 0,
+      });
+
+      if (result?.saved) {
+        setIsAdding(false);
+        return undefined;
+      }
+      return result?.reason === "duplicate_email"
+        ? t("Someone already signs in with that address.")
+        : t("A staff member needs a name and an address to sign in with.");
     });
 
-    if (result?.saved) {
-      setIsAdding(false);
-      return;
-    }
-    setNotice(
-      result?.reason === "duplicate_email"
-        ? t("Someone already signs in with that address.")
-        : t("A staff member needs a name and an address to sign in with.")
-    );
-  };
+  const handleDelete = (id: string, name: string) =>
+    submission.run(async () => {
+      const result = await deleteStaff(id);
+      return result?.removed
+        ? undefined
+        : t("{{name}} still owes an advance, so they were kept.", { name });
+    });
 
-  const handleDelete = async (id: string, name: string) => {
-    setNotice(undefined);
-    const result = await deleteStaff(id);
-    if (!result?.removed) {
-      setNotice(
-        t("{{name}} still owes an advance, so they were kept.", { name })
-      );
-    }
-  };
+  const handleInvite = (values: Record<string, string>) =>
+    submission.run(async () => {
+      const result = await inviteStaff({
+        email: values.email ?? "",
+        name: values.name ?? "",
+        role: values.role ?? "caretaker",
+        branch: values.branch ?? branchRecords[0]?.name ?? "",
+      });
+
+      if (result?.sent) {
+        setIsInviting(false);
+        return undefined;
+      }
+      return result?.reason === "already_staff"
+        ? t("They already work here.")
+        : result?.reason === "already_invited"
+          ? t("They have already been invited.")
+          : t("An invitation needs an address and a branch.");
+    });
 
   const branches = [...new Set(staff.map((member) => member.branch))];
   const active = staff.filter((member) => member.status === "active").length;
@@ -97,9 +114,9 @@ function Staff() {
         </Flex>
       }
     >
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="staff-list-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 
@@ -179,27 +196,7 @@ function Staff() {
               ],
             }}
             submitLabel={t("Send invitation")}
-            onSubmit={(values) => {
-              setNotice(undefined);
-              void inviteStaff({
-                email: values.email ?? "",
-                name: values.name ?? "",
-                role: values.role ?? "caretaker",
-                branch: values.branch ?? branchRecords[0]?.name ?? "",
-              }).then((result) => {
-                if (result?.sent) {
-                  setIsInviting(false);
-                } else {
-                  setNotice(
-                    result?.reason === "already_staff"
-                      ? t("They already work here.")
-                      : result?.reason === "already_invited"
-                        ? t("They have already been invited.")
-                        : t("An invitation needs an address and a branch.")
-                  );
-                }
-              });
-            }}
+            onSubmit={(values) => void handleInvite(values)}
             onCancel={() => setIsInviting(false)}
           />
         </>

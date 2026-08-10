@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useParams } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -39,7 +40,7 @@ function InvoiceDetail() {
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("cash");
   const [reference, setReference] = useState("");
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
   const invoice = invoices.find((item) => item.id === invoiceId);
 
@@ -62,44 +63,37 @@ function InvoiceDetail() {
     );
   }
 
-  const handlePay = async () => {
-    setNotice(undefined);
-    const value = Number(amount);
-    const result = await recordInvoicePayment(
-      invoice.id,
-      value,
-      method === "bank" ? "bank" : "cash",
-      reference.trim()
-    );
+  const handlePay = () =>
+    submission.run(async () => {
+      const result = await recordInvoicePayment(
+        invoice.id,
+        Number(amount),
+        method === "bank" ? "bank" : "cash",
+        reference.trim()
+      );
 
-    if (result?.recorded) {
-      setAmount("");
-      setReference("");
-      setNotice(t("Payment recorded."));
-      return;
-    }
-    if (result?.reason === "overpay") {
-      setNotice(
-        t("That is more than the {{due}} still owed.", {
+      if (result?.recorded) {
+        setAmount("");
+        setReference("");
+        return t("Payment recorded.");
+      }
+      if (result?.reason === "overpay") {
+        return t("That is more than the {{due}} still owed.", {
           due: formatCurrency(result.due ?? 0),
-        })
-      );
-      return;
-    }
-    setNotice(t("Enter an amount to record."));
-  };
+        });
+      }
+      return t("Enter an amount to record.");
+    });
 
-  const handleVoid = async () => {
-    setNotice(undefined);
-    const result = await voidInvoice(invoice.id);
-    if (!result?.voided) {
-      setNotice(
-        result?.reason === "has_payments"
+  const handleVoid = () =>
+    submission.run(async () => {
+      const result = await voidInvoice(invoice.id);
+      return result?.voided
+        ? undefined
+        : result?.reason === "has_payments"
           ? t("It has been paid against, so it cannot be voided.")
-          : t("That invoice could not be voided.")
-      );
-    }
-  };
+          : t("That invoice could not be voided.");
+    });
 
   return (
     <AppPage
@@ -118,9 +112,9 @@ function InvoiceDetail() {
         </Flex>
       }
     >
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="invoice-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 
