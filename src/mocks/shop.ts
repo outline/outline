@@ -3,6 +3,7 @@ import { nextBoardingState } from "./machines/boarding";
 import { nextGroomingState } from "./machines/grooming";
 import { nextInvoiceState } from "./machines/invoice";
 import { nextOrderState } from "./machines/order";
+import { nextStaffState } from "./machines/staff";
 import { mockDb } from "./db";
 
 /**
@@ -3079,15 +3080,25 @@ function dispatch(
 
     case "staff.setStatus": {
       const id = String(body.id ?? "");
-      const status = String(body.status ?? "") as Staff["status"];
+      const member = state.staff.find((item) => item.id === id);
+
+      if (!member) {
+        return { data: { moved: false, reason: "not_found" } };
+      }
+
+      const status = nextStaffState(member.status, String(body.status ?? ""));
+      if (!status) {
+        return { data: { moved: false, reason: "not_allowed" } };
+      }
+
       state = {
         ...state,
-        staff: state.staff.map((member) =>
-          member.id === id ? { ...member, status } : member
+        staff: state.staff.map((item) =>
+          item.id === id ? { ...item, status } : item
         ),
       };
       persist();
-      return { data: state.staff.find((member) => member.id === id) };
+      return { data: state.staff.find((item) => item.id === id) };
     }
 
     case "rooms.create": {
