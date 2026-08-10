@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useParams } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import { Capitalize } from "~/components/Surface";
 import { Tab, Tabs } from "~/components/Tabs";
@@ -81,7 +82,7 @@ function StaffDetail() {
   const repayAdvance = useShop((state) => state.repayAdvance);
 
   const [tab, setTab] = useState<(typeof TABS)[number]>("Profile");
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
   const [amount, setAmount] = useState("");
   const [installment, setInstallment] = useState("");
   const [notes, setNotes] = useState("");
@@ -110,66 +111,58 @@ function StaffDetail() {
   const theirShifts = shifts.filter((row) => row.staffId === member.id);
   const owed = theirAdvances.reduce((sum, row) => sum + row.remaining, 0);
 
-  const handleLend = async () => {
-    setNotice(undefined);
-    if (Number(amount) <= 0) {
-      setNotice(t("An advance needs an amount."));
-      return;
-    }
-    await createAdvance({
-      staffId: member.id,
-      amount: Number(amount),
-      installment: Number(installment) || Math.round(Number(amount) / 5),
-      notes: notes.trim(),
+  const handleLend = () =>
+    submission.run(async () => {
+      if (Number(amount) <= 0) {
+        return t("An advance needs an amount.");
+      }
+      await createAdvance({
+        staffId: member.id,
+        amount: Number(amount),
+        installment: Number(installment) || Math.round(Number(amount) / 5),
+        notes: notes.trim(),
+      });
+      setAmount("");
+      setInstallment("");
+      setNotes("");
+      return t("Advance recorded.");
     });
-    setAmount("");
-    setInstallment("");
-    setNotes("");
-    setNotice(t("Advance recorded."));
-  };
 
   const working = onShift.find((entry) => entry.staffId === member.id);
 
-  const handleClock = async () => {
-    setNotice(undefined);
-    const result = working
-      ? await clockOut(member.id)
-      : await clockIn(member.id);
+  const handleClock = () =>
+    submission.run(async () => {
+      const result = working
+        ? await clockOut(member.id)
+        : await clockIn(member.id);
 
-    if (result?.ok) {
-      setNotice(working ? t("Clocked out.") : t("Clocked in."));
-      return;
-    }
-    setNotice(
-      result?.reason === "not_working"
+      if (result?.ok) {
+        return working ? t("Clocked out.") : t("Clocked in.");
+      }
+      return result?.reason === "not_working"
         ? t("They are not working today, so they cannot start a shift.")
-        : t("That could not be recorded.")
-    );
-  };
+        : t("That could not be recorded.");
+    });
 
-  const handleRepay = async (id: string) => {
-    setNotice(undefined);
-    const result = await repayAdvance(
-      id,
-      Number(repayments[id] ?? 0),
-      sources[id] === "commission" ? "commission" : "manual"
-    );
-
-    if (result?.repaid) {
-      setRepayments({ ...repayments, [id]: "" });
-      setNotice(t("Repayment recorded."));
-      return;
-    }
-    if (result?.reason === "overpay") {
-      setNotice(
-        t("That is more than the {{remaining}} still owed.", {
-          remaining: formatCurrency(result.remaining ?? 0),
-        })
+  const handleRepay = (id: string) =>
+    submission.run(async () => {
+      const result = await repayAdvance(
+        id,
+        Number(repayments[id] ?? 0),
+        sources[id] === "commission" ? "commission" : "manual"
       );
-      return;
-    }
-    setNotice(t("Enter an amount to repay."));
-  };
+
+      if (result?.repaid) {
+        setRepayments({ ...repayments, [id]: "" });
+        return t("Repayment recorded.");
+      }
+      if (result?.reason === "overpay") {
+        return t("That is more than the {{remaining}} still owed.", {
+          remaining: formatCurrency(result.remaining ?? 0),
+        });
+      }
+      return t("Enter an amount to repay.");
+    });
 
   const profile = [
     { label: t("Role"), value: <Capitalize>{t(member.role)}</Capitalize> },
@@ -218,9 +211,9 @@ function StaffDetail() {
         ))}
       </Tabs>
 
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="staff-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 

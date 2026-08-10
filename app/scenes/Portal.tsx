@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import { Tab, Tabs } from "~/components/Tabs";
 import Empty from "~/components/Empty";
@@ -59,7 +60,7 @@ function Portal() {
   const savePortalSettings = useShop((state) => state.savePortalSettings);
 
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
-  const [notice, setNotice] = useState<string | undefined>();
+  const submission = useSubmit();
 
   const [serviceName, setServiceName] = useState("");
   const [serviceCategory, setServiceCategory] = useState("Grooming");
@@ -99,52 +100,48 @@ function Portal() {
       ]
     : [];
 
-  const handleAddService = async () => {
-    if (!serviceName.trim()) {
-      setNotice(t("A service needs a name."));
-      return;
-    }
-    setNotice(undefined);
-    await createPortalService({
-      name: serviceName.trim(),
-      description: "",
-      category: serviceCategory.trim() || "Grooming",
-      durationMinutes: Number(serviceMinutes) || 60,
-      price: Number(servicePrice) || 0,
+  const handleAddService = () =>
+    submission.run(async () => {
+      if (!serviceName.trim()) {
+        return t("A service needs a name.");
+      }
+      await createPortalService({
+        name: serviceName.trim(),
+        description: "",
+        category: serviceCategory.trim() || "Grooming",
+        durationMinutes: Number(serviceMinutes) || 60,
+        price: Number(servicePrice) || 0,
+      });
+      setServiceName("");
+      setServicePrice("");
+      return undefined;
     });
-    setServiceName("");
-    setServicePrice("");
-  };
 
-  const handleSaveSettings = async () => {
-    setNotice(undefined);
-    // Blank fields are left out rather than sent empty, so saving one thing
-    // does not clear the rest.
-    const result = await savePortalSettings({
-      name: name.trim() || undefined,
-      tagline: tagline.trim() || undefined,
-      slug: slug.trim() || undefined,
-    });
-    setNotice(
-      result?.saved
+  const handleSaveSettings = () =>
+    submission.run(async () => {
+      // Blank fields are left out rather than sent empty, so saving one
+      // thing does not clear the rest.
+      const result = await savePortalSettings({
+        name: name.trim() || undefined,
+        tagline: tagline.trim() || undefined,
+        slug: slug.trim() || undefined,
+      });
+      return result?.saved
         ? t("Saved.")
-        : t("A web address can only use letters, numbers and dashes.")
-    );
-  };
-
-  const handleTogglePortal = async () => {
-    setNotice(undefined);
-    const result = await savePortalSettings({
-      portalEnabled: !(stats?.enabled ?? true),
+        : t("A web address can only use letters, numbers and dashes.");
     });
-    setNotice(
-      result?.saved
+
+  const handleTogglePortal = () =>
+    submission.run(async () => {
+      const result = await savePortalSettings({
+        portalEnabled: !(stats?.enabled ?? true),
+      });
+      return result?.saved
         ? stats?.enabled
           ? t("The shopfront is now closed to visitors.")
           : t("The shopfront is open.")
-        : t("That could not be saved.")
-    );
-  };
+        : t("That could not be saved.");
+    });
 
   return (
     <AppPage
@@ -163,9 +160,9 @@ function Portal() {
         ))}
       </Tabs>
 
-      {notice ? (
+      {submission.notice ? (
         <Text as="p" type="secondary" data-testid="portal-notice">
-          {notice}
+          {submission.notice}
         </Text>
       ) : null}
 
