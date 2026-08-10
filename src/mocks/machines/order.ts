@@ -1,4 +1,5 @@
-import { createMachine, getNextSnapshot } from "xstate";
+import { createMachine } from "xstate";
+import { attempt } from "./attempt";
 
 /** Where a sale can be in its life. */
 export type OrderState = "draft" | "paid" | "refunded" | "void";
@@ -65,15 +66,11 @@ export function nextOrderState(
   status: OrderState,
   event: OrderEvent
 ): { ok: true; next: OrderState } | { ok: false; reason: OrderRefusal } {
-  const snapshot = orderMachine.resolveState({ value: status, context: {} });
-  const after = getNextSnapshot(orderMachine, snapshot, event);
+  const move = attempt<OrderState>(orderMachine, status, event);
 
-  // A refused move leaves the machine where it was, whether that is because
-  // no transition is defined or because a guard turned it down.
-  if (after.value === status) {
-    return { ok: false, reason: refusalFor(status, event) };
-  }
-  return { ok: true, next: after.value as OrderState };
+  return move.ok
+    ? { ok: true, next: move.next }
+    : { ok: false, reason: refusalFor(status, event) };
 }
 
 /**

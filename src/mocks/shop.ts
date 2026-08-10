@@ -1,4 +1,5 @@
 import { canAccessRoute } from "./access";
+import { nextInvoiceState } from "./machines/invoice";
 import { nextOrderState } from "./machines/order";
 import { mockDb } from "./db";
 
@@ -4731,8 +4732,12 @@ function dispatch(
       if (!invoice) {
         return { data: { recorded: false, reason: "not_found" } };
       }
-      if (invoice.isVoid) {
-        return { data: { recorded: false, reason: "void" } };
+
+      const taking = nextInvoiceState(invoice.isVoid ? "void" : "open", {
+        type: "RECORD_PAYMENT",
+      });
+      if (!taking.ok) {
+        return { data: { recorded: false, reason: taking.reason } };
       }
 
       const priced = priceInvoice(invoice);
@@ -4799,10 +4804,13 @@ function dispatch(
       if (!invoice) {
         return { data: { voided: false, reason: "not_found" } };
       }
-      if (invoice.payments.length > 0) {
-        // Money has already changed hands against it, so voiding would strand
-        // that payment; it has to be refunded first.
-        return { data: { voided: false, reason: "has_payments" } };
+
+      const move = nextInvoiceState(invoice.isVoid ? "void" : "open", {
+        type: "VOID",
+        hasPayments: invoice.payments.length > 0,
+      });
+      if (!move.ok) {
+        return { data: { voided: false, reason: move.reason } };
       }
 
       const priced = priceInvoice(invoice);
