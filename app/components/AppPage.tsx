@@ -1,13 +1,38 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
+import styled from "styled-components";
+import { s } from "@shared/styles";
+import Flex from "~/components/Flex";
+import Heading from "~/components/Heading";
+import Text from "~/components/Text";
 import Scene from "~/components/Scene";
 import { useShop } from "~/stores/shop";
+
+const Frame = styled.div`
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 4px 64px;
+`;
+
+const Header = styled(Flex)`
+  margin-bottom: 24px;
+  gap: 12px;
+`;
+
+const ErrorNote = styled.p`
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: ${s("danger")};
+  background: ${s("backgroundSecondary")};
+`;
 
 interface Props {
   /** Title shown in the scene header and browser tab. */
   title: string;
   /** Short description rendered under the title. */
-  description?: string;
+  description?: ReactNode;
   /** Actions rendered to the right of the heading. */
   actions?: ReactNode;
   children: ReactNode;
@@ -18,8 +43,8 @@ interface Props {
  *
  * Loads the pet store data once per mount and renders inside Outline's Scene
  * so the sidebar, header and page chrome stay identical to the rest of the app.
- * Tailwind utility classes style the body, which is why the content sits in a
- * plain element rather than a styled-component.
+ * The frame is built from Outline's own components so it follows the theme –
+ * hard-coded colours here left every page unreadable in dark mode.
  *
  * @returns the rendered scene.
  */
@@ -34,35 +59,33 @@ export function AppPage({ title, description, actions, children }: Props) {
 
   return (
     <Scene title={title}>
-      <div className="mx-auto w-full max-w-7xl px-1 pb-16">
-        <div className="mb-6 md:flex md:items-center md:justify-between">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-              {title}
-            </h1>
+      <Frame>
+        <Header align="flex-start" justify="space-between" wrap>
+          <Flex column style={{ minWidth: 0, flex: 1 }}>
+            <Heading>{title}</Heading>
             {description ? (
-              <p className="mt-2 text-sm text-gray-500">{description}</p>
+              <Text as="p" type="secondary">
+                {description}
+              </Text>
             ) : null}
-          </div>
+          </Flex>
           {actions ? (
-            <div className="mt-4 flex shrink-0 gap-x-3 md:mt-0 md:ml-4">
+            <Flex align="center" gap={12} style={{ flexShrink: 0 }}>
               {actions}
-            </div>
+            </Flex>
           ) : null}
-        </div>
+        </Header>
 
-        {error ? (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
-            {error}
-          </div>
-        ) : null}
+        {error ? <ErrorNote>{error}</ErrorNote> : null}
 
         {isLoading && !error ? (
-          <p className="text-sm text-gray-500">Loading…</p>
+          <Text as="p" type="tertiary" size="small">
+            Loading…
+          </Text>
         ) : null}
 
         {children}
-      </div>
+      </Frame>
     </Scene>
   );
 }

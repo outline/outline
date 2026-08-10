@@ -115,6 +115,107 @@
   --color-yellow-800: rgb(133 77 14);
 }
 
+/* The Tailwind UI components in app/components were authored light-only: they
+   paint `bg-white` and `text-gray-900` directly, so in dark mode they render
+   as black text on a white card inside a dark page. Outline's theme lives in
+   JavaScript and is handed to styled-components, which plain CSS cannot see –
+   `data-theme` on the root element (set in app/components/Theme.tsx) is the
+   hook it can match on.
+
+   These override the utilities rather than the `--color-*` variables behind
+   them, because a variable is shared by every utility built on it and the
+   right answer differs by use: `text-white` on an indigo button must stay
+   white, while `bg-white` on a card must not. Accent hues are otherwise left
+   alone – a red error should stay red. Values mirror the dark theme in
+   shared/styles/theme.ts. */
+:root[data-theme="dark"] .bg-white {
+  background-color: #171b22;
+}
+
+:root[data-theme="dark"] .bg-gray-50 {
+  background-color: #14181f;
+}
+
+:root[data-theme="dark"] .bg-gray-100 {
+  background-color: #1f232e;
+}
+
+:root[data-theme="dark"] .bg-gray-200 {
+  background-color: #2a2f3e;
+}
+
+/* The neutral text ramp is inverted: gray-900 is the darkest shade in light
+   mode, so it has to become the lightest here. */
+:root[data-theme="dark"] .text-gray-900 {
+  color: #e6e6e6;
+}
+
+:root[data-theme="dark"] .text-gray-800 {
+  color: #d6dde5;
+}
+
+:root[data-theme="dark"] .text-gray-700 {
+  color: #c2ccd8;
+}
+
+:root[data-theme="dark"] .text-gray-600 {
+  color: #a5b2c2;
+}
+
+:root[data-theme="dark"] .text-gray-500 {
+  color: #8494a8;
+}
+
+:root[data-theme="dark"] .text-gray-400 {
+  color: #66778f;
+}
+
+:root[data-theme="dark"] .border-gray-100,
+:root[data-theme="dark"] .border-gray-200,
+:root[data-theme="dark"] .border-gray-300 {
+  border-color: #2a2f3e;
+}
+
+:root[data-theme="dark"] .divide-gray-100 > * + *,
+:root[data-theme="dark"] .divide-gray-200 > * + * {
+  border-color: #2a2f3e;
+}
+
+:root[data-theme="dark"] .ring-gray-200,
+:root[data-theme="dark"] .ring-gray-300 {
+  --tw-ring-color: #2a2f3e;
+}
+
+/* The tinted backgrounds used for notices and badges are near-white in light
+   mode and blow out against a dark page. */
+:root[data-theme="dark"] .bg-red-50 {
+  background-color: #2a1b1e;
+}
+
+:root[data-theme="dark"] .bg-green-50 {
+  background-color: #16251c;
+}
+
+:root[data-theme="dark"] .bg-yellow-50 {
+  background-color: #262112;
+}
+
+:root[data-theme="dark"] .bg-indigo-50 {
+  background-color: #1c1e33;
+}
+
+:root[data-theme="dark"] .bg-blue-50 {
+  background-color: #14203a;
+}
+
+/* The uncoloured-border default restored in `base` below resolves to the
+   light gray-200; in dark mode that draws a pale line on every element. */
+:root[data-theme="dark"] *,
+:root[data-theme="dark"] ::after,
+:root[data-theme="dark"] ::before {
+  border-color: #2a2f3e;
+}
+
 /* Tailwind v4 changed several defaults that the v3-era markup depends on.
    Restoring them in `base` keeps component styles able to override. */
 @layer base {

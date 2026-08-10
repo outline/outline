@@ -8,6 +8,7 @@ import { TeamPreference, UserPreference } from "@shared/types";
 import { isRTLLanguage } from "@shared/utils/rtl";
 import useBuildTheme from "~/hooks/useBuildTheme";
 import useStores from "~/hooks/useStores";
+import { applyThemeAttribute } from "~/utils/themeAttribute";
 
 type Props = {
   children?: React.ReactNode;
@@ -24,6 +25,7 @@ const Theme: React.FC = ({ children }: Props) => {
   const direction = isRTLLanguage(i18n.language) ? "rtl" : "ltr";
 
   React.useEffect(() => {
+    applyThemeAttribute(ui.resolvedTheme === "dark" ? "dark" : "light");
     window.dispatchEvent(
       new CustomEvent("theme-changed", {
         detail: { isDark: ui.resolvedTheme === "dark" },

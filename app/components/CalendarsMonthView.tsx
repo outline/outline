@@ -9,7 +9,40 @@ import {
 import { Menu, Transition } from "@headlessui/react";
 import { classNames } from "./classNames";
 
-const days = [
+/** One event on a day in the month. */
+export interface CalendarEvent {
+  id: string | number;
+  name: string;
+  /** Kept short – the column is sized for something like "10AM". */
+  time: string;
+  datetime: string;
+  href: string;
+  /** The fuller description, shown on hover. */
+  detail?: string;
+}
+
+/** One day in the grid. */
+export interface CalendarDay {
+  date: string;
+  isCurrentMonth?: boolean;
+  isToday?: boolean;
+  isSelected?: boolean;
+  events: CalendarEvent[];
+}
+
+interface Props {
+  /** The days to draw; the sample month is used when none is given. */
+  days?: CalendarDay[];
+  /** Heading above the grid, e.g. "August 2026". */
+  title?: string;
+  /** Called when an event is chosen, instead of following its href. */
+  onSelectEvent?: (event: CalendarEvent) => void;
+  /** What the add button says and does; hidden when not given. */
+  addLabel?: string;
+  onAdd?: () => void;
+}
+
+const sampleDays: CalendarDay[] = [
   { date: "2021-12-27", events: [] },
   { date: "2021-12-28", events: [] },
   { date: "2021-12-29", events: [] },
@@ -128,19 +161,27 @@ const days = [
   { date: "2022-02-05", events: [] },
   { date: "2022-02-06", events: [] },
 ];
-const selectedDay = days.find((day) => day.isSelected);
 
 /**
  * Tailwind UI – calendars: month view.
  *
  * @returns the rendered component.
  */
-export function CalendarsMonthView() {
+export function CalendarsMonthView({
+  days,
+  title,
+  onSelectEvent,
+  addLabel,
+  onAdd,
+}: Props = {}) {
+  const shown = days ?? sampleDays;
+  const selectedDay = shown.find((day) => day.isSelected);
+
   return (
     <div className="lg:flex lg:h-full lg:flex-col">
       <header className="flex items-center justify-between border-b border-gray-200 px-6 py-4 lg:flex-none">
         <h1 className="text-base font-semibold leading-6 text-gray-900">
-          <time dateTime="2022-01">January 2022</time>
+          <time dateTime="2022-01">{title ?? "January 2022"}</time>
         </h1>
         <div className="flex items-center">
           <div className="relative flex items-center rounded-md bg-white shadow-xs md:items-stretch">
@@ -258,13 +299,16 @@ export function CalendarsMonthView() {
                 </Menu.Items>
               </Transition>
             </Menu>
-            <div className="ml-6 h-6 w-px bg-gray-300" />
-            <button
-              type="button"
-              className="ml-6 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            >
-              Add event
-            </button>
+            {onAdd ? <div className="ml-6 h-6 w-px bg-gray-300" /> : null}
+            {onAdd ? (
+              <button
+                type="button"
+                onClick={onAdd}
+                className="ml-6 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              >
+                {addLabel ?? "Add event"}
+              </button>
+            ) : null}
           </div>
           <Menu as="div" className="relative ml-6 md:hidden">
             <Menu.Button className="-mx-2 flex items-center rounded-full border border-transparent p-2 text-gray-400 hover:text-gray-500">
@@ -409,7 +453,7 @@ export function CalendarsMonthView() {
         </div>
         <div className="flex bg-gray-200 text-xs leading-6 text-gray-700 lg:flex-auto">
           <div className="hidden w-full lg:grid lg:grid-cols-7 lg:grid-rows-6 lg:gap-px">
-            {days.map((day) => (
+            {shown.map((day) => (
               <div
                 key={day.date}
                 className={classNames(
@@ -431,13 +475,25 @@ export function CalendarsMonthView() {
                   <ol className="mt-2">
                     {day.events.slice(0, 2).map((event) => (
                       <li key={event.id}>
-                        <a href={event.href} className="group flex">
-                          <p className="flex-auto truncate font-medium text-gray-900 group-hover:text-indigo-600">
+                        <a
+                          title={
+                            event.detail ?? `${event.name} ${event.time}`.trim()
+                          }
+                          href={event.href}
+                          onClick={(clickEvent) => {
+                            if (onSelectEvent) {
+                              clickEvent.preventDefault();
+                              onSelectEvent(event);
+                            }
+                          }}
+                          className="group flex"
+                        >
+                          <p className="min-w-0 flex-auto truncate font-medium text-gray-900 group-hover:text-indigo-600">
                             {event.name}
                           </p>
                           <time
                             dateTime={event.datetime}
-                            className="ml-3 hidden flex-none text-gray-500 group-hover:text-indigo-600 xl:block"
+                            className="ml-3 hidden min-w-0 shrink truncate text-gray-500 group-hover:text-indigo-600 xl:block"
                           >
                             {event.time}
                           </time>
@@ -455,7 +511,7 @@ export function CalendarsMonthView() {
             ))}
           </div>
           <div className="isolate grid w-full grid-cols-7 grid-rows-6 gap-px lg:hidden">
-            {days.map((day) => (
+            {shown.map((day) => (
               <button
                 key={day.date}
                 type="button"
