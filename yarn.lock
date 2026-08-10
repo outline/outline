@@ -15712,7 +15712,7 @@ __metadata:
     rate-limiter-flexible: "npm:^2.4.2"
     react: "npm:^17.0.2"
     react-avatar-editor: "npm:^13.0.2"
-    react-colorful: "npm:^5.7.0"
+    react-colorful: "npm:^5.8.0"
     react-day-picker: "npm:^8.10.2"
     react-dnd: "npm:^16.0.1"
     react-dnd-html5-backend: "npm:^16.0.1"
@@ -17183,13 +17183,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-colorful@npm:^5.7.0":
-  version: 5.7.0
-  resolution: "react-colorful@npm:5.7.0"
+"react-colorful@npm:^5.8.0":
+  version: 5.8.0
+  resolution: "react-colorful@npm:5.8.0"
   peerDependencies:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 10c0/d8db4e66b6f6edf30cc2bb6c755bea45e8e133f9667c373897a048da6931d1a31554c0253043be7853c21f9df1e0928af9528122f698bcd5b847a83663c58f0e
+  checksum: 10c0/852ee03ad7751d748e2232ad3bd089de6620de6a06582ee26177377802104b259bf5630d205e875dba4406d601d0e00ddd0912bb0d763da2a053b51c7c57b3a4
   languageName: node
   linkType: hard
 
