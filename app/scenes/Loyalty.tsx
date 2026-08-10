@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { useFields } from "~/hooks/useFields";
 import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
@@ -45,21 +45,20 @@ function Loyalty() {
   const redeemPoints = useShop((state) => state.redeemPoints);
   const config = useShop((state) => state.loyaltyConfig);
 
-  const [customerId, setCustomerId] = useState("");
-  const [points, setPoints] = useState("");
+  const fields = useFields({ customerId: "", points: "" });
   const submission = useSubmit();
 
-  const selected = customerId || customers[0]?.id || "";
+  const selected = fields.get("customerId") || customers[0]?.id || "";
 
   const handleRedeem = () =>
     submission.run(async () => {
-      const value = Number(points);
+      const value = Number(fields.get("points"));
       if (!value || !selected) {
         return undefined;
       }
       const redeemed = await redeemPoints(selected, value);
       const name = customers.find((item) => item.id === selected)?.name ?? "";
-      setPoints("");
+      fields.set("points", "");
       return redeemed
         ? t("Redeemed {{points}} points for {{name}}.", {
             points: value,
@@ -127,7 +126,7 @@ function Loyalty() {
         <InputSelect
           label={t("Customer")}
           value={selected}
-          onChange={setCustomerId}
+          onChange={(value) => fields.set("customerId", value)}
           options={customers.map((customer) => ({
             type: "item",
             label: customer.name,
@@ -136,8 +135,8 @@ function Loyalty() {
         />
         <Input
           label={t("Points")}
-          value={points}
-          onChange={(event) => setPoints(event.target.value)}
+          value={fields.get("points")}
+          onChange={(event) => fields.set("points", event.target.value)}
           short
         />
         <Button onClick={() => void handleRedeem()}>{t("Redeem")}</Button>

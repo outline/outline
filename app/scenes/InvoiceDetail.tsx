@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useParams } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { useFields } from "~/hooks/useFields";
 import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
@@ -37,9 +37,7 @@ function InvoiceDetail() {
   const recordInvoicePayment = useShop((state) => state.recordInvoicePayment);
   const voidInvoice = useShop((state) => state.voidInvoice);
 
-  const [amount, setAmount] = useState("");
-  const [method, setMethod] = useState("cash");
-  const [reference, setReference] = useState("");
+  const fields = useFields({ amount: "", method: "cash", reference: "" });
   const submission = useSubmit();
 
   const invoice = invoices.find((item) => item.id === invoiceId);
@@ -67,14 +65,15 @@ function InvoiceDetail() {
     submission.run(async () => {
       const result = await recordInvoicePayment(
         invoice.id,
-        Number(amount),
-        method === "bank" ? "bank" : "cash",
-        reference.trim()
+        Number(fields.get("amount")),
+        fields.get("method") === "bank" ? "bank" : "cash",
+        fields.get("reference").trim()
       );
 
       if (result?.recorded) {
-        setAmount("");
-        setReference("");
+        // The method stays chosen for the next payment.
+        fields.set("amount", "");
+        fields.set("reference", "");
         return t("Payment recorded.");
       }
       if (result?.reason === "overpay") {
@@ -197,14 +196,14 @@ function InvoiceDetail() {
           <Flex gap={8} wrap align="flex-end">
             <Input
               label={t("Amount")}
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
+              value={fields.get("amount")}
+              onChange={(event) => fields.set("amount", event.target.value)}
               short
             />
             <InputSelect
               label={t("Method")}
-              value={method}
-              onChange={setMethod}
+              value={fields.get("method")}
+              onChange={(value) => fields.set("method", value)}
               options={METHODS.map((option) => ({
                 type: "item",
                 label: t(option.label),
@@ -213,8 +212,8 @@ function InvoiceDetail() {
             />
             <Input
               label={t("Reference")}
-              value={reference}
-              onChange={(event) => setReference(event.target.value)}
+              value={fields.get("reference")}
+              onChange={(event) => fields.set("reference", event.target.value)}
               short
             />
             <Button onClick={handlePay}>{t("Record")}</Button>

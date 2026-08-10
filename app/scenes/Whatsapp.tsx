@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "~/components/AppPage";
+import { useFields } from "~/hooks/useFields";
 import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
@@ -28,8 +28,9 @@ function Whatsapp() {
   const customers = useShop((state) => state.customers);
   const sendWhatsapp = useShop((state) => state.sendWhatsapp);
 
-  const [templateId, setTemplateId] = useState("");
-  const [customerId, setCustomerId] = useState("");
+  const fields = useFields({ templateId: "", customerId: "" });
+  const templateId = fields.get("templateId");
+  const customerId = fields.get("customerId");
   const submission = useSubmit();
 
   const selectedTemplate = templateId || templates[0]?.id || "";
@@ -89,7 +90,7 @@ function Whatsapp() {
         <InputSelect
           label={t("Template")}
           value={selectedTemplate}
-          onChange={setTemplateId}
+          onChange={(value) => fields.set("templateId", value)}
           options={templates.map((template) => ({
             type: "item",
             label: template.name,
@@ -99,7 +100,7 @@ function Whatsapp() {
         <InputSelect
           label={t("Customer")}
           value={selectedCustomer}
-          onChange={setCustomerId}
+          onChange={(value) => fields.set("customerId", value)}
           options={customers.map((customer) => ({
             type: "item",
             label: customer.name,
