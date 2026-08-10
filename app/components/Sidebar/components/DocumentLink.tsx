@@ -1,3 +1,4 @@
+import { clamp } from "es-toolkit";
 import type { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -103,18 +104,22 @@ const DocumentLink = observer(function DocumentLink(props: Props) {
   const draftNavNode = insertDraftChild
     ? activeDocument?.asNavigationNode
     : undefined;
+  const draftIndex = insertDraftChild ? activeDocument?.index : undefined;
 
-  const nodeChildren = React.useMemo(
-    () =>
-      collection && draftNavNode
-        ? sortNavigationNodes(
-            [draftNavNode, ...node.children],
-            collection.sort,
-            false
-          )
-        : node.children,
-    [draftNavNode, collection, node.children]
-  );
+  const nodeChildren = React.useMemo(() => {
+    if (!collection || !draftNavNode) {
+      return node.children;
+    }
+
+    const children = [...node.children];
+    children.splice(
+      clamp(draftIndex ?? 0, 0, children.length),
+      0,
+      draftNavNode
+    );
+
+    return sortNavigationNodes(children, collection.sort, false);
+  }, [draftNavNode, draftIndex, collection, node.children]);
 
   // Visibility gate: only mount the heavy inner content when scrolled near the
   // viewport, but keep it mounted while a drag is in progress so the dragged

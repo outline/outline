@@ -197,6 +197,12 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   publishedAt: string | undefined;
 
+  /**
+   * The position of this document amongst its siblings when draft.
+   */
+  @observable
+  index: number | null;
+
   @observable
   popularityScore: number;
 

@@ -833,7 +833,11 @@ describe("#shares.info", () => {
       userId: user.id,
     });
     await collection.reload();
-    await collection.addDocumentToStructure(childDocument, 0);
+    await collection.addDocumentToStructure(
+      createContext({}),
+      childDocument,
+      0
+    );
     const res = await server.post("/api/shares.info", user, {
       body: {
         documentId: childDocument.id,
@@ -881,7 +885,11 @@ describe("#shares.info", () => {
       teamId: childDocument.teamId,
       userId: user.id,
     });
-    await collection.addDocumentToStructure(childDocument, 0);
+    await collection.addDocumentToStructure(
+      createContext({}),
+      childDocument,
+      0
+    );
     const res = await server.post("/api/shares.info", user, {
       body: {
         documentId: childDocument.id,
@@ -925,7 +933,11 @@ describe("#shares.info", () => {
       includeChildDocuments: true,
     });
     await collection.reload();
-    await collection.addDocumentToStructure(childDocument, 0);
+    await collection.addDocumentToStructure(
+      createContext({}),
+      childDocument,
+      0
+    );
     const res = await server.post("/api/shares.info", user, {
       body: {
         documentId: childDocument.id,

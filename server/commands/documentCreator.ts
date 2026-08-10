@@ -218,6 +218,8 @@ export default async function documentCreator(
     parentDocumentId,
     editorVersion,
     collectionId,
+    // Position is only meaningful while the document remains a draft.
+    index: publish || publishedAt ? null : index,
     teamId: user.teamId,
     createdAt,
     updatedAt: updatedAt ?? createdAt,

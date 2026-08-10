@@ -62,10 +62,13 @@ async function documentMover(
 
   if (document.publishedAt) {
     // Remove the document from the current collection
-    const response = await collection?.removeDocumentInStructure(document, {
-      transaction,
-      save: collectionChanged,
-    });
+    const response = await collection?.removeDocumentInStructure(
+      ctx,
+      document,
+      {
+        save: collectionChanged,
+      }
+    );
 
     let documentJson = response?.[0];
     const fromIndex = response?.[1] || 0;
@@ -92,19 +95,35 @@ async function documentMover(
     document.parentDocumentId = parentDocumentId;
     document.lastModifiedById = user.id;
     document.updatedBy = user;
+    // Moving out of all collections converts the document to a draft, remember the position it
+    // held so that it can be restored if published again.
+    document.index = collectionId ? null : fromIndex;
 
     if (newCollection) {
       // Add the document and it's tree to the new collection
-      await newCollection.addDocumentToStructure(document, toIndex, {
+      await newCollection.addDocumentToStructure(ctx, document, toIndex, {
         documentJson,
-        transaction,
       });
     }
   } else {
+    // Drafts are not in the document structure, so their position is stored on the document
+    // itself. The index arrives relative to a list that the draft is rendered within, so when
+    // reordering under the same parent we compensate for the draft's own place in that list.
+    const fromIndex = document.index ?? 0;
+    const toIndex =
+      index !== undefined &&
+      document.parentDocumentId === parentDocumentId &&
+      document.collectionId === collectionId &&
+      fromIndex < index
+        ? index - 1
+        : index;
+
     document.collectionId = collectionId;
     document.parentDocumentId = parentDocumentId;
     document.lastModifiedById = user.id;
     document.updatedBy = user;
+    // Without an explicit index the draft falls back to the top of its new parent.
+    document.index = toIndex ?? null;
   }
 
   if (collection && document.publishedAt) {

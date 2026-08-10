@@ -9,6 +9,7 @@ import {
   buildDocument,
 } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
+import { createContext } from "@server/context";
 import Collection from "./Collection";
 import Document from "./Document";
 
@@ -125,12 +126,12 @@ describe("#addDocumentToStructure", () => {
       parentDocumentId: null,
       teamId: collection.teamId,
     });
-    await collection.addDocumentToStructure(newDocument);
+    await collection.addDocumentToStructure(createContext({}), newDocument);
     expect(collection.documentStructure!.length).toBe(1);
     expect(collection.documentStructure![0].id).toBe(id);
 
     // should not append multiple times
-    await collection.addDocumentToStructure(newDocument);
+    await collection.addDocumentToStructure(createContext({}), newDocument);
     expect(collection.documentStructure!.length).toBe(1);
   });
 
@@ -143,7 +144,7 @@ describe("#addDocumentToStructure", () => {
       parentDocumentId: null,
       teamId: collection.teamId,
     });
-    await collection.addDocumentToStructure(newDocument, 1);
+    await collection.addDocumentToStructure(createContext({}), newDocument, 1);
     expect(collection.documentStructure!.length).toBe(1);
     expect(collection.documentStructure![0].id).toBe(id);
   });
@@ -160,7 +161,7 @@ describe("#addDocumentToStructure", () => {
       parentDocumentId: document.id,
       teamId: collection.teamId,
     });
-    await collection.addDocumentToStructure(newDocument, 1);
+    await collection.addDocumentToStructure(createContext({}), newDocument, 1);
     expect(collection.documentStructure!.length).toBe(1);
     expect(collection.documentStructure![0].id).toBe(document.id);
     expect(collection.documentStructure![0].children.length).toBe(1);
@@ -185,8 +186,12 @@ describe("#addDocumentToStructure", () => {
       parentDocumentId: document.id,
       teamId: collection.teamId,
     });
-    await collection.addDocumentToStructure(newDocument);
-    await collection.addDocumentToStructure(secondDocument, 0);
+    await collection.addDocumentToStructure(createContext({}), newDocument);
+    await collection.addDocumentToStructure(
+      createContext({}),
+      secondDocument,
+      0
+    );
     expect(collection.documentStructure!.length).toBe(1);
     expect(collection.documentStructure![0].id).toBe(document.id);
     expect(collection.documentStructure![0].children.length).toBe(2);
@@ -210,7 +215,7 @@ describe("#addDocumentToStructure", () => {
 
     expect(collection.documentStructure).toBeNull();
 
-    await collection.addDocumentToStructure(document);
+    await collection.addDocumentToStructure(createContext({}), document);
 
     expect(collection.documentStructure).not.toBeNull();
     expect(collection.documentStructure).toHaveLength(1);
@@ -241,9 +246,14 @@ describe("#addDocumentToStructure", () => {
 
     expect(collection.documentStructure).toBeNull();
 
-    await collection.addDocumentToStructure(document, undefined, {
-      includeArchived: true,
-    });
+    await collection.addDocumentToStructure(
+      createContext({}),
+      document,
+      undefined,
+      {
+        includeArchived: true,
+      }
+    );
 
     expect(collection.documentStructure).not.toBeNull();
     expect(collection.documentStructure).toHaveLength(1);
@@ -263,21 +273,26 @@ describe("#addDocumentToStructure", () => {
         parentDocumentId: null,
         teamId: collection.teamId,
       });
-      await collection.addDocumentToStructure(newDocument, undefined, {
-        documentJson: {
-          id,
-          title: "Parent",
-          url: "parent",
-          children: [
-            {
-              id,
-              title: "Totally fake",
-              children: [],
-              url: "totally-fake",
-            },
-          ],
-        },
-      });
+      await collection.addDocumentToStructure(
+        createContext({}),
+        newDocument,
+        undefined,
+        {
+          documentJson: {
+            id,
+            title: "Parent",
+            url: "parent",
+            children: [
+              {
+                id,
+                title: "Totally fake",
+                children: [],
+                url: "totally-fake",
+              },
+            ],
+          },
+        }
+      );
       expect(collection.documentStructure![0].children.length).toBe(1);
       expect(collection.documentStructure![0].children[0].id).toBe(id);
     });
@@ -310,7 +325,7 @@ describe("#updateDocument", () => {
       title: "Child document",
       text: "content",
     });
-    await collection.addDocumentToStructure(newDocument);
+    await collection.addDocumentToStructure(createContext({}), newDocument);
     newDocument.title = "Updated title";
     await newDocument.save();
     await collection.updateDocument(newDocument);
@@ -328,7 +343,7 @@ describe("#removeDocument", () => {
     await collection.reload();
 
     const saveSpy = vi.spyOn(collection, "save");
-    await collection.deleteDocument(document);
+    await collection.deleteDocument(createContext({}), document);
     expect(saveSpy).toHaveBeenCalled();
   });
 
@@ -337,7 +352,7 @@ describe("#removeDocument", () => {
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
-    await collection.deleteDocument(document);
+    await collection.deleteDocument(createContext({}), document);
     expect(collection.documentStructure!.length).toBe(0);
     // Verify that the document was removed
     const collectionDocuments = await Document.findAndCountAll({
@@ -363,10 +378,10 @@ describe("#removeDocument", () => {
       title: "Child document",
       text: "content",
     });
-    await collection.addDocumentToStructure(newDocument);
+    await collection.addDocumentToStructure(createContext({}), newDocument);
     expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
-    await collection.deleteDocument(document);
+    await collection.deleteDocument(createContext({}), document);
     expect(collection.documentStructure!.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
@@ -392,11 +407,11 @@ describe("#removeDocument", () => {
         title: `Child document ${depth}`,
         text: "content",
       });
-      await collection.addDocumentToStructure(child);
+      await collection.addDocumentToStructure(createContext({}), child);
       parentDocumentId = child.id;
     }
 
-    await collection.deleteDocument(document);
+    await collection.deleteDocument(createContext({}), document);
     expect(collection.documentStructure!.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
@@ -422,11 +437,11 @@ describe("#removeDocument", () => {
       title: "Child document",
       text: "content",
     });
-    await collection.addDocumentToStructure(newDocument);
+    await collection.addDocumentToStructure(createContext({}), newDocument);
     expect(collection.documentStructure!.length).toBe(1);
     expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
-    await collection.deleteDocument(newDocument);
+    await collection.deleteDocument(createContext({}), newDocument);
     const reloaded = await collection.reload();
     expect(reloaded!.documentStructure!.length).toBe(1);
     expect(reloaded!.documentStructure![0].children.length).toBe(0);

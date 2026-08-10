@@ -80,6 +80,7 @@ import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import type { APIContext } from "@server/types";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
+import { createContext } from "@server/context";
 import { SkipChangeset } from "./decorators/Changeset";
 import type { EventOverrideOptions, HookContext } from "./base/Model";
 import Template from "./Template";
@@ -424,6 +425,13 @@ class Document extends ArchivableModel<
   @Column(DataType.DATE)
   publishedAt: Date | null;
 
+  /**
+   * The position of this document amongst its siblings when draft.
+   */
+  @IsNumeric
+  @Column(DataType.INTEGER)
+  index: number | null;
+
   /** An array of user IDs that have edited this document. */
   @Column(DataType.ARRAY(DataType.UUID))
   collaboratorIds: string[];
@@ -511,7 +519,10 @@ class Document extends ArchivableModel<
   }
 
   @AfterCreate
-  static async addDocumentToCollectionStructure(model: Document) {
+  static async addDocumentToCollectionStructure(
+    model: Document,
+    context: HookContext
+  ) {
     if (model.archivedAt || !model.publishedAt || !model.collectionId) {
       return;
     }
@@ -526,7 +537,11 @@ class Document extends ArchivableModel<
         return;
       }
 
-      await collection.addDocumentToStructure(model, 0, { transaction });
+      // Build a context bound to this hook's transaction, the outer one it was created with
+      // has not committed and would deadlock against the lock taken above.
+      const ctx = createContext({ user: context.auth?.user, transaction });
+
+      await collection.addDocumentToStructure(ctx, model, 0);
       model.collection = collection;
     });
   }
@@ -1174,7 +1189,7 @@ class Document extends ArchivableModel<
   publish = async (
     ctx: APIContext,
     {
-      index = 0,
+      index,
       collectionId,
       silent = false,
       event = true,
@@ -1215,12 +1230,19 @@ class Document extends ArchivableModel<
       });
 
       if (collection) {
-        await collection.addDocumentToStructure(this, index, { transaction });
+        // Fall back to the position the document held while it was a draft, if any.
+        await collection.addDocumentToStructure(
+          ctx,
+          this,
+          index ?? this.index ?? 0
+        );
         if (this.collection) {
           this.collection.documentStructure = collection.documentStructure;
         }
       }
     }
+
+    this.index = null;
 
     // Copy the group and user memberships from the parent document, if any
     if (this.parentDocumentId) {
@@ -1301,7 +1323,9 @@ class Document extends ArchivableModel<
       : undefined;
 
     if (collection) {
-      await collection.removeDocumentInStructure(this, { transaction });
+      const result = await collection.removeDocumentInStructure(ctx, this, {});
+      // Remember the position so that it can be restored if published again.
+      this.index = result?.[1] ?? null;
       if (this.collection) {
         this.collection.documentStructure = collection.documentStructure;
       }
@@ -1317,6 +1341,7 @@ class Document extends ArchivableModel<
 
     if (options.detach) {
       this.collectionId = null;
+      this.index = null;
     }
 
     return this.saveWithCtx(ctx, undefined, { name: "unpublish" });
@@ -1335,7 +1360,7 @@ class Document extends ArchivableModel<
       : undefined;
 
     if (collection) {
-      await collection.removeDocumentInStructure(this, { transaction });
+      await collection.removeDocumentInStructure(ctx, this);
       if (this.collection) {
         this.collection.documentStructure = collection.documentStructure;
       }
@@ -1374,9 +1399,8 @@ class Document extends ArchivableModel<
     }
 
     if (this.publishedAt && collection?.isActive) {
-      await collection.addDocumentToStructure(this, undefined, {
+      await collection.addDocumentToStructure(ctx, this, undefined, {
         includeArchived: true,
-        transaction,
       });
     }
 
@@ -1415,7 +1439,7 @@ class Document extends ArchivableModel<
       });
 
       if (!this.archivedAt || (this.archivedAt && collection?.archivedAt)) {
-        await collection?.deleteDocument(this, { transaction });
+        await collection?.deleteDocument(ctx, this);
         deleted = true;
       }
     }

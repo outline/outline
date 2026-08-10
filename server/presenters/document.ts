@@ -85,6 +85,7 @@ async function presentDocument(
     fullWidth: document.fullWidth,
     collectionId: undefined,
     parentDocumentId: undefined,
+    index: undefined,
     lastViewedAt: undefined,
     isCollectionDeleted: undefined,
     backlinkIds: options?.backlinkIds,
@@ -107,6 +108,7 @@ async function presentDocument(
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.collectionId = document.collectionId;
     res.parentDocumentId = document.parentDocumentId;
+    res.index = document.index;
     res.createdBy = presentUser(document.createdBy);
     res.updatedBy = presentUser(document.updatedBy);
     res.collaboratorIds = document.collaboratorIds ?? [];
