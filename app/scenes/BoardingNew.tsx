@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { useFields } from "~/hooks/useFields";
 import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -36,25 +36,26 @@ function BoardingNew() {
   const customers = useShop((state) => state.customers);
   const createBoarding = useShop((state) => state.createBoarding);
 
-  const [customerName, setCustomerName] = useState("");
-  const [petName, setPetName] = useState("");
-  const [roomId, setRoomId] = useState("");
-  const [checkIn, setCheckIn] = useState(
-    asDateValue(new Date(Date.now() + 86400000))
-  );
-  const [checkOut, setCheckOut] = useState(
-    asDateValue(new Date(Date.now() + 3 * 86400000))
-  );
+  const fields = useFields({
+    customerName: "",
+    petName: "",
+    roomId: "",
+    checkIn: asDateValue(new Date(Date.now() + 86400000)),
+    checkOut: asDateValue(new Date(Date.now() + 3 * 86400000)),
+  });
   const submission = useSubmit();
 
+  const roomId = fields.get("roomId");
+  const checkIn = fields.get("checkIn");
+  const checkOut = fields.get("checkOut");
   const room = rooms.find((item) => item.id === roomId);
   const stay = nights(checkIn, checkOut);
 
   const handleSubmit = () =>
     void submission.run(async () => {
       const result = await createBoarding({
-        customerName: customerName.trim(),
-        petName: petName.trim(),
+        customerName: fields.get("customerName").trim(),
+        petName: fields.get("petName").trim(),
         roomId,
         checkIn,
         checkOut,
@@ -88,8 +89,8 @@ function BoardingNew() {
       <Flex gap={8} wrap>
         <Input
           label={t("Owner")}
-          value={customerName}
-          onChange={(event) => setCustomerName(event.target.value)}
+          value={fields.get("customerName")}
+          onChange={(event) => fields.set("customerName", event.target.value)}
           list="boarding-customers"
         />
         <datalist id="boarding-customers">
@@ -99,8 +100,8 @@ function BoardingNew() {
         </datalist>
         <Input
           label={t("Pet")}
-          value={petName}
-          onChange={(event) => setPetName(event.target.value)}
+          value={fields.get("petName")}
+          onChange={(event) => fields.set("petName", event.target.value)}
         />
       </Flex>
 
@@ -109,7 +110,7 @@ function BoardingNew() {
         <InputSelect
           label={t("Room")}
           value={roomId}
-          onChange={setRoomId}
+          onChange={(value) => fields.set("roomId", value)}
           options={rooms.map((item) => ({
             type: "item",
             label: `${item.name} · ${t(item.type)} · ${item.branch}`,
@@ -120,14 +121,14 @@ function BoardingNew() {
           type="date"
           label={t("Check in")}
           value={checkIn}
-          onChange={(event) => setCheckIn(event.target.value)}
+          onChange={(event) => fields.set("checkIn", event.target.value)}
           short
         />
         <Input
           type="date"
           label={t("Check out")}
           value={checkOut}
-          onChange={(event) => setCheckOut(event.target.value)}
+          onChange={(event) => fields.set("checkOut", event.target.value)}
           short
         />
       </Flex>
