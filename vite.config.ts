@@ -215,6 +215,11 @@ export default ({ mode }: ConfigEnv) =>
                 priority: 20,
               },
               {
+                name: "vendor-framer-motion",
+                test: /node_modules[\\/]framer-motion/,
+                priority: 20,
+              },
+              {
                 name: "vendor-styled",
                 test: /node_modules[\\/](styled-components|stylis)/,
                 priority: 22,
