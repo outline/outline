@@ -34,7 +34,6 @@ import useStores from "~/hooks/useStores";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
-import { homePath } from "~/utils/routeHelpers";
 import AuthenticationProvider from "./components/AuthenticationProvider";
 import { BackButton } from "./components/BackButton";
 import { Background } from "./components/Background";
@@ -146,7 +145,7 @@ function Login({ children, onBack }: Props) {
       return <Redirect to={`/collection/${auth.team?.defaultCollectionId}`} />;
     }
 
-    return <Redirect to={homePath()} />;
+    return <Redirect to="/dashboard" />;
   }
 
   if (error) {
