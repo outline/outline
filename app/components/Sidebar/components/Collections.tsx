@@ -58,11 +58,11 @@ function Collections() {
   return (
     <SidebarContext.Provider value="collections">
       <Flex column>
-        <Header id="collections" title={t("Collections")}>
+        <Header id="collections" title={t("Notebooks")}>
           <Relative>
             <PaginatedList<Collection>
               options={params}
-              aria-label={t("Collections")}
+              aria-label={t("Notebooks")}
               items={orderedCollections}
               loading={<PlaceholderCollections />}
               heading={
@@ -80,7 +80,7 @@ function Collections() {
                   <SidebarLink
                     label={
                       <Text type="tertiary" size="small" italic>
-                        {t("No collections")}
+                        {t("No notebooks")}
                       </Text>
                     }
                     onClick={() => {}}

@@ -358,7 +358,7 @@ function Search() {
               <Fade>
                 <Centered column>
                   <Text as="p" type="secondary">
-                    {t("No documents found for your search filters.")}
+                    {t("No notes found for your search filters.")}
                   </Text>
                 </Centered>
               </Fade>

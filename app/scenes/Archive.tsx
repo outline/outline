@@ -17,9 +17,9 @@ function Archive() {
       <PaginatedDocumentList
         documents={documents.archived}
         fetch={documents.fetchArchived}
-        heading={<Subheading sticky>{t("Documents")}</Subheading>}
+        heading={<Subheading sticky>{t("Notes")}</Subheading>}
         empty={
-          <Empty>{t("The document archive is empty at the moment.")}</Empty>
+          <Empty>{t("The note archive is empty at the moment.")}</Empty>
         }
         showCollection
         showTemplate

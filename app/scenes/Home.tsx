@@ -55,7 +55,7 @@ function Home() {
       fetch={documents.fetchRecentlyViewed}
       empty={
         <Empty>
-          {t("Documents you’ve recently viewed will be here for easy access")}
+          {t("Notes you’ve recently viewed will be here for easy access")}
         </Empty>
       }
       showCollection
@@ -67,7 +67,7 @@ function Home() {
       icon={<HomeIcon />}
       title={t("Home")}
       left={
-        <InputSearchPage source="dashboard" label={t("Search documents")} />
+        <InputSearchPage source="dashboard" label={t("Search notes")} />
       }
       actions={
         <Action>
@@ -128,7 +128,7 @@ function Home() {
               fetch={documents.fetchPopular}
               empty={
                 <Empty>
-                  {t("Documents with recent activity will appear here")}
+                  {t("Notes with recent activity will appear here")}
                 </Empty>
               }
               showCollection
@@ -143,7 +143,7 @@ function Home() {
                 userId,
               }}
               empty={
-                <Empty>{t("You haven’t created any documents yet")}</Empty>
+                <Empty>{t("You haven’t created any notes yet")}</Empty>
               }
               showCollection
             />

@@ -19,7 +19,7 @@ function NewDocumentMenu() {
   }
 
   return (
-    <Tooltip content={t("New document")} shortcut="n" placement="bottom">
+    <Tooltip content={t("New note")} shortcut="n" placement="bottom">
       <Button
         as={Link}
         to={newDocumentPath()}
@@ -27,7 +27,7 @@ function NewDocumentMenu() {
         onPointerEnter={preloadEditor}
         onFocus={preloadEditor}
       >
-        {t("New doc")}
+        {t("New note")}
       </Button>
     </Tooltip>
   );

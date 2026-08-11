@@ -76,7 +76,7 @@ function ArchiveLink() {
         {expanded === true ? (
           <Relative>
             <PaginatedList<Collection>
-              aria-label={t("Archived collections")}
+              aria-label={t("Archived notebooks")}
               fetch={collections.fetchArchived}
               items={collections.archived}
               loading={<PlaceholderCollections />}

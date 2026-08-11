@@ -86,7 +86,7 @@ function Drafts() {
         empty={
           <Empty>
             {isFiltered
-              ? t("No documents found for your filters.")
+              ? t("No notes found for your filters.")
               : t("You’ve not got any drafts at the moment.")}
           </Empty>
         }
