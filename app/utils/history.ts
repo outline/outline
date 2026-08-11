@@ -5,11 +5,14 @@ import type {
   LocationState,
 } from "history";
 import { createBrowserHistory, createPath, parsePath } from "history";
+import { isMobile } from "@shared/utils/browser";
 import {
   getFocusedSplitPane,
   getSplitPath,
+  isSplitViewModifierPressed,
   isSplitViewNavigationSuppressed,
   isSplittablePath,
+  openRouteInSplit,
   setSplitPath,
 } from "./splitView";
 
@@ -107,8 +110,38 @@ function applySplitView(
 const browserPush = history.push.bind(history);
 const browserReplace = history.replace.bind(history);
 
-history.push = (to: LocationDescriptor, state?: LocationState) =>
-  browserPush(applySplitView(toLocationDescriptor(to, state), false));
+/**
+ * Whether a navigation should be redirected into the secondary pane of the
+ * split view because the split view modifier is held.
+ */
+function shouldOpenInSplit(descriptor: LocationDescriptorObject): boolean {
+  if (
+    isSplitViewNavigationSuppressed() ||
+    !isSplitViewModifierPressed() ||
+    isMobile()
+  ) {
+    return false;
+  }
+
+  // Location state cannot be represented in the split query parameter, so
+  // routes that rely on it must navigate normally.
+  return (
+    descriptor.state === undefined &&
+    !!descriptor.pathname &&
+    isSplittablePath(descriptor.pathname)
+  );
+}
+
+history.push = (to: LocationDescriptor, state?: LocationState) => {
+  const descriptor = toLocationDescriptor(to, state);
+
+  if (shouldOpenInSplit(descriptor)) {
+    openRouteInSplit(history, createPath(descriptor));
+    return;
+  }
+
+  browserPush(applySplitView(descriptor, false));
+};
 
 history.replace = (to: LocationDescriptor, state?: LocationState) =>
   browserReplace(applySplitView(toLocationDescriptor(to, state), true));

@@ -15,7 +15,6 @@ import type {
 } from "~/types";
 import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
-import { pushOrOpenInSplit } from "~/utils/splitView";
 import type { ActionImpl, Action as KbarAction } from "kbar";
 
 /** A command bar action, with the additional properties that Outline renders. */
@@ -347,17 +346,7 @@ export async function performAction(
     action.variant === "action"
       ? () => action.perform(context)
       : action.variant === "internal_link"
-        ? () => {
-            const to = resolve<LocationDescriptor>(action.to, context);
-
-            // Holding the modifier while triggering a command bar action
-            // opens the route in the secondary pane of the split view.
-            if (context.isCommandBar) {
-              pushOrOpenInSplit(history, to);
-            } else {
-              history.push(to);
-            }
-          }
+        ? () => history.push(resolve<LocationDescriptor>(action.to, context))
         : () => window.open(action.url, action.target);
 
   const result = perform();
