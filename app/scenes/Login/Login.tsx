@@ -6,6 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { getCookie, setCookie } from "tiny-cookie";
+import { currentRole } from "../../../src/mocks/shop";
 import { s } from "@shared/styles";
 import { Client, UserPreference } from "@shared/types";
 import { isPWA } from "@shared/utils/browser";
@@ -34,6 +35,7 @@ import useStores from "~/hooks/useStores";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
+import { homePath } from "~/utils/routeHelpers";
 import AuthenticationProvider from "./components/AuthenticationProvider";
 import { BackButton } from "./components/BackButton";
 import { Background } from "./components/Background";
@@ -143,6 +145,10 @@ function Login({ children, onBack }: Props) {
 
     if (auth.team?.defaultCollectionId) {
       return <Redirect to={`/collection/${auth.team?.defaultCollectionId}`} />;
+    }
+
+    if (!currentRole()) {
+      return <Redirect to={homePath()} />;
     }
 
     return <Redirect to="/dashboard" />;

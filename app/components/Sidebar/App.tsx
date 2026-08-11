@@ -139,7 +139,7 @@ function AppSidebar() {
                   <Collections />
                 </Section>
                 {can.createDocument && (
-                  <Section auto>
+                  <Section>
                     <ArchiveLink />
                   </Section>
                 )}

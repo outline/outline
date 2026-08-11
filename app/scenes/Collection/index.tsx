@@ -151,8 +151,8 @@ const CollectionScene = observer(function CollectionScene_() {
         ) : (
           <InputSearchPage
             source="collection"
-            placeholder={`${t("Search in collection")}…`}
-            label={t("Search in collection")}
+            placeholder={`${t("Search in notebook")}…`}
+            label={t("Search in notebook")}
             collectionId={collection.id}
           />
         )

@@ -278,9 +278,9 @@ function Search() {
             ref={searchInputRef}
             placeholder={`${
               documentId
-                ? t("Search in document")
+                ? t("Search in note")
                 : collectionId
-                  ? t("Search in collection")
+                  ? t("Search in notebook")
                   : t("Search")
             }…`}
             onKeyDown={handleKeyDown}
