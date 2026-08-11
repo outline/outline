@@ -483,13 +483,9 @@ export const DocumentsCreateSchema = BaseSchema.extend({
   )
   .refine(
     (req) =>
-      !(
-        req.body.createdById &&
-        !req.body.parentDocumentId &&
-        !req.body.collectionId
-      ),
+      !(req.body.createdById && !(req.body.collectionId && req.body.publish)),
     {
-      message: "collectionId or parentDocumentId is required with createdById",
+      message: "collectionId and publish are required with createdById",
     }
   );
 

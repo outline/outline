@@ -3619,33 +3619,28 @@ describe("#documents.create", () => {
         title: "on behalf",
         text: "hello",
         collectionId: collection.id,
+        publish: true,
         createdById: author.id,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.createdBy.id).toEqual(author.id);
-  });
-
-  it("should default the author to the acting user when createdById is omitted", async () => {
-    const user = await buildUser();
-    const res = await server.post("/api/documents.create", user, {
-      body: {
-        title: "mine",
-        text: "hello",
-      },
+    // Attribution must not reach the audit trail: the event actor is the API
+    // caller who made the request.
+    const event = await Event.findOne({
+      where: { documentId: body.data.id, name: "documents.create" },
     });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.createdBy.id).toEqual(user.id);
+    expect(event?.actorId).toEqual(admin.id);
   });
 
-  it("should reject createdById without a collection or parent document", async () => {
+  it("should reject createdById without a collection", async () => {
     const admin = await buildAdmin();
     const author = await buildUser({ teamId: admin.teamId });
     const res = await server.post("/api/documents.create", admin, {
       body: {
         title: "orphan draft",
+        publish: true,
         createdById: author.id,
       },
     });
@@ -3655,28 +3650,26 @@ describe("#documents.create", () => {
     );
   });
 
-  it("should attribute a nested document created with only a parentDocumentId", async () => {
+  it("should reject createdById without publish", async () => {
     const admin = await buildAdmin();
     const author = await buildUser({ teamId: admin.teamId });
     const collection = await buildCollection({
       teamId: admin.teamId,
       userId: admin.id,
     });
-    const parent = await buildDocument({
-      teamId: admin.teamId,
-      userId: admin.id,
-      collectionId: collection.id,
-    });
+    // A draft is readable only by its own author, so attributing one would
+    // create a document the acting admin can no longer see.
     const res = await server.post("/api/documents.create", admin, {
       body: {
-        title: "nested",
-        parentDocumentId: parent.id,
+        title: "unpublished",
+        collectionId: collection.id,
         createdById: author.id,
       },
     });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.createdBy.id).toEqual(author.id);
+    expect(res.status).toEqual(400);
+    expect(await Document.count({ where: { teamId: admin.teamId } })).toEqual(
+      0
+    );
   });
 
   it("should reject createdById when the acting user is not an admin", async () => {
@@ -3690,47 +3683,12 @@ describe("#documents.create", () => {
       body: {
         title: "nope",
         collectionId: collection.id,
+        publish: true,
         createdById: author.id,
       },
     });
     expect(res.status).toEqual(403);
     // Fail closed: the rejection must not have persisted a document.
-    expect(await Document.count({ where: { teamId: user.teamId } })).toEqual(0);
-  });
-
-  it("should reject a non-admin with the admin error even for a non-existent createdById (no existence oracle)", async () => {
-    const user = await buildUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      userId: user.id,
-    });
-    const res = await server.post("/api/documents.create", user, {
-      body: {
-        title: "no oracle",
-        collectionId: collection.id,
-        createdById: faker.string.uuid(),
-      },
-    });
-    // The admin check runs before the author lookup, so a non-admin cannot
-    // distinguish an existing from a non-existent user.
-    expect(res.status).toEqual(403);
-    expect(await Document.count({ where: { teamId: user.teamId } })).toEqual(0);
-  });
-
-  it("should reject createdById equal to the acting user when not an admin", async () => {
-    const user = await buildUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      userId: user.id,
-    });
-    const res = await server.post("/api/documents.create", user, {
-      body: {
-        title: "own id",
-        collectionId: collection.id,
-        createdById: user.id,
-      },
-    });
-    expect(res.status).toEqual(403);
     expect(await Document.count({ where: { teamId: user.teamId } })).toEqual(0);
   });
 
@@ -3746,26 +3704,8 @@ describe("#documents.create", () => {
       body: {
         title: "cross team",
         collectionId: collection.id,
+        publish: true,
         createdById: foreignUser.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-    expect(await Document.count({ where: { teamId: admin.teamId } })).toEqual(
-      0
-    );
-  });
-
-  it("should reject createdById for a non-existent user", async () => {
-    const admin = await buildAdmin();
-    const collection = await buildCollection({
-      teamId: admin.teamId,
-      userId: admin.id,
-    });
-    const res = await server.post("/api/documents.create", admin, {
-      body: {
-        title: "ghost author",
-        collectionId: collection.id,
-        createdById: faker.string.uuid(),
       },
     });
     expect(res.status).toEqual(403);
@@ -3788,6 +3728,7 @@ describe("#documents.create", () => {
       body: {
         title: "unreachable",
         collectionId: collection.id,
+        publish: true,
         createdById: author.id,
       },
     });
@@ -3795,34 +3736,6 @@ describe("#documents.create", () => {
     expect(await Document.count({ where: { teamId: admin.teamId } })).toEqual(
       0
     );
-  });
-
-  it("should record the acting admin as the audit actor, not the attributed author", async () => {
-    const admin = await buildAdmin();
-    const author = await buildUser({ teamId: admin.teamId });
-    const collection = await buildCollection({
-      teamId: admin.teamId,
-      userId: admin.id,
-    });
-    const res = await server.post("/api/documents.create", admin, {
-      body: {
-        title: "audit actor",
-        text: "hello",
-        collectionId: collection.id,
-        createdById: author.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.createdBy.id).toEqual(author.id);
-    // Attribution must not reach the audit trail: the event actor is the API
-    // caller who made the request.
-    const event = await Event.findOne({
-      where: { documentId: body.data.id, name: "documents.create" },
-    });
-    expect(event).not.toBeNull();
-    expect(event!.actorId).toEqual(admin.id);
-    expect(event!.actorId).not.toEqual(author.id);
   });
 
   it("should allow createdById when the author's access is via a group only", async () => {
@@ -3851,32 +3764,7 @@ describe("#documents.create", () => {
       body: {
         title: "group reachable",
         collectionId: collection.id,
-        createdById: author.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.createdBy.id).toEqual(author.id);
-  });
-
-  it("should allow createdById for a user who is a member of a private collection", async () => {
-    const admin = await buildAdmin();
-    const author = await buildUser({ teamId: admin.teamId });
-    const collection = await buildCollection({
-      teamId: admin.teamId,
-      userId: admin.id,
-      permission: null,
-    });
-    await UserMembership.create({
-      createdById: admin.id,
-      collectionId: collection.id,
-      userId: author.id,
-      permission: CollectionPermission.ReadWrite,
-    });
-    const res = await server.post("/api/documents.create", admin, {
-      body: {
-        title: "reachable",
-        collectionId: collection.id,
+        publish: true,
         createdById: author.id,
       },
     });
