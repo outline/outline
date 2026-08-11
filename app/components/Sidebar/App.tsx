@@ -7,7 +7,6 @@ import {
 } from "./components/DragActiveContext";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import styled from "styled-components";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Scrollable from "~/components/Scrollable";
 import { navigateToImport } from "~/actions/definitions/navigation";
@@ -28,6 +27,7 @@ import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
 import HistoryNavigation from "./components/HistoryNavigation";
+import Header from "./components/Header";
 import { ShopLinks } from "./components/ShopLinks";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
@@ -106,55 +106,43 @@ function AppSidebar() {
             )}
           </SidebarButton>
         </TeamMenu>
-        <Overflow>
-          <Section>
-            <SidebarLink
-              to={homePath()}
-              icon={<HomeIcon />}
-              exact={false}
-              label={t("Home")}
-              onClickIntent={Scenes.Home.preload}
-            />
-            <SidebarLink
-              to={searchPath()}
-              icon={<SearchIcon />}
-              label={t("Search")}
-              exact={false}
-              onClick={handleSearchClick}
-              onClickIntent={Scenes.Search.preload}
-            />
-            {can.createDocument && <DraftsLink />}
-          </Section>
-        </Overflow>
         <Scrollable flex shadow ref={scrollRef}>
           <SidebarScrollProvider value={scrollArea}>
             <Section>
               <ShopLinks />
             </Section>
             <Section>
-              <Starred />
-            </Section>
-            <Section>
-              <SharedWithMe />
-            </Section>
-            <Section>
-              <Collections />
-            </Section>
-            {can.createDocument && (
-              <Section auto>
-                <ArchiveLink />
-              </Section>
-            )}
-            <Section>
-              {can.createDocument && <TrashLink />}
-              <DismissableSidebarAction
-                id="sidebar-import-hidden"
-                action={navigateToImport}
-              />
-              <DismissableSidebarAction
-                id="sidebar-invite-hidden"
-                action={inviteUser}
-              />
+              <Header id="notes" title={t("Notes")}>
+                <SidebarLink
+                  to={homePath()}
+                  icon={<HomeIcon />}
+                  exact={false}
+                  label={t("Home")}
+                  onClickIntent={Scenes.Home.preload}
+                />
+                <SidebarLink
+                  to={searchPath()}
+                  icon={<SearchIcon />}
+                  label={t("Search")}
+                  exact={false}
+                  onClick={handleSearchClick}
+                  onClickIntent={Scenes.Search.preload}
+                />
+                {can.createDocument && <DraftsLink />}
+                <Starred />
+                <SharedWithMe />
+                <Collections />
+                {can.createDocument && <ArchiveLink />}
+                {can.createDocument && <TrashLink />}
+                <DismissableSidebarAction
+                  id="sidebar-import-hidden"
+                  action={navigateToImport}
+                />
+                <DismissableSidebarAction
+                  id="sidebar-invite-hidden"
+                  action={inviteUser}
+                />
+              </Header>
             </Section>
           </SidebarScrollProvider>
         </Scrollable>
@@ -163,10 +151,5 @@ function AppSidebar() {
     </Sidebar>
   );
 }
-
-const Overflow = styled.div`
-  overflow: hidden;
-  flex-shrink: 0;
-`;
 
 export default observer(AppSidebar);

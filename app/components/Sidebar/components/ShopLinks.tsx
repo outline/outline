@@ -17,7 +17,6 @@ import {
   GlobeIcon,
 } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import Header from "./Header";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import { canAccessRoute } from "../../../../src/mocks/access";
@@ -48,11 +47,12 @@ const LINKS = [
 /**
  * Navigation for the shop pages.
  *
- * Kept in its own section so the wiki navigation above it is untouched. Only
- * the destinations this person's role can open are offered, so the sidebar is
- * not a list of doors that turn them away.
+ * This is the sidebar's primary, unlabeled navigation — the pet-store app's
+ * main nav, not a section bolted onto the wiki's. Only the destinations
+ * this person's role can open are offered, so the sidebar is not a list of
+ * doors that turn them away.
  *
- * @returns the rendered sidebar section.
+ * @returns the rendered sidebar links.
  */
 export function ShopLinks() {
   const { t } = useTranslation();
@@ -66,18 +66,16 @@ export function ShopLinks() {
 
   return (
     <Relative>
-      <Header id="store" title={t("Store")}>
-        <BranchSwitcher />
-        {links.map((link) => (
-          <SidebarLink
-            key={link.to}
-            to={link.to}
-            icon={link.icon}
-            exact={link.exact}
-            label={t(link.label)}
-          />
-        ))}
-      </Header>
+      <BranchSwitcher />
+      {links.map((link) => (
+        <SidebarLink
+          key={link.to}
+          to={link.to}
+          icon={link.icon}
+          exact={link.exact}
+          label={t(link.label)}
+        />
+      ))}
     </Relative>
   );
 }
