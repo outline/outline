@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-unresolved
 import "vite/modulepreload-polyfill";
-import { LazyMotion } from "framer-motion";
+import { LazyMotion, domMax } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
 import { configure as configureMobx } from "mobx";
@@ -32,11 +32,6 @@ import { ActionContextProvider } from "./hooks/useActionContext";
 
 // Load plugins as soon as possible
 void PluginManager.loadPlugins();
-
-// Motion features are loaded async to keep them out of the initial bundle,
-// animations begin once loaded.
-const loadMotionFeatures = () =>
-  import("~/utils/motionFeatures").then((mod) => mod.default);
 
 initI18n(env.DEFAULT_LANGUAGE);
 
@@ -76,7 +71,7 @@ if (element) {
                   <ErrorBoundary showTitle>
                     <KBarProvider actions={[]} options={commandBarOptions}>
                       <LazyPolyfill>
-                        <LazyMotion features={loadMotionFeatures}>
+                        <LazyMotion features={domMax}>
                           <PageScroll>
                             <PageTheme />
                             <ScrollToTop>
