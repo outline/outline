@@ -52,7 +52,7 @@ function Drafts() {
     <Scene
       icon={<DraftsIcon />}
       title={t("Drafts")}
-      left={<InputSearchPage source="drafts" label={t("Search documents")} />}
+      left={<InputSearchPage source="drafts" label={t("Search notes")} />}
       actions={
         <Action>
           <NewDocumentMenu />
@@ -61,7 +61,7 @@ function Drafts() {
     >
       <Heading>{t("Drafts")}</Heading>
       <Subheading sticky>
-        {t("Documents")}
+        {t("Notes")}
         <Filters>
           <CollectionFilter
             collectionId={collectionId}
