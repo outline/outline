@@ -129,19 +129,31 @@ function AppSidebar() {
                   onClickIntent={Scenes.Search.preload}
                 />
                 {can.createDocument && <DraftsLink />}
-                <Starred />
-                <SharedWithMe />
-                <Collections />
-                {can.createDocument && <ArchiveLink />}
-                {can.createDocument && <TrashLink />}
-                <DismissableSidebarAction
-                  id="sidebar-import-hidden"
-                  action={navigateToImport}
-                />
-                <DismissableSidebarAction
-                  id="sidebar-invite-hidden"
-                  action={inviteUser}
-                />
+                <Section>
+                  <Starred />
+                </Section>
+                <Section>
+                  <SharedWithMe />
+                </Section>
+                <Section>
+                  <Collections />
+                </Section>
+                {can.createDocument && (
+                  <Section auto>
+                    <ArchiveLink />
+                  </Section>
+                )}
+                <Section>
+                  {can.createDocument && <TrashLink />}
+                  <DismissableSidebarAction
+                    id="sidebar-import-hidden"
+                    action={navigateToImport}
+                  />
+                  <DismissableSidebarAction
+                    id="sidebar-invite-hidden"
+                    action={inviteUser}
+                  />
+                </Section>
               </Header>
             </Section>
           </SidebarScrollProvider>
