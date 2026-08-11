@@ -25,3 +25,4 @@ data/*
 .yarn/releases
 !.yarn/sdks
 storybook-static/
+.superpowers/
