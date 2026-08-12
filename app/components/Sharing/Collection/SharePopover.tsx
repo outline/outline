@@ -60,7 +60,7 @@ function SharePopover({
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const [permission, setPermission] = React.useState<CollectionPermission>(
-    CollectionPermission.Read
+    collection.permission ?? CollectionPermission.Read
   );
 
   const share = shares.getByCollectionId(collection.id);
