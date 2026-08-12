@@ -1798,6 +1798,25 @@ describe("ProsemirrorHelper", () => {
       ).toThrow(/^anchorText was not found in the document$/);
     });
 
+    it("does not suggest text when anchorText is very long", () => {
+      const text = "lorem ipsum dolor sit amet ".repeat(50);
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text }],
+        },
+      ]);
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: `${text}and more`,
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(/^anchorText was not found in the document$/);
+    });
+
     describe("with markdown formatted anchorText", () => {
       // Callers commonly read a document as markdown and then anchor using a
       // substring of it, which does not exist verbatim in the plain text.

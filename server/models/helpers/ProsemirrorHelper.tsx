@@ -1265,7 +1265,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       const closest = ProsemirrorHelper.findClosestText(doc, text);
       throw ValidationError(
         closest
-          ? `anchorText was not found in the document, the closest text is "${closest}"`
+          ? `anchorText was not found in the document, the closest text is ${JSON.stringify(closest)}`
           : "anchorText was not found in the document"
       );
     }
@@ -1557,11 +1557,23 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * point callers at a usable anchor when their text cannot be resolved.
    */
   private static findClosestText(doc: Node, needle: string): string | null {
+    // Text this long is unlikely to be a single block, and comparing it is
+    // not worth the cost.
+    if (!needle.length || needle.length > 1000) {
+      return null;
+    }
+
     // At most half of the text may differ for a block to be a suggestion.
     let limit = Math.floor(needle.length / 2);
     let closest: string | null = null;
 
     for (const block of textBetween(doc, 0, doc.content.size).split("\n")) {
+      // Two strings differ by at least the difference in their lengths, so
+      // most blocks can be discarded without comparing them.
+      if (Math.abs(block.length - needle.length) > limit) {
+        continue;
+      }
+
       const distance = ukkonen(needle, block, limit + 1);
       if (distance <= limit) {
         limit = distance;
