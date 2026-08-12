@@ -1,6 +1,7 @@
 import emojiRegex from "emoji-regex";
 import type { JSDOM } from "jsdom";
 import { chunk, isMatch } from "es-toolkit/compat";
+import ukkonen from "ukkonen";
 import { EditorState, type Plugin } from "prosemirror-state";
 import {
   DecorationSet,
@@ -1222,6 +1223,9 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * text equals `prefix` and immediately following text equals `suffix` is
    * used. Empty or omitted prefix/suffix imposes no constraint on that side.
    *
+   * Callers commonly take the text from the document's markdown, so when
+   * there is no match the text is converted from markdown and matched again.
+   *
    * @param params.docState The current Yjs document state.
    * @param params.anchorText The plain text substring to anchor the comment to.
    * @param params.commentId The comment identifier.
@@ -1249,13 +1253,21 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     const yjsDoc = new Y.Doc();
     Y.applyUpdate(yjsDoc, docState);
     const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(yjsDoc, "default"));
-    const range = ProsemirrorHelper.findTextRange(doc, anchorText, {
-      prefix,
-      suffix,
-    });
+    const text = ProsemirrorHelper.markdownToPlainText(anchorText);
+    const range =
+      ProsemirrorHelper.findTextRange(doc, anchorText, { prefix, suffix }) ??
+      ProsemirrorHelper.findTextRange(doc, text, {
+        prefix: prefix && ProsemirrorHelper.markdownToPlainText(prefix),
+        suffix: suffix && ProsemirrorHelper.markdownToPlainText(suffix),
+      });
 
     if (!range) {
-      throw ValidationError("anchorText was not found in the document");
+      const closest = ProsemirrorHelper.findClosestText(doc, text);
+      throw ValidationError(
+        closest
+          ? `anchorText was not found in the document, the closest text is ${JSON.stringify(closest)}`
+          : "anchorText was not found in the document"
+      );
     }
 
     try {
@@ -1523,5 +1535,52 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     }
 
     return { from, to };
+  }
+
+  /**
+   * Converts markdown text to the plain text it represents, preserving any
+   * surrounding whitespace, which markdown parsing would otherwise discard.
+   */
+  private static markdownToPlainText(text: string): string {
+    const leading = text.slice(0, text.length - text.trimStart().length);
+    const trailing = text.slice(text.trimEnd().length);
+    const doc = parser.parse(text.trim());
+
+    return doc
+      ? leading + textBetween(doc, 0, doc.content.size) + trailing
+      : text;
+  }
+
+  /**
+   * Returns the block of the document's plain text that most closely
+   * resembles `needle`, or null if none resembles it closely enough. Used to
+   * point callers at a usable anchor when their text cannot be resolved.
+   */
+  private static findClosestText(doc: Node, needle: string): string | null {
+    // Text this long is unlikely to be a single block, and comparing it is
+    // not worth the cost.
+    if (!needle.length || needle.length > 1000) {
+      return null;
+    }
+
+    // At most half of the text may differ for a block to be a suggestion.
+    let limit = Math.floor(needle.length / 2);
+    let closest: string | null = null;
+
+    for (const block of textBetween(doc, 0, doc.content.size).split("\n")) {
+      // Two strings differ by at least the difference in their lengths, so
+      // most blocks can be discarded without comparing them.
+      if (Math.abs(block.length - needle.length) > limit) {
+        continue;
+      }
+
+      const distance = ukkonen(needle, block, limit + 1);
+      if (distance <= limit) {
+        limit = distance;
+        closest = block;
+      }
+    }
+
+    return closest;
   }
 }
