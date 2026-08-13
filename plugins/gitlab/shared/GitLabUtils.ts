@@ -1,6 +1,6 @@
 import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
-import { UnfurlResourceType } from "@shared/types";
+import { MentionType, UnfurlResourceType } from "@shared/types";
 
 export const GitLabOAuthNonceCookie = "gitlabOAuthNonce";
 
@@ -232,6 +232,32 @@ export class GitLabUtils {
       };
     } catch {
       return;
+    }
+  }
+
+  /**
+   * Determines the type of mention a GitLab URL represents.
+   *
+   * @param url the URL to evaluate.
+   * @param customUrl optional custom GitLab URL from integration settings.
+   * @returns the mention type, or undefined if this is not a GitLab URL for a
+   * resource that can be mentioned.
+   */
+  public static mentionType(
+    url: URL,
+    customUrl?: string
+  ): MentionType | undefined {
+    const parsed = this.parseUrl(url.toString(), customUrl);
+
+    switch (parsed?.type) {
+      case UnfurlResourceType.PR:
+        return MentionType.PullRequest;
+      case UnfurlResourceType.Issue:
+        return MentionType.Issue;
+      case UnfurlResourceType.Project:
+        return MentionType.Project;
+      default:
+        return undefined;
     }
   }
 

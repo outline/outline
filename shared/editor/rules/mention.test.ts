@@ -1,4 +1,5 @@
 import markdownit from "markdown-it";
+import { MentionType } from "../../types";
 import mentionRule from "./mention";
 
 function findMentionTokens(tokens: ReturnType<markdownit["parse"]>) {
@@ -169,61 +170,27 @@ describe("mention rule", () => {
   });
 
   describe("external links", () => {
-    it("should parse a GitHub issue link as an issue mention", () => {
-      const result = md.parse(
-        "@[Fix parser](https://github.com/acme/infra/issues/2)",
-        {}
-      );
-      const mentions = findMentionTokens(result);
-
-      expect(mentions).toHaveLength(1);
-      expect(mentions[0].type).toBe("issue");
-      expect(mentions[0].href).toBe("https://github.com/acme/infra/issues/2");
-      expect(mentions[0].label).toBe("Fix parser");
-      expect(mentions[0].id).toBeTruthy();
-      expect(mentions[0].modelId).toBeTruthy();
-    });
-
-    it("should parse a GitHub pull request link as a pull request mention", () => {
-      const result = md.parse(
-        "@[Add parser](https://github.com/acme/infra/pull/5)",
-        {}
-      );
-      const mentions = findMentionTokens(result);
-
-      expect(mentions).toHaveLength(1);
-      expect(mentions[0].type).toBe("pull_request");
-    });
-
-    it("should parse a Linear issue link as an issue mention", () => {
-      const result = md.parse(
-        "@[OLN-1](https://linear.app/outline/issue/OLN-1/fix-parser)",
-        {}
-      );
-      const mentions = findMentionTokens(result);
-
-      expect(mentions).toHaveLength(1);
-      expect(mentions[0].type).toBe("issue");
-    });
-
-    it("should parse an unrecognized link as a url mention", () => {
+    it("should parse an external link as a generic mention carrying the href", () => {
       const result = md.parse("@[Example](https://example.com/page)", {});
       const mentions = findMentionTokens(result);
 
       expect(mentions).toHaveLength(1);
-      expect(mentions[0].type).toBe("url");
+      expect(mentions[0].type).toBe(MentionType.URL);
       expect(mentions[0].href).toBe("https://example.com/page");
+      expect(mentions[0].label).toBe("Example");
+      expect(mentions[0].id).toBeTruthy();
+      expect(mentions[0].modelId).toBeTruthy();
     });
 
     it("should parse an external link within text", () => {
       const result = md.parse(
-        "Please review @[Fix parser](https://github.com/acme/infra/issues/2) today",
+        "Please review @[Example](https://example.com/page) today",
         {}
       );
       const mentions = findMentionTokens(result);
 
       expect(mentions).toHaveLength(1);
-      expect(mentions[0].type).toBe("issue");
+      expect(mentions[0].href).toBe("https://example.com/page");
     });
 
     it("should not parse a link with an unsupported protocol", () => {

@@ -988,6 +988,25 @@ describe("ProsemirrorHelper", () => {
       expect(paragraph.content.child(0).text).toBe("Please review ");
     });
 
+    it("should convert an @ prefixed GitHub pull request link", () => {
+      const markdown = "@[Add parser](https://github.com/acme/infra/pull/5)";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+      const mention = doc.content.child(0).content.child(0);
+
+      expect(mention.attrs.type).toBe(MentionType.PullRequest);
+    });
+
+    it("should convert an @ prefixed link to an unclaimed host to a url mention", () => {
+      const markdown = "@[Example](https://example.com/page)";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+      const mention = doc.content.child(0).content.child(0);
+
+      expect(mention.attrs.type).toBe(MentionType.URL);
+      expect(mention.attrs.href).toBe("https://example.com/page");
+    });
+
     it("should keep a link without an @ prefix as a link", () => {
       const markdown =
         "Please review [Fix parser](https://github.com/acme/infra/issues/2)";
@@ -1002,7 +1021,7 @@ describe("ProsemirrorHelper", () => {
       ).toBe(true);
     });
 
-    it("should round-trip an issue mention through Markdown", () => {
+    it("should round-trip an external mention through Markdown", () => {
       const markdown = "@[Fix parser](https://github.com/acme/infra/issues/2)";
 
       const doc = ProsemirrorHelper.toProsemirror(markdown);

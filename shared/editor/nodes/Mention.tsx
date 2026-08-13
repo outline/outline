@@ -57,6 +57,15 @@ const ExternalMentionTypes: MentionType[] = [
   MentionType.URL,
 ];
 
+/** The mention type that represents each kind of unfurled resource. */
+const MentionTypeForResource: Partial<Record<UnfurlResourceType, MentionType>> =
+  {
+    [UnfurlResourceType.Issue]: MentionType.Issue,
+    [UnfurlResourceType.PR]: MentionType.PullRequest,
+    [UnfurlResourceType.Project]: MentionType.Project,
+    [UnfurlResourceType.URL]: MentionType.URL,
+  };
+
 export default class Mention extends Node {
   get name() {
     return "mention";
@@ -448,6 +457,18 @@ export default class Mention extends Node {
 
       const overrides: Record<string, unknown> = label ? { label } : {};
       overrides.unfurl = unfurl;
+
+      // The resource an external link points at is only known once it has been
+      // unfurled, so narrow a generic URL mention to the type it turned out to
+      // be – an issue, pull request or project.
+      const unfurledType = MentionTypeForResource[unfurl.type];
+      if (
+        unfurledType &&
+        node.attrs.type === MentionType.URL &&
+        unfurledType !== node.attrs.type
+      ) {
+        overrides.type = unfurledType;
+      }
 
       const pos = getPos();
 

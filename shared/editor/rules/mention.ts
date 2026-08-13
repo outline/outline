@@ -2,7 +2,7 @@ import type MarkdownIt from "markdown-it";
 import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
 import type Token from "markdown-it/lib/token.mjs";
 import { v4 as uuidv4 } from "uuid";
-import { determineMentionTypeFromURL } from "@shared/utils/mention";
+import { MentionType } from "../../types";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { sanitizeUrl } from "@shared/utils/urls";
 
@@ -18,13 +18,13 @@ function isMentionHref(href: string) {
 }
 
 /**
- * Parse an external href that can be represented as a mention, such as a link
- * to a GitHub issue.
+ * Parse an href that points at an external resource that can be represented as
+ * a mention.
  *
  * @param href the URL string to parse.
- * @returns the parsed URL, or undefined when it cannot be mentioned.
+ * @returns the parsed URL, or undefined when the href cannot be mentioned.
  */
-function parseMentionableHref(href: string): URL | undefined {
+function parseExternalHref(href: string): URL | undefined {
   try {
     const url = new URL(href);
     return url.protocol === "http:" || url.protocol === "https:"
@@ -105,7 +105,7 @@ function parseMentions(state: StateCore) {
         !(
           attr &&
           attr[0] === "href" &&
-          (isMentionHref(attr[1]) || parseMentionableHref(attr[1]))
+          (isMentionHref(attr[1]) || parseExternalHref(attr[1]))
         )
       ) {
         return false;
@@ -124,17 +124,18 @@ function parseMentions(state: StateCore) {
       // href must be present, otherwise the href test would've failed
       // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
       const href = openToken.attrs![0][1];
+      const mentionToken = new state.Token("mention", "", 0);
       const externalUrl = isMentionHref(href)
         ? undefined
-        : parseMentionableHref(href);
-
-      const mentionToken = new state.Token("mention", "", 0);
+        : parseExternalHref(href);
 
       if (externalUrl) {
         // External links carry their identity in the href, so the ids are
-        // generated the same way a paste in the editor would.
+        // generated the same way a paste in the editor would. The mention is
+        // generic here and is narrowed to the resource it points at by the
+        // service that recognizes the URL.
         mentionToken.attrSet("id", uuidv4());
-        mentionToken.attrSet("type", determineMentionTypeFromURL(externalUrl));
+        mentionToken.attrSet("type", MentionType.URL);
         mentionToken.attrSet("modelId", uuidv4());
         mentionToken.attrSet("href", href);
       } else {
