@@ -288,6 +288,12 @@ router.post(
     });
     authorize(user, "listRevisions", document);
 
+    // History remains visible for a document in the trash,
+    // but only to those that could restore it.
+    if (document.deletedAt) {
+      authorize(user, "restore", document);
+    }
+
     const revisions = await Revision.findAll({
       attributes: {
         exclude: ["content", "text"],

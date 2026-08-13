@@ -1,4 +1,4 @@
-import { ExportContentType } from "@shared/types";
+import { DocumentPermission, ExportContentType } from "@shared/types";
 import { createContext } from "@server/context";
 import { UserMembership, Revision } from "@server/models";
 import FileStorage from "@server/storage/files";
@@ -227,6 +227,56 @@ describe("#revisions.list", () => {
         collectionId: collection.id,
       },
     });
+    const res = await server.post("/api/revisions.list", user, {
+      body: {
+        documentId: document.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should return revisions for a deleted document to a user that can restore it", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await Revision.createFromDocument(createContext({ user }), document);
+    await document.destroy();
+    const res = await server.post("/api/revisions.list", user, {
+      body: {
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
+  it("should not return revisions for a deleted document to a read-only user", async () => {
+    const author = await buildUser();
+    const user = await buildUser({ teamId: author.teamId });
+    const collection = await buildCollection({
+      userId: author.id,
+      teamId: author.teamId,
+      permission: null,
+    });
+    const document = await buildDocument({
+      userId: author.id,
+      collectionId: collection.id,
+      teamId: author.teamId,
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: user.id,
+      createdById: author.id,
+      permission: DocumentPermission.Read,
+    });
+    await Revision.createFromDocument(
+      createContext({ user: author }),
+      document
+    );
+    await document.destroy();
     const res = await server.post("/api/revisions.list", user, {
       body: {
         documentId: document.id,
