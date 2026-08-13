@@ -14,7 +14,7 @@ import {
   CollectionsSection,
   DocumentsSection,
   GroupSection,
-  UserSection,
+  MentionUserSection,
 } from "~/actions/sections";
 import { Avatar, AvatarSize, GroupAvatar } from "~/components/Avatar";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
@@ -61,7 +61,7 @@ export function userMentionItem(
       </Flex>
     ),
     title: user.name,
-    section: UserSection,
+    section: MentionUserSection,
     appendSpace: true,
     attrs: {
       id: uuidv4(),
