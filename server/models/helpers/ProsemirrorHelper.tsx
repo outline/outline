@@ -418,10 +418,15 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     return replaceDocumentReferencesInner(json);
   }
 
-  static async replaceInternalUrls(
-    doc: Node | ProsemirrorData,
-    basePath: string
-  ) {
+  /**
+   * Prefixes internal document and collection links with the given base path.
+   *
+   * @param doc The prosemirror document or JSON data
+   * @param basePath The base path to prefix internal links with, without a trailing slash
+   * @returns The document data with internal links rewritten
+   * @throws If the base path ends with a slash.
+   */
+  static replaceInternalUrls(doc: Node | ProsemirrorData, basePath: string) {
     const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
 
     if (basePath.endsWith("/")) {
