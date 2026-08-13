@@ -13,6 +13,7 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { parser, serializer, schema } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import { addTags } from "@server/logging/tracer";
@@ -142,7 +143,7 @@ export class DocumentHelper {
     }
   ): Promise<ProsemirrorData> {
     let doc: Node | null;
-    let data;
+    let data: ProsemirrorData;
 
     if ("content" in document && document.content) {
       // Optimized path for documents with content available and no transformation required.
@@ -171,7 +172,7 @@ export class DocumentHelper {
         options.signedUrls
       );
     } else {
-      data = doc?.toJSON() ?? {};
+      data = doc?.toJSON() ?? ProsemirrorDataHelper.getEmpty();
     }
 
     if (options?.internalUrlBase) {

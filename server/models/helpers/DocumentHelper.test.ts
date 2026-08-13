@@ -86,6 +86,42 @@ describe("DocumentHelper", () => {
       const result = await DocumentHelper.toJSON(document);
       expect(result === document.content).toBe(true);
     });
+
+    it("should remove marks and replace internal urls together", async () => {
+      const document = await buildDocument({
+        text: "link",
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "link",
+                  marks: [
+                    {
+                      type: "comment",
+                      attrs: { id: "comment-123", userId: "user-123" },
+                    },
+                    { type: "link", attrs: { href: "/doc/internal-123" } },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+      const result = await DocumentHelper.toJSON(document, {
+        removeMarks: ["comment"],
+        internalUrlBase: "/s/share-123",
+      });
+
+      const marks = result.content?.[0].content?.[0].marks;
+      expect(marks?.map((mark) => mark.type)).toEqual(["link"]);
+      expect(marks?.[0].attrs?.href).toBe("/s/share-123/doc/internal-123");
+    });
   });
 
   describe("toHTML", () => {
