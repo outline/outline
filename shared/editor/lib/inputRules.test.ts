@@ -105,6 +105,15 @@ describe("applyInputRules", () => {
     expect(result.doc.firstChild?.attrs.language).toBe("json");
   });
 
+  it("ignores inherited Object prototype keys as languages", () => {
+    const testDoc = doc([p("```constructor")]);
+
+    const result = type(testDoc, "```constructor", " ");
+
+    expect(result.doc.firstChild?.type.spec.code).toBe(true);
+    expect(result.doc.firstChild?.attrs.language).toBe("javascript");
+  });
+
   it("falls back to the default language when unrecognized", () => {
     const testDoc = doc([p("```notalanguage")]);
 

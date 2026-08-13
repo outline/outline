@@ -699,10 +699,12 @@ export default class CodeFence extends Node<CodeFenceOptions> {
       textblockTypeInputRule(/^```([a-zA-Z0-9+#-]*)\s$/, type, (match) => {
         const language = match[1].toLowerCase();
         return {
-          language:
-            language in codeLanguages
-              ? language
-              : (getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE),
+          language: Object.prototype.hasOwnProperty.call(
+            codeLanguages,
+            language
+          )
+            ? language
+            : (getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE),
         };
       }),
     ];
