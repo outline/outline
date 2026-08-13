@@ -62,16 +62,17 @@ export function parseDomain(url: string): Domain {
 
   const host = normalizeUrl(url);
   const baseDomain = getBaseDomain();
+  const suffix = `.${baseDomain}`;
 
-  // if the url doesn't include the base url, then it must be a custom domain
-  const baseUrlStart = host === baseDomain ? 0 : host.indexOf(`.${baseDomain}`);
-
-  if (baseUrlStart === -1) {
+  // the host must be the base domain, or end with it on a label boundary,
+  // otherwise it is a custom domain
+  if (host !== baseDomain && !host.endsWith(suffix)) {
     return { teamSubdomain: "", host, port: undefined, custom: true };
   }
 
   // we consider anything in front of the baseUrl to be the subdomain
-  const subdomain = host.substring(0, baseUrlStart);
+  const subdomain =
+    host === baseDomain ? "" : host.substring(0, host.length - suffix.length);
   const isReservedSubdomain = RESERVED_SUBDOMAINS.includes(subdomain);
 
   return {

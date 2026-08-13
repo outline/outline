@@ -115,6 +115,24 @@ describe("#parseDomain", () => {
     });
   });
 
+  it("should treat a host that only contains the base domain as custom", () => {
+    expect(parseDomain("myteam.example.com.evil.com")).toMatchObject({
+      teamSubdomain: "",
+      host: "myteam.example.com.evil.com",
+      custom: true,
+    });
+    expect(parseDomain("https://example.com.evil.com/path")).toMatchObject({
+      teamSubdomain: "",
+      host: "example.com.evil.com",
+      custom: true,
+    });
+    expect(parseDomain("notexample.com")).toMatchObject({
+      teamSubdomain: "",
+      host: "notexample.com",
+      custom: true,
+    });
+  });
+
   it("should recognize include private domains like blogspot.com as custom", () => {
     expect(parseDomain("foo.blogspot.com")).toMatchObject({
       teamSubdomain: "",
