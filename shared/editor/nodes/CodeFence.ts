@@ -37,6 +37,7 @@ import Mermaid, {
   type MermaidState,
 } from "../extensions/Mermaid";
 import {
+  codeLanguages,
   getRecentlyUsedCodeLanguage,
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
@@ -695,9 +696,17 @@ export default class CodeFence extends Node<CodeFenceOptions> {
 
   inputRules({ type }: { type: NodeType }) {
     return [
-      textblockTypeInputRule(/^```$/, type, () => ({
-        language: getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE,
-      })),
+      textblockTypeInputRule(/^```([a-zA-Z0-9+#-]*)\s$/, type, (match) => {
+        const language = match[1].toLowerCase();
+        return {
+          language: Object.prototype.hasOwnProperty.call(
+            codeLanguages,
+            language
+          )
+            ? language
+            : (getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE),
+        };
+      }),
     ];
   }
 
