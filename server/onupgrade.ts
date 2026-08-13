@@ -53,8 +53,6 @@ export function rejectUpgrade(socket: Duplex) {
     return;
   }
 
-  // Destroying only once the response has flushed avoids truncating it, and
-  // ensures the read side of the socket is not left half-open behind us.
   socket.end(
     `HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`,
     () => socket.destroy()
