@@ -1,14 +1,20 @@
-import { action } from "mobx";
+import { action, reaction } from "mobx";
 import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
+import { Decoration, DecorationSet } from "prosemirror-view";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 
 const MAX_MATCH = 500;
 
-type ExtensionState = {
+export type ExtensionState = {
   open: boolean;
   query: string;
+  /** The trigger that opened the menu, if it was opened by one. */
+  trigger: string | null;
+  /** The document position of the trigger that opened the menu. */
+  triggerPos: number | null;
 };
 
 /**
@@ -36,6 +42,38 @@ export function isTriggerMarked(
   return getMarksBetween(triggerStart, triggerEnd, state).length > 0;
 }
 
+/**
+ * Update the extension state to reflect a suggestion match.
+ *
+ * @param extensionState The state to update.
+ * @param match The regex match where group 1 is the search term.
+ * @param options The trigger length, the cursor position at the end of the
+ * match, and whether the menu may be opened by this match.
+ */
+export const applyMatch = action(
+  (
+    extensionState: ExtensionState,
+    match: RegExpMatchArray,
+    options: { triggerLength: number; cursorPos: number; canOpen: boolean }
+  ) => {
+    const { triggerLength, cursorPos, canOpen } = options;
+    const query = match[1] ?? "";
+    const triggerEnd = match[0].length - query.length;
+
+    // The menu only opens on a freshly typed trigger, that is a match made up
+    // of the optional preceding character and the trigger itself.
+    if (canOpen && match[0].length <= triggerLength + 1) {
+      extensionState.open = true;
+    }
+    extensionState.query = query;
+    extensionState.trigger = match[0].slice(
+      triggerEnd - triggerLength,
+      triggerEnd
+    );
+    extensionState.triggerPos = cursorPos - query.length - triggerLength;
+  }
+);
+
 export class SuggestionsMenuPlugin extends Plugin {
   constructor(
     extensionState: ExtensionState,
@@ -43,12 +81,54 @@ export class SuggestionsMenuPlugin extends Plugin {
     enabledInMarks: boolean,
     triggerLength: number
   ) {
-    // The menu only opens on a freshly typed trigger, that is a match made up
-    // of the optional preceding character and the trigger itself.
-    const maxOpenLength = triggerLength + 1;
-
     super({
+      // The open state lives outside of the editor state, so ProseMirror is not
+      // otherwise aware that the decorations need recalculating.
+      view: (view) => {
+        const dispose = reaction(
+          () => [
+            extensionState.open,
+            extensionState.trigger,
+            extensionState.triggerPos,
+          ],
+          () => {
+            // Avoid interrupting an in-progress IME composition, the decoration
+            // will be added once the composition is committed.
+            if (!view.composing) {
+              view.dispatch(view.state.tr.setMeta("addToHistory", false));
+            }
+          }
+        );
+        return { destroy: dispose };
+      },
       props: {
+        decorations: (state) => {
+          const { open, trigger, triggerPos } = extensionState;
+          const { selection } = state;
+          if (!open || trigger === null || triggerPos === null) {
+            return null;
+          }
+
+          const to = selection.from;
+
+          // The cursor may have moved away from the trigger, or the trigger may
+          // have been edited, while the menu is open.
+          if (
+            !selection.empty ||
+            to < triggerPos + trigger.length ||
+            triggerPos < selection.$from.start() ||
+            state.doc.textBetween(triggerPos, triggerPos + trigger.length) !==
+              trigger
+          ) {
+            return null;
+          }
+
+          return DecorationSet.create(state.doc, [
+            Decoration.inline(triggerPos, to, {
+              class: EditorStyleHelper.suggestionTrigger,
+            }),
+          ]);
+        },
         handleDOMEvents: {
           // IME composition (e.g. Korean, Japanese, Chinese) fires compositionupdate
           // as each character is being built up. ProseMirror's view.composing flag
@@ -68,18 +148,17 @@ export class SuggestionsMenuPlugin extends Plugin {
                 "\ufffc"
               );
               const match = openRegex.exec(textBefore);
-              action(() => {
-                if (
-                  match &&
-                  (enabledInMarks ||
-                    !isTriggerMarked(state, fromPos, match, triggerLength))
-                ) {
-                  if (match[0].length <= maxOpenLength) {
-                    extensionState.open = true;
-                  }
-                  extensionState.query = match[1];
-                }
-              })();
+              if (
+                match &&
+                (enabledInMarks ||
+                  !isTriggerMarked(state, fromPos, match, triggerLength))
+              ) {
+                applyMatch(extensionState, match, {
+                  triggerLength,
+                  cursorPos: fromPos,
+                  canOpen: true,
+                });
+              }
             }, 0);
             return false;
           },
@@ -104,7 +183,11 @@ export class SuggestionsMenuPlugin extends Plugin {
                     (enabledInMarks ||
                       !isTriggerMarked(state, fromPos, match, triggerLength))
                   ) {
-                    extensionState.query = match[1];
+                    applyMatch(extensionState, match, {
+                      triggerLength,
+                      cursorPos: fromPos,
+                      canOpen: false,
+                    });
                   } else {
                     extensionState.open = false;
                   }
@@ -132,19 +215,20 @@ export class SuggestionsMenuPlugin extends Plugin {
                 fromPos,
                 fromPos,
                 openRegex,
-                action((state, match) => {
+                (state, match) => {
                   if (
                     match &&
                     (enabledInMarks ||
                       !isTriggerMarked(state, fromPos, match, triggerLength))
                   ) {
-                    if (match[0].length <= maxOpenLength) {
-                      extensionState.open = true;
-                    }
-                    extensionState.query = match[1];
+                    applyMatch(extensionState, match, {
+                      triggerLength,
+                      cursorPos: fromPos,
+                      canOpen: true,
+                    });
                   }
                   return null;
-                })
+                }
               );
             }, 0);
           }

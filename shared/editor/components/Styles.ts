@@ -585,6 +585,13 @@ width: 100%;
   }
 }
 
+.${EditorStyleHelper.suggestionTrigger} {
+  background: ${props.theme.mentionBackground};
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px ${props.theme.mentionBackground};
+  box-decoration-break: clone;
+}
+
 > div {
   background: transparent;
 }
