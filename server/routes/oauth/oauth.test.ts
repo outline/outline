@@ -3,7 +3,12 @@ import sharedEnv from "@shared/env";
 import { TeamPreference } from "@shared/types";
 import env from "@server/env";
 import { OAuthClient } from "@server/models";
-import { buildTeam } from "@server/test/factories";
+import {
+  buildApiKey,
+  buildOAuthClient,
+  buildTeam,
+  buildUser,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -517,5 +522,47 @@ describe("GET /.well-known/oauth-protected-resource", () => {
     } finally {
       env.URL = sharedEnv.URL = originalUrl;
     }
+  });
+});
+
+describe("POST /oauth/authorize", () => {
+  it("should not accept an API key in place of a session", async () => {
+    const user = await buildUser();
+    const client = await buildOAuthClient({ teamId: user.teamId });
+    const apiKey = await buildApiKey({ userId: user.id, scope: ["write"] });
+
+    const res = await server.post("/oauth/authorize", {
+      redirect: "manual",
+      headers: { authorization: `Bearer ${apiKey.value}` },
+      body: {
+        client_id: client.clientId,
+        response_type: "code",
+        redirect_uri: client.redirectUris[0],
+        state: "state",
+        scope: "read write",
+      },
+    });
+
+    expect(res.status).toEqual(403);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("should issue an authorization code for a session", async () => {
+    const user = await buildUser();
+    const client = await buildOAuthClient({ teamId: user.teamId });
+
+    const res = await server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      body: {
+        client_id: client.clientId,
+        response_type: "code",
+        redirect_uri: client.redirectUris[0],
+        state: "state",
+        scope: "read",
+      },
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toContain("code=");
   });
 });
