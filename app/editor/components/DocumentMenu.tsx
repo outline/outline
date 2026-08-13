@@ -32,6 +32,9 @@ function DocumentMenu({ search = "", isActive, ...rest }: Props) {
   const documentId = parseDocumentSlug(location.pathname);
   const [results, setResults] = useState<Document[]>();
 
+  // Spaces are allowed in the search term, so it may be whitespace only.
+  const query = search.trim();
+
   useEffect(() => {
     if (!isActive) {
       return;
@@ -43,10 +46,10 @@ function DocumentMenu({ search = "", isActive, ...rest }: Props) {
       try {
         // A title search requires a query, so the most recently viewed
         // documents are offered until the user starts typing.
-        const found = search
+        const found = query
           ? (
               await documents.searchTitles({
-                query: search,
+                query,
                 limit: MaxResults,
                 statusFilter: [StatusFilter.Published],
               })
@@ -70,7 +73,7 @@ function DocumentMenu({ search = "", isActive, ...rest }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [documents, search, isActive]);
+  }, [documents, query, isActive]);
 
   const items: MentionMenuItem[] =
     actorId && results

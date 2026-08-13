@@ -200,13 +200,14 @@ export function createDocumentMentionItems(
   options: { search: string; actorId: string; documentId?: string }
 ): MentionMenuItem[] {
   const { search, actorId, documentId } = options;
-  const visible = !!search && !isEmail(search);
+  const title = search.trim();
+  const visible = !!title && !isEmail(title);
 
   return [
     {
       name: "link",
       icon: <PlusIcon />,
-      title: search.trim(),
+      title,
       section: DocumentsSection,
       subtitle: t("Create a new doc"),
       visible,
@@ -217,13 +218,13 @@ export function createDocumentMentionItems(
         type: MentionType.Document,
         modelId: uuidv4(),
         actorId,
-        label: search,
+        label: title,
       },
     },
     {
       name: "link",
       icon: <NewDocumentIcon />,
-      title: search.trim(),
+      title,
       section: DocumentsSection,
       subtitle: t("Create a nested doc"),
       visible: visible && !!documentId,
@@ -234,7 +235,7 @@ export function createDocumentMentionItems(
         type: MentionType.Document,
         modelId: uuidv4(),
         actorId,
-        label: search,
+        label: title,
         nested: true,
       },
     },
