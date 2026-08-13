@@ -23,7 +23,10 @@ export type SuggestionOptions = {
    * the trigger is only meaningful as plain text, such as the block menu.
    */
   enabledInMarks?: boolean;
-  /** Character (or list of characters) that opens the suggestion menu. */
+  /**
+   * Character or sequence (or list of them) that opens the suggestion menu.
+   * All variants must be the same length.
+   */
   trigger: string | string[];
   /** Whether spaces are allowed inside the search term. */
   allowSpaces: boolean;
@@ -45,6 +48,8 @@ export default class Suggestion<
         ? escapeRegExp(triggers[0])
         : `(?:${triggers.map(escapeRegExp).join("|")})`;
 
+    this.triggerLength = triggers[0].length;
+
     this.openRegex = new RegExp(
       `(?:^|\\s|\\(|\\+|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${triggerPattern}(${`[\\p{L}/\\p{M}\\d${
         this.options.allowSpaces ? "\\s{1}" : ""
@@ -58,7 +63,8 @@ export default class Suggestion<
       new SuggestionsMenuPlugin(
         this.state,
         this.openRegex,
-        this.enabledInMarks
+        this.enabledInMarks,
+        this.triggerLength
       ),
     ];
   }
@@ -94,9 +100,10 @@ export default class Suggestion<
           (parent.type.name === "paragraph" ||
             parent.type.name === "heading") &&
           (!isInCode(state) || this.options.enabledInCode) &&
-          (this.enabledInMarks || !isTriggerMarked(state, end, match))
+          (this.enabledInMarks ||
+            !isTriggerMarked(state, end, match, this.triggerLength))
         ) {
-          const open = match[0].length <= 2;
+          const open = match[0].length <= this.triggerLength + 1;
           const query = match[1];
 
           // Input rules run while ProseMirror is reading a DOM change, at which
@@ -119,6 +126,8 @@ export default class Suggestion<
   ];
 
   protected openRegex: RegExp;
+
+  protected triggerLength: number;
 
   protected state: {
     open: boolean;
