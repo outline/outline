@@ -1,3 +1,4 @@
+import { once } from "node:events";
 import http from "node:http";
 import { Socket } from "node:net";
 import { PassThrough } from "node:stream";
@@ -42,13 +43,14 @@ describe("onupgrade", () => {
 });
 
 describe("rejectUnhandledUpgrades", () => {
-  it("should close upgrade requests when no service handles them", () => {
+  it("should close upgrade requests when no service handles them", async () => {
     const server = http.createServer();
     const socket = new PassThrough();
     onupgrade(server);
     rejectUnhandledUpgrades(server);
 
     server.emit("upgrade", request(), socket);
+    await once(socket, "close");
 
     expect(socket.destroyed).toEqual(true);
   });
@@ -67,12 +69,13 @@ describe("rejectUnhandledUpgrades", () => {
 });
 
 describe("rejectUpgrade", () => {
-  it("should write a complete response and destroy the socket", () => {
+  it("should write a complete response and destroy the socket", async () => {
     const socket = new PassThrough();
     const chunks: Buffer[] = [];
     socket.on("data", (chunk: Buffer) => chunks.push(chunk));
 
     rejectUpgrade(socket);
+    await once(socket, "close");
 
     expect(Buffer.concat(chunks).toString()).toEqual(
       "HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n"

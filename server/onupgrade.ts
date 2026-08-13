@@ -44,18 +44,21 @@ export function rejectUnhandledUpgrades(server: http.Server) {
 
 /**
  * Reject an upgrade request with a bad request response and close the socket.
- * The socket is destroyed rather than half-closed so that it cannot linger.
  *
  * @param socket the socket to respond on.
  */
 export function rejectUpgrade(socket: Duplex) {
-  if (socket.writable) {
-    socket.write(
-      `HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`
-    );
+  if (!socket.writable) {
+    socket.destroy();
+    return;
   }
 
-  socket.destroy();
+  // Destroying only once the response has flushed avoids truncating it, and
+  // ensures the read side of the socket is not left half-open behind us.
+  socket.end(
+    `HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`,
+    () => socket.destroy()
+  );
 }
 
 /**
