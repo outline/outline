@@ -51,10 +51,11 @@ export function presentDCRClient(
  * Presents the OAuth client to the user.
  * This should ONLY be used for admin users who need to manage the OAuth client.
  *
- * @param oauthClient The OAuth client to present
+ * @param oauthClient The OAuth client to present.
  * @param options.includeSecret whether to include the client secret. Because the
  *   secret is a durable credential it is omitted unless the request is
  *   explicitly known to be permitted to manage the client.
+ * @returns the presented OAuth client.
  */
 export default function presentOAuthClient(
   oauthClient: OAuthClient,

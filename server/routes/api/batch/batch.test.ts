@@ -310,7 +310,7 @@ describe("#batch", () => {
     });
   });
   describe("credentials", () => {
-    it("should reject an API key, which cannot carry a per-method scope", async () => {
+    it("should reject an API key, as dispatching requires a session", async () => {
       const apiKey = await buildApiKey({ userId: user.id, scope: ["write"] });
 
       const res = await server.post("/api/batch", {
