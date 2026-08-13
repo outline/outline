@@ -290,7 +290,7 @@ describe("Authentication middleware", () => {
     }
   });
 
-  it("should allow passing auth token as a GET param", async () => {
+  it("should allow passing session token in a cookie", async () => {
     const state = {} as DefaultState;
     const user = await buildUser();
     const authMiddleware = auth();
@@ -299,9 +299,10 @@ describe("Authentication middleware", () => {
         request: {
           // @ts-expect-error mock request
           get: vi.fn(() => null),
-          query: {
-            token: user.getSessionToken(),
-          },
+        },
+        // @ts-expect-error mock cookies
+        cookies: {
+          get: vi.fn(() => user.getSessionToken()),
         },
         state,
         cache: {},
@@ -311,7 +312,57 @@ describe("Authentication middleware", () => {
     expect(state.auth.user.id).toEqual(user.id);
   });
 
-  it("should allow passing auth token in body params", async () => {
+  it("should return error with session token as a GET param", async () => {
+    const state = {} as DefaultState;
+    const user = await buildUser();
+    const authMiddleware = auth();
+
+    await expect(
+      authMiddleware(
+        {
+          request: {
+            // @ts-expect-error mock request
+            get: vi.fn(() => null),
+            query: {
+              token: user.getSessionToken(),
+            },
+          },
+          state,
+          cache: {},
+        },
+        vi.fn()
+      )
+    ).rejects.toThrow(
+      "Session token must be passed in the cookie or Authorization header"
+    );
+  });
+
+  it("should return error with session token in body params", async () => {
+    const state = {} as DefaultState;
+    const user = await buildUser();
+    const authMiddleware = auth();
+
+    await expect(
+      authMiddleware(
+        {
+          request: {
+            // @ts-expect-error mock request
+            get: vi.fn(() => null),
+            body: {
+              token: user.getSessionToken(),
+            },
+          },
+          state,
+          cache: {},
+        },
+        vi.fn()
+      )
+    ).rejects.toThrow(
+      "Session token must be passed in the cookie or Authorization header"
+    );
+  });
+
+  it("should allow passing transfer token as a GET param", async () => {
     const state = {} as DefaultState;
     const user = await buildUser();
     const authMiddleware = auth();
@@ -320,8 +371,8 @@ describe("Authentication middleware", () => {
         request: {
           // @ts-expect-error mock request
           get: vi.fn(() => null),
-          body: {
-            token: user.getSessionToken(),
+          query: {
+            token: user.getTransferToken(),
           },
         },
         state,

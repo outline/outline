@@ -3471,10 +3471,9 @@ describe("#documents.import", () => {
     );
     const form = new FormData();
     form.append("file", content, "markdown.md");
-    form.append("token", user.getSessionToken());
     form.append("collectionId", collection.id);
 
-    const res = await server.post("/api/documents.import", {
+    const res = await server.post("/api/documents.import", user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -3534,11 +3533,10 @@ describe("#documents.import", () => {
     );
     const form = new FormData();
     form.append("file", content, "markdown.md");
-    form.append("token", user.getSessionToken());
     form.append("collectionId", collection.id);
     form.append("parentDocumentId", parentDocument.id);
 
-    const res = await server.post("/api/documents.import", {
+    const res = await server.post("/api/documents.import", user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -3599,12 +3597,11 @@ describe("#documents.import", () => {
     );
     const form = new FormData();
     form.append("file", content, "markdown.md");
-    form.append("token", user.getSessionToken());
     form.append("collectionId", privateCollection.id);
     form.append("parentDocumentId", parentDocument.id);
     form.append("publish", "true");
 
-    const res = await server.post("/api/documents.import", {
+    const res = await server.post("/api/documents.import", user, {
       headers: form.getHeaders(),
       body: form,
     });
