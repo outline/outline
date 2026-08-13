@@ -1,19 +1,10 @@
-import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
 import { runInAction } from "mobx";
-import {
-  DocumentIcon,
-  PlusIcon,
-  NewDocumentIcon,
-  CollectionIcon,
-} from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import Icon from "@shared/components/Icon";
-import type { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import {
   dateToReadable,
@@ -25,36 +16,27 @@ import {
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { parseNaturalLanguageDate } from "@shared/utils/parseNaturalLanguageDate";
 import { Avatar, AvatarSize, GroupAvatar } from "~/components/Avatar";
-import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import { DynamicCalendarIcon } from "@shared/components/DynamicCalendarIcon";
-import Flex from "~/components/Flex";
+import { DateSection } from "~/actions/sections";
+import type { MentionMenuItem } from "~/editor/menus/mention";
 import {
-  DateSection,
-  DocumentsSection,
-  UserSection,
-  CollectionsSection,
-  GroupSection,
-} from "~/actions/sections";
+  collectionMentionItem,
+  createDocumentMentionItems,
+  documentMentionItem,
+  groupMentionItem,
+  userMentionItem,
+} from "~/editor/menus/mention";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
 import { client } from "~/utils/ApiClient";
+import { useEditor } from "./EditorContext";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 
-interface MentionItem extends MenuItem {
-  attrs: {
-    id: string;
-    type: MentionType;
-    modelId: string;
-    label: string;
-    actorId?: string;
-  };
-}
-
 type Props = Omit<
-  SuggestionsMenuProps<MentionItem>,
+  SuggestionsMenuProps<MentionMenuItem>,
   "renderMenuItem" | "items" | "embeds"
 >;
 
@@ -62,6 +44,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
   const { t } = useTranslation();
   const { auth, documents, users, collections, groups } = useStores();
+  const { props: editorProps } = useEditor();
   const actorId = auth.currentUserId;
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
@@ -104,7 +87,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
     };
   }, [search]);
 
-  let dateItems: MentionItem[] = [];
+  let dateItems: MentionMenuItem[] = [];
 
   if (actorId && parsedISODate) {
     const title = dateToRelativeReadable(parsedISODate, t, userLocale);
@@ -127,7 +110,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
           label: parsedISODate,
           actorId,
         },
-      } as MentionItem,
+      } as MentionMenuItem,
     ];
   }
 
@@ -162,171 +145,39 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
   // Computed in the render body so MobX observer can track store access
   // (e.g. searchSuppressed). Previously this lived inside a useEffect which
   // runs outside the reactive context and triggered MobX warnings.
-  const mentionItems: MentionItem[] = actorId
+  const mentionItems: MentionMenuItem[] = actorId
     ? users
         .findByQuery(search, { maxResults: maxResultsInSection })
-        .map(
-          (user) =>
-            ({
-              name: "mention",
-              icon: (
-                <Flex
-                  align="center"
-                  justify="center"
-                  style={{ width: 24, height: 24 }}
-                >
-                  <Avatar
-                    model={user}
-                    alt={t("Profile picture")}
-                    size={AvatarSize.Small}
-                  />
-                </Flex>
-              ),
-              title: user.name,
-              section: UserSection,
-              appendSpace: true,
-              attrs: {
-                id: uuidv4(),
-                type: MentionType.User,
-                modelId: user.id,
-                actorId,
-                label: user.name,
-              },
-            }) as MentionItem
-        )
+        .map((user) => userMentionItem(t, user, actorId))
         .concat(
           groups
             .findByQuery(search, { maxResults: maxResultsInSection })
-            .map((group) => ({
-              name: "mention",
-              icon: (
-                <Flex
-                  align="center"
-                  justify="center"
-                  style={{ width: 24, height: 24, marginRight: 4 }}
-                >
-                  <GroupAvatar group={group} size={AvatarSize.Small} />
-                </Flex>
-              ),
-              title: group.name,
-              subtitle: t("{{ count }} members", {
-                count: group.memberCount,
-              }),
-              section: GroupSection,
-              appendSpace: true,
-              attrs: {
-                id: uuidv4(),
-                type: MentionType.Group,
-                modelId: group.id,
-                actorId,
-                label: group.name,
-              },
-            }))
+            .map((group) => groupMentionItem(t, group, actorId))
         )
         .concat(
           documents
             .findByQuery(search, { maxResults: maxResultsInSection })
-            .map(
-              (doc) =>
-                ({
-                  name: "mention",
-                  icon: doc.icon ? (
-                    <Icon
-                      value={doc.icon}
-                      initial={doc.initial}
-                      color={doc.color ?? undefined}
-                    />
-                  ) : (
-                    <DocumentIcon />
-                  ),
-                  title: doc.title,
-                  subtitle: doc.collectionId ? (
-                    <DocumentBreadcrumb document={doc} onlyText maxDepth={2} />
-                  ) : undefined,
-                  section: DocumentsSection,
-                  appendSpace: true,
-                  attrs: {
-                    id: uuidv4(),
-                    type: MentionType.Document,
-                    modelId: doc.id,
-                    actorId,
-                    label: doc.title,
-                  },
-                }) as MentionItem
-            )
+            .map((doc) => documentMentionItem(doc, actorId))
         )
         .concat(
           collections
             .findByQuery(search, { maxResults: maxResultsInSection })
-            .map(
-              (collection) =>
-                ({
-                  name: "mention",
-                  icon: collection.icon ? (
-                    <Icon
-                      value={collection.icon}
-                      initial={collection.initial}
-                      color={collection.color ?? undefined}
-                    />
-                  ) : (
-                    <CollectionIcon />
-                  ),
-                  title: collection.name,
-                  section: CollectionsSection,
-                  appendSpace: true,
-                  attrs: {
-                    id: uuidv4(),
-                    type: MentionType.Collection,
-                    modelId: collection.id,
-                    actorId,
-                    label: collection.name,
-                  },
-                }) as MentionItem
-            )
+            .map((collection) => collectionMentionItem(collection, actorId))
         )
-        .concat([
-          {
-            name: "link",
-            icon: <PlusIcon />,
-            title: search?.trim(),
-            section: DocumentsSection,
-            subtitle: t("Create a new doc"),
-            visible: !!search && !isEmail(search),
-            priority: -1,
-            appendSpace: true,
-            attrs: {
-              id: uuidv4(),
-              type: MentionType.Document,
-              modelId: uuidv4(),
-              actorId,
-              label: search,
-            },
-          } as MentionItem,
-          {
-            name: "link",
-            icon: <NewDocumentIcon />,
-            title: search?.trim(),
-            section: DocumentsSection,
-            subtitle: t("Create a nested doc"),
-            visible: !!search && !isEmail(search) && !!documentId,
-            priority: -2,
-            appendSpace: true,
-            attrs: {
-              id: uuidv4(),
-              type: MentionType.Document,
-              modelId: uuidv4(),
-              actorId,
-              label: search,
-              nested: true,
-            },
-          } as MentionItem,
-        ])
+        .concat(
+          createDocumentMentionItems(t, {
+            search,
+            actorId,
+            documentId,
+            canCreate: !!editorProps.onCreateLink,
+          })
+        )
     : [];
 
-  const items: MentionItem[] = [...dateItems, ...mentionItems];
+  const items: MentionMenuItem[] = [...dateItems, ...mentionItems];
 
   const handleSelect = useCallback(
-    async (item: MentionItem) => {
+    async (item: MentionMenuItem) => {
       if (
         item.attrs.type === MentionType.Date ||
         item.attrs.type === MentionType.Document ||

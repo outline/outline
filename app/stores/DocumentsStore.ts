@@ -347,12 +347,12 @@ export default class DocumentsStore extends Store<Document> {
     try {
       const res = await client.post(`/documents.${request}`, options);
       invariant(res?.data, "Document list not available");
-      runInAction("DocumentsStore#fetchNamedPage", () => {
-        res.data.forEach(this.add);
+      return runInAction("DocumentsStore#fetchNamedPage", () => {
+        const documents = res.data.map(this.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;
+        return documents;
       });
-      return res.data;
     } finally {
       this.isFetching = false;
     }
