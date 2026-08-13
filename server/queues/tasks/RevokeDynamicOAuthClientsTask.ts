@@ -5,7 +5,7 @@ import {
   OAuthClient,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { BaseTask, TaskPriority } from "./base/BaseTask";
+import { BaseTask } from "./base/BaseTask";
 
 type Props = {
   teamId: string;
@@ -29,15 +29,15 @@ export default class RevokeDynamicOAuthClientsTask extends BaseTask<Props> {
       return;
     }
 
-    const oauthClientId = clients.map((client) => client.id);
+    const oauthClientIds = clients.map((client) => client.id);
 
     await sequelize.transaction(async (transaction) => {
       await OAuthAuthentication.destroy({
-        where: { oauthClientId },
+        where: { oauthClientId: oauthClientIds },
         transaction,
       });
       await OAuthAuthorizationCode.destroy({
-        where: { oauthClientId },
+        where: { oauthClientId: oauthClientIds },
         transaction,
       });
     });
@@ -46,11 +46,5 @@ export default class RevokeDynamicOAuthClientsTask extends BaseTask<Props> {
       "task",
       `Revoked access for ${clients.length} dynamic OAuth clients in team ${teamId}`
     );
-  }
-
-  public get options() {
-    return {
-      priority: TaskPriority.Background,
-    };
   }
 }
