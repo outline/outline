@@ -10,6 +10,7 @@ import {
   createDocumentMentionItems,
   documentMentionItem,
 } from "~/editor/menus/mention";
+import { useEditor } from "./EditorContext";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
@@ -29,6 +30,7 @@ function DocumentMenu({ search = "", isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
   const { t } = useTranslation();
   const { auth, documents } = useStores();
+  const { props: editorProps } = useEditor();
   const actorId = auth.currentUserId;
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
@@ -80,7 +82,12 @@ function DocumentMenu({ search = "", isActive, ...rest }: Props) {
   const items: MentionMenuItem[] = actorId
     ? [
         ...results.map((document) => documentMentionItem(document, actorId)),
-        ...createDocumentMentionItems(t, { search, actorId, documentId }),
+        ...createDocumentMentionItems(t, {
+          search,
+          actorId,
+          documentId,
+          canCreate: !!editorProps.onCreateLink,
+        }),
       ]
     : [];
 

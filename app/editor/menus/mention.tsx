@@ -191,17 +191,23 @@ export function documentMentionItem(
  * either at the root or nested under the document being edited.
  *
  * @param t The translation function.
- * @param options The search term, the id of the user inserting the mention, and
- * the id of the document being edited, if any.
+ * @param options The search term, the id of the user inserting the mention, the
+ * id of the document being edited, if any, and whether the editor is able to
+ * create documents.
  * @returns the menu items, hidden while there is no search term.
  */
 export function createDocumentMentionItems(
   t: TFunction,
-  options: { search: string; actorId: string; documentId?: string }
+  options: {
+    search: string;
+    actorId: string;
+    documentId?: string;
+    canCreate: boolean;
+  }
 ): MentionMenuItem[] {
-  const { search, actorId, documentId } = options;
+  const { search, actorId, documentId, canCreate } = options;
   const title = search.trim();
-  const visible = !!title && !isEmail(title);
+  const visible = canCreate && !!title && !isEmail(title);
 
   return [
     {

@@ -30,6 +30,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
 import { client } from "~/utils/ApiClient";
+import { useEditor } from "./EditorContext";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
@@ -43,6 +44,7 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
   const { t } = useTranslation();
   const { auth, documents, users, collections, groups } = useStores();
+  const { props: editorProps } = useEditor();
   const actorId = auth.currentUserId;
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
@@ -162,7 +164,14 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
             .findByQuery(search, { maxResults: maxResultsInSection })
             .map((collection) => collectionMentionItem(collection, actorId))
         )
-        .concat(createDocumentMentionItems(t, { search, actorId, documentId }))
+        .concat(
+          createDocumentMentionItems(t, {
+            search,
+            actorId,
+            documentId,
+            canCreate: !!editorProps.onCreateLink,
+          })
+        )
     : [];
 
   const items: MentionMenuItem[] = [...dateItems, ...mentionItems];
