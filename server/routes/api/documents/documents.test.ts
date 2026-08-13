@@ -4013,6 +4013,47 @@ describe("#documents.update", () => {
     expect(events.length).toEqual(1);
   });
 
+  it("should update document when lastRevision matches", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        text: "Updated text",
+        lastRevision: document.revisionCount,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.text).toBe("Updated text");
+    expect(body.data.revision).toBe(document.revisionCount + 1);
+  });
+
+  it("should return conflict when lastRevision does not match", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        text: "Updated text",
+        lastRevision: document.revisionCount - 1,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(409);
+    expect(body.error).toBe("document_conflict");
+
+    const previousRevision = document.revisionCount;
+    await document.reload();
+    expect(document.revisionCount).toBe(previousRevision);
+  });
+
   it("should not update a document with text over the maximum length", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -5528,6 +5569,55 @@ describe("#documents.remove_user", () => {
     users = await document.$get("users");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(0);
+  });
+
+  it("should not remove user with access inherited from a parent", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      createdById: user.id,
+      permission: null,
+    });
+    const parentDocument = await buildDocument({
+      collectionId: collection.id,
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      parentDocumentId: parentDocument.id,
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const member = await buildUser({
+      teamId: user.teamId,
+    });
+    const sourceMembership = await UserMembership.create({
+      createdById: user.id,
+      documentId: parentDocument.id,
+      userId: member.id,
+      permission: DocumentPermission.ReadWrite,
+    });
+    await UserMembership.create({
+      createdById: user.id,
+      documentId: document.id,
+      userId: member.id,
+      permission: DocumentPermission.ReadWrite,
+      sourceId: sourceMembership.id,
+    });
+
+    const res = await server.post("/api/documents.remove_user", user, {
+      body: {
+        id: document.id,
+        userId: member.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+    expect(
+      await UserMembership.count({
+        where: { documentId: document.id, userId: member.id },
+      })
+    ).not.toEqual(0);
   });
 });
 
