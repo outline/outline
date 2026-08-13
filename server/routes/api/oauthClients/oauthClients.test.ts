@@ -1,5 +1,10 @@
 import { OAuthClient } from "@server/models";
-import { buildTeam, buildUser, buildAdmin } from "@server/test/factories";
+import {
+  buildApiKey,
+  buildTeam,
+  buildUser,
+  buildAdmin,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -87,6 +92,55 @@ describe("oauthClients.info", () => {
     expect(body.data.published).toBeFalsy();
     expect(body.data.clientSecret).toBeDefined();
     expect(body.data.redirectUris).toEqual(["https://example.com/callback"]);
+  });
+
+  it("should not return the client secret to a read-only credential", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const apiKey = await buildApiKey({ userId: user.id, scope: ["read"] });
+
+    const client = await OAuthClient.create({
+      teamId: team.id,
+      createdById: user.id,
+      name: "Test Client",
+      redirectUris: ["https://example.com/callback"],
+    });
+
+    const res = await server.post("/api/oauthClients.info", {
+      headers: { authorization: `Bearer ${apiKey.value}` },
+      body: {
+        id: client.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual("Test Client");
+    expect(body.data.clientSecret).toBeUndefined();
+  });
+
+  it("should return the client secret to a write credential", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const apiKey = await buildApiKey({ userId: user.id, scope: ["write"] });
+
+    const client = await OAuthClient.create({
+      teamId: team.id,
+      createdById: user.id,
+      name: "Test Client",
+      redirectUris: ["https://example.com/callback"],
+    });
+
+    const res = await server.post("/api/oauthClients.info", {
+      headers: { authorization: `Bearer ${apiKey.value}` },
+      body: {
+        id: client.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.clientSecret).toEqual(client.clientSecret);
   });
 
   it("should return basic information about an OAuth client when member", async () => {
