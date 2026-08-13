@@ -291,6 +291,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Doc collection Id */
     collectionId: z.uuid().nullish(),
 
+    /** If set, the update is rejected when the doc revision does not match */
+    lastRevision: z.number().int().nonnegative().optional(),
+
     /** @deprecated Use editMode instead */
     append: z.boolean().optional(),
 

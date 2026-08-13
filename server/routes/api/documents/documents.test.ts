@@ -4013,6 +4013,47 @@ describe("#documents.update", () => {
     expect(events.length).toEqual(1);
   });
 
+  it("should update document when lastRevision matches", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        text: "Updated text",
+        lastRevision: document.revisionCount,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.text).toBe("Updated text");
+    expect(body.data.revision).toBe(document.revisionCount + 1);
+  });
+
+  it("should return conflict when lastRevision does not match", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        text: "Updated text",
+        lastRevision: document.revisionCount - 1,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(409);
+    expect(body.error).toBe("document_conflict");
+
+    const previousRevision = document.revisionCount;
+    await document.reload();
+    expect(document.revisionCount).toBe(previousRevision);
+  });
+
   it("should not update a document with text over the maximum length", async () => {
     const user = await buildUser();
     const document = await buildDocument({
