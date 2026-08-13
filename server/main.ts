@@ -14,6 +14,7 @@ import Redis from "@server/storage/redis";
 import Logger from "./logging/Logger";
 import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
 import onerror from "./onerror";
+import onupgrade, { rejectUnhandledUpgrades } from "./onupgrade";
 import services from "./services";
 import { sequelize } from "./storage/database";
 import { getArg } from "./utils/args";
@@ -96,6 +97,10 @@ export async function start(id: number, disconnect: () => void) {
 
   app.use(router.routes());
 
+  // catch errors on sockets detached from the app by an upgrade request, this
+  // must happen before the services add upgrade handlers of their own
+  onupgrade(server);
+
   // loop through requested services at startup
   for (const name of env.SERVICES) {
     if (!Object.keys(services).includes(name)) {
@@ -106,6 +111,8 @@ export async function start(id: number, disconnect: () => void) {
     const { default: init } = await services[name as keyof typeof services]();
     await Promise.resolve(init(app, server as https.Server, env.SERVICES));
   }
+
+  rejectUnhandledUpgrades(server);
 
   server.on("error", (err) => {
     if ("code" in err && err.code === "EADDRINUSE") {

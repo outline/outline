@@ -13,6 +13,7 @@ import Metrics from "@server/logging/Metrics";
 import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import type { User } from "@server/models";
+import { rejectUpgrade } from "@server/onupgrade";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { getUserForJWT } from "@server/utils/jwt";
@@ -69,7 +70,7 @@ export default function init(
           !env.isCloudHosted &&
           (!req.headers.origin || !env.URL.startsWith(req.headers.origin))
         ) {
-          socket.end(`HTTP/1.1 400 Bad Request\r\n`);
+          rejectUpgrade(socket);
           return;
         }
 
@@ -83,7 +84,7 @@ export default function init(
       }
 
       // If the collaboration service isn't running then we need to close the connection
-      socket.end(`HTTP/1.1 400 Bad Request\r\n`);
+      rejectUpgrade(socket);
     }
   );
 
