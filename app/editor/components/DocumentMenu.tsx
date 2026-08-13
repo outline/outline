@@ -10,7 +10,6 @@ import {
   createDocumentMentionItems,
   documentMentionItem,
 } from "~/editor/menus/mention";
-import type Document from "~/models/Document";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
@@ -20,19 +19,21 @@ type Props = Omit<
   "renderMenuItem" | "items" | "embeds"
 >;
 
-/** Number of documents shown while searching, and before a search is entered. */
+/** Number of documents shown while searching. */
 const MaxResults = 25;
+
+/** Number of documents shown before a search term is entered. */
 const MaxDefaultResults = 5;
 
 function DocumentMenu({ search = "", isActive, ...rest }: Props) {
+  const [loaded, setLoaded] = useState(false);
   const { t } = useTranslation();
   const { auth, documents } = useStores();
   const actorId = auth.currentUserId;
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
-  const [results, setResults] = useState<Document[]>();
 
-  // Spaces are allowed in the search term, so it may be whitespace only.
+  // Spaces are allowed in the search term, so it may have trailing whitespace.
   const query = search.trim();
 
   useEffect(() => {
@@ -46,25 +47,20 @@ function DocumentMenu({ search = "", isActive, ...rest }: Props) {
       try {
         // A title search requires a query, so the most recently viewed
         // documents are offered until the user starts typing.
-        const found = query
-          ? (
-              await documents.searchTitles({
-                query,
-                limit: MaxResults,
-                statusFilter: [StatusFilter.Published],
-              })
-            ).map((result) => result.document)
-          : await documents.fetchRecentlyViewed({ limit: MaxDefaultResults });
-
-        if (!cancelled) {
-          setResults(found);
-        }
+        await (query
+          ? documents.searchTitles({
+              query,
+              limit: MaxResults,
+              statusFilter: [StatusFilter.Published],
+            })
+          : documents.fetchRecentlyViewed({ limit: MaxDefaultResults }));
       } catch {
-        // Keep whichever results are on screen rather than emptying the menu,
-        // while still allowing it to open on the first failed request.
-        if (!cancelled) {
-          setResults((previous) => previous ?? []);
-        }
+        // Fall back to whatever the store already holds rather than blocking
+        // the menu from opening.
+      }
+
+      if (!cancelled) {
+        setLoaded(true);
       }
     };
 
@@ -75,13 +71,18 @@ function DocumentMenu({ search = "", isActive, ...rest }: Props) {
     };
   }, [documents, query, isActive]);
 
-  const items: MentionMenuItem[] =
-    actorId && results
-      ? [
-          ...results.map((document) => documentMentionItem(document, actorId)),
-          ...createDocumentMentionItems(t, { search, actorId, documentId }),
-        ]
-      : [];
+  // Computed in the render body, from the store rather than the request, so
+  // MobX observer keeps the results up to date.
+  const results = query
+    ? documents.findByQuery(query, { maxResults: MaxResults })
+    : documents.recentlyViewed.slice(0, MaxDefaultResults);
+
+  const items: MentionMenuItem[] = actorId
+    ? [
+        ...results.map((document) => documentMentionItem(document, actorId)),
+        ...createDocumentMentionItems(t, { search, actorId, documentId }),
+      ]
+    : [];
 
   const renderMenuItem = useCallback(
     (item, _index, options) => (
@@ -97,7 +98,7 @@ function DocumentMenu({ search = "", isActive, ...rest }: Props) {
 
   // Prevent showing the menu until we have data otherwise it will be positioned
   // incorrectly due to the height being unknown.
-  if (!results) {
+  if (!loaded) {
     return null;
   }
 
