@@ -59,12 +59,12 @@ describe("applyInputRules", () => {
     const testDoc = doc([
       bullet_list.create(null, [
         list_item.create(null, [
-          softBreakParagraph("Run these commands.", "``"),
+          softBreakParagraph("Run these commands.", "```"),
         ]),
       ]),
     ]);
 
-    const result = type(testDoc, "``", "`");
+    const result = type(testDoc, "```", " ");
 
     const item = result.doc.firstChild?.firstChild;
     expect(item?.type.name).toBe("list_item");
@@ -76,14 +76,52 @@ describe("applyInputRules", () => {
   });
 
   it("creates a code block after a soft break in a plain paragraph", () => {
-    const testDoc = doc([softBreakParagraph("intro", "``")]);
+    const testDoc = doc([softBreakParagraph("intro", "```")]);
 
-    const result = type(testDoc, "``", "`");
+    const result = type(testDoc, "```", " ");
 
     expect(result.doc.childCount).toBe(2);
     expect(result.doc.child(0).type.name).toBe("paragraph");
     expect(result.doc.child(0).textContent).toBe("intro");
     expect(result.doc.child(1).type.spec.code).toBe(true);
+  });
+
+  it("creates a code block with the typed language", () => {
+    const testDoc = doc([p("```bash")]);
+
+    const result = type(testDoc, "```bash", " ");
+
+    expect(result.doc.firstChild?.type.spec.code).toBe(true);
+    expect(result.doc.firstChild?.attrs.language).toBe("bash");
+    expect(result.doc.firstChild?.textContent).toBe("");
+  });
+
+  it("matches the typed language case-insensitively", () => {
+    const testDoc = doc([p("```JSON")]);
+
+    const result = type(testDoc, "```JSON", " ");
+
+    expect(result.doc.firstChild?.type.spec.code).toBe(true);
+    expect(result.doc.firstChild?.attrs.language).toBe("json");
+  });
+
+  it("falls back to the default language when unrecognized", () => {
+    const testDoc = doc([p("```notalanguage")]);
+
+    const result = type(testDoc, "```notalanguage", " ");
+
+    expect(result.doc.firstChild?.type.spec.code).toBe(true);
+    expect(result.doc.firstChild?.attrs.language).toBe("javascript");
+    expect(result.doc.firstChild?.textContent).toBe("");
+  });
+
+  it("does not create a code block until a space is typed", () => {
+    const testDoc = doc([p("``")]);
+
+    const result = type(testDoc, "``", "`");
+
+    expect(result.doc.firstChild?.type.name).toBe("paragraph");
+    expect(result.doc.firstChild?.textContent).toBe("``");
   });
 
   it("applies other block rules (heading) after a soft break", () => {
@@ -114,11 +152,11 @@ describe("applyInputRules", () => {
         br.create(),
         schema.text("second"),
         br.create(),
-        schema.text("``"),
+        schema.text("```"),
       ]),
     ]);
 
-    const result = type(testDoc, "``", "`");
+    const result = type(testDoc, "```", " ");
 
     expect(result.doc.childCount).toBe(2);
     // The first paragraph keeps its remaining soft break intact.
@@ -141,35 +179,35 @@ describe("applyInputRules", () => {
   });
 
   it("still creates a code block at the start of an empty block", () => {
-    const testDoc = doc([p("``")]);
+    const testDoc = doc([p("```")]);
 
-    const result = type(testDoc, "``", "`");
+    const result = type(testDoc, "```", " ");
 
     expect(result.doc.firstChild?.type.spec.code).toBe(true);
     expect(result.doc.firstChild?.textContent).toBe("");
   });
 
   it("does not fire when a plugin filters the intermediate transaction", () => {
-    const testDoc = doc([softBreakParagraph("intro", "``")]);
+    const testDoc = doc([softBreakParagraph("intro", "```")]);
     const base = createEditorStateWithSelection(
       testDoc,
-      posAfterText(testDoc, "``")
+      posAfterText(testDoc, "```")
     );
     const state = base.reconfigure({
       plugins: [new Plugin({ filterTransaction: () => false })],
     });
     const { from, to } = state.selection;
 
-    expect(applyInputRules(state, from, to, "`", rules)).toBeNull();
+    expect(applyInputRules(state, from, to, " ", rules)).toBeNull();
   });
 
   it("does not fire when there is no preceding soft break", () => {
-    const testDoc = doc([p("no code ``")]);
+    const testDoc = doc([p("no code ```")]);
 
-    const result = type(testDoc, "no code ``", "`");
+    const result = type(testDoc, "no code ```", " ");
 
     // The paragraph is untouched; the trigger char was not consumed.
     expect(result.doc.firstChild?.type.name).toBe("paragraph");
-    expect(result.doc.firstChild?.textContent).toBe("no code ``");
+    expect(result.doc.firstChild?.textContent).toBe("no code ```");
   });
 });
