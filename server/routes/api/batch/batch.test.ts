@@ -339,23 +339,20 @@ describe("#batch", () => {
       const otherKey = await buildApiKey({ userId: other.id, scope: ["*"] });
       const title = otherDocument.title;
 
-      const res = await server.post(
-        `/api/batch?token=${encodeURIComponent(user.getSessionToken())}`,
-        {
-          body: {
-            requests: [
-              {
-                method: "documents.update",
-                body: {
-                  id: otherDocument.id,
-                  title: "smuggled",
-                  token: otherKey.value,
-                },
+      const res = await server.post(`/api/batch`, user, {
+        body: {
+          requests: [
+            {
+              method: "documents.update",
+              body: {
+                id: otherDocument.id,
+                title: "smuggled",
+                token: otherKey.value,
               },
-            ],
-          },
-        }
-      );
+            },
+          ],
+        },
+      });
       const body = await res.json();
 
       expect(res.status).toEqual(200);

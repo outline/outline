@@ -52,9 +52,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    const res = await server.post(`/api/files.create`, {
+    const res = await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -89,9 +87,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    const res = await server.post(`/api/files.create`, {
+    const res = await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -118,9 +114,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    const res = await server.post(`/api/files.create`, {
+    const res = await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -150,9 +144,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    const res = await server.post(`/api/files.create`, {
+    const res = await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -181,9 +173,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    const res = await server.post(`/api/files.create`, {
+    const res = await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -366,9 +356,7 @@ describe("#files.get", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    await server.post(`/api/files.create`, {
+    await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -402,9 +390,7 @@ describe("#files.get", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getSessionToken());
-
-    await server.post(`/api/files.create`, {
+    await server.post(`/api/files.create`, user, {
       headers: form.getHeaders(),
       body: form,
     });
