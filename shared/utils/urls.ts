@@ -305,6 +305,40 @@ export function getUrls(text: string) {
 }
 
 /**
+ * Adds the port that the application is publicly reachable on to a url that
+ * does not specify one. A proxy commonly forwards a Host header without the
+ * public port, so urls derived from an incoming request would otherwise point
+ * at the wrong address.
+ *
+ * @param url the url to modify, may be relative.
+ * @returns the url with the port added, if one was missing.
+ */
+export function addMissingUrlPort(url: string): string {
+  let port;
+  try {
+    port = new URL(env.URL).port;
+  } catch (_err) {
+    return url;
+  }
+
+  if (!port) {
+    return url;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.port) {
+      return url;
+    }
+    parsed.port = port;
+    return parsed.toString();
+  } catch (_err) {
+    // Relative urls are resolved against the current origin and need no port.
+    return url;
+  }
+}
+
+/**
  * Removes the fragment (hash) from a url, if present.
  *
  * @param url The url to modify.
