@@ -1,19 +1,30 @@
 import { action, reaction } from "mobx";
 import type { EditorState } from "prosemirror-state";
-import { Plugin } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { mapDecorations } from "@shared/editor/lib/multiplayer";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 
 const MAX_MATCH = 500;
+
+interface PluginState {
+  decorations: DecorationSet;
+}
+
+/** The document range covered by the trigger and its search term. */
+interface TriggerRange {
+  from: number;
+  to: number;
+}
 
 export type ExtensionState = {
   open: boolean;
   query: string;
   /** The trigger that opened the menu, if it was opened by one. */
   trigger: string | null;
-  /** The document position of the trigger that opened the menu. */
+  /** The document position of the trigger at the time it was matched. */
   triggerPos: number | null;
 };
 
@@ -74,16 +85,71 @@ export const applyMatch = action(
   }
 );
 
-export class SuggestionsMenuPlugin extends Plugin {
+export class SuggestionsMenuPlugin extends Plugin<PluginState> {
   constructor(
     extensionState: ExtensionState,
     openRegex: RegExp,
     enabledInMarks: boolean,
     triggerLength: number
   ) {
+    const key = new PluginKey<PluginState>("suggestions-menu");
+
     super({
-      // The open state lives outside of the editor state, so ProseMirror is not
-      // otherwise aware that the decorations need recalculating.
+      key,
+      // The decoration is held in plugin state so that it is mapped through
+      // changes to the document, including those made by other users.
+      state: {
+        init: (): PluginState => ({ decorations: DecorationSet.empty }),
+        apply: (tr, pluginState): PluginState => {
+          const range: TriggerRange | undefined | null = tr.getMeta(key);
+
+          if (range !== undefined) {
+            return {
+              decorations: range
+                ? DecorationSet.create(tr.doc, [
+                    // The end is inclusive so that the decoration grows as the
+                    // search term is typed.
+                    Decoration.inline(
+                      range.from,
+                      range.to,
+                      { class: EditorStyleHelper.suggestionTrigger },
+                      { inclusiveEnd: true }
+                    ),
+                  ])
+                : DecorationSet.empty,
+            };
+          }
+
+          if (
+            !tr.docChanged ||
+            pluginState.decorations === DecorationSet.empty
+          ) {
+            return pluginState;
+          }
+
+          const decorations = mapDecorations(pluginState.decorations, tr);
+          const [decoration] = decorations.find();
+          const { trigger } = extensionState;
+
+          // The trigger itself may have been edited away, for example by
+          // another user, leaving nothing to decorate.
+          if (
+            !trigger ||
+            !decoration ||
+            decoration.to - decoration.from < trigger.length ||
+            tr.doc.textBetween(
+              decoration.from,
+              decoration.from + trigger.length
+            ) !== trigger
+          ) {
+            return { decorations: DecorationSet.empty };
+          }
+
+          return { decorations };
+        },
+      },
+      // The menu state lives outside of the editor state, so ProseMirror is not
+      // otherwise aware that the decoration needs adding or removing.
       view: (view) => {
         const dispose = reaction(
           () => [
@@ -94,41 +160,33 @@ export class SuggestionsMenuPlugin extends Plugin {
           () => {
             // Avoid interrupting an in-progress IME composition, the decoration
             // will be added once the composition is committed.
-            if (!view.composing) {
-              view.dispatch(view.state.tr.setMeta("addToHistory", false));
+            if (view.composing) {
+              return;
             }
+
+            const setRange = (range: TriggerRange | null) =>
+              view.dispatch(
+                view.state.tr.setMeta(key, range).setMeta("addToHistory", false)
+              );
+
+            const { open, query, trigger, triggerPos } = extensionState;
+            if (!open || trigger === null || triggerPos === null) {
+              setRange(null);
+              return;
+            }
+
+            const to = triggerPos + trigger.length + query.length;
+            setRange(
+              to <= view.state.doc.content.size
+                ? { from: triggerPos, to }
+                : null
+            );
           }
         );
         return { destroy: dispose };
       },
       props: {
-        decorations: (state) => {
-          const { open, trigger, triggerPos } = extensionState;
-          const { selection } = state;
-          if (!open || trigger === null || triggerPos === null) {
-            return null;
-          }
-
-          const to = selection.from;
-
-          // The cursor may have moved away from the trigger, or the trigger may
-          // have been edited, while the menu is open.
-          if (
-            !selection.empty ||
-            to < triggerPos + trigger.length ||
-            triggerPos < selection.$from.start() ||
-            state.doc.textBetween(triggerPos, triggerPos + trigger.length) !==
-              trigger
-          ) {
-            return null;
-          }
-
-          return DecorationSet.create(state.doc, [
-            Decoration.inline(triggerPos, to, {
-              class: EditorStyleHelper.suggestionTrigger,
-            }),
-          ]);
-        },
+        decorations: (state) => key.getState(state)?.decorations,
         handleDOMEvents: {
           // IME composition (e.g. Korean, Japanese, Chinese) fires compositionupdate
           // as each character is being built up. ProseMirror's view.composing flag
