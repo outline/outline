@@ -2,6 +2,7 @@ import { addDays } from "date-fns";
 import i18n from "i18next";
 import { computed, observable } from "mobx";
 import type { ProsemirrorData } from "@shared/types";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
 import type TemplatesStore from "~/stores/TemplatesStore";
@@ -90,6 +91,21 @@ export default class Template extends ParanoidModel implements Searchable {
   urlId: string;
 
   /**
+   * The date the template was published, and so made available to other members
+   * of the workspace.
+   */
+  @observable
+  publishedAt: string | undefined;
+
+  /**
+   * Publishes the template, making it available to other members of the
+   * workspace.
+   *
+   * @returns a promise that resolves when the template has been published.
+   */
+  publish = () => this.save(undefined, { publish: true });
+
+  /**
    * Returns the direction of the template text, either "rtl" or "ltr"
    */
   @computed
@@ -124,9 +140,29 @@ export default class Template extends ParanoidModel implements Searchable {
     return this.title === "";
   }
 
+  /**
+   * Whether the template has neither a title nor any content.
+   */
+  @computed
+  get isEmpty(): boolean {
+    return (
+      !this.title?.trim() &&
+      (!this.data || ProsemirrorDataHelper.isEmpty(this.data))
+    );
+  }
+
   @computed
   get isWorkspaceTemplate(): boolean {
     return !this.collectionId;
+  }
+
+  /**
+   * Whether the template is an unpublished draft, only visible to the user that
+   * created it.
+   */
+  @computed
+  get isDraft(): boolean {
+    return !this.publishedAt;
   }
 
   @computed

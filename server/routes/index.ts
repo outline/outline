@@ -244,23 +244,14 @@ router.get("*", async (ctx, next) => {
       }
     }
 
-    // Redirect all requests to custom domain if one is set
-    else if (team?.domain) {
-      if (team.domain !== ctx.hostname) {
-        ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
-        return;
-      }
-    }
-
-    // Redirect if subdomain is not the current team's subdomain
-    else if (team?.subdomain) {
-      const { teamSubdomain } = parseDomain(ctx.href);
-      if (team?.subdomain !== teamSubdomain) {
-        ctx.redirect(
-          ctx.href.replace(`//${teamSubdomain}.`, `//${team.subdomain}.`)
-        );
-        return;
-      }
+    // Redirect to the team's canonical url, taking into account custom domains
+    // and hosted subdomains, if the request arrived on a different host.
+    else if (team && !team.isTeamUrl(ctx.href)) {
+      const url = new URL(team.url);
+      url.pathname = ctx.path;
+      url.search = ctx.search;
+      ctx.redirect(url.toString());
+      return;
     }
   }
 

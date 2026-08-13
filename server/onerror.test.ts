@@ -1,4 +1,5 @@
 import type Koa from "koa";
+import { DatabaseError } from "sequelize";
 import type { Mock } from "vitest";
 import { requestErrorHandler } from "@server/logging/sentry";
 import { InternalError, ValidationError, NotFoundError } from "./errors";
@@ -15,7 +16,7 @@ type MockCtx = {
   writable: boolean;
   accepts: Mock;
   set: Mock;
-  res: { end: Mock };
+  res: { end: Mock; statusCode: number };
   status: number | undefined;
   type: string | undefined;
   body: unknown;
@@ -48,6 +49,7 @@ describe("onerror", () => {
       set: vi.fn(),
       res: {
         end: vi.fn(),
+        statusCode: 404,
       },
       status: undefined,
       type: undefined,
@@ -111,6 +113,27 @@ describe("onerror", () => {
     app.context.onerror.call(ctx, error);
 
     expect(requestErrorHandler).not.toHaveBeenCalled();
+  });
+
+  it("should convert a canceled query into a service unavailable error", () => {
+    const parent = new Error("canceling statement due to statement timeout");
+    Object.assign(parent, { code: "57014", sql: "SELECT 1" });
+    const error = new DatabaseError(parent as never);
+
+    app.context.onerror.call(ctx, error);
+
+    expect(requestErrorHandler).toHaveBeenCalled();
+    expect(ctx.status).toBe(503);
+    expect(ctx.body).toContain("request_timeout");
+  });
+
+  it("should set the response status code when the response is not writable", () => {
+    ctx.writable = false;
+
+    app.context.onerror.call(ctx, InternalError("Test internal error"));
+
+    expect(ctx.res.statusCode).toBe(500);
+    expect(ctx.res.end).not.toHaveBeenCalled();
   });
 
   it("should report errors explicitly marked with isReportable: true", () => {

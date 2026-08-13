@@ -8,6 +8,7 @@ import { GroupPermissionHelper } from "@shared/utils/GroupPermissionHelper";
 import Group from "~/models/Group";
 import type User from "~/models/User";
 import Invite from "~/scenes/Invite";
+import { performBatch } from "~/actions/definitions/common";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
@@ -207,11 +208,17 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
   );
 }
 
-export function DeleteGroupDialog({ group, onSubmit }: Props) {
+export function DeleteGroupDialog({
+  groups,
+  onSubmit,
+}: {
+  groups: Group[];
+  onSubmit: () => void;
+}) {
   const { t } = useTranslation();
 
   const handleSubmit = async () => {
-    await group.delete();
+    await performBatch(groups, (group) => group.delete());
     onSubmit();
   };
 
@@ -222,15 +229,22 @@ export function DeleteGroupDialog({ group, onSubmit }: Props) {
       savingText={`${t("Deleting")}…`}
       danger
     >
-      <Trans
-        defaults="Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with."
-        values={{
-          groupName: group.name,
-        }}
-        components={{
-          em: <strong />,
-        }}
-      />
+      {groups.length === 1 ? (
+        <Trans
+          defaults="Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with."
+          values={{
+            groupName: groups[0].name,
+          }}
+          components={{
+            em: <strong />,
+          }}
+        />
+      ) : (
+        t(
+          "Are you sure about that? Deleting {{ count }} group will cause their members to lose access to collections and documents that they are associated with.",
+          { count: groups.length }
+        )
+      )}
     </ConfirmationDialog>
   );
 }

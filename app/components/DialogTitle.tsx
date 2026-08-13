@@ -86,4 +86,9 @@ const Subject = styled(Text)`
   > :first-child {
     flex-shrink: 0;
   }
+
+  // Allows the truncated text to shrink rather than widen its ancestors
+  > :last-child {
+    min-width: 0;
+  }
 `;

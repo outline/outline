@@ -9,10 +9,10 @@ import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
-import { errToString } from "@shared/utils/error";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
+  ExportContentType,
   FileOperationFormat,
   FileOperationState,
   FileOperationType,
@@ -40,7 +40,6 @@ import {
   IncorrectEditionError,
   NotFoundError,
 } from "@server/errors";
-import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -68,6 +67,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import TextBundleHelper from "@server/models/helpers/TextBundleHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, cannot } from "@server/policies";
@@ -103,6 +103,7 @@ const router = new Router();
 
 router.post(
   "documents.list",
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   auth(),
   pagination(),
   validate(T.DocumentsListSchema),
@@ -812,8 +813,12 @@ router.post(
     const document = await documentLoader({
       id,
       user,
-      // We need the collaborative state to generate HTML.
-      includeState: !accept?.includes("text/markdown"),
+      // We need the collaborative state to generate HTML, but not for the
+      // formats that are written from markdown.
+      includeState: !(
+        accept?.includes("text/markdown") ||
+        accept?.includes(ExportContentType.TextBundle)
+      ),
     });
 
     authorize(user, "download", document);
@@ -822,9 +827,11 @@ router.post(
       ? FileOperationFormat.HTMLZip
       : accept?.includes("text/markdown")
         ? FileOperationFormat.MarkdownZip
-        : accept?.includes("application/pdf")
-          ? FileOperationFormat.PDF
-          : null;
+        : accept?.includes(ExportContentType.TextBundle)
+          ? FileOperationFormat.TextBundleZip
+          : accept?.includes("application/pdf")
+            ? FileOperationFormat.PDF
+            : null;
 
     if (format === FileOperationFormat.PDF) {
       throw IncorrectEditionError(
@@ -876,13 +883,17 @@ router.post(
         teamId: user.teamId,
       });
 
+    // A TextBundle is a directory of files, so unlike the other formats it has
+    // no self-contained single-file form to fall back to.
+    const isTextBundle = format === FileOperationFormat.TextBundleZip;
+
     if (format === FileOperationFormat.HTMLZip) {
       contentType = "text/html";
       content = await DocumentHelper.toHTML(document, {
         centered: true,
         includeMermaid: true,
       });
-    } else if (format === FileOperationFormat.MarkdownZip) {
+    } else if (isTextBundle || format === FileOperationFormat.MarkdownZip) {
       contentType = "text/markdown";
       content = await toMarkdown();
     } else {
@@ -916,17 +927,7 @@ router.post(
     const externalAttachments: { attachment: Attachment; buffer: Buffer }[] =
       [];
     for (const attachment of attachments) {
-      let buffer: Buffer;
-      try {
-        buffer = await attachment.buffer;
-      } catch (err) {
-        Logger.warn(`Failed to read attachment from storage`, {
-          attachmentId: attachment.id,
-          teamId: attachment.teamId,
-          error: errToString(err),
-        });
-        buffer = Buffer.from("");
-      }
+      const buffer = await AttachmentHelper.readBuffer(attachment);
 
       if (contentType === "text/html") {
         const inlined = HTMLHelper.inlineImage(
@@ -942,6 +943,44 @@ router.post(
       }
 
       externalAttachments.push({ attachment, buffer });
+    }
+
+    if (isTextBundle) {
+      const root = `${fileName}.${TextBundleHelper.bundleExtension}`;
+      const usedAssetNames = new Set<string>();
+
+      streamZipResponse(
+        ctx,
+        `${fileName}.${TextBundleHelper.packExtension}`,
+        (zip) => {
+          for (const { attachment, buffer } of externalAttachments) {
+            const reference = TextBundleHelper.assetPath(
+              attachment.name,
+              usedAssetNames
+            );
+            zip.addBuffer(buffer, path.join(root, reference), {
+              mtime: attachment.updatedAt,
+            });
+
+            content = content.replace(
+              new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+              encodeURI(reference)
+            );
+          }
+
+          zip.addBuffer(
+            Buffer.from(TextBundleHelper.info(document)),
+            path.join(root, TextBundleHelper.infoFileName),
+            { mtime: document.updatedAt }
+          );
+          zip.addBuffer(
+            Buffer.from(content),
+            path.join(root, TextBundleHelper.textFileName),
+            { mtime: document.updatedAt }
+          );
+        }
+      );
+      return;
     }
 
     // When there are no external attachments the document is self-contained and
@@ -1572,29 +1611,10 @@ router.post(
       throw ValidationError("one of attachmentId or file is required");
     }
 
-    let parentDocument: Document | null = null;
-    let collection: Collection | null = null;
-
-    if (parentDocumentId) {
-      parentDocument = await Document.findByPk(parentDocumentId, {
-        userId: user.id,
-      });
-
-      if (parentDocument?.collectionId) {
-        collection = await Collection.findByPk(parentDocument.collectionId, {
-          userId: user.id,
-        });
-      }
-
-      authorize(user, "createChildDocument", parentDocument, {
-        collection,
-      });
-    } else if (collectionId) {
-      collection = await Collection.findByPk(collectionId, {
-        userId: user.id,
-      });
-      authorize(user, "createDocument", collection);
-    }
+    const { collection } = await authorizeDocumentCreate(ctx, {
+      collectionId,
+      parentDocumentId,
+    });
 
     let key: string;
     let fileName: string;
@@ -1635,7 +1655,7 @@ router.post(
         mimeType,
       },
       userId: user.id,
-      collectionId: collectionId ?? parentDocument?.collectionId,
+      collectionId: collection?.id,
       parentDocumentId,
       publish,
       authType: ctx.state.auth.type,

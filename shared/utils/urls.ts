@@ -209,16 +209,19 @@ export function sanitizeUrl(url: string | null | undefined) {
     return undefined;
   }
 
-  const lower = url.toLowerCase();
+  // Surrounding whitespace, a newline in particular, would otherwise fail
+  // validation and have a scheme prepended to an already qualified url.
+  const trimmed = url.trim();
+  const lower = trimmed.toLowerCase();
   if (
-    !isUrl(url, { requireHostname: false }) &&
-    !url.startsWith("/") &&
-    !url.startsWith("#") &&
+    !isUrl(trimmed, { requireHostname: false }) &&
+    !trimmed.startsWith("/") &&
+    !trimmed.startsWith("#") &&
     !allowedSchemes.some((scheme) => lower.startsWith(scheme))
   ) {
-    return `https://${url}`;
+    return `https://${trimmed}`;
   }
-  return url;
+  return trimmed;
 }
 
 /**
@@ -299,6 +302,40 @@ export function parseShareIdFromUrl(url: string): string | undefined {
  */
 export function getUrls(text: string) {
   return Array.from(text.match(/(?:https?):\/\/[^\s]+/gi) || []);
+}
+
+/**
+ * Adds the port that the application is publicly reachable on to a url that
+ * does not specify one. A proxy commonly forwards a Host header without the
+ * public port, so urls derived from an incoming request would otherwise point
+ * at the wrong address.
+ *
+ * @param url the url to modify, may be relative.
+ * @returns the url with the port added, if one was missing.
+ */
+export function addMissingUrlPort(url: string): string {
+  let port;
+  try {
+    port = new URL(env.URL).port;
+  } catch (_err) {
+    return url;
+  }
+
+  if (!port) {
+    return url;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.port) {
+      return url;
+    }
+    parsed.port = port;
+    return parsed.toString();
+  } catch (_err) {
+    // Relative urls are resolved against the current origin and need no port.
+    return url;
+  }
 }
 
 /**

@@ -53,6 +53,7 @@ export function toSearchRecord(
     text: doc.data ? getPlainText(doc) : stripHighlightTags(context),
     icon: doc.icon,
     color: doc.color,
+    isArchived: doc.isArchived,
   };
 }
 

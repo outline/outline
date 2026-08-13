@@ -14,6 +14,7 @@ allow(User, "updateTemplate", Team, (actor, team) =>
 allow(User, "read", Template, (actor, template) =>
   and(
     isTeamModel(actor, template),
+    or(!template?.isDraft, template?.createdById === actor.id),
     or(
       and(!!template?.isWorkspaceTemplate, can(actor, "read", actor.team)),
       can(actor, "readDocument", template?.collection)

@@ -50,7 +50,7 @@ export default class FileOperationDeletedProcessor extends BaseProcessor {
 
       const collections = await Collection.findAll({
         transaction,
-        lock: transaction.LOCK.UPDATE,
+        lock: transaction.LOCK.NO_KEY_UPDATE,
         where: {
           teamId: fileOperation.teamId,
           importId: fileOperation.id,

@@ -67,6 +67,42 @@ export const rgbaToHex = ({ red, green, blue, alpha }: RgbaColor): string => {
   return "#" + toHex(red) + toHex(green) + toHex(blue) + alphaHex;
 };
 
+/**
+ * Converts a CSS color in any notation into hex notation.
+ *
+ * @param color - a color string in any notation understood by polished.
+ * @returns the color in hex notation, or null if it is not a color that can be
+ * parsed, or is fully transparent.
+ */
+export const toHexColor = (color: string): string | null => {
+  try {
+    const rgb = parseToRgb(color);
+    const alpha = "alpha" in rgb ? rgb.alpha : 1;
+    if (alpha === 0) {
+      return null;
+    }
+    return rgbaToHex({ ...rgb, alpha });
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Whether a color is close enough to white that it is likely a page or default
+ * background rather than deliberate styling.
+ *
+ * @param color - a color string in any notation understood by polished.
+ * @returns true if the color is near white.
+ */
+export const isNearWhite = (color: string): boolean => {
+  try {
+    const { red, green, blue } = parseToRgb(color);
+    return red > 250 && green > 250 && blue > 250;
+  } catch {
+    return false;
+  }
+};
+
 export interface ColorFormats {
   /** The color in uppercase hex notation, with an alpha pair when translucent. */
   hex: string;

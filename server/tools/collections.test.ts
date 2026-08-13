@@ -1,3 +1,4 @@
+import { Collection } from "@server/models";
 import { buildCollection, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import {
@@ -56,14 +57,18 @@ describe("collection tools", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
+    expect(data.success).toBe(true);
     expect(data.name).toEqual("Test Collection");
-    expect(data.description).toEqual("A **test** description");
-    expect(data.data).toBeUndefined();
-    expect(data.icon).toEqual("rocket");
-    expect(data.color).toEqual("#FF0000");
     expect(data.id).toBeDefined();
     expect(data.url).toMatch(/^https?:\/\//);
-    expect(data.permission).toEqual(null);
+
+    const collection = await Collection.findByPk(data.id, {
+      rejectOnEmpty: true,
+    });
+    expect(collection.description).toEqual("A **test** description");
+    expect(collection.icon).toEqual("rocket");
+    expect(collection.color).toEqual("#FF0000");
+    expect(collection.permission).toEqual(null);
   });
 
   it("update_collection updates fields on existing collection", async () => {
@@ -80,8 +85,12 @@ describe("collection tools", () => {
     });
     const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
+    expect(data.success).toBe(true);
     expect(data.name).toEqual("Updated Name");
     expect(data.url).toMatch(/^https?:\/\//);
+
+    await collection.reload();
+    expect(collection.description).toEqual("Updated description");
   });
 
   it("update_collection errors when no fields are provided to update", async () => {

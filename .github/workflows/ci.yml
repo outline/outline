@@ -159,8 +159,10 @@ jobs:
 
   # Always runs, so it can be used as the single required status check. Jobs
   # above are skipped when irrelevant to the changes, which is a pass here.
+  # Audit is intentionally excluded, it reports advisories that can have no
+  # fix available or affect dev only and should not block merging.
   ci:
-    needs: [changes, lint, actionlint, types, audit, test, test-server, bundle-size]
+    needs: [changes, lint, actionlint, types, test, test-server, bundle-size]
     if: always()
     runs-on: ubuntu-latest
     steps:

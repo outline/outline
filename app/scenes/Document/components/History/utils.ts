@@ -1,5 +1,31 @@
 import type { TFunction } from "i18next";
+import { AuthenticationType } from "@shared/types";
 import type Revision from "~/models/Revision";
+
+/** Authentication types that are surfaced in history, mapped to a display name. */
+const authTypeNames: Partial<Record<AuthenticationType, string>> = {
+  [AuthenticationType.API]: "API",
+  [AuthenticationType.OAUTH]: "API",
+  [AuthenticationType.MCP]: "MCP",
+};
+
+/**
+ * Returns a suffix describing how the change was made, for authentication
+ * types that are worth surfacing in history.
+ *
+ * @param authType the authentication type the change was made with.
+ * @param t translation function.
+ * @returns the suffix, or an empty string if it should not be surfaced.
+ */
+export function authTypeSuffix(
+  authType: AuthenticationType | null | undefined,
+  t: TFunction
+): string {
+  const authTypeName = authType ? authTypeNames[authType] : undefined;
+  return authTypeName
+    ? ` ${t("via {{ authType }}", { authType: authTypeName })}`
+    : "";
+}
 
 /**
  * Returns a human-readable summary of who collaborated on a revision. Uses the

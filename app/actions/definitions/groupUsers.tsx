@@ -1,15 +1,16 @@
-import { PlusIcon } from "outline-icons";
-import { toast } from "sonner";
+import { PlusIcon, UserRemoveIcon } from "outline-icons";
 import type { GroupPermission } from "@shared/types";
-import { errToString } from "@shared/utils/error";
 import { GroupPermissionHelper } from "@shared/utils/GroupPermissionHelper";
 import stores from "~/stores";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import { AddPeopleToGroupDialog } from "~/scenes/Settings/components/GroupDialogs";
-import { Avatar, AvatarSize } from "~/components/Avatar";
 import { createAction, createActionWithChildren } from "~/actions";
-import { dialogActionFactory } from "~/actions/definitions/common";
+import {
+  dialogActionFactory,
+  everyActiveModel,
+  performBatchOnActiveModels,
+} from "~/actions/definitions/common";
 import { GroupSection } from "~/actions/sections";
 import type { ActionContext } from "~/types";
 
@@ -30,7 +31,7 @@ export const addGroupUsers = dialogActionFactory({
 });
 
 /**
- * Creates an action that sets the active group member's permission.
+ * Creates an action that sets the permission of the active group members.
  *
  * @param permission - the permission to assign.
  * @returns an action for use in menus.
@@ -42,23 +43,32 @@ export const updateGroupUserPermissionActionFactory = (
     name: ({ t }) => GroupPermissionHelper.displayName(permission, t),
     analyticsName: "Update group member permission",
     section: GroupSection,
-    selected: (context) => getMembership(context)?.permission === permission,
-    perform: async ({ getActiveModel }) => {
-      const group = getActiveModel(Group);
-      const user = getActiveModel(User);
-      if (!group || !user) {
+    selected: (context) =>
+      everyActiveModel(
+        context,
+        User,
+        (user) => getMembership(context, user)?.permission === permission
+      ),
+    perform: (context) => {
+      const group = context.getActiveModel(Group);
+      if (!group) {
         return;
       }
 
-      try {
-        await stores.groupUsers.update({
-          groupId: group.id,
-          userId: user.id,
-          permission,
-        });
-      } catch (err) {
-        toast.error(errToString(err));
-      }
+      return performBatchOnActiveModels(
+        context,
+        User,
+        (user) =>
+          stores.groupUsers.update({
+            groupId: group.id,
+            userId: user.id,
+            permission,
+          }),
+        (users, succeeded, t) =>
+          users.length === 1
+            ? undefined
+            : t("{{ count }} member updated", { count: succeeded })
+      );
     },
   });
 
@@ -73,43 +83,50 @@ export const changeGroupUserPermission = createActionWithChildren({
 });
 
 export const removeGroupUser = createAction({
-  name: ({ t, currentUserId, getActiveModel }) =>
-    currentUserId === getActiveModel(User)?.id
-      ? t("Leave group")
-      : t("Remove user"),
+  name: ({ t, currentUserId, getActiveModels }) => {
+    const users = getActiveModels(User);
+    if (users.length === 1) {
+      return currentUserId === users[0].id
+        ? t("Leave group")
+        : t("Remove user");
+    }
+    return t("Remove users");
+  },
   analyticsName: "Remove group member",
   section: GroupSection,
+  icon: <UserRemoveIcon />,
+  iconInContextMenu: false,
   dangerous: true,
-  visible: (context) => canManageMembers(context) && !!getMembership(context),
-  perform: async ({ t, currentUserId, getActiveModel }) => {
-    const group = getActiveModel(Group);
-    const user = getActiveModel(User);
-    if (!group || !user) {
+  visible: (context) =>
+    canManageMembers(context) &&
+    everyActiveModel(context, User, (user) => !!getMembership(context, user)),
+  perform: (context) => {
+    const group = context.getActiveModel(Group);
+    if (!group) {
       return;
     }
 
-    try {
-      await stores.groupUsers.delete({
-        groupId: group.id,
-        userId: user.id,
-      });
-
-      if (currentUserId === user.id) {
-        toast.success(t("You have left the group"));
-        return;
-      }
-
-      toast.success(
-        t(`{{userName}} was removed from the group`, {
-          userName: user.name,
+    return performBatchOnActiveModels(
+      context,
+      User,
+      (user) =>
+        stores.groupUsers.delete({
+          groupId: group.id,
+          userId: user.id,
         }),
-        {
-          icon: <Avatar model={user} size={AvatarSize.Toast} />,
+      (users, succeeded, t) => {
+        if (users.length > 1) {
+          return t("{{ count }} member removed from the group", {
+            count: succeeded,
+          });
         }
-      );
-    } catch (err) {
-      toast.error(errToString(err));
-    }
+        return context.currentUserId === users[0].id
+          ? t("You have left the group")
+          : t(`{{userName}} was removed from the group`, {
+              userName: users[0].name,
+            });
+      }
+    );
   },
 });
 
@@ -122,10 +139,7 @@ const canManageMembers = ({ getActiveModel }: ActionContext) => {
   );
 };
 
-const getMembership = ({ getActiveModel }: ActionContext) => {
+const getMembership = ({ getActiveModel }: ActionContext, user: User) => {
   const group = getActiveModel(Group);
-  const user = getActiveModel(User);
-  return group && user
-    ? stores.groupUsers.membership(group.id, user.id)
-    : undefined;
+  return group ? stores.groupUsers.membership(group.id, user.id) : undefined;
 };

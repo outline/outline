@@ -19,6 +19,7 @@ import type Group from "./Group";
 import type UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
+import Relation from "./decorators/Relation";
 import type { Searchable } from "./interfaces/Searchable";
 
 class User extends ParanoidModel implements Searchable {
@@ -79,6 +80,13 @@ class User extends ParanoidModel implements Searchable {
 
   @observable
   isSuspended: boolean;
+
+  @observable
+  invitedById: string | undefined;
+
+  /** The user that invited this user, if they were invited. */
+  @Relation(() => User)
+  invitedBy: User | undefined;
 
   @computed
   get searchContent(): string[] {

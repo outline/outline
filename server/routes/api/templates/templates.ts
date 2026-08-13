@@ -1,6 +1,8 @@
 import Router from "koa-router";
 import type { WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -23,11 +25,16 @@ router.post(
   validate(T.TemplatesCreateSchema),
   transaction(),
   async (ctx: APIContext<T.TemplatesCreateReq>) => {
-    const { id, title, data, icon, color, collectionId } = ctx.input.body;
+    const { id, title, data, icon, color, collectionId, publish } =
+      ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
+
+    if (publish && (!data || ProsemirrorDataHelper.isEmpty(data))) {
+      throw ValidationError("A published template must have content");
+    }
 
     let collection;
     if (collectionId) {
@@ -42,12 +49,12 @@ router.post(
 
     let template = await Template.createWithCtx(ctx, {
       id,
-      title,
+      title: title ?? "",
       icon,
       color,
-      content: data,
+      content: data ?? null,
       collectionId: collection?.id,
-      publishedAt: new Date(),
+      publishedAt: publish ? new Date() : null,
       createdById: user.id,
       lastModifiedById: user.id,
       teamId: user.teamId,
@@ -84,6 +91,19 @@ router.post(
           deletedAt: {
             [Op.eq]: null,
           },
+        },
+        // drafts are only visible to the user that created them
+        {
+          [Op.or]: [
+            {
+              publishedAt: {
+                [Op.ne]: null,
+              },
+            },
+            {
+              createdById: user.id,
+            },
+          ],
         },
       ],
     };
@@ -259,7 +279,7 @@ router.post(
       lastModifiedById: user.id,
       teamId: user.teamId,
       collectionId: targetCollectionId,
-      publishedAt: new Date(),
+      publishedAt: original.isDraft ? null : new Date(),
       content: original.content,
       icon: original.icon,
       color: original.color,
@@ -287,7 +307,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.TemplatesUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, data, ...updatedFields } = ctx.input.body;
+    const { id, data, publish, ...updatedFields } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const template = await Template.findByPk(id, {
@@ -314,6 +334,16 @@ router.post(
 
     if (data) {
       template.content = data;
+    }
+
+    if (publish && template.isDraft) {
+      if (
+        !template.content ||
+        ProsemirrorDataHelper.isEmpty(template.content)
+      ) {
+        throw ValidationError("A published template must have content");
+      }
+      template.publishedAt = new Date();
     }
 
     await template.updateWithCtx(ctx, updatedFields);

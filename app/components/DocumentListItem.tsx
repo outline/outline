@@ -272,6 +272,10 @@ const IconWrapper = styled.div`
   align-items: flex-start;
   justify-content: flex-start;
   width: 24px;
+  /* Hug the icon rather than stretching to the height of the item, so that only
+  clicks landing on the icon itself begin a selection – the remainder of the
+  item navigates. */
+  align-self: flex-start;
 `;
 
 const DocumentIconWrapper = styled.span<{ $dimmed: boolean }>`
@@ -376,24 +380,34 @@ const DocumentLink = styled(Link)<{
       opacity: 1;
     }
 
-    ${(props) =>
-      props.$selectable &&
-      css`
-        ${SelectButton} {
-          opacity: 1;
-        }
-
-        ${DocumentIconWrapper} {
-          opacity: 0;
-        }
-      `}
-
     ${AnimatedStar} {
       opacity: 0.5;
 
       &:${hover} {
         opacity: 1;
       }
+    }
+  }
+
+  /* Revealing the checkbox is a hover affordance only – on touch devices the
+  equivalent states (active, focus) are triggered by tapping the item to
+  navigate, which makes an item appear selected when it is not. There, the
+  checkbox appears once a selection is underway. */
+  @media (hover: hover) {
+    &:hover,
+    &:focus,
+    &:focus-within {
+      ${(props) =>
+        props.$selectable &&
+        css`
+          ${SelectButton} {
+            opacity: 1;
+          }
+
+          ${DocumentIconWrapper} {
+            opacity: 0;
+          }
+        `}
     }
   }
 

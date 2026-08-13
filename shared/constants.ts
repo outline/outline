@@ -10,6 +10,9 @@ import {
 
 export const MAX_AVATAR_DISPLAY = 6;
 
+/** Height of the app's fixed header in pixels. */
+export const HEADER_HEIGHT = 56;
+
 /** Preset colors offered when choosing an icon color. */
 export const colorPalette = [
   "#4E5C6E",

@@ -4,13 +4,13 @@ import * as React from "react";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type Emoji from "~/models/Emoji";
-import { Avatar, AvatarSize } from "~/components/Avatar";
 import { HEADER_HEIGHT } from "~/components/Header";
 import {
   type Props as TableProps,
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { UserLabel } from "~/components/UserLabel";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useEmojiMenuActions } from "~/hooks/useEmojiMenuActions";
 import Time from "~/components/Time";
@@ -87,16 +87,7 @@ const EmojisTable = observer(function EmojisTable({
           header: t("Added by"),
           accessor: (emoji) => emoji.createdBy,
           sortable: false,
-          component: (emoji) => (
-            <HStack>
-              {emoji.createdBy && (
-                <>
-                  <Avatar model={emoji.createdBy} size={AvatarSize.Small} />
-                  {emoji.createdBy.name}
-                </>
-              )}
-            </HStack>
-          ),
+          component: (emoji) => <UserLabel user={emoji.createdBy} />,
           width: "2fr",
         },
         {
@@ -121,6 +112,7 @@ const EmojisTable = observer(function EmojisTable({
 
   return (
     <SortableTable
+      id="emojis"
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}

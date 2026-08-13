@@ -4,7 +4,6 @@ import { Op, Transaction } from "sequelize";
 import type { FindOptions, WhereOptions } from "sequelize";
 import { sequelize } from "@server/storage/database";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { CommentStatusFilter } from "@shared/types";
 import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { commentParser } from "@server/editor";
@@ -296,14 +295,8 @@ export function commentTools(server: McpServer, scopes: string[]) {
               authorize(user, "comment", document);
 
               if (anchorText) {
-                if (!document.state) {
-                  throw ValidationError(
-                    "Cannot inline comment on this document"
-                  );
-                }
-
                 const updated = ProsemirrorHelper.applyCommentMarkByText({
-                  docState: document.state,
+                  docState: DocumentHelper.toState(document),
                   anchorText,
                   commentId,
                   userId: user.id,
@@ -323,25 +316,20 @@ export function commentTools(server: McpServer, scopes: string[]) {
                 });
               }
 
-              const created = await Comment.createWithCtx(ctx, {
+              return Comment.createWithCtx(ctx, {
                 id: commentId,
                 data,
                 createdById: user.id,
                 documentId,
                 parentCommentId,
               });
-
-              created.createdBy = user;
-              created.document = document!;
-              return created;
             });
 
-            const presented = presentCommentWithText(comment);
-            return {
-              content: [
-                { type: "text" as const, text: JSON.stringify(presented) },
-              ],
-            } satisfies CallToolResult;
+            return success({
+              success: true,
+              id: comment.id,
+              documentId: comment.documentId,
+            });
           } catch (err) {
             return error(err);
           }
@@ -422,13 +410,11 @@ export function commentTools(server: McpServer, scopes: string[]) {
 
           await comment.saveWithCtx(ctx, status ? { silent: true } : undefined);
 
-          comment.document = document!;
-          const presented = presentCommentWithText(comment);
-          return {
-            content: [
-              { type: "text" as const, text: JSON.stringify(presented) },
-            ],
-          } satisfies CallToolResult;
+          return success({
+            success: true,
+            id: comment.id,
+            documentId: comment.documentId,
+          });
         } catch (err) {
           return error(err);
         }

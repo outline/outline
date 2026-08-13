@@ -5,7 +5,10 @@ import {
   EditGroupDialog,
 } from "~/scenes/Settings/components/GroupDialogs";
 import { createExternalLinkAction, createInternalLinkAction } from "~/actions";
-import { dialogActionFactory } from "~/actions/definitions/common";
+import {
+  dialogActionFactory,
+  everyActiveModel,
+} from "~/actions/definitions/common";
 import { GroupSection } from "~/actions/sections";
 import { settingsPath } from "~/utils/routeHelpers";
 
@@ -32,7 +35,8 @@ export const editGroup = dialogActionFactory({
     return group ? <EditGroupDialog group={group} onSubmit={onSubmit} /> : null;
   },
   icon: <EditIcon />,
-  visible: ({ getActivePolicies }) =>
+  visible: ({ getActiveModels, getActivePolicies }) =>
+    getActiveModels(Group).length === 1 &&
     getActivePolicies(Group).some((policy) => policy.abilities.update),
 });
 
@@ -40,17 +44,23 @@ export const deleteGroup = dialogActionFactory({
   analyticsName: "Delete group",
   section: GroupSection,
   name: (t) => `${t("Delete")}…`,
-  title: (t) => t("Delete group"),
-  content: (onSubmit, { getActiveModel }) => {
-    const group = getActiveModel(Group);
-    return group ? (
-      <DeleteGroupDialog group={group} onSubmit={onSubmit} />
-    ) : null;
-  },
+  title: (t, { getActiveModels }) =>
+    getActiveModels(Group).length === 1
+      ? t("Delete group")
+      : t("Delete {{ count }} group", {
+          count: getActiveModels(Group).length,
+        }),
+  content: (onSubmit, { getActiveModels }) => (
+    <DeleteGroupDialog groups={getActiveModels(Group)} onSubmit={onSubmit} />
+  ),
   icon: <TrashIcon />,
   dangerous: true,
-  visible: ({ getActivePolicies }) =>
-    getActivePolicies(Group).some((policy) => policy.abilities.delete),
+  visible: (context) =>
+    everyActiveModel(
+      context,
+      Group,
+      (group) => context.stores.policies.abilities(group.id).delete
+    ),
 });
 
 /** Read-only row surfacing the group's identifier. */

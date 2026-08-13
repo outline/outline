@@ -13,6 +13,14 @@ export enum Scope {
   Create = "create",
 }
 
+/** The method used to authenticate a request. */
+export enum AuthenticationType {
+  API = "api",
+  APP = "app",
+  MCP = "mcp",
+  OAUTH = "oauth",
+}
+
 export type DateFilter = "day" | "week" | "month" | "year";
 
 export enum StatusFilter {
@@ -56,6 +64,7 @@ export enum Client {
 export enum ExportContentType {
   Markdown = "text/markdown",
   Html = "text/html",
+  TextBundle = "application/x-textbundle",
   Pdf = "application/pdf",
 }
 
@@ -63,6 +72,7 @@ export enum FileOperationFormat {
   JSON = "json",
   MarkdownZip = "outline-markdown",
   HTMLZip = "html",
+  TextBundleZip = "textbundle",
   PDF = "pdf",
   Notion = "notion",
 }
@@ -350,6 +360,8 @@ export enum UserPreference {
   CommentsInGutter = "commentsInGutter",
   /** Whether smart text replacements should be enabled. */
   EnableSmartText = "enableSmartText",
+  /** Whether live word, character, and paragraph counts are shown in documents. */
+  ShowDocumentStats = "showDocumentStats",
   /** The style of notification badge to display. */
   NotificationBadge = "notificationBadge",
 }
@@ -372,6 +384,7 @@ export type UserPreferences = {
   [UserPreference.SortCommentsByOrderInDocument]?: boolean;
   [UserPreference.CommentsInGutter]?: boolean;
   [UserPreference.EnableSmartText]?: boolean;
+  [UserPreference.ShowDocumentStats]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
 };
 
@@ -392,6 +405,8 @@ export type SourceMetadata = {
   originalDocumentId?: string;
   /** The ID of the original collection when this collection was duplicated. */
   originalCollectionId?: string;
+  /** The type of authentication used to make the change. */
+  authType?: AuthenticationType;
 };
 
 export type CustomTheme = {

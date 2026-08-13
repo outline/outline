@@ -117,6 +117,62 @@ describe("isInternalUrl", () => {
   });
 });
 
+describe("addMissingUrlPort", () => {
+  const url = env.URL;
+
+  beforeEach(() => {
+    env.URL = "https://example.com:3000";
+  });
+
+  afterEach(() => {
+    env.URL = url;
+  });
+
+  it("should add the port to a url without one", () => {
+    expect(urlsUtils.addMissingUrlPort("https://example.com/drafts")).toBe(
+      "https://example.com:3000/drafts"
+    );
+  });
+
+  it("should not change a url that already has a port", () => {
+    expect(urlsUtils.addMissingUrlPort("https://example.com:4000/drafts")).toBe(
+      "https://example.com:4000/drafts"
+    );
+  });
+
+  it("should not change a relative url", () => {
+    expect(urlsUtils.addMissingUrlPort("/drafts")).toBe("/drafts");
+  });
+
+  it("should not change a url when no port is configured", () => {
+    env.URL = "https://example.com";
+    expect(urlsUtils.addMissingUrlPort("https://example.com/drafts")).toBe(
+      "https://example.com/drafts"
+    );
+  });
+
+  it("should not add the default https port", () => {
+    env.URL = "https://example.com:443";
+    expect(urlsUtils.addMissingUrlPort("https://example.com/drafts")).toBe(
+      "https://example.com/drafts"
+    );
+  });
+
+  it("should not add the default http port", () => {
+    env.URL = "http://example.com:80";
+    expect(urlsUtils.addMissingUrlPort("http://example.com/drafts")).toBe(
+      "http://example.com/drafts"
+    );
+  });
+
+  it("should add a port that is not the default for the protocol", () => {
+    env.URL = "http://example.com:443";
+    expect(urlsUtils.addMissingUrlPort("http://example.com/drafts")).toBe(
+      "http://example.com:443/drafts"
+    );
+  });
+});
+
 describe("isExternalUrl", () => {
   it("should return false if empty url", () => {
     expect(urlsUtils.isExternalUrl("")).toBe(false);
@@ -136,6 +192,15 @@ describe("sanitizeUrl", () => {
 
   it("should append https:// to non-special urls", () => {
     expect(urlsUtils.sanitizeUrl("www.google.com")).toEqual(
+      "https://www.google.com"
+    );
+  });
+
+  it("should trim surrounding whitespace rather than append a scheme", () => {
+    expect(urlsUtils.sanitizeUrl("https://www.google.com\n")).toEqual(
+      "https://www.google.com"
+    );
+    expect(urlsUtils.sanitizeUrl(" https://www.google.com ")).toEqual(
       "https://www.google.com"
     );
   });

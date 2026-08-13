@@ -243,6 +243,74 @@ describe("UpdateDocumentsPopularityScoreTask", () => {
     expect(Number(updatedDocument?.popularityScore)).toBe(0);
   });
 
+  it("should only process documents within its partition", async () => {
+    const team = await buildTeam();
+    const document = await buildDocument({
+      teamId: team.id,
+      publishedAt: new Date(),
+    });
+    await DocumentInsight.create({
+      documentId: document.id,
+      teamId: team.id,
+      date: dayStr(new Date()),
+      viewCount: 5,
+    });
+
+    // Partition 0 of 2 covers the lower half of the UUID space
+    const partitionIndex =
+      document.id < "80000000-0000-0000-0000-000000000000" ? 0 : 1;
+
+    await task.perform({
+      limit: 10000,
+      partition: { partitionIndex: 1 - partitionIndex, partitionCount: 2 },
+    });
+
+    const untouched = await Document.findByPk(document.id);
+    expect(Number(untouched?.popularityScore)).toBe(0);
+
+    await task.perform({
+      limit: 10000,
+      partition: { partitionIndex, partitionCount: 2 },
+    });
+
+    const updated = await Document.findByPk(document.id);
+    expect(Number(updated?.popularityScore)).toBeGreaterThan(0);
+  });
+
+  it("should skip execution based on when the run was scheduled", async () => {
+    // Partitions execute hours after they are scheduled, so the interval check
+    // must use the scheduled time rather than the current hour.
+    vi.spyOn(Date.prototype, "getHours").mockRestore();
+
+    const team = await buildTeam();
+    const document = await buildDocument({
+      teamId: team.id,
+      publishedAt: new Date(),
+    });
+    await DocumentInsight.create({
+      documentId: document.id,
+      teamId: team.id,
+      date: dayStr(new Date()),
+      viewCount: 5,
+    });
+
+    const offInterval = new Date();
+    offInterval.setHours(1, 0, 0, 0);
+
+    await task.perform({ ...props, scheduledAt: offInterval.getTime() });
+
+    const untouched = await Document.findByPk(document.id);
+    expect(Number(untouched?.popularityScore)).toBe(0);
+
+    const onInterval = new Date();
+    onInterval.setHours(0, 0, 0, 0);
+
+    await task.perform({ ...props, scheduledAt: onInterval.getTime() });
+
+    const updated = await Document.findByPk(document.id);
+    expect(Number(updated?.popularityScore)).toBeGreaterThan(0);
+  });
+
   it("should only process published and non-deleted documents", async () => {
     const team = await buildTeam();
 

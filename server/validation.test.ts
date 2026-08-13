@@ -68,3 +68,22 @@ describe("#ValidateKey.sanitize", () => {
     );
   });
 });
+
+describe("#ValidateKey.sanitizeSegment", () => {
+  it("should leave an ordinary name untouched", () => {
+    expect(ValidateKey.sanitizeSegment("My Document")).toEqual("My Document");
+  });
+
+  it("should remove path separators", () => {
+    expect(ValidateKey.sanitizeSegment("../../../public/foo")).not.toContain(
+      "/"
+    );
+    expect(ValidateKey.sanitizeSegment("..\\..\\public\\foo")).not.toContain(
+      "\\"
+    );
+  });
+
+  it("should remove problematic characters", () => {
+    expect(ValidateKey.sanitizeSegment("test#:*?")).toEqual("test");
+  });
+});

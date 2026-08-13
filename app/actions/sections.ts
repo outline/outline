@@ -69,7 +69,7 @@ export const ShareSection = ({ t }: ActionContext) => t("Share");
 export const TeamSection = ({ t }: ActionContext) => t("Workspace");
 
 export const RecentSearchesSection = ({ t }: ActionContext) =>
-  t("Recently viewed");
+  t("Recent searches");
 
 RecentSearchesSection.priority = -0.1;
 

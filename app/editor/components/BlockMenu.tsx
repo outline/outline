@@ -33,8 +33,8 @@ function useTemplateMenuItem(): MenuItem | undefined {
       return undefined;
     }
 
-    const allTemplates = templatesStore.orderedData.filter(
-      (template) => template.isActive
+    const allTemplates = templatesStore.published.filter(
+      (template) => !!template.data
     );
     const hasTemplates = allTemplates.some(
       (template) =>
@@ -100,7 +100,7 @@ function useTemplateMenuItem(): MenuItem | undefined {
       keywords: "template",
       children,
     } satisfies MenuItem;
-  }, [user, templatesStore.orderedData, collectionId, editor, t]);
+  }, [user, templatesStore.published, collectionId, editor, t]);
 }
 
 type Props = Omit<SuggestionsMenuProps, "renderMenuItem" | "items"> &

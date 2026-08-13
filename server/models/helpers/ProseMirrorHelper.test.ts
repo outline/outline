@@ -8,6 +8,8 @@ import { MentionType } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
 import { schema, serializer } from "@server/editor";
+import env from "@server/env";
+import { Attachment } from "@server/models";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
@@ -1034,6 +1036,157 @@ describe("ProsemirrorHelper", () => {
     });
   });
 
+  describe("replaceDocumentReferences", () => {
+    const replacement = {
+      id: "ca3a20ba-0eab-4b04-b45c-b9d0e9d6d3f0",
+      path: "/doc/copy-of-a-document-hLpJHTvIRW",
+    };
+    const references = new Map([
+      ["7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e", replacement],
+      ["oCB0mUOc5f", replacement],
+    ]);
+
+    const linkedParagraph = (href: string) => ({
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "A link",
+          marks: [{ type: "link", attrs: { href } }],
+        },
+      ],
+    });
+
+    const mentionParagraph = (type: MentionType, modelId: string) => ({
+      type: "paragraph",
+      content: [
+        {
+          type: "mention",
+          attrs: {
+            type,
+            modelId,
+            label: "A mention",
+            id: "d4f6a3ee-0d59-4e2e-b1a8-2f0c5f6b3f8d",
+          },
+        },
+      ],
+    });
+
+    const hrefAfterReplace = (href: string) => {
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([linkedParagraph(href)]),
+        references
+      );
+      return result.content![0].content![0].marks![0].attrs!.href;
+    };
+
+    const modelIdAfterReplace = (type: MentionType, modelId: string) => {
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([mentionParagraph(type, modelId)]),
+        references
+      );
+      return result.content![0].content![0].attrs!.modelId;
+    };
+
+    it("should replace a link to a document by slug", () => {
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f")).toBe(
+        replacement.path
+      );
+    });
+
+    it("should replace a link to a document by id", () => {
+      expect(
+        hrefAfterReplace("/doc/7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e")
+      ).toBe(replacement.path);
+    });
+
+    it("should retain the hash and query of a replaced link", () => {
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f#heading")).toBe(
+        `${replacement.path}#heading`
+      );
+      expect(hrefAfterReplace("/doc/a-document-oCB0mUOc5f?foo=bar")).toBe(
+        `${replacement.path}?foo=bar`
+      );
+    });
+
+    it("should replace a fully qualified link, keeping it fully qualified", () => {
+      expect(hrefAfterReplace(`${env.URL}/doc/a-document-oCB0mUOc5f`)).toBe(
+        `${env.URL}${replacement.path}`
+      );
+      expect(
+        hrefAfterReplace(`${env.URL}/doc/a-document-oCB0mUOc5f#heading`)
+      ).toBe(`${env.URL}${replacement.path}#heading`);
+    });
+
+    it("should replace a fully qualified link written with another host", () => {
+      expect(
+        hrefAfterReplace("https://wiki.example.com/doc/a-document-oCB0mUOc5f")
+      ).toBe(`https://wiki.example.com${replacement.path}`);
+      expect(
+        hrefAfterReplace("http://localhost:3000/doc/a-document-oCB0mUOc5f")
+      ).toBe(`http://localhost:3000${replacement.path}`);
+    });
+
+    it("should replace the text of a link that is displayed as its url", () => {
+      const href = "/doc/a-document-oCB0mUOc5f";
+      const result = ProsemirrorHelper.replaceDocumentReferences(
+        buildProseMirrorDoc([
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: href,
+                marks: [{ type: "link", attrs: { href } }],
+              },
+            ],
+          },
+        ]),
+        references
+      );
+      const text = result.content![0].content![0];
+
+      expect(text.text).toBe(replacement.path);
+      expect(text.marks![0].attrs!.href).toBe(replacement.path);
+    });
+
+    it("should not replace links to other documents", () => {
+      const relative = "/doc/another-document-Iz6qBGZQIU";
+      expect(hrefAfterReplace(relative)).toBe(relative);
+
+      const qualified = `${env.URL}/doc/another-document-Iz6qBGZQIU`;
+      expect(hrefAfterReplace(qualified)).toBe(qualified);
+    });
+
+    it("should not replace links that are not to a document", () => {
+      const href = "/search?query=oCB0mUOc5f";
+      expect(hrefAfterReplace(href)).toBe(href);
+    });
+
+    it("should not replace links with an unsupported protocol", () => {
+      const href = "mailto:oCB0mUOc5f@example.com";
+      expect(hrefAfterReplace(href)).toBe(href);
+    });
+
+    it("should replace the model of a document mention", () => {
+      expect(
+        modelIdAfterReplace(
+          MentionType.Document,
+          "7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e"
+        )
+      ).toBe(replacement.id);
+    });
+
+    it("should not replace the model of a user mention", () => {
+      expect(
+        modelIdAfterReplace(
+          MentionType.User,
+          "7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e"
+        )
+      ).toBe("7a0e9dbc-1de3-4dd7-b1a3-1a5b1e5ecd2e");
+    });
+  });
+
   describe("removeFirstHeading", () => {
     it("should remove an H1 that is the first child", () => {
       const doc = buildProseMirrorDoc([
@@ -1392,6 +1545,78 @@ describe("ProsemirrorHelper", () => {
 
       expect(result.toJSON()).toEqual(doc.toJSON());
     });
+
+    it("should turn a link pointing at a data URI into an attachment", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "the spec",
+              marks: [
+                {
+                  type: "link",
+                  attrs: {
+                    href: "data:application/pdf;base64,JVBERi0xLjQK",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      const link = result.content
+        .child(0)
+        .content.child(0)
+        .marks.find((mark) => mark.type.name === "link");
+
+      expect(link?.attrs.href).toMatch(/^\/api\/attachments\.redirect\?id=/);
+      expect(await Attachment.count({ where: { teamId: user.teamId } })).toBe(
+        1
+      );
+    });
+
+    it("should leave an ordinary external link untouched", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "example",
+              marks: [
+                { type: "link", attrs: { href: "https://example.com/page" } },
+              ],
+            },
+          ],
+        },
+      ]);
+
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      expect(result.toJSON()).toEqual(doc.toJSON());
+      expect(await Attachment.count({ where: { teamId: user.teamId } })).toBe(
+        0
+      );
+    });
   });
 
   describe("#applyCommentMarkByText", () => {
@@ -1586,6 +1811,220 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
         })
       ).toThrow(/not found/);
+    });
+
+    it("suggests the closest text when anchorText is not found", () => {
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "Copy all 6 scripts to " },
+            {
+              type: "text",
+              marks: [{ type: "code_inline" }],
+              text: "api-documentation/tools/",
+            },
+          ],
+        },
+      ]);
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "Copy all 7 scripts to `api-documentation/tools/`",
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(
+        'the closest text is "Copy all 6 scripts to api-documentation/tools/"'
+      );
+    });
+
+    it("does not suggest unrelated text when anchorText is not found", () => {
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Copy all 6 scripts to tools" }],
+        },
+      ]);
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "totally unrelated sentence here",
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(/^anchorText was not found in the document$/);
+    });
+
+    it("does not suggest text when anchorText is very long", () => {
+      const text = "lorem ipsum dolor sit amet ".repeat(50);
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text }],
+        },
+      ]);
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: `${text}and more`,
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(/^anchorText was not found in the document$/);
+    });
+
+    describe("with markdown formatted anchorText", () => {
+      // Callers commonly read a document as markdown and then anchor using a
+      // substring of it, which does not exist verbatim in the plain text.
+      const steps = [
+        {
+          type: "heading",
+          attrs: { level: 2 },
+          content: [{ type: "text", text: "Implementation steps" }],
+        },
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "Remove " },
+            {
+              type: "text",
+              marks: [{ type: "code_inline" }],
+              text: "--tools-dir",
+            },
+            { type: "text", text: " arguments from the scripts" },
+          ],
+        },
+      ];
+
+      it("matches text containing inline code", () => {
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState: buildDocState(steps),
+          anchorText: "Remove `--tools-dir` arguments from the scripts",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe(
+          "Remove --tools-dir arguments from the scripts"
+        );
+      });
+
+      it("matches text containing emphasis", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "the " },
+              { type: "text", marks: [{ type: "strong" }], text: "brown" },
+              { type: "text", text: " fox" },
+            ],
+          },
+        ]);
+
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "the **brown** fox",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe("the brown fox");
+      });
+
+      it("matches text containing a link", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "see " },
+              {
+                type: "text",
+                marks: [{ type: "link", attrs: { href: "https://acme.com" } }],
+                text: "the docs",
+              },
+              { type: "text", text: " for details" },
+            ],
+          },
+        ]);
+
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "see [the docs](https://acme.com) for details",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe(
+          "see the docs for details"
+        );
+      });
+
+      it("matches text including a heading marker", () => {
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState: buildDocState(steps),
+          anchorText: "## Implementation steps",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe("Implementation steps");
+      });
+
+      it("matches text including a list marker", () => {
+        const docState = buildDocState([
+          {
+            type: "bullet_list",
+            content: [
+              {
+                type: "list_item",
+                content: [
+                  {
+                    type: "paragraph",
+                    content: [{ type: "text", text: "first item" }],
+                  },
+                ],
+              },
+            ],
+          },
+        ]);
+
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "- first item",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe("first item");
+      });
+
+      it("matches text that is wrapped over several lines", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "The quick brown fox jumps" }],
+          },
+        ]);
+
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "The quick\n  brown fox",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe("The quick brown fox");
+      });
     });
 
     describe("with anchorPrefix and anchorSuffix", () => {

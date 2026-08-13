@@ -58,6 +58,7 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
     [FileOperationFormat.Notion]: "Notion",
     [FileOperationFormat.MarkdownZip]: "Markdown",
     [FileOperationFormat.HTMLZip]: "HTML",
+    [FileOperationFormat.TextBundleZip]: "TextBundle",
     [FileOperationFormat.PDF]: "PDF",
   };
 

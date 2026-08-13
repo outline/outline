@@ -5,8 +5,13 @@ import formidable from "formidable";
 import type Koa from "koa";
 import { escape, isNil, snakeCase } from "es-toolkit/compat";
 import env from "@server/env";
-import { ClientClosedRequestError, InternalError } from "@server/errors";
+import {
+  ClientClosedRequestError,
+  InternalError,
+  RequestTimeoutError,
+} from "@server/errors";
 import { requestErrorHandler } from "@server/logging/sentry";
+import { isQueryCanceledError } from "@server/storage/database";
 import type { AppContext } from "@server/types";
 
 let errorHtmlCache: Buffer | undefined;
@@ -32,6 +37,8 @@ export default function onerror(app: Koa) {
       err.code === "EPIPE"
     ) {
       err = ClientClosedRequestError();
+    } else if (isQueryCanceledError(err)) {
+      err = RequestTimeoutError();
     }
 
     // Push only errors explicitly marked for Sentry reporting.
@@ -44,10 +51,15 @@ export default function onerror(app: Koa) {
           !http.STATUS_CODES[err.status] ||
           err.status === 500));
 
+    // Errors raised by the application describe an expected condition, so their
+    // status and message are safe to send even when they are also reported.
+    const isKnownError =
+      typeof err.id === "string" && err.id !== "internal_error";
+
     if (shouldReport) {
       requestErrorHandler(err, this);
 
-      if (!(err instanceof InternalError)) {
+      if (!isKnownError) {
         if (env.ENVIRONMENT === "test") {
           // oxlint-disable-next-line no-console
           console.error(err);
@@ -57,12 +69,17 @@ export default function onerror(app: Koa) {
     }
 
     const headerSent = this.headerSent || !this.writable;
-    if (headerSent) {
-      err.headerSent = true;
-    }
 
     // Nothing we can do here other than delegate to the app-level handler and log.
     if (headerSent) {
+      err.headerSent = true;
+
+      // Nothing was written, so the status code is still Koa's placeholder 404 –
+      // correct it so that logging and tracing report the real outcome.
+      if (!this.headerSent && typeof err.status === "number") {
+        this.res.statusCode = err.status;
+      }
+
       return;
     }
 

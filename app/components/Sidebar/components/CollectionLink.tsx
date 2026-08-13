@@ -11,6 +11,7 @@ import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
+import * as Scenes from "~/routes/scenes";
 import useBoolean from "~/hooks/useBoolean";
 import { documentEditPath } from "~/utils/routeHelpers";
 import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
@@ -65,6 +66,7 @@ const CollectionLink: React.FC<Props> = ({
   );
 
   const handlePrefetch = React.useCallback(() => {
+    void Scenes.Collection.preload();
     void collection.fetchDocuments();
   }, [collection]);
 

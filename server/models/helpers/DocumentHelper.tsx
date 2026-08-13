@@ -103,6 +103,24 @@ export class DocumentHelper {
   }
 
   /**
+   * Returns the collaborative state for a document. Documents that have never been opened in a
+   * collaborative session have no state, in which case one is derived from the content, falling
+   * back to Markdown.
+   *
+   * @param document The document to convert
+   * @returns The collaborative state
+   */
+  static toState(document: Document): Uint8Array {
+    if (document.state) {
+      return document.state;
+    }
+
+    return ProsemirrorHelper.toState(
+      ProsemirrorHelper.toYDoc(document.content ?? document.text ?? "")
+    );
+  }
+
+  /**
    * Returns the document as a plain JSON object. This method uses the derived content if available
    * then the collaborative state, otherwise it falls back to Markdown.
    *

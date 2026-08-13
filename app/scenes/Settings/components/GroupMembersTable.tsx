@@ -7,7 +7,6 @@ import { GroupPermission } from "@shared/types";
 import { GroupPermissionHelper } from "@shared/utils/GroupPermissionHelper";
 import type Group from "~/models/Group";
 import type User from "~/models/User";
-import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import { HEADER_HEIGHT } from "~/components/Header";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
@@ -16,6 +15,7 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { UserLabel } from "~/components/UserLabel";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import { ActionContextProvider } from "~/hooks/useActionContext";
@@ -24,6 +24,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { GroupMemberMenu } from "~/menus/GroupMemberMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import GroupMemberSelectionToolbar from "./GroupMemberSelectionToolbar";
 import { HStack } from "~/components/primitives/HStack";
 
 const ROW_HEIGHT = 50;
@@ -66,6 +67,11 @@ export const GroupMembersTable = observer(function GroupMembersTable({
   const can = usePolicy(group);
   const canManage = can.update && !group.isExternallyManaged;
 
+  const isRowSelectable = useCallback(
+    (user: User) => !!groupUsers.membership(group.id, user.id),
+    [groupUsers, group.id]
+  );
+
   const applyContextMenu = useCallback(
     (user: User, rowElement: React.ReactNode) => (
       <GroupMemberRowContextMenu
@@ -88,11 +94,9 @@ export const GroupMembersTable = observer(function GroupMembersTable({
           header: t("Name"),
           accessor: (user) => user.name,
           component: (user) => (
-            <HStack>
-              <Avatar model={user} size={AvatarSize.Large} />
-              <Text selectable>{user.name}</Text>
+            <UserLabel user={user} primary>
               {user.isAdmin && <Badge primary>{t("Admin")}</Badge>}
-            </HStack>
+            </UserLabel>
           ),
           width: "3fr",
         },
@@ -126,9 +130,11 @@ export const GroupMembersTable = observer(function GroupMembersTable({
               user.id
             )?.permission;
             return permission ? (
-              <Badge primary={permission === GroupPermission.Admin}>
-                {GroupPermissionHelper.displayName(permission, t)}
-              </Badge>
+              <HStack>
+                <Badge primary={permission === GroupPermission.Admin}>
+                  {GroupPermissionHelper.displayName(permission, t)}
+                </Badge>
+              </HStack>
             ) : null;
           },
           width: "1fr",
@@ -149,10 +155,13 @@ export const GroupMembersTable = observer(function GroupMembersTable({
 
   return (
     <SortableTable
+      id="groupMembers"
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
       decorateRow={canManage ? applyContextMenu : undefined}
+      isRowSelectable={canManage ? isRowSelectable : undefined}
+      selectionToolbar={<GroupMemberSelectionToolbar group={group} />}
       {...rest}
     />
   );

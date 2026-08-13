@@ -1,5 +1,5 @@
 import { Schema } from "prosemirror-model";
-import { isValidCellAlignment, isValidCellMarks } from "./table";
+import { getCellAttrs, isValidCellAlignment, isValidCellMarks } from "./table";
 
 const schema = new Schema({
   nodes: {
@@ -163,5 +163,39 @@ describe("isValidCellMarks", () => {
   it("accepts registered marks without attrs", () => {
     expect(isValidCellMarks([{ type: "strong" }], schema)).toBe(true);
     expect(isValidCellMarks([{ type: "em" }], schema)).toBe(true);
+  });
+});
+
+// Shared tests run in both node and jsdom; reading cell attributes requires a DOM.
+describe.runIf(typeof document !== "undefined")("getCellAttrs", () => {
+  const cell = (attributes: Record<string, string>) => {
+    const element = document.createElement("td");
+    for (const [name, value] of Object.entries(attributes)) {
+      element.setAttribute(name, value);
+    }
+    return getCellAttrs(element);
+  };
+
+  it("reads the background written by the editor", () => {
+    expect(cell({ "data-bgcolor": "#FDEA9B" }).marks).toEqual([
+      { type: "background", attrs: { color: "#FDEA9B" } },
+    ]);
+  });
+
+  it("reads a background styled by an external application", () => {
+    expect(cell({ style: "background-color: #93c47d" }).marks).toEqual([
+      { type: "background", attrs: { color: "#93c47d" } },
+    ]);
+    expect(cell({ style: "background: yellow" }).marks).toEqual([
+      { type: "background", attrs: { color: "#ffff00" } },
+    ]);
+  });
+
+  it("ignores near-white and transparent cell backgrounds", () => {
+    expect(cell({ style: "background-color: #ffffff" }).marks).toBe(undefined);
+    expect(cell({ style: "background-color: transparent" }).marks).toBe(
+      undefined
+    );
+    expect(cell({}).marks).toBe(undefined);
   });
 });

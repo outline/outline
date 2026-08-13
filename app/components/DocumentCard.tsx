@@ -18,6 +18,7 @@ import type Pin from "~/models/Pin";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Time from "~/components/Time";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionIcon from "./Icons/CollectionIcon";
 import Text from "./Text";
@@ -31,8 +32,6 @@ type Props = {
   pin: Pin | undefined;
   /** The document related to the pin */
   document: Document;
-  /** Whether the user has permission to delete or reorder the pin */
-  canUpdatePin?: boolean;
   /** Whether this pin can be reordered by dragging */
   isDraggable?: boolean;
 };
@@ -41,8 +40,16 @@ function DocumentCard(props: Props) {
   const { t } = useTranslation();
   const { collections } = useStores();
   const theme = useTheme();
-  const { document, pin, canUpdatePin, isDraggable } = props;
+  const { document, pin, isDraggable } = props;
+  const canPin = usePolicy(pin);
+  const canDocument = usePolicy(document);
   const pinnedToHome = useRef(!pin?.collectionId).current;
+
+  // Pins in a collection are governed by the document policy, pins on home by
+  // the policy of the pin itself.
+  const canReorder = pin?.collectionId ? canDocument.pin : canPin.update;
+  const canUnpin = pin?.collectionId ? canDocument.unpin : canPin.delete;
+
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
@@ -55,7 +62,7 @@ function DocumentCard(props: Props) {
     isDragging,
   } = useSortable({
     id: props.document.id,
-    disabled: !isDraggable || !canUpdatePin,
+    disabled: !isDraggable || !canReorder,
   });
 
   const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
@@ -168,15 +175,13 @@ function DocumentCard(props: Props) {
               </DocumentMeta>
             </div>
           </Content>
-          {canUpdatePin && (
+          {canUnpin && !isDragging && pin && (
             <Actions dir={document.dir} gap={4}>
-              {!isDragging && pin && (
-                <Tooltip content={t("Unpin")}>
-                  <PinButton onClick={handleUnpin} aria-label={t("Unpin")}>
-                    <CloseIcon />
-                  </PinButton>
-                </Tooltip>
-              )}
+              <Tooltip content={t("Unpin")}>
+                <PinButton onClick={handleUnpin} aria-label={t("Unpin")}>
+                  <CloseIcon />
+                </PinButton>
+              </Tooltip>
             </Actions>
           )}
         </DocumentLink>

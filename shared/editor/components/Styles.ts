@@ -2,6 +2,7 @@
 import { lighten, transparentize } from "polished";
 import type { DefaultTheme } from "styled-components";
 import styled, { css, keyframes } from "styled-components";
+import { HEADER_HEIGHT } from "../../constants";
 import { breakpoints, hover } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
@@ -2439,7 +2440,7 @@ table {
   }
 
   > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
-    transform: translateY(calc(var(--header-offset, 64px) + var(--sticky-scroll-offset, 0px)));
+    transform: translateY(calc(var(--header-offset, ${HEADER_HEIGHT}px) + var(--sticky-scroll-offset, 0px)));
 
     // Mask content scrolling past the top of the header (first shadow) and draw
     // the divider below it (second shadow). Using box-shadow rather than a real
@@ -2737,6 +2738,9 @@ li > .${EditorStyleHelper.toggleBlock} {
       margin-top: 0;
     }
     > .${EditorStyleHelper.toggleBlockHead} {
+      /* The title acts as a fold/unfold control when the document is read-only */
+      ${props.readOnly ? "cursor: var(--pointer);" : ""}
+
       > * {
         margin-top: 0;
       }

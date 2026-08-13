@@ -1,5 +1,6 @@
 import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
 import { throttle } from "es-toolkit/compat";
+import { Node as ProsemirrorNode } from "prosemirror-model";
 import {
   useState,
   useLayoutEffect,
@@ -17,6 +18,7 @@ import * as Y from "yjs";
 import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
 import History from "@shared/editor/extensions/History";
 import EDITOR_VERSION from "@shared/editor/version";
+import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import type { Props as EditorProps } from "~/components/Editor";
 import Editor from "~/components/Editor";
@@ -328,7 +330,8 @@ function MultiplayerEditor(
   // while the collaborative document is loading, we render a version of the
   // document from the last text cache in read-only mode if we have it.
   const isLocalReady = !hasLocalPersistence || isLocalSynced;
-  const showCache = !isLocalReady && !isRemoteSynced;
+  const showCache =
+    !isLocalReady && !isRemoteSynced && hasContent(props.defaultValue);
 
   return (
     <>
@@ -363,6 +366,30 @@ function MultiplayerEditor(
       />
     </>
   );
+}
+
+/**
+ * Whether the last known content of the document is worth displaying while the
+ * collaborative document loads. An empty document, such as one that was just
+ * created, renders identically either way so there is nothing to wait for.
+ *
+ * @param value the cached editor content.
+ * @returns true if the content is non-empty.
+ */
+function hasContent(value: Props["defaultValue"]): boolean {
+  if (!value) {
+    return false;
+  }
+
+  if (typeof value === "string") {
+    return !!value.trim();
+  }
+
+  if (value instanceof ProsemirrorNode) {
+    return !!value.textContent.trim();
+  }
+
+  return !ProsemirrorDataHelper.isEmpty(value);
 }
 
 export default forwardRef<SharedEditor, Props>(MultiplayerEditor);

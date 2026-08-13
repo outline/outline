@@ -178,6 +178,28 @@ function useSuggestionsMenuAria({
   };
 }
 
+/**
+ * Measures the bounding rect of the current selection within the editor.
+ *
+ * @param view the editor view to measure within.
+ * @returns the rect covering the selection, or undefined if it cannot be measured.
+ */
+function measureCaretRect(view: EditorView): DOMRect | undefined {
+  try {
+    const { selection } = view.state;
+    const fromPos = view.coordsAtPos(selection.from);
+    const toPos = view.coordsAtPos(selection.to, -1);
+    const top = Math.min(fromPos.top, toPos.top);
+    const bottom = Math.max(fromPos.bottom, toPos.bottom);
+    const left = Math.min(fromPos.left, toPos.left);
+    const right = Math.max(fromPos.right, toPos.right);
+    return new DOMRect(left, top, right - left, bottom - top);
+  } catch (err) {
+    Logger.warn("Unable to calculate caret position", { err });
+    return undefined;
+  }
+}
+
 function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const { view, commands, props: editorProps } = useEditor();
   const { t } = useTranslation();
@@ -200,35 +222,43 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   // Stores the caret bounding rect, snapshotted when the menu opens
   const caretRectRef = React.useRef(new DOMRect());
 
-  // Stable virtual element for Radix PopoverAnchor – never replaced so the
-  // popper does not trigger unnecessary anchor-change cycles.
-  const caretRef = React.useRef({
+  // Virtual element for Radix PopoverAnchor – only replaced when the rect is
+  // re-measured, so the popper does not run unnecessary anchor-change cycles.
+  const [caretAnchor, setCaretAnchor] = React.useState(() => ({
     getBoundingClientRect: () => caretRectRef.current,
-  });
+  }));
 
   // Compute and store the caret rect during render so it is available before
   // the Radix popper effect runs for the first time.
-  const caretRect = React.useMemo(() => {
-    if (!props.isActive) {
-      return new DOMRect();
+  const caretRect = React.useMemo(
+    () => (props.isActive ? measureCaretRect(view) : new DOMRect()),
+    [props.isActive, view]
+  );
+
+  // Keep the last known rect when measuring fails, rather than collapsing the
+  // anchor to the top left corner of the viewport.
+  if (caretRect) {
+    caretRectRef.current = caretRect;
+  }
+
+  // Measuring fails while the editor view is mid-update, as the DOM and the
+  // view descriptors are briefly out of sync. Measure again on the next frame,
+  // once the view has settled, so the menu is not left at a stale position.
+  React.useEffect(() => {
+    if (caretRect || !props.isActive) {
+      return;
     }
 
-    try {
-      const { selection } = view.state;
-      const fromPos = view.coordsAtPos(selection.from);
-      const toPos = view.coordsAtPos(selection.to, -1);
-      const top = Math.min(fromPos.top, toPos.top);
-      const bottom = Math.max(fromPos.bottom, toPos.bottom);
-      const left = Math.min(fromPos.left, toPos.left);
-      const right = Math.max(fromPos.right, toPos.right);
-      return new DOMRect(left, top, right - left, bottom - top);
-    } catch (err) {
-      Logger.warn("Unable to calculate caret position", { err });
-      return new DOMRect();
-    }
-  }, [props.isActive, view]);
+    const frame = requestAnimationFrame(() => {
+      const rect = measureCaretRect(view);
+      if (rect) {
+        caretRectRef.current = rect;
+        setCaretAnchor({ getBoundingClientRect: () => caretRectRef.current });
+      }
+    });
 
-  caretRectRef.current = caretRect;
+    return () => cancelAnimationFrame(frame);
+  }, [caretRect, props.isActive, view]);
 
   const resolveChildren = (
     children: MenuItem["children"]
@@ -1081,7 +1111,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   return (
     <>
       <Popover open={isActive} onOpenChange={handleOpenChange} modal={false}>
-        <PopoverAnchor virtualRef={caretRef} />
+        <PopoverAnchor virtualRef={{ current: caretAnchor }} />
         <BouncyPopoverContent
           side="bottom"
           align="start"

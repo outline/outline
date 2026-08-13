@@ -8,10 +8,16 @@ type Props = {
   children?: React.ReactNode;
   icon?: JSX.Element;
   description?: JSX.Element;
+  className?: string;
 };
 
-const Notice: React.FC<Props> = ({ children, icon, description }: Props) => (
-  <Container as="div">
+const Notice: React.FC<Props> = ({
+  children,
+  icon,
+  description,
+  className,
+}: Props) => (
+  <Container as="div" className={className}>
     <Flex as="span" gap={8}>
       {icon}
       <span>

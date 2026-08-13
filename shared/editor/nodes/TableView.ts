@@ -2,6 +2,7 @@ import type { Node } from "prosemirror-model";
 import { TableView as ProsemirrorTableView } from "prosemirror-tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { TableLayout } from "../types";
+import { HEADER_HEIGHT } from "../../constants";
 import { isBrowser } from "../../utils/browser";
 
 export class TableView extends ProsemirrorTableView {
@@ -110,9 +111,6 @@ export class TableView extends ProsemirrorTableView {
 
   private scrollHandler: (() => void) | null = null;
 
-  /** Default height of the app's fixed header */
-  private static readonly HEADER_HEIGHT = 64;
-
   /**
    * Sets up the scroll listener for sticky header behavior. Nested tables
    * (tables within another table) are excluded from sticky header behavior.
@@ -207,12 +205,12 @@ export class TableView extends ProsemirrorTableView {
    */
   private getHeaderOffset(): number {
     if (!isBrowser) {
-      return TableView.HEADER_HEIGHT;
+      return HEADER_HEIGHT;
     }
 
     const value = getComputedStyle(document.documentElement).getPropertyValue(
       "--header-offset"
     );
-    return value ? parseFloat(value) : TableView.HEADER_HEIGHT;
+    return value ? parseFloat(value) : HEADER_HEIGHT;
   }
 }

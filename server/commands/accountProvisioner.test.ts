@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
 import { errToString } from "@shared/utils/error";
-import { TeamDomain } from "@server/models";
+import { Event, TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
 import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
@@ -55,6 +55,41 @@ describe("accountProvisioner", () => {
         },
       });
       expect(collectionCount).toEqual(1);
+    });
+
+    it("should record the request ip on onboarding events", async () => {
+      const { team } = await accountProvisioner(ctx, {
+        user: {
+          name: "Jenny Tester",
+          email: faker.internet.email(),
+          avatarUrl: faker.image.avatar(),
+        },
+        team: {
+          name: "New workspace",
+          avatarUrl: faker.image.avatar(),
+          subdomain: faker.internet.domainWord(),
+        },
+        authenticationProvider: {
+          name: "google",
+          providerId: faker.internet.domainName(),
+        },
+        authentication: {
+          providerId: randomUUID(),
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+
+      const events = await Event.findAll({
+        where: {
+          teamId: team.id,
+          name: ["collections.create", "documents.create"],
+        },
+      });
+      expect(events.length).toBeGreaterThan(0);
+      events.forEach((event) => {
+        expect(event.ip).toEqual(ip);
+      });
     });
 
     it("should update existing user and authentication", async () => {

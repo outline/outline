@@ -78,6 +78,10 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
             label: t("Toggle theme"),
           },
           {
+            shortcut: <KeyboardShortcut keys={["meta", "shift", "g"]} />,
+            label: t("Toggle statistics"),
+          },
+          {
             shortcut: <KeyboardShortcut keys={["meta", "f"]} />,
             label: t("Focus search input"),
           },

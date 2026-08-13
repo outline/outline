@@ -27,4 +27,7 @@ jobs:
           stale-pr-label: stale
           exempt-issue-labels: "security,pinned,A1"
       - name: Print outputs
-        run: echo "${{ steps.stale.outputs['staled-issues-prs'] }},${{ steps.stale.outputs['closed-issues-prs'] }}"
+        env:
+          STALED: ${{ steps.stale.outputs['staled-issues-prs'] }}
+          CLOSED: ${{ steps.stale.outputs['closed-issues-prs'] }}
+        run: echo "$STALED,$CLOSED"

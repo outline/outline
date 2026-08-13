@@ -27,7 +27,7 @@ import Logger from "./utils/Logger";
 import { PluginManager } from "./utils/PluginManager";
 import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
-import { trackSplitViewModifier } from "./utils/splitView";
+import { initSplitViewNavigation } from "./utils/splitView";
 import { ActionContextProvider } from "./hooks/useActionContext";
 
 // Load plugins as soon as possible
@@ -37,7 +37,7 @@ initI18n(env.DEFAULT_LANGUAGE);
 
 // Register ahead of rendering so the capture-phase listeners run before any
 // React-mounted listener, such as kbar's Enter handler.
-trackSplitViewModifier();
+initSplitViewNavigation(history);
 
 const element = window.document.getElementById("root");
 

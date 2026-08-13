@@ -36,45 +36,49 @@ router.post(
         limit,
         statusFilter: [StatusFilter.Published],
       }),
-      User.findAll({
-        where: {
-          teamId: actor.teamId,
-          suspendedAt: {
-            [Op.eq]: null,
-          },
-          [Op.and]: query
-            ? {
-                [Op.or]: [
-                  Sequelize.literal(
-                    `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
-                  ),
-                  Sequelize.literal(
+      can(actor, "listUsers", actor.team)
+        ? User.findAll({
+            where: {
+              teamId: actor.teamId,
+              suspendedAt: {
+                [Op.eq]: null,
+              },
+              [Op.and]: query
+                ? {
+                    [Op.or]: [
+                      Sequelize.literal(
+                        `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+                      ),
+                      Sequelize.literal(
+                        `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+                      ),
+                    ],
+                  }
+                : {},
+            },
+            order: [["name", "ASC"]],
+            replacements: { query: QueryHelper.likeContains(query ?? "") },
+            offset,
+            limit,
+          })
+        : [],
+      can(actor, "listGroups", actor.team)
+        ? Group.findAll({
+            where: {
+              teamId: actor.teamId,
+              disableMentions: false,
+              [Op.and]: query
+                ? Sequelize.literal(
                     `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-                  ),
-                ],
-              }
-            : {},
-        },
-        order: [["name", "ASC"]],
-        replacements: { query: QueryHelper.likeContains(query ?? "") },
-        offset,
-        limit,
-      }),
-      Group.findAll({
-        where: {
-          teamId: actor.teamId,
-          disableMentions: false,
-          [Op.and]: query
-            ? Sequelize.literal(
-                `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-              )
-            : {},
-        },
-        order: [["name", "ASC"]],
-        replacements: { query: QueryHelper.likeContains(query ?? "") },
-        offset,
-        limit,
-      }),
+                  )
+                : {},
+            },
+            order: [["name", "ASC"]],
+            replacements: { query: QueryHelper.likeContains(query ?? "") },
+            offset,
+            limit,
+          })
+        : [],
       SearchProviderManager.getProvider().searchCollectionsForUser(actor, {
         query,
         offset,
