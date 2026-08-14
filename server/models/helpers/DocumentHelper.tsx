@@ -452,7 +452,8 @@ export class DocumentHelper {
    * @param after The after document
    * @param options Options passed to HTML generation
    * @returns The diff as an HTML string, an empty string when there is no
-   * before document, or undefined when the documents contain no changes.
+   * before document, or undefined when the documents contain no changes or
+   * the changeset was too expensive to compute.
    */
   static async toEmailDiff(
     before: Document | Revision | null,
@@ -463,7 +464,26 @@ export class DocumentHelper {
       return "";
     }
 
-    const html = await DocumentHelper.diff(before, after, options);
+    addTags({
+      beforeId: before.id,
+      documentId: after.documentId,
+      options,
+    });
+
+    const beforeJSON = await DocumentHelper.toJSON(before);
+    const afterJSON = await DocumentHelper.toJSON(after);
+    const changeset = ChangesetHelper.getChangeset(afterJSON, beforeJSON);
+
+    // Without a changeset no diff elements can render, so skip the expensive
+    // HTML generation and clipping entirely.
+    if (!changeset?.changes.length) {
+      return undefined;
+    }
+
+    const html = await DocumentHelper.toHTML(after, {
+      ...options,
+      changes: changeset.changes,
+    });
     // Loaded lazily to keep jsdom off the startup path — only HTML export needs it.
     const { JSDOM } = await import("jsdom");
     const dom = new JSDOM(html);
