@@ -3,6 +3,17 @@ import path from "node:path";
 import env from "../env";
 
 /**
+ * Whether the application terminates SSL itself, rather than relying on an
+ * upstream proxy to do so.
+ *
+ * @param options the SSL options, read from the environment when omitted.
+ * @returns true when both a private key and certificate are available.
+ */
+export function isTerminatingSSL(options = getSSLOptions()): boolean {
+  return !!options.key && !!options.cert;
+}
+
+/**
  * Find if SSL certs are available in the environment or filesystem and return
  * as a valid ServerOptions object
  */
