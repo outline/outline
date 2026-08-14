@@ -23,7 +23,7 @@ import { PluginManager } from "./utils/PluginManager";
 import { redirectOnClient } from "./utils/redirectOnClient";
 import { RedisPrefixHelper } from "./utils/RedisPrefixHelper";
 import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
-import { getSSLOptions, isTerminatingSSL } from "./utils/ssl";
+import { getSSLOptions } from "./utils/ssl";
 import { checkUpdates } from "./utils/updates";
 
 /**
@@ -45,7 +45,7 @@ export async function start(id: number, disconnect: () => void) {
 
   // Find if SSL certs are available
   const ssl = getSSLOptions();
-  const useHTTPS = isTerminatingSSL(ssl);
+  const useHTTPS = !!ssl.key && !!ssl.cert;
 
   // If a --port flag is passed then it takes priority over the env variable
   const normalizedPort = getArg("port", "p") || env.PORT;

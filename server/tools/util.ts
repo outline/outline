@@ -45,8 +45,6 @@ export function buildAPIContext(context: McpContext) {
   return {
     state: { auth },
     context: { auth, ip },
-    // MCP requests carry no cookies, but helpers shared with the HTTP routes
-    // still expect the request to describe the scheme it arrived over.
     request: { secure: env.URL.startsWith("https://") },
     cookies: { get: () => undefined, set: () => undefined },
   } as unknown as APIContext;

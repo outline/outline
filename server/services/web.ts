@@ -1,5 +1,5 @@
 /* oxlint-disable @typescript-eslint/no-var-requires */
-import type { Server } from "node:https";
+import { Server } from "node:https";
 import type { BaseContext } from "koa";
 import Koa from "koa";
 import compress from "koa-compress";
@@ -17,7 +17,6 @@ import csp from "@server/middlewares/csp";
 import { attachCSRFToken } from "@server/middlewares/csrf";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { initI18n } from "@server/utils/i18n";
-import { isTerminatingSSL } from "@server/utils/ssl";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
@@ -38,11 +37,10 @@ export default function init(app: Koa = new Koa(), server?: Server) {
       if (env.PROXY_IP_HEADER) {
         app.proxyIpHeader = env.PROXY_IP_HEADER;
       }
-    } else if (env.URL.startsWith("https://") && !isTerminatingSSL()) {
+    } else if (env.URL.startsWith("https://") && !(server instanceof Server)) {
       // TLS is terminated upstream, but without X-Forwarded-Proto the app
       // cannot tell, so the CSRF token falls back to a cookie that a sibling
-      // subdomain is able to write. This does not apply when the app serves
-      // TLS itself, as the socket is then encrypted.
+      // subdomain is able to write.
       Logger.warn(
         "PROXY_HEADERS_TRUSTED is disabled while URL is https and the app is not terminating TLS itself, which weakens CSRF protection. Enable it when running behind a proxy that terminates TLS."
       );
