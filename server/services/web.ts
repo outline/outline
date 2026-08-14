@@ -37,6 +37,13 @@ export default function init(app: Koa = new Koa(), server?: Server) {
       if (env.PROXY_IP_HEADER) {
         app.proxyIpHeader = env.PROXY_IP_HEADER;
       }
+    } else if (env.URL.startsWith("https://")) {
+      // Without X-Forwarded-Proto the app cannot tell that TLS was terminated
+      // upstream, so the CSRF token falls back to a cookie that a sibling
+      // subdomain is able to write.
+      Logger.warn(
+        "PROXY_HEADERS_TRUSTED is disabled while URL is https, which weakens CSRF protection. Enable it when running behind a proxy that terminates TLS."
+      );
     }
 
     // Force redirect to HTTPS protocol unless explicitly disabled
