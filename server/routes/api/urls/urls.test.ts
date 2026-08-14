@@ -1,8 +1,10 @@
 import type { Mock } from "vitest";
 import { randomString } from "@shared/random";
 import { UnfurlResourceType } from "@shared/types";
+import { createContext } from "@server/context";
 import env from "@server/env";
 import type { User } from "@server/models";
+import { View } from "@server/models";
 import {
   buildCollection,
   buildDocument,
@@ -153,6 +155,51 @@ describe("#urls.unfurl", () => {
     expect(res.status).toEqual(200);
     expect(body.type).toEqual(UnfurlResourceType.Mention);
     expect(body.name).toEqual(mentionedUser.name);
+  });
+
+  it("should include the mentioned user's viewing activity when insights are enabled", async () => {
+    const mentionedUser = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      insightsEnabled: true,
+    });
+    await View.incrementOrCreate(createContext({ user: mentionedUser }), {
+      documentId: document.id,
+      userId: mentionedUser.id,
+    });
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: {
+        url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.lastActive).toContain("Viewed");
+  });
+
+  it("should not include the mentioned user's viewing activity when insights are disabled", async () => {
+    const mentionedUser = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      insightsEnabled: false,
+    });
+    await View.incrementOrCreate(createContext({ user: mentionedUser }), {
+      documentId: document.id,
+      userId: mentionedUser.id,
+    });
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: {
+        url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.lastActive).not.toContain("Viewed");
+    expect(body.lastActive).not.toContain("Never viewed");
   });
 
   it("should return 204 when internal document url points to non-existent document", async () => {

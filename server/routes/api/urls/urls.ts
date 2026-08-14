@@ -122,7 +122,11 @@ router.post(
             user,
             document,
           },
-          { includeEmail: !!can(actor, "readEmail", user) }
+          {
+            includeEmail: !!can(actor, "readEmail", user),
+            includeLastViewed:
+              document.insightsEnabled && !!can(actor, "listViews", document),
+          }
         );
       } else if (mentionType === MentionType.Group) {
         const [group, document] = await Promise.all([
