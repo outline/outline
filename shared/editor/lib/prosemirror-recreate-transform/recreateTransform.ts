@@ -72,17 +72,7 @@ export class RecreateTransform {
       this.finalJSON = this.toDoc.toJSON();
     }
 
-    this.ops = createPatch(this.currentJSON, this.finalJSON);
-
-    if (this.maxComplexity !== undefined) {
-      const size = Math.max(this.fromDoc.nodeSize, this.toDoc.nodeSize);
-      if (this.ops.length * size > this.maxComplexity) {
-        throw new Error(
-          `Diff exceeds maxComplexity: ${this.ops.length} operations on document of size ${size}`
-        );
-      }
-    }
-
+    this.recalculateOps();
     this.recreateChangeContentSteps();
 
     if (this.complexSteps) {
@@ -94,6 +84,20 @@ export class RecreateTransform {
     }
 
     return this.tr;
+  }
+
+  /** compute json-diff ops from the current to the final document, enforcing maxComplexity */
+  recalculateOps() {
+    this.ops = createPatch(this.currentJSON, this.finalJSON);
+
+    if (this.maxComplexity !== undefined) {
+      const size = Math.max(this.fromDoc.nodeSize, this.toDoc.nodeSize);
+      if (this.ops.length * size > this.maxComplexity) {
+        throw new Error(
+          `Diff exceeds maxComplexity: ${this.ops.length} operations on document of size ${size}`
+        );
+      }
+    }
   }
 
   /** convert json-diff to prosemirror steps */
@@ -182,7 +186,7 @@ export class RecreateTransform {
       }
       this.currentJSON = removeMarks(this.tr.doc).toJSON();
       // setting the node markup may have invalidated the following ops, so we calculate them again.
-      this.ops = createPatch(this.currentJSON, this.finalJSON);
+      this.recalculateOps();
       return true;
     }
     return false;
