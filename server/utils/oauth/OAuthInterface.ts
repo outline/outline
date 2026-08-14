@@ -329,37 +329,25 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   /**
-   * Revokes a refresh token.
+   * Revokes a refresh token. The token is revoked atomically, so that only one
+   * of a set of concurrent requests can exchange it for new tokens.
    *
    * @param token The token object containing the refresh token to revoke.
    * @returns True if the token was revoked, false otherwise.
    */
   async revokeToken(token) {
-    const auth = await OAuthAuthentication.findByRefreshToken(
-      token.refreshToken
-    );
-    if (auth) {
-      await auth.destroy();
-      return true;
-    }
-    return false;
+    return OAuthAuthentication.revokeByRefreshToken(token.refreshToken);
   },
 
   /**
-   * Revokes an authorization code.
+   * Revokes an authorization code. The code is consumed atomically, so that only
+   * one of a set of concurrent requests can exchange it for a token.
    *
    * @param code The authorization code object to revoke.
    * @returns True if the code was revoked, false otherwise.
    */
   async revokeAuthorizationCode(code) {
-    const authCode = await OAuthAuthorizationCode.findByCode(
-      code.authorizationCode
-    );
-    if (authCode) {
-      await authCode.destroy();
-      return true;
-    }
-    return false;
+    return OAuthAuthorizationCode.consume(code.authorizationCode);
   },
 
   /**
