@@ -11,6 +11,7 @@ import { compact } from "es-toolkit/compat";
 import { toError } from "@shared/utils/error";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import BaseStorage from "./BaseStorage";
 import type { AppContext } from "@server/types";
 
@@ -37,7 +38,10 @@ export default class S3Storage extends BaseStorage {
         ["starts-with", "$Cache-Control", ""],
       ]),
       Fields: {
-        "Content-Disposition": this.getContentDisposition(contentType),
+        "Content-Disposition": this.getContentDisposition(
+          contentType,
+          AttachmentHelper.parseKey(key).fileName
+        ),
         key,
         ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
       },
@@ -65,7 +69,10 @@ export default class S3Storage extends BaseStorage {
     contentLength: number,
     contentType: string
   ): Promise<{ url: string; headers: Record<string, string> }> {
-    const contentDisposition = this.getContentDisposition(contentType);
+    const contentDisposition = this.getContentDisposition(
+      contentType,
+      AttachmentHelper.parseKey(key).fileName
+    );
     const cacheControl = "max-age=31557600";
 
     const { sdk, client } = await this.getS3();
@@ -167,7 +174,10 @@ export default class S3Storage extends BaseStorage {
         ContentType: contentType,
         // See bug, if used causes large files to hang: https://github.com/aws/aws-sdk-js-v3/issues/3915
         // ContentLength: contentLength,
-        ContentDisposition: this.getContentDisposition(contentType),
+        ContentDisposition: this.getContentDisposition(
+          contentType,
+          AttachmentHelper.parseKey(key).fileName
+        ),
         Body: body,
       },
     });

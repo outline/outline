@@ -198,4 +198,50 @@ describe("BaseStorage", () => {
       });
     });
   });
+
+  describe("getContentDisposition", () => {
+    const storage = new MockStorage();
+
+    it("should include the file name so browsers keep the extension", () => {
+      expect(storage.getContentDisposition("text/plain", "config.yaml")).toBe(
+        'attachment; filename="config.yaml"'
+      );
+    });
+
+    it("should return inline for safe content types", () => {
+      expect(storage.getContentDisposition("image/png", "photo.png")).toBe(
+        'inline; filename="photo.png"'
+      );
+    });
+
+    it("should omit the file name when not provided", () => {
+      expect(storage.getContentDisposition("text/plain")).toBe("attachment");
+      expect(storage.getContentDisposition("image/png")).toBe("inline");
+    });
+  });
+
+  describe("getContentDispositionType", () => {
+    const storage = new MockStorage();
+
+    it("should return attachment when content type is missing", () => {
+      expect(storage.getContentDispositionType()).toBe("attachment");
+    });
+
+    it("should return inline for audio, video, and safe types", () => {
+      expect(storage.getContentDispositionType("audio/mpeg")).toBe("inline");
+      expect(storage.getContentDispositionType("video/mp4")).toBe("inline");
+      expect(storage.getContentDispositionType("application/pdf")).toBe(
+        "inline"
+      );
+    });
+
+    it("should return attachment for other content types", () => {
+      expect(storage.getContentDispositionType("image/svg+xml")).toBe(
+        "attachment"
+      );
+      expect(storage.getContentDispositionType("text/plain")).toBe(
+        "attachment"
+      );
+    });
+  });
 });
