@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import { useRouteMatch } from "react-router-dom";
+import { useLocation, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
 import type { CommentAnchor } from "@shared/editor/commands/comment";
@@ -70,6 +70,11 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
+  const location = useLocation();
+  const locationState = location.state as
+    | { tocScrollNonce?: number }
+    | null
+    | undefined;
   const { setFocusedCommentId } = useDocumentContext();
   const focusedComment = useFocusedComment();
   const { ui, comments } = useStores();
@@ -258,7 +263,8 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         lang={getLangFor(document.language)}
         autoFocus={!!document.title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
-        scrollTo={decodeURIComponentSafe(window.location.hash)}
+        scrollTo={decodeURIComponentSafe(location.hash)}
+        scrollToNonce={locationState?.tocScrollNonce}
         readOnly={readOnly}
         userId={user?.id}
         focusedCommentId={focusedComment?.id}
