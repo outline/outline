@@ -104,13 +104,29 @@ export default abstract class Store<T extends Model> {
     policies?.forEach((policy) => this.rootStore.policies.add(policy));
   };
 
-  findByQuery = (query: string, options?: { maxResults: number }): T[] => {
+  /**
+   * Finds the items that match the given query, ordered by relevance.
+   *
+   * @param query the search query, all items are returned when it is empty.
+   * @param options the maximum number of results, and a weight applied to the
+   * relevance score of each item, for example how familiar it is to the user.
+   * @returns the matching items.
+   */
+  findByQuery = (
+    query: string,
+    options?: { maxResults?: number; weight?: (item: T) => number }
+  ): T[] => {
     const normalized = deburr((query ?? "").trim().toLocaleLowerCase());
+    const weight = options?.weight;
 
     if (!normalized) {
-      return this.orderedData
-        .filter((item: T & Searchable) => !item.searchSuppressed)
-        .slice(0, options?.maxResults);
+      const items = this.orderedData.filter(
+        (item: T & Searchable) => !item.searchSuppressed
+      );
+
+      return (
+        weight ? items.sort((a, b) => weight(b) - weight(a)) : items
+      ).slice(0, options?.maxResults);
     }
 
     return this.orderedData
@@ -138,9 +154,11 @@ export default abstract class Store<T extends Model> {
 
         return {
           score:
-            seachables
+            (seachables
               .map((searchable) => commandScore(normalized, searchable))
-              .reduce((a, b) => a + b, 0) / seachables.length,
+              .reduce((a, b) => a + b, 0) /
+              seachables.length) *
+            (weight?.(item) ?? 1),
           item,
         };
       })

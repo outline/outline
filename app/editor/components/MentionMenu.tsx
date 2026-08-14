@@ -29,6 +29,7 @@ import {
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
+import type Model from "~/models/base/Model";
 import { client } from "~/utils/ApiClient";
 import { useEditor } from "./EditorContext";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
@@ -42,6 +43,12 @@ type Props = Omit<
 
 function MentionMenu({ search = "", isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
+  // How familiar each suggested model is to the current user, keyed by model
+  // id. The score does not depend on the search term, so scores from earlier
+  // queries stay valid and are kept.
+  const [familiarity, setFamiliarity] = useState<ReadonlyMap<string, number>>(
+    new Map()
+  );
   const { t } = useTranslation();
   const { auth, documents, users, collections, groups } = useStores();
   const { props: editorProps } = useEditor();
@@ -127,7 +134,22 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
         res.data.collections.map(collections.add);
         res.data.groups.map(groups.add);
       });
+
+      setFamiliarity(
+        (previous) =>
+          new Map([
+            ...previous,
+            ...Object.entries<number>(res.data.familiarity ?? {}),
+          ])
+      );
     }, [search, documents, users, collections, groups, maxResultsInSection])
+  );
+
+  // Suggestions that the current user is familiar with, for example a member of
+  // one of their groups, are ranked above equally relevant ones.
+  const weight = useCallback(
+    (model: Model) => familiarity.get(model.id) ?? 1,
+    [familiarity]
   );
 
   useEffect(() => {
@@ -147,21 +169,21 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
   // runs outside the reactive context and triggered MobX warnings.
   const mentionItems: MentionMenuItem[] = actorId
     ? users
-        .findByQuery(search, { maxResults: maxResultsInSection })
+        .findByQuery(search, { maxResults: maxResultsInSection, weight })
         .map((user) => userMentionItem(t, user, actorId))
         .concat(
           groups
-            .findByQuery(search, { maxResults: maxResultsInSection })
+            .findByQuery(search, { maxResults: maxResultsInSection, weight })
             .map((group) => groupMentionItem(t, group, actorId))
         )
         .concat(
           documents
-            .findByQuery(search, { maxResults: maxResultsInSection })
+            .findByQuery(search, { maxResults: maxResultsInSection, weight })
             .map((doc) => documentMentionItem(doc, actorId))
         )
         .concat(
           collections
-            .findByQuery(search, { maxResults: maxResultsInSection })
+            .findByQuery(search, { maxResults: maxResultsInSection, weight })
             .map((collection) => collectionMentionItem(collection, actorId))
         )
         .concat(
