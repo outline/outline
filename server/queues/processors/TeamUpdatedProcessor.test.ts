@@ -1,7 +1,7 @@
 import { TeamPreference } from "@shared/types";
 import { buildTeam } from "@server/test/factories";
 import RevokeDynamicOAuthClientsTask from "../tasks/RevokeDynamicOAuthClientsTask";
-import MCPDisabledProcessor from "./MCPDisabledProcessor";
+import TeamUpdatedProcessor from "./TeamUpdatedProcessor";
 
 const ip = "127.0.0.1";
 
@@ -9,12 +9,12 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("MCPDisabledProcessor", () => {
+describe("TeamUpdatedProcessor", () => {
   it("should schedule revocation when the MCP preference is disabled", async () => {
     const team = await buildTeam();
     const spy = vi.spyOn(RevokeDynamicOAuthClientsTask.prototype, "schedule");
 
-    const processor = new MCPDisabledProcessor();
+    const processor = new TeamUpdatedProcessor();
     await processor.perform({
       name: "teams.update",
       teamId: team.id,
@@ -33,7 +33,7 @@ describe("MCPDisabledProcessor", () => {
     const team = await buildTeam();
     const spy = vi.spyOn(RevokeDynamicOAuthClientsTask.prototype, "schedule");
 
-    const processor = new MCPDisabledProcessor();
+    const processor = new TeamUpdatedProcessor();
     await processor.perform({
       name: "teams.update",
       teamId: team.id,
@@ -52,7 +52,7 @@ describe("MCPDisabledProcessor", () => {
     const team = await buildTeam();
     const spy = vi.spyOn(RevokeDynamicOAuthClientsTask.prototype, "schedule");
 
-    const processor = new MCPDisabledProcessor();
+    const processor = new TeamUpdatedProcessor();
     await processor.perform({
       name: "teams.update",
       teamId: team.id,

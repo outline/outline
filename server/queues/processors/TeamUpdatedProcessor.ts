@@ -3,7 +3,7 @@ import type { Event as TEvent, TeamEvent } from "@server/types";
 import RevokeDynamicOAuthClientsTask from "../tasks/RevokeDynamicOAuthClientsTask";
 import BaseProcessor from "./BaseProcessor";
 
-export default class MCPDisabledProcessor extends BaseProcessor {
+export default class TeamUpdatedProcessor extends BaseProcessor {
   static applicableEvents: TEvent["name"][] = ["teams.update"];
 
   async perform(event: TeamEvent) {
