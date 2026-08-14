@@ -208,35 +208,38 @@ export default class Heading extends Node<HeadingOptions> {
   }
 
   get plugins() {
+    // Anchor button to copy a link to the heading.
+    const createAnchor = () => {
+      const anchor = document.createElement("button");
+      anchor.innerText = "#";
+      anchor.type = "button";
+      anchor.contentEditable = "false";
+      anchor.className = "heading-anchor";
+      anchor.setAttribute("aria-label", "Copy link to heading");
+      anchor.addEventListener("mousedown", (event) =>
+        this.handleCopyLink(event)
+      );
+      return anchor;
+    };
+
     const createWidgetDecorations = (doc: ProsemirrorNode): Decoration[] => {
       const decorations: Decoration[] = [];
 
       doc.descendants((node, pos) => {
         if (node.type.name === "heading") {
-          // Create anchor button to copy a link to the heading
-          const anchor = document.createElement("button");
-          anchor.innerText = "#";
-          anchor.type = "button";
-          anchor.contentEditable = "false";
-          anchor.className = "heading-anchor";
-          anchor.setAttribute("aria-label", "Copy link to heading");
-          anchor.addEventListener("mousedown", (event) =>
-            this.handleCopyLink(event)
-          );
-
           decorations.push(
             Decoration.widget(
               // Safari requires the widget to be placed at the end of the node rather than the beginning
               // or caret selection is not correct, browser quirk – see issue #1234
               isSafari ? pos + node.nodeSize - 1 : pos + 1,
-              anchor,
+              createAnchor,
               {
                 // Safari keeps this widget at the end; positive side preserves IME
                 // insertion order, while relaxed side preserves caret navigation.
                 side: isSafari ? 1 : -1,
                 ignoreSelection: true,
                 relaxedSide: isSafari,
-                key: pos.toString(),
+                key: "anchor",
               }
             )
           );
