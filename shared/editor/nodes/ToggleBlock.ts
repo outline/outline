@@ -8,7 +8,7 @@ import type {
   Node as ProsemirrorNode,
   Schema,
 } from "prosemirror-model";
-import type { Command, EditorState, Transaction } from "prosemirror-state";
+import type { Command, Transaction } from "prosemirror-state";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { findWrapping } from "prosemirror-transform";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -53,6 +53,7 @@ export enum Action {
 
 interface ToggleFoldState {
   foldedIds: Set<string>;
+  knownIds: Set<string>;
   decorations: DecorationSet;
 }
 
@@ -156,20 +157,24 @@ export default class ToggleBlock extends Node {
 
       state: {
         init: (_config, state) => {
-          const foldedIds = this.initFoldedIds(state);
+          const { foldedIds, knownIds } = this.collectFoldState(state.doc);
           return {
             foldedIds,
+            knownIds,
             decorations: this.createDecorations(state.doc, foldedIds),
           };
         },
 
         apply: (tr, pluginState, _oldState, newState) => {
+          // Remote (collaborative) document updates land here. Preserve the
+          // user's existing fold decisions verbatim and only initialize fold
+          // state for toggle blocks seen for the first time. Re-deriving fold
+          // state from storage on every remote update would collapse blocks
+          // the user just expanded whenever a collaborator edits: storage
+          // writes can fail silently (quota exceeded / unavailable), so it
+          // cannot be treated as the source of truth once a block is known.
           if (isRemoteTransaction(tr)) {
-            const foldedIds = this.initFoldedIds(newState);
-            return {
-              foldedIds,
-              decorations: this.createDecorations(newState.doc, foldedIds),
-            };
+            return this.reconcileFoldState(pluginState, newState.doc);
           }
 
           const action = tr.getMeta(toggleFoldPluginKey);
@@ -180,41 +185,21 @@ export default class ToggleBlock extends Node {
               return pluginState;
             }
 
-            // Check if any toggle blocks were added and need fold state
-            const currentBlocks = findBlockNodes(tr.doc, true).filter(
-              (b) => b.node.type.name === this.name && b.node.attrs.id
-            );
-
-            const newFoldedIds = new Set(pluginState.foldedIds);
-
-            // For any new blocks, check storage and default to folded
-            currentBlocks.forEach((block) => {
-              const id = block.node.attrs.id as string;
-              if (!pluginState.foldedIds.has(id)) {
-                const stored = Storage.get(toggleStorageKey(id));
-                // Default to folded if no stored state (new block from sync)
-                if (stored?.fold !== false) {
-                  newFoldedIds.add(id);
-                }
-              }
-            });
-
             // Always rebuild decorations to ensure head positions are correct
             // (mapping can produce incorrect positions when first child changes)
-            return {
-              foldedIds: newFoldedIds,
-              decorations: this.createDecorations(tr.doc, newFoldedIds),
-            };
+            return this.reconcileFoldState(pluginState, tr.doc);
           }
 
           // Handle actions that change fold state
           const newFoldedIds = new Set(pluginState.foldedIds);
+          const newKnownIds = new Set(pluginState.knownIds);
 
           switch (action.type) {
             case Action.FOLD: {
               const node = newState.doc.nodeAt(action.at);
               if (node?.attrs.id) {
                 newFoldedIds.add(node.attrs.id);
+                newKnownIds.add(node.attrs.id);
                 Storage.set(toggleStorageKey(node.attrs.id), { fold: true });
               }
               break;
@@ -224,6 +209,7 @@ export default class ToggleBlock extends Node {
               const node = newState.doc.nodeAt(action.at);
               if (node?.attrs.id) {
                 newFoldedIds.delete(node.attrs.id);
+                newKnownIds.add(node.attrs.id);
                 Storage.set(toggleStorageKey(node.attrs.id), { fold: false });
               }
               break;
@@ -232,6 +218,7 @@ export default class ToggleBlock extends Node {
 
           return {
             foldedIds: newFoldedIds,
+            knownIds: newKnownIds,
             decorations: this.createDecorations(newState.doc, newFoldedIds),
           };
         },
@@ -493,13 +480,24 @@ export default class ToggleBlock extends Node {
     };
   }
 
-  private initFoldedIds(state: EditorState) {
-    const pluginState = toggleFoldPluginKey.getState(state);
-    const foldedIds = new Set<string>(pluginState?.foldedIds);
-    findBlockNodes(state.doc, true)
+  /**
+   * Collect initial fold state for every toggle block in the document.
+   *
+   * Used on plugin initialization, where every block is treated as new: the
+   * cross-session storage cache is consulted and the default is folded.
+   *
+   * @param doc The document to scan for toggle blocks.
+   * @return The folded and known id sets.
+   */
+  private collectFoldState(doc: ProsemirrorNode) {
+    const foldedIds = new Set<string>();
+    const knownIds = new Set<string>();
+
+    findBlockNodes(doc, true)
       .filter((b) => b.node.type.name === this.name && b.node.attrs.id)
       .forEach((block) => {
         const id = block.node.attrs.id as string;
+        knownIds.add(id);
         const stored = Storage.get(toggleStorageKey(id));
         // Default to folded if no stored state
         if (stored?.fold !== false) {
@@ -511,7 +509,51 @@ export default class ToggleBlock extends Node {
         }
       });
 
-    return foldedIds;
+    return { foldedIds, knownIds };
+  }
+
+  /**
+   * Reconcile fold state after the document changes (local or remote edit).
+   *
+   * Existing fold decisions are always preserved — fold state is only ever
+   * initialized for toggle blocks seen here for the first time (id not yet in
+   * knownIds). This keeps expanded blocks expanded across collaborative
+   * updates even when their fold state could not be persisted to storage.
+   *
+   * @param pluginState The current fold plugin state.
+   * @param doc The updated document.
+   * @return The reconciled fold plugin state.
+   */
+  private reconcileFoldState(
+    pluginState: ToggleFoldState,
+    doc: ProsemirrorNode
+  ): ToggleFoldState {
+    const foldedIds = new Set(pluginState.foldedIds);
+    const knownIds = new Set(pluginState.knownIds);
+
+    findBlockNodes(doc, true)
+      .filter((b) => b.node.type.name === this.name && b.node.attrs.id)
+      .forEach((block) => {
+        const id = block.node.attrs.id as string;
+        if (knownIds.has(id)) {
+          return;
+        }
+        knownIds.add(id);
+        const stored = Storage.get(toggleStorageKey(id));
+        // Default to folded if no stored state (new block from sync)
+        if (stored?.fold !== false) {
+          foldedIds.add(id);
+        }
+        if (stored === null || stored === undefined) {
+          Storage.set(toggleStorageKey(id), { fold: true });
+        }
+      });
+
+    return {
+      foldedIds,
+      knownIds,
+      decorations: this.createDecorations(doc, foldedIds),
+    };
   }
 
   private createDecorations(doc: ProsemirrorNode, foldedIds: Set<string>) {
