@@ -398,6 +398,30 @@ Install instructions here.`
     expect(body.id).toEqual(document.id);
   });
 
+  it("should not include last activity for a share url the user can read", async () => {
+    const author = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: author.id,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: author.id,
+      documentId: document.id,
+      published: true,
+    });
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: {
+        url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.id).toEqual(document.id);
+    expect(body.lastActivityByViewer).toBeUndefined();
+  });
+
   it("should return share-scoped url in unfurl response", async () => {
     const document = await buildDocument({
       teamId: user.teamId,
