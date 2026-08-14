@@ -1,10 +1,4 @@
-import { extensionManager, schema } from "../../test/editor";
-
-const serializer = extensionManager.serializer();
-const parser = extensionManager.parser({
-  schema,
-  plugins: extensionManager.rulePlugins,
-});
+import { parser, schema, serializer } from "../../test/editor";
 
 /**
  * Wraps a block node in a single-cell table so cell serialization/parsing can
