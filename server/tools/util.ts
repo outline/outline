@@ -2,6 +2,7 @@ import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { errToString } from "@shared/utils/error";
+import env from "@server/env";
 import { Collection, Share, type Team, type User } from "@server/models";
 import { addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
@@ -44,6 +45,9 @@ export function buildAPIContext(context: McpContext) {
   return {
     state: { auth },
     context: { auth, ip },
+    // MCP requests carry no cookies, but helpers shared with the HTTP routes
+    // still expect the request to describe the scheme it arrived over.
+    request: { secure: env.URL.startsWith("https://") },
     cookies: { get: () => undefined, set: () => undefined },
   } as unknown as APIContext;
 }
