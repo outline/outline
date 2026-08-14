@@ -565,4 +565,51 @@ describe("POST /oauth/authorize", () => {
     expect(res.status).toEqual(302);
     expect(res.headers.get("location")).toContain("code=");
   });
+
+  it("should not issue an authorization code to a dynamically registered client when MCP is disabled", async () => {
+    const team = await buildTeam({
+      preferences: { [TeamPreference.MCP]: false },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const client = await buildOAuthClient({
+      teamId: team.id,
+      createdById: null,
+    });
+
+    const res = await server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      body: {
+        client_id: client.clientId,
+        response_type: "code",
+        redirect_uri: client.redirectUris[0],
+        state: "state",
+        scope: "read",
+      },
+    });
+
+    expect(res.status).toEqual(403);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("should issue an authorization code to a user created client when MCP is disabled", async () => {
+    const team = await buildTeam({
+      preferences: { [TeamPreference.MCP]: false },
+    });
+    const user = await buildUser({ teamId: team.id });
+    const client = await buildOAuthClient({ teamId: team.id });
+
+    const res = await server.post("/oauth/authorize", user, {
+      redirect: "manual",
+      body: {
+        client_id: client.clientId,
+        response_type: "code",
+        redirect_uri: client.redirectUris[0],
+        state: "state",
+        scope: "read",
+      },
+    });
+
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toContain("code=");
+  });
 });

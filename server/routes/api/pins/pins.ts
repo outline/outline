@@ -135,12 +135,17 @@ router.post(
       },
     });
 
-    const policies = presentPolicies(user, [...documents, ...pins]);
+    // Pins are not scoped to document memberships, so only return those for
+    // documents the user can read.
+    const documentIds = new Set(documents.map((document) => document.id));
+    const visiblePins = pins.filter((pin) => documentIds.has(pin.documentId));
+
+    const policies = presentPolicies(user, [...documents, ...visiblePins]);
 
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        pins: pins.map(presentPin),
+        pins: visiblePins.map(presentPin),
         documents: await presentDocuments(ctx, documents),
       },
       policies,

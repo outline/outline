@@ -7,6 +7,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer, toFormData } from "@server/test/support";
+import { hash } from "@server/utils/crypto";
 
 const server = getTestServer();
 
@@ -416,6 +417,87 @@ describe("#oauth.token", () => {
       const foundAuth2 =
         await OAuthAuthentication.findByRefreshToken(auth2RefreshToken);
       expect(foundAuth2).not.toBeNull();
+    });
+  });
+
+  describe("authorization_code grant", () => {
+    const buildCodeGrant = async () => {
+      const user = await buildUser();
+      const client = await buildOAuthClient({
+        teamId: user.teamId,
+        clientType: "confidential",
+      });
+      const grantId = crypto.randomUUID();
+      const code = crypto.randomBytes(32).toString("hex");
+
+      await OAuthAuthorizationCode.create({
+        authorizationCodeHash: hash(code),
+        scope: [Scope.Read],
+        redirectUri: client.redirectUris[0],
+        oauthClientId: client.id,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 10000),
+        grantId,
+      });
+
+      const exchange = () =>
+        server.post("/oauth/token", {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: toFormData({
+            grant_type: "authorization_code",
+            code,
+            redirect_uri: client.redirectUris[0],
+            client_id: client.clientId,
+            client_secret: client.clientSecret,
+          }),
+        });
+
+      return { user, client, grantId, exchange };
+    };
+
+    it("should exchange an authorization code for a token", async () => {
+      const { exchange } = await buildCodeGrant();
+
+      const res = await exchange();
+      expect(res.status).toEqual(200);
+
+      const body = await res.json();
+      expect(body.access_token).toBeTruthy();
+      expect(body.refresh_token).toBeTruthy();
+    });
+
+    it("should issue a token to a single request when a code is exchanged concurrently", async () => {
+      const { grantId, exchange } = await buildCodeGrant();
+
+      const results = await Promise.all([exchange(), exchange()]);
+      const statuses = results.map((res) => res.status).sort((a, b) => a - b);
+      expect(statuses).toEqual([200, 400]);
+
+      const count = await OAuthAuthentication.count({
+        where: {
+          grantId,
+        },
+      });
+      expect(count).toEqual(1);
+    });
+
+    it("should reject a replayed authorization code", async () => {
+      const { grantId, exchange } = await buildCodeGrant();
+
+      const res1 = await exchange();
+      expect(res1.status).toEqual(200);
+
+      const res2 = await exchange();
+      expect(res2.status).toEqual(400);
+
+      const count = await OAuthAuthentication.count({
+        where: {
+          grantId,
+        },
+      });
+      expect(count).toEqual(1);
     });
   });
 });

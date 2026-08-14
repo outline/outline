@@ -2,6 +2,7 @@ import type { Blob } from "node:buffer";
 import type { Readable } from "node:stream";
 import { buffer } from "node:stream/consumers";
 import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
+import contentDisposition from "content-disposition";
 import { omit } from "es-toolkit/compat";
 import { toError, errToString } from "@shared/utils/error";
 import FileHelper from "@shared/editor/lib/FileHelper";
@@ -282,12 +283,29 @@ export default abstract class BaseStorage {
   public abstract deleteFile(key: string): Promise<void>;
 
   /**
-   * Returns the content disposition for a given content type.
+   * Returns the Content-Disposition header value for a given content type and
+   * file name. Including the file name ensures browsers keep the original
+   * extension when downloading, rather than deriving one from the content type.
    *
    * @param contentType The content type
-   * @returns The content disposition
+   * @param fileName The name of the file, if known
+   * @returns The Content-Disposition header value
    */
-  public getContentDisposition(contentType?: string) {
+  public getContentDisposition(contentType?: string, fileName?: string) {
+    return contentDisposition(fileName, {
+      type: this.getContentDispositionType(contentType),
+    });
+  }
+
+  /**
+   * Returns the content disposition type for a given content type.
+   *
+   * @param contentType The content type
+   * @returns The content disposition type
+   */
+  public getContentDispositionType(
+    contentType?: string
+  ): "inline" | "attachment" {
     if (!contentType) {
       return "attachment";
     }

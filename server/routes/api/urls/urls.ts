@@ -79,7 +79,6 @@ router.post(
         ctx.body = await presentUnfurl({
           type: UnfurlResourceType.Document,
           document,
-          viewer: actor,
           anchor: urlObj.hash,
           url: `${share.canonicalUrl}/doc/${document.url.replace("/doc/", "")}${urlObj.hash}`,
         });
@@ -122,7 +121,11 @@ router.post(
             user,
             document,
           },
-          { includeEmail: !!can(actor, "readEmail", user) }
+          {
+            includeEmail: !!can(actor, "readEmail", user),
+            includeLastViewed:
+              document.insightsEnabled && !!can(actor, "listViews", document),
+          }
         );
       } else if (mentionType === MentionType.Group) {
         const [group, document] = await Promise.all([
