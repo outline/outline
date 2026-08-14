@@ -79,7 +79,6 @@ router.post(
         ctx.body = await presentUnfurl({
           type: UnfurlResourceType.Document,
           document,
-          viewer: actor,
           anchor: urlObj.hash,
           url: `${share.canonicalUrl}/doc/${document.url.replace("/doc/", "")}${urlObj.hash}`,
         });
