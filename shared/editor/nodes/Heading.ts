@@ -232,10 +232,6 @@ export default class Heading extends Node<HeadingOptions> {
               // Safari requires the widget to be placed at the end of the node rather than the beginning
               // or caret selection is not correct, browser quirk – see issue #1234
               isSafari ? pos + node.nodeSize - 1 : pos + 1,
-              // A factory, and a key that does not move with the heading, so that
-              // Prosemirror reuses the mounted button rather than replacing it on
-              // every change – rewriting the heading contents interrupts IME
-              // composition.
               createAnchor,
               {
                 // Safari keeps this widget at the end; positive side preserves IME
