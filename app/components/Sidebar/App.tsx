@@ -28,6 +28,7 @@ import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
 import HistoryNavigation from "./components/HistoryNavigation";
+import PrivateDocs from "./components/PrivateDocs";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
 import SidebarButton from "./components/SidebarButton";
@@ -135,6 +136,9 @@ function AppSidebar() {
             </Section>
             <Section>
               <Collections />
+            </Section>
+            <Section>
+              <PrivateDocs />
             </Section>
             {can.createDocument && (
               <Section auto>

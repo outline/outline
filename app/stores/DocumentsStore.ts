@@ -534,12 +534,19 @@ export default class DocumentsStore extends Store<Document> {
 
       // The websocket "documents.move" event is only broadcast to the
       // collection channel, so users with document-only access never receive
-      // it. Refresh the affected membership tree locally so the sidebar
+      // it. Refresh the affected membership trees locally so the sidebar
       // reflects the new structure.
       const membership =
         this.rootStore.userMemberships.getByDocumentId(documentId);
       if (membership) {
         await membership.fetchDocuments({ force: true });
+      }
+
+      const parentMembership = parentDocumentId
+        ? this.rootStore.userMemberships.getByDocumentId(parentDocumentId)
+        : undefined;
+      if (parentMembership && parentMembership.id !== membership?.id) {
+        await parentMembership.fetchDocuments({ force: true });
       }
     } finally {
       this.movingDocumentId = undefined;

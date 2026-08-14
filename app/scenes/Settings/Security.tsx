@@ -161,6 +161,17 @@ function Security() {
     [saveData, team.preferences]
   );
 
+  const handlePrivateDocsChange = React.useCallback(
+    async (checked: boolean) => {
+      const preferences = {
+        ...team.preferences,
+        [TeamPreference.PrivateDocs]: checked,
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
+  );
+
   const handleViewersCanExportChange = React.useCallback(
     async (checked: boolean) => {
       const preferences = {
@@ -384,6 +395,19 @@ function Security() {
           label={t("Commenting")}
           labelHidden
           short
+        />
+      </SettingRow>
+      <SettingRow
+        label={t("Private documents")}
+        name={TeamPreference.PrivateDocs}
+        description={t(
+          "Allow users to create private documents that are only visible to themselves and the people they share them with"
+        )}
+      >
+        <Switch
+          id={TeamPreference.PrivateDocs}
+          checked={team.getPreference(TeamPreference.PrivateDocs)}
+          onChange={handlePrivateDocsChange}
         />
       </SettingRow>
       <SettingRow

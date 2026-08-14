@@ -1,4 +1,5 @@
 import type { TextEditMode } from "@shared/types";
+import { createPrivateDocumentMembership } from "@server/commands/documentCreator";
 import { DocumentConflictError } from "@server/errors";
 import { Event, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -34,6 +35,8 @@ type Props = {
   findText?: string;
   /** Whether the document should be published to the collection */
   publish?: boolean;
+  /** Whether the document should be published privately, outside any collection */
+  private?: boolean;
   /** The ID of the collection to publish the document to */
   collectionId?: string | null;
 };
@@ -61,6 +64,7 @@ export default async function documentUpdater(
     findText,
     lastRevision,
     publish,
+    private: isPrivate,
     collectionId,
     done,
   }: Props
@@ -132,11 +136,16 @@ export default async function documentUpdater(
     data: eventData,
   };
 
-  if (publish && cId) {
-    if (!document.collectionId) {
+  if (publish && (cId || isPrivate || document.parentDocumentId)) {
+    const wasDraft = !document.publishedAt;
+    if (!document.collectionId && cId) {
       document.collectionId = cId;
     }
-    await document.publish(ctx, { collectionId: cId, data: eventData });
+    await document.publish(ctx, { collectionId: cId ?? null, data: eventData });
+
+    if (isPrivate && !cId && wasDraft) {
+      await createPrivateDocumentMembership(ctx, document);
+    }
   } else if (changed) {
     document.lastModifiedById = user.id;
     document.updatedBy = user;

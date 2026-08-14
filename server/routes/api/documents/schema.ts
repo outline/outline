@@ -285,6 +285,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
+    /** Boolean to denote if the doc should be published privately, outside any collection */
+    private: z.boolean().optional(),
+
     /** Doc template Id */
     templateId: z.uuid().nullish(),
 
@@ -337,6 +340,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
       message: "findText is required when using patch editMode",
     }
   )
+  .refine((req) => !(req.body.private && req.body.collectionId), {
+    message: "collectionId cannot be used with private",
+  })
   .transform((req) => {
     // Transform deprecated append to editMode for backwards compatibility
     if (req.body.append && !req.body.editMode) {
@@ -446,6 +452,9 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
+    /** Boolean to denote if the doc should be private to the creator, outside any collection */
+    private: z.boolean().optional(),
+
     /** Collection to create document within  */
     collectionId: z.uuid().nullish(),
 
@@ -469,13 +478,32 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** Boolean to denote if the document should occupy full width */
     fullWidth: z.boolean().optional(),
   }),
-}).refine(
-  (req) =>
-    !(req.body.publish && !req.body.parentDocumentId && !req.body.collectionId),
-  {
-    message: "collectionId or parentDocumentId is required to publish",
-  }
-);
+})
+  .refine(
+    (req) =>
+      !(
+        req.body.publish &&
+        !req.body.parentDocumentId &&
+        !req.body.collectionId &&
+        !req.body.private
+      ),
+    {
+      message: "collectionId or parentDocumentId is required to publish",
+    }
+  )
+  .refine(
+    (req) =>
+      !(
+        req.body.private &&
+        (req.body.collectionId || req.body.parentDocumentId)
+      ),
+    {
+      message: "collectionId and parentDocumentId cannot be used with private",
+    }
+  )
+  .refine((req) => !(req.body.private && !req.body.publish), {
+    message: "publish is required when private",
+  });
 
 export type DocumentsCreateReq = z.infer<typeof DocumentsCreateSchema>;
 

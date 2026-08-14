@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import { action, runInAction, computed } from "mobx";
+import { UserMembershipSection } from "@shared/types";
 import UserMembership from "~/models/UserMembership";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -29,8 +30,34 @@ export default class UserMembershipsStore extends Store<UserMembership> {
     this.rootStore.policies.removeForMembership(id);
   }
 
+  /**
+   * Fetches a page of memberships for documents shared with the current user.
+   *
+   * @param params pagination params to pass to the API.
+   * @returns the memberships fetched.
+   */
+  fetchSharedPage = (params?: PaginationParams): Promise<UserMembership[]> =>
+    this.fetchPage({
+      ...params,
+      section: UserMembershipSection.SharedWithMe,
+    });
+
+  /**
+   * Fetches a page of memberships for the current user's private documents.
+   *
+   * @param params pagination params to pass to the API.
+   * @returns the memberships fetched.
+   */
+  fetchPrivatePage = (params?: PaginationParams): Promise<UserMembership[]> =>
+    this.fetchPage({
+      ...params,
+      section: UserMembershipSection.Private,
+    });
+
   @action
-  fetchPage = async (params?: PaginationParams): Promise<UserMembership[]> => {
+  fetchPage = async (
+    params?: PaginationParams & { section?: UserMembershipSection }
+  ): Promise<UserMembership[]> => {
     this.isFetching = true;
 
     try {

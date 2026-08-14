@@ -18,6 +18,16 @@ allow(User, "createDocument", Team, (actor, document) =>
   )
 );
 
+allow(User, "createPrivateDocument", Team, (actor, team) =>
+  and(
+    !actor.isGuest,
+    !actor.isViewer,
+    isTeamModel(actor, team),
+    isTeamMutable(actor),
+    !!actor.team.getPreference(TeamPreference.PrivateDocs)
+  )
+);
+
 allow(User, "read", Document, (actor, document) =>
   and(
     isTeamModel(actor, document),

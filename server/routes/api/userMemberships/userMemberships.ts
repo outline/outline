@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { Op, Sequelize } from "sequelize";
+import { UserMembershipSection } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -22,7 +23,28 @@ router.post(
   pagination(),
   validate(T.UserMembershipsListSchema),
   async (ctx: APIContext<T.UserMembershipsListReq>) => {
+    const { section } = ctx.input.body;
     const { user } = ctx.state.auth;
+
+    const sectionWhere =
+      section === UserMembershipSection.Private
+        ? {
+            collectionId: {
+              [Op.eq]: null,
+            },
+            parentDocumentId: {
+              [Op.eq]: null,
+            },
+            createdById: user.id,
+          }
+        : section === UserMembershipSection.SharedWithMe
+          ? {
+              [Op.or]: [
+                { collectionId: { [Op.ne]: null } },
+                { createdById: { [Op.ne]: user.id } },
+              ],
+            }
+          : {};
 
     const memberships = await UserMembership.scope("withUser").findAll({
       where: {
@@ -44,6 +66,7 @@ router.post(
             archivedAt: {
               [Op.eq]: null,
             },
+            ...sectionWhere,
           },
         },
       ],

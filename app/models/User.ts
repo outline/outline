@@ -202,8 +202,9 @@ class User extends ParanoidModel implements Searchable {
   }
 
   /**
-   * Returns the direct memberships that this user has to documents. Documents that the
-   * user already has access to through a collection, archived, and trashed documents are not included.
+   * Returns the direct memberships that this user has to documents shared with
+   * them. Documents that the user already has access to through a collection,
+   * their own private documents, archived, and trashed documents are not included.
    *
    * @returns A list of user memberships
    */
@@ -216,12 +217,48 @@ class User extends ParanoidModel implements Searchable {
       )
       .filter((m) => {
         const document = documents.get(m.documentId!);
-        const policy = document?.collectionId
+        if (!document?.isActive || this.isPrivateDocument(document)) {
+          return false;
+        }
+        const policy = document.collectionId
           ? policies.get(document.collectionId)
           : undefined;
-        return !policy?.abilities?.readDocument && !!document?.isActive;
+        return !policy?.abilities?.readDocument;
       });
   }
+
+  /**
+   * Returns the direct memberships that this user has to their own top-level
+   * private documents. Nested, archived, and trashed documents are not
+   * included – nested documents display within their parent's tree.
+   *
+   * @returns A list of user memberships
+   */
+  @computed
+  get privateDocumentMemberships(): UserMembership[] {
+    const { userMemberships, documents } = this.store.rootStore;
+    return userMemberships.orderedData
+      .filter(
+        (m) => m.userId === this.id && m.sourceId === null && m.documentId
+      )
+      .filter((m) => {
+        const document = documents.get(m.documentId!);
+        return (
+          !!document?.isActive &&
+          !document.parentDocumentId &&
+          this.isPrivateDocument(document)
+        );
+      });
+  }
+
+  /**
+   * Returns whether the document is a private document owned by this user.
+   *
+   * @param document The document to check
+   * @returns True if the document is a private document of this user
+   */
+  isPrivateDocument = (document: Document): boolean =>
+    document.isPrivate && document.createdBy?.id === this.id;
 
   @computed
   get groupsWithDocumentMemberships() {

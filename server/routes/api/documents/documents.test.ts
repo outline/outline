@@ -8,6 +8,7 @@ import {
   DocumentPermission,
   ExportContentType,
   StatusFilter,
+  TeamPreference,
   UserRole,
 } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
@@ -6366,7 +6367,7 @@ describe("#documents.documents", () => {
     expect(body.data.children.length).toBe(0);
   });
 
-  it("should return undefined if document is not part of a collection", async () => {
+  it("should build the tree from the document when not part of a collection", async () => {
     const user = await buildUser();
     const doc = await buildDocument({
       userId: user.id,
@@ -6382,7 +6383,8 @@ describe("#documents.documents", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.data).toBeUndefined();
+    expect(body.data.id).toEqual(doc.id);
+    expect(body.data.children).toHaveLength(0);
   });
 
   it("should require authentication", async () => {
@@ -6431,5 +6433,267 @@ describe("#documents.documents", () => {
 
     expect(res.status).toBe(403);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe("#documents.create - private", () => {
+  it("should create a private document with a creator membership", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Private notes",
+        private: true,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual("Private notes");
+    expect(body.data.collectionId).toBeNull();
+    expect(body.data.publishedAt).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
+
+    const membership = await UserMembership.findOne({
+      where: {
+        documentId: body.data.id,
+        userId: user.id,
+      },
+    });
+    expect(membership).not.toBeNull();
+    expect(membership!.permission).toEqual(DocumentPermission.Admin);
+    expect(membership!.index).toBeTruthy();
+  });
+
+  it("should append new private documents to the bottom of the list", async () => {
+    const user = await buildUser();
+    const firstRes = await server.post("/api/documents.create", user, {
+      body: {
+        title: "First",
+        private: true,
+        publish: true,
+      },
+    });
+    const firstBody = await firstRes.json();
+    const secondRes = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Second",
+        private: true,
+        publish: true,
+      },
+    });
+    const secondBody = await secondRes.json();
+
+    const [first, second] = await Promise.all([
+      UserMembership.findOne({
+        where: { documentId: firstBody.data.id, userId: user.id },
+      }),
+      UserMembership.findOne({
+        where: { documentId: secondBody.data.id, userId: user.id },
+      }),
+    ]);
+
+    expect(first!.index).toBeTruthy();
+    expect(second!.index).toBeTruthy();
+    expect(second!.index! > first!.index!).toBe(true);
+  });
+
+  it("should not allow private with a collectionId", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Private notes",
+        private: true,
+        publish: true,
+        collectionId: collection.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should require publish when private", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Private notes",
+        private: true,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow viewers to create private documents", async () => {
+    const user = await buildViewer();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Private notes",
+        private: true,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow creating private documents when the preference is disabled", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PrivateDocs, false);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Private notes",
+        private: true,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#documents.update - private", () => {
+  it("should publish an unfiled draft privately", async () => {
+    const user = await buildUser();
+    const draft = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: null,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: draft.id,
+        publish: true,
+        private: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBeNull();
+    expect(body.data.publishedAt).toBeTruthy();
+
+    const membership = await UserMembership.findOne({
+      where: {
+        documentId: draft.id,
+        userId: user.id,
+      },
+    });
+    expect(membership).not.toBeNull();
+    expect(membership!.permission).toEqual(DocumentPermission.Admin);
+  });
+
+  it("should not publish privately when the preference is disabled", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PrivateDocs, false);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+    const draft = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: null,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: draft.id,
+        publish: true,
+        private: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#documents.remove_user - private", () => {
+  it("should prevent removing the creator from a private document", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Private notes",
+        private: true,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const removeRes = await server.post("/api/documents.remove_user", user, {
+      body: {
+        id: body.data.id,
+        userId: user.id,
+      },
+    });
+    expect(removeRes.status).toEqual(400);
+  });
+
+  it("should allow removing an invited user from a private document", async () => {
+    const user = await buildUser();
+    const member = await buildUser({ teamId: user.teamId });
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Private notes",
+        private: true,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const addRes = await server.post("/api/documents.add_user", user, {
+      body: {
+        id: body.data.id,
+        userId: member.id,
+      },
+    });
+    expect(addRes.status).toEqual(200);
+
+    const removeRes = await server.post("/api/documents.remove_user", user, {
+      body: {
+        id: body.data.id,
+        userId: member.id,
+      },
+    });
+    expect(removeRes.status).toEqual(200);
+  });
+});
+
+describe("#documents.documents - private", () => {
+  it("should return the children of a private document", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Private notes",
+        private: true,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const childRes = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Nested note",
+        parentDocumentId: body.data.id,
+        publish: true,
+      },
+    });
+    const childBody = await childRes.json();
+    expect(childRes.status).toEqual(200);
+
+    const treeRes = await server.post("/api/documents.documents", user, {
+      body: {
+        id: body.data.id,
+      },
+    });
+    const treeBody = await treeRes.json();
+    expect(treeRes.status).toEqual(200);
+    expect(treeBody.data.id).toEqual(body.data.id);
+    expect(treeBody.data.children).toHaveLength(1);
+    expect(treeBody.data.children[0].id).toEqual(childBody.data.id);
   });
 });

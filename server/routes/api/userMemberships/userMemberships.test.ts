@@ -147,3 +147,119 @@ describe("#userMemberships.update", () => {
     expect(body.data.index).toEqual("V");
   });
 });
+
+describe("#userMemberships.list - section filter", () => {
+  const buildSharedAndPrivateMemberships = async () => {
+    const user = await buildUser();
+
+    // a private document created by the user
+    const createRes = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Private notes",
+        private: true,
+        publish: true,
+      },
+    });
+    const createBody = await createRes.json();
+
+    // a document shared with the user by somebody else
+    const other = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: other.teamId,
+      createdById: other.id,
+      permission: null,
+    });
+    const shared = await buildDocument({
+      collectionId: collection.id,
+      createdById: other.id,
+      teamId: other.teamId,
+    });
+    await server.post("/api/documents.add_user", other, {
+      body: {
+        id: shared.id,
+        userId: user.id,
+      },
+    });
+
+    return { user, privateDocumentId: createBody.data.id, shared };
+  };
+
+  it("should return only private documents for the private section", async () => {
+    const { user, privateDocumentId } =
+      await buildSharedAndPrivateMemberships();
+
+    const res = await server.post("/api/userMemberships.list", user, {
+      body: { section: "private" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships).toHaveLength(1);
+    expect(body.data.memberships[0].documentId).toEqual(privateDocumentId);
+  });
+
+  it("should return only shared documents for the shared section", async () => {
+    const { user, shared } = await buildSharedAndPrivateMemberships();
+
+    const res = await server.post("/api/userMemberships.list", user, {
+      body: { section: "shared" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships).toHaveLength(1);
+    expect(body.data.memberships[0].documentId).toEqual(shared.id);
+  });
+
+  it("should return all memberships without a section filter", async () => {
+    const { user } = await buildSharedAndPrivateMemberships();
+
+    const res = await server.post("/api/userMemberships.list", user, {
+      body: {},
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships).toHaveLength(2);
+  });
+});
+
+describe("#userMemberships.list - nested private documents", () => {
+  it("should not return nested private documents as roots of the private section", async () => {
+    const user = await buildUser();
+
+    const parentRes = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Parent",
+        private: true,
+        publish: true,
+      },
+    });
+    const parentBody = await parentRes.json();
+    const childRes = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Child",
+        private: true,
+        publish: true,
+      },
+    });
+    const childBody = await childRes.json();
+
+    const moveRes = await server.post("/api/documents.move", user, {
+      body: {
+        id: childBody.data.id,
+        parentDocumentId: parentBody.data.id,
+      },
+    });
+    expect(moveRes.status).toEqual(200);
+
+    const res = await server.post("/api/userMemberships.list", user, {
+      body: { section: "private" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.memberships).toHaveLength(1);
+    expect(body.data.memberships[0].documentId).toEqual(parentBody.data.id);
+  });
+});

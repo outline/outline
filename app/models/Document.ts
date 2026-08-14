@@ -391,6 +391,15 @@ export default class Document extends ArchivableModel implements Searchable {
     return !this.publishedAt;
   }
 
+  /**
+   * Whether the document is published outside of any collection and only
+   * accessible through direct membership.
+   */
+  @computed
+  get isPrivate(): boolean {
+    return !this.collectionId && !this.isDraft;
+  }
+
   get hasEmptyTitle(): boolean {
     return this.title === "";
   }

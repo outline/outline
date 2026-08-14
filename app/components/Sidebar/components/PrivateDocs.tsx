@@ -2,92 +2,70 @@ import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { Pagination } from "@shared/constants";
-import type GroupMembership from "~/models/GroupMembership";
 import type UserMembership from "~/models/UserMembership";
 import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
+import { createPrivateDocument } from "~/actions/definitions/documents";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { patchLocation } from "~/utils/history";
 import { useDropToReorderUserMembership } from "../hooks/useDragAndDrop";
 import DropCursor from "./DropCursor";
-import GroupLink from "./GroupLink";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
-import SidebarContext, { groupSidebarContext } from "./SidebarContext";
+import SidebarAction from "./SidebarAction";
+import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
-import { useHistory } from "react-router-dom";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
-import { patchLocation } from "~/utils/history";
 
-function SharedWithMe() {
-  const { ui, userMemberships, groupMemberships } = useStores();
+function PrivateDocs() {
+  const { ui, userMemberships } = useStores();
   const { t } = useTranslation();
+  const team = useCurrentTeam();
   const user = useCurrentUser();
+  const can = usePolicy(team);
   const history = useHistory();
   const locationSidebarContext = useLocationSidebarContext();
 
-  usePaginatedRequest<GroupMembership>(groupMemberships.fetchAll);
-
   const { loading, next, end, error, page } =
-    usePaginatedRequest<UserMembership>(userMemberships.fetchSharedPage, {
+    usePaginatedRequest<UserMembership>(userMemberships.fetchPrivatePage, {
       limit: Pagination.sidebarLimit,
     });
 
   // Drop to reorder document
   const [reorderProps, dropToReorderRef] = useDropToReorderUserMembership(() =>
-    fractionalIndex(null, user.documentMemberships[0].index)
+    fractionalIndex(null, user.privateDocumentMemberships[0]?.index ?? null)
   );
 
   useEffect(() => {
     if (error) {
-      toast.error(t("Could not load shared documents"));
+      toast.error(t("Could not load private documents"));
     }
   }, [error, t]);
 
   useEffect(() => {
-    const isContextInSharedSection =
-      locationSidebarContext === "shared" ||
-      locationSidebarContext?.startsWith("group");
-
-    if (!ui.activeDocumentId || isContextInSharedSection) {
+    if (!ui.activeDocumentId || locationSidebarContext === "private") {
       return;
     }
 
-    const isActiveDocSharedDirectly = user.documentMemberships.find(
+    const isActiveDocPrivate = user.privateDocumentMemberships.find(
       (m) => m.pathToDocument(ui.activeDocumentId!).length > 0
     );
 
-    if (isActiveDocSharedDirectly) {
+    if (isActiveDocPrivate) {
       history.push(
         patchLocation(history.location, {
           state: {
             ...(history.location.state as Record<string, unknown>),
-            sidebarContext: "shared",
-          },
-        })
-      );
-
-      return;
-    }
-
-    const groupWithActiveDocument = user.groupsWithDocumentMemberships.find(
-      (group) =>
-        group.documentMemberships.some(
-          (m) => m.pathToDocument(ui.activeDocumentId!).length > 0
-        )
-    );
-
-    if (groupWithActiveDocument) {
-      history.push(
-        patchLocation(history.location, {
-          state: {
-            ...(history.location.state as Record<string, unknown>),
-            sidebarContext: groupSidebarContext(groupWithActiveDocument.id),
+            sidebarContext: "private",
           },
         })
       );
@@ -98,24 +76,17 @@ function SharedWithMe() {
   }, [
     ui.activeDocumentId,
     locationSidebarContext,
-    user.documentMemberships,
-    user.groupsWithDocumentMemberships,
+    user.privateDocumentMemberships,
   ]);
 
-  if (
-    !user.documentMemberships.length &&
-    !user.groupsWithDocumentMemberships.length
-  ) {
+  if (!can.createPrivateDocument) {
     return null;
   }
 
   return (
-    <SidebarContext.Provider value="shared">
+    <SidebarContext.Provider value="private">
       <Flex column>
-        <Header id="shared" title={t("Shared with me")}>
-          {user.groupsWithDocumentMemberships.map((group) => (
-            <GroupLink key={group.id} group={group} />
-          ))}
+        <Header id="private" title={t("Private")}>
           <Relative>
             {reorderProps.isDragging && (
               <DropCursor
@@ -124,7 +95,7 @@ function SharedWithMe() {
                 position="top"
               />
             )}
-            {user.documentMemberships
+            {user.privateDocumentMemberships
               .slice(0, page * Pagination.sidebarLimit)
               .map((membership) => (
                 <SharedWithMeLink key={membership.id} membership={membership} />
@@ -144,6 +115,7 @@ function SharedWithMe() {
                 </DelayedMount>
               </Flex>
             )}
+            <SidebarAction action={createPrivateDocument} depth={0} />
           </Relative>
         </Header>
       </Flex>
@@ -151,4 +123,4 @@ function SharedWithMe() {
   );
 }
 
-export default observer(SharedWithMe);
+export default observer(PrivateDocs);

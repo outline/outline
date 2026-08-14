@@ -792,6 +792,8 @@ router.post(
         includeDocumentStructure: true,
       });
       documentTree = collection?.getDocumentTree(document.id) ?? undefined;
+    } else {
+      documentTree = await document.toNavigationNode();
     }
 
     ctx.body = {
@@ -1324,8 +1326,14 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, insightsEnabled, publish, collectionId, ...input } =
-      ctx.input.body;
+    const {
+      id,
+      insightsEnabled,
+      publish,
+      private: isPrivate,
+      collectionId,
+      ...input
+    } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
     const { user } = ctx.state.auth;
@@ -1344,13 +1352,16 @@ router.post(
     }
 
     if (publish) {
-      await authorizeDocumentPublish(ctx, document, collectionId);
+      await authorizeDocumentPublish(ctx, document, collectionId, {
+        private: isPrivate,
+      });
     }
 
     document = await documentUpdater(ctx, {
       document,
       ...input,
       publish,
+      private: isPrivate,
       collectionId,
       insightsEnabled,
       editorVersion,
@@ -1683,6 +1694,7 @@ router.post(
       icon,
       color,
       publish,
+      private: isPrivate,
       index,
       collectionId,
       parentDocumentId,
@@ -1698,6 +1710,7 @@ router.post(
     const { collection } = await authorizeDocumentCreate(ctx, {
       collectionId,
       parentDocumentId,
+      private: isPrivate,
     });
 
     let template: Template | null | undefined;
@@ -1727,6 +1740,7 @@ router.post(
       color,
       createdAt,
       publish,
+      private: isPrivate,
       index,
       collectionId: collection?.id,
       parentDocumentId,
@@ -1876,6 +1890,12 @@ router.post(
     if (membership.sourceId) {
       throw ValidationError(
         "Cannot remove access that is inherited from a parent document"
+      );
+    }
+
+    if (!document.collectionId && userId === document.createdById) {
+      throw ValidationError(
+        "The creator cannot be removed from a private document"
       );
     }
 

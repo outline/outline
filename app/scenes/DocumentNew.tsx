@@ -31,6 +31,7 @@ function DocumentNew() {
 
     async function createDocument() {
       const index = parseInt(query.get("index") || "0", 10);
+      const isPrivate = query.get("private") === "true";
       const parentDocumentId = query.get("parentDocumentId") ?? undefined;
       const parentDocument = parentDocumentId
         ? documents.get(parentDocumentId)
@@ -38,14 +39,14 @@ function DocumentNew() {
       let collection;
 
       try {
-        if (id) {
+        if (id && !isPrivate) {
           collection = await collections.fetch(id);
         }
 
         const document = await documents.create(
           {
             collectionId: collection?.id,
-            parentDocumentId,
+            parentDocumentId: isPrivate ? undefined : parentDocumentId,
             fullWidth:
               parentDocument?.fullWidth ||
               user.getPreference(UserPreference.FullWidthDocuments),
@@ -54,10 +55,18 @@ function DocumentNew() {
             data: ProsemirrorDataHelper.getEmpty(),
           },
           {
-            publish: collection?.id || parentDocumentId ? true : undefined,
+            publish:
+              isPrivate || collection?.id || parentDocumentId
+                ? true
+                : undefined,
+            private: isPrivate || undefined,
             index,
           }
         );
+
+        if (isPrivate) {
+          void userMemberships.fetchPrivatePage();
+        }
 
         if (parentDocumentId) {
           userMemberships

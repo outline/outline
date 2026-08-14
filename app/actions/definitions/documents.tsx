@@ -27,6 +27,7 @@ import {
   CommentIcon,
   CopyIcon,
   PadlockIcon,
+  PlusIcon,
   GlobeIcon,
   LogoutIcon,
   CaseSensitiveIcon,
@@ -235,6 +236,28 @@ export const createDraftDocument = createInternalLinkAction({
     pathname: newDocumentPath(),
     state: { sidebarContext },
   }),
+});
+
+export const createPrivateDocument = createInternalLinkAction({
+  name: ({ t }) => t("New doc"),
+  analyticsName: "New private document",
+  section: DocumentSection,
+  icon: <PlusIcon />,
+  keywords: "create private personal",
+  visible: ({ currentTeamId, stores }) =>
+    !!currentTeamId &&
+    stores.policies.abilities(currentTeamId).createPrivateDocument,
+  to: () => {
+    const [pathname, search] = newDocumentPath(null, {
+      private: true,
+    }).split("?");
+
+    return {
+      pathname,
+      search,
+      state: { sidebarContext: "private" },
+    };
+  },
 });
 
 /**

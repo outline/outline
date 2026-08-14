@@ -470,6 +470,8 @@ export enum TeamPreference {
   MCP = "mcp",
   /** List of disabled embed provider titles. */
   DisabledEmbeds = "disabledEmbeds",
+  /** Whether users can create private documents. */
+  PrivateDocs = "privateDocs",
 }
 
 export type TeamPreferences = {
@@ -487,7 +489,15 @@ export type TeamPreferences = {
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];
+  [TeamPreference.PrivateDocs]?: boolean;
 };
+
+export enum UserMembershipSection {
+  /** Documents shared with the user by others. */
+  SharedWithMe = "shared",
+  /** Private documents created by the user, outside any collection. */
+  Private = "private",
+}
 
 export enum NavigationNodeType {
   Collection = "collection",

@@ -1,6 +1,14 @@
+import fractionalIndex from "fractional-index";
+import { Op, Sequelize } from "sequelize";
 import type { Optional } from "utility-types";
+import { DocumentPermission } from "@shared/types";
 import { TextHelper } from "@shared/utils/TextHelper";
-import { Collection, Document, type Template } from "@server/models";
+import {
+  Collection,
+  Document,
+  UserMembership,
+  type Template,
+} from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { authorize } from "@server/policies";
@@ -33,6 +41,7 @@ type Props = Optional<
 > & {
   state?: Buffer;
   publish?: boolean;
+  private?: boolean;
   template?: Template | null;
   index?: number;
 };
@@ -42,6 +51,8 @@ type CreateLocation = {
   collectionId?: string | null;
   /** The parent document to nest the new document under, if any. */
   parentDocumentId?: string | null;
+  /** Whether the document should be private to the creator, outside any collection. */
+  private?: boolean;
 };
 
 /**
@@ -58,13 +69,18 @@ type CreateLocation = {
  */
 export async function authorizeDocumentCreate(
   ctx: APIContext,
-  { collectionId, parentDocumentId }: CreateLocation
+  { collectionId, parentDocumentId, private: isPrivate }: CreateLocation
 ): Promise<{
   collection?: Collection | null;
   parentDocument?: Document | null;
 }> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
+
+  if (isPrivate) {
+    authorize(user, "createPrivateDocument", user.team);
+    return {};
+  }
 
   if (parentDocumentId) {
     const parentDocument = await Document.findByPk(parentDocumentId, {
@@ -104,13 +120,15 @@ export async function authorizeDocumentCreate(
  * @param ctx the API context containing the acting user.
  * @param document the document being published.
  * @param collectionId the destination collection, required when publishing a draft that has none.
+ * @param options.private whether the document is being published privately, outside any collection.
  * @returns the resolved destination collection.
  * @throws AuthorizationError when the user may not publish into the collection.
  */
 export async function authorizeDocumentPublish(
   ctx: APIContext,
   document: Document,
-  collectionId?: string | null
+  collectionId?: string | null,
+  options?: { private?: boolean }
 ): Promise<Collection | null | undefined> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
@@ -118,6 +136,26 @@ export async function authorizeDocumentPublish(
 
   if (document.isDraft) {
     authorize(user, "publish", document);
+  }
+
+  if (document.parentDocumentId) {
+    if (!document.collectionId && collectionId) {
+      collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+        transaction,
+      });
+    }
+    const parentDocument = await Document.findByPk(document.parentDocumentId, {
+      userId: user.id,
+      transaction,
+    });
+    authorize(user, "createChildDocument", parentDocument, { collection });
+    return collection;
+  }
+
+  if (options?.private && !document.collectionId && !collectionId) {
+    authorize(user, "createPrivateDocument", user.team);
+    return null;
   }
 
   if (!document.collectionId) {
@@ -131,17 +169,58 @@ export async function authorizeDocumentPublish(
     });
   }
 
-  if (document.parentDocumentId) {
-    const parentDocument = await Document.findByPk(document.parentDocumentId, {
-      userId: user.id,
-      transaction,
-    });
-    authorize(user, "createChildDocument", parentDocument, { collection });
-  } else {
-    authorize(user, "createDocument", collection);
-  }
-
+  authorize(user, "createDocument", collection);
   return collection;
+}
+
+/**
+ * Creates the membership that anchors a private document to its creator. The
+ * membership grants admin permission and places the document at the bottom of
+ * the creator's private documents in the sidebar.
+ *
+ * @param ctx the API context containing the acting user.
+ * @param document the private document to create the membership for.
+ * @returns the created membership.
+ */
+export async function createPrivateDocumentMembership(
+  ctx: APIContext,
+  document: Document
+): Promise<UserMembership> {
+  const { user } = ctx.state.auth;
+  const { transaction } = ctx.state;
+
+  const memberships = await UserMembership.findAll({
+    where: {
+      userId: user.id,
+      index: {
+        [Op.ne]: null,
+      },
+    },
+    attributes: ["id", "index", "updatedAt"],
+    limit: 1,
+    order: [
+      // using LC_COLLATE:"C" because we need byte order to drive the sorting
+      Sequelize.literal('"user_permission"."index" collate "C" DESC'),
+      ["updatedAt", "ASC"],
+    ],
+    transaction,
+  });
+
+  const index = fractionalIndex(
+    memberships.length ? memberships[0].index : null,
+    null
+  );
+
+  return UserMembership.create(
+    {
+      documentId: document.id,
+      userId: user.id,
+      index,
+      permission: DocumentPermission.Admin,
+      createdById: user.id,
+    },
+    ctx.context
+  );
 }
 
 export default async function documentCreator(
@@ -155,6 +234,7 @@ export default async function documentCreator(
     id,
     urlId,
     publish,
+    private: isPrivate,
     index,
     collectionId,
     parentDocumentId,
@@ -249,7 +329,7 @@ export default async function documentCreator(
   );
 
   if (publish) {
-    if (!collectionId) {
+    if (!collectionId && !parentDocumentId && !isPrivate) {
       throw new Error("Collection ID is required to publish");
     }
 
@@ -260,6 +340,10 @@ export default async function documentCreator(
       event: !!document.title,
       data: eventData,
     });
+
+    if (isPrivate) {
+      await createPrivateDocumentMembership(ctx, document);
+    }
   }
 
   // reload to get all of the data needed to present (user, collection etc)
