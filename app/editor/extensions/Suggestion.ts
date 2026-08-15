@@ -4,7 +4,9 @@ import { InputRule } from "prosemirror-inputrules";
 import type { NodeType, Schema } from "prosemirror-model";
 import type { EditorState, Plugin } from "prosemirror-state";
 import Extension from "@shared/editor/lib/Extension";
+import type { ExtensionState } from "@shared/editor/plugins/SuggestionsMenuPlugin";
 import {
+  applyMatch,
   isTriggerMarked,
   SuggestionsMenuPlugin,
 } from "@shared/editor/plugins/SuggestionsMenuPlugin";
@@ -116,20 +118,19 @@ export default class Suggestion<
           (this.enabledInMarks ||
             !isTriggerMarked(state, end, match, this.triggerLength))
         ) {
-          const open = match[0].length <= this.triggerLength + 1;
-          const query = match[1];
-
           // Input rules run while ProseMirror is reading a DOM change, at which
           // point its view descriptors are marked dirty and do not match the
           // DOM. Opening the menu here would render it – and measure the caret –
-          // inside that window, so defer until the view has re-synced.
+          // inside that window, so defer until the view has re-synced. The
+          // cursor is read at that point too, as the typed character has not
+          // been inserted yet when the rule runs.
           setTimeout(
-            action(() => {
-              if (open) {
-                this.state.open = true;
-              }
-              this.state.query = query;
-            }),
+            () =>
+              applyMatch(this.state, match, {
+                triggerLength: this.triggerLength,
+                cursorPos: this.editor.view.state.selection.from,
+                canOpen: true,
+              }),
             0
           );
         }
@@ -142,12 +143,11 @@ export default class Suggestion<
 
   protected triggerLength: number;
 
-  protected state: {
-    open: boolean;
-    query: string;
-  } = observable({
+  protected state: ExtensionState = observable({
     open: false,
     query: "",
+    trigger: null,
+    triggerPos: null,
   });
 
   /** Whether the suggestion menu is currently open. */
