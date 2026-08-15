@@ -138,6 +138,11 @@ export async function authorizeDocumentPublish(
     authorize(user, "publish", document);
   }
 
+  if (options?.private && !collectionId) {
+    authorize(user, "createPrivateDocument", user.team);
+    return null;
+  }
+
   if (document.parentDocumentId) {
     if (!document.collectionId && collectionId) {
       collection = await Collection.findByPk(collectionId, {
@@ -151,11 +156,6 @@ export async function authorizeDocumentPublish(
     });
     authorize(user, "createChildDocument", parentDocument, { collection });
     return collection;
-  }
-
-  if (options?.private && !document.collectionId && !collectionId) {
-    authorize(user, "createPrivateDocument", user.team);
-    return null;
   }
 
   if (!document.collectionId) {

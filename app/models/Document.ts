@@ -603,6 +603,7 @@ export default class Document extends ArchivableModel implements Searchable {
   move = (options: {
     collectionId?: string | null;
     parentDocumentId?: string;
+    private?: boolean;
   }) => this.store.move({ documentId: this.id, ...options });
 
   duplicate = (options?: {

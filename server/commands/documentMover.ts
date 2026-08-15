@@ -1,6 +1,7 @@
 import { Transaction } from "sequelize";
+import { createPrivateDocumentMembership } from "@server/commands/documentCreator";
 import { traceFunction } from "@server/logging/tracing";
-import { Document, Collection, Pin } from "@server/models";
+import { Document, Collection, Pin, UserMembership } from "@server/models";
 import type { APIContext } from "@server/types";
 
 type Props = {
@@ -10,6 +11,8 @@ type Props = {
   collectionId: string | null;
   /** ID of parent under which the document is moved */
   parentDocumentId?: string | null;
+  /** Whether the document is being moved to be private, outside any collection */
+  private?: boolean;
   /** Position of moved document within document structure */
   index?: number;
 };
@@ -26,6 +29,7 @@ async function documentMover(
     document,
     collectionId,
     parentDocumentId = null,
+    private: isPrivate,
     // convert undefined to null so parentId comparison treats them as equal
     index,
   }: Props
@@ -140,6 +144,19 @@ async function documentMover(
           },
         }
       );
+    } else if (isPrivate) {
+      // document stays published and keeps its tree, outside any collection
+      await Document.update(
+        {
+          collectionId: null,
+        },
+        {
+          transaction,
+          where: {
+            id: childDocumentIds,
+          },
+        }
+      );
     } else {
       // document will be moved to drafts
       document.publishedAt = null;
@@ -190,6 +207,21 @@ async function documentMover(
     });
 
     await pin?.destroyWithCtx(ctx);
+  }
+
+  // A private document is anchored to the mover through a root membership.
+  if (isPrivate) {
+    const existing = await UserMembership.findOne({
+      where: {
+        documentId: document.id,
+        userId: user.id,
+        sourceId: null,
+      },
+      transaction,
+    });
+    if (!existing) {
+      await createPrivateDocumentMembership(ctx, document);
+    }
   }
 
   result.documents.push(document);

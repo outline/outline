@@ -8,6 +8,9 @@ import type Document from "~/models/Document";
 import Button from "~/components/Button";
 import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
+import usePrivateDocumentsTree, {
+  PRIVATE_TREE_ID,
+} from "~/hooks/usePrivateDocumentsTree";
 import useStores from "~/hooks/useStores";
 import { FlexContainer, Footer } from "./Components";
 import DocumentExplorer from "./DocumentExplorer";
@@ -20,14 +23,19 @@ function DocumentMove({ document }: Props) {
   const { dialogs, policies } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
+  const privateTree = usePrivateDocumentsTree();
   const [moving, setMoving] = useState<boolean>(false);
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
 
   const items = useMemo(() => {
+    const trees = privateTree
+      ? [...collectionTrees, privateTree]
+      : collectionTrees;
+
     // Collect the IDs of the document itself and all of its descendants so they
     // can be excluded from the move targets (moving to self or a descendant
     // would create a cycle; moving to the exact same location is a no-op).
-    const allNodes = collectionTrees.flatMap(flattenTree);
+    const allNodes = trees.flatMap(flattenTree);
     const sourceNode = allNodes.find((node) => node.id === document.id);
     const excludedIds = new Set<string>([document.id]);
     if (sourceNode) {
@@ -44,7 +52,7 @@ function DocumentMove({ document }: Props) {
         .map(filterSourceDocument),
     });
 
-    const nodes = collectionTrees
+    const nodes = trees
       .map(filterSourceDocument)
       // Filter out collections that we don't have permission to create documents in.
       .filter((node) =>
@@ -54,7 +62,7 @@ function DocumentMove({ document }: Props) {
       );
 
     return nodes;
-  }, [policies, collectionTrees, document.id]);
+  }, [policies, collectionTrees, privateTree, document.id]);
 
   const move = async (path = selectedPath) => {
     if (!path) {
@@ -64,14 +72,19 @@ function DocumentMove({ document }: Props) {
 
     try {
       setMoving(true);
-      const { type, id: parentDocumentId } = path;
 
-      const collectionId = path.collectionId as string;
-
-      if (type === "document") {
-        await document.move({ collectionId, parentDocumentId });
+      if (path.id === PRIVATE_TREE_ID) {
+        await document.move({ private: true });
       } else {
-        await document.move({ collectionId });
+        const { type, id: parentDocumentId } = path;
+
+        const collectionId = path.collectionId as string;
+
+        if (type === "document") {
+          await document.move({ collectionId, parentDocumentId });
+        } else {
+          await document.move({ collectionId });
+        }
       }
 
       toast.success(t("Document moved"));

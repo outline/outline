@@ -362,12 +362,26 @@ export const DocumentsMoveSchema = BaseSchema.extend({
     /** Parent Id, in case if the doc is moved to a new parent */
     parentDocumentId: z.uuid().nullish(),
 
+    /** Whether to move the doc to be private, outside any collection */
+    private: z.boolean().optional(),
+
     /** Helps evaluate the new index in collection structure upon move */
     index: z.number().gte(0).optional(),
   }),
-}).refine((req) => !(req.body.parentDocumentId === req.body.id), {
-  message: "infinite loop detected, cannot nest a document inside itself",
-});
+})
+  .refine((req) => !(req.body.parentDocumentId === req.body.id), {
+    message: "infinite loop detected, cannot nest a document inside itself",
+  })
+  .refine(
+    (req) =>
+      !(
+        req.body.private &&
+        (req.body.collectionId || req.body.parentDocumentId)
+      ),
+    {
+      message: "collectionId and parentDocumentId cannot be used with private",
+    }
+  );
 
 export type DocumentsMoveReq = z.infer<typeof DocumentsMoveSchema>;
 

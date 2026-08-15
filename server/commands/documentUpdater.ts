@@ -136,16 +136,17 @@ export default async function documentUpdater(
     data: eventData,
   };
 
-  if (publish && (cId || isPrivate || document.parentDocumentId)) {
-    const wasDraft = !document.publishedAt;
+  if (publish && isPrivate && !collectionId && !document.publishedAt) {
+    // publishing a draft privately detaches it from any collection or parent
+    document.collectionId = null;
+    document.parentDocumentId = null;
+    await document.publish(ctx, { collectionId: null, data: eventData });
+    await createPrivateDocumentMembership(ctx, document);
+  } else if (publish && (cId || document.parentDocumentId)) {
     if (!document.collectionId && cId) {
       document.collectionId = cId;
     }
     await document.publish(ctx, { collectionId: cId ?? null, data: eventData });
-
-    if (isPrivate && !cId && wasDraft) {
-      await createPrivateDocumentMembership(ctx, document);
-    }
   } else if (changed) {
     document.lastModifiedById = user.id;
     document.updatedBy = user;

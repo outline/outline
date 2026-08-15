@@ -59,6 +59,22 @@ export default class DocumentMovedProcessor extends BaseProcessor {
         document.id
       );
 
+      // Root memberships on the moved document itself cascade to its children,
+      // so they must be recreated as well.
+      const [ownUserMemberships, ownGroupMemberships] = await Promise.all([
+        UserMembership.findAll({
+          where: { documentId: document.id, sourceId: { [Op.eq]: null } },
+          transaction,
+        }),
+        GroupMembership.findAll({
+          where: { documentId: document.id, sourceId: { [Op.eq]: null } },
+          transaction,
+        }),
+      ]);
+
+      await this.recalculateUserMemberships(ownUserMemberships, transaction);
+      await this.recalculateGroupMemberships(ownGroupMemberships, transaction);
+
       await this.destroyRedundantRootMemberships(document, event, transaction);
     });
   }

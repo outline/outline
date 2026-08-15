@@ -52,7 +52,11 @@ function PrivateDocs() {
   }, [error, t]);
 
   useEffect(() => {
-    if (!ui.activeDocumentId || locationSidebarContext === "private") {
+    if (
+      !ui.activeDocumentId ||
+      locationSidebarContext === "private" ||
+      locationSidebarContext?.startsWith("starred")
+    ) {
       return;
     }
 

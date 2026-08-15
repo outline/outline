@@ -702,4 +702,52 @@ describe("DocumentMovedProcessor", () => {
     expect(parentMemberships.length).toBe(1);
     expect(parentMemberships[0].id).toBe(parentMembership.id);
   });
+
+  it("should recreate sourced memberships from the moved document's own root memberships", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+
+    const parent = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: null,
+      publishedAt: new Date(),
+    });
+    const child = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: null,
+      parentDocumentId: parent.id,
+      publishedAt: new Date(),
+    });
+
+    // the root membership cascades a sourced membership to the child
+    const rootMembership = await UserMembership.create({
+      userId: user.id,
+      documentId: parent.id,
+      permission: DocumentPermission.Admin,
+      index: "a",
+      createdById: user.id,
+    });
+
+    const processor = new DocumentMovedProcessor();
+    await processor.perform({
+      name: "documents.move",
+      documentId: parent.id,
+      collectionId: parent.collectionId!,
+      teamId: team.id,
+      actorId: user.id,
+      ip,
+      data: {
+        collectionIds: [],
+        documentIds: [parent.id],
+      },
+    });
+
+    const childMemberships = await UserMembership.findAll({
+      where: { documentId: child.id, userId: user.id },
+    });
+    expect(childMemberships.length).toBe(1);
+    expect(childMemberships[0].sourceId).toBe(rootMembership.id);
+  });
 });

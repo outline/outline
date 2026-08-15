@@ -1460,7 +1460,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsMoveReq>) => {
     const { transaction } = ctx.state;
-    const { id, parentDocumentId, index } = ctx.input.body;
+    const { id, parentDocumentId, private: isPrivate, index } = ctx.input.body;
     let collectionId = ctx.input.body.collectionId;
     const { user } = ctx.state.auth;
     const document = await Document.findByPk(id, {
@@ -1469,7 +1469,10 @@ router.post(
     });
     authorize(user, "move", document);
 
-    if (parentDocumentId) {
+    if (isPrivate) {
+      authorize(user, "createPrivateDocument", user.team);
+      collectionId = null;
+    } else if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
         userId: user.id,
         transaction,
@@ -1494,6 +1497,7 @@ router.post(
       document,
       collectionId: collectionId ?? null,
       parentDocumentId,
+      private: isPrivate,
       index,
     });
 

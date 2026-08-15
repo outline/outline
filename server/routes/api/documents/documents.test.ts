@@ -6697,3 +6697,187 @@ describe("#documents.documents - private", () => {
     expect(treeBody.data.children[0].id).toEqual(childBody.data.id);
   });
 });
+
+describe("#documents.restore - private", () => {
+  it("should restore an archived private document in place", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Private notes",
+        private: true,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const archiveRes = await server.post("/api/documents.archive", user, {
+      body: { id: body.data.id },
+    });
+    expect(archiveRes.status).toEqual(200);
+
+    const restoreRes = await server.post("/api/documents.restore", user, {
+      body: { id: body.data.id },
+    });
+    const restoreBody = await restoreRes.json();
+    expect(restoreRes.status).toEqual(200);
+    expect(restoreBody.data.archivedAt).toBeNull();
+    expect(restoreBody.data.collectionId).toBeNull();
+    expect(restoreBody.data.publishedAt).toBeTruthy();
+  });
+
+  it("should restore a deleted private document in place", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Private notes",
+        private: true,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    const deleteRes = await server.post("/api/documents.delete", user, {
+      body: { id: body.data.id },
+    });
+    expect(deleteRes.status).toEqual(200);
+
+    const restoreRes = await server.post("/api/documents.restore", user, {
+      body: { id: body.data.id },
+    });
+    const restoreBody = await restoreRes.json();
+    expect(restoreRes.status).toEqual(200);
+    expect(restoreBody.data.deletedAt).toBeNull();
+    expect(restoreBody.data.collectionId).toBeNull();
+  });
+});
+
+describe("#documents.move - private", () => {
+  it("should move a published document and its children to private", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const parent = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const child = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: {
+        id: parent.id,
+        private: true,
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    await Promise.all([parent.reload(), child.reload()]);
+    expect(parent.collectionId).toBeNull();
+    expect(parent.parentDocumentId).toBeNull();
+    expect(parent.publishedAt).toBeTruthy();
+    expect(child.collectionId).toBeNull();
+    expect(child.parentDocumentId).toEqual(parent.id);
+    expect(child.publishedAt).toBeTruthy();
+
+    const membership = await UserMembership.findOne({
+      where: {
+        documentId: parent.id,
+        userId: user.id,
+      },
+    });
+    expect(membership).not.toBeNull();
+    expect(membership!.sourceId).toBeNull();
+    expect(membership!.permission).toEqual(DocumentPermission.Admin);
+  });
+
+  it("should not allow private with a collectionId", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: {
+        id: document.id,
+        private: true,
+        collectionId: collection.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow moving to private when the preference is disabled", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.PrivateDocs, false);
+    await team.save();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: {
+        id: document.id,
+        private: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#documents.update - publish to private from collection", () => {
+  it("should detach a draft from its collection when publishing privately", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const draft = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: draft.id,
+        publish: true,
+        private: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBeNull();
+    expect(body.data.publishedAt).toBeTruthy();
+
+    const membership = await UserMembership.findOne({
+      where: {
+        documentId: draft.id,
+        userId: user.id,
+      },
+    });
+    expect(membership).not.toBeNull();
+    expect(membership!.permission).toEqual(DocumentPermission.Admin);
+  });
+});

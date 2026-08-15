@@ -1348,7 +1348,7 @@ class Document extends ArchivableModel<
   // Restore an archived document back to being visible to the team
   restoreTo = async (
     ctx: APIContext,
-    { collectionId }: { collectionId: string }
+    { collectionId }: { collectionId: string | null }
   ) => {
     const { transaction } = ctx.state;
     const collection = collectionId
@@ -1498,7 +1498,7 @@ class Document extends ArchivableModel<
 
   private restoreArchivedWithChildren = async (
     ctx: APIContext,
-    { collectionId }: { collectionId: string }
+    { collectionId }: { collectionId: string | null }
   ) => {
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;

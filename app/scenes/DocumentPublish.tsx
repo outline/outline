@@ -11,6 +11,9 @@ import DocumentExplorer from "~/components/DocumentExplorer";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
+import usePrivateDocumentsTree, {
+  PRIVATE_TREE_ID,
+} from "~/hooks/usePrivateDocumentsTree";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -22,16 +25,16 @@ function DocumentPublish({ document }: Props) {
   const { dialogs, policies } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
+  const privateTree = usePrivateDocumentsTree();
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
-  const publishOptions = useMemo(
-    () =>
-      collectionTrees.filter((node) =>
-        node.collectionId
-          ? policies.get(node.collectionId)?.abilities.createDocument
-          : true
-      ),
-    [policies, collectionTrees]
-  );
+  const publishOptions = useMemo(() => {
+    const nodes = collectionTrees.filter((node) =>
+      node.collectionId
+        ? policies.get(node.collectionId)?.abilities.createDocument
+        : true
+    );
+    return privateTree ? [...nodes, privateTree] : nodes;
+  }, [policies, collectionTrees, privateTree]);
 
   const publish = async (path = selectedPath) => {
     if (!path) {
@@ -40,6 +43,14 @@ function DocumentPublish({ document }: Props) {
     }
 
     try {
+      if (path.id === PRIVATE_TREE_ID) {
+        await document.save(undefined, { publish: true, private: true });
+
+        toast.success(t("Document published"));
+        dialogs.closeAllModals();
+        return;
+      }
+
       const { type, id: parentDocumentId } = path;
 
       const collectionId = path.collectionId as string;

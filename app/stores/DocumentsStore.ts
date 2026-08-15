@@ -512,20 +512,25 @@ export default class DocumentsStore extends Store<Document> {
     documentId,
     collectionId,
     parentDocumentId,
+    private: isPrivate,
     index,
   }: {
     documentId: string;
     collectionId?: string | null;
     parentDocumentId?: string | null;
+    private?: boolean;
     index?: number | null;
   }) => {
     this.movingDocumentId = documentId;
+    const previousMembership =
+      this.rootStore.userMemberships.getByDocumentId(documentId);
 
     try {
       const res = await client.post("/documents.move", {
         id: documentId,
         collectionId,
         parentDocumentId,
+        private: isPrivate,
         index,
       });
       invariant(res?.data, "Data not available");
@@ -547,6 +552,14 @@ export default class DocumentsStore extends Store<Document> {
         : undefined;
       if (parentMembership && parentMembership.id !== membership?.id) {
         await parentMembership.fetchDocuments({ force: true });
+      }
+
+      if (
+        previousMembership &&
+        previousMembership.id !== membership?.id &&
+        previousMembership.id !== parentMembership?.id
+      ) {
+        await previousMembership.fetchDocuments({ force: true });
       }
     } finally {
       this.movingDocumentId = undefined;

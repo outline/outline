@@ -53,13 +53,13 @@ async function documentRestorer(
       })
     : undefined;
 
-  if (!destCollection?.isActive) {
+  if (destCollectionId && !destCollection?.isActive) {
     throw ValidationError(
       "Unable to restore, the collection may have been deleted or archived"
     );
   }
 
-  if (sourceCollectionId && sourceCollectionId !== destCollection.id) {
+  if (sourceCollectionId && sourceCollectionId !== destCollection?.id) {
     authorize(user, "updateDocument", srcCollection);
     await srcCollection?.removeDocumentInStructure(document, {
       save: true,
@@ -69,16 +69,20 @@ async function documentRestorer(
 
   if (document.deletedAt) {
     authorize(user, "restore", document);
-    authorize(user, "updateDocument", destCollection);
+    if (destCollection) {
+      authorize(user, "updateDocument", destCollection);
+    }
 
     // restore a previously deleted document
-    await document.restoreTo(ctx, { collectionId: destCollection.id });
+    await document.restoreTo(ctx, { collectionId: destCollection?.id ?? null });
   } else if (document.archivedAt) {
     authorize(user, "unarchive", document);
-    authorize(user, "updateDocument", destCollection);
+    if (destCollection) {
+      authorize(user, "updateDocument", destCollection);
+    }
 
     // restore a previously archived document
-    await document.restoreTo(ctx, { collectionId: destCollection.id });
+    await document.restoreTo(ctx, { collectionId: destCollection?.id ?? null });
   } else if (revisionId) {
     // restore a document to a specific revision
     authorize(user, "update", document);

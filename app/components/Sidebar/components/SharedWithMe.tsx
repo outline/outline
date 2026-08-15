@@ -54,7 +54,11 @@ function SharedWithMe() {
       locationSidebarContext === "shared" ||
       locationSidebarContext?.startsWith("group");
 
-    if (!ui.activeDocumentId || isContextInSharedSection) {
+    if (
+      !ui.activeDocumentId ||
+      isContextInSharedSection ||
+      locationSidebarContext?.startsWith("starred")
+    ) {
       return;
     }
 

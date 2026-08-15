@@ -331,7 +331,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Create document",
         description:
-          "Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, or parentDocumentId to nest it under an existing document. Pass a templateId (from list_templates) to pre-fill the document from a template; the template's content is used unless text is also provided.",
+          "Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, parentDocumentId to nest it under an existing document, or private set to true to create a private document. Pass a templateId (from list_templates) to pre-fill the document from a template; the template's content is used unless text is also provided.",
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
@@ -361,6 +361,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
           parentDocumentId: optionalString().describe(
             "The parent document ID to nest this document under."
           ),
+          private: z
+            .boolean()
+            .optional()
+            .describe(
+              "Set to true to create a private document, outside any collection, visible only to the creator and the people they share it with. Cannot be combined with collectionId or parentDocumentId."
+            ),
           templateId: optionalString().describe(
             "The ID of a template to pre-fill the new document from. The template's title, content, icon, and color are used unless overridden by the corresponding parameters."
           ),
@@ -386,13 +392,37 @@ export function documentTools(server: McpServer, scopes: string[]) {
       },
       withTracing("create_document", async (input, context) => {
         try {
-          const { collectionId, parentDocumentId, templateId } = input;
+          const {
+            collectionId,
+            parentDocumentId,
+            private: isPrivate,
+            templateId,
+          } = input;
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
+
+          if (isPrivate) {
+            if (collectionId || parentDocumentId) {
+              throw ValidationError(
+                "collectionId and parentDocumentId cannot be used with private"
+              );
+            }
+            if (input.publish === false) {
+              throw ValidationError(
+                "Private documents cannot be created as drafts"
+              );
+            }
+            if (input.format === "html") {
+              throw ValidationError(
+                "Private documents cannot be created from HTML content"
+              );
+            }
+          }
 
           const { collection } = await authorizeDocumentCreate(ctx, {
             collectionId,
             parentDocumentId,
+            private: isPrivate,
           });
 
           let template: Template | null | undefined;
@@ -437,6 +467,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     color: input.color,
                     parentDocumentId,
                     publish: input.publish !== false,
+                    private: isPrivate,
                     collectionId: collection?.id,
                     template,
                     fullWidth: input.fullWidth,
@@ -487,6 +518,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
           parentDocumentId: optionalString().describe(
             "The ID of the document to nest this document under. The document will be moved to the parent's collection."
           ),
+          private: z
+            .boolean()
+            .optional()
+            .describe(
+              "Set to true to move the document to the user's private documents, outside any collection. Cannot be combined with collectionId or parentDocumentId."
+            ),
           index: z
             .number()
             .int()
@@ -516,7 +553,15 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             let collectionId = input.collectionId;
 
-            if (input.parentDocumentId) {
+            if (input.private) {
+              if (collectionId || input.parentDocumentId) {
+                throw ValidationError(
+                  "collectionId and parentDocumentId cannot be used with private"
+                );
+              }
+              authorize(user, "createPrivateDocument", user.team);
+              collectionId = undefined;
+            } else if (input.parentDocumentId) {
               if (input.parentDocumentId === input.id) {
                 throw ValidationError("Cannot nest a document inside itself");
               }
@@ -550,6 +595,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
               document,
               collectionId: collectionId ?? null,
               parentDocumentId: input.parentDocumentId ?? null,
+              private: input.private,
               index: input.index,
             });
 
@@ -628,6 +674,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Set to true to publish a draft document, or false to convert a published document back to a draft."
             ),
+          private: z
+            .boolean()
+            .optional()
+            .describe(
+              "When publishing a draft, set to true to publish it privately, outside any collection, visible only to the creator and the people they share it with. Cannot be combined with collectionId."
+            ),
           fullWidth: z
             .boolean()
             .optional()
@@ -658,8 +710,17 @@ export function documentTools(server: McpServer, scopes: string[]) {
           } else {
             authorize(user, "update", document);
 
+            if (input.private && input.collectionId) {
+              throw ValidationError("collectionId cannot be used with private");
+            }
+
             if (input.publish) {
-              await authorizeDocumentPublish(ctx, document, input.collectionId);
+              await authorizeDocumentPublish(
+                ctx,
+                document,
+                input.collectionId,
+                { private: input.private }
+              );
             }
 
             const { revisionCount } = document;

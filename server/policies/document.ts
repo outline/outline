@@ -24,7 +24,7 @@ allow(User, "createPrivateDocument", Team, (actor, team) =>
     !actor.isViewer,
     isTeamModel(actor, team),
     isTeamMutable(actor),
-    !!actor.team.getPreference(TeamPreference.PrivateDocs)
+    !!team?.getPreference(TeamPreference.PrivateDocs)
   )
 );
 

@@ -1,5 +1,10 @@
 import { observer } from "mobx-react";
-import { MoreIcon, QuestionMarkIcon, UserIcon } from "outline-icons";
+import {
+  MoreIcon,
+  PadlockIcon,
+  QuestionMarkIcon,
+  UserIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
@@ -157,6 +162,26 @@ export const AccessControlList = observer(
                   invitedInSession={invitedInSession}
                 />
               )}
+            </>
+          ) : document.isPrivate && !document.parentDocumentId ? (
+            <>
+              {showLoading ? (
+                <Placeholder />
+              ) : (
+                <DocumentMemberList
+                  document={document}
+                  invitedInSession={invitedInSession}
+                />
+              )}
+              <ListItem
+                image={
+                  <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                    <PadlockIcon color={theme.accentText} size={16} />
+                  </Squircle>
+                }
+                title={t("Private")}
+                subtitle={t("Only people invited to this document have access")}
+              />
             </>
           ) : (
             <>
