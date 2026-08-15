@@ -44,7 +44,7 @@ function AuthenticatedIsland({ document, share, compact }: Props) {
   return (
     <Island align="center" gap={2}>
       <AccountMenu>
-        <UserButton>
+        <UserButton type="button">
           <Avatar
             model={user}
             size={AvatarSize.Small}
