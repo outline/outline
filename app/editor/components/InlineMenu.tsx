@@ -5,6 +5,7 @@ import { RemoveScroll } from "react-remove-scroll";
 import styled from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
 import { collapseSelection } from "@shared/editor/commands/collapseSelection";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { MenuItem } from "@shared/editor/types";
 import { useTranslation } from "react-i18next";
 import Scrollable from "~/components/Scrollable";
@@ -28,6 +29,14 @@ type Props = {
   rtl: boolean;
 };
 
+type InteractOutsideEvent = Parameters<
+  NonNullable<
+    React.ComponentProps<
+      typeof DropdownMenuPrimitive.Content
+    >["onInteractOutside"]
+  >
+>[0];
+
 // The virtual anchor is an invisible zero-size element; the hook positions it
 // over the selection and Radix anchors the menu to it.
 const anchorStyle: React.CSSProperties = {
@@ -35,6 +44,15 @@ const anchorStyle: React.CSSProperties = {
   width: 0,
   height: 0,
 };
+
+// The affordances that select a table, row, or column.
+const gripSelector = [
+  EditorStyleHelper.tableGrip,
+  EditorStyleHelper.tableGripRow,
+  EditorStyleHelper.tableGripColumn,
+]
+  .map((className) => `.${className}`)
+  .join(", ");
 
 /**
  * Renders a selection-toolbar menu inline — a vertical menu anchored to the
@@ -72,6 +90,20 @@ const InlineMenu: React.FC<Props> = ({ items, rtl }) => {
     collapseSelection()(view.state, view.dispatch);
   }, [view]);
 
+  // Radix reports an outside interaction on pointerdown, before the editor
+  // handles the click. The table grips set the selection themselves — and read
+  // the current one to extend it — so leave it alone for them.
+  const handleInteractOutside = React.useCallback(
+    (event: InteractOutsideEvent) => {
+      const { target } = event.detail.originalEvent;
+      if (target instanceof HTMLElement && target.closest(gripSelector)) {
+        return;
+      }
+      handleDismiss();
+    },
+    [handleDismiss]
+  );
+
   if (isMobile) {
     return (
       <InlineMenuDrawer
@@ -100,7 +132,7 @@ const InlineMenu: React.FC<Props> = ({ items, rtl }) => {
             collisionPadding={6}
             aria-label={t("Options")}
             onCloseAutoFocus={preventFocus}
-            onInteractOutside={handleDismiss}
+            onInteractOutside={handleInteractOutside}
             onEscapeKeyDown={handleDismiss}
             asChild
           >

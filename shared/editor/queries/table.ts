@@ -214,14 +214,11 @@ export function getCellsInRow(index: number) {
  * @returns Boolean indicating if the column is selected
  */
 export function isColumnSelected(index: number) {
-  return (state: EditorState): boolean => {
-    if (isColSelection(state)) {
-      const rect = selectedRect(state);
-      return rect.left <= index && rect.right > index;
-    }
-
-    return false;
-  };
+  return (state: EditorState): boolean =>
+    state.selection instanceof ColumnSelection &&
+    state.selection.isColSelection()
+      ? state.selection.containsColumn(index)
+      : false;
 }
 
 /**
@@ -265,7 +262,7 @@ export function isHeaderEnabled(
 export function isRowSelected(index: number) {
   return (state: EditorState): boolean =>
     state.selection instanceof RowSelection && state.selection.isRowSelection()
-      ? state.selection.$index === index
+      ? state.selection.containsRow(index)
       : false;
 }
 
