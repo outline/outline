@@ -1,6 +1,8 @@
+import { FilterValidation } from "../validations";
+import type { Filter } from "./FilterHelper";
 import { createFilterSchema } from "./FilterHelper";
 
-const { FilterSchema } = createFilterSchema({
+const { FilterSchema, FilterListSchema } = createFilterSchema({
   createdAt: "date",
   title: "string",
   collectionId: "uuid",
@@ -9,6 +11,16 @@ const { FilterSchema } = createFilterSchema({
 } as const);
 
 const uuid = "00000000-0000-4000-8000-000000000000";
+
+const leaf: Filter = { field: "title", operator: "eq", value: "x" };
+
+/** Build a flat OR group that holds `count` leaves, for a total of count + 1 nodes. */
+function groupOf(count: number): Filter {
+  return {
+    operator: "OR",
+    filters: Array.from({ length: count }, () => leaf),
+  };
+}
 
 describe("createFilterSchema value validation", () => {
   describe("uuid fields", () => {
@@ -237,5 +249,42 @@ describe("createFilterSchema operator allowlists", () => {
         ],
       }).success
     ).toBe(false);
+  });
+});
+
+describe("createFilterSchema node limit", () => {
+  const { maxNodes } = FilterValidation;
+
+  it("accepts an expression at the node limit", () => {
+    expect(FilterSchema.safeParse(groupOf(maxNodes - 1)).success).toBe(true);
+  });
+
+  it("rejects an expression over the node limit", () => {
+    expect(FilterSchema.safeParse(groupOf(maxNodes)).success).toBe(false);
+  });
+
+  it("rejects a wide expression that stays inside the depth limit", () => {
+    // Depth 3 and 7 filters per group is well inside both shape limits, yet
+    // holds 57 nodes.
+    const wide: Filter = {
+      operator: "OR",
+      filters: Array.from({ length: 7 }, () => groupOf(7)),
+    };
+    expect(FilterSchema.safeParse(wide).success).toBe(false);
+  });
+
+  it("accepts a list at the node limit", () => {
+    const filters = Array.from({ length: maxNodes }, () => leaf);
+    expect(FilterListSchema.safeParse(filters).success).toBe(true);
+  });
+
+  it("rejects a list whose entries total over the node limit", () => {
+    // Each entry is inside the per-expression limit; the sum is not.
+    const filters = Array.from({ length: 5 }, () => groupOf(10));
+    expect(FilterListSchema.safeParse(filters).success).toBe(false);
+  });
+
+  it("rejects an empty list", () => {
+    expect(FilterListSchema.safeParse([]).success).toBe(false);
   });
 });

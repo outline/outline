@@ -2387,7 +2387,7 @@ describe("#documents.list", () => {
       expect(res.status).toEqual(400);
     });
 
-    it("must not allow exceeding maxFiltersPerGroup limit", async () => {
+    it("must not allow exceeding the top-level filter count limit", async () => {
       const user = await buildUser();
       const filters = Array.from({ length: 51 }).map(() => ({
         field: "title",
@@ -2443,7 +2443,7 @@ describe("#documents.list", () => {
       // string compared via Op.gte. That comparison will either return zero
       // rows or fail at the type-cast level; what matters is no SQL error
       // and no leaked rows. Acceptable: 200 with empty data, or 400.
-      expect([200, 400, 500]).toContain(res.status);
+      expect([200, 400]).toContain(res.status);
       if (res.status === 200) {
         const body = await res.json();
         // No rows should leak.
@@ -2469,6 +2469,133 @@ describe("#documents.list", () => {
       expect(res.status).toEqual(200);
       const ids = body.data.map((d: { id: string }) => d.id);
       expect(ids).toContain(document.id);
+    });
+
+    it("must reject an out-of-range duration rather than fail at the database", async () => {
+      const user = await buildUser();
+      for (const value of [
+        "-P999999999Y",
+        "P999999999Y",
+        "-PT99999999999999999S",
+      ]) {
+        const filters = [{ field: "createdAt", operator: "gte", value }];
+        for (const endpoint of [
+          "/api/documents.list",
+          "/api/documents.search",
+          "/api/documents.search_titles",
+        ]) {
+          const res = await server.post(endpoint, user, {
+            body: { query: "test", filters },
+          });
+          expect(res.status).toEqual(400);
+        }
+      }
+    });
+
+    it("must reject an out-of-range duration on an unauthenticated share search", async () => {
+      const team = await buildTeam();
+      const author = await buildUser({ teamId: team.id });
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: author.id,
+      });
+      const share = await buildShare({
+        teamId: team.id,
+        userId: author.id,
+        documentId: document.id,
+        includeChildDocuments: true,
+        published: true,
+      });
+
+      const res = await server.post("/api/documents.search", {
+        body: {
+          shareId: share.id,
+          query: "test",
+          filters: [
+            { field: "createdAt", operator: "gte", value: "-P999999999Y" },
+          ],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("must reject a filter expression over the node limit", async () => {
+      const user = await buildUser();
+      const leaf = { field: "title", operator: "eq", value: "x" };
+      // Depth 3 with 7 filters per group is inside both shape limits, but
+      // holds 57 nodes.
+      const wide = {
+        operator: "OR",
+        filters: Array.from({ length: 7 }, () => ({
+          operator: "OR",
+          filters: Array.from({ length: 7 }, () => leaf),
+        })),
+      };
+      for (const endpoint of [
+        "/api/documents.list",
+        "/api/documents.search",
+        "/api/documents.search_titles",
+      ]) {
+        const res = await server.post(endpoint, user, {
+          body: { query: "test", filters: [wide] },
+        });
+        expect(res.status).toEqual(400);
+      }
+    });
+
+    it("must reject a filter list whose entries total over the node limit", async () => {
+      const user = await buildUser();
+      // Each entry is inside the per-expression limit; the sum is not.
+      const filters = Array.from({ length: 5 }, () => ({
+        operator: "OR",
+        filters: Array.from({ length: 10 }, () => ({
+          field: "title",
+          operator: "eq",
+          value: "x",
+        })),
+      }));
+      const res = await server.post("/api/documents.list", user, {
+        body: { filters },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("must accept the widest filter expression the app builds", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [
+            { field: "collectionId", operator: "eq", value: collection.id },
+            { field: "userId", operator: "eq", value: user.id },
+            { field: "updatedAt", operator: "gte", value: "-P1Y" },
+            {
+              operator: "OR",
+              filters: [
+                { field: "archivedAt", operator: "isNotNull" },
+                {
+                  operator: "AND",
+                  filters: [
+                    { field: "archivedAt", operator: "isNull" },
+                    { field: "publishedAt", operator: "isNotNull" },
+                  ],
+                },
+                {
+                  operator: "AND",
+                  filters: [
+                    { field: "archivedAt", operator: "isNull" },
+                    { field: "publishedAt", operator: "isNull" },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      expect(res.status).toEqual(200);
     });
 
     it("must not leak draft drafts via OR with createdById self + collectionId of teammate's collection", async () => {

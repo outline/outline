@@ -120,6 +120,13 @@ function depthOf(filter: Filter): number {
   return 1;
 }
 
+function countNodes(filter: Filter): number {
+  if (isGroup(filter)) {
+    return filter.filters.reduce((total, f) => total + countNodes(f), 1);
+  }
+  return 1;
+}
+
 /**
  * Build a zod schema for a typed filter DSL constrained to a field allowlist.
  *
@@ -131,7 +138,7 @@ function depthOf(filter: Filter): number {
  * rejected here as well.
  *
  * @param fields map of allowed field name to its column type, optionally with a restricted operator set.
- * @returns the composed FilterSchema along with its FilterCondition / FilterGroup parts.
+ * @returns FilterSchema for a single expression, and FilterListSchema for the wire-level `filters` array.
  */
 export function createFilterSchema<S extends Record<string, FieldSpec>>(
   fields: S
@@ -272,24 +279,44 @@ export function createFilterSchema<S extends Record<string, FieldSpec>>(
       filters: z
         .array(z.union([FilterConditionSchema, FilterGroupSchema]))
         .min(1)
-        .max(FilterValidation.maxFiltersPerGroup),
+        .max(FilterValidation.maxNodes),
     })
   );
 
   const FilterSchema = z
     .union([FilterConditionSchema, FilterGroupSchema])
     .superRefine((data, ctx) => {
-      if (depthOf(data as Filter) > FilterValidation.maxDepth) {
+      const filter = data as Filter;
+      if (depthOf(filter) > FilterValidation.maxDepth) {
         ctx.addIssue({
           code: "custom",
           message: `filter nesting depth exceeds maximum of ${FilterValidation.maxDepth}`,
         });
       }
+      if (countNodes(filter) > FilterValidation.maxNodes) {
+        ctx.addIssue({
+          code: "custom",
+          message: `filter contains more than the maximum of ${FilterValidation.maxNodes} conditions`,
+        });
+      }
     });
 
-  return {
-    FilterCondition: FilterConditionSchema,
-    FilterGroup: FilterGroupSchema,
-    FilterSchema,
-  };
+  const FilterListSchema = z
+    .array(FilterSchema)
+    .min(1)
+    .max(FilterValidation.maxNodes)
+    .superRefine((filters, ctx) => {
+      const total = filters.reduce(
+        (sum, filter) => sum + countNodes(filter as Filter),
+        0
+      );
+      if (total > FilterValidation.maxNodes) {
+        ctx.addIssue({
+          code: "custom",
+          message: `filters contain more than the maximum of ${FilterValidation.maxNodes} conditions`,
+        });
+      }
+    });
+
+  return { FilterSchema, FilterListSchema };
 }

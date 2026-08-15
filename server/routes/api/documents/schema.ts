@@ -9,7 +9,7 @@ import {
   TextEditMode,
   SortFilter,
 } from "@shared/types";
-import { DocumentValidation, FilterValidation } from "@shared/validations";
+import { DocumentValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
@@ -159,11 +159,7 @@ export const DocumentsListSchema = BaseSchema.extend({
     statusFilter: z.enum(StatusFilter).array().optional(),
 
     /** List of filter expressions. Implicit AND between top-level entries. */
-    filters: z
-      .array(documentListFilter.FilterSchema)
-      .min(1)
-      .max(FilterValidation.maxFiltersPerGroup)
-      .optional(),
+    filters: documentListFilter.FilterListSchema.optional(),
   }),
   // Maintains backwards compatibility
 })
@@ -313,11 +309,7 @@ export const DocumentsSearchSchema = BaseSchema.extend({
       .optional(),
 
     /** List of filter expressions. Implicit AND between top-level entries. */
-    filters: z
-      .array(documentSearchFilter.FilterSchema)
-      .min(1)
-      .max(FilterValidation.maxFiltersPerGroup)
-      .optional(),
+    filters: documentSearchFilter.FilterListSchema.optional(),
   }),
 }).refine(filterIncompatibleWithLegacy, {
   message: filterIncompatibleWithLegacyMessage,
@@ -339,11 +331,7 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
       .optional(),
 
     /** List of filter expressions. Implicit AND between top-level entries. */
-    filters: z
-      .array(documentSearchFilter.FilterSchema)
-      .min(1)
-      .max(FilterValidation.maxFiltersPerGroup)
-      .optional(),
+    filters: documentSearchFilter.FilterListSchema.optional(),
   }),
 }).refine(filterIncompatibleWithLegacy, {
   message: filterIncompatibleWithLegacyMessage,
