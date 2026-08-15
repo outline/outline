@@ -184,6 +184,10 @@ export function backchannelLogout(options: BackchannelLogoutOptions) {
       if (err instanceof LogoutTokenError) {
         Logger.warn("Rejected an OIDC back-channel logout token", {
           error: err.message,
+          expectedIssuer: options.issuer,
+          expectedAudience: options.audience,
+          ip: ctx.ip,
+          ...describeToken(token),
         });
         return respondWithError(ctx, err.message);
       }
@@ -201,8 +205,36 @@ export function backchannelLogout(options: BackchannelLogoutOptions) {
 
     await revokeSessions(claims.sub);
 
+    // The specification requires 200 on success, providers may treat any other
+    // status as a failed logout.
     ctx.status = 200;
     ctx.body = "";
+  };
+}
+
+/**
+ * Describes a rejected token for the log. The token did not pass validation,
+ * so every value here is unverified and is only a record of what was received.
+ */
+function describeToken(token: string) {
+  const decoded = JWT.decode(token, { complete: true });
+
+  if (!decoded || typeof decoded.payload === "string") {
+    return { tokenLength: token.length };
+  }
+
+  const { iss, aud, sub, sid, jti, iat, exp } = decoded.payload;
+
+  return {
+    algorithm: decoded.header.alg,
+    keyId: decoded.header.kid,
+    issuer: iss,
+    audience: aud,
+    subject: sub,
+    sessionId: sid,
+    tokenId: jti,
+    issuedAt: iat ? new Date(iat * 1000).toISOString() : undefined,
+    expiresAt: exp ? new Date(exp * 1000).toISOString() : undefined,
   };
 }
 
