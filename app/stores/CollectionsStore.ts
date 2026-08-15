@@ -1,10 +1,11 @@
 import invariant from "invariant";
 import { isEmpty, orderBy, sortBy } from "es-toolkit/compat";
 import { computed, action, runInAction } from "mobx";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
-  CollectionStatusFilter,
   type FileOperationFormat,
+  type JSONObject,
   SubscriptionType,
 } from "@shared/types";
 import Collection from "~/models/Collection";
@@ -166,14 +167,15 @@ export default class CollectionsStore extends Store<Collection> {
   @action
   fetchNamedPage = async (
     request = "list",
-    options:
-      | (PaginationParams & { statusFilter: CollectionStatusFilter[] })
-      | undefined
+    options: (PaginationParams & { filters?: Filter[] }) | undefined
   ): Promise<Collection[]> => {
     this.isFetching = true;
 
     try {
-      const res = await client.post(`/collections.${request}`, options);
+      const res = await client.post(
+        `/collections.${request}`,
+        options as JSONObject | undefined
+      );
       invariant(res?.data, "Collection list not available");
       return runInAction("CollectionsStore#fetchNamedPage", () => {
         const collections = res.data.map(this.add);
@@ -190,7 +192,7 @@ export default class CollectionsStore extends Store<Collection> {
   fetchArchived = async (options?: PaginationParams): Promise<Collection[]> =>
     this.fetchNamedPage("list", {
       ...options,
-      statusFilter: [CollectionStatusFilter.Archived],
+      filters: [{ field: "archivedAt", operator: "isNotNull" }],
     });
 
   get(id: string = ""): Collection | undefined {
