@@ -66,7 +66,7 @@ function SharedSidebar({ share }: Props) {
   }
 
   return (
-    <Sidebar canCollapse={false}>
+    <Sidebar canCollapse={false} showAccountMenu={false}>
       {brandingAvailable && (
         <SidebarButton
           title={displayName}
