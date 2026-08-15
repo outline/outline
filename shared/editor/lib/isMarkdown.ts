@@ -11,7 +11,7 @@ export default function isMarkdown(text: string): boolean {
 
   // latex-ish, the delimiters must hug their content and the closing one must
   // not be followed by a digit so that currency amounts are not counted.
-  const latex = text.match(/\$(?!\s)(.+?)(?<!\s)\$(?!\d)/g);
+  const latex = text.match(/\$[^\s](?:.*?[^\s])?\$(?!\d)/g);
   if (latex && latex.length > 0) {
     signals += latex.length;
   }
