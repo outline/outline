@@ -200,7 +200,7 @@ export class APIUpdateExtension implements Extension {
       timestamp: Date.now(),
     });
 
-    await RedisAdapter.defaultClient.publish(channel, message);
+    await RedisAdapter.collaborationClient.publish(channel, message);
 
     Logger.debug("multiplayer", `Published API update notification`, {
       documentId,
