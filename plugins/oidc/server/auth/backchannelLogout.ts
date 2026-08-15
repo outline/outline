@@ -1,8 +1,9 @@
 import JWT, { type Algorithm } from "jsonwebtoken";
 import { z } from "zod";
 import { uniq } from "es-toolkit";
-import { toError } from "@shared/utils/error";
+import { errToId, toError } from "@shared/utils/error";
 import { Minute } from "@shared/utils/time";
+import { OIDCLogoutTokenError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import {
   AuthenticationProvider,
@@ -32,9 +33,6 @@ export interface LogoutTokenClaims {
   /** The provider session the logout applies to. */
   sid?: string;
 }
-
-/** Raised when a logout token is missing, malformed, or cannot be trusted. */
-export class LogoutTokenError extends Error {}
 
 /**
  * The event identifier that distinguishes a logout token from an ID token.
@@ -95,7 +93,7 @@ const LogoutTokenSchema = z
  * @param token The encoded logout token.
  * @param options The provider key set and expected token claims.
  * @returns the validated claims.
- * @throws {LogoutTokenError} if the token cannot be trusted.
+ * @throws {OIDCLogoutTokenError} if the token cannot be trusted.
  */
 export async function validateLogoutToken(
   token: string,
@@ -104,13 +102,13 @@ export async function validateLogoutToken(
   const decoded = JWT.decode(token, { complete: true });
 
   if (!decoded || typeof decoded.payload === "string") {
-    throw new LogoutTokenError("Logout token is not a valid JWT");
+    throw OIDCLogoutTokenError("Logout token is not a valid JWT");
   }
 
   // Pinning the algorithm before and during verification rejects both
   // unsigned tokens and tokens signed with a symmetric key of our own.
   if (!Algorithms.some((algorithm) => algorithm === decoded.header.alg)) {
-    throw new LogoutTokenError(
+    throw OIDCLogoutTokenError(
       `Logout token signature algorithm "${decoded.header.alg}" is not supported`
     );
   }
@@ -130,17 +128,17 @@ export async function validateLogoutToken(
       clockTolerance: ClockTolerance,
     });
   } catch (err) {
-    throw new LogoutTokenError(toError(err).message);
+    throw OIDCLogoutTokenError(toError(err).message);
   }
 
   if (typeof payload === "string") {
-    throw new LogoutTokenError("Logout token has no claims");
+    throw OIDCLogoutTokenError("Logout token has no claims");
   }
 
   const result = LogoutTokenSchema.safeParse(payload);
 
   if (!result.success) {
-    throw new LogoutTokenError(
+    throw OIDCLogoutTokenError(
       `Logout token claims are invalid – ${result.error.issues
         .map((issue) => `${issue.path.join(".") || "claims"}: ${issue.message}`)
         .join(", ")}`
@@ -154,12 +152,12 @@ export async function validateLogoutToken(
   // when it names this client as the authorized party.
   // https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
   if (Array.isArray(aud) && aud.length > 1 && azp !== options.audience) {
-    throw new LogoutTokenError(
+    throw OIDCLogoutTokenError(
       "Logout token has more than one audience and does not name this client in the azp claim"
     );
   }
   if (azp !== undefined && azp !== options.audience) {
-    throw new LogoutTokenError(
+    throw OIDCLogoutTokenError(
       "Logout token names another authorized party in the azp claim"
     );
   }
@@ -175,7 +173,7 @@ export async function validateLogoutToken(
   );
 
   if (stored !== "OK") {
-    throw new LogoutTokenError("Logout token has already been used");
+    throw OIDCLogoutTokenError("Logout token has already been used");
   }
 
   return { jti, sub, sid };
@@ -203,17 +201,19 @@ export function backchannelLogout(options: BackchannelLogoutOptions) {
     try {
       claims = await validateLogoutToken(token, options);
     } catch (err) {
-      if (err instanceof LogoutTokenError) {
-        Logger.warn("Rejected an OIDC back-channel logout token", {
-          error: err.message,
-          expectedIssuer: options.issuer,
-          expectedAudience: options.audience,
-          ip: ctx.ip,
-          ...describeToken(token),
-        });
-        return respondWithError(ctx, err.message);
+      if (errToId(err) !== "invalid_logout_token") {
+        throw err;
       }
-      throw err;
+
+      const { message } = toError(err);
+      Logger.warn("Rejected an OIDC back-channel logout token", {
+        error: message,
+        expectedIssuer: options.issuer,
+        expectedAudience: options.audience,
+        ip: ctx.ip,
+        ...describeToken(token),
+      });
+      return respondWithError(ctx, message);
     }
 
     // Outline cannot revoke an individual session, so a logout scoped to a
