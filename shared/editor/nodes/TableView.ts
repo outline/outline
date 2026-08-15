@@ -1,5 +1,8 @@
 import type { Node } from "prosemirror-model";
-import { TableView as ProsemirrorTableView } from "prosemirror-tables";
+import {
+  TableMap,
+  TableView as ProsemirrorTableView,
+} from "prosemirror-tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { TableLayout } from "../types";
 import { HEADER_HEIGHT } from "../../constants";
@@ -81,6 +84,11 @@ export class TableView extends ProsemirrorTableView {
       node.attrs.layout === TableLayout.fullWidth
     );
 
+    this.dom.classList.toggle(
+      EditorStyleHelper.tableStickyColumn,
+      this.hasHeaderColumn(node)
+    );
+
     const shadowLeft = !!(this.scrollable && this.scrollable.scrollLeft > 0);
     const shadowRight = !!(
       this.scrollable &&
@@ -105,6 +113,23 @@ export class TableView extends ProsemirrorTableView {
       this.dom.style.removeProperty("--table-height");
       this.dom.style.removeProperty("--table-width");
     }
+  }
+
+  /**
+   * Whether every cell in the first column of the table is a header cell.
+   *
+   * @param node the table node.
+   * @returns true if the first column is a header column.
+   */
+  private hasHeaderColumn(node: Node) {
+    const map = TableMap.get(node);
+    if (!map.width || !map.height) {
+      return false;
+    }
+
+    return map
+      .cellsInRect({ left: 0, top: 0, right: 1, bottom: map.height })
+      .every((pos) => node.nodeAt(pos)?.type.spec.tableRole === "header_cell");
   }
 
   private scrollable: HTMLDivElement | null = null;
