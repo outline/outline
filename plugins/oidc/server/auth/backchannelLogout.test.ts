@@ -185,6 +185,26 @@ describe("backchannelLogout", () => {
     expect(res.status).toEqual(400);
   });
 
+  it.each([
+    ["null", null],
+    ["an array", []],
+    ["a string", "logout"],
+  ])("should reject a logout event claim that is %s", async (_name, value) => {
+    const res = await postLogoutToken(
+      signLogoutToken({ sub: "subject", events: { [LogoutEvent]: value } })
+    );
+
+    expect(res.status).toEqual(400);
+    expect((await res.json()).error_description).toContain(LogoutEvent);
+  });
+
+  it("should reject an events claim that is not an object", async () => {
+    const res = await postLogoutToken(
+      signLogoutToken({ sub: "subject", events: null })
+    );
+    expect(res.status).toEqual(400);
+  });
+
   it("should reject an id_token presented as a logout token", async () => {
     const res = await postLogoutToken(
       signLogoutToken({ sub: "subject", nonce: "abc" })

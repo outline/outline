@@ -1,4 +1,5 @@
 import JWT, { type Algorithm } from "jsonwebtoken";
+import { z } from "zod";
 import { uniq } from "es-toolkit";
 import { toError } from "@shared/utils/error";
 import { Minute } from "@shared/utils/time";
@@ -64,6 +65,26 @@ const ClockTolerance = Minute.seconds;
 const ReplayWindowSeconds = Minute.seconds * 10;
 
 /**
+ * The claims a logout token must carry. The logout event must hold a JSON
+ * object rather than any other JSON type, and a nonce is refused because it
+ * identifies an ID token, which must not be accepted in place of a logout
+ * token.
+ */
+const LogoutTokenSchema = z
+  .object({
+    jti: z.string(),
+    sub: z.string().optional(),
+    sid: z.string().optional(),
+    nonce: z.undefined().optional(),
+    events: z.object({
+      [LogoutEvent]: z.looseObject({}),
+    }),
+  })
+  .refine((claims) => !!claims.sub || !!claims.sid, {
+    error: "a sub or sid claim is required",
+  });
+
+/**
  * Validates a back-channel logout token against the OpenID Connect
  * specification and records it so that it cannot be presented a second time.
  *
@@ -109,31 +130,17 @@ export async function validateLogoutToken(
     throw new LogoutTokenError("Logout token has no claims");
   }
 
-  const events = payload.events;
-  if (
-    !events ||
-    typeof events !== "object" ||
-    typeof events[LogoutEvent] !== "object"
-  ) {
+  const result = LogoutTokenSchema.safeParse(payload);
+
+  if (!result.success) {
     throw new LogoutTokenError(
-      "Logout token is missing the back-channel logout event claim"
+      `Logout token claims are invalid – ${result.error.issues
+        .map((issue) => `${issue.path.join(".") || "claims"}: ${issue.message}`)
+        .join(", ")}`
     );
   }
 
-  // A nonce identifies an ID token. Its presence means the provider, or an
-  // attacker, supplied a token that was issued for a different purpose.
-  if ("nonce" in payload) {
-    throw new LogoutTokenError("Logout token must not contain a nonce claim");
-  }
-
-  const { jti, sub, sid } = payload;
-
-  if (typeof jti !== "string") {
-    throw new LogoutTokenError("Logout token is missing a jti claim");
-  }
-  if (typeof sub !== "string" && typeof sid !== "string") {
-    throw new LogoutTokenError("Logout token is missing a sub or sid claim");
-  }
+  const { jti, sub, sid } = result.data;
 
   // Recorded only once the token is otherwise trusted, so that an unverified
   // request cannot fill the store.
