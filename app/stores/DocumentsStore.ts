@@ -11,7 +11,6 @@ import type { Filter } from "@shared/helpers/FilterHelper";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
-import type { JSONObject } from "@shared/types";
 import type RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Document from "~/models/Document";
@@ -424,7 +423,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   searchTitles = async (options?: SearchParams): Promise<SearchResult[]> => {
-    const compactedOptions = omitBy(options, (o) => !o) as JSONObject;
+    const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.post("/documents.search_titles", {
       ...compactedOptions,
     });
@@ -455,7 +454,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   search = async (options: SearchParams): Promise<SearchResult[]> => {
-    const compactedOptions = omitBy(options, (o) => !o) as JSONObject;
+    const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.post("/documents.search", {
       ...compactedOptions,
     });

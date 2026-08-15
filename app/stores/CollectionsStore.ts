@@ -5,7 +5,6 @@ import type { Filter } from "@shared/helpers/FilterHelper";
 import {
   CollectionPermission,
   type FileOperationFormat,
-  type JSONObject,
   SubscriptionType,
 } from "@shared/types";
 import Collection from "~/models/Collection";
@@ -172,10 +171,7 @@ export default class CollectionsStore extends Store<Collection> {
     this.isFetching = true;
 
     try {
-      const res = await client.post(
-        `/collections.${request}`,
-        options as JSONObject | undefined
-      );
+      const res = await client.post(`/collections.${request}`, options);
       invariant(res?.data, "Collection list not available");
       return runInAction("CollectionsStore#fetchNamedPage", () => {
         const collections = res.data.map(this.add);

@@ -25,26 +25,28 @@ export type ComparisonOperator = z.infer<typeof ComparisonOperator>;
 export const LogicalOperator = z.enum(["AND", "OR"]);
 export type LogicalOperator = z.infer<typeof LogicalOperator>;
 
+// Filters travel over the wire as JSON, so values are limited to JSON types.
 export const FilterValue = z.union([
   z.string(),
   z.number(),
   z.boolean(),
-  z.date(),
   z.array(z.string()),
   z.array(z.number()),
 ]);
 export type FilterValue = z.infer<typeof FilterValue>;
 
-export interface FilterCondition<F extends string = string> {
+// Declared as type aliases rather than interfaces so that TypeScript infers an
+// index signature and a filter is assignable to a JSON request body.
+export type FilterCondition<F extends string = string> = {
   field: F;
   operator: ComparisonOperator;
   value?: FilterValue;
-}
+};
 
-export interface FilterGroup<F extends string = string> {
+export type FilterGroup<F extends string = string> = {
   operator: LogicalOperator;
   filters: Array<FilterCondition<F> | FilterGroup<F>>;
-}
+};
 
 export type Filter<F extends string = string> =
   | FilterCondition<F>
