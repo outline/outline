@@ -368,7 +368,33 @@ export function tableHasRowspan(state: EditorState): boolean {
   return false;
 }
 
+/**
+ * Get the indices between two bounds, in ascending order and inclusive of both.
+ */
+function indexRange(from: number, to: number): number[] {
+  const indices: number[] = [];
+  for (let index = Math.min(from, to); index <= Math.max(from, to); index++) {
+    indices.push(index);
+  }
+
+  return indices;
+}
+
+/**
+ * Get the indices of all currently selected columns.
+ *
+ * @param state The editor state
+ * @returns Array of selected column indices
+ */
 export function getAllSelectedColumns(state: EditorState): number[] {
+  const { selection } = state;
+
+  // A cell that spans columns widens the rect beyond the selected columns, so
+  // take the range from the selection itself where it is known.
+  if (selection instanceof ColumnSelection && selection.isColSelection()) {
+    return indexRange(selection.anchorIndex, selection.headIndex);
+  }
+
   const rect = selectedRect(state);
 
   const selectedColumns: number[] = [];
@@ -386,6 +412,14 @@ export function getAllSelectedColumns(state: EditorState): number[] {
  * @returns Array of selected row indices
  */
 export function getAllSelectedRows(state: EditorState): number[] {
+  const { selection } = state;
+
+  // A cell that spans rows deepens the rect beyond the selected rows, so take
+  // the range from the selection itself where it is known.
+  if (selection instanceof RowSelection && selection.isRowSelection()) {
+    return indexRange(selection.anchorIndex, selection.headIndex);
+  }
+
   const rect = selectedRect(state);
 
   const selectedRows: number[] = [];
