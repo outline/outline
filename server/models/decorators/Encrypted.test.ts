@@ -67,10 +67,8 @@ describe("Encrypted", () => {
     try {
       env.SECRET_KEY =
         "a593e7f567d01031d153b5af6d9a25766b95926cff91c6be3438c7f7ac37230f";
-      // AES-CBC is unauthenticated, so a wrong key usually surfaces as a
-      // padding ("bad decrypt") error, but occasionally the garbage plaintext
-      // has valid padding and decrypts to a non-matching value. Accept either
-      // outcome; both prove the original value is not recovered.
+      // CBC is unauthenticated, so a wrong key only throws when the resulting
+      // plaintext happens to have invalid padding.
       try {
         expect(decrypt(encrypted)).not.toEqual(value);
       } catch (err) {
