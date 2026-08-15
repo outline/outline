@@ -73,6 +73,10 @@ const ReplayWindowSeconds = Minute.seconds * 10;
 const LogoutTokenSchema = z
   .object({
     jti: z.string(),
+    iat: z.number(),
+    exp: z.number(),
+    aud: z.union([z.string(), z.array(z.string())]),
+    azp: z.string().optional(),
     sub: z.string().optional(),
     sid: z.string().optional(),
     nonce: z.undefined().optional(),
@@ -111,10 +115,13 @@ export async function validateLogoutToken(
     );
   }
 
-  const key = await options.jwks.getSigningKey(decoded.header.kid);
-
   let payload;
   try {
+    // Resolving the key is part of validation – an unknown key identifier, or
+    // a key set that cannot be reached, must be reported as a rejected token
+    // rather than as a fault of our own.
+    const key = await options.jwks.getSigningKey(decoded.header.kid);
+
     payload = JWT.verify(token, key, {
       algorithms: Algorithms,
       audience: options.audience,
@@ -140,7 +147,22 @@ export async function validateLogoutToken(
     );
   }
 
-  const { jti, sub, sid } = result.data;
+  const { jti, sub, sid, aud, azp } = result.data;
+
+  // Verification proved this client is one of the audiences. Any further
+  // audience belongs to a party we do not trust, so the token is only accepted
+  // when it names this client as the authorized party.
+  // https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
+  if (Array.isArray(aud) && aud.length > 1 && azp !== options.audience) {
+    throw new LogoutTokenError(
+      "Logout token has more than one audience and does not name this client in the azp claim"
+    );
+  }
+  if (azp !== undefined && azp !== options.audience) {
+    throw new LogoutTokenError(
+      "Logout token names another authorized party in the azp claim"
+    );
+  }
 
   // Recorded only once the token is otherwise trusted, so that an unverified
   // request cannot fill the store.
@@ -203,13 +225,37 @@ export function backchannelLogout(options: BackchannelLogoutOptions) {
       );
     }
 
-    await revokeSessions(claims.sub);
+    try {
+      await revokeSessions(claims.sub);
+    } catch (err) {
+      // The logout did not complete, so give up the replay record. Holding it
+      // would refuse the provider's retry of the very same token.
+      await releaseLogoutToken(claims.jti);
+      throw err;
+    }
 
     // The specification requires 200 on success, providers may treat any other
     // status as a failed logout.
     ctx.status = 200;
     ctx.body = "";
   };
+}
+
+/**
+ * Discards the replay record of a token, so that a provider can present it
+ * again after a logout that could not be completed. Best-effort – never throws.
+ */
+async function releaseLogoutToken(tokenId: string) {
+  try {
+    await Redis.defaultClient.del(
+      RedisPrefixHelper.getLogoutTokenReplayKey(config.id, tokenId)
+    );
+  } catch (err) {
+    Logger.warn("Failed to release an OIDC logout token record", {
+      tokenId,
+      error: toError(err).message,
+    });
+  }
 }
 
 /**
