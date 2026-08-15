@@ -222,10 +222,10 @@ const collectionListFilter = createFilterSchema({
   updatedAt: "date",
   archivedAt: "date",
   createdById: "uuid",
-  // `permission` is an enum column, so pattern matching is not offered.
   permission: {
     kind: "string",
     operators: ["eq", "neq", "in", "notIn", "isNull", "isNotNull"],
+    values: Object.values(CollectionPermission),
   },
 } as const);
 

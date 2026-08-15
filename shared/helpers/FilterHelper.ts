@@ -57,11 +57,16 @@ export type FieldKind = "uuid" | "string" | "number" | "boolean" | "date";
 
 /**
  * A filterable field definition: either just its column type, or an object
- * that additionally restricts which operators the field supports.
+ * that additionally restricts which operators the field supports, and which
+ * values it accepts.
  */
 export type FieldSpec =
   | FieldKind
-  | { kind: FieldKind; operators: readonly ComparisonOperator[] };
+  | {
+      kind: FieldKind;
+      operators?: readonly ComparisonOperator[];
+      values?: readonly string[];
+    };
 
 const uuidSchema = z.uuid();
 
@@ -135,11 +140,11 @@ function countNodes(filter: Filter): number {
  * Each field maps to a column type ({@link FieldKind}) so that values are
  * validated against the field at the input layer, returning a clean 400 rather
  * than letting malformed input (e.g. a non-uuid id, an invalid date) reach the
- * database. A field may also restrict its supported operators
- * ({@link FieldSpec}) so that combinations the query layer cannot execute are
- * rejected here as well.
+ * database. A field may also restrict its supported operators, and the values
+ * it accepts ({@link FieldSpec}), so that combinations the query layer cannot
+ * execute are rejected here as well.
  *
- * @param fields map of allowed field name to its column type, optionally with a restricted operator set.
+ * @param fields map of allowed field name to its column type, optionally with a restricted operator or value set.
  * @returns FilterSchema for a single expression, and FilterListSchema for the wire-level `filters` array.
  */
 export function createFilterSchema<S extends Record<string, FieldSpec>>(
@@ -164,6 +169,7 @@ export function createFilterSchema<S extends Record<string, FieldSpec>>(
       const kind = typeof spec === "string" ? spec : spec.kind;
       const allowedOperators =
         typeof spec === "string" ? undefined : spec.operators;
+      const allowedValues = typeof spec === "string" ? undefined : spec.values;
 
       if (allowedOperators && !allowedOperators.includes(operator)) {
         ctx.addIssue({
@@ -226,6 +232,17 @@ export function createFilterSchema<S extends Record<string, FieldSpec>>(
             message: `value must contain only valid ${kind} entries for field '${field}'`,
             path: ["value"],
           });
+          return;
+        }
+        if (
+          allowedValues &&
+          value.some((entry) => !allowedValues.includes(String(entry)))
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            message: `value must contain only ${allowedValues.join(", ")} for field '${field}'`,
+            path: ["value"],
+          });
         }
         return;
       }
@@ -249,8 +266,9 @@ export function createFilterSchema<S extends Record<string, FieldSpec>>(
           return;
         }
         // Pattern matching (iLike/like) only applies to text columns; running
-        // it against a uuid/date/etc. column would error at the database.
-        if (kind !== "string") {
+        // it against a uuid/date/etc. column would error at the database. A
+        // field with a fixed value set is matched exactly for the same reason.
+        if (kind !== "string" || allowedValues) {
           ctx.addIssue({
             code: "custom",
             message: `operator '${operator}' is only valid for text fields, not field '${field}'`,
@@ -264,6 +282,15 @@ export function createFilterSchema<S extends Record<string, FieldSpec>>(
         ctx.addIssue({
           code: "custom",
           message: `value must be a valid ${kind} for field '${field}'`,
+          path: ["value"],
+        });
+        return;
+      }
+
+      if (allowedValues && !allowedValues.includes(String(value))) {
+        ctx.addIssue({
+          code: "custom",
+          message: `value must be one of ${allowedValues.join(", ")} for field '${field}'`,
           path: ["value"],
         });
       }

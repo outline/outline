@@ -490,6 +490,16 @@ describe("#collections.list", () => {
     expect(body.data[0].id).toEqual(collection.id);
   });
 
+  it("should not allow filtering on an unknown permission", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/collections.list", user, {
+      body: {
+        filters: [{ field: "permission", operator: "eq", value: "manage" }],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should not allow filters combined with deprecated parameters", async () => {
     const user = await buildUser();
 
