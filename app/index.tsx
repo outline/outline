@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-unresolved
 import "vite/modulepreload-polyfill";
+// Keep ahead of the other imports so polyfills apply before they evaluate.
+import "~/utils/polyfills";
 import { LazyMotion, domMax } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
