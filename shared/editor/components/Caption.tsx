@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "../../styles";
+import { getDataTransferFiles } from "../../utils/files";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { useTranslation } from "react-i18next";
 
@@ -32,6 +33,34 @@ function Caption({
   ...rest
 }: Props) {
   const { t } = useTranslation();
+  const ref = React.useRef<HTMLParagraphElement>(null);
+
+  // The caption is not part of the document, so drags within it must not reach
+  // the editor, which would act on the document selection instead. Native
+  // listeners are used because they run before the editor's, React's do not.
+  React.useEffect(() => {
+    const element = ref.current;
+    if (!element) {
+      return;
+    }
+
+    const handleDrag = (event: DragEvent) => {
+      // File drops are left alone so that they still upload.
+      if (getDataTransferFiles(event).length) {
+        return;
+      }
+      event.stopPropagation();
+    };
+
+    element.addEventListener("dragstart", handleDrag);
+    element.addEventListener("drop", handleDrag);
+
+    return () => {
+      element.removeEventListener("dragstart", handleDrag);
+      element.removeEventListener("drop", handleDrag);
+    };
+  }, []);
+
   const handlePaste = (event: React.ClipboardEvent<HTMLParagraphElement>) => {
     event.preventDefault();
     const text = event.clipboardData.getData("text/plain");
@@ -60,6 +89,7 @@ function Caption({
 
   return (
     <Content
+      ref={ref}
       $width={width}
       $isSelected={isSelected}
       onMouseDown={handleMouseDown}
