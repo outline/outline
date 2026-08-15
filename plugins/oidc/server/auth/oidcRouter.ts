@@ -7,6 +7,7 @@ import { toError } from "@shared/utils/error";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import { isBase64Url } from "@shared/utils/urls";
+import { Minute } from "@shared/utils/time";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import {
   OIDCMalformedUserInfoError,
@@ -14,6 +15,7 @@ import {
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import passportMiddleware from "@server/middlewares/passport";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import type { User } from "@server/models";
 import { AuthenticationProvider } from "@server/models";
 import type { AuthenticationResult } from "@server/types";
@@ -29,14 +31,29 @@ import {
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
+import { JWKSCache } from "../JWKSCache";
+import { backchannelLogout } from "./backchannelLogout";
 import { OIDCStrategy } from "./OIDCStrategy";
 import { createContext } from "@server/context";
 
+/**
+ * The provider endpoints the OIDC routes are built from, either configured
+ * manually or discovered from the provider's well-known configuration.
+ */
 export interface OIDCEndpoints {
+  /** The endpoint the user is sent to in order to authenticate. */
   authorizationURL: string;
+  /** The endpoint an authorization code is exchanged for tokens at. */
   tokenURL: string;
+  /** The endpoint the authenticated user's profile is loaded from. */
   userInfoURL: string;
+  /** The endpoint that ends the provider session, if the provider has one. */
   logoutURL?: string;
+  /** The endpoint the provider publishes its public signing keys at. */
+  jwksURI?: string;
+  /** The identifier the provider names itself with in the tokens it signs. */
+  issuer?: string;
+  /** Whether to protect the authorization request with PKCE. */
   pkce?: boolean;
 }
 
@@ -291,4 +308,21 @@ export function createOIDCRouter(
       return ctx.redirect("/");
     }
   });
+
+  // Accepts a logout initiated by the provider and signs the identified user
+  // out of Outline. The endpoint is unauthenticated – the logout token itself
+  // is the credential – so it is only mounted when discovery has supplied both
+  // the key set that verifies the token signature and the expected issuer.
+  // https://openid.net/specs/openid-connect-backchannel-1_0.html
+  if (endpoints.jwksURI && endpoints.issuer) {
+    router.post(
+      `${config.id}.backchannel_logout`,
+      rateLimiter({ duration: Minute.seconds, requests: 200 }),
+      backchannelLogout({
+        jwks: new JWKSCache(endpoints.jwksURI),
+        audience: env.OIDC_CLIENT_ID!,
+        issuer: endpoints.issuer,
+      })
+    );
+  }
 }
