@@ -116,21 +116,33 @@ export class TableView extends ProsemirrorTableView {
   }
 
   /**
-   * Whether every cell in the first column of the table is a header cell.
+   * Whether every cell in the first column of the table is a header cell. Nodes
+   * are immutable, so the answer is cached until the node itself changes.
    *
    * @param node the table node.
    * @returns true if the first column is a header column.
    */
   private hasHeaderColumn(node: Node) {
-    const map = TableMap.get(node);
-    if (!map.width || !map.height) {
-      return false;
+    if (node !== this.headerColumnNode) {
+      const map = TableMap.get(node);
+
+      this.headerColumnNode = node;
+      this.headerColumn =
+        map.width > 0 &&
+        map.height > 0 &&
+        map
+          .cellsInRect({ left: 0, top: 0, right: 1, bottom: map.height })
+          .every(
+            (pos) => node.nodeAt(pos)?.type.spec.tableRole === "header_cell"
+          );
     }
 
-    return map
-      .cellsInRect({ left: 0, top: 0, right: 1, bottom: map.height })
-      .every((pos) => node.nodeAt(pos)?.type.spec.tableRole === "header_cell");
+    return this.headerColumn;
   }
+
+  private headerColumnNode: Node | null = null;
+
+  private headerColumn = false;
 
   private scrollable: HTMLDivElement | null = null;
 
