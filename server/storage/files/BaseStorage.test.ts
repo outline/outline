@@ -1,3 +1,4 @@
+import { Hour, Minute, Week } from "@shared/utils/time";
 import BaseStorage from "./BaseStorage";
 import env from "@server/env";
 
@@ -63,9 +64,41 @@ class MockStorage extends BaseStorage {
   async moveFile() {}
 
   async deleteFile() {}
+
+  static signingDateFor(expiresIn: number) {
+    return MockStorage.getSigningDate(expiresIn);
+  }
 }
 
 describe("BaseStorage", () => {
+  describe("getSigningDate", () => {
+    it("should return the same date for calls within a window", () => {
+      const first = MockStorage.signingDateFor(Hour.seconds);
+      const second = MockStorage.signingDateFor(Hour.seconds);
+      expect(second.getTime()).toBe(first.getTime());
+    });
+
+    it("should align to a window no longer than half the lifetime", () => {
+      const expiresIn = 10 * Minute.seconds;
+      const signingDate = MockStorage.signingDateFor(expiresIn);
+      const elapsed = Date.now() - signingDate.getTime();
+      expect(elapsed).toBeGreaterThanOrEqual(0);
+      expect(elapsed).toBeLessThanOrEqual((expiresIn / 2) * 1000);
+    });
+
+    it("should cap the window so long lifetimes stay predictable", () => {
+      const signingDate = MockStorage.signingDateFor(Week.seconds);
+      const elapsed = Date.now() - signingDate.getTime();
+      expect(elapsed).toBeLessThanOrEqual(BaseStorage.maxSigningWindow * 1000);
+    });
+
+    it("should not align a lifetime too short to divide", () => {
+      const before = Date.now();
+      const signingDate = MockStorage.signingDateFor(1);
+      expect(signingDate.getTime()).toBeGreaterThanOrEqual(before);
+    });
+  });
+
   describe("getPresignedPut", () => {
     it("should return undefined from default implementation", async () => {
       const storage = new MockStorage();
