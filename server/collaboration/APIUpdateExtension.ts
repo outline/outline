@@ -7,7 +7,6 @@ import type {
 } from "@hocuspocus/server";
 import type { Document as HocuspocusDocument } from "@hocuspocus/server";
 import * as Y from "yjs";
-import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
@@ -51,19 +50,7 @@ export class APIUpdateExtension implements Extension {
     this.configured = true;
 
     try {
-      // Create a dedicated subscriber for API update notifications
-      this.subscriber = new RedisAdapter(
-        env.REDIS_COLLABORATION_URL || env.REDIS_URL,
-        {
-          connectionNameSuffix: "collab-api-updates",
-          maxRetriesPerRequest: null,
-        }
-      );
-
-      // Handle Redis connection errors
-      this.subscriber.on("error", (err) => {
-        Logger.error("Redis subscriber error in APIUpdateExtension", err);
-      });
+      this.subscriber = RedisAdapter.collaborationSubscriber;
 
       // Subscribe to the API update channel pattern
       await this.subscriber.psubscribe(`${CHANNEL_PREFIX}:*`, (err) => {
@@ -99,8 +86,8 @@ export class APIUpdateExtension implements Extension {
 
   async onDestroy(_data: onDestroyPayload): Promise<void> {
     if (this.subscriber) {
+      this.subscriber.off("pmessage", this.handleMessage);
       await this.subscriber.punsubscribe(`${CHANNEL_PREFIX}:*`);
-      await this.subscriber.quit();
       this.subscriber = null;
     }
     this.documents.clear();
