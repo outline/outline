@@ -263,6 +263,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
       includeTitle: true,
       signedUrls: 86400, // 24 hours
       teamId: team?.id,
+      commonMark: true,
     });
 
     // Append child documents list if the share includes them
