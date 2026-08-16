@@ -198,13 +198,19 @@ export default class AuthenticationExtension implements Extension {
       affected = affected.filter((item) => documentIds.has(item.documentId));
     }
 
-    for (const { documentId, userId, connection } of affected) {
-      Logger.info(
-        "multiplayer",
-        `Closing connection to "${documentId}" to authorize it again`,
-        { userId }
-      );
+    if (!affected.length) {
+      return;
+    }
 
+    // Each closed connection is logged again by LoggerExtension, so record the
+    // reason once rather than per connection.
+    Logger.info(
+      "multiplayer",
+      `Closing ${affected.length} connections to authorize them again`,
+      scope
+    );
+
+    for (const { connection } of affected) {
       connection.close(AuthorizationChanged);
     }
   }
