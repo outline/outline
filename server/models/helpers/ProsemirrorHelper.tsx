@@ -872,9 +872,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
   /**
    * Flushes React passive effects and the follow-on renders they trigger by
-   * yielding a few macrotask turns. Turn 1 flushes passive effects, turn 2
-   * fires Frame's own `setTimeout(0)` whose synchronous setState commits its
-   * iframe, and turn 3 absorbs any follow-on effects.
+   * yielding a couple of macrotask turns. Turn 1 flushes passive effects, and
+   * turn 2 fires Frame's own `setTimeout(0)` whose synchronous setState commits
+   * its iframe. Each turn costs roughly a millisecond of otherwise idle time on
+   * every export, so this yields no more turns than the components need.
    *
    * Errors thrown inside passive effects (as opposed to initial render) are
    * not caught by the node view's try/catch fallback — current components'
@@ -883,7 +884,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * @param turns The number of macrotask turns to yield.
    * @returns A promise that resolves once the turns have elapsed.
    */
-  private static async flushReactEffects(turns = 3): Promise<void> {
+  private static async flushReactEffects(turns = 2): Promise<void> {
     for (let i = 0; i < turns; i++) {
       // node:timers/promises is not replaced by test environments faking the
       // global timers, which would otherwise deadlock the render lock.
