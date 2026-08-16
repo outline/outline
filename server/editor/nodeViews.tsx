@@ -12,14 +12,10 @@ import { extensionManager } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { ComponentView } from "./ComponentView";
 
-// Nodes where the component depends on browser behavior, such as image load
-// events, and the toDOM spec is already optimized for static export.
-const nodesPreferringToDOM = new Set(["image", "simple_image"]);
-
 /**
  * Renders a node with its plain `toDOM` spec – today's server export output –
- * as a static NodeView. Used as the fallback when a node has no React component
- * or its component cannot render server-side (e.g. Mention).
+ * as a static NodeView. Used for nodes that prefer toDOM, and as the fallback
+ * when a component unexpectedly fails to render server-side.
  */
 function renderToDOMFallback(node: ProsemirrorNode): NodeView {
   const toDOM = node.type.spec.toDOM;
@@ -53,9 +49,7 @@ export function createNodeViews(
   return Object.fromEntries(
     extensionManager.extensions
       .filter((extension: ReactNode) => extension.component)
-      .filter(
-        (extension: ReactNode) => !nodesPreferringToDOM.has(extension.name)
-      )
+      .filter((extension: ReactNode) => extension.allowComponentInStaticHTML)
       .map((extension: ReactNode) => [
         extension.name,
         (

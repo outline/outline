@@ -241,7 +241,7 @@ describe("DocumentHelper", () => {
       expect(result).toContain("youtube.com/embed/dQw4w9WgXcQ");
     });
 
-    it("should fall back to toDOM for mentions", async () => {
+    it("should render mentions with toDOM", async () => {
       const document = await buildDocument({
         text: `@[Alan Kay](mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/34095ac1-c808-45c0-8c6e-6c554497de64)`,
       });
@@ -251,10 +251,11 @@ describe("DocumentHelper", () => {
         includeStyles: false,
       });
 
-      // Mention's component depends on stores/router and cannot render
-      // server-side, so it degrades to the toDOM markup without throwing.
+      // Mention's component depends on stores/router, so it opts out of
+      // component rendering and emits its toDOM markup directly.
       expect(result).toContain('data-type="user"');
       expect(result).toContain("Alan Kay");
+      expect(result).not.toContain("component-mention");
     });
 
     it("should include component styles unless styles are disabled", async () => {

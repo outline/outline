@@ -70,6 +70,11 @@ export default class Mention extends Node {
     return "mention";
   }
 
+  /** The component requires stores and a router, neither of which exist outside the app. */
+  get allowComponentInStaticHTML() {
+    return false;
+  }
+
   get schema(): NodeSpec {
     const toPlainText = (node: ProsemirrorNode) => {
       if (node.attrs.type === MentionType.User) {
