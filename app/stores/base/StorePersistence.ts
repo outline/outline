@@ -1,6 +1,5 @@
 import { debounce } from "es-toolkit/compat";
 import type Model from "~/models/base/Model";
-import type { PartialExcept } from "~/types";
 import Logger from "~/utils/Logger";
 import type Store from "./Store";
 
@@ -12,11 +11,6 @@ const OBJECT_STORE_NAME = "items";
 
 /** How long to wait after the last change before writing to IndexedDB. */
 const FLUSH_DELAY_MS = 1000;
-
-interface PersistedRecord<T extends Model> {
-  id: string;
-  data: PartialExcept<T, "id">;
-}
 
 /**
  * Persists a store's models to IndexedDB so that previously loaded data
@@ -56,7 +50,7 @@ export default class StorePersistence<T extends Model> {
   public hydrate = async (): Promise<void> => {
     try {
       const database = await this.open();
-      const records = await promisifyRequest<PersistedRecord<T>[]>(
+      const records = await promisifyRequest<Record<string, unknown>[]>(
         database
           .transaction(OBJECT_STORE_NAME, "readonly")
           .objectStore(OBJECT_STORE_NAME)
@@ -65,9 +59,11 @@ export default class StorePersistence<T extends Model> {
 
       this.hydrating = true;
       for (const record of records) {
-        if (!this.store.get(record.id)) {
-          this.store.add(record.data);
+        const id = record?.id;
+        if (typeof id !== "string" || this.store.get(id)) {
+          continue;
         }
+        this.store.add(this.store.model.fromPersisted<T>(record));
       }
     } catch (err) {
       this.disabled = true;
@@ -117,7 +113,7 @@ export default class StorePersistence<T extends Model> {
       for (const id of ids) {
         const model = this.store.get(id);
         if (model) {
-          objectStore.put({ id, data: serialize(model) });
+          objectStore.put(model.toPersisted());
         } else {
           objectStore.delete(id);
         }
@@ -189,17 +185,6 @@ export default class StorePersistence<T extends Model> {
   private disabled = false;
 
   private hydrating = false;
-}
-
-/**
- * Serializes a model to a plain object safe for structured cloning, dropping
- * functions and other non-serializable properties.
- *
- * @param model the model to serialize.
- * @returns a plain object representation of the model.
- */
-function serialize<T extends Model>(model: T): PartialExcept<T, "id"> {
-  return JSON.parse(JSON.stringify(model));
 }
 
 /**
