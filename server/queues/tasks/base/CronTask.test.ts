@@ -41,7 +41,7 @@ describe("CronTask", () => {
 
     it("should return different delays for different task names", () => {
       const delayA = CronTask.getStaggerDelay(
-        "CleanupDeletedDocumentsTask",
+        "CleanupPermanentlyDeletedDocumentsTask",
         TaskInterval.Hour
       );
       const delayB = CronTask.getStaggerDelay(
@@ -53,7 +53,7 @@ describe("CronTask", () => {
 
     it("should stay within the hourly stagger window (10 minutes)", () => {
       const names = [
-        "CleanupDeletedDocumentsTask",
+        "CleanupPermanentlyDeletedDocumentsTask",
         "CleanupOldEventsTask",
         "CleanupOldNotificationsTask",
         "CleanupDeletedTeamsTask",
@@ -82,7 +82,7 @@ describe("CronTask", () => {
 
     it("should distribute delays across the window for real task names", () => {
       const names = [
-        "CleanupDeletedDocumentsTask",
+        "CleanupPermanentlyDeletedDocumentsTask",
         "CleanupOldEventsTask",
         "CleanupOldNotificationsTask",
         "CleanupDeletedTeamsTask",
