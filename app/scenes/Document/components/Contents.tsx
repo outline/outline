@@ -23,7 +23,8 @@ function Contents() {
   const scrollPosition = useWindowScrollPosition({
     throttle: 100,
   });
-  const { headings } = useDocumentContext();
+  const documentContext = useDocumentContext();
+  const { headings } = documentContext;
   const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
 
   // A heading chosen from the contents stays highlighted until the reader
@@ -52,8 +53,12 @@ function Contents() {
       event.preventDefault();
       setSelectedSlug(id);
       history.push(patchLocation(history.location, { hash: `#${id}` }));
+
+      // Scroll from here rather than relying on the hash changing, so that
+      // clicking the same heading again still moves the reader to it.
+      void documentContext.editor?.scrollToAnchor(`#${id}`);
     },
-    [history]
+    [history, documentContext]
   );
 
   useEffect(() => {
