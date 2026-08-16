@@ -94,20 +94,15 @@ export function userTools(server: McpServer, scopes: string[]) {
               [Op.and]: [],
             };
 
-            // Suspended users are never visible to non-admins.
-            if (!actor.isAdmin) {
-              where[Op.and].push({ suspendedAt: { [Op.is]: null } });
-            }
-
             const userFilter = legacyUserParamsToFilter({
               role,
               status: filter,
               isAdmin: actor.isAdmin,
             });
 
-            // Exclude suspended users unless a specific status was requested,
-            // matching users.list.
-            if (!filter) {
+            // Suspended users are only ever visible to admins, and then only
+            // when a specific status was requested. Matches users.list.
+            if (!(actor.isAdmin && filter)) {
               where[Op.and].push({ suspendedAt: { [Op.is]: null } });
             }
 

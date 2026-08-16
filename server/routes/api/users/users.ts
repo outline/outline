@@ -64,11 +64,6 @@ router.post(
       [Op.and]: [],
     };
 
-    // Suspended users are never visible to non-admins, whatever was requested.
-    if (!actor.isAdmin) {
-      where[Op.and].push({ suspendedAt: { [Op.is]: null } });
-    }
-
     // The schema rejects callers that combine `filters` with the deprecated
     // top-level params, so exactly one of these is set.
     const filter =
@@ -81,11 +76,13 @@ router.post(
         isAdmin: actor.isAdmin,
       });
 
-    // Exclude suspended users by default. Suppressed when the caller targets a
-    // specific status, or when their filter already references suspendedAt.
-    const filterIncludesSuspendedAt =
-      filter !== undefined && hasFieldInFilter(filter, "suspendedAt");
-    if (!statusFilter && !filterIncludesSuspendedAt) {
+    // Suspended users are only ever visible to admins, and then only when the
+    // request targets a specific status or references suspendedAt itself.
+    const includeSuspended =
+      actor.isAdmin &&
+      (!!statusFilter ||
+        (filter !== undefined && hasFieldInFilter(filter, "suspendedAt")));
+    if (!includeSuspended) {
       where[Op.and].push({ suspendedAt: { [Op.is]: null } });
     }
 
