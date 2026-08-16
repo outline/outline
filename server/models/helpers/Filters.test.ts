@@ -10,8 +10,10 @@ import {
   expandDocumentIdInFilter,
   extractTopLevelEqValue,
   hasFieldInFilter,
+  legacyGroupParamsToFilter,
   legacyParamsToFilter,
   mapFilterFields,
+  replaceFieldInFilter,
 } from "./Filters";
 
 describe("Filters", () => {
@@ -689,6 +691,124 @@ describe("Filters", () => {
           { field: "archivedAt", operator: "isNotNull" },
         ],
       });
+    });
+  });
+
+  describe("legacyGroupParamsToFilter", () => {
+    it("returns undefined when no legacy params are set", () => {
+      expect(legacyGroupParamsToFilter({})).toBeUndefined();
+    });
+
+    it("returns a single leaf when only one legacy param is set", () => {
+      expect(legacyGroupParamsToFilter({ name: "Engineering" })).toEqual({
+        field: "name",
+        operator: "eq",
+        value: "Engineering",
+      });
+    });
+
+    it("converts userId to an eq leaf", () => {
+      expect(legacyGroupParamsToFilter({ userId: "u1" })).toEqual({
+        field: "userId",
+        operator: "eq",
+        value: "u1",
+      });
+    });
+
+    it("converts source to an eq leaf", () => {
+      expect(legacyGroupParamsToFilter({ source: "manual" })).toEqual({
+        field: "source",
+        operator: "eq",
+        value: "manual",
+      });
+    });
+
+    it("ANDs every legacy leaf when multiple are supplied", () => {
+      expect(
+        legacyGroupParamsToFilter({
+          userId: "u1",
+          externalId: "ext-1",
+          name: "Engineering",
+          source: "slack",
+        })
+      ).toEqual({
+        operator: "AND",
+        filters: [
+          { field: "userId", operator: "eq", value: "u1" },
+          { field: "externalId", operator: "eq", value: "ext-1" },
+          { field: "name", operator: "eq", value: "Engineering" },
+          { field: "source", operator: "eq", value: "slack" },
+        ],
+      });
+    });
+  });
+
+  describe("replaceFieldInFilter", () => {
+    it("replaces a top-level eq leaf", () => {
+      expect(
+        replaceFieldInFilter(
+          { field: "userId", operator: "eq", value: "u1" },
+          "userId",
+          (values) => ({ field: "id", operator: "in", value: values })
+        )
+      ).toEqual({ field: "id", operator: "in", value: ["u1"] });
+    });
+
+    it("passes every value of an in leaf to the replacement", () => {
+      expect(
+        replaceFieldInFilter(
+          { field: "userId", operator: "in", value: ["u1", "u2"] },
+          "userId",
+          (values) => ({ field: "id", operator: "in", value: values })
+        )
+      ).toEqual({ field: "id", operator: "in", value: ["u1", "u2"] });
+    });
+
+    it("replaces leaves nested inside groups, preserving structure", () => {
+      expect(
+        replaceFieldInFilter(
+          {
+            operator: "OR",
+            filters: [
+              { field: "name", operator: "eq", value: "x" },
+              { field: "userId", operator: "eq", value: "u1" },
+            ],
+          },
+          "userId",
+          () => ({ field: "id", operator: "in", value: ["g1"] })
+        )
+      ).toEqual({
+        operator: "OR",
+        filters: [
+          { field: "name", operator: "eq", value: "x" },
+          { field: "id", operator: "in", value: ["g1"] },
+        ],
+      });
+    });
+
+    it("leaves other fields untouched", () => {
+      const filter = {
+        field: "name" as const,
+        operator: "eq" as const,
+        value: "x",
+      };
+      expect(replaceFieldInFilter(filter, "userId", () => filter)).toEqual(
+        filter
+      );
+    });
+
+    it("leaves the leaf untouched when no values can be resolved", () => {
+      const filter = {
+        field: "userId" as const,
+        operator: "isNull" as const,
+      };
+      expect(
+        replaceFieldInFilter(filter, "userId", () => ({
+          field: "id",
+          operator: "in",
+          value: ["g1"],
+        }))
+      ).toEqual(filter);
     });
   });
 

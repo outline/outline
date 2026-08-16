@@ -3,12 +3,10 @@ import { filter } from "es-toolkit/compat";
 import { action, runInAction, computed } from "mobx";
 import naturalSort from "@shared/utils/naturalSort";
 import Group from "~/models/Group";
-import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
+import type { FetchPageParams } from "./base/Store";
 import Store from "./base/Store";
-
-type FetchPageParams = PaginationParams & { query?: string };
 
 export default class GroupsStore extends Store<Group> {
   constructor(rootStore: RootStore) {

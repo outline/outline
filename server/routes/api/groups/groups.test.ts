@@ -402,6 +402,327 @@ describe("#groups.list", () => {
   });
 });
 
+describe("#groups.list filters", () => {
+  it("should filter by name", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+    await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [{ field: "name", operator: "eq", value: group.name }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
+
+  it("should filter by a partial name", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId, name: "Engineers" });
+    await buildGroup({ teamId: user.teamId, name: "Designers" });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [{ field: "name", operator: "contains", value: "engine" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
+
+  it("should filter by externalId", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId, externalId: "123" });
+    await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [{ field: "externalId", operator: "eq", value: "123" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
+
+  it("should filter by id", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+    await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [{ field: "id", operator: "in", value: [group.id] }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
+
+  it("should filter to the groups a user is a member of", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+    await buildGroup({ teamId: user.teamId });
+    await buildGroupUser({
+      teamId: user.teamId,
+      groupId: group.id,
+      userId: user.id,
+      createdById: user.id,
+    });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [{ field: "userId", operator: "eq", value: user.id }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
+
+  it("should filter to the groups any of several users are members of", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId });
+    const group = await buildGroup({ teamId: user.teamId });
+    const otherGroup = await buildGroup({ teamId: user.teamId });
+    await buildGroup({ teamId: user.teamId });
+    await buildGroupUser({
+      teamId: user.teamId,
+      groupId: group.id,
+      userId: user.id,
+      createdById: user.id,
+    });
+    await buildGroupUser({
+      teamId: user.teamId,
+      groupId: otherGroup.id,
+      userId: other.id,
+      createdById: user.id,
+    });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [
+          { field: "userId", operator: "in", value: [user.id, other.id] },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(
+      body.data.groups.map((group: { id: string }) => group.id).sort()
+    ).toEqual([group.id, otherGroup.id].sort());
+  });
+
+  it("should combine a membership filter with a source filter", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+    const syncedGroup = await buildGroup({ teamId: user.teamId });
+    await buildGroupUser({
+      teamId: user.teamId,
+      groupId: group.id,
+      userId: user.id,
+      createdById: user.id,
+    });
+    await buildGroupUser({
+      teamId: user.teamId,
+      groupId: syncedGroup.id,
+      userId: user.id,
+      createdById: user.id,
+    });
+
+    const authProvider = (await AuthenticationProvider.findOne({
+      where: { teamId: user.teamId },
+    }))!;
+    await ExternalGroup.create({
+      externalId: "ext-1",
+      name: "Synced Group",
+      groupId: syncedGroup.id,
+      authenticationProviderId: authProvider.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [
+          { field: "userId", operator: "eq", value: user.id },
+          { field: "source", operator: "eq", value: authProvider.name },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(syncedGroup.id);
+  });
+
+  it("should filter to manually created groups", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+    const syncedGroup = await buildGroup({ teamId: user.teamId });
+
+    const authProvider = (await AuthenticationProvider.findOne({
+      where: { teamId: user.teamId },
+    }))!;
+    await ExternalGroup.create({
+      externalId: "ext-1",
+      name: "Synced Group",
+      groupId: syncedGroup.id,
+      authenticationProviderId: authProvider.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [{ field: "source", operator: "eq", value: "manual" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
+
+  it("should return every group as manual when none are synced", async () => {
+    const user = await buildUser();
+    await buildGroup({ teamId: user.teamId });
+    await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [{ field: "source", operator: "eq", value: "manual" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(2);
+  });
+
+  it("should support groups of conditions", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId, name: "Engineers" });
+    const otherGroup = await buildGroup({
+      teamId: user.teamId,
+      name: "Designers",
+    });
+    await buildGroup({ teamId: user.teamId, name: "Marketing" });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [
+          {
+            operator: "OR",
+            filters: [
+              { field: "name", operator: "eq", value: "Engineers" },
+              { field: "name", operator: "eq", value: "Designers" },
+            ],
+          },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(
+      body.data.groups.map((item: { id: string }) => item.id).sort()
+    ).toEqual([group.id, otherGroup.id].sort());
+  });
+
+  it("should filter by date", async () => {
+    const user = await buildUser();
+    await buildGroup({
+      teamId: user.teamId,
+      createdAt: new Date("2010-01-01T00:00:00.000Z"),
+    });
+    const group = await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [{ field: "createdAt", operator: "gte", value: "2018-01-01" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
+
+  it("should allow filters combined with query", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId, name: "Engineers" });
+    await buildGroup({ teamId: user.teamId, name: "Engineering managers" });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        query: "engineer",
+        filters: [{ field: "name", operator: "eq", value: group.name }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
+
+  it("should not return groups from another team", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId, name: "Engineers" });
+    const other = await buildUser();
+    await buildGroup({ teamId: other.teamId, name: "Engineers" });
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [{ field: "name", operator: "eq", value: "Engineers" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
+
+  it("should reject a field that is not filterable", async () => {
+    const user = await buildUser();
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [{ field: "teamId", operator: "isNotNull" }],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject an operator the field does not support", async () => {
+    const user = await buildUser();
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        filters: [{ field: "userId", operator: "isNull" }],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject filters combined with deprecated parameters", async () => {
+    const user = await buildUser();
+
+    const res = await server.post("/api/groups.list", user, {
+      body: {
+        source: "manual",
+        filters: [{ field: "name", operator: "eq", value: "Engineers" }],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+});
+
 describe("#groups.info", () => {
   it("should return group if admin", async () => {
     const user = await buildAdmin();

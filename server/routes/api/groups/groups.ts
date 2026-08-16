@@ -1,7 +1,9 @@
 import Router from "koa-router";
+import { uniq } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import { GroupPermission, UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -14,6 +16,13 @@ import {
   ExternalGroup,
   AuthenticationProvider,
 } from "@server/models";
+import {
+  buildWhere,
+  collectEqValues,
+  combineFilters,
+  legacyGroupParamsToFilter,
+  replaceFieldInFilter,
+} from "@server/models/helpers/Filters";
 import { authorize } from "@server/policies";
 import { ValidationError } from "@server/errors";
 import {
@@ -29,6 +38,106 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
+
+/** Value of the `source` filter field matching groups with no external link. */
+const MANUAL_SOURCE = "manual";
+
+/**
+ * Resolve the filter fields that do not map to a column of Group — `userId`
+ * and `source` — into `id` leaves the query layer can execute.
+ *
+ * @param filter the filter to resolve.
+ * @param teamId the team the request is scoped to.
+ * @returns the filter with both fields replaced.
+ */
+async function resolveGroupFilter(
+  filter: Filter,
+  teamId: string
+): Promise<Filter> {
+  let resolved = filter;
+
+  const userIds = uniq(collectEqValues(resolved, "userId"));
+  if (userIds.length) {
+    const groupUsers = await GroupUser.findAll({
+      attributes: ["groupId", "userId"],
+      where: { userId: userIds },
+    });
+
+    resolved = replaceFieldInFilter(resolved, "userId", (values) => ({
+      field: "id",
+      operator: "in",
+      value: uniq(
+        groupUsers
+          .filter((groupUser) => values.includes(groupUser.userId))
+          .map((groupUser) => groupUser.groupId)
+      ),
+    }));
+  }
+
+  const sources = uniq(collectEqValues(resolved, "source"));
+  if (sources.length) {
+    const externalGroups = await ExternalGroup.findAll({
+      attributes: ["groupId"],
+      where: {
+        teamId,
+        groupId: { [Op.ne]: null },
+      },
+      include: [
+        {
+          model: AuthenticationProvider,
+          as: "authenticationProvider",
+          attributes: ["name"],
+        },
+      ],
+    });
+
+    const syncedIds = uniq(
+      externalGroups
+        .map((externalGroup) => externalGroup.groupId)
+        .filter((id): id is string => id !== null)
+    );
+    const idsByProvider = new Map<string, string[]>();
+    for (const externalGroup of externalGroups) {
+      const provider = externalGroup.authenticationProvider?.name;
+      if (!provider || !externalGroup.groupId) {
+        continue;
+      }
+      idsByProvider.set(provider, [
+        ...(idsByProvider.get(provider) ?? []),
+        externalGroup.groupId,
+      ]);
+    }
+
+    resolved = replaceFieldInFilter(resolved, "source", (values) => {
+      const providerIds = uniq(
+        values
+          .filter((value) => value !== MANUAL_SOURCE)
+          .flatMap((value) => idsByProvider.get(value) ?? [])
+      );
+      const synced: Filter = {
+        field: "id",
+        operator: "in",
+        value: providerIds,
+      };
+
+      if (!values.includes(MANUAL_SOURCE)) {
+        return synced;
+      }
+
+      // With nothing synced every group is manual, which `notIn []` cannot
+      // express – every group has an id, so match on that instead.
+      const manual: Filter = syncedIds.length
+        ? { field: "id", operator: "notIn", value: syncedIds }
+        : { field: "id", operator: "isNotNull" };
+
+      return providerIds.length
+        ? { operator: "OR", filters: [manual, synced] }
+        : manual;
+    });
+  }
+
+  return resolved;
+}
 
 /** Standard include for loading ExternalGroup with its AuthenticationProvider. */
 const externalGroupInclude = {
@@ -50,81 +159,42 @@ router.post(
   pagination(),
   validate(T.GroupsListSchema),
   async (ctx: APIContext<T.GroupsListReq>) => {
-    const { sort, direction, query, userId, externalId, name, source } =
-      ctx.input.body;
+    const {
+      sort,
+      direction,
+      query,
+      userId,
+      externalId,
+      name,
+      source,
+      filters: rawFilters,
+    } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "listGroups", user.team);
 
-    let where: WhereOptions<Group> = {
+    const where: WhereOptions<Group> & {
+      [Op.and]: WhereOptions<Group>[];
+    } = {
       teamId: user.teamId,
+      [Op.and]: [],
     };
 
-    if (name) {
-      where = {
-        ...where,
-        name: {
-          [Op.eq]: name,
-        },
-      };
-    } else if (query) {
-      where = {
-        ...where,
-        name: { [Op.iLike]: QueryHelper.likeContains(query) },
-      };
-    }
+    // The schema rejects callers that combine `filters` with the deprecated
+    // top-level params, so exactly one of these is set.
+    const filter =
+      combineFilters(rawFilters) ??
+      legacyGroupParamsToFilter({ userId, externalId, name, source });
 
-    if (externalId) {
-      where = {
-        ...where,
-        externalId,
-      };
-    }
-
-    if (userId) {
-      const groupIds = await Group.filterByMember(userId)
-        .findAll({
-          attributes: ["id"],
-        })
-        .then((groups) => groups.map((g) => g.id));
-
-      where = {
-        ...where,
-        id: {
-          [Op.in]: groupIds,
-        },
-      };
-    }
-
-    if (source) {
-      const externalGroupWhere: WhereOptions<ExternalGroup> = {
-        teamId: user.teamId,
-        groupId: { [Op.ne]: null },
-      };
-
-      const sourceGroupIds = await ExternalGroup.findAll({
-        attributes: ["groupId"],
-        where: externalGroupWhere,
-        ...(source !== "manual" && {
-          include: [
-            {
-              model: AuthenticationProvider,
-              as: "authenticationProvider",
-              attributes: [],
-              where: { name: source },
-            },
-          ],
-        }),
-      }).then((egs) =>
-        egs.map((eg) => eg.groupId).filter((id): id is string => id !== null)
+    if (filter) {
+      where[Op.and].push(
+        buildWhere<Group>(await resolveGroupFilter(filter, user.teamId))
       );
+    }
 
-      where = {
-        ...where,
-        id: {
-          ...(where.id as object),
-          [source === "manual" ? Op.notIn : Op.in]: sourceGroupIds,
-        },
-      };
+    if (query) {
+      where[Op.and].push({
+        name: { [Op.iLike]: QueryHelper.likeContains(query) },
+      });
     }
 
     const [groups, total] = await Promise.all([

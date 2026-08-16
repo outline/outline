@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createFilterSchema } from "@shared/helpers/FilterHelper";
 import { GroupPermission } from "@shared/types";
 import { GroupValidation } from "@shared/validations";
 import { Group } from "@server/models";
@@ -8,36 +9,92 @@ const BaseIdSchema = z.object({
   id: z.uuid(),
 });
 
-export const GroupsListSchema = z.object({
-  body: z.object({
-    /** Groups sorting direction */
-    direction: z
-      .string()
-      .optional()
-      .transform((val) => (val !== "ASC" ? "DESC" : val)),
-    /** Groups sorting column */
-    sort: z
-      .string()
-      .refine(
-        (val) =>
-          Object.keys(Group.getAttributes()).includes(val) || val === "source",
-        {
-          error: "Invalid sort parameter",
-        }
-      )
-      .prefault("updatedAt"),
-    /** Only list groups where this user is a member */
-    userId: z.uuid().optional(),
-    /** Find group matching externalId */
-    externalId: z.string().optional(),
-    /** @deprecated Find group with matching name */
-    name: z.string().optional(),
-    /** Filter groups by source: "manual" for non-synced, or a provider name */
-    source: z.string().optional(),
-    /** Find group matching query */
-    query: z.string().optional(),
-  }),
-});
+const groupFilterFields = {
+  id: { kind: "uuid", operators: ["eq", "neq", "in", "notIn"] },
+  name: "string",
+  description: "string",
+  externalId: "string",
+  createdAt: "date",
+  updatedAt: "date",
+  // `userId` scopes results to the groups that user is a member of, and
+  // `source` to the provider a group is synced from. Neither is a column, so
+  // both are resolved to group ids by the route handler, which only supports
+  // `eq` and `in`.
+  userId: { kind: "uuid", operators: ["eq", "in"] },
+  source: { kind: "string", operators: ["eq", "in"] },
+} as const;
+
+const groupListFilter = createFilterSchema(groupFilterFields);
+
+export const GroupsListSchema = z
+  .object({
+    body: z.object({
+      /** Groups sorting direction */
+      direction: z
+        .string()
+        .optional()
+        .transform((val) => (val !== "ASC" ? "DESC" : val)),
+      /** Groups sorting column */
+      sort: z
+        .string()
+        .refine(
+          (val) =>
+            Object.keys(Group.getAttributes()).includes(val) ||
+            val === "source",
+          {
+            error: "Invalid sort parameter",
+          }
+        )
+        .prefault("updatedAt"),
+
+      /**
+       * Only list groups where this user is a member.
+       * @deprecated use `filters` with field `userId` instead.
+       */
+      userId: z.uuid().optional(),
+
+      /**
+       * Find group matching externalId.
+       * @deprecated use `filters` with field `externalId` instead.
+       */
+      externalId: z.string().optional(),
+
+      /**
+       * Find group with matching name.
+       * @deprecated use `filters` with field `name` instead.
+       */
+      name: z.string().optional(),
+
+      /**
+       * Filter groups by source: "manual" for non-synced, or a provider name.
+       * @deprecated use `filters` with field `source` instead.
+       */
+      source: z.string().optional(),
+
+      /** Search term matched against group name */
+      query: z.string().optional(),
+
+      /**
+       * List of filter expressions. Implicit AND between top-level entries.
+       *
+       * The `source` field accepts a provider name, or "manual" for groups
+       * that are not synced from any provider.
+       */
+      filters: groupListFilter.FilterListSchema.optional(),
+    }),
+  })
+  .refine(
+    (req) =>
+      req.body.filters === undefined ||
+      (req.body.userId === undefined &&
+        req.body.externalId === undefined &&
+        req.body.name === undefined &&
+        req.body.source === undefined),
+    {
+      message:
+        "filters cannot be combined with deprecated parameters userId, externalId, name, or source",
+    }
+  );
 
 export type GroupsListReq = z.infer<typeof GroupsListSchema>;
 

@@ -401,6 +401,91 @@ export function legacyParamsToFilter(legacy: LegacyParams): Filter | undefined {
   return combineFilters(leaves);
 }
 
+interface LegacyGroupParams {
+  userId?: string;
+  externalId?: string;
+  name?: string;
+  source?: string;
+}
+
+/**
+ * Translate the deprecated top-level params of groups.list into an equivalent
+ * filter expression, ANDing each one together.
+ *
+ * @param legacy the deprecated top-level params.
+ * @returns the equivalent filter, or undefined if none were set.
+ */
+export function legacyGroupParamsToFilter(
+  legacy: LegacyGroupParams
+): Filter | undefined {
+  const leaves: Filter[] = [];
+
+  if (legacy.userId) {
+    leaves.push({ field: "userId", operator: "eq", value: legacy.userId });
+  }
+  if (legacy.externalId) {
+    leaves.push({
+      field: "externalId",
+      operator: "eq",
+      value: legacy.externalId,
+    });
+  }
+  if (legacy.name) {
+    leaves.push({ field: "name", operator: "eq", value: legacy.name });
+  }
+  if (legacy.source) {
+    leaves.push({ field: "source", operator: "eq", value: legacy.source });
+  }
+
+  return combineFilters(leaves);
+}
+
+/** The values a single `eq` or `in` leaf refers to, if it is one of those. */
+function leafValues(condition: FilterCondition): string[] | undefined {
+  if (condition.operator === "eq" && condition.value !== undefined) {
+    return [String(condition.value)];
+  }
+  if (condition.operator === "in" && Array.isArray(condition.value)) {
+    return condition.value.map(String);
+  }
+  return undefined;
+}
+
+/**
+ * Replace every leaf referencing a field with a filter of the caller's
+ * choosing, preserving the surrounding structure.
+ *
+ * Used for fields that name something outside the model's own columns (e.g. a
+ * document subtree, a group membership) and so have to be resolved to real
+ * columns by the route handler before the query is built. Leaves the leaf
+ * untouched when its operator is neither `eq` nor `in`, as no set of values
+ * can be resolved from it.
+ *
+ * @param filter the filter to transform.
+ * @param field the field name to replace.
+ * @param replace called with the leaf's values, returning its replacement.
+ * @returns a new filter with the substitution applied.
+ */
+export function replaceFieldInFilter(
+  filter: Filter,
+  field: string,
+  replace: (values: string[]) => Filter
+): Filter {
+  if (isGroup(filter)) {
+    return {
+      operator: filter.operator,
+      filters: filter.filters.map((f) =>
+        replaceFieldInFilter(f, field, replace)
+      ),
+    };
+  }
+  if (filter.field !== field) {
+    return filter;
+  }
+  const values = leafValues(filter);
+  return values ? replace(values) : filter;
+}
+
 /**
  * Replace `documentId` leaves in a filter with `id in [...]` leaves using ids
  * pre-resolved by the route handler (typically each document plus its
@@ -416,35 +501,15 @@ export function expandDocumentIdInFilter(
   filter: Filter,
   expandedIds: Map<string, string[]>
 ): Filter {
-  if (isGroup(filter)) {
-    return {
-      operator: filter.operator,
-      filters: filter.filters.map((f) =>
-        expandDocumentIdInFilter(f, expandedIds)
-      ),
-    };
-  }
-  if (filter.field !== "documentId") {
-    return filter;
-  }
   // `eq` is the single-id case of `in`; both map to the deduped union of each
   // document's pre-resolved expansion (falling back to the raw id).
-  let ids: string[] | undefined;
-  if (filter.operator === "eq" && filter.value !== undefined) {
-    ids = [String(filter.value)];
-  } else if (filter.operator === "in" && Array.isArray(filter.value)) {
-    ids = filter.value.map(String);
-  }
-  if (!ids) {
-    return filter;
-  }
-  return {
+  return replaceFieldInFilter(filter, "documentId", (ids) => ({
     field: "id",
     operator: "in",
     value: Array.from(
       new Set(ids.flatMap((id) => expandedIds.get(id) ?? [id]))
     ),
-  };
+  }));
 }
 
 /**

@@ -7,6 +7,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import type Group from "~/models/Group";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
@@ -26,6 +27,12 @@ import { CreateGroupDialog } from "./components/GroupDialogs";
 import GroupSourceFilter from "./components/GroupSourceFilter";
 import { GroupsTable } from "./components/GroupsTable";
 import { StickyFilters } from "./components/StickyFilters";
+
+function getGroupFilters(source?: string): Filter[] | undefined {
+  return source
+    ? [{ field: "source", operator: "eq", value: source }]
+    : undefined;
+}
 
 function getFilteredGroups(groups: Group[], query?: string, source?: string) {
   let filtered = groups;
@@ -58,16 +65,18 @@ function Groups() {
   const params = useQuery();
   const [query, setQuery] = useState("");
 
+  const source = params.get("source") || undefined;
+
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
-      source: params.get("source") || undefined,
+      filters: getGroupFilters(source),
       sort: params.get("sort") || "name",
       direction: (params.get("direction") || "asc").toUpperCase() as
         | "ASC"
         | "DESC",
     }),
-    [params]
+    [params, source]
   );
 
   const sort: ColumnSort = useMemo(
@@ -79,11 +88,7 @@ function Groups() {
   );
 
   const { data, error, loading, next } = useTableRequest({
-    data: getFilteredGroups(
-      groups.orderedData,
-      reqParams.query,
-      reqParams.source
-    ),
+    data: getFilteredGroups(groups.orderedData, reqParams.query, source),
     sort,
     reqFn: groups.fetchPage,
     reqParams,
@@ -177,7 +182,7 @@ function Groups() {
               onChange={handleSearch}
             />
             <LargeGroupSourceFilter
-              activeKey={reqParams.source ?? ""}
+              activeKey={source ?? ""}
               onSelect={handleSourceFilter}
             />
           </StickyFilters>
