@@ -61,18 +61,24 @@ function Contents() {
       return;
     }
 
-    const handleUserScroll = () => setSelectedSlug(undefined);
-    const options = supportsPassiveListener ? { passive: true } : false;
+    // Navigating to the heading scrolls the document during the same commit,
+    // so the position here is the one it came to rest at. Any movement away
+    // from it is the reader scrolling, whichever means they use.
+    const restingPosition = window.pageYOffset;
 
-    window.addEventListener("wheel", handleUserScroll, options);
-    window.addEventListener("touchmove", handleUserScroll, options);
-    window.addEventListener("keydown", handleUserScroll);
-
-    return () => {
-      window.removeEventListener("wheel", handleUserScroll);
-      window.removeEventListener("touchmove", handleUserScroll);
-      window.removeEventListener("keydown", handleUserScroll);
+    const handleScroll = () => {
+      if (window.pageYOffset !== restingPosition) {
+        setSelectedSlug(undefined);
+      }
     };
+
+    window.addEventListener(
+      "scroll",
+      handleScroll,
+      supportsPassiveListener ? { passive: true } : false
+    );
+
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [selectedSlug]);
 
   useEffect(() => {
