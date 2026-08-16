@@ -9,7 +9,7 @@ import RootStore from "~/stores/RootStore";
 import StorePersistence from "./StorePersistence";
 
 describe("StorePersistence", () => {
-  test("round-trips models through IndexedDB into a fresh store", async () => {
+  it("round-trips models through IndexedDB into a fresh store", async () => {
     const teamId = "team-1";
     const source = new RootStore();
     const persistence = new StorePersistence(source.policies, teamId);
@@ -33,7 +33,7 @@ describe("StorePersistence", () => {
     expect(target.policies.abilities("doc-1").update).toBeTruthy();
   });
 
-  test("does not overwrite models already in the store when hydrating", async () => {
+  it("does not overwrite models already in the store when hydrating", async () => {
     const teamId = "team-2";
     const source = new RootStore();
     const persistence = new StorePersistence(source.policies, teamId);
@@ -50,7 +50,7 @@ describe("StorePersistence", () => {
     expect(target.policies.get("doc-1")?.abilities).toEqual({ read: true });
   });
 
-  test("deletes the persisted record when the model has been removed", async () => {
+  it("deletes the persisted record when the model has been removed", async () => {
     const teamId = "team-3";
     const source = new RootStore();
     const persistence = new StorePersistence(source.policies, teamId);
@@ -70,7 +70,31 @@ describe("StorePersistence", () => {
     expect(target.policies.get("doc-1")).toBeUndefined();
   });
 
-  test("clear removes all persisted records", async () => {
+  it("does not write back records that were just hydrated", async () => {
+    const teamId = "team-5";
+    const source = new RootStore();
+    const persistence = new StorePersistence(source.policies, teamId);
+
+    source.policies.add({ id: "doc-1", abilities: { read: true } });
+    persistence.persist("doc-1");
+    await persistence.flush();
+
+    const target = new RootStore();
+    await target.policies.enablePersistence(teamId);
+
+    // Drop the model without notifying persistence, so that any flush scheduled
+    // during hydration would delete the persisted record when it fires.
+    target.policies.data.delete("doc-1");
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+
+    const other = new RootStore();
+    const otherPersistence = new StorePersistence(other.policies, teamId);
+    await otherPersistence.hydrate();
+
+    expect(other.policies.get("doc-1")).toBeTruthy();
+  });
+
+  it("clear removes all persisted records", async () => {
     const teamId = "team-4";
     const source = new RootStore();
     const persistence = new StorePersistence(source.policies, teamId);

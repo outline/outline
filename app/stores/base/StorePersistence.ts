@@ -63,6 +63,7 @@ export default class StorePersistence<T extends Model> {
           .getAll()
       );
 
+      this.hydrating = true;
       for (const record of records) {
         if (!this.store.get(record.id)) {
           this.store.add(record.data);
@@ -74,18 +75,21 @@ export default class StorePersistence<T extends Model> {
         database: this.name,
         error: err,
       });
+    } finally {
+      this.hydrating = false;
     }
   };
 
   /**
    * Schedules the model with the given ID to be written to IndexedDB. If the
    * model is no longer in the store when the write occurs, the persisted
-   * record is deleted instead.
+   * record is deleted instead. A no-op while hydrating, as those records have
+   * just been read from the cache.
    *
    * @param id the ID of the model to persist.
    */
   public persist = (id: string) => {
-    if (this.disabled) {
+    if (this.disabled || this.hydrating) {
       return;
     }
     this.dirty.add(id);
@@ -142,12 +146,9 @@ export default class StorePersistence<T extends Model> {
 
     try {
       const database = await this.open();
-      await promisifyRequest(
-        database
-          .transaction(OBJECT_STORE_NAME, "readwrite")
-          .objectStore(OBJECT_STORE_NAME)
-          .clear()
-      );
+      const transaction = database.transaction(OBJECT_STORE_NAME, "readwrite");
+      transaction.objectStore(OBJECT_STORE_NAME).clear();
+      await promisifyTransaction(transaction);
     } catch (err) {
       Logger.warn("Failed to clear persisted store in IndexedDB", {
         database: this.name,
@@ -186,6 +187,8 @@ export default class StorePersistence<T extends Model> {
   private dirty = new Set<string>();
 
   private disabled = false;
+
+  private hydrating = false;
 }
 
 /**
