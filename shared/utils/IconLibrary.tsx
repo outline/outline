@@ -1,121 +1,119 @@
-import {
-  faApple,
-  faWindows,
-  faAndroid,
-  faSquareJs,
-  faPython,
-  faWebAwesome,
-  faXTwitter,
-  faBluesky,
-  faGithub,
-  faGitlab,
-  faDiscord,
-  faDocker,
-  faCodepen,
-  faDropbox,
-  faPaypal,
-  faShopify,
-  faSwift,
-  faSlack,
-} from "@fortawesome/free-brands-svg-icons";
-import {
-  faBagShopping,
-  faBook,
-  faBrush,
-  faCake,
-  faCat,
-  faClapperboard,
-  faCompactDisc,
-  faCookieBite,
-  faCrow,
-  faCrown,
-  faCube,
-  faDna,
-  faDog,
-  faDollarSign,
-  faDisplay,
-  faDroplet,
-  faFaceDizzy,
-  faFaceGrinStars,
-  faFaceLaugh,
-  faFaceMeh,
-  faFaceSmileBeam,
-  faFaceSmileWink,
-  faFaceSurprise,
-  faFeather,
-  faFish,
-  faGamepad,
-  faGauge,
-  faGem,
-  faGift,
-  faHammer,
-  faHeart,
-  faIndustry,
-  faKitMedical,
-  faLaptop,
-  faLaptopCode,
-  faMagnet,
-  faMap,
-  faMicrochip,
-  faMountainSun,
-  faMugHot,
-  faNetworkWired,
-  faNewspaper,
-  faPaintRoller,
-  faPassport,
-  faPaw,
-  faPenRuler,
-  faPesoSign,
-  faPhoneVolume,
-  faPizzaSlice,
-  faPrescription,
-  faPuzzlePiece,
-  faRainbow,
-  faRecordVinyl,
-  faRoad,
-  faRobot,
-  faRocket,
-  faSailboat,
-  faScissors,
-  faSeedling,
-  faShield,
-  faShirt,
-  faShop,
-  faSnowflake,
-  faSocks,
-  faSolarPanel,
-  faSpa,
-  faStarAndCrescent,
-  faStarOfLife,
-  faSterlingSign,
-  faSwatchbook,
-  faTent,
-  faTooth,
-  faTowerCell,
-  faTractor,
-  faTrain,
-  faTree,
-  faTrophy,
-  faUmbrella,
-  faUmbrellaBeach,
-  faUniversalAccess,
-  faUserGraduate,
-  faUtensils,
-  faVault,
-  faWandSparkles,
-  faWheelchairMove,
-  faWorm,
-  faYenSign,
-  faHandsClapping,
-  faFolderClosed,
-  faFlaskVial,
-  faCircle,
-  faSquare,
-  faPentagon,
-  faHexagon,
-  faDiamond,
-  faSpiral,
-} from "@fortawesome/free-solid-svg-icons";
+// Import icons individually — the package barrel is also loaded as a whole pack
+// by the Mermaid extension, so a shared import puts every icon in the bundle.
+import { faAndroid } from "@fortawesome/free-brands-svg-icons/faAndroid";
+import { faApple } from "@fortawesome/free-brands-svg-icons/faApple";
+import { faBluesky } from "@fortawesome/free-brands-svg-icons/faBluesky";
+import { faCodepen } from "@fortawesome/free-brands-svg-icons/faCodepen";
+import { faDiscord } from "@fortawesome/free-brands-svg-icons/faDiscord";
+import { faDocker } from "@fortawesome/free-brands-svg-icons/faDocker";
+import { faDropbox } from "@fortawesome/free-brands-svg-icons/faDropbox";
+import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub";
+import { faGitlab } from "@fortawesome/free-brands-svg-icons/faGitlab";
+import { faPaypal } from "@fortawesome/free-brands-svg-icons/faPaypal";
+import { faPython } from "@fortawesome/free-brands-svg-icons/faPython";
+import { faShopify } from "@fortawesome/free-brands-svg-icons/faShopify";
+import { faSlack } from "@fortawesome/free-brands-svg-icons/faSlack";
+import { faSquareJs } from "@fortawesome/free-brands-svg-icons/faSquareJs";
+import { faSwift } from "@fortawesome/free-brands-svg-icons/faSwift";
+import { faWebAwesome } from "@fortawesome/free-brands-svg-icons/faWebAwesome";
+import { faWindows } from "@fortawesome/free-brands-svg-icons/faWindows";
+import { faXTwitter } from "@fortawesome/free-brands-svg-icons/faXTwitter";
+import { faBagShopping } from "@fortawesome/free-solid-svg-icons/faBagShopping";
+import { faBook } from "@fortawesome/free-solid-svg-icons/faBook";
+import { faBrush } from "@fortawesome/free-solid-svg-icons/faBrush";
+import { faCake } from "@fortawesome/free-solid-svg-icons/faCake";
+import { faCat } from "@fortawesome/free-solid-svg-icons/faCat";
+import { faCircle } from "@fortawesome/free-solid-svg-icons/faCircle";
+import { faClapperboard } from "@fortawesome/free-solid-svg-icons/faClapperboard";
+import { faCompactDisc } from "@fortawesome/free-solid-svg-icons/faCompactDisc";
+import { faCookieBite } from "@fortawesome/free-solid-svg-icons/faCookieBite";
+import { faCrow } from "@fortawesome/free-solid-svg-icons/faCrow";
+import { faCrown } from "@fortawesome/free-solid-svg-icons/faCrown";
+import { faCube } from "@fortawesome/free-solid-svg-icons/faCube";
+import { faDiamond } from "@fortawesome/free-solid-svg-icons/faDiamond";
+import { faDisplay } from "@fortawesome/free-solid-svg-icons/faDisplay";
+import { faDna } from "@fortawesome/free-solid-svg-icons/faDna";
+import { faDog } from "@fortawesome/free-solid-svg-icons/faDog";
+import { faDollarSign } from "@fortawesome/free-solid-svg-icons/faDollarSign";
+import { faDroplet } from "@fortawesome/free-solid-svg-icons/faDroplet";
+import { faFaceDizzy } from "@fortawesome/free-solid-svg-icons/faFaceDizzy";
+import { faFaceGrinStars } from "@fortawesome/free-solid-svg-icons/faFaceGrinStars";
+import { faFaceLaugh } from "@fortawesome/free-solid-svg-icons/faFaceLaugh";
+import { faFaceMeh } from "@fortawesome/free-solid-svg-icons/faFaceMeh";
+import { faFaceSmileBeam } from "@fortawesome/free-solid-svg-icons/faFaceSmileBeam";
+import { faFaceSmileWink } from "@fortawesome/free-solid-svg-icons/faFaceSmileWink";
+import { faFaceSurprise } from "@fortawesome/free-solid-svg-icons/faFaceSurprise";
+import { faFeather } from "@fortawesome/free-solid-svg-icons/faFeather";
+import { faFish } from "@fortawesome/free-solid-svg-icons/faFish";
+import { faFlaskVial } from "@fortawesome/free-solid-svg-icons/faFlaskVial";
+import { faFolderClosed } from "@fortawesome/free-solid-svg-icons/faFolderClosed";
+import { faGamepad } from "@fortawesome/free-solid-svg-icons/faGamepad";
+import { faGauge } from "@fortawesome/free-solid-svg-icons/faGauge";
+import { faGem } from "@fortawesome/free-solid-svg-icons/faGem";
+import { faGift } from "@fortawesome/free-solid-svg-icons/faGift";
+import { faHammer } from "@fortawesome/free-solid-svg-icons/faHammer";
+import { faHandsClapping } from "@fortawesome/free-solid-svg-icons/faHandsClapping";
+import { faHeart } from "@fortawesome/free-solid-svg-icons/faHeart";
+import { faHexagon } from "@fortawesome/free-solid-svg-icons/faHexagon";
+import { faIndustry } from "@fortawesome/free-solid-svg-icons/faIndustry";
+import { faKitMedical } from "@fortawesome/free-solid-svg-icons/faKitMedical";
+import { faLaptop } from "@fortawesome/free-solid-svg-icons/faLaptop";
+import { faLaptopCode } from "@fortawesome/free-solid-svg-icons/faLaptopCode";
+import { faMagnet } from "@fortawesome/free-solid-svg-icons/faMagnet";
+import { faMap } from "@fortawesome/free-solid-svg-icons/faMap";
+import { faMicrochip } from "@fortawesome/free-solid-svg-icons/faMicrochip";
+import { faMountainSun } from "@fortawesome/free-solid-svg-icons/faMountainSun";
+import { faMugHot } from "@fortawesome/free-solid-svg-icons/faMugHot";
+import { faNetworkWired } from "@fortawesome/free-solid-svg-icons/faNetworkWired";
+import { faNewspaper } from "@fortawesome/free-solid-svg-icons/faNewspaper";
+import { faPaintRoller } from "@fortawesome/free-solid-svg-icons/faPaintRoller";
+import { faPassport } from "@fortawesome/free-solid-svg-icons/faPassport";
+import { faPaw } from "@fortawesome/free-solid-svg-icons/faPaw";
+import { faPenRuler } from "@fortawesome/free-solid-svg-icons/faPenRuler";
+import { faPentagon } from "@fortawesome/free-solid-svg-icons/faPentagon";
+import { faPesoSign } from "@fortawesome/free-solid-svg-icons/faPesoSign";
+import { faPhoneVolume } from "@fortawesome/free-solid-svg-icons/faPhoneVolume";
+import { faPizzaSlice } from "@fortawesome/free-solid-svg-icons/faPizzaSlice";
+import { faPrescription } from "@fortawesome/free-solid-svg-icons/faPrescription";
+import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
+import { faRainbow } from "@fortawesome/free-solid-svg-icons/faRainbow";
+import { faRecordVinyl } from "@fortawesome/free-solid-svg-icons/faRecordVinyl";
+import { faRoad } from "@fortawesome/free-solid-svg-icons/faRoad";
+import { faRobot } from "@fortawesome/free-solid-svg-icons/faRobot";
+import { faRocket } from "@fortawesome/free-solid-svg-icons/faRocket";
+import { faSailboat } from "@fortawesome/free-solid-svg-icons/faSailboat";
+import { faScissors } from "@fortawesome/free-solid-svg-icons/faScissors";
+import { faSeedling } from "@fortawesome/free-solid-svg-icons/faSeedling";
+import { faShield } from "@fortawesome/free-solid-svg-icons/faShield";
+import { faShirt } from "@fortawesome/free-solid-svg-icons/faShirt";
+import { faShop } from "@fortawesome/free-solid-svg-icons/faShop";
+import { faSnowflake } from "@fortawesome/free-solid-svg-icons/faSnowflake";
+import { faSocks } from "@fortawesome/free-solid-svg-icons/faSocks";
+import { faSolarPanel } from "@fortawesome/free-solid-svg-icons/faSolarPanel";
+import { faSpa } from "@fortawesome/free-solid-svg-icons/faSpa";
+import { faSpiral } from "@fortawesome/free-solid-svg-icons/faSpiral";
+import { faSquare } from "@fortawesome/free-solid-svg-icons/faSquare";
+import { faStarAndCrescent } from "@fortawesome/free-solid-svg-icons/faStarAndCrescent";
+import { faStarOfLife } from "@fortawesome/free-solid-svg-icons/faStarOfLife";
+import { faSterlingSign } from "@fortawesome/free-solid-svg-icons/faSterlingSign";
+import { faSwatchbook } from "@fortawesome/free-solid-svg-icons/faSwatchbook";
+import { faTent } from "@fortawesome/free-solid-svg-icons/faTent";
+import { faTooth } from "@fortawesome/free-solid-svg-icons/faTooth";
+import { faTowerCell } from "@fortawesome/free-solid-svg-icons/faTowerCell";
+import { faTractor } from "@fortawesome/free-solid-svg-icons/faTractor";
+import { faTrain } from "@fortawesome/free-solid-svg-icons/faTrain";
+import { faTree } from "@fortawesome/free-solid-svg-icons/faTree";
+import { faTrophy } from "@fortawesome/free-solid-svg-icons/faTrophy";
+import { faUmbrella } from "@fortawesome/free-solid-svg-icons/faUmbrella";
+import { faUmbrellaBeach } from "@fortawesome/free-solid-svg-icons/faUmbrellaBeach";
+import { faUniversalAccess } from "@fortawesome/free-solid-svg-icons/faUniversalAccess";
+import { faUserGraduate } from "@fortawesome/free-solid-svg-icons/faUserGraduate";
+import { faUtensils } from "@fortawesome/free-solid-svg-icons/faUtensils";
+import { faVault } from "@fortawesome/free-solid-svg-icons/faVault";
+import { faWandSparkles } from "@fortawesome/free-solid-svg-icons/faWandSparkles";
+import { faWheelchairMove } from "@fortawesome/free-solid-svg-icons/faWheelchairMove";
+import { faWorm } from "@fortawesome/free-solid-svg-icons/faWorm";
+import { faYenSign } from "@fortawesome/free-solid-svg-icons/faYenSign";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { intersection } from "es-toolkit/compat";
 import {
