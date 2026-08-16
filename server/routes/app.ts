@@ -11,6 +11,7 @@ import {
   type NavigationNode,
 } from "@shared/types";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
+import { Hour } from "@shared/utils/time";
 import env from "@server/env";
 import { allowScriptSrc } from "@server/middlewares/csp";
 import { Integration } from "@server/models";
@@ -309,7 +310,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
           includeStyles: false,
           includeHead: false,
           includeTitle: true,
-          signedUrls: true,
+          signedUrls: Hour.seconds,
         })
       : undefined;
 
