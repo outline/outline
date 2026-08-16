@@ -18,6 +18,12 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { User, Team } from "@server/models";
+import {
+  buildWhere,
+  combineFilters,
+  hasFieldInFilter,
+  legacyUserParamsToFilter,
+} from "@server/models/helpers/Filters";
 import { UserFlag } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
@@ -37,122 +43,67 @@ router.post(
   pagination(),
   validate(T.UsersListSchema),
   async (ctx: APIContext<T.UsersListReq>) => {
-    const { sort, direction, query, role, filter, ids, emails } =
-      ctx.input.body;
+    const {
+      sort,
+      direction,
+      query,
+      role,
+      filter: statusFilter,
+      ids,
+      emails,
+      filters: rawFilters,
+    } = ctx.input.body;
 
     const actor = ctx.state.auth.user;
     authorize(actor, "listUsers", actor.team);
 
-    let where: WhereOptions<User> = {
+    const where: WhereOptions<User> & {
+      [Op.and]: WhereOptions<User>[];
+    } = {
       teamId: actor.teamId,
+      [Op.and]: [],
     };
 
-    // Filter out suspended users if we're not an admin
+    // Suspended users are never visible to non-admins, whatever was requested.
     if (!actor.isAdmin) {
-      where = {
-        ...where,
-        suspendedAt: {
-          [Op.eq]: null,
-        },
-      };
+      where[Op.and].push({ suspendedAt: { [Op.is]: null } });
     }
 
-    switch (filter) {
-      case "invited": {
-        where = { ...where, lastActiveAt: null };
-        break;
-      }
-
-      case "viewers": {
-        where = { ...where, role: UserRole.Viewer };
-        break;
-      }
-
-      case "admins": {
-        where = { ...where, role: UserRole.Admin };
-        break;
-      }
-
-      case "members": {
-        where = { ...where, role: UserRole.Member };
-        break;
-      }
-
-      case "suspended": {
-        if (actor.isAdmin) {
-          where = {
-            ...where,
-            suspendedAt: {
-              [Op.ne]: null,
-            },
-          };
-        }
-        break;
-      }
-
-      case "active": {
-        where = {
-          ...where,
-          lastActiveAt: {
-            [Op.ne]: null,
-          },
-          suspendedAt: {
-            [Op.is]: null,
-          },
-        };
-        break;
-      }
-
-      case "all": {
-        break;
-      }
-
-      default: {
-        where = {
-          ...where,
-          suspendedAt: {
-            [Op.is]: null,
-          },
-        };
-        break;
-      }
-    }
-
-    if (role) {
-      where = {
-        ...where,
+    // The schema rejects callers that combine `filters` with the deprecated
+    // top-level params, so exactly one of these is set.
+    const filter =
+      combineFilters(rawFilters) ??
+      legacyUserParamsToFilter({
+        ids,
+        emails,
         role,
-      };
+        status: statusFilter,
+        isAdmin: actor.isAdmin,
+      });
+
+    // Exclude suspended users by default. Suppressed when the caller targets a
+    // specific status, or when their filter already references suspendedAt.
+    const filterIncludesSuspendedAt =
+      filter !== undefined && hasFieldInFilter(filter, "suspendedAt");
+    if (!statusFilter && !filterIncludesSuspendedAt) {
+      where[Op.and].push({ suspendedAt: { [Op.is]: null } });
+    }
+
+    if (filter) {
+      where[Op.and].push(buildWhere<User>(filter));
     }
 
     if (query) {
-      where = {
-        ...where,
-        [Op.and]: {
-          [Op.or]: [
-            Sequelize.literal(
-              `unaccent(LOWER("user"."email")) like unaccent(LOWER(:query))`
-            ),
-            Sequelize.literal(
-              `unaccent(LOWER("user"."name")) like unaccent(LOWER(:query))`
-            ),
-          ],
-        },
-      };
-    }
-
-    if (ids) {
-      where = {
-        ...where,
-        id: ids,
-      };
-    }
-
-    if (emails) {
-      where = {
-        ...where,
-        email: emails,
-      };
+      where[Op.and].push({
+        [Op.or]: [
+          Sequelize.literal(
+            `unaccent(LOWER("user"."email")) like unaccent(LOWER(:query))`
+          ),
+          Sequelize.literal(
+            `unaccent(LOWER("user"."name")) like unaccent(LOWER(:query))`
+          ),
+        ],
+      });
     }
 
     const replacements = { query: QueryHelper.likeContains(query ?? "") };

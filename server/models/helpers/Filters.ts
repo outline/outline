@@ -7,7 +7,7 @@ import type {
 } from "@shared/helpers/FilterHelper";
 import { RANGE_OPERATORS } from "@shared/helpers/FilterHelper";
 import type { DateFilter, StatusFilter } from "@shared/types";
-import { StatusFilter as StatusFilterEnum } from "@shared/types";
+import { StatusFilter as StatusFilterEnum, UserRole } from "@shared/types";
 import { Collection } from "@server/models";
 import type User from "@server/models/User";
 import { authorize } from "@server/policies";
@@ -476,4 +476,100 @@ export async function authorizeFilterFields(
   for (const collection of collections) {
     authorize(user, "readDocument", collection);
   }
+}
+
+/** Deprecated `filter` values accepted by users.list. */
+export const UserStatusFilters = [
+  "invited",
+  "viewers",
+  "admins",
+  "members",
+  "active",
+  "all",
+  "suspended",
+] as const;
+
+export type UserStatusFilter = (typeof UserStatusFilters)[number];
+
+/** Statuses that are shorthand for a role, superseded by the `role` param. */
+const ROLE_BY_USER_STATUS: Partial<Record<UserStatusFilter, UserRole>> = {
+  viewers: UserRole.Viewer,
+  admins: UserRole.Admin,
+  members: UserRole.Member,
+};
+
+interface LegacyUserParams {
+  ids?: string[];
+  emails?: string[];
+  role?: UserRole;
+  status?: UserStatusFilter;
+  /** Whether the actor is allowed to see suspended users at all. */
+  isAdmin: boolean;
+}
+
+function userStatusToFilter(
+  status: UserStatusFilter,
+  isAdmin: boolean
+): Filter | undefined {
+  const role = ROLE_BY_USER_STATUS[status];
+  if (role) {
+    return { field: "role", operator: "eq", value: role };
+  }
+
+  switch (status) {
+    case "invited":
+      return { field: "lastActiveAt", operator: "isNull" };
+    case "active":
+      return {
+        operator: "AND",
+        filters: [
+          { field: "lastActiveAt", operator: "isNotNull" },
+          { field: "suspendedAt", operator: "isNull" },
+        ],
+      };
+    case "suspended":
+      // Suspended users are invisible to everyone but admins, for whom the
+      // status is a no-op rather than an empty result.
+      return isAdmin
+        ? { field: "suspendedAt", operator: "isNotNull" }
+        : undefined;
+    default:
+      // "all" applies no constraint of its own.
+      return undefined;
+  }
+}
+
+/**
+ * Translate the deprecated top-level params of users.list into an equivalent
+ * filter expression, ANDing each one together.
+ *
+ * @param legacy the deprecated top-level params, plus whether the actor is an admin.
+ * @returns the equivalent filter, or undefined if none were set.
+ */
+export function legacyUserParamsToFilter(
+  legacy: LegacyUserParams
+): Filter | undefined {
+  const leaves: Filter[] = [];
+
+  if (legacy.ids?.length) {
+    leaves.push({ field: "id", operator: "in", value: legacy.ids });
+  }
+  if (legacy.emails?.length) {
+    leaves.push({ field: "email", operator: "in", value: legacy.emails });
+  }
+  if (legacy.role) {
+    leaves.push({ field: "role", operator: "eq", value: legacy.role });
+  }
+
+  // An explicit `role` supersedes the role-style statuses, matching the
+  // precedence these params have always had.
+  const status =
+    legacy.status && !(legacy.role && ROLE_BY_USER_STATUS[legacy.status])
+      ? userStatusToFilter(legacy.status, legacy.isAdmin)
+      : undefined;
+  if (status) {
+    leaves.push(status);
+  }
+
+  return combineFilters(leaves);
 }

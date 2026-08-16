@@ -4,6 +4,10 @@ import type { WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { UserRole } from "@shared/types";
 import { User, Team } from "@server/models";
+import {
+  buildWhere,
+  legacyUserParamsToFilter,
+} from "@server/models/helpers/Filters";
 import { authorize, can } from "@server/policies";
 import { presentUser } from "@server/presenters";
 import { QueryHelper } from "@server/storage/QueryHelper";
@@ -83,70 +87,45 @@ export function userTools(server: McpServer, scopes: string[]) {
             const effectiveOffset = offset ?? 0;
             const effectiveLimit = limit ?? 25;
 
-            let where: WhereOptions<User> = {
+            const where: WhereOptions<User> & {
+              [Op.and]: WhereOptions<User>[];
+            } = {
               teamId: actor.teamId,
+              [Op.and]: [],
             };
 
-            // Non-admins cannot see suspended users
+            // Suspended users are never visible to non-admins.
             if (!actor.isAdmin) {
-              where = {
-                ...where,
-                suspendedAt: { [Op.eq]: null },
-              };
+              where[Op.and].push({ suspendedAt: { [Op.is]: null } });
             }
 
-            switch (filter) {
-              case "invited": {
-                where = { ...where, lastActiveAt: null };
-                break;
-              }
-              case "suspended": {
-                if (actor.isAdmin) {
-                  where = {
-                    ...where,
-                    suspendedAt: { [Op.ne]: null },
-                  };
-                }
-                break;
-              }
-              case "active": {
-                where = {
-                  ...where,
-                  lastActiveAt: { [Op.ne]: null },
-                  suspendedAt: { [Op.is]: null },
-                };
-                break;
-              }
-              case "all": {
-                break;
-              }
-              default: {
-                where = {
-                  ...where,
-                  suspendedAt: { [Op.is]: null },
-                };
-                break;
-              }
+            const userFilter = legacyUserParamsToFilter({
+              role,
+              status: filter,
+              isAdmin: actor.isAdmin,
+            });
+
+            // Exclude suspended users unless a specific status was requested,
+            // matching users.list.
+            if (!filter) {
+              where[Op.and].push({ suspendedAt: { [Op.is]: null } });
             }
 
-            if (role) {
-              where = { ...where, role };
+            if (userFilter) {
+              where[Op.and].push(buildWhere<User>(userFilter));
             }
 
             if (query) {
-              where = {
-                ...where,
-                [Op.and]: {
-                  [Op.or]: [
-                    Sequelize.literal(
-                      `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
-                    ),
-                    Sequelize.literal(
-                      `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-                    ),
-                  ],
-                },
-              };
+              where[Op.and].push({
+                [Op.or]: [
+                  Sequelize.literal(
+                    `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+                  ),
+                  Sequelize.literal(
+                    `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+                  ),
+                ],
+              });
             }
 
             const replacements = {
