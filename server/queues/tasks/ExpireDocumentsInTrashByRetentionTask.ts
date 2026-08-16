@@ -2,8 +2,7 @@ import { Op } from "sequelize";
 import { subDays } from "date-fns";
 import Logger from "@server/logging/Logger";
 import { Document } from "@server/models";
-import type { RetentionPreference } from "@server/utils/retention";
-import { teamRetentionPeriodFilter } from "@server/utils/retention";
+import type { RetentionPreference } from "@shared/types";
 import { TeamPreference } from "@shared/types";
 import type { PartitionInfo } from "./base/BaseTask";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
@@ -34,11 +33,7 @@ export default class ExpireDocumentsInTrashByRetentionTask extends BaseTask<Prop
       `Marking upto ${limit} documents past ${retentionDays} day trash timeout as pending permanent deletion…`
     );
 
-    const team = teamRetentionPeriodFilter(
-      preference,
-      retentionDays,
-      "document"
-    );
+    const team = Document.retentionPeriodFilter(preference, retentionDays);
 
     // The batch is selected before updating as Postgres does not support a limit
     // on UPDATE, and an unbounded update would hold locks across the entire table.

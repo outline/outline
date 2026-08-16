@@ -235,21 +235,6 @@ function DocumentListItem(
                     <Badge>{t("Draft")}</Badge>
                   </Tooltip>
                 )}
-                {document.destroysInDays !== undefined && (
-                  <Tooltip
-                    content={t(
-                      "Will be permanently deleted in {{ count }} days unless restored",
-                      { count: document.destroysInDays }
-                    )}
-                    placement="top"
-                  >
-                    <Badge>
-                      {t("{{ count }} days", {
-                        count: document.destroysInDays,
-                      })}
-                    </Badge>
-                  </Tooltip>
-                )}
                 {canStar && !isMobile && <StarButton document={document} />}
               </Heading>
 
@@ -269,6 +254,23 @@ function DocumentListItem(
               />
             </Content>
           </Flex>
+          {document.destroysInDays !== undefined && (
+            <RetentionBadge>
+              <Tooltip
+                content={t(
+                  "Will be permanently deleted in {{ count }} days unless restored",
+                  { count: document.destroysInDays }
+                )}
+                placement="top"
+              >
+                <Badge>
+                  {t("{{ count }} days", {
+                    count: document.destroysInDays,
+                  })}
+                </Badge>
+              </Tooltip>
+            </RetentionBadge>
+          )}
           <Actions>
             <DocumentMenu
               document={document}
@@ -334,6 +336,13 @@ const Content = styled.div`
   flex-grow: 1;
   flex-shrink: 1;
   min-width: 0;
+`;
+
+const RetentionBadge = styled.div`
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 8px;
 `;
 
 const Actions = styled(EventBoundary)`

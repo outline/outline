@@ -3,8 +3,7 @@ import { subDays } from "date-fns";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import Logger from "@server/logging/Logger";
 import { Document } from "@server/models";
-import type { RetentionPreference } from "@server/utils/retention";
-import { teamRetentionPeriodFilter } from "@server/utils/retention";
+import type { RetentionPreference } from "@shared/types";
 import { TeamPreference } from "@shared/types";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 import type { PartitionInfo } from "./base/BaseTask";
@@ -35,11 +34,7 @@ export default class CleanupPermanentlyDeletedDocumentsByRetentionTask extends B
       `Permanently destroying upto ${limit} documents past ${retentionDays} day retention timeout…`
     );
 
-    const team = teamRetentionPeriodFilter(
-      preference,
-      retentionDays,
-      "document"
-    );
+    const team = Document.retentionPeriodFilter(preference, retentionDays);
 
     const documents = await Document.scope([
       "withDrafts",

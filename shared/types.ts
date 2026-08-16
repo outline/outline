@@ -1,5 +1,7 @@
+import type { RetentionPeriodPresets } from "./constants";
+
 /** Allowed retention period in days. 0 means infinite (never delete). */
-export type RetentionPeriodPreset = 0 | 7 | 14 | 30 | 90 | 180 | 365;
+export type RetentionPeriodPreset = (typeof RetentionPeriodPresets)[number];
 
 /** Available user roles. */
 export enum UserRole {
@@ -478,6 +480,11 @@ export enum TeamPreference {
   /** List of disabled embed provider titles. */
   DisabledEmbeds = "disabledEmbeds",
 }
+
+/** Team preferences that express a retention period, in days. */
+export type RetentionPreference =
+  | TeamPreference.TrashRetentionDays
+  | TeamPreference.DataRetentionDays;
 
 export type TeamPreferences = {
   [TeamPreference.SeamlessEdit]?: boolean;

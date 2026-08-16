@@ -9,6 +9,7 @@ import type {
   ScopeOptions,
   FindOptions,
   ProjectionAlias,
+  Utils,
   WhereOptions,
 } from "sequelize";
 import {
@@ -50,6 +51,7 @@ import type {
   ImportableIntegrationService,
   NavigationNode,
   ProsemirrorData,
+  RetentionPreference,
   SourceMetadata,
 } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
@@ -871,6 +873,44 @@ class Document extends ArchivableModel<
         )
       )
     );
+  }
+
+  /**
+   * Builds a filter matching documents that belong to a team configured with
+   * the given retention period. Teams that have not set the preference are
+   * matched by the default period.
+   *
+   * Comparison is performed on the raw JSON text rather than casting to an
+   * integer so that an unexpected value stored against the preference cannot
+   * fail the query for every other team in the same batch.
+   *
+   * @param preference the retention preference to match on.
+   * @param retentionDays the retention period in days.
+   * @returns the where clause literal and the replacements it requires.
+   */
+  static retentionPeriodFilter(
+    preference: RetentionPreference,
+    retentionDays: number
+  ): { where: Utils.Literal; replacements: Record<string, string> } {
+    const isDefault =
+      retentionDays === Team.getDefaultRetentionPeriod(preference);
+    const matchesPreference = isDefault
+      ? `(preferences->>:preference IS NULL OR preferences->>:preference = :retentionDaysText)`
+      : `preferences->>:preference = :retentionDaysText`;
+
+    return {
+      where: Sequelize.literal(
+        `EXISTS (
+          SELECT 1 FROM teams
+          WHERE teams.id = "document"."teamId"
+          AND ${matchesPreference}
+        )`
+      ),
+      replacements: {
+        preference,
+        retentionDaysText: String(retentionDays),
+      },
+    };
   }
 
   static withMembershipScope(

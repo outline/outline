@@ -1,5 +1,5 @@
 import Logger from "@server/logging/Logger";
-import { getRetentionPeriodsInUse } from "@server/utils/retention";
+import { Team } from "@server/models";
 import { TeamPreference } from "@shared/types";
 import { Minute } from "@shared/utils/time";
 import { TaskPriority } from "./base/BaseTask";
@@ -15,7 +15,7 @@ export default class ExpireDocumentsInTrashTask extends CronTask {
    */
   public async perform(props: Props) {
     const task = new ExpireDocumentsInTrashByRetentionTask();
-    const retentionPeriods = await getRetentionPeriodsInUse(
+    const retentionPeriods = await Team.getRetentionPeriodsInUse(
       TeamPreference.TrashRetentionDays
     );
 
