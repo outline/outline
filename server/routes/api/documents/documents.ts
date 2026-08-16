@@ -996,6 +996,7 @@ router.post(
       DocumentHelper.toMarkdown(document, {
         signedUrls,
         teamId: user.teamId,
+        commonMark: true,
       });
 
     // A TextBundle is a directory of files, so unlike the other formats it has
