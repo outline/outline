@@ -29,7 +29,7 @@ export default class ExpireDocumentsInTrashTask extends CronTask {
 
     Logger.debug(
       "task",
-      `Scheduled ${retentionPeriods.length} tranches for marking documents for permanent deletion`
+      `Scheduled ${retentionPeriods.length} tranches for expiring documents from trash`
     );
   }
 
