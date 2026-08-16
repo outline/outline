@@ -21,7 +21,9 @@ type Props = {
 
 export const Footer = observer(({ document }: Props) => {
   const user = useCurrentUser({ rejectOnEmpty: false });
-  const showStats = !!user?.getPreference(UserPreference.ShowDocumentStats);
+  const showStats =
+    !!user?.getPreference(UserPreference.ShowDocumentStats) &&
+    !document.isDeleted;
   const context = useActionContext();
 
   const handleToggleStats = useCallback(
