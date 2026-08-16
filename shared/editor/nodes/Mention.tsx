@@ -277,10 +277,10 @@ export default class Mention extends Node {
         ) {
           const mentionType = selection.node.attrs.type;
 
-          let link: string;
+          let link: string | undefined;
 
           if (isExternalMention(mentionType)) {
-            link = selection.node.attrs.href;
+            link = sanitizeUrl(selection.node.attrs.href);
           } else {
             const { modelId } = selection.node.attrs;
 
@@ -296,7 +296,9 @@ export default class Mention extends Node {
             }`;
           }
 
-          this.editor.props.onClickLink?.(link);
+          if (link) {
+            this.editor.props.onClickLink?.(link);
+          }
           return true;
         }
         return false;
