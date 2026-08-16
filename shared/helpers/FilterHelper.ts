@@ -25,11 +25,12 @@ export type ComparisonOperator = z.infer<typeof ComparisonOperator>;
 export const LogicalOperator = z.enum(["AND", "OR"]);
 export type LogicalOperator = z.infer<typeof LogicalOperator>;
 
+// Dates cross the wire as ISO 8601 strings, so no Date member here – one would
+// fail every field kind anyway, and it cannot be represented in JSON Schema.
 export const FilterValue = z.union([
   z.string(),
   z.number(),
   z.boolean(),
-  z.date(),
   z.array(z.string()),
   z.array(z.number()),
 ]);

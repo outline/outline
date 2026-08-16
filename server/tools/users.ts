@@ -2,11 +2,12 @@ import { z } from "zod";
 import { Op, Sequelize } from "sequelize";
 import type { WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { UserRole } from "@shared/types";
 import { User, Team } from "@server/models";
 import {
   buildWhere,
-  legacyUserParamsToFilter,
+  combineFilters,
+  hasFieldInFilter,
+  UsersFilterListSchema,
 } from "@server/models/helpers/Filters";
 import { authorize, can } from "@server/policies";
 import { presentUser } from "@server/presenters";
@@ -33,7 +34,8 @@ export function userTools(server: McpServer, scopes: string[]) {
       "list_users",
       {
         title: "List users",
-        description: "Lists users in the workspace.",
+        description:
+          "Lists users in the workspace. Returns non-suspended users unless the filters say otherwise.",
         annotations: {
           idempotentHint: true,
           readOnlyHint: true,
@@ -42,21 +44,19 @@ export function userTools(server: McpServer, scopes: string[]) {
           query: optionalString().describe(
             "An optional search query to filter users by name or email."
           ),
-          role: z
-            .enum([
-              UserRole.Admin,
-              UserRole.Member,
-              UserRole.Viewer,
-              UserRole.Guest,
-            ])
-            .optional()
-            .describe("Filter users by role."),
-          filter: z
-            .enum(["active", "suspended", "invited", "all"])
-            .optional()
-            .describe(
-              "Filter users by status. Defaults to active, non-suspended users. Note filtering by 'suspended' is only available to admins."
-            ),
+          filters: UsersFilterListSchema.optional().describe(
+            [
+              "Filter expressions, combined with AND. Each entry is either a condition",
+              "{ field, operator, value } or a group { operator: 'AND' | 'OR', filters: [...] }.",
+              "Fields: id, name, email, role, createdAt, updatedAt, lastActiveAt, suspendedAt.",
+              "Operators: eq, neq, lt, lte, gt, gte, contains, startsWith, endsWith, in, notIn, isNull, isNotNull.",
+              "Date fields take an ISO 8601 date, or a duration relative to now such as '-P30D'.",
+              "The role field accepts admin, member, viewer or guest, with eq, neq, in or notIn only.",
+              "Users who have never signed in have lastActiveAt isNull.",
+              "Suspended users are excluded unless an expression references suspendedAt,",
+              "and are only ever visible to admins.",
+            ].join(" ")
+          ),
           offset: z.coerce
             .number()
             .int()
@@ -76,7 +76,7 @@ export function userTools(server: McpServer, scopes: string[]) {
       },
       withTracing(
         "list_users",
-        async ({ query, role, filter, offset, limit }, extra) => {
+        async ({ query, filters, offset, limit }, extra) => {
           try {
             const actor = getActorFromContext(extra);
             const team = await Team.findByPk(actor.teamId, {
@@ -94,20 +94,20 @@ export function userTools(server: McpServer, scopes: string[]) {
               [Op.and]: [],
             };
 
-            const userFilter = legacyUserParamsToFilter({
-              role,
-              status: filter,
-              isAdmin: actor.isAdmin,
-            });
+            const filter = combineFilters(filters);
 
             // Suspended users are only ever visible to admins, and then only
-            // when a specific status was requested. Matches users.list.
-            if (!(actor.isAdmin && filter)) {
+            // when the expression references suspendedAt. Matches users.list.
+            const includeSuspended =
+              actor.isAdmin &&
+              filter !== undefined &&
+              hasFieldInFilter(filter, "suspendedAt");
+            if (!includeSuspended) {
               where[Op.and].push({ suspendedAt: { [Op.is]: null } });
             }
 
-            if (userFilter) {
-              where[Op.and].push(buildWhere<User>(userFilter));
+            if (filter) {
+              where[Op.and].push(buildWhere<User>(filter));
             }
 
             if (query) {

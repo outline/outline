@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { createFilterSchema } from "@shared/helpers/FilterHelper";
 import {
   NotificationBadgeType,
   NotificationEventType,
@@ -7,7 +6,10 @@ import {
   UserRole,
 } from "@shared/types";
 import { locales } from "@shared/utils/date";
-import { UserStatusFilters } from "@server/models/helpers/Filters";
+import {
+  UsersFilterListSchema,
+  UserStatusFilters,
+} from "@server/models/helpers/Filters";
 import User from "@server/models/User";
 import { zodEnumFromObjectKeys, zodTimezone } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
@@ -15,26 +17,6 @@ import { BaseSchema } from "../schema";
 const BaseIdSchema = z.object({
   id: z.uuid(),
 });
-
-const userFilterFields = {
-  id: { kind: "uuid", operators: ["eq", "neq", "in", "notIn"] },
-  name: "string",
-  email: "string",
-  // `role` is an enum column, so both the operators and the values it accepts
-  // are constrained – a pattern match or an unknown role would error at the
-  // database.
-  role: {
-    kind: "string",
-    operators: ["eq", "neq", "in", "notIn"],
-    values: Object.values(UserRole),
-  },
-  createdAt: "date",
-  updatedAt: "date",
-  lastActiveAt: "date",
-  suspendedAt: "date",
-} as const;
-
-const usersListFilter = createFilterSchema(userFilterFields);
 
 export const UsersListSchema = z
   .object({
@@ -89,7 +71,7 @@ export const UsersListSchema = z
        * Suspended users are excluded unless the expression references
        * `suspendedAt`, and are never returned to non-admins.
        */
-      filters: usersListFilter.FilterListSchema.optional(),
+      filters: UsersFilterListSchema.optional(),
     }),
   })
   .refine(

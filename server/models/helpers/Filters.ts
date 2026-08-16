@@ -5,7 +5,10 @@ import type {
   FilterCondition,
   FilterGroup,
 } from "@shared/helpers/FilterHelper";
-import { RANGE_OPERATORS } from "@shared/helpers/FilterHelper";
+import {
+  createFilterSchema,
+  RANGE_OPERATORS,
+} from "@shared/helpers/FilterHelper";
 import type { DateFilter, StatusFilter } from "@shared/types";
 import { StatusFilter as StatusFilterEnum, UserRole } from "@shared/types";
 import { Collection } from "@server/models";
@@ -477,6 +480,30 @@ export async function authorizeFilterFields(
     authorize(user, "readDocument", collection);
   }
 }
+
+/**
+ * Columns of User that a filter expression may reference. `role` is an enum
+ * column, so both its operators and its values are constrained – a pattern
+ * match or an unknown role would error at the database.
+ */
+export const UserFilterFields = {
+  id: { kind: "uuid", operators: ["eq", "neq", "in", "notIn"] },
+  name: "string",
+  email: "string",
+  role: {
+    kind: "string",
+    operators: ["eq", "neq", "in", "notIn"],
+    values: Object.values(UserRole),
+  },
+  createdAt: "date",
+  updatedAt: "date",
+  lastActiveAt: "date",
+  suspendedAt: "date",
+} as const;
+
+/** Wire-level schema for the `filters` parameter of the user listing surfaces. */
+export const UsersFilterListSchema =
+  createFilterSchema(UserFilterFields).FilterListSchema;
 
 /** Deprecated `filter` values accepted by users.list. */
 export const UserStatusFilters = [
