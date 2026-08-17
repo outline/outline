@@ -125,9 +125,6 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   personalOwnerId?: string | null;
 
-  @Relation(() => User)
-  personalOwner: User | undefined;
-
   /**
    * The collection that this document belongs to.
    */

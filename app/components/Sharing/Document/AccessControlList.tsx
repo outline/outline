@@ -173,27 +173,15 @@ export const AccessControlList = observer(
                   invitedInSession={invitedInSession}
                 />
               )}
-              {document.isPersonal ? (
+              {document.isPersonalToMe ? (
                 <ListItem
                   image={
                     <Squircle color={theme.accent} size={AvatarSize.Medium}>
                       <PadlockIcon color={theme.accentText} size={16} />
                     </Squircle>
                   }
-                  title={
-                    document.isPersonalToMe
-                      ? t("Personal")
-                      : t("Personal to {{ name }}", {
-                          name: document.personalOwner?.name,
-                        })
-                  }
-                  subtitle={
-                    document.isPersonalToMe
-                      ? t("Only people you invite have access")
-                      : t("Only people {{ name }} invites have access", {
-                          name: document.personalOwner?.name,
-                        })
-                  }
+                  title={t("Personal")}
+                  subtitle={t("Only people you invite have access")}
                 />
               ) : (
                 <ListItem
