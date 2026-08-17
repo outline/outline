@@ -9091,6 +9091,67 @@ describe("#documents.move - personal", () => {
     expect(membership).not.toBeNull();
   });
 
+  it("should make a document moved under a personal document personal too", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const child = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, parentDocumentId: parent.id },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    await child.reload();
+    expect(document.publishedAt).not.toBeNull();
+    expect(document.parentDocumentId).toEqual(parent.id);
+    expect(document.collectionId).toBeNull();
+    expect(document.personalOwnerId).toEqual(user.id);
+    expect(child.parentDocumentId).toEqual(document.id);
+    expect(child.collectionId).toBeNull();
+    expect(child.personalOwnerId).toEqual(user.id);
+  });
+
+  it("should keep a personal document personal when nesting it under another", async () => {
+    const user = await buildUser();
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, parentDocumentId: parent.id },
+    });
+    expect(res.status).toEqual(200);
+
+    await document.reload();
+    expect(document.publishedAt).not.toBeNull();
+    expect(document.parentDocumentId).toEqual(parent.id);
+    expect(document.collectionId).toBeNull();
+    expect(document.personalOwnerId).toEqual(user.id);
+  });
+
   it("should clear the personal owner when moving back into a collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({

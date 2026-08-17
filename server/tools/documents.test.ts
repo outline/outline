@@ -5,6 +5,7 @@ import {
   buildCollection,
   buildDocument,
   buildDraftDocument,
+  buildPersonalDocument,
   buildTemplate,
   buildOAuthAuthentication,
   buildGroup,
@@ -987,6 +988,35 @@ describe("move_document - personal", () => {
     });
     expect(membership).not.toBeNull();
     expect(membership!.sourceId).toBeNull();
+  });
+
+  it("makes a document moved under a personal document personal too", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "move_document", {
+      id: document.id,
+      parentDocumentId: parent.id,
+    });
+    expect(res?.result?.isError).not.toBe(true);
+
+    await document.reload();
+    expect(document.parentDocumentId).toEqual(parent.id);
+    expect(document.collectionId).toBeNull();
+    expect(document.personalOwnerId).toEqual(user.id);
+    expect(document.publishedAt).toBeTruthy();
   });
 });
 

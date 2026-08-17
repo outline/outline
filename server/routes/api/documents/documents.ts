@@ -1649,7 +1649,8 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsMoveReq>) => {
     const { transaction } = ctx.state;
-    const { id, parentDocumentId, personalOwnerId, index } = ctx.input.body;
+    const { id, parentDocumentId, index } = ctx.input.body;
+    let personalOwnerId = ctx.input.body.personalOwnerId;
     let collectionId = ctx.input.body.collectionId;
     const { user } = ctx.state.auth;
     const document = await Document.findByPk(id, {
@@ -1667,7 +1668,10 @@ router.post(
         transaction,
       });
       authorize(user, "update", parent);
+      // A nested document inherits the location of its parent, so a document
+      // moved under a personal document becomes personal too.
       collectionId = parent.collectionId;
+      personalOwnerId = parent.personalOwnerId;
 
       if (!parent.publishedAt) {
         throw InvalidRequestError("Cannot move document inside a draft");

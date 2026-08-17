@@ -552,10 +552,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             authorize(user, "move", document);
 
             let collectionId = input.collectionId;
-            const personalOwnerId = resolveUserId(
-              input.personalOwnerId,
-              user.id
-            );
+            let personalOwnerId = resolveUserId(input.personalOwnerId, user.id);
 
             if (personalOwnerId) {
               assertDocumentLocation({ ...input, personalOwnerId });
@@ -573,7 +570,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
               });
 
               authorize(user, "update", parent);
-              collectionId = parent.collectionId!;
+              // A nested document inherits the location of its parent, so a
+              // document moved under a personal document becomes personal too.
+              collectionId = parent.collectionId ?? undefined;
+              personalOwnerId = parent.personalOwnerId ?? null;
 
               if (!parent.publishedAt) {
                 throw ValidationError("Cannot move document inside a draft");
