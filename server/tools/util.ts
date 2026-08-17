@@ -52,16 +52,6 @@ export function buildAPIContext(context: McpContext) {
   } as unknown as APIContext;
 }
 
-/**
- * Builds a zod schema for an optional string MCP tool input that coerces
- * empty strings to `undefined`. MCP clients sometimes send `""` for fields
- * the caller intended to omit. Use this for identifier, query, and similar
- * fields where `""` is not a meaningful value — keep `z.string().optional()`
- * for content/text fields where an empty string is a valid input (e.g.
- * clearing a description).
- *
- * @returns a zod schema accepting `string | undefined`, with `""` treated as `undefined`.
- */
 /** Tokens an MCP caller may use in place of their own user id. */
 const SelfTokens = new Set(["self", "me", "current_user"]);
 
@@ -113,6 +103,16 @@ export function assertDocumentLocation(input: {
   }
 }
 
+/**
+ * Builds a zod schema for an optional string MCP tool input that coerces
+ * empty strings to `undefined`. MCP clients sometimes send `""` for fields
+ * the caller intended to omit. Use this for identifier, query, and similar
+ * fields where `""` is not a meaningful value — keep `z.string().optional()`
+ * for content/text fields where an empty string is a valid input (e.g.
+ * clearing a description).
+ *
+ * @returns a zod schema accepting `string | undefined`, with `""` treated as `undefined`.
+ */
 export function optionalString() {
   return z
     .string()
