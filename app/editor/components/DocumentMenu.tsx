@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
-import { StatusFilter } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import useStores from "~/hooks/useStores";
 import type { MentionMenuItem } from "~/editor/menus/mention";
@@ -53,7 +52,10 @@ function DocumentMenu({ search = "", isActive, ...rest }: Props) {
           ? documents.searchTitles({
               query,
               limit: MaxResults,
-              statusFilter: [StatusFilter.Published],
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNotNull" },
+              ],
             })
           : documents.fetchRecentlyViewed({ limit: MaxDefaultResults }));
       } catch {

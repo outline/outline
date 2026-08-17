@@ -302,8 +302,12 @@ function findDocumentSiblingIndex(
  */
 function canCreateSiblingDocument(
   stores: ActionContext["stores"],
-  document: { collectionId?: string | null; parentDocumentId?: string }
+  document: Document
 ): boolean {
+  if (document.isDeleted) {
+    return false;
+  }
+
   return document.parentDocumentId
     ? stores.policies.abilities(document.parentDocumentId).createChildDocument
     : !!document.collectionId &&
@@ -441,6 +445,9 @@ export const createNewDocument = createActionWithChildren({
     if (!stores.policies.abilities(currentTeamId).createDocument) {
       return false;
     }
+    if (stores.documents.get(activeDocumentId)?.isDeleted) {
+      return false;
+    }
     return !isAlphabeticallySorted(stores, activeDocumentId);
   },
   children: [createDocumentBefore, createDocumentAfter, createNestedDocument],
@@ -489,6 +496,7 @@ export const starDocument = createAction({
       Document,
       (document) =>
         !document.isStarred &&
+        !document.isDeleted &&
         context.stores.policies.abilities(document.id).star
     ),
   perform: async (context) => {
@@ -744,7 +752,6 @@ export const downloadDocumentAsMarkdown = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Markdown,
-      includeChildDocuments: false,
     });
   },
 });
@@ -766,7 +773,6 @@ export const downloadDocumentAsHTML = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Html,
-      includeChildDocuments: false,
     });
   },
 });
@@ -789,7 +795,6 @@ export const downloadDocumentAsTextBundle = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.TextBundle,
-      includeChildDocuments: false,
     });
   },
 });
@@ -815,7 +820,6 @@ export const downloadDocumentAsPDF = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Pdf,
-      includeChildDocuments: false,
     });
   },
 });
@@ -1727,7 +1731,13 @@ export const toggleDocumentStats = createAction({
   icon: <HashtagIcon />,
   selected: ({ stores }) =>
     !!stores.auth.user?.getPreference(UserPreference.ShowDocumentStats),
-  visible: ({ activeDocumentId }) => !!activeDocumentId && !isMobile(),
+  visible: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+
+    return !!activeDocumentId && !document?.isDeleted && !isMobile();
+  },
   perform: async ({ stores }) => {
     const { user } = stores.auth;
     if (!user) {

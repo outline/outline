@@ -1,10 +1,5 @@
 import type { JSONNode } from "../../test/editor";
-import { extensionManager, findNodes, schema } from "../../test/editor";
-
-const parser = extensionManager.parser({
-  schema,
-  plugins: extensionManager.rulePlugins,
-});
+import { findNodes, parser } from "../../test/editor";
 
 const parseToJSON = (markdown: string): JSONNode | undefined =>
   parser.parse(markdown)?.toJSON();

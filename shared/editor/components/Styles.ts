@@ -585,6 +585,13 @@ width: 100%;
   }
 }
 
+.${EditorStyleHelper.suggestionTrigger} {
+  background: ${props.theme.mentionBackground};
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px ${props.theme.mentionBackground};
+  box-decoration-break: clone;
+}
+
 > div {
   background: transparent;
 }
@@ -2459,6 +2466,41 @@ table {
 
   > .${EditorStyleHelper.tableGrip} {
     display: none;
+  }
+}
+
+.${EditorStyleHelper.tableStickyColumn} {
+  // The padding of the scroll container also holds the column back, so the
+  // column stops at the same place it sits when the table is not scrolled.
+  > .${EditorStyleHelper.tableScrollable} > table > tbody > tr > th[data-first-column] {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  // The first cell is part of both the sticky row and column, so it goes above both.
+  &.${EditorStyleHelper.tableStickyHeader} > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th[data-first-column] {
+    z-index: 3;
+  }
+
+  // Move the scroll shadow from the edge of the table to the edge of the column.
+  &.${EditorStyleHelper.tableShadowLeft} {
+    &::before {
+      box-shadow: none;
+    }
+
+    > .${EditorStyleHelper.tableScrollable} > table > tbody > tr > th[data-first-column]::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      bottom: -1px;
+      right: -${EditorStyleHelper.padding}px;
+      width: ${EditorStyleHelper.padding}px;
+      pointer-events: none;
+      box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
+        props.theme.isDark ? 1 : 0.25
+      });
+    }
   }
 }
 

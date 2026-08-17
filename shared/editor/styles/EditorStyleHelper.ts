@@ -89,6 +89,11 @@ export class EditorStyleHelper {
   /** Notice block content area */
   static readonly noticeContent = "content";
 
+  // Suggestions
+
+  /** Trigger character and search term while a suggestion menu is open */
+  static readonly suggestionTrigger = "suggestion-trigger";
+
   // Checkbox Lists
 
   /** Checkbox list wrapper */
@@ -134,6 +139,9 @@ export class EditorStyleHelper {
 
   /** Sticky header state */
   static readonly tableStickyHeader = "table-sticky-header";
+
+  /** Sticky first column state */
+  static readonly tableStickyColumn = "table-sticky-column";
 
   /** Drop indicator for table drag and drop */
   static readonly tableDragDropIndicator = "table-drag-drop-indicator";

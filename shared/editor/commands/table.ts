@@ -64,7 +64,7 @@ function restoreColumnSelection(
     const map = TableMap.get(table);
     const pos = map.positionAt(0, columnIndex, table);
     const $pos = tr.doc.resolve(tableStart + pos);
-    tr.setSelection(ColumnSelection.colSelection($pos));
+    tr.setSelection(ColumnSelection.colSelection($pos, $pos, columnIndex));
   }
 }
 
@@ -852,34 +852,98 @@ export function setTableAttr(attrs: { layout: TableLayout | null }): Command {
   };
 }
 
+/**
+ * Select a row in the table.
+ *
+ * @param index The index of the row to select.
+ * @param expand Whether to extend the existing selection to include every row
+ * between its anchor and the given row.
+ * @returns A command that selects the row.
+ */
 export function selectRow(index: number, expand = false): Command {
   return (state: EditorState, dispatch): boolean => {
     if (dispatch) {
       const rect = selectedRect(state);
       const pos = rect.map.positionAt(index, 0, rect.table);
       const $pos = state.doc.resolve(rect.tableStart + pos);
-      const rowSelection =
-        expand && state.selection instanceof CellSelection
-          ? RowSelection.rowSelection(state.selection.$anchorCell, $pos, index)
-          : RowSelection.rowSelection($pos, $pos, index);
-      dispatch(state.tr.setSelection(rowSelection));
+      const { selection } = state;
+      const expandFrom =
+        expand && selection instanceof CellSelection ? selection : undefined;
+
+      if (expandFrom) {
+        // Keep the anchor where the selection started so that the rows between
+        // it and the clicked row are all included.
+        const anchorIndex =
+          expandFrom instanceof RowSelection
+            ? expandFrom.anchorIndex
+            : rect.map.findCell(expandFrom.$anchorCell.pos - rect.tableStart)
+                .top;
+
+        dispatch(
+          state.tr.setSelection(
+            RowSelection.rowSelection(
+              expandFrom.$anchorCell,
+              $pos,
+              anchorIndex,
+              index
+            )
+          )
+        );
+        return true;
+      }
+
+      dispatch(
+        state.tr.setSelection(RowSelection.rowSelection($pos, $pos, index))
+      );
       return true;
     }
     return false;
   };
 }
 
+/**
+ * Select a column in the table.
+ *
+ * @param index The index of the column to select.
+ * @param expand Whether to extend the existing selection to include every
+ * column between its anchor and the given column.
+ * @returns A command that selects the column.
+ */
 export function selectColumn(index: number, expand = false): Command {
   return (state, dispatch): boolean => {
     if (dispatch) {
       const rect = selectedRect(state);
       const pos = rect.map.positionAt(0, index, rect.table);
       const $pos = state.doc.resolve(rect.tableStart + pos);
-      const colSelection =
-        expand && state.selection instanceof CellSelection
-          ? ColumnSelection.colSelection(state.selection.$anchorCell, $pos)
-          : ColumnSelection.colSelection($pos);
-      dispatch(state.tr.setSelection(colSelection));
+      const { selection } = state;
+      const expandFrom =
+        expand && selection instanceof CellSelection ? selection : undefined;
+
+      if (expandFrom) {
+        // Keep the anchor where the selection started so that the columns
+        // between it and the clicked column are all included.
+        const anchorIndex =
+          expandFrom instanceof ColumnSelection
+            ? expandFrom.anchorIndex
+            : rect.map.findCell(expandFrom.$anchorCell.pos - rect.tableStart)
+                .left;
+
+        dispatch(
+          state.tr.setSelection(
+            ColumnSelection.colSelection(
+              expandFrom.$anchorCell,
+              $pos,
+              anchorIndex,
+              index
+            )
+          )
+        );
+        return true;
+      }
+
+      dispatch(
+        state.tr.setSelection(ColumnSelection.colSelection($pos, $pos, index))
+      );
       return true;
     }
     return false;

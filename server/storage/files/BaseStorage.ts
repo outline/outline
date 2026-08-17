@@ -7,7 +7,7 @@ import { omit } from "es-toolkit/compat";
 import { toError, errToString } from "@shared/utils/error";
 import FileHelper from "@shared/editor/lib/FileHelper";
 import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
-import { Week } from "@shared/utils/time";
+import { Minute, Week } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type { RequestInit } from "@server/utils/fetch";
@@ -23,6 +23,40 @@ export default abstract class BaseStorage {
    * AWS S3 Signature V4 presigned URLs must have an expiration date less than one week in the future.
    */
   public static maxSignedUrlExpires = Week.seconds;
+
+  /**
+   * The longest period over which the signing timestamp is held constant. See
+   * `getSigningDate` for why this matters.
+   */
+  public static maxSigningWindow = 15 * Minute.seconds;
+
+  /**
+   * Rounds the current time down to a fixed window so that repeated signatures
+   * of the same file produce an identical URL. Without this every signature is
+   * unique and caches can never be reused, which means the same file is
+   * downloaded again for each URL.
+   *
+   * The window never exceeds half of the requested lifetime, so a returned URL
+   * is always valid for at least half of `expiresIn`. Because the window only
+   * moves the signing time backwards, a URL never outlives the lifetime it
+   * would have had without it.
+   *
+   * @param expiresIn The number of seconds until the signed URL expires.
+   * @returns The timestamp to sign with.
+   */
+  protected static getSigningDate(expiresIn: number): Date {
+    const window = Math.min(
+      BaseStorage.maxSigningWindow,
+      Math.floor(expiresIn / 2)
+    );
+
+    if (window < 1) {
+      return new Date();
+    }
+
+    const windowMs = window * 1000;
+    return new Date(Math.floor(Date.now() / windowMs) * windowMs);
+  }
 
   /**
    * Returns a presigned post for uploading files to the storage provider.

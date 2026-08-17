@@ -15,6 +15,12 @@ export interface Options {
   complexSteps?: boolean;
   wordDiffs?: boolean;
   simplifyDiff?: boolean;
+  /**
+   * Maximum allowed product of patch operation count and document node size.
+   * Recreating steps copies and validates the full document once per
+   * operation, so cost grows with this product. When exceeded, init throws.
+   */
+  maxComplexity?: number;
 }
 
 export class RecreateTransform {
@@ -23,6 +29,7 @@ export class RecreateTransform {
   complexSteps: boolean;
   wordDiffs: boolean;
   simplifyDiff: boolean;
+  maxComplexity?: number;
   schema: Schema;
   tr: Transform;
   /* current working document data, may get updated while recalculating node steps */
@@ -44,6 +51,7 @@ export class RecreateTransform {
     this.complexSteps = o.complexSteps; // Whether to return steps other than ReplaceSteps
     this.wordDiffs = o.wordDiffs; // Whether to make text diffs cover entire words
     this.simplifyDiff = o.simplifyDiff;
+    this.maxComplexity = o.maxComplexity;
     this.schema = fromDoc.type.schema;
     this.tr = new Transform(fromDoc);
     this.currentJSON = {};
@@ -58,15 +66,17 @@ export class RecreateTransform {
       // any mapping changes anyway.
       this.currentJSON = removeMarks(this.fromDoc).toJSON();
       this.finalJSON = removeMarks(this.toDoc).toJSON();
-      this.ops = createPatch(this.currentJSON, this.finalJSON);
-      this.recreateChangeContentSteps();
-      this.recreateChangeMarkSteps();
     } else {
       // We don't differentiate between mark changes and other changes.
       this.currentJSON = this.fromDoc.toJSON();
       this.finalJSON = this.toDoc.toJSON();
-      this.ops = createPatch(this.currentJSON, this.finalJSON);
-      this.recreateChangeContentSteps();
+    }
+
+    this.recalculateOps();
+    this.recreateChangeContentSteps();
+
+    if (this.complexSteps) {
+      this.recreateChangeMarkSteps();
     }
 
     if (this.simplifyDiff) {
@@ -74,6 +84,20 @@ export class RecreateTransform {
     }
 
     return this.tr;
+  }
+
+  /** compute json-diff ops from the current to the final document, enforcing maxComplexity */
+  recalculateOps() {
+    this.ops = createPatch(this.currentJSON, this.finalJSON);
+
+    if (this.maxComplexity !== undefined) {
+      const size = Math.max(this.fromDoc.nodeSize, this.toDoc.nodeSize);
+      if (this.ops.length * size > this.maxComplexity) {
+        throw new Error(
+          `Diff exceeds maxComplexity: ${this.ops.length} operations on document of size ${size}`
+        );
+      }
+    }
   }
 
   /** convert json-diff to prosemirror steps */
@@ -162,7 +186,7 @@ export class RecreateTransform {
       }
       this.currentJSON = removeMarks(this.tr.doc).toJSON();
       // setting the node markup may have invalidated the following ops, so we calculate them again.
-      this.ops = createPatch(this.currentJSON, this.finalJSON);
+      this.recalculateOps();
       return true;
     }
     return false;

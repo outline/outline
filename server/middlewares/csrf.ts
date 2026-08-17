@@ -7,6 +7,7 @@ import {
   generateRawToken,
   bundleToken,
   unbundleToken,
+  getCookieName,
   getTokenFromCookie,
 } from "@server/utils/csrf";
 import { CSRF } from "@shared/constants";
@@ -22,20 +23,15 @@ export function attachCSRFToken() {
     if (["GET", "HEAD", "OPTIONS"].includes(ctx.method)) {
       const raw = generateRawToken(16);
       const bundled = bundleToken(raw, env.SECRET_KEY);
-      const secure = ctx.request.secure;
 
       // Set cookie that JavaScript can read (not HttpOnly). Unlike the UI hint
       // cookies, this one is deliberately host-only and never scoped to the
       // base domain
-      ctx.cookies.set(
-        secure ? CSRF.secureCookieName : CSRF.cookieName,
-        bundled,
-        {
-          httpOnly: false,
-          sameSite: "lax",
-          secure,
-        }
-      );
+      ctx.cookies.set(getCookieName(ctx), bundled, {
+        httpOnly: false,
+        sameSite: "lax",
+        secure: ctx.request.secure,
+      });
     }
 
     await next();

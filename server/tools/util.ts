@@ -2,6 +2,7 @@ import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { errToString } from "@shared/utils/error";
+import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import { Collection, Share, type Team, type User } from "@server/models";
 import { addTags } from "@server/logging/tracer";
@@ -46,6 +47,7 @@ export function buildAPIContext(context: McpContext) {
   return {
     state: { auth },
     context: { auth, ip },
+    request: { secure: env.URL.startsWith("https://") },
     cookies: { get: () => undefined, set: () => undefined },
   } as unknown as APIContext;
 }

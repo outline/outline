@@ -1,3 +1,4 @@
+import { Hour, Minute, Week } from "@shared/utils/time";
 import BaseStorage from "./BaseStorage";
 import env from "@server/env";
 
@@ -63,9 +64,71 @@ class MockStorage extends BaseStorage {
   async moveFile() {}
 
   async deleteFile() {}
+
+  static signingDateFor(expiresIn: number) {
+    return MockStorage.getSigningDate(expiresIn);
+  }
 }
 
 describe("BaseStorage", () => {
+  describe("getSigningDate", () => {
+    // A time deliberately offset from a window boundary, so that rounding is
+    // exercised and two calls cannot straddle a boundary.
+    const now = new Date("2026-04-16T12:07:31.500Z");
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(now);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("should return the same date for calls within a window", () => {
+      const first = MockStorage.signingDateFor(Hour.seconds);
+      vi.setSystemTime(new Date("2026-04-16T12:08:01.500Z"));
+      const second = MockStorage.signingDateFor(Hour.seconds);
+      expect(second.getTime()).toBe(first.getTime());
+    });
+
+    it("should round down to the start of the window", () => {
+      // The window is capped at 15 minutes, so 12:07:31.500 rounds to 12:00.
+      const signingDate = MockStorage.signingDateFor(Hour.seconds);
+      expect(signingDate.toISOString()).toBe("2026-04-16T12:00:00.000Z");
+    });
+
+    it("should move to the next window once the boundary passes", () => {
+      const first = MockStorage.signingDateFor(Hour.seconds);
+      vi.setSystemTime(new Date("2026-04-16T12:22:31.500Z"));
+      const second = MockStorage.signingDateFor(Hour.seconds);
+      expect(second.getTime()).toBeGreaterThan(first.getTime());
+    });
+
+    it("should align to a window no longer than half the lifetime", () => {
+      // The lifetime is shorter than the cap, so the window halves to 5
+      // minutes and 12:07:31.500 rounds to 12:05.
+      const expiresIn = 10 * Minute.seconds;
+      const signingDate = MockStorage.signingDateFor(expiresIn);
+      const elapsed = now.getTime() - signingDate.getTime();
+
+      expect(signingDate.toISOString()).toBe("2026-04-16T12:05:00.000Z");
+      expect(elapsed).toBeGreaterThanOrEqual(0);
+      expect(elapsed).toBeLessThanOrEqual((expiresIn / 2) * 1000);
+    });
+
+    it("should cap the window so long lifetimes stay predictable", () => {
+      const signingDate = MockStorage.signingDateFor(Week.seconds);
+      const elapsed = now.getTime() - signingDate.getTime();
+      expect(elapsed).toBeLessThanOrEqual(BaseStorage.maxSigningWindow * 1000);
+    });
+
+    it("should not align a lifetime too short to divide", () => {
+      const signingDate = MockStorage.signingDateFor(1);
+      expect(signingDate.getTime()).toBe(now.getTime());
+    });
+  });
+
   describe("getPresignedPut", () => {
     it("should return undefined from default implementation", async () => {
       const storage = new MockStorage();

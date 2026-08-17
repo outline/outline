@@ -8,23 +8,39 @@ export class RowSelection extends CellSelection {
   constructor(
     public $anchorCell: ResolvedPos,
     public $headCell: ResolvedPos,
-    public $index: number = 0
+    public anchorIndex: number = 0,
+    public headIndex: number = anchorIndex
   ) {
     super($anchorCell, $headCell);
+  }
+
+  /**
+   * Check whether a row is part of the selection.
+   *
+   * @param index the visual index of the row.
+   * @returns true if the row is within the selected range.
+   */
+  containsRow(index: number): boolean {
+    return (
+      index >= Math.min(this.anchorIndex, this.headIndex) &&
+      index <= Math.max(this.anchorIndex, this.headIndex)
+    );
   }
 
   getBookmark(): RowBookmark {
     return new RowBookmark(
       this.$anchorCell.pos,
       this.$headCell.pos,
-      this.$index
+      this.anchorIndex,
+      this.headIndex
     );
   }
 
   public static rowSelection(
     $anchorCell: ResolvedPos,
     $headCell: ResolvedPos = $anchorCell,
-    $index: number = 0
+    anchorIndex: number = 0,
+    headIndex: number = anchorIndex
   ): CellSelection {
     const table = $anchorCell.node(-1);
     const map = TableMap.get(table);
@@ -55,7 +71,7 @@ export class RowSelection extends CellSelection {
         );
       }
     }
-    return new RowSelection($anchorCell, $headCell, $index);
+    return new RowSelection($anchorCell, $headCell, anchorIndex, headIndex);
   }
 }
 
@@ -63,14 +79,16 @@ export class RowBookmark {
   constructor(
     public anchor: number,
     public head: number,
-    public index: number = 0
+    public anchorIndex: number = 0,
+    public headIndex: number = anchorIndex
   ) {}
 
   map(mapping: Mappable): RowBookmark {
     return new RowBookmark(
       mapping.map(this.anchor),
       mapping.map(this.head),
-      this.index
+      this.anchorIndex,
+      this.headIndex
     );
   }
 
@@ -84,7 +102,12 @@ export class RowBookmark {
       $headCell.index() < $headCell.parent.childCount &&
       inSameTable($anchorCell, $headCell)
     ) {
-      return new RowSelection($anchorCell, $headCell);
+      return new RowSelection(
+        $anchorCell,
+        $headCell,
+        this.anchorIndex,
+        this.headIndex
+      );
     } else {
       return Selection.near($headCell, 1);
     }

@@ -33,6 +33,8 @@ type Props = {
   hidden?: boolean;
   /** Whether the sidebar can be collapsed, defaults to true. */
   canCollapse?: boolean;
+  /** Whether to show the account menu for the signed-in user, defaults to true. */
+  showAccountMenu?: boolean;
   /** CSS class name(s) to apply to the sidebar container. */
   className?: string;
   /** Content to render inside the sidebar. */
@@ -40,7 +42,13 @@ type Props = {
 };
 
 const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
-  { children, hidden = false, canCollapse = true, className }: Props,
+  {
+    children,
+    hidden = false,
+    canCollapse = true,
+    showAccountMenu = true,
+    className,
+  }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
@@ -279,7 +287,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
       >
         {children}
 
-        {user && (
+        {user && showAccountMenu && (
           <AccountMenu>
             <SidebarButton
               showMoreMenu

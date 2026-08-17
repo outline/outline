@@ -3,7 +3,7 @@ import Router from "koa-router";
 import { traceFunction } from "@server/logging/tracing";
 import isUUID from "validator/lib/isUUID";
 import { MentionType, UnfurlResourceType } from "@shared/types";
-import { getBaseDomain } from "@shared/utils/domains";
+import { parseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { isInternalUrl, parseShareIdFromUrl } from "@shared/utils/urls";
@@ -295,14 +295,13 @@ router.post(
       throw ValidationError("Invalid domain");
     }
 
-    if (addresses.length === 0) {
+    const address = addresses[0];
+    if (!address) {
       throw ValidationError("No CNAME record found");
     }
 
-    const address = addresses[0];
-    const likelyValid = address.endsWith(getBaseDomain());
-
-    if (!likelyValid) {
+    // the record must point at the base domain, or a subdomain of it
+    if (parseDomain(address).custom) {
       throw ValidationError("CNAME is not configured correctly");
     }
 
