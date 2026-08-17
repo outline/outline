@@ -1,0 +1,29 @@
+diff --git a/node_modules/buffer-equal-constant-time/index.js b/node_modules/buffer-equal-constant-time/index.js
+index 1111111..2222222 100644
+--- a/node_modules/buffer-equal-constant-time/index.js
++++ b/node_modules/buffer-equal-constant-time/index.js
+@@ -28,14 +28,21 @@
+ }
+ 
+ bufferEq.install = function() {
+-  Buffer.prototype.equal = SlowBuffer.prototype.equal = function equal(that) {
++  Buffer.prototype.equal = function equal(that) {
+     return bufferEq(this, that);
+   };
++  // SlowBuffer was removed in Node.js 25+. Guard so requiring this package
++  // does not crash on modern runtimes.
++  if (SlowBuffer) {
++    SlowBuffer.prototype.equal = Buffer.prototype.equal;
++  }
+ };
+ 
+ var origBufEqual = Buffer.prototype.equal;
+-var origSlowBufEqual = SlowBuffer.prototype.equal;
++var origSlowBufEqual = SlowBuffer && SlowBuffer.prototype.equal;
+ bufferEq.restore = function() {
+   Buffer.prototype.equal = origBufEqual;
+-  SlowBuffer.prototype.equal = origSlowBufEqual;
++  if (SlowBuffer) {
++    SlowBuffer.prototype.equal = origSlowBufEqual;
++  }
+ };
