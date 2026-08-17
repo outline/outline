@@ -13,7 +13,7 @@ import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { findWrapping } from "prosemirror-transform";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 } from "uuid";
-import Storage from "../../utils/Storage";
+import { LRUCache } from "../../utils/LRUCache";
 import {
   deleteSelectionPreservingBody,
   joinForwardPreservingBody,
@@ -65,6 +65,18 @@ export const toggleEventPluginKey = new PluginKey("toggleBlockEvent");
 
 /** Build the localStorage key used to persist a toggle block's fold state. */
 export const toggleStorageKey = (id: string) => `toggle:${id}`;
+
+/**
+ * A bounded cache of fold state per toggle block id, mirrored to local
+ * storage. Bounding the cache keeps the number of stored keys from growing
+ * without limit as documents are visited; evicted blocks simply fall back to
+ * the default folded state.
+ */
+const foldStateCache = new LRUCache<{ fold: boolean }>({
+  max: 500,
+  namespace: "toggle",
+  persistTo: "local",
+});
 
 export default class ToggleBlock extends Node {
   get name() {
@@ -122,7 +134,7 @@ export default class ToggleBlock extends Node {
           blocksNeedingIds.forEach((block) => {
             const id = v4();
             tr!.setNodeAttribute(block.pos, "id", id);
-            Storage.set(toggleStorageKey(id), { fold: false });
+            foldStateCache.set(id, { fold: false });
           });
         }
 
@@ -200,7 +212,7 @@ export default class ToggleBlock extends Node {
               if (node?.attrs.id) {
                 newFoldedIds.add(node.attrs.id);
                 newKnownIds.add(node.attrs.id);
-                Storage.set(toggleStorageKey(node.attrs.id), { fold: true });
+                foldStateCache.set(node.attrs.id, { fold: true });
               }
               break;
             }
@@ -210,7 +222,7 @@ export default class ToggleBlock extends Node {
               if (node?.attrs.id) {
                 newFoldedIds.delete(node.attrs.id);
                 newKnownIds.add(node.attrs.id);
-                Storage.set(toggleStorageKey(node.attrs.id), { fold: false });
+                foldStateCache.set(node.attrs.id, { fold: false });
               }
               break;
             }
@@ -430,7 +442,7 @@ export default class ToggleBlock extends Node {
         if (!wrapping) {
           return false;
         }
-        Storage.set(toggleStorageKey(id), { fold: false });
+        foldStateCache.set(id, { fold: false });
         const tr = state.tr.wrap(range!, wrapping);
         dispatch?.(tr);
         return true;
@@ -444,7 +456,7 @@ export default class ToggleBlock extends Node {
           return false;
         }
 
-        Storage.set(toggleStorageKey(id), { fold: false });
+        foldStateCache.set(id, { fold: false });
         const tr = state.tr.wrap(range!, wrapping);
 
         // When a heading level is provided, make the toggle's title a heading
@@ -498,14 +510,10 @@ export default class ToggleBlock extends Node {
       .forEach((block) => {
         const id = block.node.attrs.id as string;
         knownIds.add(id);
-        const stored = Storage.get(toggleStorageKey(id));
+        const stored = foldStateCache.get(id);
         // Default to folded if no stored state
         if (stored?.fold !== false) {
           foldedIds.add(id);
-        }
-        // Ensure storage has a value
-        if (stored === null || stored === undefined) {
-          Storage.set(toggleStorageKey(id), { fold: true });
         }
       });
 
@@ -539,13 +547,10 @@ export default class ToggleBlock extends Node {
           return;
         }
         knownIds.add(id);
-        const stored = Storage.get(toggleStorageKey(id));
+        const stored = foldStateCache.get(id);
         // Default to folded if no stored state (new block from sync)
         if (stored?.fold !== false) {
           foldedIds.add(id);
-        }
-        if (stored === null || stored === undefined) {
-          Storage.set(toggleStorageKey(id), { fold: true });
         }
       });
 

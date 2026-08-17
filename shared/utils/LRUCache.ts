@@ -6,15 +6,15 @@ export interface LRUCacheOptions {
   max: number;
   /** Prefix under which entries are stored, used to namespace and version them. */
   namespace?: string;
-  /** Mirror entries to sessionStorage, requires a namespace. */
-  persistToSession?: boolean;
+  /** Mirror entries to the given web storage, requires a namespace. */
+  persistTo?: "local" | "session";
 }
 
 /**
  * A cache holding a bounded number of entries, evicting the least recently used
  * once full. Reading or writing an entry marks it as the most recently used.
  *
- * Entries are optionally mirrored to sessionStorage so that they survive a
+ * Entries are optionally mirrored to web storage so that they survive a
  * reload, in which case values must be JSON-serializable. Persisted values are
  * read back only when they are first accessed, so the cache holds no more in
  * memory than the session has used. Storage failures are ignored, leaving the
@@ -24,7 +24,7 @@ export class LRUCache<T> {
   public constructor(options: LRUCacheOptions) {
     this.max = options.max;
     this.namespace = options.namespace;
-    this.persistToSession = options.persistToSession;
+    this.persistTo = options.persistTo;
   }
 
   /**
@@ -128,7 +128,7 @@ export class LRUCache<T> {
 
   private max: number;
   private namespace?: string;
-  private persistToSession?: boolean;
+  private persistTo?: "local" | "session";
   // An entry is undefined while it is persisted but not yet read into memory.
   private data = new Map<string, T | undefined>();
   private storage?: Storage;
@@ -153,11 +153,11 @@ export class LRUCache<T> {
     }
     this.hydrated = true;
 
-    if (!this.persistToSession || !this.namespace) {
+    if (!this.persistTo || !this.namespace) {
       return;
     }
 
-    this.storage = new Storage("session");
+    this.storage = new Storage(this.persistTo);
 
     // A corrupt or absent index reads as undefined, leaving the cache empty.
     const keys: unknown = this.storage.get(this.keysKey);
