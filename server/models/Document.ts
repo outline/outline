@@ -562,9 +562,11 @@ class Document extends ArchivableModel<
       transaction,
     });
 
-    if (childDocumentIds.length) {
+    if (childDocumentIds.length && (model.collectionId || personalOwnerId)) {
       // hooks are skipped as the descendants inherit the location that has
-      // already been resolved on this document.
+      // already been resolved on this document. When the document becomes a
+      // draft with no home, descendants keep theirs — a published document
+      // cannot live nowhere.
       await this.update(
         { collectionId: model.collectionId ?? null, personalOwnerId },
         { where: { id: childDocumentIds }, transaction, hooks: false }

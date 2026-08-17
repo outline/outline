@@ -9258,6 +9258,36 @@ describe("#documents.move - personal", () => {
   });
 });
 
+describe("#documents.unpublish - personal", () => {
+  it("should unpublish a personal document with an archived child", async () => {
+    const user = await buildUser();
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const child = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      parentDocumentId: document.id,
+    });
+    await withAPIContext(user, (ctx) => child.archiveWithCtx(ctx));
+
+    const res = await server.post("/api/documents.unpublish", user, {
+      body: { id: document.id },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.publishedAt).toBeNull();
+    expect(body.data.personalOwnerId).toBeNull();
+
+    // The archived child keeps its personal home so that it stays reachable
+    // and can be restored in place.
+    await child.reload({ paranoid: false });
+    expect(child.archivedAt).not.toBeNull();
+    expect(child.personalOwnerId).toEqual(user.id);
+  });
+});
+
 describe("#documents.restore - personal", () => {
   it("should restore an archived personal document in place", async () => {
     const user = await buildUser();
