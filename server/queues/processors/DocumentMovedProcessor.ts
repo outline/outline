@@ -1,12 +1,5 @@
 import type { Transaction } from "sequelize";
-import { DocumentPermission } from "@shared/types";
-import { createContext } from "@server/context";
-import {
-  Document,
-  GroupMembership,
-  User,
-  UserMembership,
-} from "@server/models";
+import { Document, GroupMembership, UserMembership } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import type { DocumentMovedEvent, Event } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
@@ -58,24 +51,6 @@ export default class DocumentMovedProcessor extends BaseProcessor {
         transaction,
         document.id
       );
-
-      // Root memberships on the moved document itself cascade to its children,
-      // so they must be recreated as well.
-      const [ownUserMemberships, ownGroupMemberships] = await Promise.all([
-        UserMembership.findAll({
-          where: { documentId: document.id, sourceId: { [Op.eq]: null } },
-          transaction,
-        }),
-        GroupMembership.findAll({
-          where: { documentId: document.id, sourceId: { [Op.eq]: null } },
-          transaction,
-        }),
-      ]);
-
-      await this.recalculateUserMemberships(ownUserMemberships, transaction);
-      await this.recalculateGroupMemberships(ownGroupMemberships, transaction);
-
-      await this.destroyRedundantRootMemberships(document, event, transaction);
     });
   }
 
@@ -111,71 +86,6 @@ export default class DocumentMovedProcessor extends BaseProcessor {
       },
       transaction,
     });
-  }
-
-  /**
-   * Destroys direct root memberships on the moved document that have become
-   * redundant because the same user or group now inherits an equal or greater
-   * permission from the new parent. This prevents a document from appearing
-   * both nested under its parent and at the root of the sidebar.
-   */
-  private async destroyRedundantRootMemberships(
-    document: Document,
-    event: DocumentMovedEvent,
-    transaction: Transaction
-  ) {
-    if (!document.parentDocumentId) {
-      return;
-    }
-
-    const [userMemberships, groupMemberships, actor] = await Promise.all([
-      UserMembership.findAll({
-        where: { documentId: document.id },
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      }),
-      GroupMembership.findAll({
-        where: { documentId: document.id },
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      }),
-      User.findByPk(event.actorId, { transaction }),
-    ]);
-
-    if (!actor) {
-      return;
-    }
-
-    const rank: Record<string, number> = {
-      [DocumentPermission.Read]: 0,
-      [DocumentPermission.ReadWrite]: 1,
-      [DocumentPermission.Admin]: 2,
-    };
-    const { context } = createContext({ user: actor, transaction });
-
-    for (const membership of userMemberships.filter((m) => !m.sourceId)) {
-      const inherited = userMemberships.find(
-        (m) => m.sourceId && m.userId === membership.userId
-      );
-      if (
-        inherited &&
-        rank[inherited.permission] >= rank[membership.permission]
-      ) {
-        await membership.destroy(context);
-      }
-    }
-
-    for (const membership of groupMemberships.filter((m) => !m.sourceId)) {
-      const inherited = groupMemberships.find(
-        (m) => m.sourceId && m.groupId === membership.groupId
-      );
-      if (
-        inherited &&
-        rank[inherited.permission] >= rank[membership.permission]
-      ) {
-        await membership.destroy(context);
-      }
-    }
   }
 
   private async recalculateUserMemberships(

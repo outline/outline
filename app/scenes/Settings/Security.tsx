@@ -161,11 +161,11 @@ function Security() {
     [saveData, team.preferences]
   );
 
-  const handlePrivateDocsChange = React.useCallback(
+  const handlePersonalDocsChange = React.useCallback(
     async (checked: boolean) => {
       const preferences = {
         ...team.preferences,
-        [TeamPreference.PrivateDocs]: checked,
+        [TeamPreference.PersonalDocs]: checked,
       };
       await saveData({ preferences });
     },
@@ -398,16 +398,16 @@ function Security() {
         />
       </SettingRow>
       <SettingRow
-        label={t("Private documents")}
-        name={TeamPreference.PrivateDocs}
+        label={t("Personal documents")}
+        name={TeamPreference.PersonalDocs}
         description={t(
-          "Allow users to create private documents that are only visible to themselves and the people they share them with"
+          "Allow editors to create personal documents that are only visible to themselves and the people they share them with"
         )}
       >
         <Switch
-          id={TeamPreference.PrivateDocs}
-          checked={team.getPreference(TeamPreference.PrivateDocs)}
-          onChange={handlePrivateDocsChange}
+          id={TeamPreference.PersonalDocs}
+          checked={team.getPreference(TeamPreference.PersonalDocs)}
+          onChange={handlePersonalDocsChange}
         />
       </SettingRow>
       <SettingRow

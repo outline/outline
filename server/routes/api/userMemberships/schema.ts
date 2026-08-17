@@ -1,14 +1,8 @@
 import { z } from "zod";
-import { UserMembershipSection } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { ValidateIndex } from "@server/validation";
 
-export const UserMembershipsListSchema = BaseSchema.extend({
-  body: z.object({
-    /** Restricts the list to memberships in a sidebar section */
-    section: z.enum(UserMembershipSection).optional(),
-  }),
-});
+export const UserMembershipsListSchema = BaseSchema;
 
 export type UserMembershipsListReq = z.infer<typeof UserMembershipsListSchema>;
 

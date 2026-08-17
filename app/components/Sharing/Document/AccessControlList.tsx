@@ -163,26 +163,6 @@ export const AccessControlList = observer(
                 />
               )}
             </>
-          ) : document.isPrivate && !document.parentDocumentId ? (
-            <>
-              {showLoading ? (
-                <Placeholder />
-              ) : (
-                <DocumentMemberList
-                  document={document}
-                  invitedInSession={invitedInSession}
-                />
-              )}
-              <ListItem
-                image={
-                  <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                    <PadlockIcon color={theme.accentText} size={16} />
-                  </Squircle>
-                }
-                title={t("Private")}
-                subtitle={t("Only people invited to this document have access")}
-              />
-            </>
           ) : (
             <>
               {showLoading ? (
@@ -193,22 +173,46 @@ export const AccessControlList = observer(
                   invitedInSession={invitedInSession}
                 />
               )}
-              <ListItem
-                image={
-                  <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                    <MoreIcon color={theme.accentText} size={16} />
-                  </Squircle>
-                }
-                title={t("Other people")}
-                subtitle={t("Other workspace members may have access")}
-                actions={
-                  <AccessTooltip
-                    content={t(
-                      "This document may be shared with more workspace members through a parent document or collection you do not have access to"
-                    )}
-                  />
-                }
-              />
+              {document.isPersonal ? (
+                <ListItem
+                  image={
+                    <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                      <PadlockIcon color={theme.accentText} size={16} />
+                    </Squircle>
+                  }
+                  title={
+                    document.isPersonalToMe
+                      ? t("Personal")
+                      : t("Personal to {{ name }}", {
+                          name: document.personalOwner?.name,
+                        })
+                  }
+                  subtitle={
+                    document.isPersonalToMe
+                      ? t("Only people you invite have access")
+                      : t("Only people {{ name }} invites have access", {
+                          name: document.personalOwner?.name,
+                        })
+                  }
+                />
+              ) : (
+                <ListItem
+                  image={
+                    <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                      <MoreIcon color={theme.accentText} size={16} />
+                    </Squircle>
+                  }
+                  title={t("Other people")}
+                  subtitle={t("Other workspace members may have access")}
+                  actions={
+                    <AccessTooltip
+                      content={t(
+                        "This document may be shared with more workspace members through a parent document or collection you do not have access to"
+                      )}
+                    />
+                  }
+                />
+              )}
             </>
           )}
         </ScrollableContainer>

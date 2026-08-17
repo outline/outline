@@ -536,6 +536,50 @@ class Document extends ArchivableModel<
     return (model.urlId = model.urlId || generateUrlId());
   }
 
+  @BeforeSave
+  static enforceSingleHome(model: Document) {
+    // A document lives in a collection or in a person's own space, never in
+    // both. Normalising here rather than at each call site means the two
+    // columns are always written together, in one statement.
+    if (model.changed("personalOwnerId") && model.personalOwnerId) {
+      model.collectionId = null;
+    } else if (model.changed("collectionId") && model.collectionId) {
+      model.personalOwnerId = null;
+    }
+  }
+
+  @AfterCreate
+  @AfterUpdate
+  static async cascadePersonalOwner(model: Document, ctx: HookContext) {
+    if (!model.changed("personalOwnerId")) {
+      return;
+    }
+
+    const { transaction } = ctx;
+    const { personalOwnerId } = model;
+
+    const childDocumentIds = await model.findAllChildDocumentIds(undefined, {
+      transaction,
+    });
+
+    if (childDocumentIds.length) {
+      // hooks are skipped as the descendants inherit the location that has
+      // already been resolved on this document.
+      await this.update(
+        { collectionId: model.collectionId ?? null, personalOwnerId },
+        { where: { id: childDocumentIds }, transaction, hooks: false }
+      );
+    }
+
+    if (personalOwnerId && !model.parentDocumentId) {
+      await UserMembership.findOrCreateForPersonalDocument(
+        model,
+        personalOwnerId,
+        ctx
+      );
+    }
+  }
+
   @BeforeCreate
   static setDocumentVersion(model: Document) {
     if (model.version === undefined) {
@@ -696,6 +740,17 @@ class Document extends ArchivableModel<
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
+
+  @BelongsTo(() => User, "personalOwnerId")
+  personalOwner: User | null;
+
+  /**
+   * The user whose personal space this document lives in. Mutually exclusive
+   * with collectionId.
+   */
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  personalOwnerId?: string | null;
 
   @HasMany(() => UserMembership)
   memberships: UserMembership[];
@@ -1050,6 +1105,16 @@ class Document extends ArchivableModel<
   }
 
   /**
+   * Whether this document lives in a user's personal space rather than in a
+   * collection.
+   *
+   * @returns boolean
+   */
+  get isPersonal(): boolean {
+    return !!this.personalOwnerId;
+  }
+
+  /**
    * Returns the title of the document or a default if the document is untitled.
    *
    * @returns boolean
@@ -1314,6 +1379,7 @@ class Document extends ArchivableModel<
     this.createdBy = user;
     this.updatedBy = user;
     this.publishedAt = null;
+    this.personalOwnerId = null;
 
     if (options.detach) {
       this.collectionId = null;
@@ -1457,43 +1523,77 @@ class Document extends ArchivableModel<
   toNavigationNode = async (
     options?: FindOptions<Document> & { includeArchived?: boolean }
   ): Promise<NavigationNode> => {
-    // Checking if the record is new is a performance optimization – new docs cannot have children
-    const childDocuments = this.isNewRecord
-      ? []
-      : await (this.constructor as typeof Document).unscoped().findAll({
-          where: options?.includeArchived
-            ? {
-                teamId: this.teamId,
-                parentDocumentId: this.id,
-                publishedAt: {
-                  [Op.ne]: null,
-                },
-              }
-            : {
-                teamId: this.teamId,
-                parentDocumentId: this.id,
-                publishedAt: {
-                  [Op.ne]: null,
-                },
-                archivedAt: {
-                  [Op.is]: null,
-                },
-              },
-          transaction: options?.transaction,
-        });
+    const toNode = (row: {
+      id: string;
+      title: string;
+      urlId: string;
+      icon: string | null;
+      color: string | null;
+    }): NavigationNode => ({
+      id: row.id,
+      title: row.title,
+      url: Document.getPath({ title: row.title, urlId: row.urlId }),
+      icon: isNil(row.icon) ? undefined : row.icon,
+      color: isNil(row.color) ? undefined : row.color,
+      children: [],
+    });
 
-    const children = await Promise.all(
-      childDocuments.map((child) => child.toNavigationNode(options))
+    const self = toNode(this);
+
+    // Checking if the record is new is a performance optimization – new docs cannot have children
+    if (this.isNewRecord) {
+      return self;
+    }
+
+    // A single recursive CTE walks the whole subtree in one round-trip. A
+    // collection reads its tree from documentStructure, but a document outside
+    // one – a personal document, or a draft – has no such cache to read from.
+    const rows = await this.sequelize!.query<{
+      id: string;
+      title: string;
+      urlId: string;
+      icon: string | null;
+      color: string | null;
+      parentDocumentId: string;
+      depth: number;
+    }>(
+      `
+      WITH RECURSIVE descendants AS (
+        SELECT d.id, d.title, d."urlId", d.icon, d.color, d."parentDocumentId", 1 AS depth
+        FROM documents d
+        WHERE d."parentDocumentId" = :id
+          AND d."teamId" = :teamId
+          AND d."publishedAt" IS NOT NULL
+          AND d."deletedAt" IS NULL
+          ${options?.includeArchived ? "" : `AND d."archivedAt" IS NULL`}
+        UNION ALL
+        SELECT d.id, d.title, d."urlId", d.icon, d.color, d."parentDocumentId", descendants.depth + 1
+        FROM documents d
+        INNER JOIN descendants ON d."parentDocumentId" = descendants.id
+        WHERE d."publishedAt" IS NOT NULL
+          AND d."deletedAt" IS NULL
+          ${options?.includeArchived ? "" : `AND d."archivedAt" IS NULL`}
+      )
+      SELECT * FROM descendants ORDER BY depth
+      `,
+      {
+        replacements: { id: this.id, teamId: this.teamId },
+        transaction: options?.transaction,
+        type: QueryTypes.SELECT,
+      }
     );
 
-    return {
-      id: this.id,
-      title: this.title,
-      url: this.url,
-      icon: isNil(this.icon) ? undefined : this.icon,
-      color: isNil(this.color) ? undefined : this.color,
-      children,
-    };
+    // Rows arrive breadth-first, so a parent is always assembled before its
+    // children reach it.
+    const nodesById = new Map<string, NavigationNode>([[this.id, self]]);
+
+    for (const row of rows) {
+      const node = toNode(row);
+      nodesById.set(row.id, node);
+      nodesById.get(row.parentDocumentId)?.children.push(node);
+    }
+
+    return self;
   };
 
   private restoreArchivedWithChildren = async (

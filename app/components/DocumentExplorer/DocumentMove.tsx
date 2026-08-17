@@ -3,14 +3,14 @@ import { useState, useMemo } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import type { NavigationNode } from "@shared/types";
+import { NavigationNodeType } from "@shared/types";
 import { descendants, flattenTree } from "@shared/utils/tree";
 import type Document from "~/models/Document";
 import Button from "~/components/Button";
 import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
-import usePrivateDocumentsTree, {
-  PRIVATE_TREE_ID,
-} from "~/hooks/usePrivateDocumentsTree";
+import usePersonalDocumentsTree from "~/hooks/usePersonalDocumentsTree";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { FlexContainer, Footer } from "./Components";
 import DocumentExplorer from "./DocumentExplorer";
@@ -22,15 +22,14 @@ type Props = {
 function DocumentMove({ document }: Props) {
   const { dialogs, policies } = useStores();
   const { t } = useTranslation();
+  const user = useCurrentUser();
   const collectionTrees = useCollectionTrees();
-  const privateTree = usePrivateDocumentsTree();
+  const personalTrees = usePersonalDocumentsTree();
   const [moving, setMoving] = useState<boolean>(false);
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
 
   const items = useMemo(() => {
-    const trees = privateTree
-      ? [...collectionTrees, privateTree]
-      : collectionTrees;
+    const trees = [...collectionTrees, ...personalTrees];
 
     // Collect the IDs of the document itself and all of its descendants so they
     // can be excluded from the move targets (moving to self or a descendant
@@ -52,17 +51,17 @@ function DocumentMove({ document }: Props) {
         .map(filterSourceDocument),
     });
 
-    const nodes = trees
-      .map(filterSourceDocument)
-      // Filter out collections that we don't have permission to create documents in.
-      .filter((node) =>
-        node.collectionId
-          ? policies.get(node.collectionId)?.abilities.createDocument
-          : true
-      );
-
-    return nodes;
-  }, [policies, collectionTrees, privateTree, document.id]);
+    return (
+      trees
+        .map(filterSourceDocument)
+        // Filter out collections that we don't have permission to create documents in.
+        .filter((node) =>
+          node.collectionId
+            ? policies.get(node.collectionId)?.abilities.createDocument
+            : true
+        )
+    );
+  }, [policies, collectionTrees, personalTrees, document.id]);
 
   const move = async (path = selectedPath) => {
     if (!path) {
@@ -73,8 +72,8 @@ function DocumentMove({ document }: Props) {
     try {
       setMoving(true);
 
-      if (path.id === PRIVATE_TREE_ID) {
-        await document.move({ private: true });
+      if (path.type === NavigationNodeType.Personal) {
+        await document.move({ personalOwnerId: user.id });
       } else {
         const { type, id: parentDocumentId } = path;
 

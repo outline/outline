@@ -1,9 +1,14 @@
 import { z } from "zod";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import {
+  hasSingleHome,
+  SingleHomeMessage,
+} from "@server/routes/api/documents/schema";
 import documentCreator, {
   authorizeDocumentCreate,
   authorizeDocumentPublish,
+  authorizePersonalOwner,
 } from "@server/commands/documentCreator";
 import documentMover from "@server/commands/documentMover";
 import documentRestorer from "@server/commands/documentRestorer";
@@ -32,6 +37,7 @@ import {
   optionalString,
   pathToUrl,
   withTracing,
+  resolveUserId,
 } from "./util";
 import { ValidationError } from "@server/errors";
 import { StatusFilter, TextEditMode } from "@shared/types";
@@ -361,12 +367,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
           parentDocumentId: optionalString().describe(
             "The parent document ID to nest this document under."
           ),
-          private: z
-            .boolean()
-            .optional()
-            .describe(
-              "Set to true to create a private document, outside any collection, visible only to the creator and the people they share it with. Cannot be combined with collectionId or parentDocumentId."
-            ),
+          personalOwnerId: optionalString().describe(
+            'Pass "me" to create the document at the top level of your own personal space, outside any collection, visible only to you and the people you share it with. Cannot be combined with collectionId or parentDocumentId, which each place the document somewhere else. To create a personal document nested under another, pass only its parentDocumentId: a document nested under a personal document is personal too, and inherits who it is shared with.'
+          ),
           templateId: optionalString().describe(
             "The ID of a template to pre-fill the new document from. The template's title, content, icon, and color are used unless overridden by the corresponding parameters."
           ),
@@ -392,38 +395,26 @@ export function documentTools(server: McpServer, scopes: string[]) {
       },
       withTracing("create_document", async (input, context) => {
         try {
-          const {
-            collectionId,
-            parentDocumentId,
-            private: isPrivate,
-            templateId,
-          } = input;
+          const { collectionId, parentDocumentId, templateId } = input;
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
+          const personalOwnerId = resolveUserId(input.personalOwnerId, user.id);
 
-          if (isPrivate) {
-            if (collectionId || parentDocumentId) {
-              throw ValidationError(
-                "collectionId and parentDocumentId cannot be used with private"
-              );
-            }
-            if (input.publish === false) {
-              throw ValidationError(
-                "Private documents cannot be created as drafts"
-              );
-            }
-            if (input.format === "html") {
-              throw ValidationError(
-                "Private documents cannot be created from HTML content"
-              );
-            }
+          if (!hasSingleHome({ ...input, personalOwnerId })) {
+            throw ValidationError(SingleHomeMessage);
+          }
+          if (personalOwnerId && input.publish === false) {
+            throw ValidationError(
+              "publish is required when personalOwnerId is set"
+            );
           }
 
-          const { collection } = await authorizeDocumentCreate(ctx, {
-            collectionId,
-            parentDocumentId,
-            private: isPrivate,
-          });
+          const { collection, personalOwnerId: resolvedPersonalOwnerId } =
+            await authorizeDocumentCreate(ctx, {
+              collectionId,
+              parentDocumentId,
+              personalOwnerId,
+            });
 
           let template: Template | null | undefined;
           if (templateId) {
@@ -467,7 +458,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     color: input.color,
                     parentDocumentId,
                     publish: input.publish !== false,
-                    private: isPrivate,
+                    personalOwnerId: resolvedPersonalOwnerId,
                     collectionId: collection?.id,
                     template,
                     fullWidth: input.fullWidth,
@@ -518,12 +509,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
           parentDocumentId: optionalString().describe(
             "The ID of the document to nest this document under. The document will be moved to the parent's collection."
           ),
-          private: z
-            .boolean()
-            .optional()
-            .describe(
-              "Set to true to move the document to the user's private documents, outside any collection. Cannot be combined with collectionId or parentDocumentId."
-            ),
+          personalOwnerId: optionalString().describe(
+            'Pass "me" to move the document to the top level of your own personal space, outside any collection. Cannot be combined with collectionId or parentDocumentId, which each move it somewhere else. To move it under an existing personal document, pass only that document\'s parentDocumentId.'
+          ),
           index: z
             .number()
             .int()
@@ -552,14 +540,16 @@ export function documentTools(server: McpServer, scopes: string[]) {
             authorize(user, "move", document);
 
             let collectionId = input.collectionId;
+            const personalOwnerId = resolveUserId(
+              input.personalOwnerId,
+              user.id
+            );
 
-            if (input.private) {
-              if (collectionId || input.parentDocumentId) {
-                throw ValidationError(
-                  "collectionId and parentDocumentId cannot be used with private"
-                );
+            if (personalOwnerId) {
+              if (!hasSingleHome({ ...input, personalOwnerId })) {
+                throw ValidationError(SingleHomeMessage);
               }
-              authorize(user, "createPrivateDocument", user.team);
+              authorizePersonalOwner(ctx, personalOwnerId);
               collectionId = undefined;
             } else if (input.parentDocumentId) {
               if (input.parentDocumentId === input.id) {
@@ -595,7 +585,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
               document,
               collectionId: collectionId ?? null,
               parentDocumentId: input.parentDocumentId ?? null,
-              private: input.private,
+              personalOwnerId,
               index: input.index,
             });
 
@@ -674,12 +664,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Set to true to publish a draft document, or false to convert a published document back to a draft."
             ),
-          private: z
-            .boolean()
-            .optional()
-            .describe(
-              "When publishing a draft, set to true to publish it privately, outside any collection, visible only to the creator and the people they share it with. Cannot be combined with collectionId."
-            ),
+          personalOwnerId: optionalString().describe(
+            'When publishing a draft, pass "me" to publish it into your own personal space, outside any collection, visible only to you and the people you share it with. Cannot be combined with collectionId.'
+          ),
           fullWidth: z
             .boolean()
             .optional()
@@ -710,17 +697,22 @@ export function documentTools(server: McpServer, scopes: string[]) {
           } else {
             authorize(user, "update", document);
 
-            if (input.private && input.collectionId) {
-              throw ValidationError("collectionId cannot be used with private");
+            const personalOwnerId = resolveUserId(
+              input.personalOwnerId,
+              user.id
+            );
+
+            if (!hasSingleHome({ ...input, personalOwnerId })) {
+              throw ValidationError(SingleHomeMessage);
             }
 
+            let destination;
+
             if (input.publish) {
-              await authorizeDocumentPublish(
-                ctx,
-                document,
-                input.collectionId,
-                { private: input.private }
-              );
+              destination = await authorizeDocumentPublish(ctx, document, {
+                collectionId: input.collectionId,
+                personalOwnerId,
+              });
             }
 
             const { revisionCount } = document;
@@ -728,6 +720,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             updated = await documentUpdater(ctx, {
               document,
               ...input,
+              personalOwnerId: destination?.personalOwnerId,
             });
 
             // Every save increments revisionCount, so an unchanged count means

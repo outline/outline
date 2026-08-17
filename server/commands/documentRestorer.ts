@@ -67,21 +67,13 @@ async function documentRestorer(
     });
   }
 
-  if (document.deletedAt) {
-    authorize(user, "restore", document);
+  if (document.deletedAt || document.archivedAt) {
+    // restore a previously deleted or archived document
+    authorize(user, document.deletedAt ? "restore" : "unarchive", document);
     if (destCollection) {
       authorize(user, "updateDocument", destCollection);
     }
 
-    // restore a previously deleted document
-    await document.restoreTo(ctx, { collectionId: destCollection?.id ?? null });
-  } else if (document.archivedAt) {
-    authorize(user, "unarchive", document);
-    if (destCollection) {
-      authorize(user, "updateDocument", destCollection);
-    }
-
-    // restore a previously archived document
     await document.restoreTo(ctx, { collectionId: destCollection?.id ?? null });
   } else if (revisionId) {
     // restore a document to a specific revision

@@ -238,24 +238,24 @@ export const createDraftDocument = createInternalLinkAction({
   }),
 });
 
-export const createPrivateDocument = createInternalLinkAction({
+export const createPersonalDocument = createInternalLinkAction({
   name: ({ t }) => t("New doc"),
-  analyticsName: "New private document",
+  analyticsName: "New personal document",
   section: DocumentSection,
   icon: <PlusIcon />,
-  keywords: "create private personal",
+  keywords: "create personal private",
   visible: ({ currentTeamId, stores }) =>
     !!currentTeamId &&
-    stores.policies.abilities(currentTeamId).createPrivateDocument,
+    stores.policies.abilities(currentTeamId).createPersonalDocument,
   to: () => {
     const [pathname, search] = newDocumentPath(null, {
-      private: true,
+      personal: true,
     }).split("?");
 
     return {
       pathname,
       search,
-      state: { sidebarContext: "private" },
+      state: { sidebarContext: "personal" },
     };
   },
 });
@@ -1432,10 +1432,10 @@ export const restoreDocument = createAction({
       const can = context.stores.policies.abilities(document.id);
       // Documents outside any collection, such as private documents, are
       // restored in place.
-      const collectionActive = document.collectionId
-        ? !!collection?.isActive
-        : true;
-      return collectionActive && !!(can.restore || can.unarchive);
+      return (
+        (!document.collectionId || !!collection?.isActive) &&
+        !!(can.restore || can.unarchive)
+      );
     }),
   perform: (context) =>
     performBatchOnActiveModels(
@@ -1755,9 +1755,8 @@ export const leaveDocument = createAction({
       return false;
     }
 
-    // The creator cannot leave their own private document.
-    const document = stores.documents.get(activeDocumentId);
-    return !(document?.isPrivate && document.createdBy?.id === currentUserId);
+    // The owner cannot leave their own personal document.
+    return !stores.documents.get(activeDocumentId)?.isPersonalToMe;
   },
   perform: async ({ t, location, currentUserId, activeDocumentId, stores }) => {
     if (!activeDocumentId) {

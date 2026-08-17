@@ -635,6 +635,12 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         where[Op.or].push({ id: membershipDocumentIds });
       }
 
+      // Documents in the user's own personal space are reachable from the
+      // column, without depending on a membership record.
+      if (!options.collectionId) {
+        where[Op.or].push({ personalOwnerId: model.id });
+      }
+
       // Allow users to see their own drafts that have no collection, where no
       // membership or collection access applies. Drafts in collections remain
       // gated by the collection/membership checks above.

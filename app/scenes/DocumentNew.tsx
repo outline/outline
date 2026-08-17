@@ -31,7 +31,7 @@ function DocumentNew() {
 
     async function createDocument() {
       const index = parseInt(query.get("index") || "0", 10);
-      const isPrivate = query.get("private") === "true";
+      const isPersonal = query.get("personal") === "true";
       const parentDocumentId = query.get("parentDocumentId") ?? undefined;
       const parentDocument = parentDocumentId
         ? documents.get(parentDocumentId)
@@ -39,14 +39,14 @@ function DocumentNew() {
       let collection;
 
       try {
-        if (id && !isPrivate) {
+        if (id && !isPersonal) {
           collection = await collections.fetch(id);
         }
 
         const document = await documents.create(
           {
             collectionId: collection?.id,
-            parentDocumentId: isPrivate ? undefined : parentDocumentId,
+            parentDocumentId: isPersonal ? undefined : parentDocumentId,
             fullWidth:
               parentDocument?.fullWidth ||
               user.getPreference(UserPreference.FullWidthDocuments),
@@ -56,16 +56,16 @@ function DocumentNew() {
           },
           {
             publish:
-              isPrivate || collection?.id || parentDocumentId
+              isPersonal || collection?.id || parentDocumentId
                 ? true
                 : undefined,
-            private: isPrivate || undefined,
+            personalOwnerId: isPersonal ? user.id : undefined,
             index,
           }
         );
 
-        if (isPrivate) {
-          void userMemberships.fetchPrivatePage();
+        if (isPersonal) {
+          void documents.fetchPersonal();
         }
 
         if (parentDocumentId) {

@@ -1,6 +1,5 @@
 import invariant from "invariant";
 import { action, runInAction, computed } from "mobx";
-import { UserMembershipSection } from "@shared/types";
 import UserMembership from "~/models/UserMembership";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -36,44 +35,9 @@ export default class UserMembershipsStore extends Store<UserMembership> {
    * @param params pagination params to pass to the API.
    * @returns the memberships fetched.
    */
-  fetchSharedPage = (params?: PaginationParams): Promise<UserMembership[]> =>
-    this.fetchPage({
-      ...params,
-      section: UserMembershipSection.SharedWithMe,
-    });
-
-  /**
-   * Fetches a page of memberships for the current user's private documents.
-   *
-   * @param params pagination params to pass to the API.
-   * @returns the memberships fetched.
-   */
-  fetchPrivatePage = (params?: PaginationParams): Promise<UserMembership[]> =>
-    this.fetchPage({
-      ...params,
-      section: UserMembershipSection.Private,
-    });
-
   @action
-  fetchPage = async (
-    params?: PaginationParams & { section?: UserMembershipSection }
-  ): Promise<UserMembership[]> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/userMemberships.list`, params);
-      invariant(res?.data, "Data not available");
-
-      return runInAction(`UserMembershipsStore#fetchPage`, () => {
-        res.data.documents.forEach(this.rootStore.documents.add);
-        this.addPolicies(res.policies);
-        this.isLoaded = true;
-        return res.data.memberships.map(this.add);
-      });
-    } finally {
-      this.isFetching = false;
-    }
-  };
+  fetchPage = (params?: PaginationParams): Promise<UserMembership[]> =>
+    this.fetchNamedPage("/userMemberships.list", params);
 
   @action
   fetchDocumentMemberships = async (
@@ -152,5 +116,27 @@ export default class UserMembershipsStore extends Store<UserMembership> {
     return document?.parentDocumentId
       ? this.getByDocumentId(document.parentDocumentId)
       : undefined;
+  };
+
+  /** Loads a page from one of the membership listing endpoints into the store. */
+  private fetchNamedPage = async (
+    path: string,
+    params?: PaginationParams
+  ): Promise<UserMembership[]> => {
+    this.isFetching = true;
+
+    try {
+      const res = await client.post(path, params);
+      invariant(res?.data, "Data not available");
+
+      return runInAction(`UserMembershipsStore#fetchNamedPage`, () => {
+        res.data.documents.forEach(this.rootStore.documents.add);
+        this.addPolicies(res.policies);
+        this.isLoaded = true;
+        return res.data.memberships.map(this.add);
+      });
+    } finally {
+      this.isFetching = false;
+    }
   };
 }

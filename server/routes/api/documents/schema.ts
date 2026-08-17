@@ -13,6 +13,29 @@ import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
 
+/** Tokens accepted in place of the acting user's own id. */
+export const SingleHomeMessage =
+  "personalOwnerId cannot be combined with collectionId or parentDocumentId, pass parentDocumentId alone to nest under an existing personal document";
+
+/**
+ * A document lives in exactly one place: a collection, a parent document, or a
+ * personal space. Shared by the create, update and move schemas and by the
+ * equivalent MCP tools so that both enforce the same rule.
+ *
+ * @param body the request body to check.
+ * @returns whether at most one location was given.
+ */
+export function hasSingleHome(body: {
+  collectionId?: string | null;
+  parentDocumentId?: string | null;
+  personalOwnerId?: string | null;
+}): boolean {
+  return !(
+    body.personalOwnerId &&
+    (body.collectionId || body.parentDocumentId)
+  );
+}
+
 const DocumentsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */
   sort: z
@@ -140,6 +163,12 @@ export const DocumentsDraftsSchema = BaseSchema.extend({
 });
 
 export type DocumentsDraftsReq = z.infer<typeof DocumentsDraftsSchema>;
+
+export const DocumentsPersonalSchema = BaseSchema.extend({
+  body: z.object({}),
+});
+
+export type DocumentsPersonalReq = z.infer<typeof DocumentsPersonalSchema>;
 
 export const DocumentsInfoSchema = BaseSchema.extend({
   body: z.object({
@@ -285,8 +314,8 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
-    /** Boolean to denote if the doc should be published privately, outside any collection */
-    private: z.boolean().optional(),
+    /** The personal space to publish the doc into, instead of a collection */
+    personalOwnerId: z.uuid().nullish(),
 
     /** Doc template Id */
     templateId: z.uuid().nullish(),
@@ -340,8 +369,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
       message: "findText is required when using patch editMode",
     }
   )
-  .refine((req) => !(req.body.private && req.body.collectionId), {
-    message: "collectionId cannot be used with private",
+  .refine((req) => hasSingleHome(req.body), { message: SingleHomeMessage })
+  .refine((req) => !(req.body.personalOwnerId && !req.body.publish), {
+    message: "publish is required when personalOwnerId is set",
   })
   .transform((req) => {
     // Transform deprecated append to editMode for backwards compatibility
@@ -362,8 +392,8 @@ export const DocumentsMoveSchema = BaseSchema.extend({
     /** Parent Id, in case if the doc is moved to a new parent */
     parentDocumentId: z.uuid().nullish(),
 
-    /** Whether to move the doc to be private, outside any collection */
-    private: z.boolean().optional(),
+    /** The personal space to move the doc into, outside any collection */
+    personalOwnerId: z.uuid().nullish(),
 
     /** Helps evaluate the new index in collection structure upon move */
     index: z.number().gte(0).optional(),
@@ -372,16 +402,7 @@ export const DocumentsMoveSchema = BaseSchema.extend({
   .refine((req) => !(req.body.parentDocumentId === req.body.id), {
     message: "infinite loop detected, cannot nest a document inside itself",
   })
-  .refine(
-    (req) =>
-      !(
-        req.body.private &&
-        (req.body.collectionId || req.body.parentDocumentId)
-      ),
-    {
-      message: "collectionId and parentDocumentId cannot be used with private",
-    }
-  );
+  .refine((req) => hasSingleHome(req.body), { message: SingleHomeMessage });
 
 export type DocumentsMoveReq = z.infer<typeof DocumentsMoveSchema>;
 
@@ -466,8 +487,8 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
-    /** Boolean to denote if the doc should be private to the creator, outside any collection */
-    private: z.boolean().optional(),
+    /** The personal space to create the doc in, instead of a collection */
+    personalOwnerId: z.uuid().nullish(),
 
     /** Collection to create document within  */
     collectionId: z.uuid().nullish(),
@@ -499,24 +520,16 @@ export const DocumentsCreateSchema = BaseSchema.extend({
         req.body.publish &&
         !req.body.parentDocumentId &&
         !req.body.collectionId &&
-        !req.body.private
+        !req.body.personalOwnerId
       ),
     {
-      message: "collectionId or parentDocumentId is required to publish",
+      message:
+        "collectionId, parentDocumentId or personalOwnerId is required to publish",
     }
   )
-  .refine(
-    (req) =>
-      !(
-        req.body.private &&
-        (req.body.collectionId || req.body.parentDocumentId)
-      ),
-    {
-      message: "collectionId and parentDocumentId cannot be used with private",
-    }
-  )
-  .refine((req) => !(req.body.private && !req.body.publish), {
-    message: "publish is required when private",
+  .refine((req) => hasSingleHome(req.body), { message: SingleHomeMessage })
+  .refine((req) => !(req.body.personalOwnerId && !req.body.publish), {
+    message: "publish is required when personalOwnerId is set",
   });
 
 export type DocumentsCreateReq = z.infer<typeof DocumentsCreateSchema>;

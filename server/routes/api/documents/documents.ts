@@ -8,6 +8,7 @@ import { escapeRegExp, has, remove, uniq } from "es-toolkit/compat";
 import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
+import { sequelize } from "@server/storage/database";
 import { randomUUID } from "node:crypto";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
@@ -25,6 +26,7 @@ import { Day } from "@shared/utils/time";
 import documentCreator, {
   authorizeDocumentCreate,
   authorizeDocumentPublish,
+  authorizePersonalOwner,
 } from "@server/commands/documentCreator";
 import documentDuplicator from "@server/commands/documentDuplicator";
 import documentLoader from "@server/commands/documentLoader";
@@ -169,7 +171,10 @@ router.post(
     } else if (!backlinkDocumentId) {
       const collectionIds = await user.collectionIds();
       where[Op.and].push({
-        collectionId: collectionIds,
+        [Op.or]: [
+          { collectionId: collectionIds },
+          { personalOwnerId: user.id },
+        ],
       });
     }
 
@@ -389,7 +394,10 @@ router.post(
       const collectionIds = await user.collectionIds();
       where = {
         ...where,
-        collectionId: collectionIds,
+        [Op.or]: [
+          { collectionId: collectionIds },
+          { personalOwnerId: user.id },
+        ],
       };
     }
 
@@ -444,9 +452,13 @@ router.post(
               [Op.in]: collectionIds,
             },
           },
+          { personalOwnerId: user.id },
           {
             createdById: user.id,
             collectionId: {
+              [Op.is]: null,
+            },
+            personalOwnerId: {
               [Op.is]: null,
             },
           },
@@ -492,7 +504,10 @@ router.post(
           required: true,
           where: {
             teamId: user.teamId,
-            collectionId: collectionIds,
+            [Op.or]: [
+              { collectionId: collectionIds },
+              { personalOwnerId: user.id },
+            ],
           },
         },
       ],
@@ -512,6 +527,64 @@ router.post(
       pagination: ctx.state.pagination,
       data,
       policies,
+    };
+  }
+);
+
+router.post(
+  "documents.personal",
+  auth(),
+  pagination(),
+  validate(T.DocumentsPersonalSchema),
+  async (ctx: APIContext<T.DocumentsPersonalReq>) => {
+    const { user } = ctx.state.auth;
+
+    // The list is driven by the document column rather than by memberships, so
+    // a document is never hidden by a missing membership – the membership is
+    // joined only to order the list, and one that is absent sorts last.
+    const documents = await Document.scope([
+      "defaultScope",
+      { method: ["withMembership", user.id] },
+    ]).findAll({
+      where: {
+        teamId: user.teamId,
+        personalOwnerId: user.id,
+        parentDocumentId: {
+          [Op.is]: null,
+        },
+        archivedAt: {
+          [Op.is]: null,
+        },
+      },
+      order: [
+        // A correlated subquery rather than the joined alias, which is not in
+        // scope for ORDER BY once a limit turns the query into a subquery.
+        Sequelize.literal(
+          `(
+            SELECT um."index" FROM user_permissions um
+            WHERE um."documentId" = "document"."id"
+              AND um."userId" = ${sequelize.escape(user.id)}
+              AND um."sourceId" IS NULL
+            LIMIT 1
+          ) collate "C" ASC NULLS LAST`
+        ),
+        ["updatedAt", "DESC"],
+      ],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
+
+    const memberships = documents.flatMap((document) =>
+      document.memberships.filter((membership) => !membership.sourceId)
+    );
+
+    ctx.body = {
+      pagination: ctx.state.pagination,
+      data: {
+        documents: await presentDocuments(ctx, documents),
+        memberships: memberships.map(presentMembership),
+      },
+      policies: presentPolicies(user, [...documents, ...memberships]),
     };
   }
 );
@@ -1330,7 +1403,7 @@ router.post(
       id,
       insightsEnabled,
       publish,
-      private: isPrivate,
+      personalOwnerId,
       collectionId,
       ...input
     } = ctx.input.body;
@@ -1351,9 +1424,12 @@ router.post(
       authorize(user, "updateInsights", document);
     }
 
+    let destination;
+
     if (publish) {
-      await authorizeDocumentPublish(ctx, document, collectionId, {
-        private: isPrivate,
+      destination = await authorizeDocumentPublish(ctx, document, {
+        collectionId,
+        personalOwnerId,
       });
     }
 
@@ -1361,7 +1437,7 @@ router.post(
       document,
       ...input,
       publish,
-      private: isPrivate,
+      personalOwnerId: destination?.personalOwnerId,
       collectionId,
       insightsEnabled,
       editorVersion,
@@ -1460,7 +1536,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsMoveReq>) => {
     const { transaction } = ctx.state;
-    const { id, parentDocumentId, private: isPrivate, index } = ctx.input.body;
+    const { id, parentDocumentId, personalOwnerId, index } = ctx.input.body;
     let collectionId = ctx.input.body.collectionId;
     const { user } = ctx.state.auth;
     const document = await Document.findByPk(id, {
@@ -1469,8 +1545,8 @@ router.post(
     });
     authorize(user, "move", document);
 
-    if (isPrivate) {
-      authorize(user, "createPrivateDocument", user.team);
+    if (personalOwnerId) {
+      authorizePersonalOwner(ctx, personalOwnerId);
       collectionId = null;
     } else if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
@@ -1497,7 +1573,7 @@ router.post(
       document,
       collectionId: collectionId ?? null,
       parentDocumentId,
-      private: isPrivate,
+      personalOwnerId,
       index,
     });
 
@@ -1698,7 +1774,7 @@ router.post(
       icon,
       color,
       publish,
-      private: isPrivate,
+      personalOwnerId,
       index,
       collectionId,
       parentDocumentId,
@@ -1711,11 +1787,12 @@ router.post(
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
 
-    const { collection } = await authorizeDocumentCreate(ctx, {
-      collectionId,
-      parentDocumentId,
-      private: isPrivate,
-    });
+    const { collection, personalOwnerId: resolvedPersonalOwnerId } =
+      await authorizeDocumentCreate(ctx, {
+        collectionId,
+        parentDocumentId,
+        personalOwnerId,
+      });
 
     let template: Template | null | undefined;
 
@@ -1744,7 +1821,7 @@ router.post(
       color,
       createdAt,
       publish,
-      private: isPrivate,
+      personalOwnerId: resolvedPersonalOwnerId,
       index,
       collectionId: collection?.id,
       parentDocumentId,
@@ -1897,9 +1974,9 @@ router.post(
       );
     }
 
-    if (!document.collectionId && userId === document.createdById) {
+    if (document.isPersonal && userId === document.personalOwnerId) {
       throw ValidationError(
-        "The creator cannot be removed from a private document"
+        "The owner cannot be removed from their own personal document"
       );
     }
 
@@ -2161,9 +2238,13 @@ router.post(
               [Op.in]: collectionIds,
             },
           },
+          { personalOwnerId: user.id },
           {
             createdById: user.id,
             collectionId: {
+              [Op.is]: null,
+            },
+            personalOwnerId: {
               [Op.is]: null,
             },
           },

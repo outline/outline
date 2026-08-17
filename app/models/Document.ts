@@ -119,6 +119,16 @@ export default class Document extends ArchivableModel implements Searchable {
   collectionId?: string | null;
 
   /**
+   * The id of the user whose personal space this document lives in, if any.
+   * Mutually exclusive with collectionId.
+   */
+  @observable
+  personalOwnerId?: string | null;
+
+  @Relation(() => User)
+  personalOwner: User | undefined;
+
+  /**
    * The collection that this document belongs to.
    */
   @Relation(() => Collection, { onDelete: "cascade" })
@@ -392,12 +402,19 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   /**
-   * Whether the document is published outside of any collection and only
-   * accessible through direct membership.
+   * Whether this document lives in a user's personal space rather than in a
+   * collection.
    */
   @computed
-  get isPrivate(): boolean {
-    return !this.collectionId && !this.isDraft;
+  get isPersonal(): boolean {
+    return !!this.personalOwnerId;
+  }
+
+  /** Whether this document lives in the current user's own personal space. */
+  @computed
+  get isPersonalToMe(): boolean {
+    const { auth } = this.store.rootStore;
+    return !!this.personalOwnerId && this.personalOwnerId === auth.user?.id;
   }
 
   get hasEmptyTitle(): boolean {
@@ -603,7 +620,7 @@ export default class Document extends ArchivableModel implements Searchable {
   move = (options: {
     collectionId?: string | null;
     parentDocumentId?: string;
-    private?: boolean;
+    personalOwnerId?: string | null;
   }) => this.store.move({ documentId: this.id, ...options });
 
   duplicate = (options?: {

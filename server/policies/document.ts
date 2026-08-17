@@ -18,13 +18,13 @@ allow(User, "createDocument", Team, (actor, document) =>
   )
 );
 
-allow(User, "createPrivateDocument", Team, (actor, team) =>
+allow(User, "createPersonalDocument", Team, (actor, team) =>
   and(
     !actor.isGuest,
     !actor.isViewer,
     isTeamModel(actor, team),
     isTeamMutable(actor),
-    !!team?.getPreference(TeamPreference.PrivateDocs)
+    !!team?.getPreference(TeamPreference.PersonalDocs)
   )
 );
 
@@ -38,6 +38,7 @@ allow(User, "read", Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       and(!!document?.isDraft, actor.id === document?.createdById),
+      isPersonalOwner(actor, document),
       can(actor, "readDocument", document?.collection)
     )
   )
@@ -94,21 +95,7 @@ allow(User, "share", Document, (actor, document) =>
 );
 
 allow(User, "update", Document, (actor, document) =>
-  and(
-    !!document?.isActive,
-    isTeamMutable(actor),
-    can(actor, "read", document),
-    or(
-      includesMembership(document, [
-        DocumentPermission.ReadWrite,
-        DocumentPermission.Admin,
-      ]),
-      or(
-        can(actor, "updateDocument", document?.collection),
-        and(!!document?.isDraft && actor.id === document?.createdById)
-      )
-    )
-  )
+  and(canModify(actor, document), isWritableLocation(actor, document))
 );
 
 allow(User, "publish", Document, (actor, document) =>
@@ -123,10 +110,12 @@ allow(User, "manageUsers", Document, (actor, document) =>
   and(
     isTeamMutable(actor),
     can(actor, "read", document),
+    isWritableLocation(actor, document),
     or(
       includesMembership(document, [DocumentPermission.Admin]),
       isTeamAdmin(actor, document),
       can(actor, "update", document?.collection),
+      isPersonalOwner(actor, document),
       !!document?.isDraft && actor.id === document?.createdById
     )
   )
@@ -145,13 +134,14 @@ allow(User, "duplicate", Document, (actor, document) =>
 
 allow(User, "move", Document, (actor, document) =>
   and(
-    can(actor, "update", document),
+    canModify(actor, document),
     or(
       includesMembership(document, [
         DocumentPermission.ReadWrite,
         DocumentPermission.Admin,
       ]),
       can(actor, "updateDocument", document?.collection),
+      isPersonalOwner(actor, document),
       and(!!document?.isDraft && actor.id === document?.createdById),
       and(!!document?.isDraft && !document?.collection)
     )
@@ -209,6 +199,7 @@ allow(User, "restore", Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       can(actor, "updateDocument", document?.collection),
+      isPersonalOwner(actor, document),
       and(!!document?.isDraft && actor.id === document?.createdById)
     )
   )
@@ -227,10 +218,11 @@ allow(User, "archive", Document, (actor, document) =>
   and(
     !document?.isDraft,
     !!document?.isActive,
-    can(actor, "update", document),
+    canModify(actor, document),
     or(
       includesMembership(document, [DocumentPermission.Admin]),
       and(isTeamAdmin(actor, document), can(actor, "read", document)),
+      isPersonalOwner(actor, document),
       can(actor, "updateDocument", document?.collection)
     )
   )
@@ -248,6 +240,7 @@ allow(User, "unarchive", Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       can(actor, "updateDocument", document?.collection),
+      isPersonalOwner(actor, document),
       and(!!document?.isDraft && actor.id === document?.createdById)
     )
   )
@@ -271,6 +264,10 @@ allow(User, "unpublish", Document, (user, document) => {
     return false;
   }
 
+  if (document.isPersonal) {
+    return isPersonalOwner(user, document) && user.teamId === document.teamId;
+  }
+
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
@@ -280,6 +277,61 @@ allow(User, "unpublish", Document, (user, document) => {
   }
   return user.teamId === document.teamId;
 });
+
+/**
+ * Whether the actor owns the personal space that a document lives in. Ownership
+ * is carried by the document itself, so it grants access without a membership.
+ *
+ * @param actor the user being authorized.
+ * @param document the document being accessed.
+ * @returns true when the actor owns the document's personal space.
+ */
+function isPersonalOwner(actor: User, document: Document | null) {
+  return !!document?.personalOwnerId && actor.id === document.personalOwnerId;
+}
+
+/**
+ * Whether a document's location still accepts changes to its content. Turning
+ * personal documents off freezes the ones that already exist rather than
+ * hiding them, so their owners keep read access and can file them into a
+ * collection, archive them, or delete them.
+ *
+ * @param actor the user being authorized.
+ * @param document the document being changed.
+ * @returns true when the document's location permits writes.
+ */
+function isWritableLocation(actor: User, document: Document | null) {
+  return (
+    !document?.isPersonal ||
+    !!actor.team?.getPreference(TeamPreference.PersonalDocs)
+  );
+}
+
+/**
+ * The permission checks that let a user change a document, ignoring where the
+ * document lives. Shared by the abilities that write content and by the ones
+ * that only relocate or retire it.
+ *
+ * @param actor the user being authorized.
+ * @param document the document being changed.
+ * @returns true when the actor holds a write permission on the document.
+ */
+function canModify(actor: User, document: Document | null) {
+  return and(
+    !!document?.isActive,
+    isTeamMutable(actor),
+    can(actor, "read", document),
+    or(
+      includesMembership(document, [
+        DocumentPermission.ReadWrite,
+        DocumentPermission.Admin,
+      ]),
+      can(actor, "updateDocument", document?.collection),
+      isPersonalOwner(actor, document),
+      and(!!document?.isDraft && actor.id === document?.createdById)
+    )
+  );
+}
 
 function includesMembership(
   document: Document | null,

@@ -58,6 +58,27 @@ export function buildAPIContext(context: McpContext) {
  *
  * @returns a zod schema accepting `string | undefined`, with `""` treated as `undefined`.
  */
+/** Tokens an MCP caller may use in place of their own user id. */
+const SelfTokens = new Set(["self", "me", "current_user"]);
+
+/**
+ * Resolves a user id that an MCP caller may have given as a token naming
+ * themselves, which keeps the parameter usable without a lookup first.
+ *
+ * @param value the raw input value.
+ * @param actorId the acting user's id.
+ * @returns the resolved user id, or null when no value was given.
+ */
+export function resolveUserId(
+  value: string | null | undefined,
+  actorId: string
+): string | null {
+  if (!value) {
+    return null;
+  }
+  return SelfTokens.has(value.toLowerCase()) ? actorId : value;
+}
+
 export function optionalString() {
   return z
     .string()
