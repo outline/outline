@@ -6534,6 +6534,44 @@ describe("#documents.create - personal", () => {
     expect(res.status).toEqual(400);
   });
 
+  it("should reject personalOwnerId combined with collectionId", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "Personal",
+        personalOwnerId: user.id,
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "personalOwnerId: cannot be combined with collectionId or parentDocumentId, pass parentDocumentId alone to nest under an existing personal document"
+    );
+  });
+
+  it("should reject personalOwnerId combined with parentDocumentId", async () => {
+    const user = await buildUser();
+    const parent = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.move", user, {
+      body: {
+        id: parent.id,
+        personalOwnerId: user.id,
+        parentDocumentId: parent.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should reject a self token, which is an MCP convenience only", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.create", user, {

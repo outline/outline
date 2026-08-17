@@ -6,9 +6,6 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 
-/** Id of the personal section root in document pickers. */
-export const PERSONAL_TREE_ID = "personal";
-
 /**
  * React hook that builds a navigation tree of the user's own personal
  * documents, for use as a destination in document pickers.
@@ -30,7 +27,7 @@ export default function usePersonalDocumentsTree(): NavigationNode[] {
 
     // Collection trees are rooted at depth 1, see useCollectionTrees.
     const root: NavigationNode = {
-      id: PERSONAL_TREE_ID,
+      id: NavigationNodeType.Personal,
       type: NavigationNodeType.Personal,
       title: t("Personal"),
       icon: "padlock",

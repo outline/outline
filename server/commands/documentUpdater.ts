@@ -70,7 +70,7 @@ export default async function documentUpdater(
 ): Promise<Document> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
-  const cId = collectionId || document.collectionId;
+  const destCollectionId = collectionId || document.collectionId;
 
   if (title !== undefined) {
     document.title = title.trim();
@@ -131,7 +131,7 @@ export default async function documentUpdater(
   const event = {
     name: "documents.update",
     documentId: document.id,
-    collectionId: cId,
+    collectionId: destCollectionId,
     data: eventData,
   };
 
@@ -140,11 +140,14 @@ export default async function documentUpdater(
     // collection, which the model hook takes care of on save.
     document.personalOwnerId = personalOwnerId;
     await document.publish(ctx, { collectionId: null, data: eventData });
-  } else if (publish && cId) {
+  } else if (publish && destCollectionId) {
     if (!document.collectionId) {
-      document.collectionId = cId;
+      document.collectionId = destCollectionId;
     }
-    await document.publish(ctx, { collectionId: cId, data: eventData });
+    await document.publish(ctx, {
+      collectionId: destCollectionId,
+      data: eventData,
+    });
   } else if (changed) {
     document.lastModifiedById = user.id;
     document.updatedBy = user;

@@ -74,3 +74,30 @@ export const zodTimezone = () =>
       error: "invalid timezone",
     }
   );
+
+/**
+ * A zod check that a document names at most one place to live. A personal
+ * space, a collection, and a parent document are alternatives, so naming a
+ * personal space rules the other two out.
+ *
+ * @param ctx the check context supplied by zod.
+ */
+export function zodSingleDocumentLocation(
+  ctx: z.core.ParsePayload<{
+    collectionId?: string | null;
+    parentDocumentId?: string | null;
+    personalOwnerId?: string | null;
+  }>
+) {
+  const { collectionId, parentDocumentId, personalOwnerId } = ctx.value;
+
+  if (personalOwnerId && (collectionId || parentDocumentId)) {
+    ctx.issues.push({
+      code: "custom",
+      input: ctx.value,
+      path: ["personalOwnerId"],
+      message:
+        "cannot be combined with collectionId or parentDocumentId, pass parentDocumentId alone to nest under an existing personal document",
+    });
+  }
+}

@@ -17,7 +17,7 @@ import GroupLink from "./GroupLink";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
-import SharedWithMeLink from "./SharedWithMeLink";
+import DocumentMembershipLink from "./DocumentMembershipLink";
 import SidebarContext, {
   groupSidebarContext,
   type SidebarContextType,
@@ -104,7 +104,10 @@ function SharedWithMe() {
             {user.documentMemberships
               .slice(0, page * Pagination.sidebarLimit)
               .map((membership) => (
-                <SharedWithMeLink key={membership.id} membership={membership} />
+                <DocumentMembershipLink
+                  key={membership.id}
+                  membership={membership}
+                />
               ))}
             {!loading && !end && (
               <SidebarLink

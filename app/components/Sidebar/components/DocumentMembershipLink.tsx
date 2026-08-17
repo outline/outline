@@ -41,7 +41,12 @@ type Props = {
   depth?: number;
 };
 
-function SharedWithMeLink({ membership, depth = 0 }: Props) {
+/**
+ * A sidebar row for a document reached through a membership, together with the
+ * tree of documents nested below it. Used by every section that lists
+ * documents outside a collection – shared with me, groups, and personal.
+ */
+function DocumentMembershipLink({ membership, depth = 0 }: Props) {
   const { ui, collections, documents } = useStores();
   const { fetchChildDocuments } = documents;
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
@@ -293,4 +298,4 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   );
 }
 
-export default observer(SharedWithMeLink);
+export default observer(DocumentMembershipLink);

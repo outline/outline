@@ -18,7 +18,7 @@ import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
-import SharedWithMeLink from "./SharedWithMeLink";
+import DocumentMembershipLink from "./DocumentMembershipLink";
 import SidebarAction from "./SidebarAction";
 import SidebarContext, { type SidebarContextType } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
@@ -83,7 +83,10 @@ const PersonalDocsList = observer(function PersonalDocsList() {
                 const membership = userMemberships.getByDocumentId(document.id);
 
                 return membership ? (
-                  <SharedWithMeLink key={document.id} membership={membership} />
+                  <DocumentMembershipLink
+                    key={document.id}
+                    membership={membership}
+                  />
                 ) : (
                   <SidebarLink
                     key={document.id}

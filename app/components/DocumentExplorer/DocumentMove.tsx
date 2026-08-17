@@ -79,7 +79,7 @@ function DocumentMove({ document }: Props) {
 
         const collectionId = path.collectionId as string;
 
-        if (type === "document") {
+        if (type === NavigationNodeType.Document) {
           await document.move({ collectionId, parentDocumentId });
         } else {
           await document.move({ collectionId });

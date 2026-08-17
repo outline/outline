@@ -58,7 +58,7 @@ function DocumentPublish({ document }: Props) {
         const collectionId = path.collectionId as string;
 
         // Also move it under if selected path corresponds to another doc
-        if (type === "document") {
+        if (type === NavigationNodeType.Document) {
           await document.move({ collectionId, parentDocumentId });
         }
 

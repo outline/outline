@@ -1,10 +1,6 @@
 import { z } from "zod";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import {
-  hasSingleHome,
-  SingleHomeMessage,
-} from "@server/routes/api/documents/schema";
 import documentCreator, {
   authorizeDocumentCreate,
   authorizeDocumentPublish,
@@ -38,6 +34,7 @@ import {
   pathToUrl,
   withTracing,
   resolveUserId,
+  assertDocumentLocation,
 } from "./util";
 import { ValidationError } from "@server/errors";
 import { StatusFilter, TextEditMode } from "@shared/types";
@@ -400,9 +397,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const { user } = ctx.state.auth;
           const personalOwnerId = resolveUserId(input.personalOwnerId, user.id);
 
-          if (!hasSingleHome({ ...input, personalOwnerId })) {
-            throw ValidationError(SingleHomeMessage);
-          }
+          assertDocumentLocation({ ...input, personalOwnerId });
           if (personalOwnerId && input.publish === false) {
             throw ValidationError(
               "publish is required when personalOwnerId is set"
@@ -546,9 +541,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             );
 
             if (personalOwnerId) {
-              if (!hasSingleHome({ ...input, personalOwnerId })) {
-                throw ValidationError(SingleHomeMessage);
-              }
+              assertDocumentLocation({ ...input, personalOwnerId });
               authorizePersonalOwner(ctx, personalOwnerId);
               collectionId = undefined;
             } else if (input.parentDocumentId) {
@@ -702,9 +695,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
               user.id
             );
 
-            if (!hasSingleHome({ ...input, personalOwnerId })) {
-              throw ValidationError(SingleHomeMessage);
-            }
+            assertDocumentLocation({ ...input, personalOwnerId });
 
             let destination;
 

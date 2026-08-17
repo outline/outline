@@ -10,31 +10,13 @@ import {
 } from "@shared/types";
 import { DocumentValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
-import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
+import {
+  zodIconType,
+  zodIdType,
+  zodShareIdType,
+  zodSingleDocumentLocation,
+} from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
-
-/** Tokens accepted in place of the acting user's own id. */
-export const SingleHomeMessage =
-  "personalOwnerId cannot be combined with collectionId or parentDocumentId, pass parentDocumentId alone to nest under an existing personal document";
-
-/**
- * A document lives in exactly one place: a collection, a parent document, or a
- * personal space. Shared by the create, update and move schemas and by the
- * equivalent MCP tools so that both enforce the same rule.
- *
- * @param body the request body to check.
- * @returns whether at most one location was given.
- */
-export function hasSingleHome(body: {
-  collectionId?: string | null;
-  parentDocumentId?: string | null;
-  personalOwnerId?: string | null;
-}): boolean {
-  return !(
-    body.personalOwnerId &&
-    (body.collectionId || body.parentDocumentId)
-  );
-}
 
 const DocumentsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */
@@ -340,7 +322,7 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
 
     /** Whether the editing session is complete */
     done: z.boolean().optional(),
-  }),
+  }).check(zodSingleDocumentLocation),
 })
   .refine(
     (req) =>
@@ -369,7 +351,6 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
       message: "findText is required when using patch editMode",
     }
   )
-  .refine((req) => hasSingleHome(req.body), { message: SingleHomeMessage })
   .refine((req) => !(req.body.personalOwnerId && !req.body.publish), {
     message: "publish is required when personalOwnerId is set",
   })
@@ -397,12 +378,10 @@ export const DocumentsMoveSchema = BaseSchema.extend({
 
     /** Helps evaluate the new index in collection structure upon move */
     index: z.number().gte(0).optional(),
-  }),
-})
-  .refine((req) => !(req.body.parentDocumentId === req.body.id), {
-    message: "infinite loop detected, cannot nest a document inside itself",
-  })
-  .refine((req) => hasSingleHome(req.body), { message: SingleHomeMessage });
+  }).check(zodSingleDocumentLocation),
+}).refine((req) => !(req.body.parentDocumentId === req.body.id), {
+  message: "infinite loop detected, cannot nest a document inside itself",
+});
 
 export type DocumentsMoveReq = z.infer<typeof DocumentsMoveSchema>;
 
@@ -465,54 +444,56 @@ export const DocumentsImportSchema = BaseSchema.extend({
 export type DocumentsImportReq = z.infer<typeof DocumentsImportSchema>;
 
 export const DocumentsCreateSchema = BaseSchema.extend({
-  body: z.object({
-    /** Id of the document to be created */
-    id: zodIdType().optional(),
+  body: z
+    .object({
+      /** Id of the document to be created */
+      id: zodIdType().optional(),
 
-    /** Document title */
-    title: z.string().optional(),
+      /** Document title */
+      title: z.string().optional(),
 
-    /** Document text */
-    text: z.string().max(DocumentValidation.maxLength).optional(),
+      /** Document text */
+      text: z.string().max(DocumentValidation.maxLength).optional(),
 
-    /** Icon displayed alongside doc title */
-    icon: zodIconType().optional(),
+      /** Icon displayed alongside doc title */
+      icon: zodIconType().optional(),
 
-    /** Icon color */
-    color: z
-      .string()
-      .regex(ValidateColor.regex, { message: ValidateColor.message })
-      .nullish(),
+      /** Icon color */
+      color: z
+        .string()
+        .regex(ValidateColor.regex, { message: ValidateColor.message })
+        .nullish(),
 
-    /** Boolean to denote if the doc should be published */
-    publish: z.boolean().optional(),
+      /** Boolean to denote if the doc should be published */
+      publish: z.boolean().optional(),
 
-    /** The personal space to create the doc in, instead of a collection */
-    personalOwnerId: z.uuid().nullish(),
+      /** The personal space to create the doc in, instead of a collection */
+      personalOwnerId: z.uuid().nullish(),
 
-    /** Collection to create document within  */
-    collectionId: z.uuid().nullish(),
+      /** Collection to create document within  */
+      collectionId: z.uuid().nullish(),
 
-    /** Index to create the document at within the collection */
-    index: z.number().optional(),
+      /** Index to create the document at within the collection */
+      index: z.number().optional(),
 
-    /** Parent document to create within */
-    parentDocumentId: z.uuid().nullish(),
+      /** Parent document to create within */
+      parentDocumentId: z.uuid().nullish(),
 
-    /** A template to create the document from */
-    templateId: z.uuid().optional(),
+      /** A template to create the document from */
+      templateId: z.uuid().optional(),
 
-    /** Optionally set the created date in the past */
-    createdAt: z.coerce
-      .date()
-      .optional()
-      .refine((data) => !data || data < new Date(), {
-        error: "createdAt must be in the past",
-      }),
+      /** Optionally set the created date in the past */
+      createdAt: z.coerce
+        .date()
+        .optional()
+        .refine((data) => !data || data < new Date(), {
+          error: "createdAt must be in the past",
+        }),
 
-    /** Boolean to denote if the document should occupy full width */
-    fullWidth: z.boolean().optional(),
-  }),
+      /** Boolean to denote if the document should occupy full width */
+      fullWidth: z.boolean().optional(),
+    })
+    .check(zodSingleDocumentLocation),
 })
   .refine(
     (req) =>
@@ -527,7 +508,6 @@ export const DocumentsCreateSchema = BaseSchema.extend({
         "collectionId, parentDocumentId or personalOwnerId is required to publish",
     }
   )
-  .refine((req) => hasSingleHome(req.body), { message: SingleHomeMessage })
   .refine((req) => !(req.body.personalOwnerId && !req.body.publish), {
     message: "publish is required when personalOwnerId is set",
   });
