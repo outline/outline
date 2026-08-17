@@ -713,6 +713,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
             );
 
             assertDocumentLocation({ ...input, personalOwnerId });
+            if (personalOwnerId && !input.publish) {
+              throw ValidationError(
+                "publish is required when personalOwnerId is set"
+              );
+            }
 
             let destination;
 

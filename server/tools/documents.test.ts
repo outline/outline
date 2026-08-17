@@ -1047,6 +1047,25 @@ describe("update_document - personal", () => {
     expect(membership).not.toBeNull();
   });
 
+  it("rejects personalOwnerId without publish", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const document = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "update_document", {
+      id: document.id,
+      title: "Updated",
+      personalOwnerId: "me",
+    });
+    expect(res?.result?.isError).toBe(true);
+
+    const reloaded = await Document.unscoped().findByPk(document.id);
+    expect(reloaded!.personalOwnerId).toBeNull();
+    expect(reloaded!.publishedAt).toBeNull();
+  });
+
   it("rejects personalOwnerId on an already published document", async () => {
     const { user, accessToken } = await buildOAuthUser();
     const collection = await buildCollection({
