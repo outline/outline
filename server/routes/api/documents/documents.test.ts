@@ -9181,6 +9181,32 @@ describe("#documents.move - personal", () => {
     expect(child.personalOwnerId).toBeNull();
   });
 
+  it("should remove the owner's sidebar membership when moving back into a collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildPersonalDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const membership = await UserMembership.findOne({
+      where: { documentId: document.id, userId: user.id, sourceId: null },
+    });
+    expect(membership).not.toBeNull();
+
+    const res = await server.post("/api/documents.move", user, {
+      body: { id: document.id, collectionId: collection.id },
+    });
+    expect(res.status).toEqual(200);
+
+    const remaining = await UserMembership.findOne({
+      where: { documentId: document.id, userId: user.id },
+    });
+    expect(remaining).toBeNull();
+  });
+
   it("should not allow personalOwnerId with a collectionId", async () => {
     const user = await buildUser();
     const collection = await buildCollection({

@@ -578,6 +578,22 @@ class Document extends ArchivableModel<
         ctx
       );
     }
+
+    const previousOwnerId = model.previous("personalOwnerId");
+    if (previousOwnerId && previousOwnerId !== personalOwnerId) {
+      // the sidebar membership would otherwise linger once the document has
+      // left the personal space, keeping its admin grant alive.
+      const membership = await UserMembership.findOne({
+        where: {
+          documentId: model.id,
+          userId: previousOwnerId,
+          sourceId: null,
+        },
+        transaction,
+      });
+      const context: HookContext = { auth: ctx.auth, ip: ctx.ip, transaction };
+      await membership?.destroy(context);
+    }
   }
 
   @BeforeCreate
