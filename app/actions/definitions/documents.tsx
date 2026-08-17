@@ -729,7 +729,6 @@ export const downloadDocumentAsMarkdown = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Markdown,
-      includeChildDocuments: false,
     });
   },
 });
@@ -751,7 +750,6 @@ export const downloadDocumentAsHTML = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Html,
-      includeChildDocuments: false,
     });
   },
 });
@@ -774,7 +772,6 @@ export const downloadDocumentAsTextBundle = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.TextBundle,
-      includeChildDocuments: false,
     });
   },
 });
@@ -800,7 +797,6 @@ export const downloadDocumentAsPDF = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Pdf,
-      includeChildDocuments: false,
     });
   },
 });
