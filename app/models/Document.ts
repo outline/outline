@@ -679,18 +679,29 @@ export default class Document extends ArchivableModel implements Searchable {
     );
   }
 
-  download = ({
+  /**
+   * Download the document in the given format.
+   *
+   * Nested documents are included by default when the document has children, in
+   * which case the file is prepared in the background and the user is notified
+   * with a toast once it is ready.
+   *
+   * @param options.contentType The format to export the document in.
+   * @param options.includeChildDocuments Whether to include nested documents.
+   * @returns the API response.
+   */
+  download = async ({
     contentType,
-    includeChildDocuments,
+    includeChildDocuments = this.children.length > 0,
   }: {
     contentType: ExportContentType;
     includeChildDocuments?: boolean;
-  }) =>
-    client.post(
+  }) => {
+    const response = await client.post(
       `/documents.export`,
       {
         id: this.id,
-        includeChildDocuments: includeChildDocuments ?? false,
+        includeChildDocuments,
       },
       {
         ...(includeChildDocuments ? {} : { download: true }),
@@ -699,4 +710,12 @@ export default class Document extends ArchivableModel implements Searchable {
         },
       }
     );
+
+    const fileOperation = response?.data?.fileOperation;
+    if (fileOperation) {
+      this.store.rootStore.ui.showExportToast(fileOperation.id);
+    }
+
+    return response;
+  };
 }
