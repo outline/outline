@@ -857,7 +857,19 @@ class Collection extends ParanoidModel<
     return this;
   };
 
-  deleteDocument = async (document: Document, options?: FindOptions) => {
+  /**
+   * Removes a document from this collection's structure and soft deletes it
+   * along with all of its descendants.
+   *
+   * @param document the document to delete.
+   * @param user the user performing the deletion, recorded on every document.
+   * @param options the find options, including an optional transaction.
+   */
+  deleteDocument = async (
+    document: Document,
+    user: User,
+    options?: FindOptions
+  ) => {
     await this.removeDocumentInStructure(document, options);
 
     // IDs come back breadth-first so reversing them destroys the deepest
@@ -877,7 +889,14 @@ class Collection extends ParanoidModel<
 
       // Destroyed one at a time to ensure model hooks run for each document.
       for (const childDocumentId of childDocumentIds) {
-        await childDocumentsById[childDocumentId]?.destroy(options);
+        const childDocument = childDocumentsById[childDocumentId];
+        if (childDocument) {
+          // Attributes the deletion of the whole tree to the acting user, which
+          // the trash relies on to show a person their own deletions.
+          childDocument.lastModifiedById = user.id;
+          childDocument.updatedBy = user;
+          await childDocument.destroy(options);
+        }
       }
     }
 

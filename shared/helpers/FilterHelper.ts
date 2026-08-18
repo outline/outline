@@ -1,7 +1,20 @@
 import { z } from "zod";
+import type { DateFilter } from "../types";
 import { isISO8601Duration } from "../utils/date";
 import { FilterValidation } from "../validations";
 
+/** The ISO 8601 duration each coarse date filter corresponds to. */
+export const DURATION_BY_DATE_FILTER: Record<DateFilter, string> = {
+  day: "-P1D",
+  week: "-P1W",
+  month: "-P1M",
+  year: "-P1Y",
+};
+
+/**
+ * How a filter condition compares a field against its value. The `*Strict`
+ * variants are case-sensitive; `isNull` and `isNotNull` take no value.
+ */
 export const ComparisonOperator = z.enum([
   "eq",
   "neq",
@@ -22,10 +35,14 @@ export const ComparisonOperator = z.enum([
 ]);
 export type ComparisonOperator = z.infer<typeof ComparisonOperator>;
 
+/** How the members of a filter group are combined. */
 export const LogicalOperator = z.enum(["AND", "OR"]);
 export type LogicalOperator = z.infer<typeof LogicalOperator>;
 
-// Filters travel over the wire as JSON, so values are limited to JSON types.
+/**
+ * The value a filter condition compares against. Filters travel over the wire
+ * as JSON, so the value is limited to JSON types.
+ */
 export const FilterValue = z.union([
   z.string(),
   z.number(),
@@ -35,19 +52,47 @@ export const FilterValue = z.union([
 ]);
 export type FilterValue = z.infer<typeof FilterValue>;
 
-// Declared as type aliases rather than interfaces so that TypeScript infers an
-// index signature and a filter is assignable to a JSON request body.
+/**
+ * A single comparison against one field, the leaf of a filter expression.
+ *
+ * Declared as a type alias rather than an interface so that TypeScript infers
+ * an index signature and a filter stays assignable to a JSON request body.
+ *
+ * @typeParam F the field names the condition may reference.
+ */
 export type FilterCondition<F extends string = string> = {
+  /** The field being compared. */
   field: F;
+
+  /** How the field is compared against the value. */
   operator: ComparisonOperator;
+
+  /** The value to compare against, omitted for `isNull` and `isNotNull`. */
   value?: FilterValue;
 };
 
+/**
+ * A set of filter expressions combined under one logical operator. Groups may
+ * contain other groups, forming a tree.
+ *
+ * Declared as a type alias rather than an interface so that TypeScript infers
+ * an index signature and a filter stays assignable to a JSON request body.
+ *
+ * @typeParam F the field names the nested conditions may reference.
+ */
 export type FilterGroup<F extends string = string> = {
+  /** How the nested expressions are combined. */
   operator: LogicalOperator;
+
+  /** The nested expressions, each a condition or a further group. */
   filters: Array<FilterCondition<F> | FilterGroup<F>>;
 };
 
+/**
+ * A filter expression: either a single condition or a group of them.
+ *
+ * @typeParam F the field names the expression may reference.
+ */
 export type Filter<F extends string = string> =
   | FilterCondition<F>
   | FilterGroup<F>;

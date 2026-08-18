@@ -532,7 +532,7 @@ router.post(
   pagination(),
   validate(T.DocumentsDeletedSchema),
   async (ctx: APIContext<T.DocumentsDeletedReq>) => {
-    const { sort, direction } = ctx.input.body;
+    const { sort, direction, filters: rawFilters } = ctx.input.body;
     const { user } = ctx.state.auth;
     const collectionIds = await user.collectionIds({
       paranoid: false,
@@ -543,30 +543,50 @@ router.post(
     const viewScope: Readonly<ScopeOptions> = {
       method: ["withViews", user.id],
     };
+
+    const where: WhereOptions<Document> & {
+      [Op.and]: WhereOptions<Document>[];
+    } = {
+      teamId: user.teamId,
+      deletedAt: {
+        [Op.ne]: null,
+      },
+      [Op.and]: [
+        {
+          [Op.or]: [
+            {
+              collectionId: {
+                [Op.in]: collectionIds,
+              },
+            },
+            {
+              createdById: user.id,
+              collectionId: {
+                [Op.is]: null,
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    // The deleting user is currently recorded as the last to modify the
+    // document, so the public `deletedById` field maps onto that column.
+    const filter = combineFilters(rawFilters);
+    if (filter) {
+      await authorizeFilterFields(user, filter);
+      const mapped = mapFilterFields(filter, {
+        deletedById: "lastModifiedById",
+      });
+      where[Op.and].push(buildWhere<Document>(mapped));
+    }
+
     const documents = await Document.scope([
       membershipScope,
       viewScope,
       "withDrafts",
     ]).findAll({
-      where: {
-        teamId: user.teamId,
-        deletedAt: {
-          [Op.ne]: null,
-        },
-        [Op.or]: [
-          {
-            collectionId: {
-              [Op.in]: collectionIds,
-            },
-          },
-          {
-            createdById: user.id,
-            collectionId: {
-              [Op.is]: null,
-            },
-          },
-        ],
-      },
+      where,
       paranoid: false,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
@@ -996,6 +1016,7 @@ router.post(
       DocumentHelper.toMarkdown(document, {
         signedUrls,
         teamId: user.teamId,
+        commonMark: true,
       });
 
     // A TextBundle is a directory of files, so unlike the other formats it has

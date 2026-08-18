@@ -7861,14 +7861,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@zone-eu/mailsplit@npm:5.4.12":
-  version: 5.4.12
-  resolution: "@zone-eu/mailsplit@npm:5.4.12"
+"@zone-eu/mailsplit@npm:5.4.15":
+  version: 5.4.15
+  resolution: "@zone-eu/mailsplit@npm:5.4.15"
   dependencies:
     libbase64: "npm:1.3.0"
-    libmime: "npm:5.3.8"
+    libmime: "npm:5.4.2"
     libqp: "npm:2.1.1"
-  checksum: 10c0/1b16a17a79a8d183adb2a8bab554d8d14b6566ae11e1e4f425f217714f1352d69963e67b48767f31699331157a3a965d3d8ce444ce57b01857d9338a77635370
+  checksum: 10c0/de5e82d8a7994cb01b2aef160ad2bf6eaad4508e1fef2cb7836a18acb448ca764dcb51fdd865ba7be15f57d7f39470f554270a529983a9cb59cd418175127ab9
   languageName: node
   linkType: hard
 
@@ -10136,10 +10136,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"deepmerge-ts@npm:^7.1.5":
-  version: 7.1.5
-  resolution: "deepmerge-ts@npm:7.1.5"
-  checksum: 10c0/3a265a2086f334e3ecf43a7d4138c950cb99e0b39e816fa7fd7f5326161364e51b13010906908212667619066f5b48de738ed42543212323fbbb5d4ed7ebdc84
+"deepmerge-ts@npm:^8.0.1":
+  version: 8.0.1
+  resolution: "deepmerge-ts@npm:8.0.1"
+  checksum: 10c0/5d41e24ac88f652698179f1ddad02269ac7f91af216a359e528bf35d60fa660046d82001a500a1fa984fc895a8c505249f348a414215da88722fca90108ac083
   languageName: node
   linkType: hard
 
@@ -11183,6 +11183,13 @@ __metadata:
   dependencies:
     is-extendable: "npm:^0.1.0"
   checksum: 10c0/ee1cb0a18c9faddb42d791b2d64867bd6cfd0f3affb711782eb6e894dd193e2934a7f529426aac7c8ddb31ac5d38000a00aa2caf08aa3dfc3e1c8ff6ba340bd9
+  languageName: node
+  linkType: hard
+
+"fake-indexeddb@npm:^6.2.5":
+  version: 6.2.5
+  resolution: "fake-indexeddb@npm:6.2.5"
+  checksum: 10c0/6c5e2fe84a61daa06d7ad63699d1041fe61847f15f92db12415634b3db94f363a64be9e08a3c3c4434af9c3c0132086b85c4d5dc5e8e06edae1e7daf70ce1f3c
   languageName: node
   linkType: hard
 
@@ -12516,16 +12523,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iconv-lite@npm:0.7.2":
-  version: 0.7.2
-  resolution: "iconv-lite@npm:0.7.2"
-  dependencies:
-    safer-buffer: "npm:>= 2.1.2 < 3.0.0"
-  checksum: 10c0/3c228920f3bd307f56bf8363706a776f4a060eb042f131cd23855ceca962951b264d0997ab38a1ad340e1c5df8499ed26e1f4f0db6b2a2ad9befaff22f14b722
-  languageName: node
-  linkType: hard
-
-"iconv-lite@npm:^0.7.2, iconv-lite@npm:~0.7.0":
+"iconv-lite@npm:0.7.3, iconv-lite@npm:^0.7.2, iconv-lite@npm:~0.7.0":
   version: 0.7.3
   resolution: "iconv-lite@npm:0.7.3"
   dependencies:
@@ -13902,15 +13900,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libmime@npm:5.3.8":
-  version: 5.3.8
-  resolution: "libmime@npm:5.3.8"
+"libmime@npm:5.4.2":
+  version: 5.4.2
+  resolution: "libmime@npm:5.4.2"
   dependencies:
     encoding-japanese: "npm:2.2.0"
-    iconv-lite: "npm:0.7.2"
+    iconv-lite: "npm:0.7.3"
     libbase64: "npm:1.3.0"
     libqp: "npm:2.1.1"
-  checksum: 10c0/4fb65f7c07a9bdb0c0ee25bb80fac94a803807f9ac15a3d6cafc2c93303500d92c8ceb6dfe0ab938c871406fc01cb69a7a457f28b2037c47c283574e8900d8c4
+  checksum: 10c0/207d6f148be620243d1670db8a746d33686d79e8863a692b35f9351f221cce0b25ff8b18d95d054f8e7743a165d84ac3fec5998e0410c1e6a8ed003ce788b484
   languageName: node
   linkType: hard
 
@@ -14361,21 +14359,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mailparser@npm:^3.9.10":
-  version: 3.9.10
-  resolution: "mailparser@npm:3.9.10"
+"mailparser@npm:^3.9.15":
+  version: 3.9.15
+  resolution: "mailparser@npm:3.9.15"
   dependencies:
-    "@zone-eu/mailsplit": "npm:5.4.12"
+    "@zone-eu/mailsplit": "npm:5.4.15"
     encoding-japanese: "npm:2.2.0"
     he: "npm:1.2.0"
     html-to-text: "npm:10.0.0"
-    iconv-lite: "npm:0.7.2"
-    libmime: "npm:5.3.8"
-    linkify-it: "npm:5.0.1"
-    nodemailer: "npm:9.0.0"
+    iconv-lite: "npm:0.7.3"
+    libmime: "npm:5.4.2"
+    linkify-it: "npm:5.0.2"
+    nodemailer: "npm:9.0.5"
     punycode.js: "npm:2.3.1"
     tlds: "npm:1.261.0"
-  checksum: 10c0/2a33747161b0d7c85e8824d40634672f06afd17c2968b9ddebeb72ff33623f041613c97af1b753f2e1cad6b5a9a174cd316a4d874c0206f5b2bb865f66b0d27f
+  checksum: 10c0/073681539404815d1fb3bd1b018fb7069f51f0e4cf1e0de1a0807ba4580429fb64e4b7e6413414f17942ed12330a51c31053b787c21fc9a2ff5c3b6225604d77
   languageName: node
   linkType: hard
 
@@ -15016,11 +15014,11 @@ __metadata:
   linkType: hard
 
 "nanoid@npm:^3.3.16":
-  version: 3.3.17
-  resolution: "nanoid@npm:3.3.17"
+  version: 3.3.18
+  resolution: "nanoid@npm:3.3.18"
   bin:
     nanoid: bin/nanoid.cjs
-  checksum: 10c0/06f7949c7cce5c92c6aea66022f29a1eae7f56e05acbfddf1e049e819b4bf234c44a765cc44da7163482b111677948514012e27acdfa56f95309295768bdae32
+  checksum: 10c0/b994b4e396730f8be2520923284e2040d61eaee55cc6d4935ef6d38d34bafdc46133eda4d3faea5073bda545aa6079d82b886caeac5c731cf9ac18bcc1301425
   languageName: node
   linkType: hard
 
@@ -15137,10 +15135,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:^9.0.1":
-  version: 9.0.1
-  resolution: "nodemailer@npm:9.0.1"
-  checksum: 10c0/4213f01aa211127c1ce33243c5e45e7f831601a933d03fa864cd827b1bd5ea2782cb4b43722bee7028cbc193733d9802dad1120fe67181448eb0b7de52218a37
+"nodemailer@npm:9.0.5, nodemailer@npm:^9.0.5":
+  version: 9.0.5
+  resolution: "nodemailer@npm:9.0.5"
+  checksum: 10c0/60f7a21497c98c0d275cd12c488af581ef6aee65db575026319ac249dcac210bdab20edf77fe3158176ed3910f70d8c46d89abcd74f57a7170302727e6d05ee3
   languageName: node
   linkType: hard
 
@@ -15605,6 +15603,7 @@ __metadata:
     emoji-regex: "npm:^10.6.0"
     es-toolkit: "npm:^1.47.1"
     es6-error: "npm:^4.1.1"
+    fake-indexeddb: "npm:^6.2.5"
     fast-deep-equal: "npm:^3.1.3"
     fetch-retry: "npm:^5.0.6"
     form-data: "npm:^4.0.6"
@@ -15645,7 +15644,7 @@ __metadata:
     koa-sslify: "npm:5.0.1"
     koa-useragent: "npm:^4.1.0"
     lint-staged: "npm:^16.4.0"
-    mailparser: "npm:^3.9.10"
+    mailparser: "npm:^3.9.15"
     mammoth: "npm:^1.11.0"
     markdown-it: "npm:^14.3.0"
     markdown-it-container: "npm:^3.0.0"
@@ -15658,7 +15657,7 @@ __metadata:
     msw: "npm:^2.14.2"
     natural-sort: "npm:^1.0.0"
     node-fetch: "npm:2.7.0"
-    nodemailer: "npm:^9.0.1"
+    nodemailer: "npm:^9.0.5"
     nodemon: "npm:^3.1.14"
     octokit: "npm:^5.0.5"
     outline-icons: "npm:^4.6.0"

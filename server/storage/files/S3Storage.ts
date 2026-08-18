@@ -220,7 +220,9 @@ export default class S3Storage extends BaseStorage {
           url: cfUrl,
           keyPairId: env.AWS_CLOUDFRONT_KEY_PAIR_ID,
           privateKey,
-          dateLessThan: new Date(Date.now() + expiresIn * 1000).toISOString(),
+          dateLessThan: new Date(
+            S3Storage.getSigningDate(expiresIn).getTime() + expiresIn * 1000
+          ).toISOString(),
         });
       } catch (err) {
         Logger.error(
@@ -425,6 +427,7 @@ export default class S3Storage extends BaseStorage {
     const command = new sdk.GetObjectCommand(params);
     const url = await getSignedUrl(client, command, {
       expiresIn: clampedExpiresIn,
+      signingDate: S3Storage.getSigningDate(clampedExpiresIn),
     });
 
     if (env.AWS_S3_ACCELERATE_URL) {

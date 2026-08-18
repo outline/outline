@@ -582,6 +582,13 @@ export class Editor extends React.PureComponent<
     return view;
   }
 
+  /**
+   * Scroll the document to the element matching the given selector, waiting for
+   * it to be added to the DOM if it is not rendered yet.
+   *
+   * @param hash the selector to scroll to, typically a heading id prefixed
+   * with #.
+   */
   public async scrollToAnchor(hash: string) {
     if (!hash) {
       return;

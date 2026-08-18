@@ -117,6 +117,9 @@ export default class LocalStorage extends BaseStorage {
       {
         key,
         type: "attachment",
+        iat: Math.floor(
+          LocalStorage.getSigningDate(expiresIn).getTime() / 1000
+        ),
       },
       env.SECRET_KEY,
       {

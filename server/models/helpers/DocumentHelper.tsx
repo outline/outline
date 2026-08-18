@@ -296,6 +296,12 @@ export class DocumentHelper {
       signedUrls?: number;
       /** The team context */
       teamId?: string;
+      /**
+       * Whether the Markdown is leaving Outline, in which case portable
+       * CommonMark is written in place of Outline's internal representation
+       * (default: false)
+       */
+      commonMark?: boolean;
     }
   ) {
     let node = DocumentHelper.toProsemirror(document);
@@ -310,7 +316,7 @@ export class DocumentHelper {
     }
 
     const text = serializer
-      .serialize(node)
+      .serialize(node, { commonMark: options?.commonMark })
       .replace(/(^|\n)\\(\n|$)/g, "\n\n")
       .trim();
 

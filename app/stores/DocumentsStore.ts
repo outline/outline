@@ -230,12 +230,42 @@ export default class DocumentsStore extends Store<Document> {
     );
   }
 
-  @computed
-  get deleted(): Document[] {
-    return orderBy(this.orderedData, "deletedAt", "desc").filter(
+  /**
+   * Documents that are in the trash, optionally narrowed to those deleted by a
+   * particular user and/or within a particular time frame.
+   *
+   * @param options the filters to apply.
+   * @returns the matching deleted documents, most recently deleted first.
+   */
+  deleted = (
+    options: {
+      dateFilter?: DateFilter;
+      userId?: string;
+    } = {}
+  ): Document[] => {
+    let deleted = orderBy(this.orderedData, "deletedAt", "desc").filter(
       (d) => d.deletedAt
     );
-  }
+
+    // The deleting user is recorded as the last to modify the document.
+    if (options.userId) {
+      deleted = filter(
+        deleted,
+        (document) => document.updatedBy?.id === options.userId
+      );
+    }
+
+    if (options.dateFilter) {
+      const cutoff = subtractDate(new Date(), options.dateFilter);
+      deleted = filter(
+        deleted,
+        (document) =>
+          !!document.deletedAt && new Date(document.deletedAt) >= cutoff
+      );
+    }
+
+    return deleted;
+  };
 
   @computed
   get totalDrafts(): number {
@@ -360,8 +390,9 @@ export default class DocumentsStore extends Store<Document> {
     this.fetchNamedPage("archived", options);
 
   @action
-  fetchDeleted = async (options?: PaginationParams): Promise<Document[]> =>
-    this.fetchNamedPage("deleted", options);
+  fetchDeleted = async (
+    options?: PaginationParams & { filters?: Filter[] }
+  ): Promise<Document[]> => this.fetchNamedPage("deleted", options);
 
   @action
   fetchRecentlyUpdated = async (
@@ -622,6 +653,16 @@ export default class DocumentsStore extends Store<Document> {
     // ParanoidModel instances by setting deletedAt.
     if (options?.permanent) {
       this.data.delete(document.id);
+    } else {
+      // remove() only stamps deletedAt, so mirror the server in recording the
+      // acting user against the document and its descendants. The trash relies
+      // on this to filter by who deleted an item before the next fetch.
+      const user = this.rootStore.auth.user ?? undefined;
+      const setUpdatedBy = (doc: Document) => {
+        doc.updatedBy = user;
+        doc.childDocuments.forEach(setUpdatedBy);
+      };
+      setUpdatedBy(document);
     }
 
     // check to see if we have any shares related to this document already
@@ -710,7 +751,7 @@ export default class DocumentsStore extends Store<Document> {
   emptyTrash = async () => {
     await client.post("/documents.empty_trash");
 
-    const documentIdsSet = new Set(this.deleted.map((doc) => doc.id));
+    const documentIdsSet = new Set(this.deleted().map((doc) => doc.id));
     // Call removeAll to handle inverse relations, policies, and lifecycle hooks
     this.removeAll((doc: Document) => documentIdsSet.has(doc.id));
     // For permanent deletion (empty trash), we need to hard delete from the store

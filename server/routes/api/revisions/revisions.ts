@@ -170,10 +170,12 @@ router.post(
       );
     } else if (isTextBundle || accept?.includes("text/markdown")) {
       contentType = "text/markdown";
-      content = await DocumentHelper.toMarkdown(revision);
+      content = await DocumentHelper.toMarkdown(revision, {
+        commonMark: true,
+      });
     } else {
       ctx.body = {
-        data: await DocumentHelper.toMarkdown(revision),
+        data: await DocumentHelper.toMarkdown(revision, { commonMark: true }),
       };
       return;
     }

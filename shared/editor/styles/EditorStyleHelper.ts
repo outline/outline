@@ -140,6 +140,9 @@ export class EditorStyleHelper {
   /** Sticky header state */
   static readonly tableStickyHeader = "table-sticky-header";
 
+  /** Sticky first column state */
+  static readonly tableStickyColumn = "table-sticky-column";
+
   /** Drop indicator for table drag and drop */
   static readonly tableDragDropIndicator = "table-drag-drop-indicator";
 

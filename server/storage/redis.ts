@@ -126,6 +126,7 @@ export default class RedisAdapter extends Redis {
   private static client: RedisAdapter;
   private static subscriber: RedisAdapter;
   private static collabClient: RedisAdapter;
+  private static collabSubscriber: RedisAdapter;
 
   public static get defaultClient(): RedisAdapter {
     return (
@@ -159,6 +160,22 @@ export default class RedisAdapter extends Redis {
       (this.collabClient = new this(env.REDIS_COLLABORATION_URL, {
         connectionNameSuffix: "collab",
       }))
+    );
+  }
+
+  /**
+   * A Redis adapter for subscriptions to collaboration channels.
+   */
+  public static get collaborationSubscriber(): RedisAdapter {
+    return (
+      this.collabSubscriber ||
+      (this.collabSubscriber = new this(
+        env.REDIS_COLLABORATION_URL || env.REDIS_URL,
+        {
+          maxRetriesPerRequest: null,
+          connectionNameSuffix: "collab-subscriber",
+        }
+      ))
     );
   }
 }
