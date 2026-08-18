@@ -4770,6 +4770,123 @@ describe("#documents.deleted", () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it("should filter documents by the user that deleted them", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({ teamId: user.teamId });
+    const other = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const otherDocument = await buildDocument({
+      userId: other.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withAPIContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
+
+    const res = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "deletedById", operator: "eq", value: user.id }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+    expect(body.data[0].updatedBy.id).toEqual(user.id);
+
+    const otherRes = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "deletedById", operator: "eq", value: other.id }],
+      },
+    });
+    const otherBody = await otherRes.json();
+    expect(otherRes.status).toEqual(200);
+    expect(otherBody.data.length).toEqual(1);
+    expect(otherBody.data[0].id).toEqual(otherDocument.id);
+  });
+
+  it("should record the deleting user on nested documents", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({ teamId: user.teamId });
+    const other = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      userId: other.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const childDocument = await buildDocument({
+      userId: other.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+    });
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+
+    await childDocument.reload({ paranoid: false });
+    expect(childDocument.lastModifiedById).toEqual(user.id);
+
+    const res = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "deletedById", operator: "eq", value: user.id }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+  });
+
+  it("should reject filters on fields outside the allowlist", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "title", operator: "eq", value: "secret" }],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should filter documents by date deleted", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({ teamId: user.teamId });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await Document.update(
+      { deletedAt: subDays(new Date(), 10) },
+      {
+        where: { id: document.id },
+        paranoid: false,
+        silent: true,
+        hooks: false,
+      }
+    );
+
+    const res = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "deletedAt", operator: "gte", value: "-P1D" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+
+    const monthRes = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "deletedAt", operator: "gte", value: "-P1M" }],
+      },
+    });
+    const monthBody = await monthRes.json();
+    expect(monthRes.status).toEqual(200);
+    expect(monthBody.data.length).toEqual(1);
+  });
+
   it("should require member", async () => {
     const viewer = await buildViewer();
     const res = await server.post("/api/documents.deleted", viewer);
