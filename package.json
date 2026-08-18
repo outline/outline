@@ -370,7 +370,7 @@
     "rollup-plugin-webpack-stats": "^3.1.3",
     "terser": "^5.49.0",
     "typescript": "^6.0.3",
-    "unplugin-swc": "^1.5.10",
+    "unplugin-swc": "^1.5.11",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.10"
   },
