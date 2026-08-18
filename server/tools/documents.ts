@@ -351,7 +351,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Create document",
         description:
-          "Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, parentDocumentId to nest it under an existing document, or private set to true to create a private document. Pass a templateId (from list_templates) to pre-fill the document from a template; the template's content is used unless text is also provided.",
+          'Creates a new document from markdown or HTML content. Requires a collectionId to place the document in a collection, parentDocumentId to nest it under an existing document, or personalOwnerId set to "me" to create a personal document. Pass a templateId (from list_templates) to pre-fill the document from a template; the template\'s content is used unless text is also provided.',
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
