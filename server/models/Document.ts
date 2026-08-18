@@ -1482,7 +1482,7 @@ class Document extends ArchivableModel<
       });
 
       if (!this.archivedAt || (this.archivedAt && collection?.archivedAt)) {
-        await collection?.deleteDocument(this, { transaction });
+        await collection?.deleteDocument(this, user, { transaction });
         deleted = true;
       }
     }
