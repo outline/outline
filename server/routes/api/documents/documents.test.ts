@@ -4827,7 +4827,8 @@ describe("#documents.deleted", () => {
     await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
 
     await childDocument.reload({ paranoid: false });
-    expect(childDocument.lastModifiedById).toEqual(user.id);
+    expect(childDocument.deletedById).toEqual(user.id);
+    expect(childDocument.lastModifiedById).toEqual(other.id);
 
     const res = await server.post("/api/documents.deleted", user, {
       body: {
@@ -4837,6 +4838,41 @@ describe("#documents.deleted", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
+    expect(body.data[0].deletedBy.id).toEqual(user.id);
+    expect(body.data[0].deletedBy.name).toEqual(user.name);
+  });
+
+  it("should present the deleting user on a single document", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+
+    const res = await server.post("/api/documents.info", user, {
+      body: { id: document.id },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.deletedBy.id).toEqual(user.id);
+    expect(body.data.deletedBy.name).toEqual(user.name);
+  });
+
+  it("should not present a deleting user on an active document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.info", user, {
+      body: { id: document.id },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.deletedBy).toBeUndefined();
   });
 
   it("should reject filters on fields outside the allowlist", async () => {

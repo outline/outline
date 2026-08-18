@@ -194,6 +194,14 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   updatedBy: User | undefined;
 
+  /**
+   * The user that deleted this document, only set while the document is in the
+   * trash.
+   */
+  @Relation(() => User)
+  @observable
+  deletedBy: User | undefined;
+
   @observable
   publishedAt: string | undefined;
 

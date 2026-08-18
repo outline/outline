@@ -3,6 +3,7 @@ import { Hour } from "@shared/utils/time";
 import { traceFunction } from "@server/logging/tracing";
 import type { Document } from "@server/models";
 import FileOperation from "@server/models/FileOperation";
+import User from "@server/models/User";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import type { APIContext } from "@server/types";
 import presentUser from "./user";
@@ -80,6 +81,7 @@ async function presentDocument(
     publishedAt: document.publishedAt,
     archivedAt: document.archivedAt,
     deletedAt: document.deletedAt,
+    deletedBy: undefined,
     collaboratorIds: [],
     revision: document.revisionCount,
     fullWidth: document.fullWidth,
@@ -113,6 +115,14 @@ async function presentDocument(
     res.templateId = document.templateId;
     res.insightsEnabled = document.insightsEnabled;
     res.popularityScore = document.popularityScore;
+    if (document.deletedById) {
+      const deletedBy =
+        document.deletedBy ??
+        (await document.$get("deletedBy", { paranoid: false }));
+      if (deletedBy) {
+        res.deletedBy = presentUser(deletedBy);
+      }
+    }
     if (options.includeCommentCount) {
       res.commentCount = await document.commentCount;
     }
@@ -136,8 +146,8 @@ export default traceFunction({
 })(presentDocument);
 
 /**
- * Batch-present multiple documents, fetching all related FileOperation records
- * in a single query instead of one per document.
+ * Batch-present multiple documents, fetching all related FileOperation and
+ * deleting User records in a single query instead of one per document.
  *
  * @param ctx the API context.
  * @param documents the documents to present.
@@ -165,6 +175,24 @@ export async function presentDocuments(
       for (const doc of documents) {
         if (doc.importId) {
           doc.import = sourceMap.get(doc.importId) ?? null;
+        }
+      }
+    }
+
+    const deletedByIds = documents
+      .filter((doc) => doc.deletedById && !doc.deletedBy)
+      .map((doc) => doc.deletedById!);
+
+    if (deletedByIds.length > 0) {
+      const users = await User.unscoped().findAll({
+        where: { id: { [Op.in]: deletedByIds } },
+        paranoid: false,
+      });
+      const userMap = new Map(users.map((user) => [user.id, user]));
+
+      for (const doc of documents) {
+        if (doc.deletedById) {
+          doc.deletedBy = userMap.get(doc.deletedById) ?? null;
         }
       }
     }

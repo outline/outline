@@ -570,15 +570,10 @@ router.post(
       ],
     };
 
-    // The deleting user is currently recorded as the last to modify the
-    // document, so the public `deletedById` field maps onto that column.
     const filter = combineFilters(rawFilters);
     if (filter) {
       await authorizeFilterFields(user, filter);
-      const mapped = mapFilterFields(filter, {
-        deletedById: "lastModifiedById",
-      });
-      where[Op.and].push(buildWhere<Document>(mapped));
+      where[Op.and].push(buildWhere<Document>(filter));
     }
 
     const documents = await Document.scope([

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
 import slugify from "@shared/utils/slugify";
+import { createContext } from "@server/context";
 import {
   buildUser,
   buildGroup,
@@ -329,7 +330,7 @@ describe("#removeDocument", () => {
     await collection.reload();
 
     const saveSpy = vi.spyOn(collection, "save");
-    await collection.deleteDocument(document, user);
+    await collection.deleteDocument(createContext({ user }), document);
     expect(saveSpy).toHaveBeenCalled();
   });
 
@@ -339,7 +340,7 @@ describe("#removeDocument", () => {
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
-    await collection.deleteDocument(document, user);
+    await collection.deleteDocument(createContext({ user }), document);
     expect(collection.documentStructure!.length).toBe(0);
     // Verify that the document was removed
     const collectionDocuments = await Document.findAndCountAll({
@@ -369,7 +370,7 @@ describe("#removeDocument", () => {
     await collection.addDocumentToStructure(newDocument);
     expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
-    await collection.deleteDocument(document, user);
+    await collection.deleteDocument(createContext({ user }), document);
     expect(collection.documentStructure!.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
@@ -400,7 +401,7 @@ describe("#removeDocument", () => {
       parentDocumentId = child.id;
     }
 
-    await collection.deleteDocument(document, user);
+    await collection.deleteDocument(createContext({ user }), document);
     expect(collection.documentStructure!.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
@@ -431,7 +432,7 @@ describe("#removeDocument", () => {
     expect(collection.documentStructure!.length).toBe(1);
     expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
-    await collection.deleteDocument(newDocument, user);
+    await collection.deleteDocument(createContext({ user }), newDocument);
     const reloaded = await collection.reload();
     expect(reloaded!.documentStructure!.length).toBe(1);
     expect(reloaded!.documentStructure![0].children.length).toBe(0);

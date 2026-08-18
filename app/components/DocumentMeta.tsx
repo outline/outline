@@ -93,9 +93,11 @@ const DocumentMeta: React.FC<Props> = ({
   } else if (deletedAt) {
     content = (
       <span>
-        {lastUpdatedByCurrentUser
+        {document.deletedBy?.id === user.id
           ? t("You deleted")
-          : t("{{ userName }} deleted", { userName })}{" "}
+          : t("{{ userName }} deleted", {
+              userName: document.deletedBy?.name ?? t("Unknown"),
+            })}{" "}
         <Time dateTime={deletedAt} addSuffix />
       </span>
     );
