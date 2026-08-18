@@ -321,6 +321,11 @@ export default abstract class BaseStorage {
    * file name. Including the file name ensures browsers keep the original
    * extension when downloading, rather than deriving one from the content type.
    *
+   * The value is always US-ASCII, a name outside that range being carried in the
+   * RFC 5987 `filename*` parameter. Request signing hashes header values as
+   * UTF-8 while Node writes them as Latin-1, so a raw high byte here makes the
+   * storage provider calculate a different signature and reject the upload.
+   *
    * @param contentType The content type
    * @param fileName The name of the file, if known
    * @returns The Content-Disposition header value
@@ -328,6 +333,7 @@ export default abstract class BaseStorage {
   public getContentDisposition(contentType?: string, fileName?: string) {
     return contentDisposition(fileName, {
       type: this.getContentDispositionType(contentType),
+      fallback: fileName?.replace(/[^\x20-\x7e]/g, "?"),
     });
   }
 
