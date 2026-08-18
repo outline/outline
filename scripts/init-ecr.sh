@@ -1,44 +1,35 @@
 #!/usr/bin/env bash
 
+# Creates the ECR repositories used by the Outline images.
+#
+# Credentials come from the ambient chain by default, so an EC2 instance role
+# works with no configuration. Set AWS_PROFILE to use a named profile instead.
+#
+# Usage:
+#   ./scripts/init-ecr.sh                             # instance role or environment
+#   AWS_PROFILE=internal-tools ./scripts/init-ecr.sh  # named profile
+#   AWS_REGION=us-west-2 ./scripts/init-ecr.sh
+
 set -euo pipefail
 
-readonly AWS_PROFILE_NAME="internal-tools"
-readonly AWS_REGION_NAME="us-east-1"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/aws.sh
+source "${SCRIPT_DIR}/lib/aws.sh"
+
 readonly REPOSITORIES=("outline-base" "outline")
 
-require_command() {
-  local command_name="$1"
+describe_credential_source
 
-  if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "Required command not found: $command_name" >&2
-    exit 1
-  fi
-}
-
-require_command aws
-
-account_id="$(
-  aws sts get-caller-identity \
-    --profile "$AWS_PROFILE_NAME" \
-    --region "$AWS_REGION_NAME" \
-    --query Account \
-    --output text
-)"
+account_id="$(resolve_account_id)"
 registry="${account_id}.dkr.ecr.${AWS_REGION_NAME}.amazonaws.com"
 
 for repository in "${REPOSITORIES[@]}"; do
-  if aws ecr describe-repositories \
-    --profile "$AWS_PROFILE_NAME" \
-    --region "$AWS_REGION_NAME" \
-    --repository-names "$repository" \
-    >/dev/null 2>&1; then
+  if aws_cli ecr describe-repositories --repository-names "$repository" >/dev/null 2>&1; then
     echo "ECR repository already exists: ${registry}/${repository}"
     continue
   fi
 
-  aws ecr create-repository \
-    --profile "$AWS_PROFILE_NAME" \
-    --region "$AWS_REGION_NAME" \
+  aws_cli ecr create-repository \
     --repository-name "$repository" \
     --image-scanning-configuration scanOnPush=true \
     --encryption-configuration encryptionType=AES256 \
