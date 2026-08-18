@@ -1,5 +1,9 @@
 ARG APP_PATH=/opt/outline
-ARG BASE_IMAGE=outlinewiki/outline-base
+# Every artifact below is copied out of this image, including node_modules, so
+# it must be built from this repository via Dockerfile.base. Defaulting to the
+# published upstream image silently ships a mismatched build, so default to a
+# local tag that fails fast when the base has not been built first.
+ARG BASE_IMAGE=outline-base:local
 FROM ${BASE_IMAGE} AS base
 
 ARG APP_PATH
