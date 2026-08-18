@@ -5,7 +5,10 @@ import type {
   FilterCondition,
   FilterGroup,
 } from "@shared/helpers/FilterHelper";
-import { RANGE_OPERATORS } from "@shared/helpers/FilterHelper";
+import {
+  DURATION_BY_DATE_FILTER,
+  RANGE_OPERATORS,
+} from "@shared/helpers/FilterHelper";
 import type { DateFilter, StatusFilter } from "@shared/types";
 import { StatusFilter as StatusFilterEnum } from "@shared/types";
 import { Collection } from "@server/models";
@@ -309,13 +312,6 @@ interface LegacyParams {
   dateFilter?: DateFilter;
   statusFilter?: StatusFilter[];
 }
-
-const DURATION_BY_DATE_FILTER: Record<DateFilter, string> = {
-  day: "-P1D",
-  week: "-P1W",
-  month: "-P1M",
-  year: "-P1Y",
-};
 
 function statusToFilter(status: StatusFilter): Filter {
   if (status === StatusFilterEnum.Archived) {
