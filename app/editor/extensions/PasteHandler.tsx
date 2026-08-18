@@ -241,7 +241,7 @@ export default class PasteHandler extends Extension {
                             vscodeMeta.mode
                           )
                             ? vscodeMeta.mode
-                            : null,
+                            : "none",
                         })
                       )
                       .insertText(text)

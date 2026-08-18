@@ -199,7 +199,9 @@ export default class CodeFence extends Node<CodeFenceOptions> {
       attrs: {
         language: {
           default: DEFAULT_LANGUAGE,
-          validate: "string",
+          // Null is permitted as existing documents can contain code blocks
+          // written before a language was always recorded.
+          validate: "string|null",
         },
         wrap: {
           default: false,
