@@ -31,6 +31,11 @@ const documentFilterFields = {
 
 const documentListFilter = createFilterSchema(documentFilterFields);
 
+const documentsDeletedFilter = createFilterSchema({
+  deletedAt: "date",
+  deletedById: "uuid",
+} as const);
+
 // On search endpoints `documentId` scopes results to a document subtree and is
 // resolved by the route handler, which only supports `eq` and `in`.
 const documentSearchFilter = createFilterSchema({
@@ -201,7 +206,10 @@ export const DocumentsArchivedSchema = BaseSchema.extend({
 export type DocumentsArchivedReq = z.infer<typeof DocumentsArchivedSchema>;
 
 export const DocumentsDeletedSchema = BaseSchema.extend({
-  body: DocumentsSortParamsSchema.extend({}),
+  body: DocumentsSortParamsSchema.extend({
+    /** Filter expression applied to the documents in the trash */
+    filters: documentsDeletedFilter.FilterListSchema.optional(),
+  }),
 });
 
 export type DocumentsDeletedReq = z.infer<typeof DocumentsDeletedSchema>;

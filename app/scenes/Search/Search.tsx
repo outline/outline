@@ -9,6 +9,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { Pagination } from "@shared/constants";
 import type { Filter } from "@shared/helpers/FilterHelper";
+import { DURATION_BY_DATE_FILTER } from "@shared/helpers/FilterHelper";
 import type {
   SortFilter as TSortFilter,
   DirectionFilter as TDirectionFilter,
@@ -119,14 +120,7 @@ function Search() {
       });
     }
     if (dateFilter) {
-      const duration = (
-        {
-          day: "-P1D",
-          week: "-P1W",
-          month: "-P1M",
-          year: "-P1Y",
-        } as const
-      )[dateFilter];
+      const duration = DURATION_BY_DATE_FILTER[dateFilter];
       if (duration) {
         children.push({ field: "updatedAt", operator: "gte", value: duration });
       }
