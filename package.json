@@ -66,7 +66,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^6.0.1",
     "@dnd-kit/sortable": "^7.0.2",
-    "@dotenvx/dotenvx": "^1.66.0",
+    "@dotenvx/dotenvx": "^1.75.1",
     "@emoji-mart/data": "^1.2.1",
     "@fast-csv/parse": "^5.0.7",
     "@firecrawl/pdf-inspector": "^1.11.2",
