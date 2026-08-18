@@ -180,10 +180,15 @@ export default class TableCell extends Node {
                 ) {
                   const cell = row.firstChild;
                   if (cell?.type.spec.tableRole === "cell") {
+                    // The table, row, and cell levels are gone from the content,
+                    // so the open depths must lose them too – a slice that is
+                    // open deeper than its content is malformed and throws when
+                    // ProseMirror walks into it.
+                    const unwrapped = 3;
                     return new Slice(
                       cell.content,
-                      slice.openStart,
-                      slice.openEnd
+                      Math.max(0, slice.openStart - unwrapped),
+                      Math.max(0, slice.openEnd - unwrapped)
                     );
                   }
                 }
