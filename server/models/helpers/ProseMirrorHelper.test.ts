@@ -53,6 +53,31 @@ describe("ProsemirrorHelper", () => {
       expect(html).not.toContain('contenteditable="true"');
     });
 
+    it("should render a pdf attachment preview", async () => {
+      const doc = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "attachment",
+            attrs: {
+              id: "8f0e2a1c-1f2b-4c3d-9e4f-5a6b7c8d9e0f",
+              href: "https://example.com/file.pdf",
+              title: "file.pdf",
+              size: 1024,
+              preview: true,
+              contentType: "application/pdf",
+            },
+          },
+        ],
+      });
+      const html = await ProsemirrorHelper.toHTML(doc, {
+        includeStyles: false,
+        includeHead: false,
+      });
+      expect(html).toContain("<embed");
+      expect(html).toContain("https://example.com/file.pdf");
+    });
+
     it("should include styles of rendered components", async () => {
       const doc = Node.fromJSON(schema, {
         type: "doc",
