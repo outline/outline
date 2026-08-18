@@ -223,6 +223,10 @@ export default class AuthStore extends Store<Team> {
         this.availableTeams = res.data.availableTeams;
         this.collaborationToken = res.data.collaborationToken;
 
+        // Covers the first session after login, where no team was available
+        // in localStorage when the root store was constructed.
+        this.rootStore.enablePersistence();
+
         if (env.SENTRY_DSN) {
           const scope = Sentry.getCurrentScope();
           scope.setUser({ id: this.currentUserId! });

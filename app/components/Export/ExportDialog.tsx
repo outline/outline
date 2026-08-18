@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { ArchiveIcon, CodeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import styled from "styled-components";
 import { FileOperationFormat, NotificationEventType } from "@shared/types";
 import type Collection from "~/models/Collection";
@@ -60,25 +59,7 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
     }
 
     if (response?.data?.fileOperation) {
-      const fileOperationId = response.data.fileOperation.id;
-      const toastId = `export-${fileOperationId}`;
-
-      const timeoutId = setTimeout(() => {
-        toast.success(t("Export started"), {
-          id: toastId,
-          description: t("A link to your file will be sent through email soon"),
-          duration: 3000,
-        });
-        ui.exportToasts.delete(fileOperationId);
-      }, 6000);
-
-      ui.registerExportToast(fileOperationId, toastId, timeoutId);
-
-      toast.loading(t("Export started"), {
-        id: toastId,
-        description: `${t("Preparing your download")}…`,
-        duration: Infinity,
-      });
+      ui.showExportToast(response.data.fileOperation.id);
     }
 
     onSubmit();

@@ -49,9 +49,30 @@ function dateMentionLabel(node: ProsemirrorNode): string {
     : node.attrs.label;
 }
 
+/**
+ * Whether a mention points at a resource outside of Outline, in which case the
+ * real URL is stored in `attrs.href` rather than addressed with a `mention://`
+ * reference.
+ *
+ * @param type the mention type.
+ * @returns true if the mention links to an external URL.
+ */
+function isExternalMention(type: MentionType): boolean {
+  return (
+    type === MentionType.Issue ||
+    type === MentionType.PullRequest ||
+    type === MentionType.Project
+  );
+}
+
 export default class Mention extends Node {
   get name() {
     return "mention";
+  }
+
+  /** The component requires stores and a router, neither of which exist outside the app. */
+  get allowComponentInStaticHTML() {
+    return false;
   }
 
   get schema(): NodeSpec {
@@ -148,12 +169,9 @@ export default class Mention extends Node {
           "data-id": node.attrs.modelId,
           "data-actorid": node.attrs.actorId,
           "data-anchor-id": node.attrs.anchorId,
-          "data-url":
-            node.attrs.type === MentionType.PullRequest ||
-            node.attrs.type === MentionType.Issue ||
-            node.attrs.type === MentionType.Project
-              ? sanitizeUrl(node.attrs.href)
-              : `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
+          "data-url": isExternalMention(node.attrs.type)
+            ? sanitizeUrl(node.attrs.href)
+            : `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
           "data-unfurl": JSON.stringify(node.attrs.unfurl),
         },
         toPlainText(node),
@@ -264,14 +282,10 @@ export default class Mention extends Node {
         ) {
           const mentionType = selection.node.attrs.type;
 
-          let link: string;
+          let link: string | undefined;
 
-          if (
-            mentionType === MentionType.Issue ||
-            mentionType === MentionType.PullRequest ||
-            mentionType === MentionType.Project
-          ) {
-            link = selection.node.attrs.href;
+          if (isExternalMention(mentionType)) {
+            link = sanitizeUrl(selection.node.attrs.href);
           } else {
             const { modelId } = selection.node.attrs;
 
@@ -287,7 +301,9 @@ export default class Mention extends Node {
             }`;
           }
 
-          this.editor.props.onClickLink?.(link);
+          if (link) {
+            this.editor.props.onClickLink?.(link);
+          }
           return true;
         }
         return false;
@@ -376,8 +392,17 @@ export default class Mention extends Node {
       );
     } else if (mType === MentionType.Collection) {
       state.write(`[${label}](/collection/${mId})`);
+    } else if (
+      state.options.commonMark &&
+      isExternalMention(mType) &&
+      node.attrs.href
+    ) {
+      // Markdown that leaves Outline cannot resolve a mention:// reference, so
+      // external mentions fall back to the URL they already carry.
+      state.write(`[${label}](${sanitizeUrl(node.attrs.href)})`);
     } else {
-      // Keep the existing mention:// format for other types (user, group, issue, pull_request, url)
+      // Keep the mention:// format for everything else, it round-trips back
+      // into a live mention through Outline's own parser.
       state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
     }
   }

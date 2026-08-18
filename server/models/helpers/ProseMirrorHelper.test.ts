@@ -7,7 +7,7 @@ import type { ProsemirrorData } from "@shared/types";
 import { MentionType } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
-import { schema } from "@server/editor";
+import { parser, schema } from "@server/editor";
 import env from "@server/env";
 import { Attachment } from "@server/models";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
@@ -17,6 +17,87 @@ import { ProsemirrorHelper } from "./ProsemirrorHelper";
 vi.mock("@server/storage/files");
 
 describe("ProsemirrorHelper", () => {
+  describe("toHTML", () => {
+    it("should render images with toDOM for static output", async () => {
+      const doc = parser.parse("![caption](https://example.com/image.png)")!;
+      const html = await ProsemirrorHelper.toHTML(doc, {
+        includeStyles: false,
+        includeHead: false,
+      });
+      expect(html).toContain('<img src="https://example.com/image.png"');
+      expect(html).not.toContain("display: none");
+      expect(html).not.toContain("component-image");
+    });
+
+    it("should not include editable regions in the output", async () => {
+      const doc = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "video",
+            attrs: {
+              src: "https://example.com/video.mp4",
+              title: "A video",
+              width: 400,
+              height: 300,
+            },
+          },
+        ],
+      });
+      const html = await ProsemirrorHelper.toHTML(doc, {
+        includeStyles: false,
+        includeHead: false,
+      });
+      expect(html).toContain("<video");
+      expect(html).toContain("A video");
+      expect(html).not.toContain('contenteditable="true"');
+    });
+
+    it("should render a pdf attachment preview", async () => {
+      const doc = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "attachment",
+            attrs: {
+              id: "8f0e2a1c-1f2b-4c3d-9e4f-5a6b7c8d9e0f",
+              href: "https://example.com/file.pdf",
+              title: "file.pdf",
+              size: 1024,
+              preview: true,
+              contentType: "application/pdf",
+            },
+          },
+        ],
+      });
+      const html = await ProsemirrorHelper.toHTML(doc, {
+        includeStyles: false,
+        includeHead: false,
+      });
+      expect(html).toContain("<embed");
+      expect(html).toContain("https://example.com/file.pdf");
+    });
+
+    it("should include styles of rendered components", async () => {
+      const doc = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "embed",
+            attrs: { href: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+          },
+        ],
+      });
+      const html = await ProsemirrorHelper.toHTML(doc);
+      const iframeClass = html
+        .match(/<iframe[^>]*class="([^"]+)"/)?.[1]
+        .split(" ")
+        .pop();
+      expect(iframeClass).toBeTruthy();
+      expect(html).toContain(`.${iframeClass}`);
+    });
+  });
+
   describe("processMentions", () => {
     it("should handle deleted users", async () => {
       const user = await buildUser();
