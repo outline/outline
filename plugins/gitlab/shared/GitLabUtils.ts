@@ -12,6 +12,9 @@ export type OAuthState = {
 export class GitLabUtils {
   public static defaultGitlabUrl = "https://gitlab.com";
 
+  /** Fallback color for labels returned without color details. */
+  public static defaultLabelColor = "#6B7280";
+
   private static supportedResources = [
     UnfurlResourceType.Issue,
     UnfurlResourceType.PR,
@@ -138,6 +141,13 @@ export class GitLabUtils {
       }
     | {
         owner: string;
+        type: UnfurlResourceType.Issue;
+        scope: "group";
+        id: number;
+        url: string;
+      }
+    | {
+        owner: string;
         repo: string;
         type: UnfurlResourceType.Project;
         url: string;
@@ -152,22 +162,24 @@ export class GitLabUtils {
       }
 
       const parts = parsed.pathname.split("/").filter(Boolean);
+      const hasSeparator = parsed.pathname.includes("/-/");
+
+      // Epics are group-scoped, e.g. /groups/owner/-/work_items/123
+      const isGroup = hasSeparator && parts[0] === "groups";
+      if (isGroup) {
+        parts.shift();
+      }
 
       // Try base64-encoded `show` query parameter first
       // e.g. /owner/repo/-/issues?show=eyJ...
       const showParam = parsed.searchParams.get("show");
-      if (showParam && parts.length >= 4) {
+      if (showParam && parts.length >= (isGroup ? 3 : 4)) {
         const resourceType = parts.pop();
         parts.pop(); // separator ("-")
-        const repo = parts.pop();
+        const repo = isGroup ? undefined : parts.pop();
         const owner = parts.join("/");
 
-        const type =
-          resourceType === "issues" || resourceType === "work_items"
-            ? UnfurlResourceType.Issue
-            : resourceType === "merge_requests"
-              ? UnfurlResourceType.PR
-              : undefined;
+        const type = this.getResourceType(resourceType, isGroup);
 
         if (!type || !this.supportedResources.includes(type)) {
           return;
@@ -179,14 +191,22 @@ export class GitLabUtils {
           if (!iid) {
             return;
           }
-          return { owner, repo, type, id: iid, url };
+          return isGroup
+            ? {
+                owner,
+                type: UnfurlResourceType.Issue,
+                scope: "group",
+                id: iid,
+                url,
+              }
+            : { owner, repo, type, id: iid, url };
         } catch {
           return;
         }
       }
 
       // Check if it's a project URL (no -/ separator pattern in path)
-      if (!parsed.pathname.includes("/-/")) {
+      if (!hasSeparator) {
         if (parts.length >= 2 && !this.isSystemPath(parts[0])) {
           const repo = parts[parts.length - 1];
           const owner = parts.slice(0, -1).join("/");
@@ -200,7 +220,7 @@ export class GitLabUtils {
         return;
       }
 
-      if (parts.length < 5) {
+      if (parts.length < (isGroup ? 4 : 5)) {
         return;
       }
 
@@ -209,30 +229,58 @@ export class GitLabUtils {
       const resourceType = parts.pop();
       parts.pop(); // separator ("-")
 
-      const repo = parts.pop();
+      const repo = isGroup ? undefined : parts.pop();
       const owner = parts.join("/");
 
-      const type =
-        resourceType === "issues" || resourceType === "work_items"
-          ? UnfurlResourceType.Issue
-          : resourceType === "merge_requests"
-            ? UnfurlResourceType.PR
-            : undefined;
+      const type = this.getResourceType(resourceType, isGroup);
 
       if (!type || !this.supportedResources.includes(type)) {
         return;
       }
 
-      return {
-        owner,
-        repo,
-        type,
-        id: Number(resourceId),
-        url,
-      };
+      return isGroup
+        ? {
+            owner,
+            type: UnfurlResourceType.Issue,
+            scope: "group",
+            id: Number(resourceId),
+            url,
+          }
+        : {
+            owner,
+            repo,
+            type,
+            id: Number(resourceId),
+            url,
+          };
     } catch {
       return;
     }
+  }
+
+  /**
+   * Maps the resource segment of a GitLab URL to an unfurl resource type.
+   *
+   * @param resourceType - the resource segment of the URL path.
+   * @param isGroup - whether the URL points at a group-scoped resource.
+   * @returns the matching resource type, or undefined when unsupported.
+   */
+  private static getResourceType(
+    resourceType: string | undefined,
+    isGroup: boolean
+  ): UnfurlResourceType.Issue | UnfurlResourceType.PR | undefined {
+    if (isGroup) {
+      // Group-scoped work items are epics, which are shown as issues.
+      return resourceType === "epics" || resourceType === "work_items"
+        ? UnfurlResourceType.Issue
+        : undefined;
+    }
+
+    return resourceType === "issues" || resourceType === "work_items"
+      ? UnfurlResourceType.Issue
+      : resourceType === "merge_requests"
+        ? UnfurlResourceType.PR
+        : undefined;
   }
 
   /**

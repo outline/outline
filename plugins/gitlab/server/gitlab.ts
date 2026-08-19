@@ -1,5 +1,6 @@
 import { Gitlab } from "@gitbeaker/rest";
 import type {
+  EpicSchema,
   IssueSchemaWithExpandedLabels,
   MergeRequestSchema,
   ProjectSchema,
@@ -104,6 +105,25 @@ export class GitLab {
     }
 
     return issues[0];
+  }
+
+  /**
+   * Fetches an epic from a GitLab group.
+   *
+   * @param accessToken - The access token for authentication.
+   * @param groupPath - The full path of the group.
+   * @param epicIid - The epic IID (internal ID within the group).
+   * @param customUrl - Optional custom GitLab URL from integration settings.
+   * @returns The epic data.
+   */
+  public static async getEpic(
+    accessToken: string,
+    groupPath: string,
+    epicIid: number,
+    customUrl?: string
+  ) {
+    const client = await this.createClient(accessToken, customUrl);
+    return client.Epics.show(groupPath, epicIid);
   }
 
   /**
@@ -228,7 +248,6 @@ export class GitLab {
 
     try {
       const customUrl = matchedIntegration.settings?.gitlab?.url;
-      const projectPath = `${resource.owner}/${resource.repo}`;
       const { authentication } = matchedIntegration;
       const token = await authentication.refreshTokenIfNeeded(
         async (refreshToken: string) =>
@@ -239,6 +258,19 @@ export class GitLab {
             clientSecret: authentication.clientSecret ?? undefined,
           })
       );
+
+      if ("scope" in resource) {
+        const epic = await this.getEpic(
+          token,
+          resource.owner,
+          resource.id,
+          customUrl
+        );
+
+        return this.transformEpic(epic);
+      }
+
+      const projectPath = `${resource.owner}/${resource.repo}`;
 
       if (resource.type === UnfurlResourceType.Issue) {
         const issue = await this.getIssue(
@@ -379,6 +411,30 @@ export class GitLab {
         color: GitLabUtils.getColorForStatus(issue.state),
       },
       createdAt: issue.created_at,
+    } satisfies UnfurlIssueOrPR;
+  }
+
+  private static transformEpic(epic: EpicSchema) {
+    return {
+      type: UnfurlResourceType.Issue,
+      url: epic.web_url,
+      id: `#${epic.iid}`,
+      title: epic.title,
+      description: GitLabUtils.sanitizeGitLabMarkdown(epic.description),
+      author: {
+        name: epic.author?.username ?? "",
+        avatarUrl: epic.author?.avatar_url ?? "",
+      },
+      labels: (epic.labels ?? []).map((label) =>
+        typeof label === "string"
+          ? { name: label, color: GitLabUtils.defaultLabelColor }
+          : { name: label.name, color: label.color }
+      ),
+      state: {
+        name: epic.state,
+        color: GitLabUtils.getColorForStatus(epic.state),
+      },
+      createdAt: epic.created_at,
     } satisfies UnfurlIssueOrPR;
   }
 
