@@ -205,6 +205,10 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
 
   private goToMatch(direction: number): Command {
     return (state, dispatch) => {
+      if (!this.results.length) {
+        return false;
+      }
+
       if (direction > 0) {
         if (this.currentResultIndex >= this.results.length - 1) {
           this.currentResultIndex = 0;
