@@ -179,19 +179,24 @@ export async function presentDocuments(
       }
     }
 
-    const deletedByIds = documents
-      .filter((doc) => doc.deletedById && !doc.deletedBy)
-      .map((doc) => doc.deletedById!);
+    // Deduplicated because a page of trashed documents is often the work of a
+    // single person, and only for documents that arrived without the
+    // association so that an eager loaded one is not overwritten.
+    const deletedByIds = new Set(
+      documents
+        .filter((doc) => doc.deletedById && !doc.deletedBy)
+        .map((doc) => doc.deletedById!)
+    );
 
-    if (deletedByIds.length > 0) {
+    if (deletedByIds.size > 0) {
       const users = await User.unscoped().findAll({
-        where: { id: { [Op.in]: deletedByIds } },
+        where: { id: { [Op.in]: Array.from(deletedByIds) } },
         paranoid: false,
       });
       const userMap = new Map(users.map((user) => [user.id, user]));
 
       for (const doc of documents) {
-        if (doc.deletedById) {
+        if (doc.deletedById && !doc.deletedBy) {
           doc.deletedBy = userMap.get(doc.deletedById) ?? null;
         }
       }
