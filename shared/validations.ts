@@ -176,6 +176,17 @@ export const WebhookSubscriptionValidation = {
   maxUrlLength: 1024,
 };
 
+export const FilterValidation = {
+  /** The maximum nesting depth of a filter expression */
+  maxDepth: 5,
+
+  /** The maximum number of values in an `in` / `notIn` array */
+  maxInValues: 100,
+
+  /** The maximum number of conditions and groups a filter may contain */
+  maxNodes: 50,
+};
+
 export const EmojiValidation = {
   /** The maximum length of the emoji name */
   maxNameLength: 25,

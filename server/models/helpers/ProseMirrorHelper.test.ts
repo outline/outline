@@ -7,7 +7,7 @@ import type { ProsemirrorData } from "@shared/types";
 import { MentionType } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
-import { schema } from "@server/editor";
+import { parser, schema } from "@server/editor";
 import env from "@server/env";
 import { Attachment } from "@server/models";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
@@ -17,6 +17,87 @@ import { ProsemirrorHelper } from "./ProsemirrorHelper";
 vi.mock("@server/storage/files");
 
 describe("ProsemirrorHelper", () => {
+  describe("toHTML", () => {
+    it("should render images with toDOM for static output", async () => {
+      const doc = parser.parse("![caption](https://example.com/image.png)")!;
+      const html = await ProsemirrorHelper.toHTML(doc, {
+        includeStyles: false,
+        includeHead: false,
+      });
+      expect(html).toContain('<img src="https://example.com/image.png"');
+      expect(html).not.toContain("display: none");
+      expect(html).not.toContain("component-image");
+    });
+
+    it("should not include editable regions in the output", async () => {
+      const doc = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "video",
+            attrs: {
+              src: "https://example.com/video.mp4",
+              title: "A video",
+              width: 400,
+              height: 300,
+            },
+          },
+        ],
+      });
+      const html = await ProsemirrorHelper.toHTML(doc, {
+        includeStyles: false,
+        includeHead: false,
+      });
+      expect(html).toContain("<video");
+      expect(html).toContain("A video");
+      expect(html).not.toContain('contenteditable="true"');
+    });
+
+    it("should render a pdf attachment preview", async () => {
+      const doc = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "attachment",
+            attrs: {
+              id: "8f0e2a1c-1f2b-4c3d-9e4f-5a6b7c8d9e0f",
+              href: "https://example.com/file.pdf",
+              title: "file.pdf",
+              size: 1024,
+              preview: true,
+              contentType: "application/pdf",
+            },
+          },
+        ],
+      });
+      const html = await ProsemirrorHelper.toHTML(doc, {
+        includeStyles: false,
+        includeHead: false,
+      });
+      expect(html).toContain("<embed");
+      expect(html).toContain("https://example.com/file.pdf");
+    });
+
+    it("should include styles of rendered components", async () => {
+      const doc = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "embed",
+            attrs: { href: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+          },
+        ],
+      });
+      const html = await ProsemirrorHelper.toHTML(doc);
+      const iframeClass = html
+        .match(/<iframe[^>]*class="([^"]+)"/)?.[1]
+        .split(" ")
+        .pop();
+      expect(iframeClass).toBeTruthy();
+      expect(html).toContain(`.${iframeClass}`);
+    });
+  });
+
   describe("processMentions", () => {
     it("should handle deleted users", async () => {
       const user = await buildUser();
@@ -1751,6 +1832,220 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
         })
       ).toThrow(/not found/);
+    });
+
+    it("suggests the closest text when anchorText is not found", () => {
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "Copy all 6 scripts to " },
+            {
+              type: "text",
+              marks: [{ type: "code_inline" }],
+              text: "api-documentation/tools/",
+            },
+          ],
+        },
+      ]);
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "Copy all 7 scripts to `api-documentation/tools/`",
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(
+        'the closest text is "Copy all 6 scripts to api-documentation/tools/"'
+      );
+    });
+
+    it("does not suggest unrelated text when anchorText is not found", () => {
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Copy all 6 scripts to tools" }],
+        },
+      ]);
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "totally unrelated sentence here",
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(/^anchorText was not found in the document$/);
+    });
+
+    it("does not suggest text when anchorText is very long", () => {
+      const text = "lorem ipsum dolor sit amet ".repeat(50);
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text }],
+        },
+      ]);
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: `${text}and more`,
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(/^anchorText was not found in the document$/);
+    });
+
+    describe("with markdown formatted anchorText", () => {
+      // Callers commonly read a document as markdown and then anchor using a
+      // substring of it, which does not exist verbatim in the plain text.
+      const steps = [
+        {
+          type: "heading",
+          attrs: { level: 2 },
+          content: [{ type: "text", text: "Implementation steps" }],
+        },
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "Remove " },
+            {
+              type: "text",
+              marks: [{ type: "code_inline" }],
+              text: "--tools-dir",
+            },
+            { type: "text", text: " arguments from the scripts" },
+          ],
+        },
+      ];
+
+      it("matches text containing inline code", () => {
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState: buildDocState(steps),
+          anchorText: "Remove `--tools-dir` arguments from the scripts",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe(
+          "Remove --tools-dir arguments from the scripts"
+        );
+      });
+
+      it("matches text containing emphasis", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "the " },
+              { type: "text", marks: [{ type: "strong" }], text: "brown" },
+              { type: "text", text: " fox" },
+            ],
+          },
+        ]);
+
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "the **brown** fox",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe("the brown fox");
+      });
+
+      it("matches text containing a link", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "see " },
+              {
+                type: "text",
+                marks: [{ type: "link", attrs: { href: "https://acme.com" } }],
+                text: "the docs",
+              },
+              { type: "text", text: " for details" },
+            ],
+          },
+        ]);
+
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "see [the docs](https://acme.com) for details",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe(
+          "see the docs for details"
+        );
+      });
+
+      it("matches text including a heading marker", () => {
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState: buildDocState(steps),
+          anchorText: "## Implementation steps",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe("Implementation steps");
+      });
+
+      it("matches text including a list marker", () => {
+        const docState = buildDocState([
+          {
+            type: "bullet_list",
+            content: [
+              {
+                type: "list_item",
+                content: [
+                  {
+                    type: "paragraph",
+                    content: [{ type: "text", text: "first item" }],
+                  },
+                ],
+              },
+            ],
+          },
+        ]);
+
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "- first item",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe("first item");
+      });
+
+      it("matches text that is wrapped over several lines", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "The quick brown fox jumps" }],
+          },
+        ]);
+
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "The quick\n  brown fox",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+
+        const marks = getCommentMarks(result!.state);
+        expect(marks.map((m) => m.text).join("")).toBe("The quick brown fox");
+      });
     });
 
     describe("with anchorPrefix and anchorSuffix", () => {

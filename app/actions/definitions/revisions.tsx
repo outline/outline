@@ -1,12 +1,21 @@
 import copy from "copy-to-clipboard";
-import { LinkIcon, RestoreIcon, TrashIcon, DownloadIcon } from "outline-icons";
+import {
+  LinkIcon,
+  RestoreIcon,
+  TrashIcon,
+  DownloadIcon,
+  ExportIcon,
+  PrintIcon,
+} from "outline-icons";
 import { matchPath } from "react-router-dom";
 import { toast } from "sonner";
 import { ExportContentType } from "@shared/types";
+import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Revision from "~/models/Revision";
 import stores from "~/stores";
 import type { ActionContext } from "~/types";
 import {
+  ActionSeparator,
   createAction,
   createActionWithChildren,
   createInternalLinkAction,
@@ -25,6 +34,30 @@ function getActiveRevisionId({ location, getActiveModel }: ActionContext) {
     path: matchDocumentHistory,
   });
   return getActiveModel(Revision)?.id ?? match?.params.revisionId;
+}
+
+/**
+ * Whether the given revision is the one currently displayed, as opposed to
+ * merely the one a menu was opened from.
+ */
+function isViewingRevision(
+  { location, activeDocumentId }: ActionContext,
+  revisionId: string
+) {
+  const match = matchPath<{ revisionId: string }>(location.pathname, {
+    path: matchDocumentHistory,
+  });
+  const viewing = match?.params.revisionId;
+
+  if (!viewing) {
+    return false;
+  }
+
+  // The most recent revision is addressed by a placeholder in the url.
+  return viewing === "latest"
+    ? !!activeDocumentId &&
+        RevisionHelper.latestId(activeDocumentId) === revisionId
+    : viewing === revisionId;
 }
 
 export const restoreRevision = createInternalLinkAction({
@@ -169,20 +202,53 @@ export const downloadRevisionAsMarkdownActionFactory = (revisionId: string) =>
     },
   });
 
-export const downloadRevisionActionFactory = (revisionId: string) =>
-  createActionWithChildren({
-    name: ({ t, isMenu }) => (isMenu ? t("Download") : t("Download revision")),
-    analyticsName: "Download revision",
+export const downloadRevisionAsTextBundleActionFactory = (revisionId: string) =>
+  createAction({
+    name: ({ t }) => t("TextBundle"),
+    analyticsName: "Download revision as TextBundle",
     section: RevisionSection,
+    keywords: "textbundle textpack bear ulysses export",
     icon: <DownloadIcon />,
-    keywords: "export",
+    iconInContextMenu: false,
     visible: ({ activeDocumentId }) =>
       !!activeDocumentId &&
       stores.policies.abilities(activeDocumentId).download,
+    perform: async () => {
+      const revision = stores.revisions.get(revisionId);
+      await revision?.download(ExportContentType.TextBundle);
+    },
+  });
+
+export const printRevisionActionFactory = (revisionId: string) =>
+  createAction({
+    name: ({ t }) => t("Print"),
+    analyticsName: "Print revision",
+    section: RevisionSection,
+    icon: <PrintIcon />,
+    iconInContextMenu: false,
+    // Printing captures whatever is on screen, so it is only offered for the
+    // revision currently being viewed.
+    visible: (context) =>
+      !!window.print && isViewingRevision(context, revisionId),
+    perform: () => {
+      setTimeout(window.print, 0);
+    },
+  });
+
+export const exportRevisionActionFactory = (revisionId: string) =>
+  createActionWithChildren({
+    name: ({ t, isMenu }) => (isMenu ? t("Export") : t("Export revision")),
+    analyticsName: "Export revision",
+    section: RevisionSection,
+    icon: <ExportIcon />,
+    keywords: "download export",
     children: [
-      downloadRevisionAsHTMLActionFactory(revisionId),
-      downloadRevisionAsPDFActionFactory(revisionId),
       downloadRevisionAsMarkdownActionFactory(revisionId),
+      downloadRevisionAsHTMLActionFactory(revisionId),
+      downloadRevisionAsTextBundleActionFactory(revisionId),
+      downloadRevisionAsPDFActionFactory(revisionId),
+      ActionSeparator,
+      printRevisionActionFactory(revisionId),
     ],
   });
 

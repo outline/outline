@@ -8,6 +8,7 @@ import breakpoint from "styled-components-breakpoint";
 import { EmojiText } from "@shared/components/EmojiText";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, hideScrollbars, s } from "@shared/styles";
+import { supportsPassiveListener } from "@shared/utils/browser";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 import { patchLocation } from "~/utils/history";
@@ -17,12 +18,22 @@ const HEADING_OFFSET = 20;
 
 function Contents() {
   const history = useHistory();
-  const [activeSlug, setActiveSlug] = useState<string>();
+  const [scrolledSlug, setScrolledSlug] = useState<string>();
+  const [selectedSlug, setSelectedSlug] = useState<string>();
   const scrollPosition = useWindowScrollPosition({
     throttle: 100,
   });
-  const { headings } = useDocumentContext();
+  const documentContext = useDocumentContext();
+  const { headings } = documentContext;
   const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
+
+  // A heading chosen from the contents stays highlighted until the reader
+  // scrolls themselves. Headings near the end of a document cannot reach the
+  // top of the viewport, so the scroll position alone would never select them.
+  const activeSlug =
+    selectedSlug && headings.some((heading) => heading.id === selectedSlug)
+      ? selectedSlug
+      : scrolledSlug;
 
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -40,10 +51,40 @@ function Contents() {
       // Navigate via history so the location state (active sidebar context) is
       // retained rather than dropped by a native hash navigation.
       event.preventDefault();
+      setSelectedSlug(id);
       history.push(patchLocation(history.location, { hash: `#${id}` }));
+
+      // Scroll from here rather than relying on the hash changing, so that
+      // clicking the same heading again still moves the reader to it.
+      void documentContext.editor?.scrollToAnchor(`#${id}`);
     },
-    [history]
+    [history, documentContext]
   );
+
+  useEffect(() => {
+    if (!selectedSlug) {
+      return;
+    }
+
+    // Navigating to the heading scrolls the document during the same commit,
+    // so the position here is the one it came to rest at. Any movement away
+    // from it is the reader scrolling, whichever means they use.
+    const restingPosition = window.pageYOffset;
+
+    const handleScroll = () => {
+      if (window.pageYOffset !== restingPosition) {
+        setSelectedSlug(undefined);
+      }
+    };
+
+    window.addEventListener(
+      "scroll",
+      handleScroll,
+      supportsPassiveListener ? { passive: true } : false
+    );
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [selectedSlug]);
 
   useEffect(() => {
     let activeId = headings.length > 0 ? headings[0].id : undefined;
@@ -63,10 +104,10 @@ function Contents() {
       }
     }
 
-    if (activeSlug !== activeId) {
-      setActiveSlug(activeId);
+    if (scrolledSlug !== activeId) {
+      setScrolledSlug(activeId);
     }
-  }, [scrollPosition, headings, activeSlug]);
+  }, [scrollPosition, headings, scrolledSlug]);
 
   useEffect(() => {
     const activeItem = activeSlug ? itemRefs.current[activeSlug] : undefined;

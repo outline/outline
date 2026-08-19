@@ -6,12 +6,13 @@ import {
   AttachmentPreset,
   SubscriptionType,
   type DateFilter,
-  type StatusFilter,
 } from "@shared/types";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import { adjustIndexForMove } from "@shared/utils/collections";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
+import type { JSONObject } from "@shared/types";
 import type RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Document from "~/models/Document";
@@ -34,13 +35,10 @@ export type SearchParams = {
   query?: string;
   offset?: number;
   limit?: number;
-  dateFilter?: DateFilter;
-  statusFilter?: StatusFilter[];
-  collectionId?: string;
-  userId?: string;
   shareId?: string;
   sort?: SortFilter;
   direction?: DirectionFilter;
+  filters?: Filter[];
 };
 
 type ImportOptions = {
@@ -234,12 +232,42 @@ export default class DocumentsStore extends Store<Document> {
     );
   }
 
-  @computed
-  get deleted(): Document[] {
-    return orderBy(this.orderedData, "deletedAt", "desc").filter(
+  /**
+   * Documents that are in the trash, optionally narrowed to those deleted by a
+   * particular user and/or within a particular time frame.
+   *
+   * @param options the filters to apply.
+   * @returns the matching deleted documents, most recently deleted first.
+   */
+  deleted = (
+    options: {
+      dateFilter?: DateFilter;
+      userId?: string;
+    } = {}
+  ): Document[] => {
+    let deleted = orderBy(this.orderedData, "deletedAt", "desc").filter(
       (d) => d.deletedAt
     );
-  }
+
+    // The deleting user is recorded as the last to modify the document.
+    if (options.userId) {
+      deleted = filter(
+        deleted,
+        (document) => document.updatedBy?.id === options.userId
+      );
+    }
+
+    if (options.dateFilter) {
+      const cutoff = subtractDate(new Date(), options.dateFilter);
+      deleted = filter(
+        deleted,
+        (document) =>
+          !!document.deletedAt && new Date(document.deletedAt) >= cutoff
+      );
+    }
+
+    return deleted;
+  };
 
   @computed
   get totalDrafts(): number {
@@ -348,12 +376,12 @@ export default class DocumentsStore extends Store<Document> {
     try {
       const res = await client.post(`/documents.${request}`, options);
       invariant(res?.data, "Document list not available");
-      runInAction("DocumentsStore#fetchNamedPage", () => {
-        res.data.forEach(this.add);
+      return runInAction("DocumentsStore#fetchNamedPage", () => {
+        const documents = res.data.map(this.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;
+        return documents;
       });
-      return res.data;
     } finally {
       this.isFetching = false;
     }
@@ -364,8 +392,9 @@ export default class DocumentsStore extends Store<Document> {
     this.fetchNamedPage("archived", options);
 
   @action
-  fetchDeleted = async (options?: PaginationParams): Promise<Document[]> =>
-    this.fetchNamedPage("deleted", options);
+  fetchDeleted = async (
+    options?: PaginationParams & { filters?: Filter[] }
+  ): Promise<Document[]> => this.fetchNamedPage("deleted", options);
 
   @action
   fetchRecentlyUpdated = async (
@@ -427,7 +456,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   searchTitles = async (options?: SearchParams): Promise<SearchResult[]> => {
-    const compactedOptions = omitBy(options, (o) => !o);
+    const compactedOptions = omitBy(options, (o) => !o) as JSONObject;
     const res = await client.post("/documents.search_titles", {
       ...compactedOptions,
     });
@@ -458,7 +487,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   search = async (options: SearchParams): Promise<SearchResult[]> => {
-    const compactedOptions = omitBy(options, (o) => !o);
+    const compactedOptions = omitBy(options, (o) => !o) as JSONObject;
     const res = await client.post("/documents.search", {
       ...compactedOptions,
     });
@@ -646,6 +675,16 @@ export default class DocumentsStore extends Store<Document> {
     // ParanoidModel instances by setting deletedAt.
     if (options?.permanent) {
       this.data.delete(document.id);
+    } else {
+      // remove() only stamps deletedAt, so mirror the server in recording the
+      // acting user against the document and its descendants. The trash relies
+      // on this to filter by who deleted an item before the next fetch.
+      const user = this.rootStore.auth.user ?? undefined;
+      const setUpdatedBy = (doc: Document) => {
+        doc.updatedBy = user;
+        doc.childDocuments.forEach(setUpdatedBy);
+      };
+      setUpdatedBy(document);
     }
 
     // check to see if we have any shares related to this document already
@@ -734,7 +773,7 @@ export default class DocumentsStore extends Store<Document> {
   emptyTrash = async () => {
     await client.post("/documents.empty_trash");
 
-    const documentIdsSet = new Set(this.deleted.map((doc) => doc.id));
+    const documentIdsSet = new Set(this.deleted().map((doc) => doc.id));
     // Call removeAll to handle inverse relations, policies, and lifecycle hooks
     this.removeAll((doc: Document) => documentIdsSet.has(doc.id));
     // For permanent deletion (empty trash), we need to hard delete from the store

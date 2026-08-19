@@ -339,20 +339,22 @@ describe("#updateDocument", () => {
 describe("#removeDocument", () => {
   it("should save if removing", async () => {
     const collection = await buildCollection();
+    const user = await buildUser({ teamId: collection.teamId });
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
     const saveSpy = vi.spyOn(collection, "save");
-    await collection.deleteDocument(createContext({}), document);
+    await collection.deleteDocument(createContext({ user }), document);
     expect(saveSpy).toHaveBeenCalled();
   });
 
   it("should remove documents from root", async () => {
     const collection = await buildCollection();
+    const user = await buildUser({ teamId: collection.teamId });
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
-    await collection.deleteDocument(createContext({}), document);
+    await collection.deleteDocument(createContext({ user }), document);
     expect(collection.documentStructure!.length).toBe(0);
     // Verify that the document was removed
     const collectionDocuments = await Document.findAndCountAll({
@@ -365,6 +367,7 @@ describe("#removeDocument", () => {
 
   it("should remove a document with child documents", async () => {
     const collection = await buildCollection();
+    const user = await buildUser({ teamId: collection.teamId });
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
@@ -381,7 +384,7 @@ describe("#removeDocument", () => {
     await collection.addDocumentToStructure(createContext({}), newDocument);
     expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
-    await collection.deleteDocument(createContext({}), document);
+    await collection.deleteDocument(createContext({ user }), document);
     expect(collection.documentStructure!.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
@@ -393,6 +396,7 @@ describe("#removeDocument", () => {
 
   it("should remove a document with deeply nested child documents", async () => {
     const collection = await buildCollection();
+    const user = await buildUser({ teamId: collection.teamId });
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
@@ -411,7 +415,7 @@ describe("#removeDocument", () => {
       parentDocumentId = child.id;
     }
 
-    await collection.deleteDocument(createContext({}), document);
+    await collection.deleteDocument(createContext({ user }), document);
     expect(collection.documentStructure!.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
@@ -423,6 +427,7 @@ describe("#removeDocument", () => {
 
   it("should remove a child document", async () => {
     const collection = await buildCollection();
+    const user = await buildUser({ teamId: collection.teamId });
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
@@ -441,7 +446,7 @@ describe("#removeDocument", () => {
     expect(collection.documentStructure!.length).toBe(1);
     expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
-    await collection.deleteDocument(createContext({}), newDocument);
+    await collection.deleteDocument(createContext({ user }), newDocument);
     const reloaded = await collection.reload();
     expect(reloaded!.documentStructure!.length).toBe(1);
     expect(reloaded!.documentStructure![0].children.length).toBe(0);

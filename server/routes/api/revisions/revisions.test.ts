@@ -1,3 +1,4 @@
+import { DocumentPermission, ExportContentType } from "@shared/types";
 import { createContext } from "@server/context";
 import { UserMembership, Revision } from "@server/models";
 import FileStorage from "@server/storage/files";
@@ -234,6 +235,56 @@ describe("#revisions.list", () => {
     expect(res.status).toEqual(403);
   });
 
+  it("should return revisions for a deleted document to a user that can restore it", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await Revision.createFromDocument(createContext({ user }), document);
+    await document.destroy();
+    const res = await server.post("/api/revisions.list", user, {
+      body: {
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
+  it("should not return revisions for a deleted document to a read-only user", async () => {
+    const author = await buildUser();
+    const user = await buildUser({ teamId: author.teamId });
+    const collection = await buildCollection({
+      userId: author.id,
+      teamId: author.teamId,
+      permission: null,
+    });
+    const document = await buildDocument({
+      userId: author.id,
+      collectionId: collection.id,
+      teamId: author.teamId,
+    });
+    await UserMembership.create({
+      documentId: document.id,
+      userId: user.id,
+      createdById: author.id,
+      permission: DocumentPermission.Read,
+    });
+    await Revision.createFromDocument(
+      createContext({ user: author }),
+      document
+    );
+    await document.destroy();
+    const res = await server.post("/api/revisions.list", user, {
+      body: {
+        documentId: document.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it("should require authorization", async () => {
     const document = await buildDocument();
     const user = await buildUser();
@@ -292,6 +343,89 @@ describe("#revisions.export", () => {
     expect(entries[location]).toEqual("image-data");
     expect(entries["export-test.md"]).toContain(location);
     expect(entries["export-test.md"]).not.toContain(attachment.redirectUrl);
+  });
+
+  it("should stream a textpack when TextBundle is requested", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment(
+      { teamId: user.teamId, userId: user.id, contentType: "image/png" },
+      "photo.png"
+    );
+    const document = await buildDocument({
+      title: "Export Test",
+      userId: user.id,
+      teamId: user.teamId,
+      text: `![image](${attachment.redirectUrl})`,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    vi.spyOn(FileStorage, "getFileBuffer").mockResolvedValue(
+      Buffer.from("image-data")
+    );
+
+    const res = await server.post("/api/revisions.export", user, {
+      body: {
+        id: revision.id,
+      },
+      headers: {
+        accept: ExportContentType.TextBundle,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-disposition")).toContain(
+      `filename="export-test.textpack"`
+    );
+
+    const bundle = "export-test.textbundle";
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([
+      `${bundle}/assets/photo.png`,
+      `${bundle}/info.json`,
+      `${bundle}/text.markdown`,
+    ]);
+    expect(entries[`${bundle}/assets/photo.png`]).toEqual("image-data");
+    expect(entries[`${bundle}/text.markdown`]).toContain("assets/photo.png");
+
+    // The bundle points back at the revision it was built from, rather than the
+    // current version of the document.
+    const info = JSON.parse(entries[`${bundle}/info.json`]);
+    expect(info.type).toEqual("net.daringfireball.markdown");
+    expect(info.sourceURL).toContain(`/history/${revision.id}`);
+  });
+
+  it("should stream a textpack when TextBundle is requested for a revision with no attachments", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      title: "Plain Export",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+
+    const res = await server.post("/api/revisions.export", user, {
+      body: {
+        id: revision.id,
+      },
+      headers: {
+        accept: ExportContentType.TextBundle,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+
+    // A bundle is a directory, so there is no self-contained single file form
+    // to fall back to when nothing is referenced.
+    const entries = await readZipResponse(res);
+    expect(Object.keys(entries).sort()).toEqual([
+      "plain-export.textbundle/info.json",
+      "plain-export.textbundle/text.markdown",
+    ]);
   });
 
   it("should return revision as markdown by default", async () => {

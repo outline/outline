@@ -4,7 +4,9 @@ import { InputRule } from "prosemirror-inputrules";
 import type { NodeType, Schema } from "prosemirror-model";
 import type { EditorState, Plugin } from "prosemirror-state";
 import Extension from "@shared/editor/lib/Extension";
+import type { ExtensionState } from "@shared/editor/plugins/SuggestionsMenuPlugin";
 import {
+  applyMatch,
   isTriggerMarked,
   SuggestionsMenuPlugin,
 } from "@shared/editor/plugins/SuggestionsMenuPlugin";
@@ -23,9 +25,15 @@ export type SuggestionOptions = {
    * the trigger is only meaningful as plain text, such as the block menu.
    */
   enabledInMarks?: boolean;
-  /** Character (or list of characters) that opens the suggestion menu. */
+  /**
+   * Character or sequence (or list of them) that opens the suggestion menu.
+   * All variants must be the same length.
+   */
   trigger: string | string[];
-  /** Whether spaces are allowed inside the search term. */
+  /**
+   * Whether spaces are allowed within the search term. A space directly after
+   * the trigger always closes the menu.
+   */
   allowSpaces: boolean;
   /** Whether the menu only opens once at least one character has been typed after the trigger. */
   requireSearchTerm: boolean;
@@ -45,10 +53,19 @@ export default class Suggestion<
         ? escapeRegExp(triggers[0])
         : `(?:${triggers.map(escapeRegExp).join("|")})`;
 
+    this.triggerLength = triggers[0].length;
+
+    // A space is only meaningful once the search term is under way, so the
+    // first character is always matched without one.
+    const termChars = `\\p{L}/\\p{M}\\d\\.\\-–_`;
+    const termPattern = this.options.allowSpaces
+      ? `[${termChars}][${termChars}\\s]*`
+      : `[${termChars}]+`;
+
     this.openRegex = new RegExp(
-      `(?:^|\\s|\\(|\\+|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${triggerPattern}(${`[\\p{L}/\\p{M}\\d${
-        this.options.allowSpaces ? "\\s{1}" : ""
-      }\\.\\-–_]+`})${this.options.requireSearchTerm ? "" : "?"}$`,
+      `(?:^|\\s|\\(|\\+|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${triggerPattern}(${termPattern})${
+        this.options.requireSearchTerm ? "" : "?"
+      }$`,
       "u"
     );
   }
@@ -58,7 +75,8 @@ export default class Suggestion<
       new SuggestionsMenuPlugin(
         this.state,
         this.openRegex,
-        this.enabledInMarks
+        this.enabledInMarks,
+        this.triggerLength
       ),
     ];
   }
@@ -71,7 +89,10 @@ export default class Suggestion<
   keys() {
     return {
       Space: action(() => {
-        if (this.state.open && !this.options.allowSpaces) {
+        if (
+          this.state.open &&
+          (!this.options.allowSpaces || !this.state.query)
+        ) {
           this.state.open = false;
         }
         return false;
@@ -94,22 +115,22 @@ export default class Suggestion<
           (parent.type.name === "paragraph" ||
             parent.type.name === "heading") &&
           (!isInCode(state) || this.options.enabledInCode) &&
-          (this.enabledInMarks || !isTriggerMarked(state, end, match))
+          (this.enabledInMarks ||
+            !isTriggerMarked(state, end, match, this.triggerLength))
         ) {
-          const open = match[0].length <= 2;
-          const query = match[1];
-
           // Input rules run while ProseMirror is reading a DOM change, at which
           // point its view descriptors are marked dirty and do not match the
           // DOM. Opening the menu here would render it – and measure the caret –
-          // inside that window, so defer until the view has re-synced.
+          // inside that window, so defer until the view has re-synced. The
+          // cursor is read at that point too, as the typed character has not
+          // been inserted yet when the rule runs.
           setTimeout(
-            action(() => {
-              if (open) {
-                this.state.open = true;
-              }
-              this.state.query = query;
-            }),
+            () =>
+              applyMatch(this.state, match, {
+                triggerLength: this.triggerLength,
+                cursorPos: this.editor.view.state.selection.from,
+                canOpen: true,
+              }),
             0
           );
         }
@@ -120,12 +141,13 @@ export default class Suggestion<
 
   protected openRegex: RegExp;
 
-  protected state: {
-    open: boolean;
-    query: string;
-  } = observable({
+  protected triggerLength: number;
+
+  protected state: ExtensionState = observable({
     open: false,
     query: "",
+    trigger: null,
+    triggerPos: null,
   });
 
   /** Whether the suggestion menu is currently open. */

@@ -1,4 +1,5 @@
 import type { TextEditMode } from "@shared/types";
+import { DocumentConflictError } from "@server/errors";
 import { Event, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -27,6 +28,8 @@ type Props = {
   insightsEnabled?: boolean;
   /** The edit mode: "replace", "append", "prepend", or "patch" */
   editMode?: TextEditMode;
+  /** The document revision the changes are based on, the update is rejected if it no longer matches */
+  lastRevision?: number;
   /** The markdown text to find when using "patch" edit mode */
   findText?: string;
   /** Whether the document should be published to the collection */
@@ -56,6 +59,7 @@ export default async function documentUpdater(
     insightsEnabled,
     editMode,
     findText,
+    lastRevision,
     publish,
     collectionId,
     done,
@@ -99,15 +103,23 @@ export default async function documentUpdater(
 
   // Serialize concurrent updates to the same document by taking a row-level
   // lock before writing. The wait is already bounded by the transaction's
-  // statement_timeout.
+  // statement_timeout. When lastRevision is provided it becomes part of the
+  // predicate, so a document modified since that revision matches no row.
   if (transaction) {
-    await Document.unscoped().findOne({
+    const locked = await Document.unscoped().findOne({
       attributes: ["id"],
-      where: { id: document.id },
+      where: {
+        id: document.id,
+        ...(lastRevision !== undefined && { revisionCount: lastRevision }),
+      },
       transaction,
       lock: transaction.LOCK.UPDATE,
       paranoid: false,
     });
+
+    if (!locked && lastRevision !== undefined) {
+      throw DocumentConflictError();
+    }
   }
 
   const changed = document.changed();

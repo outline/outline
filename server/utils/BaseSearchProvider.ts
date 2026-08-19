@@ -1,6 +1,6 @@
-import type { DateFilter } from "@shared/types";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import type { SearchableModel } from "@shared/types";
-import type { DirectionFilter, SortFilter, StatusFilter } from "@shared/types";
+import type { DirectionFilter, SortFilter } from "@shared/types";
 import type Collection from "@server/models/Collection";
 import type Comment from "@server/models/Comment";
 import type Document from "@server/models/Document";
@@ -28,18 +28,14 @@ export interface SearchOptions {
   offset?: number;
   /** The text to search for. */
   query?: string;
-  /** Limit results to a collection. Authorization is presumed to have been done before passing to this provider. */
-  collectionId?: string | null;
+  /**
+   * A filter expression scoping results. Authorization for any auth-bearing
+   * fields (e.g. collectionId) is presumed to have been done before reaching
+   * the provider.
+   */
+  filter?: Filter;
   /** Limit results to a shared document. */
   share?: Share;
-  /** Limit results to a date range. */
-  dateFilter?: DateFilter;
-  /** Status of the documents to return. */
-  statusFilter?: StatusFilter[];
-  /** Limit results to a list of documents. */
-  documentIds?: string[];
-  /** Limit results to a list of users that collaborated on the document. */
-  collaboratorIds?: string[];
   /** The minimum number of words to be returned in the contextual snippet. */
   snippetMinWords?: number;
   /** The maximum number of words to be returned in the contextual snippet. */

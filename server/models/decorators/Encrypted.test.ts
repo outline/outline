@@ -62,11 +62,18 @@ describe("Encrypted", () => {
 
   it("should fail to decrypt with a different key", () => {
     const originalKey = env.SECRET_KEY;
-    const encrypted = encrypt(JSON.stringify("hello world"));
+    const value = JSON.stringify("hello world");
+    const encrypted = encrypt(value);
     try {
       env.SECRET_KEY =
         "a593e7f567d01031d153b5af6d9a25766b95926cff91c6be3438c7f7ac37230f";
-      expect(() => decrypt(encrypted)).toThrow(/bad decrypt/);
+      // CBC is unauthenticated, so a wrong key only throws when the resulting
+      // plaintext happens to have invalid padding.
+      try {
+        expect(decrypt(encrypted)).not.toEqual(value);
+      } catch (err) {
+        expect(errToString(err)).toMatch(/bad decrypt/);
+      }
     } finally {
       env.SECRET_KEY = originalKey;
     }

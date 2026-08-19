@@ -148,6 +148,8 @@ type BaseAction = {
   priority?: number;
   icon?: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   iconInContextMenu?: boolean;
+  /** Additional content displayed at the end of the item in the command bar. */
+  badge?: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: ((context: ActionContext) => boolean) | boolean;
   visible?: ((context: ActionContext) => boolean) | boolean;

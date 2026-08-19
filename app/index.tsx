@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-unresolved
 import "vite/modulepreload-polyfill";
+// Keep ahead of the other imports so polyfills apply before they evaluate.
+import "~/utils/polyfills";
 import { LazyMotion, domMax } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
@@ -27,7 +29,7 @@ import Logger from "./utils/Logger";
 import { PluginManager } from "./utils/PluginManager";
 import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
-import { trackSplitViewModifier } from "./utils/splitView";
+import { initSplitViewNavigation } from "./utils/splitView";
 import { ActionContextProvider } from "./hooks/useActionContext";
 
 // Load plugins as soon as possible
@@ -37,7 +39,7 @@ initI18n(env.DEFAULT_LANGUAGE);
 
 // Register ahead of rendering so the capture-phase listeners run before any
 // React-mounted listener, such as kbar's Enter handler.
-trackSplitViewModifier();
+initSplitViewNavigation(history);
 
 const element = window.document.getElementById("root");
 

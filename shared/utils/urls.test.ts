@@ -117,6 +117,62 @@ describe("isInternalUrl", () => {
   });
 });
 
+describe("addMissingUrlPort", () => {
+  const url = env.URL;
+
+  beforeEach(() => {
+    env.URL = "https://example.com:3000";
+  });
+
+  afterEach(() => {
+    env.URL = url;
+  });
+
+  it("should add the port to a url without one", () => {
+    expect(urlsUtils.addMissingUrlPort("https://example.com/drafts")).toBe(
+      "https://example.com:3000/drafts"
+    );
+  });
+
+  it("should not change a url that already has a port", () => {
+    expect(urlsUtils.addMissingUrlPort("https://example.com:4000/drafts")).toBe(
+      "https://example.com:4000/drafts"
+    );
+  });
+
+  it("should not change a relative url", () => {
+    expect(urlsUtils.addMissingUrlPort("/drafts")).toBe("/drafts");
+  });
+
+  it("should not change a url when no port is configured", () => {
+    env.URL = "https://example.com";
+    expect(urlsUtils.addMissingUrlPort("https://example.com/drafts")).toBe(
+      "https://example.com/drafts"
+    );
+  });
+
+  it("should not add the default https port", () => {
+    env.URL = "https://example.com:443";
+    expect(urlsUtils.addMissingUrlPort("https://example.com/drafts")).toBe(
+      "https://example.com/drafts"
+    );
+  });
+
+  it("should not add the default http port", () => {
+    env.URL = "http://example.com:80";
+    expect(urlsUtils.addMissingUrlPort("http://example.com/drafts")).toBe(
+      "http://example.com/drafts"
+    );
+  });
+
+  it("should add a port that is not the default for the protocol", () => {
+    env.URL = "http://example.com:443";
+    expect(urlsUtils.addMissingUrlPort("http://example.com/drafts")).toBe(
+      "http://example.com:443/drafts"
+    );
+  });
+});
+
 describe("isExternalUrl", () => {
   it("should return false if empty url", () => {
     expect(urlsUtils.isExternalUrl("")).toBe(false);
@@ -328,7 +384,7 @@ describe("#urlRegex", () => {
 
   it("should return corresponding regex otherwise", () => {
     const regex = urlRegex("https://docs.google.com");
-    expect(regex?.source).toBe(/https:\/\/docs\.google\.com/.source);
+    expect(regex?.source).toBe(/^https:\/\/docs\.google\.com/.source);
     expect(regex?.test("https://docs.google.com")).toBe(true);
     expect(regex?.test("https://docs.google.com/")).toBe(true);
     expect(regex?.test("https://docs.google.com/d/123")).toBe(true);
@@ -336,6 +392,9 @@ describe("#urlRegex", () => {
     expect(regex?.test("http://docs.google.com")).toBe(false);
     expect(regex?.test("http://docs.google.com/")).toBe(false);
     expect(regex?.test("http://docs.google.com/d/123")).toBe(false);
+    expect(regex?.test("javascript:alert(1)//https://docs.google.com")).toBe(
+      false
+    );
   });
 });
 

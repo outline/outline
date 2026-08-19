@@ -93,7 +93,9 @@ export default async function documentPermanentDeleter(documents: Document[]) {
   const deletedIds = stillDeleted.map((document) => document.id);
 
   for (const batch of chunk(deletedIds, 100)) {
-    await Document.update(
+    // Unscoped so that drafts and templates are detached too, otherwise the
+    // destroy below cascades and removes them.
+    await Document.unscoped().update(
       {
         parentDocumentId: null,
       },

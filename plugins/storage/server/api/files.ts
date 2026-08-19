@@ -150,7 +150,7 @@ router.get(
       contentDisposition(fileName, {
         type: forceDownload
           ? "attachment"
-          : FileStorage.getContentDisposition(contentType),
+          : FileStorage.getContentDispositionType(contentType),
       })
     );
 

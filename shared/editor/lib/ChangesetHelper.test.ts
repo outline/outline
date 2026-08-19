@@ -234,4 +234,25 @@ describe("ChangesetHelper.getChangeset", () => {
     expect(changes).toHaveLength(1);
     expect(changes[0].inserted).toHaveLength(1);
   });
+
+  describe("complexity guard", () => {
+    const texts = Array.from(
+      { length: 500 },
+      (_, i) => `paragraph ${i} ${"lorem ipsum dolor sit amet ".repeat(12)}`
+    );
+
+    it("returns null when the changeset is too expensive to compute", () => {
+      const before = paras(...texts);
+      const after = paras(...texts.map((text) => `${text} rewritten`));
+
+      expect(ChangesetHelper.getChangeset(after, before)).toBeNull();
+    });
+
+    it("still computes a changeset for a small change to a large document", () => {
+      const before = paras(...texts);
+      const after = paras(...texts.slice(0, -1), "a different final paragraph");
+
+      expect(ChangesetHelper.getChangeset(after, before)).not.toBeNull();
+    });
+  });
 });

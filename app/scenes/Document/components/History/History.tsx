@@ -156,8 +156,11 @@ function History() {
       "desc"
     ).slice(0, limit);
 
-    setRevisionsOffset(revisionsOffset + revisionsPage.length);
-    setEventsOffset(eventsOffset + pageEvents.length - revisionsPage.length);
+    const revisionsInPage = pageEvents.filter(
+      (item) => item instanceof Revision
+    ).length;
+    setRevisionsOffset(revisionsOffset + revisionsInPage);
+    setEventsOffset(eventsOffset + (pageEvents.length - revisionsInPage));
     return pageEvents;
   }, [document, revisions, events, revisionsOffset, eventsOffset]);
 

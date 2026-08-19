@@ -2,7 +2,6 @@ import copy from "copy-to-clipboard";
 import invariant from "invariant";
 import { capitalize, uniqBy } from "es-toolkit/compat";
 import {
-  DownloadIcon,
   DuplicateIcon,
   StarredIcon,
   PrintIcon,
@@ -36,6 +35,9 @@ import {
   EmbedIcon,
   OpenIcon,
   SplitIcon,
+  ExportIcon,
+  CodeIcon,
+  PDFIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
@@ -54,12 +56,12 @@ import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInT
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { DialogTitle } from "~/components/DialogTitle";
 import DocumentCopy from "~/components/DocumentExplorer/DocumentCopy";
-import { DocumentDownload } from "~/components/Export/DocumentDownload";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import { ImportDocumentDialog } from "~/components/ImportDocumentDialog";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
 import {
+  ActionSeparator,
   createAction,
   createActionGroup,
   createActionWithChildren,
@@ -100,7 +102,7 @@ import type {
   Action,
   ActionContext,
   ActionGroup,
-  ActionSeparator,
+  ActionSeparator as TActionSeparator,
 } from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import env from "~/env";
@@ -277,8 +279,12 @@ function findDocumentSiblingIndex(
  */
 function canCreateSiblingDocument(
   stores: ActionContext["stores"],
-  document: { collectionId?: string | null; parentDocumentId?: string }
+  document: Document
 ): boolean {
+  if (document.isDeleted) {
+    return false;
+  }
+
   return document.parentDocumentId
     ? stores.policies.abilities(document.parentDocumentId).createChildDocument
     : !!document.collectionId &&
@@ -416,6 +422,9 @@ export const createNewDocument = createActionWithChildren({
     if (!stores.policies.abilities(currentTeamId).createDocument) {
       return false;
     }
+    if (stores.documents.get(activeDocumentId)?.isDeleted) {
+      return false;
+    }
     return !isAlphabeticallySorted(stores, activeDocumentId);
   },
   children: [createDocumentBefore, createDocumentAfter, createNestedDocument],
@@ -464,6 +473,7 @@ export const starDocument = createAction({
       Document,
       (document) =>
         !document.isStarred &&
+        !document.isDeleted &&
         context.stores.policies.abilities(document.id).star
     ),
   perform: async (context) => {
@@ -702,40 +712,13 @@ export const shareDocument = createAction({
   },
 });
 
-export const downloadDocument = createAction({
-  name: ({ t, isMenu }) => (isMenu ? t("Download") : t("Download document")),
-  analyticsName: "Download document",
-  section: ActiveDocumentSection,
-  icon: <DownloadIcon />,
-  keywords: "export md markdown html",
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ activeDocumentId, t, stores }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-
-    const document = stores.documents.get(activeDocumentId);
-    invariant(document, "Document must exist");
-
-    stores.dialogs.openModal({
-      title: <DialogTitle title={t("Download document")} model={document} />,
-      content: (
-        <DocumentDownload
-          document={document}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
-      ),
-    });
-  },
-});
-
 export const downloadDocumentAsMarkdown = createAction({
-  name: ({ t }) => t("Download as Markdown"),
+  name: ({ t, isMenu }) => (isMenu ? t("Markdown") : t("Download as Markdown")),
   analyticsName: "Download document as Markdown",
   section: ActiveDocumentSection,
-  keywords: "md markdown export",
-  icon: <DownloadIcon />,
+  keywords: "md markdown export download",
+  icon: <MarkdownIcon />,
+  iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
   perform: async ({ activeDocumentId, stores }) => {
@@ -746,17 +729,17 @@ export const downloadDocumentAsMarkdown = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Markdown,
-      includeChildDocuments: false,
     });
   },
 });
 
 export const downloadDocumentAsHTML = createAction({
-  name: ({ t }) => t("Download as HTML"),
+  name: ({ t, isMenu }) => (isMenu ? t("HTML") : t("Download as HTML")),
   analyticsName: "Download document as HTML",
   section: ActiveDocumentSection,
-  keywords: "xml html export",
-  icon: <DownloadIcon />,
+  keywords: "xml html export download",
+  icon: <CodeIcon />,
+  iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
   perform: async ({ activeDocumentId, stores }) => {
@@ -767,17 +750,18 @@ export const downloadDocumentAsHTML = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Html,
-      includeChildDocuments: false,
     });
   },
 });
 
 export const downloadDocumentAsTextBundle = createAction({
-  name: ({ t }) => t("Download as TextBundle"),
+  name: ({ t, isMenu }) =>
+    isMenu ? t("TextBundle") : t("Download as TextBundle"),
   analyticsName: "Download document as TextBundle",
   section: ActiveDocumentSection,
-  keywords: "textbundle textpack bear ulysses export",
-  icon: <DownloadIcon />,
+  keywords: "textbundle textpack bear ulysses export download",
+  icon: <ArchiveIcon />,
+  iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
   perform: async ({ activeDocumentId, stores }) => {
@@ -788,17 +772,17 @@ export const downloadDocumentAsTextBundle = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.TextBundle,
-      includeChildDocuments: false,
     });
   },
 });
 
 export const downloadDocumentAsPDF = createAction({
-  name: ({ t }) => t("Download as PDF"),
+  name: ({ t, isMenu }) => (isMenu ? t("PDF") : t("Download as PDF")),
   analyticsName: "Download document as PDF",
   section: ActiveDocumentSection,
-  keywords: "pdf export",
-  icon: <DownloadIcon />,
+  keywords: "pdf export download",
+  icon: <PDFIcon />,
+  iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!(
       activeDocumentId &&
@@ -813,7 +797,6 @@ export const downloadDocumentAsPDF = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Pdf,
-      includeChildDocuments: false,
     });
   },
 });
@@ -1091,10 +1074,27 @@ export const printDocument = createAction({
   analyticsName: "Print document",
   section: ActiveDocumentSection,
   icon: <PrintIcon />,
+  iconInContextMenu: false,
   visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
   perform: () => {
     setTimeout(window.print, 0);
   },
+});
+
+export const exportDocument = createActionWithChildren({
+  name: ({ t, isMenu }) => (isMenu ? t("Export") : t("Export document")),
+  analyticsName: "Export document",
+  section: ActiveDocumentSection,
+  icon: <ExportIcon />,
+  keywords: "download print pdf markdown html",
+  children: [
+    downloadDocumentAsMarkdown,
+    downloadDocumentAsHTML,
+    downloadDocumentAsTextBundle,
+    downloadDocumentAsPDF,
+    ActionSeparator,
+    printDocument,
+  ],
 });
 
 export const openDocumentInDesktop = createAction({
@@ -1590,7 +1590,7 @@ export const permanentlyDeleteDocumentsInTrash = createAction({
   section: TrashSection,
   icon: <TrashIcon />,
   visible: ({ stores }) =>
-    stores.documents.deleted.length > 0 && !!stores.auth.user?.isAdmin,
+    stores.documents.deleted().length > 0 && !!stores.auth.user?.isAdmin,
   perform: ({ stores, t, location }) => {
     stores.dialogs.openModal({
       title: t("Permanently delete documents in trash"),
@@ -1699,7 +1699,13 @@ export const toggleDocumentStats = createAction({
   icon: <HashtagIcon />,
   selected: ({ stores }) =>
     !!stores.auth.user?.getPreference(UserPreference.ShowDocumentStats),
-  visible: ({ activeDocumentId }) => !!activeDocumentId && !isMobile(),
+  visible: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+
+    return !!activeDocumentId && !document?.isDeleted && !isMobile();
+  },
   perform: async ({ stores }) => {
     const { user } = stores.auth;
     if (!user) {
@@ -1753,7 +1759,7 @@ export const leaveDocument = createAction({
 export const applyTemplateActionFactory = ({
   actions,
 }: {
-  actions: (Action | ActionGroup | ActionSeparator)[];
+  actions: (Action | ActionGroup | TActionSeparator)[];
 }) =>
   createActionWithChildren({
     name: ({ t }) => t("Apply template"),
@@ -1782,7 +1788,6 @@ export const rootDocumentActions = [
   createTemplateFromDocument,
   deleteDocument,
   importDocument,
-  downloadDocument,
   downloadDocumentAsMarkdown,
   downloadDocumentAsHTML,
   downloadDocumentAsTextBundle,

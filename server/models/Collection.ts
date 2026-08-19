@@ -879,7 +879,15 @@ class Collection extends ParanoidModel<
     return this;
   };
 
+  /**
+   * Removes a document from this collection's structure and soft deletes it
+   * along with all of its descendants.
+   *
+   * @param ctx the API context, providing the acting user and transaction.
+   * @param document the document to delete.
+   */
   deleteDocument = async (ctx: APIContext, document: Document) => {
+    const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
     await this.removeDocumentInStructure(ctx, document);
@@ -901,7 +909,14 @@ class Collection extends ParanoidModel<
 
       // Destroyed one at a time to ensure model hooks run for each document.
       for (const childDocumentId of childDocumentIds) {
-        await childDocumentsById[childDocumentId]?.destroy({ transaction });
+        const childDocument = childDocumentsById[childDocumentId];
+        if (childDocument) {
+          // Attributes the deletion of the whole tree to the acting user, which
+          // the trash relies on to show a person their own deletions.
+          childDocument.lastModifiedById = user.id;
+          childDocument.updatedBy = user;
+          await childDocument.destroy({ transaction });
+        }
       }
     }
 

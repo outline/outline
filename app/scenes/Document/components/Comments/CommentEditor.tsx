@@ -8,6 +8,7 @@ import type { Props as EditorProps } from "~/components/Editor";
 import Editor from "~/components/Editor";
 import type { Editor as SharedEditor } from "~/editor";
 import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
+import DocumentMenuExtension from "~/editor/extensions/DocumentMenu";
 import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
 import Keys from "~/editor/extensions/Keys";
 import MentionMenuExtension from "~/editor/extensions/MentionMenu";
@@ -27,6 +28,7 @@ const extensions = [
   ClipboardTextSerializer,
   EmojiMenuExtension,
   MentionMenuExtension,
+  DocumentMenuExtension,
   UpArrowAtStart,
   // Order these default key handlers last
   PreventTab,

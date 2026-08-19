@@ -1,10 +1,4 @@
-import { extensionManager, findNodes, schema } from "../../test/editor";
-
-const serializer = extensionManager.serializer();
-const parser = extensionManager.parser({
-  schema,
-  plugins: extensionManager.rulePlugins,
-});
+import { findNodes, parser, serializer } from "../../test/editor";
 
 it("preserves mixed checkbox and regular items in a list", () => {
   const markdown = `- [x] Checked item

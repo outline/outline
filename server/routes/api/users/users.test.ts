@@ -793,9 +793,10 @@ describe("#users.updateEmail", () => {
       const user = await buildUser();
       const email = faker.internet.email();
       await server.get(
-        `/api/users.updateEmail?token=${user.getSessionToken()}&code=${user.getEmailUpdateToken(
+        `/api/users.updateEmail?code=${user.getEmailUpdateToken(
           email
-        )}&follow=true`
+        )}&follow=true`,
+        user
       );
 
       await user.reload();

@@ -241,7 +241,7 @@ export default class PasteHandler extends Extension {
                             vscodeMeta.mode
                           )
                             ? vscodeMeta.mode
-                            : null,
+                            : "none",
                         })
                       )
                       .insertText(text)
@@ -274,7 +274,8 @@ export default class PasteHandler extends Extension {
             if (
               (isMarkdown(text) &&
                 !isDropboxPaper(html) &&
-                !isContainingImage(html)) ||
+                !isContainingImage(html) &&
+                !isContainingTable(html)) ||
               pasteCodeLanguage === "markdown" ||
               this.shiftKey ||
               !html
@@ -631,6 +632,17 @@ function isDropboxPaper(html: string): boolean {
  */
 function isContainingImage(html: string): boolean {
   return html?.includes("<img");
+}
+
+/**
+ * Checks if the HTML string contains a table. The plain text alternative on the
+ * clipboard cannot describe a table, so the HTML must be parsed instead.
+ *
+ * @param html The HTML string to check.
+ * @returns True if the HTML string contains a table.
+ */
+function isContainingTable(html: string): boolean {
+  return html?.includes("<table");
 }
 
 function sliceSingleNode(slice: Slice) {
