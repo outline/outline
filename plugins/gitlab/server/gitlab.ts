@@ -4,6 +4,7 @@ import type {
   IssueSchemaWithExpandedLabels,
   MergeRequestSchema,
   ProjectSchema,
+  SimpleLabelSchema,
   StatisticsSchema,
 } from "@gitbeaker/rest";
 import z from "zod";
@@ -259,26 +260,13 @@ export class GitLab {
           })
       );
 
-      if ("scope" in resource) {
-        const epic = await this.getEpic(
-          token,
-          resource.owner,
-          resource.id,
-          customUrl
-        );
-
-        return this.transformEpic(epic);
-      }
-
       const projectPath = `${resource.owner}/${resource.repo}`;
 
       if (resource.type === UnfurlResourceType.Issue) {
-        const issue = await this.getIssue(
-          token,
-          projectPath,
-          resource.id,
-          customUrl
-        );
+        const issue =
+          resource.scope === "group"
+            ? await this.getEpic(token, resource.owner, resource.id, customUrl)
+            : await this.getIssue(token, projectPath, resource.id, customUrl);
 
         return this.transformIssue(issue);
       } else if (resource.type === UnfurlResourceType.PR) {
@@ -391,7 +379,11 @@ export class GitLab {
     return AccessTokenResponseSchema.parse(resJson);
   }
 
-  private static transformIssue(issue: IssueSchemaWithExpandedLabels) {
+  private static transformIssue(
+    issue: IssueSchemaWithExpandedLabels | EpicSchema
+  ) {
+    const labels: (string | SimpleLabelSchema)[] = issue.labels;
+
     return {
       type: UnfurlResourceType.Issue,
       url: issue.web_url,
@@ -402,39 +394,17 @@ export class GitLab {
         name: issue.author?.username ?? "",
         avatarUrl: issue.author?.avatar_url ?? "",
       },
-      labels: issue.labels.map((label) => ({
-        name: label.name,
-        color: label.color,
-      })),
-      state: {
-        name: issue.state,
-        color: GitLabUtils.getColorForStatus(issue.state),
-      },
-      createdAt: issue.created_at,
-    } satisfies UnfurlIssueOrPR;
-  }
-
-  private static transformEpic(epic: EpicSchema) {
-    return {
-      type: UnfurlResourceType.Issue,
-      url: epic.web_url,
-      id: `#${epic.iid}`,
-      title: epic.title,
-      description: GitLabUtils.sanitizeGitLabMarkdown(epic.description),
-      author: {
-        name: epic.author?.username ?? "",
-        avatarUrl: epic.author?.avatar_url ?? "",
-      },
-      labels: (epic.labels ?? []).map((label) =>
+      // Epics are returned without label color details.
+      labels: labels.map((label) =>
         typeof label === "string"
           ? { name: label, color: GitLabUtils.defaultLabelColor }
           : { name: label.name, color: label.color }
       ),
       state: {
-        name: epic.state,
-        color: GitLabUtils.getColorForStatus(epic.state),
+        name: issue.state,
+        color: GitLabUtils.getColorForStatus(issue.state),
       },
-      createdAt: epic.created_at,
+      createdAt: issue.created_at,
     } satisfies UnfurlIssueOrPR;
   }
 
@@ -492,7 +462,7 @@ export class GitLab {
       },
       labels: (project.topics ?? []).map((topic: string) => ({
         name: topic,
-        color: "#6B7280",
+        color: GitLabUtils.defaultLabelColor,
       })),
       progress,
       createdAt: project.created_at,
