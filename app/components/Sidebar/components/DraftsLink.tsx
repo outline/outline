@@ -15,6 +15,8 @@ export const DraftsLink = observer(() => {
   const { t } = useTranslation();
   const { documents } = useStores();
   const [{ isOver, canDrop }, dropRef] = useDropToUnpublish();
+  const totalDrafts =
+    documents.totalDrafts > 25 ? "25+" : String(documents.totalDrafts);
 
   return (
     <div ref={dropRef}>
@@ -26,8 +28,8 @@ export const DraftsLink = observer(() => {
           <Flex align="center" justify="space-between">
             {t("Drafts")}
             {documents.totalDrafts > 0 ? (
-              <Drafts key={documents.totalDrafts} size="xsmall" type="tertiary">
-                {documents.totalDrafts > 25 ? "25+" : documents.totalDrafts}
+              <Drafts key={totalDrafts} size="xsmall" type="tertiary">
+                {totalDrafts}
               </Drafts>
             ) : null}
           </Flex>
