@@ -73,7 +73,7 @@ export const MentionUser = observer(function MentionUser_(
       })}
     >
       <EmailIcon size={18} />
-      {user?.name || node.attrs.label}
+      <span>{user?.name || node.attrs.label}</span>
     </span>
   );
 });
@@ -94,7 +94,7 @@ export const MentionGroup = observer(function MentionGroup_(
       })}
     >
       <EmailIcon size={18} />
-      {group?.name || node.attrs.label}
+      <span>{group?.name || node.attrs.label}</span>
     </span>
   );
 });
@@ -135,7 +135,7 @@ export const MentionDocument = observer(function MentionDocument_(
       ) : (
         <DocumentIcon size={18} />
       )}
-      {doc?.title || node.attrs.label}
+      <span>{doc?.title || node.attrs.label}</span>
     </Link>
   );
 });
@@ -173,7 +173,7 @@ export const MentionCollection = observer(function MentionCollection_(
       ) : (
         <CollectionIcon size={18} />
       )}
-      {collection?.title || node.attrs.label}
+      <span>{collection?.title || node.attrs.label}</span>
     </Link>
   );
 });
