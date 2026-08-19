@@ -336,8 +336,48 @@ const embeds: EmbedDescriptor[] = [
     id: "google-maps",
     title: "Google Maps",
     keywords: "maps",
-    regexMatch: [new RegExp("^https?://www\\.google\\.com/maps/embed\\?(.*)$")],
-    transformMatch: (matches: RegExpMatchArray) => matches[0],
+    // Covers the `pb=` URL from the "Share > Embed a map" dialog, the five
+    // Maps Embed API modes, and My Maps — including the /u/<n> account segment
+    // that My Maps adds in a multi-account session. Both the account index and
+    // the mode segment are constrained so that invented paths under
+    // /maps/embed/ are not accepted.
+    regexMatch: [
+      new RegExp(
+        "^https?://(?:www\\.)?google\\.com/maps(?:/d(?:/u/\\d+)?)?/embed(?:/v1/(?:place|view|directions|streetview|search))?\\?(.*)$"
+      ),
+    ],
+    // The key goes on the iframe src, never on the node's href, so it stays
+    // out of document content, exports and shares, and rotating it does not
+    // mean editing documents.
+    transformMatch: (matches: RegExpMatchArray) => {
+      const url = matches[0];
+      const key = env.GOOGLE_MAPS_EMBED_API_KEY;
+
+      // Only the Maps Embed API takes a key; the legacy `?pb=` share URL and
+      // My Maps do not.
+      if (!key || !url.includes("/maps/embed/v1/")) {
+        return url;
+      }
+
+      // Separate any fragment before touching the query: a parameter appended
+      // after `#` is never sent, and a `key=` that appears inside a fragment
+      // is not one either.
+      const hashIndex = url.indexOf("#");
+      const query = hashIndex === -1 ? url : url.slice(0, hashIndex);
+      const fragment = hashIndex === -1 ? "" : url.slice(hashIndex);
+
+      // A key already in the URL wins, so documents written before this
+      // existed keep working.
+      if (/[?&]key=/.test(query)) {
+        return url;
+      }
+
+      // The matcher requires a `?`, but it may be the last character, in which
+      // case there is no preceding parameter to separate from.
+      const separator = query.endsWith("?") ? "" : "&";
+
+      return `${query}${separator}key=${encodeURIComponent(key)}${fragment}`;
+    },
     icon: <Img src="/images/google-maps.png" alt="Google Maps" />,
   }),
   new EmbedDescriptor({
