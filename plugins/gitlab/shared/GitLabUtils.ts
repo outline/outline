@@ -9,14 +9,34 @@ export type OAuthState = {
   nonce: string;
 };
 
+/** The kind of namespace a resource belongs to. */
+export type GitLabScope = "project" | "group";
+
 export class GitLabUtils {
   public static defaultGitlabUrl = "https://gitlab.com";
 
-  private static supportedResources = [
-    UnfurlResourceType.Issue,
-    UnfurlResourceType.PR,
-    UnfurlResourceType.Project,
-  ];
+  /** Fallback color for labels returned without color details. */
+  public static defaultLabelColor = "#6B7280";
+
+  /** The separator GitLab puts between a namespace and the resource path. */
+  private static separator = "/-/";
+
+  /** Maps the resource segment of a URL to a resource type, per scope. */
+  private static resourceTypes: Record<
+    string,
+    Partial<
+      Record<GitLabScope, UnfurlResourceType.Issue | UnfurlResourceType.PR>
+    >
+  > = {
+    issues: { project: UnfurlResourceType.Issue },
+    merge_requests: { project: UnfurlResourceType.PR },
+    // Group-scoped work items are epics, which are shown as issues.
+    work_items: {
+      project: UnfurlResourceType.Issue,
+      group: UnfurlResourceType.Issue,
+    },
+    epics: { group: UnfurlResourceType.Issue },
+  };
 
   /**
    * Gets the GitLab URL, preferring the provided custom URL over the default.
@@ -132,6 +152,7 @@ export class GitLabUtils {
     | {
         owner: string;
         repo: string | undefined;
+        scope?: "group";
         type: UnfurlResourceType.Issue | UnfurlResourceType.PR;
         id: number;
         url: string;
@@ -143,95 +164,83 @@ export class GitLabUtils {
         url: string;
       }
     | undefined {
+    let parsed: URL;
+
     try {
-      const parsed = new URL(url);
-      const urlHostname = new URL(this.getGitlabUrl(customUrl)).hostname;
-
-      if (parsed.hostname !== urlHostname) {
+      parsed = new URL(url);
+      if (parsed.hostname !== new URL(this.getGitlabUrl(customUrl)).hostname) {
         return;
       }
-
-      const parts = parsed.pathname.split("/").filter(Boolean);
-
-      // Try base64-encoded `show` query parameter first
-      // e.g. /owner/repo/-/issues?show=eyJ...
-      const showParam = parsed.searchParams.get("show");
-      if (showParam && parts.length >= 4) {
-        const resourceType = parts.pop();
-        parts.pop(); // separator ("-")
-        const repo = parts.pop();
-        const owner = parts.join("/");
-
-        const type =
-          resourceType === "issues" || resourceType === "work_items"
-            ? UnfurlResourceType.Issue
-            : resourceType === "merge_requests"
-              ? UnfurlResourceType.PR
-              : undefined;
-
-        if (!type || !this.supportedResources.includes(type)) {
-          return;
-        }
-
-        try {
-          const decoded = JSON.parse(atob(decodeURIComponent(showParam)));
-          const iid = Number(decoded.iid);
-          if (!iid) {
-            return;
-          }
-          return { owner, repo, type, id: iid, url };
-        } catch {
-          return;
-        }
-      }
-
-      // Check if it's a project URL (no -/ separator pattern in path)
-      if (!parsed.pathname.includes("/-/")) {
-        if (parts.length >= 2 && !this.isSystemPath(parts[0])) {
-          const repo = parts[parts.length - 1];
-          const owner = parts.slice(0, -1).join("/");
-          return {
-            owner,
-            repo,
-            type: UnfurlResourceType.Project,
-            url,
-          };
-        }
-        return;
-      }
-
-      if (parts.length < 5) {
-        return;
-      }
-
-      // Direct URL: /owner/repo/-/issues/123 or /owner/repo/-/merge_requests/123
-      const resourceId = parts.pop();
-      const resourceType = parts.pop();
-      parts.pop(); // separator ("-")
-
-      const repo = parts.pop();
-      const owner = parts.join("/");
-
-      const type =
-        resourceType === "issues" || resourceType === "work_items"
-          ? UnfurlResourceType.Issue
-          : resourceType === "merge_requests"
-            ? UnfurlResourceType.PR
-            : undefined;
-
-      if (!type || !this.supportedResources.includes(type)) {
-        return;
-      }
-
-      return {
-        owner,
-        repo,
-        type,
-        id: Number(resourceId),
-        url,
-      };
     } catch {
       return;
+    }
+
+    const { pathname } = parsed;
+    const separatorIndex = pathname.indexOf(this.separator);
+
+    // Project URL, e.g. /owner/repo
+    if (separatorIndex === -1) {
+      const parts = pathname.split("/").filter(Boolean);
+      if (parts.length < 2 || this.isSystemPath(parts[0])) {
+        return;
+      }
+      return {
+        owner: parts.slice(0, -1).join("/"),
+        repo: parts[parts.length - 1],
+        type: UnfurlResourceType.Project,
+        url,
+      };
+    }
+
+    // e.g. /owner/repo/-/issues/123 or /groups/owner/-/work_items/123
+    const namespace = pathname
+      .slice(0, separatorIndex)
+      .split("/")
+      .filter(Boolean);
+    const [segment, resourceId] = pathname
+      .slice(separatorIndex + this.separator.length)
+      .split("/");
+
+    // Epics are group-scoped, and so carry no repo.
+    const scope: GitLabScope = namespace[0] === "groups" ? "group" : "project";
+    if (scope === "group") {
+      namespace.shift();
+    }
+
+    const type = this.resourceTypes[segment]?.[scope];
+    if (!type) {
+      return;
+    }
+
+    // List views carry the id in a base64-encoded `show` parameter instead.
+    const showParam = parsed.searchParams.get("show");
+    const id = showParam ? this.parseShowParam(showParam) : Number(resourceId);
+    if (!id) {
+      return;
+    }
+
+    const repo = scope === "group" ? undefined : namespace.pop();
+    const owner = namespace.join("/");
+    if (!owner) {
+      return;
+    }
+
+    const resource = { owner, repo, type, id, url };
+    return scope === "group" ? { ...resource, scope } : resource;
+  }
+
+  /**
+   * Parses the base64-encoded `show` query parameter used by GitLab list views.
+   *
+   * @param showParam - the raw query parameter value.
+   * @returns the resource IID, or undefined when it cannot be parsed.
+   */
+  private static parseShowParam(showParam: string): number | undefined {
+    try {
+      const decoded = JSON.parse(atob(decodeURIComponent(showParam)));
+      return Number(decoded.iid) || undefined;
+    } catch {
+      return undefined;
     }
   }
 
