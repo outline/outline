@@ -27,6 +27,28 @@ export enum HeadingLevel {
   Four,
 }
 
+/** Levels the editor offers. */
+const editorLevels = [
+  HeadingLevel.One,
+  HeadingLevel.Two,
+  HeadingLevel.Three,
+  HeadingLevel.Four,
+];
+
+/** Levels a document may hold – Markdown can also import an h5 or an h6. */
+const documentLevels = [...editorLevels, 5, 6];
+
+/**
+ * Restricts a heading level to one that can be rendered as a tag.
+ *
+ * @param value the level to restrict.
+ * @returns a level a document may hold.
+ */
+const toLevel = (value: unknown): number =>
+  documentLevels.includes(value as HeadingLevel)
+    ? (value as number)
+    : HeadingLevel.One;
+
 /**
  * Options for the Heading node.
  */
@@ -44,7 +66,7 @@ export default class Heading extends Node<HeadingOptions> {
 
   get defaultOptions(): Partial<HeadingOptions> {
     return {
-      levels: [1, 2, 3, 4],
+      levels: editorLevels,
     };
   }
 
@@ -68,7 +90,9 @@ export default class Heading extends Node<HeadingOptions> {
         attrs: { level },
       })),
       toDOM: (node) => [
-        `h${node.attrs.level + (this.options.offset || 0)}`,
+        // A level outside of the range produces an invalid tag name, which
+        // would stop the document rendering.
+        `h${toLevel(node.attrs.level) + (this.options.offset || 0)}`,
         {
           dir: "auto",
           class: "heading-content",
@@ -79,7 +103,7 @@ export default class Heading extends Node<HeadingOptions> {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.write(state.repeat("#", node.attrs.level) + " ");
+    state.write(state.repeat("#", toLevel(node.attrs.level)) + " ");
     state.renderInline(node);
     state.closeBlock(node);
   }

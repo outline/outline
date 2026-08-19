@@ -246,10 +246,10 @@ export function sanitizeImageSrc(src: string | null | undefined) {
 }
 
 /**
- * Returns a regex to match the given url.
+ * Returns a regex to match urls that begin with the given url's origin.
  *
  * @param url The url to create a regex for.
- * @returns A regex to match the url.
+ * @returns A regex anchored to the origin, a path and query may follow.
  */
 export function urlRegex(url: string | null | undefined): RegExp | undefined {
   if (!url || !isUrl(url)) {
@@ -258,7 +258,7 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
 
   const urlObj = new URL(sanitizeUrl(url) as string);
 
-  return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
+  return new RegExp(`^${escapeRegExp(`${urlObj.protocol}//${urlObj.host}`)}`);
 }
 
 /**

@@ -33,7 +33,7 @@ import {
 } from "../../types";
 import { cn } from "../styles/utils";
 import type { ComponentProps } from "../types";
-import { toDisplayUrl, cdnPath } from "../../utils/urls";
+import { toDisplayUrl, cdnPath, sanitizeImageSrc } from "../../utils/urls";
 import Squircle from "../../components/Squircle";
 
 type Attrs = {
@@ -273,7 +273,9 @@ export const MentionURL = (props: IssueUrlProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        {unfurl.faviconUrl ? <Logo src={unfurl.faviconUrl} alt="" /> : null}
+        {unfurl.faviconUrl ? (
+          <Logo src={sanitizeImageSrc(unfurl.faviconUrl)} alt="" />
+        ) : null}
         <Text>
           <Backticks content={unfurl.title} />
         </Text>
@@ -426,7 +428,7 @@ export const MentionProject = observer((props: ProjectProps) => {
     >
       <Flex align="center" gap={6}>
         {project.avatarUrl ? (
-          <ProjectAvatar src={project.avatarUrl} alt="" />
+          <ProjectAvatar src={sanitizeImageSrc(project.avatarUrl)} alt="" />
         ) : (
           <Squircle color={project.color} size={12} />
         )}
