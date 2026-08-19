@@ -260,13 +260,30 @@ export class GitLab {
           })
       );
 
+      // Epics are group-scoped, so they have no project path.
+      if (
+        resource.type === UnfurlResourceType.Issue &&
+        resource.scope === "group"
+      ) {
+        const epic = await this.getEpic(
+          token,
+          resource.owner,
+          resource.id,
+          customUrl
+        );
+
+        return this.transformIssue(epic);
+      }
+
       const projectPath = `${resource.owner}/${resource.repo}`;
 
       if (resource.type === UnfurlResourceType.Issue) {
-        const issue =
-          resource.scope === "group"
-            ? await this.getEpic(token, resource.owner, resource.id, customUrl)
-            : await this.getIssue(token, projectPath, resource.id, customUrl);
+        const issue = await this.getIssue(
+          token,
+          projectPath,
+          resource.id,
+          customUrl
+        );
 
         return this.transformIssue(issue);
       } else if (resource.type === UnfurlResourceType.PR) {
