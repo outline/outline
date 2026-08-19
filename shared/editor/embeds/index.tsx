@@ -113,14 +113,13 @@ export class EmbedDescriptor {
   }
 
   matcher(url: string): false | RegExpMatchArray {
-    const regexes = this.regexMatch ?? [];
     const settingsDomainRegex = this.settings?.url
       ? urlRegex(this.settings?.url)
       : undefined;
 
-    if (settingsDomainRegex) {
-      regexes.unshift(settingsDomainRegex);
-    }
+    const regexes = settingsDomainRegex
+      ? [settingsDomainRegex, ...(this.regexMatch ?? [])]
+      : (this.regexMatch ?? []);
 
     for (const regex of regexes) {
       const result = url.match(regex);
@@ -161,7 +160,7 @@ const embeds: EmbedDescriptor[] = [
     keywords: "video",
     defaultHidden: true,
     regexMatch: [
-      /(?:https?:\/\/)?(www\.bilibili\.com)\/video\/([\w\d]+)?(\?\S+)?/i,
+      /^(?:https?:\/\/)?(www\.bilibili\.com)\/video\/([\w\d]+)?(\?\S+)?/i,
     ],
     transformMatch: (matches: RegExpMatchArray) =>
       `https://player.bilibili.com/player.html?bvid=${matches[2]}&page=1&high_quality=1&autoplay=0`,
@@ -328,7 +327,7 @@ const embeds: EmbedDescriptor[] = [
     id: "gliffy",
     title: "Gliffy",
     keywords: "diagram",
-    regexMatch: [new RegExp("https?://go\\.gliffy\\.com/go/share/(.*)$")],
+    regexMatch: [new RegExp("^https?://go\\.gliffy\\.com/go/share/(.*)$")],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/gliffy.png" alt="Gliffy" />,
   }),
