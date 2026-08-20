@@ -10,6 +10,8 @@ interface MockContextOptions {
   path?: string;
   mountPath?: string;
   ip?: string;
+  /** Records the response headers the middleware writes. */
+  set?: ReturnType<typeof vi.fn>;
   /** When set, presented as a bearer token in the authorization header. */
   token?: string;
 }
@@ -18,6 +20,7 @@ const createContext = ({
   path = "/some/path",
   mountPath,
   ip = "192.168.1.1",
+  set,
   token,
 }: MockContextOptions = {}) =>
   ({
@@ -25,7 +28,7 @@ const createContext = ({
     mountPath,
     ip,
     state: {},
-    set: vi.fn(),
+    set: set ?? vi.fn(),
     request: {
       get: () => (token ? `Bearer ${token}` : undefined),
       body: {},
@@ -347,6 +350,85 @@ describe("rateLimiter middleware", () => {
       );
 
       expect(consumeSpy).toHaveBeenCalledWith("/api/documents.export:user-abc");
+    });
+  });
+
+  describe("first request accounting", () => {
+    it("charges the request that registers a route limiter", async () => {
+      const path = "/auth/registers";
+      const register = rateLimiter({ duration: 3600, requests: 1 });
+
+      // Registration happens downstream of the point where quota is consumed,
+      // so this request has to be charged here or it goes uncounted.
+      const next = vi.fn();
+      await register(createContext({ path }), next);
+      expect(next).toHaveBeenCalled();
+
+      // The single point is now spent, so the next request is rejected by the
+      // default middleware.
+      await expect(
+        defaultRateLimiter()(createContext({ path }), vi.fn())
+      ).rejects.toThrow();
+    });
+
+    it("reuses the identifiers the default middleware resolved", async () => {
+      const path = "/auth/reuses";
+      const ctx = createContext({ path, token: "verified-token" });
+      const cacheSpy = vi
+        .spyOn(RateLimiter, "getCachedUserIdForToken")
+        .mockResolvedValue("user-abc");
+
+      await defaultRateLimiter()(ctx, vi.fn());
+      cacheSpy.mockClear();
+
+      await rateLimiter({ duration: 3600, requests: 5 })(ctx, vi.fn());
+
+      expect(cacheSpy).not.toHaveBeenCalled();
+      const limiter = RateLimiter.getRateLimiter(path);
+      await expect(limiter.get(`${path}:user-abc`)).resolves.toMatchObject({
+        consumedPoints: 1,
+      });
+    });
+  });
+
+  describe("rejection headers", () => {
+    /** Trips a route limiter and returns the headers it wrote. */
+    const tripLimiter = async (path: string, msBeforeNext: number) => {
+      await rateLimiter({ duration: 3600, requests: 5 })(
+        createContext({ path }),
+        vi.fn()
+      );
+
+      vi.spyOn(RateLimiter.getRateLimiter(path), "consume").mockRejectedValue(
+        new RateLimiterRes(0, msBeforeNext, 6)
+      );
+
+      const set = vi.fn();
+      await expect(
+        defaultRateLimiter()(createContext({ path, set }), vi.fn())
+      ).rejects.toThrow();
+      return set;
+    };
+
+    it("reports the wait as a whole number of seconds", async () => {
+      const set = await tripLimiter("/auth/whole", 59986);
+
+      expect(set).toHaveBeenCalledWith("Retry-After", "60");
+      expect(set).toHaveBeenCalledWith("RateLimit-Reset", "60");
+    });
+
+    it("rounds up so a client that waits is not rejected again", async () => {
+      const set = await tripLimiter("/auth/rounds", 1);
+
+      expect(set).toHaveBeenCalledWith("Retry-After", "1");
+      expect(set).toHaveBeenCalledWith("RateLimit-Reset", "1");
+    });
+
+    it("reports the limit and the remaining quota", async () => {
+      const set = await tripLimiter("/auth/quota", 30000);
+
+      expect(set).toHaveBeenCalledWith("RateLimit-Limit", "5");
+      expect(set).toHaveBeenCalledWith("RateLimit-Remaining", "0");
     });
   });
 });
