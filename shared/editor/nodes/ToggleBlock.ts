@@ -617,10 +617,16 @@ export default class ToggleBlock extends Node {
    * @param foldedIds The set of ids that are currently folded.
    * @return A decoration set for the toggle blocks in the document.
    */
-  private createDecorations(doc: ProsemirrorNode, foldedIds: Set<string>) {
-    const toggleBlocks = findBlockNodes(doc, true).filter(
-      (b) => b.node.type.name === "container_toggle" && b.node.attrs.id
-    );
+  private createDecorations(
+    doc: ProsemirrorNode,
+    foldedIds: Set<string>,
+    blocks?: NodeWithPos[]
+  ) {
+    const toggleBlocks =
+      blocks ??
+      findBlockNodes(doc, true).filter(
+        (b) => b.node.type.name === "container_toggle" && b.node.attrs.id
+      );
     return this.buildDecorationsFromBlocks(doc, toggleBlocks, foldedIds);
   }
 
