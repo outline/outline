@@ -70,6 +70,12 @@ export function optionalString() {
 /** The URI of the MCP resource that lists the available named icons. */
 export const iconNamesResourceUri = "outline://icons";
 
+/** The default maximum number of characters returned per fetch of document or template content. */
+export const DEFAULT_FETCH_LIMIT = 16000;
+
+/** The maximum number of characters a fetch of document or template content may return in a single call. */
+export const MAX_FETCH_LIMIT = 100000;
+
 /**
  * Helper function to format successful MCP tool responses.
  *
@@ -94,6 +100,41 @@ export function success<T>(data: T | T[]): CallToolResult {
       text: JSON.stringify(item),
     })),
   };
+}
+
+/**
+ * Slices a text blob into a bounded window aligned to newline boundaries, so
+ * that paginated fetches do not split a markdown block mid-line.
+ *
+ * @param text - the full text to slice.
+ * @param offset - the character index to begin the window at.
+ * @param limit - the maximum number of characters the window may contain.
+ * @returns the sliced text, possibly shorter than limit when aligned to a boundary.
+ */
+export function sliceMarkdown(
+  text: string,
+  offset: number,
+  limit: number
+): string {
+  const total = text.length;
+
+  if (offset >= total) {
+    return "";
+  }
+
+  let end = Math.min(total, offset + limit);
+
+  // When more content follows the window, pull the end back to the previous
+  // newline so a block is never cut in half. Skip this when it would leave the
+  // window empty.
+  if (end < total) {
+    const newline = text.lastIndexOf("\n", end);
+    if (newline > offset) {
+      end = newline;
+    }
+  }
+
+  return text.slice(offset, end);
 }
 
 /**

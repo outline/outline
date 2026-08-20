@@ -203,4 +203,78 @@ describe("fetch", () => {
 
     expect(res!.result!.content![1].text).toContain("Body of the template");
   });
+
+  it("paginates long document content via offset and limit", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: Array.from(
+        { length: 1200 },
+        (_, i) => `Line ${i} of a long document used to test pagination.`
+      ).join("\n\n"),
+    });
+
+    // A single call with a limit above the document size returns everything.
+    const full = await callMcpTool(server, accessToken, "fetch", {
+      resource: "document",
+      id: document.id,
+      limit: 100000,
+    });
+    const fullText = full!.result!.content![1].text!;
+    const fullMetadata = JSON.parse(full!.result!.content![0].text ?? "{}");
+    expect(fullMetadata.truncated).toBe(false);
+
+    // The default limit truncates, and successive pages reassemble the text.
+    let assembled = "";
+    let offset = 0;
+    for (let i = 0; i < 10; i++) {
+      const res = await callMcpTool(server, accessToken, "fetch", {
+        resource: "document",
+        id: document.id,
+        offset,
+      });
+      const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
+      const chunk = res!.result!.content![1].text!;
+      assembled += chunk;
+      expect(chunk.length).toBeLessThanOrEqual(16000);
+      if (!metadata.truncated) {
+        break;
+      }
+      offset = metadata.nextOffset;
+    }
+
+    expect(assembled).toEqual(fullText);
+  });
+
+  it("paginates template body content via offset and limit", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const template = await buildTemplate({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      text: Array.from(
+        { length: 1200 },
+        (_, i) => `Template line ${i} for pagination testing.`
+      ).join("\n\n"),
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "template",
+      id: template.id,
+    });
+    const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
+    expect(metadata.truncated).toBe(true);
+    expect(metadata.textLength).toBeGreaterThan(16000);
+    expect(res!.result!.content![1].text!.length).toBeLessThanOrEqual(16000);
+  });
 });
