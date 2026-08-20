@@ -24,6 +24,7 @@ const createContext = ({
     path,
     mountPath,
     ip,
+    state: {},
     set: vi.fn(),
     request: {
       get: () => (token ? `Bearer ${token}` : undefined),
