@@ -34,7 +34,7 @@ import {
 import type { CommandFactory } from "../lib/Extension";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
-import { findBlockNodes } from "../queries/findChildren";
+import { findBlockNodes, type NodeWithPos } from "../queries/findChildren";
 import { findCutAfterHeading } from "../queries/findCutAfterHeading";
 import { isNodeActive } from "../queries/isNodeActive";
 import toggleBlocksRule from "../rules/toggleBlocks";
@@ -166,11 +166,16 @@ export default class ToggleBlock extends Node {
 
       state: {
         init: (_config, state) => {
-          const { foldedIds, knownIds } = this.collectFoldState(state.doc);
+          const { foldedIds, knownIds, blocks } =
+            this.collectFoldState(state.doc);
           return {
             foldedIds,
             knownIds,
-            decorations: this.createDecorations(state.doc, foldedIds),
+            decorations: this.createDecorations(
+              state.doc,
+              blocks,
+              foldedIds
+            ),
           };
         },
 
@@ -223,7 +228,14 @@ export default class ToggleBlock extends Node {
           return {
             foldedIds: newFoldedIds,
             knownIds: newKnownIds,
-            decorations: this.createDecorations(newState.doc, newFoldedIds),
+            decorations: this.createDecorations(
+              newState.doc,
+              findBlockNodes(newState.doc, true).filter(
+                (b) =>
+                  b.node.type.name === "container_toggle" && b.node.attrs.id
+              ),
+              newFoldedIds
+            ),
           };
         },
       },
@@ -497,19 +509,60 @@ export default class ToggleBlock extends Node {
     const foldedIds = new Set<string>();
     const knownIds = new Set<string>();
 
-    findBlockNodes(doc, true)
-      .filter((b) => b.node.type.name === this.name && b.node.attrs.id)
-      .forEach((block) => {
-        const id = block.node.attrs.id as string;
-        knownIds.add(id);
-        const stored = foldStateCache.get(id);
-        // Default to folded if no stored state
-        if (stored?.fold !== false) {
-          foldedIds.add(id);
-        }
-      });
+    const blocks = findBlockNodes(doc, true).filter(
+      (b) => b.node.type.name === this.name && b.node.attrs.id
+    );
 
-    return { foldedIds, knownIds };
+    for (const block of blocks) {
+      const id = block.node.attrs.id as string;
+      knownIds.add(id);
+      const stored = foldStateCache.get(id);
+      // Default to folded if no stored state
+      if (stored?.fold !== false) {
+        foldedIds.add(id);
+      }
+    }
+
+    return { foldedIds, knownIds, blocks };
+  }
+
+  /**
+   * Build decorations for toggle blocks from an already-collected set of
+   * NodeWithPos records, avoiding a redundant full-document scan.
+   *
+   * @param doc The document to create decorations against.
+   * @param blocks Toggle blocks collected from a prior scan.
+   * @param foldedIds The set of ids that are currently folded.
+   * @return A decoration set for the toggle blocks.
+   */
+  private buildDecorationsFromBlocks(
+    doc: ProsemirrorNode,
+    blocks: NodeWithPos[],
+    foldedIds: Set<string>
+  ): DecorationSet {
+    const decorations: Decoration[] = [];
+
+    for (const block of blocks) {
+      const id = block.node.attrs.id as string;
+      const isFolded = foldedIds.has(id);
+
+      decorations.push(
+        Decoration.node(
+          block.pos,
+          block.pos + block.node.nodeSize,
+          {},
+          { nodeId: id, fold: isFolded, target: "container_toggle" }
+        ),
+        Decoration.node(
+          block.pos + 1,
+          block.pos + 1 + block.node.firstChild!.nodeSize,
+          { nodeName: "div", class: EditorStyleHelper.toggleBlockHead },
+          { nodeId: id, target: "container_toggle>:firstChild" }
+        )
+      );
+    }
+
+    return DecorationSet.create(doc, decorations);
   }
 
   /**
@@ -531,59 +584,44 @@ export default class ToggleBlock extends Node {
     const foldedIds = new Set(pluginState.foldedIds);
     const knownIds = new Set(pluginState.knownIds);
 
-    findBlockNodes(doc, true)
-      .filter((b) => b.node.type.name === this.name && b.node.attrs.id)
-      .forEach((block) => {
-        const id = block.node.attrs.id as string;
-        if (knownIds.has(id)) {
-          return;
-        }
-        knownIds.add(id);
-        const stored = foldStateCache.get(id);
-        // Default to folded if no stored state (new block from sync)
-        if (stored?.fold !== false) {
-          foldedIds.add(id);
-        }
-      });
+    // Collect toggle blocks once; both fold-state reconciliation and
+    // decoration building use the same set of toggle blocks.
+    const toggleBlocks = findBlockNodes(doc, true).filter(
+      (b) => b.node.type.name === this.name && b.node.attrs.id
+    );
+
+    for (const block of toggleBlocks) {
+      const id = block.node.attrs.id as string;
+      if (knownIds.has(id)) {
+        continue;
+      }
+      knownIds.add(id);
+      const stored = foldStateCache.get(id);
+      // Default to folded if no stored state (new block from sync)
+      if (stored?.fold !== false) {
+        foldedIds.add(id);
+      }
+    }
 
     return {
       foldedIds,
       knownIds,
-      decorations: this.createDecorations(doc, foldedIds),
+      decorations: this.buildDecorationsFromBlocks(doc, toggleBlocks, foldedIds),
     };
   }
 
+  /**
+   * Build decorations for every toggle block in a document.
+   *
+   * @param doc The document to scan.
+   * @param foldedIds The set of ids that are currently folded.
+   * @return A decoration set for the toggle blocks in the document.
+   */
   private createDecorations(doc: ProsemirrorNode, foldedIds: Set<string>) {
-    const decorations: Decoration[] = [];
-
-    findBlockNodes(doc, true)
-      .filter((b) => b.node.type.name === "container_toggle" && b.node.attrs.id)
-      .forEach((block) => {
-        const id = block.node.attrs.id as string;
-        const isFolded = foldedIds.has(id);
-
-        // Decoration on the toggle block itself (for fold state)
-        decorations.push(
-          Decoration.node(
-            block.pos,
-            block.pos + block.node.nodeSize,
-            {},
-            { nodeId: id, fold: isFolded, target: "container_toggle" }
-          )
-        );
-
-        // Decoration on the head (first child) for styling
-        decorations.push(
-          Decoration.node(
-            block.pos + 1,
-            block.pos + 1 + block.node.firstChild!.nodeSize,
-            { nodeName: "div", class: EditorStyleHelper.toggleBlockHead },
-            { nodeId: id, target: "container_toggle>:firstChild" }
-          )
-        );
-      });
-
-    return DecorationSet.create(doc, decorations);
+    const toggleBlocks = findBlockNodes(doc, true).filter(
+      (b) => b.node.type.name === "container_toggle" && b.node.attrs.id
+    );
+    return this.buildDecorationsFromBlocks(doc, toggleBlocks, foldedIds);
   }
 
   static isEmpty(toggleBlock: ProsemirrorNode) {
