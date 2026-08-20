@@ -149,8 +149,10 @@ function PinnedDocuments({
           <Chips>
             {items.map((documentId) => {
               const document = documents.get(documentId);
+              const pin = pins.find((p) => p.documentId === documentId);
+
               return document ? (
-                <DocumentChip key={documentId} document={document} />
+                <DocumentChip key={documentId} document={document} pin={pin} />
               ) : null;
             })}
           </Chips>

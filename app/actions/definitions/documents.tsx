@@ -928,23 +928,25 @@ export const duplicateDocument = createAction({
   },
 });
 
+function pinToCollectionName({ getActiveModels, t, stores }: ActionContext) {
+  const documents = getActiveModels(Document);
+  if (documents.length === 1) {
+    const collectionName = stores.documents.getCollectionForDocument(
+      documents[0]
+    )?.name;
+    return t("Pin to {{collectionName}}", {
+      collectionName: collectionName ?? t("collection"),
+    });
+  }
+  return t("Pin");
+}
+
 /**
  * Pin a document to a collection. Pinned documents will be displayed at the top
  * of the collection for all collection members to see.
  */
 export const pinDocumentToCollection = createAction({
-  name: ({ getActiveModels, t, stores }) => {
-    const documents = getActiveModels(Document);
-    if (documents.length === 1) {
-      const collectionName = stores.documents.getCollectionForDocument(
-        documents[0]
-      )?.name;
-      return t("Pin to {{collectionName}}", {
-        collectionName: collectionName ?? t("collection"),
-      });
-    }
-    return t("Pin");
-  },
+  name: pinToCollectionName,
   analyticsName: "Pin document to collection",
   section: ActiveDocumentSection,
   icon: <PinIcon />,
@@ -1006,14 +1008,6 @@ export const pinDocumentToHome = createAction({
   },
 });
 
-export const pinDocument = createActionWithChildren({
-  name: ({ t }) => t("Pin"),
-  analyticsName: "Pin document",
-  section: ActiveDocumentSection,
-  icon: <PinIcon />,
-  children: [pinDocumentToCollection, pinDocumentToHome],
-});
-
 export const unpinDocument = createAction({
   name: ({ t }) => t("Unpin"),
   analyticsName: "Unpin document",
@@ -1037,6 +1031,74 @@ export const unpinDocument = createAction({
           ? t("Unpinned")
           : t("{{ count }} documents unpinned", { count: succeeded })
     ),
+});
+
+/**
+ * Toggle whether a document is pinned to its collection, the current state is
+ * reflected in the item so the label does not change between the two.
+ */
+export const togglePinDocumentToCollection = createAction({
+  name: pinToCollectionName,
+  analyticsName: "Toggle pin document to collection",
+  section: ActiveDocumentSection,
+  icon: <PinIcon />,
+  iconInContextMenu: false,
+  selected: (context) =>
+    everyActiveModel(context, Document, (document) => document.pinned),
+  visible: (context) =>
+    everyActiveModel(context, Document, (document) => {
+      const can = context.stores.policies.abilities(document.id);
+      return !!document.collectionId && (document.pinned ? can.unpin : can.pin);
+    }),
+  perform: (context) =>
+    everyActiveModel(context, Document, (document) => document.pinned)
+      ? unpinDocument.perform(context)
+      : pinDocumentToCollection.perform(context),
+});
+
+/**
+ * Toggle whether a document is pinned to team home, the current state is
+ * reflected in the item so the label does not change between the two.
+ */
+export const togglePinDocumentToHome = createAction({
+  name: ({ t }) => t("Pin to home"),
+  analyticsName: "Toggle pin document to home",
+  section: ActiveDocumentSection,
+  icon: <PinIcon />,
+  iconInContextMenu: false,
+  selected: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId &&
+    !!stores.documents.get(activeDocumentId)?.pinnedToHome,
+  visible: ({ activeDocumentId, currentTeamId, stores }) =>
+    !!currentTeamId &&
+    !!activeDocumentId &&
+    !!stores.policies.abilities(activeDocumentId).pinToHome,
+  perform: async (context) => {
+    const { activeDocumentId, location, t, stores } = context;
+    if (!activeDocumentId) {
+      return;
+    }
+    const document = stores.documents.get(activeDocumentId);
+
+    if (!document?.pinnedToHome) {
+      await pinDocumentToHome.perform(context);
+      return;
+    }
+
+    await document.unpin();
+
+    if (location.pathname !== homePath()) {
+      toast.success(t("Unpinned"));
+    }
+  },
+});
+
+export const pinDocument = createActionWithChildren({
+  name: ({ t }) => t("Pin"),
+  analyticsName: "Pin document",
+  section: ActiveDocumentSection,
+  icon: <PinIcon />,
+  children: [togglePinDocumentToCollection, togglePinDocumentToHome],
 });
 
 export const searchInDocument = createInternalLinkAction({
