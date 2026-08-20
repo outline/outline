@@ -1033,6 +1033,12 @@ export const unpinDocument = createAction({
     ),
 });
 
+const allPinnedToCollection = (context: ActionContext) =>
+  everyActiveModel(context, Document, (document) => document.pinned);
+
+const nonePinnedToCollection = (context: ActionContext) =>
+  everyActiveModel(context, Document, (document) => !document.pinned);
+
 /**
  * Toggle whether a document is pinned to its collection, the current state is
  * reflected in the item so the label does not change between the two.
@@ -1043,15 +1049,17 @@ export const togglePinDocumentToCollection = createAction({
   section: ActiveDocumentSection,
   icon: <PinIcon />,
   iconInContextMenu: false,
-  selected: (context) =>
-    everyActiveModel(context, Document, (document) => document.pinned),
+  selected: allPinnedToCollection,
   visible: (context) =>
+    // A mixed selection has no single state to toggle to, the one-way Pin and
+    // Unpin actions cover that case instead.
+    (allPinnedToCollection(context) || nonePinnedToCollection(context)) &&
     everyActiveModel(context, Document, (document) => {
       const can = context.stores.policies.abilities(document.id);
       return !!document.collectionId && (document.pinned ? can.unpin : can.pin);
     }),
   perform: (context) =>
-    everyActiveModel(context, Document, (document) => document.pinned)
+    allPinnedToCollection(context)
       ? unpinDocument.perform(context)
       : pinDocumentToCollection.perform(context),
 });
