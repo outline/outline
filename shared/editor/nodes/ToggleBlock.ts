@@ -10,7 +10,12 @@ import type {
 } from "prosemirror-model";
 import type { Command, EditorState, Transaction } from "prosemirror-state";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
-import { findWrapping } from "prosemirror-transform";
+import {
+  AttrStep,
+  ReplaceAroundStep,
+  ReplaceStep,
+  findWrapping,
+} from "prosemirror-transform";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 } from "uuid";
 import Storage from "../../utils/Storage";
@@ -178,6 +183,16 @@ export default class ToggleBlock extends Node {
           if (!action) {
             if (!tr.docChanged) {
               return pluginState;
+            }
+
+            // Plain text edits don't add or remove toggle blocks, so map the
+            // existing decorations (O(changed region)) instead of rescanning
+            // the document and rebuilding the decoration tree.
+            if (!this.toggleBlocksChanged(tr)) {
+              return {
+                foldedIds: pluginState.foldedIds,
+                decorations: pluginState.decorations.map(tr.mapping, tr.doc),
+              };
             }
 
             // Check if any toggle blocks were added and need fold state
@@ -491,6 +506,35 @@ export default class ToggleBlock extends Node {
     return {
       block: "container_toggle",
     };
+  }
+
+  /**
+   * Returns whether a transaction structurally changed toggle blocks — either
+   * by inserting one or by assigning an id to one. Plain text edits never
+   * change the set of toggle blocks, so this lets the hot path skip the full
+   * document scan and decoration rebuild.
+   *
+   * @param tr The transaction to inspect.
+   * @return true if a toggle block was inserted or had its id assigned.
+   */
+  private toggleBlocksChanged(tr: Transaction): boolean {
+    return tr.steps.some((step) => {
+      if (step instanceof ReplaceStep || step instanceof ReplaceAroundStep) {
+        let found = false;
+        step.slice.content.descendants((node) => {
+          if (node.type.name === this.name) {
+            found = true;
+          }
+        });
+        return found;
+      }
+
+      if (step instanceof AttrStep && step.attr === "id") {
+        return tr.doc.nodeAt(step.pos)?.type.name === this.name;
+      }
+
+      return false;
+    });
   }
 
   private initFoldedIds(state: EditorState) {
