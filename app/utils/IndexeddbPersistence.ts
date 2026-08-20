@@ -213,7 +213,13 @@ function openDatabase(name: string): Promise<IDBDatabase> {
         db.createObjectStore(updatesStoreName, { autoIncrement: true });
       }
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      const db = request.result;
+      // Close the connection when another context deletes or upgrades the
+      // database, otherwise their request would block indefinitely.
+      db.onversionchange = () => db.close();
+      resolve(db);
+    };
     request.onerror = () => reject(request.error);
   });
 }
