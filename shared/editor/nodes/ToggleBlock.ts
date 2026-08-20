@@ -67,15 +67,12 @@ export const toggleEventPluginKey = new PluginKey("toggleBlockEvent");
 export const toggleStorageKey = (id: string) => `toggle:${id}`;
 
 /**
- * A bounded cache of fold state per toggle block id, mirrored to local
- * storage. Bounding the cache keeps the number of stored keys from growing
- * without limit as documents are visited; evicted blocks simply fall back to
- * the default folded state.
+ * A bounded cache of fold state per toggle block id, mirrored to localStorage.
  */
 const foldStateCache = new LRUCache<{ fold: boolean }>({
   max: 500,
   namespace: "toggle",
-  persistTo: "local",
+  storage: "localStorage",
 });
 
 export default class ToggleBlock extends Node {
@@ -178,13 +175,8 @@ export default class ToggleBlock extends Node {
         },
 
         apply: (tr, pluginState, _oldState, newState) => {
-          // Remote (collaborative) document updates land here. Preserve the
-          // user's existing fold decisions verbatim and only initialize fold
-          // state for toggle blocks seen for the first time. Re-deriving fold
-          // state from storage on every remote update would collapse blocks
-          // the user just expanded whenever a collaborator edits: storage
-          // writes can fail silently (quota exceeded / unavailable), so it
-          // cannot be treated as the source of truth once a block is known.
+          // Remote updates only initialize fold state for blocks seen for the
+          // first time — previously seen blocks keep their current state.
           if (isRemoteTransaction(tr)) {
             return this.reconcileFoldState(pluginState, newState.doc);
           }

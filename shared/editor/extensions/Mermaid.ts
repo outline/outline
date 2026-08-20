@@ -33,7 +33,7 @@ export type MermaidState = {
 const cache = new LRUCache<string>({
   max: 20,
   namespace: "mermaid:v3",
-  persistTo: "session",
+  storage: "sessionStorage",
 });
 
 let mermaid: typeof MermaidUnsafe;
