@@ -92,14 +92,20 @@ export const UsersUpdateSchema = BaseSchema.extend({
     avatarUrl: z.string().nullish(),
     language: zodEnumFromObjectKeys(locales).optional(),
     preferences: z
-      .partialRecord(
-        z.enum(UserPreference),
-        z.union([
-          z.boolean(),
-          z.enum(NotificationBadgeType),
-          z.array(z.enum(SidebarSection)),
-        ])
-      )
+      .strictObject({
+        [UserPreference.RememberLastPath]: z.boolean(),
+        [UserPreference.UseCursorPointer]: z.boolean(),
+        [UserPreference.CodeBlockLineNumers]: z.boolean(),
+        [UserPreference.SeamlessEdit]: z.boolean(),
+        [UserPreference.FullWidthDocuments]: z.boolean(),
+        [UserPreference.SortCommentsByOrderInDocument]: z.boolean(),
+        [UserPreference.CommentsInGutter]: z.boolean(),
+        [UserPreference.EnableSmartText]: z.boolean(),
+        [UserPreference.ShowDocumentStats]: z.boolean(),
+        [UserPreference.NotificationBadge]: z.enum(NotificationBadgeType),
+        [UserPreference.SidebarSectionOrder]: z.array(z.enum(SidebarSection)),
+      })
+      .partial()
       .optional(),
     timezone: zodTimezone().optional(),
   }),

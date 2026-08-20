@@ -726,6 +726,18 @@ describe("#users.update", () => {
     ]);
   });
 
+  it("should fail upon sending a preference value of the wrong type", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.update", user, {
+      body: {
+        preferences: {
+          rememberLastPath: ["starred"],
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should fail upon sending invalid sidebarSectionOrder user preference", async () => {
     const user = await buildUser();
     const res = await server.post("/api/users.update", user, {
