@@ -65,7 +65,9 @@ export function defaultRateLimiter() {
       return next();
     }
 
-    const fullPath = `${ctx.mountPath ?? ""}${ctx.path}`;
+    const fullPath = RateLimiter.normalizePath(
+      `${ctx.mountPath ?? ""}${ctx.path}`
+    );
     const identifiers = await getRateLimiterIdentifiers(ctx);
     const isPathScoped = RateLimiter.hasRateLimiter(fullPath);
     const limiter = RateLimiter.getRateLimiter(fullPath);
@@ -127,7 +129,9 @@ export function rateLimiter(config: RateLimiterConfig) {
       return next();
     }
 
-    const fullPath = `${ctx.mountPath ?? ""}${ctx.path}`;
+    const fullPath = RateLimiter.normalizePath(
+      `${ctx.mountPath ?? ""}${ctx.path}`
+    );
 
     if (!RateLimiter.hasRateLimiter(fullPath)) {
       const points = Math.max(

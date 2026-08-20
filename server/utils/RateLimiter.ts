@@ -51,6 +51,21 @@ export default class RateLimiter {
   }
 
   /**
+   * Normalizes a request path into the key that identifies its rate limiter.
+   * The router matches paths case-insensitively and with an optional trailing
+   * slash, so every one of those variants must collapse onto a single key.
+   *
+   * @param path the request path to normalize.
+   * @returns the normalized path.
+   */
+  static normalizePath(path: string): string {
+    const lowercased = path.toLowerCase();
+    return lowercased.length > 1 && lowercased.endsWith("/")
+      ? lowercased.slice(0, -1)
+      : lowercased;
+  }
+
+  /**
    * Returns the rate limiter registered for a path, falling back to the
    * default rate limiter.
    *
