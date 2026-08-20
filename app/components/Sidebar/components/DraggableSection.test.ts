@@ -1,8 +1,17 @@
 import { SidebarSection } from "@shared/types";
+
+// The component's drag-and-drop and store imports cannot load in the unit
+// test environment; only the pure ordering helpers are under test.
+vi.mock("../hooks/useDragAndDrop", () => ({
+  useDragSidebarSection: vi.fn(),
+  useDropToReorderSidebarSection: vi.fn(),
+}));
+vi.mock("~/hooks/useCurrentUser", () => ({ default: vi.fn() }));
+
 import {
   moveSidebarSection,
   normalizeSidebarSectionOrder,
-} from "./sidebarSections";
+} from "./DraggableSection";
 
 const { Starred, SharedWithMe, Collections } = SidebarSection;
 
@@ -44,8 +53,8 @@ describe("normalizeSidebarSectionOrder", () => {
 describe("moveSidebarSection", () => {
   const order = [Starred, SharedWithMe, Collections];
 
-  it("should move a section to the first position", () => {
-    expect(moveSidebarSection(order, Collections, null)).toEqual([
+  it("should move a section before another section", () => {
+    expect(moveSidebarSection(order, Collections, "before", Starred)).toEqual([
       Collections,
       Starred,
       SharedWithMe,
@@ -53,19 +62,28 @@ describe("moveSidebarSection", () => {
   });
 
   it("should move a section after another section", () => {
-    expect(moveSidebarSection(order, Starred, SharedWithMe)).toEqual([
+    expect(moveSidebarSection(order, Starred, "after", SharedWithMe)).toEqual([
       SharedWithMe,
       Starred,
       Collections,
     ]);
   });
 
-  it("should return undefined when moving a section after itself", () => {
-    expect(moveSidebarSection(order, Starred, Starred)).toBeUndefined();
+  it("should return undefined when the target is the moved section", () => {
+    expect(
+      moveSidebarSection(order, Starred, "after", Starred)
+    ).toBeUndefined();
+    expect(
+      moveSidebarSection(order, Starred, "before", Starred)
+    ).toBeUndefined();
   });
 
   it("should return undefined when the order is unchanged", () => {
-    expect(moveSidebarSection(order, Starred, null)).toBeUndefined();
-    expect(moveSidebarSection(order, SharedWithMe, Starred)).toBeUndefined();
+    expect(
+      moveSidebarSection(order, Starred, "before", SharedWithMe)
+    ).toBeUndefined();
+    expect(
+      moveSidebarSection(order, SharedWithMe, "after", Starred)
+    ).toBeUndefined();
   });
 });
