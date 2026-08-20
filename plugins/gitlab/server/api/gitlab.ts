@@ -227,7 +227,7 @@ router.get(
         await pendingAuth.update(
           {
             token: oauth.access_token,
-            refreshToken: oauth.refresh_token,
+            refreshToken: oauth.refresh_token ?? pendingAuth.refreshToken,
             expiresAt: oauth.expires_in
               ? addSeconds(Date.now(), oauth.expires_in)
               : undefined,
@@ -243,7 +243,7 @@ router.get(
             userId: user.id,
             teamId: user.teamId,
             token: oauth.access_token,
-            refreshToken: oauth.refresh_token,
+            refreshToken: oauth.refresh_token ?? "",
             expiresAt: oauth.expires_in
               ? addSeconds(Date.now(), oauth.expires_in)
               : undefined,

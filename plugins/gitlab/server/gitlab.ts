@@ -28,10 +28,11 @@ import env from "./env";
 const AccessTokenResponseSchema = z.object({
   access_token: z.string(),
   token_type: z.string(),
-  expires_in: z.number(),
-  refresh_token: z.string(),
+  // Older self-hosted GitLab (<15 / non-expiring tokens) may omit these.
+  expires_in: z.number().optional(),
+  refresh_token: z.string().optional(),
   scope: z.string(),
-  created_at: z.number(),
+  created_at: z.number().optional(),
 });
 
 export class GitLab {

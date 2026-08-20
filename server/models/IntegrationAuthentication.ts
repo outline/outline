@@ -24,7 +24,8 @@ import { addSeconds } from "date-fns";
 export interface TokenRefreshResponse {
   access_token: string;
   refresh_token?: string;
-  expires_in: number;
+  /** Omitted by older GitLab instances that issue non-expiring tokens. */
+  expires_in?: number;
 }
 
 export type TokenRefreshCallback = (
@@ -135,7 +136,9 @@ class IntegrationAuthentication extends IdModel<
               token: tokenResponse.access_token,
               refreshToken:
                 tokenResponse.refresh_token || lockedAuth.refreshToken,
-              expiresAt: addSeconds(Date.now(), tokenResponse.expires_in),
+              expiresAt: tokenResponse.expires_in
+                ? addSeconds(Date.now(), tokenResponse.expires_in)
+                : lockedAuth.expiresAt,
             },
             { transaction }
           );
