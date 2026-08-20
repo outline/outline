@@ -34,7 +34,8 @@ import {
 import type { CommandFactory } from "../lib/Extension";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
-import { findBlockNodes, type NodeWithPos } from "../queries/findChildren";
+import { findBlockNodes } from "../queries/findChildren";
+import type { NodeWithPos } from "../types";
 import { findCutAfterHeading } from "../queries/findCutAfterHeading";
 import { isNodeActive } from "../queries/isNodeActive";
 import toggleBlocksRule from "../rules/toggleBlocks";
@@ -173,8 +174,8 @@ export default class ToggleBlock extends Node {
             knownIds,
             decorations: this.createDecorations(
               state.doc,
-              blocks,
-              foldedIds
+              foldedIds,
+              blocks
             ),
           };
         },
@@ -230,11 +231,11 @@ export default class ToggleBlock extends Node {
             knownIds: newKnownIds,
             decorations: this.createDecorations(
               newState.doc,
+              newFoldedIds,
               findBlockNodes(newState.doc, true).filter(
                 (b) =>
                   b.node.type.name === "container_toggle" && b.node.attrs.id
-              ),
-              newFoldedIds
+              )
             ),
           };
         },
