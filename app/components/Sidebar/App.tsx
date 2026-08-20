@@ -8,6 +8,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { SidebarSection, UserPreference } from "@shared/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Scrollable from "~/components/Scrollable";
 import { navigateToImport } from "~/actions/definitions/navigation";
@@ -19,11 +20,13 @@ import useStores from "~/hooks/useStores";
 import TeamMenu from "~/menus/TeamMenu";
 import * as Scenes from "~/routes/scenes";
 import { homePath, searchPath } from "~/utils/routeHelpers";
+import { normalizeSidebarSectionOrder } from "~/utils/sidebarSections";
 import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
+import DraggableSection from "./components/DraggableSection";
 import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
@@ -39,7 +42,7 @@ import useMobile from "~/hooks/useMobile";
 
 function AppSidebar() {
   const { t } = useTranslation();
-  const { documents, ui, collections } = useStores();
+  const { documents, ui, collections, stars } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
@@ -71,6 +74,30 @@ function AppSidebar() {
   useEffect(() => {
     setScrollArea(scrollRef.current);
   }, []);
+
+  const sectionOrder = normalizeSidebarSectionOrder(
+    user.getPreference(UserPreference.SidebarSectionOrder, [])
+  );
+
+  const sectionContent = {
+    [SidebarSection.Starred]: <Starred />,
+    [SidebarSection.SharedWithMe]: <SharedWithMe />,
+    [SidebarSection.Collections]: <Collections />,
+  };
+
+  // Mirrors the empty checks inside each section component so that drop
+  // targets are not rendered around hidden sections.
+  const sectionHasContent = {
+    [SidebarSection.Starred]: stars.orderedData.length > 0,
+    [SidebarSection.SharedWithMe]:
+      user.documentMemberships.length > 0 ||
+      user.groupsWithDocumentMemberships.length > 0,
+    [SidebarSection.Collections]: true,
+  };
+
+  const firstVisibleSection = sectionOrder.find(
+    (section) => sectionHasContent[section]
+  );
 
   return (
     <Sidebar hidden={!ui.readyToShow}>
@@ -127,15 +154,16 @@ function AppSidebar() {
         </Overflow>
         <Scrollable flex shadow ref={scrollRef}>
           <SidebarScrollProvider value={scrollArea}>
-            <Section>
-              <Starred />
-            </Section>
-            <Section>
-              <SharedWithMe />
-            </Section>
-            <Section>
-              <Collections />
-            </Section>
+            {sectionOrder.map((section) => (
+              <DraggableSection
+                key={section}
+                section={section}
+                isFirst={section === firstVisibleSection}
+                enabled={sectionHasContent[section]}
+              >
+                {sectionContent[section]}
+              </DraggableSection>
+            ))}
             {can.createDocument && (
               <Section auto>
                 <ArchiveLink />

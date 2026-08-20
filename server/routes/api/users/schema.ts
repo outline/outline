@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   NotificationBadgeType,
   NotificationEventType,
+  SidebarSection,
   UserPreference,
   UserRole,
 } from "@shared/types";
@@ -93,7 +94,11 @@ export const UsersUpdateSchema = BaseSchema.extend({
     preferences: z
       .partialRecord(
         z.enum(UserPreference),
-        z.union([z.boolean(), z.enum(NotificationBadgeType)])
+        z.union([
+          z.boolean(),
+          z.enum(NotificationBadgeType),
+          z.array(z.enum(SidebarSection)),
+        ])
       )
       .optional(),
     timezone: zodTimezone().optional(),
