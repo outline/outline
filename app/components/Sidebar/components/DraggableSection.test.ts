@@ -38,6 +38,12 @@ describe("normalizeSidebarSectionOrder", () => {
     ]);
   });
 
+  it("should remove duplicates from the saved order", () => {
+    expect(
+      normalizeSidebarSectionOrder([Collections, Starred, Collections])
+    ).toEqual([Collections, Starred, SharedWithMe]);
+  });
+
   it("should remove unknown sections from the saved order", () => {
     expect(
       normalizeSidebarSectionOrder([

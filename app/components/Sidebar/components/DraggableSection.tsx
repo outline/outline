@@ -19,8 +19,9 @@ import Section from "./Section";
 export const SectionDragContext = createContext<ConnectDragSource | null>(null);
 
 /**
- * Normalizes a persisted sidebar section order — unknown values are removed
- * and missing sections are appended in their default order.
+ * Normalizes a persisted sidebar section order — unknown values and
+ * duplicates are removed, and missing sections are appended in their default
+ * order.
  *
  * @param saved The persisted section order, if any.
  * @returns the full list of sidebar sections in display order.
@@ -29,7 +30,7 @@ export function normalizeSidebarSectionOrder(
   saved?: SidebarSection[]
 ): SidebarSection[] {
   const all = Object.values(SidebarSection);
-  const valid = (saved ?? []).filter((section) => all.includes(section));
+  const valid = [...new Set(saved)].filter((section) => all.includes(section));
   return [...valid, ...all.filter((section) => !valid.includes(section))];
 }
 
