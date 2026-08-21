@@ -508,7 +508,7 @@
   "Reaction": "תְגוּבָה",
   "{{ hours }}h {{ minutes }}m read": "{{ hours }}h {{ minutes }}m קריאה",
   "{{ hours }}h read": "{{ hours }} שעות קריאה",
-  "{{ minutes }}m read": "{{ דקות }} קראתי",
+  "{{ minutes }}m read": "{{ minutes }} קראתי",
   "All members": "כל החברים",
   "Everyone in the workspace": "כולם בסביבת העבודה",
   "{{ count }} member": "חבר {{ count }}",

@@ -1836,7 +1836,7 @@
   "Your webhook ({{ webhookName }}) has been disabled": "Tu webhook ({{ webhookName }}) ha sido deshabilitado",
   "Your webhook ({{ webhookName }}) has been automatically disabled due to a high failure rate in recent delivery attempts. You can re-enable by editing the webhook.": "Tu webhook ({{ webhookName }}) ha sido deshabilitado automáticamente debido a un alto índice de fallo en los recientes intentos de entrega. Puede volver a activar editando el webhook.",
   "Webhook settings": "Configuración de webhook",
-  "Welcome to {{ appName }}!": "¡Bienvenido a { appName }!",
+  "Welcome to {{ appName }}!": "¡Bienvenido a {{ appName }}!",
   "To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your team's work.": "Para empezar, dirígete a la pantalla de inicio y trata de crear una colección para documentar tus procesos, crear libros de reproducción o planificar el trabajo de tu equipo.",
   "Or, learn more about everything {{ appName }} can do in the guide": "O aprender más sobre todo lo que {{ appName }} puede hacer en la guía",
   "Or, learn more about everything {{ appName }} can do in": "O aprender más sobre todo lo que {{ appName }} puede hacer en",
