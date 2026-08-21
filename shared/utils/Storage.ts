@@ -7,6 +7,10 @@ import type { Primitive } from "utility-types";
 export class Storage {
   interface: typeof localStorage | MemoryStorage;
 
+  // Used when a write to the primary interface fails at runtime, e.g. when
+  // the local storage quota has been exceeded.
+  fallbackInterface: typeof sessionStorage | null = null;
+
   /**
    * @param type whether to persist for the session only, or indefinitely.
    */
@@ -24,6 +28,21 @@ export class Storage {
     } catch (_err) {
       this.interface = new MemoryStorage();
     }
+
+    // Session storage is used as a fallback when writes to the primary
+    // interface fail at runtime, so that values at least survive the current
+    // browsing session.
+    if (type === "local") {
+      try {
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("test", "test");
+          sessionStorage.removeItem("test");
+          this.fallbackInterface = sessionStorage;
+        }
+      } catch (_err) {
+        // Ignore errors
+      }
+    }
   }
 
   /**
@@ -39,9 +58,18 @@ export class Storage {
         this.remove(key);
       } else {
         this.interface.setItem(key, JSON.stringify(value));
+        // Drop any fallback copy so that reads of this key stay consistent.
+        this.fallbackInterface?.removeItem(key);
       }
     } catch (_err) {
-      // Ignore errors
+      // The primary interface can fail at runtime, e.g. when its quota has
+      // been exceeded — write to session storage instead so the value at
+      // least survives the browsing session.
+      try {
+        this.fallbackInterface?.setItem(key, JSON.stringify(value));
+      } catch (_err) {
+        // Ignore errors
+      }
     }
   }
 
@@ -54,7 +82,10 @@ export class Storage {
    */
   public get(key: string, fallback?: Primitive) {
     try {
-      const value = this.interface.getItem(key);
+      // A fallback copy only exists when the last successful write of this
+      // key went there, so when present it is the most recent value.
+      const value =
+        this.fallbackInterface?.getItem(key) ?? this.interface.getItem(key);
       if (typeof value === "string") {
         return JSON.parse(value);
       }
@@ -73,6 +104,7 @@ export class Storage {
   public remove(key: string) {
     try {
       this.interface.removeItem(key);
+      this.fallbackInterface?.removeItem(key);
     } catch (_err) {
       // Ignore errors
     }
@@ -84,6 +116,7 @@ export class Storage {
   public clear() {
     try {
       this.interface.clear();
+      this.fallbackInterface?.clear();
     } catch (_err) {
       // Ignore errors
     }
