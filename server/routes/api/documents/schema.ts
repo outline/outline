@@ -586,14 +586,29 @@ export const DocumentsCreateSchema = BaseSchema.extend({
 
     /** Boolean to denote if the document should occupy full width */
     fullWidth: z.boolean().optional(),
+
+    /** Attribute the document to an existing user in the same team, admin-only */
+    createdById: z.uuid().optional(),
   }),
-}).refine(
-  (req) =>
-    !(req.body.publish && !req.body.parentDocumentId && !req.body.collectionId),
-  {
-    message: "collectionId or parentDocumentId is required to publish",
-  }
-);
+})
+  .refine(
+    (req) =>
+      !(
+        req.body.publish &&
+        !req.body.parentDocumentId &&
+        !req.body.collectionId
+      ),
+    {
+      message: "collectionId or parentDocumentId is required to publish",
+    }
+  )
+  .refine(
+    (req) =>
+      !(req.body.createdById && !(req.body.collectionId && req.body.publish)),
+    {
+      message: "collectionId and publish are required with createdById",
+    }
+  );
 
 export type DocumentsCreateReq = z.infer<typeof DocumentsCreateSchema>;
 

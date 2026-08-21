@@ -1822,6 +1822,7 @@ router.post(
       fullWidth,
       templateId,
       createdAt,
+      createdById,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
@@ -1832,6 +1833,21 @@ router.post(
       collectionId,
       parentDocumentId,
     });
+
+    if (createdById) {
+      authorize(user, "update", user.team);
+      const author = await User.findByPk(createdById, { transaction });
+      authorize(user, "read", author);
+      // Collection policies read memberships preloaded for a single user, so
+      // the collection is re-loaded in the author's scope before checking it.
+      const authorCollection = collection
+        ? await Collection.findByPk(collection.id, {
+            userId: author.id,
+            transaction,
+          })
+        : null;
+      authorize(author, "read", authorCollection);
+    }
 
     let template: Template | null | undefined;
 
@@ -1866,6 +1882,7 @@ router.post(
       template,
       fullWidth,
       editorVersion,
+      createdById,
     });
 
     if (collection) {

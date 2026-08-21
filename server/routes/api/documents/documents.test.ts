@@ -38,6 +38,7 @@ import {
   buildViewer,
   buildTeam,
   buildGroup,
+  buildGroupUser,
   buildAdmin,
   buildTemplate,
   buildAttachment,
@@ -5947,6 +5948,172 @@ describe("#documents.create", () => {
       },
     });
     expect(res.status).toEqual(400);
+  });
+
+  it("should attribute the document to another same-team user when the actor is an admin", async () => {
+    const admin = await buildAdmin();
+    const author = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/documents.create", admin, {
+      body: {
+        title: "on behalf",
+        text: "hello",
+        collectionId: collection.id,
+        publish: true,
+        createdById: author.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.createdBy.id).toEqual(author.id);
+    // Attribution must not reach the audit trail: the event actor is the API
+    // caller who made the request.
+    const event = await Event.findOne({
+      where: { documentId: body.data.id, name: "documents.create" },
+    });
+    expect(event?.actorId).toEqual(admin.id);
+  });
+
+  it("should reject createdById without a collection", async () => {
+    const admin = await buildAdmin();
+    const author = await buildUser({ teamId: admin.teamId });
+    const res = await server.post("/api/documents.create", admin, {
+      body: {
+        title: "orphan draft",
+        publish: true,
+        createdById: author.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+    expect(await Document.count({ where: { teamId: admin.teamId } })).toEqual(
+      0
+    );
+  });
+
+  it("should reject createdById without publish", async () => {
+    const admin = await buildAdmin();
+    const author = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    // A draft is readable only by its own author, so attributing one would
+    // create a document the acting admin can no longer see.
+    const res = await server.post("/api/documents.create", admin, {
+      body: {
+        title: "unpublished",
+        collectionId: collection.id,
+        createdById: author.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+    expect(await Document.count({ where: { teamId: admin.teamId } })).toEqual(
+      0
+    );
+  });
+
+  it("should reject createdById when the acting user is not an admin", async () => {
+    const user = await buildUser();
+    const author = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.create", user, {
+      body: {
+        title: "nope",
+        collectionId: collection.id,
+        publish: true,
+        createdById: author.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+    // Fail closed: the rejection must not have persisted a document.
+    expect(await Document.count({ where: { teamId: user.teamId } })).toEqual(0);
+  });
+
+  it("should reject createdById for a user in a different team", async () => {
+    const admin = await buildAdmin();
+    const otherTeam = await buildTeam();
+    const foreignUser = await buildUser({ teamId: otherTeam.id });
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/documents.create", admin, {
+      body: {
+        title: "cross team",
+        collectionId: collection.id,
+        publish: true,
+        createdById: foreignUser.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+    expect(await Document.count({ where: { teamId: admin.teamId } })).toEqual(
+      0
+    );
+  });
+
+  it("should reject createdById for a user who cannot read the collection", async () => {
+    const admin = await buildAdmin();
+    const author = await buildUser({ teamId: admin.teamId });
+    // A private collection the author holds no membership in — the acting
+    // admin can read it, the prospective author cannot.
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+      permission: null,
+    });
+    const res = await server.post("/api/documents.create", admin, {
+      body: {
+        title: "unreachable",
+        collectionId: collection.id,
+        publish: true,
+        createdById: author.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+    expect(await Document.count({ where: { teamId: admin.teamId } })).toEqual(
+      0
+    );
+  });
+
+  it("should allow createdById when the author's access is via a group only", async () => {
+    const admin = await buildAdmin();
+    const author = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+      permission: null,
+    });
+    // The author holds no direct UserMembership — access is granted purely
+    // through group membership, which withMembership loads separately.
+    const group = await buildGroup({ teamId: admin.teamId });
+    await buildGroupUser({
+      teamId: admin.teamId,
+      groupId: group.id,
+      userId: author.id,
+    });
+    await GroupMembership.create({
+      collectionId: collection.id,
+      groupId: group.id,
+      permission: CollectionPermission.ReadWrite,
+      createdById: admin.id,
+    });
+    const res = await server.post("/api/documents.create", admin, {
+      body: {
+        title: "group reachable",
+        collectionId: collection.id,
+        publish: true,
+        createdById: author.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.createdBy.id).toEqual(author.id);
   });
 
   it("should use template title when doc is created using a template and title is not explicitly passed", async () => {
