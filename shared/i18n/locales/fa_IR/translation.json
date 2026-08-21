@@ -618,7 +618,7 @@
   "Could not load starred documents": "امکان بارگذاری اسناد ستاره‌دار وجود ندارد",
   "Starred": "ستاره‌دار",
   "Up to date": "به روز",
-  "{{ releasesBehind }} versions behind": "یک نسخه عقب است",
+  "{{ releasesBehind }} versions behind": "{{ releasesBehind }} نسخه عقب است",
   "{{ releasesBehind }} versions behind_plural": "{{ releasesBehind }} نسخه عقب است",
   "Change permissions?": "تغییر مجوز ها؟",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }} قابل جابجایی در {{ parentDocumentName }} نیست",
