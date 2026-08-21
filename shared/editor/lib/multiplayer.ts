@@ -1,7 +1,29 @@
 import type { Transaction } from "prosemirror-state";
-import type { DecorationSet } from "prosemirror-view";
-import { ySyncPluginKey } from "y-prosemirror";
+import type { DecorationSet, EditorView } from "prosemirror-view";
 import { recreateTransform } from "./prosemirror-recreate-transform";
+
+/**
+ * Hooks into the collaboration plugins, registered by the multiplayer
+ * extension when it is loaded.
+ */
+export interface MultiplayerHooks {
+  /** Returns true if the transaction originated from a remote client. */
+  isRemoteTransaction: (tr: Transaction) => boolean;
+  /** Stops the collaborative undo manager from capturing further changes. */
+  stopCapturing: (view: EditorView) => void;
+}
+
+let hooks: MultiplayerHooks | undefined;
+
+/**
+ * Registers the multiplayer hooks. Called by the multiplayer extension so
+ * that editors without collaboration do not load the collaboration libraries.
+ *
+ * @param value the hooks to register.
+ */
+export function registerMultiplayerHooks(value: MultiplayerHooks): void {
+  hooks = value;
+}
 
 /**
  * Checks if a transaction is a remote transaction
@@ -10,10 +32,17 @@ import { recreateTransform } from "./prosemirror-recreate-transform";
  * @returns true if the transaction is a remote transaction
  */
 export function isRemoteTransaction(tr: Transaction): boolean {
-  const meta = tr.getMeta(ySyncPluginKey);
+  return hooks?.isRemoteTransaction(tr) ?? false;
+}
 
-  // This logic seems to be flipped? But it's correct.
-  return !!meta?.isChangeOrigin;
+/**
+ * Stops the collaborative undo manager from capturing further changes, if
+ * the multiplayer extension is loaded.
+ *
+ * @param view The editor view.
+ */
+export function stopCapturingUndo(view: EditorView): void {
+  hooks?.stopCapturing(view);
 }
 
 /**

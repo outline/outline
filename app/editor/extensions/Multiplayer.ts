@@ -3,8 +3,10 @@ import { isEqual } from "es-toolkit/compat";
 import { Plugin } from "prosemirror-state";
 import {
   ySyncPlugin,
+  ySyncPluginKey,
   yCursorPlugin,
   yUndoPlugin,
+  yUndoPluginKey,
   undo,
   redo,
   undoCommand,
@@ -12,9 +14,24 @@ import {
 } from "y-prosemirror";
 import * as Y from "yjs";
 import Extension from "@shared/editor/lib/Extension";
-import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
+import {
+  isRemoteTransaction,
+  registerMultiplayerHooks,
+} from "@shared/editor/lib/multiplayer";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { Second } from "@shared/utils/time";
+
+registerMultiplayerHooks({
+  isRemoteTransaction: (tr) => {
+    const meta = tr.getMeta(ySyncPluginKey);
+
+    // This logic seems to be flipped? But it's correct.
+    return !!meta?.isChangeOrigin;
+  },
+  stopCapturing: (view) => {
+    yUndoPluginKey.getState(view.state)?.undoManager?.stopCapturing();
+  },
+});
 
 type UserAwareness = {
   user?: {
