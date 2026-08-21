@@ -1,7 +1,7 @@
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import type { ReactNode } from "react";
 import styled from "styled-components";
-import { depths, s } from "../../styles";
+import { depths, s, squircle } from "../../styles";
 import type { EditorNotice } from "../types";
 import { ColorPreview } from "./ColorPreview";
 
@@ -67,7 +67,7 @@ const Card = styled.div`
   z-index: ${depths.modal};
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  border-radius: 8px;
+  ${squircle(8)}
   outline: none;
 
   &[data-state="open"] {

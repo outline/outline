@@ -3,7 +3,7 @@ import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
-import { depths, s } from "@shared/styles";
+import { depths, s, squircle } from "@shared/styles";
 import type { ModelSelection } from "~/components/ModelSelection";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
@@ -137,7 +137,7 @@ const Wrapper = styled.div<{ $active: boolean }>`
 const Background = styled(Flex)`
   background-color: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  border-radius: 8px;
+  ${squircle(8)}
   height: 40px;
   padding: 0 8px;
 `;

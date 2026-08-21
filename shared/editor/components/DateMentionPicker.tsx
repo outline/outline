@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { RemoveScroll } from "react-remove-scroll";
 import styled from "styled-components";
 import { Calendar } from "../../components/Calendar";
-import { depths, s } from "../../styles";
+import { depths, s, squircle } from "../../styles";
 import { dateLocale, toISODate, toISODateTime } from "../../utils/date";
 
 type Props = {
@@ -100,7 +100,7 @@ const DatePopoverContent = styled.div`
   z-index: ${depths.modal};
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  border-radius: 8px;
+  ${squircle(8)}
   outline: none;
 
   &[data-state="open"] {
