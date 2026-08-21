@@ -1703,7 +1703,7 @@
   "To search your workspace use {{ command }}. \nType {{ command2 }} help to display this help text.": "To search your workspace use {{ command }}. \nType {{ command2 }} help to display this help text.",
   "Post to Channel": "Опублікувати в каналі",
   "This is what we found for \"{{ term }}\"": "Ось що ми знайшли для \"{{ term }}\"",
-  "No results for \"{{ term }}\"": "0 результатів пошуку за запитом «{{ terms }}»",
+  "No results for \"{{ term }}\"": "Результатів пошуку за запитом «{{ term }}»",
   "It looks like you haven’t linked your {{ appName }} account to Slack yet": "It looks like you haven’t linked your {{ appName }} account to Slack yet",
   "Link your account": "Link your account",
   "Link your account in {{ appName }} settings to search from Slack": "Link your account in {{ appName }} settings to search from Slack",
