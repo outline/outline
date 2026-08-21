@@ -68,7 +68,8 @@ export const toggleEventPluginKey = new PluginKey("toggleBlockEvent");
 export const toggleStorageKey = (id: string) => `toggle:${id}`;
 
 /**
- * A bounded cache of fold state per toggle block id, mirrored to localStorage.
+ * A bounded cache of fold state per toggle block id, mirrored to local
+ * storage. Evicted blocks fall back to the default folded state.
  */
 const foldStateCache = new LRUCache<{ fold: boolean }>({
   max: 500,

@@ -25,7 +25,7 @@ describe.runIf(hasStorage)("Storage", () => {
       },
       removeItem: (key: string) => primary.removeItem(key),
       clear: () => primary.clear(),
-    } as typeof localStorage;
+    } as unknown as typeof localStorage;
 
     storage.set("toggle:1", { fold: false });
 
