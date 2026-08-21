@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import Squircle from "@shared/components/Squircle";
-import { s, hover, ellipsis, squircle } from "@shared/styles";
+import { s, hover, ellipsis, borderRadius } from "@shared/styles";
 import { IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import type Document from "~/models/Document";
@@ -305,7 +305,7 @@ const DocumentLink = styled(Link)<{
   padding: 12px;
   width: 100%;
   height: 100%;
-  ${squircle(8)}
+  ${borderRadius(8)}
   cursor: var(--pointer);
   background: ${s("background")};
   transition: transform 50ms ease-in-out;

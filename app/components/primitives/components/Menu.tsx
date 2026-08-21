@@ -3,7 +3,7 @@ import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths, s, squircle } from "@shared/styles";
+import { depths, s, borderRadius } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import { fadeAndScaleIn } from "~/styles/animations";
 
@@ -202,7 +202,7 @@ export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
 
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  ${squircle(8)}
+  ${borderRadius(8)}
   // Vertical spacing comes from spacers rather than padding so that the bottom
   // fade, which is confined to the content box, can reach the menu's edge.
   padding: 0 6px;

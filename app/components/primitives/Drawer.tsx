@@ -2,7 +2,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import * as React from "react";
 import styled from "styled-components";
 import { Drawer as DrawerPrimitive } from "vaul";
-import { depths, s, squircle } from "@shared/styles";
+import { depths, s, borderRadius } from "@shared/styles";
 import Flex from "../Flex";
 import Text from "../Text";
 import { Overlay } from "./components/Overlay";
@@ -95,7 +95,7 @@ const StyledContent = styled(m.div)`
   min-height: 44px;
   max-height: 90vh;
 
-  ${squircle(8)}
+  ${borderRadius(8)}
 
   background: ${s("menuBackground")};
 `;

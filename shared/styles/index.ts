@@ -54,11 +54,11 @@ export const hideScrollbars = () => `
  * @param exponent the superellipse exponent, where 2 is a squircle.
  * @returns string of CSS
  */
-export const squircle = (radius: number, exponent = 2) => `
+export const borderRadius = (radius: number, exponent = 2) => `
   border-radius: ${radius}px;
 
   @supports (corner-shape: superellipse(2)) {
-    // A superellipse is tighter than a circular arc, so increase the radius to compensate.
+    /* A superellipse is tighter than a circular arc, so increase the radius to compensate. */
     border-radius: ${Math.round(radius * 1.8)}px;
     corner-shape: superellipse(${exponent});
   }
