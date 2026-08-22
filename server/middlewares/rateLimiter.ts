@@ -115,7 +115,9 @@ export function defaultRateLimiter() {
       return next();
     }
 
-    const fullPath = `${ctx.mountPath ?? ""}${ctx.path}`;
+    const fullPath = RateLimiter.normalizePath(
+      `${ctx.mountPath ?? ""}${ctx.path}`
+    );
     const identifiers = await getRateLimiterIdentifiers(ctx);
 
     // Kept for a route that registers its own limiter further down the chain,
@@ -151,7 +153,9 @@ export function rateLimiter(config: RateLimiterConfig) {
       return next();
     }
 
-    const fullPath = `${ctx.mountPath ?? ""}${ctx.path}`;
+    const fullPath = RateLimiter.normalizePath(
+      `${ctx.mountPath ?? ""}${ctx.path}`
+    );
 
     if (!RateLimiter.hasRateLimiter(fullPath)) {
       const points = Math.max(
