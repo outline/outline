@@ -716,8 +716,6 @@ width: 100%;
   h5 { font-size: var(--font-size-h5); }
   h6 { font-size: var(--font-size-h6); }
 
-  // Matches the tone of the heading anchor beside it, which is the primary
-  // text color held at the same opacity.
   [data-heading-prefix]::before {
     content: attr(data-heading-prefix);
     color: ${props.theme.text};
