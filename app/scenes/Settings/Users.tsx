@@ -6,6 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import type UsersStore from "~/stores/UsersStore";
 import { queriedUsers } from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
@@ -40,17 +41,19 @@ function Users() {
   const can = usePolicy(team);
   const [query, setQuery] = useState("");
 
+  const status = params.get("filter") || "active";
+  const role = params.get("role") || undefined;
+
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
-      filter: params.get("filter") || "active",
-      role: params.get("role") || undefined,
+      filters: getUserFilters({ status, role }),
       sort: params.get("sort") || "name",
       direction: (params.get("direction") || "asc").toUpperCase() as
         | "ASC"
         | "DESC",
     }),
-    [params]
+    [params, status, role]
   );
 
   const sort: ColumnSort = useMemo(
@@ -65,8 +68,8 @@ function Users() {
     data: getFilteredUsers({
       users,
       query: reqParams.query,
-      filter: reqParams.filter,
-      role: reqParams.role,
+      filter: status,
+      role,
     }),
     sort,
     reqFn: users.fetchPage,
@@ -156,11 +159,11 @@ function Users() {
             onChange={handleSearch}
           />
           <LargeUserStatusFilter
-            activeKey={reqParams.filter ?? ""}
+            activeKey={status}
             onSelect={handleStatusFilter}
           />
           <LargeUserRoleFilter
-            activeKey={reqParams.role ?? ""}
+            activeKey={role ?? ""}
             onSelect={handleRoleFilter}
           />
         </HStack>
@@ -180,6 +183,47 @@ function Users() {
       </ConditionalFade>
     </Scene>
   );
+}
+
+function getUserFilters({
+  status,
+  role,
+}: {
+  status: string;
+  role?: string;
+}): Filter[] {
+  const filters: Filter[] = [];
+
+  if (role) {
+    filters.push({ field: "role", operator: "eq", value: role });
+  }
+
+  switch (status) {
+    case "all":
+      // Suspended users are excluded unless the expression references
+      // suspendedAt, so match on either state.
+      filters.push({
+        operator: "OR",
+        filters: [
+          { field: "suspendedAt", operator: "isNull" },
+          { field: "suspendedAt", operator: "isNotNull" },
+        ],
+      });
+      break;
+    case "suspended":
+      filters.push({ field: "suspendedAt", operator: "isNotNull" });
+      break;
+    case "invited":
+      filters.push({ field: "lastActiveAt", operator: "isNull" });
+      break;
+    default:
+      filters.push(
+        { field: "lastActiveAt", operator: "isNotNull" },
+        { field: "suspendedAt", operator: "isNull" }
+      );
+  }
+
+  return filters;
 }
 
 function getFilteredUsers({
