@@ -47,6 +47,24 @@ export const hideScrollbars = () => `
 `;
 
 /**
+ * Mixin to give an element superellipse ("squircle") corners in browsers that
+ * support `corner-shape`, with a standard border radius elsewhere.
+ *
+ * @param radius the border radius in pixels.
+ * @param exponent the superellipse exponent, where 2 is a squircle.
+ * @returns string of CSS
+ */
+export const borderRadius = (radius: number, exponent = 2) => `
+  border-radius: ${radius}px;
+
+  @supports (corner-shape: superellipse(2)) {
+    /* A superellipse is tighter than a circular arc, so increase the radius to compensate. */
+    border-radius: ${Math.round(radius * 1.8)}px;
+    corner-shape: superellipse(${exponent});
+  }
+`;
+
+/**
  * Mixin on any component with relative positioning to add additional hidden clickable/hoverable area
  *
  * @param pixels

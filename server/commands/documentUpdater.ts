@@ -1,4 +1,4 @@
-import type { TextEditMode } from "@shared/types";
+import type { DocumentPreferences, TextEditMode } from "@shared/types";
 import { DocumentConflictError } from "@server/errors";
 import { Event, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -24,6 +24,8 @@ type Props = {
   templateId?: string | null;
   /** If the document should be displayed full-width on the screen */
   fullWidth?: boolean;
+  /** Display preferences for the document, merged with existing values */
+  preferences?: DocumentPreferences;
   /** Whether insights should be visible on the document */
   insightsEnabled?: boolean;
   /** The edit mode: "replace", "append", "prepend", or "patch" */
@@ -56,6 +58,7 @@ export default async function documentUpdater(
     editorVersion,
     templateId,
     fullWidth,
+    preferences,
     insightsEnabled,
     editMode,
     findText,
@@ -86,6 +89,12 @@ export default async function documentUpdater(
   }
   if (fullWidth !== undefined) {
     document.fullWidth = fullWidth;
+  }
+  if (preferences) {
+    document.preferences = {
+      ...document.preferences,
+      ...preferences,
+    };
   }
   if (insightsEnabled !== undefined) {
     document.insightsEnabled = insightsEnabled;

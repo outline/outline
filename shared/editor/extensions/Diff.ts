@@ -349,9 +349,17 @@ export default class Diff extends Extension<DiffOptions> {
           return;
         }
 
-        modification.data.slice.content.forEach((node: Node) => {
-          const nodeSize = node.nodeSize;
-          const end = pos + nodeSize;
+        modification.data.slice.content.forEach(() => {
+          // The slice describes the content before the change, and may cover
+          // more nodes than remain at this position, so the node being
+          // decorated is measured in the document itself.
+          const node =
+            pos <= doc.content.size ? doc.resolve(pos).nodeAfter : null;
+          if (!node) {
+            return;
+          }
+
+          const end = pos + node.nodeSize;
 
           // Check if this specific node should use node decoration
           const useNodeDecoration =

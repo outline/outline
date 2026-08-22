@@ -1,9 +1,10 @@
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import styled, { keyframes } from "styled-components";
-import { extraArea, s } from "@shared/styles";
+import { s } from "@shared/styles";
 import usePersistedState from "~/hooks/usePersistedState";
 import { undraggableOnDesktop } from "~/styles";
+import { SectionDragContext } from "./DraggableSection";
 
 type Props = {
   /** Unique header id – if passed the header will become toggleable */
@@ -21,6 +22,7 @@ export function getHeaderExpandedKey(id: string) {
  */
 export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
   const [firstRender, setFirstRender] = React.useState(true);
+  const dragRef = React.useContext(SectionDragContext);
   const [expanded, setExpanded] = usePersistedState<boolean>(
     getHeaderExpandedKey(id ?? ""),
     true
@@ -38,7 +40,7 @@ export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
 
   return (
     <>
-      <H3>
+      <H3 ref={dragRef}>
         <Button onClick={handleClick} disabled={!id}>
           {title}
           {id && <Disclosure $expanded={expanded} size={20} />}
@@ -66,8 +68,9 @@ const Fade = styled.span`
 `;
 
 const Button = styled.button`
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  width: 100%;
   font-size: 13px;
   font-weight: 600;
   user-select: none;
@@ -83,12 +86,17 @@ const Button = styled.button`
   -webkit-appearance: none;
   transition: all 100ms ease;
   ${undraggableOnDesktop()}
-  ${extraArea(4)}
 
   &:not(:disabled):hover,
   &:not(:disabled):active {
-    color: ${s("textSecondary")};
+    background: ${s("sidebarHoverBackground")};
     cursor: var(--pointer);
+  }
+
+  @media (hover: hover) {
+    &:not(:disabled):hover {
+      color: ${s("text")};
+    }
   }
 `;
 

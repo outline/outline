@@ -13,6 +13,7 @@ import {
   ServiceUnavailableError,
   UpdateRequiredError,
 } from "./errors";
+import { staleChunkErrorPattern } from "./lazyWithRetry";
 
 /**
  * Initializes the Sentry error tracking client for the browser.
@@ -50,8 +51,7 @@ export function initSentry(history: History) {
     ],
     tracesSampleRate: env.ENVIRONMENT === "production" ? 0.05 : 1,
     ignoreErrors: [
-      "Failed to fetch dynamically imported module",
-      "Importing a module script failed",
+      staleChunkErrorPattern,
       "ResizeObserver loop completed with undelivered notifications",
       "ResizeObserver loop limit exceeded",
       "Object Not Found Matching Id",

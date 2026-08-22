@@ -241,7 +241,7 @@ export default class PasteHandler extends Extension {
                             vscodeMeta.mode
                           )
                             ? vscodeMeta.mode
-                            : null,
+                            : "none",
                         })
                       )
                       .insertText(text)
@@ -326,7 +326,7 @@ export default class PasteHandler extends Extension {
         },
         state: {
           init: () => DecorationSet.empty,
-          apply: (tr, set) => {
+          apply: (tr, set, _oldState, newState) => {
             let mapping = tr.mapping;
 
             // See if the transaction adds or removes any placeholders
@@ -352,7 +352,7 @@ export default class PasteHandler extends Extension {
               return DecorationSet.create(tr.doc, decorations);
             }
 
-            if (hasDecorations && (isRemoteTransaction(tr) || meta)) {
+            if (hasDecorations && (isRemoteTransaction(tr, newState) || meta)) {
               try {
                 mapping = recreateTransform(tr.before, tr.doc, {
                   complexSteps: true,

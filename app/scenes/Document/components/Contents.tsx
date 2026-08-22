@@ -1,12 +1,14 @@
 import { observer } from "mobx-react";
 import { transparentize } from "polished";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EmojiText } from "@shared/components/EmojiText";
+import { HeadingPrefixHelper } from "@shared/editor/extensions/HeadingPrefix";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import { DocumentPreference, HeadingPrefixStyle } from "@shared/types";
 import { depths, hideScrollbars, s } from "@shared/styles";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -24,7 +26,11 @@ function Contents() {
     throttle: 100,
   });
   const documentContext = useDocumentContext();
-  const { headings } = documentContext;
+  // Headings inside tables carry no number and are not listed.
+  const headings = useMemo(
+    () => documentContext.headings.filter((heading) => !heading.inTable),
+    [documentContext.headings]
+  );
   const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
 
   // A heading chosen from the contents stays highlighted until the reader
@@ -129,6 +135,23 @@ function Contents() {
   const headingAdjustment = minHeading - 1;
   const { t } = useTranslation();
 
+  // Compute prefix labels over all headings so they match the numbering shown
+  // in the document, then attach them before headings are filtered for display.
+  const headingPrefix =
+    documentContext.document?.getPreference(DocumentPreference.HeadingPrefix) ??
+    HeadingPrefixStyle.None;
+  const prefixLabels = useMemo(
+    () =>
+      headingPrefix === HeadingPrefixStyle.None
+        ? undefined
+        : HeadingPrefixHelper.labels(
+            headings.map((heading) => heading.level),
+            headingPrefix,
+            { indented: true }
+          ),
+    [headings, headingPrefix]
+  );
+
   if (headings.length === 0) {
     return <StickyWrapper />;
   }
@@ -138,8 +161,12 @@ function Contents() {
       <Heading>{t("Contents")}</Heading>
       <List>
         {headings
-          .filter((heading) => heading.level < 4)
-          .map((heading) => (
+          .map((heading, index) => ({
+            heading,
+            label: prefixLabels?.[index],
+          }))
+          .filter(({ heading }) => heading.level <= 4)
+          .map(({ heading, label }) => (
             <ListItem
               key={heading.id}
               ref={(el) => (itemRefs.current[heading.id] = el)}
@@ -150,6 +177,7 @@ function Contents() {
                 href={`#${heading.id}`}
                 onClick={(event) => handleClick(event, heading.id)}
               >
+                {label && <Prefix>{label}</Prefix>}
                 <EmojiText>{heading.title}</EmojiText>
               </Link>
             </ListItem>
@@ -192,6 +220,12 @@ const Heading = styled.h3`
   margin-top: 10px;
 `;
 
+const Prefix = styled.span`
+  color: ${s("textSecondary")};
+  margin-inline-end: 0.25em;
+  user-select: none;
+`;
+
 const ListItem = styled.li<{ level: number; active?: boolean }>`
   margin-left: ${(props) => (props.level - 1) * 10}px;
   margin-bottom: 8px;
@@ -201,6 +235,11 @@ const ListItem = styled.li<{ level: number; active?: boolean }>`
   a {
     font-weight: ${(props) => (props.active ? "600" : "inherit")};
     color: ${(props) => (props.active ? props.theme.accent : props.theme.text)};
+
+    ${Prefix} {
+      color: ${(props) =>
+        props.active ? props.theme.accent : props.theme.textSecondary};
+    }
   }
 `;
 

@@ -111,11 +111,7 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       // have changed underneath us since the last search.
       this.search(state.doc);
 
-      if (this.currentResultIndex >= this.results.length) {
-        return false;
-      }
-
-      const result = this.results[this.currentResultIndex];
+      const result = this.currentResult;
 
       if (!result) {
         return false;
@@ -190,6 +186,16 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
     };
   }
 
+  /**
+   * The result at the current index, checking the length first so that an index
+   * beyond the end of the results is not read.
+   */
+  private get currentResult() {
+    return this.currentResultIndex < this.results.length
+      ? this.results[this.currentResultIndex]
+      : undefined;
+  }
+
   private get findRegExp() {
     return RegExp(
       this.searchTerm.replace(/\\+$/, ""),
@@ -199,6 +205,10 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
 
   private goToMatch(direction: number): Command {
     return (state, dispatch) => {
+      if (!this.results.length) {
+        return false;
+      }
+
       if (direction > 0) {
         if (this.currentResultIndex >= this.results.length - 1) {
           this.currentResultIndex = 0;
@@ -248,11 +258,7 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
    * Expand any folded toggle blocks that contain the current match.
    */
   private expandFoldedTogglesForCurrentMatch() {
-    if (this.currentResultIndex >= this.results.length) {
-      return;
-    }
-
-    const result = this.results[this.currentResultIndex];
+    const result = this.currentResult;
     if (!result) {
       return;
     }
@@ -305,7 +311,7 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
    * Expand a collapsed code block if it contains the current match.
    */
   private expandCollapsedCodeBlockForCurrentMatch() {
-    const result = this.results[this.currentResultIndex];
+    const result = this.currentResult;
     if (!result) {
       return;
     }

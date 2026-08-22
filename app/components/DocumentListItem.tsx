@@ -34,7 +34,7 @@ import { useDragDocument } from "./Sidebar/hooks/useDragAndDrop";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { ContextMenu } from "./Menu/ContextMenu";
-import useStores from "~/hooks/useStores";
+import { useDocumentActiveModels } from "~/hooks/useDocumentActiveModels";
 
 type Props = {
   document: Document;
@@ -61,7 +61,6 @@ function DocumentListItem(
   const { t } = useTranslation();
   const user = useCurrentUser();
   const theme = useTheme();
-  const { userMemberships, groupMemberships } = useStores();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMobile = useMobile();
@@ -124,10 +123,7 @@ function DocumentListItem(
     }
   };
 
-  const isShared = !!(
-    userMemberships.getByDocumentId(document.id) ||
-    groupMemberships.getByDocumentId(document.id)
-  );
+  const activeModels = useDocumentActiveModels(document);
 
   const sidebarContext = determineSidebarContext({
     document,
@@ -155,14 +151,7 @@ function DocumentListItem(
   );
 
   return (
-    <ActionContextProvider
-      value={{
-        activeModels: [
-          document,
-          ...(!isShared && document.collection ? [document.collection] : []),
-        ],
-      }}
-    >
+    <ActionContextProvider value={{ activeModels }}>
       <ContextMenu
         action={contextMenuAction}
         ariaLabel={t("Document options")}

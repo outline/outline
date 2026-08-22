@@ -5,6 +5,7 @@ import { createFilterSchema } from "@shared/helpers/FilterHelper";
 import {
   DirectionFilter,
   DocumentPermission,
+  HeadingPrefixStyle,
   StatusFilter,
   TextEditMode,
   SortFilter,
@@ -398,6 +399,14 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if the doc should occupy full width */
     fullWidth: z.boolean().optional(),
 
+    /** Display preferences for the doc */
+    preferences: z
+      .object({
+        /** The style of prefix displayed before headings in the doc */
+        headingPrefix: z.enum(HeadingPrefixStyle).optional(),
+      })
+      .optional(),
+
     /** Boolean to denote if insights should be visible on the doc */
     insightsEnabled: z.boolean().optional(),
 
@@ -587,6 +596,14 @@ export const DocumentsCreateSchema = BaseSchema.extend({
 
     /** Boolean to denote if the document should occupy full width */
     fullWidth: z.boolean().optional(),
+
+    /** Display preferences for the document */
+    preferences: z
+      .object({
+        /** The style of prefix displayed before headings in the document */
+        headingPrefix: z.enum(HeadingPrefixStyle).optional(),
+      })
+      .optional(),
   }),
 }).refine(
   (req) =>

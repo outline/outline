@@ -88,6 +88,20 @@ export type MentionAttrs = {
 
 const pluginsWithSafeDecorations = new WeakSet<Plugin>();
 
+// jsdom does not implement ResizeObserver, and the exported document never
+// resizes, so components that observe their element on mount get a no-op.
+class NoopResizeObserver implements ResizeObserver {
+  public observe() {
+    // noop
+  }
+  public unobserve() {
+    // noop
+  }
+  public disconnect() {
+    // noop
+  }
+}
+
 // KaTeX renders math server-side during HTML export, but relies on this
 // stylesheet (loaded dynamically in the app) to position glyphs correctly.
 const katexStylesheetUrl =
@@ -1123,6 +1137,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       HTMLElement: g.HTMLElement,
       Node: g.Node,
       MutationObserver: g.MutationObserver,
+      ResizeObserver: g.ResizeObserver,
     };
 
     const patch = (key: string, value: unknown) => {
@@ -1142,6 +1157,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     patch("HTMLElement", domWindow.HTMLElement);
     patch("Node", domWindow.Node);
     patch("MutationObserver", domWindow.MutationObserver);
+    patch("ResizeObserver", NoopResizeObserver);
 
     return () => {
       Object.entries(globalParams).forEach(([key, value]) => {

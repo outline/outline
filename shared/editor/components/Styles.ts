@@ -560,9 +560,40 @@ width: 100%;
   gap: 4px;
   vertical-align: bottom;
 
+  /* Long labels are truncated so a mention never wraps onto a second line. */
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
+    white-space: nowrap;
+  }
+
+  /* Only the label truncates; icons and trailing identifiers stay whole. */
+  &::before,
+  svg,
+  img,
+  span ~ span {
+    flex-shrink: 0;
+  }
+
   &:${hover} {
     cursor: default;
     background: ${props.theme.mentionHoverBackground};
+  }
+
+  /* Date mentions only open the picker when editable, so no hover affordance
+     in read-only mode. */
+  ${
+    props.readOnly
+      ? `&[data-type="date"]:${hover} {
+    background: ${props.theme.mentionBackground};
+  }`
+      : ""
   }
 
   &[data-type="user"],
@@ -646,7 +677,7 @@ width: 100%;
       margin-top: 0.25em;
     }
 
-    &:not(.placeholder) {
+    &:not(.placeholder):not([data-heading-prefix]) {
       &::before {
         display: none;
         font-family: ${props.theme.fontFamilyMono};
@@ -684,6 +715,12 @@ width: 100%;
   h4 { font-size: var(--font-size-h4); }
   h5 { font-size: var(--font-size-h5); }
   h6 { font-size: var(--font-size-h6); }
+
+  [data-heading-prefix]::before {
+    content: attr(data-heading-prefix);
+    color: ${props.theme.textSecondary};
+    margin-inline-end: 0.25em;
+  }
 
   .${EditorStyleHelper.multiplayerSelection} {
     transition: background-color 500ms ease-in-out;
@@ -1065,22 +1102,22 @@ a:first-child {
   }
 }
 
-h1:not(.placeholder)::before {
+h1:not(.placeholder):not([data-heading-prefix])::before {
   content: "H1";
 }
-h2:not(.placeholder)::before {
+h2:not(.placeholder):not([data-heading-prefix])::before {
   content: "H2";
 }
-h3:not(.placeholder)::before {
+h3:not(.placeholder):not([data-heading-prefix])::before {
   content: "H3";
 }
-h4:not(.placeholder)::before {
+h4:not(.placeholder):not([data-heading-prefix])::before {
   content: "H4";
 }
-h5:not(.placeholder)::before {
+h5:not(.placeholder):not([data-heading-prefix])::before {
   content: "H5";
 }
-h6:not(.placeholder)::before {
+h6:not(.placeholder):not([data-heading-prefix])::before {
   content: "H6";
 }
 
@@ -1092,10 +1129,10 @@ h6:not(.placeholder)::before {
   h4,
   h5,
   h6 {
-    &:not(.placeholder)::before {
+    &:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 1;
     }
-    &:hover:not(.placeholder)::before {
+    &:hover:not(.placeholder):not([data-heading-prefix])::before {
       opacity: 0;
     }
   }
@@ -1192,7 +1229,7 @@ h6:not(.placeholder)::before {
     .heading-anchor {
       display: inline-flex;
     }
-    &:not(.placeholder)::before {
+    &:not(.placeholder):not([data-heading-prefix])::before {
       display: ${props.readOnly ? "none" : "inline-block"};
     }
   }

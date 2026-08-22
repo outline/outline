@@ -281,6 +281,34 @@ describe("BaseStorage", () => {
       expect(storage.getContentDisposition("text/plain")).toBe("attachment");
       expect(storage.getContentDisposition("image/png")).toBe("inline");
     });
+
+    it("should encode a latin-1 file name rather than send it raw", () => {
+      expect(
+        storage.getContentDisposition("application/zip", "Café-export.zip")
+      ).toBe(
+        "attachment; filename=\"Caf?-export.zip\"; filename*=UTF-8''Caf%C3%A9-export.zip"
+      );
+    });
+
+    it("should encode a file name outside latin-1", () => {
+      expect(storage.getContentDisposition("image/png", "日本語.png")).toBe(
+        "inline; filename=\"???.png\"; filename*=UTF-8''%E6%97%A5%E6%9C%AC%E8%AA%9E.png"
+      );
+    });
+
+    it("should only produce US-ASCII, whatever the file name", () => {
+      const names = [
+        "Zürich Team-export.markdown.zip",
+        "naïve.pdf",
+        "Ünicode ✨ 日本語.png",
+        "plain.txt",
+      ];
+
+      for (const name of names) {
+        const value = storage.getContentDisposition("application/zip", name);
+        expect(value).toMatch(/^[\x20-\x7e]*$/);
+      }
+    });
   });
 
   describe("getContentDispositionType", () => {

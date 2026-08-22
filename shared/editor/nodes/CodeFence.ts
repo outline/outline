@@ -199,7 +199,9 @@ export default class CodeFence extends Node<CodeFenceOptions> {
       attrs: {
         language: {
           default: DEFAULT_LANGUAGE,
-          validate: "string",
+          // Null is permitted as existing documents can contain code blocks
+          // written before a language was always recorded.
+          validate: "string|null",
         },
         wrap: {
           default: false,
@@ -474,7 +476,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
             if (tr.docChanged) {
               const tallBlocks = findTallBlocks(newState.doc);
               const collapsedBlocks = new Set<number>();
-              const isRemote = isRemoteTransaction(tr);
+              const isRemote = isRemoteTransaction(tr, newState);
 
               const inverse = tr.mapping.invert();
               for (const pos of tallBlocks) {
