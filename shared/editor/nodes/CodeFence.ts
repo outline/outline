@@ -476,7 +476,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
             if (tr.docChanged) {
               const tallBlocks = findTallBlocks(newState.doc);
               const collapsedBlocks = new Set<number>();
-              const isRemote = isRemoteTransaction(tr);
+              const isRemote = isRemoteTransaction(tr, newState);
 
               const inverse = tr.mapping.invert();
               for (const pos of tallBlocks) {

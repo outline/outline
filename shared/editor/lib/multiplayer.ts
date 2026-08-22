@@ -1,48 +1,49 @@
-import type { Transaction } from "prosemirror-state";
-import type { DecorationSet, EditorView } from "prosemirror-view";
+import type { EditorState, Transaction } from "prosemirror-state";
+import { PluginKey } from "prosemirror-state";
+import type { DecorationSet } from "prosemirror-view";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 
 /**
- * Hooks into the collaboration plugins, registered by the multiplayer
- * extension when it is loaded.
+ * State of the facade plugin mounted by the multiplayer extension. It exposes
+ * the collaboration operations to shared code without a static dependency on
+ * the collaboration libraries.
  */
-export interface MultiplayerHooks {
+export interface MultiplayerState {
   /** Returns true if the transaction originated from a remote client. */
   isRemoteTransaction: (tr: Transaction) => boolean;
   /** Stops the collaborative undo manager from capturing further changes. */
-  stopCapturing: (view: EditorView) => void;
+  stopCapturing: (state: EditorState) => void;
 }
-
-let hooks: MultiplayerHooks | undefined;
 
 /**
- * Registers the multiplayer hooks. Called by the multiplayer extension so
- * that editors without collaboration do not load the collaboration libraries.
- *
- * @param value the hooks to register.
+ * Key of the facade plugin mounted by the multiplayer extension.
  */
-export function registerMultiplayerHooks(value: MultiplayerHooks): void {
-  hooks = value;
-}
+export const multiplayerPluginKey = new PluginKey<MultiplayerState>(
+  "multiplayer-facade"
+);
 
 /**
  * Checks if a transaction is a remote transaction
  *
  * @param tr The Prosemirror transaction
+ * @param state The editor state
  * @returns true if the transaction is a remote transaction
  */
-export function isRemoteTransaction(tr: Transaction): boolean {
-  return hooks?.isRemoteTransaction(tr) ?? false;
+export function isRemoteTransaction(
+  tr: Transaction,
+  state: EditorState
+): boolean {
+  return multiplayerPluginKey.getState(state)?.isRemoteTransaction(tr) ?? false;
 }
 
 /**
  * Stops the collaborative undo manager from capturing further changes, if
- * the multiplayer extension is loaded.
+ * the multiplayer extension is mounted in the editor.
  *
- * @param view The editor view.
+ * @param state The editor state
  */
-export function stopCapturingUndo(view: EditorView): void {
-  hooks?.stopCapturing(view);
+export function stopCapturingUndo(state: EditorState): void {
+  multiplayerPluginKey.getState(state)?.stopCapturing(state);
 }
 
 /**
@@ -50,18 +51,20 @@ export function stopCapturingUndo(view: EditorView): void {
  *
  * @param set The current set of decorations
  * @param tr The Prosemirror transaction
+ * @param state The editor state
  * @param force Whether to force recalculation for map even for local transactions
  * @returns The mapped set of decorations
  */
 export function mapDecorations(
   set: DecorationSet,
   tr: Transaction,
+  state: EditorState,
   force: boolean = false
 ): DecorationSet {
   let mapping = tr.mapping;
   const hasDecorations = set.find().length;
 
-  if (hasDecorations && (isRemoteTransaction(tr) || force)) {
+  if (hasDecorations && (isRemoteTransaction(tr, state) || force)) {
     try {
       mapping = recreateTransform(tr.before, tr.doc, {
         complexSteps: true,

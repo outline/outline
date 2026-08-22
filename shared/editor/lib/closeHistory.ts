@@ -19,5 +19,5 @@ export function closeHistory(view: EditorView): void {
     view.dispatch(pmCloseHistory(view.state.tr));
   }
 
-  stopCapturingUndo(view);
+  stopCapturingUndo(view.state);
 }

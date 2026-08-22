@@ -14,24 +14,13 @@ import {
 } from "y-prosemirror";
 import * as Y from "yjs";
 import Extension from "@shared/editor/lib/Extension";
+import type { MultiplayerState } from "@shared/editor/lib/multiplayer";
 import {
   isRemoteTransaction,
-  registerMultiplayerHooks,
+  multiplayerPluginKey,
 } from "@shared/editor/lib/multiplayer";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { Second } from "@shared/utils/time";
-
-registerMultiplayerHooks({
-  isRemoteTransaction: (tr) => {
-    const meta = tr.getMeta(ySyncPluginKey);
-
-    // This logic seems to be flipped? But it's correct.
-    return !!meta?.isChangeOrigin;
-  },
-  stopCapturing: (view) => {
-    yUndoPluginKey.getState(view.state)?.undoManager?.stopCapturing();
-  },
-});
 
 type UserAwareness = {
   user?: {
@@ -142,9 +131,27 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
         selectionBuilder,
       }),
       yUndoPlugin(),
-      new Plugin({
+      // Facade plugin that exposes the collaboration operations to shared
+      // code without a static dependency on the collaboration libraries.
+      new Plugin<MultiplayerState>({
+        key: multiplayerPluginKey,
+        state: {
+          init: (): MultiplayerState => ({
+            isRemoteTransaction: (tr) => {
+              const meta = tr.getMeta(ySyncPluginKey);
+
+              // This logic seems to be flipped? But it's correct.
+              return !!meta?.isChangeOrigin;
+            },
+            stopCapturing: (state) => {
+              yUndoPluginKey.getState(state)?.undoManager?.stopCapturing();
+            },
+          }),
+          apply: (_tr, value) => value,
+        },
         props: {
-          handleScrollToSelection: (view) => isRemoteTransaction(view.state.tr),
+          handleScrollToSelection: (view) =>
+            isRemoteTransaction(view.state.tr, view.state),
         },
       }),
     ];

@@ -218,7 +218,7 @@ export function CodeHighlighting({
           codeBlockChanged ||
           isPaste ||
           langLoaded ||
-          isRemoteTransaction(transaction)
+          isRemoteTransaction(transaction, state)
         ) {
           // Invalidate cached entries for blocks whose language just loaded
           // so getDecorations rebuilds them with syntax highlighting applied.
