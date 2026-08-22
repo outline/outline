@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   CommentingAccess,
   EmailDisplay,
+  TeamPreference,
   TOCPosition,
   UserRole,
 } from "@shared/types";
@@ -11,9 +12,9 @@ import { TeamValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 
 // Derived from the presets offered in the UI so that the two cannot diverge.
-const retentionDaysSchema = z
-  .custom<RetentionPeriodPreset>(isRetentionPeriodPreset)
-  .optional();
+const retentionDaysSchema = z.custom<RetentionPeriodPreset>(
+  isRetentionPeriodPreset
+);
 
 export const TeamsUpdateSchema = BaseSchema.extend({
   body: z.object({
@@ -49,44 +50,46 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     guidanceMCP: z.string().max(TeamValidation.maxGuidanceMCPLength).nullish(),
     /** Team preferences */
     preferences: z
-      .object({
+      .strictObject({
         /** Whether documents have a separate edit mode instead of seamless editing. */
-        seamlessEdit: z.boolean().optional(),
+        [TeamPreference.SeamlessEdit]: z.boolean(),
         /** Whether to use team logo across the app for branding. */
-        publicBranding: z.boolean().optional(),
+        [TeamPreference.PublicBranding]: z.boolean(),
         /** Whether viewers should see download options. */
-        viewersCanExport: z.boolean().optional(),
+        [TeamPreference.ViewersCanExport]: z.boolean(),
         /** Whether members can invite new people to the team. */
-        membersCanInvite: z.boolean().optional(),
+        [TeamPreference.MembersCanInvite]: z.boolean(),
         /** Whether members can create API keys. */
-        membersCanCreateApiKey: z.boolean().optional(),
+        [TeamPreference.MembersCanCreateApiKey]: z.boolean(),
         /** Whether members can delete their user account. */
-        membersCanDeleteAccount: z.boolean().optional(),
+        [TeamPreference.MembersCanDeleteAccount]: z.boolean(),
         /** Whether notification emails include document and comment content. */
-        previewsInEmails: z.boolean().optional(),
+        [TeamPreference.PreviewsInEmails]: z.boolean(),
         /** Who can comment on documents. */
-        commenting: z.enum(CommentingAccess).optional(),
+        [TeamPreference.Commenting]: z.enum(CommentingAccess),
         /** The custom theme for the team. */
-        customTheme: z
-          .object({
-            accent: z.string().min(4).max(7).regex(/^#/).optional(),
-            accentText: z.string().min(4).max(7).regex(/^#/).optional(),
+        [TeamPreference.CustomTheme]: z
+          .strictObject({
+            accent: z.string().min(4).max(7).regex(/^#/),
+            accentText: z.string().min(4).max(7).regex(/^#/),
           })
-          .optional(),
+          .partial(),
         /** Side to display the document's table of contents in relation to the main content. */
-        tocPosition: z.enum(TOCPosition).optional(),
-        emailDisplay: z.enum(EmailDisplay).optional(),
+        [TeamPreference.TocPosition]: z.enum(TOCPosition),
+        /** Who can see user email addresses. */
+        [TeamPreference.EmailDisplay]: z.enum(EmailDisplay),
         /** Whether to prevent shared documents from being embedded in iframes on external websites. */
-        preventDocumentEmbedding: z.boolean().optional(),
+        [TeamPreference.PreventDocumentEmbedding]: z.boolean(),
         /** Days to keep documents in trash before retention phase. 0 = infinite. */
-        trashRetentionDays: retentionDaysSchema,
+        [TeamPreference.TrashRetentionDays]: retentionDaysSchema,
         /** Days to keep documents in retention phase before permanent deletion. 0 = infinite. */
-        dataRetentionDays: retentionDaysSchema,
+        [TeamPreference.DataRetentionDays]: retentionDaysSchema,
         /** Whether external MCP clients can connect to the workspace. */
-        mcp: z.boolean().optional(),
+        [TeamPreference.MCP]: z.boolean(),
         /** List of disabled embed provider titles. */
-        disabledEmbeds: z.array(z.string()).optional(),
+        [TeamPreference.DisabledEmbeds]: z.array(z.string()),
       })
+      .partial()
       .optional(),
   }),
 });

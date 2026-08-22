@@ -10,7 +10,7 @@ import type Document from "~/models/Document";
 import type Template from "~/models/Template";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
-import { toMenuItems } from "~/components/Menu/transformer";
+import { toMenuItems, toMobileMenuItems } from "~/components/Menu/transformer";
 import Switch from "~/components/Switch";
 import { actionToMenuItem } from "~/actions";
 import { changeHeadingPrefix } from "~/actions/definitions/documents";
@@ -223,7 +223,37 @@ function DocumentMenu({
  */
 const HeadingPrefixMenuItem = observer(function HeadingPrefixMenuItem_() {
   const context = useActionContext({ isMenu: true });
-  return <>{toMenuItems([actionToMenuItem(changeHeadingPrefix, context)])}</>;
+  const isMobile = useMobile();
+  const item = actionToMenuItem(changeHeadingPrefix, context);
+
+  // On mobile the display options are appended to a drawer rather than to menu
+  // content, so there is no menu root for the submenu primitives to attach to.
+  // Flatten the submenu into an inline group of options instead, which also
+  // matches the toggles it sits alongside — picking one leaves the drawer open.
+  if (isMobile) {
+    if (item.type !== "submenu") {
+      return null;
+    }
+
+    return (
+      <>
+        {toMobileMenuItems(
+          [
+            {
+              type: "group",
+              title: item.title,
+              visible: item.visible,
+              items: item.items,
+            },
+          ],
+          noop,
+          noop
+        )}
+      </>
+    );
+  }
+
+  return <>{toMenuItems([item])}</>;
 });
 
 const ToggleMenuItem = styled(Switch)`
