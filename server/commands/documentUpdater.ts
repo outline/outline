@@ -25,7 +25,7 @@ type Props = {
   /** If the document should be displayed full-width on the screen */
   fullWidth?: boolean;
   /** Display preferences for the document, merged with existing values */
-  preferences?: DocumentPreferences;
+  preferences?: DocumentPreferences | null;
   /** Whether insights should be visible on the document */
   insightsEnabled?: boolean;
   /** The edit mode: "replace", "append", "prepend", or "patch" */

@@ -404,7 +404,7 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
         /** The style of prefix displayed before headings in the doc */
         headingPrefix: z.enum(HeadingPrefixStyle).optional(),
       })
-      .optional(),
+      .nullish(),
 
     /** Boolean to denote if insights should be visible on the doc */
     insightsEnabled: z.boolean().optional(),
@@ -602,7 +602,7 @@ export const DocumentsCreateSchema = BaseSchema.extend({
         /** The style of prefix displayed before headings in the document */
         headingPrefix: z.enum(HeadingPrefixStyle).optional(),
       })
-      .optional(),
+      .nullish(),
   }),
 }).refine(
   (req) =>
