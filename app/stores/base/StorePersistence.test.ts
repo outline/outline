@@ -141,6 +141,67 @@ describe("StorePersistence", () => {
     expect(other.policies.get("doc-1")).toBeTruthy();
   });
 
+  it("reopens the database after the connection is closed underneath it", async () => {
+    const teamId = "team-8";
+    const source = new RootStore();
+    const persistence = new StorePersistence(source.policies, teamId);
+    const opened: IDBDatabase[] = [];
+    const open = indexedDB.open.bind(indexedDB);
+    vi.spyOn(indexedDB, "open").mockImplementation((...args) => {
+      const request = open(...args);
+      request.addEventListener("success", () => opened.push(request.result));
+      return request;
+    });
+
+    source.policies.add({ id: "doc-1", abilities: { read: true } });
+    persistence.persist("doc-1");
+    await persistence.flush();
+
+    // Closing the connection directly leaves a stale one cached, as the browser
+    // does when it reclaims storage – no close event is fired.
+    opened.forEach((database) => database.close());
+
+    source.policies.add({ id: "doc-2", abilities: { read: true } });
+    persistence.persist("doc-2");
+    await persistence.flush();
+
+    expect(
+      await readAll(
+        StorePersistence.databaseName(source.policies.apiEndpoint, teamId)
+      )
+    ).toHaveLength(2);
+    vi.restoreAllMocks();
+  });
+
+  it("does not block another tab from deleting the database", async () => {
+    const teamId = "team-9";
+    const source = new RootStore();
+    const persistence = new StorePersistence(source.policies, teamId);
+    const databaseName = StorePersistence.databaseName(
+      source.policies.apiEndpoint,
+      teamId
+    );
+
+    source.policies.add({ id: "doc-1", abilities: { read: true } });
+    persistence.persist("doc-1");
+    await persistence.flush();
+
+    await new Promise((resolve, reject) => {
+      const request = indexedDB.deleteDatabase(databaseName);
+      request.onsuccess = () => resolve(undefined);
+      request.onerror = () => reject(request.error);
+      request.onblocked = () => reject(new Error("Deletion was blocked"));
+    });
+
+    source.policies.add({ id: "doc-2", abilities: { read: true } });
+    persistence.persist("doc-2");
+    await persistence.flush();
+
+    expect(await readAll(databaseName)).toEqual([
+      { id: "doc-2", abilities: { read: true } },
+    ]);
+  });
+
   it("clear removes all persisted records", async () => {
     const teamId = "team-4";
     const source = new RootStore();

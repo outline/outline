@@ -132,6 +132,16 @@ export default abstract class Store<T extends Model> {
     await this.persistence.hydrate();
   }
 
+  /**
+   * Disables persistence of this store's data, closing the connection to the
+   * database without removing anything that was already persisted. Safe to call
+   * whether or not persistence is currently enabled.
+   */
+  disablePersistence(): void {
+    this.persistence?.close();
+    this.persistence = undefined;
+  }
+
   addPolicies = (policies: Policy[]) => {
     policies?.forEach((policy) => this.rootStore.policies.add(policy));
   };
