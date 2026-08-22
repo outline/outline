@@ -1,11 +1,11 @@
 import type { Optional } from "utility-types";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { Collection, Document, type Template } from "@server/models";
+import { AuthorizationError, ValidationError } from "@server/errors";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
-import { assertPresent } from "@server/validation";
 
 type Props = Optional<
   Pick<
@@ -34,6 +34,7 @@ type Props = Optional<
 > & {
   state?: Buffer;
   publish?: boolean;
+  personalOwnerId?: string | null;
   template?: Template | null;
   index?: number;
 };
@@ -43,6 +44,8 @@ type CreateLocation = {
   collectionId?: string | null;
   /** The parent document to nest the new document under, if any. */
   parentDocumentId?: string | null;
+  /** The user whose personal space to place the document in, if any. */
+  personalOwnerId?: string | null;
 };
 
 /**
@@ -54,32 +57,45 @@ type CreateLocation = {
  *
  * @param ctx the API context containing the acting user.
  * @param location the requested collection and/or parent document.
- * @returns the resolved collection and parent document, when applicable.
+ * @returns the resolved location, and the parent document when applicable.
  * @throws AuthorizationError when the user may not create the document.
  */
 export async function authorizeDocumentCreate(
   ctx: APIContext,
-  { collectionId, parentDocumentId }: CreateLocation
+  { collectionId, parentDocumentId, personalOwnerId }: CreateLocation
 ): Promise<{
   collection?: Collection | null;
   parentDocument?: Document | null;
+  personalOwnerId?: string | null;
 }> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
+
+  if (personalOwnerId) {
+    authorizePersonalOwner(ctx, personalOwnerId);
+    return { personalOwnerId };
+  }
 
   if (parentDocumentId) {
     const parentDocument = await Document.findByPk(parentDocumentId, {
       userId: user.id,
       transaction,
     });
-    const collection = parentDocument?.collectionId
-      ? await Collection.findByPk(parentDocument.collectionId, {
+    // A nested document inherits the location of its parent rather than
+    // choosing one, so a child of a personal document is personal too.
+    const home = resolveHome(parentDocument);
+    const collection = home.collectionId
+      ? await Collection.findByPk(home.collectionId, {
           userId: user.id,
           transaction,
         })
       : undefined;
     authorize(user, "createChildDocument", parentDocument, { collection });
-    return { collection, parentDocument };
+    return {
+      collection,
+      parentDocument,
+      personalOwnerId: home.personalOwnerId,
+    };
   }
 
   if (collectionId) {
@@ -96,53 +112,128 @@ export async function authorizeDocumentCreate(
 }
 
 /**
- * Authorizes publishing a document into a collection and resolves the target
- * collection. Shared by the documents.update API route and the MCP
- * update_document tool. Publishing places a document into a collection, so it
- * requires create permission on the destination — separate from the update
- * permission that governs editing a draft's content.
+ * The home that a document nested under a parent inherits. A document lives in
+ * a collection or in a person's own space, never in both and never in neither.
+ *
+ * @param parent the parent document to inherit from.
+ * @returns the collection and personal owner of the parent.
+ */
+export function resolveHome(parent: Document | null | undefined): {
+  collectionId: string | null;
+  personalOwnerId: string | null;
+} {
+  return {
+    collectionId: parent?.collectionId ?? null,
+    personalOwnerId: parent?.personalOwnerId ?? null,
+  };
+}
+
+/**
+ * Authorizes placing a document in a personal space. A document may only be
+ * placed in the acting user's own space – no permission exists to put one in
+ * somebody else's.
+ *
+ * @param ctx the API context containing the acting user.
+ * @param personalOwnerId the personal space the document is destined for.
+ * @throws AuthorizationError when the space belongs to another user.
+ */
+export function authorizePersonalOwner(
+  ctx: APIContext,
+  personalOwnerId: string
+) {
+  const { user } = ctx.state.auth;
+  authorize(user, "createPersonalDocument", user.team);
+
+  if (personalOwnerId !== user.id) {
+    throw AuthorizationError(
+      "A document can only be placed in your own personal space"
+    );
+  }
+}
+
+/**
+ * Authorizes publishing a document and resolves where it will live. Shared by
+ * the documents.update API route and the MCP update_document tool. Publishing
+ * places a document into a collection or a personal space, so it requires
+ * create permission on the destination — separate from the update permission
+ * that governs editing a draft's content.
  *
  * @param ctx the API context containing the acting user.
  * @param document the document being published.
- * @param collectionId the destination collection, required when publishing a draft that has none.
- * @returns the resolved destination collection.
- * @throws AuthorizationError when the user may not publish into the collection.
+ * @param location the requested destination, one of collectionId or personalOwnerId.
+ * @returns the resolved destination.
+ * @throws AuthorizationError when the user may not publish to the destination.
+ * @throws ValidationError when no destination can be resolved.
  */
 export async function authorizeDocumentPublish(
   ctx: APIContext,
   document: Document,
-  collectionId?: string | null
-): Promise<Collection | null | undefined> {
+  location: { collectionId?: string | null; personalOwnerId?: string | null }
+): Promise<{ collection?: Collection | null; personalOwnerId: string | null }> {
+  const { collectionId, personalOwnerId } = location;
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
-  let collection = document.collection;
 
   if (document.isDraft) {
     authorize(user, "publish", document);
   }
 
-  if (!document.collectionId) {
-    assertPresent(
-      collectionId,
-      "collectionId is required to publish a draft without collection"
+  // Publishing chooses where a draft first lands. Relocating a document that
+  // already has a home is a move, and saying so is better than quietly
+  // ignoring the parameter.
+  if (personalOwnerId && !document.isDraft) {
+    throw ValidationError(
+      "personalOwnerId can only be set when publishing a draft, use documents.move to relocate a published document"
     );
-    collection = await Collection.findByPk(collectionId!, {
-      userId: user.id,
-      transaction,
-    });
   }
 
+  // A nested document always shares the home of its parent, so the destination
+  // is not the caller's to choose.
   if (document.parentDocumentId) {
+    if (collectionId || personalOwnerId) {
+      throw ValidationError(
+        "collectionId and personalOwnerId cannot be used when publishing a nested document, it inherits the location of its parent"
+      );
+    }
+
     const parentDocument = await Document.findByPk(document.parentDocumentId, {
       userId: user.id,
       transaction,
     });
+    const home = resolveHome(parentDocument);
+    const collection = home.collectionId
+      ? await Collection.findByPk(home.collectionId, {
+          userId: user.id,
+          transaction,
+        })
+      : null;
+
     authorize(user, "createChildDocument", parentDocument, { collection });
-  } else {
-    authorize(user, "createDocument", collection);
+    return { collection, personalOwnerId: home.personalOwnerId };
   }
 
-  return collection;
+  if (personalOwnerId) {
+    authorizePersonalOwner(ctx, personalOwnerId);
+    return { personalOwnerId };
+  }
+
+  if (document.collectionId) {
+    authorize(user, "createDocument", document.collection);
+    return { collection: document.collection, personalOwnerId: null };
+  }
+
+  if (!collectionId) {
+    throw ValidationError(
+      "collectionId or personalOwnerId is required to publish a draft without a location"
+    );
+  }
+
+  const collection = await Collection.findByPk(collectionId, {
+    userId: user.id,
+    transaction,
+  });
+  authorize(user, "createDocument", collection);
+  return { collection, personalOwnerId: null };
 }
 
 export default async function documentCreator(
@@ -156,6 +247,7 @@ export default async function documentCreator(
     id,
     urlId,
     publish,
+    personalOwnerId,
     index,
     collectionId,
     parentDocumentId,
@@ -252,8 +344,14 @@ export default async function documentCreator(
   );
 
   if (publish) {
-    if (!collectionId) {
-      throw new Error("Collection ID is required to publish");
+    if (!collectionId && !parentDocumentId && !personalOwnerId) {
+      throw new Error(
+        "A collection, parent document or personal owner is required to publish"
+      );
+    }
+
+    if (personalOwnerId) {
+      document.personalOwnerId = personalOwnerId;
     }
 
     await document.publish(ctx, {

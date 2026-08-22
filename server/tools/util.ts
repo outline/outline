@@ -3,11 +3,13 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { errToString } from "@shared/utils/error";
 import env from "@server/env";
+import { ValidationError } from "@server/errors";
 import { Collection, Share, type Team, type User } from "@server/models";
 import { addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import { can } from "@server/policies";
 import { type APIContext, AuthenticationType } from "@server/types";
+import { zodSingleDocumentLocation } from "@server/utils/zod";
 import type { NavigationNode } from "@shared/types";
 
 interface McpContext {
@@ -48,6 +50,57 @@ export function buildAPIContext(context: McpContext) {
     request: { secure: env.URL.startsWith("https://") },
     cookies: { get: () => undefined, set: () => undefined },
   } as unknown as APIContext;
+}
+
+/** Tokens an MCP caller may use in place of their own user id. */
+const SelfTokens = new Set(["self", "me", "current_user"]);
+
+/**
+ * Resolves a user id that an MCP caller may have given as a token naming
+ * themselves, which keeps the parameter usable without a lookup first.
+ *
+ * @param value the raw input value.
+ * @param actorId the acting user's id.
+ * @returns the resolved user id, or null when no value was given.
+ */
+export function resolveUserId(
+  value: string | null | undefined,
+  actorId: string
+): string | null {
+  if (!value) {
+    return null;
+  }
+  return SelfTokens.has(value.toLowerCase()) ? actorId : value;
+}
+
+/** The location fields a document tool may be given. */
+const DocumentLocationSchema = z
+  .object({
+    collectionId: z.string().nullish(),
+    parentDocumentId: z.string().nullish(),
+    personalOwnerId: z.string().nullish(),
+  })
+  .check(zodSingleDocumentLocation);
+
+/**
+ * Asserts that a tool input names at most one place for a document to live.
+ * Tool inputs are raw shapes rather than schemas, so the shared rule is applied
+ * here instead of by the validation middleware.
+ *
+ * @param input the tool input to check.
+ * @throws ValidationError when more than one location was given.
+ */
+export function assertDocumentLocation(input: {
+  collectionId?: string | null;
+  parentDocumentId?: string | null;
+  personalOwnerId?: string | null;
+}) {
+  const result = DocumentLocationSchema.safeParse(input);
+
+  if (!result.success) {
+    const { path, message } = result.error.issues[0];
+    throw ValidationError(`${String(path[path.length - 1])}: ${message}`);
+  }
 }
 
 /**

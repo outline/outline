@@ -390,6 +390,65 @@ export default class DocumentsStore extends Store<Document> {
   fetchArchived = async (options?: PaginationParams): Promise<Document[]> =>
     this.fetchNamedPage("archived", options);
 
+  /**
+   * Fetches a page of the current user's own personal documents. The response
+   * also carries the memberships that order them in the sidebar.
+   *
+   * @param options pagination params to pass to the API.
+   * @returns the documents fetched.
+   */
+  @action
+  fetchPersonal = async (options?: PaginationParams): Promise<Document[]> => {
+    this.isFetching = true;
+
+    try {
+      const res = await client.post("/documents.personal", options);
+      invariant(res?.data, "Document list not available");
+
+      return runInAction("DocumentsStore#fetchPersonal", () => {
+        res.data.memberships.forEach(this.rootStore.userMemberships.add);
+        this.addPolicies(res.policies);
+        this.isLoaded = true;
+        return res.data.documents.map(this.add) as Document[];
+      });
+    } finally {
+      this.isFetching = false;
+    }
+  };
+
+  /**
+   * The current user's own top-level personal documents, in sidebar order.
+   * Ordering comes from the membership record, and a document without one
+   * sorts last rather than disappearing.
+   */
+  @computed
+  get personal(): Document[] {
+    const { auth, userMemberships } = this.rootStore;
+    const userId = auth.user?.id;
+    if (!userId) {
+      return [];
+    }
+
+    return this.orderedData
+      .filter(
+        (document) =>
+          document.personalOwnerId === userId &&
+          !document.parentDocumentId &&
+          document.isActive
+      )
+      .sort((a, b) => {
+        const aIndex = userMemberships.getByDocumentId(a.id)?.index;
+        const bIndex = userMemberships.getByDocumentId(b.id)?.index;
+        if (aIndex && bIndex) {
+          return aIndex < bIndex ? -1 : 1;
+        }
+        if (aIndex || bIndex) {
+          return aIndex ? -1 : 1;
+        }
+        return 0;
+      });
+  }
+
   @action
   fetchDeleted = async (
     options?: PaginationParams & { filters?: Filter[] }
@@ -541,20 +600,25 @@ export default class DocumentsStore extends Store<Document> {
     documentId,
     collectionId,
     parentDocumentId,
+    personalOwnerId,
     index,
   }: {
     documentId: string;
     collectionId?: string | null;
     parentDocumentId?: string | null;
+    personalOwnerId?: string | null;
     index?: number | null;
   }) => {
     this.movingDocumentId = documentId;
+    const previousMembership =
+      this.rootStore.userMemberships.getByDocumentId(documentId);
 
     try {
       const res = await client.post("/documents.move", {
         id: documentId,
         collectionId,
         parentDocumentId,
+        personalOwnerId,
         index,
       });
       invariant(res?.data, "Data not available");
@@ -563,13 +627,21 @@ export default class DocumentsStore extends Store<Document> {
 
       // The websocket "documents.move" event is only broadcast to the
       // collection channel, so users with document-only access never receive
-      // it. Refresh the affected membership tree locally so the sidebar
+      // it. Refresh the affected membership trees locally so the sidebar
       // reflects the new structure.
-      const membership =
-        this.rootStore.userMemberships.getByDocumentId(documentId);
-      if (membership) {
-        await membership.fetchDocuments({ force: true });
-      }
+      const affected = new Set(
+        compact([
+          previousMembership,
+          this.rootStore.userMemberships.getByDocumentId(documentId),
+          parentDocumentId
+            ? this.rootStore.userMemberships.getByDocumentId(parentDocumentId)
+            : undefined,
+        ])
+      );
+
+      await Promise.all(
+        [...affected].map((m) => m.fetchDocuments({ force: true }))
+      );
     } finally {
       this.movingDocumentId = undefined;
     }

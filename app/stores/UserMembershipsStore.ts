@@ -29,24 +29,15 @@ export default class UserMembershipsStore extends Store<UserMembership> {
     this.rootStore.policies.removeForMembership(id);
   }
 
+  /**
+   * Fetches a page of memberships for documents shared with the current user.
+   *
+   * @param params pagination params to pass to the API.
+   * @returns the memberships fetched.
+   */
   @action
-  fetchPage = async (params?: PaginationParams): Promise<UserMembership[]> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/userMemberships.list`, params);
-      invariant(res?.data, "Data not available");
-
-      return runInAction(`UserMembershipsStore#fetchPage`, () => {
-        res.data.documents.forEach(this.rootStore.documents.add);
-        this.addPolicies(res.policies);
-        this.isLoaded = true;
-        return res.data.memberships.map(this.add);
-      });
-    } finally {
-      this.isFetching = false;
-    }
-  };
+  fetchPage = (params?: PaginationParams): Promise<UserMembership[]> =>
+    this.fetchNamedPage("/userMemberships.list", params);
 
   @action
   fetchDocumentMemberships = async (
@@ -125,5 +116,27 @@ export default class UserMembershipsStore extends Store<UserMembership> {
     return document?.parentDocumentId
       ? this.getByDocumentId(document.parentDocumentId)
       : undefined;
+  };
+
+  /** Loads a page from one of the membership listing endpoints into the store. */
+  private fetchNamedPage = async (
+    path: string,
+    params?: PaginationParams
+  ): Promise<UserMembership[]> => {
+    this.isFetching = true;
+
+    try {
+      const res = await client.post(path, params);
+      invariant(res?.data, "Data not available");
+
+      return runInAction(`UserMembershipsStore#fetchNamedPage`, () => {
+        res.data.documents.forEach(this.rootStore.documents.add);
+        this.addPolicies(res.policies);
+        this.isLoaded = true;
+        return res.data.memberships.map(this.add);
+      });
+    } finally {
+      this.isFetching = false;
+    }
   };
 }
