@@ -10,8 +10,13 @@ import type Document from "~/models/Document";
 import type Template from "~/models/Template";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import { toMenuItems } from "~/components/Menu/transformer";
 import Switch from "~/components/Switch";
-import { ActionContextProvider } from "~/hooks/useActionContext";
+import { actionToMenuItem } from "~/actions";
+import { changeHeadingPrefix } from "~/actions/definitions/documents";
+import useActionContext, {
+  ActionContextProvider,
+} from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useDocumentActiveModels } from "~/hooks/useDocumentActiveModels";
 import useMobile from "~/hooks/useMobile";
@@ -137,6 +142,7 @@ function DocumentMenu({
     return (
       <>
         <MenuSeparator />
+        {showDisplayOptions && <HeadingPrefixMenuItem />}
         <DisplayOptions>
           {can.updateInsights && (
             <Style>
@@ -210,6 +216,15 @@ function DocumentMenu({
     </ActionContextProvider>
   );
 }
+
+/**
+ * Renders the heading numbering submenu as part of the display options block.
+ * A separate component so the action context is read inside the provider.
+ */
+const HeadingPrefixMenuItem = observer(function HeadingPrefixMenuItem_() {
+  const context = useActionContext({ isMenu: true });
+  return <>{toMenuItems([actionToMenuItem(changeHeadingPrefix, context)])}</>;
+});
 
 const ToggleMenuItem = styled(Switch)`
   * {

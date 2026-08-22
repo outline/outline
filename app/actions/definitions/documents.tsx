@@ -1,4 +1,5 @@
 import copy from "copy-to-clipboard";
+import type { TFunction } from "i18next";
 import invariant from "invariant";
 import { capitalize, uniqBy } from "es-toolkit/compat";
 import {
@@ -30,6 +31,7 @@ import {
   GlobeIcon,
   LogoutIcon,
   CaseSensitiveIcon,
+  OrderedListIcon,
   RestoreIcon,
   EditIcon,
   EmbedIcon,
@@ -42,7 +44,12 @@ import {
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import { ExportContentType, UserPreference } from "@shared/types";
+import {
+  DocumentPreference,
+  ExportContentType,
+  HeadingPrefixStyle,
+  UserPreference,
+} from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
 import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
@@ -1790,6 +1797,75 @@ export const toggleDocumentStats = createAction({
   },
 });
 
+/** An example of the numbering each style produces, used to aid search. */
+const headingPrefixExamples: Record<HeadingPrefixStyle, string> = {
+  [HeadingPrefixStyle.None]: "",
+  [HeadingPrefixStyle.Numeric]: "1.1.1",
+  [HeadingPrefixStyle.Alphanumeric]: "1.a.i",
+  [HeadingPrefixStyle.Outline]: "I.A.1",
+};
+
+const headingPrefixNames: Record<HeadingPrefixStyle, (t: TFunction) => string> =
+  {
+    [HeadingPrefixStyle.None]: (t) => t("None"),
+    [HeadingPrefixStyle.Numeric]: (t) => t("Multi-level decimal"),
+    [HeadingPrefixStyle.Alphanumeric]: (t) => t("Alphanumeric"),
+    [HeadingPrefixStyle.Outline]: (t) => t("Harvard"),
+  };
+
+const changeHeadingPrefixFactory = (style: HeadingPrefixStyle) =>
+  createAction({
+    name: ({ t }) => headingPrefixNames[style](t),
+    // The example is displayed in the shortcut slot of menu items, but must
+    // not be set on the command bar action where shortcuts are registered as
+    // key sequences.
+    shortcut: ({ isMenu }) =>
+      isMenu && headingPrefixExamples[style]
+        ? [headingPrefixExamples[style]]
+        : undefined,
+    keywords: headingPrefixExamples[style],
+    analyticsName: "Change heading numbering",
+    section: ActiveDocumentSection,
+    selected: ({ activeDocumentId, stores }) => {
+      const document = activeDocumentId
+        ? stores.documents.get(activeDocumentId)
+        : undefined;
+      return (
+        (document?.getPreference(DocumentPreference.HeadingPrefix) ??
+          HeadingPrefixStyle.None) === style
+      );
+    },
+    perform: async ({ activeDocumentId, stores }) => {
+      const document = activeDocumentId
+        ? stores.documents.get(activeDocumentId)
+        : undefined;
+      if (!document) {
+        return;
+      }
+      document.setPreference(DocumentPreference.HeadingPrefix, style);
+      await document.save();
+    },
+  });
+
+export const changeHeadingPrefix = createActionWithChildren({
+  name: ({ t }) => t("Heading numbering"),
+  analyticsName: "Change heading numbering",
+  section: ActiveDocumentSection,
+  icon: <OrderedListIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+
+    return (
+      !!document &&
+      !document.isDeleted &&
+      stores.policies.abilities(document.id).update
+    );
+  },
+  children: Object.values(HeadingPrefixStyle).map(changeHeadingPrefixFactory),
+});
+
 export const leaveDocument = createAction({
   name: ({ t }) => t("Leave document"),
   analyticsName: "Leave document",
@@ -1890,4 +1966,5 @@ export const rootDocumentActions = [
   openDocumentInSplit,
   shareDocument,
   toggleDocumentStats,
+  changeHeadingPrefix,
 ];

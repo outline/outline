@@ -4,6 +4,9 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { EmojiText } from "@shared/components/EmojiText";
+import { HeadingPrefixHelper } from "@shared/editor/extensions/HeadingPrefix";
+import { s } from "@shared/styles";
+import { DocumentPreference, HeadingPrefixStyle } from "@shared/types";
 import { createAction, createActionGroup } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
 import Button from "~/components/Button";
@@ -13,39 +16,58 @@ import { useMenuAction } from "~/hooks/useMenuAction";
 import history, { patchLocation } from "~/utils/history";
 
 function TableOfContentsMenu() {
-  const { headings } = useDocumentContext();
+  const documentContext = useDocumentContext();
+  // Headings inside tables carry no number and are not listed.
+  const headings = useMemo(
+    () => documentContext.headings.filter((heading) => !heading.inTable),
+    [documentContext.headings]
+  );
   const { t } = useTranslation();
   const minHeading = headings.reduce(
     (memo, heading) => (heading.level < memo ? heading.level : memo),
     Infinity
   );
+  const headingPrefix =
+    documentContext.document?.getPreference(DocumentPreference.HeadingPrefix) ??
+    HeadingPrefixStyle.None;
 
-  const headingActions = useMemo(
-    () =>
-      headings
-        .filter((heading) => heading.level < 4)
-        .map((heading) =>
-          createAction({
-            name: (
-              <HeadingWrapper $level={heading.level - minHeading}>
-                <EmojiText>{heading.title}</EmojiText>
-              </HeadingWrapper>
-            ),
-            section: ActiveDocumentSection,
-            perform: () =>
+  const headingActions = useMemo(() => {
+    // Compute prefix labels over all headings so they match the numbering
+    // shown in the document, then attach them before headings are filtered.
+    const labels =
+      headingPrefix === HeadingPrefixStyle.None
+        ? undefined
+        : HeadingPrefixHelper.labels(
+            headings.map((heading) => heading.level),
+            headingPrefix,
+            { indented: true }
+          );
+
+    return headings
+      .map((heading, index) => ({ heading, label: labels?.[index] }))
+      .filter(({ heading }) => heading.level <= 4)
+      .map(({ heading, label }) =>
+        createAction({
+          name: (
+            <HeadingWrapper $level={heading.level - minHeading}>
+              {label && <Prefix>{label}</Prefix>}
+              <EmojiText>{heading.title}</EmojiText>
+            </HeadingWrapper>
+          ),
+          section: ActiveDocumentSection,
+          perform: () =>
+            requestAnimationFrame(() =>
               requestAnimationFrame(() =>
-                requestAnimationFrame(() =>
-                  // Navigate via history so the location state (active sidebar
-                  // context) is retained when scrolling to the heading.
-                  history.push(
-                    patchLocation(history.location, { hash: `#${heading.id}` })
-                  )
+                // Navigate via history so the location state (active sidebar
+                // context) is retained when scrolling to the heading.
+                history.push(
+                  patchLocation(history.location, { hash: `#${heading.id}` })
                 )
-              ),
-          })
-        ),
-    [headings, minHeading]
-  );
+              )
+            ),
+        })
+      );
+  }, [headings, minHeading, headingPrefix]);
 
   const actions = useMemo(() => {
     let childActions = headingActions;
@@ -86,6 +108,12 @@ function TableOfContentsMenu() {
     </DropdownMenu>
   );
 }
+
+const Prefix = styled.span`
+  color: ${s("textSecondary")};
+  margin-inline-end: 0.25em;
+  user-select: none;
+`;
 
 const HeadingWrapper = styled.div<{ $level?: number }>`
   max-width: 100%;
