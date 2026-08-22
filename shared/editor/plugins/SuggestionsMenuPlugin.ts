@@ -100,7 +100,7 @@ export class SuggestionsMenuPlugin extends Plugin<PluginState> {
       // changes to the document, including those made by other users.
       state: {
         init: (): PluginState => ({ decorations: DecorationSet.empty }),
-        apply: (tr, pluginState): PluginState => {
+        apply: (tr, pluginState, _oldState, newState): PluginState => {
           const range: TriggerRange | undefined | null = tr.getMeta(key);
 
           if (range !== undefined) {
@@ -127,7 +127,11 @@ export class SuggestionsMenuPlugin extends Plugin<PluginState> {
             return pluginState;
           }
 
-          const decorations = mapDecorations(pluginState.decorations, tr);
+          const decorations = mapDecorations(
+            pluginState.decorations,
+            tr,
+            newState
+          );
           const [decoration] = decorations.find();
           const { trigger } = extensionState;
 

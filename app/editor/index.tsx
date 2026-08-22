@@ -560,7 +560,7 @@ export class Editor extends React.PureComponent<
         ) {
           self.handleChange({
             remote: transactions.some(
-              (tr) => tr.docChanged && isRemoteTransaction(tr)
+              (tr) => tr.docChanged && isRemoteTransaction(tr, state)
             ),
           });
         }

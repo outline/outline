@@ -52,7 +52,11 @@ export class DraftCommentAnchorPlugin extends Plugin<PluginState> {
             return pluginState;
           }
 
-          let decorations = mapDecorations(pluginState.decorations, tr);
+          let decorations = mapDecorations(
+            pluginState.decorations,
+            tr,
+            newState
+          );
 
           if (meta?.add) {
             const { id, from, to, isNode, userId } = meta.add;
@@ -88,7 +92,7 @@ export class DraftCommentAnchorPlugin extends Plugin<PluginState> {
           // local decoration in favor of the real mark.
           if (
             tr.docChanged &&
-            isRemoteTransaction(tr) &&
+            isRemoteTransaction(tr, newState) &&
             decorations.find().length > 0
           ) {
             const markIds = new Set(
