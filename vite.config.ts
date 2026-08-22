@@ -61,7 +61,7 @@ export default ({ mode }: ConfigEnv) =>
         registerType: "autoUpdate",
         workbox: {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-          globPatterns: ["**/*.{js,css,ico,png,svg}"],
+          globPatterns: ["**/*.{css,ico,png,svg}"],
           navigateFallback: null,
           modifyURLPrefix: {
             "": `${environment.CDN_URL ?? ""}/static/`,
@@ -70,6 +70,24 @@ export default ({ mode }: ConfigEnv) =>
           clientsClaim: true,
           cleanupOutdatedCaches: true,
           runtimeCaching: [
+            {
+              // Chunks are content-hashed and immutable, so cache them on
+              // first use rather than precaching the entire build.
+              urlPattern: ({ url }) =>
+                url.pathname.startsWith("/static/assets/") &&
+                url.pathname.endsWith(".js"),
+              handler: "CacheFirst",
+              options: {
+                cacheName: "js-cache",
+                expiration: {
+                  maxEntries: 200,
+                  maxAgeSeconds: 2592000, // 30 days
+                },
+                cacheableResponse: {
+                  statuses: [200],
+                },
+              },
+            },
             {
               urlPattern: /api\/urls\.unfurl$/,
               handler: "CacheOnly",
