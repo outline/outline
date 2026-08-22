@@ -55,9 +55,7 @@ function labelsIn(state: EditorState) {
     headingPrefixPluginKey
       .getState(state)
       ?.decorations.find()
-      .map((decoration) =>
-        decoration.spec.key.replace(/^heading-prefix-/, "")
-      ) ?? []
+      .map((decoration) => decoration.spec.label) ?? []
   );
 }
 

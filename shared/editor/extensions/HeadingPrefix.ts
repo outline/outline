@@ -1,7 +1,7 @@
 import type { Node as ProsemirrorNode, Schema } from "prosemirror-model";
 import { Fragment, Slice } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
-import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { HeadingPrefixStyle } from "../../types";
@@ -215,9 +215,9 @@ interface HeadingPrefixOptions {
 }
 
 /**
- * An extension that displays a non-editable section number, such as "1.1",
- * before each heading in the document as a widget decoration. Headings
- * inside tables are not numbered.
+ * An extension that displays a section number, such as "1.1", before each
+ * heading in the document, rendered with CSS from a node decoration
+ * attribute. Headings inside tables are not numbered.
  */
 export default class HeadingPrefix extends Extension<HeadingPrefixOptions> {
   get name() {
@@ -399,46 +399,19 @@ export default class HeadingPrefix extends Extension<HeadingPrefixOptions> {
       headings.map((heading) => heading.level),
       style
     );
+    // The label is rendered with CSS as a ::before pseudo-element rather than
+    // a widget, so that no non-editable DOM sits inside the heading content
+    // where it would interfere with text selection and replacement.
     const decorations = headings.map((heading, index) => {
       const label = labels[index];
-      return Decoration.widget(
-        heading.pos + 1,
-        this.createPrefixElement(label),
-        {
-          side: -1,
-          ignoreSelection: true,
-          relaxedSide: true,
-          key: `heading-prefix-${label}`,
-        }
+      return Decoration.node(
+        heading.pos,
+        heading.pos + heading.nodeSize,
+        { "data-heading-prefix": label },
+        { label }
       );
     });
 
     return DecorationSet.create(doc, decorations);
-  }
-
-  /**
-   * Returns a widget toDOM factory for a prefix element. Clicking the element
-   * in an editable document places the cursor at the start of the heading
-   * text.
-   */
-  private createPrefixElement(label: string) {
-    return (view: EditorView, getPos: () => number | undefined) => {
-      const element = document.createElement("span");
-      element.className = EditorStyleHelper.headingPrefix;
-      element.contentEditable = "false";
-      element.textContent = label;
-      element.addEventListener("mousedown", (event) => {
-        const pos = getPos();
-        if (!view.editable || pos === undefined) {
-          return;
-        }
-        event.preventDefault();
-        view.dispatch(
-          view.state.tr.setSelection(TextSelection.create(view.state.doc, pos))
-        );
-        view.focus();
-      });
-      return element;
-    };
   }
 }
