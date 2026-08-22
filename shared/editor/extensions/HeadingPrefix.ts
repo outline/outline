@@ -240,7 +240,7 @@ export default class HeadingPrefix extends Extension<HeadingPrefixOptions> {
               decorations: this.createDecorations(state.doc, style),
             };
           },
-          apply: (tr, pluginState) => {
+          apply: (tr, pluginState, _oldState, newState) => {
             const meta: HeadingPrefixStyle | undefined = tr.getMeta(
               headingPrefixPluginKey
             );
@@ -255,7 +255,10 @@ export default class HeadingPrefix extends Extension<HeadingPrefixOptions> {
             if (!tr.docChanged || style === HeadingPrefixStyle.None) {
               return pluginState;
             }
-            if (isRemoteTransaction(tr) || this.hasHeadingChange(tr)) {
+            if (
+              isRemoteTransaction(tr, newState) ||
+              this.hasHeadingChange(tr)
+            ) {
               return {
                 style,
                 decorations: this.createDecorations(tr.doc, style),
