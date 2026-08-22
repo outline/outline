@@ -7,6 +7,7 @@ import {
   CollectionPermission,
   DocumentPermission,
   ExportContentType,
+  HeadingPrefixStyle,
   StatusFilter,
   TeamPreference,
   UserRole,
@@ -6287,6 +6288,44 @@ describe("#documents.update", () => {
       },
     });
     expect(events.length).toEqual(1);
+  });
+
+  it("should update document with a null preferences value", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        title: "Updated title",
+        preferences: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe("Updated title");
+    expect(body.data.preferences).toBe(null);
+  });
+
+  it("should update document preferences", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        preferences: { headingPrefix: HeadingPrefixStyle.Numeric },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.preferences).toEqual({
+      headingPrefix: HeadingPrefixStyle.Numeric,
+    });
   });
 
   it("should update document when lastRevision matches", async () => {
