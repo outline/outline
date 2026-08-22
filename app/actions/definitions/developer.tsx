@@ -133,9 +133,10 @@ export const clearIndexedDB = createAction({
   icon: <TrashIcon />,
   keywords: "cache clear database",
   section: DeveloperSection,
-  perform: async ({ t }) => {
+  perform: async ({ t, stores }) => {
     history.push(homePath());
     await deleteAllDatabases();
+    stores.enablePersistence();
     toast.success(t("IndexedDB cache cleared"));
   },
 });
