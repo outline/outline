@@ -499,7 +499,8 @@ export class ProsemirrorHelper {
 
     doc.descendants((node, pos) => {
       if (node.type.name === "table") {
-        tableEnd = pos + node.nodeSize;
+        // A nested table must not shrink the range of its outer table.
+        tableEnd = Math.max(tableEnd, pos + node.nodeSize);
       }
       if (node.type.name === "heading") {
         // calculate the optimal id

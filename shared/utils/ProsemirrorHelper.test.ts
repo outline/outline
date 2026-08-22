@@ -510,5 +510,23 @@ describe("ProsemirrorHelper", () => {
         expect.objectContaining({ title: "Two", level: 2, inTable: false }),
       ]);
     });
+
+    it("marks headings after a nested table as still inside the outer table", () => {
+      const node = doc(
+        table(
+          heading("Before", 2),
+          table(heading("Inner", 3)),
+          heading("After", 2)
+        ),
+        heading("Outside", 1)
+      );
+
+      expect(ProsemirrorHelper.getHeadings(node)).toEqual([
+        expect.objectContaining({ title: "Before", inTable: true }),
+        expect.objectContaining({ title: "Inner", inTable: true }),
+        expect.objectContaining({ title: "After", inTable: true }),
+        expect.objectContaining({ title: "Outside", inTable: false }),
+      ]);
+    });
   });
 });
