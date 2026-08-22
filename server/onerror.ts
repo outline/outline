@@ -32,9 +32,14 @@ export default function onerror(app: Koa) {
         err = ClientClosedRequestError();
       }
     } else if (
+      // The connection ended part way through the request message.
       err.code === "HPE_INVALID_EOF_STATE" ||
+      // The client closed the connection before the response was sent.
       err.code === "ECONNRESET" ||
-      err.code === "EPIPE"
+      // The client closed the connection while the response was written.
+      err.code === "EPIPE" ||
+      // Raised by the body parser when the request stream was already destroyed.
+      err.type === "stream.not.readable"
     ) {
       err = ClientClosedRequestError();
     } else if (isQueryCanceledError(err)) {
