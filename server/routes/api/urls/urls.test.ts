@@ -1,8 +1,10 @@
 import type { Mock } from "vitest";
 import { randomString } from "@shared/random";
 import { UnfurlResourceType } from "@shared/types";
+import { createContext } from "@server/context";
 import env from "@server/env";
 import type { User } from "@server/models";
+import { View } from "@server/models";
 import {
   buildCollection,
   buildDocument,
@@ -153,6 +155,51 @@ describe("#urls.unfurl", () => {
     expect(res.status).toEqual(200);
     expect(body.type).toEqual(UnfurlResourceType.Mention);
     expect(body.name).toEqual(mentionedUser.name);
+  });
+
+  it("should include the mentioned user's viewing activity when insights are enabled", async () => {
+    const mentionedUser = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      insightsEnabled: true,
+    });
+    await View.incrementOrCreate(createContext({ user: mentionedUser }), {
+      documentId: document.id,
+      userId: mentionedUser.id,
+    });
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: {
+        url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.lastActive).toContain("Viewed");
+  });
+
+  it("should not include the mentioned user's viewing activity when insights are disabled", async () => {
+    const mentionedUser = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      insightsEnabled: false,
+    });
+    await View.incrementOrCreate(createContext({ user: mentionedUser }), {
+      documentId: document.id,
+      userId: mentionedUser.id,
+    });
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: {
+        url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.lastActive).not.toContain("Viewed");
+    expect(body.lastActive).not.toContain("Never viewed");
   });
 
   it("should return 204 when internal document url points to non-existent document", async () => {
@@ -349,6 +396,30 @@ Install instructions here.`
     expect(body.type).toEqual(UnfurlResourceType.Document);
     expect(body.title).toEqual(document.titleWithDefault);
     expect(body.id).toEqual(document.id);
+  });
+
+  it("should not include last activity for a share url the user can read", async () => {
+    const author = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: author.id,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: author.id,
+      documentId: document.id,
+      published: true,
+    });
+
+    const res = await server.post("/api/urls.unfurl", user, {
+      body: {
+        url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.id).toEqual(document.id);
+    expect(body.lastActivityByViewer).toBeUndefined();
   });
 
   it("should return share-scoped url in unfurl response", async () => {

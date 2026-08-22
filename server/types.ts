@@ -77,6 +77,8 @@ export type AppState = {
   oauthClient?: OAuthClient;
   oauthIntent?: OAuthIntent;
   oauthState?: OAuthState;
+  /** The identifiers this request is rate limited against. */
+  rateLimiterIdentifiers?: string[];
 };
 
 export type AppContext = ParameterizedContext<AppState, DefaultContext>;
@@ -288,7 +290,8 @@ export type CollectionUserEvent = BaseEvent<UserMembership> & {
   userId: string;
   modelId: string;
   collectionId: string;
-  data: {
+  /** Only present when the membership was created or updated. */
+  data?: {
     isNew?: boolean;
   };
 };
@@ -305,7 +308,8 @@ export type DocumentUserEvent = BaseEvent<UserMembership> & {
   userId: string;
   modelId: string;
   documentId: string;
-  data: {
+  /** Only present when the membership was created or updated. */
+  data?: {
     isNew?: boolean;
   };
 };

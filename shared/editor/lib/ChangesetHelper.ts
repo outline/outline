@@ -158,6 +158,15 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
 }
 
 /**
+ * The maximum estimated cost of computing a changeset, as the number of patch
+ * operations multiplied by the document node size. Step recreation copies and
+ * validates the full document once per operation, so its runtime grows with
+ * this product; above the bound the changeset is skipped instead of blocking
+ * the process for seconds or minutes.
+ */
+const MAX_CHANGESET_COMPLEXITY = 50_000_000;
+
+/**
  * Marks that carry no document content and should not be surfaced as changes.
  */
 const IGNORED_MARKS = ["comment"];
@@ -272,7 +281,9 @@ export class ChangesetHelper {
    *
    * @param revision - The current revision data.
    * @param previousRevision - The previous revision data to compare against.
-   * @returns An object containing the simplified changes and the new document.
+   * @returns An object containing the simplified changes and the new document,
+   * or null when there is nothing to compare against or the changeset is too
+   * expensive to compute.
    */
   public static getChangeset(
     revision?: ProsemirrorData | null,
@@ -304,11 +315,13 @@ export class ChangesetHelper {
       );
       const docNew = removeIgnoredMarks(original);
 
-      // Calculate the transform and changeset
+      // Calculate the transform and changeset. Throws, and so returns null,
+      // when the diff is too expensive to compute.
       const tr = recreateTransform(docOld, docNew, {
         complexSteps: false,
         wordDiffs: true,
         simplifyDiff: true,
+        maxComplexity: MAX_CHANGESET_COMPLEXITY,
       });
 
       // Map steps to capture the actual content being replaced from the document

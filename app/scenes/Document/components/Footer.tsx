@@ -21,11 +21,17 @@ type Props = {
 
 export const Footer = observer(({ document }: Props) => {
   const user = useCurrentUser({ rejectOnEmpty: false });
-  const showStats = !!user?.getPreference(UserPreference.ShowDocumentStats);
+  const showStats =
+    !!user?.getPreference(UserPreference.ShowDocumentStats) &&
+    !document.isDeleted;
   const context = useActionContext();
 
   const handleToggleStats = useCallback(
     (event: KeyboardEvent) => {
+      if (document.isDeleted) {
+        return;
+      }
+
       // The command bar handles this shortcut everywhere else, it ignores
       // keystrokes while focus is in a text input.
       const target = event.target;
@@ -35,7 +41,7 @@ export const Footer = observer(({ document }: Props) => {
       event.preventDefault();
       void performAction(toggleDocumentStats, context);
     },
-    [context]
+    [context, document.isDeleted]
   );
 
   useKeyDown("g", handleToggleStats, { metaKey: true, shiftKey: true });

@@ -2,11 +2,12 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import { useRouteMatch } from "react-router-dom";
+import { useLocation, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
 import type { CommentAnchor } from "@shared/editor/commands/comment";
 import { richExtensions, withComments } from "@shared/editor/nodes";
+import { DocumentPreference } from "@shared/types";
 import { colorPalette } from "@shared/constants";
 import Comment from "~/models/Comment";
 import type Document from "~/models/Document";
@@ -70,6 +71,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
+  const location = useLocation();
   const { setFocusedCommentId } = useDocumentContext();
   const focusedComment = useFocusedComment();
   const { ui, comments } = useStores();
@@ -258,7 +260,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         lang={getLangFor(document.language)}
         autoFocus={!!document.title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
-        scrollTo={decodeURIComponentSafe(window.location.hash)}
+        scrollTo={decodeURIComponentSafe(location.hash)}
         readOnly={readOnly}
         userId={user?.id}
         focusedCommentId={focusedComment?.id}
@@ -279,6 +281,11 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         onInit={handleInit}
         onDestroy={handleDestroy}
         onChange={updateDocState}
+        headingPrefix={
+          "preferences" in document
+            ? document.getPreference(DocumentPreference.HeadingPrefix)
+            : undefined
+        }
         extensions={extensions}
         editorStyle={editorStyle}
         {...rest}

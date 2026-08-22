@@ -31,6 +31,11 @@ export default class SimpleImage extends Node {
     return "image";
   }
 
+  /** The component relies on load events to reveal the image, and `toDOM` already emits a plain img. */
+  get allowComponentInStaticHTML() {
+    return false;
+  }
+
   get schema(): NodeSpec {
     return {
       inline: true,

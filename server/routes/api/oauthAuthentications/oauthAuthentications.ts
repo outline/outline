@@ -67,19 +67,24 @@ router.post(
   async (ctx: APIContext<T.OAuthAuthenticationsDeleteReq>) => {
     const { user } = ctx.state.auth;
     const { oauthClientId, scope } = ctx.input.body;
+    const where = {
+      userId: user.id,
+      oauthClientId,
+      ...(scope ? { scope } : {}),
+    };
+
     const oauthAuthentications = await OAuthAuthentication.findAll({
-      where: {
-        userId: user.id,
-        oauthClientId,
-        ...(scope ? { scope } : {}),
-      },
+      where,
       transaction: ctx.state.transaction,
     });
 
     for (const oauthAuthentication of oauthAuthentications) {
       authorize(user, "delete", oauthAuthentication);
-      await oauthAuthentication.destroyWithCtx(ctx);
     }
+
+    // Destroy by predicate rather than by instance, so that an authentication
+    // created by a token refresh during this request is revoked too.
+    await OAuthAuthentication.destroyWithCtx(ctx, { where });
 
     ctx.body = {
       success: true,

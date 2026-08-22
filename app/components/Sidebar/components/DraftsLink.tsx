@@ -6,6 +6,7 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import * as Scenes from "~/routes/scenes";
+import { popIn } from "~/styles/animations";
 import { draftsPath } from "~/utils/routeHelpers";
 import { useDropToUnpublish } from "../hooks/useDragAndDrop";
 import SidebarLink from "./SidebarLink";
@@ -14,6 +15,8 @@ export const DraftsLink = observer(() => {
   const { t } = useTranslation();
   const { documents } = useStores();
   const [{ isOver, canDrop }, dropRef] = useDropToUnpublish();
+  const totalDrafts =
+    documents.totalDrafts > 25 ? "25+" : String(documents.totalDrafts);
 
   return (
     <div ref={dropRef}>
@@ -25,8 +28,8 @@ export const DraftsLink = observer(() => {
           <Flex align="center" justify="space-between">
             {t("Drafts")}
             {documents.totalDrafts > 0 ? (
-              <Drafts size="xsmall" type="tertiary">
-                {documents.totalDrafts > 25 ? "25+" : documents.totalDrafts}
+              <Drafts key={totalDrafts} size="xsmall" type="tertiary">
+                {totalDrafts}
               </Drafts>
             ) : null}
           </Flex>
@@ -38,5 +41,7 @@ export const DraftsLink = observer(() => {
 });
 
 const Drafts = styled(Text)`
+  display: inline-block;
   margin: 0 4px;
+  animation: ${popIn} 250ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 `;

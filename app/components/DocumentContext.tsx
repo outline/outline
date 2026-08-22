@@ -30,7 +30,8 @@ class DocumentContext {
 
   @computed
   get hasHeadings() {
-    return this.headings.length > 0;
+    // Headings inside tables are not listed in the table of contents.
+    return this.headings.some((heading) => !heading.inTable);
   }
 
   /** Statistics for the text content of the document, kept up to date as it is edited */

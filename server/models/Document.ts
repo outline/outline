@@ -46,11 +46,14 @@ import { MaxLength } from "class-validator";
 import isUUID from "validator/lib/isUUID";
 import type {
   DocumentPermission,
+  DocumentPreference,
+  DocumentPreferences,
   ImportableIntegrationService,
   NavigationNode,
   ProsemirrorData,
   SourceMetadata,
 } from "@shared/types";
+import { DocumentPreferenceDefaults } from "@shared/constants";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
@@ -338,6 +341,11 @@ class Document extends ArchivableModel<
   @Default(false)
   @Column(DataType.BOOLEAN)
   fullWidth: boolean;
+
+  /** Display preferences for the document. */
+  @AllowNull
+  @Column(DataType.JSONB)
+  preferences: DocumentPreferences | null;
 
   @Default(false)
   @Column(DataType.BOOLEAN)
@@ -1041,6 +1049,34 @@ class Document extends ArchivableModel<
   }
 
   /**
+   * Sets the value of the given display preference.
+   *
+   * @param preference The document preference to set
+   * @param value Sets the preference value
+   * @returns The current document preferences
+   */
+  public setPreference = <T extends keyof DocumentPreferences>(
+    preference: T,
+    value: DocumentPreferences[T]
+  ) => {
+    this.preferences = {
+      ...this.preferences,
+      [preference]: value,
+    };
+
+    return this.preferences;
+  };
+
+  /**
+   * Returns the value of the given display preference.
+   *
+   * @param preference The document preference to retrieve
+   * @returns The preference value if set, else the default value
+   */
+  public getPreference = <T extends DocumentPreference>(preference: T) =>
+    this.preferences?.[preference] ?? DocumentPreferenceDefaults[preference];
+
+  /**
    * Convenience method that returns whether this document is a draft.
    *
    * @returns boolean
@@ -1415,7 +1451,7 @@ class Document extends ArchivableModel<
       });
 
       if (!this.archivedAt || (this.archivedAt && collection?.archivedAt)) {
-        await collection?.deleteDocument(this, { transaction });
+        await collection?.deleteDocument(this, user, { transaction });
         deleted = true;
       }
     }

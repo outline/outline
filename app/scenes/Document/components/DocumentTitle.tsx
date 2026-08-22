@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { Slice } from "prosemirror-model";
+import type { Slice } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
 import { __parseFromClipboard } from "prosemirror-view";
 import * as React from "react";
@@ -9,6 +9,7 @@ import breakpoint from "styled-components-breakpoint";
 import Icon, { IconTitleWrapper } from "@shared/components/Icon";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
+import { sliceWithoutFirstNode } from "@shared/editor/lib/sliceWithoutFirstNode";
 import { extraArea, s } from "@shared/styles";
 import { light } from "@shared/styles/theme";
 import {
@@ -179,7 +180,7 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
 
       if (editor && content) {
         const { view, pasteParser } = editor;
-        let slice;
+        let slice: Slice | undefined;
 
         if (isMarkdown(text)) {
           const paste = pasteParser.parse(normalizePastedMarkdown(content));
@@ -195,16 +196,10 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
             view.state.selection.$from
           );
 
-          // remove first node from slice
-          slice = defaultSlice.content.firstChild
-            ? new Slice(
-                defaultSlice.content.cut(
-                  defaultSlice.content.firstChild.nodeSize
-                ),
-                defaultSlice.openStart,
-                defaultSlice.openEnd
-              )
-            : defaultSlice;
+          // remove first node from slice, it was inserted into the title
+          slice = defaultSlice
+            ? sliceWithoutFirstNode(defaultSlice)
+            : undefined;
         }
 
         if (slice) {

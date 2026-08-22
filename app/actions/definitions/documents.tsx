@@ -1,4 +1,5 @@
 import copy from "copy-to-clipboard";
+import type { TFunction } from "i18next";
 import invariant from "invariant";
 import { capitalize, uniqBy } from "es-toolkit/compat";
 import {
@@ -30,6 +31,7 @@ import {
   GlobeIcon,
   LogoutIcon,
   CaseSensitiveIcon,
+  OrderedListIcon,
   RestoreIcon,
   EditIcon,
   EmbedIcon,
@@ -42,7 +44,12 @@ import {
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import { ExportContentType, UserPreference } from "@shared/types";
+import {
+  DocumentPreference,
+  ExportContentType,
+  HeadingPrefixStyle,
+  UserPreference,
+} from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
 import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
@@ -279,8 +286,12 @@ function findDocumentSiblingIndex(
  */
 function canCreateSiblingDocument(
   stores: ActionContext["stores"],
-  document: { collectionId?: string | null; parentDocumentId?: string }
+  document: Document
 ): boolean {
+  if (document.isDeleted) {
+    return false;
+  }
+
   return document.parentDocumentId
     ? stores.policies.abilities(document.parentDocumentId).createChildDocument
     : !!document.collectionId &&
@@ -418,6 +429,9 @@ export const createNewDocument = createActionWithChildren({
     if (!stores.policies.abilities(currentTeamId).createDocument) {
       return false;
     }
+    if (stores.documents.get(activeDocumentId)?.isDeleted) {
+      return false;
+    }
     return !isAlphabeticallySorted(stores, activeDocumentId);
   },
   children: [createDocumentBefore, createDocumentAfter, createNestedDocument],
@@ -466,6 +480,7 @@ export const starDocument = createAction({
       Document,
       (document) =>
         !document.isStarred &&
+        !document.isDeleted &&
         context.stores.policies.abilities(document.id).star
     ),
   perform: async (context) => {
@@ -721,7 +736,6 @@ export const downloadDocumentAsMarkdown = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Markdown,
-      includeChildDocuments: false,
     });
   },
 });
@@ -743,7 +757,6 @@ export const downloadDocumentAsHTML = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Html,
-      includeChildDocuments: false,
     });
   },
 });
@@ -766,7 +779,6 @@ export const downloadDocumentAsTextBundle = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.TextBundle,
-      includeChildDocuments: false,
     });
   },
 });
@@ -792,7 +804,6 @@ export const downloadDocumentAsPDF = createAction({
     const document = stores.documents.get(activeDocumentId);
     await document?.download({
       contentType: ExportContentType.Pdf,
-      includeChildDocuments: false,
     });
   },
 });
@@ -924,23 +935,25 @@ export const duplicateDocument = createAction({
   },
 });
 
+function pinToCollectionName({ getActiveModels, t, stores }: ActionContext) {
+  const documents = getActiveModels(Document);
+  if (documents.length === 1) {
+    const collectionName = stores.documents.getCollectionForDocument(
+      documents[0]
+    )?.name;
+    return t("Pin to {{collectionName}}", {
+      collectionName: collectionName ?? t("collection"),
+    });
+  }
+  return t("Pin");
+}
+
 /**
  * Pin a document to a collection. Pinned documents will be displayed at the top
  * of the collection for all collection members to see.
  */
 export const pinDocumentToCollection = createAction({
-  name: ({ getActiveModels, t, stores }) => {
-    const documents = getActiveModels(Document);
-    if (documents.length === 1) {
-      const collectionName = stores.documents.getCollectionForDocument(
-        documents[0]
-      )?.name;
-      return t("Pin to {{collectionName}}", {
-        collectionName: collectionName ?? t("collection"),
-      });
-    }
-    return t("Pin");
-  },
+  name: pinToCollectionName,
   analyticsName: "Pin document to collection",
   section: ActiveDocumentSection,
   icon: <PinIcon />,
@@ -1002,14 +1015,6 @@ export const pinDocumentToHome = createAction({
   },
 });
 
-export const pinDocument = createActionWithChildren({
-  name: ({ t }) => t("Pin"),
-  analyticsName: "Pin document",
-  section: ActiveDocumentSection,
-  icon: <PinIcon />,
-  children: [pinDocumentToCollection, pinDocumentToHome],
-});
-
 export const unpinDocument = createAction({
   name: ({ t }) => t("Unpin"),
   analyticsName: "Unpin document",
@@ -1033,6 +1038,82 @@ export const unpinDocument = createAction({
           ? t("Unpinned")
           : t("{{ count }} documents unpinned", { count: succeeded })
     ),
+});
+
+const allPinnedToCollection = (context: ActionContext) =>
+  everyActiveModel(context, Document, (document) => document.pinned);
+
+const nonePinnedToCollection = (context: ActionContext) =>
+  everyActiveModel(context, Document, (document) => !document.pinned);
+
+/**
+ * Toggle whether a document is pinned to its collection, the current state is
+ * reflected in the item so the label does not change between the two.
+ */
+export const togglePinDocumentToCollection = createAction({
+  name: pinToCollectionName,
+  analyticsName: "Toggle pin document to collection",
+  section: ActiveDocumentSection,
+  icon: <PinIcon />,
+  iconInContextMenu: false,
+  selected: allPinnedToCollection,
+  visible: (context) =>
+    // A mixed selection has no single state to toggle to, the one-way Pin and
+    // Unpin actions cover that case instead.
+    (allPinnedToCollection(context) || nonePinnedToCollection(context)) &&
+    everyActiveModel(context, Document, (document) => {
+      const can = context.stores.policies.abilities(document.id);
+      return !!document.collectionId && (document.pinned ? can.unpin : can.pin);
+    }),
+  perform: (context) =>
+    allPinnedToCollection(context)
+      ? unpinDocument.perform(context)
+      : pinDocumentToCollection.perform(context),
+});
+
+/**
+ * Toggle whether a document is pinned to team home, the current state is
+ * reflected in the item so the label does not change between the two.
+ */
+export const togglePinDocumentToHome = createAction({
+  name: ({ t }) => t("Pin to home"),
+  analyticsName: "Toggle pin document to home",
+  section: ActiveDocumentSection,
+  icon: <PinIcon />,
+  iconInContextMenu: false,
+  selected: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId &&
+    !!stores.documents.get(activeDocumentId)?.pinnedToHome,
+  visible: ({ activeDocumentId, currentTeamId, stores }) =>
+    !!currentTeamId &&
+    !!activeDocumentId &&
+    !!stores.policies.abilities(activeDocumentId).pinToHome,
+  perform: async (context) => {
+    const { activeDocumentId, location, t, stores } = context;
+    if (!activeDocumentId) {
+      return;
+    }
+    const document = stores.documents.get(activeDocumentId);
+
+    if (!document?.pinnedToHome) {
+      await pinDocumentToHome.perform(context);
+      return;
+    }
+
+    await document.unpin();
+
+    if (location.pathname !== homePath()) {
+      toast.success(t("Unpinned"));
+    }
+  },
+});
+
+export const pinDocument = createActionWithChildren({
+  name: ({ t }) => t("Pin"),
+  analyticsName: "Pin document",
+  section: ActiveDocumentSection,
+  icon: <PinIcon />,
+  children: [togglePinDocumentToCollection, togglePinDocumentToHome],
 });
 
 export const searchInDocument = createInternalLinkAction({
@@ -1586,7 +1667,7 @@ export const permanentlyDeleteDocumentsInTrash = createAction({
   section: TrashSection,
   icon: <TrashIcon />,
   visible: ({ stores }) =>
-    stores.documents.deleted.length > 0 && !!stores.auth.user?.isAdmin,
+    stores.documents.deleted().length > 0 && !!stores.auth.user?.isAdmin,
   perform: ({ stores, t, location }) => {
     stores.dialogs.openModal({
       title: t("Permanently delete documents in trash"),
@@ -1695,7 +1776,13 @@ export const toggleDocumentStats = createAction({
   icon: <HashtagIcon />,
   selected: ({ stores }) =>
     !!stores.auth.user?.getPreference(UserPreference.ShowDocumentStats),
-  visible: ({ activeDocumentId }) => !!activeDocumentId && !isMobile(),
+  visible: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+
+    return !!activeDocumentId && !document?.isDeleted && !isMobile();
+  },
   perform: async ({ stores }) => {
     const { user } = stores.auth;
     if (!user) {
@@ -1708,6 +1795,75 @@ export const toggleDocumentStats = createAction({
     );
     await user.save();
   },
+});
+
+/** An example of the numbering each style produces, used to aid search. */
+const headingPrefixExamples: Record<HeadingPrefixStyle, string> = {
+  [HeadingPrefixStyle.None]: "",
+  [HeadingPrefixStyle.Numeric]: "1.1.1",
+  [HeadingPrefixStyle.Alphanumeric]: "1.a.i",
+  [HeadingPrefixStyle.Outline]: "I.A.1",
+};
+
+const headingPrefixNames: Record<HeadingPrefixStyle, (t: TFunction) => string> =
+  {
+    [HeadingPrefixStyle.None]: (t) => t("None"),
+    [HeadingPrefixStyle.Numeric]: (t) => t("Multi-level decimal"),
+    [HeadingPrefixStyle.Alphanumeric]: (t) => t("Alphanumeric"),
+    [HeadingPrefixStyle.Outline]: (t) => t("Harvard"),
+  };
+
+const changeHeadingPrefixFactory = (style: HeadingPrefixStyle) =>
+  createAction({
+    name: ({ t }) => headingPrefixNames[style](t),
+    // The example is displayed in the shortcut slot of menu items, but must
+    // not be set on the command bar action where shortcuts are registered as
+    // key sequences.
+    shortcut: ({ isMenu }) =>
+      isMenu && headingPrefixExamples[style]
+        ? [headingPrefixExamples[style]]
+        : undefined,
+    keywords: headingPrefixExamples[style],
+    analyticsName: "Change heading numbering",
+    section: ActiveDocumentSection,
+    selected: ({ activeDocumentId, stores }) => {
+      const document = activeDocumentId
+        ? stores.documents.get(activeDocumentId)
+        : undefined;
+      return (
+        (document?.getPreference(DocumentPreference.HeadingPrefix) ??
+          HeadingPrefixStyle.None) === style
+      );
+    },
+    perform: async ({ activeDocumentId, stores }) => {
+      const document = activeDocumentId
+        ? stores.documents.get(activeDocumentId)
+        : undefined;
+      if (!document) {
+        return;
+      }
+      document.setPreference(DocumentPreference.HeadingPrefix, style);
+      await document.save();
+    },
+  });
+
+export const changeHeadingPrefix = createActionWithChildren({
+  name: ({ t }) => t("Heading numbering"),
+  analyticsName: "Change heading numbering",
+  section: ActiveDocumentSection,
+  icon: <OrderedListIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+
+    return (
+      !!document &&
+      !document.isDeleted &&
+      stores.policies.abilities(document.id).update
+    );
+  },
+  children: Object.values(HeadingPrefixStyle).map(changeHeadingPrefixFactory),
 });
 
 export const leaveDocument = createAction({
@@ -1810,4 +1966,5 @@ export const rootDocumentActions = [
   openDocumentInSplit,
   shareDocument,
   toggleDocumentStats,
+  changeHeadingPrefix,
 ];

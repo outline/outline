@@ -57,6 +57,15 @@ export default class Extension<TOptions extends object = object> {
     return false;
   }
 
+  /**
+   * Whether a node's React component may be used to render it when generating static HTML on the
+   * server. When false, the node renders from its `toDOM` spec instead — set this when the
+   * component depends on browser behavior or app context unavailable outside the editor.
+   */
+  get allowComponentInStaticHTML(): boolean {
+    return true;
+  }
+
   get focusAfterExecution(): boolean {
     return true;
   }

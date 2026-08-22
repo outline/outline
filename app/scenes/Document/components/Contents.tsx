@@ -1,13 +1,16 @@
 import { observer } from "mobx-react";
 import { transparentize } from "polished";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EmojiText } from "@shared/components/EmojiText";
+import { HeadingPrefixHelper } from "@shared/editor/extensions/HeadingPrefix";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import { DocumentPreference, HeadingPrefixStyle } from "@shared/types";
 import { depths, hideScrollbars, s } from "@shared/styles";
+import { supportsPassiveListener } from "@shared/utils/browser";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 import { patchLocation } from "~/utils/history";
@@ -17,12 +20,26 @@ const HEADING_OFFSET = 20;
 
 function Contents() {
   const history = useHistory();
-  const [activeSlug, setActiveSlug] = useState<string>();
+  const [scrolledSlug, setScrolledSlug] = useState<string>();
+  const [selectedSlug, setSelectedSlug] = useState<string>();
   const scrollPosition = useWindowScrollPosition({
     throttle: 100,
   });
-  const { headings } = useDocumentContext();
+  const documentContext = useDocumentContext();
+  // Headings inside tables carry no number and are not listed.
+  const headings = useMemo(
+    () => documentContext.headings.filter((heading) => !heading.inTable),
+    [documentContext.headings]
+  );
   const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
+
+  // A heading chosen from the contents stays highlighted until the reader
+  // scrolls themselves. Headings near the end of a document cannot reach the
+  // top of the viewport, so the scroll position alone would never select them.
+  const activeSlug =
+    selectedSlug && headings.some((heading) => heading.id === selectedSlug)
+      ? selectedSlug
+      : scrolledSlug;
 
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -40,10 +57,40 @@ function Contents() {
       // Navigate via history so the location state (active sidebar context) is
       // retained rather than dropped by a native hash navigation.
       event.preventDefault();
+      setSelectedSlug(id);
       history.push(patchLocation(history.location, { hash: `#${id}` }));
+
+      // Scroll from here rather than relying on the hash changing, so that
+      // clicking the same heading again still moves the reader to it.
+      void documentContext.editor?.scrollToAnchor(`#${id}`);
     },
-    [history]
+    [history, documentContext]
   );
+
+  useEffect(() => {
+    if (!selectedSlug) {
+      return;
+    }
+
+    // Navigating to the heading scrolls the document during the same commit,
+    // so the position here is the one it came to rest at. Any movement away
+    // from it is the reader scrolling, whichever means they use.
+    const restingPosition = window.pageYOffset;
+
+    const handleScroll = () => {
+      if (window.pageYOffset !== restingPosition) {
+        setSelectedSlug(undefined);
+      }
+    };
+
+    window.addEventListener(
+      "scroll",
+      handleScroll,
+      supportsPassiveListener ? { passive: true } : false
+    );
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [selectedSlug]);
 
   useEffect(() => {
     let activeId = headings.length > 0 ? headings[0].id : undefined;
@@ -63,10 +110,10 @@ function Contents() {
       }
     }
 
-    if (activeSlug !== activeId) {
-      setActiveSlug(activeId);
+    if (scrolledSlug !== activeId) {
+      setScrolledSlug(activeId);
     }
-  }, [scrollPosition, headings, activeSlug]);
+  }, [scrollPosition, headings, scrolledSlug]);
 
   useEffect(() => {
     const activeItem = activeSlug ? itemRefs.current[activeSlug] : undefined;
@@ -88,6 +135,23 @@ function Contents() {
   const headingAdjustment = minHeading - 1;
   const { t } = useTranslation();
 
+  // Compute prefix labels over all headings so they match the numbering shown
+  // in the document, then attach them before headings are filtered for display.
+  const headingPrefix =
+    documentContext.document?.getPreference(DocumentPreference.HeadingPrefix) ??
+    HeadingPrefixStyle.None;
+  const prefixLabels = useMemo(
+    () =>
+      headingPrefix === HeadingPrefixStyle.None
+        ? undefined
+        : HeadingPrefixHelper.labels(
+            headings.map((heading) => heading.level),
+            headingPrefix,
+            { indented: true }
+          ),
+    [headings, headingPrefix]
+  );
+
   if (headings.length === 0) {
     return <StickyWrapper />;
   }
@@ -97,8 +161,12 @@ function Contents() {
       <Heading>{t("Contents")}</Heading>
       <List>
         {headings
-          .filter((heading) => heading.level < 4)
-          .map((heading) => (
+          .map((heading, index) => ({
+            heading,
+            label: prefixLabels?.[index],
+          }))
+          .filter(({ heading }) => heading.level <= 4)
+          .map(({ heading, label }) => (
             <ListItem
               key={heading.id}
               ref={(el) => (itemRefs.current[heading.id] = el)}
@@ -109,6 +177,7 @@ function Contents() {
                 href={`#${heading.id}`}
                 onClick={(event) => handleClick(event, heading.id)}
               >
+                {label && <Prefix>{label}</Prefix>}
                 <EmojiText>{heading.title}</EmojiText>
               </Link>
             </ListItem>
@@ -151,6 +220,12 @@ const Heading = styled.h3`
   margin-top: 10px;
 `;
 
+const Prefix = styled.span`
+  color: ${s("textSecondary")};
+  margin-inline-end: 0.25em;
+  user-select: none;
+`;
+
 const ListItem = styled.li<{ level: number; active?: boolean }>`
   margin-left: ${(props) => (props.level - 1) * 10}px;
   margin-bottom: 8px;
@@ -160,6 +235,11 @@ const ListItem = styled.li<{ level: number; active?: boolean }>`
   a {
     font-weight: ${(props) => (props.active ? "600" : "inherit")};
     color: ${(props) => (props.active ? props.theme.accent : props.theme.text)};
+
+    ${Prefix} {
+      color: ${(props) =>
+        props.active ? props.theme.accent : props.theme.textSecondary};
+    }
   }
 `;
 

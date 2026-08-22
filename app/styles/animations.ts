@@ -133,6 +133,23 @@ export const bounceIn = keyframes`
   }
 `;
 
+export const popIn = keyframes`
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
 export const pulsate = keyframes`
   0% { opacity: 1; }
   50% { opacity: 0.5; }

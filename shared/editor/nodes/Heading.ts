@@ -27,6 +27,28 @@ export enum HeadingLevel {
   Four,
 }
 
+/** Levels the editor offers. */
+const editorLevels = [
+  HeadingLevel.One,
+  HeadingLevel.Two,
+  HeadingLevel.Three,
+  HeadingLevel.Four,
+];
+
+/** Levels a document may hold – Markdown can also import an h5 or an h6. */
+const documentLevels = [...editorLevels, 5, 6];
+
+/**
+ * Restricts a heading level to one that can be rendered as a tag.
+ *
+ * @param value the level to restrict.
+ * @returns a level a document may hold.
+ */
+const toLevel = (value: unknown): number =>
+  documentLevels.includes(value as HeadingLevel)
+    ? (value as number)
+    : HeadingLevel.One;
+
 /**
  * Options for the Heading node.
  */
@@ -44,7 +66,7 @@ export default class Heading extends Node<HeadingOptions> {
 
   get defaultOptions(): Partial<HeadingOptions> {
     return {
-      levels: [1, 2, 3, 4],
+      levels: editorLevels,
     };
   }
 
@@ -68,7 +90,9 @@ export default class Heading extends Node<HeadingOptions> {
         attrs: { level },
       })),
       toDOM: (node) => [
-        `h${node.attrs.level + (this.options.offset || 0)}`,
+        // A level outside of the range produces an invalid tag name, which
+        // would stop the document rendering.
+        `h${toLevel(node.attrs.level) + (this.options.offset || 0)}`,
         {
           dir: "auto",
           class: "heading-content",
@@ -79,7 +103,7 @@ export default class Heading extends Node<HeadingOptions> {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.write(state.repeat("#", node.attrs.level) + " ");
+    state.write(state.repeat("#", toLevel(node.attrs.level)) + " ");
     state.renderInline(node);
     state.closeBlock(node);
   }
@@ -185,8 +209,9 @@ export default class Heading extends Node<HeadingOptions> {
       // widget (contentEditable=false, ignoreSelection: true), so Prosemirror
       // does not update its model. Subsequent commands like Enter then operate
       // on the stale position. Move the model selection explicitly to keep it
-      // in sync with the visual caret.
-      "Mod-ArrowLeft": ((state, dispatch) => {
+      // in sync with the visual caret. Note this is Cmd rather than Mod, as
+      // Ctrl+Left moves by word on other platforms.
+      "Cmd-ArrowLeft": ((state, dispatch) => {
         const { $from, empty } = state.selection;
         if (!empty || $from.parent.type !== type) {
           return false;
@@ -208,35 +233,38 @@ export default class Heading extends Node<HeadingOptions> {
   }
 
   get plugins() {
+    // Anchor button to copy a link to the heading.
+    const createAnchor = () => {
+      const anchor = document.createElement("button");
+      anchor.innerText = "#";
+      anchor.type = "button";
+      anchor.contentEditable = "false";
+      anchor.className = "heading-anchor";
+      anchor.setAttribute("aria-label", "Copy link to heading");
+      anchor.addEventListener("mousedown", (event) =>
+        this.handleCopyLink(event)
+      );
+      return anchor;
+    };
+
     const createWidgetDecorations = (doc: ProsemirrorNode): Decoration[] => {
       const decorations: Decoration[] = [];
 
       doc.descendants((node, pos) => {
         if (node.type.name === "heading") {
-          // Create anchor button to copy a link to the heading
-          const anchor = document.createElement("button");
-          anchor.innerText = "#";
-          anchor.type = "button";
-          anchor.contentEditable = "false";
-          anchor.className = "heading-anchor";
-          anchor.setAttribute("aria-label", "Copy link to heading");
-          anchor.addEventListener("mousedown", (event) =>
-            this.handleCopyLink(event)
-          );
-
           decorations.push(
             Decoration.widget(
               // Safari requires the widget to be placed at the end of the node rather than the beginning
               // or caret selection is not correct, browser quirk – see issue #1234
               isSafari ? pos + node.nodeSize - 1 : pos + 1,
-              anchor,
+              createAnchor,
               {
                 // Safari keeps this widget at the end; positive side preserves IME
                 // insertion order, while relaxed side preserves caret navigation.
                 side: isSafari ? 1 : -1,
                 ignoreSelection: true,
                 relaxedSide: isSafari,
-                key: pos.toString(),
+                key: "anchor",
               }
             )
           );

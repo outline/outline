@@ -11,9 +11,8 @@ describe("#notion.callback", () => {
       nonce: "attacker-nonce",
     });
     const res = await server.get(
-      `/api/notion.callback?state=${encodeURIComponent(
-        state
-      )}&code=123&token=${user.getSessionToken()}`,
+      `/api/notion.callback?state=${encodeURIComponent(state)}&code=123`,
+      user,
       { redirect: "manual" }
     );
     const body = await res.json();
@@ -25,9 +24,8 @@ describe("#notion.callback", () => {
     const user = await buildUser();
     const state = JSON.stringify({ teamId: user.teamId });
     const res = await server.get(
-      `/api/notion.callback?state=${encodeURIComponent(
-        state
-      )}&code=123&token=${user.getSessionToken()}`,
+      `/api/notion.callback?state=${encodeURIComponent(state)}&code=123`,
+      user,
       { redirect: "manual" }
     );
     expect(res.status).toEqual(400);
@@ -36,7 +34,8 @@ describe("#notion.callback", () => {
   it("should fail when state is not valid JSON", async () => {
     const user = await buildUser();
     const res = await server.get(
-      `/api/notion.callback?state=bad&code=123&token=${user.getSessionToken()}`,
+      `/api/notion.callback?state=bad&code=123`,
+      user,
       { redirect: "manual" }
     );
     expect(res.status).toEqual(400);

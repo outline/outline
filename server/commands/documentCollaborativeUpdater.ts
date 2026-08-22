@@ -106,6 +106,9 @@ export default async function documentCollaborativeUpdater({
         lastModifiedById,
         collaboratorIds,
         editorVersion,
+        // Hooks are disabled below, so the revision increment that normally
+        // happens in BeforeUpdate must be applied manually.
+        revisionCount: document.revisionCount + 1,
       },
       {
         transaction,

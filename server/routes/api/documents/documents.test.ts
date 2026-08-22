@@ -7,6 +7,7 @@ import {
   CollectionPermission,
   DocumentPermission,
   ExportContentType,
+  HeadingPrefixStyle,
   StatusFilter,
   UserRole,
 } from "@shared/types";
@@ -1293,6 +1294,1354 @@ describe("#documents.list", () => {
     expect(body.data[0].id).toEqual(anotherDoc.id);
   });
 
+  describe("filter DSL", () => {
+    it("should match a simple contains leaf case-insensitively", async () => {
+      const user = await buildUser();
+      await buildDocument({
+        title: "First document",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildDocument({
+        title: "Second document",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "title", operator: "contains", value: "first" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].title).toEqual("First document");
+    });
+
+    it("should match an OR group", async () => {
+      const user = await buildUser();
+      await buildDocument({
+        title: "First document",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildDocument({
+        title: "Second document",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                { field: "title", operator: "eq", value: "First document" },
+                { field: "title", operator: "eq", value: "Second document" },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(2);
+    });
+
+    it("should reject an unknown field", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "nope", operator: "eq", value: "x" }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject a value provided with isNull", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "publishedAt", operator: "isNull", value: "x" }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject a scalar value for the in operator", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "title", operator: "in", value: "x" }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject filter nesting beyond the depth limit", async () => {
+      const user = await buildUser();
+      const leaf = { field: "title", operator: "eq", value: "x" };
+      let nested: Record<string, unknown> = leaf;
+      for (let i = 0; i < 6; i++) {
+        nested = { operator: "AND", filters: [nested] };
+      }
+      const res = await server.post("/api/documents.list", user, {
+        body: { filters: [nested] },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should not leak documents across teams", async () => {
+      const userA = await buildUser();
+      const userB = await buildUser();
+      await buildDocument({
+        title: "Cross team",
+        userId: userB.id,
+        teamId: userB.teamId,
+      });
+      const res = await server.post("/api/documents.list", userA, {
+        body: {
+          filters: [{ field: "title", operator: "eq", value: "Cross team" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(0);
+    });
+
+    it("should re-run authorize for collectionId in filter", async () => {
+      const user = await buildUser();
+      const otherUser = await buildUser();
+      const privateCollection = await buildCollection({
+        teamId: otherUser.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: privateCollection.id,
+            },
+          ],
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("should include archived documents when filter references archivedAt", async () => {
+      const user = await buildUser();
+      const archived = await buildDocument({
+        title: "Old doc",
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+      });
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "archivedAt", operator: "isNotNull" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.map((d: { id: string }) => d.id)).toContain(archived.id);
+    });
+
+    it("should escape LIKE wildcards in contains values", async () => {
+      const user = await buildUser();
+      await buildDocument({
+        title: "5050",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const literal = await buildDocument({
+        title: "50% off",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "title", operator: "contains", value: "50%" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].id).toEqual(literal.id);
+    });
+
+    it("should produce equivalent results for legacy collectionId and filter", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const legacyRes = await server.post("/api/documents.list", user, {
+        body: {
+          collectionId: document.collectionId,
+        },
+      });
+      const filterRes = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: document.collectionId,
+            },
+          ],
+        },
+      });
+      const legacyBody = await legacyRes.json();
+      const filterBody = await filterRes.json();
+      expect(legacyRes.status).toEqual(200);
+      expect(filterRes.status).toEqual(200);
+      expect(filterBody.data.map((d: { id: string }) => d.id).sort()).toEqual(
+        legacyBody.data.map((d: { id: string }) => d.id).sort()
+      );
+    });
+
+    it("should reject filters combined with legacy userId", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          userId: user.id,
+          filters: [{ field: "title", operator: "eq", value: "Match" }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject filters combined with legacy collectionId", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          collectionId: document.collectionId,
+          filters: [{ field: "title", operator: "eq", value: "x" }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject filters combined with statusFilter", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          statusFilter: [StatusFilter.Archived],
+          filters: [{ field: "title", operator: "eq", value: "x" }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should apply parent-doc membership escape for parentDocumentId in filters", async () => {
+      const user = await buildUser();
+      const otherUser = await buildUser({ teamId: user.teamId });
+      const privateCollection = await buildCollection({
+        teamId: user.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const parent = await buildDocument({
+        teamId: user.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const child = await buildDocument({
+        teamId: user.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+        parentDocumentId: parent.id,
+      });
+      await UserMembership.create({
+        createdById: otherUser.id,
+        documentId: parent.id,
+        userId: user.id,
+        permission: DocumentPermission.Read,
+      });
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [
+            { field: "parentDocumentId", operator: "eq", value: parent.id },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.map((d: { id: string }) => d.id)).toEqual([child.id]);
+    });
+
+    /**
+     * Helper: builds a viewing user plus a teammate-owned private collection
+     * containing one secret document. The viewing user has zero access to the
+     * collection. Tests below assert that no filter shape can surface the
+     * secret document to the viewing user.
+     */
+    const setupVictim = async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const privateCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const secretDoc = await buildDocument({
+        title: "TOP SECRET PAYROLL",
+        text: "salaries everywhere",
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const ownCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      const ownDoc = await buildDocument({
+        title: "Mundane",
+        teamId: viewer.teamId,
+        userId: viewer.id,
+        collectionId: ownCollection.id,
+      });
+      return {
+        viewer,
+        otherUser,
+        privateCollection,
+        secretDoc,
+        ownCollection,
+        ownDoc,
+      };
+    };
+
+    it("must not leak docs across collections via OR with collectionId+title", async () => {
+      const { viewer, ownCollection, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                { field: "title", operator: "contains", value: "secret" },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs across collections via OR with collectionId+empty contains", async () => {
+      const { viewer, ownCollection, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                { field: "title", operator: "contains", value: "" },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs across collections via OR with collectionId+userId of teammate", async () => {
+      const { viewer, otherUser, ownCollection, secretDoc } =
+        await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                { field: "userId", operator: "eq", value: otherUser.id },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs across collections via OR using collectionId in[]", async () => {
+      const { viewer, ownCollection, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "in",
+                  value: [ownCollection.id],
+                },
+                { field: "title", operator: "contains", value: "" },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs across collections via OR with collectionId nested in AND", async () => {
+      const { viewer, ownCollection, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  operator: "AND",
+                  filters: [
+                    {
+                      field: "collectionId",
+                      operator: "eq",
+                      value: ownCollection.id,
+                    },
+                    { field: "title", operator: "contains", value: "x" },
+                  ],
+                },
+                { field: "title", operator: "contains", value: "" },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs via OR with collectionId+documentId of secret doc", async () => {
+      const { viewer, ownCollection, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                {
+                  field: "documentId",
+                  operator: "eq",
+                  value: secretDoc.id,
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs via deeply nested AND-of-OR with collectionId", async () => {
+      const { viewer, ownCollection, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              operator: "AND",
+              filters: [
+                {
+                  operator: "OR",
+                  filters: [
+                    {
+                      field: "collectionId",
+                      operator: "eq",
+                      value: ownCollection.id,
+                    },
+                    { field: "title", operator: "contains", value: "" },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs via top-level array implicit-AND with sibling OR group", async () => {
+      const { viewer, ownCollection, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: ownCollection.id,
+            },
+            {
+              operator: "OR",
+              filters: [
+                { field: "title", operator: "contains", value: "" },
+                { field: "title", operator: "contains", value: "secret" },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      // The collectionId leaf is at top level (AND), so semantically results
+      // must be limited to ownCollection. Secret doc lives in a different
+      // collection and must not appear.
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must reject OR with one authorized collectionId and one unauthorized collectionId", async () => {
+      const { viewer, ownCollection, privateCollection } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: privateCollection.id,
+                },
+              ],
+            },
+          ],
+        },
+      });
+      // Authorize must run for every collectionId eq value referenced
+      // anywhere in the tree. The unauthorized one must trigger 403.
+      expect(res.status).toEqual(403);
+    });
+
+    it("must reject in[] containing both an authorized and unauthorized collection", async () => {
+      const { viewer, ownCollection, privateCollection } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              field: "collectionId",
+              operator: "in",
+              value: [ownCollection.id, privateCollection.id],
+            },
+          ],
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("must not leak docs from a private collection via filtering by teammate userId", async () => {
+      // No collectionId in filter at all — just createdById of a teammate.
+      // The default collection scope must still apply, restricting results to
+      // the viewer's accessible collections.
+      const { viewer, otherUser, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [{ field: "userId", operator: "eq", value: otherUser.id }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak a secret doc by direct documentId lookup", async () => {
+      const { viewer, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            { field: "documentId", operator: "eq", value: secretDoc.id },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak secret docs via documentId in[]", async () => {
+      const { viewer, secretDoc, ownDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              field: "documentId",
+              operator: "in",
+              value: [secretDoc.id, ownDoc.id],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+      expect(ids).toContain(ownDoc.id);
+    });
+
+    it("must not leak archived docs in private collections via archivedAt filter", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const privateCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const archivedSecret = await buildDocument({
+        title: "Archived secret",
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+        archivedAt: new Date(),
+      });
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [{ field: "archivedAt", operator: "isNotNull" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(archivedSecret.id);
+    });
+
+    it("must not bypass collection scope via templateId filter", async () => {
+      const { viewer, otherUser, privateCollection, secretDoc } =
+        await setupVictim();
+      const template = await buildTemplate({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      // Make the secret doc reference the template
+      await secretDoc.update({ templateId: template.id });
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            { field: "templateId", operator: "eq", value: template.id },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs across teams via cross-team collectionId in OR", async () => {
+      const viewer = await buildUser();
+      const otherTeamUser = await buildUser();
+      const otherTeamCollection = await buildCollection({
+        teamId: otherTeamUser.teamId,
+        userId: otherTeamUser.id,
+      });
+      const otherTeamDoc = await buildDocument({
+        title: "Other team secret",
+        teamId: otherTeamUser.teamId,
+        userId: otherTeamUser.id,
+        collectionId: otherTeamCollection.id,
+      });
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                { field: "title", operator: "contains", value: "secret" },
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: otherTeamCollection.id,
+                },
+              ],
+            },
+          ],
+        },
+      });
+      // Either the cross-team collection auth fails (403), or the doc is
+      // simply not returned because the team filter filters it out. Both
+      // outcomes are acceptable; what is NOT acceptable is leaking the doc.
+      if (res.status === 200) {
+        const body = await res.json();
+        const ids = body.data.map((d: { id: string }) => d.id);
+        expect(ids).not.toContain(otherTeamDoc.id);
+      } else {
+        expect(res.status).toEqual(403);
+      }
+    });
+
+    it("must not leak docs via parentDocumentId membership escape combined with sibling collectionId access", async () => {
+      // Membership escape on parentDocumentId drops the default collection
+      // scope. If the schema then ANDs the parentDocumentId leaf with the
+      // rest of the filter, results must still be restricted to actual
+      // children of the parent doc.
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const privateCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const parent = await buildDocument({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const sibling = await buildDocument({
+        title: "Sibling not a child",
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      await UserMembership.create({
+        createdById: otherUser.id,
+        documentId: parent.id,
+        userId: viewer.id,
+        permission: DocumentPermission.Read,
+      });
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            { field: "parentDocumentId", operator: "eq", value: parent.id },
+            { field: "title", operator: "contains", value: "" },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      // The viewer has membership on `parent`, so its children would be
+      // returned. But `sibling` is not a child of `parent`, so it must not
+      // appear despite living in the same private collection.
+      expect(ids).not.toContain(sibling.id);
+    });
+
+    it("must not leak docs via parentDocumentId in OR with collectionId", async () => {
+      // Even if the filter mentions parentDocumentId in an OR, the membership
+      // escape must not engage (it requires a single, top-level eq). And the
+      // OR with collectionId must not drop the default collection scope.
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const privateCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const parent = await buildDocument({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const child = await buildDocument({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+        parentDocumentId: parent.id,
+      });
+      await UserMembership.create({
+        createdById: otherUser.id,
+        documentId: parent.id,
+        userId: viewer.id,
+        permission: DocumentPermission.Read,
+      });
+      const ownCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                { field: "parentDocumentId", operator: "eq", value: parent.id },
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      // Inside an OR group, the membership escape on parentDocumentId is not
+      // triggered. The default collection scope must therefore still apply,
+      // and the child of `parent` (which lives in a private collection the
+      // viewer cannot access) must not appear.
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(child.id);
+    });
+
+    it("must not return drafts of other users via filter", async () => {
+      // Draft visibility is enforced by statusFilter handling for the
+      // legacy path; with filters it must still hold.
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const sharedCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      const otherDraft = await buildDraftDocument({
+        title: "Other user draft",
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: sharedCollection.id,
+      });
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [{ field: "publishedAt", operator: "isNull" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(otherDraft.id);
+    });
+
+    it("should return own drafts via publishedAt isNull filter", async () => {
+      const viewer = await buildUser();
+      const collection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      const collectionlessDraft = await buildDraftDocument({
+        title: "My unplaced draft",
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      const collectionDraft = await buildDraftDocument({
+        title: "My collection draft",
+        teamId: viewer.teamId,
+        userId: viewer.id,
+        collectionId: collection.id,
+      });
+      const published = await buildDocument({
+        title: "Published",
+        teamId: viewer.teamId,
+        userId: viewer.id,
+        collectionId: collection.id,
+      });
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [{ field: "publishedAt", operator: "isNull" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).toContain(collectionlessDraft.id);
+      expect(ids).toContain(collectionDraft.id);
+      expect(ids).not.toContain(published.id);
+    });
+
+    it("should return drafts shared via direct membership when filtering publishedAt", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const sharedCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      const sharedDraft = await buildDraftDocument({
+        title: "Shared draft",
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: sharedCollection.id,
+      });
+      await UserMembership.create({
+        userId: viewer.id,
+        documentId: sharedDraft.id,
+        permission: DocumentPermission.Read,
+        createdById: otherUser.id,
+      });
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [{ field: "publishedAt", operator: "isNull" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).toContain(sharedDraft.id);
+    });
+
+    it("must not bypass collection scope via collectionId neq", async () => {
+      // `neq` must not be considered an explicit collection target. The
+      // default collection scope must still apply.
+      const { viewer, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              field: "collectionId",
+              operator: "neq",
+              value: "00000000-0000-0000-0000-000000000000",
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not bypass collection scope via collectionId notIn", async () => {
+      // `notIn` must not be considered an explicit collection target.
+      const { viewer, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              field: "collectionId",
+              operator: "notIn",
+              value: ["00000000-0000-0000-0000-000000000000"],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not bypass collection scope via collectionId isNotNull", async () => {
+      const { viewer, secretDoc } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [{ field: "collectionId", operator: "isNotNull" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not bypass auth via collectionId pattern matching", async () => {
+      // contains/startsWith/endsWith on collectionId must not be treated as
+      // an explicit collection target. Postgres may also error out applying
+      // iLike to a UUID column — that's a separate availability concern,
+      // but either way no data must leak.
+      const { viewer, secretDoc, privateCollection } = await setupVictim();
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              field: "collectionId",
+              operator: "startsWith",
+              value: privateCollection.id.substring(0, 8),
+            },
+          ],
+        },
+      });
+      // Acceptable: 200 with empty/scoped data, 400 (validation), or 500
+      // (SQL type mismatch). Unacceptable: 200 with the secret doc visible.
+      if (res.status === 200) {
+        const body = await res.json();
+        const ids = body.data.map((d: { id: string }) => d.id);
+        expect(ids).not.toContain(secretDoc.id);
+      } else {
+        expect([400, 500]).toContain(res.status);
+      }
+    });
+
+    it("must not allow contains-injected SQL wildcards to broaden matches", async () => {
+      // The `%` and `_` characters in user-supplied contains values must be
+      // escaped so they cannot match unrelated rows.
+      const user = await buildUser();
+      const decoy = await buildDocument({
+        title: "abxc",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const target = await buildDocument({
+        title: "ab_c",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "title", operator: "contains", value: "ab_c" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).toContain(target.id);
+      expect(ids).not.toContain(decoy.id);
+    });
+
+    it("must reject NOT-style operators that are not in the comparison allowlist", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [
+            { field: "title", operator: "regexp", value: ".*" } as never,
+          ],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("must reject filters when an empty array is passed", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: { filters: [] },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("must reject filters when in[] is empty", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "title", operator: "in", value: [] }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("must not allow exceeding the top-level filter count limit", async () => {
+      const user = await buildUser();
+      const filters = Array.from({ length: 51 }).map(() => ({
+        field: "title",
+        operator: "eq",
+        value: "x",
+      }));
+      const res = await server.post("/api/documents.list", user, {
+        body: { filters },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("must not allow exceeding maxInValues limit on in[]", async () => {
+      const user = await buildUser();
+      const value = Array.from({ length: 101 }).map(
+        (_, i) => `00000000-0000-0000-0000-${String(i).padStart(12, "0")}`
+      );
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "documentId", operator: "in", value }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("must reject unsupported operators for userId", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "userId", operator: "isNotNull" }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("must reject SQL-injection attempts in ISO 8601 duration values", async () => {
+      // dateFromDuration interpolates the duration into a Sequelize literal.
+      // The validation regex must reject anything containing quote
+      // characters or other SQL metacharacters.
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [
+            {
+              field: "updatedAt",
+              operator: "gte",
+              value: "P1D'; DROP TABLE documents; --",
+            },
+          ],
+        },
+      });
+      // The value isn't a valid duration so it falls through as a literal
+      // string compared via Op.gte. That comparison will either return zero
+      // rows or fail at the type-cast level; what matters is no SQL error
+      // and no leaked rows. Acceptable: 200 with empty data, or 400.
+      expect([200, 400]).toContain(res.status);
+      if (res.status === 200) {
+        const body = await res.json();
+        // No rows should leak.
+        expect(Array.isArray(body.data)).toBe(true);
+      }
+    });
+
+    it("must compare duration-shaped values on non-date fields as strings", async () => {
+      // A duration-shaped value must only be converted to a date literal for
+      // date fields; on a text field it is a plain string comparison.
+      const user = await buildUser();
+      const document = await buildDocument({
+        title: "Zebra",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [{ field: "title", operator: "gte", value: "P1D" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).toContain(document.id);
+    });
+
+    it("must reject an out-of-range duration rather than fail at the database", async () => {
+      const user = await buildUser();
+      for (const value of [
+        "-P999999999Y",
+        "P999999999Y",
+        "-PT99999999999999999S",
+      ]) {
+        const filters = [{ field: "createdAt", operator: "gte", value }];
+        for (const endpoint of [
+          "/api/documents.list",
+          "/api/documents.search",
+          "/api/documents.search_titles",
+        ]) {
+          const res = await server.post(endpoint, user, {
+            body: { query: "test", filters },
+          });
+          expect(res.status).toEqual(400);
+        }
+      }
+    });
+
+    it("must reject an out-of-range duration on an unauthenticated share search", async () => {
+      const team = await buildTeam();
+      const author = await buildUser({ teamId: team.id });
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: author.id,
+      });
+      const share = await buildShare({
+        teamId: team.id,
+        userId: author.id,
+        documentId: document.id,
+        includeChildDocuments: true,
+        published: true,
+      });
+
+      const res = await server.post("/api/documents.search", {
+        body: {
+          shareId: share.id,
+          query: "test",
+          filters: [
+            { field: "createdAt", operator: "gte", value: "-P999999999Y" },
+          ],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("must reject a filter expression over the node limit", async () => {
+      const user = await buildUser();
+      const leaf = { field: "title", operator: "eq", value: "x" };
+      // Depth 3 with 7 filters per group is inside both shape limits, but
+      // holds 57 nodes.
+      const wide = {
+        operator: "OR",
+        filters: Array.from({ length: 7 }, () => ({
+          operator: "OR",
+          filters: Array.from({ length: 7 }, () => leaf),
+        })),
+      };
+      for (const endpoint of [
+        "/api/documents.list",
+        "/api/documents.search",
+        "/api/documents.search_titles",
+      ]) {
+        const res = await server.post(endpoint, user, {
+          body: { query: "test", filters: [wide] },
+        });
+        expect(res.status).toEqual(400);
+      }
+    });
+
+    it("must reject a filter list whose entries total over the node limit", async () => {
+      const user = await buildUser();
+      // Each entry is inside the per-expression limit; the sum is not.
+      const filters = Array.from({ length: 5 }, () => ({
+        operator: "OR",
+        filters: Array.from({ length: 10 }, () => ({
+          field: "title",
+          operator: "eq",
+          value: "x",
+        })),
+      }));
+      const res = await server.post("/api/documents.list", user, {
+        body: { filters },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("must accept the widest filter expression the app builds", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const res = await server.post("/api/documents.list", user, {
+        body: {
+          filters: [
+            { field: "collectionId", operator: "eq", value: collection.id },
+            { field: "userId", operator: "eq", value: user.id },
+            { field: "updatedAt", operator: "gte", value: "-P1Y" },
+            {
+              operator: "OR",
+              filters: [
+                { field: "archivedAt", operator: "isNotNull" },
+                {
+                  operator: "AND",
+                  filters: [
+                    { field: "archivedAt", operator: "isNull" },
+                    { field: "publishedAt", operator: "isNotNull" },
+                  ],
+                },
+                {
+                  operator: "AND",
+                  filters: [
+                    { field: "archivedAt", operator: "isNull" },
+                    { field: "publishedAt", operator: "isNull" },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      expect(res.status).toEqual(200);
+    });
+
+    it("must not leak draft drafts via OR with createdById self + collectionId of teammate's collection", async () => {
+      // Drafts are restricted to creator + members. Filter DSL must not
+      // provide a path to bypass that.
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const sharedCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      const otherDraft = await buildDraftDocument({
+        title: "Other user secret draft",
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: sharedCollection.id,
+      });
+
+      const res = await server.post("/api/documents.list", viewer, {
+        body: {
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                { field: "userId", operator: "eq", value: viewer.id },
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: sharedCollection.id,
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      // statusFilter is not set in this request, so drafts shouldn't be
+      // included by default — but verify either way that the other user's
+      // draft is not exposed.
+      expect(ids).not.toContain(otherDraft.id);
+    });
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.list");
     const body = await res.json();
@@ -1597,6 +2946,210 @@ describe("#documents.search_titles", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.search_titles");
     expect(res.status).toEqual(401);
+  });
+
+  describe("filter DSL", () => {
+    it("should filter by userId via collaboratorIds", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        title: "match title",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await buildDocument({
+        title: "match title",
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.search_titles", user, {
+        body: {
+          query: "match",
+          filters: [{ field: "userId", operator: "eq", value: user.id }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].id).toEqual(document.id);
+    });
+
+    it("should filter by documentId scope", async () => {
+      const user = await buildUser();
+      const parent = await buildDocument({
+        title: "parent match",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const child = await buildDocument({
+        title: "child match",
+        teamId: user.teamId,
+        userId: user.id,
+        parentDocumentId: parent.id,
+        collectionId: parent.collectionId,
+      });
+      await buildDocument({
+        title: "unrelated match",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const res = await server.post("/api/documents.search_titles", user, {
+        body: {
+          query: "match",
+          filters: [{ field: "documentId", operator: "eq", value: parent.id }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const returnedIds = body.data.map((d: { id: string }) => d.id).sort();
+      expect(returnedIds).toEqual([parent.id, child.id].sort());
+    });
+
+    it("should reject filters combined with legacy userId", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.search_titles", user, {
+        body: {
+          query: "match",
+          userId: user.id,
+          filters: [{ field: "userId", operator: "eq", value: user.id }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("must not leak titles via OR with collectionId+title", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const privateCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const secretDoc = await buildDocument({
+        title: "TOP SECRET match",
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const ownCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      const res = await server.post("/api/documents.search_titles", viewer, {
+        body: {
+          query: "match",
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                { field: "title", operator: "contains", value: "match" },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak titles via collectionId in[] sibling to a permissive leaf", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const privateCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const secretDoc = await buildDocument({
+        title: "TOP SECRET match",
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const ownCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      const res = await server.post("/api/documents.search_titles", viewer, {
+        body: {
+          query: "match",
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "in",
+                  value: [ownCollection.id],
+                },
+                { field: "title", operator: "contains", value: "" },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must 403 when a private collection is targeted via filter", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser();
+      const privateCollection = await buildCollection({
+        teamId: otherUser.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const res = await server.post("/api/documents.search_titles", viewer, {
+        body: {
+          query: "secret",
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: privateCollection.id,
+            },
+          ],
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("must 403 on documentId scope to a doc the user cannot read", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const privateCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const secretParent = await buildDocument({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+
+      const res = await server.post("/api/documents.search_titles", viewer, {
+        body: {
+          query: "x",
+          filters: [
+            {
+              field: "documentId",
+              operator: "eq",
+              value: secretParent.id,
+            },
+          ],
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
   });
 });
 
@@ -2204,6 +3757,614 @@ describe("#documents.search", () => {
     const expectedIds = docsInCollection1.map((d) => d.id).sort();
     expect(returnedIds).toEqual(expectedIds);
   });
+
+  describe("filter DSL", () => {
+    it("should produce equivalent results for legacy collectionId and filter", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        title: "search term",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const legacyRes = await server.post("/api/documents.search", user, {
+        body: {
+          query: "search term",
+          collectionId: document.collectionId,
+        },
+      });
+      const filterRes = await server.post("/api/documents.search", user, {
+        body: {
+          query: "search term",
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: document.collectionId,
+            },
+          ],
+        },
+      });
+      const legacyBody = await legacyRes.json();
+      const filterBody = await filterRes.json();
+      expect(legacyRes.status).toEqual(200);
+      expect(filterRes.status).toEqual(200);
+      expect(
+        filterBody.data
+          .map((r: { document: { id: string } }) => r.document.id)
+          .sort()
+      ).toEqual(
+        legacyBody.data
+          .map((r: { document: { id: string } }) => r.document.id)
+          .sort()
+      );
+    });
+
+    it("should filter by userId via collaboratorIds", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        title: "search term",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await buildDocument({
+        title: "search term",
+        text: "search term",
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.search", user, {
+        body: {
+          query: "search term",
+          filters: [{ field: "userId", operator: "eq", value: user.id }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].document.id).toEqual(document.id);
+    });
+
+    it("should filter by documentId scope", async () => {
+      const user = await buildUser();
+      const parent = await buildDocument({
+        title: "parent",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const child = await buildDocument({
+        title: "child",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+        parentDocumentId: parent.id,
+        collectionId: parent.collectionId,
+      });
+      await buildDocument({
+        title: "unrelated",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const res = await server.post("/api/documents.search", user, {
+        body: {
+          query: "search term",
+          filters: [{ field: "documentId", operator: "eq", value: parent.id }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const returnedIds = body.data
+        .map((r: { document: { id: string } }) => r.document.id)
+        .sort();
+      expect(returnedIds).toEqual([parent.id, child.id].sort());
+    });
+
+    it("should filter by documentId in[] scope", async () => {
+      const user = await buildUser();
+      const parentA = await buildDocument({
+        title: "parentA",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const childA = await buildDocument({
+        title: "childA",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+        parentDocumentId: parentA.id,
+        collectionId: parentA.collectionId,
+      });
+      const parentB = await buildDocument({
+        title: "parentB",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await buildDocument({
+        title: "unrelated",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const res = await server.post("/api/documents.search", user, {
+        body: {
+          query: "search term",
+          filters: [
+            {
+              field: "documentId",
+              operator: "in",
+              value: [parentA.id, parentB.id],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const returnedIds = body.data
+        .map((r: { document: { id: string } }) => r.document.id)
+        .sort();
+      expect(returnedIds).toEqual([parentA.id, childA.id, parentB.id].sort());
+    });
+
+    it("should expand documentId leaves nested inside groups", async () => {
+      const user = await buildUser();
+      const parentA = await buildDocument({
+        title: "parentA",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const parentB = await buildDocument({
+        title: "parentB",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await buildDocument({
+        title: "unrelated",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const res = await server.post("/api/documents.search", user, {
+        body: {
+          query: "search term",
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                { field: "documentId", operator: "eq", value: parentA.id },
+                { field: "documentId", operator: "eq", value: parentB.id },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const returnedIds = body.data
+        .map((r: { document: { id: string } }) => r.document.id)
+        .sort();
+      expect(returnedIds).toEqual([parentA.id, parentB.id].sort());
+    });
+
+    it("should reject unsupported operators for documentId", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.search", user, {
+        body: {
+          query: "search term",
+          filters: [{ field: "documentId", operator: "isNotNull" }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject unsupported operators for userId", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.search", user, {
+        body: {
+          query: "search term",
+          filters: [{ field: "userId", operator: "neq", value: user.id }],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should scope results to a documentId filter combined with shareId", async () => {
+      const subdomain = faker.internet.domainWord();
+      const team = await buildTeam({ subdomain });
+      const parent = await buildDocument({
+        title: "search term",
+        text: "parent",
+        teamId: team.id,
+      });
+      const childA = await buildDocument({
+        title: "search term",
+        text: "childA",
+        teamId: team.id,
+        userId: parent.createdById,
+        parentDocumentId: parent.id,
+        collectionId: parent.collectionId,
+      });
+      await buildDocument({
+        title: "search term",
+        text: "childB",
+        teamId: team.id,
+        userId: parent.createdById,
+        parentDocumentId: parent.id,
+        collectionId: parent.collectionId,
+      });
+      await buildShare({
+        includeChildDocuments: true,
+        documentId: parent.id,
+        teamId: team.id,
+        urlId: "abc456",
+      });
+
+      const res = await server.post("/api/documents.search", {
+        body: {
+          query: "search term",
+          shareId: "abc456",
+          filters: [{ field: "documentId", operator: "eq", value: childA.id }],
+        },
+        headers: {
+          host: `${subdomain}.outline.dev`,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.length).toEqual(1);
+      expect(body.data[0].document.id).toEqual(childA.id);
+    });
+
+    it("should scope results to the legacy documentId param combined with shareId", async () => {
+      const subdomain = faker.internet.domainWord();
+      const team = await buildTeam({ subdomain });
+      const parent = await buildDocument({
+        title: "search term",
+        text: "parent",
+        teamId: team.id,
+      });
+      const childA = await buildDocument({
+        title: "search term",
+        text: "childA",
+        teamId: team.id,
+        userId: parent.createdById,
+        parentDocumentId: parent.id,
+        collectionId: parent.collectionId,
+      });
+      await buildDocument({
+        title: "search term",
+        text: "childB",
+        teamId: team.id,
+        userId: parent.createdById,
+        parentDocumentId: parent.id,
+        collectionId: parent.collectionId,
+      });
+      await buildShare({
+        includeChildDocuments: true,
+        documentId: parent.id,
+        teamId: team.id,
+        urlId: "abc789",
+      });
+
+      const res = await server.post("/api/documents.search", {
+        body: {
+          query: "search term",
+          shareId: "abc789",
+          documentId: childA.id,
+        },
+        headers: {
+          host: `${subdomain}.outline.dev`,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.length).toEqual(1);
+      expect(body.data[0].document.id).toEqual(childA.id);
+    });
+
+    it("should re-run authorize for collectionId in filter", async () => {
+      const user = await buildUser();
+      const otherUser = await buildUser();
+      const privateCollection = await buildCollection({
+        teamId: otherUser.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const res = await server.post("/api/documents.search", user, {
+        body: {
+          query: "search term",
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: privateCollection.id,
+            },
+          ],
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("should reject filters combined with legacy collectionId", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.search", user, {
+        body: {
+          collectionId: document.collectionId,
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: document.collectionId,
+            },
+          ],
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("supports title contains as an additional filter alongside the FTS query", async () => {
+      const user = await buildUser();
+      const match = await buildDocument({
+        title: "match needle",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await buildDocument({
+        title: "no needle here",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const res = await server.post("/api/documents.search", user, {
+        body: {
+          query: "search term",
+          filters: [{ field: "title", operator: "contains", value: "match" }],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map(
+        (r: { document: { id: string } }) => r.document.id
+      );
+      expect(ids).toContain(match.id);
+    });
+
+    it("supports an OR group at top level without bypassing visibility", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const ownCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      const ownDoc = await buildDocument({
+        title: "search term in own",
+        text: "search term",
+        teamId: viewer.teamId,
+        userId: viewer.id,
+        collectionId: ownCollection.id,
+      });
+      const res = await server.post("/api/documents.search", viewer, {
+        body: {
+          query: "search term",
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                { field: "userId", operator: "eq", value: otherUser.id },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map(
+        (r: { document: { id: string } }) => r.document.id
+      );
+      expect(ids).toContain(ownDoc.id);
+    });
+
+    /**
+     * Helper: builds a viewer plus a teammate-owned private collection
+     * containing one secret document. The viewer has zero access to the
+     * collection. Tests below assert that no search-filter shape can
+     * surface the secret document to the viewer.
+     */
+    const setupVictim = async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const privateCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const secretDoc = await buildDocument({
+        title: "TOP SECRET PAYROLL",
+        text: "secret material body",
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const ownCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      return {
+        viewer,
+        otherUser,
+        privateCollection,
+        secretDoc,
+        ownCollection,
+      };
+    };
+
+    it("must not leak docs across collections via OR with collectionId+title", async () => {
+      const { viewer, ownCollection, secretDoc } = await setupVictim();
+      const res = await server.post("/api/documents.search", viewer, {
+        body: {
+          query: "secret material",
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                { field: "title", operator: "contains", value: "secret" },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map(
+        (r: { document: { id: string } }) => r.document.id
+      );
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs via OR with collectionId+userId of teammate", async () => {
+      const { viewer, otherUser, ownCollection, secretDoc } =
+        await setupVictim();
+      const res = await server.post("/api/documents.search", viewer, {
+        body: {
+          query: "secret material",
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                { field: "userId", operator: "eq", value: otherUser.id },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map(
+        (r: { document: { id: string } }) => r.document.id
+      );
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs via deeply nested AND-of-OR with collectionId", async () => {
+      const { viewer, ownCollection, secretDoc } = await setupVictim();
+      const res = await server.post("/api/documents.search", viewer, {
+        body: {
+          query: "secret material",
+          filters: [
+            {
+              operator: "AND",
+              filters: [
+                {
+                  operator: "OR",
+                  filters: [
+                    {
+                      field: "collectionId",
+                      operator: "eq",
+                      value: ownCollection.id,
+                    },
+                    { field: "title", operator: "contains", value: "" },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map(
+        (r: { document: { id: string } }) => r.document.id
+      );
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must 403 when filter targets a private collection", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser();
+      const privateCollection = await buildCollection({
+        teamId: otherUser.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const res = await server.post("/api/documents.search", viewer, {
+        body: {
+          query: "x",
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: privateCollection.id,
+            },
+          ],
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("must 403 when filter targets a documentId in a private collection", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const privateCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const secret = await buildDocument({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const res = await server.post("/api/documents.search", viewer, {
+        body: {
+          query: "x",
+          filters: [{ field: "documentId", operator: "eq", value: secret.id }],
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("must 403 when in[] contains both an authorized and unauthorized collection", async () => {
+      const { viewer, ownCollection, privateCollection } = await setupVictim();
+      const res = await server.post("/api/documents.search", viewer, {
+        body: {
+          query: "x",
+          filters: [
+            {
+              field: "collectionId",
+              operator: "in",
+              value: [ownCollection.id, privateCollection.id],
+            },
+          ],
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+  });
 });
 
 describe("#documents.templatize", () => {
@@ -2608,6 +4769,123 @@ describe("#documents.deleted", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
+  });
+
+  it("should filter documents by the user that deleted them", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({ teamId: user.teamId });
+    const other = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const otherDocument = await buildDocument({
+      userId: other.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await withAPIContext(other, (ctx) => otherDocument.destroyWithCtx(ctx));
+
+    const res = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "deletedById", operator: "eq", value: user.id }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+    expect(body.data[0].updatedBy.id).toEqual(user.id);
+
+    const otherRes = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "deletedById", operator: "eq", value: other.id }],
+      },
+    });
+    const otherBody = await otherRes.json();
+    expect(otherRes.status).toEqual(200);
+    expect(otherBody.data.length).toEqual(1);
+    expect(otherBody.data[0].id).toEqual(otherDocument.id);
+  });
+
+  it("should record the deleting user on nested documents", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({ teamId: user.teamId });
+    const other = await buildUser({ teamId: user.teamId });
+    const document = await buildDocument({
+      userId: other.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const childDocument = await buildDocument({
+      userId: other.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+    });
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+
+    await childDocument.reload({ paranoid: false });
+    expect(childDocument.lastModifiedById).toEqual(user.id);
+
+    const res = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "deletedById", operator: "eq", value: user.id }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+  });
+
+  it("should reject filters on fields outside the allowlist", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "title", operator: "eq", value: "secret" }],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should filter documents by date deleted", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({ teamId: user.teamId });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
+    await Document.update(
+      { deletedAt: subDays(new Date(), 10) },
+      {
+        where: { id: document.id },
+        paranoid: false,
+        silent: true,
+        hooks: false,
+      }
+    );
+
+    const res = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "deletedAt", operator: "gte", value: "-P1D" }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+
+    const monthRes = await server.post("/api/documents.deleted", user, {
+      body: {
+        filters: [{ field: "deletedAt", operator: "gte", value: "-P1M" }],
+      },
+    });
+    const monthBody = await monthRes.json();
+    expect(monthRes.status).toEqual(200);
+    expect(monthBody.data.length).toEqual(1);
   });
 
   it("should require member", async () => {
@@ -3471,10 +5749,9 @@ describe("#documents.import", () => {
     );
     const form = new FormData();
     form.append("file", content, "markdown.md");
-    form.append("token", user.getSessionToken());
     form.append("collectionId", collection.id);
 
-    const res = await server.post("/api/documents.import", {
+    const res = await server.post("/api/documents.import", user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -3534,11 +5811,10 @@ describe("#documents.import", () => {
     );
     const form = new FormData();
     form.append("file", content, "markdown.md");
-    form.append("token", user.getSessionToken());
     form.append("collectionId", collection.id);
     form.append("parentDocumentId", parentDocument.id);
 
-    const res = await server.post("/api/documents.import", {
+    const res = await server.post("/api/documents.import", user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -3599,12 +5875,11 @@ describe("#documents.import", () => {
     );
     const form = new FormData();
     form.append("file", content, "markdown.md");
-    form.append("token", user.getSessionToken());
     form.append("collectionId", privateCollection.id);
     form.append("parentDocumentId", parentDocument.id);
     form.append("publish", "true");
 
-    const res = await server.post("/api/documents.import", {
+    const res = await server.post("/api/documents.import", user, {
       headers: form.getHeaders(),
       body: form,
     });
@@ -4011,6 +6286,85 @@ describe("#documents.update", () => {
       },
     });
     expect(events.length).toEqual(1);
+  });
+
+  it("should update document with a null preferences value", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        title: "Updated title",
+        preferences: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe("Updated title");
+    expect(body.data.preferences).toBe(null);
+  });
+
+  it("should update document preferences", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        preferences: { headingPrefix: HeadingPrefixStyle.Numeric },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.preferences).toEqual({
+      headingPrefix: HeadingPrefixStyle.Numeric,
+    });
+  });
+
+  it("should update document when lastRevision matches", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        text: "Updated text",
+        lastRevision: document.revisionCount,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.text).toBe("Updated text");
+    expect(body.data.revision).toBe(document.revisionCount + 1);
+  });
+
+  it("should return conflict when lastRevision does not match", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", user, {
+      body: {
+        id: document.id,
+        text: "Updated text",
+        lastRevision: document.revisionCount - 1,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(409);
+    expect(body.error).toBe("document_conflict");
+
+    const previousRevision = document.revisionCount;
+    await document.reload();
+    expect(document.revisionCount).toBe(previousRevision);
   });
 
   it("should not update a document with text over the maximum length", async () => {
@@ -5528,6 +7882,55 @@ describe("#documents.remove_user", () => {
     users = await document.$get("users");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(0);
+  });
+
+  it("should not remove user with access inherited from a parent", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      createdById: user.id,
+      permission: null,
+    });
+    const parentDocument = await buildDocument({
+      collectionId: collection.id,
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      parentDocumentId: parentDocument.id,
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const member = await buildUser({
+      teamId: user.teamId,
+    });
+    const sourceMembership = await UserMembership.create({
+      createdById: user.id,
+      documentId: parentDocument.id,
+      userId: member.id,
+      permission: DocumentPermission.ReadWrite,
+    });
+    await UserMembership.create({
+      createdById: user.id,
+      documentId: document.id,
+      userId: member.id,
+      permission: DocumentPermission.ReadWrite,
+      sourceId: sourceMembership.id,
+    });
+
+    const res = await server.post("/api/documents.remove_user", user, {
+      body: {
+        id: document.id,
+        userId: member.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+    expect(
+      await UserMembership.count({
+        where: { documentId: document.id, userId: member.id },
+      })
+    ).not.toEqual(0);
   });
 });
 

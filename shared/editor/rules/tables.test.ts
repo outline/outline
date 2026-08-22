@@ -1,10 +1,4 @@
-import { extensionManager, schema } from "../../test/editor";
-
-const serializer = extensionManager.serializer();
-const parser = extensionManager.parser({
-  schema,
-  plugins: extensionManager.rulePlugins,
-});
+import { parser, schema, serializer } from "../../test/editor";
 
 /**
  * Wraps a block node in a single-cell table so cell serialization/parsing can
@@ -39,6 +33,26 @@ function tableWith(cell: Record<string, unknown>) {
       },
     ],
   });
+}
+
+/**
+ * Parses markdown and collects the hard breaks and text of the result, so cell
+ * break handling can be asserted without depending on the surrounding nodes.
+ */
+function parseBreaks(markdown: string) {
+  const texts: string[] = [];
+  let breakCount = 0;
+
+  parser.parse(markdown)?.descendants((node) => {
+    if (node.type.name === "br") {
+      breakCount++;
+    }
+    if (node.isText) {
+      texts.push(node.text ?? "");
+    }
+  });
+
+  return { breakCount, texts };
 }
 
 it("round-trips a notice inside a table cell", () => {
@@ -101,6 +115,25 @@ it("round-trips a math block inside a table cell", () => {
 
   const markdown = serializer.serialize(doc, { commonMark: true });
   expect(parser.parse(markdown)!.toJSON()).toEqual(doc.toJSON());
+});
+
+it("splits a table cell on an unescaped newline escape", () => {
+  const { breakCount, texts } = parseBreaks(
+    "| Header |\n|--------|\n| Line one\\nLine two |"
+  );
+
+  expect(breakCount).toBe(1);
+  expect(texts).toContain("Line one");
+  expect(texts).toContain("Line two");
+});
+
+it("keeps an escaped backslash in a table cell as text", () => {
+  const { breakCount, texts } = parseBreaks(
+    "| Header |\n|--------|\n| C:\\\\name |"
+  );
+
+  expect(breakCount).toBe(0);
+  expect(texts).toContain("C:\\name");
 });
 
 it("keeps a multi-line paragraph cell as hard breaks, not a fenced block", () => {

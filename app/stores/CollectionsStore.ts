@@ -175,12 +175,12 @@ export default class CollectionsStore extends Store<Collection> {
     try {
       const res = await client.post(`/collections.${request}`, options);
       invariant(res?.data, "Collection list not available");
-      runInAction("CollectionsStore#fetchNamedPage", () => {
-        res.data.forEach(this.add);
+      return runInAction("CollectionsStore#fetchNamedPage", () => {
+        const collections = res.data.map(this.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;
+        return collections;
       });
-      return res.data;
     } finally {
       this.isFetching = false;
     }

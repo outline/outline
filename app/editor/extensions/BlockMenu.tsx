@@ -59,6 +59,8 @@ export default class BlockMenuExtension extends Suggestion {
                   () => {
                     button.onclick = action(() => {
                       this.state.query = "";
+                      this.state.trigger = null;
+                      this.state.triggerPos = null;
                       this.state.open = true;
                     });
                     return button;

@@ -1,4 +1,9 @@
-import { buildGroup, buildGuestUser, buildUser } from "@server/test/factories";
+import {
+  buildGroup,
+  buildGroupUser,
+  buildGuestUser,
+  buildUser,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -19,6 +24,46 @@ describe("#suggestions.mention", () => {
     expect(body.data.groups.map((g: { id: string }) => g.id)).toContain(
       group.id
     );
+  });
+
+  it("should return users in the same group first", async () => {
+    const user = await buildUser();
+    const other = await buildUser({ teamId: user.teamId, name: "Anna" });
+    const teammate = await buildUser({ teamId: user.teamId, name: "Zoe" });
+    const group = await buildGroup({ teamId: user.teamId });
+
+    await buildGroupUser({
+      teamId: user.teamId,
+      groupId: group.id,
+      userId: user.id,
+    });
+    await buildGroupUser({
+      teamId: user.teamId,
+      groupId: group.id,
+      userId: teammate.id,
+    });
+
+    const res = await server.post("/api/suggestions.mention", user);
+    const body = await res.json();
+    const userIds = body.data.users.map((u: { id: string }) => u.id);
+
+    expect(res.status).toEqual(200);
+    expect(userIds.indexOf(teammate.id)).toBeLessThan(
+      userIds.indexOf(other.id)
+    );
+    expect(body.data.familiarity[teammate.id]).toBeGreaterThan(1);
+    expect(body.data.familiarity[other.id]).toBeUndefined();
+  });
+
+  it("should not return familiarity for a user in no group", async () => {
+    const user = await buildUser();
+    await buildUser({ teamId: user.teamId });
+
+    const res = await server.post("/api/suggestions.mention", user);
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.familiarity).toEqual({});
   });
 
   it("should not return users or groups for a guest", async () => {
