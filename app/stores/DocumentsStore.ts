@@ -8,6 +8,7 @@ import {
   type DateFilter,
 } from "@shared/types";
 import type { Filter } from "@shared/helpers/FilterHelper";
+import { adjustIndexForMove } from "@shared/utils/collections";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
@@ -550,6 +551,21 @@ export default class DocumentsStore extends Store<Document> {
   }) => {
     this.movingDocumentId = documentId;
 
+    // A draft is absent from the collection's document structure, so its position lives on the
+    // document itself and nothing else will move the sidebar row. Apply it locally so the drop
+    // lands immediately rather than waiting on the response.
+    const document = this.get(documentId);
+    const previousIndex = document?.index;
+
+    if (document?.isDraft && typeof index === "number") {
+      document.index = adjustIndexForMove(
+        index,
+        document.index ?? 0,
+        (document.parentDocumentId ?? null) === (parentDocumentId ?? null) &&
+          document.collectionId === collectionId
+      );
+    }
+
     try {
       const res = await client.post("/documents.move", {
         id: documentId,
@@ -570,6 +586,11 @@ export default class DocumentsStore extends Store<Document> {
       if (membership) {
         await membership.fetchDocuments({ force: true });
       }
+    } catch (err) {
+      if (document) {
+        document.index = previousIndex ?? null;
+      }
+      throw err;
     } finally {
       this.movingDocumentId = undefined;
     }

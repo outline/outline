@@ -15,6 +15,9 @@ import {
   buildGuestUser,
 } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
+import { createContext } from "@server/context";
+import Collection from "./Collection";
+import Event from "./Event";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import UserMembership from "./UserMembership";
@@ -84,7 +87,7 @@ describe("#destroyWithCtx", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await collection.addDocumentToStructure(document, 0);
+    await collection.addDocumentToStructure(createContext({}), document, 0);
 
     await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const [newDocument, newCollection] = await Promise.all([
@@ -871,5 +874,199 @@ describe("commentCount", () => {
     await thread.save();
 
     expect(await document.commentCount).toEqual(1);
+  });
+});
+
+describe("index", () => {
+  const buildCollectionWithDocuments = async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    // The factory prepends, so building in order results in [third, second, first]
+    const first = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const second = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const third = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    return { user, collection, first, second, third };
+  };
+
+  const storedIndex = async (documentId: string) => {
+    const document = await Document.unscoped().findByPk(documentId, {
+      rejectOnEmpty: true,
+    });
+    return document.index;
+  };
+
+  const documentStructureIds = async (collectionId: string) => {
+    const collection = await Collection.findByPk(collectionId, {
+      includeDocumentStructure: true,
+      rejectOnEmpty: true,
+    });
+    return collection.documentStructure!.map((node) => node.id);
+  };
+
+  it("stores the position of a document when it is unpublished", async () => {
+    const { user, collection, first, second, third } =
+      await buildCollectionWithDocuments();
+
+    await withAPIContext(user, (ctx) =>
+      second.unpublishWithCtx(ctx, { detach: false })
+    );
+
+    expect(second.index).toEqual(1);
+    expect(await documentStructureIds(collection.id)).toEqual([
+      third.id,
+      first.id,
+    ]);
+  });
+
+  it("restores the stored position when a document is published again", async () => {
+    const { user, collection, first, second, third } =
+      await buildCollectionWithDocuments();
+
+    await withAPIContext(user, (ctx) =>
+      second.unpublishWithCtx(ctx, { detach: false })
+    );
+    await withAPIContext(user, (ctx) =>
+      second.publish(ctx, { collectionId: collection.id })
+    );
+
+    expect(await documentStructureIds(collection.id)).toEqual([
+      third.id,
+      second.id,
+      first.id,
+    ]);
+    expect(second.index).toBeNull();
+  });
+
+  it("does not store a position when the document is detached", async () => {
+    const { user, second } = await buildCollectionWithDocuments();
+
+    await withAPIContext(user, (ctx) =>
+      second.unpublishWithCtx(ctx, { detach: true })
+    );
+
+    expect(second.index).toBeNull();
+    expect(second.collectionId).toBeNull();
+  });
+
+  it("publishes a draft at its stored position", async () => {
+    const { user, collection, first, second, third } =
+      await buildCollectionWithDocuments();
+    const draft = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    draft.index = 1;
+    await draft.save();
+
+    await withAPIContext(user, (ctx) =>
+      draft.publish(ctx, { collectionId: collection.id })
+    );
+
+    expect(await documentStructureIds(collection.id)).toEqual([
+      third.id,
+      draft.id,
+      second.id,
+      first.id,
+    ]);
+  });
+
+  it("shifts the stored position when a document is published above a draft", async () => {
+    const { user, collection } = await buildCollectionWithDocuments();
+    const draft = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    draft.index = 2;
+    await draft.save();
+
+    // The factory prepends, pushing the draft down by one
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    expect(await storedIndex(draft.id)).toEqual(3);
+  });
+
+  it("shifts the stored position when a document is removed above a draft", async () => {
+    const { user, collection, third } = await buildCollectionWithDocuments();
+    const draft = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    draft.index = 2;
+    await draft.save();
+
+    await withAPIContext(user, (ctx) => third.archiveWithCtx(ctx));
+
+    expect(await storedIndex(draft.id)).toEqual(1);
+  });
+
+  it("emits an update event for drafts that are repositioned", async () => {
+    const { user, collection } = await buildCollectionWithDocuments();
+    const draft = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    draft.index = 0;
+    await draft.save();
+
+    const publishing = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await withAPIContext(user, (ctx) =>
+      publishing.publish(ctx, { collectionId: collection.id })
+    );
+
+    expect(await storedIndex(draft.id)).toEqual(1);
+
+    const event = await Event.findOne({
+      where: { name: "documents.update", documentId: draft.id },
+    });
+    expect(event).toBeTruthy();
+    expect(event?.actorId).toEqual(user.id);
+  });
+
+  it("only shifts drafts that share a parent with the changed document", async () => {
+    const { user, collection, third } = await buildCollectionWithDocuments();
+    const draft = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    draft.index = 1;
+    await draft.save();
+
+    // A document added under another parent is not a sibling of the draft
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: third.id,
+    });
+
+    expect(await storedIndex(draft.id)).toEqual(1);
   });
 });

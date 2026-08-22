@@ -1045,11 +1045,11 @@ export default class WebsocketsProcessor {
   ): Promise<string[]> {
     const channels = [];
 
-    if (event.actorId) {
-      channels.push(`user-${event.actorId}`);
-    }
-
     if (document.publishedAt) {
+      if (event.actorId) {
+        channels.push(`user-${event.actorId}`);
+      }
+
       if (document.collection) {
         channels.push(
           ...this.getCollectionEventChannels(event, document.collection)
@@ -1057,6 +1057,10 @@ export default class WebsocketsProcessor {
       } else {
         channels.push(`collection-${document.collectionId}`);
       }
+    } else {
+      // A draft is only visible to its creator, who is not necessarily the actor that caused
+      // the event, so the actor is deliberately not included here.
+      channels.push(`user-${document.createdById}`);
     }
 
     const [userMemberships, groupMemberships] = await Promise.all([
