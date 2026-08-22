@@ -1,7 +1,6 @@
 import Router from "koa-router";
 import type { WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
-import type { UserPreferences } from "@shared/types";
 import { NotificationEventType, UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { settingsPath } from "@shared/utils/routeHelpers";
@@ -342,7 +341,7 @@ router.post(
     if (preferences) {
       user.preferences = {
         ...user.preferences,
-        ...(preferences as UserPreferences),
+        ...preferences,
       };
     }
     if (timezone) {

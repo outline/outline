@@ -346,6 +346,15 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                   }
                 | undefined;
 
+export enum SidebarSection {
+  /** The starred documents section. */
+  Starred = "starred",
+  /** The documents shared with the user directly or via groups. */
+  SharedWithMe = "shared",
+  /** The collections section. */
+  Collections = "collections",
+}
+
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
   RememberLastPath = "rememberLastPath",
@@ -367,6 +376,8 @@ export enum UserPreference {
   ShowDocumentStats = "showDocumentStats",
   /** The style of notification badge to display. */
   NotificationBadge = "notificationBadge",
+  /** The display order of the reorderable sections in the sidebar. */
+  SidebarSectionOrder = "sidebarSectionOrder",
 }
 
 export enum NotificationBadgeType {
@@ -389,6 +400,7 @@ export type UserPreferences = {
   [UserPreference.EnableSmartText]?: boolean;
   [UserPreference.ShowDocumentStats]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
+  [UserPreference.SidebarSectionOrder]?: SidebarSection[];
 };
 
 export type SourceMetadata = {
