@@ -708,6 +708,48 @@ describe("#users.update", () => {
     expect(body.data.preferences.rememberLastPath).toBe(true);
   });
 
+  it("should update sidebarSectionOrder user preference", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.update", user, {
+      body: {
+        preferences: {
+          sidebarSectionOrder: ["collections", "starred", "shared"],
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.preferences.sidebarSectionOrder).toEqual([
+      "collections",
+      "starred",
+      "shared",
+    ]);
+  });
+
+  it("should fail upon sending a preference value of the wrong type", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.update", user, {
+      body: {
+        preferences: {
+          rememberLastPath: ["starred"],
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should fail upon sending invalid sidebarSectionOrder user preference", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.update", user, {
+      body: {
+        preferences: {
+          sidebarSectionOrder: ["invalidSection"],
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should update user timezone", async () => {
     const user = await buildUser();
     const res = await server.post("/api/users.update", user, {

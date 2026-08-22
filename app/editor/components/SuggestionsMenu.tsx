@@ -419,7 +419,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const close = React.useCallback(() => {
     props.onClose();
-    view.focus();
+
+    // Don't steal focus back from a nested editor, such as the one inside a
+    // math node, that took it while the menu was closing.
+    const focused = view.dom.ownerDocument.activeElement;
+    if (focused === view.dom || !view.dom.contains(focused)) {
+      view.focus();
+    }
   }, [props, view]);
 
   const handleLinkInputKeydown = (

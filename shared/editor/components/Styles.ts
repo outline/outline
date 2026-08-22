@@ -560,9 +560,40 @@ width: 100%;
   gap: 4px;
   vertical-align: bottom;
 
+  /* Long labels are truncated so a mention never wraps onto a second line. */
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Text sets white-space: normal, so nowrap cannot simply be inherited. */
+    white-space: nowrap;
+  }
+
+  /* Only the label truncates; icons and trailing identifiers stay whole. */
+  &::before,
+  svg,
+  img,
+  span ~ span {
+    flex-shrink: 0;
+  }
+
   &:${hover} {
     cursor: default;
     background: ${props.theme.mentionHoverBackground};
+  }
+
+  /* Date mentions only open the picker when editable, so no hover affordance
+     in read-only mode. */
+  ${
+    props.readOnly
+      ? `&[data-type="date"]:${hover} {
+    background: ${props.theme.mentionBackground};
+  }`
+      : ""
   }
 
   &[data-type="user"],

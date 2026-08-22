@@ -7,7 +7,11 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
-import type { NavigationNode } from "@shared/types";
+import {
+  type NavigationNode,
+  type SidebarSection,
+  UserPreference,
+} from "@shared/types";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import type GroupMembership from "~/models/GroupMembership";
@@ -167,6 +171,63 @@ export function useDropToReorderStar(getIndex?: () => string) {
     collect: (monitor) => ({
       isOverCursor: !!monitor.isOver(),
       isDragging: monitor.getItemType() === "star",
+    }),
+  });
+}
+
+/**
+ * Hook for shared logic that allows dragging a sidebar section by its header.
+ *
+ * @param section The section to drag.
+ * @param title The localized title of the section, shown in the drag preview.
+ */
+export function useDragSidebarSection(
+  section: SidebarSection,
+  title: string
+): [{ isDragging: boolean }, ConnectDragSource] {
+  const [{ isDragging }, draggableRef, preview] = useDrag({
+    type: "sidebarSection",
+    item: () => ({ id: section, title }),
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  });
+
+  React.useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: true });
+  }, [preview]);
+
+  return [{ isDragging }, draggableRef];
+}
+
+/**
+ * Hook for shared logic that allows dropping a sidebar section to reorder it,
+ * persisting the new order as a user preference.
+ *
+ * @param getNewOrder A function that returns the section order after dropping the given section here, or undefined when the drop would not change the order.
+ */
+export function useDropToReorderSidebarSection(
+  getNewOrder: (section: SidebarSection) => SidebarSection[] | undefined
+) {
+  const user = useCurrentUser();
+
+  return useDrop<
+    { id: SidebarSection; title: string },
+    void,
+    { isOverCursor: boolean; isDragging: boolean }
+  >({
+    accept: "sidebarSection",
+    drop: (item) => {
+      const order = getNewOrder(item.id);
+      if (order) {
+        user.setPreference(UserPreference.SidebarSectionOrder, order);
+        void user.save();
+      }
+    },
+    canDrop: (item) => !!getNewOrder(item.id),
+    collect: (monitor) => ({
+      isOverCursor: monitor.isOver() && monitor.canDrop(),
+      isDragging: monitor.getItemType() === "sidebarSection",
     }),
   });
 }

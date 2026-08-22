@@ -11,6 +11,7 @@ import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
 import { Collection, Document, SearchQuery, Template } from "@server/models";
 import { SearchQuerySource } from "@server/models/SearchQuery";
+import { combineFilters } from "@server/models/helpers/Filters";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import { sequelize } from "@server/storage/database";
 import { authorize, can } from "@server/policies";
@@ -75,7 +76,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Search documents",
         description:
-          "Searches documents the user has access to. Performs full-text search across document content when a query is provided, or lists recent documents when no query is given. Optionally filter by collection. To retrieve the full contents or hierarchy of a specific collection, use list_collection_documents instead.",
+          "Searches documents the user has access to. Performs full-text search across document content when a query is provided, or lists recent documents when no query is given. Archived documents are excluded unless includeArchived is set. Optionally filter by collection. To retrieve the full contents or hierarchy of a specific collection, use list_collection_documents instead.",
         annotations: {
           idempotentHint: true,
           readOnlyHint: true,
@@ -87,6 +88,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
           collectionId: optionalString().describe(
             "A collection ID to filter documents by."
           ),
+          includeArchived: z
+            .boolean()
+            .optional()
+            .describe(
+              "Whether to include archived documents in the results. Defaults to false, as archived documents are usually outdated."
+            ),
           offset: z.coerce
             .number()
             .int()
@@ -106,7 +113,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
       },
       withTracing(
         "list_documents",
-        async ({ query, collectionId, offset, limit }, extra) => {
+        async (
+          { query, collectionId, includeArchived, offset, limit },
+          extra
+        ) => {
           try {
             const user = getActorFromContext(extra);
             const effectiveOffset = offset ?? 0;
@@ -149,17 +159,25 @@ export function documentTools(server: McpServer, scopes: string[]) {
               }
 
               const searchStartedAt = Date.now();
+              const searchFilters: Filter[] = [];
+              if (!includeArchived) {
+                searchFilters.push({
+                  field: "archivedAt",
+                  operator: "isNull",
+                });
+              }
+              if (collectionId) {
+                searchFilters.push({
+                  field: "collectionId",
+                  operator: "eq",
+                  value: collectionId,
+                });
+              }
               const { results, total } = await searchProvider.searchForUser(
                 user,
                 {
                   query,
-                  filter: collectionId
-                    ? {
-                        field: "collectionId",
-                        operator: "eq",
-                        value: collectionId,
-                      }
-                    : undefined,
+                  filter: combineFilters(searchFilters),
                   offset: effectiveOffset,
                   limit: effectiveLimit,
                 }
@@ -244,9 +262,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
             // access control matches the search path exactly.
             const searchProvider = SearchProviderManager.getProvider();
             const filters: Filter[] = [
-              { field: "archivedAt", operator: "isNull" },
               { field: "publishedAt", operator: "isNotNull" },
             ];
+            if (!includeArchived) {
+              filters.push({ field: "archivedAt", operator: "isNull" });
+            }
             if (collectionId) {
               filters.push({
                 field: "collectionId",

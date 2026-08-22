@@ -9,10 +9,12 @@ export default function present(
   options: {
     analytics?: Integration<IntegrationType.Analytics>[];
     rootShareId?: string | null;
+    isShare?: boolean;
   } = {}
 ): PublicEnv {
   return {
     ROOT_SHARE_ID: options.rootShareId || undefined,
+    isShare: options.isShare || undefined,
     analytics: (options.analytics ?? []).map((integration) => ({
       service: integration?.service,
       settings: integration?.settings,

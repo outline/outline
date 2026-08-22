@@ -8,6 +8,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { SidebarSection, UserPreference } from "@shared/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Scrollable from "~/components/Scrollable";
 import { navigateToImport } from "~/actions/definitions/navigation";
@@ -24,6 +25,9 @@ import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
+import DraggableSection, {
+  normalizeSidebarSectionOrder,
+} from "./components/DraggableSection";
 import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
@@ -72,6 +76,17 @@ function AppSidebar() {
   useEffect(() => {
     setScrollArea(scrollRef.current);
   }, []);
+
+  const sectionOrder = normalizeSidebarSectionOrder(
+    user.getPreference(UserPreference.SidebarSectionOrder, [])
+  );
+
+  const sectionContent = {
+    [SidebarSection.Starred]: <Starred />,
+    [SidebarSection.SharedWithMe]: <SharedWithMe />,
+    [SidebarSection.Collections]: <Collections />,
+    [SidebarSection.Personal]: <PersonalDocs />,
+  };
 
   return (
     <Sidebar hidden={!ui.readyToShow}>
@@ -128,18 +143,11 @@ function AppSidebar() {
         </Overflow>
         <Scrollable flex shadow ref={scrollRef}>
           <SidebarScrollProvider value={scrollArea}>
-            <Section>
-              <Starred />
-            </Section>
-            <Section>
-              <SharedWithMe />
-            </Section>
-            <Section>
-              <Collections />
-            </Section>
-            <Section>
-              <PersonalDocs />
-            </Section>
+            {sectionOrder.map((section) => (
+              <DraggableSection key={section} section={section}>
+                {sectionContent[section]}
+              </DraggableSection>
+            ))}
             {can.createDocument && (
               <Section auto>
                 <ArchiveLink />

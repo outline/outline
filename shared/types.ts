@@ -135,7 +135,10 @@ export enum MentionType {
 }
 
 export type PublicEnv = {
+  /** ID of the share mounted at the root of a custom domain, if any. */
   ROOT_SHARE_ID?: string;
+  /** Whether the page is a publicly shared view. */
+  isShare?: boolean;
   analytics: {
     service: IntegrationService;
     settings: IntegrationSettings<IntegrationType.Analytics>;
@@ -343,6 +346,17 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                   }
                 | undefined;
 
+export enum SidebarSection {
+  /** The starred documents section. */
+  Starred = "starred",
+  /** The documents shared with the user directly or via groups. */
+  SharedWithMe = "shared",
+  /** The collections section. */
+  Collections = "collections",
+  /** The user's own personal documents section. */
+  Personal = "personal",
+}
+
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
   RememberLastPath = "rememberLastPath",
@@ -364,6 +378,8 @@ export enum UserPreference {
   ShowDocumentStats = "showDocumentStats",
   /** The style of notification badge to display. */
   NotificationBadge = "notificationBadge",
+  /** The display order of the reorderable sections in the sidebar. */
+  SidebarSectionOrder = "sidebarSectionOrder",
 }
 
 export enum NotificationBadgeType {
@@ -386,6 +402,7 @@ export type UserPreferences = {
   [UserPreference.EnableSmartText]?: boolean;
   [UserPreference.ShowDocumentStats]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
+  [UserPreference.SidebarSectionOrder]?: SidebarSection[];
 };
 
 export type SourceMetadata = {
