@@ -252,6 +252,96 @@ describe("createFilterSchema operator allowlists", () => {
   });
 });
 
+describe("createFilterSchema value allowlists", () => {
+  const { FilterSchema: RestrictedSchema } = createFilterSchema({
+    permission: { kind: "string", values: ["read", "read_write"] },
+    title: "string",
+  } as const);
+
+  it("accepts an allowed value", () => {
+    expect(
+      RestrictedSchema.safeParse({
+        field: "permission",
+        operator: "eq",
+        value: "read_write",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects a value outside the allowlist", () => {
+    const result = RestrictedSchema.safeParse({
+      field: "permission",
+      operator: "neq",
+      value: "manage",
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toBe(
+      "value must be one of read, read_write for field 'permission'"
+    );
+  });
+
+  it("accepts an array of allowed values", () => {
+    expect(
+      RestrictedSchema.safeParse({
+        field: "permission",
+        operator: "in",
+        value: ["read", "read_write"],
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects an array holding a value outside the allowlist", () => {
+    expect(
+      RestrictedSchema.safeParse({
+        field: "permission",
+        operator: "in",
+        value: ["read", "manage"],
+      }).success
+    ).toBe(false);
+  });
+
+  it("still allows null operators with no value", () => {
+    expect(
+      RestrictedSchema.safeParse({
+        field: "permission",
+        operator: "isNull",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects pattern matching against a fixed value set", () => {
+    expect(
+      RestrictedSchema.safeParse({
+        field: "permission",
+        operator: "contains",
+        value: "read",
+      }).success
+    ).toBe(false);
+  });
+
+  it("does not restrict fields without a value allowlist", () => {
+    expect(
+      RestrictedSchema.safeParse({
+        field: "title",
+        operator: "eq",
+        value: "anything",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects a disallowed value nested inside a group", () => {
+    expect(
+      RestrictedSchema.safeParse({
+        operator: "AND",
+        filters: [
+          { field: "title", operator: "eq", value: "x" },
+          { field: "permission", operator: "eq", value: "manage" },
+        ],
+      }).success
+    ).toBe(false);
+  });
+});
+
 describe("createFilterSchema node limit", () => {
   const { maxNodes } = FilterValidation;
 
