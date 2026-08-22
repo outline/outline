@@ -44,6 +44,7 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
+  showLastViewed?: boolean;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -81,6 +82,7 @@ function DocumentListItem(
     showCollection,
     showPublished,
     showDraft = true,
+    showLastViewed = true,
     highlight,
     context,
     ...rest
@@ -237,10 +239,27 @@ function DocumentListItem(
                 showCollection={showCollection}
                 showPublished={showPublished}
                 showParentDocuments={showParentDocuments}
-                showLastViewed
+                showLastViewed={showLastViewed}
               />
             </Content>
           </Flex>
+          {document.destroysInDays !== undefined && (
+            <RetentionBadge>
+              <Tooltip
+                content={t(
+                  "Will be permanently deleted in {{ count }} days unless restored",
+                  { count: document.destroysInDays }
+                )}
+                placement="top"
+              >
+                <Badge>
+                  {t("{{ count }} days", {
+                    count: document.destroysInDays,
+                  })}
+                </Badge>
+              </Tooltip>
+            </RetentionBadge>
+          )}
           <Actions>
             <DocumentMenu
               document={document}
@@ -306,6 +325,13 @@ const Content = styled.div`
   flex-grow: 1;
   flex-shrink: 1;
   min-width: 0;
+`;
+
+const RetentionBadge = styled.div`
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 8px;
 `;
 
 const Actions = styled(EventBoundary)`

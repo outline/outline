@@ -9,6 +9,7 @@ import type {
   ScopeOptions,
   FindOptions,
   ProjectionAlias,
+  Utils,
   WhereOptions,
 } from "sequelize";
 import {
@@ -27,6 +28,7 @@ import {
   BeforeValidate,
   BeforeCreate,
   BeforeUpdate,
+  BeforeRestore,
   HasMany,
   BeforeSave,
   DefaultScope,
@@ -51,6 +53,7 @@ import type {
   ImportableIntegrationService,
   NavigationNode,
   ProsemirrorData,
+  RetentionPreference,
   SourceMetadata,
 } from "@shared/types";
 import { DocumentPreferenceDefaults } from "@shared/constants";
@@ -431,6 +434,21 @@ class Document extends ArchivableModel<
   @IsDate
   @Column(DataType.DATE)
   publishedAt: Date | null;
+
+  /**
+   * When the document left the trash and entered the data retention period. Once
+   * set the document is no longer visible or restorable, and the row is removed
+   * entirely once the team's data retention period has elapsed.
+   */
+  @AllowNull
+  @IsDate
+  @Column(DataType.DATE)
+  destroyedAt: Date | null;
+
+  @BeforeRestore
+  static clearDestroyedAt(model: Document) {
+    model.destroyedAt = null;
+  }
 
   /** An array of user IDs that have edited this document. */
   @Column(DataType.ARRAY(DataType.UUID))
@@ -865,6 +883,44 @@ class Document extends ArchivableModel<
     );
   }
 
+  /**
+   * Builds a filter matching documents that belong to a team configured with
+   * the given retention period. Teams that have not set the preference are
+   * matched by the default period.
+   *
+   * Comparison is performed on the raw JSON text rather than casting to an
+   * integer so that an unexpected value stored against the preference cannot
+   * fail the query for every other team in the same batch.
+   *
+   * @param preference the retention preference to match on.
+   * @param retentionDays the retention period in days.
+   * @returns the where clause literal and the replacements it requires.
+   */
+  static retentionPeriodFilter(
+    preference: RetentionPreference,
+    retentionDays: number
+  ): { where: Utils.Literal; replacements: Record<string, string> } {
+    const isDefault =
+      retentionDays === Team.getDefaultRetentionPeriod(preference);
+    const matchesPreference = isDefault
+      ? `(preferences->>:preference IS NULL OR preferences->>:preference = :retentionDaysText)`
+      : `preferences->>:preference = :retentionDaysText`;
+
+    return {
+      where: Sequelize.literal(
+        `EXISTS (
+          SELECT 1 FROM teams
+          WHERE teams.id = "document"."teamId"
+          AND ${matchesPreference}
+        )`
+      ),
+      replacements: {
+        preference,
+        retentionDaysText: String(retentionDays),
+      },
+    };
+  }
+
   static withMembershipScope(
     userId: string,
     options?: FindOptions<Document> & { includeDrafts?: boolean }
@@ -1046,6 +1102,17 @@ class Document extends ArchivableModel<
    */
   get isActive(): boolean {
     return !this.archivedAt && !this.deletedAt;
+  }
+
+  /**
+   * Whether this document has left the trash and is pending permanent deletion.
+   * Destroyed documents are not readable or restorable, they only remain in the
+   * database until the team's data retention period has elapsed.
+   *
+   * @returns boolean
+   */
+  get isDestroyed(): boolean {
+    return !!this.destroyedAt;
   }
 
   /**

@@ -5,8 +5,15 @@ import {
   TOCPosition,
   UserRole,
 } from "@shared/types";
+import { isRetentionPeriodPreset } from "@shared/constants";
+import type { RetentionPeriodPreset } from "@shared/types";
 import { TeamValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
+
+// Derived from the presets offered in the UI so that the two cannot diverge.
+const retentionDaysSchema = z
+  .custom<RetentionPeriodPreset>(isRetentionPeriodPreset)
+  .optional();
 
 export const TeamsUpdateSchema = BaseSchema.extend({
   body: z.object({
@@ -71,6 +78,10 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         emailDisplay: z.enum(EmailDisplay).optional(),
         /** Whether to prevent shared documents from being embedded in iframes on external websites. */
         preventDocumentEmbedding: z.boolean().optional(),
+        /** Days to keep documents in trash before retention phase. 0 = infinite. */
+        trashRetentionDays: retentionDaysSchema,
+        /** Days to keep documents in retention phase before permanent deletion. 0 = infinite. */
+        dataRetentionDays: retentionDaysSchema,
         /** Whether external MCP clients can connect to the workspace. */
         mcp: z.boolean().optional(),
         /** List of disabled embed provider titles. */
