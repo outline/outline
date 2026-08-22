@@ -2,13 +2,8 @@ import { z } from "zod";
 import { Op, Sequelize } from "sequelize";
 import type { WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { UserRole } from "@shared/types";
 import { User, Team } from "@server/models";
-import {
-  buildWhere,
-  combineFilters,
-  hasFieldInFilter,
-  UsersFilterListSchema,
-} from "@server/models/helpers/Filters";
 import { authorize, can } from "@server/policies";
 import { presentUser } from "@server/presenters";
 import { QueryHelper } from "@server/storage/QueryHelper";
@@ -34,8 +29,7 @@ export function userTools(server: McpServer, scopes: string[]) {
       "list_users",
       {
         title: "List users",
-        description:
-          "Lists users in the workspace. Returns non-suspended users unless the filters say otherwise.",
+        description: "Lists users in the workspace.",
         annotations: {
           idempotentHint: true,
           readOnlyHint: true,
@@ -44,19 +38,21 @@ export function userTools(server: McpServer, scopes: string[]) {
           query: optionalString().describe(
             "An optional search query to filter users by name or email."
           ),
-          filters: UsersFilterListSchema.optional().describe(
-            [
-              "Filter expressions, combined with AND. Each entry is either a condition",
-              "{ field, operator, value } or a group { operator: 'AND' | 'OR', filters: [...] }.",
-              "Fields: id, name, email, role, createdAt, updatedAt, lastActiveAt, suspendedAt.",
-              "Operators: eq, neq, lt, lte, gt, gte, contains, startsWith, endsWith, in, notIn, isNull, isNotNull.",
-              "Date fields take an ISO 8601 date, or a duration relative to now such as '-P30D'.",
-              "The role field accepts admin, member, viewer or guest, with eq, neq, in or notIn only.",
-              "Users who have never signed in have lastActiveAt isNull.",
-              "Suspended users are excluded unless an expression references suspendedAt,",
-              "and are only ever visible to admins.",
-            ].join(" ")
-          ),
+          role: z
+            .enum([
+              UserRole.Admin,
+              UserRole.Member,
+              UserRole.Viewer,
+              UserRole.Guest,
+            ])
+            .optional()
+            .describe("Filter users by role."),
+          filter: z
+            .enum(["active", "suspended", "invited", "all"])
+            .optional()
+            .describe(
+              "Filter users by status. Defaults to active, non-suspended users. Note filtering by 'suspended' is only available to admins."
+            ),
           offset: z.coerce
             .number()
             .int()
@@ -76,7 +72,7 @@ export function userTools(server: McpServer, scopes: string[]) {
       },
       withTracing(
         "list_users",
-        async ({ query, filters, offset, limit }, extra) => {
+        async ({ query, role, filter, offset, limit }, extra) => {
           try {
             const actor = getActorFromContext(extra);
             const team = await Team.findByPk(actor.teamId, {
@@ -87,40 +83,70 @@ export function userTools(server: McpServer, scopes: string[]) {
             const effectiveOffset = offset ?? 0;
             const effectiveLimit = limit ?? 25;
 
-            const where: WhereOptions<User> & {
-              [Op.and]: WhereOptions<User>[];
-            } = {
+            let where: WhereOptions<User> = {
               teamId: actor.teamId,
-              [Op.and]: [],
             };
 
-            const filter = combineFilters(filters);
-
-            // Suspended users are only ever visible to admins, and then only
-            // when the expression references suspendedAt. Matches users.list.
-            const includeSuspended =
-              actor.isAdmin &&
-              filter !== undefined &&
-              hasFieldInFilter(filter, "suspendedAt");
-            if (!includeSuspended) {
-              where[Op.and].push({ suspendedAt: { [Op.is]: null } });
+            // Non-admins cannot see suspended users
+            if (!actor.isAdmin) {
+              where = {
+                ...where,
+                suspendedAt: { [Op.eq]: null },
+              };
             }
 
-            if (filter) {
-              where[Op.and].push(buildWhere<User>(filter));
+            switch (filter) {
+              case "invited": {
+                where = { ...where, lastActiveAt: null };
+                break;
+              }
+              case "suspended": {
+                if (actor.isAdmin) {
+                  where = {
+                    ...where,
+                    suspendedAt: { [Op.ne]: null },
+                  };
+                }
+                break;
+              }
+              case "active": {
+                where = {
+                  ...where,
+                  lastActiveAt: { [Op.ne]: null },
+                  suspendedAt: { [Op.is]: null },
+                };
+                break;
+              }
+              case "all": {
+                break;
+              }
+              default: {
+                where = {
+                  ...where,
+                  suspendedAt: { [Op.is]: null },
+                };
+                break;
+              }
+            }
+
+            if (role) {
+              where = { ...where, role };
             }
 
             if (query) {
-              where[Op.and].push({
-                [Op.or]: [
-                  Sequelize.literal(
-                    `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
-                  ),
-                  Sequelize.literal(
-                    `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-                  ),
-                ],
-              });
+              where = {
+                ...where,
+                [Op.and]: {
+                  [Op.or]: [
+                    Sequelize.literal(
+                      `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+                    ),
+                    Sequelize.literal(
+                      `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+                    ),
+                  ],
+                },
+              };
             }
 
             const replacements = {

@@ -37,7 +37,7 @@ describe("user tools", () => {
     const admin = await buildAdmin({ teamId: user.teamId });
 
     const res = await callMcpTool(server, accessToken, "list_users", {
-      filters: [{ field: "role", operator: "eq", value: UserRole.Admin }],
+      role: UserRole.Admin,
     });
     const data = parseMcpListContent<{ id: string }>(res?.result?.content);
 
@@ -58,7 +58,7 @@ describe("user tools", () => {
     expect(data.map((item) => item.id)).not.toContain(suspended.id);
   });
 
-  it("list_users returns suspended users to an admin filtering on suspendedAt", async () => {
+  it("list_users returns suspended users to an admin filtering by suspended", async () => {
     const { user, accessToken } = await buildOAuthUser({ role: "admin" });
     const suspended = await buildUser({
       teamId: user.teamId,
@@ -66,7 +66,7 @@ describe("user tools", () => {
     });
 
     const res = await callMcpTool(server, accessToken, "list_users", {
-      filters: [{ field: "suspendedAt", operator: "isNotNull" }],
+      filter: "suspended",
     });
     const data = parseMcpListContent<{ id: string }>(res?.result?.content);
 
@@ -76,17 +76,17 @@ describe("user tools", () => {
 
   it("list_users does not return suspended users to a non-admin", async () => {
     const { user, accessToken } = await buildOAuthUser();
-    await buildUser({
+    const suspended = await buildUser({
       teamId: user.teamId,
       suspendedAt: new Date(),
     });
 
     const res = await callMcpTool(server, accessToken, "list_users", {
-      filters: [{ field: "suspendedAt", operator: "isNotNull" }],
+      filter: "suspended",
     });
     const data = parseMcpListContent<{ id: string }>(res?.result?.content);
 
-    expect(data).toHaveLength(0);
+    expect(data.map((item) => item.id)).not.toContain(suspended.id);
   });
 
   it("list_users filters users who have never signed in", async () => {
@@ -97,7 +97,7 @@ describe("user tools", () => {
     });
 
     const res = await callMcpTool(server, accessToken, "list_users", {
-      filters: [{ field: "lastActiveAt", operator: "isNull" }],
+      filter: "invited",
     });
     const data = parseMcpListContent<{ id: string }>(res?.result?.content);
 
@@ -109,7 +109,7 @@ describe("user tools", () => {
     const { accessToken } = await buildOAuthUser();
 
     const res = await callMcpTool(server, accessToken, "list_users", {
-      filters: [{ field: "role", operator: "eq", value: "superuser" }],
+      role: "superuser",
     });
 
     expect(res?.result?.isError || res?.error).toBeTruthy();
