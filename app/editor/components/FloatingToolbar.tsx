@@ -268,7 +268,13 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   });
 
   const isMobile = useMobile();
-  const isMobileToolbarVisible = isMobile && !!props.active && position.visible;
+
+  // The mobile toolbar is a bar fixed to the bottom of the viewport, so it does
+  // not depend on the measured position of the selection – only on the toolbar
+  // being active with something to show. `position.visible` must not be used
+  // here: it is only true once the menu element has been measured, and the
+  // element is never mounted while this branch renders nothing.
+  const isMobileToolbarVisible = isMobile && !!props.active && !!props.children;
 
   // Keep the mobile toolbar glued to the top of the on-screen keyboard. The
   // hook tracks the visual viewport directly — see its implementation for the
@@ -282,9 +288,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
       return (
         <ReactPortal>
           <MobileWrapper ref={menuRef}>
-            {props.children && (
-              <MobileBackground>{props.children}</MobileBackground>
-            )}
+            <MobileBackground>{props.children}</MobileBackground>
           </MobileWrapper>
         </ReactPortal>
       );
@@ -360,8 +364,12 @@ const MobileWrapper = styled.div`
 `;
 
 const MobileBackground = styled.div`
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 10px 6px;
-  height: 60px;
+  min-height: 60px;
   background-color: ${s("menuBackground")};
   border-top: 1px solid ${s("divider")};
 
