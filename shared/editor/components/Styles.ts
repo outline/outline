@@ -586,6 +586,16 @@ width: 100%;
     background: ${props.theme.mentionHoverBackground};
   }
 
+  /* Date mentions only open the picker when editable, so no hover affordance
+     in read-only mode. */
+  ${
+    props.readOnly
+      ? `&[data-type="date"]:${hover} {
+    background: ${props.theme.mentionBackground};
+  }`
+      : ""
+  }
+
   &[data-type="user"],
   &[data-type="group"] {
     gap: 0;

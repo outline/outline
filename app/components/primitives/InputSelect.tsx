@@ -2,7 +2,7 @@ import * as InputSelectPrimitive from "@radix-ui/react-select";
 import * as React from "react";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
-import { depths, s } from "@shared/styles";
+import { depths, s, borderRadius } from "@shared/styles";
 import type { Props as ButtonProps } from "~/components/Button";
 import { fadeAndSlideDown, fadeAndSlideUp } from "~/styles/animations";
 import {
@@ -145,7 +145,7 @@ const StyledContent = styled(InputSelectPrimitive.Content)`
   max-height: 350px;
 
   padding: 4px;
-  border-radius: 6px;
+  ${borderRadius(8)}
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
   transform-origin: 50% 0;

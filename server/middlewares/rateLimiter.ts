@@ -53,6 +53,56 @@ async function getRateLimiterIdentifiers(ctx: AppContext): Promise<string[]> {
 }
 
 /**
+ * Consumes a point from a limiter for every identifier on the request. A
+ * limiter that is unreachable is logged and skipped, so an outage of the store
+ * does not take the endpoint down with it.
+ *
+ * @param ctx The application context.
+ * @param fullPath The path the limiter is registered against.
+ * @param identifiers The identifiers to consume for this request.
+ * @throws RateLimitExceededError when an identifier is out of quota.
+ */
+async function consume(
+  ctx: AppContext,
+  fullPath: string,
+  identifiers: string[]
+): Promise<void> {
+  const isPathScoped = RateLimiter.hasRateLimiter(fullPath);
+  const limiter = RateLimiter.getRateLimiter(fullPath);
+
+  try {
+    for (const identifier of identifiers) {
+      await limiter.consume(
+        isPathScoped ? `${fullPath}:${identifier}` : identifier
+      );
+    }
+  } catch (rateLimiterRes) {
+    if (
+      rateLimiterRes instanceof Error ||
+      !(rateLimiterRes instanceof RateLimiterRes)
+    ) {
+      Logger.error("Rate limiter error", toError(rateLimiterRes));
+      return;
+    }
+
+    // Both headers are defined as a whole number of seconds, rounded up so that
+    // a client waiting exactly this long is not turned away a second time.
+    const resetSeconds = Math.ceil(rateLimiterRes.msBeforeNext / 1000);
+
+    ctx.set("Retry-After", `${resetSeconds}`);
+    ctx.set("RateLimit-Limit", `${limiter.points}`);
+    ctx.set("RateLimit-Remaining", `${rateLimiterRes.remainingPoints}`);
+    ctx.set("RateLimit-Reset", `${resetSeconds}`);
+
+    Metrics.increment("rate_limit.exceeded", {
+      path: fullPath,
+    });
+
+    throw RateLimitExceededError();
+  }
+}
+
+/**
  * Middleware that limits the number of requests that are allowed within a given
  * window. Should only be applied once to a server – do not use on individual
  * routes.
@@ -65,40 +115,16 @@ export function defaultRateLimiter() {
       return next();
     }
 
-    const fullPath = `${ctx.mountPath ?? ""}${ctx.path}`;
+    const fullPath = RateLimiter.normalizePath(
+      `${ctx.mountPath ?? ""}${ctx.path}`
+    );
     const identifiers = await getRateLimiterIdentifiers(ctx);
-    const isPathScoped = RateLimiter.hasRateLimiter(fullPath);
-    const limiter = RateLimiter.getRateLimiter(fullPath);
 
-    try {
-      for (const identifier of identifiers) {
-        await limiter.consume(
-          isPathScoped ? `${fullPath}:${identifier}` : identifier
-        );
-      }
-    } catch (rateLimiterRes) {
-      if (
-        rateLimiterRes instanceof Error ||
-        !(rateLimiterRes instanceof RateLimiterRes)
-      ) {
-        Logger.error("Rate limiter error", toError(rateLimiterRes));
-        return next();
-      }
+    // Kept for a route that registers its own limiter further down the chain,
+    // so that it can charge this request without resolving them again.
+    ctx.state.rateLimiterIdentifiers = identifiers;
 
-      ctx.set("Retry-After", `${rateLimiterRes.msBeforeNext / 1000}`);
-      ctx.set("RateLimit-Limit", `${limiter.points}`);
-      ctx.set("RateLimit-Remaining", `${rateLimiterRes.remainingPoints}`);
-      ctx.set(
-        "RateLimit-Reset",
-        new Date(Date.now() + rateLimiterRes.msBeforeNext).toString()
-      );
-
-      Metrics.increment("rate_limit.exceeded", {
-        path: fullPath,
-      });
-
-      throw RateLimitExceededError();
-    }
+    await consume(ctx, fullPath, identifiers);
 
     return next();
   };
@@ -127,7 +153,9 @@ export function rateLimiter(config: RateLimiterConfig) {
       return next();
     }
 
-    const fullPath = `${ctx.mountPath ?? ""}${ctx.path}`;
+    const fullPath = RateLimiter.normalizePath(
+      `${ctx.mountPath ?? ""}${ctx.path}`
+    );
 
     if (!RateLimiter.hasRateLimiter(fullPath)) {
       const points = Math.max(
@@ -149,6 +177,15 @@ export function rateLimiter(config: RateLimiterConfig) {
             storeClient: Redis.defaultClient,
           }
         )
+      );
+
+      // The limiter did not exist when the request entered the default
+      // middleware, so this request has not been charged against it yet.
+      await consume(
+        ctx,
+        fullPath,
+        ctx.state.rateLimiterIdentifiers ??
+          (await getRateLimiterIdentifiers(ctx))
       );
     }
 
