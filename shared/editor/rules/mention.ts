@@ -2,7 +2,9 @@ import type MarkdownIt from "markdown-it";
 import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
 import type Token from "markdown-it/lib/token.mjs";
 import { v4 as uuidv4 } from "uuid";
+import { MentionType } from "../../types";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
+import { sanitizeUrl } from "@shared/utils/urls";
 
 /**
  * Check whether a URL is a valid mention:// href.
@@ -13,6 +15,24 @@ import parseMentionUrl from "@shared/utils/parseMentionUrl";
 function isMentionHref(href: string) {
   const { mentionType, modelId } = parseMentionUrl(href);
   return mentionType !== undefined && modelId !== undefined;
+}
+
+/**
+ * Parse an href that points at an external resource that can be represented as
+ * a mention.
+ *
+ * @param href the URL string to parse.
+ * @returns the parsed URL, or undefined when the href cannot be mentioned.
+ */
+function parseExternalHref(href: string): URL | undefined {
+  try {
+    const url = new URL(href);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url
+      : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -37,14 +57,17 @@ function parseMentionHref(href: string): {
   return { id: id ?? uuidv4(), type: mentionType, modelId };
 }
 
-function renderMention(tokens: Token[], idx: number) {
+const renderMention = (md: MarkdownIt) => (tokens: Token[], idx: number) => {
   const id = tokens[idx].attrGet("id");
   const mType = tokens[idx].attrGet("type");
   const mId = tokens[idx].attrGet("modelId");
+  const href = tokens[idx].attrGet("href");
   const label = tokens[idx].content;
 
-  return `<span id="${id}" class="mention" data-type="${mType}" data-id="${mId}">${label}</span>`;
-}
+  return href
+    ? `<a id="${id}" class="mention" href="${md.utils.escapeHtml(sanitizeUrl(href) ?? "")}" data-type="${mType}" data-id="${mId}">${label}</a>`
+    : `<span id="${id}" class="mention" data-type="${mType}" data-id="${mId}">${label}</span>`;
+};
 
 function parseMentions(state: StateCore) {
   for (let i = 0; i < state.tokens.length; i++) {
@@ -75,9 +98,16 @@ function parseMentions(state: StateCore) {
         return false;
       }
 
-      // "link_open" token should have valid href
+      // "link_open" token should have a mention:// href, or an external href
+      // that can be represented as a mention.
       const attr = openToken.attrs?.[0];
-      if (!(attr && attr[0] === "href" && isMentionHref(attr[1]))) {
+      if (
+        !(
+          attr &&
+          attr[0] === "href" &&
+          (isMentionHref(attr[1]) || parseExternalHref(attr[1]))
+        )
+      ) {
         return false;
       }
 
@@ -91,15 +121,30 @@ function parseMentions(state: StateCore) {
       // remove "@" from preceding token
       precToken.content = precToken.content.slice(0, -1);
 
-      // href must be present, otherwise the isMentionHref test would've failed
+      // href must be present, otherwise the href test would've failed
       // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
       const href = openToken.attrs![0][1];
-      const { id, type: mType, modelId: mId } = parseMentionHref(href);
-
       const mentionToken = new state.Token("mention", "", 0);
-      mentionToken.attrSet("id", id);
-      mentionToken.attrSet("type", mType);
-      mentionToken.attrSet("modelId", mId);
+      const externalUrl = isMentionHref(href)
+        ? undefined
+        : parseExternalHref(href);
+
+      if (externalUrl) {
+        // External links carry their identity in the href, so the ids are
+        // generated the same way a paste in the editor would. The mention is
+        // generic here and is narrowed to the resource it points at by the
+        // service that recognizes the URL.
+        mentionToken.attrSet("id", uuidv4());
+        mentionToken.attrSet("type", MentionType.URL);
+        mentionToken.attrSet("modelId", uuidv4());
+        mentionToken.attrSet("href", href);
+      } else {
+        const { id, type: mType, modelId: mId } = parseMentionHref(href);
+        mentionToken.attrSet("id", id);
+        mentionToken.attrSet("type", mType);
+        mentionToken.attrSet("modelId", mId);
+      }
+
       mentionToken.content = textToken.content;
 
       // "link_open", followed by "text" and "link_close" tokens are coalesced
@@ -129,6 +174,6 @@ function parseMentions(state: StateCore) {
 }
 
 export default function mention(md: MarkdownIt) {
-  md.renderer.rules.mention = renderMention;
+  md.renderer.rules.mention = renderMention(md);
   md.core.ruler.after("inline", "mention", parseMentions);
 }
