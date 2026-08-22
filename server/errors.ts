@@ -231,6 +231,13 @@ export function OIDCMalformedUserInfoError(
   });
 }
 
+export function OIDCLogoutTokenError(message = "Logout token rejected") {
+  return httpErrors(400, message, {
+    id: "invalid_logout_token",
+    isReportable: false,
+  });
+}
+
 export function AuthenticationProviderDisabledError(
   message = "Authentication method has been disabled by an admin",
   redirectPath = "/"
