@@ -67,34 +67,39 @@ export default class RateLimiter {
 
   /**
    * Returns the rate limiter registered for a path, falling back to the
-   * default rate limiter.
+   * default rate limiter. The path is normalized before lookup.
    *
    * @param path the request path to look up.
    * @returns the rate limiter for the path.
    */
   static getRateLimiter(path: string): RateLimiterRedis {
-    return this.rateLimiterMap.get(path) || this.defaultRateLimiter;
+    return (
+      this.rateLimiterMap.get(this.normalizePath(path)) ||
+      this.defaultRateLimiter
+    );
   }
 
   /**
-   * Registers a rate limiter with a custom configuration for a path.
+   * Registers a rate limiter with a custom configuration for a path. The path
+   * is normalized before registration.
    *
    * @param path the request path to register the rate limiter for.
    * @param config the rate limiter configuration.
    */
   static setRateLimiter(path: string, config: IRateLimiterStoreOptions): void {
     const rateLimiter = new RateLimiterRedis(config);
-    this.rateLimiterMap.set(path, rateLimiter);
+    this.rateLimiterMap.set(this.normalizePath(path), rateLimiter);
   }
 
   /**
-   * Checks whether a custom rate limiter is registered for a path.
+   * Checks whether a custom rate limiter is registered for a path. The path is
+   * normalized before lookup.
    *
    * @param path the request path to check.
    * @returns true if a custom rate limiter is registered.
    */
   static hasRateLimiter(path: string): boolean {
-    return this.rateLimiterMap.has(path);
+    return this.rateLimiterMap.has(this.normalizePath(path));
   }
 
   /**

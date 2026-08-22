@@ -118,6 +118,70 @@ describe("rateLimiter middleware", () => {
     expect(limiter.points).toBe(1);
   });
 
+  it("registers one limiter for case and trailing slash variants of a path", async () => {
+    const registerMiddleware = rateLimiter({ duration: 60, requests: 5 });
+
+    await registerMiddleware(
+      createContext({ path: "/documents.export", mountPath: "/api" }),
+      vi.fn()
+    );
+    await registerMiddleware(
+      createContext({ path: "/Documents.Export", mountPath: "/API" }),
+      vi.fn()
+    );
+    await registerMiddleware(
+      createContext({ path: "/documents.export/", mountPath: "/api" }),
+      vi.fn()
+    );
+
+    expect(RateLimiter.rateLimiterMap.size).toBe(1);
+
+    const limiter = RateLimiter.getRateLimiter("/api/documents.export");
+    for (const variant of [
+      "/API/Documents.Export",
+      "/api/documents.export/",
+      "/API/Documents.Export/",
+    ]) {
+      expect(RateLimiter.hasRateLimiter(variant)).toBe(true);
+      expect(RateLimiter.getRateLimiter(variant)).toBe(limiter);
+    }
+  });
+
+  it("consumes one bucket for case and trailing slash variants of a path", async () => {
+    const registerMiddleware = rateLimiter({ duration: 60, requests: 5 });
+    await registerMiddleware(
+      createContext({ path: "/documents.export", mountPath: "/api" }),
+      vi.fn()
+    );
+
+    const customLimiter = RateLimiter.getRateLimiter("/api/documents.export");
+    const consumeSpy = vi
+      .spyOn(customLimiter, "consume")
+      .mockResolvedValue({} as never);
+
+    const middleware = defaultRateLimiter();
+    for (const path of [
+      "/documents.export",
+      "/Documents.Export",
+      "/documents.export/",
+    ]) {
+      await middleware(
+        createContext({ path, mountPath: "/api", ip: "127.0.0.1" }),
+        vi.fn()
+      );
+    }
+
+    expect(consumeSpy.mock.calls.map(([key]) => key)).toEqual([
+      "/api/documents.export:127.0.0.1",
+      "/api/documents.export:127.0.0.1",
+      "/api/documents.export:127.0.0.1",
+    ]);
+  });
+
+  it("keeps the root path when normalizing", () => {
+    expect(RateLimiter.normalizePath("/")).toBe("/");
+  });
+
   it("should use default rate limiter when no custom rate limiter is registered", async () => {
     const fullPath = "/some/random/path";
     expect(RateLimiter.hasRateLimiter(fullPath)).toBe(false);
