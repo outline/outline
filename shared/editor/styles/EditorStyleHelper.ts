@@ -21,6 +21,9 @@ export class EditorStyleHelper {
 
   static readonly headingPositionAnchor = "heading-position-anchor";
 
+  /** Non-editable section number displayed before a heading */
+  static readonly headingPrefix = "heading-prefix";
+
   // Comments
 
   static readonly comment = "comment-marker";

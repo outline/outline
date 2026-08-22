@@ -706,6 +706,13 @@ width: 100%;
   h5 { font-size: var(--font-size-h5); }
   h6 { font-size: var(--font-size-h6); }
 
+  .${EditorStyleHelper.headingPrefix} {
+    color: ${props.theme.textSecondary};
+    margin-inline-end: 0.25em;
+    user-select: none;
+    cursor: text;
+  }
+
   .${EditorStyleHelper.multiplayerSelection} {
     transition: background-color 500ms ease-in-out;
   }

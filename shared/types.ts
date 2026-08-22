@@ -366,6 +366,26 @@ export enum UserPreference {
   NotificationBadge = "notificationBadge",
 }
 
+export enum HeadingPrefixStyle {
+  /** Headings are displayed without a prefix. */
+  None = "none",
+  /** Numeric prefixes, for example: 1, 1.1, 1.1.1 */
+  Numeric = "numeric",
+  /** Alphanumeric prefixes, for example: 1, 1.a, 1.a.i */
+  Alphanumeric = "alphanumeric",
+  /** Outline-style prefixes, for example: I, I.A, I.A.1 */
+  Outline = "outline",
+}
+
+export enum DocumentPreference {
+  /** The style of prefix displayed before headings in the document. */
+  HeadingPrefix = "headingPrefix",
+}
+
+export type DocumentPreferences = {
+  [DocumentPreference.HeadingPrefix]?: HeadingPrefixStyle;
+};
+
 export enum NotificationBadgeType {
   /** Do not show a notification badge. */
   Disabled = "disabled",

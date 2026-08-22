@@ -48,6 +48,8 @@ import type {
   ProsemirrorMark,
   UserPreferences,
 } from "@shared/types";
+import { HeadingPrefixStyle } from "@shared/types";
+import { headingPrefixPluginKey } from "@shared/editor/extensions/HeadingPrefix";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
 import type Document from "~/models/Document";
@@ -175,6 +177,8 @@ export type Props = {
   embeds: EmbedDescriptor[];
   /** Display preferences for the logged in user, if any. */
   userPreferences?: UserPreferences | null;
+  /** The style of prefix displayed before headings in the document. */
+  headingPrefix?: HeadingPrefixStyle;
   /** Whether embeds should be rendered without an iframe */
   embedsDisabled?: boolean;
   className?: string;
@@ -311,6 +315,16 @@ export class Editor extends React.PureComponent<
 
     if (this.props.scrollTo && this.props.scrollTo !== prevProps.scrollTo) {
       void this.scrollToAnchor(this.props.scrollTo);
+    }
+
+    // Recompute heading prefix decorations when the display preference changes
+    if (this.props.headingPrefix !== prevProps.headingPrefix) {
+      this.view.dispatch(
+        this.view.state.tr.setMeta(
+          headingPrefixPluginKey,
+          this.props.headingPrefix ?? HeadingPrefixStyle.None
+        )
+      );
     }
 
     // Focus at the end of the document if switching from readOnly and autoFocus

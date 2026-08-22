@@ -1820,6 +1820,7 @@ router.post(
       collectionId,
       parentDocumentId,
       fullWidth,
+      preferences,
       templateId,
       createdAt,
     } = ctx.input.body;
@@ -1865,6 +1866,7 @@ router.post(
       parentDocumentId,
       template,
       fullWidth,
+      preferences,
       editorVersion,
     });
 

@@ -7,6 +7,14 @@ const schema = new Schema({
   nodes: {
     doc: { content: "block+" },
     paragraph: { group: "block", content: "inline*" },
+    heading: {
+      group: "block",
+      content: "inline*",
+      attrs: { level: { default: 1 } },
+    },
+    table: { group: "block", content: "tr+" },
+    tr: { content: "td+" },
+    td: { content: "block+" },
     image: {
       group: "inline",
       inline: true,
@@ -29,6 +37,17 @@ const paragraph = (...content: object[]) => ({
 });
 
 const image = (attrs: object) => ({ type: "image", attrs });
+
+const heading = (title: string, level: number) => ({
+  type: "heading",
+  attrs: { level },
+  content: [{ type: "text", text: title }],
+});
+
+const table = (...content: object[]) => ({
+  type: "table",
+  content: [{ type: "tr", content: [{ type: "td", content }] }],
+});
 
 describe("ProsemirrorHelper", () => {
   describe("getNodeHash", () => {
@@ -474,6 +493,22 @@ describe("ProsemirrorHelper", () => {
 
       const result = ProsemirrorHelper.removeMarks(doc, ["comment"]);
       expect(result.content![0].content![0].marks).toBeUndefined();
+    });
+  });
+
+  describe("getHeadings", () => {
+    it("marks headings that are nested inside tables", () => {
+      const node = doc(
+        heading("One", 1),
+        table(heading("Cell", 2)),
+        heading("Two", 2)
+      );
+
+      expect(ProsemirrorHelper.getHeadings(node)).toEqual([
+        expect.objectContaining({ title: "One", level: 1, inTable: false }),
+        expect.objectContaining({ title: "Cell", level: 2, inTable: true }),
+        expect.objectContaining({ title: "Two", level: 2, inTable: false }),
+      ]);
     });
   });
 });

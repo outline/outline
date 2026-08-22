@@ -7,6 +7,7 @@ import styled from "styled-components";
 import Text from "@shared/components/Text";
 import type { CommentAnchor } from "@shared/editor/commands/comment";
 import { richExtensions, withComments } from "@shared/editor/nodes";
+import { DocumentPreference } from "@shared/types";
 import { colorPalette } from "@shared/constants";
 import Comment from "~/models/Comment";
 import type Document from "~/models/Document";
@@ -280,6 +281,11 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
         onInit={handleInit}
         onDestroy={handleDestroy}
         onChange={updateDocState}
+        headingPrefix={
+          "preferences" in document
+            ? document.getPreference(DocumentPreference.HeadingPrefix)
+            : undefined
+        }
         extensions={extensions}
         editorStyle={editorStyle}
         {...rest}
