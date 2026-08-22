@@ -173,6 +173,28 @@ describe("StorePersistence", () => {
     vi.restoreAllMocks();
   });
 
+  it("does not recreate the database from a pending flush once disabled", async () => {
+    const teamId = "team-10";
+    const source = new RootStore();
+    const persistence = new StorePersistence(source.policies, teamId);
+    const databaseName = StorePersistence.databaseName(
+      source.policies.apiEndpoint,
+      teamId
+    );
+
+    source.policies.add({ id: "doc-1", abilities: { read: true } });
+    persistence.persist("doc-1");
+
+    // Disabling while a debounced write is still scheduled, as logout does.
+    persistence.disable();
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+
+    const databases = await indexedDB.databases();
+    expect(databases.map((database) => database.name)).not.toContain(
+      databaseName
+    );
+  });
+
   it("does not block another tab from deleting the database", async () => {
     const teamId = "team-9";
     const source = new RootStore();

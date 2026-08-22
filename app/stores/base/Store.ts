@@ -138,7 +138,7 @@ export default abstract class Store<T extends Model> {
    * whether or not persistence is currently enabled.
    */
   disablePersistence(): void {
-    this.persistence?.close();
+    this.persistence?.disable();
     this.persistence = undefined;
   }
 

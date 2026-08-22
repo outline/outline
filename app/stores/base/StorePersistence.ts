@@ -148,10 +148,22 @@ export default class StorePersistence<T extends Model> {
   };
 
   /**
+   * Stops persisting the store's data and closes the connection to the
+   * database, discarding any writes that have not yet been made. Records that
+   * were already persisted are left untouched.
+   */
+  public disable = () => {
+    this.disabled = true;
+    this.dirty.clear();
+    this.scheduleFlush.cancel();
+    this.close();
+  };
+
+  /**
    * Closes the connection to the database, if one is open. Safe to call at any
    * time; a later read or write opens a fresh connection.
    */
-  public close = () => {
+  private close = () => {
     this.connection?.close();
     this.forget();
   };
