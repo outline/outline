@@ -718,7 +718,8 @@ width: 100%;
 
   [data-heading-prefix]::before {
     content: attr(data-heading-prefix);
-    color: ${props.theme.textSecondary};
+    color: ${props.theme.text};
+    opacity: 0.75;
     margin-inline-end: 0.25em;
   }
 
@@ -2680,16 +2681,18 @@ del {
 }
 
 @media print {
+  // The heading level labels are an editing affordance, but the same pseudo
+  // element carries the heading prefix, which is content and must be printed.
   .placeholder::before,
   .block-menu-trigger,
   .heading-anchor,
   button.show-source-button,
-  h1:not(.placeholder)::before,
-  h2:not(.placeholder)::before,
-  h3:not(.placeholder)::before,
-  h4:not(.placeholder)::before,
-  h5:not(.placeholder)::before,
-  h6:not(.placeholder)::before {
+  h1:not(.placeholder):not([data-heading-prefix])::before,
+  h2:not(.placeholder):not([data-heading-prefix])::before,
+  h3:not(.placeholder):not([data-heading-prefix])::before,
+  h4:not(.placeholder):not([data-heading-prefix])::before,
+  h5:not(.placeholder):not([data-heading-prefix])::before,
+  h6:not(.placeholder):not([data-heading-prefix])::before {
     display: none;
   }
 
