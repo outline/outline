@@ -1,6 +1,12 @@
-import type { TeamPreferences, UserPreferences } from "./types";
+import type {
+  DocumentPreferences,
+  TeamPreferences,
+  UserPreferences,
+} from "./types";
 import {
   TOCPosition,
+  DocumentPreference,
+  HeadingPrefixStyle,
   TeamPreference,
   UserPreference,
   EmailDisplay,
@@ -92,6 +98,10 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.MCP]: true,
   [TeamPreference.DisabledEmbeds]: [],
   [TeamPreference.PersonalDocs]: true,
+};
+
+export const DocumentPreferenceDefaults: DocumentPreferences = {
+  [DocumentPreference.HeadingPrefix]: HeadingPrefixStyle.None,
 };
 
 export const UserPreferenceDefaults: UserPreferences = {
