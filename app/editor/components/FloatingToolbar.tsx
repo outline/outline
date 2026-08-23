@@ -268,12 +268,6 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   });
 
   const isMobile = useMobile();
-
-  // The mobile toolbar is a bar fixed to the bottom of the viewport, so it does
-  // not depend on the measured position of the selection – only on the toolbar
-  // being active with something to show. `position.visible` must not be used
-  // here: it is only true once the menu element has been measured, and the
-  // element is never mounted while this branch renders nothing.
   const isMobileToolbarVisible = isMobile && !!props.active && !!props.children;
 
   // Keep the mobile toolbar glued to the top of the on-screen keyboard. The
@@ -281,14 +275,9 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   // iOS specifics.
   useKeyboardStickyOffset(menuRef, isMobileToolbarVisible);
 
-  // Tapping the bar must not move focus out of the editor: that would dismiss
-  // the on-screen keyboard, and the toolbar is only shown while the editor is
-  // being edited so the bar itself would disappear from under the finger before
-  // the tap became a click. Preventing the default action of mousedown (which
-  // is what assigns focus, and is dispatched from a tap before click) leaves
-  // focus and the selection where they are. Fields inside the bar – the link
-  // editor's input – do need focus, so they are excluded.
-  const handleMouseDown = (event: React.MouseEvent) => {
+  // Tapping the bar must not move focus out of the editor, that would dismiss
+  // the on-screen keyboard and take the bar down with it.
+  const handlePointerDown = (event: React.PointerEvent) => {
     if (
       event.target instanceof Element &&
       !event.target.closest("input, textarea, [contenteditable='true']")
@@ -303,7 +292,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
       // useKeyboardStickyOffset, which writes the transform directly.
       return (
         <ReactPortal>
-          <MobileWrapper ref={menuRef} onMouseDown={handleMouseDown}>
+          <MobileWrapper ref={menuRef} onPointerDown={handlePointerDown}>
             <MobileBackground>{props.children}</MobileBackground>
           </MobileWrapper>
         </ReactPortal>
@@ -388,15 +377,6 @@ const MobileBackground = styled.div`
   min-height: 60px;
   background-color: ${s("menuBackground")};
   border-top: 1px solid ${s("divider")};
-
-  &:after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 100px;
-    background-color: ${s("menuBackground")};
-  }
 `;
 
 const Background = styled.div<{ align: Props["align"] }>`

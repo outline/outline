@@ -7,9 +7,13 @@ import type { SelectionToolbarMenuDescriptor } from "../types";
 
 export type CommandFactory = (attrs?: unknown, options?: unknown) => Command;
 
+/** Props passed to the widget rendered by an extension. */
 export type WidgetProps = {
+  /** Whether the editor is displayed right-to-left */
   rtl: boolean;
+  /** Whether the editor is read-only */
   readOnly: boolean | undefined;
+  /** The current editor selection */
   selection?: Selection;
   /** Whether the editor currently holds focus */
   isEditorFocused: boolean;

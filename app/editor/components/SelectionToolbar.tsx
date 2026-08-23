@@ -74,15 +74,10 @@ export function SelectionToolbar(props: Props) {
   const isMobile = useMobile();
   const isActive = props.isActive || isMobile;
 
-  // On mobile the toolbar is an accessory bar docked above the on-screen
-  // keyboard, so it stays visible for as long as the editor is being edited
-  // rather than only while there is a selection. With an empty selection the
-  // formatting menu offers block-level items (headings, lists, quotes) in place
-  // of the inline items that need selected text. This is derived rather than
-  // folded into `activeToolbar` below so that a change of focus – the link
-  // editor's input taking it, for instance – cannot tear down a toolbar the
-  // user opened.
-  const isKeyboardAccessory = isMobile && !readOnly && isEditorFocused;
+  // On mobile the toolbar is docked above the on-screen keyboard, so it stays
+  // visible for as long as the editor is being edited rather than only while
+  // there is a selection.
+  const isMobileEditing = isMobile && !readOnly && isEditorFocused;
   const { state } = view;
   const [autoFocusLinkInput, setAutoFocusLinkInput] = React.useState(false);
   const isDragging = useIsDragging(state);
@@ -336,7 +331,7 @@ export function SelectionToolbar(props: Props) {
           onEscape={() => setActiveToolbar(Toolbar.Menu)}
           onClickOutside={handleClickOutsideLinkEditor}
         />
-      ) : (activeToolbar === Toolbar.Menu || isKeyboardAccessory) &&
+      ) : (activeToolbar === Toolbar.Menu || isMobileEditing) &&
         items.length ? (
         <ToolbarMenu items={items} {...rest} />
       ) : null}
