@@ -56,6 +56,11 @@ export interface IInvoiceRepository {
 		invoiceId: TInvoiceId,
 		data: IRecordPaymentCommand,
 	): Effect.Effect<TInvoicePaymentDto, DatabaseError | InvoiceNotFoundError>;
+
+	readonly voidInvoice?: (
+		tenantId: TTenantId,
+		invoiceId: TInvoiceId,
+	) => Effect.Effect<void, DatabaseError | InvoiceNotFoundError>;
 }
 
 export const InvoiceRepository = Context.GenericTag<IInvoiceRepository>(

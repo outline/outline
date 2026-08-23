@@ -26,6 +26,7 @@ import {
 	getInvoiceByIdProgram,
 	getInvoicesProgram,
 	recordPaymentProgram,
+	voidInvoiceProgram,
 } from "@/domain/invoice/invoice.programs";
 import type {
 	ICreateInvoiceCommand,
@@ -228,6 +229,16 @@ export function createRestRequestHandler(
 				request,
 				requestId,
 				invoicePaymentMatch[1] ?? "",
+			);
+		}
+		const invoiceVoidMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/invoices\/([^/]+)\/void$/,
+		);
+		if (invoiceHandlers && invoiceVoidMatch && request.method === "POST") {
+			return invoiceHandlers.void(
+				request,
+				requestId,
+				invoiceVoidMatch[1] ?? "",
 			);
 		}
 		if (
@@ -837,6 +848,11 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			);
 			return runApp(
 				getInvoiceByIdProgram(businessId as TTenantId, invoiceId as TInvoiceId),
+			);
+		},
+		void: async (businessId, invoiceId) => {
+			await runApp(
+				voidInvoiceProgram(businessId as TTenantId, invoiceId as TInvoiceId),
 			);
 		},
 	}),

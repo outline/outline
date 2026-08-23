@@ -9,6 +9,7 @@ describe("REST invoice handlers", () => {
 			list: vi.fn(),
 			create: vi.fn(),
 			payment,
+			void: vi.fn(),
 		});
 
 		const response = await handlers.payment(

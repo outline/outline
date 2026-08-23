@@ -17,12 +17,18 @@ interface InvoiceHandlerDependencies {
 		invoiceId: string,
 		input: Record<string, unknown>,
 	) => Promise<unknown>;
+	readonly void: (businessId: string, invoiceId: string) => Promise<void>;
 }
 
 export interface InvoiceHandlers {
 	readonly list: (request: Request, requestId: string) => Promise<Response>;
 	readonly create: (request: Request, requestId: string) => Promise<Response>;
 	readonly payment: (
+		request: Request,
+		requestId: string,
+		invoiceId: string,
+	) => Promise<Response>;
+	readonly void: (
 		request: Request,
 		requestId: string,
 		invoiceId: string,
@@ -62,6 +68,12 @@ export function createInvoiceHandlers(
 				await dependencies.payment(session.business.id, invoiceId, body),
 				requestId,
 			);
+		},
+		void: async (request, requestId, invoiceId) => {
+			const session = await getSession(request, dependencies.session);
+			if (!session) return unauthorized(requestId);
+			await dependencies.void(session.business.id, invoiceId);
+			return jsonSuccess({ voided: true }, requestId);
 		},
 	};
 }

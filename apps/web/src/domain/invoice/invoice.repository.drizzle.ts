@@ -305,6 +305,30 @@ export const InvoiceRepositoryDrizzle = Layer.effect(
 							recorded_by: payment.recordedBy,
 						});
 					}),
+
+				voidInvoice: (tenantId: TTenantId, invoiceId: TInvoiceId) =>
+					withRetry(
+						Effect.tryPromise({
+							try: async () => {
+								const result = await db
+									.update(invoices)
+									.set({ status: "void", updatedAt: new Date().toISOString() })
+									.where(
+										and(
+											eq(invoices.id, invoiceId),
+											eq(invoices.businessId, tenantId),
+										),
+									)
+									.returning({ id: invoices.id });
+								if (result.length === 0) {
+									throw new InvoiceNotFoundError({
+										message: `Invoice ${invoiceId} not found`,
+									});
+								}
+							},
+							catch: invalidateNotFound,
+						}),
+					),
 			}),
 	),
 );

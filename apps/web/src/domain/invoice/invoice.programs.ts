@@ -56,3 +56,15 @@ export const recordPaymentProgram = (
 		);
 		return yield* repo.recordPayment(tenantId, invoiceId, cmd);
 	});
+
+export const voidInvoiceProgram = (
+	tenantId: TTenantId,
+	invoiceId: TInvoiceId,
+) =>
+	Effect.gen(function* () {
+		const repo = yield* InvoiceRepository;
+		if (!repo.voidInvoice) {
+			return yield* Effect.die("Invoice void operation is unavailable");
+		}
+		yield* repo.voidInvoice(tenantId, invoiceId);
+	});

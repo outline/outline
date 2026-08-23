@@ -270,6 +270,11 @@ export class PetsoClient {
 				`/api/v1/admin/invoices/${input.invoiceId}/payment`,
 				{ method: "POST", body: input },
 			),
+		voidInvoice: (id: string): Promise<{ readonly voided: boolean }> =>
+			this.fetchApi<{ readonly voided: boolean }>(
+				`/api/v1/admin/invoices/${id}/void`,
+				{ method: "POST" },
+			),
 		createPurchaseOrder: (
 			input: TCreatePurchaseOrderInput,
 		): Promise<TPurchaseOrderDto> =>

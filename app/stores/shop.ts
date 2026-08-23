@@ -1106,11 +1106,11 @@ export const useShop = create<State>((set, get) => ({
     };
   },
   voidInvoice: async (id) => {
-    const response = await client.post("/invoices.void", { id });
-    if (response.data?.voided) {
+    const response = await petsoClient.admin.voidInvoice(id);
+    if (response.voided) {
       await get().fetchAll();
     }
-    return response.data;
+    return response;
   },
   createPortalService: async (service) => {
     const response = await client.post("/portal.services.create", service);
