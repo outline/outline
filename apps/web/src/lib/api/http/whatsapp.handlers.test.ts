@@ -7,6 +7,7 @@ describe("REST WhatsApp handlers", () => {
 		const handlers = createWhatsAppHandlers({
 			session: vi.fn().mockResolvedValue({ business: { id: "business-1" } }),
 			templates,
+			messages: vi.fn(),
 		});
 		const response = await handlers.templates(
 			new Request("https://pet-store.test/api/v1/admin/whatsapp/templates", {

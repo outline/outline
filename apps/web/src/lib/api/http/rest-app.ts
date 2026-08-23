@@ -188,7 +188,10 @@ import {
 } from "@/domain/warehouse/warehouse.programs";
 import { CreateWarehouseSchema } from "@/domain/warehouse/warehouse.schemas";
 import type { TWarehouseId } from "@/domain/warehouse/warehouse.types";
-import { getWhatsAppTemplatesProgram } from "@/domain/whatsapp/whatsapp.programs";
+import {
+	getPendingRemindersProgram,
+	getWhatsAppTemplatesProgram,
+} from "@/domain/whatsapp/whatsapp.programs";
 import { runApp } from "@/infra/runtime/app.runtime";
 import type { TTenantId, TUserId } from "@/shared/types/common.types";
 import {
@@ -363,6 +366,13 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return whatsAppHandlers.templates(request, requestId);
+		}
+		if (
+			whatsAppHandlers &&
+			url.pathname === "/api/v1/admin/whatsapp/messages" &&
+			request.method === "GET"
+		) {
+			return whatsAppHandlers.messages(request, requestId);
 		}
 		if (
 			branchHandlers &&
@@ -1729,6 +1739,20 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				category: template.category,
 				body: template.content,
 				status: template.isActive ? "approved" : "pending",
+			}));
+		},
+		messages: async (businessId) => {
+			const reminders = await runApp(
+				getPendingRemindersProgram(businessId as TTenantId),
+			);
+			return reminders.map((reminder) => ({
+				id: reminder.id,
+				templateId: reminder.relatedType,
+				templateName: reminder.relatedType,
+				sentAt:
+					reminder.sentAt?.toISOString() ?? reminder.scheduledAt.toISOString(),
+				to: reminder.recipientPhone,
+				status: reminder.status === "failed" ? "failed" : "pending",
 			}));
 		},
 	}),

@@ -8,6 +8,7 @@ interface WhatsAppSession {
 interface WhatsAppHandlerDependencies {
 	readonly session: (token: string) => Promise<WhatsAppSession | null>;
 	readonly templates: (businessId: string) => Promise<readonly unknown[]>;
+	readonly messages: (businessId: string) => Promise<readonly unknown[]>;
 }
 
 export interface WhatsAppHandlers {
@@ -15,6 +16,7 @@ export interface WhatsAppHandlers {
 		request: Request,
 		requestId: string,
 	) => Promise<Response>;
+	readonly messages: (request: Request, requestId: string) => Promise<Response>;
 }
 
 /** Creates authenticated REST handlers for WhatsApp templates. */
@@ -29,6 +31,16 @@ export function createWhatsAppHandlers(
 			if (!session) return unauthorized(requestId);
 			return jsonSuccess(
 				await dependencies.templates(session.business.id),
+				requestId,
+			);
+		},
+		messages: async (request, requestId) => {
+			const token = readSessionToken(request);
+			if (!token) return unauthorized(requestId);
+			const session = await dependencies.session(token);
+			if (!session) return unauthorized(requestId);
+			return jsonSuccess(
+				await dependencies.messages(session.business.id),
 				requestId,
 			);
 		},

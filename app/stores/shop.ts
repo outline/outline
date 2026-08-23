@@ -1036,7 +1036,7 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.commissions(),
         petsoClient.admin.loyaltyMovements(),
         petsoClient.admin.whatsappTemplates(),
-        client.post("/whatsapp.messages"),
+        petsoClient.admin.whatsappMessages(),
         petsoClient.admin.billingSummary(),
         petsoClient.admin.invoices(),
         petsoClient.admin.portal(),
@@ -1350,7 +1350,7 @@ export const useShop = create<State>((set, get) => ({
         ),
         loyalty,
         whatsappTemplates,
-        whatsappMessages: whatsappMessages.data,
+        whatsappMessages,
         subscription: billing.subscription
           ? {
               plan: billing.subscription.plan as Subscription["plan"],
