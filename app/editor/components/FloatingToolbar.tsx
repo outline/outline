@@ -247,6 +247,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
 ) {
   const menuRef = ref || React.createRef<HTMLDivElement>();
   const [isSelectingText, setSelectingText] = React.useState(false);
+  const raisedClickAt = React.useRef(0);
 
   let position = usePosition({
     menuRef,
@@ -277,13 +278,37 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   useKeyboardStickyOffset(menuRef, isMobileToolbarVisible);
 
   // Tapping the bar must not move focus out of the editor, that would dismiss
-  // the on-screen keyboard and take the bar down with it.
-  const handlePointerDown = (event: React.PointerEvent) => {
+  // the on-screen keyboard and take the bar down with it. Mousedown is the
+  // event that assigns focus, and a tap dispatches it only after pointerup.
+  const handleMouseDown = (event: React.MouseEvent) => {
     if (
       event.target instanceof Element &&
       !event.target.closest("input, textarea, [contenteditable='true']")
     ) {
       event.preventDefault();
+    }
+  };
+
+  // Canceling that mousedown cancels the tap's click with it, so the click is
+  // raised here instead, from the pointerup that comes before both.
+  const handlePointerUp = (event: React.PointerEvent) => {
+    if (event.pointerType === "mouse") {
+      return;
+    }
+
+    const button =
+      event.target instanceof Element ? event.target.closest("button") : null;
+    if (button) {
+      raisedClickAt.current = event.timeStamp;
+      button.click();
+    }
+  };
+
+  // A browser that delivers the tap's click anyway must not act twice.
+  const handleClickCapture = (event: React.MouseEvent) => {
+    if (event.isTrusted && event.timeStamp - raisedClickAt.current < 500) {
+      event.preventDefault();
+      event.stopPropagation();
     }
   };
 
@@ -293,7 +318,12 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
       // useKeyboardStickyOffset, which writes the transform directly.
       return (
         <ReactPortal>
-          <MobileWrapper ref={menuRef} onPointerDown={handlePointerDown}>
+          <MobileWrapper
+            ref={menuRef}
+            onMouseDown={handleMouseDown}
+            onPointerUp={handlePointerUp}
+            onClickCapture={handleClickCapture}
+          >
             <MobileBackground>{props.children}</MobileBackground>
           </MobileWrapper>
         </ReactPortal>
@@ -361,7 +391,7 @@ const MobileWrapper = styled.div`
   right: 0;
   width: 100vw;
   box-sizing: border-box;
-  padding: 0 8px 8px;
+  padding: 0 16px 4px;
   z-index: ${depths.editorToolbar};
   will-change: transform;
 
