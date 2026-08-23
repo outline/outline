@@ -39,6 +39,8 @@ import type {
 	TSignupResult,
 	TUpdateStatusInput,
 	TStaffMemberDto,
+	TInviteStaffInput,
+	TInviteStaffResult,
 	TStaffAttendanceDto,
 	TShiftDto,
 	TOnShiftDto,
@@ -360,6 +362,13 @@ export class PetsoClient {
 				`/api/v1/admin/staff/${userId}`,
 				{ method: "DELETE", body: { branchId } },
 			),
+		inviteStaff: (
+			input: TInviteStaffInput,
+		): Promise<TInviteStaffResult> =>
+			this.fetchApi<TInviteStaffResult>("/api/v1/admin/staff/invite", {
+				method: "POST",
+				body: input,
+			}),
 		clockIn: (
 			input: { readonly staffId: string; readonly date: string; readonly notes?: string | null },
 		): Promise<TStaffAttendanceDto> =>

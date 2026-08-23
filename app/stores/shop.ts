@@ -1920,11 +1920,29 @@ export const useShop = create<State>((set, get) => ({
     return { removed: true };
   },
   inviteStaff: async (invite) => {
-    const response = await client.post("/staff.invite", invite);
-    if (response.data?.sent) {
+    const branchId = get().branches.find(
+      (branch) => branch.name === invite.branch
+    )?.id;
+    if (!branchId) {
+      return { sent: false, reason: "branch_not_found" };
+    }
+    const role =
+      invite.role === "caretaker" || invite.role === "groomer"
+        ? "staff_daycare"
+        : invite.role === "cashier"
+          ? "kasir"
+          : invite.role === "owner" || invite.role === "manager"
+            ? invite.role
+            : "staff_daycare";
+    const response = await petsoClient.admin.inviteStaff({
+      email: invite.email,
+      branchId,
+      role,
+    });
+    if (response.sent) {
       await get().fetchAll();
     }
-    return response.data;
+    return response;
   },
   acceptInvite: async (id) => {
     const response = await client.post("/staff.acceptInvite", { id });

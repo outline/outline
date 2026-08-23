@@ -36,6 +36,8 @@ export type {
 	TCreatePetInput,
 	TUpdatePetInput,
 	TStaffMemberDto,
+	TInviteStaffInput,
+	TInviteStaffResult,
 	TStaffAttendanceDto,
 	TShiftDto,
 	TOnShiftDto,

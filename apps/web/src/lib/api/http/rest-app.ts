@@ -167,8 +167,10 @@ import {
 } from "@/domain/shift/shift.programs";
 import {
 	getStaffMembersProgram,
+	inviteStaffProgram,
 	removeStaffFromBranchProgram,
 } from "@/domain/staff/staff.programs";
+import { InviteStaffSchema } from "@/domain/staff/staff.schemas";
 import {
 	addSupplierProgram,
 	deleteSupplierProgram,
@@ -273,6 +275,10 @@ import { createReturnHandlers, type ReturnHandlers } from "./return.handlers";
 import { createRoomHandlers, type RoomHandlers } from "./room.handlers";
 import { createShiftHandlers, type ShiftHandlers } from "./shift.handlers";
 import {
+	createStaffInviteHandlers,
+	type StaffInviteHandlers,
+} from "./staff-invite.handlers";
+import {
 	createWhatsAppHandlers,
 	type WhatsAppHandlers,
 } from "./whatsapp.handlers";
@@ -310,6 +316,7 @@ export function createRestRequestHandler(
 	billingHandlers?: BillingHandlers,
 	advanceHandlers?: AdvanceHandlers,
 	whatsAppHandlers?: WhatsAppHandlers,
+	staffInviteHandlers?: StaffInviteHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -382,6 +389,13 @@ export function createRestRequestHandler(
 			request.method === "POST"
 		) {
 			return whatsAppHandlers.send(request, requestId);
+		}
+		if (
+			staffInviteHandlers &&
+			url.pathname === "/api/v1/admin/staff/invite" &&
+			request.method === "POST"
+		) {
+			return staffInviteHandlers.invite(request, requestId);
 		}
 		if (
 			branchHandlers &&
@@ -1787,6 +1801,14 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				sendWhatsAppTemplateProgram(businessId as TTenantId, command),
 			);
 			return { sent: result.status === "sent", ...result };
+		},
+	}),
+	createStaffInviteHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		invite: async (businessId, input) => {
+			const value = Schema.decodeUnknownSync(InviteStaffSchema)(input);
+			await runApp(inviteStaffProgram(value, businessId as TTenantId));
+			return { sent: true };
 		},
 	}),
 );
