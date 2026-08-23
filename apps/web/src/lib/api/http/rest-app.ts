@@ -95,6 +95,18 @@ import {
 	UpdateLoyaltyConfigSchema,
 } from "@/domain/loyalty/loyalty.schemas";
 import {
+	archiveNoteProgram,
+	createNoteCollectionProgram,
+	createNoteProgram,
+	deleteNoteProgram,
+	emptyNotesTrashProgram,
+	getNoteProgram,
+	listNoteCollectionsProgram,
+	listNotesProgram,
+	restoreNoteProgram,
+	updateNoteProgram,
+} from "@/domain/notes/notes.programs";
+import {
 	createOrderProgram,
 	getOrdersProgram,
 	markOrderPaidProgram,
@@ -263,6 +275,7 @@ import {
 	createLoyaltyHandlers,
 	type LoyaltyHandlers,
 } from "./loyalty.handlers";
+import { createNotesHandlers, type NotesHandlers } from "./notes.handlers";
 import { createOrderHandlers, type OrderHandlers } from "./order.handlers";
 import { createPortalHandlers, type PortalHandlers } from "./portal.handlers";
 import {
@@ -331,6 +344,7 @@ export function createRestRequestHandler(
 	staffInviteHandlers?: StaffInviteHandlers,
 	staffStatusHandlers?: StaffStatusHandlers,
 	staffProfileHandlers?: StaffProfileHandlers,
+	notesHandlers?: NotesHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -417,6 +431,46 @@ export function createRestRequestHandler(
 			request.method === "POST"
 		) {
 			return staffInviteHandlers.invite(request, requestId);
+		}
+		if (
+			notesHandlers &&
+			url.pathname === "/api/v1/admin/note-collections" &&
+			(request.method === "GET" || request.method === "POST")
+		) {
+			return notesHandlers.collections(request, requestId);
+		}
+		if (
+			notesHandlers &&
+			url.pathname === "/api/v1/admin/notes" &&
+			(request.method === "GET" || request.method === "POST")
+		) {
+			return notesHandlers.notes(request, requestId);
+		}
+		if (
+			notesHandlers &&
+			url.pathname === "/api/v1/admin/notes/empty-trash" &&
+			request.method === "POST"
+		) {
+			return notesHandlers.emptyTrash(request, requestId);
+		}
+		const noteActionMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/notes\/([^/]+)\/(archive|restore|delete)$/,
+		);
+		if (notesHandlers && noteActionMatch) {
+			return notesHandlers.action(
+				request,
+				requestId,
+				noteActionMatch[1] ?? "",
+				noteActionMatch[2] as "archive" | "restore" | "delete",
+			);
+		}
+		const noteMatch = url.pathname.match(/^\/api\/v1\/admin\/notes\/([^/]+)$/);
+		if (
+			notesHandlers &&
+			noteMatch &&
+			(request.method === "GET" || request.method === "PATCH")
+		) {
+			return notesHandlers.note(request, requestId, noteMatch[1] ?? "");
 		}
 		const staffStatusMatch = url.pathname.match(
 			/^\/api\/v1\/admin\/staff\/([^/]+)\/status$/,
@@ -1903,6 +1957,32 @@ const defaultRestRequestHandler = createRestRequestHandler(
 					input.email,
 				),
 			),
+	}),
+	createNotesHandlers({
+		session: async (token) => {
+			const session = await authProgramDependencies.session(token);
+			if (!session) return null;
+			return { business: session.business, user: session.user };
+		},
+		listCollections: async (businessId) =>
+			runApp(listNoteCollectionsProgram(businessId)),
+		createCollection: async (businessId, userId, input) =>
+			runApp(createNoteCollectionProgram(businessId, userId, input)),
+		list: async (businessId, includeDeleted) =>
+			runApp(listNotesProgram(businessId, includeDeleted)),
+		get: async (businessId, id) => runApp(getNoteProgram(businessId, id)),
+		create: async (businessId, userId, input) =>
+			runApp(createNoteProgram(businessId, userId, input)),
+		update: async (businessId, id, input) =>
+			runApp(updateNoteProgram(businessId, id, input)),
+		archive: async (businessId, id) =>
+			runApp(archiveNoteProgram(businessId, id)),
+		restore: async (businessId, id) =>
+			runApp(restoreNoteProgram(businessId, id)),
+		remove: async (businessId, id) => runApp(deleteNoteProgram(businessId, id)),
+		emptyTrash: async (businessId) => {
+			await runApp(emptyNotesTrashProgram(businessId));
+		},
 	}),
 );
 

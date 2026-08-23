@@ -2898,6 +2898,99 @@ export const documentTemplates = pgTable(
 	],
 );
 
+export const noteCollections = pgTable(
+	"note_collections",
+	{
+		id: uuid().defaultRandom().primaryKey().notNull(),
+		businessId: uuid("business_id").notNull(),
+		name: text().notNull(),
+		description: text(),
+		isArchived: boolean("is_archived").default(false).notNull(),
+		createdBy: uuid("created_by").notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		index("idx_note_collections_business").using(
+			"btree",
+			table.businessId.asc().nullsLast().op("uuid_ops"),
+		),
+		foreignKey({
+			columns: [table.businessId],
+			foreignColumns: [businesses.id],
+			name: "note_collections_business_id_fkey",
+		}).onDelete("cascade"),
+		foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.id],
+			name: "note_collections_created_by_fkey",
+		}).onDelete("restrict"),
+	],
+);
+
+export const petNotes = pgTable(
+	"pet_notes",
+	{
+		id: uuid().defaultRandom().primaryKey().notNull(),
+		businessId: uuid("business_id").notNull(),
+		collectionId: uuid("collection_id"),
+		parentNoteId: uuid("parent_note_id"),
+		createdBy: uuid("created_by").notNull(),
+		title: text().notNull().default("Untitled"),
+		content: jsonb().$type<Record<string, unknown>>().notNull().default({}),
+		icon: text(),
+		color: text(),
+		isPublished: boolean("is_published").default(false).notNull(),
+		publishedAt: timestamp("published_at", {
+			withTimezone: true,
+			mode: "string",
+		}),
+		isArchived: boolean("is_archived").default(false).notNull(),
+		archivedAt: timestamp("archived_at", {
+			withTimezone: true,
+			mode: "string",
+		}),
+		deletedAt: timestamp("deleted_at", { withTimezone: true, mode: "string" }),
+		revision: integer().default(1).notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		index("idx_pet_notes_business_updated").using(
+			"btree",
+			table.businessId.asc().nullsLast().op("uuid_ops"),
+			table.updatedAt.desc().nullsFirst().op("timestamptz_ops"),
+		),
+		index("idx_pet_notes_collection").using(
+			"btree",
+			table.collectionId.asc().nullsLast().op("uuid_ops"),
+		),
+		foreignKey({
+			columns: [table.businessId],
+			foreignColumns: [businesses.id],
+			name: "pet_notes_business_id_fkey",
+		}).onDelete("cascade"),
+		foreignKey({
+			columns: [table.collectionId],
+			foreignColumns: [noteCollections.id],
+			name: "pet_notes_collection_id_fkey",
+		}).onDelete("set null"),
+		foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.id],
+			name: "pet_notes_created_by_fkey",
+		}).onDelete("restrict"),
+	],
+);
+
 export const invoiceItems = pgTable(
 	"invoice_items",
 	{

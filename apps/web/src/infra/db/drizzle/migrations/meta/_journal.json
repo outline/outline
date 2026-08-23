@@ -92,6 +92,13 @@
       "when": 1784533850557,
       "tag": "0012_plain_vampiro",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1787495000000,
+      "tag": "0013_add_pet_notes",
+      "breakpoints": true
     }
   ]
 }

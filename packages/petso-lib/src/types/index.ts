@@ -89,6 +89,13 @@ export type {
 export type { TWhatsAppTemplateDto } from "./whatsapp.types";
 export type { TWhatsAppMessageDto } from "./whatsapp-message.types";
 export type {
+	TCreateNoteCollectionInput,
+	TCreateNoteInput,
+	TNoteCollectionDto,
+	TNoteDto,
+	TUpdateNoteInput,
+} from "./notes.types";
+export type {
 	TSendWhatsAppInput,
 	TSendWhatsAppResult,
 } from "./whatsapp-send.types";

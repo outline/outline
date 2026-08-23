@@ -17,6 +17,7 @@ import { PasswordResetRepositoryDrizzle } from "@/domain/identity/password-reset
 import { InventoryRepositoryDrizzle } from "@/domain/inventory/inventory.repository.drizzle";
 import { InvoiceRepositoryDrizzle } from "@/domain/invoice/invoice.repository.drizzle";
 import { LoyaltyRepositoryDrizzle } from "@/domain/loyalty/loyalty.repository.drizzle";
+import { NotesRepositoryDrizzle } from "@/domain/notes/notes.repository.drizzle";
 import { OrderRepositoryDrizzle } from "@/domain/order/order.repository.drizzle";
 import { PetRepositoryDrizzle } from "@/domain/pet/pet.repository.drizzle";
 import { PortalRepositoryDrizzle } from "@/domain/portal/portal.repository.drizzle";
@@ -34,9 +35,9 @@ import { WhatsAppRepositoryDrizzle } from "@/domain/whatsapp/whatsapp.repository
 import { AnisAiWhatsAppAdapterLive } from "@/infra/adapters/anis-ai.adapter";
 import { DrizzleQueueAdapterLive } from "@/infra/adapters/drizzle.queue";
 import { ProviderEmailAdapterLive } from "@/infra/adapters/email/provider-email.adapter";
+import { EmberStorageAdapterLive } from "@/infra/adapters/ember.adapter";
 import { IdempotencyDrizzleLive } from "@/infra/adapters/idempotency.drizzle";
 import { MidtransPaymentAdapterLive } from "@/infra/adapters/midtrans.adapter";
-import { EmberStorageAdapterLive } from "@/infra/adapters/ember.adapter";
 import { UpstashRateLimitAdapterLive } from "@/infra/adapters/rate-limit/upstash-rate-limit.adapter";
 import { UpstashCacheAdapterLive } from "@/infra/adapters/upstash.adapter";
 import {
@@ -85,6 +86,7 @@ const RepositoriesLayer = Layer.provideMerge(
 		CustomerRepositoryDrizzle,
 		DashboardRepositoryDrizzle,
 		DocumentTemplateRepositoryDrizzle,
+		NotesRepositoryDrizzle,
 		FormBuilderRepositoryDrizzle,
 		GroomingRepositoryDrizzle,
 		RoomRepositoryDrizzle,

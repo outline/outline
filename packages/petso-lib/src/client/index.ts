@@ -43,6 +43,11 @@ import type {
 	TInviteStaffInput,
 	TInviteStaffResult,
 	TUpdateStaffProfileInput,
+	TCreateNoteCollectionInput,
+	TCreateNoteInput,
+	TNoteCollectionDto,
+	TNoteDto,
+	TUpdateNoteInput,
 	TStaffAttendanceDto,
 	TShiftDto,
 	TOnShiftDto,
@@ -392,6 +397,53 @@ export class PetsoClient {
 			this.fetchApi<{ readonly updated: boolean }>(
 				`/api/v1/admin/staff/${userId}/profile`,
 				{ method: "PATCH", body: input },
+			),
+		noteCollections: (): Promise<readonly TNoteCollectionDto[]> =>
+			this.fetchApi<readonly TNoteCollectionDto[]>(
+				"/api/v1/admin/note-collections",
+			),
+		createNoteCollection: (
+			input: TCreateNoteCollectionInput,
+		): Promise<TNoteCollectionDto> =>
+			this.fetchApi<TNoteCollectionDto>(
+				"/api/v1/admin/note-collections",
+				{ method: "POST", body: input },
+			),
+		notes: (includeDeleted = false): Promise<readonly TNoteDto[]> =>
+			this.fetchApi<readonly TNoteDto[]>(
+				`/api/v1/admin/notes${includeDeleted ? "?includeDeleted=true" : ""}`,
+			),
+		note: (id: string): Promise<TNoteDto> =>
+			this.fetchApi<TNoteDto>(`/api/v1/admin/notes/${id}`),
+		createNote: (input: TCreateNoteInput): Promise<TNoteDto> =>
+			this.fetchApi<TNoteDto>("/api/v1/admin/notes", {
+				method: "POST",
+				body: input,
+			}),
+		updateNote: (
+			id: string,
+			input: TUpdateNoteInput,
+		): Promise<TNoteDto> =>
+			this.fetchApi<TNoteDto>(`/api/v1/admin/notes/${id}`, {
+				method: "PATCH",
+				body: input,
+			}),
+		archiveNote: (id: string): Promise<TNoteDto> =>
+			this.fetchApi<TNoteDto>(`/api/v1/admin/notes/${id}/archive`, {
+				method: "POST",
+			}),
+		restoreNote: (id: string): Promise<TNoteDto> =>
+			this.fetchApi<TNoteDto>(`/api/v1/admin/notes/${id}/restore`, {
+				method: "POST",
+			}),
+		deleteNote: (id: string): Promise<TNoteDto> =>
+			this.fetchApi<TNoteDto>(`/api/v1/admin/notes/${id}/delete`, {
+				method: "POST",
+			}),
+		emptyNotesTrash: (): Promise<{ readonly emptied: boolean }> =>
+			this.fetchApi<{ readonly emptied: boolean }>(
+				"/api/v1/admin/notes/empty-trash",
+				{ method: "POST" },
 			),
 		clockIn: (
 			input: { readonly staffId: string; readonly date: string; readonly notes?: string | null },
