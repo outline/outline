@@ -1,4 +1,5 @@
 import { generateRequestId, logOperation } from "@/shared/observability";
+import { bindWorkerEnv } from "@/shared/env/app.config";
 import { consumeLastCapturedError, renderErrorPage } from "@/shared/utils";
 
 type ServerEntry = {
@@ -62,6 +63,7 @@ const withRequestId = (request: Request): string => {
 
 export default {
 	async fetch(request: Request, env: unknown, ctx: unknown) {
+		bindWorkerEnv(env);
 		const requestId = withRequestId(request);
 		const start = performance.now();
 

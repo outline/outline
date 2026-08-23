@@ -23,6 +23,22 @@ const readFromGlobalEnv = (name: string): string | undefined => {
 	return undefined;
 };
 
+/**
+ * Binds the Cloudflare Worker environment for server-side config resolution.
+ *
+ * @param workerEnv the environment object provided to the Worker fetch handler.
+ */
+export const bindWorkerEnv = (workerEnv: unknown): void => {
+	if (typeof workerEnv !== "object" || workerEnv === null) {
+		return;
+	}
+
+	const runtimeGlobal = globalThis as typeof globalThis & {
+		__env__?: Record<string, unknown>;
+	};
+	runtimeGlobal.__env__ = workerEnv as Record<string, unknown>;
+};
+
 const serverEnv = (name: string): Config.Config<string> => {
 	let config = Config.string(name);
 	config = config.pipe(
@@ -149,8 +165,12 @@ export const AppConfig = {
 		bucket: env("EMBER_BUCKET", "pet-store"),
 	},
 	upstash: {
-		redisUrl: env("UPSTASH_REDIS_REST_URL", ""),
-		redisToken: env("UPSTASH_REDIS_REST_TOKEN", ""),
+		redisUrl: serverEnv("UPSTASH_REDIS_REST_URL").pipe(
+			Config.withDefault(""),
+		),
+		redisToken: serverEnv("UPSTASH_REDIS_REST_TOKEN").pipe(
+			Config.withDefault(""),
+		),
 	},
 	mcp: {
 		secretToken: serverEnv("MCP_SECRET_TOKEN").pipe(
@@ -162,14 +182,14 @@ export const AppConfig = {
 	},
 	midtrans: {
 		clientKey: env("VITE_MIDTRANS_CLIENT_KEY", ""),
-		serverKey: env("MIDTRANS_SERVER_KEY", ""),
+		serverKey: serverEnv("MIDTRANS_SERVER_KEY").pipe(Config.withDefault("")),
 		isProduction: Config.boolean("VITE_MIDTRANS_IS_PRODUCTION").pipe(
 			Config.orElse(() => Config.boolean("MIDTRANS_IS_PRODUCTION")),
 			Config.withDefault(false),
 		),
 	},
 	anisAi: {
-		apiKey: env("ANIS_AI_API_KEY", ""),
+		apiKey: serverEnv("ANIS_AI_API_KEY").pipe(Config.withDefault("")),
 		baseUrl: env("ANIS_AI_BASE_URL", "https://api.anis.ai"),
 	},
 	storage: {

@@ -4,6 +4,9 @@ compatibility_date = "2026-07-26"
 compatibility_flags = ["nodejs_compat"]
 assets = { directory = "dist/client" }
 
+[vars]
+NODE_ENV = "production"
+
 # Secrets (DATABASE_URL, UPSTASH_*, MIDTRANS_*) are NOT set in this file.
 # `process.env` is not available inside a Cloudflare Worker — secrets are
 # injected via `wrangler secret put <NAME>` and accessed through the
