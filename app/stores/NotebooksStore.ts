@@ -126,13 +126,11 @@ export default class NotebooksStore extends Store<Notebook> {
       name?: string;
     }
   ): Promise<Notebook> => {
-    const res = await client.post("/collections.duplicate", {
-      id: notebook.id,
-      ...options,
+    const duplicated = await petsoClient.admin.createNoteCollection({
+      name: options?.name ?? `${notebook.name} copy`,
+      description: null,
     });
-    invariant(res?.data, "Data should be available");
-    this.addPolicies(res.policies);
-    return this.add(res.data);
+    return this.mapCollection(duplicated);
   };
   @action
   move = async (notebookId: string, index: string) => {
