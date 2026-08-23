@@ -39,6 +39,7 @@ import type {
   TPetDto,
   TProductDto,
   TStaffMemberDto,
+  TBranchDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -149,6 +150,16 @@ function mapProduct(product: TProductDto): Product {
     supplier: "",
     status: product.isActive ? "active" : "archived",
     ...(variants.length > 0 ? { variants } : {}),
+  };
+}
+
+function mapBranch(branch: TBranchDto): Branch {
+  return {
+    id: branch.id,
+    name: branch.name,
+    address: branch.address ?? "",
+    phone: branch.phone ?? "",
+    manager: "",
   };
 }
 
@@ -737,7 +748,7 @@ export const useShop = create<State>((set, get) => ({
         client.post("/batches.list"),
         client.post("/movements.list"),
         client.post("/purchaseOrders.list"),
-        client.post("/branches.list"),
+        petsoClient.branches.list(),
         petsoClient.admin.staff(),
         client.post("/accounts.list"),
         client.post("/journal.list"),
@@ -786,7 +797,7 @@ export const useShop = create<State>((set, get) => ({
         batches: batches.data,
         movements: movements.data,
         purchaseOrders: purchaseOrders.data,
-        branches: branches.data,
+        branches: branches.map(mapBranch),
         staff: staffDtos.map(mapStaff),
         accounts: accounts.data,
         journal: journal.data,
