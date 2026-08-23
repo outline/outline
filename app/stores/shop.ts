@@ -55,6 +55,7 @@ import type {
   TAccountingDashboardMetricsDto,
   TAccountDto,
   TJournalEntryDto,
+  TCommissionReportDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -1041,7 +1042,7 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.expenses(),
         client.post("/shifts.list"),
         client.post("/accounting.trialBalance"),
-        client.post("/accounting.commissions"),
+        petsoClient.admin.commissions(),
         client.post("/loyalty.list"),
         client.post("/whatsapp.templates"),
         client.post("/whatsapp.messages"),
@@ -1058,7 +1059,7 @@ export const useShop = create<State>((set, get) => ({
         client.post("/dashboard.trend", { days: 14 }),
         petsoClient.admin.topSellers(),
         client.post("/shifts.onShift"),
-        client.post("/accounting.cashFlow"),
+        petsoClient.admin.cashFlow(),
         client.post("/loyalty.config"),
         petsoClient.admin.branchHolidays(),
         client.post("/occupancy.calendar", { days: 14 }),
@@ -1149,7 +1150,15 @@ export const useShop = create<State>((set, get) => ({
         })),
         shifts: shifts.data,
         trialBalance: trialBalance.data,
-        commissions: commissions.data,
+        commissions: commissions.map((row: TCommissionReportDto) => ({
+          id: `${row.staffId}-${row.date}-${row.service}`,
+          name: row.staffName,
+          branch: "",
+          role: "",
+          rate: 0,
+          base: row.amount,
+          amount: row.amount,
+        })),
         grooming: groomingAppointments.map((appointment) =>
           mapGrooming(
             appointment,
@@ -1206,7 +1215,24 @@ export const useShop = create<State>((set, get) => ({
           revenue: item.revenue,
         })),
         onShift: onShift.data,
-        cashFlow: cashFlow.data,
+        cashFlow: [
+          ...cashFlow.inflows.map((row) => ({
+            accountId: row.category,
+            name: row.category,
+            opening: 0,
+            received: row.amount,
+            paid: 0,
+            closing: row.amount,
+          })),
+          ...cashFlow.outflows.map((row) => ({
+            accountId: row.category,
+            name: row.category,
+            opening: 0,
+            received: 0,
+            paid: row.amount,
+            closing: -row.amount,
+          })),
+        ],
         loyaltyConfig: loyaltyConfig.data,
         branchHolidays: branchHolidayDtos.map((holiday: TBranchHolidayDto) => ({
           id: holiday.id,

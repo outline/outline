@@ -54,6 +54,8 @@ export type {
 	TAccountDto,
 	TJournalEntryDto,
 	TJournalEntryLineDto,
+	TCashFlowReportDto,
+	TCommissionReportDto,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
 	TPortalConfigDto,

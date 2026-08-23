@@ -1,7 +1,9 @@
 import { Effect, Schema } from "effect";
 import {
 	createExpenseProgram,
+	getCashFlowReportProgram,
 	getChartOfAccountsProgram,
+	getCommissionReportProgram,
 	getDashboardMetricsProgram,
 	getExpensesProgram,
 	getJournalEntriesProgram,
@@ -163,6 +165,10 @@ import {
 	type AccountingHandlers,
 	createAccountingHandlers,
 } from "./accounting.handlers";
+import {
+	type AccountingReportHandlers,
+	createAccountingReportHandlers,
+} from "./accounting-report.handlers";
 import { type AuthHandlers, createAuthHandlers } from "./auth.handlers";
 import { createAuthProgramDependencies } from "./auth.runtime";
 import {
@@ -246,6 +252,7 @@ export function createRestRequestHandler(
 	expenseHandlers?: ExpenseHandlers,
 	accountingHandlers?: AccountingHandlers,
 	ledgerHandlers?: LedgerHandlers,
+	accountingReportHandlers?: AccountingReportHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -445,6 +452,20 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return ledgerHandlers.journal(request, requestId);
+		}
+		if (
+			accountingReportHandlers &&
+			url.pathname === "/api/v1/admin/accounting/cash-flow" &&
+			request.method === "GET"
+		) {
+			return accountingReportHandlers.cashFlow(request, requestId);
+		}
+		if (
+			accountingReportHandlers &&
+			url.pathname === "/api/v1/admin/accounting/commissions" &&
+			request.method === "GET"
+		) {
+			return accountingReportHandlers.commissions(request, requestId);
 		}
 		if (
 			expenseHandlers &&
@@ -1407,6 +1428,20 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			runApp(getChartOfAccountsProgram(businessId as TTenantId)),
 		journal: async (businessId) =>
 			runApp(getJournalEntriesProgram(businessId as TTenantId)),
+	}),
+	createAccountingReportHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		cashFlow: async (businessId) =>
+			runApp(getCashFlowReportProgram(businessId as TTenantId)),
+		commissions: async (businessId) => {
+			const rows = await runApp(
+				getCommissionReportProgram(businessId as TTenantId),
+			);
+			return rows.map((row) => ({
+				...row,
+				date: row.date.toISOString(),
+			}));
+		},
 	}),
 );
 
