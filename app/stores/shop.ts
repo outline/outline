@@ -219,7 +219,7 @@ function mapStaff(member: TStaffMemberDto): Staff {
     role,
     branch: member.branches[0]?.name ?? "",
     phone: "",
-    status: "active",
+    status: member.isActive === false ? "inactive" : "active",
     commissionRate: 0,
   };
 }
@@ -2056,7 +2056,7 @@ export const useShop = create<State>((set, get) => ({
     return { repaid: response.repaid };
   },
   setStaffStatus: async (id, status) => {
-    await client.post("/staff.setStatus", { id, status });
+    await petsoClient.admin.setStaffActive(id, status === "active");
     await get().fetchAll();
   },
   createRoom: async (room) => {

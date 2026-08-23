@@ -171,6 +171,7 @@ import {
 	getStaffMembersProgram,
 	inviteStaffProgram,
 	removeStaffFromBranchProgram,
+	setStaffActiveProgram,
 } from "@/domain/staff/staff.programs";
 import { InviteStaffSchema } from "@/domain/staff/staff.schemas";
 import {
@@ -281,6 +282,10 @@ import {
 	type StaffInviteHandlers,
 } from "./staff-invite.handlers";
 import {
+	createStaffStatusHandlers,
+	type StaffStatusHandlers,
+} from "./staff-status.handlers";
+import {
 	createWhatsAppHandlers,
 	type WhatsAppHandlers,
 } from "./whatsapp.handlers";
@@ -319,6 +324,7 @@ export function createRestRequestHandler(
 	advanceHandlers?: AdvanceHandlers,
 	whatsAppHandlers?: WhatsAppHandlers,
 	staffInviteHandlers?: StaffInviteHandlers,
+	staffStatusHandlers?: StaffStatusHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -405,6 +411,16 @@ export function createRestRequestHandler(
 			request.method === "POST"
 		) {
 			return staffInviteHandlers.invite(request, requestId);
+		}
+		const staffStatusMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/staff\/([^/]+)\/status$/,
+		);
+		if (staffStatusHandlers && staffStatusMatch && request.method === "PATCH") {
+			return staffStatusHandlers.setStatus(
+				request,
+				requestId,
+				staffStatusMatch[1] ?? "",
+			);
 		}
 		if (
 			branchHandlers &&
@@ -1844,6 +1860,17 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			await runApp(inviteStaffProgram(value, businessId as TTenantId));
 			return { sent: true };
 		},
+	}),
+	createStaffStatusHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		setStatus: async (businessId, userId, isActive) =>
+			runApp(
+				setStaffActiveProgram(
+					businessId as TTenantId,
+					userId as TUserId,
+					isActive,
+				),
+			),
 	}),
 );
 

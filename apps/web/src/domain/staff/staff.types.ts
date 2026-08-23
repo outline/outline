@@ -11,6 +11,7 @@ export type TStaffMember = {
 	readonly fullName: string;
 	readonly email: string;
 	readonly role: TUserRole;
+	readonly isActive?: boolean;
 	readonly branches: readonly {
 		readonly id: TBranchId;
 		readonly name: string;

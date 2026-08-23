@@ -54,6 +54,7 @@ export const StaffRepositoryDrizzle = Layer.effect(
 									userId: profiles.userId,
 									fullName: profiles.fullName,
 									email: profiles.email,
+									isActive: profiles.isActive,
 								})
 								.from(profiles)
 								.where(eq(profiles.businessId, tenantId));
@@ -86,6 +87,7 @@ export const StaffRepositoryDrizzle = Layer.effect(
 									userId: uid as TUserId,
 									fullName: p.fullName,
 									email: p.email,
+									isActive: p.isActive,
 									role: (userRolesForUser[0]?.role || "kasir") as TUserRole,
 									branches: [],
 								});
@@ -188,6 +190,25 @@ export const StaffRepositoryDrizzle = Layer.effect(
 					}),
 				),
 
+			setActive: (userId, tenantId, isActive) =>
+				withRetry(
+					Effect.tryPromise({
+						try: async () => {
+							const result = await db
+								.update(profiles)
+								.set({ isActive, updatedAt: new Date().toISOString() })
+								.where(
+									and(
+										eq(profiles.userId, userId),
+										eq(profiles.businessId, tenantId),
+									),
+								)
+								.returning({ id: profiles.id });
+							return result.length > 0;
+						},
+						catch: (e) => new DatabaseError({ cause: e }),
+					}),
+				),
 			removeFromBranch: (
 				userId: TUserId,
 				branchId: TBranchId,

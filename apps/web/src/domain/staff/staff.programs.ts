@@ -1,19 +1,19 @@
 import { Effect } from "effect";
+import { IBranchRepository } from "@/domain/branch";
 import type { DatabaseError } from "@/shared/errors/infrastructure.errors";
+import { IEmailPort } from "@/shared/ports/email.port";
 import type {
 	TBranchId,
 	TTenantId,
 	TUserId,
 	TUserRole,
 } from "@/shared/types/common.types";
+import { buildAccessGrantedEmail } from "./emails/access-granted.email";
 import type { TStaffMemberDto } from "./staff.dto";
 import { toStaffMemberDto } from "./staff.dto";
 import { UserNotRegisteredError } from "./staff.errors";
 import { IStaffRepository } from "./staff.repository";
 import type { InviteStaffCommand, RemoveStaffCommand } from "./staff.schemas";
-import { IBranchRepository } from "@/domain/branch";
-import { IEmailPort } from "@/shared/ports/email.port";
-import { buildAccessGrantedEmail } from "./emails/access-granted.email";
 
 export const getStaffMembersProgram = (
 	tenantId: TTenantId,
@@ -22,6 +22,17 @@ export const getStaffMembersProgram = (
 		const repo = yield* IStaffRepository;
 		const members = yield* repo.findAll(tenantId);
 		return members.map(toStaffMemberDto);
+	});
+
+export const setStaffActiveProgram = (
+	tenantId: TTenantId,
+	userId: TUserId,
+	isActive: boolean,
+) =>
+	Effect.gen(function* () {
+		const repo = yield* IStaffRepository;
+		if (!repo.setActive) return false;
+		return yield* repo.setActive(userId, tenantId, isActive);
 	});
 
 // Looking up the branch name is purely for personalizing the email body.

@@ -376,6 +376,14 @@ export class PetsoClient {
 				method: "POST",
 				body: input,
 			}),
+		setStaffActive: (
+			userId: string,
+			isActive: boolean,
+		): Promise<{ readonly updated: boolean }> =>
+			this.fetchApi<{ readonly updated: boolean }>(
+				`/api/v1/admin/staff/${userId}/status`,
+				{ method: "PATCH", body: { isActive } },
+			),
 		clockIn: (
 			input: { readonly staffId: string; readonly date: string; readonly notes?: string | null },
 		): Promise<TStaffAttendanceDto> =>
