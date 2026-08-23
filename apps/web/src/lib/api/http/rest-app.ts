@@ -35,6 +35,7 @@ import {
 	CreateBranchSchema,
 	UpdateBranchSchema,
 } from "@/domain/branch/branch.schemas";
+import { getAllKasbonProgram } from "@/domain/commission/commission.programs";
 import {
 	createCustomerProgram,
 	deleteCustomerProgram,
@@ -190,6 +191,10 @@ import {
 	type AccountingReportHandlers,
 	createAccountingReportHandlers,
 } from "./accounting-report.handlers";
+import {
+	type AdvanceHandlers,
+	createAdvanceHandlers,
+} from "./advance.handlers";
 import { type AuditHandlers, createAuditHandlers } from "./audit.handlers";
 import { type AuthHandlers, createAuthHandlers } from "./auth.handlers";
 import { createAuthProgramDependencies } from "./auth.runtime";
@@ -290,6 +295,7 @@ export function createRestRequestHandler(
 	loyaltyHandlers?: LoyaltyHandlers,
 	auditHandlers?: AuditHandlers,
 	billingHandlers?: BillingHandlers,
+	advanceHandlers?: AdvanceHandlers,
 	whatsAppHandlers?: WhatsAppHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
@@ -321,6 +327,13 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return billingHandlers.get(request, requestId);
+		}
+		if (
+			advanceHandlers &&
+			url.pathname === "/api/v1/admin/advances" &&
+			request.method === "GET"
+		) {
+			return advanceHandlers.list(request, requestId);
 		}
 		if (
 			whatsAppHandlers &&
@@ -1647,6 +1660,24 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				})),
 				usage,
 			};
+		},
+	}),
+	createAdvanceHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId) => {
+			const kasbons = await runApp(
+				getAllKasbonProgram(businessId as TTenantId),
+			);
+			return kasbons.map((kasbon) => ({
+				id: kasbon.id,
+				staffId: kasbon.staffId,
+				amount: kasbon.amount,
+				remaining: kasbon.remaining,
+				installmentAmount: kasbon.installmentAmount,
+				notes: kasbon.notes,
+				status: kasbon.status,
+				createdAt: kasbon.createdAt.toISOString(),
+			}));
 		},
 	}),
 	createWhatsAppHandlers({

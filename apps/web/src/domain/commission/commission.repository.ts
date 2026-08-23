@@ -15,6 +15,9 @@ import type {
 } from "./commission.types";
 
 export interface ICommissionRepository {
+	readonly findAllKasbon?: (
+		tenantId: TTenantId,
+	) => Effect.Effect<readonly TKasbon[], DatabaseError>;
 	readonly findRuleByStaffId: (
 		staffId: TStaffId,
 		tenantId: TTenantId,

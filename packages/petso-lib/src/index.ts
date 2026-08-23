@@ -53,6 +53,7 @@ export type {
 	TCreateExpenseInput,
 	TExpenseDto,
 	TAccountingDashboardMetricsDto,
+	TAdvanceDto,
 	TBillingInvoiceDto,
 	TBillingSubscriptionDto,
 	TBillingSummaryDto,

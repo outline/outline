@@ -76,6 +76,13 @@ export const getKasbonByStaffProgram = (
 		return yield* _(repo.findKasbonByStaffId(staffId, tenantId));
 	});
 
+export const getAllKasbonProgram = (tenantId: TTenantId) =>
+	Effect.gen(function* (_) {
+		const repo = yield* _(CommissionRepository);
+		if (!repo.findAllKasbon) return [];
+		return yield* _(repo.findAllKasbon(tenantId));
+	});
+
 export const addKasbonProgram = (tenantId: TTenantId, data: unknown) =>
 	Effect.gen(function* (_) {
 		const repo = yield* _(CommissionRepository);

@@ -87,6 +87,20 @@ export const CommissionRepositoryDrizzle = Layer.effect(
 	CommissionRepository,
 	Effect.map(IDrizzleClient, (db) =>
 		CommissionRepository.of({
+			findAllKasbon: (tenantId) =>
+				withRetry(
+					Effect.tryPromise({
+						try: async () => {
+							const rows = await db
+								.select({ kasbon })
+								.from(kasbon)
+								.where(eq(kasbon.businessId, tenantId))
+								.orderBy(desc(kasbon.createdAt));
+							return rows.map((row) => mapKasbonRow(row.kasbon));
+						},
+						catch: (e) => new DatabaseError({ cause: e }),
+					}),
+				),
 			findRuleByStaffId: (staffId, tenantId) =>
 				withRetry(
 					Effect.tryPromise({
