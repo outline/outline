@@ -1,4 +1,6 @@
 import { readSessionToken } from "@/infra/auth/http-session-cookie";
+import { Schema } from "effect";
+import { UpdatePortalBookingStatusSchema } from "@/domain/portal/portal.schemas";
 import { ApiHttpError, jsonError, jsonSuccess } from "./response";
 
 interface PortalSession {
@@ -22,6 +24,11 @@ interface PortalHandlerDependencies {
 		businessId: string,
 		input: Record<string, unknown>,
 	) => Promise<void>;
+	readonly updateBookingStatus: (
+		businessId: string,
+		bookingId: string,
+		status: "pending" | "confirmed" | "cancelled" | "completed",
+	) => Promise<void>;
 }
 
 export interface PortalHandlers {
@@ -43,6 +50,11 @@ export interface PortalHandlers {
 	readonly updateConfig: (
 		request: Request,
 		requestId: string,
+	) => Promise<Response>;
+	readonly updateBookingStatus: (
+		request: Request,
+		requestId: string,
+		bookingId: string,
 	) => Promise<Response>;
 }
 
@@ -96,6 +108,25 @@ export function createPortalHandlers(
 			if (!body) return validationError(requestId);
 			await dependencies.updateConfig(session.business.id, body);
 			return jsonSuccess({ updated: true }, requestId);
+		},
+		updateBookingStatus: async (request, requestId, bookingId) => {
+			const session = await getSession(request, dependencies.session);
+			if (!session) return unauthorized(requestId);
+			const body = await readBody(request);
+			if (!body) return validationError(requestId);
+			try {
+				const value = Schema.decodeUnknownSync(
+					UpdatePortalBookingStatusSchema,
+				)({ ...body, bookingId });
+				await dependencies.updateBookingStatus(
+					session.business.id,
+					value.bookingId,
+					value.status,
+				);
+				return jsonSuccess({ updated: true }, requestId);
+			} catch {
+				return validationError(requestId);
+			}
 		},
 	};
 }

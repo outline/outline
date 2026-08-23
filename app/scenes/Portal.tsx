@@ -55,6 +55,9 @@ function Portal() {
     (state) => state.setPortalServiceActive
   );
   const deletePortalService = useShop((state) => state.deletePortalService);
+  const updatePortalBookingStatus = useShop(
+    (state) => state.updatePortalBookingStatus
+  );
   const savePortalSettings = useShop((state) => state.savePortalSettings);
   const tabs = usePanel<(typeof TABS)[number]>("Overview");
   const tab = tabs.current ?? "Overview";
@@ -132,6 +135,14 @@ function Portal() {
           : t("The shopfront is open.")
         : t("That could not be saved.");
     });
+  const handleBookingStatus = (
+    id: string,
+    status: "confirmed" | "cancelled" | "completed"
+  ) =>
+    submission.run(async () => {
+      await updatePortalBookingStatus(id, status);
+      return t("Saved.");
+    });
   return (
     <AppPage
       title={t("Portal")}
@@ -191,7 +202,44 @@ function Portal() {
                   {formatDate(booking.scheduledAt)} · {booking.customerPhone}
                 </>
               }
-              actions={<StatusChip status={booking.status} />}
+              actions={
+                <Flex align="center" gap={8}>
+                  <StatusChip status={booking.status} />
+                  {booking.status === "pending" ? (
+                    <>
+                      <Button
+                        neutral
+                        borderOnHover
+                        onClick={() =>
+                          void handleBookingStatus(booking.id, "confirmed")
+                        }
+                      >
+                        {t("Confirm")}
+                      </Button>
+                      <Button
+                        neutral
+                        borderOnHover
+                        onClick={() =>
+                          void handleBookingStatus(booking.id, "cancelled")
+                        }
+                      >
+                        {t("Cancel")}
+                      </Button>
+                    </>
+                  ) : null}
+                  {booking.status === "confirmed" ? (
+                    <Button
+                      neutral
+                      borderOnHover
+                      onClick={() =>
+                        void handleBookingStatus(booking.id, "completed")
+                      }
+                    >
+                      {t("Complete")}
+                    </Button>
+                  ) : null}
+                </Flex>
+              }
               border
             />
           ))}

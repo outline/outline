@@ -606,6 +606,14 @@ export class PetsoClient {
 				method: "PATCH",
 				body: input,
 			}),
+		updatePortalBookingStatus: (
+			id: string,
+			status: TPortalBookingDto["status"],
+		): Promise<{ readonly updated: boolean }> =>
+			this.fetchApi<{ readonly updated: boolean }>(
+				`/api/v1/admin/portal/bookings/${encodeURIComponent(id)}/status`,
+				{ method: "PATCH", body: { status } },
+			),
 		branchHolidays: (): Promise<readonly TBranchHolidayDto[]> =>
 			this.fetchApi<readonly TBranchHolidayDto[]>(
 				"/api/v1/admin/branch-holidays",

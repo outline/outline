@@ -135,6 +135,7 @@ import {
 	getPortalReviewsProgram,
 	getPortalServicesProgram,
 	getPortalStatsProgram,
+	updatePortalBookingStatusProgram,
 	updatePortalConfigProgram,
 	updatePortalServiceStatusProgram,
 } from "@/domain/portal/portal.programs";
@@ -828,6 +829,20 @@ export function createRestRequestHandler(
 			request.method === "PATCH"
 		) {
 			return portalHandlers.updateConfig(request, requestId);
+		}
+		const portalBookingStatusMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/portal\/bookings\/([^/]+)\/status$/,
+		);
+		if (
+			portalHandlers &&
+			portalBookingStatusMatch &&
+			request.method === "PATCH"
+		) {
+			return portalHandlers.updateBookingStatus(
+				request,
+				requestId,
+				portalBookingStatusMatch[1] ?? "",
+			);
 		}
 		if (
 			documentTemplateHandlers &&
@@ -1706,6 +1721,13 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			};
 			await runApp(updatePortalConfigProgram(command, businessId as TTenantId));
 		},
+		updateBookingStatus: async (businessId, bookingId, status) =>
+			runApp(
+				updatePortalBookingStatusProgram(businessId as TTenantId, {
+					bookingId,
+					status,
+				}),
+			),
 	}),
 	createHolidayHandlers({
 		session: async (token) => authProgramDependencies.session(token),

@@ -1,6 +1,7 @@
 export interface TInventoryBatchDto {
 	readonly id: string;
 	readonly variantId: string;
+	readonly warehouseId?: string | null;
 	readonly batchNumber: string | null;
 	readonly quantity: number;
 	readonly initialQty: number;
@@ -18,6 +19,8 @@ export interface TInventoryMovementDto {
 	readonly id: string;
 	readonly variantId: string;
 	readonly batchId: string | null;
+	readonly sourceWarehouseId?: string | null;
+	readonly targetWarehouseId?: string | null;
 	readonly type: string;
 	readonly quantity: number;
 	readonly referenceType: string | null;

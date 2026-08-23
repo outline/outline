@@ -5,6 +5,7 @@ import {
 	type appRole,
 	branches,
 	branchMembers,
+	commissionRules,
 	profiles,
 	userRoles,
 } from "@/infra/db/drizzle/schema";
@@ -67,6 +68,25 @@ export const StaffRepositoryDrizzle = Layer.effect(
 								.from(userRoles)
 								.where(eq(userRoles.businessId, tenantId));
 
+							const commissionRows = await db
+								.select({
+									staffId: commissionRules.staffId,
+									ratePercent: commissionRules.ratePercent,
+								})
+								.from(commissionRules)
+								.where(
+									and(
+										eq(commissionRules.businessId, tenantId),
+										eq(commissionRules.isActive, true),
+									),
+								);
+							const commissionByStaff = new Map(
+								commissionRows.map((row) => [
+									row.staffId,
+									row.ratePercent === null ? undefined : Number(row.ratePercent),
+								]),
+							);
+
 							const memberRows = await db
 								.select({
 									userId: branchMembers.userId,
@@ -83,14 +103,19 @@ export const StaffRepositoryDrizzle = Layer.effect(
 									(roleRows as TUserRoleRow[]).filter(
 										(r) => r.userId === uid,
 									) || [];
-								userMap.set(uid, {
+								const member: TStaffMember = {
 									userId: uid as TUserId,
 									fullName: p.fullName,
 									email: p.email,
 									isActive: p.isActive,
 									role: (userRolesForUser[0]?.role || "kasir") as TUserRole,
 									branches: [],
-								});
+								};
+								const commissionRate = commissionByStaff.get(uid);
+								if (commissionRate !== undefined) {
+									member.commissionRate = commissionRate;
+								}
+								userMap.set(uid, member);
 							}
 
 							for (const m of memberRows as TBranchMemberRow[]) {

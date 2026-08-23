@@ -27,6 +27,7 @@ export type TProductBatch = {
 	readonly id: TProductBatchId;
 	readonly tenantId: TTenantId;
 	readonly variantId: TProductVariantId;
+	readonly warehouseId?: string | null;
 	readonly batchNumber: string | null;
 	readonly quantity: number;
 	readonly initialQty: number;
@@ -45,6 +46,8 @@ export type TStockMovement = {
 	readonly tenantId: TTenantId;
 	readonly variantId: TProductVariantId;
 	readonly batchId: TProductBatchId | null;
+	readonly sourceWarehouseId?: string | null;
+	readonly targetWarehouseId?: string | null;
 	readonly type: TMovementType;
 	readonly quantity: number;
 	readonly referenceType: TReferenceType | null;

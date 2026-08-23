@@ -15,6 +15,7 @@ export type TProductBatchDto = {
 	readonly id: string;
 	readonly business_id: string;
 	readonly variant_id: string;
+	readonly warehouse_id?: string | null;
 	readonly batch_number: string | null;
 	readonly quantity: number;
 	readonly initial_qty: number;
@@ -32,6 +33,7 @@ export const toProductBatch = (dto: TProductBatchDto): TProductBatch => ({
 	id: dto.id as TProductBatchId,
 	tenantId: dto.business_id as TTenantId,
 	variantId: dto.variant_id as TProductVariantId,
+	warehouseId: dto.warehouse_id ?? null,
 	batchNumber: dto.batch_number,
 	quantity: Number(dto.quantity),
 	initialQty: Number(dto.initial_qty),
@@ -50,6 +52,8 @@ export type TStockMovementDto = {
 	readonly business_id: string;
 	readonly variant_id: string;
 	readonly batch_id: string | null;
+	readonly source_warehouse_id?: string | null;
+	readonly target_warehouse_id?: string | null;
 	readonly type: string;
 	readonly quantity: number;
 	readonly reference_type: string | null;
@@ -64,6 +68,8 @@ export const toStockMovement = (dto: TStockMovementDto): TStockMovement => ({
 	tenantId: dto.business_id as TTenantId,
 	variantId: dto.variant_id as TProductVariantId,
 	batchId: dto.batch_id as TProductBatchId | null,
+	sourceWarehouseId: dto.source_warehouse_id ?? null,
+	targetWarehouseId: dto.target_warehouse_id ?? null,
 	type: dto.type as TMovementType,
 	quantity: Number(dto.quantity),
 	referenceType: dto.reference_type as TReferenceType | null,

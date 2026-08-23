@@ -233,7 +233,7 @@ function mapStaff(member: TStaffMemberDto): Staff {
     branch: member.branches[0]?.name ?? "",
     phone: "",
     status: member.isActive === false ? "inactive" : "active",
-    commissionRate: 0,
+    commissionRate: member.commissionRate ?? 0,
   };
 }
 
@@ -245,7 +245,7 @@ function mapInventoryBatch(
     id: batch.id,
     productId: batch.variantId,
     productName: productNames.get(batch.variantId) ?? "",
-    warehouseId: "",
+    warehouseId: batch.warehouseId ?? "",
     lot: batch.batchNumber ?? "",
     quantity: batch.quantity,
     expiresAt: batch.expiryDate ?? "",
@@ -261,7 +261,8 @@ function mapInventoryMovement(
     id: movement.id,
     productId: movement.variantId,
     productName: productNames.get(movement.variantId) ?? "",
-    warehouseId: "",
+    warehouseId:
+      movement.sourceWarehouseId ?? movement.targetWarehouseId ?? "",
     type: types.find((type) => type === movement.type) ?? "adjustment",
     quantity: movement.quantity,
     reference: movement.referenceId ?? movement.referenceType ?? "",
@@ -707,6 +708,10 @@ interface State {
   }) => Promise<boolean>;
   setPortalServiceActive: (id: string, isActive: boolean) => Promise<void>;
   deletePortalService: (id: string) => Promise<void>;
+  updatePortalBookingStatus: (
+    id: string,
+    status: PortalBooking["status"]
+  ) => Promise<void>;
   /** Fields left out are kept as they are, so a blank does not wipe them. */
   savePortalSettings: (settings: {
     name?: string;
@@ -1624,6 +1629,10 @@ export const useShop = create<State>((set, get) => ({
   },
   deletePortalService: async (id) => {
     await petsoClient.admin.deletePortalService(id);
+    await get().fetchAll();
+  },
+  updatePortalBookingStatus: async (id, status) => {
+    await petsoClient.admin.updatePortalBookingStatus(id, status);
     await get().fetchAll();
   },
   savePortalSettings: async (settings) => {

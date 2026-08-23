@@ -4,5 +4,6 @@ export interface TStaffMemberDto {
 	readonly email: string;
 	readonly role: string;
 	readonly isActive?: boolean;
+	readonly commissionRate?: number;
 	readonly branches: readonly { readonly id: string; readonly name: string }[];
 }
