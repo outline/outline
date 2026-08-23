@@ -1,6 +1,7 @@
 import { generateRequestId, logOperation } from "@/shared/observability";
 import { bindWorkerEnv } from "@/shared/env/app.config";
 import { consumeLastCapturedError, renderErrorPage } from "@/shared/utils";
+import { handleRestRequest } from "./lib/api/http/rest-app";
 
 type ServerEntry = {
 	fetch: (
@@ -69,6 +70,10 @@ export default {
 
 		try {
 			const url = new URL(request.url);
+			const restResponse = await handleRestRequest(request);
+			if (restResponse) {
+				return restResponse;
+			}
 
 			if (url.pathname === "/api/v1/seed-ember" && request.method === "POST") {
 				const { handleSeedEmber } = await import("./lib/api/ecommerce/seed-ember");
