@@ -173,9 +173,7 @@ export default class AuthStore extends Store<Team> {
   }
   @action
   fetchConfig = async () => {
-    const res = await client.post("/auth.config");
-    invariant(res?.data, "Config not available");
-    this.config = res.data;
+    this.config = { providers: [] };
   };
   @action
   fetchAuth = async () => {
@@ -312,8 +310,7 @@ export default class AuthStore extends Store<Team> {
     }
     if (revokeToken) {
       try {
-        // invalidate authentication token on server and unset auth cookie
-        await client.post(`/auth.delete`);
+        await petsoClient.auth.logout();
       } catch (err) {
         Logger.error("Failed to delete authentication", toError(err));
       }
