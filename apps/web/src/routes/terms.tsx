@@ -47,7 +47,7 @@ function TermsPage() {
 				</Link>
 
 				<div className="space-y-4 text-true-black/80 leading-relaxed">
-					<MDXProvider components={mdxComponents}>
+					<MDXProvider>
 						<TermsContent />
 					</MDXProvider>
 				</div>

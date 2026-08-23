@@ -20,12 +20,16 @@ export const DrizzleClientLive = Layer.scoped(
 		const config = getResolvedConfig();
 		let dbUrl = config.database.dbUrl || "";
 		if (dbUrl.includes("?")) {
-			dbUrl = dbUrl.split("?")[0];
+			const [dbUrlWithoutQuery] = dbUrl.split("?");
+			dbUrl = dbUrlWithoutQuery || "";
 		}
 		if (dbUrl.startsWith("postgresql://")) {
 			dbUrl = "postgres://" + dbUrl.substring("postgresql://".length);
 		}
 		const sql = neon(dbUrl);
-		return drizzle({ client: sql, schema: relationalSchema });
+		return drizzle<typeof relationalSchema>({
+			client: sql,
+			relations: relationalSchema,
+		});
 	}),
 );

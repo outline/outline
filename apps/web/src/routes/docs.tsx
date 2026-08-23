@@ -1007,7 +1007,7 @@ function DocsLayout() {
 									</>
 								)}
 								<div id="mdx-content">
-									<MDXProvider components={components}>
+									<MDXProvider>
 										<Outlet />
 									</MDXProvider>
 								</div>

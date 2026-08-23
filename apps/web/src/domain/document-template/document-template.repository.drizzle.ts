@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
 import { documentTemplates } from "@/infra/db/drizzle/schema";
@@ -36,7 +36,7 @@ export const DocumentTemplateRepositoryDrizzle = Layer.effect(
 							const result = await db.query.documentTemplates.findFirst({
 								where: {
 									RAW: (t, { and, eq }) =>
-										and(eq(t.businessId, businessId), eq(t.type, type)),
+										and(eq(t.businessId, businessId), eq(t.type, type)) ?? sql``,
 								},
 							});
 							return result ? mapTemplateRow(result) : null;

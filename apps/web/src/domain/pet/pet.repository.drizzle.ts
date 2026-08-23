@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import type { TCustomerId } from "@/domain/customer/customer.types";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
@@ -20,7 +20,7 @@ export const PetRepositoryDrizzle = Layer.effect(
 						const row = await db.query.pets.findFirst({
 							where: {
 								RAW: (p, { and, eq }) =>
-									and(eq(p.id, id), eq(p.businessId, tenantId)),
+									and(eq(p.id, id), eq(p.businessId, tenantId)) ?? sql``,
 							},
 						});
 						if (!row) throw new PetNotFoundError({ id });

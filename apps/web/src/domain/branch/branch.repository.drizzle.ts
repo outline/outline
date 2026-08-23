@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
 import {
@@ -69,7 +69,7 @@ export const BranchRepositoryDrizzle = Layer.effect(
 							const row = await db.query.branches.findFirst({
 								where: {
 									RAW: (b, { and, eq }) =>
-										and(eq(b.id, id), eq(b.businessId, tenantId)),
+										and(eq(b.id, id), eq(b.businessId, tenantId)) ?? sql``,
 								},
 							});
 							if (!row) return null;

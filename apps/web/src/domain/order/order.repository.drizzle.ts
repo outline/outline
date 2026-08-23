@@ -96,7 +96,7 @@ export const OrderRepositoryDrizzle = Layer.effect(
 							const result = await db.query.orders.findFirst({
 								where: {
 									RAW: (orders, { and, eq }) =>
-										and(eq(orders.id, id), eq(orders.businessId, tenantId)),
+										and(eq(orders.id, id), eq(orders.businessId, tenantId)) ?? sql``,
 								},
 							});
 
@@ -128,8 +128,8 @@ export const OrderRepositoryDrizzle = Layer.effect(
 
 							const [results, totalRows] = await Promise.all([
 								db.query.orders.findMany({
-									where: baseWhere,
-									orderBy: (orders, { desc }) => [desc(orders.createdAt)],
+									where: { RAW: () => baseWhere ?? sql`` },
+									orderBy: (orders, { desc }) => desc(orders.createdAt),
 									limit: options?.limit,
 									offset: options?.offset,
 								}),
@@ -224,8 +224,8 @@ export const OrderRepositoryDrizzle = Layer.effect(
 
 							const [results, totalRows] = await Promise.all([
 								db.query.orders.findMany({
-									where: whereClause,
-									orderBy: (orders, { desc }) => [desc(orders.createdAt)],
+									where: { RAW: () => whereClause ?? sql`` },
+									orderBy: (orders, { desc }) => desc(orders.createdAt),
 									limit: options?.limit,
 									offset: options?.offset,
 								}),
@@ -711,11 +711,13 @@ export const OrderRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const results = await db.query.orders.findMany({
-								where: (orders, { and, eq }) =>
-									and(
-										eq(orders.businessId, tenantId),
-										eq(orders.status, "draft"),
-									),
+								where: {
+									RAW: (orders, { and, eq }) =>
+										and(
+											eq(orders.businessId, tenantId),
+											eq(orders.status, "draft"),
+										) ?? sql``,
+								},
 								orderBy: (orders, { desc }) => [desc(orders.createdAt)],
 							});
 

@@ -1,10 +1,9 @@
 import { and, asc, desc, eq, gte, lte, ne } from "drizzle-orm";
-import type { NeonDatabase } from "drizzle-orm/neon-serverless";
 import { Effect, Layer } from "effect";
 import type { TCustomerId } from "@/domain/customer/customer.types";
 import type { TPetId } from "@/domain/pet/pet.types";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
-import type * as schema from "@/infra/db/drizzle/schema";
+import type { DrizzleClient } from "@/infra/db/drizzle/client";
 import {
 	groomingAddons,
 	groomingAppointmentAddons,
@@ -39,7 +38,7 @@ import type {
 	TPetSize,
 } from "./grooming.types";
 
-type TDb = NeonDatabase<typeof schema>;
+type TDb = DrizzleClient;
 type TGroomingServiceRow = typeof groomingServices.$inferSelect;
 type TGroomingAddonRow = typeof groomingAddons.$inferSelect;
 type TGroomingAppointmentRow = typeof groomingAppointments.$inferSelect;
@@ -411,7 +410,7 @@ export const GroomingRepositoryDrizzle = Layer.effect(
 						try: async () => {
 							const id = generateId<TGroomingAppointmentId>();
 							const now = new Date();
-							const insertedRows = await db.transaction(async (tx: TDb) => {
+							const insertedRows = await db.transaction(async (tx) => {
 								if (appointment.groomerId !== null) {
 									const existing = await tx
 										.select({ id: groomingAppointments.id })

@@ -53,7 +53,7 @@ export default defineConfig({
 		// run_worker_first ensures /_server (TanStack createServerFn) requests
 		// are routed to the Worker instead of getting a 404 from the static
 		// asset handler when there's no matching file in dist/client.
-		cloudflare: { nodeCompat: true, deployConfig: true, assets: { run_worker_first: true } },
+		cloudflare: { nodeCompat: true, deployConfig: true },
 	},
 	vite: {
 		define: {

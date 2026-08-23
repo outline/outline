@@ -1974,7 +1974,7 @@ export const orders = pgTable(
 			precision: 12,
 			scale: 2,
 		}).default("0"),
-		trackingNumber: text("tracking_number").default(null),
+		trackingNumber: text("tracking_number"),
 		shippingCarrier: text("shipping_carrier"),
 		shippedAt: timestamp("shipped_at", { withTimezone: true }),
 		deliveredAt: timestamp("delivered_at", { withTimezone: true }),

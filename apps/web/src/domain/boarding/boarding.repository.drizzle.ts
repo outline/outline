@@ -99,8 +99,10 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const result = await db.query.boardings.findFirst({
-								where: (boardings, { and, eq }) =>
-									and(eq(boardings.id, id), eq(boardings.businessId, tenantId)),
+								where: {
+									RAW: (boardings, { and, eq }) =>
+										and(eq(boardings.id, id), eq(boardings.businessId, tenantId)) ?? sql``,
+								},
 							});
 
 							if (!result) return null;
@@ -121,8 +123,7 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const results = await db.query.boardings.findMany({
-								where: (boardings, { eq }) =>
-									eq(boardings.businessId, tenantId),
+								where: { RAW: (boardings, { eq }) => eq(boardings.businessId, tenantId) },
 								orderBy: (boardings, { desc }) => [desc(boardings.createdAt)],
 							});
 
@@ -353,11 +354,13 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const boarding = await db.query.boardings.findFirst({
-								where: (boardings, { and, eq }) =>
+								where: {
+									RAW: (boardings, { and, eq }) =>
 									and(
 										eq(boardings.id, boardingId),
 										eq(boardings.businessId, tenantId),
-									),
+									) ?? sql``,
+								},
 							});
 							if (!boarding) return [];
 
@@ -387,11 +390,13 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const boarding = await db.query.boardings.findFirst({
-								where: (boardings, { and, eq }) =>
+								where: {
+									RAW: (boardings, { and, eq }) =>
 									and(
 										eq(boardings.id, charge.boardingId),
 										eq(boardings.businessId, tenantId),
-									),
+									) ?? sql``,
+								},
 							});
 							if (!boarding) {
 								throw new Error("Boarding not found");
@@ -416,11 +421,13 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const boarding = await db.query.boardings.findFirst({
-								where: (boardings, { and, eq }) =>
+								where: {
+									RAW: (boardings, { and, eq }) =>
 									and(
 										eq(boardings.id, boardingId),
 										eq(boardings.businessId, tenantId),
-									),
+									) ?? sql``,
+								},
 							});
 							if (!boarding) return [];
 
@@ -450,11 +457,13 @@ export const BoardingRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const boarding = await db.query.boardings.findFirst({
-								where: (boardings, { and, eq }) =>
+								where: {
+									RAW: (boardings, { and, eq }) =>
 									and(
 										eq(boardings.id, photo.boardingId),
 										eq(boardings.businessId, tenantId),
-									),
+									) ?? sql``,
+								},
 							});
 							if (!boarding) {
 								throw new Error("Boarding not found");

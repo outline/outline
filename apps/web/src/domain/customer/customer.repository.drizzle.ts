@@ -1,4 +1,4 @@
-import { and, eq, ilike, or } from "drizzle-orm";
+import { and, eq, ilike, or, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
 import { customers } from "@/infra/db/drizzle/schema";
@@ -49,7 +49,7 @@ export const CustomerRepositoryDrizzle = Layer.effect(
 						const row = await db.query.customers.findFirst({
 							where: {
 								RAW: (c, { and, eq }) =>
-									and(eq(c.id, id), eq(c.businessId, businessId)),
+									and(eq(c.id, id), eq(c.businessId, businessId)) ?? sql``,
 							},
 						});
 						if (!row) return null;
@@ -64,7 +64,7 @@ export const CustomerRepositoryDrizzle = Layer.effect(
 						const row = await db.query.customers.findFirst({
 							where: {
 								RAW: (c, { and, eq }) =>
-									and(eq(c.businessId, businessId), eq(c.phone, phone)),
+									and(eq(c.businessId, businessId), eq(c.phone, phone)) ?? sql``,
 							},
 						});
 						if (!row) return null;

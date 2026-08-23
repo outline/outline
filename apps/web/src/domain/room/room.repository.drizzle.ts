@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, eq, gte, lte, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
 import { rooms, seasonalPricing } from "@/infra/db/drizzle/schema";
@@ -69,8 +69,8 @@ export const RoomRepositoryDrizzle = Layer.effect(
 								conditions.push(eq(rooms.branchId, branchId));
 							}
 							const rows = await db.query.rooms.findMany({
-								where: and(...conditions),
-								orderBy: [asc(rooms.sortOrder)],
+								where: { RAW: () => and(...conditions) ?? sql`` },
+								orderBy: (rooms, { asc }) => asc(rooms.sortOrder),
 							});
 							return rows.map(mapRoomRow);
 						},
@@ -85,7 +85,7 @@ export const RoomRepositoryDrizzle = Layer.effect(
 							const row = await db.query.rooms.findFirst({
 								where: {
 									RAW: (rooms, { and, eq }) =>
-										and(eq(rooms.id, id), eq(rooms.businessId, tenantId)),
+										and(eq(rooms.id, id), eq(rooms.businessId, tenantId)) ?? sql``,
 								},
 							});
 							if (!row) return null;
@@ -200,8 +200,8 @@ export const RoomRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const rows = await db.query.seasonalPricing.findMany({
-								where: eq(seasonalPricing.businessId, tenantId),
-								orderBy: [asc(seasonalPricing.startDate)],
+								where: { RAW: () => eq(seasonalPricing.businessId, tenantId) },
+								orderBy: (pricing, { asc }) => asc(pricing.startDate),
 							});
 							return rows.map(mapSeasonalPricingRow);
 						},
@@ -222,7 +222,7 @@ export const RoomRepositoryDrizzle = Layer.effect(
 										eq(sp.isActive, true),
 										lte(sp.startDate, target),
 										gte(sp.endDate, target),
-									),
+									) ?? sql``,
 								},
 							});
 							return row ? mapSeasonalPricingRow(row) : null;

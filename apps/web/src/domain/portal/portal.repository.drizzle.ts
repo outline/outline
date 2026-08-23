@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
 import {
@@ -87,7 +87,7 @@ export const PortalRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const row = await db.query.portalConfig.findFirst({
-								where: eq(portalConfig.businessId, tenantId),
+								where: { RAW: () => eq(portalConfig.businessId, tenantId) },
 							});
 							return row ? mapConfigRow(row) : null;
 						},
@@ -100,10 +100,13 @@ export const PortalRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const row = await db.query.portalConfig.findFirst({
-								where: and(
-									eq(portalConfig.slug, slug),
-									eq(portalConfig.isActive, true),
-								),
+								where: {
+									RAW: () =>
+										and(
+											eq(portalConfig.slug, slug),
+											eq(portalConfig.isActive, true),
+										) ?? sql``,
+								},
 							});
 							return row ? mapConfigRow(row) : null;
 						},
@@ -116,11 +119,14 @@ export const PortalRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const rows = await db.query.portalServices.findMany({
-								where: and(
-									eq(portalServices.businessId, tenantId),
-									eq(portalServices.isActive, true),
-								),
-								orderBy: [asc(portalServices.name)],
+								where: {
+									RAW: () =>
+										and(
+											eq(portalServices.businessId, tenantId),
+											eq(portalServices.isActive, true),
+										) ?? sql``,
+								},
+								orderBy: (services, { asc }) => asc(services.name),
 							});
 							return rows.map(mapServiceRow);
 						},
@@ -258,8 +264,8 @@ export const PortalRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const rows = await db.query.portalBookings.findMany({
-								where: eq(portalBookings.businessId, tenantId),
-								orderBy: [desc(portalBookings.createdAt)],
+								where: { RAW: () => eq(portalBookings.businessId, tenantId) },
+								orderBy: (bookings, { desc }) => desc(bookings.createdAt),
 							});
 							return rows.map(mapBookingRow);
 						},
@@ -295,8 +301,8 @@ export const PortalRepositoryDrizzle = Layer.effect(
 						try: async () => {
 							const limit = options?.limit ?? 10;
 							const rows = await db.query.portalReviews.findMany({
-								where: eq(portalReviews.businessId, tenantId),
-								orderBy: [desc(portalReviews.createdAt)],
+								where: { RAW: () => eq(portalReviews.businessId, tenantId) },
+								orderBy: (reviews, { desc }) => desc(reviews.createdAt),
 								limit,
 							});
 							return rows.map(mapReviewRow);
@@ -316,7 +322,7 @@ export const PortalRepositoryDrizzle = Layer.effect(
 							// `pgTable` in the Drizzle schema, so compute the same
 							// shape from the underlying portal_* tables.
 							const reviews = await db.query.portalReviews.findMany({
-								where: eq(portalReviews.businessId, tenantId),
+								where: { RAW: () => eq(portalReviews.businessId, tenantId) },
 								columns: { rating: true },
 							});
 							const totalReviews = reviews.length;
@@ -326,17 +332,20 @@ export const PortalRepositoryDrizzle = Layer.effect(
 									: reviews.reduce((sum, r) => sum + r.rating, 0) /
 										totalReviews;
 							const services = await db.query.portalServices.findMany({
-								where: and(
-									eq(portalServices.businessId, tenantId),
-									eq(portalServices.isActive, true),
-								),
+								where: {
+									RAW: () =>
+										and(
+											eq(portalServices.businessId, tenantId),
+											eq(portalServices.isActive, true),
+										) ?? sql``,
+								},
 								columns: { id: true },
 							});
 							const totalServices = services.length;
 							// `totalPets` mirrors the legacy view by counting distinct
 							// pet names on bookings the tenant has received.
 							const bookings = await db.query.portalBookings.findMany({
-								where: eq(portalBookings.businessId, tenantId),
+								where: { RAW: () => eq(portalBookings.businessId, tenantId) },
 								columns: { petName: true },
 							});
 							const totalPets = new Set(bookings.map((b) => b.petName)).size;

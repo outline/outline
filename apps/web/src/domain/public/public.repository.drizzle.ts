@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
 import type {
@@ -113,7 +114,7 @@ export const PublicRepositoryDrizzle = Layer.effect(
 									and(
 										eq(rooms.businessId, businessId),
 										eq(rooms.isActive, true),
-									),
+									) ?? sql``,
 								},
 							});
 							return rows.map(mapRoom);
@@ -132,7 +133,7 @@ export const PublicRepositoryDrizzle = Layer.effect(
 									and(
 										eq(products.id, productId),
 										eq(products.businessId, businessId),
-									),
+									) ?? sql``,
 								},
 							});
 							return row ? mapProduct(row) : null;
@@ -152,7 +153,7 @@ export const PublicRepositoryDrizzle = Layer.effect(
 										eq(products.businessId, businessId),
 										eq(products.isActive, true),
 										eq(products.isFeatured, true),
-									),
+									) ?? sql``,
 								},
 							});
 							return rows.map(mapProduct);

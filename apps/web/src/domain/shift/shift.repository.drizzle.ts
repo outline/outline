@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import type { TStaffId } from "@/domain/staff/staff.types";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
@@ -51,11 +51,14 @@ export const ShiftRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const rows = await db.query.staffSchedules.findMany({
-								where: and(
-									eq(staffSchedules.staffId, staffId),
-									eq(staffSchedules.businessId, tenantId),
-								),
-								orderBy: [asc(staffSchedules.dayOfWeek)],
+								where: {
+									RAW: () =>
+										and(
+											eq(staffSchedules.staffId, staffId),
+											eq(staffSchedules.businessId, tenantId),
+										) ?? sql``,
+								},
+								orderBy: (schedules, { asc }) => asc(schedules.dayOfWeek),
 							});
 							return rows.map(mapScheduleRow);
 						},
@@ -164,11 +167,14 @@ export const ShiftRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const row = await db.query.staffAttendances.findFirst({
-								where: and(
-									eq(staffAttendances.staffId, staffId),
-									eq(staffAttendances.businessId, tenantId),
-									eq(staffAttendances.date, date),
-								),
+								where: {
+									RAW: () =>
+										and(
+											eq(staffAttendances.staffId, staffId),
+											eq(staffAttendances.businessId, tenantId),
+											eq(staffAttendances.date, date),
+										) ?? sql``,
+								},
 							});
 							return row ? mapAttendanceRow(row) : null;
 						},
@@ -181,13 +187,17 @@ export const ShiftRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const rows = await db.query.staffAttendances.findMany({
-								where: and(
-									eq(staffAttendances.staffId, staffId),
-									eq(staffAttendances.businessId, tenantId),
-									gte(staffAttendances.date, startDate),
-									lte(staffAttendances.date, endDate),
-								),
-								orderBy: [desc(staffAttendances.date)],
+								where: {
+									RAW: () =>
+										and(
+											eq(staffAttendances.staffId, staffId),
+											eq(staffAttendances.businessId, tenantId),
+											gte(staffAttendances.date, startDate),
+											lte(staffAttendances.date, endDate),
+										) ?? sql``,
+								},
+								orderBy: (attendances, { desc }) =>
+									desc(attendances.date),
 							});
 							return rows.map(mapAttendanceRow);
 						},

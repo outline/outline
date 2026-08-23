@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { normalizeEmail } from "@/infra/auth/email";
 import {
@@ -199,7 +199,7 @@ export const AuthRepositoryDrizzle = Layer.effect(
 						const row = await db.query.sessions.findFirst({
 							where: {
 								RAW: (s, { and, eq, gt }) =>
-									and(eq(s.tokenHash, tokenHash), gt(s.expiresAt, now)),
+									and(eq(s.tokenHash, tokenHash), gt(s.expiresAt, now)) ?? sql``,
 							},
 						});
 						if (!row) return null;

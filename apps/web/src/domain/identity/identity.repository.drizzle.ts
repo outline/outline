@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { normalizeEmail } from "@/infra/auth/email";
 import { hashPassword, verifyPassword } from "@/infra/auth/password";
@@ -132,12 +132,14 @@ export const IdentityRepositoryDrizzle = Layer.effect(
 				Effect.tryPromise({
 					try: async () => {
 						const row = await db.query.userRoles.findFirst({
-							where: (ur, { and, eq }) =>
-								and(
-									eq(ur.userId, userId),
-									eq(ur.businessId, businessId),
-									eq(ur.role, role),
-								),
+							where: {
+								RAW: (ur, { and, eq }) =>
+									and(
+										eq(ur.userId, userId),
+										eq(ur.businessId, businessId),
+										eq(ur.role, role),
+									) ?? sql``,
+							},
 						});
 						return !!row;
 					},

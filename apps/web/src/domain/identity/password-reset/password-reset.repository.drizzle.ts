@@ -36,7 +36,9 @@ export const PasswordResetRepositoryDrizzle = Layer.effect(
 				Effect.tryPromise({
 					try: async () => {
 						const row = await db.query.passwordResetTokens.findFirst({
-							where: eq(passwordResetTokens.tokenHash, tokenHash),
+							where: {
+								RAW: () => eq(passwordResetTokens.tokenHash, tokenHash),
+							},
 						});
 						if (!row) return null;
 						return {
