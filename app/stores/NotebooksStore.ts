@@ -10,11 +10,47 @@ import {
 import Notebook from "~/models/Notebook";
 import type { PaginationParams, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
+import { petsoClient } from "~/utils/petsoClient";
+import type { TNoteCollectionDto } from "@treonstudio/petso-lib";
 import type RootStore from "./RootStore";
 import Store from "./base/Store";
 export default class NotebooksStore extends Store<Notebook> {
   constructor(rootStore: RootStore) {
     super(rootStore, Notebook);
+  }
+  private mapCollection(collection: TNoteCollectionDto): Notebook {
+    return this.add({
+      id: collection.id,
+      name: collection.name,
+      data: { type: "doc", content: [] },
+      icon: "📚",
+      color: null,
+      permission: NotebookPermission.ReadWrite,
+      sharing: false,
+      index: collection.name,
+      sort: { field: "updatedAt", direction: "desc" },
+      templateManagement: NotebookPermission.Admin,
+      commenting: false,
+      url: `/collections/${collection.id}`,
+      urlId: collection.id,
+      archivedAt: collection.isArchived ? collection.updatedAt : undefined,
+      createdAt: collection.createdAt,
+      updatedAt: collection.updatedAt,
+    });
+  }
+  override async create(params: Properties<Notebook>): Promise<Notebook> {
+    const collection = await petsoClient.admin.createNoteCollection({
+      name: params.name,
+      description: null,
+    });
+    return this.mapCollection(collection);
+  }
+  override async update(params: Properties<Notebook>): Promise<Notebook> {
+    const collection = await petsoClient.admin.updateNoteCollection(params.id, {
+      name: params.name,
+      description: null,
+    });
+    return this.mapCollection(collection);
   }
   /**
    * Returns the currently active notebook, or undefined if not in the context of a notebook.
@@ -112,42 +148,22 @@ export default class NotebooksStore extends Store<Notebook> {
   };
   @action
   archive = async (notebook: Notebook) => {
-    const res = await client.post("/collections.archive", {
-      id: notebook.id,
-    });
+    const archived = await petsoClient.admin.archiveNoteCollection(notebook.id);
     runInAction("Notebook#archive", () => {
-      invariant(res?.data, "Data should be available");
-      this.add(res.data);
-      this.addPolicies(res.policies);
+      this.mapCollection(archived);
     });
   };
   @action
   restore = async (notebook: Notebook) => {
-    const res = await client.post("/collections.restore", {
-      id: notebook.id,
-    });
+    const restored = await petsoClient.admin.restoreNoteCollection(notebook.id);
     runInAction("Notebook#restore", () => {
-      invariant(res?.data, "Data should be available");
-      this.add(res.data);
-      this.addPolicies(res.policies);
+      this.mapCollection(restored);
     });
   };
-  async update(params: Properties<Notebook>): Promise<Notebook> {
-    const result = await super.update(params);
-    // If we're changing sharing permissions on the notebook then we need to
-    // remove all locally cached policies for notes in the notebook as they
-    // are now invalid
-    if (params.sharing !== undefined) {
-      this.rootStore.notes.inNotebook(result.id).forEach((note) => {
-        this.rootStore.policies.remove(note.id);
-      });
-    }
-    return result;
-  }
   @action
   fetchNamedPage = async (
     request = "list",
-    options:
+    _options:
       | (PaginationParams & {
           statusFilter: NotebookStatusFilter[];
         })
@@ -155,14 +171,16 @@ export default class NotebooksStore extends Store<Notebook> {
   ): Promise<Notebook[]> => {
     this.isFetching = true;
     try {
-      const res = await client.post(`/collections.${request}`, options);
-      invariant(res?.data, "Notebook list not available");
+      const collections = await petsoClient.admin.noteCollections();
+      const filtered =
+        request === "list"
+          ? collections
+          : collections.filter((collection) => collection.isArchived);
       runInAction("NotebooksStore#fetchNamedPage", () => {
-        res.data.forEach(this.add);
-        this.addPolicies(res.policies);
+        filtered.forEach((collection) => this.mapCollection(collection));
         this.isLoaded = true;
       });
-      return res.data;
+      return filtered.map((collection) => this.mapCollection(collection));
     } finally {
       this.isFetching = false;
     }
@@ -221,7 +239,8 @@ export default class NotebooksStore extends Store<Notebook> {
     return this.orderedData.map((notebook) => notebook.asNavigationNode);
   }
   async delete(notebook: Notebook) {
-    await super.delete(notebook);
+    await petsoClient.admin.archiveNoteCollection(notebook.id);
+    this.remove(notebook.id);
     await this.rootStore.notes.fetchRecentlyUpdated();
     await this.rootStore.notes.fetchRecentlyViewed();
   }

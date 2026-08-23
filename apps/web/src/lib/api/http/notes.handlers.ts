@@ -23,6 +23,19 @@ interface NotesHandlerDependencies {
 		userId: string,
 		input: TCreateNoteCollectionInput,
 	) => Promise<TNoteCollection>;
+	readonly updateCollection: (
+		businessId: string,
+		id: string,
+		input: TCreateNoteCollectionInput,
+	) => Promise<TNoteCollection | null>;
+	readonly archiveCollection: (
+		businessId: string,
+		id: string,
+	) => Promise<TNoteCollection | null>;
+	readonly restoreCollection: (
+		businessId: string,
+		id: string,
+	) => Promise<TNoteCollection | null>;
 	readonly list: (
 		businessId: string,
 		includeDeleted: boolean,
@@ -54,6 +67,11 @@ export interface NotesHandlers {
 	readonly collections: (
 		request: Request,
 		requestId: string,
+	) => Promise<Response>;
+	readonly collection: (
+		request: Request,
+		requestId: string,
+		id: string,
 	) => Promise<Response>;
 	readonly notes: (request: Request, requestId: string) => Promise<Response>;
 	readonly note: (
@@ -104,6 +122,37 @@ export function createNotesHandlers(
 				requestId,
 				201,
 			);
+		},
+		collection: async (request, requestId, id) => {
+			const session = await authenticate(request, requestId, dependencies);
+			if (session instanceof Response) return session;
+			if (request.method === "PATCH") {
+				const body = await readBody(request);
+				if (typeof body?.name !== "string" || body.name.trim() === "") {
+					return validationError(requestId, "name is required");
+				}
+				const collection = await dependencies.updateCollection(
+					session.business.id,
+					id,
+					{
+						name: body.name.trim(),
+						description:
+							typeof body.description === "string" ? body.description : null,
+					},
+				);
+				return collection
+					? jsonSuccess(collection, requestId)
+					: notFound(requestId);
+			}
+			if (request.method !== "POST") return methodNotAllowed(requestId);
+			const action = new URL(request.url).searchParams.get("action");
+			const collection =
+				action === "restore"
+					? await dependencies.restoreCollection(session.business.id, id)
+					: await dependencies.archiveCollection(session.business.id, id);
+			return collection
+				? jsonSuccess(collection, requestId)
+				: notFound(requestId);
 		},
 		notes: async (request, requestId) => {
 			const session = await authenticate(request, requestId, dependencies);

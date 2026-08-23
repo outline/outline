@@ -19,6 +19,16 @@ export class INotesRepository extends Context.Tag("INotesRepository")<
 			userId: string,
 			input: TCreateNoteCollectionInput,
 		) => Effect.Effect<TNoteCollection, DatabaseError>;
+		readonly updateCollection: (
+			businessId: string,
+			id: string,
+			input: TCreateNoteCollectionInput,
+		) => Effect.Effect<TNoteCollection | null, DatabaseError>;
+		readonly setCollectionArchived: (
+			businessId: string,
+			id: string,
+			archived: boolean,
+		) => Effect.Effect<TNoteCollection | null, DatabaseError>;
 		readonly list: (
 			businessId: string,
 			options: { readonly includeDeleted: boolean },

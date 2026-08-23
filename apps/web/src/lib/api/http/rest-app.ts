@@ -95,6 +95,7 @@ import {
 	UpdateLoyaltyConfigSchema,
 } from "@/domain/loyalty/loyalty.schemas";
 import {
+	archiveNoteCollectionProgram,
 	archiveNoteProgram,
 	createNoteCollectionProgram,
 	createNoteProgram,
@@ -103,7 +104,9 @@ import {
 	getNoteProgram,
 	listNoteCollectionsProgram,
 	listNotesProgram,
+	restoreNoteCollectionProgram,
 	restoreNoteProgram,
+	updateNoteCollectionProgram,
 	updateNoteProgram,
 } from "@/domain/notes/notes.programs";
 import {
@@ -438,6 +441,16 @@ export function createRestRequestHandler(
 			(request.method === "GET" || request.method === "POST")
 		) {
 			return notesHandlers.collections(request, requestId);
+		}
+		const noteCollectionMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/note-collections\/([^/]+)$/,
+		);
+		if (notesHandlers && noteCollectionMatch) {
+			return notesHandlers.collection(
+				request,
+				requestId,
+				noteCollectionMatch[1] ?? "",
+			);
 		}
 		if (
 			notesHandlers &&
@@ -1968,6 +1981,12 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			runApp(listNoteCollectionsProgram(businessId)),
 		createCollection: async (businessId, userId, input) =>
 			runApp(createNoteCollectionProgram(businessId, userId, input)),
+		updateCollection: async (businessId, id, input) =>
+			runApp(updateNoteCollectionProgram(businessId, id, input)),
+		archiveCollection: async (businessId, id) =>
+			runApp(archiveNoteCollectionProgram(businessId, id)),
+		restoreCollection: async (businessId, id) =>
+			runApp(restoreNoteCollectionProgram(businessId, id)),
 		list: async (businessId, includeDeleted) =>
 			runApp(listNotesProgram(businessId, includeDeleted)),
 		get: async (businessId, id) => runApp(getNoteProgram(businessId, id)),

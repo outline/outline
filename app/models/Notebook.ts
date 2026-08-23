@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import { action, comparer, computed, observable, runInAction } from "mobx";
 import {
   type NotebookPermission,
@@ -12,6 +11,7 @@ import type NotebooksStore from "~/stores/NotebooksStore";
 import type Note from "~/models/Note";
 import ParanoidModel from "~/models/base/ParanoidModel";
 import { client } from "~/utils/ApiClient";
+import { petsoClient } from "~/utils/petsoClient";
 import type User from "./User";
 import Field from "./decorators/Field";
 import { AfterChange } from "./decorators/Lifecycle";
@@ -201,12 +201,18 @@ export default class Notebook extends ParanoidModel {
     }
     try {
       this.isFetching = true;
-      const res = await client.post("/collections.documents", {
-        id: this.id,
-      });
-      invariant(res?.data, "Data should be available");
+      const notes = await petsoClient.admin.notes();
       runInAction("Notebook#fetchNotes", () => {
-        this.notes = res.data;
+        this.notes = notes
+          .filter((note) => note.collectionId === this.id)
+          .map((note) => ({
+            type: NavigationNodeType.Note,
+            id: note.id,
+            title: note.title,
+            url: `/doc/${note.id}`,
+            children: [],
+            isDraft: !note.isPublished,
+          }));
       });
     } finally {
       this.isFetching = false;

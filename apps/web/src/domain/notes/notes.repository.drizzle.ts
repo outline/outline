@@ -83,6 +83,51 @@ export const NotesRepositoryDrizzle = Layer.effect(
 						catch: (e) => new DatabaseError({ cause: e }),
 					}),
 				),
+			updateCollection: (businessId, id, input) =>
+				withRetry(
+					Effect.tryPromise({
+						try: async () => {
+							const [row] = await db
+								.update(noteCollections)
+								.set({
+									name: input.name.trim() || "Untitled",
+									description: input.description ?? null,
+									updatedAt: new Date().toISOString(),
+								})
+								.where(
+									and(
+										eq(noteCollections.businessId, businessId),
+										eq(noteCollections.id, id),
+									),
+								)
+								.returning();
+							return row ? toCollection(row) : null;
+						},
+						catch: (e) => new DatabaseError({ cause: e }),
+					}),
+				),
+			setCollectionArchived: (businessId, id, archived) =>
+				withRetry(
+					Effect.tryPromise({
+						try: async () => {
+							const [row] = await db
+								.update(noteCollections)
+								.set({
+									isArchived: archived,
+									updatedAt: new Date().toISOString(),
+								})
+								.where(
+									and(
+										eq(noteCollections.businessId, businessId),
+										eq(noteCollections.id, id),
+									),
+								)
+								.returning();
+							return row ? toCollection(row) : null;
+						},
+						catch: (e) => new DatabaseError({ cause: e }),
+					}),
+				),
 			list: (businessId, options) =>
 				withRetry(
 					Effect.tryPromise({

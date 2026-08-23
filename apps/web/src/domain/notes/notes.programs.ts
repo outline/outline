@@ -22,6 +22,28 @@ export const createNoteCollectionProgram = (
 		return yield* repository.createCollection(businessId, userId, input);
 	});
 
+export const updateNoteCollectionProgram = (
+	businessId: string,
+	id: string,
+	input: TCreateNoteCollectionInput,
+) =>
+	Effect.gen(function* () {
+		const repository = yield* INotesRepository;
+		return yield* repository.updateCollection(businessId, id, input);
+	});
+
+export const archiveNoteCollectionProgram = (businessId: string, id: string) =>
+	Effect.gen(function* () {
+		const repository = yield* INotesRepository;
+		return yield* repository.setCollectionArchived(businessId, id, true);
+	});
+
+export const restoreNoteCollectionProgram = (businessId: string, id: string) =>
+	Effect.gen(function* () {
+		const repository = yield* INotesRepository;
+		return yield* repository.setCollectionArchived(businessId, id, false);
+	});
+
 export const listNotesProgram = (businessId: string, includeDeleted = false) =>
 	Effect.gen(function* () {
 		const repository = yield* INotesRepository;

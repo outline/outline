@@ -409,6 +409,24 @@ export class PetsoClient {
 				"/api/v1/admin/note-collections",
 				{ method: "POST", body: input },
 			),
+		updateNoteCollection: (
+			id: string,
+			input: TCreateNoteCollectionInput,
+		): Promise<TNoteCollectionDto> =>
+			this.fetchApi<TNoteCollectionDto>(
+				`/api/v1/admin/note-collections/${id}`,
+				{ method: "PATCH", body: input },
+			),
+		archiveNoteCollection: (id: string): Promise<TNoteCollectionDto> =>
+			this.fetchApi<TNoteCollectionDto>(
+				`/api/v1/admin/note-collections/${id}?action=archive`,
+				{ method: "POST" },
+			),
+		restoreNoteCollection: (id: string): Promise<TNoteCollectionDto> =>
+			this.fetchApi<TNoteCollectionDto>(
+				`/api/v1/admin/note-collections/${id}?action=restore`,
+				{ method: "POST" },
+			),
 		notes: (includeDeleted = false): Promise<readonly TNoteDto[]> =>
 			this.fetchApi<readonly TNoteDto[]>(
 				`/api/v1/admin/notes${includeDeleted ? "?includeDeleted=true" : ""}`,
