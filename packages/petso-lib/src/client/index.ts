@@ -42,6 +42,9 @@ import type {
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,
+	TCreateInvoiceInput,
+	TInvoiceDto,
+	TRecordInvoicePaymentInput,
 	TInventorySnapshot,
 	TValidateVoucherInput,
 	TVoucherDto,
@@ -252,6 +255,20 @@ export class PetsoClient {
 			this.fetchApi<{ readonly deleted: boolean }>(
 				`/api/v1/admin/rooms/${id}`,
 				{ method: "DELETE" },
+			),
+		invoices: (): Promise<readonly TInvoiceDto[]> =>
+			this.fetchApi<readonly TInvoiceDto[]>("/api/v1/admin/invoices"),
+		createInvoice: (input: TCreateInvoiceInput): Promise<TInvoiceDto> =>
+			this.fetchApi<TInvoiceDto>("/api/v1/admin/invoices", {
+				method: "POST",
+				body: input,
+			}),
+		recordInvoicePayment: (
+			input: TRecordInvoicePaymentInput,
+		): Promise<TInvoiceDto> =>
+			this.fetchApi<TInvoiceDto>(
+				`/api/v1/admin/invoices/${input.invoiceId}/payment`,
+				{ method: "POST", body: input },
 			),
 		createPurchaseOrder: (
 			input: TCreatePurchaseOrderInput,

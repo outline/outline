@@ -46,6 +46,7 @@ import type {
   TWarehouseDto,
   TBranchDto,
   TRoomDto,
+  TInvoiceDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -338,6 +339,55 @@ function mapPurchaseOrder(
       cost: item.unitCost,
       received: item.qtyReceived,
     })),
+  };
+}
+
+function mapInvoice(
+  invoice: TInvoiceDto,
+  customerNames: ReadonlyMap<string, string>
+): PricedInvoice {
+  const paid = invoice.amountPaid;
+  const due = Math.max(0, invoice.totalAmount - paid);
+  return {
+    id: invoice.id,
+    number: invoice.invoiceNumber,
+    customerId: invoice.customerId,
+    customerName:
+      invoice.customerName ?? customerNames.get(invoice.customerId) ?? "",
+    issueDate: invoice.issueDate,
+    dueDate: invoice.dueDate,
+    items: (invoice.items ?? []).map((item) => ({
+      name: item.itemName,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      discount: item.discount,
+    })),
+    taxRate:
+      invoice.subtotal > 0 ? (invoice.taxAmount / invoice.subtotal) * 100 : 0,
+    notes: invoice.notes ?? "",
+    payments: (invoice.payments ?? []).map((payment) => ({
+      id: payment.id,
+      date: payment.paymentDate,
+      amount: payment.amount,
+      method: payment.method === "cash" ? "cash" : "bank",
+      reference: payment.reference ?? "",
+    })),
+    isVoid: invoice.status === "void",
+    subtotal: invoice.subtotal,
+    tax: invoice.taxAmount,
+    total: invoice.totalAmount,
+    paid,
+    due,
+    status:
+      invoice.status === "void"
+        ? "void"
+        : due === 0
+          ? "paid"
+          : paid > 0
+            ? "partial"
+            : "unpaid",
+    isOverdue:
+      due > 0 && invoice.dueDate < new Date().toISOString().slice(0, 10),
   };
 }
 /** The figures shown across the top of the pet store dashboard. */
@@ -894,7 +944,7 @@ export const useShop = create<State>((set, get) => ({
         client.post("/billing.subscription"),
         client.post("/billing.invoices"),
         client.post("/billing.usage"),
-        client.post("/invoices.list"),
+        petsoClient.admin.invoices(),
         client.post("/portal.stats"),
         client.post("/portal.services.list"),
         client.post("/portal.reviews.list"),
@@ -923,6 +973,10 @@ export const useShop = create<State>((set, get) => ({
       const branchNames = new Map<string, string>();
       for (const branch of branches) {
         branchNames.set(branch.id, branch.name);
+      }
+      const customerNames = new Map<string, string>();
+      for (const customer of customerDtos) {
+        customerNames.set(customer.id, customer.fullName);
       }
       const supplierNames = new Map<string, string>();
       for (const supplier of supplierDtos) {
@@ -965,7 +1019,7 @@ export const useShop = create<State>((set, get) => ({
         subscription: subscription.data,
         billingInvoices: billingInvoices.data,
         usage: usage.data,
-        invoices: invoices.data,
+        invoices: invoices.map((invoice) => mapInvoice(invoice, customerNames)),
         portalStats: portalStats.data,
         portalServices: portalServices.data,
         portalReviews: portalReviews.data,
@@ -1004,23 +1058,52 @@ export const useShop = create<State>((set, get) => ({
     await get().fetchAll();
   },
   createInvoice: async (invoice) => {
-    const response = await client.post("/invoices.create", invoice);
-    if (response.data?.created) {
-      await get().fetchAll();
+    const customer = get().customers.find(
+      (entry) => entry.name === invoice.customerName
+    );
+    if (!customer) {
+      return { created: false };
     }
-    return response.data;
+    const subtotal = invoice.items.reduce(
+      (total, item) => total + item.quantity * item.unitPrice - item.discount,
+      0
+    );
+    const response = await petsoClient.admin.createInvoice({
+      customerId: customer.id,
+      issueDate: new Date().toISOString().slice(0, 10),
+      dueDate: invoice.dueDate,
+      subtotal,
+      taxAmount: 0,
+      discountAmount: 0,
+      totalAmount: subtotal,
+      notes: invoice.notes,
+      items: invoice.items.map((item) => ({
+        itemName: item.name,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        discount: item.discount,
+        total: item.quantity * item.unitPrice - item.discount,
+      })),
+    });
+    await get().fetchAll();
+    return {
+      created: true,
+      invoice: mapInvoice(response, new Map([[customer.id, customer.name]])),
+    };
   },
   recordInvoicePayment: async (id, amount, method, reference) => {
-    const response = await client.post("/invoices.recordPayment", {
-      id,
+    const response = await petsoClient.admin.recordInvoicePayment({
+      invoiceId: id,
       amount,
-      method,
+      paymentDate: new Date().toISOString(),
+      method: method === "cash" ? "cash" : "transfer",
       reference,
     });
-    if (response.data?.recorded) {
-      await get().fetchAll();
-    }
-    return response.data;
+    await get().fetchAll();
+    return {
+      recorded: true,
+      due: Math.max(0, response.totalAmount - response.amountPaid),
+    };
   },
   voidInvoice: async (id) => {
     const response = await client.post("/invoices.void", { id });

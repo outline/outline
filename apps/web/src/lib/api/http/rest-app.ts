@@ -22,6 +22,17 @@ import {
 	getMovementsProgram,
 } from "@/domain/inventory/inventory.programs";
 import {
+	createInvoiceProgram,
+	getInvoiceByIdProgram,
+	getInvoicesProgram,
+	recordPaymentProgram,
+} from "@/domain/invoice/invoice.programs";
+import type {
+	ICreateInvoiceCommand,
+	IRecordPaymentCommand,
+} from "@/domain/invoice/invoice.repository";
+import type { TInvoiceId } from "@/domain/invoice/invoice.types";
+import {
 	createOrderProgram,
 	getOrdersProgram,
 	voidOrderProgram,
@@ -107,6 +118,10 @@ import {
 	createInventoryHandlers,
 	type InventoryHandlers,
 } from "./inventory.handlers";
+import {
+	createInvoiceHandlers,
+	type InvoiceHandlers,
+} from "./invoice.handlers";
 import { createOrderHandlers, type OrderHandlers } from "./order.handlers";
 import {
 	createPurchaseHandlers,
@@ -135,6 +150,7 @@ export function createRestRequestHandler(
 	referenceHandlers?: ReferenceHandlers,
 	roomHandlers?: RoomHandlers,
 	purchaseHandlers?: PurchaseHandlers,
+	invoiceHandlers?: InvoiceHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -189,6 +205,30 @@ export function createRestRequestHandler(
 				request.method === "DELETE")
 		) {
 			return roomHandlers.mutate(request, requestId, roomMatch[1]);
+		}
+		if (
+			invoiceHandlers &&
+			url.pathname === "/api/v1/admin/invoices" &&
+			request.method === "GET"
+		) {
+			return invoiceHandlers.list(request, requestId);
+		}
+		if (
+			invoiceHandlers &&
+			url.pathname === "/api/v1/admin/invoices" &&
+			request.method === "POST"
+		) {
+			return invoiceHandlers.create(request, requestId);
+		}
+		const invoicePaymentMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/invoices\/([^/]+)\/payment$/,
+		);
+		if (invoiceHandlers && invoicePaymentMatch && request.method === "POST") {
+			return invoiceHandlers.payment(
+				request,
+				requestId,
+				invoicePaymentMatch[1] ?? "",
+			);
 		}
 		if (
 			catalogHandlers &&
@@ -773,7 +813,62 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			return result;
 		},
 	}),
+	createInvoiceHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId) =>
+			runApp(getInvoicesProgram(businessId as TTenantId)),
+		create: async (businessId, input) => {
+			const value = Schema.decodeUnknownSync(InvoiceCreateSchema)(input);
+			return runApp(
+				createInvoiceProgram(
+					businessId as TTenantId,
+					value as ICreateInvoiceCommand,
+				),
+			);
+		},
+		payment: async (businessId, invoiceId, input) => {
+			const value = Schema.decodeUnknownSync(InvoicePaymentSchema)(input);
+			await runApp(
+				recordPaymentProgram(
+					businessId as TTenantId,
+					invoiceId as TInvoiceId,
+					value as IRecordPaymentCommand,
+				),
+			);
+			return runApp(
+				getInvoiceByIdProgram(businessId as TTenantId, invoiceId as TInvoiceId),
+			);
+		},
+	}),
 );
+
+const InvoiceCreateSchema = Schema.Struct({
+	customerId: Schema.String,
+	issueDate: Schema.String,
+	dueDate: Schema.String,
+	subtotal: Schema.Number,
+	taxAmount: Schema.Number,
+	discountAmount: Schema.Number,
+	totalAmount: Schema.Number,
+	notes: Schema.optionalWith(Schema.String, { exact: true }),
+	terms: Schema.optionalWith(Schema.String, { exact: true }),
+	items: Schema.Array(
+		Schema.Struct({
+			itemName: Schema.String,
+			quantity: Schema.Number,
+			unitPrice: Schema.Number,
+			discount: Schema.Number,
+			total: Schema.Number,
+		}),
+	),
+});
+
+const InvoicePaymentSchema = Schema.Struct({
+	amount: Schema.Number,
+	paymentDate: Schema.String,
+	method: Schema.String,
+	reference: Schema.optionalWith(Schema.String, { exact: true }),
+});
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);

@@ -32,6 +32,13 @@ export type {
 	TUpdateRoomInput,
 } from "./room.types";
 export type {
+	TCreateInvoiceInput,
+	TInvoiceDto,
+	TInvoiceItemDto,
+	TInvoicePaymentDto,
+	TRecordInvoicePaymentInput,
+} from "./invoice.types";
+export type {
 	TAdjustStockInput,
 	TInventoryBatchDto,
 	TInventoryMovementDto,
