@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -15,7 +15,6 @@
 import { useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const settings = [
   {
     name: "Public access",
@@ -30,7 +29,6 @@ const settings = [
     description: "You are the only one able to access this project",
   },
 ];
-
 /**
  * Tailwind UI – radio groups: list with descriptions in panel.
  *
@@ -38,7 +36,6 @@ const settings = [
  */
 export function RadioGroupsListWithDescriptionsInPanel() {
   const [selected, setSelected] = useState(settings[0]);
-
   return (
     <RadioGroup value={selected} onChange={setSelected}>
       <RadioGroup.Label className="sr-only">Privacy setting</RadioGroup.Label>

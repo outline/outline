@@ -1,6 +1,5 @@
 import * as React from "react";
 import { getSafeAreaInsets } from "@shared/utils/browser";
-
 /**
  * Pins a `position: fixed; bottom: 0` element directly above the on-screen
  * keyboard on mobile browsers.
@@ -33,7 +32,6 @@ export default function useKeyboardStickyOffset(
     if (!enabled || !viewport || !node) {
       return;
     }
-
     // Distance from the bottom of the layout viewport (where the element is
     // anchored) up to the bottom of the visible area — i.e. the height of the
     // keyboard, if any. On browsers that resize the layout viewport with the
@@ -46,28 +44,22 @@ export default function useKeyboardStickyOffset(
     const offset = Math.round(
       Math.max(keyboardInset, getSafeAreaInsets().bottom)
     );
-
     node.style.transform = `translate3d(0, ${-offset}px, 0)`;
   }, [ref, enabled]);
-
   // Re-apply after every render, before paint, so the keyboard-aware transform
   // survives parent re-renders and there is no flash on first mount.
   React.useLayoutEffect(apply);
-
   React.useEffect(() => {
     const viewport = window.visualViewport;
     if (!enabled || !viewport) {
       return;
     }
-
     let frame = 0;
     let trackUntil = 0;
-
     const tick = (now: number) => {
       apply();
       frame = now < trackUntil ? requestAnimationFrame(tick) : 0;
     };
-
     const schedule = () => {
       // Keep re-measuring for a short window so the element follows the
       // keyboard animation rather than jumping once it settles.
@@ -76,12 +68,10 @@ export default function useKeyboardStickyOffset(
         frame = requestAnimationFrame(tick);
       }
     };
-
     viewport.addEventListener("resize", schedule);
     viewport.addEventListener("scroll", schedule);
     window.addEventListener("focusin", schedule);
     window.addEventListener("orientationchange", schedule);
-
     return () => {
       if (frame) {
         cancelAnimationFrame(frame);

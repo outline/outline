@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import Flex from "~/components/Flex";
-
 const Section = styled(Flex)`
   position: relative;
   flex-direction: column;
@@ -16,5 +15,4 @@ const Section = styled(Flex)`
     display: none;
   }
 `;
-
 export default Section;

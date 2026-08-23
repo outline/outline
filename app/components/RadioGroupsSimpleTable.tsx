@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -15,7 +15,6 @@
 import { useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const plans = [
   {
     name: "Startup",
@@ -36,7 +35,6 @@ const plans = [
     limit: "Unlimited active job postings",
   },
 ];
-
 /**
  * Tailwind UI – radio groups: simple table.
  *
@@ -44,7 +42,6 @@ const plans = [
  */
 export function RadioGroupsSimpleTable() {
   const [selected, setSelected] = useState(plans[0]);
-
   return (
     <RadioGroup value={selected} onChange={setSelected}>
       <RadioGroup.Label className="sr-only">Pricing plans</RadioGroup.Label>

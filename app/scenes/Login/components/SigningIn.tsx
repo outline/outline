@@ -4,7 +4,6 @@ import { s } from "@shared/styles";
 import Heading from "~/components/Heading";
 import PageTitle from "~/components/PageTitle";
 import Text from "~/components/Text";
-
 /**
  * Renders the "Signing in…" screen shown while a login is being completed in
  * the background, for example after handing a session back to the desktop app
@@ -14,7 +13,6 @@ import Text from "~/components/Text";
  */
 export function SigningIn() {
   const { t } = useTranslation();
-
   return (
     <>
       <PageTitle title={`${t("Signing in")}…`} />
@@ -28,7 +26,6 @@ export function SigningIn() {
     </>
   );
 }
-
 const Note = styled(Text)`
   color: ${s("textTertiary")};
   text-align: center;

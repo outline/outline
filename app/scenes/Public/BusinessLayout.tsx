@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageTitle from "~/components/PageTitle";
 import { client } from "~/utils/ApiClient";
-
 /** A shopfront as a visitor sees it. */
 export interface Business {
   slug: string;
@@ -13,19 +12,18 @@ export interface Business {
   phone: string;
   hours: string;
 }
-
 /**
  * Loads the business named in the url.
  *
  * @returns the business, and whether the lookup has finished.
  */
 export function useBusiness() {
-  const { businessSlug } = useParams<{ businessSlug: string }>();
+  const { businessSlug } = useParams<{
+    businessSlug: string;
+  }>();
   const [business, setBusiness] = useState<Business | null>();
-
   useEffect(() => {
     let cancelled = false;
-
     void client
       .post("/public.business", { slug: businessSlug })
       .then((response) => {
@@ -38,27 +36,22 @@ export function useBusiness() {
           setBusiness(null);
         }
       });
-
     return () => {
       cancelled = true;
     };
   }, [businessSlug]);
-
   return { business, slug: businessSlug };
 }
-
 interface Props {
   children: ReactNode;
   /** The tab to mark as current. */
   current: "booking" | "boarding" | "featured";
 }
-
 const TABS = [
   { key: "booking", label: "Book" },
   { key: "boarding", label: "Boarding" },
   { key: "featured", label: "Shop" },
 ] as const;
-
 /**
  * Chrome for the public, per-business pages.
  *
@@ -70,7 +63,6 @@ const TABS = [
  */
 export function BusinessLayout({ children, current }: Props) {
   const { business, slug } = useBusiness();
-
   if (business === undefined) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16 text-sm text-gray-500">
@@ -78,7 +70,6 @@ export function BusinessLayout({ children, current }: Props) {
       </div>
     );
   }
-
   if (business === null) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16">
@@ -92,7 +83,6 @@ export function BusinessLayout({ children, current }: Props) {
       </div>
     );
   }
-
   return (
     <div className="min-h-full bg-white">
       <PageTitle title={business.name} />

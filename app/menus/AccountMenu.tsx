@@ -6,8 +6,8 @@ import {
   navigateToAccountPreferences,
   openKeyboardShortcuts,
   openChangelog,
-  openDocumentation,
-  openAPIDocumentation,
+  openNoteation,
+  openAPINoteation,
   openBugReportUrl,
   openFeedbackUrl,
   logout,
@@ -16,19 +16,16 @@ import { changeTheme } from "~/actions/definitions/settings";
 import { ActionSeparator } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
-
 type Props = {
   children?: React.ReactNode;
 };
-
 const AccountMenu: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
-
   const actions = React.useMemo(
     () => [
       openKeyboardShortcuts,
-      openDocumentation,
-      openAPIDocumentation,
+      openNoteation,
+      openAPINoteation,
       ActionSeparator,
       openChangelog,
       openFeedbackUrl,
@@ -41,14 +38,11 @@ const AccountMenu: React.FC = ({ children }: Props) => {
     ],
     []
   );
-
   const rootAction = useMenuAction(actions);
-
   return (
     <DropdownMenu action={rootAction} align="end" ariaLabel={t("Account")}>
       {children}
     </DropdownMenu>
   );
 };
-
 export default observer(AccountMenu);

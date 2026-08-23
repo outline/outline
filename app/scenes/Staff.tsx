@@ -16,7 +16,6 @@ import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";
 import { Capitalize } from "~/components/Surface";
 import { StatusChip } from "~/components/StatusChip";
-
 /**
  * The team, as a directory rather than a table – a person reads better with
  * their face, role and branch than as a row of cells.
@@ -24,7 +23,6 @@ import { StatusChip } from "~/components/StatusChip";
  * @returns the rendered staff page.
  */
 const ROLES = ["owner", "manager", "cashier", "groomer", "caretaker"];
-
 function Staff() {
   const { t } = useTranslation();
   const history = useHistory();
@@ -42,10 +40,8 @@ function Staff() {
   const inviteStaff = useShop((state) => state.inviteStaff);
   const acceptInvite = useShop((state) => state.acceptInvite);
   const withdrawInvite = useShop((state) => state.withdrawInvite);
-
   const panels = usePanel();
   const submission = useSubmit();
-
   const handleSave = (values: Record<string, string>) =>
     submission.run(async () => {
       const result = await saveStaff({
@@ -56,7 +52,6 @@ function Staff() {
         phone: values.phone ?? "",
         commissionRate: Number(values.commissionRate) || 0,
       });
-
       if (result?.saved) {
         panels.close();
         return undefined;
@@ -65,7 +60,6 @@ function Staff() {
         ? t("Someone already signs in with that address.")
         : t("A staff member needs a name and an address to sign in with.");
     });
-
   const handleDelete = (id: string, name: string) =>
     submission.run(async () => {
       const result = await deleteStaff(id);
@@ -73,7 +67,6 @@ function Staff() {
         ? undefined
         : t("{{name}} still owes an advance, so they were kept.", { name });
     });
-
   const handleInvite = (values: Record<string, string>) =>
     submission.run(async () => {
       const result = await inviteStaff({
@@ -82,7 +75,6 @@ function Staff() {
         role: values.role ?? "caretaker",
         branch: values.branch ?? branchRecords[0]?.name ?? "",
       });
-
       if (result?.sent) {
         panels.close();
         return undefined;
@@ -93,10 +85,8 @@ function Staff() {
           ? t("They have already been invited.")
           : t("An invitation needs an address and a branch.");
     });
-
   const branches = [...new Set(staff.map((member) => member.branch))];
   const active = staff.filter((member) => member.status === "active").length;
-
   return (
     <AppPage
       title={t("Staff")}
@@ -287,5 +277,4 @@ function Staff() {
     </AppPage>
   );
 }
-
 export default Staff;

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { client } from "~/utils/ApiClient";
 import { AuthLayout, fieldClass, submitClass } from "./AuthLayout";
-
 /**
  * Request a password reset link.
  *
@@ -16,7 +15,6 @@ function ForgotPassword() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSaving(true);
@@ -32,7 +30,6 @@ function ForgotPassword() {
       setIsSaving(false);
     }
   };
-
   return (
     <AuthLayout
       title="Reset your password"
@@ -81,5 +78,4 @@ function ForgotPassword() {
     </AuthLayout>
   );
 }
-
 export default ForgotPassword;

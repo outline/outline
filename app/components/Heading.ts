@@ -1,7 +1,9 @@
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-
-const Heading = styled.h1<{ as?: string; centered?: boolean }>`
+const Heading = styled.h1<{
+  as?: string;
+  centered?: boolean;
+}>`
   display: flex;
   align-items: center;
   user-select: none;
@@ -12,5 +14,4 @@ const Heading = styled.h1<{ as?: string; centered?: boolean }>`
     ${(props: { as?: string }) => (props.as ? "" : "margin-top: 6vh;")}
   `};
 `;
-
 export default Heading;

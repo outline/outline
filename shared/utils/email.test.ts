@@ -1,5 +1,4 @@
 import { parseEmail } from "./email";
-
 describe("parseEmail", () => {
   it("should correctly parse email", () => {
     expect(parseEmail("tom@example.com")).toEqual({
@@ -15,7 +14,6 @@ describe("parseEmail", () => {
       domain: "subdomain.domain.com",
     });
   });
-
   it("should throw error for invalid email", () => {
     expect(() => parseEmail("")).toThrow();
     expect(() => parseEmail("invalid")).toThrow();

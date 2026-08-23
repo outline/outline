@@ -1,5 +1,4 @@
 import type { Node, Schema } from "prosemirror-model";
-
 /**
  * Check if a node is a list node.
  *

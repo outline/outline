@@ -13,12 +13,10 @@ import { markInputRuleForPattern } from "../lib/markInputRule";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { isInCode } from "../queries/isInCode";
 import Mark from "./Mark";
-
 export default class Code extends Mark {
   get name() {
     return "code_inline";
   }
-
   get schema(): MarkSpec {
     return {
       excludes: "mention placeholder highlight",
@@ -27,11 +25,9 @@ export default class Code extends Mark {
       code: true,
     };
   }
-
   inputRules({ type }: { type: MarkType }) {
     return [markInputRuleForPattern("`", type)];
   }
-
   keys({ type }: { type: MarkType }) {
     return {
       // Note: This key binding only works on non-Mac platforms
@@ -41,12 +37,10 @@ export default class Code extends Mark {
       "Mod-Shift-c": toggleMark(type),
     };
   }
-
   get plugins() {
     const codeCursorPlugin = codemark({
       markType: this.editor.schema.marks.code_inline,
     })[0];
-
     /**
      * Helper function to check if cursor is between backticks
      * and handle the code marking appropriately
@@ -58,17 +52,14 @@ export default class Code extends Mark {
       text: string | Slice
     ) => {
       const { state } = view;
-
       // Prevent access out of document bounds
       if (from === 0 || to === state.doc.nodeSize - 1) {
         return false;
       }
-
       // Skip if we're adding a backtick character
       if (typeof text === "string" && text === "`") {
         return false;
       }
-
       // Check if we're between backticks
       if (
         state.doc.textBetween(from - 1, from) === "`" &&
@@ -76,7 +67,6 @@ export default class Code extends Mark {
       ) {
         const start = from - 1;
         const end = to + 1;
-
         if (typeof text === "string") {
           // Handle text input
           view.dispatch(
@@ -103,10 +93,8 @@ export default class Code extends Mark {
         }
         return true;
       }
-
       return false;
     };
-
     return [
       codeCursorPlugin,
       new Plugin({
@@ -125,7 +113,6 @@ export default class Code extends Mark {
             }
             return handleTextBetweenBackticks(view, from, to, text);
           },
-
           // Pasting a character inside of two backticks will wrap the character
           // in an inline code mark.
           handlePaste: (view: EditorView, _event: Event, slice: Slice) => {
@@ -133,29 +120,24 @@ export default class Code extends Mark {
             const { from, to } = state.selection;
             return handleTextBetweenBackticks(view, from, to, slice);
           },
-
           // Triple clicking inside of an inline code mark will select the entire
           // code mark.
           handleTripleClickOn: (view: EditorView, pos: number) => {
             const { state } = view;
             const inCodeMark = isInCode(state, { onlyMark: true });
-
             if (inCodeMark) {
               const $pos = state.doc.resolve(pos);
               const before = $pos.nodeBefore?.nodeSize ?? 0;
               const after = $pos.nodeAfter?.nodeSize ?? 0;
               const $from = state.doc.resolve(pos - before);
               const $to = state.doc.resolve(pos + after);
-
               view.dispatch(
                 state.tr.setSelection(TextSelection.between($from, $to))
               );
               return true;
             }
-
             return false;
           },
-
           // Handle composition end events for IME input
           handleDOMEvents: {
             compositionend: (view: EditorView) => {
@@ -164,10 +146,8 @@ export default class Code extends Mark {
                 if (!$cursor) {
                   return;
                 }
-
                 const from = $cursor.pos - 1;
                 const to = $cursor.pos;
-
                 // Process the composed text after IME composition completes
                 handleTextBetweenBackticks(
                   view,
@@ -182,19 +162,16 @@ export default class Code extends Mark {
       }),
     ];
   }
-
   toMarkdown() {
     function backticksFor(node: ProsemirrorNode, side: -1 | 1) {
       const ticks = /`+/g;
       let match: RegExpMatchArray | null;
       let len = 0;
-
       if (node.isText) {
         while ((match = ticks.exec(node.text || ""))) {
           len = Math.max(len, match[0].length);
         }
       }
-
       let result = len > 0 && side > 0 ? " `" : "`";
       for (let i = 0; i < len; i++) {
         result += "`";
@@ -204,7 +181,6 @@ export default class Code extends Mark {
       }
       return result;
     }
-
     return {
       open(
         _state: MarkdownSerializerState,
@@ -225,7 +201,6 @@ export default class Code extends Mark {
       escape: false,
     };
   }
-
   parseMarkdown() {
     return { mark: "code_inline", noCloseToken: true };
   }

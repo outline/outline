@@ -22,7 +22,6 @@ const orders = [
   },
   // More orders...
 ];
-
 /**
  * Tailwind UI – order history: invoice table.
  *

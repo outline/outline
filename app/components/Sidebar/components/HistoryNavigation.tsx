@@ -9,21 +9,18 @@ import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
-import useRecentDocumentActions from "~/components/CommandBar/useRecentDocumentActions";
+import useRecentNoteActions from "~/components/CommandBar/useRecentNoteActions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import useStores from "~/hooks/useStores";
 import Desktop from "~/utils/Desktop";
-
-const RECENT_DOCUMENTS_LIMIT = 10;
-
+const RECENT_NOTES_LIMIT = 10;
 function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
   const { t } = useTranslation();
-  const { documents } = useStores();
+  const { notes } = useStores();
   const [canGoBack, setCanGoBack] = React.useState(false);
   const [canGoForward, setCanGoForward] = React.useState(false);
   const [supported, setSupported] = React.useState(false);
-
-  const recentActions = useRecentDocumentActions(RECENT_DOCUMENTS_LIMIT);
+  const recentActions = useRecentNoteActions(RECENT_NOTES_LIMIT);
   const menuActions = React.useMemo(
     () => [
       createActionGroup({
@@ -34,11 +31,9 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
     [t, recentActions]
   );
   const menuAction = useMenuAction(menuActions);
-
   const handleOpen = React.useCallback(() => {
-    void documents.fetchRecentlyViewed({ limit: RECENT_DOCUMENTS_LIMIT });
-  }, [documents]);
-
+    void notes.fetchRecentlyViewed({ limit: RECENT_NOTES_LIMIT });
+  }, [notes]);
   React.useEffect(() => {
     if (!(Desktop.bridge && "onNavigationStateChanged" in Desktop.bridge)) {
       return;
@@ -49,11 +44,9 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
       setCanGoForward(state.canGoForward);
     });
   }, []);
-
   if (!Desktop.isMacApp() || !supported) {
     return null;
   }
-
   return (
     <Navigation gap={4} {...props}>
       <Tooltip content={t("Go back")} disabled={!canGoBack}>
@@ -88,7 +81,6 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
     </Navigation>
   );
 }
-
 const Navigation = styled(Flex)`
   position: absolute;
   inset-inline-end: 12px;
@@ -98,8 +90,9 @@ const Navigation = styled(Flex)`
     cursor: default;
   }
 `;
-
-const Forward = styled(ArrowIcon)<{ $enabled: boolean }>`
+const Forward = styled(ArrowIcon)<{
+  $enabled: boolean;
+}>`
   color: ${s("textTertiary")};
   opacity: ${(props) => (props.$enabled ? 0.5 : 0.15)};
   transition: color 100ms ease-in-out;
@@ -113,7 +106,6 @@ const Forward = styled(ArrowIcon)<{ $enabled: boolean }>`
     transform: rotate(180deg);
   }
 `;
-
 const Back = styled(Forward)`
   transform: rotate(180deg);
   flex-shrink: 0;
@@ -122,7 +114,6 @@ const Back = styled(Forward)`
     transform: rotate(0deg);
   }
 `;
-
 const StyledClockIcon = styled(ClockIcon)`
   color: ${s("textTertiary")};
   opacity: 0.5;
@@ -134,5 +125,4 @@ const StyledClockIcon = styled(ClockIcon)`
     opacity: 1;
   }
 `;
-
 export default observer(HistoryNavigation);

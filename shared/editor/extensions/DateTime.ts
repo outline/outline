@@ -6,7 +6,6 @@ import {
   getCurrentTimeAsString,
 } from "../../utils/date";
 import Extension from "../lib/Extension";
-
 /**
  * An editor extension that adds commands to insert the current date and time.
  */
@@ -14,10 +13,8 @@ export default class DateTime extends Extension {
   get name() {
     return "date_time";
   }
-
   commands(_options: { schema: Schema }) {
     const { template } = this.editor.props;
-
     return {
       date: (): Command => (state, dispatch) => {
         dispatch?.(

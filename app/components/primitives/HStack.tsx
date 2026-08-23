@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
-
 interface HStackProps {
   /** The spacing between children in pixels. Defaults to 8. */
   spacing?: number;
@@ -14,7 +13,6 @@ interface HStackProps {
   /** Whether the children should wrap. */
   wrap?: boolean;
 }
-
 /**
  * HStack is a horizontal layout component that stacks its children horizontally with a gap.
  */
@@ -26,5 +24,4 @@ export const HStack = styled(Flex)
     align: props.align ?? "center",
     gap: props.spacing !== undefined ? props.spacing : 8,
   }))<HStackProps>``;
-
 HStack.displayName = "HStack";

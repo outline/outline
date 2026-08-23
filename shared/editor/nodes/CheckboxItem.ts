@@ -15,12 +15,10 @@ import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import checkboxRule from "../rules/checkboxes";
 import { CheckboxItemView } from "./CheckboxItemView";
 import Node from "./Node";
-
 export default class CheckboxItem extends Node {
   get name() {
     return "checkbox_item";
   }
-
   get schema(): NodeSpec {
     return {
       attrs: {
@@ -63,11 +61,9 @@ export default class CheckboxItem extends Node {
       ],
     };
   }
-
   get rulePlugins() {
     return [checkboxRule];
   }
-
   get plugins() {
     return [
       new Plugin({
@@ -80,14 +76,12 @@ export default class CheckboxItem extends Node {
       }),
     ];
   }
-
   commands({ type }: { type: NodeType }) {
     return {
       indentCheckboxList: () => sinkListItem(type),
       outdentCheckboxList: () => liftListItem(type),
     };
   }
-
   keys({ type }: { type: NodeType }) {
     return {
       Enter: splitListItem(type, {
@@ -100,7 +94,6 @@ export default class CheckboxItem extends Node {
       "Mod-[": liftListItem(type),
     };
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.append(node.attrs.checked ? "[x] " : "[ ] ");
     if (state.inTable) {
@@ -114,7 +107,6 @@ export default class CheckboxItem extends Node {
     }
     state.renderContent(node);
   }
-
   parseMarkdown() {
     return {
       block: "checkbox_item",

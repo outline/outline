@@ -1,8 +1,7 @@
 import type { Node } from "prosemirror-model";
-
 /**
  * Helper for iterating through the nodes in a document that changed
- * compared to the given previous document. Useful for avoiding
+ * compared to the given previous note. Useful for avoiding
  * duplicate work on each transaction.
  */
 export function changedDescendants(

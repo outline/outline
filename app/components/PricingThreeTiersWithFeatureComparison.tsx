@@ -2,8 +2,10 @@ import { useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
-const frequencies: { value: "monthly" | "annually"; label: string }[] = [
+const frequencies: {
+  value: "monthly" | "annually";
+  label: string;
+}[] = [
   { value: "monthly", label: "Monthly" },
   { value: "annually", label: "Annually" },
 ];
@@ -54,7 +56,10 @@ const tiers = [
 ];
 const sections: {
   name?: string;
-  features: { name: string; tiers: Record<string, string | boolean> }[];
+  features: {
+    name: string;
+    tiers: Record<string, string | boolean>;
+  }[];
 }[] = [
   {
     name: "Catered for business",
@@ -131,7 +136,6 @@ const sections: {
     ],
   },
 ];
-
 /**
  * Tailwind UI – pricing: three tiers with feature comparison.
  *
@@ -139,7 +143,6 @@ const sections: {
  */
 export function PricingThreeTiersWithFeatureComparison() {
   const [frequency, setFrequency] = useState(frequencies[0]);
-
   return (
     <div className="isolate overflow-hidden">
       <div className="flow-root bg-gray-900 pb-16 pt-24 sm:pt-32 lg:pb-0">

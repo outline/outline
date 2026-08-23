@@ -2,7 +2,6 @@ import * as React from "react";
 import styled from "styled-components";
 import type { Props } from "~/components/Tooltip";
 import Tooltip from "~/components/Tooltip";
-
 const WrappedTooltip: React.FC<Props> = ({
   children,
   content,
@@ -19,9 +18,7 @@ const WrappedTooltip: React.FC<Props> = ({
     <TooltipContent>{children}</TooltipContent>
   </Tooltip>
 );
-
 const TooltipContent = styled.span`
   outline: none;
 `;
-
 export default WrappedTooltip;

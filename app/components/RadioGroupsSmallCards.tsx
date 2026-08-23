@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const memoryOptions = [
   { name: "4 GB", inStock: true },
   { name: "8 GB", inStock: true },
@@ -10,7 +9,6 @@ const memoryOptions = [
   { name: "64 GB", inStock: true },
   { name: "128 GB", inStock: false },
 ];
-
 /**
  * Tailwind UI – radio groups: small cards.
  *
@@ -18,7 +16,6 @@ const memoryOptions = [
  */
 export function RadioGroupsSmallCards() {
   const [mem, setMem] = useState(memoryOptions[2]);
-
   return (
     <div>
       <div className="flex items-center justify-between">

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -21,7 +21,6 @@ const files = [
   },
   // More files...
 ];
-
 /**
  * Tailwind UI – grid lists: images with details.
  *

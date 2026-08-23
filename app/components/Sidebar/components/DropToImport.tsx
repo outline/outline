@@ -8,31 +8,22 @@ import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import useEventListener from "~/hooks/useEventListener";
-import useImportDocument from "~/hooks/useImportDocument";
+import useImportNote from "~/hooks/useImportNote";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-
 type Props = {
   children: JSX.Element;
-  collectionId?: string;
-  documentId?: string;
+  notebookId?: string;
+  noteId?: string;
   disabled?: boolean;
   activeClassName?: string;
 };
-
-function DropToImport({ disabled, children, collectionId, documentId }: Props) {
+function DropToImport({ disabled, children, notebookId, noteId }: Props) {
   const { t } = useTranslation();
-  const { documents } = useStores();
+  const { notes } = useStores();
   const [prerender, setPreRendered] = useState(false);
-  const { handleFiles, isImporting } = useImportDocument(
-    collectionId,
-    documentId
-  );
-  invariant(
-    collectionId || documentId,
-    "Must provide either collectionId or documentId"
-  );
-
+  const { handleFiles, isImporting } = useImportNote(notebookId, noteId);
+  invariant(notebookId || noteId, "Must provide either collectionId or noteId");
   // Only prepare the dropzone for OS file drags, internal react-dnd drags
   // fire native dragenter too
   useEventListener("dragenter", (event: Event) => {
@@ -44,26 +35,22 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
       setPreRendered(true);
     }
   });
-
-  const canCollection = usePolicy(collectionId);
-  const canDocument = usePolicy(documentId);
-
+  const canNotebook = usePolicy(notebookId);
+  const canNote = usePolicy(noteId);
   const handleRejection = useCallback(() => {
     toast.error(t("This file type is not supported"));
   }, [t]);
-
   if (
     disabled ||
     !prerender ||
-    (collectionId && !canCollection.createDocument) ||
-    (documentId && !canDocument.createChildDocument)
+    (notebookId && !canNotebook.createNote) ||
+    (noteId && !canNote.createChildNote)
   ) {
     return children;
   }
-
   return (
     <Dropzone
-      accept={documents.importFileTypesString}
+      accept={notes.importFileTypesString}
       onDropAccepted={handleFiles}
       onDropRejected={handleRejection}
       noClick
@@ -88,8 +75,9 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
     </Dropzone>
   );
 }
-
-const DropzoneContainer = styled.div<{ $isDragActive: boolean }>`
+const DropzoneContainer = styled.div<{
+  $isDragActive: boolean;
+}>`
   border-radius: 4px;
 
   ${({ $isDragActive, theme }) =>
@@ -105,5 +93,4 @@ const DropzoneContainer = styled.div<{ $isDragActive: boolean }>`
       }
     `}
 `;
-
 export default observer(DropToImport);

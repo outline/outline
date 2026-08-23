@@ -3,7 +3,6 @@ import type { EditorState } from "prosemirror-state";
 import { NodeSelection } from "prosemirror-state";
 import { findParentNode } from "./findParentNode";
 import { isList } from "./isList";
-
 /**
  * Checks whether the list closest to the current selection is of the given
  * type. Unlike isNodeActive, this only matches the innermost list so that a
@@ -17,7 +16,6 @@ export const isListActive =
   (type: NodeType) =>
   (state: EditorState): boolean => {
     const { selection } = state;
-
     // When the list node itself is selected via a NodeSelection, consider that
     // node directly — findParentNode would otherwise report its parent list.
     if (
@@ -26,7 +24,6 @@ export const isListActive =
     ) {
       return selection.node.type === type;
     }
-
     const closestList = findParentNode((node) => isList(node, state.schema))(
       selection
     );

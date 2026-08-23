@@ -2,7 +2,6 @@ import { uniqBy } from "es-toolkit/compat";
 import { useState, useEffect, useCallback } from "react";
 import type { PaginationParams } from "~/types";
 import useRequest from "./useRequest";
-
 type RequestResponse<T> = {
   /** The return value of the paginated request function. */
   data: T[] | undefined;
@@ -19,10 +18,8 @@ type RequestResponse<T> = {
   /** Marks the end of pagination */
   end: boolean;
 };
-
 const INITIAL_OFFSET = 0;
 const DEFAULT_LIMIT = 10;
-
 /**
  * A hook to make paginated API request and track its state within a component.
  *
@@ -48,18 +45,15 @@ export default function usePaginatedRequest<T = unknown>(
         limit: fetchLimit,
       })
   );
-
   const {
     data: response,
     error,
     loading,
     request,
   } = useRequest<T[]>(paginatedReq);
-
   useEffect(() => {
     void request();
   }, [request]);
-
   useEffect(() => {
     if (response && !loading) {
       setData((prev) =>
@@ -69,7 +63,6 @@ export default function usePaginatedRequest<T = unknown>(
       setEnd(response.length <= displayLimit);
     }
   }, [response, displayLimit, loading]);
-
   useEffect(() => {
     if (offset) {
       setPaginatedReq(
@@ -85,11 +78,9 @@ export default function usePaginatedRequest<T = unknown>(
     // changes identity on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offset, fetchLimit, requestFn]);
-
   const next = useCallback(() => {
     setOffset((prev) => prev + displayLimit);
   }, [displayLimit]);
-
   useEffect(() => {
     setEnd(false);
     setData(undefined);
@@ -107,6 +98,5 @@ export default function usePaginatedRequest<T = unknown>(
     // should only be driven by the request function changing.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestFn]);
-
   return { data, next, loading, error, page, offset, end };
 }

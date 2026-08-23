@@ -5,15 +5,12 @@ import type Share from "~/models/Share";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { useShareMenuActions } from "~/hooks/useShareMenuActions";
-
 type Props = {
   share: Share;
 };
-
 function ShareMenu({ share }: Props) {
   const { t } = useTranslation();
   const rootAction = useShareMenuActions(share);
-
   return (
     <DropdownMenu
       action={rootAction}
@@ -24,5 +21,4 @@ function ShareMenu({ share }: Props) {
     </DropdownMenu>
   );
 }
-
 export default observer(ShareMenu);

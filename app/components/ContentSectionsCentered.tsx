@@ -2,7 +2,6 @@ import {
   CheckCircleIcon,
   InformationCircleIcon,
 } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – content sections: centered.
  *

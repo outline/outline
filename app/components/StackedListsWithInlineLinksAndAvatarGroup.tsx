@@ -2,7 +2,6 @@ import {
   ChatBubbleLeftIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
-
 const discussions = [
   {
     id: 1,
@@ -173,7 +172,6 @@ const discussions = [
     ],
   },
 ];
-
 /**
  * Tailwind UI – stacked lists: with inline links and avatar group.
  *

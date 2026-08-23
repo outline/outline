@@ -12,7 +12,6 @@ import {
 } from "~/components/primitives/Popover";
 import { IconButton } from "./IconButton";
 import { MenuButton } from "./MenuButton";
-
 const SkinTonePicker = ({
   skinTone,
   onChange,
@@ -22,9 +21,7 @@ const SkinTonePicker = ({
 }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-
   const handEmojiVariants = useMemo(() => getEmojiVariants({ id: "hand" }), []);
-
   const handleSkinClick = useCallback(
     (emojiSkin: EmojiSkinTone) => {
       setOpen(false);
@@ -32,7 +29,6 @@ const SkinTonePicker = ({
     },
     [onChange]
   );
-
   const menuItems = useMemo(
     () =>
       Object.values(EmojiSkinTone)
@@ -52,7 +48,6 @@ const SkinTonePicker = ({
         .filter(Boolean),
     [handEmojiVariants, handleSkinClick]
   );
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>
@@ -73,9 +68,7 @@ const SkinTonePicker = ({
     </Popover>
   );
 };
-
 const Emojis = styled(Flex)`
   padding: 0 8px;
 `;
-
 export default SkinTonePicker;

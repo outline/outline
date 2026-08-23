@@ -1,6 +1,5 @@
 import { ArrowDownIcon, ArrowUpIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const stats = [
   {
     name: "Total Subscribers",
@@ -24,7 +23,6 @@ const stats = [
     changeType: "decrease",
   },
 ];
-
 /**
  * Tailwind UI – stats: with shared borders.
  *

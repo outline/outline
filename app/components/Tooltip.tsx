@@ -6,7 +6,6 @@ import { s, depths } from "@shared/styles";
 import { shortcutSeparator } from "@shared/utils/keyboard";
 import useMobile from "~/hooks/useMobile";
 import { useTooltipContext } from "./TooltipContext";
-
 export type Props = {
   /** The content to display in the tooltip. */
   content?: React.ReactChild | React.ReactChild[];
@@ -65,7 +64,6 @@ export type Props = {
   /** Delay prop for backward compatibility with Tippy */
   delay?: number | [number, number];
 };
-
 /**
  * Tooltip component using Radix UI primitives.
  * Displays a tooltip with optional keyboard shortcut.
@@ -100,13 +98,11 @@ function Tooltip({
 }: Props): React.ReactElement | null {
   const isMobile = useMobile();
   const isInProvider = useTooltipContext();
-
   // Handle backward compatibility with Tippy props
   let finalSide = side;
   let finalAlign = align;
   let finalDelayDuration = delayDuration;
   let finalSideOffset = sideOffset;
-
   // Convert placement prop to side/align for backward compatibility
   if (placement) {
     const [placementSide, placementAlign] = placement.split("-");
@@ -115,7 +111,6 @@ function Tooltip({
       finalAlign = placementAlign as "start" | "center" | "end";
     }
   }
-
   // Handle delay prop for backward compatibility
   if (delay !== undefined) {
     if (typeof delay === "number") {
@@ -124,18 +119,14 @@ function Tooltip({
       finalDelayDuration = delay[0];
     }
   }
-
   // Handle offset prop for backward compatibility
   if (offset) {
     finalSideOffset = offset[1] || sideOffset;
   }
-
   let content = <>{tooltip}</>;
-
   if (!tooltip || isMobile || disabled) {
     return (children as React.ReactElement) ?? null;
   }
-
   if (shortcut) {
     content = (
       <>
@@ -158,7 +149,6 @@ function Tooltip({
       </>
     );
   }
-
   const tooltipContent = (
     <TooltipPrimitive.Root
       defaultOpen={defaultOpen}
@@ -184,12 +174,10 @@ function Tooltip({
       </TooltipPrimitive.Portal>
     </TooltipPrimitive.Root>
   );
-
   // If we're already in a provider, don't wrap with another one
   if (isInProvider) {
     return tooltipContent;
   }
-
   // Otherwise, wrap with a provider for standalone usage
   return (
     <TooltipPrimitive.Provider
@@ -200,7 +188,6 @@ function Tooltip({
     </TooltipPrimitive.Provider>
   );
 }
-
 const slideUpAndFade = keyframes`
   from {
     opacity: 0;
@@ -211,7 +198,6 @@ const slideUpAndFade = keyframes`
     transform: translateY(0);
   }
 `;
-
 const slideRightAndFade = keyframes`
   from {
     opacity: 0;
@@ -222,7 +208,6 @@ const slideRightAndFade = keyframes`
     transform: translateX(0);
   }
 `;
-
 const slideDownAndFade = keyframes`
   from {
     opacity: 0;
@@ -233,7 +218,6 @@ const slideDownAndFade = keyframes`
     transform: translateY(0);
   }
 `;
-
 const slideLeftAndFade = keyframes`
   from {
     opacity: 0;
@@ -244,7 +228,6 @@ const slideLeftAndFade = keyframes`
     transform: translateX(0);
   }
 `;
-
 const Shortcut = styled.kbd`
   position: relative;
   top: -1px;
@@ -261,7 +244,6 @@ const Shortcut = styled.kbd`
   vertical-align: middle;
   border-radius: 3px;
 `;
-
 const StyledContent = styled(TooltipPrimitive.Content)`
   position: relative;
   background-color: ${s("tooltipBackground")};
@@ -289,5 +271,4 @@ const StyledContent = styled(TooltipPrimitive.Content)`
     animation: ${slideRightAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 `;
-
 export default Tooltip;

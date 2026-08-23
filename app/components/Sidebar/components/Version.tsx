@@ -7,11 +7,9 @@ import { client } from "~/utils/ApiClient";
 import Logger from "~/utils/Logger";
 import { version as currentVersion } from "../../../../package.json";
 import SidebarLink from "./SidebarLink";
-
 export default function Version() {
   const [versionsBehind, setVersionsBehind] = useState(-1);
   const { t } = useTranslation();
-
   useEffect(() => {
     async function loadVersionInfo() {
       try {
@@ -24,10 +22,8 @@ export default function Version() {
         Logger.error("Failed to load version info", toError(error));
       }
     }
-
     void loadVersionInfo();
   }, []);
-
   return (
     <SidebarLink
       target="_blank"
@@ -53,7 +49,6 @@ export default function Version() {
     />
   );
 }
-
 const LilBadge = styled(Badge)`
   margin-inline-start: 0;
 `;

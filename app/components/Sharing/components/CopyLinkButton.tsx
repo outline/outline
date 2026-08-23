@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
-
 export function CopyLinkButton({
   url,
   onCopy,
@@ -15,21 +14,17 @@ export function CopyLinkButton({
 }) {
   const { t } = useTranslation();
   const timeout = useRef<ReturnType<typeof setTimeout>>();
-
   const handleCopied = useCallback(() => {
     onCopy();
-
     timeout.current = setTimeout(() => {
       toast.message(t("Link copied to clipboard"));
     }, 100);
-
     return () => {
       if (timeout.current) {
         clearTimeout(timeout.current);
       }
     };
   }, [onCopy, t]);
-
   return (
     <Tooltip content={t("Copy link")} placement="top">
       <CopyToClipboard text={url} onCopy={handleCopied}>

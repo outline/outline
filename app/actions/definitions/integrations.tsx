@@ -7,7 +7,6 @@ import { DisconnectAnalyticsDialog } from "~/scenes/Settings/components/Disconne
 import type { IntegrationType } from "@shared/types";
 import { settingsPath } from "@shared/utils/routeHelpers";
 import history from "~/utils/history";
-
 export const disconnectIntegrationActionFactory = (integration?: Integration) =>
   createAction({
     name: ({ t }) => t("Disconnect"),
@@ -19,12 +18,10 @@ export const disconnectIntegrationActionFactory = (integration?: Integration) =>
     perform: async ({ event }) => {
       event?.preventDefault();
       event?.stopPropagation();
-
       await integration?.delete();
       history.push(settingsPath("integrations"));
     },
   });
-
 export const disconnectAnalyticsIntegrationActionFactory = (
   integration?: Integration<IntegrationType.Analytics>
 ) =>

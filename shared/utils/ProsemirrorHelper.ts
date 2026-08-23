@@ -9,7 +9,6 @@ import env from "../env";
 import { findChildren } from "@shared/editor/queries/findChildren";
 import { isLightboxNode } from "@shared/editor/lib/Lightbox";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-
 export type Heading = {
   /* The heading in plain text */
   title: string;
@@ -18,7 +17,6 @@ export type Heading = {
   /* The unique id of the heading */
   id: string;
 };
-
 export type CommentMark = {
   /* The unique id of the comment */
   id: string;
@@ -27,30 +25,28 @@ export type CommentMark = {
   /* The text of the comment */
   text: string;
 };
-
-export type NodeAnchor = { pos: number; id: string; className: string };
-
+export type NodeAnchor = {
+  pos: number;
+  id: string;
+  className: string;
+};
 export type Task = {
   /* The text of the task */
   text: string;
   /* Whether the task is completed or not */
   completed: boolean;
 };
-
 interface User {
   name: string;
   language: string | null;
 }
-
 export const attachmentRedirectRegex =
   /\/api\/attachments\.redirect\?id=(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
-
 export const attachmentPublicRegex =
   /public\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
-
 export class ProsemirrorHelper {
   /**
-   * Remove specific mark types from all nodes in the document.
+   * Remove specific mark types from all nodes in the note.
    *
    * @param doc the prosemirror document or JSON data.
    * @param marks the mark type names to remove.
@@ -59,15 +55,16 @@ export class ProsemirrorHelper {
   static removeMarks(doc: Node | ProsemirrorData, marks: string[]) {
     const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
     const markSet = new Set(marks);
-
     function removeMarksInner(node: ProsemirrorData) {
       if (node.marks) {
         node.marks = node.marks.filter((mark) => !markSet.has(mark.type));
       }
       if (node.attrs?.marks) {
-        node.attrs.marks = (node.attrs.marks as { type: string }[])?.filter(
-          (mark) => !markSet.has(mark.type)
-        );
+        node.attrs.marks = (
+          node.attrs.marks as {
+            type: string;
+          }[]
+        )?.filter((mark) => !markSet.has(mark.type));
       }
       if (node.content) {
         node.content.forEach(removeMarksInner);
@@ -76,7 +73,6 @@ export class ProsemirrorHelper {
     }
     return removeMarksInner(json);
   }
-
   /**
    * Returns the node as plain text.
    *
@@ -87,9 +83,8 @@ export class ProsemirrorHelper {
   static toPlainText(root: Node) {
     return textBetween(root, 0, root.content.size);
   }
-
   /**
-   * Removes any empty paragraphs from the beginning and end of the document.
+   * Removes any empty paragraphs from the beginning and end of the note.
    *
    * @returns True if the editor is empty
    */
@@ -98,11 +93,9 @@ export class ProsemirrorHelper {
       start = 0,
       end = doc.nodeSize - 2,
       isEmpty;
-
     if (doc.childCount <= 1) {
       return doc;
     }
-
     isEmpty = true;
     while (isEmpty) {
       const node = doc.maybeChild(index++);
@@ -114,7 +107,6 @@ export class ProsemirrorHelper {
         start += node.nodeSize;
       }
     }
-
     index = doc.childCount - 1;
     isEmpty = true;
     while (isEmpty) {
@@ -127,10 +119,8 @@ export class ProsemirrorHelper {
         end -= node.nodeSize;
       }
     }
-
     return doc.cut(start, end);
   }
-
   /**
    * Returns true if the trimmed content of the passed document is an empty string.
    *
@@ -140,26 +130,21 @@ export class ProsemirrorHelper {
     if (!schema) {
       return !doc || doc.textContent.trim() === "";
     }
-
     let empty = true;
     doc.descendants((child: Node) => {
       // If we've already found non-empty data, we can stop descending further
       if (!empty) {
         return false;
       }
-
       if (child.type.spec.leafText) {
         empty = !child.type.spec.leafText(child).trim();
       } else if (child.isText) {
         empty = !child.text?.trim();
       }
-
       return empty;
     });
-
     return empty;
   }
-
   /**
    * Iterates through the document to find all of the comments that exist as marks.
    *
@@ -168,7 +153,6 @@ export class ProsemirrorHelper {
    */
   static getComments(doc: Node): CommentMark[] {
     const comments: CommentMark[] = [];
-
     doc.descendants((node) => {
       node.marks.forEach((mark) => {
         if (mark.type.name === "comment") {
@@ -178,7 +162,6 @@ export class ProsemirrorHelper {
           } as CommentMark);
         }
       });
-
       (
         (node.attrs.marks ?? []) as {
           type: string;
@@ -193,13 +176,10 @@ export class ProsemirrorHelper {
           } as CommentMark);
         }
       });
-
       return true;
     });
-
     return comments;
   }
-
   private static getAnchorsForHeadingNodes(doc: Node): NodeAnchor[] {
     const previouslySeen: Record<string, number> = {};
     const anchors: NodeAnchor[] = [];
@@ -207,22 +187,18 @@ export class ProsemirrorHelper {
       if (node.type.name !== "heading") {
         return;
       }
-
       // calculate the optimal id
       const slug = headingToSlug(node);
       let id = slug;
-
       // check if we've already used it, and if so how many times?
       // Make the new id based on that number ensuring that we have
       // unique ID's even when headings are identical
       if (previouslySeen[slug] > 0) {
         id = headingToSlug(node, previouslySeen[slug]);
       }
-
       // record that we've seen this slug for the next loop
       previouslySeen[slug] =
         previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
-
       anchors.push({
         pos,
         id,
@@ -231,13 +207,17 @@ export class ProsemirrorHelper {
     });
     return anchors;
   }
-
   private static getAnchorsForImageNodes(doc: Node): NodeAnchor[] {
     const anchors: NodeAnchor[] = [];
     doc.descendants((node, pos) => {
       if (Array.isArray(node.attrs?.marks)) {
         (
-          node.attrs.marks as { type?: string; attrs?: { id?: string } }[]
+          node.attrs.marks as {
+            type?: string;
+            attrs?: {
+              id?: string;
+            };
+          }[]
         ).forEach((mark) => {
           if (mark?.type === "comment" && mark?.attrs?.id) {
             anchors.push({
@@ -249,17 +229,14 @@ export class ProsemirrorHelper {
         });
       }
     });
-
     return anchors;
   }
-
   static getAnchors(doc: Node): NodeAnchor[] {
     return [
       ...ProsemirrorHelper.getAnchorsForHeadingNodes(doc),
       ...ProsemirrorHelper.getAnchorsForImageNodes(doc),
     ];
   }
-
   /**
    * Computes a stable identifier for a node derived from its type and
    * attributes. The `marks` attribute is excluded as it changes when comments
@@ -276,10 +253,8 @@ export class ProsemirrorHelper {
         acc[key] = attrs[key];
         return acc;
       }, {});
-
     return hashString(`${node.type.name}:${JSON.stringify(sorted)}`);
   }
-
   /**
    * Finds a node in the document by the hash of its attributes, see
    * `getNodeHash`. When multiple nodes share the same hash the first
@@ -292,9 +267,14 @@ export class ProsemirrorHelper {
   static findNodeByHash(
     doc: Node,
     hash: string
-  ): { node: Node; pos: number } | null {
-    let result: { node: Node; pos: number } | null = null;
-
+  ): {
+    node: Node;
+    pos: number;
+  } | null {
+    let result: {
+      node: Node;
+      pos: number;
+    } | null = null;
     doc.descendants((node, pos) => {
       if (result) {
         return false;
@@ -305,15 +285,13 @@ export class ProsemirrorHelper {
       }
       return true;
     });
-
     return result;
   }
-
   /**
    * Returns the ids of comment marks attached to the node at the given position.
    *
    * @param doc Prosemirror document node.
-   * @param pos Position of the node within the document.
+   * @param pos Position of the node within the note.
    * @returns array of comment ids anchored to the node.
    */
   static getCommentIdsAtPos(doc: Node, pos: number): string[] {
@@ -321,19 +299,30 @@ export class ProsemirrorHelper {
     if (!node || !Array.isArray(node.attrs?.marks)) {
       return [];
     }
-
-    return (node.attrs.marks as { type?: string; attrs?: { id?: string } }[])
+    return (
+      node.attrs.marks as {
+        type?: string;
+        attrs?: {
+          id?: string;
+        };
+      }[]
+    )
       .filter(
-        (mark): mark is { type: "comment"; attrs: { id: string } } =>
-          mark?.type === "comment" && !!mark?.attrs?.id
+        (
+          mark
+        ): mark is {
+          type: "comment";
+          attrs: {
+            id: string;
+          };
+        } => mark?.type === "comment" && !!mark?.attrs?.id
       )
       .map((mark) => mark.attrs.id);
   }
-
   /**
    * Builds the consolidated anchor text for the given comment-id.
    *
-   * @param marks all available comment marks in a document.
+   * @param marks all available comment marks in a note.
    * @param commentId the comment-id to build the anchor text.
    * @returns consolidated anchor text.
    */
@@ -344,10 +333,8 @@ export class ProsemirrorHelper {
     const anchorTexts = marks
       .filter((mark) => mark.id === commentId)
       .map((mark) => mark.text);
-
     return anchorTexts.length ? anchorTexts.join("") : undefined;
   }
-
   /**
    * Iterates through the document to find all of the images.
    *
@@ -356,18 +343,14 @@ export class ProsemirrorHelper {
    */
   static getImages(doc: Node): Node[] {
     const images: Node[] = [];
-
     doc.descendants((node) => {
       if (node.type.name === "image") {
         images.push(node);
       }
-
       return true;
     });
-
     return images;
   }
-
   /**
    * Iterates through the document to find all valid Lightbox nodes.
    *
@@ -376,7 +359,6 @@ export class ProsemirrorHelper {
    */
   static getLightboxNodes = (doc: Node) =>
     findChildren(doc, isLightboxNode, true);
-
   /**
    * Iterates through the document to find all of the videos.
    *
@@ -385,18 +367,14 @@ export class ProsemirrorHelper {
    */
   static getVideos(doc: Node): Node[] {
     const videos: Node[] = [];
-
     doc.descendants((node) => {
       if (node.type.name === "video") {
         videos.push(node);
       }
-
       return true;
     });
-
     return videos;
   }
-
   /**
    * Iterates through the document to find all of the attachments.
    *
@@ -405,18 +383,14 @@ export class ProsemirrorHelper {
    */
   static getAttachments(doc: Node): Node[] {
     const attachments: Node[] = [];
-
     doc.descendants((node) => {
       if (node.type.name === "attachment") {
         attachments.push(node);
       }
-
       return true;
     });
-
     return attachments;
   }
-
   /**
    * Iterates through the document to find all of the tasks and their completion state.
    *
@@ -425,50 +399,44 @@ export class ProsemirrorHelper {
    */
   static getTasks(doc: Node): Task[] {
     const tasks: Task[] = [];
-
     doc.descendants((node) => {
       if (!node.isBlock) {
         return false;
       }
-
       if (node.type.name === "checkbox_list") {
         node.content.forEach((listItem) => {
           let text = "";
-
           listItem.forEach((contentNode) => {
             if (contentNode.type.name === "paragraph") {
               text += contentNode.textContent;
             }
           });
-
           tasks.push({
             text,
             completed: listItem.attrs.checked,
           });
         });
       }
-
       return true;
     });
-
     return tasks;
   }
-
   /**
    * Returns a summary of total and completed tasks in the node.
    *
    * @param doc Prosemirror document node
    * @returns Object with completed and total keys
    */
-  static getTasksSummary(doc: Node): { completed: number; total: number } {
+  static getTasksSummary(doc: Node): {
+    completed: number;
+    total: number;
+  } {
     let completed = 0;
     let total = 0;
-
     doc.descendants((node) => {
       if (!node.isBlock) {
         return false;
       }
-
       if (node.type.name === "checkbox_list") {
         node.content.forEach((listItem) => {
           total++;
@@ -477,13 +445,10 @@ export class ProsemirrorHelper {
           }
         });
       }
-
       return true;
     });
-
     return { completed, total };
   }
-
   /**
    * Iterates through the document to find all of the headings and their level.
    *
@@ -493,24 +458,20 @@ export class ProsemirrorHelper {
   static getHeadings(doc: Node) {
     const headings: Heading[] = [];
     const previouslySeen: Record<string, number> = {};
-
     doc.descendants((node) => {
       if (node.type.name === "heading") {
         // calculate the optimal id
         const id = headingToSlug(node);
         let name = id;
-
         // check if we've already used it, and if so how many times?
         // Make the new id based on that number ensuring that we have
         // unique ID's even when headings are identical
         if (previouslySeen[id] > 0) {
           name = headingToSlug(node, previouslySeen[id]);
         }
-
         // record that we've seen this id for the next loop
         previouslySeen[id] =
           previouslySeen[id] !== undefined ? previouslySeen[id] + 1 : 1;
-
         headings.push({
           title: ProsemirrorHelper.toPlainText(node),
           level: node.attrs.level,
@@ -520,7 +481,6 @@ export class ProsemirrorHelper {
     });
     return headings;
   }
-
   /**
    * Converts all attachment URLs in the ProsemirrorData to absolute URLs.
    * This is useful for ensuring that attachments can be accessed correctly
@@ -531,7 +491,6 @@ export class ProsemirrorHelper {
    */
   static attachmentsToAbsoluteUrls(data: ProsemirrorData): ProsemirrorData {
     const regex = new RegExp("^" + attachmentRedirectRegex.source);
-
     function replace(node: ProsemirrorData) {
       if (
         node.type === "image" &&
@@ -552,18 +511,14 @@ export class ProsemirrorHelper {
       ) {
         node.attrs.href = env.URL + node.attrs.href;
       }
-
       if (node.content) {
         node.content = node.content.filter(Boolean);
         node.content.forEach(replace);
       }
-
       return node;
     }
-
     return replace(data);
   }
-
   /**
    * Replaces all template variables in the node.
    *
@@ -576,18 +531,14 @@ export class ProsemirrorHelper {
       if (node.type === "text" && node.text) {
         node.text = TextHelper.replaceTemplateVariables(node.text, user);
       }
-
       if (node.content) {
         node.content = node.content.filter(Boolean);
         node.content.forEach(replace);
       }
-
       return node;
     }
-
     return replace(data);
   }
-
   /**
    * Returns the paragraphs from the data if there are only plain paragraphs
    * without any formatting. Otherwise returns undefined.
@@ -599,12 +550,10 @@ export class ProsemirrorHelper {
     // Convert ProsemirrorNode to JSON if needed
     const jsonData =
       data instanceof Node ? (data.toJSON() as ProsemirrorData) : data;
-
     const paragraphs: ProsemirrorData[] = [];
     if (!jsonData.content) {
       return paragraphs;
     }
-
     for (const node of jsonData.content) {
       if (
         node.type === "paragraph" &&

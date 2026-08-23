@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -20,7 +20,6 @@ const sides = [
   { id: 4, name: "Garden salad" },
   { id: 5, name: "Mashed potatoes" },
 ];
-
 /**
  * Tailwind UI – radio groups: simple list with radio on right.
  *

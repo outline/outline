@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -24,7 +24,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const currencies = ["CAD", "USD", "AUD", "EUR", "GBP"];
 const navigation = {
   categories: [
@@ -35,7 +34,7 @@ const navigation = {
         { name: "Swimwear", href: "#" },
         { name: "Underwear", href: "#" },
       ],
-      collection: [
+      notebook: [
         { name: "Everything", href: "#" },
         { name: "Core", href: "#" },
         { name: "New Arrivals", href: "#" },
@@ -63,7 +62,7 @@ const navigation = {
         { name: "Boxers", href: "#" },
         { name: "Outdoor", href: "#" },
       ],
-      collection: [
+      notebook: [
         { name: "Everything", href: "#" },
         { name: "Core", href: "#" },
         { name: "New Arrivals", href: "#" },
@@ -157,7 +156,6 @@ const footerNavigation = {
     { name: "Twitter", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – order detail pages: with progress bars.
  *
@@ -165,7 +163,6 @@ const footerNavigation = {
  */
 export function OrderDetailPagesWithProgressBars() {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="bg-gray-50">
       {/* Mobile menu */}
@@ -296,7 +293,7 @@ export function OrderDetailPagesWithProgressBars() {
                                 aria-labelledby="mobile-collection-heading"
                                 className="mt-6 space-y-6"
                               >
-                                {category.collection.map((item) => (
+                                {category.notebook.map((item) => (
                                   <li key={item.name} className="flex">
                                     <a
                                       href={item.href}
@@ -597,21 +594,19 @@ export function OrderDetailPagesWithProgressBars() {
                                               aria-labelledby="desktop-collection-heading"
                                               className="mt-6 space-y-6 sm:mt-4 sm:space-y-4"
                                             >
-                                              {category.collection.map(
-                                                (item) => (
-                                                  <li
-                                                    key={item.name}
-                                                    className="flex"
+                                              {category.notebook.map((item) => (
+                                                <li
+                                                  key={item.name}
+                                                  className="flex"
+                                                >
+                                                  <a
+                                                    href={item.href}
+                                                    className="hover:text-gray-800"
                                                   >
-                                                    <a
-                                                      href={item.href}
-                                                      className="hover:text-gray-800"
-                                                    >
-                                                      {item.name}
-                                                    </a>
-                                                  </li>
-                                                )
-                                              )}
+                                                    {item.name}
+                                                  </a>
+                                                </li>
+                                              ))}
                                             </ul>
                                           </div>
 

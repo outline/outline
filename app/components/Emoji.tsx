@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import { s } from "@shared/styles";
-
 type Props = {
   /** Width of the containing element. */
   width?: number | string;
@@ -9,7 +8,6 @@ type Props = {
   /** Controls the rendered emoji size. */
   size?: number;
 };
-
 export const Emoji = styled.span<Props>`
   font-family: ${s("fontFamilyEmoji")};
   width: ${({ width }) =>

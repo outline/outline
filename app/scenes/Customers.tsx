@@ -14,16 +14,13 @@ import { AppPage } from "~/components/AppPage";
 import { usePanel } from "~/hooks/usePanel";
 import { useSubmit } from "~/hooks/useSubmit";
 import { Card, CardGrid, PlainList } from "~/components/Surface";
-
 const Head = styled.div`
   padding: 24px;
   border-bottom: 1px solid ${s("divider")};
 `;
-
 const Body = styled.div`
   padding: 16px 24px;
 `;
-
 const Points = styled.span`
   display: inline-flex;
   flex-shrink: 0;
@@ -34,7 +31,6 @@ const Points = styled.span`
   color: ${s("accent")};
   background: ${s("backgroundTertiary")};
 `;
-
 /**
  * Customer directory, with the pets registered against each owner.
  *
@@ -46,10 +42,8 @@ function Customers() {
   const customers = useShop((state) => state.customers);
   const saveCustomer = useShop((state) => state.saveCustomer);
   const deleteCustomer = useShop((state) => state.deleteCustomer);
-
   const panels = usePanel();
   const submission = useSubmit();
-
   const handleSave = (values: Record<string, string>) =>
     submission.run(async () => {
       const pets = values.petName?.trim()
@@ -62,21 +56,18 @@ function Customers() {
             },
           ]
         : [];
-
       const result = await saveCustomer({
         name: values.name ?? "",
         email: values.email ?? "",
         phone: values.phone ?? "",
         pets,
       });
-
       if (result?.saved) {
         panels.close();
         return;
       }
       return t("A customer needs a name.");
     });
-
   const handleDelete = (id: string, name: string) =>
     submission.run(async () => {
       const result = await deleteCustomer(id);
@@ -86,7 +77,6 @@ function Customers() {
             name,
           });
     });
-
   return (
     <AppPage
       title={t("Customers")}
@@ -170,5 +160,4 @@ function Customers() {
     </AppPage>
   );
 }
-
 export default Customers;

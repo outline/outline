@@ -8,5 +8,4 @@ const breakpoints = {
   // targeting devices that are larger than the iPad (which is 1024px in landscape mode)
   desktopLarge: 1600,
 };
-
 export default breakpoints;

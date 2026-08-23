@@ -7,7 +7,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { Menu, Transition } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const days = [
   { date: "2021-12-27" },
   { date: "2021-12-28" },
@@ -52,7 +51,6 @@ const days = [
   { date: "2022-02-05" },
   { date: "2022-02-06" },
 ];
-
 /**
  * Tailwind UI – calendars: day view.
  *
@@ -62,7 +60,6 @@ export function CalendarsDayView() {
   const container = useRef<HTMLDivElement>(null);
   const containerNav = useRef<HTMLDivElement>(null);
   const containerOffset = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     // Set the container scroll position based on the current time.
     const currentMinute = new Date().getHours() * 60;
@@ -80,7 +77,6 @@ export function CalendarsDayView() {
         currentMinute) /
       1440;
   }, []);
-
   return (
     <div className="flex h-full flex-col">
       <header className="flex flex-none items-center justify-between border-b border-gray-200 px-6 py-4">

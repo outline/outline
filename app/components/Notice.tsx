@@ -3,13 +3,11 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import Flex from "./Flex";
 import Text from "./Text";
-
 type Props = {
   children?: React.ReactNode;
   icon?: JSX.Element;
   description?: JSX.Element;
 };
-
 const Notice: React.FC<Props> = ({ children, icon, description }: Props) => (
   <Container as="div">
     <Flex as="span" gap={8}>
@@ -26,12 +24,10 @@ const Notice: React.FC<Props> = ({ children, icon, description }: Props) => (
     </Flex>
   </Container>
 );
-
 const Title = styled.span`
   font-weight: 500;
   font-size: 16px;
 `;
-
 const Container = styled(Text)`
   background: ${s("sidebarBackground")};
   color: ${s("sidebarText")};
@@ -45,5 +41,4 @@ const Container = styled(Text)`
     flex-shrink: 0;
   }
 `;
-
 export default Notice;

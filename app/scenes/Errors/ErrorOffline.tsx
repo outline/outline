@@ -3,7 +3,6 @@ import CenteredContent from "~/components/CenteredContent";
 import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
 import PageTitle from "~/components/PageTitle";
-
 const ErrorOffline = () => {
   const { t } = useTranslation();
   return (
@@ -14,5 +13,4 @@ const ErrorOffline = () => {
     </CenteredContent>
   );
 };
-
 export default ErrorOffline;

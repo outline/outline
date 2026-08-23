@@ -7,41 +7,31 @@ import { PromoSectionsWithFadingBackgroundImageAndTestimonials } from "~/compone
 import { PromoSectionsWithImageTiles } from "~/components/PromoSectionsWithImageTiles";
 import { PromoSectionsWithOffersAndSplitImage } from "~/components/PromoSectionsWithOffersAndSplitImage";
 import { PromoSectionsWithOverlappingImageTiles } from "~/components/PromoSectionsWithOverlappingImageTiles";
-
 const meta: Meta = {
   title: "Ecommerce/Components/Promo Sections",
 };
-
 export default meta;
-
 export const FullWidthWithBackgroundImage: StoryObj = {
   render: () => <PromoSectionsFullWidthWithBackgroundImage />,
 };
-
 export const FullWidthWithBackgroundImageAndLargeContent: StoryObj = {
   render: () => <PromoSectionsFullWidthWithBackgroundImageAndLargeContent />,
 };
-
 export const FullWidthWithOverlappingImageTiles: StoryObj = {
   render: () => <PromoSectionsFullWidthWithOverlappingImageTiles />,
 };
-
 export const WithBackgroundImage: StoryObj = {
   render: () => <PromoSectionsWithBackgroundImage />,
 };
-
 export const WithFadingBackgroundImageAndTestimonials: StoryObj = {
   render: () => <PromoSectionsWithFadingBackgroundImageAndTestimonials />,
 };
-
 export const WithImageTiles: StoryObj = {
   render: () => <PromoSectionsWithImageTiles />,
 };
-
 export const WithOffersAndSplitImage: StoryObj = {
   render: () => <PromoSectionsWithOffersAndSplitImage />,
 };
-
 export const WithOverlappingImageTiles: StoryObj = {
   render: () => <PromoSectionsWithOverlappingImageTiles />,
 };

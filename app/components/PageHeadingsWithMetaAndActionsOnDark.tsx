@@ -11,7 +11,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { Menu, Transition } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 /**
  * Tailwind UI – page headings: with meta and actions on dark.
  *

@@ -9,54 +9,44 @@ import {
 import styled, { css, useTheme } from "styled-components";
 import { s } from "../styles";
 import { darken } from "polished";
-
 type Props = {
   onSelect: (color: string) => void;
   /** The currently active color */
   activeColor?: string | null;
   alpha: boolean;
 };
-
 const DEFAULT_COLOR = "#7e3d3db3";
-
 function ColorPicker({ activeColor, onSelect, alpha }: Props) {
   const [color, setColor] = useState(activeColor || DEFAULT_COLOR);
   const [copied, setCopied] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
-
   // Keep the internal color in sync when the active color is changed externally
   useEffect(() => {
     setColor(activeColor || DEFAULT_COLOR);
   }, [activeColor]);
-
   const applyColor = useCallback(
     (newColor: string) => {
       const activeElement = document.activeElement as HTMLElement | null;
       const hadFocusInside = wrapperRef.current?.contains(activeElement);
-
       onSelect(newColor);
-
       if (hadFocusInside && activeElement) {
         activeElement.focus();
       }
     },
     [onSelect]
   );
-
   const handleColorChangeInput = (newColor: string) => {
     setColor(newColor);
     applyColor(newColor);
   };
-
   const handleCopy = useCallback(() => {
     copy(color);
     buttonRef.current?.focus();
     setCopied(true);
     setTimeout(() => setCopied(false), 500);
   }, [color]);
-
   return (
     <Wrapper ref={wrapperRef} tabIndex={-1}>
       {alpha ? (
@@ -91,13 +81,11 @@ function ColorPicker({ activeColor, onSelect, alpha }: Props) {
     </Wrapper>
   );
 }
-
 const Wrapper = styled.div`
   padding: 4px;
   display: flex;
   flex-direction: column;
 `;
-
 const colorPickerStyles = css`
   &.react-colorful {
     width: auto;
@@ -122,11 +110,9 @@ const colorPickerStyles = css`
     }
   }
 `;
-
 const StyledHexNonAlphaColorPicker = styled(HexColorPicker)`
   ${colorPickerStyles}
 `;
-
 const StyledHexAlphaColorPicker = styled(HexAlphaColorPicker)`
   ${colorPickerStyles}
 
@@ -137,14 +123,12 @@ const StyledHexAlphaColorPicker = styled(HexAlphaColorPicker)`
     margin-bottom: 8px;
   }
 `;
-
 const InputRow = styled.div`
   display: flex;
   justify-content: space-between;
   gap: 4px;
   margin-top: 8px;
 `;
-
 const StyledHexColorInput = styled(HexColorInput)`
   flex: 1;
   padding: 4px 6px;
@@ -159,7 +143,6 @@ const StyledHexColorInput = styled(HexColorInput)`
     border-color: ${s("accent")};
   }
 `;
-
 const CopyButton = styled.button`
   display: flex;
   align-items: center;
@@ -176,5 +159,4 @@ const CopyButton = styled.button`
     color: ${s("text")};
   }
 `;
-
 export default ColorPicker;

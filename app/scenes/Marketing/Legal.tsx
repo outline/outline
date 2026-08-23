@@ -1,5 +1,4 @@
 import { MarketingLayout } from "./MarketingLayout";
-
 /** The two legal documents, which differ only in their content. */
 const CONTENT = {
   privacy: {
@@ -47,23 +46,20 @@ const CONTENT = {
     ],
   },
 } as const;
-
 interface Props {
   /** Which document to render. */
-  document: keyof typeof CONTENT;
+  note: keyof typeof CONTENT;
 }
-
 /**
- * A legal document.
+ * A legal note.
  *
  * Privacy and terms share a component because they are the same page with
  * different prose.
  *
  * @returns the rendered legal page.
  */
-export function Legal({ document }: Props) {
-  const content = CONTENT[document];
-
+export function Legal({ note }: Props) {
+  const content = CONTENT[note];
   return (
     <MarketingLayout title={content.title} description={content.description}>
       <div className="space-y-8">
@@ -86,15 +82,12 @@ export function Legal({ document }: Props) {
     </MarketingLayout>
   );
 }
-
 /** Privacy policy. */
 export function Privacy() {
-  return <Legal document="privacy" />;
+  return <Legal note="privacy" />;
 }
-
 /** Terms of service. */
 export function Terms() {
-  return <Legal document="terms" />;
+  return <Legal note="terms" />;
 }
-
 export default Legal;

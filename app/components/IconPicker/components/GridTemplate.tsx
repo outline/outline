@@ -10,7 +10,6 @@ import { TRANSLATED_CATEGORIES } from "../utils";
 import Grid from "./Grid";
 import { IconButton } from "./IconButton";
 import { CustomEmoji } from "@shared/components/CustomEmoji";
-
 /**
  * Desktop: 24px icon/emoji + 4px padding on all sides = 32px button.
  * Mobile: 32px icon/emoji + 4px padding on all sides = 40px button, so
@@ -20,7 +19,6 @@ const BUTTON_SIZE_DESKTOP = 32;
 const BUTTON_SIZE_MOBILE = 40;
 const ICON_SIZE_DESKTOP = 24;
 const ICON_SIZE_MOBILE = 32;
-
 export type OutlineNode = {
   type: IconType.SVG;
   name: string;
@@ -28,21 +26,17 @@ export type OutlineNode = {
   initial: string;
   delay: number;
 };
-
 export type EmojiNode = {
   type: IconType.Emoji | IconType.Custom;
   id: string;
   value: string;
   name?: string;
 };
-
 export type IconNode = OutlineNode | EmojiNode;
-
 export type DataNode = {
   category: keyof typeof TRANSLATED_CATEGORIES;
   icons: IconNode[];
 };
-
 type Props = {
   /** Width of the grid container */
   width: number;
@@ -59,7 +53,6 @@ type Props = {
   /** Callback when whether the grid has content below the fold changes */
   onOverflowChange?: (hasMoreBelow: boolean) => void;
 };
-
 const GridTemplate = (
   {
     width,
@@ -77,7 +70,6 @@ const GridTemplate = (
   const iconSize = isMobile ? ICON_SIZE_MOBILE : ICON_SIZE_DESKTOP;
   // 24px padding for the Grid Container
   const itemsPerRow = Math.max(1, Math.floor((width - 24) / buttonSize));
-
   const gridItems = compact(
     data.flatMap((node) => {
       const category = (
@@ -90,17 +82,14 @@ const GridTemplate = (
           {TRANSLATED_CATEGORIES[node.category]}
         </CategoryName>
       );
-
       if (node.icons.length === 0) {
         if (node.category !== "Search") {
           return [];
         }
         return [[category], [empty]];
       }
-
       const items = node.icons.map((item) => {
         const handleActive = () => onIconActive?.(item);
-
         if (item.type === IconType.SVG) {
           return (
             <IconButton
@@ -120,7 +109,6 @@ const GridTemplate = (
             </IconButton>
           );
         }
-
         return (
           <IconButton
             key={item.id}
@@ -142,12 +130,10 @@ const GridTemplate = (
           </IconButton>
         );
       });
-
       const chunks = chunk(items, itemsPerRow);
       return [[category], ...chunks];
     })
   );
-
   return (
     <Grid
       ref={ref}
@@ -160,17 +146,14 @@ const GridTemplate = (
     />
   );
 };
-
 const CategoryName = styled(Text)`
   grid-column: 1 / -1;
   padding-left: 6px;
 `;
-
 const Icon = styled.svg`
   transition:
     color 150ms ease-in-out,
     fill 150ms ease-in-out;
   transition-delay: var(--delay);
 `;
-
 export default React.forwardRef(GridTemplate);

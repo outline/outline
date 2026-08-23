@@ -5,7 +5,6 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const activity = [
   {
     id: 1,
@@ -45,7 +44,6 @@ const activity = [
     date: "2h ago",
   },
 ];
-
 /**
  * Tailwind UI – feeds: with multiple item types.
  *

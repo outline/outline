@@ -8,7 +8,6 @@ const people = [
   },
   // More people...
 ];
-
 /**
  * Tailwind UI – grid lists: horizontal link cards.
  *

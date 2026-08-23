@@ -40,7 +40,6 @@ const comments = [
     dateTime: "2023-03-02T21:13Z",
   },
 ];
-
 /**
  * Tailwind UI – stacked lists: narrow with truncated content.
  *

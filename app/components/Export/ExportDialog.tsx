@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { FileOperationFormat, NotificationEventType } from "@shared/types";
-import type Collection from "~/models/Collection";
+import type Notebook from "~/models/Notebook";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import { FileFormatSelector } from "~/components/Export/FileFormatSelector";
@@ -15,13 +15,11 @@ import OutlineIcon from "~/components/Icons/OutlineIcon";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-
 type Props = {
-  collection?: Collection;
+  notebook?: Notebook;
   onSubmit: () => void;
 };
-
-export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
+export const ExportDialog = observer(({ notebook, onSubmit }: Props) => {
   const [format, setFormat] = React.useState<FileOperationFormat>(
     FileOperationFormat.MarkdownZip
   );
@@ -29,40 +27,34 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
     React.useState<boolean>(true);
   const [includePrivate, setIncludePrivate] = React.useState<boolean>(true);
   const user = useCurrentUser();
-  const { collections, ui } = useStores();
+  const { notebooks, ui } = useStores();
   const { t } = useTranslation();
-
   const handleIncludeAttachmentsChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       setIncludeAttachments(ev.target.checked);
     },
     []
   );
-
   const handleIncludePrivateChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       setIncludePrivate(ev.target.checked);
     },
     []
   );
-
   const handleSubmit = async () => {
     let response;
-
-    if (collection) {
-      response = await collection.export(format, includeAttachments);
+    if (notebook) {
+      response = await notebook.export(format, includeAttachments);
     } else {
-      response = await collections.export({
+      response = await notebooks.export({
         format,
         includeAttachments,
         includePrivate,
       });
     }
-
     if (response?.data?.fileOperation) {
       const fileOperationId = response.data.fileOperation.id;
       const toastId = `export-${fileOperationId}`;
-
       const timeoutId = setTimeout(() => {
         toast.success(t("Export started"), {
           id: toastId,
@@ -71,19 +63,15 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
         });
         ui.exportToasts.delete(fileOperationId);
       }, 6000);
-
       ui.registerExportToast(fileOperationId, toastId, timeoutId);
-
       toast.loading(t("Export started"), {
         id: toastId,
         description: `${t("Preparing your download")}…`,
         duration: Infinity,
       });
     }
-
     onSubmit();
   };
-
   const formats: FileFormat<FileOperationFormat>[] = [
     {
       title: "Markdown",
@@ -110,12 +98,11 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
       icon: <OutlineIcon />,
     },
   ];
-
   return (
     <ConfirmationDialog onSubmit={handleSubmit} submitText={t("Export")}>
-      {collection && (
+      {notebook && (
         <Text as="p">
-          {t("Exporting the collection may take some time.")}{" "}
+          {t("Exporting the notebook may take some time.")}{" "}
           {user.subscribedToEventType(NotificationEventType.ExportCompleted) &&
             t("You will receive an email when it's complete.")}
         </Text>
@@ -143,7 +130,7 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
             </Text>
           </div>
         </Option>
-        {!collection && (
+        {!notebook && (
           <Option>
             <input
               type="checkbox"
@@ -153,11 +140,11 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
             />
             <div>
               <Text as="p" size="small" weight="bold">
-                {t("Include private collections")}
+                {t("Include private notebooks")}
               </Text>
               <Text size="small" type="secondary">
                 {t(
-                  "As an admin you can export collections you are not currently a member of"
+                  "As an admin you can export notebooks you are not currently a member of"
                 )}
                 .
               </Text>
@@ -168,11 +155,9 @@ export const ExportDialog = observer(({ collection, onSubmit }: Props) => {
     </ConfirmationDialog>
   );
 });
-
 const HR = styled.hr`
   margin: 16px 0;
 `;
-
 const Option = styled.label`
   display: flex;
   align-items: start;

@@ -13,7 +13,6 @@ import {
 } from "~/actions/definitions/common";
 import { GroupSection } from "~/actions/sections";
 import type { ActionContext } from "~/types";
-
 export const addGroupUsers = dialogActionFactory({
   analyticsName: "Add people to group",
   section: GroupSection,
@@ -29,7 +28,6 @@ export const addGroupUsers = dialogActionFactory({
   icon: <PlusIcon />,
   visible: (context) => canManageMembers(context),
 });
-
 /**
  * Creates an action that sets the permission of the active group members.
  *
@@ -54,7 +52,6 @@ export const updateGroupUserPermissionActionFactory = (
       if (!group) {
         return;
       }
-
       return performBatchOnActiveModels(
         context,
         User,
@@ -71,7 +68,6 @@ export const updateGroupUserPermissionActionFactory = (
       );
     },
   });
-
 export const changeGroupUserPermission = createActionWithChildren({
   name: ({ t }) => t("Change role"),
   analyticsName: "Change group member permission",
@@ -81,7 +77,6 @@ export const changeGroupUserPermission = createActionWithChildren({
     updateGroupUserPermissionActionFactory(permission)
   ),
 });
-
 export const removeGroupUser = createAction({
   name: ({ t, currentUserId, getActiveModels }) => {
     const users = getActiveModels(User);
@@ -105,7 +100,6 @@ export const removeGroupUser = createAction({
     if (!group) {
       return;
     }
-
     return performBatchOnActiveModels(
       context,
       User,
@@ -129,7 +123,6 @@ export const removeGroupUser = createAction({
     );
   },
 });
-
 const canManageMembers = ({ getActiveModel }: ActionContext) => {
   const group = getActiveModel(Group);
   return (
@@ -138,7 +131,6 @@ const canManageMembers = ({ getActiveModel }: ActionContext) => {
     !group.isExternallyManaged
   );
 };
-
 const getMembership = ({ getActiveModel }: ActionContext, user: User) => {
   const group = getActiveModel(Group);
   return group ? stores.groupUsers.membership(group.id, user.id) : undefined;

@@ -1,12 +1,10 @@
 import styled, { css } from "styled-components";
 import { extraArea, s } from "@shared/styles";
-
 type Props = {
   active?: boolean;
   disabled?: boolean;
   hovering?: boolean;
 };
-
 export default styled.button.attrs((props) => ({
   type: props.type || "button",
 }))<Props>`

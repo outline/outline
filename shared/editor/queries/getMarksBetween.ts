@@ -1,6 +1,5 @@
 import type { Mark } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
-
 /**
  * Get all marks that are applied to text between two positions.
  *
@@ -14,13 +13,15 @@ export function getMarksBetween(
   end: number,
   state: EditorState
 ) {
-  let marks: { start: number; end: number; mark: Mark }[] = [];
-
+  let marks: {
+    start: number;
+    end: number;
+    mark: Mark;
+  }[] = [];
   state.doc.nodesBetween(start, end, (node, pos) => {
     if (node.isText) {
       const nodeStart = Math.max(start, pos);
       const nodeEnd = Math.min(end, pos + node.nodeSize);
-
       marks = [
         ...marks,
         ...node.marks.map((mark) => ({
@@ -31,6 +32,5 @@ export function getMarksBetween(
       ];
     }
   });
-
   return marks;
 }

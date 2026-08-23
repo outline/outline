@@ -13,17 +13,14 @@ import Tooltip from "~/components/Tooltip";
 import { ShareSubscribeForm } from "./ShareSubscribeForm";
 import useStores from "~/hooks/useStores";
 import { Theme } from "~/stores/UiStore";
-
 export const AppearanceAction = observer(() => {
   const { t } = useTranslation();
   const { ui } = useStores();
   const { resolvedTheme, themeOverride } = ui;
-
   // Hide when theme is locked via query parameter
   if (themeOverride) {
     return null;
   }
-
   return (
     <Action>
       <Tooltip
@@ -49,17 +46,15 @@ export const AppearanceAction = observer(() => {
     </Action>
   );
 });
-
 export function SubscribeAction({
   shareId,
-  documentId,
+  noteId,
 }: {
   shareId: string;
-  documentId?: string;
+  noteId?: string;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-
   return (
     <Action>
       <Popover open={open} onOpenChange={setOpen}>
@@ -74,7 +69,7 @@ export function SubscribeAction({
           </PopoverTrigger>
         </Tooltip>
         <PopoverContent side="bottom" align="end" width={340}>
-          <ShareSubscribeForm shareId={shareId} documentId={documentId} />
+          <ShareSubscribeForm shareId={shareId} noteId={noteId} />
         </PopoverContent>
       </Popover>
     </Action>

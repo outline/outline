@@ -3,11 +3,9 @@ import { Toaster } from "sonner";
 import styled, { useTheme } from "styled-components";
 import useStores from "~/hooks/useStores";
 import type { ResolvedTheme } from "~/stores/UiStore";
-
 function Toasts() {
   const { ui } = useStores();
   const theme = useTheme();
-
   return (
     <StyledToaster
       // @ts-expect-error styled-components overrides sonner's theme prop with DefaultTheme
@@ -26,7 +24,6 @@ function Toasts() {
     />
   );
 }
-
 const StyledToaster = styled(Toaster)`
   [data-close-button] {
     cursor: var(--pointer);
@@ -39,5 +36,4 @@ const StyledToaster = styled(Toaster)`
     }
   }
 `;
-
 export default observer(Toasts);

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -34,7 +34,6 @@ import {
   TrashIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const currencies = ["CAD", "USD", "AUD", "EUR", "GBP"];
 const navigation = {
   categories: [
@@ -171,7 +170,6 @@ const footerNavigation = {
     { name: "Find a store", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – checkout pages: single step with order summary.
  *
@@ -182,7 +180,6 @@ export function CheckoutPagesSingleStepWithOrderSummary() {
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(
     deliveryMethods[0]
   );
-
   return (
     <div className="bg-gray-50">
       {/* Mobile menu */}

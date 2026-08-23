@@ -12,16 +12,13 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { ExportDialog } from "~/components/Export/ExportDialog";
 import FileOperationListItem from "./components/FileOperationListItem";
-
 function Export() {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const { fileOperations, dialogs } = useStores();
-
   const handleOpenDialog = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-
       dialogs.openModal({
         title: t("Export data"),
         content: <ExportDialog onSubmit={dialogs.closeAllModals} />,
@@ -29,13 +26,12 @@ function Export() {
     },
     [dialogs, t]
   );
-
   return (
     <Scene title={t("Export")} icon={<DownloadIcon />}>
       <Heading>{t("Export")}</Heading>
       <Text as="p" type="secondary">
         <Trans
-          defaults="A full export might take some time, consider exporting a single document or collection. You may leave this page once the export has started – if you have notifications enabled, we will email a link to <em>{{ userEmail }}</em> when it’s complete."
+          defaults="A full export might take some time, consider exporting a single document or notebook. You may leave this page once the export has started – if you have notifications enabled, we will email a link to <em>{{ userEmail }}</em> when it’s complete."
           values={{
             userEmail: user.email,
           }}
@@ -66,5 +62,4 @@ function Export() {
     </Scene>
   );
 }
-
 export default observer(Export);

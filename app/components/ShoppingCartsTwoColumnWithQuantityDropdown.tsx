@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -18,7 +18,6 @@ import {
   QuestionMarkCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/20/solid";
-
 const products = [
   {
     id: 1,
@@ -57,7 +56,6 @@ const products = [
     imageAlt: "Insulated bottle with white base and black snap lid.",
   },
 ];
-
 /**
  * Tailwind UI – shopping carts: two column with quantity dropdown.
  *

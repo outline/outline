@@ -10,13 +10,11 @@ import { getReplaceStep } from "./getReplaceStep";
 import { removeMarks } from "./removeMarks";
 import { simplifyTransform } from "./simplifyTransform";
 import type { JSONObject } from "./types";
-
 export interface Options {
   complexSteps?: boolean;
   wordDiffs?: boolean;
   simplifyDiff?: boolean;
 }
-
 export class RecreateTransform {
   fromDoc: Node;
   toDoc: Node;
@@ -30,7 +28,6 @@ export class RecreateTransform {
   /* final document as json data */
   finalJSON: JSONObject;
   ops: Array<Operation>;
-
   constructor(fromDoc: Node, toDoc: Node, options: Options = {}) {
     const o = {
       complexSteps: true,
@@ -38,7 +35,6 @@ export class RecreateTransform {
       simplifyDiff: true,
       ...options,
     };
-
     this.fromDoc = fromDoc;
     this.toDoc = toDoc;
     this.complexSteps = o.complexSteps; // Whether to return steps other than ReplaceSteps
@@ -50,7 +46,6 @@ export class RecreateTransform {
     this.finalJSON = {};
     this.ops = [];
   }
-
   init() {
     if (this.complexSteps) {
       // For First steps: we create versions of the documents without marks as
@@ -68,14 +63,11 @@ export class RecreateTransform {
       this.ops = createPatch(this.currentJSON, this.finalJSON);
       this.recreateChangeContentSteps();
     }
-
     if (this.simplifyDiff) {
       this.tr = simplifyTransform(this.tr) || this.tr;
     }
-
     return this.tr;
   }
-
   /** convert json-diff to prosemirror steps */
   recreateChangeContentSteps() {
     // First step: find content changing steps.
@@ -84,17 +76,14 @@ export class RecreateTransform {
       // get next
       let op = this.ops.shift() as Operation;
       ops.push(op);
-
       let toDoc;
       const afterStepJSON = copy(this.currentJSON); // working document receiving patches
       const pathParts = op.path.split("/");
-
       // collect operations until we receive a valid document:
       // apply ops-patches until a valid prosemirror document is retrieved,
       // then try to create a transformation step or retry with next operation
       while (!toDoc) {
         applyPatch(afterStepJSON, [op]);
-
         try {
           toDoc = this.schema.nodeFromJSON(afterStepJSON);
           toDoc.check();
@@ -108,7 +97,6 @@ export class RecreateTransform {
           }
         }
       }
-
       // apply operation (ignoring afterStepJSON)
       if (
         this.complexSteps &&
@@ -132,7 +120,6 @@ export class RecreateTransform {
       }
     }
   }
-
   /** update node with attrs and marks, may also change type */
   addSetNodeMarkup() {
     // first diff in document is supposed to be a node-change (in type and/or attributes)
@@ -144,7 +131,6 @@ export class RecreateTransform {
     // @note start is the same (first) position for current and target document
     const fromNode = fromDoc.nodeAt(start) as Node;
     const toNode = toDoc.nodeAt(start) as Node;
-
     if (!start) {
       // @note this completly updates all attributes in one step, by completely replacing node
       const nodeType = fromNode.type === toNode.type ? null : toNode.type;
@@ -167,7 +153,6 @@ export class RecreateTransform {
     }
     return false;
   }
-
   recreateChangeMarkSteps() {
     // Now the documents should be the same, except their marks, so everything should map 1:1.
     // Second step: Iterate through the toDoc and make sure all marks are the same in tr.doc
@@ -175,7 +160,6 @@ export class RecreateTransform {
       if (!tNode.isInline) {
         return true;
       }
-
       this.tr.doc.nodesBetween(tPos, tPos + tNode.nodeSize, (fNode, fPos) => {
         if (!fNode.isInline) {
           return true;
@@ -192,14 +176,11 @@ export class RecreateTransform {
             this.tr.addMark(from, to, nodeMark);
           }
         });
-
         return;
       });
-
       return;
     });
   }
-
   /**
    * retrieve and possibly apply replace-step based from doc changes
    * From http://prosemirror.net/examples/footnote/
@@ -207,17 +188,14 @@ export class RecreateTransform {
   addReplaceStep(toDoc: Node, afterStepJSON: JSONObject) {
     const fromDoc = this.schema.nodeFromJSON(this.currentJSON);
     const step = getReplaceStep(fromDoc, toDoc);
-
     if (!step) {
       return false;
     } else if (!this.tr.maybeStep(step).failed) {
       this.currentJSON = afterStepJSON;
       return true; // @change previously null
     }
-
     throw new Error("No valid step found.");
   }
-
   /** retrieve and possibly apply text replace-steps based from doc changes */
   addReplaceTextSteps(op: ReplaceOperation, afterStepJSON: JSONObject) {
     // We find the position number of the first character in the string
@@ -229,25 +207,20 @@ export class RecreateTransform {
     applyPatch(afterOP2JSON, [op2]);
     const op1Doc = this.schema.nodeFromJSON(afterOP1JSON);
     const op2Doc = this.schema.nodeFromJSON(afterOP2JSON);
-
     // get text diffs
     const finalText = op.value as string;
     const currentText = getFromPath(this.currentJSON, op.path) as string;
     const textDiffs = this.wordDiffs
       ? diffWordsWithSpace(currentText, finalText)
       : diffChars(currentText, finalText);
-
     let offset = op1Doc.content.findDiffStart(op2Doc.content) as number;
     const marks = op1Doc.resolve(offset + 1).marks();
-
     while (textDiffs.length) {
       const diff = textDiffs.shift() as Change;
-
       if (diff.added) {
         const textNode = this.schema
           .nodeFromJSON({ type: "text", text: diff.value })
           .mark(marks);
-
         if (textDiffs.length && textDiffs[0].removed) {
           const nextDiff = textDiffs.shift() as Change;
           this.tr.replaceWith(offset, offset + nextDiff.value.length, textNode);
@@ -270,11 +243,9 @@ export class RecreateTransform {
         offset += diff.value.length;
       }
     }
-
     this.currentJSON = afterStepJSON;
   }
 }
-
 export function recreateTransform(
   fromDoc: Node,
   toDoc: Node,

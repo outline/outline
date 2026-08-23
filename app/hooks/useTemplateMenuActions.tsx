@@ -5,39 +5,33 @@ import Icon from "@shared/components/Icon";
 import { TextHelper } from "@shared/utils/TextHelper";
 import type Template from "~/models/Template";
 import { ActionSeparator, createAction, createActionGroup } from "~/actions";
-import { DocumentsSection } from "~/actions/sections";
+import { NotesSection } from "~/actions/sections";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import type { Action } from "~/types";
 import { useComputed } from "./useComputed";
-
 type Props = {
   /** The document to which the templates will be applied */
-  documentId: string;
+  noteId: string;
   /** Callback to handle when a template is selected */
   onSelectTemplate?: (template: Template) => void;
 };
-
 /**
- * This hook provides a memoized list of actions for both collection-specific
+ * This hook provides a memoized list of actions for both notebook-specific
  * templates and workspace-wide templates. It filters templates based on whether
  * they are published and organizes them into appropriate sections.
  *
- * Collection-specific templates are displayed first, followed by workspace templates
+ * Notebook-specific templates are displayed first, followed by workspace templates
  * with a separator in between (if both types exist).
  *
  * @returns An array of Action objects representing templates that can be applied
- * to the current document. Returns an empty array if no callback is provided.
+ * to the current note. Returns an empty array if no callback is provided.
  */
-export function useTemplateMenuActions({
-  documentId,
-  onSelectTemplate,
-}: Props) {
+export function useTemplateMenuActions({ noteId, onSelectTemplate }: Props) {
   const user = useCurrentUser();
-  const { documents, templates: templatesStore } = useStores();
+  const { notes, templates: templatesStore } = useStores();
   const { t } = useTranslation();
-  const document = documents.get(documentId);
-
+  const note = notes.get(noteId);
   const templateToAction = useCallback(
     (template: Template): Action =>
       createAction({
@@ -45,7 +39,7 @@ export function useTemplateMenuActions({
           template.titleWithDefault,
           user
         ),
-        section: DocumentsSection,
+        section: NotesSection,
         icon: template.icon ? (
           <Icon
             value={template.icon}
@@ -60,42 +54,33 @@ export function useTemplateMenuActions({
       }),
     [user, onSelectTemplate]
   );
-
   return useComputed(() => {
     if (!onSelectTemplate) {
       return [];
     }
-
     const templates = templatesStore.orderedData.filter(
       (template) => template.isActive
     );
-
-    const collectionTemplatesActions = templates
+    const notebookTemplatesActions = templates
       .filter(
         (template) =>
           !template.isWorkspaceTemplate &&
-          template.collectionId === document?.collectionId
+          template.notebookId === note?.notebookId
       )
       .map(templateToAction);
-
     const workspaceTemplatesActions = templates
       .filter((tmpl) => tmpl.isWorkspaceTemplate)
       .map(templateToAction);
-
-    if (
-      !collectionTemplatesActions.length &&
-      !workspaceTemplatesActions.length
-    ) {
+    if (!notebookTemplatesActions.length && !workspaceTemplatesActions.length) {
       return [];
     }
-
     return [
-      ...collectionTemplatesActions,
+      ...notebookTemplatesActions,
       ActionSeparator,
       createActionGroup({
         name: t("Workspace"),
         actions: workspaceTemplatesActions,
       }),
     ];
-  }, [document?.collectionId, templateToAction, t]);
+  }, [note?.notebookId, templateToAction, t]);
 }

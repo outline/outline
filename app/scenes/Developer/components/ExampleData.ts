@@ -1,12 +1,10 @@
 import { type ProsemirrorData } from "@shared/types";
-
 export interface Example {
   id: string;
   name: string;
   before: ProsemirrorData;
   after: ProsemirrorData;
 }
-
 /**
  * A collection of example ProseMirror documents to demonstrate diffing capabilities.
  * These examples cover various node types and complexity levels supported by the Outline editor.

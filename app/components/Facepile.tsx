@@ -8,7 +8,6 @@ import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import { s } from "@shared/styles";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-
 type Props = {
   /** The users to display */
   users: User[];
@@ -23,7 +22,6 @@ type Props = {
   /** Whether to show tooltips on hover, defaults to true */
   showTooltip?: boolean;
 };
-
 function Facepile({
   users,
   overflow = 0,
@@ -42,7 +40,6 @@ function Facepile({
   const showLastInsteadOfBadge = overflow === 1 && present.length - limit === 1;
   const filtered = present.slice(-(showLastInsteadOfBadge ? limit + 1 : limit));
   const Component = renderAvatar;
-
   if (overflow > 0 && !showLastInsteadOfBadge) {
     filtered.unshift({
       id: "overflow",
@@ -50,7 +47,6 @@ function Facepile({
       name: t(`{{count}} more user`, { count: overflow }),
     } as User);
   }
-
   return (
     <Avatars {...rest}>
       {filtered.map((model, index) => {
@@ -78,7 +74,6 @@ function Facepile({
     </Avatars>
   );
 }
-
 function FacepileClip({ size }: { size: number }) {
   return (
     <SVG
@@ -97,17 +92,14 @@ function FacepileClip({ size }: { size: number }) {
     </SVG>
   );
 }
-
 function clipPathId(size: number) {
   return `facepile-${size}`;
 }
-
 const SVG = styled.svg`
   position: absolute;
   top: 0;
   left: 0;
 `;
-
 const Avatars = styled(Flex)`
   align-items: center;
   flex-direction: row-reverse;
@@ -118,5 +110,4 @@ const Avatars = styled(Flex)`
     box-shadow: 0 0 0 2px ${s("background")};
   }
 `;
-
 export default observer(Facepile);

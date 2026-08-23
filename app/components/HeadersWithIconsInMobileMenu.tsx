@@ -14,7 +14,6 @@ import {
   PhoneIcon,
   PlayCircleIcon,
 } from "@heroicons/react/20/solid";
-
 const products = [
   {
     name: "Analytics",
@@ -77,7 +76,6 @@ const company = [
       "Read our latest announcements and get perspectives from our team",
   },
 ];
-
 /**
  * Tailwind UI – headers: with icons in mobile menu.
  *
@@ -85,7 +83,6 @@ const company = [
  */
 export function HeadersWithIconsInMobileMenu() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <header className="bg-white">
       <nav

@@ -18,21 +18,18 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
-
 function Security() {
   const { dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-
   const [data, setData] = useState({
     sharing: team.sharing,
     defaultUserRole: team.defaultUserRole,
-    memberCollectionCreate: team.memberCollectionCreate,
+    memberNotebookCreate: team.memberNotebookCreate,
     memberTeamCreate: team.memberTeamCreate,
     inviteRequired: team.inviteRequired,
     passkeysEnabled: team.passkeysEnabled,
   });
-
   const userRoleOptions: Option[] = React.useMemo(
     () =>
       [
@@ -49,7 +46,6 @@ function Security() {
       ] satisfies Option[],
     [t]
   );
-
   const emailDisplayOptions: Option[] = React.useMemo(
     () =>
       [
@@ -71,7 +67,6 @@ function Security() {
       ] satisfies Option[],
     [t]
   );
-
   const commentingOptions: Option[] = React.useMemo(
     () =>
       [
@@ -93,7 +88,6 @@ function Security() {
       ] satisfies Option[],
     [t]
   );
-
   const showSuccessMessage = React.useMemo(
     () =>
       debounce(() => {
@@ -101,7 +95,6 @@ function Security() {
       }, 250),
     [t]
   );
-
   const saveData = React.useCallback(
     async (newData) => {
       try {
@@ -114,42 +107,36 @@ function Security() {
     },
     [team, showSuccessMessage]
   );
-
   const handleDefaultRoleChange = React.useCallback(
     async (newDefaultRole: string) => {
       await saveData({ defaultUserRole: newDefaultRole });
     },
     [saveData]
   );
-
   const handleSharingChange = React.useCallback(
     async (checked: boolean) => {
       await saveData({ sharing: checked });
     },
     [saveData]
   );
-
   const handlePasskeysEnabledChange = React.useCallback(
     async (checked: boolean) => {
       await saveData({ passkeysEnabled: checked });
     },
     [saveData]
   );
-
-  const handleMemberCollectionCreateChange = React.useCallback(
+  const handleMemberNotebookCreateChange = React.useCallback(
     async (checked: boolean) => {
-      await saveData({ memberCollectionCreate: checked });
+      await saveData({ memberNotebookCreate: checked });
     },
     [saveData]
   );
-
   const handleMemberTeamCreateChange = React.useCallback(
     async (checked: boolean) => {
       await saveData({ memberTeamCreate: checked });
     },
     [saveData]
   );
-
   const handleMembersCanInviteChange = React.useCallback(
     async (checked: boolean) => {
       const preferences = {
@@ -160,7 +147,6 @@ function Security() {
     },
     [saveData, team.preferences]
   );
-
   const handleViewersCanExportChange = React.useCallback(
     async (checked: boolean) => {
       const preferences = {
@@ -171,7 +157,6 @@ function Security() {
     },
     [saveData, team.preferences]
   );
-
   const handleMembersCanDeleteAccountChange = React.useCallback(
     async (checked: boolean) => {
       const preferences = {
@@ -182,7 +167,6 @@ function Security() {
     },
     [saveData, team.preferences]
   );
-
   const handleEmailDisplayChange = React.useCallback(
     async (emailDisplay: string) => {
       const preferences = {
@@ -193,7 +177,6 @@ function Security() {
     },
     [saveData, team.preferences]
   );
-
   const handleCommentingChange = React.useCallback(
     async (commenting: string) => {
       const preferences = {
@@ -204,12 +187,10 @@ function Security() {
     },
     [saveData, team.preferences]
   );
-
   const handleInviteRequiredChange = React.useCallback(
     async (checked: boolean) => {
       const inviteRequired = checked;
       const newData = { ...data, inviteRequired };
-
       if (inviteRequired) {
         dialogs.openModal({
           title: t("Are you sure you want to require invites?"),
@@ -239,7 +220,6 @@ function Security() {
     },
     [data, saveData, t, dialogs, team.signinMethods]
   );
-
   return (
     <Scene title={t("Security")} icon={<ShieldIcon />}>
       <Heading>{t("Security")}</Heading>
@@ -387,16 +367,16 @@ function Security() {
         />
       </SettingRow>
       <SettingRow
-        label={t("Collection creation")}
+        label={t("Notebook creation")}
         name="memberCollectionCreate"
         description={t(
-          "Allow editors to create new collections within the workspace"
+          "Allow editors to create new notebooks within the workspace"
         )}
       >
         <Switch
           id="memberCollectionCreate"
-          checked={data.memberCollectionCreate}
-          onChange={handleMemberCollectionCreateChange}
+          checked={data.memberNotebookCreate}
+          onChange={handleMemberNotebookCreateChange}
         />
       </SettingRow>
       {isCloudHosted && (
@@ -415,5 +395,4 @@ function Security() {
     </Scene>
   );
 }
-
 export default observer(Security);

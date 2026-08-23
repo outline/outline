@@ -28,7 +28,6 @@ import CircleIcon from "~/components/Icons/CircleIcon";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import TableCell from "@shared/editor/nodes/TableCell";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
-
 /**
  * Get the set of background colors used in a row.
  *
@@ -39,7 +38,6 @@ import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 function getRowColors(state: EditorState, rowIndex: number): Set<string> {
   const colors = new Set<string>();
   const cells = getCellsInRow(rowIndex)(state) || [];
-
   cells.forEach((pos) => {
     const node = state.doc.nodeAt(pos);
     if (!node) {
@@ -52,10 +50,8 @@ function getRowColors(state: EditorState, rowIndex: number): Set<string> {
       colors.add(backgroundMark.attrs.color);
     }
   });
-
   return colors;
 }
-
 /**
  * Get the set of alignments used across the cells in a row. A cell with no
  * explicit alignment is treated as "left".
@@ -67,7 +63,6 @@ function getRowColors(state: EditorState, rowIndex: number): Set<string> {
 function getRowAlignments(state: EditorState, rowIndex: number): Set<string> {
   const alignments = new Set<string>();
   const cells = getCellsInRow(rowIndex)(state) || [];
-
   cells.forEach((pos) => {
     const node = state.doc.nodeAt(pos);
     if (!node) {
@@ -75,10 +70,8 @@ function getRowAlignments(state: EditorState, rowIndex: number): Set<string> {
     }
     alignments.add(node.attrs.alignment ?? "left");
   });
-
   return alignments;
 }
-
 /**
  * Returns menu items for the table row selection toolbar.
  *
@@ -89,15 +82,12 @@ export default function tableRowMenuItems(ctx: SelectionContext): MenuItem[] {
   if (ctx.readOnly) {
     return [];
   }
-
   const index = ctx.rowIndex!;
   const { state } = ctx;
   const { selection } = state;
-
   if (!(selection instanceof CellSelection)) {
     return [];
   }
-
   const tableMap = selectedRect(state);
   const rowAlignments = getRowAlignments(state, index);
   const isAlignment = (alignment: string) =>
@@ -110,7 +100,6 @@ export default function tableRowMenuItems(ctx: SelectionContext): MenuItem[] {
     rowColors.size === 1
       ? [...rowColors].find((c) => !TableCell.isPresetColor(c))
       : undefined;
-
   return [
     {
       label: t("Align"),

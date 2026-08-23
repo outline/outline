@@ -10,31 +10,29 @@ import Scene from "~/components/Scene";
 import { navigateToHome } from "~/actions/definitions/navigation";
 import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
-import Loading from "~/scenes/Document/components/Loading";
+import Loading from "~/scenes/Note/components/Loading";
 import { client } from "~/utils/ApiClient";
-
 type Props = {
   /** The document ID to request access to. */
-  documentId?: string;
+  noteId?: string;
 };
-
-const Error403 = ({ documentId }: Props) => {
+const Error403 = ({ noteId }: Props) => {
   const { t } = useTranslation();
-  const location = useLocation<{ title?: string }>();
+  const location = useLocation<{
+    title?: string;
+  }>();
   const history = useHistory();
   const [requesting, setRequesting] = useState(false);
   const [requested, setRequested] = useState(false);
-  const [loading, setLoading] = useState(!!documentId);
-
+  const [loading, setLoading] = useState(!!noteId);
   useEffect(() => {
-    if (!documentId) {
+    if (!noteId) {
       return;
     }
-
     const checkRequested = async () => {
       try {
         const request = await client.post("/accessRequests.info", {
-          documentId,
+          documentId: noteId,
         });
         setRequested(request?.data?.status === "pending");
       } catch {
@@ -43,18 +41,15 @@ const Error403 = ({ documentId }: Props) => {
         setLoading(false);
       }
     };
-
     void checkRequested();
-  }, [documentId]);
-
+  }, [noteId]);
   const handleRequestAccess = useCallback(async () => {
-    if (!documentId || requesting || requested) {
+    if (!noteId || requesting || requested) {
       return;
     }
-
     setRequesting(true);
     try {
-      await client.post("/accessRequests.create", { documentId });
+      await client.post("/accessRequests.create", { documentId: noteId });
       setRequested(true);
       toast.success(t("Access request sent"));
     } catch (err) {
@@ -62,14 +57,11 @@ const Error403 = ({ documentId }: Props) => {
     } finally {
       setRequesting(false);
     }
-  }, [documentId, t, requested, requesting]);
-
+  }, [noteId, t, requested, requesting]);
   const handleGoBack = useCallback(() => history.goBack(), [history]);
-
   if (loading) {
     return <Loading location={location} />;
   }
-
   return (
     <Scene title={t("No access to this doc")}>
       <Heading>{t("No access to this doc")}</Heading>
@@ -83,12 +75,12 @@ const Error403 = ({ documentId }: Props) => {
         ) : (
           <Empty size="large">
             {t(
-              "It doesn't look like you have permission to access this document. You can request access."
+              "It doesn't look like you have permission to access this note. You can request access."
             )}
           </Empty>
         )}
         <HStack gap={8}>
-          {documentId && (
+          {noteId && (
             <Button
               onClick={handleRequestAccess}
               disabled={requesting || requested}
@@ -101,7 +93,7 @@ const Error403 = ({ documentId }: Props) => {
                   : t("Request access")}
             </Button>
           )}
-          <Button action={navigateToHome} hideIcon neutral={!!documentId}>
+          <Button action={navigateToHome} hideIcon neutral={!!noteId}>
             {t("Home")}
           </Button>
           <Button onClick={handleGoBack} neutral>
@@ -112,5 +104,4 @@ const Error403 = ({ documentId }: Props) => {
     </Scene>
   );
 };
-
 export default Error403;

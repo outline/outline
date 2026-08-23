@@ -7,14 +7,11 @@ import ButtonLarge from "~/components/ButtonLarge";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
 import { navigateToSubdomain } from "../urls";
-
 type FormData = {
   subdomain: string;
 };
-
 export function LoginDialog() {
   const { t } = useTranslation();
-
   const handleSubmit = async (data: FormData) => {
     try {
       await navigateToSubdomain(data.subdomain);
@@ -22,14 +19,12 @@ export function LoginDialog() {
       toast.error(t("The workspace could not be found"));
     }
   };
-
   const { register, handleSubmit: formHandleSubmit } = useForm<FormData>({
     mode: "all",
     defaultValues: {
       subdomain: "",
     },
   });
-
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <Text as="p">{t("To continue, enter your workspace’s subdomain.")}</Text>
@@ -51,7 +46,6 @@ export function LoginDialog() {
     </form>
   );
 }
-
 const Domain = styled.div`
   color: ${s("textSecondary")};
   padding: 0 8px 0 0;

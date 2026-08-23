@@ -30,19 +30,16 @@ import {
   SelectItem as SelectItemWrapper,
   SelectButton,
 } from "./primitives/components/InputSelect";
-
 type Separator = {
   /* Denotes a horizontal divider line to be rendered in the menu, */
   type: "separator";
 };
-
 type Heading = {
   /* Denotes a non-selectable heading rendered above a group of options. */
   type: "heading";
   /* Text shown as the heading label. */
   label: string;
 };
-
 export type Item = {
   /* Denotes a selectable option in the menu. */
   type: "item";
@@ -55,9 +52,7 @@ export type Item = {
   /* An icon shown alongside the label.  */
   icon?: React.ReactElement;
 };
-
 export type Option = Item | Separator | Heading;
-
 type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   /* Options to display in the select menu. */
   options: Option[];
@@ -78,7 +73,6 @@ type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   /** Render function to override the selected value shown in the trigger. Receives the currently selected option, or undefined when none is selected. */
   displayValue?: (selectedOption: Item | undefined) => React.ReactNode;
 } & TriggerButtonProps;
-
 export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
   (props, ref) => {
     const {
@@ -92,20 +86,15 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
       displayValue,
       ...triggerProps
     } = props;
-
     const [localValue, setLocalValue] = React.useState(value);
     const [open, setOpen] = React.useState(false);
-
     const contentRef =
       React.useRef<React.ElementRef<typeof InputSelectContent>>(null);
-
     const isMobile = useMobile();
-
     const placeholder = `Select a ${label.toLowerCase()}`;
     const optionsHaveIcon = options.some(
       (opt) => opt.type === "item" && !!opt.icon
     );
-
     const selectedOption = React.useMemo(
       () =>
         localValue
@@ -115,17 +104,14 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
           : undefined,
       [localValue, options]
     );
-
     const resolvedDisplayValue = displayValue
       ? displayValue(selectedOption)
       : undefined;
-
     const renderOption = React.useCallback(
       (option: Option, idx: number) => {
         if (option.type === "separator") {
           return <InputSelectSeparator key={`separator-${idx}`} />;
         }
-
         if (option.type === "heading") {
           return (
             <InputSelectHeading key={`heading-${option.label}`}>
@@ -133,7 +119,6 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
             </InputSelectHeading>
           );
         }
-
         return (
           <InputSelectItem key={option.value} value={option.value}>
             <Option option={option} optionsHaveIcon={optionsHaveIcon} />
@@ -142,7 +127,6 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
       },
       [optionsHaveIcon]
     );
-
     const onValueChange = React.useCallback(
       async (val: string) => {
         setLocalValue(val);
@@ -150,23 +134,19 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
       },
       [onChange, setLocalValue]
     );
-
     const enablePointerEvents = React.useCallback(() => {
       if (contentRef.current) {
         contentRef.current.style.pointerEvents = "auto";
       }
     }, []);
-
     const disablePointerEvents = React.useCallback(() => {
       if (contentRef.current) {
         contentRef.current.style.pointerEvents = "none";
       }
     }, []);
-
     React.useEffect(() => {
       setLocalValue(value);
     }, [value]);
-
     if (isMobile) {
       return (
         <MobileSelect
@@ -180,7 +160,6 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
         />
       );
     }
-
     return (
       <Wrapper short={short}>
         <Label text={label} hidden={labelHidden ?? false} help={help} />
@@ -210,13 +189,11 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
   }
 );
 InputSelect.displayName = "InputSelect";
-
 type MobileSelectProps = Props & {
   placeholder: string;
   optionsHaveIcon: boolean;
   resolvedDisplayValue?: React.ReactNode;
 };
-
 const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
   (props, ref) => {
     const {
@@ -233,11 +210,9 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
       resolvedDisplayValue,
       ...triggerProps
     } = props;
-
     const [open, setOpen] = React.useState(false);
     const contentRef =
       React.useRef<React.ElementRef<typeof DrawerContent>>(null);
-
     const selectedOption = React.useMemo(
       () =>
         value
@@ -245,7 +220,6 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
           : undefined,
       [value, options]
     );
-
     const handleSelect = React.useCallback(
       async (val: string) => {
         setOpen(false);
@@ -253,13 +227,11 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
       },
       [onChange]
     );
-
     const renderOption = React.useCallback(
       (option: Option, idx: number) => {
         if (option.type === "separator") {
           return <InputSelectSeparator key={`separator-${idx}`} />;
         }
-
         if (option.type === "heading") {
           return (
             <InputSelectHeading key={`heading-${option.label}`}>
@@ -267,9 +239,7 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
             </InputSelectHeading>
           );
         }
-
         const isSelected = option === selectedOption;
-
         return (
           <SelectItemWrapper
             key={option.value}
@@ -283,19 +253,16 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
       },
       [handleSelect, selectedOption, optionsHaveIcon]
     );
-
     const enablePointerEvents = React.useCallback(() => {
       if (contentRef.current) {
         contentRef.current.style.pointerEvents = "auto";
       }
     }, []);
-
     const disablePointerEvents = React.useCallback(() => {
       if (contentRef.current) {
         contentRef.current.style.pointerEvents = "none";
       }
     }, []);
-
     return (
       <Wrapper>
         <Label text={label} hidden={labelHidden ?? false} />
@@ -337,7 +304,6 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
   }
 );
 MobileSelect.displayName = "InputSelect";
-
 function Label({
   text,
   hidden,
@@ -359,14 +325,12 @@ function Label({
       ) : null}
     </Flex>
   );
-
   return hidden ? (
     <VisuallyHidden.Root>{content}</VisuallyHidden.Root>
   ) : (
     content
   );
 }
-
 function Option({
   option,
   optionsHaveIcon,
@@ -381,7 +345,6 @@ function Option({
       <IconSpacer />
     )
   ) : null;
-
   return (
     <OptionContainer align="center">
       {icon}
@@ -397,16 +360,15 @@ function Option({
     </OptionContainer>
   );
 }
-
-const Wrapper = styled.label<{ short?: boolean }>`
+const Wrapper = styled.label<{
+  short?: boolean;
+}>`
   display: block;
   max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
-
 const OptionContainer = styled(Flex)`
   min-height: 24px;
 `;
-
 const IconWrapper = styled.span`
   display: flex;
   justify-content: center;
@@ -418,17 +380,14 @@ const IconWrapper = styled.span`
   overflow: hidden;
   flex-shrink: 0;
 `;
-
 const IconSpacer = styled.div`
   width: 24px;
   height: 24px;
   flex-shrink: 0;
 `;
-
 const StyledScrollable = styled(Scrollable)`
   max-height: 75vh;
 `;
-
 const TooltipButton = styled(NudeButton)`
   color: ${s("textSecondary")};
 

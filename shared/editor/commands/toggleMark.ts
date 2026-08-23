@@ -6,11 +6,8 @@ import type { Primitive } from "utility-types";
 import { chainTransactions } from "../lib/chainTransactions";
 import { getMarksBetween } from "../queries/getMarksBetween";
 import { isMarkActive } from "../queries/isMarkActive";
-
 const wordCharRegex = /[\p{L}\p{N}_]/u;
-
 const ATOM_PLACEHOLDER = "￼";
-
 /**
  * If the selection is an empty cursor sitting inside a word (with word
  * characters on both sides) in a textblock that allows the given mark type,
@@ -21,7 +18,10 @@ const ATOM_PLACEHOLDER = "￼";
 function findWordRangeAtCursor(
   state: EditorState,
   type: MarkType
-): { from: number; to: number } | null {
+): {
+  from: number;
+  to: number;
+} | null {
   const { selection } = state;
   if (!(selection instanceof TextSelection)) {
     return null;
@@ -33,7 +33,6 @@ function findWordRangeAtCursor(
   if (!$cursor.parent.type.allowsMarkType(type)) {
     return null;
   }
-
   const parentStart = $cursor.start();
   const parentEnd = $cursor.end();
   const text = state.doc.textBetween(
@@ -43,13 +42,11 @@ function findWordRangeAtCursor(
     ATOM_PLACEHOLDER
   );
   const offset = $cursor.pos - parentStart;
-
   const before = offset > 0 ? text[offset - 1] : "";
   const after = offset < text.length ? text[offset] : "";
   if (!wordCharRegex.test(before) || !wordCharRegex.test(after)) {
     return null;
   }
-
   let start = offset;
   let end = offset;
   while (start > 0 && wordCharRegex.test(text[start - 1])) {
@@ -58,10 +55,8 @@ function findWordRangeAtCursor(
   while (end < text.length && wordCharRegex.test(text[end])) {
     end++;
   }
-
   return { from: parentStart + start, to: parentStart + end };
 }
-
 function rangeHasMarkWithAttrs(
   state: EditorState,
   type: MarkType,
@@ -81,7 +76,6 @@ function rangeHasMarkWithAttrs(
       Object.keys(attrs).every((key) => mark.attrs[key] === attrs[key])
   );
 }
-
 /**
  * Toggles a mark on the current selection, if the mark is already with
  * matching attributes it will remove the mark instead, if the mark is active
@@ -104,7 +98,6 @@ export function toggleMark(
     if (wordRange) {
       const { from, to } = wordRange;
       const hasMatching = rangeHasMarkWithAttrs(state, type, attrs, from, to);
-
       if (dispatch) {
         const tr = state.tr.removeMark(from, to, type);
         if (!hasMatching) {
@@ -114,18 +107,15 @@ export function toggleMark(
       }
       return true;
     }
-
     if (isMarkActive(type, attrs)(state)) {
       return pmToggleMark(type)(state, dispatch);
     }
-
     if (isMarkActive(type)(state)) {
       return chainTransactions(pmToggleMark(type), pmToggleMark(type, attrs))(
         state,
         dispatch
       );
     }
-
     return pmToggleMark(type, attrs)(state, dispatch);
   };
 }

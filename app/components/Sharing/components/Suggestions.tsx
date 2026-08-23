@@ -7,8 +7,8 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s, hover } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
-import type Collection from "~/models/Collection";
-import type Document from "~/models/Document";
+import type Notebook from "~/models/Notebook";
+import type Note from "~/models/Note";
 import Group from "~/models/Group";
 import type User from "~/models/User";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
@@ -24,16 +24,14 @@ import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
 import { GroupMembersPopover } from "./GroupMembersPopover";
 import { InviteIcon, ListItem } from "./ListItem";
-
 type Suggestion = IAvatar & {
   id: string;
 };
-
 type Props = {
   /** The document being shared. */
-  document?: Document;
-  /** The collection being shared. */
-  collection?: Collection;
+  note?: Note;
+  /** The notebook being shared. */
+  notebook?: Notebook;
   /** The search query to filter users by. */
   query: string;
   /** A list of pending user ids that have not yet been invited. */
@@ -45,12 +43,11 @@ type Props = {
   /** Handles escape from suggestions list */
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
 };
-
 export const Suggestions = observer(
   React.forwardRef(function Suggestions_(
     {
-      document,
-      collection,
+      note,
+      notebook,
       query,
       pendingIds,
       addPendingId,
@@ -68,7 +65,6 @@ export const Suggestions = observer(
       elementRef: containerRef,
       maxViewportPercentage: 70,
     });
-
     const fetchUsersByQuery = useThrottledCallback(
       (searchQuery: string) => {
         void users.fetchPage({ query: searchQuery });
@@ -80,7 +76,6 @@ export const Suggestions = observer(
         leading: true,
       }
     );
-
     const getSuggestionForEmail = React.useCallback(
       (email: string) => ({
         id: email,
@@ -92,31 +87,26 @@ export const Suggestions = observer(
       }),
       [t]
     );
-
     const suggestions = React.useMemo(() => {
       const filtered: Suggestion[] = (
-        document
-          ? users
-              .notInDocument(document.id, query)
-              .filter((u) => u.id !== user.id)
-          : collection
-            ? users.notInCollection(collection.id, query)
+        note
+          ? users.notInNote(note.id, query).filter((u) => u.id !== user.id)
+          : notebook
+            ? users.notInNotebook(notebook.id, query)
             : users.activeOrInvited
       ).filter((u) => !u.isSuspended);
-
       if (isEmail(query) && !users.getByEmail(query)) {
         filtered.push(getSuggestionForEmail(query));
       }
-
       return [
-        ...(document
-          ? groups.notInDocument(document.id, query)
-          : collection
-            ? groups.notInCollection(collection.id, query)
+        ...(note
+          ? groups.notInNote(note.id, query)
+          : notebook
+            ? groups.notInNotebook(notebook.id, query)
             : []),
         ...filtered,
       ];
-      // The store collections listed below are observable dependencies, they
+      // The notebook stores listed below are observable dependencies, they
       // are what recompute the suggestions when the underlying data changes.
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
@@ -125,14 +115,13 @@ export const Suggestions = observer(
       users.activeOrInvited,
       groups,
       groups.orderedData,
-      document?.id,
-      document?.members,
-      collection?.id,
+      note?.id,
+      note?.members,
+      notebook?.id,
       user.id,
       query,
       t,
     ]);
-
     const pending = React.useMemo(
       () =>
         pendingIds
@@ -144,11 +133,9 @@ export const Suggestions = observer(
           .filter(Boolean) as User[],
       [users, groups, getSuggestionForEmail, pendingIds]
     );
-
     React.useEffect(() => {
       fetchUsersByQuery(query);
     }, [query, fetchUsersByQuery]);
-
     function getListItemProps(suggestion: User | Group) {
       if (suggestion instanceof Group) {
         return {
@@ -178,19 +165,15 @@ export const Suggestions = observer(
         image: <Avatar model={suggestion} size={AvatarSize.Medium} />,
       };
     }
-
     const isEmpty = suggestions.length === 0;
     const pendingIdSet = new Set(pendingIds);
     const suggestionsWithPending = suggestions.filter(
       (u) => !pendingIdSet.has(u.id)
     );
-
     if (users.isFetching && isEmpty && neverRenderedList.current) {
       return <Placeholder />;
     }
-
     neverRenderedList.current = false;
-
     return (
       <ScrollableContainer
         ref={containerRef}
@@ -256,15 +239,12 @@ export const Suggestions = observer(
     );
   })
 );
-
 const InvitedIcon = styled(CheckmarkIcon)`
   color: ${s("accent")};
 `;
-
 const RemoveIcon = styled(CloseIcon)`
   display: none;
 `;
-
 const PendingListItem = styled(ListItem)`
   &: ${hover} {
     ${InvitedIcon} {
@@ -276,19 +256,16 @@ const PendingListItem = styled(ListItem)`
     }
   }
 `;
-
 const Separator = styled.div`
   border-top: 1px dashed ${s("divider")};
   margin: 12px 0;
 `;
-
 const StyledButtonLink = styled(ButtonLink)`
   color: ${s("textTertiary")};
   &:hover {
     text-decoration: underline;
   }
 `;
-
 const ScrollableContainer = styled(Scrollable)`
   padding: 12px 24px;
   margin: -12px -24px;

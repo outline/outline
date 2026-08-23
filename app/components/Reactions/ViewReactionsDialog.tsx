@@ -16,12 +16,10 @@ import useStores from "~/hooks/useStores";
 import { HStack } from "../primitives/HStack";
 import { CustomEmoji } from "@shared/components/CustomEmoji";
 import { isUUID } from "validator";
-
 type Props = {
   /** Model for which to show the reactions. */
   model: Comment;
 };
-
 const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
   const { t } = useTranslation();
   const { users } = useStores();
@@ -29,7 +27,6 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
     model.reactions[0]?.emoji || ""
   );
   const { reactedUsersLoaded } = model;
-
   React.useEffect(() => {
     const loadReactedUsersData = async () => {
       try {
@@ -38,21 +35,17 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
         toast.error(t("Could not load reactions"));
       }
     };
-
     void loadReactedUsersData();
   }, [t, model]);
-
   // Set initial tab when reactions are loaded
   React.useEffect(() => {
     if (model.reactions.length > 0 && !selectedTab) {
       setSelectedTab(model.reactions[0].emoji);
     }
   }, [model.reactions, selectedTab]);
-
   if (!reactedUsersLoaded) {
     return <Placeholder />;
   }
-
   return (
     <Tabs.Root value={selectedTab} onValueChange={setSelectedTab}>
       <TabActionsWrapper>
@@ -77,7 +70,6 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
         const reactedUsers = compact(
           reaction.userIds.map((id) => users.get(id))
         );
-
         return (
           <StyledTabPanel key={reaction.emoji} value={reaction.emoji}>
             {reactedUsers.map((user) => (
@@ -92,7 +84,6 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
     </Tabs.Root>
   );
 };
-
 const Placeholder = React.memo(
   () => (
     <>
@@ -113,12 +104,12 @@ const Placeholder = React.memo(
   () => true
 );
 Placeholder.displayName = "ViewReactionsPlaceholder";
-
 const TabActionsWrapper = styled(Flex)`
   border-bottom: 1px solid ${s("inputBorder")};
 `;
-
-const StyledTab = styled(Tabs.Trigger)<{ $active: boolean }>`
+const StyledTab = styled(Tabs.Trigger)<{
+  $active: boolean;
+}>`
   position: relative;
   font-weight: 500;
   font-size: 14px;
@@ -150,15 +141,12 @@ const StyledTab = styled(Tabs.Trigger)<{ $active: boolean }>`
       }
     `}
 `;
-
 const StyledTabPanel = styled(Tabs.Content)`
   height: 300px;
   padding: 5px 0;
   overflow-y: auto;
 `;
-
 const UserInfo = styled(HStack)`
   padding: 10px 8px;
 `;
-
 export default observer(ViewReactionsDialog);

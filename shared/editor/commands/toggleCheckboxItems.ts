@@ -1,7 +1,6 @@
 import type { Node, NodeType } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
 import { findParentNode } from "../queries/findParentNode";
-
 /**
  * A prosemirror command to toggle the checkboxs at the current selection.
  * When multiple checkbox items are selected, toggles all of them: if any are
@@ -13,11 +12,12 @@ import { findParentNode } from "../queries/findParentNode";
 export function toggleCheckboxItems(type: NodeType): Command {
   return (state, dispatch) => {
     const { empty, from, to } = state.selection;
-
     // If selection spans multiple nodes, find all checkbox items in range
     if (!empty) {
-      const checkboxes: Array<{ pos: number; node: Node }> = [];
-
+      const checkboxes: Array<{
+        pos: number;
+        node: Node;
+      }> = [];
       state.doc.nodesBetween(from, to, (node, pos) => {
         if (node.type === type) {
           checkboxes.push({ pos, node });
@@ -25,15 +25,12 @@ export function toggleCheckboxItems(type: NodeType): Command {
         }
         return true;
       });
-
       if (checkboxes.length === 0) {
         return false;
       }
-
       // If any are checked, uncheck all; otherwise check all
       const anyChecked = checkboxes.some((cb) => cb.node.attrs.checked);
       const newCheckedState = !anyChecked;
-
       if (dispatch) {
         let tr = state.tr;
         // Apply in reverse order to preserve positions
@@ -48,16 +45,13 @@ export function toggleCheckboxItems(type: NodeType): Command {
       }
       return true;
     }
-
     // Single cursor: toggle the parent checkbox item
     const listItem = findParentNode((node) => node.type === type)(
       state.selection
     );
-
     if (!listItem) {
       return false;
     }
-
     dispatch?.(
       state.tr.setNodeMarkup(listItem.pos, undefined, {
         checked: !listItem.node.attrs.checked,

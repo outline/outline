@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import type { Props as InputProps } from "~/components/Input";
 import Input from "~/components/Input";
-
 type Props = InputProps & {
   placeholder?: string;
   value?: string;
@@ -13,7 +12,6 @@ type Props = InputProps & {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => unknown;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => unknown;
 };
-
 function InputSearch(
   props: Props,
   ref: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
@@ -28,7 +26,6 @@ function InputSearch(
     onFocus,
     ...rest
   } = props;
-
   const handleFocus = React.useCallback(
     (event) => {
       setIsFocused(true);
@@ -36,7 +33,6 @@ function InputSearch(
     },
     [onFocus]
   );
-
   const handleBlur = React.useCallback(
     (event) => {
       setIsFocused(false);
@@ -44,7 +40,6 @@ function InputSearch(
     },
     [onBlur]
   );
-
   return (
     <Input
       type="search"
@@ -64,5 +59,4 @@ function InputSearch(
     />
   );
 }
-
 export default React.forwardRef(InputSearch);

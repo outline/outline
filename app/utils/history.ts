@@ -12,7 +12,6 @@ import {
   isSplittablePath,
   setSplitPath,
 } from "./splitView";
-
 /**
  * Creates a location descriptor from an existing location with the given fields
  * overridden. Only the pathname, search, hash, and state are carried over so
@@ -29,7 +28,6 @@ export function patchLocation(
   const { pathname, search, hash, state } = location;
   return { pathname, search, hash, state, ...patch };
 }
-
 /**
  * Normalizes the arguments accepted by history.push and history.replace into
  * a location descriptor object.
@@ -46,12 +44,9 @@ export function toLocationDescriptor(
     const location = parsePath(to);
     return state === undefined ? location : { ...location, state };
   }
-
   return to;
 }
-
 const history = createBrowserHistory();
-
 /**
  * Applies split view handling to a navigation. While a split view is open:
  *
@@ -68,23 +63,19 @@ function applySplitView(
   if (isSplitViewNavigationSuppressed()) {
     return descriptor;
   }
-
   const current = history.location;
   const currentSplit = getSplitPath(current.search);
   if (currentSplit === undefined) {
     return descriptor;
   }
-
   // A location that explicitly includes the split parameter is used verbatim.
   if (getSplitPath(descriptor.search ?? "") !== undefined) {
     return descriptor;
   }
-
   const pathname = descriptor.pathname ?? current.pathname;
   if (!isSplittablePath(pathname)) {
     return descriptor;
   }
-
   if (!isReplace && getFocusedSplitPane() === "secondary") {
     return patchLocation(current, {
       search: setSplitPath(
@@ -97,20 +88,15 @@ function applySplitView(
       ),
     });
   }
-
   return {
     ...descriptor,
     search: setSplitPath(descriptor.search ?? "", currentSplit),
   };
 }
-
 const browserPush = history.push.bind(history);
 const browserReplace = history.replace.bind(history);
-
 history.push = (to: LocationDescriptor, state?: LocationState) =>
   browserPush(applySplitView(toLocationDescriptor(to, state), false));
-
 history.replace = (to: LocationDescriptor, state?: LocationState) =>
   browserReplace(applySplitView(toLocationDescriptor(to, state), true));
-
 export default history;

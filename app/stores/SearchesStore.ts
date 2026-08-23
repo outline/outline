@@ -3,14 +3,11 @@ import { computed } from "mobx";
 import SearchQuery from "~/models/SearchQuery";
 import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
-
 export default class SearchesStore extends Store<SearchQuery> {
   actions = [RPCAction.List, RPCAction.Delete];
-
   constructor(rootStore: RootStore) {
     super(rootStore, SearchQuery);
   }
-
   @computed
   get recent(): SearchQuery[] {
     return uniqBy(this.orderedData, "query")

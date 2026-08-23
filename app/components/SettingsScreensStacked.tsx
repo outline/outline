@@ -11,7 +11,6 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Home", href: "#" },
   { name: "Invoices", href: "#" },
@@ -26,7 +25,6 @@ const secondaryNavigation = [
   { name: "Billing", href: "#", icon: CreditCardIcon, current: false },
   { name: "Team members", href: "#", icon: UsersIcon, current: false },
 ];
-
 /**
  * Tailwind UI – settings screens: stacked.
  *
@@ -36,7 +34,6 @@ export function SettingsScreensStacked() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [automaticTimezoneEnabled, setAutomaticTimezoneEnabled] =
     useState(true);
-
   return (
     <>
       <header className="absolute inset-x-0 top-0 z-50 flex h-16 border-b border-gray-900/10">

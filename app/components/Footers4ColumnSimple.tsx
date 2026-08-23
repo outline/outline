@@ -24,7 +24,6 @@ const navigation = {
     { name: "Terms", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – footers: 4 column simple.
  *

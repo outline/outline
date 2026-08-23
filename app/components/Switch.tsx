@@ -6,7 +6,6 @@ import { s } from "@shared/styles";
 import { LabelText } from "~/components/Input";
 import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
-
 interface Props extends Omit<
   React.ComponentProps<typeof RadixSwitch.Root>,
   "checked" | "onCheckedChange" | "onChange"
@@ -31,7 +30,6 @@ interface Props extends Omit<
   onChange?: (checked: boolean) => void;
   inForm?: boolean;
 }
-
 function Switch(
   {
     width = 32,
@@ -56,7 +54,6 @@ function Switch(
     },
     [onChange]
   );
-
   const component = (
     <StyledSwitchRoot
       ref={ref}
@@ -71,7 +68,6 @@ function Switch(
       <StyledSwitchThumb width={width} height={height} />
     </StyledSwitchRoot>
   );
-
   if (label) {
     return (
       <Wrapper $inForm={inForm}>
@@ -99,20 +95,18 @@ function Switch(
       </Wrapper>
     );
   }
-
   return component;
 }
-
-const Wrapper = styled.div<{ $inForm?: boolean }>`
+const Wrapper = styled.div<{
+  $inForm?: boolean;
+}>`
   padding-bottom: ${(props) => (props.$inForm ? 8 : 0)}px;
   ${undraggableOnDesktop()}
 `;
-
 const InlineLabelText = styled(LabelText)`
   padding-bottom: 0;
   width: 100%;
 `;
-
 const Label = styled.label<{
   disabled?: boolean;
   $labelPosition: "left" | "right";
@@ -126,9 +120,7 @@ const Label = styled.label<{
     props.$labelPosition === "left" ? `flex-direction: row-reverse;` : ""}
   ${(props) => (props.disabled ? `opacity: 0.75;` : "")}
 `;
-
 const HOVER_EXTRA = 3;
-
 const StyledSwitchThumb = styled(RadixSwitch.Thumb)<{
   width: number;
   height: number;
@@ -152,7 +144,6 @@ const StyledSwitchThumb = styled(RadixSwitch.Thumb)<{
     transform: translateX(${(props) => -(props.width - props.height)}px);
   }
 `;
-
 const StyledSwitchRoot = styled(RadixSwitch.Root)<{
   width: number;
   height: number;
@@ -208,5 +199,4 @@ const StyledSwitchRoot = styled(RadixSwitch.Root)<{
     );
   }
 `;
-
 export default React.forwardRef(Switch);

@@ -1,17 +1,13 @@
 import type { DefaultTheme } from "styled-components";
 import { isTouchDevice } from "../utils/browser";
-
 export { default as depths } from "./depths";
-
 export { default as breakpoints } from "./breakpoints";
-
 /**
  * Returns "hover" on a non-touch device and "active" on a touch device. To
  * avoid "sticky" hover on mobile. Use `&:${hover} {...}` instead of
  * using `&:hover {...}`.
  */
 export const hover = isTouchDevice() ? "active" : "hover";
-
 /**
  * Mixin to make text ellipse when it overflows.
  *
@@ -22,7 +18,6 @@ export const ellipsis = () => `
   white-space: nowrap;
   overflow: hidden;
 `;
-
 /**
  * Mixin to return a theme value.
  *
@@ -31,7 +26,6 @@ export const ellipsis = () => `
 export const s =
   (key: keyof DefaultTheme) => (props: { theme: DefaultTheme }) =>
     props.theme[key] as string;
-
 /**
  * Mixin to hide scrollbars.
  *
@@ -45,7 +39,6 @@ export const hideScrollbars = () => `
     display: none;
   }
 `;
-
 /**
  * Mixin on any component with relative positioning to add additional hidden clickable/hoverable area
  *
@@ -62,7 +55,6 @@ export const extraArea = (pixels: number): string => `
     bottom: -${pixels}px;
   }
 `;
-
 /**
  * Truncate multiline text.
  *

@@ -16,21 +16,17 @@ import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
-
 const parseDimension = (value: string | null): number | null => {
   const parsed = parseInt(value ?? "", 10);
   return Number.isFinite(parsed) ? parsed : null;
 };
-
 export default class Video extends Node {
   get name() {
     return "video";
   }
-
   get rulePlugins() {
     return [attachmentsRule];
   }
-
   get schema(): NodeSpec {
     return {
       attrs: {
@@ -90,7 +86,6 @@ export default class Video extends Node {
       leafText: (node) => node.attrs.title,
     };
   }
-
   handleSelect =
     ({ getPos }: { getPos: () => number }) =>
     () => {
@@ -99,13 +94,11 @@ export default class Video extends Node {
       const transaction = view.state.tr.setSelection(new NodeSelection($pos));
       view.dispatch(transaction);
     };
-
   handleChangeSize =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
     ({ width, height }: { width: number; height?: number }) => {
       const { view } = this.editor;
       const { tr } = view.state;
-
       const pos = getPos();
       const transaction = tr
         .setNodeMarkup(pos, undefined, {
@@ -117,7 +110,6 @@ export default class Video extends Node {
       const $pos = transaction.doc.resolve(getPos());
       view.dispatch(transaction.setSelection(new NodeSelection($pos)));
     };
-
   handleCaptionKeyDown =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
     (event: React.KeyboardEvent<HTMLParagraphElement>) => {
@@ -125,7 +117,6 @@ export default class Video extends Node {
       // below the video
       if (event.key === "Enter") {
         event.preventDefault();
-
         const { view } = this.editor;
         const $pos = view.state.doc.resolve(getPos() + node.nodeSize);
         view.dispatch(
@@ -134,7 +125,6 @@ export default class Video extends Node {
         view.focus();
         return;
       }
-
       // Pressing Backspace in an empty caption field focuses the video.
       if (event.key === "Backspace" && event.currentTarget.innerText === "") {
         event.preventDefault();
@@ -147,7 +137,6 @@ export default class Video extends Node {
         return;
       }
     };
-
   handleCaptionBlur =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
     (event: React.FocusEvent<HTMLParagraphElement>) => {
@@ -155,10 +144,8 @@ export default class Video extends Node {
       if (caption === node.attrs.title) {
         return;
       }
-
       const { view } = this.editor;
       const { tr } = view.state;
-
       // update meta on object
       const pos = getPos();
       const transaction = tr.setNodeMarkup(pos, undefined, {
@@ -167,7 +154,6 @@ export default class Video extends Node {
       });
       view.dispatch(transaction);
     };
-
   component = (props: ComponentProps) => (
     <VideoComponent {...props} onChangeSize={this.handleChangeSize(props)}>
       <Caption
@@ -181,21 +167,16 @@ export default class Video extends Node {
       </Caption>
     </VideoComponent>
   );
-
   commands({ type }: { type: NodeType }) {
     return (attrs: Record<string, Primitive>) => toggleWrap(type, attrs);
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.ensureNewLine();
     state.write(
-      `[${node.attrs.title} ${node.attrs.width ?? ""}x${
-        node.attrs.height ?? ""
-      }](${node.attrs.src})\n\n`
+      `[${node.attrs.title} ${node.attrs.width ?? ""}x${node.attrs.height ?? ""}](${node.attrs.src})\n\n`
     );
     state.ensureNewLine();
   }
-
   parseMarkdown() {
     return {
       node: "video",

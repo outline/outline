@@ -14,7 +14,6 @@ import { TrendChart } from "~/components/TrendChart";
 import { TopSellers } from "~/components/TopSellers";
 import Subheading from "~/components/Subheading";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 /**
  * Operational overview for the store: today's takings, boarding occupancy and
  * the work waiting to be dealt with.
@@ -33,7 +32,6 @@ function Dashboard() {
     ? allBoardings.filter((boarding) => boarding.branch === scope)
     : allBoardings;
   const orders = useShop((state) => state.orders);
-
   const stats = [
     {
       name: t("Revenue today"),
@@ -62,11 +60,9 @@ function Dashboard() {
         : undefined,
     },
   ];
-
   const upcoming = boardings
     .filter((boarding) => boarding.status !== "checked_out")
     .slice(0, 5);
-
   return (
     <AppPage
       title={t("Dashboard")}
@@ -146,5 +142,4 @@ function Dashboard() {
     </AppPage>
   );
 }
-
 export default Dashboard;

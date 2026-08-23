@@ -3,7 +3,6 @@ import * as React from "react";
 import styled, { css } from "styled-components";
 import { hover, s } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
-
 type Props = {
   /** Whether the item, or every item in the list, is selected. */
   checked: boolean;
@@ -15,7 +14,6 @@ type Props = {
   onClick: (event: React.MouseEvent) => void;
   className?: string;
 };
-
 /**
  * A checkbox used to add an item, or every item in a list, to a multi-selection.
  * It is positioned absolutely, vertically centered within the nearest
@@ -37,7 +35,6 @@ export function SelectionCheckbox({
       event.preventDefault();
     }
   };
-
   return (
     <Checkbox
       role="checkbox"
@@ -52,8 +49,9 @@ export function SelectionCheckbox({
     </Checkbox>
   );
 }
-
-const Checkbox = styled(NudeButton)<{ $checked: boolean }>`
+const Checkbox = styled(NudeButton)<{
+  $checked: boolean;
+}>`
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -83,7 +81,6 @@ const Checkbox = styled(NudeButton)<{ $checked: boolean }>`
       opacity: 1;
     `}
 `;
-
 const Dash = styled.span`
   width: 8px;
   height: 2px;

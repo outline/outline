@@ -15,7 +15,6 @@ import {
   PlayCircleIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const products = [
   {
     name: "Analytics",
@@ -59,7 +58,6 @@ const company = [
   { name: "Press", href: "#" },
   { name: "Blog", href: "#" },
 ];
-
 /**
  * Tailwind UI – headers: with multiple flyout menus.
  *
@@ -67,7 +65,6 @@ const company = [
  */
 export function HeadersWithMultipleFlyoutMenus() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <header className="bg-white">
       <nav

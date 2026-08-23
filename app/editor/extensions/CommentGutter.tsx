@@ -9,7 +9,6 @@ import { UserPreferenceDefaults } from "@shared/constants";
 import { UserPreference } from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
 import { CommentGutter as CommentGutterComponent } from "../components/CommentGutter";
-
 /**
  * Adds an indicator in the gutter beside any line that contains an unresolved
  * comment mark, when the user has enabled the preference. Each indicator shows
@@ -20,33 +19,26 @@ export default class CommentGutter extends Extension {
   get name() {
     return "comment-gutter";
   }
-
   get allowInReadOnly() {
     return true;
   }
-
   get plugins() {
     const isEnabled = () =>
       !isMobile() &&
       (this.editor.props.userPreferences?.[UserPreference.CommentsInGutter] ??
         UserPreferenceDefaults[UserPreference.CommentsInGutter]);
-
     const handleClickCommentMark = (commentId: string) =>
       this.editor.props.onClickCommentMark?.(commentId);
-
     const handleHoverCommentMark = (commentId: string, hovered: boolean) => {
       this.editor.setHoveredCommentId(hovered ? commentId : null);
     };
-
     const handlers = {
       onClickCommentMark: handleClickCommentMark,
       onHoverCommentMark: handleHoverCommentMark,
     };
-
-    const pluginKey = new PluginKey<{ decorations: DecorationSet }>(
-      "comment-gutter"
-    );
-
+    const pluginKey = new PluginKey<{
+      decorations: DecorationSet;
+    }>("comment-gutter");
     return [
       new Plugin({
         key: pluginKey,
@@ -58,7 +50,6 @@ export default class CommentGutter extends Extension {
             if (!tr.docChanged) {
               return pluginState;
             }
-
             // Only rebuild when the comments themselves change. Otherwise map
             // the existing decorations, preserving each widget's identity so
             // the React-rendered indicators are not torn down and recreated on
@@ -70,7 +61,6 @@ export default class CommentGutter extends Extension {
                 decorations: this.createDecorations(newState, handlers),
               };
             }
-
             return {
               decorations: mapDecorations(pluginState.decorations, tr),
             };
@@ -88,14 +78,12 @@ export default class CommentGutter extends Extension {
       }),
     ];
   }
-
   /**
    * Collect the unresolved, non-draft comment thread ids carried on a node,
    * either as inline marks or as node-level marks (e.g. on images).
    */
   private getCommentIds(node: Node): string[] {
     const ids: string[] = [];
-
     node.marks.forEach((mark) => {
       if (
         mark.type.name === "comment" &&
@@ -105,12 +93,15 @@ export default class CommentGutter extends Extension {
         ids.push(mark.attrs.id);
       }
     });
-
     if (Array.isArray(node.attrs.marks)) {
       node.attrs.marks.forEach(
         (mark: {
           type: string;
-          attrs?: { id?: string; resolved?: boolean; draft?: boolean };
+          attrs?: {
+            id?: string;
+            resolved?: boolean;
+            draft?: boolean;
+          };
         }) => {
           if (
             mark.type === "comment" &&
@@ -123,10 +114,8 @@ export default class CommentGutter extends Extension {
         }
       );
     }
-
     return ids;
   }
-
   /**
    * Check if the transaction added, removed, or modified any node carrying a
    * comment mark, in which case the decorations need to be rebuilt.
@@ -138,14 +127,12 @@ export default class CommentGutter extends Extension {
         found = true;
       }
     };
-
     changedDescendants(tr.before, tr.doc, 0, check);
     if (!found) {
       changedDescendants(tr.doc, tr.before, 0, check);
     }
     return found;
   }
-
   private createDecorations(
     state: EditorState,
     handlers: {
@@ -156,28 +143,22 @@ export default class CommentGutter extends Extension {
     // Group thread ids by the position they should be anchored to, so that a
     // line with multiple comments only renders a single gutter container.
     const groups = new Map<number, Set<string>>();
-
     state.doc.descendants((node, pos) => {
       const ids = this.getCommentIds(node);
       if (ids.length === 0) {
         return true;
       }
-
       // Anchor inline content to the start of its parent block (the line), and
       // block nodes (such as images) to just before themselves.
       const anchor = node.isInline ? state.doc.resolve(pos).start() : pos;
       const set = groups.get(anchor) ?? new Set<string>();
       ids.forEach((id) => set.add(id));
       groups.set(anchor, set);
-
       return true;
     });
-
     const decorations: Decoration[] = [];
-
     groups.forEach((ids, anchor) => {
       const commentIds = Array.from(ids);
-
       decorations.push(
         Decoration.widget(
           anchor,
@@ -209,7 +190,6 @@ export default class CommentGutter extends Extension {
         )
       );
     });
-
     return DecorationSet.create(state.doc, decorations);
   }
 }

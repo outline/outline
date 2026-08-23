@@ -1,6 +1,5 @@
 import { CheckIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const steps = [
   {
     name: "Create account",
@@ -33,7 +32,6 @@ const steps = [
     status: "upcoming",
   },
 ];
-
 /**
  * Tailwind UI – steps: circles with text.
  *

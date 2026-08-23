@@ -10,9 +10,7 @@ import type { ExtendedChange } from "../lib/ChangesetHelper";
 import { cn } from "../styles/utils";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { toggleFoldPluginKey } from "../nodes/ToggleBlock";
-
 const pluginKey = new PluginKey("diffs");
-
 /**
  * Options for the Diff extension.
  */
@@ -34,12 +32,10 @@ type DiffOptions = {
   /** CSS class applied to the change currently focused via navigation. */
   currentChangeClassName: string;
 };
-
 export default class Diff extends Extension<DiffOptions> {
   get name() {
     return "diff";
   }
-
   get defaultOptions(): DiffOptions {
     return {
       changes: null,
@@ -52,21 +48,18 @@ export default class Diff extends Extension<DiffOptions> {
       currentChangeClassName: EditorStyleHelper.diffCurrentChange,
     };
   }
-
   public commands() {
     return {
       /**
-       * Navigate to the next change in the document.
+       * Navigate to the next change in the note.
        */
       nextChange: () => this.goToChange(1),
-
       /**
-       * Navigate to the previous change in the document.
+       * Navigate to the previous change in the note.
        */
       prevChange: () => this.goToChange(-1),
     };
   }
-
   /**
    * Get the current change index being viewed.
    *
@@ -75,7 +68,6 @@ export default class Diff extends Extension<DiffOptions> {
   public getCurrentChangeIndex(): number {
     return this.currentChangeIndex;
   }
-
   /**
    * Get the total number of individual changes.
    *
@@ -86,7 +78,6 @@ export default class Diff extends Extension<DiffOptions> {
     if (!changes) {
       return 0;
     }
-
     return changes.reduce(
       (total, change) =>
         total +
@@ -96,15 +87,12 @@ export default class Diff extends Extension<DiffOptions> {
       0
     );
   }
-
   private goToChange(direction: number): Command {
     return (state, dispatch) => {
       const totalChanges = this.getTotalChangesCount();
-
       if (totalChanges === 0) {
         return false;
       }
-
       if (direction > 0) {
         if (this.currentChangeIndex >= totalChanges - 1) {
           this.currentChangeIndex = 0;
@@ -118,9 +106,7 @@ export default class Diff extends Extension<DiffOptions> {
           this.currentChangeIndex -= 1;
         }
       }
-
       dispatch?.(state.tr.setMeta(pluginKey, {}));
-
       const element = window.document.querySelector(
         `.${this.options.currentChangeClassName}`
       );
@@ -133,11 +119,9 @@ export default class Diff extends Extension<DiffOptions> {
       return true;
     };
   }
-
   get allowInReadOnly(): boolean {
     return true;
   }
-
   get plugins() {
     return [
       new Plugin({
@@ -166,17 +150,22 @@ export default class Diff extends Extension<DiffOptions> {
       }),
     ];
   }
-
   private createDecorations(doc: Node) {
-    const { changes } = this.options as { changes: ExtendedChange[] | null };
+    const { changes } = this.options as {
+      changes: ExtendedChange[] | null;
+    };
     const decorations: Decoration[] = [];
-
     /**
      * Determines if a slice should use node decoration instead of inline decoration.
      */
     const shouldUseNodeDecoration = (
       slice:
-        | { content: { childCount: number; firstChild: Node | null } }
+        | {
+            content: {
+              childCount: number;
+              firstChild: Node | null;
+            };
+          }
         | null
         | undefined
     ): boolean => {
@@ -193,7 +182,6 @@ export default class Diff extends Extension<DiffOptions> {
       }
       return false;
     };
-
     /**
      * Adds the appropriate decoration for a change.
      */
@@ -217,7 +205,6 @@ export default class Diff extends Extension<DiffOptions> {
         );
       }
     };
-
     /**
      * Recursively unwrap nodes that are redundant or invalid given the
      * current context.
@@ -226,12 +213,10 @@ export default class Diff extends Extension<DiffOptions> {
       const result: Node[] = [];
       fragment.forEach((node: Node) => {
         let isRedundant = false;
-
         for (let d = 0; d <= $pos.depth; d++) {
           const ancestor = $pos.node(d);
           const ancestorRole = ancestor.type.spec.tableRole;
           const nodeRole = node.type.spec.tableRole;
-
           if (
             ancestor.type.name === node.type.name ||
             (ancestorRole === "row" &&
@@ -242,7 +227,6 @@ export default class Diff extends Extension<DiffOptions> {
             break;
           }
         }
-
         if (node.isBlock && (isRedundant || $pos.parent.type.inlineContent)) {
           result.push(...unwrap($pos, node.content));
         } else {
@@ -251,23 +235,19 @@ export default class Diff extends Extension<DiffOptions> {
       });
       return result;
     };
-
     // Add insertion, deletion, and modification decorations
     let individualChangeIndex = 0;
     changes?.forEach((change) => {
       let pos = change.fromB;
-
       change.deleted.forEach((deletion) => {
         const isCurrent = individualChangeIndex === this.currentChangeIndex;
         if (!deletion.data.slice) {
           return;
         }
-
         const $pos = doc.resolve(change.fromB);
         const parentRole = $pos.parent.type.spec.tableRole;
         const parentGroup = $pos.parent.type.spec.group;
         let tag = $pos.parent.type.inlineContent ? "span" : "div";
-
         if (parentRole === "table") {
           tag = "tr";
         } else if (parentRole === "row") {
@@ -275,9 +255,7 @@ export default class Diff extends Extension<DiffOptions> {
         } else if (parentGroup?.includes("list")) {
           tag = "li";
         }
-
         const useNodeDecoration = shouldUseNodeDecoration(deletion.data.slice);
-
         // Check if we're deleting a single paragraph - if so, use <p> tag
         // and unwrap the paragraph content to avoid nested <p> tags
         let contentToSerialize = deletion.data.slice.content;
@@ -289,9 +267,7 @@ export default class Diff extends Extension<DiffOptions> {
             contentToSerialize = deletedNode.content;
           }
         }
-
         const fragment = Fragment.from(unwrap($pos, contentToSerialize));
-
         decorations.push(
           Decoration.widget(
             change.fromB,
@@ -305,7 +281,6 @@ export default class Diff extends Extension<DiffOptions> {
                   [this.options.nodeDeletionClassName]: useNodeDecoration,
                 })
               );
-
               dom.appendChild(
                 DOMSerializer.fromSchema(doc.type.schema).serializeFragment(
                   fragment,
@@ -321,25 +296,21 @@ export default class Diff extends Extension<DiffOptions> {
         );
         individualChangeIndex++;
       });
-
       change.inserted.forEach((insertion) => {
         const isCurrent = individualChangeIndex === this.currentChangeIndex;
         const end = pos + insertion.length;
         const useNodeDecoration = shouldUseNodeDecoration(
           insertion.data.step.slice
         );
-
         const className = cn({
           [this.options.currentChangeClassName]: isCurrent,
           [this.options.insertionClassName]: !useNodeDecoration,
           [this.options.nodeInsertionClassName]: useNodeDecoration,
         });
-
         addChangeDecoration(pos, end, className, useNodeDecoration);
         pos = end;
         individualChangeIndex++;
       });
-
       // Add modification decorations
       change.modified.forEach((modification) => {
         const isCurrent = individualChangeIndex === this.currentChangeIndex;
@@ -348,33 +319,27 @@ export default class Diff extends Extension<DiffOptions> {
         if (!modification.data.slice) {
           return;
         }
-
         modification.data.slice.content.forEach((node: Node) => {
           const nodeSize = node.nodeSize;
           const end = pos + nodeSize;
-
           // Check if this specific node should use node decoration
           const useNodeDecoration =
             !node.isText &&
             ((node.isBlock && node.type.name !== "paragraph") ||
               (node.isInline && node.isAtom));
-
           const className = cn({
             [this.options.currentChangeClassName]: isCurrent,
             [this.options.modificationClassName]: !useNodeDecoration,
             [this.options.nodeModificationClassName]: useNodeDecoration,
           });
-
           addChangeDecoration(pos, end, className, useNodeDecoration);
           pos = end;
         });
         individualChangeIndex++;
       });
     });
-
     return DecorationSet.create(doc, decorations);
   }
-
   @observable
   private currentChangeIndex = -1;
 }

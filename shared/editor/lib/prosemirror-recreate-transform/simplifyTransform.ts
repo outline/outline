@@ -2,16 +2,13 @@ import type { Node } from "prosemirror-model";
 import type { Step } from "prosemirror-transform";
 import { Transform, ReplaceStep } from "prosemirror-transform";
 import { getReplaceStep } from "./getReplaceStep";
-
 // join adjacent ReplaceSteps
 export function simplifyTransform(tr: Transform) {
   if (!tr.steps.length) {
     return undefined;
   }
-
   const newTr = new Transform(tr.docs[0]);
   const oldSteps = tr.steps.slice();
-
   while (oldSteps.length) {
     let step = oldSteps.shift() as Step;
     while (oldSteps.length && step.merge(oldSteps[0])) {

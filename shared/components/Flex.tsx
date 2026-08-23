@@ -1,10 +1,7 @@
 import type { CSSProperties } from "react";
 import styled from "styled-components";
-
 type JustifyValues = CSSProperties["justifyContent"];
-
 type AlignValues = CSSProperties["alignItems"];
-
 /**
  * Flex is a styled component that provides a flexible box layout with convenient props.
  * It simplifies the use of flexbox CSS properties with a clean, declarative API.
@@ -58,5 +55,4 @@ const Flex = styled.div.withConfig({
   min-height: 0;
   min-width: 0;
 `;
-
 export default Flex;

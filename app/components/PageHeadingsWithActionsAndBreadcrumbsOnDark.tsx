@@ -1,5 +1,4 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – page headings: with actions and breadcrumbs on dark.
  *

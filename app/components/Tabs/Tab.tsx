@@ -7,7 +7,6 @@ import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s, hover } from "@shared/styles";
 import NavLink from "~/components/NavLink";
-
 interface BaseProps {
   /**
    * If true, the tab will only be active if the path matches exactly.
@@ -20,7 +19,6 @@ interface BaseProps {
   exactQueryString?: boolean;
   children?: React.ReactNode;
 }
-
 interface LinkProps extends BaseProps {
   /**
    * The path to match against the current location.
@@ -32,7 +30,6 @@ interface LinkProps extends BaseProps {
   onClick?: () => void;
   active?: never;
 }
-
 interface ButtonProps extends BaseProps {
   /**
    * Click handler for button mode.
@@ -44,9 +41,7 @@ interface ButtonProps extends BaseProps {
   active: boolean;
   to?: never;
 }
-
 type Props = LinkProps | ButtonProps;
-
 const tabStyles = css`
   position: relative;
   display: inline-flex;
@@ -61,7 +56,6 @@ const tabStyles = css`
     padding: 6px 0;
   `};
 `;
-
 const TabLink = styled(NavLink)`
   ${tabStyles}
   color: ${s("textTertiary")};
@@ -70,8 +64,9 @@ const TabLink = styled(NavLink)`
     color: ${s("textSecondary")};
   }
 `;
-
-const TabButton = styled.button<{ $active: boolean }>`
+const TabButton = styled.button<{
+  $active: boolean;
+}>`
   ${tabStyles}
   color: ${({ $active }) => ($active ? s("textSecondary") : s("textTertiary"))};
   background: none;
@@ -81,7 +76,6 @@ const TabButton = styled.button<{ $active: boolean }>`
     color: ${s("textSecondary")};
   }
 `;
-
 const Active = styled(m.div)`
   position: absolute;
   bottom: 0;
@@ -92,27 +86,23 @@ const Active = styled(m.div)`
   border-radius: 3px;
   background: ${s("textSecondary")};
 `;
-
 const transition = {
   type: "spring",
   stiffness: 500,
   damping: 30,
 };
-
 /** Restrict shared layout animation to the X axis only. */
 const horizontalOnly = (transform: Record<string, string>, generated: string) =>
   generated.replace(
     /translate3d\(([^,]+),\s*[^,]+,\s*([^)]+)\)/,
     "translate3d($1, 0px, $2)"
   );
-
 export const Tab: React.FC<Props> = (props: Props) => {
   const { children, exact, exactQueryString } = props;
   const theme = useTheme();
   const activeStyle = {
     color: theme.textSecondary,
   };
-
   // Button mode - controlled by onClick and active props (no `to` prop)
   if ("active" in props && !("to" in props)) {
     return (
@@ -129,7 +119,6 @@ export const Tab: React.FC<Props> = (props: Props) => {
       </TabButton>
     );
   }
-
   // Link mode - controlled by react-router
   const { to, ...rest } = props as LinkProps;
   return (

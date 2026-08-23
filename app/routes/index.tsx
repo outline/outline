@@ -6,9 +6,8 @@ import FullscreenLoading from "~/components/FullscreenLoading";
 import Route from "~/components/ProfiledRoute";
 import env from "~/env";
 import lazy from "~/utils/lazyWithRetry";
-import { matchDocumentSlug as documentSlug } from "~/utils/routeHelpers";
+import { matchNoteSlug as noteSlug } from "~/utils/routeHelpers";
 import useAutoRefresh from "~/hooks/useAutoRefresh";
-
 const Authenticated = lazy(() => import("~/components/Authenticated"));
 const AuthenticatedRoutes = lazy(() => import("./authenticated"));
 const Shared = lazy(() => import("~/scenes/Shared"));
@@ -34,10 +33,8 @@ const PublicBooking = lazy(() => import("~/scenes/Public/Booking"));
 const PublicBoarding = lazy(() => import("~/scenes/Public/Boarding"));
 const PublicFeatured = lazy(() => import("~/scenes/Public/Featured"));
 const PublicProduct = lazy(() => import("~/scenes/Public/Product"));
-
 export default function Routes() {
   useAutoRefresh();
-
   return (
     <Suspense
       fallback={
@@ -49,12 +46,12 @@ export default function Routes() {
       {env.ROOT_SHARE_ID ? (
         <Switch>
           <Route exact path="/" component={Shared} />
-          <Route exact path={`/doc/${documentSlug}`} component={Shared} />
+          <Route exact path={`/doc/${noteSlug}`} component={Shared} />
           <Redirect exact from="/s/:shareId" to="/" />
           <Redirect
             exact
-            from={`/s/:shareId/doc/${documentSlug}`}
-            to={`/doc/${documentSlug}`}
+            from={`/s/:shareId/doc/${noteSlug}`}
+            to={`/doc/${noteSlug}`}
           />
         </Switch>
       ) : (
@@ -74,14 +71,14 @@ export default function Routes() {
           <Route exact path="/download" component={Download} />
 
           {/* The shop's own sign-in pages. Outline's existing auth stays on
-              "/" – these are the routes the product uses. */}
+                "/" – these are the routes the product uses. */}
           <Route exact path="/login" component={ShopLogin} />
           <Route exact path="/signup" component={ShopSignup} />
           <Route exact path="/forgot-password" component={ShopForgotPassword} />
           <Route exact path="/reset-password" component={ShopResetPassword} />
 
           {/* Public, per-business pages. These sit outside Authenticated
-              because a visitor booking a stay has no account. */}
+                because a visitor booking a stay has no account. */}
           <Route
             exact
             path="/p/:businessSlug/booking"
@@ -113,12 +110,12 @@ export default function Routes() {
 
           <Redirect
             exact
-            from={`/share/:shareId/doc/${documentSlug}`}
-            to={`/s/:shareId/doc/${documentSlug}`}
+            from={`/share/:shareId/doc/${noteSlug}`}
+            to={`/s/:shareId/doc/${noteSlug}`}
           />
           <Route
             exact
-            path={`/s/:shareId/doc/${documentSlug}`}
+            path={`/s/:shareId/doc/${noteSlug}`}
             component={Shared}
           />
 

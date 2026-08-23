@@ -1,5 +1,4 @@
 import { CheckCircleIcon, XMarkIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – alerts: with dismiss button.
  *

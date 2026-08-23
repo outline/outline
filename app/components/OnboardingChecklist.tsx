@@ -6,7 +6,6 @@ import ListItem from "~/components/List/Item";
 import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
-
 /**
  * What is still to be set up.
  *
@@ -20,13 +19,10 @@ export function OnboardingChecklist() {
   const { t } = useTranslation();
   const history = useHistory();
   const steps = useShop((state) => state.onboarding);
-
   const outstanding = steps.filter((step) => !step.done);
-
   if (outstanding.length === 0) {
     return null;
   }
-
   return (
     <>
       <Subheading>

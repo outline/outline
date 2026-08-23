@@ -8,7 +8,6 @@ import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { t } from "i18next";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
 import { TableLayout } from "@shared/editor/types";
-
 /**
  * Returns menu items for the table selection toolbar (full table selected).
  *
@@ -20,11 +19,9 @@ export default function tableMenuItems(ctx: SelectionContext): MenuItem[] {
     return [];
   }
   const { schema, state } = ctx;
-
   const isFullWidth = isNodeActive(schema.nodes.table, {
     layout: TableLayout.fullWidth,
   })(state);
-
   return [
     {
       name: "setTableAttr",

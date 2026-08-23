@@ -1,11 +1,8 @@
 import Desktop from "~/utils/Desktop";
-
 /** The hostname of the default Outline cloud installation. */
 export const DefaultHostname = "app.getoutline.com";
-
 /** The origin of the default Outline cloud installation. */
 export const DefaultHost = `https://${DefaultHostname}`;
-
 function validateAndEncodeSubdomain(subdomain: string): string {
   const encodedSubdomain = encodeURIComponent(subdomain);
   const urlPattern = /^[a-z\d-]{1,63}$/;
@@ -14,7 +11,6 @@ function validateAndEncodeSubdomain(subdomain: string): string {
   }
   return `https://${encodedSubdomain}.getoutline.com`;
 }
-
 /**
  * Redirect to a subdomain, adding it to the custom hosts list on desktop first.
  *
@@ -29,7 +25,6 @@ export async function navigateToSubdomain(subdomain: string) {
   await Desktop.bridge?.addCustomHost(host);
   window.location.href = host;
 }
-
 /**
  * Normalize a user-entered host into an origin URL, defaulting to https.
  *
@@ -44,7 +39,6 @@ export function normalizeHost(input: string): string {
     : `https://${trimmed}`;
   return new URL(withProtocol).origin;
 }
-
 /**
  * Check that the given host is a reachable Outline installation by requesting
  * its auth configuration. The request is performed in the desktop main process
@@ -56,19 +50,15 @@ export function normalizeHost(input: string): string {
  */
 export async function validateHost(input: string): Promise<string> {
   const origin = normalizeHost(input);
-
   if (!Desktop.bridge?.loadAuthConfig) {
     throw new Error("Host validation is unavailable");
   }
-
   const config = await Desktop.bridge.loadAuthConfig(origin);
   if (!Array.isArray(config?.providers)) {
     throw new Error("Host is not an Outline installation");
   }
-
   return origin;
 }
-
 /**
  * Set the given host in desktop config and navigate to it.
  *

@@ -15,11 +15,9 @@ import type Model from "~/models/base/Model";
 import type Policy from "~/models/Policy";
 import type { ActionContext as ActionContextType } from "~/types";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
-
 export const ActionContext = createContext<ActionContextType | undefined>(
   undefined
 );
-
 interface ActionContextProviderValue {
   /** Models to add to the active models context for this subtree. */
   activeModels?: Model[];
@@ -29,12 +27,10 @@ interface ActionContextProviderValue {
   sidebarContext?: SidebarContextType;
   event?: Event;
 }
-
 type ActionContextProviderProps = {
   children: ReactNode;
   value?: ActionContextProviderValue;
 };
-
 /**
  * Provider that allows overriding the action context at different levels
  * of the React component tree.
@@ -43,12 +39,12 @@ type ActionContextProviderProps = {
  * ```tsx
  * // Override active models for a collection menu
  * <ActionContextProvider value={{ activeModels: [collection] }}>
- *   <CollectionMenu />
+ *   <NotebookMenu />
  * </ActionContextProvider>
  *
  * // Nested overrides
  * <ActionContextProvider value={{ activeModels: [collection] }}>
- *   <CollectionView />
+ *   <NotebookView />
  *   <ActionContextProvider value={{ activeModels: [document] }}>
  *     <DocumentView />
  *   </ActionContextProvider>
@@ -62,13 +58,11 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
   const parentContext = useContext(ActionContext);
   const stores = useStores();
   const { t } = useTranslation();
-
   // Use history (stable reference) and read location lazily via a getter so
   // navigation does not invalidate the context value. Action perform/visible
   // callbacks see the current location at call time via history.location,
   // which react-router updates on every navigation.
   const history = useHistory();
-
   const {
     activeModels: valueModels,
     isMenu,
@@ -77,15 +71,13 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     sidebarContext,
     event,
   } = value;
-
   // Track membership of stores.ui.activeModels so memos invalidate when it changes.
   // Reading inside the observer-wrapped render keeps MobX subscriptions intact.
   const activeModelsKey = Array.from(stores.ui.activeModels.keys()).join(",");
-  const activeCollectionIdFromStore = stores.ui.activeCollectionId ?? undefined;
-  const activeDocumentIdFromStore = stores.ui.activeDocumentId ?? undefined;
+  const activeNotebookIdFromStore = stores.ui.activeNotebookId ?? undefined;
+  const activeNoteIdFromStore = stores.ui.activeNoteId ?? undefined;
   const currentUserId = stores.auth.user?.id;
   const currentTeamId = stores.auth.team?.id;
-
   const getActiveModels = useCallback(
     <T extends Model>(modelClass: new (...args: never[]) => T): T[] => {
       if (valueModels && valueModels.length > 0) {
@@ -103,13 +95,11 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     },
     [valueModels, parentContext, stores]
   );
-
   const getActiveModel = useCallback(
     <T extends Model>(modelClass: new (...args: never[]) => T): T | undefined =>
       getActiveModels(modelClass)[0],
     [getActiveModels]
   );
-
   const getActivePolicies = useCallback(
     <T extends Model>(modelClass: new (...args: never[]) => T): Policy[] =>
       getActiveModels(modelClass)
@@ -117,7 +107,6 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
         .filter((policy): policy is Policy => policy !== undefined),
     [getActiveModels, stores]
   );
-
   const allActiveModels = useMemo(() => {
     const base = parentContext
       ? parentContext.activeModels
@@ -128,28 +117,23 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     return base;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parentContext, stores, valueModels, activeModelsKey]);
-
   const isModelActive = useCallback(
     (model: Model): boolean => allActiveModels.has(model),
     [allActiveModels]
   );
-
   const contextValue = useMemo<ActionContextType>(() => {
     const baseContext: ActionContextType = parentContext ?? {
       isMenu: false,
       isCommandBar: false,
       isButton: false,
-
       // Legacy (backward compatibility)
-      activeCollectionId: activeCollectionIdFromStore,
-      activeDocumentId: activeDocumentIdFromStore,
-
+      activeNotebookId: activeNotebookIdFromStore,
+      activeNoteId: activeNoteIdFromStore,
       getActiveModels,
       getActiveModel,
       getActivePolicies,
       isModelActive,
       activeModels: allActiveModels,
-
       currentUserId,
       currentTeamId,
       // Consumers reading `ctx.location` get the current location at access time.
@@ -157,18 +141,15 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
       stores,
       t,
     };
-
     // Derive legacy IDs from value models, falling back to base context
-    const activeCollectionId =
+    const activeNotebookId =
       valueModels?.find(
         (m) => (m.constructor as typeof Model).modelName === "Collection"
-      )?.id ?? baseContext.activeCollectionId;
-
-    const activeDocumentId =
+      )?.id ?? baseContext.activeNotebookId;
+    const activeNoteId =
       valueModels?.find(
         (m) => (m.constructor as typeof Model).modelName === "Document"
-      )?.id ?? baseContext.activeDocumentId;
-
+      )?.id ?? baseContext.activeNoteId;
     const result = {
       ...baseContext,
       ...(isMenu !== undefined ? { isMenu } : {}),
@@ -176,15 +157,14 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
       ...(isButton !== undefined ? { isButton } : {}),
       ...(sidebarContext !== undefined ? { sidebarContext } : {}),
       ...(event !== undefined ? { event } : {}),
-      activeCollectionId,
-      activeDocumentId,
+      activeNotebookId,
+      activeNoteId,
       getActiveModels,
       getActiveModel,
       getActivePolicies,
       isModelActive,
       activeModels: allActiveModels,
     };
-
     // Define `location` as a getter so reads always return the current
     // location without invalidating this memo on navigation.
     Object.defineProperty(result, "location", {
@@ -192,7 +172,6 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
       enumerable: true,
       configurable: true,
     });
-
     return result;
   }, [
     parentContext,
@@ -205,8 +184,8 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     isButton,
     sidebarContext,
     event,
-    activeCollectionIdFromStore,
-    activeDocumentIdFromStore,
+    activeNotebookIdFromStore,
+    activeNoteIdFromStore,
     currentUserId,
     currentTeamId,
     getActiveModels,
@@ -215,14 +194,12 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     isModelActive,
     allActiveModels,
   ]);
-
   return (
     <ActionContext.Provider value={contextValue}>
       {children}
     </ActionContext.Provider>
   );
 });
-
 /**
  * Returns the same object reference across calls as long as `value`'s own
  * enumerable properties are shallowly equal to the previous call's. Callers
@@ -235,18 +212,14 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
  */
 function useStableValue<T extends object>(value: T): T {
   const ref = useRef(value);
-
   const isEqual = isEqualWith(ref.current, value, (x, y, key) =>
     key === undefined ? undefined : Object.is(x, y)
   );
-
   if (!isEqual) {
     ref.current = value;
   }
-
   return ref.current;
 }
-
 /**
  * Hook to get the current action context, an object that is passed to all
  * action definitions.
@@ -264,15 +237,12 @@ export default function useActionContext(
   overrides?: Partial<ActionContextType>
 ): ActionContextType {
   const contextValue = useContext(ActionContext);
-
   if (!contextValue) {
     throw new Error(
       "useActionContext must be used within an ActionContextProvider"
     );
   }
-
   const hasOverrides = !!overrides && Object.keys(overrides).length > 0;
-
   // Stabilize the reference so callers that memoize on the returned context
   // (e.g. DropdownMenu's `useComputed`) don't invalidate on every render
   // just because `overrides` is a new object literal each time.

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const colors = [
   { name: "Pink", bgColor: "bg-pink-500", selectedColor: "ring-pink-500" },
   {
@@ -17,7 +16,6 @@ const colors = [
     selectedColor: "ring-yellow-500",
   },
 ];
-
 /**
  * Tailwind UI – radio groups: color picker.
  *
@@ -25,7 +23,6 @@ const colors = [
  */
 export function RadioGroupsColorPicker() {
   const [selectedColor, setSelectedColor] = useState(colors[1]);
-
   return (
     <RadioGroup value={selectedColor} onChange={setSelectedColor}>
       <RadioGroup.Label className="block text-sm font-medium leading-6 text-gray-900">

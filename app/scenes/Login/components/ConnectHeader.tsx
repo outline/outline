@@ -5,12 +5,10 @@ import type Team from "~/models/Team";
 import type OAuthClient from "~/models/oauth/OAuthClient";
 import { Avatar } from "~/components/Avatar";
 import { AvatarSize, AvatarVariant } from "~/components/Avatar/Avatar";
-
 type Props = {
   team: Team;
   oauthClient: OAuthClient;
 };
-
 export function ConnectHeader({ team, oauthClient }: Props) {
   return (
     <Text type="tertiary">

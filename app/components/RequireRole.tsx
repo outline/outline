@@ -6,11 +6,9 @@ import Text from "~/components/Text";
 import { AppPage } from "~/components/AppPage";
 import { canAccessRoute, MIN_ROLE_FOR_ROUTE } from "../../src/mocks/access";
 import { currentRole } from "../../src/mocks/shop";
-
 interface Props {
   children: JSX.Element;
 }
-
 /**
  * Hides a page from a role that is not allowed it.
  *
@@ -24,15 +22,12 @@ export function RequireRole({ children }: Props) {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const role = currentRole();
-
   if (role && canAccessRoute(role, pathname)) {
     return children;
   }
-
   const required = Object.entries(MIN_ROLE_FOR_ROUTE).find(
     ([route]) => pathname === route || pathname.startsWith(`${route}/`)
   )?.[1];
-
   return (
     <AppPage
       title={t("Not your department")}

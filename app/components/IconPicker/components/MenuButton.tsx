@@ -1,7 +1,6 @@
 import { hover, s } from "@shared/styles";
 import styled from "styled-components";
 import NudeButton from "~/components/NudeButton";
-
 export const MenuButton = styled(NudeButton)`
   display: flex;
   align-items: center;

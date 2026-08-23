@@ -1,19 +1,23 @@
 import { assign, createMachine } from "xstate";
-
 /** A line on a document being drawn up. Its shape is the scene's own. */
-export type DocumentLine = Record<string, unknown>;
-
+export type NoteLine = Record<string, unknown>;
 /** What the machine remembers between moves. */
 interface LinesContext {
-  lines: DocumentLine[];
+  lines: NoteLine[];
 }
-
-/** What can be asked of the lines on a document. */
+/** What can be asked of the lines on a note. */
 export type LinesEvent =
-  | { type: "ADD"; line: DocumentLine }
-  | { type: "REMOVE"; at: number }
-  | { type: "CLEAR" };
-
+  | {
+      type: "ADD";
+      line: NoteLine;
+    }
+  | {
+      type: "REMOVE";
+      at: number;
+    }
+  | {
+      type: "CLEAR";
+    };
 /**
  * The lines on an invoice or a purchase order being drawn up.
  *
@@ -31,7 +35,10 @@ export const linesMachine = createMachine({
   id: "lines",
   initial: "empty",
   context: { lines: [] } as LinesContext,
-  types: {} as { context: LinesContext; events: LinesEvent },
+  types: {} as {
+    context: LinesContext;
+    events: LinesEvent;
+  },
   states: {
     empty: {
       on: {
@@ -52,7 +59,7 @@ export const linesMachine = createMachine({
         },
         REMOVE: [
           {
-            // Taking the last line off empties the document.
+            // Taking the last line off empties the note.
             target: "empty",
             guard: ({ context }) => context.lines.length <= 1,
             actions: assign({ lines: [] }),

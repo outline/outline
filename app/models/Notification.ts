@@ -3,38 +3,35 @@ import { action, computed, observable } from "mobx";
 import type { NotificationData } from "@shared/types";
 import { NotificationEventType } from "@shared/types";
 import {
-  collectionPath,
+  notebookPath,
   commentPath,
-  documentPath,
+  notePath,
   settingsPath,
 } from "~/utils/routeHelpers";
-import Collection from "./Collection";
+import Notebook from "./Notebook";
 import Comment from "./Comment";
-import Document from "./Document";
+import Note from "./Note";
 import User from "./User";
 import Model from "./base/Model";
-import Field from "./decorators/Field";
+import Field, { WireAlias } from "./decorators/Field";
 import Relation from "./decorators/Relation";
-
 export type NotificationFilter =
   | "all"
   | "mentions"
   | "comments"
   | "reactions"
-  | "documents"
+  | "notes"
   | "collections"
   | "system";
-
 class Notification extends Model {
   static modelName = "Notification";
-
   static filterCategories: Record<NotificationFilter, NotificationEventType[]> =
     {
       all: [],
       mentions: [
-        NotificationEventType.MentionedInDocument,
+        NotificationEventType.MentionedInNote,
         NotificationEventType.MentionedInComment,
-        NotificationEventType.GroupMentionedInDocument,
+        NotificationEventType.GroupMentionedInNote,
         NotificationEventType.GroupMentionedInComment,
       ],
       comments: [
@@ -43,16 +40,16 @@ class Notification extends Model {
         NotificationEventType.ReactionsCreate,
       ],
       reactions: [NotificationEventType.ReactionsCreate],
-      documents: [
-        NotificationEventType.PublishDocument,
-        NotificationEventType.UpdateDocument,
+      notes: [
+        NotificationEventType.PublishNote,
+        NotificationEventType.UpdateNote,
         NotificationEventType.CreateRevision,
-        NotificationEventType.AddUserToDocument,
-        NotificationEventType.RequestDocumentAccess,
+        NotificationEventType.AddUserToNote,
+        NotificationEventType.RequestNoteAccess,
       ],
       collections: [
-        NotificationEventType.CreateCollection,
-        NotificationEventType.AddUserToCollection,
+        NotificationEventType.CreateNotebook,
+        NotificationEventType.AddUserToNotebook,
       ],
       system: [
         NotificationEventType.InviteAccepted,
@@ -61,81 +58,68 @@ class Notification extends Model {
         NotificationEventType.ExportCompleted,
       ],
     };
-
   /**
    * The date the notification was marked as read.
    */
   @Field
   @observable
   viewedAt: Date | null;
-
   /**
    * The date the notification was archived.
    */
   @Field
   @observable
   archivedAt: Date | null;
-
   /**
    * Request ID on notifications for access requests.
    */
   @Field
   @observable
   accessRequestId?: string;
-
   /**
    * Status of the associated access request.
    */
   @Field
   @observable
   accessRequestStatus?: string;
-
   /**
    * The user that triggered the notification.
    */
   @Relation(() => User)
   actor?: User;
-
   /**
-   * The document ID that the notification is associated with.
+   * The note ID that the notification is associated with.
    */
-  documentId?: string;
-
+  noteId?: string;
   /**
-   * The document that the notification is associated with.
+   * The note that the notification is associated with.
    */
-  @Relation(() => Document, { onDelete: "cascade" })
-  document?: Document;
-
+  @Relation(() => Note, { onDelete: "cascade" })
+  note?: Note;
   /**
    * The collection ID that the notification is associated with.
    */
-  collectionId?: string;
-
+  @WireAlias("collectionId")
+  notebookId?: string;
   /**
    * The collection that the notification is associated with.
    */
-  @Relation(() => Collection, { onDelete: "cascade" })
-  collection?: Collection;
-
+  @Relation(() => Notebook, { onDelete: "cascade" })
+  notebook?: Notebook;
   commentId?: string;
-
   /**
    * The comment that the notification is associated with.
    */
   @Relation(() => Comment, { onDelete: "cascade" })
   comment?: Comment;
-
   /**
    * The type of notification.
    */
   event: NotificationEventType;
-
   /**
    * Additional data associated with the notification.
    */
   data: NotificationData;
-
   /**
    * Mark the notification as read or unread
    *
@@ -146,7 +130,6 @@ class Notification extends Model {
     this.viewedAt = this.viewedAt ? null : new Date();
     return this.save();
   }
-
   /**
    * Mark the notification as read
    *
@@ -157,11 +140,9 @@ class Notification extends Model {
     if (this.viewedAt) {
       return;
     }
-
     this.viewedAt = new Date();
     return this.save();
   }
-
   /**
    * Archive the notification
    *
@@ -172,11 +153,9 @@ class Notification extends Model {
     if (this.archivedAt) {
       return;
     }
-
     this.archivedAt = new Date();
     return this.save();
   }
-
   /**
    * Returns translated text that describes the notification
    *
@@ -185,18 +164,18 @@ class Notification extends Model {
    */
   eventText(t: TFunction): string {
     switch (this.event) {
-      case NotificationEventType.PublishDocument:
+      case NotificationEventType.PublishNote:
         return t("published");
-      case NotificationEventType.UpdateDocument:
+      case NotificationEventType.UpdateNote:
       case NotificationEventType.CreateRevision:
         return t("edited");
-      case NotificationEventType.CreateCollection:
-        return t("created the collection");
-      case NotificationEventType.MentionedInDocument:
+      case NotificationEventType.CreateNotebook:
+        return t("created the notebook");
+      case NotificationEventType.MentionedInNote:
       case NotificationEventType.MentionedInComment:
         return t("mentioned you in");
       case NotificationEventType.GroupMentionedInComment:
-      case NotificationEventType.GroupMentionedInDocument:
+      case NotificationEventType.GroupMentionedInNote:
         return t("mentioned your group in");
       case NotificationEventType.CreateComment:
         return t("left a comment on");
@@ -206,11 +185,11 @@ class Notification extends Model {
         return t("reacted {{ emoji }} to your comment on", {
           emoji: this.data.emoji,
         });
-      case NotificationEventType.AddUserToDocument:
+      case NotificationEventType.AddUserToNote:
         return t("shared");
-      case NotificationEventType.AddUserToCollection:
+      case NotificationEventType.AddUserToNotebook:
         return t("invited you to");
-      case NotificationEventType.RequestDocumentAccess:
+      case NotificationEventType.RequestNoteAccess:
         if (this.accessRequestStatus === "approved") {
           return t("was granted access to");
         }
@@ -222,23 +201,21 @@ class Notification extends Model {
         return this.event;
     }
   }
-
   /**
    * Returns the subject of the notification. This is the title of the associated
-   * document.
+   * note.
    *
    * @returns The subject
    */
   get subject() {
-    if (this.documentId) {
-      return this.document?.title ?? "a document";
+    if (this.noteId) {
+      return this.note?.title ?? "a note";
     }
-    if (this.collectionId) {
-      return this.collection?.name ?? "a collection";
+    if (this.notebookId) {
+      return this.notebook?.name ?? "a notebook";
     }
     return "Unknown";
   }
-
   /**
    * Returns the path to the model associated with the notification that can be
    * used with the router.
@@ -248,32 +225,32 @@ class Notification extends Model {
   @computed
   get path() {
     switch (this.event) {
-      case NotificationEventType.PublishDocument:
-      case NotificationEventType.UpdateDocument:
+      case NotificationEventType.PublishNote:
+      case NotificationEventType.UpdateNote:
       case NotificationEventType.CreateRevision: {
-        return this.document ? documentPath(this.document) : "";
+        return this.note ? notePath(this.note) : "";
       }
-      case NotificationEventType.AddUserToCollection:
-      case NotificationEventType.CreateCollection: {
-        const collection = this.collectionId
-          ? this.store.rootStore.collections.get(this.collectionId)
+      case NotificationEventType.AddUserToNotebook:
+      case NotificationEventType.CreateNotebook: {
+        const notebook = this.notebookId
+          ? this.store.rootStore.notebooks.get(this.notebookId)
           : undefined;
-        return collection ? collectionPath(collection) : "";
+        return notebook ? notebookPath(notebook) : "";
       }
-      case NotificationEventType.RequestDocumentAccess:
-      case NotificationEventType.AddUserToDocument:
-      case NotificationEventType.GroupMentionedInDocument:
-      case NotificationEventType.MentionedInDocument: {
-        return this.document?.path;
+      case NotificationEventType.RequestNoteAccess:
+      case NotificationEventType.AddUserToNote:
+      case NotificationEventType.GroupMentionedInNote:
+      case NotificationEventType.MentionedInNote: {
+        return this.note?.path;
       }
       case NotificationEventType.GroupMentionedInComment:
       case NotificationEventType.MentionedInComment:
       case NotificationEventType.ResolveComment:
       case NotificationEventType.CreateComment:
       case NotificationEventType.ReactionsCreate: {
-        return this.document && this.comment
-          ? commentPath(this.document, this.comment)
-          : this.document?.path;
+        return this.note && this.comment
+          ? commentPath(this.note, this.comment)
+          : this.note?.path;
       }
       case NotificationEventType.InviteAccepted: {
         return settingsPath("users");
@@ -291,5 +268,4 @@ class Notification extends Model {
     }
   }
 }
-
 export default Notification;

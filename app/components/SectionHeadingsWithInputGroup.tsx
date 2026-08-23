@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -17,7 +17,6 @@ import {
   ChevronDownIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – section headings: with input group.
  *

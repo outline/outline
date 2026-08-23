@@ -9,11 +9,9 @@ import { isRTLLanguage } from "@shared/utils/rtl";
 import useBuildTheme from "~/hooks/useBuildTheme";
 import useStores from "~/hooks/useStores";
 import { applyThemeAttribute } from "~/utils/themeAttribute";
-
 type Props = {
   children?: React.ReactNode;
 };
-
 const Theme: React.FC = ({ children }: Props) => {
   const { auth, ui } = useStores();
   const { i18n } = useTranslation();
@@ -23,7 +21,6 @@ const Theme: React.FC = ({ children }: Props) => {
       undefined
   );
   const direction = isRTLLanguage(i18n.language) ? "rtl" : "ltr";
-
   React.useEffect(() => {
     applyThemeAttribute(ui.resolvedTheme === "dark" ? "dark" : "light");
     window.dispatchEvent(
@@ -32,7 +29,6 @@ const Theme: React.FC = ({ children }: Props) => {
       })
     );
   }, [ui.resolvedTheme]);
-
   // Some editor elements such as Mermaid diagrams rely on theme-changed event
   // to render the correct color.
   // Listen on the print media query, which fires consistently for both the
@@ -48,11 +44,9 @@ const Theme: React.FC = ({ children }: Props) => {
         })
       );
     };
-
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [ui.resolvedTheme]);
-
   return (
     <DirectionProvider dir={direction}>
       <ThemeProvider theme={theme}>
@@ -69,5 +63,4 @@ const Theme: React.FC = ({ children }: Props) => {
     </DirectionProvider>
   );
 };
-
 export default observer(Theme);

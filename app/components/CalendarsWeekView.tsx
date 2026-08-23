@@ -7,7 +7,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { Menu, Transition } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 /**
  * Tailwind UI – calendars: week view.
  *
@@ -17,7 +16,6 @@ export function CalendarsWeekView() {
   const container = useRef<HTMLDivElement>(null);
   const containerNav = useRef<HTMLDivElement>(null);
   const containerOffset = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     // Set the container scroll position based on the current time.
     const currentMinute = new Date().getHours() * 60;
@@ -35,7 +33,6 @@ export function CalendarsWeekView() {
         currentMinute) /
       1440;
   }, []);
-
   return (
     <div className="flex h-full flex-col">
       <header className="flex flex-none items-center justify-between border-b border-gray-200 px-6 py-4">

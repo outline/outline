@@ -1,7 +1,6 @@
 import { isUUID } from "validator";
 import styled from "styled-components";
 import { s } from "../styles";
-
 type Props = {
   /** The emoji to render */
   emoji: string;
@@ -9,7 +8,6 @@ type Props = {
   size?: number;
   className?: string;
 };
-
 /**
  * EmojiIcon is a component that renders an emoji in the size of a standard icon
  * in a way that can be used wherever an Icon would be.
@@ -21,14 +19,14 @@ export default function EmojiIcon({ size = 24, emoji, ...rest }: Props) {
     </Span>
   );
 }
-
-const Span = styled.span<{ $size: number }>`
+const Span = styled.span<{
+  $size: number;
+}>`
   font-family: ${s("fontFamilyEmoji")};
   display: inline-block;
   width: ${(props) => props.$size}px;
   height: ${(props) => props.$size}px;
 `;
-
 const SVG = ({ size, emoji }: { size: number; emoji: string }) => (
   <svg
     width={size}

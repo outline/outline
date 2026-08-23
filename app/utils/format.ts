@@ -12,7 +12,6 @@ export function formatCurrency(amount: number): string {
     maximumFractionDigits: 0,
   }).format(amount);
 }
-
 /**
  * Formats a date for the compact table and list rows.
  *

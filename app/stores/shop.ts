@@ -33,7 +33,6 @@ import type {
   AuditEntry,
   Insight,
 } from "../../src/mocks/shop";
-
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
   occupied: number;
@@ -45,7 +44,6 @@ export type RoomOccupancy = Room & {
     checkOut: string;
   }[];
 };
-
 /** A line on an invoice being drafted. */
 export type InvoiceLine = {
   name: string;
@@ -53,7 +51,6 @@ export type InvoiceLine = {
   unitPrice: number;
   discount: number;
 };
-
 /** An invoice with its money worked out by the mock. */
 export type PricedInvoice = Invoice & {
   subtotal: number;
@@ -64,14 +61,12 @@ export type PricedInvoice = Invoice & {
   status: "void" | "paid" | "partial" | "unpaid";
   isOverdue: boolean;
 };
-
 /** An advance with the balance worked out by the mock. */
 export type PricedAdvance = Advance & {
   repaid: number;
   remaining: number;
   status: "active" | "paid_off";
 };
-
 /** What the portal is answerable for. */
 export interface PortalStats {
   reviews: number;
@@ -83,14 +78,12 @@ export interface PortalStats {
   enabled: boolean;
   slug: string;
 }
-
 /** An account with its journal totals and resulting balance. */
 export type TrialBalanceRow = Account & {
   debit: number;
   credit: number;
   balance: number;
 };
-
 /** Commission owed to one staff member. */
 export type CommissionRow = {
   id: string;
@@ -101,14 +94,21 @@ export type CommissionRow = {
   base: number;
   amount: number;
 };
-
 /** Usage of each plan limit. */
 export type PlanUsage = {
-  staff: { used: number; limit: number };
-  branches: { used: number; limit: number };
-  boardings: { used: number; limit: number };
+  staff: {
+    used: number;
+    limit: number;
+  };
+  branches: {
+    used: number;
+    limit: number;
+  };
+  boardings: {
+    used: number;
+    limit: number;
+  };
 };
-
 /** A line on a point of sale ticket. */
 export type CartLine = {
   productId: string;
@@ -120,7 +120,6 @@ export type CartLine = {
 };
 import type { JSONObject } from "@shared/types";
 import { client } from "~/utils/ApiClient";
-
 /** The figures shown across the top of the pet store dashboard. */
 export interface Dashboard {
   revenueToday: number;
@@ -133,7 +132,6 @@ export interface Dashboard {
   lowStock: number;
   unpaidOrders: number;
 }
-
 interface State {
   dashboard?: Dashboard;
   products: Product[];
@@ -166,16 +164,33 @@ interface State {
   returns: Return[];
   audit: AuditEntry[];
   insights: Insight[];
-  trend: { date: string; revenue: number; orders: number }[];
-  topSellers: { name: string; units: number; revenue: number }[];
-  onShift: { staffId: string; staffName: string; since: string }[];
+  trend: {
+    date: string;
+    revenue: number;
+    orders: number;
+  }[];
+  topSellers: {
+    name: string;
+    units: number;
+    revenue: number;
+  }[];
+  onShift: {
+    staffId: string;
+    staffName: string;
+    since: string;
+  }[];
   branchHolidays: {
     id: string;
     branch: string;
     date: string;
     reason: string;
   }[];
-  onboarding: { id: string; title: string; done: boolean; path: string }[];
+  onboarding: {
+    id: string;
+    title: string;
+    done: boolean;
+    path: string;
+  }[];
   groomingCalendar: {
     groomerId: string;
     groomerName: string;
@@ -212,7 +227,11 @@ interface State {
       occupied: number;
       isFull: boolean;
       isClosed: boolean;
-      guests: { boardingId: string; petName: string; customerName: string }[];
+      guests: {
+        boardingId: string;
+        petName: string;
+        customerName: string;
+      }[];
     }[];
   }[];
   cashFlow: {
@@ -225,9 +244,12 @@ interface State {
   }[];
   loyaltyConfig?: {
     rupiahPerPoint: number;
-    tiers: { name: string; from: number }[];
+    tiers: {
+      name: string;
+      from: number;
+    }[];
   };
-  documentTemplates: DocumentTemplate[];
+  noteTemplates: DocumentTemplate[];
   portalStats?: PortalStats;
   portalServices: PortalService[];
   portalReviews: PortalReview[];
@@ -239,14 +261,24 @@ interface State {
     dueDate: string;
     notes: string;
     items: InvoiceLine[];
-  }) => Promise<{ created: boolean; invoice?: PricedInvoice }>;
+  }) => Promise<{
+    created: boolean;
+    invoice?: PricedInvoice;
+  }>;
   recordInvoicePayment: (
     id: string,
     amount: number,
     method: "cash" | "bank",
     reference: string
-  ) => Promise<{ recorded: boolean; reason?: string; due?: number }>;
-  voidInvoice: (id: string) => Promise<{ voided: boolean; reason?: string }>;
+  ) => Promise<{
+    recorded: boolean;
+    reason?: string;
+    due?: number;
+  }>;
+  voidInvoice: (id: string) => Promise<{
+    voided: boolean;
+    reason?: string;
+  }>;
   createPortalService: (service: {
     name: string;
     description: string;
@@ -262,10 +294,18 @@ interface State {
     tagline?: string;
     slug?: string;
     portalEnabled?: boolean;
-  }) => Promise<{ saved: boolean; reason?: string }>;
-  saveDocumentTemplate: (
-    template: Partial<DocumentTemplate> & { type: DocumentTemplate["type"] }
-  ) => Promise<{ saved: boolean; reason?: string }>;
+  }) => Promise<{
+    saved: boolean;
+    reason?: string;
+  }>;
+  saveNoteTemplate: (
+    template: Partial<DocumentTemplate> & {
+      type: DocumentTemplate["type"];
+    }
+  ) => Promise<{
+    saved: boolean;
+    reason?: string;
+  }>;
   /** Creates when no id is given, edits in place when one is. */
   createReturn: (input: {
     orderId: string;
@@ -277,7 +317,11 @@ interface State {
       quantity: number;
       isDamaged: boolean;
     }[];
-  }) => Promise<{ created: boolean; reason?: string; refundable?: number }>;
+  }) => Promise<{
+    created: boolean;
+    reason?: string;
+    refundable?: number;
+  }>;
   /** Creates when no id is given, edits in place when one is. */
   saveProduct: (product: {
     id?: string;
@@ -288,18 +332,28 @@ interface State {
     stock?: number;
     reorderLevel?: number;
     supplier?: string;
-  }) => Promise<{ saved: boolean; reason?: string }>;
-  deleteProduct: (id: string) => Promise<{ removed: boolean; reason?: string }>;
+  }) => Promise<{
+    saved: boolean;
+    reason?: string;
+  }>;
+  deleteProduct: (id: string) => Promise<{
+    removed: boolean;
+    reason?: string;
+  }>;
   saveCustomer: (customer: {
     id?: string;
     name: string;
     email?: string;
     phone?: string;
     pets?: Pet[];
-  }) => Promise<{ saved: boolean; reason?: string }>;
-  deleteCustomer: (
-    id: string
-  ) => Promise<{ removed: boolean; reason?: string }>;
+  }) => Promise<{
+    saved: boolean;
+    reason?: string;
+  }>;
+  deleteCustomer: (id: string) => Promise<{
+    removed: boolean;
+    reason?: string;
+  }>;
   saveStaff: (member: {
     id?: string;
     name: string;
@@ -308,39 +362,61 @@ interface State {
     branch: string;
     phone?: string;
     commissionRate?: number;
-  }) => Promise<{ saved: boolean; reason?: string }>;
-  deleteStaff: (id: string) => Promise<{ removed: boolean; reason?: string }>;
+  }) => Promise<{
+    saved: boolean;
+    reason?: string;
+  }>;
+  deleteStaff: (id: string) => Promise<{
+    removed: boolean;
+    reason?: string;
+  }>;
   saveSupplier: (supplier: {
     id?: string;
     name: string;
     contact?: string;
     phone?: string;
     terms?: string;
-  }) => Promise<{ saved: boolean; reason?: string }>;
-  deleteSupplier: (
-    id: string
-  ) => Promise<{ removed: boolean; reason?: string }>;
+  }) => Promise<{
+    saved: boolean;
+    reason?: string;
+  }>;
+  deleteSupplier: (id: string) => Promise<{
+    removed: boolean;
+    reason?: string;
+  }>;
   saveWarehouse: (warehouse: {
     id?: string;
     name: string;
     branch: string;
-  }) => Promise<{ saved: boolean; reason?: string }>;
-  deleteWarehouse: (
-    id: string
-  ) => Promise<{ removed: boolean; reason?: string }>;
+  }) => Promise<{
+    saved: boolean;
+    reason?: string;
+  }>;
+  deleteWarehouse: (id: string) => Promise<{
+    removed: boolean;
+    reason?: string;
+  }>;
   inviteStaff: (invite: {
     email: string;
     name: string;
     role: string;
     branch: string;
-  }) => Promise<{ sent: boolean; reason?: string }>;
-  acceptInvite: (id: string) => Promise<{ accepted: boolean }>;
+  }) => Promise<{
+    sent: boolean;
+    reason?: string;
+  }>;
+  acceptInvite: (id: string) => Promise<{
+    accepted: boolean;
+  }>;
   withdrawInvite: (id: string) => Promise<void>;
   addHoliday: (holiday: {
     branch: string;
     date: string;
     reason: string;
-  }) => Promise<{ saved: boolean; reason?: string }>;
+  }) => Promise<{
+    saved: boolean;
+    reason?: string;
+  }>;
   removeHoliday: (id: string) => Promise<void>;
   saveBranch: (branch: {
     id?: string;
@@ -348,14 +424,32 @@ interface State {
     address?: string;
     phone?: string;
     manager?: string;
-  }) => Promise<{ saved: boolean; reason?: string }>;
-  deleteBranch: (id: string) => Promise<{ removed: boolean; reason?: string }>;
+  }) => Promise<{
+    saved: boolean;
+    reason?: string;
+  }>;
+  deleteBranch: (id: string) => Promise<{
+    removed: boolean;
+    reason?: string;
+  }>;
   saveLoyaltyConfig: (config: {
     rupiahPerPoint?: number;
-    tiers?: { name: string; from: number }[];
-  }) => Promise<{ saved: boolean; reason?: string }>;
-  clockIn: (staffId: string) => Promise<{ ok: boolean; reason?: string }>;
-  clockOut: (staffId: string) => Promise<{ ok: boolean; reason?: string }>;
+    tiers?: {
+      name: string;
+      from: number;
+    }[];
+  }) => Promise<{
+    saved: boolean;
+    reason?: string;
+  }>;
+  clockIn: (staffId: string) => Promise<{
+    ok: boolean;
+    reason?: string;
+  }>;
+  clockOut: (staffId: string) => Promise<{
+    ok: boolean;
+    reason?: string;
+  }>;
   createAdvance: (advance: {
     staffId: string;
     amount: number;
@@ -366,12 +460,19 @@ interface State {
     id: string,
     amount: number,
     source: "manual" | "commission"
-  ) => Promise<{ repaid: boolean; reason?: string; remaining?: number }>;
+  ) => Promise<{
+    repaid: boolean;
+    reason?: string;
+    remaining?: number;
+  }>;
   createPurchaseOrder: (order: {
     supplierId: string;
     expectedAt: string;
     items: Omit<PurchaseOrderItem, "received">[];
-  }) => Promise<{ created: boolean; order?: PurchaseOrder }>;
+  }) => Promise<{
+    created: boolean;
+    order?: PurchaseOrder;
+  }>;
   setBoardingStatus: (id: string, status: Boarding["status"]) => Promise<void>;
   createBoarding: (boarding: {
     customerName: string;
@@ -379,16 +480,26 @@ interface State {
     roomId: string;
     checkIn: string;
     checkOut: string;
-  }) => Promise<{ created: boolean; reason?: string; boarding?: Boarding }>;
+  }) => Promise<{
+    created: boolean;
+    reason?: string;
+    boarding?: Boarding;
+  }>;
   adjustStock: (id: string, delta: number) => Promise<void>;
   createOrder: (items: CartLine[], customerName: string) => Promise<Order>;
   markOrderPaid: (id: string) => Promise<void>;
-  voidOrder: (id: string) => Promise<{ voided: boolean; reason?: string }>;
+  voidOrder: (id: string) => Promise<{
+    voided: boolean;
+    reason?: string;
+  }>;
   /** Quantities per product id; omit to receive everything outstanding. */
   receivePurchaseOrder: (
     id: string,
     quantities?: Record<string, number>
-  ) => Promise<{ received: boolean; reason?: string }>;
+  ) => Promise<{
+    received: boolean;
+    reason?: string;
+  }>;
   setStaffStatus: (id: string, status: Staff["status"]) => Promise<void>;
   createRoom: (room: {
     name: string;
@@ -398,7 +509,11 @@ interface State {
   }) => Promise<void>;
   updateRoom: (
     id: string,
-    changes: { name?: string; capacity?: number; type?: string }
+    changes: {
+      name?: string;
+      capacity?: number;
+      type?: string;
+    }
   ) => Promise<void>;
   deleteRoom: (id: string) => Promise<boolean>;
   createExpense: (expense: {
@@ -412,7 +527,6 @@ interface State {
   sendWhatsapp: (templateId: string, customerId: string) => Promise<boolean>;
   changePlan: (plan: "free" | "pro" | "business") => Promise<void>;
 }
-
 /**
  * Posts a change and reloads when it took.
  *
@@ -424,18 +538,18 @@ interface State {
  * @param get the store accessor, for reloading.
  * @returns the mock's answer.
  */
-async function write<T extends { saved?: boolean; removed?: boolean }>(
-  path: string,
-  body: JSONObject,
-  get: () => State
-): Promise<T> {
+async function write<
+  T extends {
+    saved?: boolean;
+    removed?: boolean;
+  },
+>(path: string, body: JSONObject, get: () => State): Promise<T> {
   const response = await client.post(path, body);
   if (response.data?.saved || response.data?.removed) {
     await get().fetchAll();
   }
   return response.data as T;
 }
-
 /**
  * State for the pet store domains.
  *
@@ -480,14 +594,12 @@ export const useShop = create<State>((set, get) => ({
   staffInvites: [],
   calendar: [],
   cashFlow: [],
-  documentTemplates: [],
+  noteTemplates: [],
   portalServices: [],
   portalReviews: [],
   isLoading: false,
-
   fetchAll: async () => {
     set({ isLoading: true, error: undefined });
-
     try {
       const [
         dashboard,
@@ -521,7 +633,7 @@ export const useShop = create<State>((set, get) => ({
         portalServices,
         portalReviews,
         advances,
-        documentTemplates,
+        noteTemplates,
         returns,
         audit,
         insights,
@@ -582,7 +694,6 @@ export const useShop = create<State>((set, get) => ({
         client.post("/staff.invites"),
         client.post("/grooming.calendar", { days: 14 }),
       ]);
-
       set({
         dashboard: dashboard.data,
         products: products.data,
@@ -615,7 +726,7 @@ export const useShop = create<State>((set, get) => ({
         portalServices: portalServices.data,
         portalReviews: portalReviews.data,
         advances: advances.data,
-        documentTemplates: documentTemplates.data,
+        noteTemplates: noteTemplates.data,
         returns: returns.data,
         audit: audit.data,
         insights: insights.data,
@@ -638,7 +749,6 @@ export const useShop = create<State>((set, get) => ({
       });
     }
   },
-
   setBoardingStatus: async (id, status) => {
     // Applied optimistically; the list reflects the change before the round trip.
     set((state) => ({
@@ -646,11 +756,9 @@ export const useShop = create<State>((set, get) => ({
         boarding.id === id ? { ...boarding, status } : boarding
       ),
     }));
-
     await client.post("/boardings.updateStatus", { id, status });
     await get().fetchAll();
   },
-
   createInvoice: async (invoice) => {
     const response = await client.post("/invoices.create", invoice);
     if (response.data?.created) {
@@ -658,7 +766,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   recordInvoicePayment: async (id, amount, method, reference) => {
     const response = await client.post("/invoices.recordPayment", {
       id,
@@ -671,7 +778,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   voidInvoice: async (id) => {
     const response = await client.post("/invoices.void", { id });
     if (response.data?.voided) {
@@ -679,7 +785,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   createPortalService: async (service) => {
     const response = await client.post("/portal.services.create", service);
     if (response.data?.created) {
@@ -687,17 +792,14 @@ export const useShop = create<State>((set, get) => ({
     }
     return Boolean(response.data?.created);
   },
-
   setPortalServiceActive: async (id, isActive) => {
     await client.post("/portal.services.setActive", { id, isActive });
     await get().fetchAll();
   },
-
   deletePortalService: async (id) => {
     await client.post("/portal.services.delete", { id });
     await get().fetchAll();
   },
-
   savePortalSettings: async (settings) => {
     const response = await client.post("/portal.settings.update", settings);
     if (response.data?.saved) {
@@ -705,7 +807,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   createBoarding: async (boarding) => {
     // Not optimistic: the room may be taken for those nights, and the answer
     // decides whether the form clears or reports why it could not.
@@ -715,7 +816,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   adjustStock: async (id, delta) => {
     set((state) => ({
       products: state.products.map((product) =>
@@ -724,11 +824,9 @@ export const useShop = create<State>((set, get) => ({
           : product
       ),
     }));
-
     await client.post("/products.adjustStock", { id, delta });
     await get().fetchAll();
   },
-
   createOrder: async (items, customerName) => {
     const response = await client.post("/orders.create", {
       items,
@@ -737,12 +835,10 @@ export const useShop = create<State>((set, get) => ({
     await get().fetchAll();
     return response.data;
   },
-
   markOrderPaid: async (id) => {
     await client.post("/orders.markPaid", { id });
     await get().fetchAll();
   },
-
   voidOrder: async (id) => {
     const response = await client.post("/orders.void", { id });
     if (response.data?.voided) {
@@ -750,7 +846,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   receivePurchaseOrder: async (id, quantities) => {
     const response = await client.post("/purchaseOrders.receive", {
       id,
@@ -761,7 +856,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   createPurchaseOrder: async (order) => {
     const response = await client.post("/purchaseOrders.create", order);
     if (response.data?.created) {
@@ -769,15 +863,13 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
-  saveDocumentTemplate: async (template) => {
+  saveNoteTemplate: async (template) => {
     const response = await client.post("/documentTemplates.save", template);
     if (response.data?.saved) {
       await get().fetchAll();
     }
     return response.data;
   },
-
   createReturn: async (input) => {
     const response = await client.post("/returns.create", input);
     if (response.data?.created) {
@@ -785,7 +877,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   saveProduct: async (product) => write("/products.save", product, get),
   deleteProduct: async (id) => write("/products.delete", { id }, get),
   saveCustomer: async (customer) => write("/customers.save", customer, get),
@@ -803,7 +894,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   acceptInvite: async (id) => {
     const response = await client.post("/staff.acceptInvite", { id });
     if (response.data?.accepted) {
@@ -811,22 +901,17 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   withdrawInvite: async (id) => {
     await client.post("/staff.withdrawInvite", { id });
     await get().fetchAll();
   },
-
   addHoliday: async (holiday) => write("/branches.addHoliday", holiday, get),
-
   removeHoliday: async (id) => {
     await client.post("/branches.removeHoliday", { id });
     await get().fetchAll();
   },
-
   saveBranch: async (branch) => write("/branches.save", branch, get),
   deleteBranch: async (id) => write("/branches.delete", { id }, get),
-
   saveLoyaltyConfig: async (config) => {
     const response = await client.post("/loyalty.saveConfig", config);
     if (response.data?.saved) {
@@ -834,7 +919,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   clockIn: async (staffId) => {
     const response = await client.post("/shifts.clockIn", { staffId });
     if (response.data?.ok) {
@@ -842,7 +926,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   clockOut: async (staffId) => {
     const response = await client.post("/shifts.clockOut", { staffId });
     if (response.data?.ok) {
@@ -850,7 +933,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   createAdvance: async (advance) => {
     const response = await client.post("/advances.create", advance);
     if (response.data?.created) {
@@ -858,7 +940,6 @@ export const useShop = create<State>((set, get) => ({
     }
     return Boolean(response.data?.created);
   },
-
   repayAdvance: async (id, amount, source) => {
     const response = await client.post("/advances.repay", {
       id,
@@ -870,38 +951,31 @@ export const useShop = create<State>((set, get) => ({
     }
     return response.data;
   },
-
   setStaffStatus: async (id, status) => {
     await client.post("/staff.setStatus", { id, status });
     await get().fetchAll();
   },
-
   createRoom: async (room) => {
     await client.post("/rooms.create", room);
     await get().fetchAll();
   },
-
   updateRoom: async (id, changes) => {
     await client.post("/rooms.update", { id, ...changes });
     await get().fetchAll();
   },
-
   deleteRoom: async (id) => {
     const response = await client.post("/rooms.delete", { id });
     await get().fetchAll();
     return Boolean(response.data?.deleted);
   },
-
   createExpense: async (expense) => {
     await client.post("/expenses.create", expense);
     await get().fetchAll();
   },
-
   setGroomingStatus: async (id, status) => {
     await client.post("/grooming.setStatus", { id, status });
     await get().fetchAll();
   },
-
   sendWhatsapp: async (templateId, customerId) => {
     const response = await client.post("/whatsapp.send", {
       templateId,
@@ -910,12 +984,10 @@ export const useShop = create<State>((set, get) => ({
     await get().fetchAll();
     return Boolean(response.data?.sent);
   },
-
   changePlan: async (plan) => {
     await client.post("/billing.changePlan", { plan });
     await get().fetchAll();
   },
-
   redeemPoints: async (customerId, points) => {
     const response = await client.post("/loyalty.redeem", {
       customerId,

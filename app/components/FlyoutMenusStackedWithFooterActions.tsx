@@ -12,7 +12,6 @@ import {
   FingerPrintIcon,
   SquaresPlusIcon,
 } from "@heroicons/react/24/outline";
-
 const solutions = [
   {
     name: "Analytics",
@@ -49,7 +48,6 @@ const callsToAction = [
   { name: "Watch demo", href: "#", icon: PlayCircleIcon },
   { name: "Contact sales", href: "#", icon: PhoneIcon },
 ];
-
 /**
  * Tailwind UI – flyout menus: stacked with footer actions.
  *

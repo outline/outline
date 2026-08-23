@@ -19,7 +19,6 @@ import {
   Description,
 } from "./Components";
 import { richExtensions } from "@shared/editor/nodes";
-
 type Props = Pick<
   UnfurlResponse[UnfurlResourceType.Project],
   | "url"
@@ -31,13 +30,11 @@ type Props = Pick<
   | "targetDate"
   | "description"
 >;
-
 const HoverPreviewProject = React.forwardRef(function HoverPreviewProject_(
   { url, name, color, lead, labels, state, description, targetDate }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {
   const { t } = useTranslation();
-
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
       <Flex column ref={ref}>
@@ -117,18 +114,15 @@ const HoverPreviewProject = React.forwardRef(function HoverPreviewProject_(
     </Preview>
   );
 });
-
 const StyledSquircle = styled(Squircle)`
   flex-shrink: 0;
   margin-top: 4px;
 `;
-
 const Divider = styled.div`
   height: 1px;
   background: ${s("divider")};
   margin: 4px 0;
 `;
-
 const MetadataRow = styled.div`
   display: flex;
   align-items: center;
@@ -136,7 +130,6 @@ const MetadataRow = styled.div`
   gap: 16px;
   min-height: 28px;
 `;
-
 const MetadataLabel = styled(Text).attrs({
   type: "tertiary",
   size: "small",
@@ -144,5 +137,4 @@ const MetadataLabel = styled(Text).attrs({
   flex-shrink: 0;
   min-width: 80px;
 `;
-
 export default HoverPreviewProject;

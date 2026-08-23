@@ -8,14 +8,12 @@ import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { Preview, Subtitle, Title } from "./Widget";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-
 /**
  * Default dimensions for the PDF preview – approximately the width of a standard
  * document with an A4 portrait aspect ratio.
  */
 const naturalWidth = 768;
 const naturalHeight = 1086;
-
 type Props = ComponentProps & {
   /** Icon to display on the left side of the widget */
   icon: React.ReactNode;
@@ -26,14 +24,12 @@ type Props = ComponentProps & {
   /** Callback triggered when the pdf is resized */
   onChangeSize?: (props: { width: number; height?: number }) => void;
 };
-
 export default function PdfViewer(props: Props) {
   const { node, isEditable, onChangeSize, isSelected } = props;
   const { href, name } = node.attrs;
   const ref = useRef<HTMLDivElement>(null);
   const embedRef = useRef<HTMLEmbedElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
   const { width, handlePointerDown, dragging } = useDragResize({
     width: node.attrs.width,
     height: node.attrs.height,
@@ -42,7 +38,6 @@ export default function PdfViewer(props: Props) {
     onChangeSize,
     ref,
   });
-
   // force embed to reload, so the content fits the new size.
   useEffect(() => {
     // firefox handles resizing on its own
@@ -50,16 +45,13 @@ export default function PdfViewer(props: Props) {
     if (isFirefox || !ref.current) {
       return;
     }
-
     const observer = new ResizeObserver(() => {
       if (dragging) {
         return;
       }
-
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
-
       debounceTimerRef.current = setTimeout(() => {
         if (embedRef.current) {
           embedRef.current.src = "";
@@ -71,9 +63,7 @@ export default function PdfViewer(props: Props) {
         }
       }, 250);
     });
-
     observer.observe(ref.current);
-
     return () => {
       observer.disconnect();
       if (debounceTimerRef.current) {
@@ -81,7 +71,6 @@ export default function PdfViewer(props: Props) {
       }
     };
   }, [dragging, href]);
-
   return (
     <PDFWrapper
       contentEditable={false}
@@ -129,8 +118,9 @@ export default function PdfViewer(props: Props) {
     </PDFWrapper>
   );
 }
-
-const PDFWrapper = styled.div<{ $dragging: boolean }>`
+const PDFWrapper = styled.div<{
+  $dragging: boolean;
+}>`
   line-height: 0;
   position: relative;
   margin-left: auto;

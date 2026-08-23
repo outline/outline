@@ -1,26 +1,24 @@
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
-import type { CollectionPermission, DocumentPermission } from "@shared/types";
+import type { NotebookPermission, NotePermission } from "@shared/types";
 import { Inner } from "~/components/Button";
 import ButtonSmall from "~/components/ButtonSmall";
 import Fade from "~/components/Fade";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import type { Action, Permission } from "~/types";
-
 export function PermissionAction({
   permission,
   permissions,
   action,
   onChange,
 }: {
-  permission: CollectionPermission | DocumentPermission;
+  permission: NotebookPermission | NotePermission;
   permissions: Permission[];
   action: Action;
-  onChange: (permission: CollectionPermission | DocumentPermission) => void;
+  onChange: (permission: NotebookPermission | NotePermission) => void;
 }) {
   const { t } = useTranslation();
-
   return (
     <Fade timing="150ms" key="invite">
       <Flex gap={4}>
@@ -34,7 +32,6 @@ export function PermissionAction({
     </Fade>
   );
 }
-
 const InputPermissionSelect = styled(InputMemberPermissionSelect)`
   font-size: 13px;
   height: 26px;

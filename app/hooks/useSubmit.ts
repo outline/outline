@@ -1,7 +1,6 @@
 import { useMachine } from "@xstate/react";
 import { useCallback } from "react";
 import { submitMachine } from "~/machines/submit";
-
 /** What a scene needs to run one save and report on it. */
 export interface Submission {
   /** True while the save is in flight. */
@@ -16,7 +15,6 @@ export interface Submission {
    */
   run: (task: () => Promise<string | void>) => Promise<void>;
 }
-
 /**
  * Runs one save at a time and remembers why the last one failed.
  *
@@ -29,7 +27,6 @@ export interface Submission {
  */
 export function useSubmit(): Submission {
   const [state, send] = useMachine(submitMachine);
-
   const run = useCallback(
     async (task: () => Promise<string | void>) => {
       // Refused while a save is already in flight, so a second click cannot
@@ -38,7 +35,6 @@ export function useSubmit(): Submission {
         return;
       }
       send({ type: "SUBMIT" });
-
       try {
         send({ type: "SETTLED", notice: (await task()) || undefined });
       } catch (_err) {
@@ -47,7 +43,6 @@ export function useSubmit(): Submission {
     },
     [send, state]
   );
-
   return {
     isBusy: state.matches("submitting"),
     notice: state.context.notice,

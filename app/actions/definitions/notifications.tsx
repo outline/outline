@@ -2,7 +2,6 @@ import { ArchiveIcon, CheckmarkIcon, MarkAsReadIcon } from "outline-icons";
 import { createAction } from "..";
 import { NotificationSection } from "../sections";
 import type Notification from "~/models/Notification";
-
 export const markNotificationsAsRead = createAction({
   name: ({ t }) => t("Mark notifications as read"),
   analyticsName: "Mark notifications as read",
@@ -12,7 +11,6 @@ export const markNotificationsAsRead = createAction({
   perform: ({ stores }) => stores.notifications.markAllAsRead(),
   visible: ({ stores }) => stores.notifications.approximateUnreadCount > 0,
 });
-
 export const markNotificationsAsArchived = createAction({
   name: ({ t }) => t("Archive all notifications"),
   analyticsName: "Mark notifications as archived",
@@ -22,7 +20,6 @@ export const markNotificationsAsArchived = createAction({
   perform: ({ stores }) => stores.notifications.markAllAsArchived(),
   visible: ({ stores }) => stores.notifications.orderedData.length > 0,
 });
-
 export const notificationMarkReadActionFactory = (notification: Notification) =>
   createAction({
     name: ({ t }) => t("Mark as read"),
@@ -32,7 +29,6 @@ export const notificationMarkReadActionFactory = (notification: Notification) =>
     perform: () => notification.toggleRead(),
     visible: () => !notification.viewedAt,
   });
-
 export const notificationMarkUnreadActionFactory = (
   notification: Notification
 ) =>
@@ -44,7 +40,6 @@ export const notificationMarkUnreadActionFactory = (
     perform: () => notification.toggleRead(),
     visible: () => !!notification.viewedAt,
   });
-
 export const notificationArchiveActionFactory = (notification: Notification) =>
   createAction({
     name: ({ t }) => t("Archive"),
@@ -54,7 +49,6 @@ export const notificationArchiveActionFactory = (notification: Notification) =>
     perform: () => notification.archive(),
     visible: () => !notification.archivedAt,
   });
-
 export const rootNotificationActions = [
   markNotificationsAsRead,
   markNotificationsAsArchived,

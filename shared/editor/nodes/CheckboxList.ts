@@ -15,12 +15,10 @@ import {
 import { findBlockNodes } from "../queries/findChildren";
 import { CheckboxListView } from "./CheckboxListView";
 import Node from "./Node";
-
 export default class CheckboxList extends Node {
   get name() {
     return "checkbox_list";
   }
-
   get schema(): NodeSpec {
     return {
       group: "block list",
@@ -36,10 +34,8 @@ export default class CheckboxList extends Node {
       ],
     };
   }
-
   get plugins() {
     const userIdentifier = this.editor.props.userId;
-
     // Plugin to auto-assign IDs to checkbox lists
     const assignIdsPlugin = new Plugin({
       appendTransaction: (txs, _oldSt, newSt) => {
@@ -47,15 +43,12 @@ export default class CheckboxList extends Node {
         if (!hasDocChanges) {
           return null;
         }
-
         const checkboxLists = findBlockNodes(newSt.doc, true).filter(
           (b) => b.node.type.name === this.name && !b.node.attrs.id
         );
-
         if (checkboxLists.length === 0) {
           return null;
         }
-
         let modifyTx = newSt.tr;
         checkboxLists.forEach((listBlock) => {
           modifyTx.setNodeAttribute(listBlock.pos, "id", generateUuid());
@@ -63,7 +56,6 @@ export default class CheckboxList extends Node {
         return modifyTx;
       },
     });
-
     // Plugin to provide NodeViews
     const nodeViewPlugin = new Plugin({
       props: {
@@ -73,20 +65,16 @@ export default class CheckboxList extends Node {
         },
       },
     });
-
     return [assignIdsPlugin, nodeViewPlugin];
   }
-
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
       "Shift-Ctrl-7": toggleList(type, schema.nodes.checkbox_item),
     };
   }
-
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
     return () => toggleList(type, schema.nodes.checkbox_item);
   }
-
   inputRules({ type, schema }: { type: NodeType; schema: Schema }) {
     const pattern = /^-?\s*(\[\s?\])\s$/i;
     return [
@@ -96,11 +84,9 @@ export default class CheckboxList extends Node {
       listWrappingInputRule(pattern, type),
     ];
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.renderList(node, "  ", () => "- ");
   }
-
   parseMarkdown() {
     return { block: "checkbox_list" };
   }

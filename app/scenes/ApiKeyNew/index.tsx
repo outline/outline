@@ -16,11 +16,9 @@ import useUserLocale from "~/hooks/useUserLocale";
 import { dateToExpiry } from "~/utils/date";
 import ExpiryDatePicker from "./components/ExpiryDatePicker";
 import { ExpiryType, ExpiryValues, calculateExpiryDate } from "./utils";
-
 type Props = {
   onSubmit: () => void;
 };
-
 function ApiKeyNew({ onSubmit }: Props) {
   const [name, setName] = React.useState("");
   const [scope, setScope] = React.useState("");
@@ -32,14 +30,11 @@ function ApiKeyNew({ onSubmit }: Props) {
     calculateExpiryDate(currentDate.current, expiryType)
   );
   const [isSaving, setIsSaving] = React.useState(false);
-
   const { apiKeys } = useStores();
   const { t } = useTranslation();
   const userLocale = useUserLocale();
-
   const submitDisabled =
     isSaving || !name || (!expiresAt && expiryType !== ExpiryType.NoExpiration);
-
   const expiryOptions = React.useMemo<Option[]>(
     () =>
       [...ExpiryValues.entries()].map(([expType, { label }]) => ({
@@ -49,30 +44,24 @@ function ApiKeyNew({ onSubmit }: Props) {
       })),
     []
   );
-
   const handleNameChange = React.useCallback((event) => {
     setName(event.target.value);
   }, []);
-
   const handleScopeChange = React.useCallback((event) => {
     setScope(event.target.value);
   }, []);
-
   const handleExpiryTypeChange = React.useCallback((value: string) => {
     const expiry = value as ExpiryType;
     setExpiryType(expiry);
     setExpiresAt(calculateExpiryDate(currentDate.current, expiry));
   }, []);
-
   const handleSelectCustomDate = React.useCallback((date: Date) => {
     setExpiresAt(endOfDay(date));
   }, []);
-
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
       setIsSaving(true);
-
       try {
         await apiKeys.create({
           name,
@@ -93,7 +82,6 @@ function ApiKeyNew({ onSubmit }: Props) {
     },
     [t, name, scope, expiresAt, onSubmit, apiKeys]
   );
-
   return (
     <form onSubmit={handleSubmit}>
       <Flex column>
@@ -152,15 +140,12 @@ function ApiKeyNew({ onSubmit }: Props) {
     </form>
   );
 }
-
 const StyledExpirySelect = styled(InputSelect)`
   width: 150px !important;
   margin-bottom: 16px;
 `;
-
 const StyledExpiryText = styled(Text)`
   position: relative;
   top: 4px;
 `;
-
 export default ApiKeyNew;

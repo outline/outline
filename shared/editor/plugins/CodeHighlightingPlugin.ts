@@ -7,42 +7,40 @@ import type refractorType from "refractor/core";
 import { getLoaderForLanguage, getRefractorLangForLanguage } from "../lib/code";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
-
 type ParsedNode = {
   text: string;
   classes: string[];
 };
-
-const cache: Record<number, { node: Node; decorations: Decoration[] }> = {};
+const cache: Record<
+  number,
+  {
+    node: Node;
+    decorations: Decoration[];
+  }
+> = {};
 const languagesToImport = new Set<string>();
 const languagePromises: Record<
   string,
   Promise<string | undefined> | undefined
 > = {};
-
 let refractor: typeof refractorType | undefined;
-
 /** Lazily load refractor core. */
 async function getRefractor() {
   refractor ??= (await import("refractor/core")).default;
   return refractor;
 }
-
 async function loadLanguage(language: string) {
   const r = await getRefractor();
   if (!language || r.registered(language)) {
     return;
   }
-
   if (languagePromises[language]) {
     return languagePromises[language];
   }
-
   const loader = getLoaderForLanguage(language);
   if (!loader) {
     return;
   }
-
   languagePromises[language] = loader()
     .then((syntax) => {
       r.register(syntax);
@@ -58,10 +56,8 @@ async function loadLanguage(language: string) {
       delete languagePromises[language]; // Remove failed promise from cache
       return undefined;
     });
-
   return languagePromises[language];
 }
-
 function getDecorations({
   doc,
   name,
@@ -75,11 +71,12 @@ function getDecorations({
   lineNumbers?: boolean;
 }) {
   const decorations: Decoration[] = [];
-  const blocks: { node: Node; pos: number }[] = findBlockNodes(
-    doc,
-    true
-  ).filter((item) => item.node.type.name === name);
-
+  const blocks: {
+    node: Node;
+    pos: number;
+  }[] = findBlockNodes(doc, true).filter(
+    (item) => item.node.type.name === name
+  );
   function parseNodes(
     nodes: refractorType.RefractorNode[],
     classNames: string[] = []
@@ -93,7 +90,6 @@ function getDecorations({
           const classes = [...classNames, ...(node.properties.className || [])];
           return parseNodes(node.children, classes);
         }
-
         return {
           text: node.value,
           classes: classNames,
@@ -101,23 +97,19 @@ function getDecorations({
       })
     );
   }
-
   blocks.forEach((block) => {
     let startPos = block.pos + 1;
     const language = block.node.attrs.language;
     const lang = getRefractorLangForLanguage(language);
     const lineDecorations = [];
-
     if (!cache[block.pos] || !cache[block.pos].node.eq(block.node)) {
       if (lineNumbers && !block.node.attrs.wrap) {
         const lineCount =
           (block.node.textContent.match(/\n/g) || []).length + 1;
         const gutterWidth = String(lineCount).length;
-
         const lineCountText = Array.from({ length: lineCount })
           .map((_, i) => padStart(`${i + 1}`, gutterWidth, " "))
           .join("\n");
-
         lineDecorations.push(
           Decoration.node(
             block.pos,
@@ -132,25 +124,20 @@ function getDecorations({
           )
         );
       }
-
       cache[block.pos] = {
         node: block.node,
         decorations: lineDecorations,
       };
-
       if (!lang) {
         // do nothing
       } else if (refractor?.registered(lang)) {
         languagesToImport.delete(language);
-
         const nodes = refractor!.highlight(block.node.textContent, lang);
         const newDecorations = parseNodes(nodes)
           .map((node: ParsedNode) => {
             const from = startPos;
             const to = from + node.text.length;
-
             startPos = to;
-
             return {
               ...node,
               from,
@@ -164,7 +151,6 @@ function getDecorations({
             })
           )
           .concat(lineDecorations);
-
         cache[block.pos] = {
           node: block.node,
           decorations: newDecorations,
@@ -173,21 +159,17 @@ function getDecorations({
         languagesToImport.add(language);
       }
     }
-
     cache[block.pos]?.decorations.forEach((decoration) => {
       decorations.push(decoration);
     });
   });
-
   Object.keys(cache)
     .filter((pos) => !blocks.find((block) => block.pos === Number(pos)))
     .forEach((pos) => {
       delete cache[Number(pos)];
     });
-
   return DecorationSet.create(doc, decorations);
 }
-
 export function CodeHighlighting({
   name,
   lineNumbers,
@@ -198,7 +180,6 @@ export function CodeHighlighting({
   lineNumbers?: boolean;
 }) {
   let highlighted = false;
-
   return new Plugin({
     key: new PluginKey("codeHighlighting"),
     state: {
@@ -208,11 +189,9 @@ export function CodeHighlighting({
         const previousNodeName = oldState.selection.$head.parent.type.name;
         const codeBlockChanged =
           transaction.docChanged && [nodeName, previousNodeName].includes(name);
-
         // @ts-expect-error accessing private field.
         const isPaste = transaction.meta?.paste;
         const langLoaded = transaction.getMeta("codeHighlighting")?.langLoaded;
-
         if (
           !highlighted ||
           codeBlockChanged ||
@@ -233,7 +212,6 @@ export function CodeHighlighting({
           highlighted = true;
           return getDecorations({ doc: transaction.doc, name, lineNumbers });
         }
-
         return decorationSet.map(transaction.mapping, transaction.doc);
       },
     },
@@ -254,7 +232,6 @@ export function CodeHighlighting({
           if (!languagesToImport.size) {
             return;
           }
-
           void Promise.all([...languagesToImport].map(loadLanguage)).then(
             (results) => {
               const loaded = results.filter((lang): lang is string => !!lang);

@@ -12,38 +12,30 @@ import type { CommandFactory } from "../lib/Extension";
 import Extension from "../lib/Extension";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import type { Primitive } from "utility-types";
-
 export default abstract class Mark<
   TOptions extends object = object,
 > extends Extension<TOptions> {
   get type() {
     return "mark";
   }
-
   get schema(): MarkSpec {
     return {};
   }
-
   get markdownToken(): string {
     return "";
   }
-
   keys(_options: { type: MarkType; schema: Schema }): Record<string, Command> {
     return {};
   }
-
   inputRules(_options: { type: MarkType; schema: Schema }): InputRule[] {
     return [];
   }
-
   toMarkdown(_state: MarkdownSerializerState, _node: ProsemirrorNode) {
     throw new Error("toMarkdown not implemented");
   }
-
   parseMarkdown(): ParseSpec | void {
     return undefined;
   }
-
   commands({
     type,
   }: {

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -23,7 +23,6 @@ import {
   Squares2X2Icon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const sortOptions = [
   { name: "Most Popular", href: "#", current: true },
   { name: "Best Rating", href: "#", current: false },
@@ -75,7 +74,6 @@ const filters = [
     ],
   },
 ];
-
 /**
  * Tailwind UI – category filters: with inline actions and expandable sidebar filters.
  *
@@ -83,7 +81,6 @@ const filters = [
  */
 export function CategoryFiltersWithInlineActionsAndExpandableSidebarFilters() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
   return (
     <div className="bg-white">
       <div>

@@ -12,17 +12,14 @@ import {
 } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import usePolicy from "~/hooks/usePolicy";
-
 type Props = {
   fileOperation: FileOperation;
   onDelete: () => Promise<void>;
 };
-
 function FileOperationMenu({ fileOperation, onDelete }: Props) {
   const { t } = useTranslation();
   const can = usePolicy(fileOperation);
   const section = "File operations";
-
   const actions = React.useMemo(
     () => [
       createExternalLinkAction({
@@ -53,14 +50,11 @@ function FileOperationMenu({ fileOperation, onDelete }: Props) {
       onDelete,
     ]
   );
-
   const rootAction = useMenuAction(actions);
-
   return (
     <DropdownMenu action={rootAction} ariaLabel={t("File")}>
       <OverflowMenuButton />
     </DropdownMenu>
   );
 }
-
 export default FileOperationMenu;

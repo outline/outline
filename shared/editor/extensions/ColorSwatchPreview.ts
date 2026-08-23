@@ -4,7 +4,6 @@ import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { ColorSwatch } from "../components/ColorSwatch";
 import Extension from "../lib/Extension";
-
 // Matches a CSS color in hex (#RGB, #RGBA, #RRGGBB, #RRGGBBAA), rgb()/rgba(),
 // or hsl()/hsla() notation. Functional matches are loose here and validated by
 // getLuminance, which throws for anything that isn't a real color.
@@ -15,13 +14,10 @@ const COLOR_REGEX = new RegExp(
   ].join("|"),
   "gi"
 );
-
 type ColorPluginState = {
   decorations: DecorationSet;
 };
-
 const pluginKey = new PluginKey<ColorPluginState>("color_swatch_preview");
-
 /**
  * An editor extension that renders a small colored circle after any valid CSS
  * color (hex, rgb/rgba, or hsl/hsla) found inside an inline code mark.
@@ -30,11 +26,9 @@ export default class ColorSwatchPreview extends Extension {
   get name() {
     return "color_swatch_preview";
   }
-
   get allowInReadOnly() {
     return true;
   }
-
   get plugins() {
     return [
       new Plugin<ColorPluginState>({
@@ -58,32 +52,25 @@ export default class ColorSwatchPreview extends Extension {
       }),
     ];
   }
-
   private buildDecorations(state: EditorState): DecorationSet {
     const codeMarkType = state.schema.marks.code_inline;
     if (!codeMarkType) {
       return DecorationSet.empty;
     }
-
     const decorations: Decoration[] = [];
-
     state.doc.descendants((node, pos) => {
       if (!node.isText || !node.text) {
         return;
       }
-
       const codeMark = node.marks.find((mark) => mark.type === codeMarkType);
       if (!codeMark) {
         return;
       }
-
       const text = node.text;
       COLOR_REGEX.lastIndex = 0;
       let match: RegExpExecArray | null;
-
       while ((match = COLOR_REGEX.exec(text)) !== null) {
         const color = match[0];
-
         // getLuminance throws for anything that isn't a real color, which also
         // filters out false-positive regex matches like "rgb(foo)".
         let luminance: number;
@@ -92,9 +79,7 @@ export default class ColorSwatchPreview extends Extension {
         } catch {
           continue;
         }
-
         const end = pos + match.index + color.length;
-
         // Key on the color value rather than the document position, so editing
         // elsewhere doesn't change the key and force ProseMirror to destroy and
         // remount the swatch's React portal. Identical colors are interchangeable
@@ -112,10 +97,8 @@ export default class ColorSwatchPreview extends Extension {
         );
       }
     });
-
     return DecorationSet.create(state.doc, decorations);
   }
-
   private createSwatch(color: string, luminance: number): HTMLElement {
     const element = this.editor.renderToPortal(ColorSwatch, {
       color,

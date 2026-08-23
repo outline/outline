@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -31,7 +31,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const currencies = ["CAD", "USD", "AUD", "EUR", "GBP"];
 const navigation = {
   categories: [
@@ -266,7 +265,6 @@ const footerNavigation = {
     { name: "Find a store", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – category pages: with text header and image product grid.
  *
@@ -275,7 +273,6 @@ const footerNavigation = {
 export function CategoryPagesWithTextHeaderAndImageProductGrid() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
   return (
     <div className="bg-gray-50">
       <div>

@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
 import useIsMounted from "./useIsMounted";
-
 type RequestResponse<T> = {
   /** The return value of the request function. */
   data: T | undefined;
@@ -13,7 +12,6 @@ type RequestResponse<T> = {
   /** Function to start the request. */
   request: () => Promise<T | undefined>;
 };
-
 /**
  * A hook to make an API request and track its state within a component.
  *
@@ -30,12 +28,10 @@ export default function useRequest<T = unknown>(
   const [loading, setLoading] = useState<boolean>(false);
   const [loaded, setLoaded] = useState<boolean>(false);
   const [error, setError] = useState<unknown>();
-
   const request = useCallback(async () => {
     setLoading(true);
     try {
       const response = await requestFn();
-
       if (isMounted()) {
         setData(response);
         setError(undefined);
@@ -51,10 +47,8 @@ export default function useRequest<T = unknown>(
         setLoading(false);
       }
     }
-
     return undefined;
   }, [requestFn, isMounted]);
-
   useEffect(() => {
     if (makeRequestOnMount) {
       void request();
@@ -63,6 +57,5 @@ export default function useRequest<T = unknown>(
     // surfaced through the returned `request` for the caller to invoke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   return { data, loading, loaded, error, request };
 }

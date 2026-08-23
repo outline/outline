@@ -1,5 +1,4 @@
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – alerts: with link on right.
  *

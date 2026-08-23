@@ -14,7 +14,6 @@ const features = [
       "Made from natural materials. Grain and color vary with each item.",
   },
 ];
-
 /**
  * Tailwind UI – product features: with image grid.
  *

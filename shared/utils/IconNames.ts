@@ -177,6 +177,5 @@ export const iconNames = [
   "diamond",
   "spiral",
 ] as const;
-
 /** The name of an icon from the icon library. */
 export type IconName = (typeof iconNames)[number];

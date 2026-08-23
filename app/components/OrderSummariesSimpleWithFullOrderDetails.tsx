@@ -12,7 +12,6 @@ const products = [
     imageAlt: "Glass bottle with black plastic pour top and mesh insert.",
   },
 ];
-
 /**
  * Tailwind UI – order summaries: simple with full order details.
  *

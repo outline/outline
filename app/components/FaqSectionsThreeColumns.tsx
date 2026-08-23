@@ -7,7 +7,6 @@ const faqs = [
   },
   // More questions...
 ];
-
 /**
  * Tailwind UI – faq sections: three columns.
  *

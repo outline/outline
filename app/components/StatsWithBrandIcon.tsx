@@ -5,7 +5,6 @@ import {
   UsersIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const stats = [
   {
     id: 1,
@@ -32,7 +31,6 @@ const stats = [
     changeType: "decrease",
   },
 ];
-
 /**
  * Tailwind UI – stats: with brand icon.
  *

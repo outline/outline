@@ -2,7 +2,6 @@ import { escapeRegExp } from "es-toolkit/compat";
 import env from "../env";
 import { isBrowser } from "./browser";
 import { parseDomain } from "./domains";
-
 /**
  * Prepends the CDN url to the given path (If a CDN is configured).
  *
@@ -12,7 +11,6 @@ import { parseDomain } from "./domains";
 export function cdnPath(path: string): string {
   return `${env.CDN_URL ?? ""}${path}`;
 }
-
 /**
  * Extracts the file name from a given url.
  *
@@ -27,7 +25,6 @@ export function fileNameFromUrl(url: string) {
     return;
   }
 }
-
 /**
  * Returns true if the given string is a link to inside the application.
  *
@@ -39,17 +36,14 @@ export function isInternalUrl(href: string) {
   if (href === "") {
     return false;
   }
-
   // relative paths are always internal
   if (href[0] === "/") {
     return true;
   }
-
   const outline = isBrowser
     ? parseDomain(window.location.href)
     : parseDomain(env.URL);
   const domain = parseDomain(href);
-
   return (
     (outline.host === domain.host && outline.port === domain.port) ||
     (isBrowser &&
@@ -57,14 +51,13 @@ export function isInternalUrl(href: string) {
       window.location.port === domain.port)
   );
 }
-
 /**
- * Returns true if the given string is a link to a document.
+ * Returns true if the given string is a link to a note.
  *
  * @param url The url to check.
  * @returns True if a document, false otherwise.
  */
-export function isDocumentUrl(url: string) {
+export function isNoteUrl(url: string) {
   try {
     const parsed = new URL(url, env.URL);
     return (
@@ -75,22 +68,25 @@ export function isDocumentUrl(url: string) {
     return false;
   }
 }
-
 /**
- * Returns true if the given string is a link to a collection.
+ * Returns true if the given string is a link to a notebook.
  *
  * @param url The url to check.
- * @returns True if a collection, false otherwise.
+ * @returns True if a notebook, false otherwise.
  */
-export function isCollectionUrl(url: string) {
+export function isNotebookUrl(url: string) {
   try {
     const parsed = new URL(url, env.URL);
-    return isInternalUrl(url) && parsed.pathname.startsWith("/collection/");
+    return (
+      isInternalUrl(url) &&
+      (parsed.pathname.startsWith("/notebook/") ||
+        parsed.pathname.startsWith("/collection/") ||
+        parsed.pathname.startsWith("/collections/"))
+    );
   } catch (_err) {
     return false;
   }
 }
-
 type UrlOptions = {
   /** Require the url to have a hostname. */
   requireHostname?: boolean;
@@ -99,7 +95,6 @@ type UrlOptions = {
   /** Require the url to have a protocol. */
   requireProtocol?: boolean;
 };
-
 /**
  * Returns true if the given string is a url.
  *
@@ -114,20 +109,16 @@ export function isUrl(
   if (text.match(/\n/)) {
     return false;
   }
-
   if (!requireProtocol && text.startsWith("www.")) {
     const parts = text.split(".");
     if (parts.length < 2) {
       return false;
     }
-
     text = `https://${text}`;
   }
-
   try {
     const url = new URL(text);
     const blockedProtocols = ["javascript:", "file:", "vbscript:", "data:"];
-
     if (blockedProtocols.includes(url.protocol)) {
       return false;
     }
@@ -137,7 +128,6 @@ export function isUrl(
     if (url.hostname) {
       return true;
     }
-
     return (
       url.protocol !== "" &&
       (url.pathname.startsWith("//") || url.pathname.startsWith("http")) &&
@@ -147,12 +137,10 @@ export function isUrl(
     return false;
   }
 }
-
 /**
  * Temporary prefix applied to links in document that are not yet persisted.
  */
 export const creatingUrlPrefix = "creating#";
-
 /**
  * Returns true if the given string is a link to outside the application.
  *
@@ -167,7 +155,6 @@ export function isExternalUrl(url: string) {
     (!env.CDN_URL || !url.startsWith(env.CDN_URL))
   );
 }
-
 /**
  * Returns match if the given string is a base64 encoded url.
  *
@@ -178,7 +165,6 @@ export function isBase64Url(url: string) {
   const match = url.match(/^data:([a-z]+\/[^;]+);base64,(.*)/i);
   return match ? match : false;
 }
-
 const allowedSchemes = [
   "mailto:",
   "sms:",
@@ -188,7 +174,6 @@ const allowedSchemes = [
   "maps:",
   "magnet:",
 ];
-
 const allowedImageDataUris = [
   "data:image/png;base64,",
   "data:image/jpeg;base64,",
@@ -196,7 +181,6 @@ const allowedImageDataUris = [
   "data:image/webp;base64,",
   "data:image/avif;base64,",
 ];
-
 /**
  * For use in the editor, this function will ensure that a url is
  * potentially valid, and filter out unsupported and malicious protocols.
@@ -208,7 +192,6 @@ export function sanitizeUrl(url: string | null | undefined) {
   if (!url) {
     return undefined;
   }
-
   // Surrounding whitespace, a newline in particular, would otherwise fail
   // validation and have a scheme prepended to an already qualified url.
   const trimmed = url.trim();
@@ -223,7 +206,6 @@ export function sanitizeUrl(url: string | null | undefined) {
   }
   return trimmed;
 }
-
 /**
  * For use in the editor on image-like elements, this function will ensure
  * that a src is potentially valid. In addition to the protocols allowed by
@@ -237,14 +219,12 @@ export function sanitizeImageSrc(src: string | null | undefined) {
   if (!src) {
     return undefined;
   }
-
   const lower = src.toLowerCase();
   if (allowedImageDataUris.some((scheme) => lower.startsWith(scheme))) {
     return src;
   }
   return sanitizeUrl(src);
 }
-
 /**
  * Returns a regex to match the given url.
  *
@@ -255,12 +235,9 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
   if (!url || !isUrl(url)) {
     return undefined;
   }
-
   const urlObj = new URL(sanitizeUrl(url) as string);
-
   return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
 }
-
 /**
  * Parse the share identifier from a given url.
  *
@@ -271,17 +248,14 @@ export function parseShareIdFromUrl(url: string): string | undefined {
   if (url[0] === "/") {
     url = `${env.URL}${url}`;
   }
-
   let pathname;
   try {
     pathname = new URL(url).pathname;
   } catch (_err) {
     return;
   }
-
   const split = pathname.split("/");
   const indexOfS = split.indexOf("s");
-
   if (indexOfS >= 0) {
     const shareId = split[indexOfS + 1];
     if (shareId) {
@@ -290,10 +264,8 @@ export function parseShareIdFromUrl(url: string): string | undefined {
       return dotIndex >= 0 ? shareId.substring(0, dotIndex) : shareId;
     }
   }
-
   return undefined;
 }
-
 /**
  * Extracts LIKELY urls from the given text, note this does not validate the urls.
  *
@@ -303,7 +275,6 @@ export function parseShareIdFromUrl(url: string): string | undefined {
 export function getUrls(text: string) {
   return Array.from(text.match(/(?:https?):\/\/[^\s]+/gi) || []);
 }
-
 /**
  * Removes the fragment (hash) from a url, if present.
  *
@@ -319,7 +290,6 @@ export function removeUrlFragment(url: string): string {
     return url.split("#")[0];
   }
 }
-
 /**
  * Removes a suffix from the end of a url's pathname, if present. The url is
  * parsed rather than string-replaced so that a matching substring elsewhere in
@@ -340,7 +310,6 @@ export function removeUrlPathSuffix(url: string, suffix: string): string {
     return url.endsWith(suffix) ? url.slice(0, -suffix.length) : url;
   }
 }
-
 /**
  * Converts a url to a display friendly format, removing the protocol and trailing slash.
  *

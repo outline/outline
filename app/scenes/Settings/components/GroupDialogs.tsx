@@ -36,24 +36,20 @@ import type GroupUser from "~/models/GroupUser";
 import Switch from "~/components/Switch";
 import history from "~/utils/history";
 import { settingsPath } from "~/utils/routeHelpers";
-
 type Props = {
   group: Group;
   onSubmit: () => void;
 };
-
 export function CreateGroupDialog() {
   const { dialogs, groups } = useStores();
   const { t } = useTranslation();
   const [name, setName] = React.useState<string | undefined>();
   const [description, setDescription] = React.useState<string | undefined>();
   const [isSaving, setIsSaving] = React.useState(false);
-
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
       setIsSaving(true);
-
       const group = new Group(
         {
           name,
@@ -61,7 +57,6 @@ export function CreateGroupDialog() {
         },
         groups
       );
-
       try {
         await group.save();
         dialogs.closeAllModals();
@@ -74,7 +69,6 @@ export function CreateGroupDialog() {
     },
     [dialogs, groups, name, description]
   );
-
   return (
     <form onSubmit={handleSubmit}>
       <Text as="p" type="secondary">
@@ -116,7 +110,6 @@ export function CreateGroupDialog() {
     </form>
   );
 }
-
 export function EditGroupDialog({ group, onSubmit }: Props) {
   const { t } = useTranslation();
   const [name, setName] = React.useState(group.name);
@@ -129,7 +122,6 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
       setIsSaving(true);
-
       try {
         await group.save({
           name,
@@ -145,14 +137,12 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
     },
     [group, onSubmit, name, description, disableMentions]
   );
-
   const handleNameChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       setName(ev.target.value);
     },
     []
   );
-
   return (
     <form onSubmit={handleSubmit}>
       <Text as="p" type="secondary">
@@ -207,7 +197,6 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
     </form>
   );
 }
-
 export function DeleteGroupDialog({
   groups,
   onSubmit,
@@ -216,12 +205,10 @@ export function DeleteGroupDialog({
   onSubmit: () => void;
 }) {
   const { t } = useTranslation();
-
   const handleSubmit = async () => {
     await performBatch(groups, (group) => group.delete());
     onSubmit();
   };
-
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}
@@ -231,7 +218,7 @@ export function DeleteGroupDialog({
     >
       {groups.length === 1 ? (
         <Trans
-          defaults="Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with."
+          defaults="Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to notebooks and documents that it is associated with."
           values={{
             groupName: groups[0].name,
           }}
@@ -241,14 +228,13 @@ export function DeleteGroupDialog({
         />
       ) : (
         t(
-          "Are you sure about that? Deleting {{ count }} group will cause their members to lose access to collections and documents that they are associated with.",
+          "Are you sure about that? Deleting {{ count }} group will cause their members to lose access to notebooks and documents that they are associated with.",
           { count: groups.length }
         )
       )}
     </ConfirmationDialog>
   );
 }
-
 export const AddPeopleToGroupDialog = observer(function ({
   group,
 }: Pick<Props, "group">) {
@@ -257,12 +243,10 @@ export const AddPeopleToGroupDialog = observer(function ({
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const [query, setQuery] = React.useState("");
-
   const debouncedFetch = React.useMemo(
     () => debounce((q) => users.fetchPage({ query: q }), 250),
     [users]
   );
-
   const handleFilter = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       const updatedQuery = ev.target.value;
@@ -271,7 +255,6 @@ export const AddPeopleToGroupDialog = observer(function ({
     },
     [debouncedFetch]
   );
-
   const handleAddUser = React.useCallback(
     async (user: User) => {
       try {
@@ -279,7 +262,6 @@ export const AddPeopleToGroupDialog = observer(function ({
           groupId: group.id,
           userId: user.id,
         });
-
         toast.success(
           t(`{{userName}} was added to the group`, {
             userName: user.name,
@@ -294,7 +276,6 @@ export const AddPeopleToGroupDialog = observer(function ({
     },
     [t, groupUsers, group.id]
   );
-
   const handleInvitePeople = React.useCallback(() => {
     dialogs.openModal({
       title: t("Invite people"),
@@ -302,7 +283,6 @@ export const AddPeopleToGroupDialog = observer(function ({
       replace: true,
     });
   }, [t, dialogs]);
-
   const { loading } = useRequest(
     React.useCallback(
       () => groupUsers.fetchAll({ id: group.id }),
@@ -310,7 +290,6 @@ export const AddPeopleToGroupDialog = observer(function ({
     ),
     true
   );
-
   return (
     <Flex column>
       <Text as="p" type="secondary">
@@ -367,7 +346,6 @@ export const AddPeopleToGroupDialog = observer(function ({
     </Flex>
   );
 });
-
 type GroupMemberListItemProps = {
   user: User;
   group: Group;
@@ -375,7 +353,6 @@ type GroupMemberListItemProps = {
   onAdd?: () => Promise<void>;
   onRemove?: () => Promise<void>;
 };
-
 const GroupMemberListItem = observer(function ({
   user,
   group,
@@ -385,7 +362,6 @@ const GroupMemberListItem = observer(function ({
   const { t } = useTranslation();
   const { groupUsers } = useStores();
   const can = usePolicy(group);
-
   const permissions = React.useMemo(
     () =>
       [
@@ -405,7 +381,6 @@ const GroupMemberListItem = observer(function ({
       ] as Permission[],
     [t]
   );
-
   return (
     <ListItem
       title={user.name}

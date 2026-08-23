@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -18,7 +18,6 @@ import { Disclosure, RadioGroup, Tab } from "@headlessui/react";
 import { StarIcon } from "@heroicons/react/20/solid";
 import { HeartIcon, MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const product = {
   name: "Zip Tote Basket",
   price: "$140",
@@ -64,7 +63,6 @@ const product = {
     // More sections...
   ],
 };
-
 /**
  * Tailwind UI – product overviews: with image gallery and expandable details.
  *
@@ -72,7 +70,6 @@ const product = {
  */
 export function ProductOverviewsWithImageGalleryAndExpandableDetails() {
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">

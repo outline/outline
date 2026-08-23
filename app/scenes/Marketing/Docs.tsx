@@ -1,16 +1,16 @@
 import { Link, useParams } from "react-router-dom";
 import { DOC_TOPICS, findTopic } from "./topics";
 import { MarketingLayout } from "./MarketingLayout";
-
 /**
  * Documentation: the index when no topic is named, otherwise the topic.
  *
  * @returns the rendered docs page.
  */
 function Docs() {
-  const { topic: slug } = useParams<{ topic?: string }>();
+  const { topic: slug } = useParams<{
+    topic?: string;
+  }>();
   const topic = slug ? findTopic(slug) : undefined;
-
   if (slug && !topic) {
     return (
       <MarketingLayout
@@ -23,7 +23,6 @@ function Docs() {
       </MarketingLayout>
     );
   }
-
   if (topic) {
     return (
       <MarketingLayout title={topic.title} description={topic.summary}>
@@ -49,7 +48,6 @@ function Docs() {
       </MarketingLayout>
     );
   }
-
   return (
     <MarketingLayout
       title="Documentation"
@@ -73,5 +71,4 @@ function Docs() {
     </MarketingLayout>
   );
 }
-
 export default Docs;

@@ -21,21 +21,19 @@ import { useShop } from "~/stores/shop";
 import { currentBranch } from "../../src/mocks/shop";
 import { AppPage } from "~/components/AppPage";
 import { formatDate } from "~/utils/format";
-
 const Gauge = styled.div`
   margin-top: 12px;
 `;
-
 const BranchSection = styled.section`
   margin-top: 32px;
 `;
-
-const RoomCard = styled(Card)<{ $isFull: boolean }>`
+const RoomCard = styled(Card)<{
+  $isFull: boolean;
+}>`
   padding: 16px;
   border-color: ${({ $isFull, theme }) =>
     $isFull ? theme.danger : theme.divider};
 `;
-
 /**
  * Room-by-room occupancy for today, derived from the boardings that overlap
  * the current date.
@@ -51,14 +49,11 @@ function Occupancy() {
     ? allRooms.filter((room) => room.branch === scope)
     : allRooms;
   const calendar = useShop((state) => state.calendar);
-
   const capacity = rooms.reduce((total, room) => total + room.capacity, 0);
   const occupied = rooms.reduce((total, room) => total + room.occupied, 0);
   const roomsInUse = rooms.filter((room) => room.occupied > 0).length;
   const rate = capacity ? Math.round((occupied / capacity) * 100) : 0;
-
   const branches = [...new Set(rooms.map((room) => room.branch))];
-
   const summary = [
     {
       name: t("Occupancy"),
@@ -76,7 +71,6 @@ function Occupancy() {
       hint: "available today",
     },
   ];
-
   return (
     <AppPage
       title={t("Occupancy")}
@@ -180,5 +174,4 @@ function Occupancy() {
     </AppPage>
   );
 }
-
 export default Occupancy;

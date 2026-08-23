@@ -26,14 +26,11 @@ import type { CommentAnchor } from "../commands/comment";
 import { addComment, addDraftCommentAnchor } from "../commands/comment";
 import { addLink } from "../commands/link";
 import { commentedImagePlugin } from "../plugins/CommentedImagePlugin";
-
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
-
 // Token that encodes the image `source` attribute inside the markdown title.
 // The title already carries layoutClass and size; this prefix is stripped on
 // parse so the embed type survives the API markdown round-trip.
 const SOURCE_TOKEN_PREFIX = "source=";
-
 type TitleAttributes = {
   layoutClass?: string;
   title?: string;
@@ -41,7 +38,6 @@ type TitleAttributes = {
   height?: number;
   source?: string;
 };
-
 const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
   const attributes: TitleAttributes = {
     layoutClass: undefined,
@@ -53,7 +49,6 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
   if (!tokenTitle) {
     return attributes;
   }
-
   // Extract a leading "source=<value>" token before layout/size parsing.
   const sourceMatch = tokenTitle.match(
     new RegExp(`^\\s*${SOURCE_TOKEN_PREFIX}(\\S+)\\s*`)
@@ -62,26 +57,21 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
     attributes.source = sourceMatch[1];
     tokenTitle = tokenTitle.replace(sourceMatch[0], "");
   }
-
   ["right-50", "left-50", "full-width"].map((className) => {
     if (tokenTitle.includes(className)) {
       attributes.layoutClass = className;
       tokenTitle = tokenTitle.replace(className, "");
     }
   });
-
   const match = tokenTitle.match(imageSizeRegex);
   if (match) {
     attributes.width = match[1] ? parseInt(match[1], 10) : undefined;
     attributes.height = match[2] ? parseInt(match[2], 10) : undefined;
     tokenTitle = tokenTitle.replace(imageSizeRegex, "");
   }
-
   attributes.title = tokenTitle || undefined;
-
   return attributes;
 };
-
 export const downloadImageNode = async (
   node: ProsemirrorNode,
   cache?: RequestCache
@@ -94,14 +84,12 @@ export const downloadImageNode = async (
     const imageURL = URL.createObjectURL(imageBlob);
     const extension = imageBlob.type.split(/\/|\+/g)[1];
     const potentialName = node.attrs.alt || "image";
-
     // create a temporary link node and click it with our image data
     const link = document.createElement("a");
     link.href = imageURL;
     link.download = `${potentialName}.${extension}`;
     document.body.appendChild(link);
     link.click();
-
     // cleanup
     document.body.removeChild(link);
   } catch {
@@ -112,23 +100,24 @@ export const downloadImageNode = async (
     }
   }
 };
-
 export default class Image extends SimpleImage {
   declare options: SimpleImage["options"] & {
     /** Whether the editor is in read-only mode. */
     readOnly?: boolean;
-    /** Whether the current user has permission to edit the document. */
+    /** Whether the current user has permission to edit the note. */
     canUpdate?: boolean;
-    /** Callback invoked when a comment mark is created in the document. */
+    /** Callback invoked when a comment mark is created in the note. */
     onCreateCommentMark?: (
       commentId: string,
       userId: string,
-      options?: { focus: boolean; anchor?: CommentAnchor }
+      options?: {
+        focus: boolean;
+        anchor?: CommentAnchor;
+      }
     ) => void;
     /** Callback invoked to request that the comments sidebar be opened. */
     onOpenCommentsSidebar?: () => void;
   };
-
   get schema(): NodeSpec {
     return {
       inline: true,
@@ -183,15 +172,12 @@ export default class Image extends SimpleImage {
             const layoutClass = layoutClassMatched
               ? layoutClassMatched[1]
               : null;
-
             const width = img?.getAttribute("width");
             const height = img?.getAttribute("height");
-
             // A link wrapping the image is stored as a node attribute rather
             // than a mark, parse it back so it survives copy/paste. Sanitize
             // the href as it is rendered directly into the DOM by the view.
             const href = sanitizeUrl(img?.closest("a")?.getAttribute("href"));
-
             return {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
@@ -212,11 +198,9 @@ export default class Image extends SimpleImage {
             if (dom.closest(".image") || dom.closest(".emoji")) {
               return false;
             }
-
             // First try HTML attributes
             let width = dom.getAttribute("width");
             let height = dom.getAttribute("height");
-
             // If no HTML attributes, try CSS styles
             if (!width && dom.style.width) {
               const styleWidth = dom.style.width;
@@ -230,7 +214,6 @@ export default class Image extends SimpleImage {
                 height = styleHeight.slice(0, -2);
               }
             }
-
             return {
               src: dom.getAttribute("src"),
               alt: dom.getAttribute("alt"),
@@ -252,7 +235,6 @@ export default class Image extends SimpleImage {
           layoutClass: node.attrs.layoutClass,
           width: node.attrs.width,
         });
-
         // `marks` is held separately below and is not a valid DOM attribute.
         const { marks, ...attrs } = node.attrs;
         const img = [
@@ -265,23 +247,19 @@ export default class Image extends SimpleImage {
             contentEditable: "false",
           },
         ];
-
         // A link applied to an image is held as a node attribute rather than a
         // mark, so it must be written into the DOM explicitly here.
         const linkHref = (marks as NodeAttrMark[] | undefined)?.find(
           (mark) => mark.type === "link"
         )?.attrs?.href;
         const href = typeof linkHref === "string" ? linkHref : undefined;
-
         const children = [href ? ["a", { href: sanitizeUrl(href) }, img] : img];
-
         // Inline icons must use a span wrapper so the browser keeps them inside
         // them inside the containing paragraph; a block `div` (or `p` caption)
         // would be forced onto its own line when the HTML is parsed.
         if (isInlineIcon) {
           return ["span", { class: className }, ...children];
         }
-
         if (node.attrs.alt) {
           children.push([
             "p",
@@ -289,7 +267,6 @@ export default class Image extends SimpleImage {
             node.attrs.alt,
           ]);
         }
-
         return [
           "div",
           {
@@ -302,7 +279,6 @@ export default class Image extends SimpleImage {
         node.attrs.alt ? `(image: ${node.attrs.alt})` : "(image)",
     };
   }
-
   get plugins() {
     return [
       ...super.plugins,
@@ -352,30 +328,25 @@ export default class Image extends SimpleImage {
                 }
               }
             }
-
             return false;
           },
         },
       }),
     ];
   }
-
   handleChangeSize =
     ({ node, getPos }: ComponentProps) =>
     ({ width, height }: { width: number; height?: number }) => {
       const { view, commands } = this.editor;
       const { doc, tr } = view.state;
-
       const pos = getPos();
       const $pos = doc.resolve(pos);
-
       view.dispatch(tr.setSelection(new NodeSelection($pos)));
       commands["resizeImage"]({
         width,
         height: height || node.attrs.height,
       });
     };
-
   handleCaptionKeyDown =
     ({ node, getPos }: ComponentProps) =>
     (event: React.KeyboardEvent<HTMLParagraphElement>) => {
@@ -383,7 +354,6 @@ export default class Image extends SimpleImage {
       // below the image and create a new paragraph.
       if (event.key === "Enter") {
         event.preventDefault();
-
         const { view } = this.editor;
         const $pos = view.state.doc.resolve(getPos() + node.nodeSize);
         view.dispatch(
@@ -395,7 +365,6 @@ export default class Image extends SimpleImage {
         view.focus();
         return;
       }
-
       // Pressing Backspace in an empty caption field focused the image.
       if (event.key === "Backspace" && event.currentTarget.innerText === "") {
         event.preventDefault();
@@ -408,7 +377,6 @@ export default class Image extends SimpleImage {
         return;
       }
     };
-
   handleCaptionBlur =
     ({ node, getPos }: ComponentProps) =>
     (event: React.FocusEvent<HTMLParagraphElement>) => {
@@ -416,10 +384,8 @@ export default class Image extends SimpleImage {
       if (caption === node.attrs.alt) {
         return;
       }
-
       const { view } = this.editor;
       const { tr } = view.state;
-
       // update meta on object
       const pos = getPos();
       const transaction = tr.setNodeMarkup(pos, undefined, {
@@ -428,7 +394,6 @@ export default class Image extends SimpleImage {
       });
       view.dispatch(transaction);
     };
-
   handleZoomIn =
     ({ getPos, view }: ComponentProps) =>
     () => {
@@ -436,7 +401,6 @@ export default class Image extends SimpleImage {
         LightboxImageFactory.createLightboxImage(view, getPos())
       );
     };
-
   handleClick =
     ({ getPos, view }: ComponentProps) =>
     () => {
@@ -444,7 +408,6 @@ export default class Image extends SimpleImage {
         LightboxImageFactory.createLightboxImage(view, getPos())
       );
     };
-
   handleDownload =
     ({ node }: ComponentProps) =>
     (event: React.MouseEvent) => {
@@ -452,7 +415,6 @@ export default class Image extends SimpleImage {
       event.stopPropagation();
       return downloadImageNode(node);
     };
-
   handleEditDiagram =
     ({ getPos, view }: ComponentProps) =>
     () => {
@@ -465,7 +427,6 @@ export default class Image extends SimpleImage {
       view.dispatch(view.state.tr.setSelection(new NodeSelection($pos)));
       commands.editDiagram();
     };
-
   component = (props: ComponentProps) => {
     if (
       props.node.attrs.source === ImageSource.DiagramsNet &&
@@ -478,7 +439,6 @@ export default class Image extends SimpleImage {
         />
       );
     }
-
     return (
       <ImageComponent
         {...props}
@@ -499,18 +459,15 @@ export default class Image extends SimpleImage {
       </ImageComponent>
     );
   };
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     // Skip the preceding space for images at the start of a list item or Markdown parsers may
     // render them as code blocks
     let markdown = state.inList ? "" : " ";
-
     markdown +=
       "![" +
       state.esc((node.attrs.alt || "").replace("\n", "") || "", false) +
       "](" +
       state.esc(node.attrs.src || "", false);
-
     // Build the title attribute payload. The source tag (e.g. diagrams.net)
     // must round-trip so API-driven edits preserve draw.io editability.
     const titleParts: string[] = [];
@@ -522,25 +479,16 @@ export default class Image extends SimpleImage {
     } else if (node.attrs.title) {
       titleParts.push(node.attrs.title);
     }
-
     let size = "";
     if (node.attrs.width || node.attrs.height) {
-      size = ` =${state.esc(
-        node.attrs.width ? String(node.attrs.width) : "",
-        false
-      )}x${state.esc(
-        node.attrs.height ? String(node.attrs.height) : "",
-        false
-      )}`;
+      size = ` =${state.esc(node.attrs.width ? String(node.attrs.width) : "", false)}x${state.esc(node.attrs.height ? String(node.attrs.height) : "", false)}`;
     }
-
     if (titleParts.length > 0 || size) {
       markdown += ' "' + state.esc(titleParts.join(" "), false) + size + '"';
     }
     markdown += ")";
     state.write(markdown);
   }
-
   parseMarkdown() {
     return {
       node: "image",
@@ -551,14 +499,12 @@ export default class Image extends SimpleImage {
       }),
     };
   }
-
   keys(): Record<string, Command> {
     return {
       ...super.keys(),
       "Mod-Alt-m": this.commentCommand,
     };
   }
-
   /**
    * Users that can comment but not edit cannot write the comment mark into
    * the document, so record a pending anchor instead and let the server
@@ -573,7 +519,6 @@ export default class Image extends SimpleImage {
         })
       : addComment({ userId: this.options.userId });
   }
-
   commands({ type }: { type: NodeType }) {
     return {
       ...super.commands({ type }),
@@ -582,13 +527,10 @@ export default class Image extends SimpleImage {
           return false;
         }
         const { node } = state.selection;
-
         if (node.type.name !== "image") {
           return false;
         }
-
         void downloadImageNode(node);
-
         return true;
       },
       alignRight: (): Command => (state, dispatch) => {
@@ -649,18 +591,15 @@ export default class Image extends SimpleImage {
           if (!(state.selection instanceof NodeSelection)) {
             return false;
           }
-
           const { selection } = state;
           const transformedAttrs = {
             ...state.selection.node.attrs,
             width,
             height,
           };
-
           const tr = state.tr
             .setNodeMarkup(selection.from, undefined, transformedAttrs)
             .setMeta("addToHistory", true);
-
           const $pos = tr.doc.resolve(selection.from);
           dispatch?.(tr.setSelection(new NodeSelection($pos)));
           return true;
@@ -669,7 +608,6 @@ export default class Image extends SimpleImage {
       linkOnImage: (): Command => addLink({ href: "" }),
     };
   }
-
   inputRules({ type }: { type: NodeType }) {
     /**
      * Matches following attributes in Markdown-typed image: [, alt, src, class]
@@ -681,12 +619,10 @@ export default class Image extends SimpleImage {
      */
     const IMAGE_INPUT_REGEX =
       /!\[(?<alt>[^\][]*?)]\((?<filename>[^\][]*?)(?=“|\))“?(?<layoutclass>[^\][”]+)?”?\)$/;
-
     return [
       new InputRule(IMAGE_INPUT_REGEX, (state, match, start, end) => {
         const [okay, alt, src, matchedTitle] = match;
         const { tr } = state;
-
         if (okay) {
           tr.replaceWith(
             start - 1,
@@ -698,7 +634,6 @@ export default class Image extends SimpleImage {
             })
           );
         }
-
         return tr;
       }),
     ];

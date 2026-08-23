@@ -10,7 +10,6 @@ import { Theme } from "~/stores/UiStore";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "./useStores";
 import useQuery from "./useQuery";
-
 /**
  * Builds a theme based on the current user's preferences, the current device
  * and the custom theme provided.
@@ -28,7 +27,6 @@ export default function useBuildTheme(
   const isMobile = useMediaQuery(`(max-width: ${breakpoints.tablet}px)`);
   const isPrinting = useMediaQuery("print");
   const queryTheme = (params.get("theme") as Theme) || undefined;
-
   // Store the theme override in UiStore so it persists during navigation
   useEffect(() => {
     if (
@@ -38,9 +36,7 @@ export default function useBuildTheme(
       ui.setThemeOverride(queryTheme);
     }
   }, [queryTheme, ui]);
-
   const resolvedTheme = overrideTheme ?? ui.resolvedTheme;
-
   const theme = useMemo(
     () =>
       isPrinting
@@ -54,6 +50,5 @@ export default function useBuildTheme(
             : buildLightTheme(customTheme),
     [customTheme, isMobile, isPrinting, resolvedTheme]
   );
-
   return theme;
 }

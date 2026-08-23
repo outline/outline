@@ -20,7 +20,6 @@ import Text from "../Text";
 import Tooltip from "../Tooltip";
 import NotificationListItem from "./NotificationListItem";
 import { HStack } from "../primitives/HStack";
-
 /**
  * Hook that returns filtered notifications in a stable order. The order is
  * snapshotted on first call (when the popover mounts) so that toggling
@@ -36,24 +35,20 @@ function useStableOrderedNotifications(
   filter: NotificationFilter
 ) {
   const orderSnapshotRef = React.useRef<string[] | null>(null);
-
   return React.useMemo(() => {
     if (orderSnapshotRef.current === null) {
       orderSnapshotRef.current = active.map((n) => n.id);
     }
-
     const filtered =
       filter === "all"
         ? active
         : active.filter((notification) =>
             Notification.filterCategories[filter].includes(notification.event)
           );
-
     const snapshot = orderSnapshotRef.current;
     const orderMap = new Map(snapshot.map((id, index) => [id, index]));
     const inSnapshot: Notification[] = [];
     const newItems: Notification[] = [];
-
     for (const notification of filtered) {
       if (orderMap.has(notification.id)) {
         inSnapshot.push(notification);
@@ -61,20 +56,16 @@ function useStableOrderedNotifications(
         newItems.push(notification);
       }
     }
-
     inSnapshot.sort(
       (a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0)
     );
-
     return [...newItems, ...inSnapshot];
   }, [active, filter]);
 }
-
 type Props = {
   /** Callback when the notification panel wants to close. */
   onRequestClose: () => void;
 };
-
 /**
  * A panel containing a list of notifications and controls to manage them.
  */
@@ -86,27 +77,23 @@ function Notifications(
   const { t } = useTranslation();
   const isMobile = useMobile();
   const [filter, setFilter] = React.useState<NotificationFilter>("all");
-
   const filterOptions = React.useMemo<Option[]>(
     () => [
       { type: "item", label: t("All"), value: "all" },
       { type: "item", label: t("Mentions"), value: "mentions" },
       { type: "item", label: t("Comments and replies"), value: "comments" },
       { type: "item", label: t("Reactions"), value: "reactions" },
-      { type: "item", label: t("Document events"), value: "documents" },
-      { type: "item", label: t("Collection events"), value: "collections" },
+      { type: "item", label: t("Document events"), value: "notes" },
+      { type: "item", label: t("Notebook events"), value: "collections" },
       { type: "item", label: t("System"), value: "system" },
     ],
     [t]
   );
-
   const filteredNotifications = useStableOrderedNotifications(
     notifications.active,
     filter
   );
-
   const unreadCount = notifications.approximateUnreadCount;
-
   return (
     <ErrorBoundary>
       <Flex
@@ -170,7 +157,6 @@ function Notifications(
     </ErrorBoundary>
   );
 }
-
 const StyledInputSelect = styled(InputSelect)`
   color: ${s("textSecondary")};
   font-weight: 500;
@@ -182,19 +168,16 @@ const StyledInputSelect = styled(InputSelect)`
     line-height: 24px !important;
   }
 `;
-
 const StyledScrollable = styled(Scrollable)`
   flex: 1;
   min-height: 0;
 `;
-
 const EmptyNotifications = styled(Empty)`
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 1;
 `;
-
 const Button = styled(NudeButton)`
   color: ${s("textSecondary")};
 
@@ -204,7 +187,6 @@ const Button = styled(NudeButton)`
     background: ${s("sidebarControlHoverBackground")};
   }
 `;
-
 const Header = styled(Flex)`
   padding: 8px 12px 12px;
   min-height: 44px;
@@ -221,5 +203,4 @@ const Header = styled(Flex)`
     }
   }
 `;
-
 export default observer(React.forwardRef(Notifications));

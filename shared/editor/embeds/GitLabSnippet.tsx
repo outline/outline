@@ -1,13 +1,16 @@
 import * as React from "react";
 import Frame from "../components/Frame";
 import type { EmbedProps as Props } from ".";
-
 function GitLabSnippet(props: Props) {
   const frame = React.useRef<HTMLIFrameElement>(null);
   const [height, setHeight] = React.useState(400);
-
   React.useEffect(() => {
-    const handler = (event: MessageEvent<{ type: string; value: number }>) => {
+    const handler = (
+      event: MessageEvent<{
+        type: string;
+        value: number;
+      }>
+    ) => {
       const contentWindow =
         frame.current?.contentWindow ||
         frame.current?.contentDocument?.defaultView;
@@ -19,10 +22,8 @@ function GitLabSnippet(props: Props) {
       }
     };
     window.addEventListener("message", handler);
-
     return () => window.removeEventListener("message", handler);
   }, []);
-
   return (
     <Frame
       ref={frame}
@@ -34,5 +35,4 @@ function GitLabSnippet(props: Props) {
     />
   );
 }
-
 export default GitLabSnippet;

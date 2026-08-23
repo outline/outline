@@ -11,13 +11,11 @@ import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 const PLANS = [
   { id: "free", name: "Free", price: 0 },
   { id: "pro", name: "Pro", price: 499000 },
   { id: "business", name: "Business", price: 1290000 },
 ] as const;
-
 /**
  * The workspace subscription: which plan is in force, how much of it is being
  * used, and the invoices behind it.
@@ -34,11 +32,9 @@ function Billing() {
   const invoices = useShop((state) => state.billingInvoices);
   const usage = useShop((state) => state.usage);
   const changePlan = useShop((state) => state.changePlan);
-
   useEffect(() => {
     void fetchAll();
   }, [fetchAll]);
-
   const rows = usage
     ? [
         { name: t("Staff"), ...usage.staff },
@@ -46,7 +42,6 @@ function Billing() {
         { name: t("Boardings this month"), ...usage.boardings },
       ]
     : [];
-
   return (
     <Scene title={t("Billing")}>
       <Heading>{t("Billing")}</Heading>
@@ -131,5 +126,4 @@ function Billing() {
     </Scene>
   );
 }
-
 export default Billing;

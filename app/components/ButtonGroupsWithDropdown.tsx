@@ -2,13 +2,11 @@ import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const items = [
   { name: "Save and schedule", href: "#" },
   { name: "Save and publish", href: "#" },
   { name: "Export PDF", href: "#" },
 ];
-
 /**
  * Tailwind UI – button groups: with dropdown.
  *

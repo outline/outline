@@ -34,7 +34,6 @@ import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import TableCell from "@shared/editor/nodes/TableCell";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 import type { EditorState } from "prosemirror-state";
-
 /**
  * Get the set of background colors used in a column.
  *
@@ -45,7 +44,6 @@ import type { EditorState } from "prosemirror-state";
 function getColumnColors(state: EditorState, colIndex: number): Set<string> {
   const colors = new Set<string>();
   const cells = getCellsInColumn(colIndex)(state) || [];
-
   cells.forEach((pos) => {
     const node = state.doc.nodeAt(pos);
     if (!node) {
@@ -58,10 +56,8 @@ function getColumnColors(state: EditorState, colIndex: number): Set<string> {
       colors.add(backgroundMark.attrs.color);
     }
   });
-
   return colors;
 }
-
 /**
  * Returns menu items for the table column selection toolbar.
  *
@@ -72,17 +68,14 @@ export default function tableColMenuItems(ctx: SelectionContext): MenuItem[] {
   if (ctx.readOnly) {
     return [];
   }
-
   const index = ctx.colIndex!;
   const rtl = ctx.rtl;
   const { schema, state } = ctx;
   const { selection } = state;
   const selectedCols = getAllSelectedColumns(state);
-
   if (!(selection instanceof CellSelection)) {
     return [];
   }
-
   const tableMap = selectedRect(state);
   const colColors = getColumnColors(state, index);
   const hasBackground = colColors.size > 0;
@@ -92,7 +85,6 @@ export default function tableColMenuItems(ctx: SelectionContext): MenuItem[] {
     colColors.size === 1 && !TableCell.isPresetColor(activeColor)
       ? activeColor
       : undefined;
-
   return [
     {
       label: t("Align"),

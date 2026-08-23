@@ -3,7 +3,6 @@ import {
   CalendarIcon,
   TruckIcon,
 } from "@heroicons/react/24/outline";
-
 const perks = [
   {
     name: "10-year all-inclusive warranty",
@@ -21,7 +20,6 @@ const perks = [
     icon: TruckIcon,
   },
 ];
-
 /**
  * Tailwind UI – incentives: 3 column with icons and supporting text.
  *

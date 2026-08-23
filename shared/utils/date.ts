@@ -47,7 +47,6 @@ import { zhCN } from "date-fns/locale/zh-CN";
 import { zhTW } from "date-fns/locale/zh-TW";
 import type { DateFilter } from "../types";
 import { isBrowser } from "./browser";
-
 /**
  * Determines if the user's locale uses month-first date format (MM/dd).
  *
@@ -57,17 +56,14 @@ export function usesMonthFirstFormat(): boolean {
   if (!isBrowser || typeof Intl === "undefined") {
     return false;
   }
-
   // Format a known date and check if month comes before day
   const formatted = new Intl.DateTimeFormat(undefined, {
     month: "2-digit",
     day: "2-digit",
   }).format(new Date(2000, 11, 25)); // Dec 25, 2000
-
   // If it starts with "12", month comes first
   return formatted.startsWith("12");
 }
-
 /**
  * Attempts to parse a date string in various common formats.
  *
@@ -78,10 +74,8 @@ export function parseDate(dateStr: string): Date | null {
   if (!dateStr) {
     return null;
   }
-
   // Remove any trailing alphabetic text (e.g., "Uhr", "at", "o'clock", etc.)
   const cleaned = dateStr.trim().replace(/\s*[a-zA-Z]+\s*$/, "");
-
   const monthFirst = [
     "MM/dd/yyyy HH:mm:ss",
     "MM/dd/yyyy HH:mm",
@@ -90,7 +84,6 @@ export function parseDate(dateStr: string): Date | null {
     "MM/dd HH:mm",
     "MM/dd",
   ];
-
   const dayFirst = [
     "dd/MM/yyyy HH:mm:ss",
     "dd/MM/yyyy HH:mm",
@@ -99,12 +92,10 @@ export function parseDate(dateStr: string): Date | null {
     "dd/MM HH:mm",
     "dd/MM",
   ];
-
   // Ambiguous slash formats - order based on user's locale
   const slashFormats = usesMonthFirstFormat()
     ? [...monthFirst, ...dayFirst]
     : [...dayFirst, ...monthFirst];
-
   // Common date formats used in tables (with and without time, with and without year)
   const formats = [
     // ISO formats
@@ -127,38 +118,29 @@ export function parseDate(dateStr: string): Date | null {
     // Locale-dependent slash formats
     ...slashFormats,
   ];
-
   const referenceDate = new Date();
-
   for (const format of formats) {
     const date = parse(cleaned, format, referenceDate);
     if (isValid(date)) {
       return date;
     }
   }
-
   return null;
 }
-
 export function subtractDate(date: Date, period: DateFilter) {
   switch (period) {
     case "day":
       return subDays(date, 1);
-
     case "week":
       return subWeeks(date, 1);
-
     case "month":
       return subMonths(date, 1);
-
     case "year":
       return subYears(date, 1);
-
     default:
       return date;
   }
 }
-
 /**
  * Returns a humanized relative time string for the given date.
  *
@@ -177,15 +159,12 @@ export function dateToRelative(
 ) {
   const now = new Date();
   const parsedDateTime = new Date(date);
-
   // Protect against "in less than a minute" when users computer clock is off.
   const normalizedDateTime =
     parsedDateTime > now && parsedDateTime < addSeconds(now, 60)
       ? now
       : parsedDateTime;
-
   const output = formatDistanceToNow(normalizedDateTime, options);
-
   // Some tweaks to make english language shorter.
   if (options?.shorten) {
     return output
@@ -193,10 +172,8 @@ export function dateToRelative(
       .replace("less than a minute ago", "just now")
       .replace("minute", "min");
   }
-
   return output;
 }
-
 /**
  * Converts a locale string from Unicode CLDR format to BCP47 format.
  *
@@ -206,7 +183,6 @@ export function dateToRelative(
 export function unicodeCLDRtoBCP47(locale: string) {
   return locale.replace("_", "-").replace("root", "und");
 }
-
 /**
  * Converts a locale string from BCP47 format to Unicode CLDR format.
  *
@@ -216,7 +192,6 @@ export function unicodeCLDRtoBCP47(locale: string) {
 export function unicodeBCP47toCLDR(locale: string) {
   return locale.replace("-", "_").replace("und", "root");
 }
-
 /**
  * Converts a locale string from Unicode CLDR format to ISO 639 format.
  *
@@ -226,7 +201,6 @@ export function unicodeBCP47toCLDR(locale: string) {
 export function unicodeCLDRtoISO639(locale: string) {
   return locale.split("_")[0];
 }
-
 /**
  * Returns the current date as a string formatted depending on current locale.
  *
@@ -239,7 +213,6 @@ export function getCurrentDateAsString(locale?: Intl.LocalesArgument) {
     day: "numeric",
   });
 }
-
 /**
  * Returns the current time as a string formatted depending on current locale.
  *
@@ -251,7 +224,6 @@ export function getCurrentTimeAsString(locale?: Intl.LocalesArgument) {
     minute: "numeric",
   });
 }
-
 /**
  * Returns the current date and time as a string formatted depending on current
  * locale.
@@ -267,7 +239,6 @@ export function getCurrentDateTimeAsString(locale?: Intl.LocalesArgument) {
     minute: "numeric",
   });
 }
-
 const locales = {
   ca_ES: ca,
   cs_CZ: cs,
@@ -296,7 +267,6 @@ const locales = {
   zh_CN: zhCN,
   zh_TW: zhTW,
 };
-
 /**
  * Returns the date-fns locale object for the given user language preference.
  *
@@ -306,9 +276,7 @@ const locales = {
 export function dateLocale(language: keyof typeof locales | undefined | null) {
   return language ? locales[language] : undefined;
 }
-
 export { locales };
-
 /**
  * Formats a Date into a date-only ISO string (yyyy-MM-dd) in the local
  * timezone. Used as the stored value for date mentions.
@@ -319,7 +287,6 @@ export { locales };
 export function toISODate(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
-
 /**
  * Formats a Date into a date and time ISO string (yyyy-MM-dd'T'HH:mm) in the
  * local timezone. Used as the stored value for time-specific date mentions.
@@ -330,10 +297,8 @@ export function toISODate(date: Date): string {
 export function toISODateTime(date: Date): string {
   return format(date, "yyyy-MM-dd'T'HH:mm");
 }
-
 const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const isoDateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-
 /**
  * Whether a date mention's stored ISO value carries a time component.
  *
@@ -343,7 +308,6 @@ const isoDateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 export function hasTimeComponent(iso: string): boolean {
   return isoDateTimeRegex.test(iso);
 }
-
 /**
  * Parses a date mention's stored ISO string into a Date in the local timezone.
  * Accepts both the date-only (yyyy-MM-dd) and time-specific
@@ -361,9 +325,7 @@ export function parseISODate(iso: string): Date | null {
   const date = parseISO(iso);
   return isValid(date) ? date : null;
 }
-
 const separators = new Map<string, string>();
-
 /**
  * Returns the separator a locale places between the date and time halves of a
  * formatted datetime, e.g. " at " in English or " um " in German. It is read
@@ -373,21 +335,17 @@ function dateTimeSeparator(language?: keyof typeof locales | null): string {
   // Without a language the date and time halves fall back to date-fns' English
   // locale, so the separator must be English too rather than the platform's.
   const tag = language ? language.replace("_", "-") : "en-US";
-
   let separator = separators.get(tag);
   if (separator !== undefined) {
     return separator;
   }
-
   separator = " ";
-
   if (typeof Intl !== "undefined") {
     const sample = new Date(2000, 11, 25, 13, 0);
     const parts = new Intl.DateTimeFormat(tag, {
       dateStyle: "long",
       timeStyle: "short",
     }).formatToParts(sample);
-
     const timeIndex = parts.findIndex((part) =>
       ["hour", "minute", "dayPeriod"].includes(part.type)
     );
@@ -400,7 +358,6 @@ function dateTimeSeparator(language?: keyof typeof locales | null): string {
         dateStyle: "long",
       }).formatToParts(sample);
       const dateSuffix = dateParts[dateParts.length - 1];
-
       let value = preceding.value;
       if (
         dateSuffix?.type === "literal" &&
@@ -412,11 +369,9 @@ function dateTimeSeparator(language?: keyof typeof locales | null): string {
       separator = whitespace === -1 ? " " : value.slice(whitespace);
     }
   }
-
   separators.set(tag, separator);
   return separator;
 }
-
 /**
  * Combines the readable date and time halves of a label with the separator
  * appropriate for the locale.
@@ -428,7 +383,6 @@ function joinDateAndTime(
 ): string {
   return `${dateString}${dateTimeSeparator(language)}${timeString}`;
 }
-
 /**
  * Formats a date mention's stored ISO value into an absolute, localized,
  * human-readable label. The year is omitted within the current year (e.g.
@@ -452,13 +406,11 @@ export function dateToReadable(
   const dateString = isSameYear(date, new Date())
     ? format(date, "MMMM do", { locale })
     : format(date, "MMMM do, yyyy", { locale });
-
   if (!hasTimeComponent(iso)) {
     return dateString;
   }
   return joinDateAndTime(dateString, format(date, "p", { locale }), language);
 }
-
 /**
  * Formats a date mention's stored ISO value into a relative, localized,
  * human-readable label with increasing granularity. Returns "Today",
@@ -480,10 +432,8 @@ export function dateToRelativeReadable(
   if (!date) {
     return iso;
   }
-
   const locale = dateLocale(language);
   let dateString;
-
   if (isToday(date)) {
     dateString = t("Today");
   } else if (isTomorrow(date)) {
@@ -495,7 +445,6 @@ export function dateToRelativeReadable(
   } else {
     dateString = format(date, "MMMM do, yyyy", { locale });
   }
-
   if (!hasTimeComponent(iso)) {
     return dateString;
   }

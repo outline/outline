@@ -14,9 +14,8 @@ import {
 } from "~/actions/definitions/comments";
 import usePolicy from "~/hooks/usePolicy";
 import { ActionSeparator, createAction } from "~/actions";
-import { ActiveDocumentSection } from "~/actions/sections";
+import { ActiveNoteSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
-
 type Props = {
   /** The comment to associate with the menu */
   comment: Comment;
@@ -29,7 +28,6 @@ type Props = {
   /** Callback when the comment has been updated */
   onUpdate: (attrs: { resolved: boolean }) => void;
 };
-
 function CommentMenu({
   comment,
   onEdit,
@@ -39,13 +37,12 @@ function CommentMenu({
 }: Props) {
   const { t } = useTranslation();
   const can = usePolicy(comment);
-
   const actions = useMemo(
     () => [
       createAction({
         name: `${t("Edit")}…`,
         icon: <EditIcon />,
-        section: ActiveDocumentSection,
+        section: ActiveNoteSection,
         visible: can.update && !comment.isResolved,
         perform: onEdit,
       }),
@@ -66,9 +63,7 @@ function CommentMenu({
     ],
     [t, comment, can.update, onEdit, onUpdate, onDelete]
   );
-
   const rootAction = useMenuAction(actions);
-
   return (
     <DropdownMenu
       action={rootAction}
@@ -80,5 +75,4 @@ function CommentMenu({
     </DropdownMenu>
   );
 }
-
 export default observer(CommentMenu);

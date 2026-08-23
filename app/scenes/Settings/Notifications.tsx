@@ -29,14 +29,12 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import { client } from "~/utils/ApiClient";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
-
 function Notifications() {
   const user = useCurrentUser();
   const { t } = useTranslation();
-
   const options = [
     {
-      event: NotificationEventType.PublishDocument,
+      event: NotificationEventType.PublishNote,
       icon: <PublishIcon />,
       title: t("Document published"),
       description: t(
@@ -44,7 +42,7 @@ function Notifications() {
       ),
     },
     {
-      event: NotificationEventType.UpdateDocument,
+      event: NotificationEventType.UpdateNote,
       icon: <EditIcon />,
       title: t("Document updated"),
       description: t(
@@ -68,7 +66,7 @@ function Notifications() {
       ),
     },
     {
-      event: NotificationEventType.GroupMentionedInDocument,
+      event: NotificationEventType.GroupMentionedInNote,
       icon: <GroupIcon />,
       title: t("Group mentions"),
       description: t(
@@ -92,11 +90,11 @@ function Notifications() {
       ),
     },
     {
-      event: NotificationEventType.CreateCollection,
+      event: NotificationEventType.CreateNotebook,
       icon: <CollectionIcon />,
-      title: t("Collection created"),
+      title: t("Notebook created"),
       description: t(
-        "Receive a notification whenever a new collection is created"
+        "Receive a notification whenever a new notebook is created"
       ),
     },
     {
@@ -108,7 +106,7 @@ function Notifications() {
       ),
     },
     {
-      event: NotificationEventType.AddUserToDocument,
+      event: NotificationEventType.AddUserToNote,
       icon: <DocumentIcon />,
       title: t("Invited to document"),
       description: t(
@@ -116,11 +114,11 @@ function Notifications() {
       ),
     },
     {
-      event: NotificationEventType.AddUserToCollection,
+      event: NotificationEventType.AddUserToNotebook,
       icon: <CollectionIcon />,
-      title: t("Invited to collection"),
+      title: t("Invited to notebook"),
       description: t(
-        "Receive a notification when you are given access to a collection"
+        "Receive a notification when you are given access to a notebook"
       ),
     },
     {
@@ -132,7 +130,7 @@ function Notifications() {
       ),
     },
     {
-      event: NotificationEventType.RequestDocumentAccess,
+      event: NotificationEventType.RequestNoteAccess,
       icon: <CheckboxIcon checked />,
       title: t("Document access requested"),
       description: t(
@@ -154,13 +152,10 @@ function Notifications() {
       description: t("Receive an email when new features of note are added"),
     },
   ];
-
   const visibleOptions = options.filter((o) => o.visible !== false);
-
   const showSuccessMessage = debounce(() => {
     toast.success(t("Notifications saved"));
   }, 500);
-
   const handleChange = React.useCallback(
     (eventType: NotificationEventType) => async (checked: boolean) => {
       await user.setNotificationEventType(eventType, checked);
@@ -168,7 +163,6 @@ function Notifications() {
     },
     [user, showSuccessMessage]
   );
-
   const handleToggleAll = React.useCallback(
     async (checked: boolean) => {
       runInAction(() => {
@@ -187,13 +181,10 @@ function Notifications() {
     },
     [user, visibleOptions, showSuccessMessage]
   );
-
   const allEnabled = visibleOptions.every((o) =>
     user.subscribedToEventType(o.event)
   );
-
   const showSuccessNotice = window.location.search === "?success";
-
   return (
     <Scene title={t("Notifications")} icon={<EmailIcon />}>
       <Heading>{t("Notifications")}</Heading>
@@ -224,7 +215,6 @@ function Notifications() {
 
       {options.map((option) => {
         const setting = user.subscribedToEventType(option.event);
-
         return (
           <SettingRow
             key={option.event}
@@ -251,5 +241,4 @@ function Notifications() {
     </Scene>
   );
 }
-
 export default observer(Notifications);

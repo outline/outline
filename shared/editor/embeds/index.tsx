@@ -21,7 +21,6 @@ import Trello from "./Trello";
 import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
 import PlantUmlDiagrams from "./PlantUml";
-
 export type EmbedProps = {
   isSelected: boolean;
   isEditable: boolean;
@@ -31,8 +30,9 @@ export type EmbedProps = {
     href: string;
   };
 };
-
-const Img = styled(Image)<{ $invertable?: boolean }>`
+const Img = styled(Image)<{
+  $invertable?: boolean;
+}>`
   border-radius: 3px;
   margin: 3px;
   width: 18px;
@@ -45,7 +45,6 @@ const Img = styled(Image)<{ $invertable?: boolean }>`
     filter: invert(1);
   `}
 `;
-
 export class EmbedDescriptor {
   /** A unique identifier for the embed */
   id: string;
@@ -92,7 +91,6 @@ export class EmbedDescriptor {
   settings?: IntegrationSettings<IntegrationType.Embed>;
   /** Whether this embed has been disabled by the team admin */
   disabled?: boolean;
-
   constructor(options: Omit<EmbedDescriptor, "matcher">) {
     this.id = options.id;
     this.icon = options.icon;
@@ -111,28 +109,23 @@ export class EmbedDescriptor {
     this.visible = options.visible;
     this.component = options.component;
   }
-
   matcher(url: string): false | RegExpMatchArray {
     const regexes = this.regexMatch ?? [];
     const settingsDomainRegex = this.settings?.url
       ? urlRegex(this.settings?.url)
       : undefined;
-
     if (settingsDomainRegex) {
       regexes.unshift(settingsDomainRegex);
     }
-
     for (const regex of regexes) {
       const result = url.match(regex);
       if (result) {
         return result;
       }
     }
-
     return false;
   }
 }
-
 const embeds: EmbedDescriptor[] = [
   new EmbedDescriptor({
     id: "airtable",
@@ -186,7 +179,6 @@ const embeds: EmbedDescriptor[] = [
     regexMatch: [/^https:\/\/(?:www\.)?canva\.com\/design\/([/a-zA-Z0-9_-]*)$/],
     transformMatch: (matches: RegExpMatchArray) => {
       const input = matches.input ?? matches[0];
-
       try {
         const url = new URL(input);
         const params = new URLSearchParams(url.search);
@@ -195,7 +187,6 @@ const embeds: EmbedDescriptor[] = [
       } catch (_err) {
         // Ignore
       }
-
       return input;
     },
     icon: <Img src="/images/canva.png" alt="Canva" />,
@@ -287,10 +278,7 @@ const embeds: EmbedDescriptor[] = [
       if (matches[0].includes("/embed")) {
         return matches[0];
       }
-
-      return `https://www.figma.com/embed?embed_host=outline&url=${encodeURIComponent(
-        matches[0]
-      )}`;
+      return `https://www.figma.com/embed?embed_host=outline&url=${encodeURIComponent(matches[0])}`;
     },
     icon: <Img src="/images/figma.png" alt="Figma" />,
   }),
@@ -440,20 +428,17 @@ const embeds: EmbedDescriptor[] = [
     regexMatch: [new RegExp("^https?://([a-z.-]+\\.)?getgrist\\.com/(.+)$")],
     transformMatch: (matches: RegExpMatchArray) => {
       const input = matches.input ?? matches[0];
-
       try {
         const url = new URL(input);
         const params = new URLSearchParams(url.search);
         if (params.has("embed") || params.get("style") === "singlePage") {
           return input;
         }
-
         params.append("embed", "true");
         return `${url.origin}${url.pathname}?${params.toString()}`;
       } catch (_err) {
         // Ignore
       }
-
       return input;
     },
     icon: <Img src="/images/grist.png" alt="Grist" />,
@@ -746,5 +731,4 @@ const embeds: EmbedDescriptor[] = [
     hideToolbar: true,
   }),
 ];
-
 export default embeds;

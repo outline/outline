@@ -14,7 +14,6 @@ import { Tab, Tabs } from "~/components/Tabs";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 const TABS = [
   "Journal",
   "Expenses",
@@ -23,9 +22,7 @@ const TABS = [
   "Attendance",
   "Reports",
 ] as const;
-
 const CATEGORIES = ["Rent", "Wages", "Supplies", "Utilities"];
-
 /**
  * The books.
  *
@@ -45,7 +42,6 @@ function Accounting() {
   const cashFlow = useShop((state) => state.cashFlow);
   const commissions = useShop((state) => state.commissions);
   const createExpense = useShop((state) => state.createExpense);
-
   const tabs = usePanel<(typeof TABS)[number]>("Journal");
   const tab = tabs.current;
   const fields = useFields({
@@ -54,10 +50,8 @@ function Accounting() {
     amount: "",
     paidFrom: "acc-cash",
   });
-
   const accountName = (id: string) =>
     accounts.find((account) => account.id === id)?.name ?? id;
-
   const income = trialBalance
     .filter((row) => row.type === "income")
     .reduce((total, row) => total + row.balance, 0);
@@ -66,7 +60,6 @@ function Accounting() {
     .reduce((total, row) => total + row.balance, 0);
   const debits = trialBalance.reduce((total, row) => total + row.debit, 0);
   const credits = trialBalance.reduce((total, row) => total + row.credit, 0);
-
   const pettyCash = journal
     .flatMap((entry) =>
       entry.lines
@@ -76,7 +69,6 @@ function Accounting() {
     .reverse();
   const pettyBalance =
     trialBalance.find((row) => row.id === "acc-petty")?.balance ?? 0;
-
   const handleRecord = async () => {
     const value = Number(fields.get("amount"));
     if (!value || !fields.get("description").trim()) {
@@ -93,7 +85,6 @@ function Accounting() {
     fields.set("description", "");
     fields.set("amount", "");
   };
-
   return (
     <AppPage
       title={t("Accounting")}
@@ -365,5 +356,4 @@ function Accounting() {
     </AppPage>
   );
 }
-
 export default Accounting;

@@ -8,16 +8,15 @@ import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
 import { client } from "~/utils/ApiClient";
-
 /**
  * Subscribe form content displayed inside the popover.
  */
 export function ShareSubscribeForm({
   shareId,
-  documentId,
+  noteId,
 }: {
   shareId: string;
-  documentId?: string;
+  noteId?: string;
 }) {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
@@ -25,13 +24,16 @@ export function ShareSubscribeForm({
     "idle" | "loading" | "success" | "error"
   >("idle");
   const [errorMessage, setErrorMessage] = useState("");
-
   const handleSubmit = useCallback(
     async (ev: FormEvent) => {
       ev.preventDefault();
       setStatus("loading");
       try {
-        await client.post("/shares.subscribe", { shareId, documentId, email });
+        await client.post("/shares.subscribe", {
+          shareId,
+          documentId: noteId,
+          email,
+        });
         setStatus("success");
       } catch (err) {
         setErrorMessage(
@@ -40,9 +42,8 @@ export function ShareSubscribeForm({
         setStatus("error");
       }
     },
-    [shareId, documentId, email, t]
+    [shareId, noteId, email, t]
   );
-
   const handleChange = useCallback(
     (ev: ChangeEvent<HTMLInputElement>) => {
       setEmail(ev.target.value);
@@ -53,7 +54,6 @@ export function ShareSubscribeForm({
     },
     [status]
   );
-
   if (status === "success") {
     return (
       <FormContainer>
@@ -63,7 +63,6 @@ export function ShareSubscribeForm({
       </FormContainer>
     );
   }
-
   return (
     <FormContainer>
       <StyledForm onSubmit={handleSubmit}>
@@ -89,17 +88,14 @@ export function ShareSubscribeForm({
     </FormContainer>
   );
 }
-
 const FormContainer = styled.div`
   padding: 4px 0;
 `;
-
 const StyledForm = styled.form`
   display: flex;
   flex-direction: column;
   gap: 8px;
 `;
-
 const ErrorText = styled.p`
   font-size: 13px;
   color: ${s("danger")};

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -21,7 +21,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = {
   categories: [
     {
@@ -150,7 +149,6 @@ const footerNavigation = {
     { name: "Find a store", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – order history pages: with invoice panels.
  *

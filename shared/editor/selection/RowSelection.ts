@@ -3,7 +3,6 @@ import { type Node } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
 import { CellSelection, inSameTable, TableMap } from "prosemirror-tables";
 import type { Mappable } from "prosemirror-transform";
-
 export class RowSelection extends CellSelection {
   constructor(
     public $anchorCell: ResolvedPos,
@@ -12,7 +11,6 @@ export class RowSelection extends CellSelection {
   ) {
     super($anchorCell, $headCell);
   }
-
   getBookmark(): RowBookmark {
     return new RowBookmark(
       this.$anchorCell.pos,
@@ -20,7 +18,6 @@ export class RowSelection extends CellSelection {
       this.$index
     );
   }
-
   public static rowSelection(
     $anchorCell: ResolvedPos,
     $headCell: ResolvedPos = $anchorCell,
@@ -29,11 +26,9 @@ export class RowSelection extends CellSelection {
     const table = $anchorCell.node(-1);
     const map = TableMap.get(table);
     const tableStart = $anchorCell.start(-1);
-
     const anchorRect = map.findCell($anchorCell.pos - tableStart);
     const headRect = map.findCell($headCell.pos - tableStart);
     const doc = $anchorCell.node(0);
-
     if (anchorRect.left <= headRect.left) {
       if (anchorRect.left > 0) {
         $anchorCell = doc.resolve(
@@ -58,14 +53,12 @@ export class RowSelection extends CellSelection {
     return new RowSelection($anchorCell, $headCell, $index);
   }
 }
-
 export class RowBookmark {
   constructor(
     public anchor: number,
     public head: number,
     public index: number = 0
   ) {}
-
   map(mapping: Mappable): RowBookmark {
     return new RowBookmark(
       mapping.map(this.anchor),
@@ -73,7 +66,6 @@ export class RowBookmark {
       this.index
     );
   }
-
   resolve(doc: Node): CellSelection | Selection {
     const $anchorCell = doc.resolve(this.anchor),
       $headCell = doc.resolve(this.head);

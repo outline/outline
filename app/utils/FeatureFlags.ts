@@ -1,19 +1,16 @@
 import { observable } from "mobx";
 import Storage from "@shared/utils/Storage";
-
 /**
  * Available feature flags that can be toggled per-client.
  */
 export enum Feature {
   /** New collection permissions UI */
-  newCollectionSharing = "newCollectionSharing",
+  newNotebookSharing = "newCollectionSharing",
 }
-
 /** Default values for feature flags */
 const FeatureDefaults: Record<Feature, boolean> = {
-  [Feature.newCollectionSharing]: true,
+  [Feature.newNotebookSharing]: true,
 };
-
 /**
  * A simple feature flagging system that stores flags in browser storage.
  */
@@ -36,10 +33,8 @@ export class FeatureFlags {
       }
       this.initalized = true;
     }
-
     return this.cache.has(flag) ? true : (FeatureDefaults[flag] ?? false);
   }
-
   /**
    * Enables a feature flag and persists the value to browser storage.
    *
@@ -49,7 +44,6 @@ export class FeatureFlags {
     this.cache.add(flag);
     Storage.set(flag, true);
   }
-
   /**
    * Disables a feature flag and persists the value to browser storage.
    *
@@ -59,9 +53,7 @@ export class FeatureFlags {
     this.cache.delete(flag);
     Storage.set(flag, false);
   }
-
   @observable
   private static cache: Set<Feature> = new Set();
-
   private static initalized = false;
 }

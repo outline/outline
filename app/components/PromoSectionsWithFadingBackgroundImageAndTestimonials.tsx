@@ -18,7 +18,6 @@ const testimonials = [
     attribution: "Chris Paul, Phoenix",
   },
 ];
-
 /**
  * Tailwind UI – promo sections: with fading background image and testimonials.
  *

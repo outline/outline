@@ -42,7 +42,6 @@ const currencySymbols = [
   "د.ب", // Bahraini Dinar
   "ر.ق", // Qatari Riyal
 ];
-
 /**
  * Checks if a string appears to be a currency value.
  * Matches formats like: $1,234.56, €50, £1.000,50, -$500, ($500), 1234¥
@@ -54,9 +53,7 @@ export function isCurrency(value: string): boolean {
   if (!value || value.trim().length === 0) {
     return false;
   }
-
   const trimmed = value.trim();
-
   // Must contain at least one currency symbol
   const hasCurrencySymbol = currencySymbols.some((symbol) =>
     trimmed.includes(symbol)
@@ -64,15 +61,12 @@ export function isCurrency(value: string): boolean {
   if (!hasCurrencySymbol) {
     return false;
   }
-
   // Must contain at least one digit
   if (!/\d/.test(trimmed)) {
     return false;
   }
-
   // Remove all valid currency characters and check if anything unexpected remains
   let remaining = trimmed;
-
   // Remove currency symbols (longest first to handle multi-char symbols like R$)
   const sortedSymbols = [...currencySymbols].sort(
     (a, b) => b.length - a.length
@@ -80,14 +74,11 @@ export function isCurrency(value: string): boolean {
   for (const symbol of sortedSymbols) {
     remaining = remaining.split(symbol).join("");
   }
-
   // Remove digits, separators, whitespace, and negative indicators
   remaining = remaining.replace(/[\d.,\s()-]/g, "");
-
   // If anything remains, it's not a valid currency
   return remaining.length === 0;
 }
-
 /**
  * Parses a currency string and returns its numeric value.
  * Handles various formats including:
@@ -103,16 +94,13 @@ export function parseCurrency(value: string): number | null {
   if (!value || value.trim().length === 0) {
     return null;
   }
-
   let trimmed = value.trim();
-
   // Detect negative values: parentheses indicate negative in accounting
   const isNegative =
     trimmed.startsWith("(") ||
     trimmed.startsWith("-") ||
     trimmed.includes(")-") ||
     (trimmed.endsWith(")") && trimmed.includes("("));
-
   // Remove currency symbols, parentheses, and whitespace
   // Sort symbols by length descending so multi-character symbols (like R$) are removed first
   let cleaned = trimmed;
@@ -126,7 +114,6 @@ export function parseCurrency(value: string): number | null {
     .replace(/[()]/g, "")
     .replace(/\s/g, "")
     .replace(/^-|-$/g, "");
-
   // Determine the decimal separator by looking at the last separator
   // European format uses comma as decimal: 1.234,56
   // US/UK format uses period as decimal: 1,234.56
@@ -134,7 +121,6 @@ export function parseCurrency(value: string): number | null {
   const lastPeriod = cleaned.lastIndexOf(".");
   const hasComma = lastComma !== -1;
   const hasPeriod = lastPeriod !== -1;
-
   if (hasComma && hasPeriod) {
     // Both separators present - the one that appears last is the decimal
     if (lastComma > lastPeriod) {
@@ -167,12 +153,9 @@ export function parseCurrency(value: string): number | null {
       cleaned = cleaned.replace(/\./g, "");
     }
   }
-
   const numericValue = parseFloat(cleaned);
-
   if (isNaN(numericValue)) {
     return null;
   }
-
   return isNegative ? -Math.abs(numericValue) : numericValue;
 }

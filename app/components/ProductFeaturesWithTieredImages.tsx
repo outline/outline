@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -33,7 +33,6 @@ const features = [
       "Designed specifically for controlled pour-overs that don't slash or sputter.",
   },
 ];
-
 /**
  * Tailwind UI – product features: with tiered images.
  *

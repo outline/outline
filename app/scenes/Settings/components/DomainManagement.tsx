@@ -12,25 +12,20 @@ import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import SettingRow from "./SettingRow";
-
 type Props = {
   onSuccess: () => void;
 };
-
 function DomainManagement({ onSuccess }: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-
   const [allowedDomains, setAllowedDomains] = React.useState(() => [
     ...(team.allowedDomains ?? []),
   ]);
   const [lastKnownDomainCount, updateLastKnownDomainCount] = React.useState(
     allowedDomains.length
   );
-
   const [existingDomainsTouched, setExistingDomainsTouched] =
     React.useState(false);
-
   const handleSaveDomains = React.useCallback(async () => {
     try {
       await team.save({ allowedDomains });
@@ -41,42 +36,32 @@ function DomainManagement({ onSuccess }: Props) {
       toast.error(errToString(err));
     }
   }, [team, allowedDomains, onSuccess]);
-
   const handleRemoveDomain = async (index: number) => {
     const newDomains = allowedDomains.filter((_, i) => index !== i);
-
     setAllowedDomains(newDomains);
-
     const touchedExistingDomain = index < lastKnownDomainCount;
     if (touchedExistingDomain) {
       setExistingDomainsTouched(true);
     }
   };
-
   const handleAddDomain = () => {
     const newDomains = [...allowedDomains, ""];
-
     setAllowedDomains(newDomains);
   };
-
   const createOnDomainChangedHandler =
     (index: number) => (ev: React.ChangeEvent<HTMLInputElement>) => {
       const newDomains = allowedDomains.slice();
-
       newDomains[index] = ev.currentTarget.value;
       setAllowedDomains(newDomains);
-
       const touchedExistingDomain = index < lastKnownDomainCount;
       if (touchedExistingDomain) {
         setExistingDomainsTouched(true);
       }
     };
-
   const showSaveChanges =
     existingDomainsTouched ||
     allowedDomains.filter((value: string) => value !== "").length > // New domains were added
       lastKnownDomainCount;
-
   return (
     <SettingRow
       label={t("Allowed domains")}
@@ -134,9 +119,7 @@ function DomainManagement({ onSuccess }: Props) {
     </SettingRow>
   );
 }
-
 const Remove = styled("div")`
   margin-top: 6px;
 `;
-
 export default observer(DomainManagement);

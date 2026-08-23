@@ -24,14 +24,12 @@ import useStores from "~/hooks/useStores";
 import UserDelete from "../UserDelete";
 import { AutoLaunchSetting } from "./components/AutoLaunchSetting";
 import SettingRow from "./components/SettingRow";
-
 function Preferences() {
   const { t } = useTranslation();
   const { ui, dialogs } = useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const can = usePolicy(user.id);
-
   const languageOptions: Option[] = React.useMemo(
     () =>
       availableLanguages.map(
@@ -44,7 +42,6 @@ function Preferences() {
       ),
     []
   );
-
   const themeOptions: Option[] = React.useMemo(
     () =>
       [
@@ -54,7 +51,6 @@ function Preferences() {
       ] satisfies Option[],
     [t]
   );
-
   const handleUseCursorPointerChange = React.useCallback(
     async (checked: boolean) => {
       user.setPreference(UserPreference.UseCursorPointer, checked);
@@ -63,7 +59,6 @@ function Preferences() {
     },
     [user, t]
   );
-
   const handleCodeBlockLineNumbersChange = React.useCallback(
     async (checked: boolean) => {
       user.setPreference(UserPreference.CodeBlockLineNumers, checked);
@@ -72,7 +67,6 @@ function Preferences() {
     },
     [user, t]
   );
-
   const handleCommentsInGutterChange = React.useCallback(
     async (checked: boolean) => {
       user.setPreference(UserPreference.CommentsInGutter, checked);
@@ -81,7 +75,6 @@ function Preferences() {
     },
     [user, t]
   );
-
   const handleSeamlessEditChange = React.useCallback(
     async (checked: boolean) => {
       user.setPreference(UserPreference.SeamlessEdit, !checked);
@@ -90,7 +83,6 @@ function Preferences() {
     },
     [user, t]
   );
-
   const handleRememberLastPathChange = React.useCallback(
     async (checked: boolean) => {
       user.setPreference(UserPreference.RememberLastPath, checked);
@@ -99,7 +91,6 @@ function Preferences() {
     },
     [user, t]
   );
-
   const handleEnableSmartTextChange = React.useCallback(
     async (checked: boolean) => {
       user.setPreference(UserPreference.EnableSmartText, checked);
@@ -108,7 +99,6 @@ function Preferences() {
     },
     [user, t]
   );
-
   const notificationBadgeOptions: Option[] = React.useMemo(
     () => [
       {
@@ -129,7 +119,6 @@ function Preferences() {
     ],
     [t]
   );
-
   const handleNotificationBadgeChange = React.useCallback(
     async (value: string) => {
       user.setPreference(
@@ -141,7 +130,6 @@ function Preferences() {
     },
     [user, t]
   );
-
   const handleLanguageChange = React.useCallback(
     async (language: string) => {
       await user.save({ language });
@@ -149,7 +137,6 @@ function Preferences() {
     },
     [t, user]
   );
-
   const handleThemeChange = React.useCallback(
     (theme) => {
       ui.setTheme(theme as Theme);
@@ -157,14 +144,12 @@ function Preferences() {
     },
     [t, ui]
   );
-
   const showDeleteAccount = () => {
     dialogs.openModal({
       title: t("Delete account"),
       content: <UserDelete onSubmit={dialogs.closeAllModals} />,
     });
   };
-
   return (
     <Scene title={t("Preferences")} icon={<SettingsIcon />}>
       <Heading>{t("Preferences")}</Heading>
@@ -343,5 +328,4 @@ function Preferences() {
     </Scene>
   );
 }
-
 export default observer(Preferences);

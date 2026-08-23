@@ -16,77 +16,58 @@ import { StackedListsWithBadgesButtonAndActionsMenu } from "~/components/Stacked
 import { StackedListsWithInlineLinksAndActionsMenu } from "~/components/StackedListsWithInlineLinksAndActionsMenu";
 import { StackedListsWithInlineLinksAndAvatarGroup } from "~/components/StackedListsWithInlineLinksAndAvatarGroup";
 import { StackedListsWithLinks } from "~/components/StackedListsWithLinks";
-
 const meta: Meta = {
   title: "Application UI/Lists/Stacked Lists",
 };
-
 export default meta;
-
 export const FullWidthWithConstrainedContent: StoryObj = {
   render: () => <StackedListsFullWidthWithConstrainedContent />,
 };
-
 export const FullWidthWithLinks: StoryObj = {
   render: () => <StackedListsFullWidthWithLinks />,
 };
-
 export const InCardWithLinks: StoryObj = {
   render: () => <StackedListsInCardWithLinks />,
 };
-
 export const Narrow: StoryObj = {
   render: () => <StackedListsNarrow />,
 };
-
 export const NarrowWithActions: StoryObj = {
   render: () => <StackedListsNarrowWithActions />,
 };
-
 export const NarrowWithBadgesOnDark: StoryObj = {
   render: () => <StackedListsNarrowWithBadgesOnDark />,
 };
-
 export const NarrowWithSmallAvatars: StoryObj = {
   render: () => <StackedListsNarrowWithSmallAvatars />,
 };
-
 export const NarrowWithSmallAvatarsOnDark: StoryObj = {
   render: () => <StackedListsNarrowWithSmallAvatarsOnDark />,
 };
-
 export const NarrowWithStickyHeadings: StoryObj = {
   render: () => <StackedListsNarrowWithStickyHeadings />,
 };
-
 export const NarrowWithTruncatedContent: StoryObj = {
   render: () => <StackedListsNarrowWithTruncatedContent />,
 };
-
 export const Simple: StoryObj = {
   render: () => <StackedListsSimple />,
 };
-
 export const SimpleOnDark: StoryObj = {
   render: () => <StackedListsSimpleOnDark />,
 };
-
 export const TwoColumnsWithLinks: StoryObj = {
   render: () => <StackedListsTwoColumnsWithLinks />,
 };
-
 export const WithBadgesButtonAndActionsMenu: StoryObj = {
   render: () => <StackedListsWithBadgesButtonAndActionsMenu />,
 };
-
 export const WithInlineLinksAndActionsMenu: StoryObj = {
   render: () => <StackedListsWithInlineLinksAndActionsMenu />,
 };
-
 export const WithInlineLinksAndAvatarGroup: StoryObj = {
   render: () => <StackedListsWithInlineLinksAndAvatarGroup />,
 };
-
 export const WithLinks: StoryObj = {
   render: () => <StackedListsWithLinks />,
 };

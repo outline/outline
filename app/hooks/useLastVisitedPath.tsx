@@ -6,9 +6,8 @@ import usePersistedState, {
 import Logger from "~/utils/Logger";
 import history from "~/utils/history";
 import { isAllowedLoginRedirect } from "~/utils/urls";
-
 /**
- * Hook to set locally and return the document or collection that the user last visited. This is
+ * Hook to set locally and return the note or notebook that the user last visited. This is
  * used to redirect the user back to the last page they were on, if preferred.
  *
  * @returns A tuple of the last visited path and a method to set it.
@@ -19,7 +18,6 @@ export function useLastVisitedPath(): [string, (path: string) => void] {
     "/",
     { listen: false }
   );
-
   const setPathAsLastVisitedPath = useCallback(
     (path: string) => {
       if (isAllowedLoginRedirect(path) && path !== lastVisitedPath) {
@@ -28,10 +26,8 @@ export function useLastVisitedPath(): [string, (path: string) => void] {
     },
     [lastVisitedPath, setLastVisitedPath]
   );
-
   return [lastVisitedPath, setPathAsLastVisitedPath] as const;
 }
-
 /**
  * Hook that automatically tracks the current path as the last visited path.
  * This uses a ref to track the previous path and updates localStorage directly
@@ -41,7 +37,6 @@ export function useLastVisitedPath(): [string, (path: string) => void] {
  */
 export function useTrackLastVisitedPath(currentPath: string): void {
   const prevPathRef = useRef<string>();
-
   // Update localStorage directly if path has changed
   if (
     prevPathRef.current !== currentPath &&
@@ -51,7 +46,6 @@ export function useTrackLastVisitedPath(currentPath: string): void {
     setPersistedState("lastVisitedPath", currentPath);
   }
 }
-
 /**
  * Sets the path that the user visited before being asked to login.
  *
@@ -59,10 +53,8 @@ export function useTrackLastVisitedPath(currentPath: string): void {
  */
 export function setPostLoginPath(path: string) {
   const key = "postLoginRedirectPath";
-
   if (isAllowedLoginRedirect(path)) {
     setCookie(key, path, { expires: 1 });
-
     try {
       sessionStorage.setItem(key, path);
     } catch (_err) {
@@ -70,7 +62,6 @@ export function setPostLoginPath(path: string) {
     }
   }
 }
-
 /**
  * Hook to set locally and return the path that the user visited before being asked
  * to login.
@@ -79,7 +70,6 @@ export function setPostLoginPath(path: string) {
  */
 export function usePostLoginPath() {
   const key = "postLoginRedirectPath";
-
   const getter = useCallback(() => {
     let path;
     try {
@@ -87,10 +77,8 @@ export function usePostLoginPath() {
     } catch (_err) {
       // Expected error if the session storage is full or inaccessible.
     }
-
     if (path) {
       Logger.info("lifecycle", "Spending post login path", { path });
-
       // Remove the cookie once the app has been navigated to the post login path. We dont
       // do this immediately as React StrictMode will render multiple times.
       const cleanup = history.listen(() => {
@@ -102,14 +90,11 @@ export function usePostLoginPath() {
         removeCookie(key);
         cleanup?.();
       });
-
       if (isAllowedLoginRedirect(path)) {
         return path;
       }
     }
-
     return undefined;
   }, []);
-
   return [getter, setPostLoginPath] as const;
 }

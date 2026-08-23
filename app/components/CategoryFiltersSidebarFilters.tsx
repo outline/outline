@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -17,7 +17,6 @@ import { Dialog, Disclosure, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const filters = [
   {
     id: "color",
@@ -55,7 +54,6 @@ const filters = [
     ],
   },
 ];
-
 /**
  * Tailwind UI – category filters: sidebar filters.
  *
@@ -63,7 +61,6 @@ const filters = [
  */
 export function CategoryFiltersSidebarFilters() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
   return (
     <div className="bg-white">
       <div>

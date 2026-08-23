@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -17,7 +17,6 @@ import { Dialog, RadioGroup, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const product = {
   name: "Zip Tote Basket",
   price: "$220",
@@ -42,7 +41,6 @@ const product = {
     },
   ],
 };
-
 /**
  * Tailwind UI – product quickviews: with color selector and description.
  *
@@ -51,7 +49,6 @@ const product = {
 export function ProductQuickviewsWithColorSelectorAndDescription() {
   const [open, setOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={setOpen}>

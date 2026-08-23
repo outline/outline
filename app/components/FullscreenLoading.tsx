@@ -2,7 +2,6 @@ import styled from "styled-components";
 import Empty from "~/components/Empty";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
-
 export default function FullscreenLoading() {
   return (
     <Fade timing={500}>
@@ -12,7 +11,6 @@ export default function FullscreenLoading() {
     </Fade>
   );
 }
-
 const Centered = styled(Flex)`
   text-align: center;
   width: 100%;

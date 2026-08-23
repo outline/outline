@@ -36,7 +36,6 @@ import {
   trashPath,
   settingsPath,
 } from "~/utils/routeHelpers";
-
 export const navigateToHome = createInternalLinkAction({
   name: ({ t }) => t("Home"),
   analyticsName: "Navigate to home",
@@ -46,7 +45,6 @@ export const navigateToHome = createInternalLinkAction({
   to: homePath(),
   visible: ({ location }) => location.pathname !== homePath(),
 });
-
 export const navigateToRecentSearchQueryActionFactory = (
   searchQuery: SearchQuery
 ) =>
@@ -57,7 +55,6 @@ export const navigateToRecentSearchQueryActionFactory = (
     icon: <SearchIcon />,
     to: searchPath({ query: searchQuery.query }),
   });
-
 export const navigateToDrafts = createInternalLinkAction({
   name: ({ t }) => t("Drafts"),
   analyticsName: "Navigate to drafts",
@@ -66,7 +63,6 @@ export const navigateToDrafts = createInternalLinkAction({
   to: draftsPath(),
   visible: ({ location }) => location.pathname !== draftsPath(),
 });
-
 export const navigateToSearch = createInternalLinkAction({
   name: ({ t }) => t("Search"),
   analyticsName: "Navigate to search",
@@ -75,7 +71,6 @@ export const navigateToSearch = createInternalLinkAction({
   to: searchPath(),
   visible: ({ location }) => location.pathname !== searchPath(),
 });
-
 export const navigateToArchive = createInternalLinkAction({
   name: ({ t }) => t("Archive"),
   analyticsName: "Navigate to archive",
@@ -85,7 +80,6 @@ export const navigateToArchive = createInternalLinkAction({
   to: archivePath(),
   visible: ({ location }) => location.pathname !== archivePath(),
 });
-
 export const navigateToTrash = createInternalLinkAction({
   name: ({ t }) => t("Trash"),
   analyticsName: "Navigate to trash",
@@ -94,7 +88,6 @@ export const navigateToTrash = createInternalLinkAction({
   to: trashPath(),
   visible: ({ location }) => location.pathname !== trashPath(),
 });
-
 export const navigateToSettings = createInternalLinkAction({
   name: ({ t }) => t("Settings"),
   analyticsName: "Navigate to settings",
@@ -104,7 +97,6 @@ export const navigateToSettings = createInternalLinkAction({
   visible: () => stores.policies.abilities(stores.auth.team?.id || "").update,
   to: settingsPath(),
 });
-
 export const navigateToWorkspaceSettings = createInternalLinkAction({
   name: ({ t }) => t("Settings"),
   analyticsName: "Navigate to workspace settings",
@@ -113,7 +105,6 @@ export const navigateToWorkspaceSettings = createInternalLinkAction({
   visible: () => stores.policies.abilities(stores.auth.team?.id || "").update,
   to: settingsPath("details"),
 });
-
 /**
  * Only visible to workspaces that appear to be newly created and have little
  * content of their own, so it is intentionally not a root navigation action.
@@ -125,11 +116,10 @@ export const navigateToImport = createInternalLinkAction({
   icon: <ImportIcon />,
   visible: () =>
     stores.policies.abilities(stores.auth.team?.id || "").createImport &&
-    stores.collections.all.length === 1 &&
-    stores.documents.all.length < 10,
+    stores.notebooks.all.length === 1 &&
+    stores.notes.all.length < 10,
   to: settingsPath("import"),
 });
-
 export const navigateToProfileSettings = createInternalLinkAction({
   name: ({ t }) => t("Profile"),
   analyticsName: "Navigate to profile settings",
@@ -138,7 +128,6 @@ export const navigateToProfileSettings = createInternalLinkAction({
   icon: <ProfileIcon />,
   to: settingsPath(),
 });
-
 export const navigateToTemplateSettings = createInternalLinkAction({
   name: ({ t }) => t("Templates"),
   analyticsName: "Navigate to template settings",
@@ -147,7 +136,6 @@ export const navigateToTemplateSettings = createInternalLinkAction({
   icon: <ShapesIcon />,
   to: settingsPath("templates"),
 });
-
 export const navigateToNotificationSettings = createInternalLinkAction({
   name: ({ t, isMenu }) =>
     isMenu ? t("Notification settings") : t("Notifications"),
@@ -157,7 +145,6 @@ export const navigateToNotificationSettings = createInternalLinkAction({
   icon: <EmailIcon />,
   to: settingsPath("notifications"),
 });
-
 export const navigateToAccountPreferences = createInternalLinkAction({
   name: ({ t }) => t("Preferences"),
   analyticsName: "Navigate to account preferences",
@@ -166,8 +153,7 @@ export const navigateToAccountPreferences = createInternalLinkAction({
   icon: <SettingsIcon />,
   to: settingsPath("preferences"),
 });
-
-export const openDocumentation = createExternalLinkAction({
+export const openNoteation = createExternalLinkAction({
   name: ({ t }) => t("Documentation"),
   analyticsName: "Open documentation",
   section: NavigationSection,
@@ -176,8 +162,7 @@ export const openDocumentation = createExternalLinkAction({
   url: UrlHelper.guide,
   target: "_blank",
 });
-
-export const openAPIDocumentation = createExternalLinkAction({
+export const openAPINoteation = createExternalLinkAction({
   name: ({ t }) => t("API documentation"),
   analyticsName: "Open API documentation",
   section: NavigationSection,
@@ -186,7 +171,6 @@ export const openAPIDocumentation = createExternalLinkAction({
   url: UrlHelper.developers,
   target: "_blank",
 });
-
 export const toggleSidebar = createAction({
   name: ({ t }) => t("Toggle sidebar"),
   analyticsName: "Toggle sidebar",
@@ -194,7 +178,6 @@ export const toggleSidebar = createAction({
   section: NavigationSection,
   perform: () => stores.ui.toggleCollapsedSidebar(),
 });
-
 export const openFeedbackUrl = createExternalLinkAction({
   name: ({ t }) => t("Send us feedback"),
   analyticsName: "Open feedback",
@@ -204,7 +187,6 @@ export const openFeedbackUrl = createExternalLinkAction({
   url: UrlHelper.contact,
   target: "_blank",
 });
-
 export const openBugReportUrl = createExternalLinkAction({
   name: ({ t }) => t("Report a bug"),
   analyticsName: "Open bug report",
@@ -214,7 +196,6 @@ export const openBugReportUrl = createExternalLinkAction({
   url: UrlHelper.github,
   target: "_blank",
 });
-
 export const openChangelog = createExternalLinkAction({
   name: ({ t }) => t("Changelog"),
   analyticsName: "Open changelog",
@@ -224,7 +205,6 @@ export const openChangelog = createExternalLinkAction({
   url: UrlHelper.changelog,
   target: "_blank",
 });
-
 export const openKeyboardShortcuts = createAction({
   name: ({ t }) => t("Keyboard shortcuts"),
   analyticsName: "Open keyboard shortcuts",
@@ -239,7 +219,6 @@ export const openKeyboardShortcuts = createAction({
     });
   },
 });
-
 export const downloadApp = createExternalLinkAction({
   name: ({ t }) =>
     t("Download {{ platform }} app", {
@@ -253,7 +232,6 @@ export const downloadApp = createExternalLinkAction({
   url: "https://desktop.getoutline.com",
   target: "_blank",
 });
-
 export const logout = createAction({
   name: ({ t }) => t("Log out"),
   analyticsName: "Log out",
@@ -266,15 +244,14 @@ export const logout = createAction({
     });
   },
 });
-
 export const rootNavigationActions = [
   navigateToHome,
   navigateToDrafts,
   navigateToArchive,
   navigateToTrash,
   downloadApp,
-  openDocumentation,
-  openAPIDocumentation,
+  openNoteation,
+  openAPINoteation,
   openFeedbackUrl,
   openBugReportUrl,
   openChangelog,

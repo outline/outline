@@ -10,7 +10,6 @@ import NudeButton from "~/components/NudeButton";
 import { Portal } from "~/components/Portal";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
-
 /** A bulk action that can be performed against the current selection. */
 export type ModelSelectionAction = {
   /** A stable key identifying the action. */
@@ -26,19 +25,16 @@ export type ModelSelectionAction = {
   /** Perform the action against the current selection. */
   perform: () => Promise<void>;
 };
-
 type Props = {
   /** The selection this toolbar acts upon. */
   selection: ModelSelection;
   /** The actions available for the current selection. */
   actions: ModelSelectionAction[];
 };
-
 function ModelSelectionToolbar({ selection, actions }: Props) {
   const { t } = useTranslation();
   const [isProcessing, setProcessing] = React.useState(false);
   const [isWorking, setWorking] = React.useState(false);
-
   // Snapshot the count and available actions while the selection is active and
   // hold them through the exit animation, so the toolbar does not shrink or
   // flash an empty state as it animates away after being cleared.
@@ -53,7 +49,6 @@ function ModelSelectionToolbar({ selection, actions }: Props) {
     };
   }
   const { size: displaySize, actions: visibleActions } = snapshot.current;
-
   const handlePerform = async (action: ModelSelectionAction) => {
     setProcessing(true);
     // Only surface a "Working…" state if the action is slow, to avoid a flash
@@ -67,7 +62,6 @@ function ModelSelectionToolbar({ selection, actions }: Props) {
       setProcessing(false);
     }
   };
-
   return (
     <Portal>
       <Wrapper $active={selection.isActive} aria-hidden={!selection.isActive}>
@@ -108,8 +102,9 @@ function ModelSelectionToolbar({ selection, actions }: Props) {
     </Portal>
   );
 }
-
-const Wrapper = styled.div<{ $active: boolean }>`
+const Wrapper = styled.div<{
+  $active: boolean;
+}>`
   position: fixed;
   bottom: 24px;
   left: 50%;
@@ -133,7 +128,6 @@ const Wrapper = styled.div<{ $active: boolean }>`
     display: none;
   }
 `;
-
 const Background = styled(Flex)`
   background-color: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
@@ -141,20 +135,17 @@ const Background = styled(Flex)`
   height: 40px;
   padding: 0 8px;
 `;
-
 const Count = styled(Text)`
   margin: 0 4px;
   white-space: nowrap;
   font-weight: 500;
 `;
-
 const Divider = styled.div`
   width: 1px;
   height: 20px;
   background: ${s("divider")};
   flex-shrink: 0;
 `;
-
 const Action = styled(NudeButton)`
   width: 28px;
   height: 28px;
@@ -174,5 +165,4 @@ const Action = styled(NudeButton)`
     opacity: 0.5;
   }
 `;
-
 export default observer(ModelSelectionToolbar);

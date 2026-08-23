@@ -8,7 +8,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { Menu, Transition } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const meetings = [
   {
     id: 1,
@@ -66,7 +65,6 @@ const days = [
   { date: "2022-02-05" },
   { date: "2022-02-06" },
 ];
-
 /**
  * Tailwind UI – calendars: small with meetings.
  *

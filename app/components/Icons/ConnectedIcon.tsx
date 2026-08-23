@@ -1,6 +1,7 @@
 import styled from "styled-components";
-
-export const ConnectedIcon = styled.div<{ color?: string }>`
+export const ConnectedIcon = styled.div<{
+  color?: string;
+}>`
   width: 24px;
   height: 24px;
   position: relative;

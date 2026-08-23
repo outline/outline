@@ -1,13 +1,11 @@
 import { RovingTabIndexProvider } from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
-
 type Props = React.HTMLAttributes<HTMLDivElement> & {
   children: () => React.ReactNode;
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
   items: unknown[];
 };
-
 function ArrowKeyNavigation(
   { children, onEscape, items, ...rest }: Props,
   ref: React.RefObject<HTMLDivElement>
@@ -18,12 +16,10 @@ function ArrowKeyNavigation(
         if (ev.nativeEvent.isComposing) {
           return;
         }
-
         if (ev.key === "Escape" || ev.key === "Backspace") {
           ev.preventDefault();
           onEscape(ev);
         }
-
         if (
           ev.key === "ArrowUp" &&
           // If the first item is focused and the user presses ArrowUp
@@ -35,7 +31,6 @@ function ArrowKeyNavigation(
     },
     [onEscape]
   );
-
   return (
     <RovingTabIndexProvider
       options={{ focusOnClick: true, direction: "both" }}
@@ -47,5 +42,4 @@ function ArrowKeyNavigation(
     </RovingTabIndexProvider>
   );
 }
-
 export default observer(React.forwardRef(ArrowKeyNavigation));

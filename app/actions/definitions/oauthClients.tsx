@@ -7,7 +7,6 @@ import { createInternalLinkAction } from "..";
 import { dialogActionFactory } from "./common";
 import { SettingsSection } from "../sections";
 import { settingsPath } from "~/utils/routeHelpers";
-
 export const createOAuthClient = dialogActionFactory({
   analyticsName: "New App",
   section: SettingsSection,
@@ -20,7 +19,6 @@ export const createOAuthClient = dialogActionFactory({
   visible: () =>
     stores.policies.abilities(stores.auth.team?.id || "").createOAuthClient,
 });
-
 export const editOAuthClientActionFactory = ({
   oauthClient,
   visible,
@@ -35,7 +33,6 @@ export const editOAuthClientActionFactory = ({
     visible,
     to: settingsPath("applications", oauthClient.id),
   });
-
 export const deleteOAuthClientActionFactory = ({
   oauthClient,
 }: {

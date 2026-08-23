@@ -13,10 +13,8 @@ import { BackButton } from "./BackButton";
 import { Background } from "./Background";
 import { Centered } from "./Centered";
 import { Form } from "~/components/primitives/Form";
-
 const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
   const { t } = useTranslation();
-
   return (
     <Background>
       <BackButton onBack={onBack} />
@@ -65,20 +63,16 @@ const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
     </Background>
   );
 };
-
 const Inputs = styled(Flex)`
   width: 100%;
   text-align: left;
 `;
-
 const StyledHeading = styled(Heading)`
   margin: 0;
 `;
-
 const Content = styled(Text)`
   color: ${s("textSecondary")};
   text-align: center;
   margin-top: -8px;
 `;
-
 export default WorkspaceSetup;

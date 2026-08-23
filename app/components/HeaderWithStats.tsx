@@ -10,7 +10,6 @@ const stats = [
   { name: "Hours per week", value: "40" },
   { name: "Paid time off", value: "Unlimited" },
 ];
-
 /**
  * Tailwind UI – header: with stats.
  *

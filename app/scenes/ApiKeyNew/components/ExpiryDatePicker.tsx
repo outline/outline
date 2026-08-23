@@ -11,19 +11,15 @@ import {
   PopoverContent,
 } from "~/components/primitives/Popover";
 import useUserLocale from "~/hooks/useUserLocale";
-
 type Props = {
   selectedDate?: Date;
   onSelect: (date: Date) => void;
 };
-
 const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
-
   const userLocale = useUserLocale();
   const locale = dateLocale(userLocale);
-
   const handleSelect = React.useCallback(
     (date: Date) => {
       setOpen(false);
@@ -31,7 +27,6 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
     },
     [onSelect]
   );
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>
@@ -59,10 +54,8 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
     </Popover>
   );
 };
-
 const StyledPopoverButton = styled(Button)`
   margin-top: 12px;
   width: 150px;
 `;
-
 export default ExpiryDatePicker;

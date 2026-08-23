@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -19,7 +19,6 @@ const people = [
   { id: 4, name: "Kathryn Murphy" },
   { id: 5, name: "Theresa Webb" },
 ];
-
 /**
  * Tailwind UI – checkboxes: simple list with heading.
  *

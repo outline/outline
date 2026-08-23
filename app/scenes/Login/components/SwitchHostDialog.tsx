@@ -9,9 +9,7 @@ import ButtonLarge from "~/components/ButtonLarge";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
 import { DefaultHostname, navigateToHost, validateHost } from "../urls";
-
 type Status = "idle" | "checking" | "valid" | "invalid";
-
 /**
  * Dialog that allows choosing the Outline installation to connect the desktop
  * app to. The entered host is validated against its auth configuration before
@@ -22,11 +20,9 @@ export function SwitchHostDialog() {
   const [host, setHost] = useState(DefaultHostname);
   const [status, setStatus] = useState<Status>("idle");
   const [validatedUrl, setValidatedUrl] = useState<string | null>(null);
-
   // Tracks the latest value being checked so a slow check that resolves after
   // newer input is ignored.
   const latestValue = useRef("");
-
   const checkHost = useMemo(
     () =>
       debounce(async (value: string) => {
@@ -45,24 +41,19 @@ export function SwitchHostDialog() {
       }, 500),
     []
   );
-
   useEffect(() => {
     const value = host.trim();
     latestValue.current = value;
-
     if (!value) {
       checkHost.cancel();
       setStatus("idle");
       setValidatedUrl(null);
       return;
     }
-
     setStatus("checking");
     void checkHost(value);
-
     return () => checkHost.cancel();
   }, [host, checkHost]);
-
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
@@ -72,7 +63,6 @@ export function SwitchHostDialog() {
     },
     []
   );
-
   const handleSubmit = useCallback(
     async (event: React.FormEvent) => {
       event.preventDefault();
@@ -82,7 +72,6 @@ export function SwitchHostDialog() {
     },
     [status, validatedUrl]
   );
-
   return (
     <form onSubmit={handleSubmit}>
       <Text as="p">
@@ -122,18 +111,15 @@ export function SwitchHostDialog() {
     </form>
   );
 }
-
 const Prefix = styled.span`
   color: ${s("textTertiary")};
   padding-left: 8px;
 `;
-
 const Status = styled.span`
   display: flex;
   align-items: center;
   padding-right: 8px;
 `;
-
 const ValidIcon = styled(CheckmarkIcon)`
   color: ${s("accent")};
 `;

@@ -22,26 +22,21 @@ import {
 } from "~/actions/definitions/notifications";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import AccessRequestActions from "./AccessRequestActions";
-
 const CommentEditor = lazyWithRetry(
-  () => import("~/scenes/Document/components/Comments/CommentEditor")
+  () => import("~/scenes/Note/components/Comments/CommentEditor")
 );
-
 type Props = {
   notification: Notification;
   onNavigate: () => void;
 };
-
 function NotificationListItem({ notification, onNavigate }: Props) {
   const { t } = useTranslation();
-  const { collections } = useStores();
-  const collectionId = notification.document?.collectionId;
-  const collection = collectionId ? collections.get(collectionId) : undefined;
-
+  const { notebooks } = useStores();
+  const notebookId = notification.note?.notebookId;
+  const notebook = notebookId ? notebooks.get(notebookId) : undefined;
   const isAccessRequestPending =
-    notification.event === NotificationEventType.RequestDocumentAccess &&
+    notification.event === NotificationEventType.RequestNoteAccess &&
     notification.accessRequestStatus === "pending";
-
   const handleClick: React.MouseEventHandler<HTMLAnchorElement> = (event) => {
     if (event.altKey) {
       event.preventDefault();
@@ -49,12 +44,9 @@ function NotificationListItem({ notification, onNavigate }: Props) {
       void notification.toggleRead();
       return;
     }
-
     void notification.markAsRead();
-
     onNavigate();
   };
-
   const actions = React.useMemo(
     () => [
       notificationMarkReadActionFactory(notification),
@@ -64,7 +56,6 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     [notification]
   );
   const menuAction = useMenuAction(actions);
-
   return (
     <ContextMenu action={menuAction} ariaLabel={t("Notification options")}>
       <StyledLink to={notification.path ?? ""} onClick={handleClick}>
@@ -80,7 +71,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
             </Text>
             <Text type="tertiary" size="xsmall">
               <Time dateTime={notification.createdAt} addSuffix />{" "}
-              {collection && <>&middot; {collection.name}</>}
+              {notebook && <>&middot; {notebook.name}</>}
             </Text>
             {notification.comment && (
               <StyledCommentEditor
@@ -97,13 +88,11 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     </ContextMenu>
   );
 }
-
 const StyledLink = styled(Link)`
   display: block;
   margin: 0 8px;
   cursor: var(--pointer);
 `;
-
 const StyledCommentEditor = styled(CommentEditor)`
   font-size: 0.9em;
   margin-top: 4px;
@@ -111,15 +100,15 @@ const StyledCommentEditor = styled(CommentEditor)`
 
   ${truncateMultiline(3)}
 `;
-
 const StyledAvatar = styled(Avatar).attrs({
   variant: AvatarVariant.Round,
   size: AvatarSize.Medium,
 })`
   margin-top: 4px;
 `;
-
-const Container = styled(Flex)<{ $unread: boolean }>`
+const Container = styled(Flex)<{
+  $unread: boolean;
+}>`
   position: relative;
   padding-block: 8px;
   padding-inline: 12px 40px;
@@ -132,5 +121,4 @@ const Container = styled(Flex)<{ $unread: boolean }>`
     background: ${s("listItemHoverBackground")};
   }
 `;
-
 export default observer(NotificationListItem);

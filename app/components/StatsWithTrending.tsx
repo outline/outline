@@ -25,7 +25,6 @@ const stats = [
     changeType: "negative",
   },
 ];
-
 /**
  * Tailwind UI – stats: with trending.
  *

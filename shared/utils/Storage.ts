@@ -1,12 +1,10 @@
 import type { Primitive } from "utility-types";
-
 /**
  * Storage is a wrapper class for web storage that allows safe usage when
  * localStorage or sessionStorage are not available.
  */
 export class Storage {
   interface: typeof localStorage | MemoryStorage;
-
   /**
    * @param type whether to persist for the session only, or indefinitely.
    */
@@ -25,7 +23,6 @@ export class Storage {
       this.interface = new MemoryStorage();
     }
   }
-
   /**
    * Set a value in storage. For efficiency, this method will remove the
    * value if it is undefined.
@@ -44,7 +41,6 @@ export class Storage {
       // Ignore errors
     }
   }
-
   /**
    * Get a value from storage.
    *
@@ -61,10 +57,8 @@ export class Storage {
     } catch (_err) {
       // Ignore errors
     }
-
     return fallback;
   }
-
   /**
    * Remove a value from storage.
    *
@@ -77,7 +71,6 @@ export class Storage {
       // Ignore errors
     }
   }
-
   /**
    * Clear all values from storage.
    */
@@ -89,29 +82,23 @@ export class Storage {
     }
   }
 }
-
 /**
  * MemoryStorage is a simple in-memory storage implementation that is used
  * when localStorage is not available.
  */
 class MemoryStorage {
   private data: Record<string, string> = {};
-
   getItem(key: string) {
     return this.data[key] || null;
   }
-
   setItem(key: string, value: Primitive) {
     return (this.data[key] = String(value));
   }
-
   removeItem(key: string) {
     return delete this.data[key];
   }
-
   clear() {
     return (this.data = {});
   }
 }
-
 export default new Storage();

@@ -15,7 +15,6 @@ import emojiRule from "../rules/emoji";
 import { isUUID } from "validator";
 import type { ComponentProps } from "../types";
 import { CustomEmoji } from "../../components/CustomEmoji";
-
 export default class Emoji extends Extension {
   constructor() {
     super();
@@ -23,15 +22,12 @@ export default class Emoji extends Extension {
     // it is available by the time the editor renders emoji nodes.
     void loadEmojiData();
   }
-
   get type() {
     return "node";
   }
-
   get name() {
     return "emoji";
   }
-
   get schema(): NodeSpec {
     return {
       attrs: {
@@ -60,7 +56,6 @@ export default class Emoji extends Extension {
       ],
       toDOM: (node) => {
         const name = node.attrs["data-name"];
-
         return [
           "strong",
           {
@@ -81,11 +76,9 @@ export default class Emoji extends Extension {
       },
     };
   }
-
   get rulePlugins() {
     return [emojiRule];
   }
-
   get plugins() {
     return [
       new Plugin({
@@ -99,7 +92,6 @@ export default class Emoji extends Extension {
               const rect = element.getBoundingClientRect();
               const clickX = event.clientX - rect.left;
               const side = clickX < rect.width / 2 ? -1 : 1;
-
               // If the click is in the left half of the emoji, place the caret before it
               const tr = view.state.tr.setSelection(
                 TextSelection.near(
@@ -112,14 +104,12 @@ export default class Emoji extends Extension {
               view.dispatch(tr);
               return true;
             }
-
             return false;
           },
         },
       }),
     ];
   }
-
   component = (props: ComponentProps) => {
     const name = props.node.attrs["data-name"];
     return (
@@ -132,7 +122,6 @@ export default class Emoji extends Extension {
       </strong>
     );
   };
-
   commands({ type }: { type: NodeType; schema: Schema }) {
     return (attrs: Record<string, Primitive>): Command =>
       (state, dispatch) => {
@@ -144,21 +133,18 @@ export default class Emoji extends Extension {
         if (position === undefined) {
           return false;
         }
-
         const node = type.create(attrs);
         const transaction = state.tr.insert(position, node);
         dispatch?.(transaction);
         return true;
       };
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     const name = node.attrs["data-name"];
     if (name) {
       state.write(`:${name}:`);
     }
   }
-
   parseMarkdown() {
     return {
       node: "emoji",

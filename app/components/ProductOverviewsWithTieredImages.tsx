@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -20,7 +20,6 @@ import {
   GlobeAmericasIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const product = {
   name: "Basic Tee",
   price: "$35",
@@ -93,7 +92,6 @@ const policies = [
     description: "Don't look at other tees",
   },
 ];
-
 /**
  * Tailwind UI – product overviews: with tiered images.
  *
@@ -102,7 +100,6 @@ const policies = [
 export function ProductOverviewsWithTieredImages() {
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const [selectedSize, setSelectedSize] = useState(product.sizes[2]);
-
   return (
     <div className="bg-white">
       <div className="pb-16 pt-6 sm:pb-24">

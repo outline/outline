@@ -8,7 +8,6 @@ import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
 import Desktop from "~/utils/Desktop";
 import { SwitchHostDialog } from "./SwitchHostDialog";
-
 /**
  * Control shown in the top right of the login screen when running inside the
  * desktop app, allowing the user to switch the Outline installation to connect
@@ -17,20 +16,17 @@ import { SwitchHostDialog } from "./SwitchHostDialog";
 export function SwitchHostButton() {
   const { t } = useTranslation();
   const { dialogs } = useStores();
-
   const handleClick = useCallback(() => {
     dialogs.openModal({
       title: t("Choose workspace"),
       content: <SwitchHostDialog />,
     });
   }, [dialogs, t]);
-
   // Hidden on the web and in older desktop apps that predate the bridge method
   // used to validate the chosen installation.
   if (!Desktop.isElectron() || !Desktop.bridge?.loadAuthConfig) {
     return null;
   }
-
   return (
     <Position>
       <Tooltip content={t("Choose workspace")} side="bottom">
@@ -42,14 +38,12 @@ export function SwitchHostButton() {
     </Position>
   );
 }
-
 const Position = styled.div`
   position: absolute;
   top: 0;
   right: 0;
   padding: ${Desktop.isElectron() ? "48px 32px" : "32px"};
 `;
-
 const Button = styled(NudeButton)`
   display: flex;
   align-items: center;
@@ -62,7 +56,6 @@ const Button = styled(NudeButton)`
     color: ${s("text")};
   }
 `;
-
 const Host = styled.span`
   font-size: 14px;
   font-weight: 500;

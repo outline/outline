@@ -1,5 +1,4 @@
 import { PlusSmallIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – page headings: with filters and action.
  *

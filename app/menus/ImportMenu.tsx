@@ -8,9 +8,7 @@ import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import usePolicy from "~/hooks/usePolicy";
 import { createAction } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
-
 const Section = "Imports";
-
 type Props = {
   /** Import to which actions will be applied. */
   importModel: Import;
@@ -19,12 +17,10 @@ type Props = {
   /** Callback to handle import deletion. */
   onDelete: () => Promise<void>;
 };
-
 export const ImportMenu = observer(
   ({ importModel, onCancel, onDelete }: Props) => {
     const { t } = useTranslation();
     const can = usePolicy(importModel);
-
     const actions = React.useMemo(
       () => [
         createAction({
@@ -46,9 +42,7 @@ export const ImportMenu = observer(
       ],
       [t, can.cancel, can.delete, onCancel, onDelete]
     );
-
     const rootAction = useMenuAction(actions);
-
     return (
       <DropdownMenu action={rootAction} ariaLabel={t("Import menu options")}>
         <OverflowMenuButton />

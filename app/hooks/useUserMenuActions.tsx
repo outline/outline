@@ -12,7 +12,6 @@ import {
   suspendUser,
 } from "~/actions/definitions/users";
 import { useMenuAction } from "~/hooks/useMenuAction";
-
 /**
  * Hook that constructs the action menu for user management operations. The
  * user is read from the active models in the action context.
@@ -36,6 +35,5 @@ export function useUserMenuActions() {
     ],
     []
   );
-
   return useMenuAction(actions);
 }

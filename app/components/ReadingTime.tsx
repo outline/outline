@@ -2,21 +2,15 @@ import { EyeIcon } from "outline-icons";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTextStats } from "~/hooks/useTextStats";
-import type Document from "~/models/Document";
+import type Note from "~/models/Note";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
-
-const ReadingTime = ({ document }: { document: Document }) => {
+const ReadingTime = ({ note }: { note: Note }) => {
   const { t } = useTranslation();
-  const markdown = useMemo(
-    () => ProsemirrorHelper.toMarkdown(document),
-    [document]
-  );
+  const markdown = useMemo(() => ProsemirrorHelper.toMarkdown(note), [note]);
   const stats = useTextStats(markdown);
-
   const readingTimeMinutes = stats.total.readingTime;
   const hours = Math.floor(readingTimeMinutes / 60);
   const minutes = readingTimeMinutes % 60;
-
   let readingTimeText;
   if (hours > 0) {
     if (minutes > 0) {
@@ -30,7 +24,6 @@ const ReadingTime = ({ document }: { document: Document }) => {
   } else {
     readingTimeText = t(`{{ minutes }}m read`, { minutes: readingTimeMinutes });
   }
-
   return (
     <>
       <EyeIcon size={18} />
@@ -38,5 +31,4 @@ const ReadingTime = ({ document }: { document: Document }) => {
     </>
   );
 };
-
 export default ReadingTime;

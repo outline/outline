@@ -29,16 +29,14 @@ import useCurrentTeam from "./useCurrentTeam";
 import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
 import useStores from "./useStores";
-
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const Applications = lazy(() => import("~/scenes/Settings/Applications"));
 const APIAndAccess = lazy(() => import("~/scenes/Settings/APIAndAccess"));
 const Authentication = lazy(() => import("~/scenes/Settings/Authentication"));
 const Billing = lazy(() => import("~/scenes/Settings/Billing"));
 const Receipts = lazy(() => import("~/scenes/Settings/Receipts"));
-const Documents = lazy(() => import("~/scenes/Settings/Documents"));
+const Notes = lazy(() => import("~/scenes/Settings/Notes"));
 const Audit = lazy(() => import("~/scenes/Settings/Audit"));
-
 import { hasRequiredRole } from "../../src/mocks/access";
 import { currentRole } from "../../src/mocks/shop";
 const Details = lazy(() => import("~/scenes/Settings/Details"));
@@ -56,7 +54,6 @@ const Shares = lazy(() => import("~/scenes/Settings/Shares"));
 const Templates = lazy(() => import("~/scenes/Settings/Templates"));
 const CustomEmojis = lazy(() => import("~/scenes/Settings/CustomEmojis"));
 const Embeds = lazy(() => import("~/scenes/Settings/Embeds"));
-
 export type ConfigItem = {
   name: string;
   path: string;
@@ -72,7 +69,6 @@ export type ConfigItem = {
   group: string;
   pluginId?: string;
 };
-
 const useSettingsConfig = () => {
   const { integrations } = useStores();
   const user = useCurrentUser();
@@ -83,11 +79,9 @@ const useSettingsConfig = () => {
   const role = currentRole();
   const isManager = Boolean(role && hasRequiredRole(role, "manager"));
   const { t } = useTranslation();
-
   useEffect(() => {
     void integrations.fetchAll();
   }, [integrations]);
-
   const config = useComputed(() => {
     const items: ConfigItem[] = [
       // Account
@@ -149,8 +143,8 @@ const useSettingsConfig = () => {
       {
         name: t("Boarding agreement"),
         path: settingsPath("documents"),
-        component: Documents.Component,
-        preload: Documents.preload,
+        component: Notes.Component,
+        preload: Notes.preload,
         enabled: can.update && isManager,
         group: t("Workspace"),
         icon: TeamIcon,
@@ -304,7 +298,6 @@ const useSettingsConfig = () => {
         icon: PlusIcon,
       },
     ];
-
     // Plugins
     PluginManager.getHooks(Hook.Settings).forEach((plugin) => {
       const group = plugin.value.group ?? "Integrations";
@@ -328,11 +321,8 @@ const useSettingsConfig = () => {
         icon: plugin.value.icon,
       } as ConfigItem);
     });
-
     return items;
   }, [t, can.createApiKey, can.update, can.createImport, can.createExport]);
-
   return config.filter((item) => item.enabled);
 };
-
 export default useSettingsConfig;

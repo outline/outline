@@ -6,17 +6,14 @@ import type Comment from "~/models/Comment";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-
 type Props = {
   comment: Comment;
   onSubmit?: () => void;
 };
-
 function CommentDeleteDialog({ comment, onSubmit }: Props) {
   const { comments } = useStores();
   const { t } = useTranslation();
   const hasChildComments = comments.inThread(comment.id).length > 1;
-
   const handleSubmit = async () => {
     try {
       await comment.delete();
@@ -25,7 +22,6 @@ function CommentDeleteDialog({ comment, onSubmit }: Props) {
       toast.error(errToString(err));
     }
   };
-
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}
@@ -48,5 +44,4 @@ function CommentDeleteDialog({ comment, onSubmit }: Props) {
     </ConfirmationDialog>
   );
 }
-
 export default observer(CommentDeleteDialog);

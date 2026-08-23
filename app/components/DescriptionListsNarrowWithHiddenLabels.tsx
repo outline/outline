@@ -3,7 +3,6 @@ import {
   CreditCardIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – description lists: narrow with hidden labels.
  *

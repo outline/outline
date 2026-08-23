@@ -5,7 +5,6 @@ import {
 } from "~/actions/definitions/apiKeys";
 import type ApiKey from "~/models/ApiKey";
 import { useMenuAction } from "~/hooks/useMenuAction";
-
 /**
  * Hook that constructs the action menu for API key operations.
  *

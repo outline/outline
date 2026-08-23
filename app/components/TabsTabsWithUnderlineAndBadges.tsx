@@ -1,7 +1,7 @@
 import { classNames } from "./classNames";
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -20,7 +20,6 @@ const tabs = [
   { name: "Offer", href: "#", current: false },
   { name: "Disqualified", href: "#", current: false },
 ];
-
 /**
  * Tailwind UI – tabs: tabs with underline and badges.
  *

@@ -15,7 +15,7 @@ import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { hideScrollbars, s } from "@shared/styles";
 import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
-import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
+import NoteBreadcrumb from "~/components/NoteBreadcrumb";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scrollable from "~/components/Scrollable";
@@ -28,7 +28,6 @@ import ToolbarButton from "./ToolbarButton";
 import Tooltip from "./Tooltip";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import { useEditor } from "./EditorContext";
-
 type Props = {
   mark?: Mark;
   view: EditorView;
@@ -40,7 +39,6 @@ type Props = {
   onClickOutside: (ev: MouseEvent | TouchEvent) => void;
   onClickBack: () => void;
 };
-
 const LinkEditor: React.FC<Props> = ({
   mark,
   view,
@@ -60,54 +58,44 @@ const LinkEditor: React.FC<Props> = ({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState(initialValue);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const { documents } = useStores();
-
+  const { notes } = useStores();
   const trimmedQuery = query.trim();
   const results = trimmedQuery
-    ? documents.findByQuery(trimmedQuery, { maxResults: 25 })
+    ? notes.findByQuery(trimmedQuery, { maxResults: 25 })
     : [];
-
   const { request } = useRequest(
     React.useCallback(async () => {
       const res = await client.post("/suggestions.mention", { query });
-      res.data.documents.map(documents.add);
-    }, [documents, query])
+      res.data.documents.map(notes.add);
+    }, [notes, query])
   );
-
   useEffect(() => {
     if (trimmedQuery) {
       void request();
     }
   }, [trimmedQuery, request]);
-
   useOnClickOutside(wrapperRef, (ev) => {
     // If the link is totally empty or only spaces then remove the mark
     if (!trimmedQuery) {
       return removeLink();
     }
-
     // If the link in input is non-empty and same as it was when the editor opened, nothing to do
     if (trimmedQuery === initialValue) {
       onClickOutside(ev);
       return;
     }
-
     if (!mark) {
       return addLink(trimmedQuery);
     }
-
     updateLink(trimmedQuery);
   });
-
   const openLink = React.useCallback(() => {
     commands["openLink"]();
   }, [commands]);
-
   const removeLink = React.useCallback(() => {
     commands["removeLink"]();
     onLinkRemove();
   }, [commands, onLinkRemove]);
-
   const updateLink = (link: string) => {
     if (!link) {
       return;
@@ -115,7 +103,6 @@ const LinkEditor: React.FC<Props> = ({
     commands["updateLink"]({ href: sanitizeUrl(link) ?? "" });
     onLinkUpdate();
   };
-
   const addLink = (link: string) => {
     if (!link) {
       return;
@@ -123,7 +110,6 @@ const LinkEditor: React.FC<Props> = ({
     commands["addLink"]({ href: sanitizeUrl(link) ?? "" });
     onLinkAdd();
   };
-
   const handleKeyDown = (event: React.KeyboardEvent) => {
     switch (event.key) {
       case "ArrowDown": {
@@ -140,7 +126,6 @@ const LinkEditor: React.FC<Props> = ({
       }
       case "Enter": {
         event.preventDefault();
-
         if (selectedIndex >= 0 && results[selectedIndex]) {
           const selectedDoc = results[selectedIndex];
           if (!mark) {
@@ -155,30 +140,24 @@ const LinkEditor: React.FC<Props> = ({
         } else {
           updateLink(trimmedQuery);
         }
-
         return;
       }
       case "Escape": {
         event.preventDefault();
-
         if (!initialValue) {
           return removeLink();
         }
-
         onEscape();
         return;
       }
     }
   };
-
   const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
     setQuery(newValue);
     setSelectedIndex(-1);
   };
-
   const hasResults = !!results.length;
-
   const isInternal = isInternalUrl(query);
   const actions = [
     {
@@ -203,7 +182,6 @@ const LinkEditor: React.FC<Props> = ({
       handler: onClickBack,
     },
   ];
-
   return (
     <div ref={wrapperRef}>
       <InputWrapper>
@@ -221,7 +199,6 @@ const LinkEditor: React.FC<Props> = ({
           if (!action.visible) {
             return null;
           }
-
           return (
             <Tooltip key={index} content={action.tooltip}>
               <ToolbarButton
@@ -250,9 +227,7 @@ const LinkEditor: React.FC<Props> = ({
                   onPointerMove={() => setSelectedIndex(index)}
                   selected={index === selectedIndex}
                   key={doc.id}
-                  subtitle={
-                    <DocumentBreadcrumb document={doc} onlyText maxDepth={2} />
-                  }
+                  subtitle={<NoteBreadcrumb note={doc} onlyText maxDepth={2} />}
                   title={doc.title}
                   icon={
                     doc.icon ? (
@@ -274,15 +249,15 @@ const LinkEditor: React.FC<Props> = ({
     </div>
   );
 };
-
 const InputWrapper = styled(Flex)`
   pointer-events: all;
   gap: 6px;
   padding: 6px;
   align-items: center;
 `;
-
-const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
+const SearchResults = styled(Scrollable)<{
+  $hasResults: boolean;
+}>`
   background: ${s("menuBackground")};
   box-shadow: ${(props) => (props.$hasResults ? s("menuShadow") : "none")};
   clip-path: inset(0px -100px -100px -100px);
@@ -308,5 +283,4 @@ const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
     padding: 8px 8px 4px;
   }
 `;
-
 export default observer(LinkEditor);

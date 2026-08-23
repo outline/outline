@@ -8,45 +8,34 @@ import { StackedDarkNavWithWhitePageHeader } from "~/components/StackedDarkNavWi
 import { StackedLightNavOnGrayBackground } from "~/components/StackedLightNavOnGrayBackground";
 import { StackedLightNavWithBottomBorder } from "~/components/StackedLightNavWithBottomBorder";
 import { StackedTwoRowNavigationWithOverlap } from "~/components/StackedTwoRowNavigationWithOverlap";
-
 const meta: Meta = {
   title: "Application UI/Application Shells/Stacked",
 };
-
 export default meta;
-
 export const BrandNavWithOverlap: StoryObj = {
   render: () => <StackedBrandNavWithOverlap />,
 };
-
 export const BrandedNavWithCompactWhitePageHeader: StoryObj = {
   render: () => <StackedBrandedNavWithCompactWhitePageHeader />,
 };
-
 export const BrandedNavWithWhitePageHeader: StoryObj = {
   render: () => <StackedBrandedNavWithWhitePageHeader />,
 };
-
 export const DarkNavWithCompactWhitePageHeader: StoryObj = {
   render: () => <StackedDarkNavWithCompactWhitePageHeader />,
 };
-
 export const DarkNavWithOverlap: StoryObj = {
   render: () => <StackedDarkNavWithOverlap />,
 };
-
 export const DarkNavWithWhitePageHeader: StoryObj = {
   render: () => <StackedDarkNavWithWhitePageHeader />,
 };
-
 export const LightNavOnGrayBackground: StoryObj = {
   render: () => <StackedLightNavOnGrayBackground />,
 };
-
 export const LightNavWithBottomBorder: StoryObj = {
   render: () => <StackedLightNavWithBottomBorder />,
 };
-
 export const TwoRowNavigationWithOverlap: StoryObj = {
   render: () => <StackedTwoRowNavigationWithOverlap />,
 };

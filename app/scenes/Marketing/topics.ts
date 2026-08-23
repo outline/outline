@@ -3,7 +3,6 @@ export interface DocSection {
   heading: string;
   body: string;
 }
-
 /** A documentation topic. */
 export interface DocTopic {
   slug: string;
@@ -11,7 +10,6 @@ export interface DocTopic {
   summary: string;
   sections: DocSection[];
 }
-
 /**
  * The documentation, as content rather than one route file per topic.
  *
@@ -160,7 +158,6 @@ export const DOC_TOPICS: DocTopic[] = [
     ],
   },
 ];
-
 /**
  * Finds a topic by its slug.
  *

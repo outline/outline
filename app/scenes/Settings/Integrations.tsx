@@ -13,17 +13,14 @@ import { settingsPath } from "~/utils/routeHelpers";
 import IntegrationCard, { Card } from "./components/IntegrationCard";
 import { StickyFilters } from "./components/StickyFilters";
 import { observer } from "mobx-react";
-
 function Integrations() {
   const { t } = useTranslation();
   const { integrations } = useStores();
   const items = useSettingsConfig();
   const [query, setQuery] = React.useState("");
-
   const handleQuery = (event: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value);
   };
-
   const groupedItems = groupBy(
     items.filter(
       (item) =>
@@ -37,7 +34,6 @@ function Integrations() {
         ? "connected"
         : "available"
   );
-
   return (
     <Scene title={t("Integrations")}>
       <Heading>{t("Integrations")}</Heading>
@@ -69,10 +65,8 @@ function Integrations() {
     </Scene>
   );
 }
-
 const Cards = styled(Flex)`
   margin-top: 20px;
   width: "100%";
 `;
-
 export default observer(Integrations);

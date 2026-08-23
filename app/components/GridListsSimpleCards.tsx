@@ -1,6 +1,5 @@
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const projects = [
   {
     name: "Graph API",
@@ -31,7 +30,6 @@ const projects = [
     bgColor: "bg-green-500",
   },
 ];
-
 /**
  * Tailwind UI – grid lists: simple cards.
  *

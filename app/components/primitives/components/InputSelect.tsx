@@ -1,7 +1,6 @@
 /**
  * Reusable components for InputSelect abstraction.
  */
-
 import { CheckmarkIcon } from "outline-icons";
 import { forwardRef } from "react";
 import styled, { css } from "styled-components";
@@ -11,13 +10,11 @@ import Button, { Inner } from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { transparentize } from "polished";
-
 export const SelectItem = forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<"div">
 >((props, ref) => {
   const { children, ...rest } = props;
-
   return (
     <ItemContainer
       ref={ref}
@@ -32,7 +29,6 @@ export const SelectItem = forwardRef<
   );
 });
 SelectItem.displayName = "SelectItem";
-
 export const SelectItemIndicator = forwardRef<
   HTMLSpanElement,
   React.ComponentPropsWithoutRef<"span">
@@ -42,14 +38,14 @@ export const SelectItemIndicator = forwardRef<
   </IndicatorContainer>
 ));
 SelectItemIndicator.displayName = "SelectItemIndicator";
-
 const IconSpacer = styled.div`
   width: 24px;
   height: 24px;
   flex-shrink: 0;
 `;
-
-export const SelectButton = styled(Button)<{ $nude?: boolean }>`
+export const SelectButton = styled(Button)<{
+  $nude?: boolean;
+}>`
   display: block;
   font-weight: normal;
   text-transform: none;
@@ -86,7 +82,6 @@ export const SelectButton = styled(Button)<{ $nude?: boolean }>`
     color: ${s("placeholder")};
   }
 `;
-
 const ItemContainer = styled(Flex)`
   position: relative;
   width: 100%;
@@ -135,7 +130,6 @@ const ItemContainer = styled(Flex)`
     padding-inline-start: 8px;
   `}
 `;
-
 const IndicatorContainer = styled.span`
   width: 24px;
   height: 24px;

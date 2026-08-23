@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -34,7 +34,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Home", href: "#" },
   { name: "Invoices", href: "#" },
@@ -174,7 +173,6 @@ const moods = [
     bgColor: "bg-transparent",
   },
 ];
-
 /**
  * Tailwind UI – detail screens: stacked.
  *
@@ -183,7 +181,6 @@ const moods = [
 export function DetailScreensStacked() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selected, setSelected] = useState(moods[5]);
-
   return (
     <>
       <header className="absolute inset-x-0 top-0 z-50 flex h-16 border-b border-gray-900/10">

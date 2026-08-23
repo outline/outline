@@ -17,7 +17,6 @@ import { useEditor } from "./EditorContext";
 import { ColumnSelection } from "@shared/editor/selection/ColumnSelection";
 import { RowSelection } from "@shared/editor/selection/RowSelection";
 import { isTableSelected } from "@shared/editor/queries/table";
-
 type Props = {
   align?: "start" | "end" | "center";
   active?: boolean;
@@ -25,7 +24,6 @@ type Props = {
   width?: number;
   forwardedRef?: React.RefObject<HTMLDivElement> | null;
 };
-
 const defaultPosition = {
   left: -10000,
   top: 0,
@@ -34,7 +32,6 @@ const defaultPosition = {
   blockSelection: false,
   visible: false,
 };
-
 function usePosition({
   menuRef,
   active,
@@ -48,7 +45,6 @@ function usePosition({
   const { selection } = view.state;
   const [menuWidth, setMenuWidth] = React.useState(0);
   const menuHeight = 36;
-
   // Measure the menu width after DOM updates to ensure accurate positioning.
   // Runs after every render by design, the width comparison prevents a loop.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,7 +56,6 @@ function usePosition({
       }
     }
   });
-
   // based on the start and end of the selection calculate the position at
   // the center top
   let fromPos;
@@ -72,7 +67,6 @@ function usePosition({
     Logger.warn("Unable to calculate selection position", { err });
     return defaultPosition;
   }
-
   // ensure that start < end for the menu to be positioned correctly
   const selectionBounds = {
     top: Math.min(fromPos.top, toPos.top),
@@ -80,7 +74,6 @@ function usePosition({
     left: Math.min(fromPos.left, toPos.left),
     right: Math.max(fromPos.right, toPos.right),
   };
-
   const offsetParent = menuRef.current?.offsetParent
     ? menuRef.current.offsetParent.getBoundingClientRect()
     : ({
@@ -89,7 +82,6 @@ function usePosition({
         top: 0,
         left: 0,
       } as DOMRect);
-
   // position at the top right of code blocks
   const isCodeNodeSelection =
     selection instanceof NodeSelection && isCode(selection.node);
@@ -99,7 +91,6 @@ function usePosition({
   const noticeBlock = findParentNode(
     (node) => node.type.name === "container_notice"
   )(view.state.selection);
-
   if (
     (codeBlock || noticeBlock) &&
     (view.state.selection.empty || isCodeNodeSelection)
@@ -109,7 +100,6 @@ function usePosition({
       : noticeBlock
         ? noticeBlock.pos
         : null;
-
     if (position !== null) {
       const element = view.nodeDOM(position);
       const bounds = (element as HTMLElement).getBoundingClientRect();
@@ -118,17 +108,14 @@ function usePosition({
       selectionBounds.right = bounds.right;
     }
   }
-
   if (!active || !menuRef.current || !menuHeight) {
     return defaultPosition;
   }
-
   // tables are an oddity, and need their own positioning logic
   const isColSelection =
     selection instanceof ColumnSelection && selection.isColSelection();
   const isRowSelection =
     selection instanceof RowSelection && selection.isRowSelection();
-
   if (isTableSelected(view.state)) {
     const rect = selectedRect(view.state);
     const table = view.domAtPos(rect.tableStart);
@@ -161,14 +148,11 @@ function usePosition({
       selectionBounds.right = bounds.left - 10;
     }
   }
-
   const isImageSelection =
     selection instanceof NodeSelection && selection.node?.type.name === "image";
-
   // Images need their own positioning to get the toolbar in the center
   if (isImageSelection) {
     const element = view.nodeDOM(selection.from);
-
     // Images are wrapped which impacts positioning - need to get the element
     // specifically tagged as the handle
     const imageElement = element
@@ -178,7 +162,6 @@ function usePosition({
       : undefined;
     if (imageElement) {
       const { left, top, width } = imageElement.getBoundingClientRect();
-
       return {
         left: Math.round(left + width / 2 - menuWidth / 2 - offsetParent.left),
         top: Math.round(top - menuHeight - offsetParent.top),
@@ -189,12 +172,10 @@ function usePosition({
       };
     }
   }
-
   // calculate the horizontal center of the selection
   const halfSelection =
     Math.abs(selectionBounds.right - selectionBounds.left) / 2;
   const centerOfSelection = selectionBounds.left + halfSelection;
-
   // position the menu so that it is centered over the selection except in
   // the cases where it would extend off the edge of the screen. In these
   // instances leave a margin
@@ -220,7 +201,6 @@ function usePosition({
       Math.max(margin, selectionBounds.top - menuHeight)
     )
   );
-
   // if the menu has been offset to not extend offscreen then we should adjust
   // the position of the triangle underneath to correctly point to the center
   // of the selection still
@@ -239,42 +219,34 @@ function usePosition({
     visible: true,
   };
 }
-
 const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   props: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const menuRef = ref || React.createRef<HTMLDivElement>();
   const [isSelectingText, setSelectingText] = React.useState(false);
-
   let position = usePosition({
     menuRef,
     active: props.active,
     align: props.align,
   });
-
   if (isSelectingText) {
     position = defaultPosition;
   }
-
   useEventListener("mouseup", () => {
     setSelectingText(false);
   });
-
   useEventListener("mousedown", () => {
     if (!props.active) {
       setSelectingText(true);
     }
   });
-
   const isMobile = useMobile();
   const isMobileToolbarVisible = isMobile && !!props.active && position.visible;
-
   // Keep the mobile toolbar glued to the top of the on-screen keyboard. The
   // hook tracks the visual viewport directly — see its implementation for the
   // iOS specifics.
   useKeyboardStickyOffset(menuRef, isMobileToolbarVisible);
-
   if (isMobile) {
     if (isMobileToolbarVisible) {
       // Vertical position (above the keyboard) is owned entirely by
@@ -289,10 +261,8 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
         </ReactPortal>
       );
     }
-
     return null;
   }
-
   return (
     <Portal>
       <Wrapper
@@ -314,13 +284,11 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
     </Portal>
   );
 });
-
 type WrapperProps = {
   active?: boolean;
   arrow?: boolean;
   $offset: number;
 };
-
 const arrow = (props: WrapperProps) =>
   props.arrow
     ? css`
@@ -343,7 +311,6 @@ const arrow = (props: WrapperProps) =>
         }
       `
     : "";
-
 const MobileWrapper = styled.div`
   position: fixed;
   bottom: 0;
@@ -358,7 +325,6 @@ const MobileWrapper = styled.div`
     display: none;
   }
 `;
-
 const MobileBackground = styled.div`
   padding: 10px 6px;
   height: 60px;
@@ -374,8 +340,9 @@ const MobileBackground = styled.div`
     background-color: ${s("menuBackground")};
   }
 `;
-
-const Background = styled.div<{ align: Props["align"] }>`
+const Background = styled.div<{
+  align: Props["align"];
+}>`
   position: relative;
   background-color: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
@@ -398,7 +365,6 @@ const Background = styled.div<{ align: Props["align"] }>`
     bottom: 0;
   `}
 `;
-
 // pointer-events is a discrete property and cannot be transitioned, so a
 // delayed animation is used to re-enable interaction once the open animation
 // has finished
@@ -407,7 +373,6 @@ const enableInteraction = keyframes`
     pointer-events: auto;
   }
 `;
-
 const Wrapper = styled.div<WrapperProps>`
   will-change: opacity, transform;
   position: absolute;
@@ -452,5 +417,4 @@ const Wrapper = styled.div<WrapperProps>`
     display: none;
   }
 `;
-
 export default FloatingToolbar;

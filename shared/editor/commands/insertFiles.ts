@@ -6,7 +6,6 @@ import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
-
 export type Options = {
   /** Set to true to force images and videos to become file attachments */
   isAttachment?: boolean;
@@ -42,7 +41,6 @@ export type Options = {
     preview?: boolean;
   };
 };
-
 const insertFiles = async function (
   view: EditorView,
   event:
@@ -59,19 +57,14 @@ const insertFiles = async function (
     onFileUploadStop,
     onFileUploadProgress,
   } = options;
-
   // okay, we have some dropped files and a handler – lets stop this
   // event going any further up the stack
   event.preventDefault();
-
   // let the user know we're starting to process the files
   onFileUploadStart?.();
-
   const { schema } = view.state;
-
   // we'll use this to track of how many files have succeeded or failed
   let complete = 0;
-
   const filesToUpload = (
     await Promise.all(
       files.map(async (file) => {
@@ -83,20 +76,17 @@ const insertFiles = async function (
           FileHelper.isVideo(file.type) &&
           !options.isAttachment &&
           !!schema.nodes.video;
-
         // a file that cannot be inserted as an image or video falls back to an
         // attachment node – if the schema in use has none then it cannot be
         // represented at all and should be skipped.
         if (!isImage && !isVideo && !schema.nodes.attachment) {
           return undefined;
         }
-
         const getDimensions = isImage
           ? (f: File) => FileHelper.getImageDimensions(f)
           : isVideo
             ? (f: File) => FileHelper.getVideoDimensions(f)
             : undefined;
-
         return {
           id: uuidv4(),
           dimensions: await getDimensions?.(file),
@@ -108,17 +98,14 @@ const insertFiles = async function (
       })
     )
   ).filter((upload) => upload !== undefined);
-
   // none of the dropped files can be represented in this schema, nothing to do
   if (filesToUpload.length === 0) {
     onFileUploadStop?.();
     return;
   }
-
   // the user might have dropped multiple files at once, we need to loop
   for (const upload of filesToUpload) {
     const { tr } = view.state;
-
     tr.setMeta(uploadPlaceholderPlugin, {
       add: {
         pos,
@@ -127,7 +114,6 @@ const insertFiles = async function (
       },
     });
     view.dispatch(tr);
-
     // start uploading the file to the server. Using "then" syntax
     // to allow all placeholders to be entered at once with the uploads
     // happening in the background in parallel.
@@ -147,11 +133,9 @@ const insertFiles = async function (
             if (result === null) {
               return;
             }
-
             if (view.isDestroyed) {
               return;
             }
-
             const [from, to] = result;
             view.dispatch(
               view.state.tr
@@ -168,24 +152,19 @@ const insertFiles = async function (
                 .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
             );
           };
-
           newImg.onerror = () => {
             throw new Error(`Error loading image: ${src}`);
           };
-
           newImg.src = src;
         } else if (upload.isVideo) {
           const result = findPlaceholder(view.state, upload.id);
           if (result === null) {
             return;
           }
-
           const [from, to] = result;
-
           if (view.isDestroyed) {
             return;
           }
-
           view.dispatch(
             view.state.tr
               .replaceWith(
@@ -205,9 +184,7 @@ const insertFiles = async function (
           if (result === null) {
             return;
           }
-
           const [from, to] = result;
-
           view.dispatch(
             view.state.tr
               .replaceWith(
@@ -234,21 +211,17 @@ const insertFiles = async function (
           .catch(() => {
             // Reporting is best-effort; the error is logged below regardless.
           });
-
         // oxlint-disable-next-line no-console
         console.error(error);
-
         if (view.isDestroyed) {
           return;
         }
-
         // cleanup the placeholder if there is a failure
         view.dispatch(
           view.state.tr.setMeta(uploadPlaceholderPlugin, {
             remove: { id: upload.id },
           })
         );
-
         options.onNotice?.(
           error.message || t("Sorry, an error occurred uploading the file"),
           "error"
@@ -256,7 +229,6 @@ const insertFiles = async function (
       })
       .finally(() => {
         complete++;
-
         // once everything is done, let the user know
         if (complete === filesToUpload.length && onFileUploadStop) {
           onFileUploadStop();
@@ -264,5 +236,4 @@ const insertFiles = async function (
       });
   }
 };
-
 export default insertFiles;

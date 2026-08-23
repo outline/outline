@@ -3,7 +3,6 @@ import { Menu, Transition } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const orders = [
   {
     number: "WU88191111",
@@ -32,7 +31,6 @@ const orders = [
   },
   // More orders...
 ];
-
 /**
  * Tailwind UI – order history: invoice panels.
  *

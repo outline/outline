@@ -18,7 +18,6 @@ const posts = [
   },
   // More posts...
 ];
-
 /**
  * Tailwind UI – blog sections: single column.
  *

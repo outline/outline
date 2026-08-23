@@ -5,12 +5,9 @@ import { ColumnSelection } from "@shared/editor/selection/ColumnSelection";
 import { RowSelection } from "@shared/editor/selection/RowSelection";
 import { isTableSelected } from "@shared/editor/queries/table";
 import { useEditor } from "./EditorContext";
-
 type Side = "top" | "bottom" | "left" | "right";
 type Align = "start" | "center" | "end";
-
 const DEFAULT_SIDE_OFFSET = 4;
-
 // Column and row menus open next to a grip handle. The grip is modelled as a
 // strip just outside the cell edge so the two distances are independent:
 // opening to the outside clears the grip (strip thickness + offset), while
@@ -19,7 +16,6 @@ const OUTSIDE_CLEARANCE = 20;
 const FLIP_GAP = 0;
 const GRIP_INSET = OUTSIDE_CLEARANCE - FLIP_GAP;
 const GRIP_SIDE_OFFSET = FLIP_GAP;
-
 type Anchor = {
   /** Viewport rect to anchor the menu to. */
   top: number;
@@ -35,7 +31,6 @@ type Anchor = {
   /** Stable identifier for the anchored target, changes when it moves. */
   key: string;
 };
-
 /**
  * Computes the rect and placement to anchor an inline selection menu to, based
  * on the current table/column/row selection. The menu opens to the "outside"
@@ -50,7 +45,6 @@ type Anchor = {
 function getAnchor(view: EditorView, rtl: boolean): Anchor | null {
   const { state } = view;
   const { selection } = state;
-
   if (isTableSelected(state)) {
     const rect = selectedRect(state);
     const bounds = (
@@ -69,7 +63,6 @@ function getAnchor(view: EditorView, rtl: boolean): Anchor | null {
       key: `table-${rect.tableStart}`,
     };
   }
-
   if (selection instanceof ColumnSelection && selection.isColSelection()) {
     const rect = selectedRect(state);
     const cell = (
@@ -91,7 +84,6 @@ function getAnchor(view: EditorView, rtl: boolean): Anchor | null {
       };
     }
   }
-
   if (selection instanceof RowSelection && selection.isRowSelection()) {
     const rect = selectedRect(state);
     const cell = (
@@ -113,10 +105,8 @@ function getAnchor(view: EditorView, rtl: boolean): Anchor | null {
       };
     }
   }
-
   return null;
 }
-
 /**
  * Positions an invisible virtual anchor element over the current table, column,
  * or row selection so a Radix dropdown can anchor an inline menu to it. The
@@ -131,7 +121,6 @@ export function useInlineMenuAnchor(rtl: boolean) {
   const { view } = useEditor();
   const ref = React.useRef<HTMLDivElement>(null);
   const anchor = getAnchor(view, rtl);
-
   React.useLayoutEffect(() => {
     const element = ref.current;
     if (element && anchor) {
@@ -141,7 +130,6 @@ export function useInlineMenuAnchor(rtl: boolean) {
       element.style.height = `${anchor.height}px`;
     }
   });
-
   return {
     ref,
     key: anchor?.key,

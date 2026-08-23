@@ -17,7 +17,6 @@ import Desktop from "~/utils/Desktop";
 import ErrorBoundary from "./ErrorBoundary";
 import Tooltip from "./Tooltip";
 import { useDialogContext } from "~/components/DialogContext";
-
 type Props = {
   children?: React.ReactNode;
   isOpen: boolean;
@@ -27,7 +26,6 @@ type Props = {
   height?: number | string;
   onRequestClose: () => void;
 };
-
 const Modal: React.FC<Props> = ({
   children,
   isOpen,
@@ -42,16 +40,13 @@ const Modal: React.FC<Props> = ({
   const { t } = useTranslation();
   const resolvedTitle = title ?? t("Untitled");
   const dialog = useDialogContext();
-
   const onClose = React.useCallback(() => {
     dialog.setAnimating(false); // Reset
     onRequestClose();
   }, [dialog, onRequestClose]);
-
   if (!isOpen && !wasOpen) {
     return null;
   }
-
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
@@ -116,7 +111,6 @@ const Modal: React.FC<Props> = ({
     </Dialog.Root>
   );
 };
-
 const StyledOverlay = styled(Dialog.Overlay)`
   position: fixed;
   top: 0;
@@ -127,7 +121,6 @@ const StyledOverlay = styled(Dialog.Overlay)`
   z-index: ${depths.overlay};
   animation: ${fadeIn} 200ms ease;
 `;
-
 const StyledContent = styled(Dialog.Content)`
   position: fixed;
   top: 0;
@@ -140,7 +133,6 @@ const StyledContent = styled(Dialog.Content)`
   align-items: flex-start;
   outline: none;
 `;
-
 const Mobile = styled.div`
   animation: ${fadeAndScaleIn} 250ms ease;
 
@@ -156,7 +148,6 @@ const Mobile = styled.div`
   background: ${s("background")};
   outline: none;
 `;
-
 const MobileContent = styled(Scrollable)`
   width: 100%;
   padding: 8vh 12px;
@@ -165,18 +156,15 @@ const MobileContent = styled(Scrollable)`
     padding: 13vh 2rem 2rem;
   `};
 `;
-
 const DesktopContent = styled(Scrollable)`
   padding: 8px 24px 24px;
 `;
-
 const Centered = styled(Flex)`
   width: 640px;
   max-width: 100%;
   position: relative;
   margin: 0 auto;
 `;
-
 const Close = styled(NudeButton)`
   position: absolute;
   display: block;
@@ -196,7 +184,6 @@ const Close = styled(NudeButton)`
     display: none;
   `};
 `;
-
 const Back = styled(NudeButton)`
   position: absolute;
   display: none;
@@ -217,7 +204,6 @@ const Back = styled(NudeButton)`
     display: flex;
   `};
 `;
-
 const Header = styled(Flex)`
   color: ${s("textSecondary")};
   align-items: center;
@@ -237,7 +223,6 @@ const Header = styled(Flex)`
     flex-shrink: 0;
   }
 `;
-
 const Wrapper = styled.div<{
   $width?: number | string;
   $height?: number | string;
@@ -270,5 +255,4 @@ const Wrapper = styled.div<{
     align-items: start;
   }
 `;
-
 export default observer(Modal);

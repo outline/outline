@@ -20,9 +20,7 @@ import {
   Label,
   Info,
 } from "./Components";
-
 type Props = Omit<UnfurlResponse[UnfurlResourceType.Issue], "type">;
-
 const HoverPreviewIssue = React.forwardRef(function HoverPreviewIssue_(
   { url, id, title, description, author, labels, state, createdAt }: Props,
   ref: React.Ref<HTMLDivElement>
@@ -35,7 +33,6 @@ const HoverPreviewIssue = React.forwardRef(function HoverPreviewIssue_(
       : urlObj.hostname === "github.com"
         ? IntegrationService.GitHub
         : IntegrationService.GitLab;
-
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
       <Flex column ref={ref}>
@@ -89,9 +86,7 @@ const HoverPreviewIssue = React.forwardRef(function HoverPreviewIssue_(
     </Preview>
   );
 });
-
 const StyledIssueStatusIcon = styled(IssueStatusIcon)`
   margin-top: 2px;
 `;
-
 export default HoverPreviewIssue;

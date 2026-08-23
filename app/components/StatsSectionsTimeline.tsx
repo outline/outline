@@ -28,7 +28,6 @@ const timeline = [
     dateTime: "2022-12",
   },
 ];
-
 /**
  * Tailwind UI – stats sections: timeline.
  *

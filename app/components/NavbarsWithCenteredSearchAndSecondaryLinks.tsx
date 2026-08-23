@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -17,7 +17,6 @@ import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const user = {
   name: "Tom Cook",
   email: "tom@example.com",
@@ -35,7 +34,6 @@ const userNavigation = [
   { name: "Settings", href: "#" },
   { name: "Sign out", href: "#" },
 ];
-
 /**
  * Tailwind UI – navbars: with centered search and secondary links.
  *

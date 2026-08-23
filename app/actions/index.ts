@@ -17,7 +17,6 @@ import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
 import { pushOrOpenInSplit } from "~/utils/splitView";
 import type { Action as KbarAction } from "kbar";
-
 export function resolve<T>(value: unknown, context: ActionContext): T {
   return (
     typeof value === "function"
@@ -25,11 +24,9 @@ export function resolve<T>(value: unknown, context: ActionContext): T {
       : value
   ) as T;
 }
-
 export const ActionSeparator: TActionSeparator = {
   type: "action_separator",
 };
-
 export function createAction(
   definition: Optional<Omit<Action, "type" | "variant">, "id">
 ): Action {
@@ -56,7 +53,6 @@ export function createAction(
     id: definition.id ?? uuidv4(),
   };
 }
-
 export function createInternalLinkAction(
   definition: Optional<Omit<InternalLinkAction, "type" | "variant">, "id">
 ): InternalLinkAction {
@@ -67,7 +63,6 @@ export function createInternalLinkAction(
     id: definition.id ?? uuidv4(),
   };
 }
-
 export function createExternalLinkAction(
   definition: Optional<Omit<ExternalLinkAction, "type" | "variant">, "id">
 ): ExternalLinkAction {
@@ -78,7 +73,6 @@ export function createExternalLinkAction(
     id: definition.id ?? uuidv4(),
   };
 }
-
 export function createActionWithChildren(
   definition: Optional<Omit<ActionWithChildren, "type" | "variant">, "id">
 ): ActionWithChildren {
@@ -89,7 +83,6 @@ export function createActionWithChildren(
     id: definition.id ?? uuidv4(),
   };
 }
-
 export function createActionGroup(
   definition: Omit<ActionGroup, "type">
 ): ActionGroup {
@@ -98,7 +91,6 @@ export function createActionGroup(
     type: "action_group",
   };
 }
-
 export function createRootMenuAction(
   actions: (ActionVariant | ActionGroup | TActionSeparator)[]
 ): ActionWithChildren {
@@ -111,7 +103,6 @@ export function createRootMenuAction(
     children: actions,
   };
 }
-
 /**
  * Determines whether any of the given actions are visible in the context,
  * without resolving the remainder of the menu items.
@@ -138,16 +129,13 @@ export function hasVisibleActions(
         }
         return true;
       }
-
       case "action_group":
         return hasVisibleActions(action.actions, context);
-
       case "action_separator":
         return false;
     }
   });
 }
-
 export function actionToMenuItem(
   action: ActionVariant | ActionGroup | TActionSeparator,
   context: ActionContext
@@ -161,7 +149,6 @@ export function actionToMenuItem(
         !!action.icon && action.iconInContextMenu !== false
           ? resolve<React.ReactNode>(action.icon, context)
           : undefined;
-
       switch (action.variant) {
         case "action":
           return {
@@ -176,7 +163,6 @@ export function actionToMenuItem(
             shortcut: action.shortcut,
             onClick: () => performAction(action, context),
           };
-
         case "internal_link": {
           const to = resolve<LocationDescriptor>(action.to, context);
           return {
@@ -189,7 +175,6 @@ export function actionToMenuItem(
             to,
           };
         }
-
         case "external_link":
           return {
             type: "link",
@@ -202,7 +187,6 @@ export function actionToMenuItem(
               ? { url: action.url, target: action.target }
               : action.url,
           };
-
         case "action_with_children": {
           const children = resolve<
             (ActionVariant | ActionGroup | TActionSeparator)[]
@@ -219,12 +203,10 @@ export function actionToMenuItem(
             visible: visible && hasVisibleItems(subMenuItems),
           };
         }
-
         default:
           throw Error("invalid action variant");
       }
     }
-
     case "action_group": {
       const groupItems = action.actions.map((a) =>
         actionToMenuItem(a, context)
@@ -236,12 +218,10 @@ export function actionToMenuItem(
         items: groupItems,
       };
     }
-
     case "action_separator":
       return { type: "separator" };
   }
 }
-
 export function actionToKBar(
   action: ActionVariant,
   context: ActionContext
@@ -250,12 +230,10 @@ export function actionToKBar(
   if (visible === false) {
     return [];
   }
-
   const name = resolve<string>(action.name, context);
   const icon = resolve<React.ReactElement>(action.icon, context);
   const section = resolve<string>(action.section, context);
   const subtitle = resolve<string>(action.description, context);
-
   // Sections are passed to the command bar as objects so that their declared
   // priority orders the sections themselves – given a bare string it would
   // instead order them by the match score of whichever result happens to come
@@ -267,9 +245,7 @@ export function actionToKBar(
         ? ((action.section.priority as number) ?? 0)
         : 0,
   };
-
   const priority = 1 + (action.priority ?? 0);
-
   switch (action.variant) {
     case "action":
     case "internal_link":
@@ -288,7 +264,6 @@ export function actionToKBar(
         },
       ];
     }
-
     case "action_with_children": {
       const resolvedChildren = resolve<ActionVariant[]>(
         action.children,
@@ -298,7 +273,6 @@ export function actionToKBar(
         .map((a) => actionToKBar(a, context))
         .flat()
         .filter(Boolean);
-
       return [
         {
           id: action.id,
@@ -316,12 +290,10 @@ export function actionToKBar(
         })),
       ];
     }
-
     default:
       throw Error("invalid action variant");
   }
 }
-
 export async function performAction(
   action: Exclude<ActionVariant, ActionWithChildren>,
   context: ActionContext
@@ -332,7 +304,6 @@ export async function performAction(
       : action.variant === "internal_link"
         ? () => {
             const to = resolve<LocationDescriptor>(action.to, context);
-
             // Holding the modifier while triggering a command bar action
             // opens the route in the secondary pane of the split view.
             if (context.isCommandBar) {
@@ -342,18 +313,14 @@ export async function performAction(
             }
           }
         : () => window.open(action.url, action.target);
-
   const result = perform();
-
   if (result instanceof Promise) {
     return result.catch((err: Error) => {
       toast.error(err.message);
     });
   }
-
   return result;
 }
-
 function hasVisibleItems(items: MenuItem[]) {
   const applicableTypes = ["button", "link", "route", "group", "submenu"];
   return items.some(

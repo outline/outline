@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Switch } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 /**
  * Tailwind UI – toggles: with right label.
  *
@@ -9,7 +8,6 @@ import { classNames } from "./classNames";
  */
 export function TogglesWithRightLabel() {
   const [enabled, setEnabled] = useState(false);
-
   return (
     <Switch.Group as="div" className="flex items-center">
       <Switch

@@ -1,12 +1,9 @@
 import * as React from "react";
 import useEventListener from "~/hooks/useEventListener";
-
 /** How far, in pixels, a value can be dragged beyond its bounds. */
 const RUBBER_BAND_LIMIT = 100;
-
 /** Resistance applied to the first pixel of overshoot, 0-1. Lower is stiffer. */
 const RUBBER_BAND_TENSION = 0.55;
-
 interface Bounds {
   /** Lower bound, below which resistance is applied. */
   min?: number;
@@ -15,7 +12,6 @@ interface Bounds {
   /** How far the value may travel beyond a bound, defaults to 100. */
   limit?: number;
 }
-
 interface ResizeHandleOptions extends Bounds {
   /**
    * Maps a mouse event to the raw, unconstrained value being dragged. Return undefined to ignore
@@ -27,14 +23,12 @@ interface ResizeHandleOptions extends Bounds {
   /** Called once the drag has ended, typically to settle the value within its bounds. */
   onResizeEnd?: () => void;
 }
-
 interface ResizeHandle {
   /** Whether a drag is currently in progress. */
   isResizing: boolean;
   /** Begins a drag, to be called from the mouse down event of the drag handle. */
   startResize: (event: React.MouseEvent) => void;
 }
-
 /**
  * Drives a draggable resize handle. Tracks the mouse for the duration of the drag and applies
  * resistance when dragged outside of the given bounds, so that the value can be stretched past
@@ -52,50 +46,40 @@ export function useResizeHandle({
   limit,
 }: ResizeHandleOptions): ResizeHandle {
   const [isResizing, setResizing] = React.useState(false);
-
   const handleDrag = React.useCallback(
     (event: MouseEvent) => {
       // suppresses text selection
       event.preventDefault();
-
       const value = measure(event);
       if (value === undefined) {
         return;
       }
-
       onResize(rubberBand(value, { min, max, limit }));
     },
     [measure, onResize, min, max, limit]
   );
-
   const handleStopDrag = React.useCallback(() => {
     setResizing(false);
     onResizeEnd?.();
   }, [onResizeEnd]);
-
   const startResize = React.useCallback((event: React.MouseEvent) => {
     event.preventDefault();
     setResizing(true);
   }, []);
-
   useEventListener("mousemove", handleDrag, isResizing ? document : null);
   useEventListener("mouseup", handleStopDrag, isResizing ? document : null);
   useEventListener("blur", handleStopDrag, isResizing ? window : null);
-
   React.useEffect(() => {
     if (!isResizing) {
       return;
     }
-
     document.body.style.cursor = "col-resize";
     return () => {
       document.body.style.cursor = "";
     };
   }, [isResizing]);
-
   return { isResizing, startResize };
 }
-
 /**
  * Applies resistance to a value that has been dragged outside of the given bounds, so that moving
  * it further becomes progressively harder – as in the iOS rubber band scrolling effect. The value
@@ -117,7 +101,6 @@ export function rubberBand(
   }
   return value;
 }
-
 function resistance(distance: number, limit: number): number {
   return (
     (distance * limit * RUBBER_BAND_TENSION) /

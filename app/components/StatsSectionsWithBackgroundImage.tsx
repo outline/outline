@@ -4,7 +4,6 @@ const stats = [
   { id: 3, name: "Uptime guarantee", value: "99.9%" },
   { id: 4, name: "Paid out to creators", value: "$70M" },
 ];
-
 /**
  * Tailwind UI – stats sections: with background image.
  *

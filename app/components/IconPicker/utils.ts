@@ -1,13 +1,11 @@
 import i18next from "i18next";
 import { IconType } from "@shared/types";
 import { FrequencyTracker } from "@shared/utils/FrequencyTracker";
-
 export enum DisplayCategory {
   All = "All",
   Frequent = "Frequent",
   Search = "Search",
 }
-
 export const TRANSLATED_CATEGORIES = {
   All: i18next.t("All"),
   Frequent: i18next.t("Frequently Used"),
@@ -22,7 +20,6 @@ export const TRANSLATED_CATEGORIES = {
   Flags: i18next.t("Flags"),
   Custom: i18next.t("Custom"),
 };
-
 const STORAGE_KEYS = {
   Base: "icon-state",
   EmojiSkinTone: "emoji-skintone",
@@ -33,11 +30,8 @@ const STORAGE_KEYS = {
   CustomEmojisFrequency: "custom-emojis-freq",
   LastCustomEmoji: "last-custom-emoji",
 };
-
 const getStorageKey = (key: string) => `${STORAGE_KEYS.Base}.${key}`;
-
 export const emojiSkinToneKey = getStorageKey(STORAGE_KEYS.EmojiSkinTone);
-
 const createFrequencyTracker = (freqKey: string, lastKey: string) =>
   new FrequencyTracker<string>({
     key: getStorageKey(freqKey),
@@ -45,7 +39,6 @@ const createFrequencyTracker = (freqKey: string, lastKey: string) =>
     track: 30,
     get: 24,
   });
-
 /** Tracks the icons used most frequently, by type of icon. */
 export const iconFrequencies: Record<IconType, FrequencyTracker<string>> = {
   [IconType.SVG]: createFrequencyTracker(

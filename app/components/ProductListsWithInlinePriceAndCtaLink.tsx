@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -26,7 +26,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – product lists: with inline price and cta link.
  *

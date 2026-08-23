@@ -17,81 +17,61 @@ import { BadgesWithBorderAndDot } from "~/components/BadgesWithBorderAndDot";
 import { BadgesWithBorderAndDotOnDark } from "~/components/BadgesWithBorderAndDotOnDark";
 import { BadgesWithBorderAndRemoveButton } from "~/components/BadgesWithBorderAndRemoveButton";
 import { BadgesWithBorderOnDark } from "~/components/BadgesWithBorderOnDark";
-
 const meta: Meta = {
   title: "Application UI/Elements/Badges",
 };
-
 export default meta;
-
 export const Flat: StoryObj = {
   render: () => <BadgesFlat />,
 };
-
 export const FlatPill: StoryObj = {
   render: () => <BadgesFlatPill />,
 };
-
 export const FlatPillWithDot: StoryObj = {
   render: () => <BadgesFlatPillWithDot />,
 };
-
 export const FlatWithDot: StoryObj = {
   render: () => <BadgesFlatWithDot />,
 };
-
 export const FlatWithRemoveButton: StoryObj = {
   render: () => <BadgesFlatWithRemoveButton />,
 };
-
 export const PillWithBorder: StoryObj = {
   render: () => <BadgesPillWithBorder />,
 };
-
 export const PillWithBorderAndDot: StoryObj = {
   render: () => <BadgesPillWithBorderAndDot />,
 };
-
 export const SmallFlat: StoryObj = {
   render: () => <BadgesSmallFlat />,
 };
-
 export const SmallFlatPill: StoryObj = {
   render: () => <BadgesSmallFlatPill />,
 };
-
 export const SmallFlatPillWithDot: StoryObj = {
   render: () => <BadgesSmallFlatPillWithDot />,
 };
-
 export const SmallFlatWithDot: StoryObj = {
   render: () => <BadgesSmallFlatWithDot />,
 };
-
 export const SmallPillWithBorder: StoryObj = {
   render: () => <BadgesSmallPillWithBorder />,
 };
-
 export const SmallWithBorder: StoryObj = {
   render: () => <BadgesSmallWithBorder />,
 };
-
 export const WithBorder: StoryObj = {
   render: () => <BadgesWithBorder />,
 };
-
 export const WithBorderAndDot: StoryObj = {
   render: () => <BadgesWithBorderAndDot />,
 };
-
 export const WithBorderAndDotOnDark: StoryObj = {
   render: () => <BadgesWithBorderAndDotOnDark />,
 };
-
 export const WithBorderAndRemoveButton: StoryObj = {
   render: () => <BadgesWithBorderAndRemoveButton />,
 };
-
 export const WithBorderOnDark: StoryObj = {
   render: () => <BadgesWithBorderOnDark />,
 };

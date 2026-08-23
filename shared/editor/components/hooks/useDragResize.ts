@@ -1,6 +1,5 @@
 import * as React from "react";
 import { EditorStyleHelper } from "../../styles/EditorStyleHelper";
-
 type DragDirection =
   | "left"
   | "right"
@@ -9,14 +8,13 @@ type DragDirection =
   | "topRight"
   | "bottomLeft"
   | "bottomRight";
-
-type SizeState = { width: number; height?: number };
-
+type SizeState = {
+  width: number;
+  height?: number;
+};
 /** The minimum width an element can be resized to, as a fraction of the maximum width. */
 const minWidthRatio = 0.05;
-
 const resizeDragCursorProperty = "--resize-drag-cursor";
-
 /**
  * Returns the CSS cursor value for a given resize drag direction.
  *
@@ -35,7 +33,6 @@ function getResizeDragCursor(direction: DragDirection): string {
   }
   return "nesw-resize";
 }
-
 /**
  * Hook for resizing an element by dragging its sides.
  */
@@ -53,7 +50,6 @@ type ReturnValue = {
   /** The current height of the element. */
   height?: number;
 };
-
 type Params = {
   /** Callback triggered when the image is resized */
   onChangeSize?: undefined | ((size: SizeState) => void);
@@ -74,7 +70,6 @@ type Params = {
   /** Whether the element should scale symmetrically from the center. Defaults to true. */
   isCentered?: boolean;
 };
-
 export default function useDragResize(props: Params): ReturnValue {
   const {
     onChangeSize,
@@ -85,7 +80,6 @@ export default function useDragResize(props: Params): ReturnValue {
     ref,
     isCentered = true,
   } = props;
-
   // The committed size passed in through props is the source of truth. `draft`
   // holds the size being previewed while resizing and is released once the
   // committed size arrives back through props, so the element never flashes at
@@ -103,7 +97,6 @@ export default function useDragResize(props: Params): ReturnValue {
   });
   const [dragging, setDragging] = React.useState<DragDirection>();
   const isResizable = !!onChangeSize;
-
   // Release the draft whenever the committed size changes, whether that's this
   // element's own resize landing or an external change such as undo, a reset,
   // or a collaborator resizing the same node. Skipped while dragging so a
@@ -116,14 +109,11 @@ export default function useDragResize(props: Params): ReturnValue {
     setCommitted({ width: props.width, height: props.height });
     setDraft(null);
   }
-
   const size = draft ?? { width: props.width, height: props.height };
-
   // Mirror the latest size into a ref so handlePointerUp can read it without
   // re-binding listeners on every pointermove that updates size.
   const sizeRef = React.useRef(size);
   sizeRef.current = size;
-
   const constrainWidth = React.useCallback(
     (width: number, max: number) => {
       const minWidth = Math.min(naturalWidth, minWidthRatio * max);
@@ -131,11 +121,9 @@ export default function useDragResize(props: Params): ReturnValue {
     },
     [naturalWidth]
   );
-
   const handlePointerMove = React.useCallback(
     (event: PointerEvent) => {
       event.preventDefault();
-
       let diffX = 0;
       let diffY = 0;
       if (dragging === "left") {
@@ -157,14 +145,12 @@ export default function useDragResize(props: Params): ReturnValue {
         diffX = event.pageX - offset.x;
         diffY = event.pageY - offset.y;
       }
-
       const isCorner = [
         "topLeft",
         "topRight",
         "bottomLeft",
         "bottomRight",
       ].includes(dragging || "");
-
       if (isCorner && naturalHeight && naturalWidth) {
         const aspectRatio = naturalHeight / naturalWidth;
         const hFactor = isCentered ? 0.5 : 1;
@@ -174,13 +160,11 @@ export default function useDragResize(props: Params): ReturnValue {
           (hFactor * hFactor + aspectRatio * aspectRatio);
         diffX = dW / factor;
       }
-
       if (diffX && sizeAtDragStart.width) {
         const factor = isCentered ? 2 : 1;
         const newWidth = sizeAtDragStart.width + diffX * factor;
         const constrainedWidth = constrainWidth(newWidth, maxWidth);
         const aspectRatio = naturalHeight / naturalWidth;
-
         // When dragged to or beyond the editor edge, store the natural width as a
         // sentinel for "full width" so the element stays responsive. Only do this
         // when the natural width actually exceeds the editor — otherwise constrain
@@ -195,12 +179,10 @@ export default function useDragResize(props: Params): ReturnValue {
             ? Math.round(constrainedWidth * aspectRatio)
             : undefined
           : sizeAtDragStart.height;
-
         setDraft({
           width: nextWidth,
           height: nextHeight,
         });
-
         window.dispatchEvent(
           new CustomEvent("media-drag-resize", {
             detail: {
@@ -211,22 +193,18 @@ export default function useDragResize(props: Params): ReturnValue {
           })
         );
       }
-
       if (diffY && sizeAtDragStart.height && !isCorner) {
         const gridHeight = gridHeightSnap ?? 10;
         const newHeight = sizeAtDragStart.height + diffY;
         const heightOnGrid = Math.round(newHeight / gridHeight) * gridHeight;
         const nextHeight = Math.max(heightOnGrid, minHeight ?? 50);
-
         // Vertical-only drags never adjust the width, so it is carried over
         // from the current size rather than recomputed.
         const nextState = {
           width: sizeRef.current.width,
           height: nextHeight,
         };
-
         setDraft(nextState);
-
         window.dispatchEvent(
           new CustomEvent("media-drag-resize", {
             detail: {
@@ -250,16 +228,13 @@ export default function useDragResize(props: Params): ReturnValue {
       isCentered,
     ]
   );
-
   const handlePointerUp = React.useCallback(
     (event: PointerEvent) => {
       event.preventDefault();
       event.stopPropagation();
-
       setOffset({ x: 0, y: 0 });
       setDragging(undefined);
       onChangeSize?.(sizeRef.current);
-
       window.dispatchEvent(
         new CustomEvent("media-drag-resize", {
           detail: {
@@ -271,16 +246,13 @@ export default function useDragResize(props: Params): ReturnValue {
     },
     [onChangeSize]
   );
-
   const handleKeyDown = React.useCallback(
     (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
-
         setDraft(sizeAtDragStart);
         setDragging(undefined);
-
         window.dispatchEvent(
           new CustomEvent("media-drag-resize", {
             detail: {
@@ -293,12 +265,10 @@ export default function useDragResize(props: Params): ReturnValue {
     },
     [sizeAtDragStart]
   );
-
   const handleDoubleClick = () => {
     if (!isResizable) {
       return;
     }
-
     // Resize to original size
     const newSize = {
       width: naturalWidth,
@@ -307,13 +277,11 @@ export default function useDragResize(props: Params): ReturnValue {
     setDraft(newSize);
     onChangeSize?.(newSize);
   };
-
   const handlePointerDown =
     (dragDirection: DragDirection) =>
     (event: React.PointerEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
-
       // Calculate constraints once at the start of dragging as it's relatively expensive operation
       const max = ref.current
         ? parseInt(
@@ -334,12 +302,10 @@ export default function useDragResize(props: Params): ReturnValue {
       });
       setDragging(dragDirection);
     };
-
   React.useEffect(() => {
     if (!isResizable) {
       return;
     }
-
     if (dragging) {
       document.body.classList.add(EditorStyleHelper.resizeDragging);
       document.body.style.setProperty(
@@ -350,7 +316,6 @@ export default function useDragResize(props: Params): ReturnValue {
       document.addEventListener("pointermove", handlePointerMove);
       document.addEventListener("pointerup", handlePointerUp);
     }
-
     return () => {
       document.body.classList.remove(EditorStyleHelper.resizeDragging);
       document.body.style.removeProperty(resizeDragCursorProperty);
@@ -365,7 +330,6 @@ export default function useDragResize(props: Params): ReturnValue {
     handlePointerUp,
     isResizable,
   ]);
-
   return {
     handlePointerDown,
     handleDoubleClick,

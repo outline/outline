@@ -24,14 +24,11 @@ import { FILTER_HEIGHT } from "./StickyFilters";
 import UserSelectionToolbar from "./UserSelectionToolbar";
 import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
-
 const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
-
 type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
-
 const UserRowContextMenu = observer(function UserRowContextMenu({
   user,
   menuLabel,
@@ -50,24 +47,20 @@ const UserRowContextMenu = observer(function UserRowContextMenu({
     </ActionContextProvider>
   );
 });
-
 export function UsersTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const isMobile = useMobile();
-
   // The current user is excluded, none of the bulk actions apply to yourself.
   const isRowSelectable = useCallback(
     (user: User) => canManage && user.id !== currentUser.id,
     [canManage, currentUser.id]
   );
-
   const applyContextMenu = useCallback(
     (user: User, rowElement: React.ReactNode) => {
       if (currentUser.id === user.id) {
         return rowElement;
       }
-
       return (
         <UserRowContextMenu user={user} menuLabel={t("User options")}>
           {rowElement}
@@ -76,7 +69,6 @@ export function UsersTable({ canManage, ...rest }: Props) {
     },
     [currentUser.id, t]
   );
-
   const columns = useMemo<TableColumn<User>[]>(
     () =>
       compact<TableColumn<User>>([
@@ -190,7 +182,6 @@ export function UsersTable({ canManage, ...rest }: Props) {
       ]),
     [t, currentUser, canManage, isMobile]
   );
-
   return (
     <SortableTable
       id="users"

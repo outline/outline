@@ -1,7 +1,6 @@
 import type * as React from "react";
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
-
 /** A modal dialog on the stack. */
 export interface DialogDefinition {
   title: React.ReactNode;
@@ -12,14 +11,12 @@ export interface DialogDefinition {
   height?: number | string;
   onClose?: () => void;
 }
-
 /** The single guide panel, shown at most one at a time. */
 export interface GuideDefinition {
   title: string;
   content: React.ReactNode;
   isOpen: boolean;
 }
-
 interface DialogsState {
   /** The currently defined guide, if one has been opened. */
   guide?: GuideDefinition;
@@ -36,7 +33,6 @@ interface DialogsState {
   closeModal: (id: string) => void;
   closeAllModals: () => void;
 }
-
 /**
  * Dialog state for guides and the modal stack.
  *
@@ -47,20 +43,17 @@ interface DialogsState {
 export const useDialogs = create<DialogsState>((set, get) => ({
   guide: undefined,
   modalStack: new Map(),
-
   openGuide: ({ title, content }) => {
     setTimeout(() => {
       set({ guide: { title, content, isOpen: true } });
     }, 0);
   },
-
   closeGuide: () => {
     const { guide } = get();
     if (guide) {
       set({ guide: { ...guide, isOpen: false } });
     }
   },
-
   openModal: ({
     id,
     title,
@@ -77,7 +70,6 @@ export const useDialogs = create<DialogsState>((set, get) => ({
           ? Array.from(state.modalStack.keys())[0]
           : undefined;
         const modalStack = replace ? new Map() : new Map(state.modalStack);
-
         modalStack.set(id ?? replaceId ?? uuidv4(), {
           title,
           content,
@@ -87,12 +79,10 @@ export const useDialogs = create<DialogsState>((set, get) => ({
           isOpen: true,
           onClose,
         });
-
         return { modalStack };
       });
     }, 0);
   },
-
   closeModal: (id) => {
     set((state) => {
       const modalStack = new Map(state.modalStack);
@@ -100,12 +90,10 @@ export const useDialogs = create<DialogsState>((set, get) => ({
       return { modalStack };
     });
   },
-
   closeAllModals: () => {
     set({ modalStack: new Map() });
   },
 }));
-
 /**
  * The dialog actions and current state, for callers outside React.
  *

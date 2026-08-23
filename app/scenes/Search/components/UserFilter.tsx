@@ -8,23 +8,19 @@ import FilterOptions from "~/components/FilterOptions";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-
 type Props = {
   /** The currently selected user ID */
   userId: string | undefined;
   /** Callback to call when a user is selected */
   onSelect: (key: string | undefined) => void;
 };
-
 const fetchQueryOptions = { sort: "name", direction: "ASC" };
-
 function UserFilter(props: Props) {
   const { onSelect, userId } = props;
   const { t } = useTranslation();
   const { users } = useStores();
   const team = useCurrentTeam();
   const can = usePolicy(team);
-
   const options = useMemo(() => {
     const userOptions = users.all.map((user) => ({
       key: user.id,
@@ -40,7 +36,6 @@ function UserFilter(props: Props) {
       ...userOptions,
     ];
   }, [users.all, t]);
-
   return (
     <FilterOptions
       options={options}
@@ -53,9 +48,7 @@ function UserFilter(props: Props) {
     />
   );
 }
-
 const StyledAvatar = styled(Avatar)`
   margin: 2px;
 `;
-
 export default observer(UserFilter);

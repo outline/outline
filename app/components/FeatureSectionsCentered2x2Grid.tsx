@@ -4,7 +4,6 @@ import {
   FingerPrintIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
-
 const features = [
   {
     name: "Push to deploy",
@@ -31,7 +30,6 @@ const features = [
     icon: FingerPrintIcon,
   },
 ];
-
 /**
  * Tailwind UI – feature sections: centered 2x2 grid.
  *

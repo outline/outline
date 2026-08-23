@@ -9,7 +9,6 @@ import ApiKeyRevokeDialog from "~/scenes/Settings/components/ApiKeyRevokeDialog"
 import { createAction } from "..";
 import { dialogActionFactory } from "./common";
 import { SettingsSection } from "../sections";
-
 export const createApiKey = dialogActionFactory({
   analyticsName: "New API key",
   section: SettingsSection,
@@ -22,7 +21,6 @@ export const createApiKey = dialogActionFactory({
   visible: () =>
     stores.policies.abilities(stores.auth.team?.id || "").createApiKey,
 });
-
 export const copyApiKeyActionFactory = ({ apiKey }: { apiKey: ApiKey }) =>
   createAction({
     name: ({ t }) => t("Copy"),
@@ -38,7 +36,6 @@ export const copyApiKeyActionFactory = ({ apiKey }: { apiKey: ApiKey }) =>
       toast.success(t("API key copied"));
     },
   });
-
 export const revokeApiKeyActionFactory = ({ apiKey }: { apiKey: ApiKey }) =>
   createAction({
     name: ({ t, isMenu }) =>
@@ -55,12 +52,10 @@ export const revokeApiKeyActionFactory = ({ apiKey }: { apiKey: ApiKey }) =>
     perform: async ({ t, event }) => {
       event?.preventDefault();
       event?.stopPropagation();
-
       if (apiKey.isExpired) {
         await apiKey.delete();
         return;
       }
-
       stores.dialogs.openModal({
         title: t("Revoke token"),
         content: (

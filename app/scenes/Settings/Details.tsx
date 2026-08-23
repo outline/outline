@@ -15,7 +15,7 @@ import { getBaseDomain } from "@shared/utils/domains";
 import { TeamValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import ButtonLink from "~/components/ButtonLink";
-import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
+import DefaultNotebookInputSelect from "~/components/DefaultNotebookInputSelect";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import InputColor from "~/components/InputColor";
@@ -32,13 +32,11 @@ import TeamDelete from "../TeamDelete";
 import { ActionRow } from "./components/ActionRow";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
-
 function Details() {
   const { dialogs, ui } = useStores();
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const can = usePolicy(team);
-
   const form = useRef<HTMLFormElement>(null);
   const [accent, setAccent] = useState<null | undefined | string>(
     team.preferences?.customTheme?.accent
@@ -52,10 +50,9 @@ function Details() {
   const [publicBranding, setPublicBranding] = useState(
     team.preferences?.publicBranding
   );
-  const [defaultCollectionId, setDefaultCollectionId] = useState<string | null>(
-    team.defaultCollectionId
+  const [defaultNotebookId, setDefaultNotebookId] = useState<string | null>(
+    team.defaultNotebookId
   );
-
   const customTheme: Partial<CustomTheme> = pickBy(
     {
       accent,
@@ -63,11 +60,9 @@ function Details() {
     },
     isHexColor
   );
-
   const [tocPosition, setTocPosition] = useState(
     team.getPreference(TeamPreference.TocPosition) as TOCPosition
   );
-
   const tocPositionOptions: Option[] = React.useMemo(
     () =>
       [
@@ -84,23 +79,20 @@ function Details() {
       ] satisfies Option[],
     [t]
   );
-
   const handleTocPositionChange = React.useCallback((position: string) => {
     setTocPosition(position as TOCPosition);
   }, []);
-
   const handleSubmit = React.useCallback(
     async (event?: React.SyntheticEvent) => {
       if (event) {
         event.preventDefault();
       }
-
       try {
         await team.save({
           name,
           description,
           subdomain,
-          defaultCollectionId,
+          defaultNotebookId,
           preferences: {
             ...team.preferences,
             publicBranding,
@@ -119,51 +111,44 @@ function Details() {
       name,
       description,
       subdomain,
-      defaultCollectionId,
+      defaultNotebookId,
       publicBranding,
       customTheme,
       t,
     ]
   );
-
   const handleNameChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       setName(ev.target.value);
     },
     []
   );
-
   const handleSubdomainChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       setSubdomain(ev.target.value.toLowerCase());
     },
     []
   );
-
   const handleAvatarChange = async (avatarUrl: string | null) => {
     await team.save({ avatarUrl });
     toast.success(t("Logo updated"));
   };
-
   const handleAvatarError = React.useCallback(
     (error: string | null | undefined) => {
       toast.error(error || t("Unable to upload new logo"));
     },
     [t]
   );
-
   const showDeleteWorkspace = () => {
     dialogs.openModal({
       title: t("Delete workspace"),
       content: <TeamDelete onSubmit={dialogs.closeAllModals} />,
     });
   };
-
-  const onSelectCollection = React.useCallback((value: string) => {
+  const onSelectNotebook = React.useCallback((value: string) => {
     const selectedValue = value === "home" ? null : value;
-    setDefaultCollectionId(selectedValue);
+    setDefaultNotebookId(selectedValue);
   }, []);
-
   const handleSeamlessEditChange = React.useCallback(
     async (checked: boolean) => {
       team.setPreference(TeamPreference.SeamlessEdit, !checked);
@@ -172,9 +157,7 @@ function Details() {
     },
     [team, t]
   );
-
   const isValid = form.current?.checkValidity();
-
   const newTheme = React.useMemo(
     () =>
       ui.resolvedTheme === "light"
@@ -182,7 +165,6 @@ function Details() {
         : buildDarkTheme(customTheme),
     [customTheme, ui.resolvedTheme]
   );
-
   return (
     <ThemeProvider theme={newTheme}>
       <Scene title={t("Details")} icon={<TeamIcon />}>
@@ -353,9 +335,9 @@ function Details() {
               "This is the screen that workspace members will first see when they sign in."
             )}
           >
-            <DefaultCollectionInputSelect
-              onSelectCollection={onSelectCollection}
-              defaultCollectionId={defaultCollectionId}
+            <DefaultNotebookInputSelect
+              onSelectNotebook={onSelectNotebook}
+              defaultNotebookId={defaultNotebookId}
             />
           </SettingRow>
           <SettingRow
@@ -390,7 +372,7 @@ function Details() {
                 border={false}
                 label={t("Delete workspace")}
                 description={t(
-                  "You can delete this entire workspace including collections, documents, and users."
+                  "You can delete this entire workspace including notebooks, documents, and users."
                 )}
               >
                 <span>
@@ -406,5 +388,4 @@ function Details() {
     </ThemeProvider>
   );
 }
-
 export default observer(Details);

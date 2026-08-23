@@ -4,7 +4,6 @@ import { Slice } from "prosemirror-model";
 import { toggleFoldPluginKey } from "../nodes/ToggleBlock";
 import { ancestors } from "../utils";
 import { findParentNodeClosestToPos } from "./findParentNode";
-
 /**
  * Check if a node is a toggle block.
  *
@@ -15,7 +14,6 @@ export const isToggleBlock =
   (state: EditorState) =>
   (node: ProsemirrorNode): boolean =>
     node.type === state.schema.nodes.container_toggle;
-
 /**
  * Check if a toggle block is currently folded.
  *
@@ -30,7 +28,6 @@ export function isToggleBlockFolded(
   const pluginState = toggleFoldPluginKey.getState(state);
   return pluginState?.foldedIds.has(toggleBlock.attrs.id) ?? false;
 }
-
 /**
  * Find the depth of a toggle block relative to the selection.
  *
@@ -44,7 +41,6 @@ export function getToggleBlockDepth(
 ): number {
   return ancestors($pos).findIndex((node) => node.eq(toggleBlock));
 }
-
 /**
  * Find the nearest parent toggle block from a position.
  *
@@ -55,7 +51,6 @@ export function getToggleBlockDepth(
 export function findParentToggleBlock(state: EditorState, $pos: ResolvedPos) {
   return findParentNodeClosestToPos($pos, isToggleBlock(state));
 }
-
 /**
  * Check if the selection is within a toggle block.
  *
@@ -65,7 +60,6 @@ export function findParentToggleBlock(state: EditorState, $pos: ResolvedPos) {
 export function isSelectionInToggleBlock(state: EditorState): boolean {
   return ancestors(state.selection.$from).some(isToggleBlock(state));
 }
-
 /**
  * Check if the selection is within the head (first child) of a toggle block.
  *
@@ -79,7 +73,6 @@ export function isSelectionInToggleBlockHead(state: EditorState): boolean {
   }
   return state.selection.$from.index(parent.depth) === 0;
 }
-
 /**
  * Check if the selection is within the body of a toggle block.
  *
@@ -91,7 +84,6 @@ export function isSelectionInToggleBlockBody(state: EditorState): boolean {
     isSelectionInToggleBlock(state) && !isSelectionInToggleBlockHead(state)
   );
 }
-
 /**
  * Check if the cursor is at the start of a toggle block head.
  *
@@ -106,7 +98,6 @@ export function isSelectionAtStartOfToggleBlockHead(
     state.selection.$from.parentOffset === 0
   );
 }
-
 /**
  * Check if the cursor is in the middle of a toggle block head.
  *
@@ -124,7 +115,6 @@ export function isSelectionInMiddleOfToggleBlockHead(
     $from.parentOffset > 0 && $from.parentOffset < $from.node().content.size
   );
 }
-
 /**
  * Check if the cursor is at the end of a toggle block head.
  *
@@ -138,7 +128,6 @@ export function isSelectionAtEndOfToggleBlockHead(state: EditorState): boolean {
   const { $from } = state.selection;
   return $from.parentOffset === $from.node().content.size;
 }
-
 /**
  * Result of detaching the body from a toggle block.
  */
@@ -148,7 +137,6 @@ export interface DetachBodyResult {
   /** The detached body content. */
   body: ProsemirrorNode[];
 }
-
 /**
  * Detach the body content from a toggle block, returning both the modified
  * transaction and the detached content.
@@ -163,21 +151,16 @@ export function detachToggleBlockBody(
 ): DetachBodyResult {
   const $start = tr.doc.resolve(pos + 1);
   const toggleBlock = tr.doc.nodeAt(pos);
-
   const posBeforeBody = $start.pos + toggleBlock!.firstChild!.nodeSize;
   const posAfterBody = $start.end();
-
   // Extract body content before deleting
   const bodySlice = tr.doc.slice(posBeforeBody, posAfterBody);
   const body: ProsemirrorNode[] = [];
   bodySlice.content.forEach((node) => body.push(node));
-
   // Delete the body from the document
   const newTr = tr.replace(posBeforeBody, posAfterBody, Slice.empty);
-
   return { tr: newTr, body };
 }
-
 /**
  * Attach body content back to a toggle block.
  *
@@ -193,7 +176,6 @@ export function attachToggleBlockBody(
 ): Transaction {
   const $start = tr.doc.resolve(pos + 1);
   const toggleBlock = tr.doc.nodeAt(pos);
-
   const posAfterHead = $start.pos + toggleBlock!.firstChild!.nodeSize;
   return tr.insert(posAfterHead, body);
 }

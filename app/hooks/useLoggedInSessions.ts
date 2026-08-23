@@ -1,5 +1,4 @@
 import { getCookie } from "tiny-cookie";
-
 export type Sessions = Record<
   string,
   {
@@ -8,7 +7,6 @@ export type Sessions = Record<
     url: string;
   }
 >;
-
 export function useLoggedInSessions(): Sessions {
   return JSON.parse(getCookie("sessions") || "{}");
 }

@@ -1,5 +1,4 @@
 import emojiRegex from "emoji-regex";
-
 /**
  * Hook to calculate text statistics
  * @param text The string to calculate statistics for
@@ -10,7 +9,6 @@ export function useTextStats(text: string, selectedText: string = "") {
   const numTotalWords = countWords(text);
   const regex = emojiRegex();
   const matches = Array.from(text.matchAll(regex));
-
   return {
     total: {
       words: numTotalWords,
@@ -24,10 +22,8 @@ export function useTextStats(text: string, selectedText: string = "") {
     },
   };
 }
-
 function countWords(text: string): number {
   const t = text.trim();
-
   // Hyphenated words are counted as two words
   return t ? t.replace(/-/g, " ").split(/\s+/g).length : 0;
 }

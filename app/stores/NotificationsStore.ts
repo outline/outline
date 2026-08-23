@@ -6,36 +6,33 @@ import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
-
 export default class NotificationsStore extends Store<Notification> {
   actions = [RPCAction.List, RPCAction.Update];
-
   constructor(rootStore: RootStore) {
     super(rootStore, Notification);
   }
-
   @action
   fetchPage = async (
-    options: ({ archived?: boolean } & PaginationParams) | undefined
+    options:
+      | ({
+          archived?: boolean;
+        } & PaginationParams)
+      | undefined
   ): Promise<Notification[]> => {
     this.isFetching = true;
-
     try {
       const res = await client.post("/notifications.list", options);
-      invariant(res?.data, "Document revisions not available");
-
+      invariant(res?.data, "Notification list not available");
       let models: Notification[] = [];
       runInAction("NotificationsStore#fetchPage", () => {
         models = res.data.notifications.map(this.add);
         this.isLoaded = true;
       });
-
       return models;
     } finally {
       this.isFetching = false;
     }
   };
-
   /**
    * Mark all notifications as read.
    */
@@ -44,7 +41,6 @@ export default class NotificationsStore extends Store<Notification> {
     await client.post("/notifications.update_all", {
       viewedAt: new Date().toISOString(),
     });
-
     runInAction("NotificationsStore#markAllAsRead", () => {
       const viewedAt = new Date();
       this.data.forEach((notification) => {
@@ -52,7 +48,6 @@ export default class NotificationsStore extends Store<Notification> {
       });
     });
   };
-
   /**
    * Mark all notifications as archived.
    */
@@ -61,12 +56,10 @@ export default class NotificationsStore extends Store<Notification> {
     await client.post("/notifications.update_all", {
       archivedAt: new Date().toISOString(),
     });
-
     runInAction("NotificationsStore#markAllAsArchived", () => {
       this.clear();
     });
   };
-
   /**
    * Returns the approximate number of unread notifications.
    */
@@ -74,7 +67,6 @@ export default class NotificationsStore extends Store<Notification> {
   get approximateUnreadCount(): number {
     return this.active.filter((notification) => !notification.viewedAt).length;
   }
-
   /**
    * Returns the notifications in order of created date.
    */
@@ -85,7 +77,6 @@ export default class NotificationsStore extends Store<Notification> {
       (item) => (item.viewedAt ? 1 : -1)
     );
   }
-
   /**
    * Returns only the active (non-archived) notifications.
    */

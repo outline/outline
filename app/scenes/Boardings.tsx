@@ -11,13 +11,11 @@ import { currentBranch } from "../../src/mocks/shop";
 import { AppPage } from "~/components/AppPage";
 import { StatusChip } from "~/components/StatusChip";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 /** Nights between two dates, minimum one. */
 function nights(checkIn: string, checkOut: string): number {
   const span = new Date(checkOut).getTime() - new Date(checkIn).getTime();
   return Math.max(1, Math.round(span / 86400000));
 }
-
 /**
  * Boarding reservations grouped by where they are in the stay, which is how
  * the front desk actually works through them: who is arriving, who is in, and
@@ -35,13 +33,11 @@ function Boardings() {
     ? allBoardings.filter((boarding) => boarding.branch === scope)
     : allBoardings;
   const setBoardingStatus = useShop((state) => state.setBoardingStatus);
-
   const groups = [
     { key: "booked", title: t("Arriving") },
     { key: "checked_in", title: t("Staying") },
     { key: "checked_out", title: t("Departed") },
   ] as const;
-
   return (
     <AppPage
       title={t("Boardings")}
@@ -58,11 +54,9 @@ function Boardings() {
         const inGroup = boardings.filter(
           (boarding) => boarding.status === group.key
         );
-
         if (inGroup.length === 0) {
           return null;
         }
-
         return (
           <Flex column key={group.key}>
             <Subheading>
@@ -70,7 +64,6 @@ function Boardings() {
             </Subheading>
             {inGroup.map((boarding) => {
               const stay = nights(boarding.checkIn, boarding.checkOut);
-
               return (
                 <ListItem
                   key={boarding.id}
@@ -140,5 +133,4 @@ function Boardings() {
     </AppPage>
   );
 }
-
 export default Boardings;

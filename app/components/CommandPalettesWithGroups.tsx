@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -18,12 +18,10 @@ import { FaceFrownIcon, GlobeAmericasIcon } from "@heroicons/react/24/outline";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { classNames } from "./classNames";
 import type { ChangeEvent } from "react";
-
 const items = [
   { id: 1, name: "Workflow Inc.", category: "Clients", url: "#" },
   // More items...
 ];
-
 /**
  * Tailwind UI – command palettes: with groups.
  *
@@ -32,14 +30,12 @@ const items = [
 export function CommandPalettesWithGroups() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(true);
-
   const filteredItems =
     query === ""
       ? []
       : items.filter((item) =>
           item.name.toLowerCase().includes(query.toLowerCase())
         );
-
   const groups = filteredItems.reduce<Record<string, typeof filteredItems>>(
     (groups, item) => ({
       ...groups,
@@ -47,7 +43,6 @@ export function CommandPalettesWithGroups() {
     }),
     {}
   );
-
   return (
     <Transition.Root
       show={open}

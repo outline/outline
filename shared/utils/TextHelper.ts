@@ -4,12 +4,10 @@ import {
   getCurrentTimeAsString,
   unicodeCLDRtoBCP47,
 } from "./date";
-
 interface User {
   name: string;
   language: string | null;
 }
-
 export class TextHelper {
   /**
    * Replaces template variables in the given text with the current date and time.
@@ -22,7 +20,6 @@ export class TextHelper {
     const locales = user.language
       ? unicodeCLDRtoBCP47(user.language)
       : undefined;
-
     return text
       .replace(/{date}/g, getCurrentDateAsString(locales))
       .replace(/{time}/g, getCurrentTimeAsString(locales))

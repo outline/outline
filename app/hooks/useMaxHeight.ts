@@ -1,6 +1,5 @@
 import * as React from "react";
 import useWindowSize from "./useWindowSize";
-
 /**
  * Hook to calculate the maximum height for an element based on its position and viewport size.
  *
@@ -24,11 +23,9 @@ const useMaxHeight = ({
 }) => {
   const [maxHeight, setMaxHeight] = React.useState<number | undefined>(10);
   const { height: windowHeight } = useWindowSize();
-
   const calcMaxHeight = React.useCallback(() => {
     if (elementRef?.current) {
       const mxHeight = (windowHeight / 100) * maxViewportPercentage - margin;
-
       setMaxHeight(
         Math.min(
           mxHeight,
@@ -43,10 +40,7 @@ const useMaxHeight = ({
       setMaxHeight(0);
     }
   }, [elementRef, windowHeight, margin, maxViewportPercentage]);
-
   React.useLayoutEffect(calcMaxHeight, [calcMaxHeight]);
-
   return { maxHeight, calcMaxHeight };
 };
-
 export default useMaxHeight;

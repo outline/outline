@@ -9,7 +9,7 @@ import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
 import { Action } from "~/components/Actions";
 import Breadcrumb from "~/components/Breadcrumb";
 import Button from "~/components/Button";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
+import CollectionIcon from "~/components/Icons/NotebookIcon";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Error404 from "~/scenes/Errors/Error404";
 import Scene from "~/components/Scene";
@@ -19,26 +19,24 @@ import { NavigationSection } from "~/actions/sections";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import TemplateMenu from "~/menus/TemplateMenu";
-import { collectionPath, settingsPath } from "~/utils/routeHelpers";
+import { notebookPath, settingsPath } from "~/utils/routeHelpers";
 import type Template from "~/models/Template";
 import history from "~/utils/history";
-
 type Props = {
   template: Template;
 };
-
 const LoadingState = observer(function LoadingState() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{
+    id: string;
+  }>();
   const { templates, ui } = useStores();
   const template = templates.get(id);
   const { request, error } = useRequest(() => templates.fetch(id));
-
   useEffect(() => {
     if (!template) {
       void request();
     }
   }, [template, request]);
-
   useEffect(() => {
     if (template) {
       ui.addActiveModel(template);
@@ -49,26 +47,21 @@ const LoadingState = observer(function LoadingState() {
       }
     };
   }, [template, ui]);
-
   if (error) {
     return <Error404 />;
   }
-
   if (!template) {
     return <LoadingIndicator />;
   }
-
   return <TemplateSetting template={template} />;
 });
-
 const TemplateSetting = observer(function Template_({ template }: Props) {
   const { t } = useTranslation();
-  const { collections } = useStores();
+  const { notebooks } = useStores();
   const [saving, setSaving] = useState(false);
-  const collection = template.collectionId
-    ? collections.get(template.collectionId)
+  const notebook = template.notebookId
+    ? notebooks.get(template.notebookId)
     : undefined;
-
   const breadcrumbActions = useMemo(
     () => [
       createInternalLinkAction({
@@ -77,26 +70,24 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
         icon: <ShapesIcon />,
         to: settingsPath("templates"),
       }),
-      ...(collection
+      ...(notebook
         ? [
             createInternalLinkAction({
-              name: collection.name,
+              name: notebook.name,
               section: NavigationSection,
-              icon: <CollectionIcon collection={collection} />,
-              to: collectionPath(collection),
+              icon: <CollectionIcon notebook={notebook} />,
+              to: notebookPath(notebook),
             }),
           ]
         : []),
     ],
-    [t, collection]
+    [t, notebook]
   );
-
   const handleSubmit = useCallback(async () => {
     if (!template.data || ProsemirrorDataHelper.isEmpty(template.data)) {
       toast.message(t("A template must have content"));
       return;
     }
-
     setSaving(true);
     try {
       await template.save();
@@ -107,7 +98,6 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
       setSaving(false);
     }
   }, [template, t]);
-
   return (
     <Scene
       title={template.title}
@@ -129,5 +119,4 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
     </Scene>
   );
 });
-
 export default LoadingState;

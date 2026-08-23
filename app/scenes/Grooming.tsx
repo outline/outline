@@ -12,7 +12,6 @@ import { groomingToCalendar } from "~/components/scheduleDays";
 import { useShop } from "~/stores/shop";
 import { currentBranch } from "../../src/mocks/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 /**
  * The grooming table, grouped by where each appointment has got to.
  *
@@ -30,13 +29,11 @@ function Grooming() {
     : allGrooming;
   const setGroomingStatus = useShop((state) => state.setGroomingStatus);
   const diary = useShop((state) => state.groomingCalendar);
-
   const groups = [
     { key: "booked", title: t("Booked") },
     { key: "in_progress", title: t("On the table") },
     { key: "done", title: t("Finished") },
   ] as const;
-
   // Today's takings, not every groom ever finished: the label says today, and
   // the Finished group below carries the full set.
   const today = new Date().toDateString();
@@ -47,7 +44,6 @@ function Grooming() {
         new Date(item.scheduledAt).toDateString() === today
     )
     .reduce((total, item) => total + item.price, 0);
-
   return (
     <AppPage
       title={t("Grooming")}
@@ -69,11 +65,9 @@ function Grooming() {
 
       {groups.map((group) => {
         const inGroup = grooming.filter((item) => item.status === group.key);
-
         if (inGroup.length === 0) {
           return null;
         }
-
         return (
           <Flex column key={group.key}>
             <Subheading>
@@ -129,5 +123,4 @@ function Grooming() {
     </AppPage>
   );
 }
-
 export default Grooming;

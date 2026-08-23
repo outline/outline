@@ -3,23 +3,18 @@ import { useState, useRef, useEffect } from "react";
 import type { locales } from "@shared/utils/date";
 import { dateLocale, dateToRelative } from "@shared/utils/date";
 import useUserLocale from "~/hooks/useUserLocale";
-
 let callbacks: (() => void)[] = [];
-
 // This is a shared timer that fires every minute, used for
 // updating all Time components across the page all at once.
 setInterval(() => {
   callbacks.forEach((cb) => cb());
 }, 1000 * 60);
-
 function eachMinute(fn: () => void) {
   callbacks.push(fn);
-
   return () => {
     callbacks = callbacks.filter((cb) => cb !== fn);
   };
 }
-
 export type Props = {
   dateTime: string;
   addSuffix?: boolean;
@@ -27,7 +22,6 @@ export type Props = {
   relative?: boolean;
   format?: Partial<Record<keyof typeof locales, string>>;
 };
-
 export const useLocaleTime = ({
   addSuffix,
   dateTime,
@@ -48,7 +42,6 @@ export const useLocaleTime = ({
   const formatLocale = format?.[userLocale] ?? formatLocaleLong;
   const [, setMinutesMounted] = useState(0);
   const callback = useRef<() => void>();
-
   useEffect(() => {
     callback.current = eachMinute(() => {
       setMinutesMounted((state) => ++state);
@@ -59,7 +52,6 @@ export const useLocaleTime = ({
       }
     };
   }, []);
-
   const date = new Date(Date.parse(dateTime));
   const locale = dateLocale(userLocale);
   const relativeContent = dateToRelative(date, {
@@ -67,7 +59,6 @@ export const useLocaleTime = ({
     locale,
     shorten,
   });
-
   const tooltipContent = formatDate(date, formatLocaleLong, {
     locale,
   });
@@ -77,7 +68,6 @@ export const useLocaleTime = ({
       : formatDate(date, formatLocale, {
           locale,
         });
-
   return {
     content,
     tooltipContent,

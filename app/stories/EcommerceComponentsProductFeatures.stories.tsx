@@ -8,45 +8,34 @@ import { ProductFeaturesWithSquareImages } from "~/components/ProductFeaturesWit
 import { ProductFeaturesWithTabs } from "~/components/ProductFeaturesWithTabs";
 import { ProductFeaturesWithTieredImages } from "~/components/ProductFeaturesWithTieredImages";
 import { ProductFeaturesWithWideImages } from "~/components/ProductFeaturesWithWideImages";
-
 const meta: Meta = {
   title: "Ecommerce/Components/Product Features",
 };
-
 export default meta;
-
 export const WithAlternatingSections: StoryObj = {
   render: () => <ProductFeaturesWithAlternatingSections />,
 };
-
 export const WithFadingImage: StoryObj = {
   render: () => <ProductFeaturesWithFadingImage />,
 };
-
 export const WithHeaderImagesAndDescriptions: StoryObj = {
   render: () => <ProductFeaturesWithHeaderImagesAndDescriptions />,
 };
-
 export const WithImageGrid: StoryObj = {
   render: () => <ProductFeaturesWithImageGrid />,
 };
-
 export const WithSplitImage: StoryObj = {
   render: () => <ProductFeaturesWithSplitImage />,
 };
-
 export const WithSquareImages: StoryObj = {
   render: () => <ProductFeaturesWithSquareImages />,
 };
-
 export const WithTabs: StoryObj = {
   render: () => <ProductFeaturesWithTabs />,
 };
-
 export const WithTieredImages: StoryObj = {
   render: () => <ProductFeaturesWithTieredImages />,
 };
-
 export const WithWideImages: StoryObj = {
   render: () => <ProductFeaturesWithWideImages />,
 };

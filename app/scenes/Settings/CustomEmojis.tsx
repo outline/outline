@@ -22,7 +22,6 @@ import { useTableRequest } from "~/hooks/useTableRequest";
 import EmojisTable from "./components/EmojisTable";
 import { StickyFilters } from "./components/StickyFilters";
 import type EmojisStore from "~/stores/EmojiStore";
-
 function Emojis() {
   const location = useLocation();
   const history = useHistory();
@@ -33,7 +32,6 @@ function Emojis() {
   const params = useQuery();
   const can = usePolicy(team);
   const [query, setQuery] = useState("");
-
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
@@ -44,7 +42,6 @@ function Emojis() {
     }),
     [params]
   );
-
   const sort: ColumnSort = useMemo(
     () => ({
       id: reqParams.sort,
@@ -52,7 +49,6 @@ function Emojis() {
     }),
     [reqParams.sort, reqParams.direction]
   );
-
   const { data, error, loading, next } = useTableRequest({
     data: getFilteredEmojis({
       emojis,
@@ -62,7 +58,6 @@ function Emojis() {
     reqFn: emojis.fetchPage,
     reqParams,
   });
-
   const updateParams = useCallback(
     (name: string, value: string) => {
       if (value) {
@@ -70,7 +65,6 @@ function Emojis() {
       } else {
         params.delete(name);
       }
-
       history.replace({
         pathname: location.pathname,
         search: params.toString(),
@@ -78,23 +72,19 @@ function Emojis() {
     },
     [params, history, location.pathname]
   );
-
   const handleSearch = useCallback((event) => {
     const { value } = event.target;
     setQuery(value);
   }, []);
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load emojis"));
     }
   }, [t, error]);
-
   useEffect(() => {
     const timeout = setTimeout(() => updateParams("query", query), 250);
     return () => clearTimeout(timeout);
   }, [query, updateParams]);
-
   return (
     <Scene
       title={t("Emojis")}
@@ -149,7 +139,6 @@ function Emojis() {
     </Scene>
   );
 }
-
 function getFilteredEmojis({
   emojis,
   query,
@@ -158,14 +147,11 @@ function getFilteredEmojis({
   query?: string;
 }) {
   let filteredEmojis = emojis.orderedData;
-
   if (query) {
     filteredEmojis = filteredEmojis.filter((emoji) =>
       emoji.name.toLowerCase().includes(query.toLowerCase())
     );
   }
-
   return filteredEmojis;
 }
-
 export default observer(Emojis);

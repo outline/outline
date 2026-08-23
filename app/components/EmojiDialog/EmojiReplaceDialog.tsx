@@ -9,14 +9,12 @@ import useStores from "~/hooks/useStores";
 import { uploadFile } from "~/utils/files";
 import { compressImage } from "~/utils/compressImage";
 import { useEmojiFileUpload, EmojiImageDropZone } from "./Components";
-
 interface Props {
   /** The emoji whose image is being replaced. */
   emoji: Emoji;
   /** Callback invoked after a successful replacement. */
   onSubmit: () => void;
 }
-
 /**
  * Dialog for replacing the image of an existing custom emoji.
  */
@@ -26,13 +24,11 @@ export function EmojiReplaceDialog({ emoji, onSubmit }: Props) {
   const [isUploading, setIsUploading] = React.useState(false);
   const { file, getRootProps, getInputProps, isDragActive } =
     useEmojiFileUpload();
-
   const handleSubmit = async () => {
     if (!file) {
       toast.error(t("Please select an image file"));
       return;
     }
-
     setIsUploading(true);
     try {
       const fileToUpload =
@@ -42,24 +38,20 @@ export function EmojiReplaceDialog({ emoji, onSubmit }: Props) {
               maxHeight: 64,
               maxWidth: 64,
             });
-
       const attachment = await uploadFile(fileToUpload, {
         name: file.name,
         preset: AttachmentPreset.Emoji,
       });
-
       await emojis.update({
         id: emoji.id,
         attachmentId: attachment.id,
       });
-
       toast.success(t("Emoji replaced"));
       onSubmit();
     } finally {
       setIsUploading(false);
     }
   };
-
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}

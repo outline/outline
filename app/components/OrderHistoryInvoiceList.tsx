@@ -1,5 +1,4 @@
 import { CheckIcon } from "@heroicons/react/24/outline";
-
 const orders = [
   {
     number: "WU88191111",
@@ -29,7 +28,6 @@ const orders = [
   },
   // More orders...
 ];
-
 /**
  * Tailwind UI – order history: invoice list.
  *

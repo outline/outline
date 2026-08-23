@@ -31,12 +31,9 @@ import { AvatarSize } from "~/components/Avatar";
 import { HStack } from "~/components/primitives/HStack";
 import Tooltip from "~/components/Tooltip";
 import { settingsPath } from "~/utils/routeHelpers";
-
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
-
 type Props = Omit<TableProps<Group>, "columns" | "rowHeight">;
-
 const GroupRowContextMenu = observer(function GroupRowContextMenu({
   group,
   menuLabel,
@@ -55,25 +52,21 @@ const GroupRowContextMenu = observer(function GroupRowContextMenu({
     </ActionContextProvider>
   );
 });
-
 export function GroupsTable(props: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   const history = useHistory();
   const { policies } = useStores();
-
   const isRowSelectable = useCallback(
     (group: Group) => !!policies.abilities(group.id).delete,
     [policies]
   );
-
   const handleViewMembers = useCallback(
     (group: Group) => {
       history.push(settingsPath("groups", group.id, "members"));
     },
     [history]
   );
-
   const applyContextMenu = useCallback(
     (group: Group, rowElement: React.ReactNode) => (
       <GroupRowContextMenu group={group} menuLabel={t("Group options")}>
@@ -82,7 +75,6 @@ export function GroupsTable(props: Props) {
     ),
     [t]
   );
-
   const columns = useMemo<TableColumn<Group>[]>(
     () =>
       compact<TableColumn<Group>>([
@@ -139,11 +131,9 @@ export function GroupsTable(props: Props) {
           component: (group) => {
             const users = group.users.slice(0, MAX_AVATAR_DISPLAY);
             const overflow = group.memberCount - users.length;
-
             if (users.length === 0) {
               return null;
             }
-
             return (
               <GroupMembers
                 onClick={() => handleViewMembers(group)}
@@ -205,7 +195,6 @@ export function GroupsTable(props: Props) {
       ]),
     [t, handleViewMembers, theme.textSecondary]
   );
-
   return (
     <SortableTable
       id="groups"
@@ -219,12 +208,10 @@ export function GroupsTable(props: Props) {
     />
   );
 }
-
 const GroupMembers = styled(NudeButton)`
   justify-content: flex-start;
   display: flex;
 `;
-
 const Image = styled(Flex)`
   align-items: center;
   justify-content: center;
@@ -233,7 +220,6 @@ const Image = styled(Flex)`
   background: ${s("backgroundSecondary")};
   border-radius: 32px;
 `;
-
 const Title = styled.span`
   &: ${hover} {
     text-decoration: underline;

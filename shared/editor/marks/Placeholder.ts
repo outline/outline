@@ -3,12 +3,10 @@ import { Plugin, TextSelection } from "prosemirror-state";
 import { getMarkRange } from "../queries/getMarkRange";
 import markRule from "../rules/mark";
 import Mark from "./Mark";
-
 export default class Placeholder extends Mark {
   get name() {
     return "placeholder";
   }
-
   get schema(): MarkSpec {
     return {
       parseDOM: [{ tag: "span.template-placeholder" }],
@@ -16,11 +14,9 @@ export default class Placeholder extends Mark {
       toPlainText: () => "",
     };
   }
-
   get rulePlugins() {
     return [markRule({ delim: "!!", mark: "placeholder" })];
   }
-
   toMarkdown() {
     return {
       open: "!!",
@@ -29,11 +25,9 @@ export default class Placeholder extends Mark {
       expelEnclosingWhitespace: true,
     };
   }
-
   parseMarkdown() {
     return { mark: "placeholder" };
   }
-
   get plugins() {
     return [
       new Plugin({
@@ -45,7 +39,6 @@ export default class Placeholder extends Mark {
               }
               const { dispatch } = view;
               const { schema, tr, doc, selection } = view.state;
-
               const range =
                 getMarkRange(selection.$to, schema.marks.placeholder) ||
                 getMarkRange(
@@ -74,7 +67,6 @@ export default class Placeholder extends Mark {
               if (!pos) {
                 return false;
               }
-
               const range =
                 getMarkRange(doc.resolve(pos.pos), schema.marks.placeholder) ||
                 getMarkRange(
@@ -84,7 +76,6 @@ export default class Placeholder extends Mark {
               if (!range) {
                 return false;
               }
-
               event.stopPropagation();
               event.preventDefault();
               const startOfMark = state.doc.resolve(range.from);
@@ -93,10 +84,8 @@ export default class Placeholder extends Mark {
                   .setSelection(TextSelection.near(startOfMark))
                   .scrollIntoView()
               );
-
               // Because we're preventing default, we need to focus the editor
               view.focus();
-
               return true;
             },
           },
@@ -104,18 +93,14 @@ export default class Placeholder extends Mark {
             if (this.editor.props.template) {
               return false;
             }
-
             const { state, dispatch } = view;
             const $from = state.doc.resolve(from);
-
             const range = getMarkRange($from, state.schema.marks.placeholder);
             if (!range) {
               return false;
             }
-
             const selectionStart = Math.min(from, range.from);
             const selectionEnd = Math.max(to, range.to);
-
             dispatch(
               state.tr
                 .removeMark(
@@ -125,10 +110,8 @@ export default class Placeholder extends Mark {
                 )
                 .insertText(text, selectionStart, selectionEnd)
             );
-
             const $to = view.state.doc.resolve(selectionStart + text.length);
             dispatch(view.state.tr.setSelection(TextSelection.near($to)));
-
             return true;
           },
           handleKeyDown: (view, event: KeyboardEvent) => {
@@ -142,9 +125,7 @@ export default class Placeholder extends Mark {
             ) {
               return false;
             }
-
             const { state, dispatch } = view;
-
             if (event.key === "Backspace") {
               const range = getMarkRange(
                 state.doc.resolve(Math.max(0, state.selection.from - 1)),
@@ -153,7 +134,6 @@ export default class Placeholder extends Mark {
               if (!range) {
                 return false;
               }
-
               dispatch(
                 state.tr
                   .removeMark(
@@ -165,7 +145,6 @@ export default class Placeholder extends Mark {
               );
               return true;
             }
-
             if (event.key === "ArrowLeft") {
               const range = getMarkRange(
                 state.doc.resolve(Math.max(0, state.selection.from - 1)),
@@ -174,12 +153,10 @@ export default class Placeholder extends Mark {
               if (!range) {
                 return false;
               }
-
               const startOfMark = state.doc.resolve(range.from);
               dispatch(state.tr.setSelection(TextSelection.near(startOfMark)));
               return true;
             }
-
             if (event.key === "ArrowRight") {
               const range = getMarkRange(
                 state.selection.$from,
@@ -188,12 +165,10 @@ export default class Placeholder extends Mark {
               if (!range) {
                 return false;
               }
-
               const endOfMark = state.doc.resolve(range.to);
               dispatch(state.tr.setSelection(TextSelection.near(endOfMark)));
               return true;
             }
-
             return false;
           },
         },

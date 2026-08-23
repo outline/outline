@@ -4,14 +4,12 @@ import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import type { Props as PlaceholderTextProps } from "~/components/PlaceholderText";
 import PlaceholderText from "~/components/PlaceholderText";
-
 type Props = {
   count?: number;
   className?: string;
   header?: PlaceholderTextProps;
   body?: PlaceholderTextProps;
 };
-
 const Placeholder = ({ count, className, header, body }: Props) => (
   <Fade>
     {times(count || 2, (index) => (
@@ -22,9 +20,7 @@ const Placeholder = ({ count, className, header, body }: Props) => (
     ))}
   </Fade>
 );
-
 const Item = styled(Flex)`
   padding: 10px 0;
 `;
-
 export default Placeholder;

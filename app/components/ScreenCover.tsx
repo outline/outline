@@ -6,11 +6,9 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
-
 /** Where the cover remembers it is down, and what lifts it. */
 const COVER_KEY = "shop_screen_cover";
 const PIN_KEY = "shop_screen_pin";
-
 /**
  * Whether the screen is currently covered.
  *
@@ -19,13 +17,11 @@ const PIN_KEY = "shop_screen_pin";
 export function isCovered(): boolean {
   return localStorage.getItem(COVER_KEY) === "1";
 }
-
 /** Puts the cover down over the screen. */
 export function coverScreen(pin: string) {
   localStorage.setItem(PIN_KEY, pin);
   localStorage.setItem(COVER_KEY, "1");
 }
-
 const Backdrop = styled(Flex)`
   position: fixed;
   inset: 0;
@@ -34,7 +30,6 @@ const Backdrop = styled(Flex)`
   justify-content: center;
   background: ${s("background")};
 `;
-
 const Panel = styled(Flex)`
   flex-direction: column;
   gap: 12px;
@@ -42,11 +37,9 @@ const Panel = styled(Flex)`
   padding: 24px;
   text-align: center;
 `;
-
 interface Props {
   onLifted: () => void;
 }
-
 /**
  * A cover over the till screen while nobody is at it.
  *
@@ -61,7 +54,6 @@ export function ScreenCover({ onLifted }: Props) {
   const { t } = useTranslation();
   const [entered, setEntered] = useState("");
   const [wrong, setWrong] = useState(false);
-
   // A form, so that pressing Enter lifts the cover. Input's own
   // `onRequestSubmit` wants CMD+Enter, which suits a textarea but not a
   // four-digit number somebody is typing to get back to the till.
@@ -75,7 +67,6 @@ export function ScreenCover({ onLifted }: Props) {
     setWrong(true);
     setEntered("");
   };
-
   return (
     <Backdrop>
       <Panel as="form" onSubmit={lift}>

@@ -4,29 +4,22 @@ import { CategoryFiltersWithCenteredTextAndDropdownProductFilters } from "~/comp
 import { CategoryFiltersWithDropdownProductFilters } from "~/components/CategoryFiltersWithDropdownProductFilters";
 import { CategoryFiltersWithExpandableProductFilterPanel } from "~/components/CategoryFiltersWithExpandableProductFilterPanel";
 import { CategoryFiltersWithInlineActionsAndExpandableSidebarFilters } from "~/components/CategoryFiltersWithInlineActionsAndExpandableSidebarFilters";
-
 const meta: Meta = {
   title: "Ecommerce/Components/Category Filters",
 };
-
 export default meta;
-
 export const SidebarFilters: StoryObj = {
   render: () => <CategoryFiltersSidebarFilters />,
 };
-
 export const WithCenteredTextAndDropdownProductFilters: StoryObj = {
   render: () => <CategoryFiltersWithCenteredTextAndDropdownProductFilters />,
 };
-
 export const WithDropdownProductFilters: StoryObj = {
   render: () => <CategoryFiltersWithDropdownProductFilters />,
 };
-
 export const WithExpandableProductFilterPanel: StoryObj = {
   render: () => <CategoryFiltersWithExpandableProductFilterPanel />,
 };
-
 export const WithInlineActionsAndExpandableSidebarFilters: StoryObj = {
   render: () => <CategoryFiltersWithInlineActionsAndExpandableSidebarFilters />,
 };

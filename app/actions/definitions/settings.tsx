@@ -2,7 +2,6 @@ import { SunIcon, MoonIcon, BrowserIcon } from "outline-icons";
 import { Theme } from "~/stores/UiStore";
 import { createAction, createActionWithChildren } from "~/actions";
 import { SettingsSection } from "~/actions/sections";
-
 export const changeToDarkTheme = createAction({
   name: ({ t }) => t("Dark"),
   analyticsName: "Change to dark theme",
@@ -13,7 +12,6 @@ export const changeToDarkTheme = createAction({
   selected: ({ stores }) => stores.ui.theme === "dark",
   perform: ({ stores }) => stores.ui.setTheme(Theme.Dark),
 });
-
 export const changeToLightTheme = createAction({
   name: ({ t }) => t("Light"),
   analyticsName: "Change to light theme",
@@ -24,7 +22,6 @@ export const changeToLightTheme = createAction({
   selected: ({ stores }) => stores.ui.theme === "light",
   perform: ({ stores }) => stores.ui.setTheme(Theme.Light),
 });
-
 export const toggleTheme = createAction({
   name: ({ t }) => t("Toggle theme"),
   analyticsName: "Change theme",
@@ -39,7 +36,6 @@ export const toggleTheme = createAction({
       stores.ui.resolvedTheme === "light" ? Theme.Dark : Theme.Light
     ),
 });
-
 export const changeToSystemTheme = createAction({
   name: ({ t }) => t("System"),
   analyticsName: "Change to system theme",
@@ -50,7 +46,6 @@ export const changeToSystemTheme = createAction({
   selected: ({ stores }) => stores.ui.theme === "system",
   perform: ({ stores }) => stores.ui.setTheme(Theme.System),
 });
-
 export const changeTheme = createActionWithChildren({
   name: ({ t, isMenu }) => (isMenu ? t("Appearance") : t("Change theme")),
   analyticsName: "Change theme",
@@ -61,5 +56,4 @@ export const changeTheme = createActionWithChildren({
   section: SettingsSection,
   children: [changeToLightTheme, changeToDarkTheme, changeToSystemTheme],
 });
-
 export const rootSettingsActions = [changeTheme, toggleTheme];

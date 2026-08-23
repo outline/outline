@@ -12,7 +12,6 @@ import {
   FingerPrintIcon,
   SquaresPlusIcon,
 } from "@heroicons/react/24/outline";
-
 const solutions = [
   {
     name: "Analytics",
@@ -45,7 +44,6 @@ const callsToAction = [
   { name: "Contact sales", href: "#", icon: PhoneIcon },
   { name: "View all products", href: "#", icon: RectangleGroupIcon },
 ];
-
 /**
  * Tailwind UI – flyout menus: full width.
  *

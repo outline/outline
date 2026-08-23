@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -13,7 +13,6 @@
   ```
 */
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – input groups: input with validation error.
  *

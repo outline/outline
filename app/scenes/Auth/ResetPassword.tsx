@@ -2,12 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { client } from "~/utils/ApiClient";
 import { AuthLayout, fieldClass, submitClass } from "./AuthLayout";
-
 const MESSAGES: Record<string, string> = {
   short: "Use at least 8 characters.",
   mismatch: "Those passwords don't match.",
 };
-
 /**
  * Set a new password from a reset link.
  *
@@ -19,7 +17,6 @@ function ResetPassword() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSaving(true);
@@ -40,7 +37,6 @@ function ResetPassword() {
       setIsSaving(false);
     }
   };
-
   return (
     <AuthLayout
       title="Choose a new password"
@@ -106,5 +102,4 @@ function ResetPassword() {
     </AuthLayout>
   );
 }
-
 export default ResetPassword;

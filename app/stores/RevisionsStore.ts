@@ -3,12 +3,10 @@ import type RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Revision from "~/models/Revision";
 import { client } from "~/utils/ApiClient";
-
 export default class RevisionsStore extends Store<Revision> {
   constructor(rootStore: RootStore) {
     super(rootStore, Revision);
   }
-
   /**
    * Fetches a single revision by ID, including its full document content.
    *
@@ -21,24 +19,22 @@ export default class RevisionsStore extends Store<Revision> {
     const force = Boolean(options.force) || (!!item && !item.data);
     return super.fetch(id, { ...options, force });
   }
-
   /**
    * Retrieves all revisions for a given document ID
    *
    * @param documentId - The ID of the document to retrieve revisions for
    * @returns An array of revisions for the specified document ID
    */
-  getByDocumentId = (documentId: string): Revision[] =>
-    this.orderedData.filter((revision) => revision.documentId === documentId);
-
+  getByNoteId = (noteId: string): Revision[] =>
+    this.orderedData.filter((revision) => revision.noteId === noteId);
   /**
-   * Fetches the latest revision for the given document.
+   * Fetches the latest revision for the given note.
    *
    * @param documentId - the id of the document to fetch the latest revision for.
-   * @returns A promise that resolves to the latest revision for the given document.
+   * @returns A promise that resolves to the latest revision for the given note.
    */
-  fetchLatest = async (documentId: string) => {
-    const res = await client.post(`/revisions.info`, { documentId });
+  fetchLatest = async (noteId: string) => {
+    const res = await client.post(`/revisions.info`, { documentId: noteId });
     return this.add(res.data);
   };
 }

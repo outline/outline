@@ -9,12 +9,10 @@ import {
 import Extension from "@shared/editor/lib/Extension";
 import { getCurrentBlock } from "@shared/editor/queries/getCurrentBlock";
 import { isInCode } from "@shared/editor/queries/isInCode";
-
 export default class Keys extends Extension {
   get name() {
     return "keys";
   }
-
   keys(): Record<string, Command> {
     const onCancel = () => {
       if (this.editor.props.onCancel) {
@@ -23,7 +21,6 @@ export default class Keys extends Extension {
       }
       return false;
     };
-
     const moveBlockUp = (
       state: EditorState,
       dispatch?: (tr: Transaction) => void
@@ -31,29 +28,22 @@ export default class Keys extends Extension {
       if (!state.selection.empty) {
         return false;
       }
-
       const result = getCurrentBlock(state);
       if (!result) {
         return false;
       }
-
       const [currentBlock, currentPos] = result;
       const $pos = state.doc.resolve(currentPos);
-
       // Check if there's a previous sibling block
       if (!$pos.nodeBefore || !$pos.nodeBefore.isBlock) {
         return false;
       }
-
       const prevBlock = $pos.nodeBefore;
       const prevBlockPos = currentPos - prevBlock.nodeSize;
-
       if (!dispatch) {
         return true;
       }
-
       const { tr } = state;
-
       // Move current block before the previous block
       dispatch(
         tr
@@ -61,10 +51,8 @@ export default class Keys extends Extension {
           .insert(prevBlockPos, currentBlock)
           .setSelection(TextSelection.near(tr.doc.resolve(prevBlockPos + 1)))
       );
-
       return true;
     };
-
     const moveBlockDown = (
       state: EditorState,
       dispatch?: (tr: Transaction) => void
@@ -72,30 +60,23 @@ export default class Keys extends Extension {
       if (!state.selection.empty) {
         return false;
       }
-
       const result = getCurrentBlock(state);
       if (!result) {
         return false;
       }
-
       const [currentBlock, currentPos] = result;
       const $pos = state.doc.resolve(currentPos + currentBlock.nodeSize);
-
       // Check if there's a next sibling block
       if (!$pos.nodeAfter || !$pos.nodeAfter.isBlock) {
         return false;
       }
-
       const nextBlock = $pos.nodeAfter;
       const nextBlockEndPos =
         currentPos + currentBlock.nodeSize + nextBlock.nodeSize;
-
       if (!dispatch) {
         return true;
       }
-
       const { tr } = state;
-
       // Move current block after the next block
       dispatch(
         tr
@@ -107,10 +88,8 @@ export default class Keys extends Extension {
             )
           )
       );
-
       return true;
     };
-
     return {
       // Shortcuts for when editor has separate edit mode
       "Mod-Escape": onCancel,
@@ -138,7 +117,6 @@ export default class Keys extends Extension {
       "Mod-Alt-ArrowDown": moveBlockDown,
     };
   }
-
   get plugins() {
     return [
       new Plugin({
@@ -158,7 +136,6 @@ export default class Keys extends Extension {
                 return true;
               }
             }
-
             // edge case where horizontal gap cursor does nothing if Enter key
             // is pressed. Insert a newline and then move the cursor into it.
             if (view.state.selection instanceof GapCursor) {
@@ -180,7 +157,6 @@ export default class Keys extends Extension {
                 return true;
               }
             }
-
             return false;
           },
         },

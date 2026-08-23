@@ -18,7 +18,6 @@ import { isCovered, ScreenCover } from "~/components/ScreenCover";
 import { useShop } from "~/stores/shop";
 import { AppPage } from "~/components/AppPage";
 import { formatCurrency } from "~/utils/format";
-
 const Till = styled.div`
   display: grid;
   gap: 24px;
@@ -28,7 +27,6 @@ const Till = styled.div`
     grid-template-columns: 2fr 1fr;
   }
 `;
-
 const Tile = styled.button`
   display: flex;
   flex-direction: column;
@@ -53,19 +51,16 @@ const Tile = styled.button`
     opacity: 0.5;
   }
 `;
-
 const Sku = styled.span`
   font-family: ${s("fontFamilyMono")};
   font-size: 12px;
   color: ${s("textSecondary")};
 `;
-
 const Totals = styled(Flex)`
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid ${s("divider")};
 `;
-
 const Receipt = styled.p`
   margin-top: 16px;
   padding: 12px;
@@ -74,7 +69,6 @@ const Receipt = styled.p`
   color: ${s("text")};
   background: ${s("backgroundTertiary")};
 `;
-
 /**
  * Point of sale: pick products into a ticket and take payment.
  *
@@ -89,7 +83,6 @@ function Pos() {
   const products = useShop((state) => state.products);
   const customers = useShop((state) => state.customers);
   const createOrder = useShop((state) => state.createOrder);
-
   const fields = useFields({
     query: "",
     category: "All",
@@ -103,12 +96,10 @@ function Pos() {
   const [covered, setCovered] = useState(isCovered);
   const [receipt, setReceipt] = useState<string | undefined>();
   const submission = useSubmit();
-
   const categories = useMemo(
     () => ["All", ...new Set(products.map((product) => product.category))],
     [products]
   );
-
   const visible = useMemo(
     () =>
       products.filter((product) => {
@@ -123,9 +114,7 @@ function Pos() {
       }),
     [products, category, query]
   );
-
   const total = cart.reduce((sum, line) => sum + line.price * line.quantity, 0);
-
   const addToCart = (productId: string, variantId?: string) => {
     const product = products.find((item) => item.id === productId);
     if (!product) {
@@ -140,7 +129,6 @@ function Pos() {
     if (available === 0) {
       return;
     }
-
     setReceipt(undefined);
     // The machine holds the rule about the shelf; the scene only says what
     // is being added and how many there are.
@@ -156,10 +144,8 @@ function Pos() {
       },
     });
   };
-
   const setQuantity = (key: string, quantity: number) =>
     sendTicket({ type: "SET_QUANTITY", key, quantity });
-
   const handleCheckout = () =>
     submission.run(async () => {
       if (!cart.length) {
@@ -170,11 +156,9 @@ function Pos() {
       setReceipt(order.number);
       return undefined;
     });
-
   if (covered) {
     return <ScreenCover onLifted={() => setCovered(false)} />;
   }
-
   return (
     <AppPage
       title={t("Point of sale")}
@@ -373,5 +357,4 @@ function Pos() {
     </AppPage>
   );
 }
-
 export default Pos;

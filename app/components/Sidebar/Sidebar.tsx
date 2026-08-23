@@ -25,9 +25,7 @@ import SidebarButton from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
 import { useTranslation } from "react-i18next";
 import { useDirection } from "@radix-ui/react-direction";
-
 const ANIMATION_MS = 250;
-
 type Props = {
   /** Whether to hide the sidebar content (sets opacity to 0). */
   hidden?: boolean;
@@ -38,7 +36,6 @@ type Props = {
   /** Content to render inside the sidebar. */
   children: React.ReactNode;
 };
-
 const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   { children, hidden = false, canCollapse = true, className }: Props,
   ref: React.RefObject<HTMLDivElement>
@@ -56,7 +53,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarResizeMinWidth;
   const direction = useDirection();
-
   const [offset, setOffset] = React.useState(0);
   const [isHovering, setHovering] = React.useState(false);
   const [isAnimating, setAnimating] = React.useState(false);
@@ -65,17 +61,14 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const internalRef = React.useRef<HTMLDivElement | null>(null);
   const mergedRef = React.useMemo(() => mergeRefs([internalRef, ref]), [ref]);
-
   const measure = React.useCallback(
     (event: MouseEvent) =>
       direction === "rtl" ? offset - event.pageX : event.pageX - offset,
     [offset, direction]
   );
-
   const handleResize = React.useCallback(
     (newWidth: number) => {
       const isSmallerThanCollapsePoint = newWidth < minWidth / 2;
-
       if (canCollapse) {
         ui.set({
           sidebarWidth: isSmallerThanCollapsePoint
@@ -88,15 +81,12 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     },
     [ui, theme, minWidth, canCollapse]
   );
-
   const handleResizeEnd = React.useCallback(() => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
-
     if (isSmallerThanMinimum) {
       const isSmallerThanCollapsePoint = width < minWidth / 2;
-
       if (isSmallerThanCollapsePoint && canCollapse) {
         setAnimating(false);
         setCollapsing(true);
@@ -110,7 +100,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
       setAnimating(true);
     }
   }, [ui, isSmallerThanMinimum, minWidth, maxWidth, width, canCollapse]);
-
   // The lower bound is the collapse gesture rather than a stop, so only the maximum is stretchable.
   const { isResizing, startResize } = useResizeHandle({
     measure,
@@ -118,18 +107,15 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     onResizeEnd: handleResizeEnd,
     max: maxWidth,
   });
-
   const handleBlur = React.useCallback(() => {
     setHovering(false);
   }, []);
-
   const handleMouseDown = React.useCallback(
     (event: React.MouseEvent) => {
       event.preventDefault();
       if (!document.hasFocus()) {
         return;
       }
-
       setOffset(
         direction === "rtl" ? event.pageX + width : event.pageX - width
       );
@@ -138,7 +124,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     },
     [width, direction, startResize]
   );
-
   const handlePointerActivity = React.useCallback(
     (event: React.PointerEvent) => {
       if (ui.sidebarIsClosed) {
@@ -156,7 +141,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     },
     [ui.sidebarIsClosed]
   );
-
   const handlePointerLeave = React.useCallback(
     (ev) => {
       if (hasPointerMoved) {
@@ -164,14 +148,12 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         if (hoverTimeoutRef.current) {
           clearTimeout(hoverTimeoutRef.current);
         }
-
         // add a short delay when mouse exits the sidebar before closing
         hoverTimeoutRef.current = setTimeout(() => {
           const withinSidebar =
             direction === "rtl"
               ? ev.pageX > window.innerWidth - width
               : ev.pageX < width;
-
           setHovering(
             document.hasFocus() &&
               withinSidebar &&
@@ -183,14 +165,12 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     },
     [width, direction, hasPointerMoved]
   );
-
   React.useEffect(() => {
     if (ui.sidebarIsClosed) {
       setHovering(false);
       setPointerMoved(false);
     }
   }, [ui.sidebarIsClosed]);
-
   // Reset stale hover state when the sidebar becomes visible after being
   // hidden via display:none (e.g. returning from settings). Without this, a
   // pointer-leave event never fires when navigating away while hovering, so
@@ -215,13 +195,11 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-
   React.useEffect(() => {
     if (isAnimating) {
       setTimeout(() => setAnimating(false), ANIMATION_MS);
     }
   }, [isAnimating]);
-
   React.useEffect(() => {
     if (isCollapsing) {
       setTimeout(() => {
@@ -230,34 +208,27 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
       }, ANIMATION_MS);
     }
   }, [ui, minWidth, isCollapsing]);
-
   useEventListener("blur", handleBlur);
-
   const handleReset = React.useCallback(() => {
     ui.set({ sidebarWidth: theme.sidebarWidth });
   }, [ui, theme.sidebarWidth]);
-
   React.useEffect(() => {
     ui.setSidebarResizing(isResizing);
   }, [ui, isResizing]);
-
   React.useEffect(() => {
     if (location !== previousLocation) {
       ui.hideMobileSidebar();
     }
   }, [ui, location, previousLocation]);
-
   const style = React.useMemo(
     () => ({
       width: `${width}px`,
     }),
     [width]
   );
-
   const handleCloseSidebar = () => {
     ui.toggleMobileSidebar();
   };
-
   return (
     <TooltipProvider>
       <Container
@@ -314,7 +285,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     </TooltipProvider>
   );
 });
-
 const Backdrop = styled.a`
   animation: ${fadeIn} 250ms ease-in-out;
   position: fixed;
@@ -326,7 +296,6 @@ const Backdrop = styled.a`
   z-index: ${depths.mobileSidebar - 1};
   background: ${s("backdrop")};
 `;
-
 type ContainerProps = {
   $mobileSidebarVisible: boolean;
   $isAnimating: boolean;
@@ -336,7 +305,6 @@ type ContainerProps = {
   $hidden: boolean;
   $isMobile: boolean;
 };
-
 const hoverStyles = (props: ContainerProps) => `
   transform: none !important;
   box-shadow: ${
@@ -351,7 +319,6 @@ const hoverStyles = (props: ContainerProps) => `
     opacity: 1;
   }
 `;
-
 const Container = styled(Flex)<ContainerProps>`
   position: fixed;
   top: 0;
@@ -407,16 +374,14 @@ const Container = styled(Flex)<ContainerProps>`
     min-width: 0;
     transition:
       box-shadow 150ms ease-in-out,
-      transform 150ms ease-out${(props: ContainerProps) =>
-        props.$isAnimating ? `, width ${ANIMATION_MS}ms ease-out` : ""};
+      transform 150ms ease-out${(props: ContainerProps) => (props.$isAnimating ? `, width ${ANIMATION_MS}ms ease-out` : "")};
     transform: translateX(${(props: ContainerProps) =>
       props.$collapsed
         ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
         : 0});
 
     [dir="rtl"] & {
-      transform: translateX(${(props: ContainerProps) =>
-        props.$collapsed ? `calc(100% - 8px)` : 0});
+      transform: translateX(${(props: ContainerProps) => (props.$collapsed ? `calc(100% - 8px)` : 0)});
     }
 
     ${(props: ContainerProps) => props.$isHovering && css(hoverStyles)}
@@ -436,5 +401,4 @@ const Container = styled(Flex)<ContainerProps>`
     }
   `};
 `;
-
 export default observer(Sidebar);

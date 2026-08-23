@@ -3,10 +3,8 @@ import { computed, observable } from "mobx";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
 import { AfterChange } from "./decorators/Lifecycle";
-
 class Policy extends Model {
   static modelName = "Policy";
-
   /**
    * An object containing keys representing abilities and values that are either
    * a boolean or an array of membership IDs that have provided access to the ability.
@@ -14,7 +12,6 @@ class Policy extends Model {
   @Field
   @observable
   abilities: Record<string, boolean | string[]>;
-
   /**
    * Abilities flattened to an object with boolean values.
    */
@@ -31,34 +28,29 @@ class Policy extends Model {
     }
     return abilities;
   }
-
   @AfterChange
   public static removeChildPolicies(
     model: Policy,
     previousAttributes: Partial<Policy>
   ) {
-    const { documents, collections, policies } = model.store.rootStore;
-
+    const { notes, notebooks, policies } = model.store.rootStore;
     if (isEqual(model.abilities, previousAttributes.abilities)) {
       return;
     }
-
-    const collection = collections.get(model.id);
-    if (collection) {
-      documents.inCollection(collection.id).forEach((i) => {
+    const notebook = notebooks.get(model.id);
+    if (notebook) {
+      notes.inNotebook(notebook.id).forEach((i) => {
         policies.remove(i.id);
       });
       return;
     }
-
-    const document = documents.get(model.id);
-    if (document) {
-      document.childDocuments.forEach((i) => {
+    const note = notes.get(model.id);
+    if (note) {
+      note.childNotes.forEach((i) => {
         policies.remove(i.id);
       });
       return;
     }
   }
 }
-
 export default Policy;

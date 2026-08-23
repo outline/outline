@@ -2,7 +2,6 @@ import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 /**
  * Tailwind UI – section headings: with badge and dropdown.
  *

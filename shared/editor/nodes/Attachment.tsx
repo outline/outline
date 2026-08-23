@@ -21,16 +21,13 @@ import attachmentsRule from "../rules/links";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
 import PdfViewer from "../components/PDF";
-
 export default class Attachment extends Node {
   get name() {
     return "attachment";
   }
-
   get rulePlugins() {
     return [attachmentsRule];
   }
-
   get schema(): NodeSpec {
     return {
       attrs: {
@@ -87,7 +84,6 @@ export default class Attachment extends Node {
       leafText: (node) => node.attrs.title,
     };
   }
-
   handleSelect =
     ({ getPos }: ComponentProps) =>
     () => {
@@ -96,27 +92,22 @@ export default class Attachment extends Node {
       const transaction = view.state.tr.setSelection(new NodeSelection($pos));
       view.dispatch(transaction);
     };
-
   handleChangeSize =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
     ({ width, height }: { width: number; height?: number }) => {
       if (!node.attrs.preview) {
         return;
       }
-
       const { view, commands } = this.editor;
       const { doc, tr } = view.state;
-
       const pos = getPos();
       const $pos = doc.resolve(pos);
-
       view.dispatch(tr.setSelection(new NodeSelection($pos)));
       commands["resizeAttachment"]({
         width,
         height: height || node.attrs.height,
       });
     };
-
   component = (props: ComponentProps) => {
     const { embedsDisabled } = this.editor.props;
     const { isSelected, isEditable, node } = props;
@@ -127,7 +118,6 @@ export default class Attachment extends Node {
         <Trans>Uploading</Trans>…
       </>
     );
-
     return node.attrs.preview && !embedsDisabled && isPDFAttachment(node) ? (
       <PdfViewer
         icon={<FileExtension title={node.attrs.title} />}
@@ -158,7 +148,6 @@ export default class Attachment extends Node {
       </Widget>
     );
   };
-
   commands({ type }: { type: NodeType }) {
     return {
       createAttachment: (attrs: Record<string, Primitive>) =>
@@ -180,21 +169,17 @@ export default class Attachment extends Node {
           onFileUploadProgress,
           onNotice,
         } = this.editor.props;
-
         if (!uploadFile) {
           throw new Error("uploadFile prop is required to replace attachments");
         }
-
         const accept = isPDFAttachment(node)
           ? ".pdf"
           : node.type.name === "attachment"
             ? "*"
             : null;
-
         if (accept === null) {
           return false;
         }
-
         // create an input element and click to trigger picker
         const inputElement = document.createElement("input");
         inputElement.type = "file";
@@ -221,14 +206,12 @@ export default class Attachment extends Node {
           return false;
         }
         const { node } = state.selection;
-
         // create a temporary link node and click it
         const link = document.createElement("a");
         link.href = node.attrs.href;
         link.target = "_blank";
         document.body.appendChild(link);
         link.click();
-
         // cleanup
         document.body.removeChild(link);
         return true;
@@ -238,11 +221,9 @@ export default class Attachment extends Node {
           return false;
         }
         const { node } = state.selection;
-
         if (!isPDFAttachment(node)) {
           return false;
         }
-
         const { attrs } = state.selection.node;
         const transaction = state.tr
           .setNodeMarkup(state.selection.from, undefined, {
@@ -263,11 +244,9 @@ export default class Attachment extends Node {
           ) {
             return false;
           }
-
           const { view } = this.editor;
           const { tr } = view.state;
           const { attrs } = state.selection.node;
-
           const transaction = tr
             .setNodeMarkup(state.selection.from, undefined, {
               ...attrs,
@@ -281,7 +260,6 @@ export default class Attachment extends Node {
         },
     };
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.ensureNewLine();
     state.write(
@@ -289,7 +267,6 @@ export default class Attachment extends Node {
     );
     state.ensureNewLine();
   }
-
   parseMarkdown() {
     return {
       node: "attachment",

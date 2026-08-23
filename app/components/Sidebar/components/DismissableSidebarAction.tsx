@@ -8,12 +8,10 @@ import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import usePersistedState from "~/hooks/usePersistedState";
 import SidebarAction from "./SidebarAction";
-
 type Props = React.ComponentProps<typeof SidebarAction> & {
   /** Unique identifier for the link, the dismissed state is persisted under it */
   id: string;
 };
-
 /**
  * A sidebar action that can be permanently dismissed by the user with a cross
  * displayed on hover. Renders nothing once dismissed.
@@ -21,15 +19,12 @@ type Props = React.ComponentProps<typeof SidebarAction> & {
 export function DismissableSidebarAction({ id, ...rest }: Props) {
   const { t } = useTranslation();
   const [dismissed, setDismissed] = usePersistedState<boolean>(id, false);
-
   const handleDismiss = React.useCallback(() => {
     setDismissed(true);
   }, [setDismissed]);
-
   if (dismissed) {
     return null;
   }
-
   return (
     <SidebarAction
       {...rest}
@@ -45,7 +40,6 @@ export function DismissableSidebarAction({ id, ...rest }: Props) {
     />
   );
 }
-
 // Specificity boost to override the icon color set by the parent link.
 const DismissButton = styled(NudeButton)`
   && svg {

@@ -4,47 +4,38 @@ import { NodeSelection } from "prosemirror-state";
 import type { Primitive } from "utility-types";
 import { getMarksBetween } from "./getMarksBetween";
 import { getMarkRangeNodeSelection } from "./getMarkRange";
-
 type Options = {
   /** Only return match if the range and attrs is exact */
   exact?: boolean;
   /** If true then mark must contain entire selection */
   inclusive?: boolean;
 };
-
 const isNodeMarkActive =
   (type: MarkType) =>
   (state: EditorState): boolean => {
     if (!type) {
       return false;
     }
-
     const { selection } = state;
-
     if (!(selection instanceof NodeSelection)) {
       return false;
     }
-
     const mark = getMarkRangeNodeSelection(selection, type);
     if (!mark) {
       return false;
     }
-
     return true;
   };
-
 const isInlineMarkActive =
   (type: MarkType, attrs?: Record<string, Primitive>, options?: Options) =>
   (state: EditorState): boolean => {
     if (!type) {
       return false;
     }
-
     const { from, $from, to, empty } = state.selection;
     const hasMark = !!(empty
       ? type.isInSet(state.storedMarks || $from.marks())
       : state.doc.rangeHasMark(from, to, type));
-
     if (!hasMark) {
       return false;
     }
@@ -61,10 +52,8 @@ const isInlineMarkActive =
           (!options?.inclusive || (start <= from && end >= to))
       );
     }
-
     return true;
   };
-
 /**
  * Checks if a mark is active in the current selection or not.
  *

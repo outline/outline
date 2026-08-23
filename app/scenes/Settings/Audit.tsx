@@ -7,7 +7,6 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
 import { formatDate } from "~/utils/format";
-
 /**
  * Who changed what.
  *
@@ -20,11 +19,9 @@ function Audit() {
   const { t } = useTranslation();
   const fetchAll = useShop((state) => state.fetchAll);
   const audit = useShop((state) => state.audit);
-
   useEffect(() => {
     void fetchAll();
   }, [fetchAll]);
-
   return (
     <Scene title={t("Activity")}>
       <Heading>{t("Activity")}</Heading>
@@ -55,5 +52,4 @@ function Audit() {
     </Scene>
   );
 }
-
 export default Audit;

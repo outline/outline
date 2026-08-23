@@ -2,7 +2,6 @@ import * as React from "react";
 import styled from "styled-components";
 import Frame from "../components/Frame";
 import type { EmbedProps as Props } from ".";
-
 function Spotify({ matches, ...props }: Props) {
   let pathname = "";
   try {
@@ -11,10 +10,8 @@ function Spotify({ matches, ...props }: Props) {
   } catch (_err) {
     pathname = "";
   }
-
   const normalizedPath = pathname.replace(/^\/embed/, "/");
   let height;
-
   if (normalizedPath.includes("episode") || normalizedPath.includes("show")) {
     height = 232;
   } else if (normalizedPath.includes("track")) {
@@ -22,7 +19,6 @@ function Spotify({ matches, ...props }: Props) {
   } else {
     height = 380;
   }
-
   return (
     <SpotifyFrame
       {...props}
@@ -34,9 +30,7 @@ function Spotify({ matches, ...props }: Props) {
     />
   );
 }
-
 const SpotifyFrame = styled(Frame)`
   border-radius: 13px;
 `;
-
 export default Spotify;

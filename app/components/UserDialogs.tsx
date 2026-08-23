@@ -16,17 +16,14 @@ import ImageInput from "~/scenes/Settings/components/ImageInput";
 import { performBatch } from "~/actions/definitions/common";
 import { client } from "~/utils/ApiClient";
 import Text from "./Text";
-
 type Props = {
   user: User;
   onSubmit: () => void;
 };
-
 type BulkProps = {
   users: User[];
   onSubmit: () => void;
 };
-
 export function UserChangeRoleDialog({
   users,
   role,
@@ -36,12 +33,10 @@ export function UserChangeRoleDialog({
 }) {
   const { t } = useTranslation();
   const { users: usersStore } = useStores();
-
   const handleSubmit = async () => {
     await performBatch(users, (user) => usersStore.updateRole(user, role));
     onSubmit();
   };
-
   let accessNote;
   switch (role) {
     case UserRole.Admin:
@@ -54,7 +49,6 @@ export function UserChangeRoleDialog({
       accessNote = t("Viewers can only view and comment on documents.");
       break;
   }
-
   return (
     <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
       {users.length === 1
@@ -70,15 +64,12 @@ export function UserChangeRoleDialog({
     </ConfirmationDialog>
   );
 }
-
 export function UserDeleteDialog({ users, onSubmit }: BulkProps) {
   const { t } = useTranslation();
-
   const handleSubmit = async () => {
     await performBatch(users, (user) => user.delete());
     onSubmit();
   };
-
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}
@@ -102,16 +93,13 @@ export function UserDeleteDialog({ users, onSubmit }: BulkProps) {
     </ConfirmationDialog>
   );
 }
-
 export function UserSuspendDialog({ users, onSubmit }: BulkProps) {
   const { t } = useTranslation();
   const { users: usersStore } = useStores();
-
   const handleSubmit = async () => {
     await performBatch(users, (user) => usersStore.suspend(user));
     onSubmit();
   };
-
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}
@@ -134,20 +122,16 @@ export function UserSuspendDialog({ users, onSubmit }: BulkProps) {
     </ConfirmationDialog>
   );
 }
-
 export function UserChangeNameDialog({ user, onSubmit }: Props) {
   const { t } = useTranslation();
   const [name, setName] = React.useState<string>(user.name);
-
   const handleSubmit = async () => {
     await user.save({ name });
     onSubmit();
   };
-
   const handleChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setName(ev.target.value);
   };
-
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}
@@ -171,13 +155,11 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
     </ConfirmationDialog>
   );
 }
-
 export const UserChangeAvatarDialog = observer(function UserChangeAvatarDialog({
   user,
   onSubmit,
 }: Props) {
   const { t } = useTranslation();
-
   const handleAvatarChange = async (avatarUrl: string | null) => {
     try {
       await user.save({ avatarUrl });
@@ -186,11 +168,9 @@ export const UserChangeAvatarDialog = observer(function UserChangeAvatarDialog({
       toast.error(errToString(err));
     }
   };
-
   const handleAvatarError = (error: string | null | undefined) => {
     toast.error(error || t("Unable to upload new profile picture"));
   };
-
   return (
     <Flex column gap={16}>
       <Flex justify="center">
@@ -213,13 +193,11 @@ export const UserChangeAvatarDialog = observer(function UserChangeAvatarDialog({
     </Flex>
   );
 });
-
 export function UserChangeEmailDialog({ user, onSubmit }: Props) {
   const { t } = useTranslation();
   const actor = useCurrentUser();
   const [email, setEmail] = React.useState<string>(user.email);
   const [error, setError] = React.useState<string | undefined>();
-
   const handleSubmit = async () => {
     try {
       await client.post(`/users.updateEmail`, { id: user.id, email });
@@ -235,11 +213,9 @@ export function UserChangeEmailDialog({ user, onSubmit }: Props) {
       return false;
     }
   };
-
   const handleChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(ev.target.value);
   };
-
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}

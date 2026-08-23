@@ -13,7 +13,6 @@ import { Popover, PopoverTrigger, PopoverContent } from "./primitives/Popover";
 import { ColorButton } from "./ColorButton";
 import ColorPicker from "@shared/components/ColorPicker";
 import EventBoundary from "@shared/components/EventBoundary";
-
 /**
  * Props for the SwatchButton component.
  */
@@ -31,7 +30,6 @@ type SwatchButtonProps = {
   /** Whether to render the color picker in a modal popover. Defaults to true */
   pickerInModal?: boolean;
 };
-
 export const SwatchButton: React.FC<SwatchButtonProps> = ({
   color,
   active = false,
@@ -42,7 +40,6 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
 }) => {
   const { t } = useTranslation();
   const isMobile = useMobile();
-
   const pickerTrigger = (
     <ColorButton
       aria-label={t("Select a color")}
@@ -52,7 +49,6 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
       size={size}
     />
   );
-
   const pickerContent = (
     <StyledColorPicker
       alpha={false}
@@ -60,7 +56,6 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
       onSelect={(c) => onChange(c)}
     />
   );
-
   if (isMobile) {
     return (
       <Drawer>
@@ -72,7 +67,6 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
       </Drawer>
     );
   }
-
   return (
     <Popover modal={pickerInModal}>
       <PopoverTrigger>{pickerTrigger}</PopoverTrigger>
@@ -87,12 +81,10 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
     </Popover>
   );
 };
-
 const StyledContent = styled(PopoverContent)`
   width: auto;
   padding: 8px;
 `;
-
 const StyledColorPicker = styled(ColorPicker)`
   background: inherit !important;
   box-shadow: none !important;

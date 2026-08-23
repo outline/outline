@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
@@ -145,7 +144,6 @@ const footerNavigation = {
     },
   ],
 };
-
 /**
  * Tailwind UI – about pages: with image tiles.
  *
@@ -153,7 +151,6 @@ const footerNavigation = {
  */
 export function AboutPagesWithImageTiles() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <div className="bg-white">
       {/* Header */}

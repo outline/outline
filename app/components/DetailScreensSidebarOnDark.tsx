@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -25,7 +25,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { Bars3Icon, MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Projects", href: "#", icon: FolderIcon, current: false },
   { name: "Deployments", href: "#", icon: ServerIcon, current: true },
@@ -72,7 +71,6 @@ const activityItems = [
   },
   // More items...
 ];
-
 /**
  * Tailwind UI – detail screens: sidebar on dark.
  *
@@ -80,17 +78,16 @@ const activityItems = [
  */
 export function DetailScreensSidebarOnDark() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full bg-gray-900">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full bg-gray-900">
+          <body class="h-full">
+          ```
+        */}
       <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog

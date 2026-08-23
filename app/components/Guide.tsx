@@ -9,14 +9,12 @@ import {
   fadeInAndSlideLeft,
   fadeOutAndSlideRight,
 } from "~/styles/animations";
-
 type Props = {
   children?: React.ReactNode;
   isOpen: boolean;
   title?: string;
   onRequestClose: () => void;
 };
-
 const Guide: React.FC<Props> = ({
   children,
   isOpen,
@@ -42,13 +40,11 @@ const Guide: React.FC<Props> = ({
     </Dialog.Portal>
   </Dialog.Root>
 );
-
 const Header = styled(Dialog.Title)`
   font-size: 18px;
   margin-top: 0;
   margin-bottom: 1em;
 `;
-
 const StyledOverlay = styled(Dialog.Overlay)`
   position: fixed;
   top: 0;
@@ -66,7 +62,6 @@ const StyledOverlay = styled(Dialog.Overlay)`
     animation: ${fadeOut} 200ms ease;
   }
 `;
-
 const Scene = styled(Dialog.Content)`
   position: absolute;
   top: 0;
@@ -90,10 +85,8 @@ const Scene = styled(Dialog.Content)`
     animation: ${fadeOutAndSlideRight} 200ms ease;
   }
 `;
-
 const Content = styled(Scrollable)`
   width: 100%;
   padding: 16px;
 `;
-
 export default Guide;

@@ -6,12 +6,10 @@ import { isBrowser } from "@shared/utils/browser";
 import Logger from "~/utils/Logger";
 import useEventListener from "./useEventListener";
 import usePrevious from "./usePrevious";
-
 type Options = {
   /* Whether to listen and react to changes in the value from other tabs */
   listen?: boolean;
 };
-
 /**
  * Set a value in local storage and emit storage event to trigger render of any
  * listening mounted components.
@@ -28,7 +26,6 @@ export function setPersistedState<T extends Primitive | object>(
     new StorageEvent("storage", { key, newValue: JSON.stringify(value) })
   );
 }
-
 /**
  * A hook with the same API as `useState` that persists its value locally and
  * syncs the value between browser tabs.
@@ -50,17 +47,14 @@ export default function usePersistedState<T extends Primitive | object>(
     }
     return Storage.get(key) ?? defaultValue;
   });
-
   // Mirrors the latest state so functional updates can be computed without
   // capturing `storedValue` in the setter's closure, keeping its identity
   // stable and safe to use in dependency arrays.
   const storedValueRef = useRef<T>(storedValue);
-
   const updateStoredValue = useCallback((value: T) => {
     storedValueRef.current = value;
     setStoredValue(value);
   }, []);
-
   const setValue = useCallback(
     (value: SetStateAction<T>) => {
       const valueToStore =
@@ -70,14 +64,12 @@ export default function usePersistedState<T extends Primitive | object>(
     },
     [key, updateStoredValue]
   );
-
   // Sync state when key changes
   useEffect(() => {
     if (previousKey !== undefined && previousKey !== key) {
       updateStoredValue(Storage.get(key) ?? defaultValue);
     }
   }, [previousKey, key, defaultValue, updateStoredValue]);
-
   // Listen to the key changing in other tabs so we can keep UI in sync
   useEventListener("storage", (event: StorageEvent) => {
     if (options?.listen === false || event.key !== key) {
@@ -95,6 +87,5 @@ export default function usePersistedState<T extends Primitive | object>(
       Logger.debug("misc", "Failed to parse persisted state", { error });
     }
   });
-
   return [storedValue, setValue];
 }

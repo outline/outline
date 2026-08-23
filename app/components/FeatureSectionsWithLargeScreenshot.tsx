@@ -6,7 +6,6 @@ import {
   LockClosedIcon,
   ServerIcon,
 } from "@heroicons/react/20/solid";
-
 const features = [
   {
     name: "Push to deploy.",
@@ -45,7 +44,6 @@ const features = [
     icon: ServerIcon,
   },
 ];
-
 /**
  * Tailwind UI – feature sections: with large screenshot.
  *

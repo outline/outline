@@ -7,7 +7,6 @@ import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
-
 export default class UsersStore extends Store<User> {
   actions = [
     RPCAction.Info,
@@ -17,53 +16,43 @@ export default class UsersStore extends Store<User> {
     RPCAction.Delete,
     RPCAction.Count,
   ];
-
   constructor(rootStore: RootStore) {
     super(rootStore, User);
   }
-
   @computed
   get active(): User[] {
     return this.all.filter((user) => !user.isSuspended && !user.isInvited);
   }
-
   @computed
   get suspended(): User[] {
     return this.all.filter((user) => user.isSuspended);
   }
-
   @computed
   get activeOrInvited(): User[] {
     return this.all.filter((user) => !user.isSuspended);
   }
-
   @computed
   get invited(): User[] {
     return this.all.filter((user) => user.isInvited);
   }
-
   @computed
   get admins(): User[] {
     return this.all.filter((user) => user.isAdmin && !user.isInvited);
   }
-
   @computed
   get members(): User[] {
     return this.all.filter(
       (user) => !user.isViewer && !user.isAdmin && !user.isInvited
     );
   }
-
   @computed
   get viewers(): User[] {
     return this.all.filter((user) => user.isViewer && !user.isInvited);
   }
-
   @computed
   get all(): User[] {
     return this.orderedData.filter((user) => !user.isDeleted);
   }
-
   @computed
   get orderedData(): User[] {
     return orderBy(
@@ -72,22 +61,18 @@ export default class UsersStore extends Store<User> {
       "asc"
     );
   }
-
   @action
   updateRole = async (user: User, role: UserRole) => {
     await this.actionOnUser("update_role", user, role);
   };
-
   @action
   suspend = async (user: User) => {
     await this.actionOnUser("suspend", user);
   };
-
   @action
   activate = async (user: User) => {
     await this.actionOnUser("activate", user);
   };
-
   @action
   invite = async (
     invites: {
@@ -100,20 +85,17 @@ export default class UsersStore extends Store<User> {
       invites,
     });
     invariant(res?.data, "Data should be available");
-
     let response: User[] = [];
     runInAction(`invite`, () => {
       response = res.data.users.map(this.add);
     });
     return response;
   };
-
   @action
   resendInvite = async (user: User) =>
     client.post(`/users.resendInvite`, {
       id: user.id,
     });
-
   /**
    * Returns the loaded user with the given email address, if any.
    *
@@ -126,37 +108,35 @@ export default class UsersStore extends Store<User> {
       (user) => user.email?.trim().toLowerCase() === normalizedEmail
     );
   };
-
   /**
-   * Returns users that are not in the given document, optionally filtered by a query.
+   * Returns users that are not in the given note, optionally filtered by a query.
    *
-   * @param documentId
+   * @param noteId
    * @param query
-   * @returns A list of users that are not in the given document.
+   * @returns A list of users that are not in the given note.
    */
-  notInDocument = (documentId: string, query = "") => {
-    const document = this.rootStore.documents.get(documentId);
+  notInNote = (noteId: string, query = "") => {
+    const note = this.rootStore.notes.get(noteId);
     const teamMembers = this.activeOrInvited;
-    const documentMembers = document?.members ?? [];
+    const noteMembers = note?.members ?? [];
     const users = differenceWith(
       teamMembers,
-      documentMembers,
-      (teamMember, documentMember) => teamMember.id === documentMember.id
+      noteMembers,
+      (teamMember, noteMember) => teamMember.id === noteMember.id
     );
     return queriedUsers(users, query);
   };
-
   /**
-   * Returns users that are not in the given collection, optionally filtered by a query.
+   * Returns users that are not in the given notebook, optionally filtered by a query.
    *
    * @param collectionId
    * @param query
-   * @returns A list of users that are not in the given collection.
+   * @returns A list of users that are not in the given notebook.
    */
-  notInCollection = (collectionId: string, query = "") => {
+  notInNotebook = (notebookId: string, query = "") => {
     const groupUsers = filter(
       this.rootStore.memberships.orderedData,
-      (member) => member.collectionId === collectionId
+      (member) => member.notebookId === notebookId
     );
     const userIds = groupUsers.map((groupUser) => groupUser.userId);
     const users = filter(
@@ -165,11 +145,10 @@ export default class UsersStore extends Store<User> {
     );
     return queriedUsers(users, query);
   };
-
-  inCollection = (collectionId: string, query?: string) => {
+  inNotebook = (notebookId: string, query?: string) => {
     const groupUsers = filter(
       this.rootStore.memberships.orderedData,
-      (member) => member.collectionId === collectionId
+      (member) => member.notebookId === notebookId
     );
     const userIds = groupUsers.map((groupUser) => groupUser.userId);
     const users = filter(this.activeOrInvited, (user) =>
@@ -177,7 +156,6 @@ export default class UsersStore extends Store<User> {
     );
     return queriedUsers(users, query);
   };
-
   notInGroup = (groupId: string, query = "") => {
     const groupUsers = filter(
       this.rootStore.groupUsers.orderedData,
@@ -190,7 +168,6 @@ export default class UsersStore extends Store<User> {
     );
     return queriedUsers(users, query);
   };
-
   inGroup = (groupId: string, query?: string) => {
     const groupUsers = filter(
       this.rootStore.groupUsers.orderedData,
@@ -202,7 +179,6 @@ export default class UsersStore extends Store<User> {
     );
     return queriedUsers(users, query);
   };
-
   actionOnUser = async (action: string, user: User, role?: UserRole) => {
     const res = await client.post(`/users.${action}`, {
       id: user.id,
@@ -215,10 +191,8 @@ export default class UsersStore extends Store<User> {
     });
   };
 }
-
 export function queriedUsers(users: User[], query?: string) {
   const normalizedQuery = deburr((query || "").toLocaleLowerCase());
-
   return normalizedQuery
     ? filter(
         users,

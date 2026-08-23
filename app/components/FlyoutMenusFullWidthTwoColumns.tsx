@@ -12,7 +12,6 @@ import {
   UsersIcon,
   VideoCameraIcon,
 } from "@heroicons/react/24/outline";
-
 const engagement = [
   { name: "About", href: "#", icon: InformationCircleIcon },
   { name: "Customers", href: "#", icon: UsersIcon },
@@ -52,7 +51,6 @@ const recentPosts = [
       "Optio cum necessitatibus dolor voluptatum provident commodi et.",
   },
 ];
-
 /**
  * Tailwind UI – flyout menus: full width two columns.
  *

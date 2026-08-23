@@ -4,7 +4,6 @@ import {
   UserIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const timeline = [
   {
     id: 1,
@@ -57,7 +56,6 @@ const timeline = [
     iconBackground: "bg-green-500",
   },
 ];
-
 /**
  * Tailwind UI – feeds: simple with icons.
  *

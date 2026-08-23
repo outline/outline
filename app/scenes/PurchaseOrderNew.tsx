@@ -14,10 +14,8 @@ import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
 import { formatCurrency } from "~/utils/format";
-
 /** A date input wants `yyyy-mm-dd`, not an ISO timestamp. */
 const asDateValue = (date: Date) => date.toISOString().slice(0, 10);
-
 type Line = {
   productId: string;
   variantId?: string;
@@ -25,7 +23,6 @@ type Line = {
   quantity: number;
   cost: number;
 };
-
 /**
  * Raising a purchase order.
  *
@@ -40,13 +37,12 @@ function PurchaseOrderNew() {
   const suppliers = useShop((state) => state.suppliers);
   const products = useShop((state) => state.products);
   const createPurchaseOrder = useShop((state) => state.createPurchaseOrder);
-
   const [supplierId, setSupplierId] = useState("");
   const [expectedAt, setExpectedAt] = useState(
     asDateValue(new Date(Date.now() + 7 * 86400000))
   );
-  const [document, sendLine] = useMachine(linesMachine);
-  const lines = document.context.lines as Line[];
+  const [note, sendLine] = useMachine(linesMachine);
+  const lines = note.context.lines as Line[];
   const [productId, setProductId] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [cost, setCost] = useState("");
@@ -54,9 +50,7 @@ function PurchaseOrderNew() {
   // Raising the order is a save, and that one belongs to the machine.
   const [lineNotice, setLineNotice] = useState<string | undefined>();
   const submission = useSubmit();
-
   const value = lines.reduce((sum, line) => sum + line.cost * line.quantity, 0);
-
   const handleAddLine = () => {
     // The picker offers a size of its own for anything sold in sizes, so the
     // delivery can be booked in against the right one.
@@ -84,7 +78,6 @@ function PurchaseOrderNew() {
     setQuantity("1");
     setCost("");
   };
-
   const handleRaise = () =>
     void submission.run(async () => {
       setLineNotice(undefined);
@@ -93,14 +86,12 @@ function PurchaseOrderNew() {
         expectedAt,
         items: lines,
       });
-
       if (result?.created && result.order) {
         history.push(`/purchase-orders/${result.order.id}`);
         return;
       }
       return t("Choose a supplier and add at least one line.");
     });
-
   return (
     <AppPage
       title={t("New purchase order")}
@@ -214,5 +205,4 @@ function PurchaseOrderNew() {
     </AppPage>
   );
 }
-
 export default PurchaseOrderNew;

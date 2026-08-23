@@ -3,7 +3,6 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import styled, { css } from "styled-components";
 import { hideScrollbars } from "@shared/styles";
-
 type Props = React.HTMLAttributes<HTMLDivElement> & {
   /** Whether to show shadows at top and bottom when scrolled */
   shadow?: boolean;
@@ -20,7 +19,6 @@ type Props = React.HTMLAttributes<HTMLDivElement> & {
   /** Custom overflow style */
   overflow?: string;
 };
-
 /**
  * A scrollable container component with optional shadow indicators and custom scrollbar styling.
  *
@@ -45,7 +43,6 @@ function Scrollable(
   const localRef = React.useRef<HTMLDivElement>(null);
   const [topShadowVisible, setTopShadow] = React.useState(false);
   const [bottomShadowVisible, setBottomShadow] = React.useState(false);
-
   // When an edge is named alongside fadeTo the fade is limited to that edge,
   // otherwise both edges fade.
   const singleEdge = topShadow !== undefined || bottomShadow !== undefined;
@@ -53,7 +50,6 @@ function Scrollable(
   const fadeBottom = !!fadeTo && (!singleEdge || !!bottomShadow);
   const trackTop = !!(shadow || topShadow || fadeTop);
   const trackBottom = !!(shadow || bottomShadow || fadeBottom);
-
   const updateShadows = React.useCallback(() => {
     const c = localRef.current;
     if (!c) {
@@ -61,29 +57,22 @@ function Scrollable(
     }
     const scrollTop = c.scrollTop;
     setTopShadow(trackTop && scrollTop > 0);
-
     const wrapperHeight = c.scrollHeight - c.clientHeight;
     setBottomShadow(trackBottom && wrapperHeight - scrollTop > 1);
   }, [trackTop, trackBottom]);
-
   React.useEffect(() => {
     const c = localRef.current;
     if (!c) {
       return;
     }
-
     updateShadows();
-
     const observer = new ResizeObserver(updateShadows);
     observer.observe(c);
-
     for (const child of Array.from(c.children)) {
       observer.observe(child);
     }
-
     return () => observer.disconnect();
   }, [updateShadows]);
-
   return (
     <Wrapper
       ref={mergeRefs([localRef, ref])}
@@ -103,7 +92,6 @@ function Scrollable(
     </Wrapper>
   );
 }
-
 const Fade = styled.div<{
   to: string;
   top?: boolean;
@@ -135,7 +123,6 @@ const Fade = styled.div<{
   transition: opacity 100ms ease-in-out;
   z-index: 1;
 `;
-
 const Wrapper = styled.div<{
   $flex?: boolean;
   $fadeTo?: string;
@@ -156,20 +143,16 @@ const Wrapper = styled.div<{
     if (props.$topShadowVisible && props.$bottomShadowVisible) {
       return "0 1px inset rgba(0,0,0,.1), 0 -1px inset rgba(0,0,0,.1)";
     }
-
     if (props.$topShadowVisible) {
       return "0 1px inset rgba(0,0,0,.1)";
     }
-
     if (props.$bottomShadowVisible) {
       return "0 -1px inset rgba(0,0,0,.1)";
     }
-
     return "none";
   }};
   transition: box-shadow 100ms ease-in-out;
 
   ${(props) => props.$hiddenScrollbars && hideScrollbars()}
 `;
-
 export default observer(React.forwardRef(Scrollable));

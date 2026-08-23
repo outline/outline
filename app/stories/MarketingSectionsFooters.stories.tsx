@@ -9,49 +9,37 @@ import { Footers4ColumnWithNewsletterBelowDark as Footers4ColumnWithNewsletterBe
 import { Footers4ColumnWithNewsletterDark as Footers4ColumnWithNewsletterDarkView } from "~/components/Footers4ColumnWithNewsletterDark";
 import { FootersSimpleCentered } from "~/components/FootersSimpleCentered";
 import { FootersSocialLinksOnly } from "~/components/FootersSocialLinksOnly";
-
 const meta: Meta = {
   title: "Marketing/Sections/Footers",
 };
-
 export default meta;
-
 export const Footers4ColumnSimple: StoryObj = {
   render: () => <Footers4ColumnSimpleView />,
 };
-
 export const Footers4ColumnSimpleDark: StoryObj = {
   render: () => <Footers4ColumnSimpleDarkView />,
 };
-
 export const Footers4ColumnWithCompanyMission: StoryObj = {
   render: () => <Footers4ColumnWithCompanyMissionView />,
 };
-
 export const Footers4ColumnWithCompanyMissionOnDark: StoryObj = {
   render: () => <Footers4ColumnWithCompanyMissionOnDarkView />,
 };
-
 export const Footers4ColumnWithNewsletter: StoryObj = {
   render: () => <Footers4ColumnWithNewsletterView />,
 };
-
 export const Footers4ColumnWithNewsletterBelow: StoryObj = {
   render: () => <Footers4ColumnWithNewsletterBelowView />,
 };
-
 export const Footers4ColumnWithNewsletterBelowDark: StoryObj = {
   render: () => <Footers4ColumnWithNewsletterBelowDarkView />,
 };
-
 export const Footers4ColumnWithNewsletterDark: StoryObj = {
   render: () => <Footers4ColumnWithNewsletterDarkView />,
 };
-
 export const SimpleCentered: StoryObj = {
   render: () => <FootersSimpleCentered />,
 };
-
 export const SocialLinksOnly: StoryObj = {
   render: () => <FootersSocialLinksOnly />,
 };

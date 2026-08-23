@@ -6,7 +6,6 @@ type Props = {
   /** Whether the safe area should be removed and have graphic across full size */
   cover?: boolean;
 };
-
 export default function OutlineIcon({
   size = 24,
   cover,

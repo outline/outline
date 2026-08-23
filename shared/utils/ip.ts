@@ -1,5 +1,4 @@
 import ipaddr from "ipaddr.js";
-
 /**
  * Checks if a string is a canonical dotted-quad IPv4 address (e.g. 192.168.1.1).
  * Stricter than ipaddr's `isValid`, which also accepts shorthand and hex forms
@@ -11,7 +10,6 @@ import ipaddr from "ipaddr.js";
 export function isIPv4Address(value: string): boolean {
   return ipaddr.IPv4.isValidFourPartDecimal(value.trim());
 }
-
 /**
  * Parses an IPv4 address into a single numeric value that preserves octet-wise
  * ordering, so addresses sort correctly both within and across subnets

@@ -2,18 +2,14 @@ import { observer } from "mobx-react";
 import { Suspense } from "react";
 import useStores from "~/hooks/useStores";
 import lazyWithRetry from "~/utils/lazyWithRetry";
-
 const PresentationMode = lazyWithRetry(
-  () => import("~/scenes/Document/components/PresentationMode")
+  () => import("~/scenes/Note/components/PresentationMode")
 );
-
 function Presentation() {
   const { ui } = useStores();
-
   if (!ui.presentationData) {
     return null;
   }
-
   return (
     <Suspense fallback={null}>
       <PresentationMode
@@ -22,11 +18,10 @@ function Presentation() {
         iconColor={ui.presentationData.color}
         data={ui.presentationData.data}
         onClose={() => {
-          ui.setPresentingDocument(null);
+          ui.setPresentingNote(null);
         }}
       />
     </Suspense>
   );
 }
-
 export default observer(Presentation);

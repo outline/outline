@@ -2,7 +2,6 @@ import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const people = [
   {
     name: "Leslie Alexander",
@@ -63,7 +62,6 @@ const people = [
     lastSeen: null,
   },
 ];
-
 /**
  * Tailwind UI – stacked lists: with inline links and actions menu.
  *

@@ -7,7 +7,6 @@ import type { EditorView } from "prosemirror-view";
 import type { NodeAttrMark, NodeAttrMarkName } from "../types";
 import type { Node } from "prosemirror-model";
 import type { Selection } from "prosemirror-state";
-
 /**
  * Checks if the current selection is a column selection.
  * @param state The editor state.
@@ -19,7 +18,6 @@ export function isColSelection(state: EditorState): boolean {
   }
   return false;
 }
-
 /**
  * Checks if the current selection is a row selection.
  * @param state The editor state.
@@ -31,7 +29,6 @@ export function isRowSelection(state: EditorState): boolean {
   }
   return false;
 }
-
 export function getColumnIndex(state: EditorState): number | undefined {
   if (state.selection instanceof ColumnSelection) {
     if (state.selection.isColSelection()) {
@@ -39,10 +36,8 @@ export function getColumnIndex(state: EditorState): number | undefined {
       return rect.left;
     }
   }
-
   return undefined;
 }
-
 export function getRowIndex(state: EditorState): number | undefined {
   if (state.selection instanceof RowSelection) {
     if (state.selection.isRowSelection()) {
@@ -50,10 +45,8 @@ export function getRowIndex(state: EditorState): number | undefined {
       return rect.top;
     }
   }
-
   return undefined;
 }
-
 /**
  * Get the actual row index in the table map for a given visual row index
  * when merged cells are present.
@@ -71,10 +64,8 @@ export function getRowIndexInMap(
   }
   const rect = selectedRect(state);
   const cells = getCellsInColumn(0)(state);
-
   if (visualRowIndex >= 0 && visualRowIndex < cells.length) {
     const cellPos = cells[visualRowIndex] - rect.tableStart;
-
     // Find the row index in the table map for this cell position
     for (let row = 0; row < rect.map.height; row++) {
       const rowStart = row * rect.map.width;
@@ -85,10 +76,8 @@ export function getRowIndexInMap(
       }
     }
   }
-
   return -1;
 }
-
 /**
  * Get the actual row positions in the table map, accounting for merged cells.
  *
@@ -102,11 +91,9 @@ export function getRowsInTable(state: EditorState): number[] {
   if (!isInTable(state)) {
     return [];
   }
-
   const rect = selectedRect(state);
   const rows: number[] = [];
   const seenCells = new Set<number>();
-
   for (let row = 0; row < rect.map.height; row++) {
     // Find the leftmost cell in this row
     for (let col = 0; col < rect.map.width; col++) {
@@ -119,10 +106,8 @@ export function getRowsInTable(state: EditorState): number[] {
       }
     }
   }
-
   return rows;
 }
-
 /**
  * Get the actual column positions in the table map, accounting for merged cells.
  *
@@ -133,11 +118,9 @@ export function getColumnsInTable(state: EditorState): number[] {
   if (!isInTable(state)) {
     return [];
   }
-
   const rect = selectedRect(state);
   const columns: number[] = [];
   const seenCells = new Set<number>();
-
   for (let col = 0; col < rect.map.width; col++) {
     // Find the topmost cell in this column
     for (let row = 0; row < rect.map.height; row++) {
@@ -150,50 +133,40 @@ export function getColumnsInTable(state: EditorState): number[] {
       }
     }
   }
-
   return columns;
 }
-
 export function getCellsInColumn(index: number) {
   return (state: EditorState): number[] => {
     if (!isInTable(state)) {
       return [];
     }
-
     const rect = selectedRect(state);
     const cells = [];
-
     let previous;
     for (let i = index; i < rect.map.map.length; i += rect.map.width) {
       const cell = rect.tableStart + rect.map.map[i];
-
       // Ensure we don't add the same cell multiple times, this can happen
       // if the column is selected and the table row has merged cells.
       if (previous === cell) {
         continue;
       }
       previous = cell;
-
       cells.push(cell);
     }
     return cells;
   };
 }
-
 export function getCellsInRow(index: number) {
   return (state: EditorState): number[] => {
     if (!isInTable(state)) {
       return [];
     }
-
     const rect = selectedRect(state);
     const cells = [];
-
     let previous;
     for (let i = 0; i < rect.map.width; i += 1) {
       const cell = rect.tableStart + rect.map.map[index * rect.map.width + i];
       cells.push(cell);
-
       // Ensure we don't add the same cell multiple times, this can happen
       // if the row is selected and the table column has merged cells.
       if (previous === cell) {
@@ -201,11 +174,9 @@ export function getCellsInRow(index: number) {
       }
       previous = cell;
     }
-
     return cells;
   };
 }
-
 /**
  * Check if a specific column is selected in the editor.
  *
@@ -219,11 +190,9 @@ export function isColumnSelected(index: number) {
       const rect = selectedRect(state);
       return rect.left <= index && rect.right > index;
     }
-
     return false;
   };
 }
-
 /**
  * Check if the header is enabled for the given type and table rect
  *
@@ -244,17 +213,14 @@ export function isHeaderEnabled(
     right: type === "row" ? rect.map.width : 1,
     bottom: type === "column" ? rect.map.height : 1,
   });
-
   for (let i = 0; i < cellPositions.length; i++) {
     const cell = rect.table.nodeAt(cellPositions[i]);
     if (cell && cell.type !== state.schema.nodes.th) {
       return false;
     }
   }
-
   return true;
 }
-
 /**
  * Check if a specific row is selected in the editor.
  *
@@ -268,7 +234,6 @@ export function isRowSelected(index: number) {
       ? state.selection.$index === index
       : false;
 }
-
 /**
  * Check if an entire table is selected in the editor.
  *
@@ -278,7 +243,6 @@ export function isRowSelected(index: number) {
 export function isTableSelected(state: EditorState): boolean {
   if (state.selection instanceof CellSelection) {
     const rect = selectedRect(state);
-
     return (
       rect.top === 0 &&
       rect.left === 0 &&
@@ -287,10 +251,8 @@ export function isTableSelected(state: EditorState): boolean {
       !state.selection.empty
     );
   }
-
   return false;
 }
-
 /**
  * Check if multiple cells are selected in the editor.
  *
@@ -299,7 +261,6 @@ export function isTableSelected(state: EditorState): boolean {
  */
 export function isMultipleCellSelection(state: EditorState): boolean {
   const { selection } = state;
-
   return (
     selection instanceof CellSelection &&
     (selection.isColSelection() ||
@@ -307,7 +268,6 @@ export function isMultipleCellSelection(state: EditorState): boolean {
       selection.$anchorCell.pos !== selection.$headCell.pos)
   );
 }
-
 /**
  * Check if the selection spans multiple merged cells.
  *
@@ -328,16 +288,12 @@ export function isMergedCellSelection(state: EditorState): boolean {
         hasMergedCells = true;
         return false;
       }
-
       return true;
     });
-
     return hasMergedCells;
   }
-
   return false;
 }
-
 /**
  * Check if the table contains any cells with rowspan > 1.
  * Cells with rowspan span multiple rows and would break table sorting.
@@ -349,39 +305,30 @@ export function tableHasRowspan(state: EditorState): boolean {
   if (!isInTable(state)) {
     return false;
   }
-
   const rect = selectedRect(state);
   const seen = new Set<number>();
-
   for (let i = 0; i < rect.map.map.length; i++) {
     const pos = rect.map.map[i];
-
     // Skip already checked cells
     if (seen.has(pos)) {
       continue;
     }
     seen.add(pos);
-
     const cell = rect.table.nodeAt(pos);
     if (cell && cell.attrs.rowspan > 1) {
       return true;
     }
   }
-
   return false;
 }
-
 export function getAllSelectedColumns(state: EditorState): number[] {
   const rect = selectedRect(state);
-
   const selectedColumns: number[] = [];
   for (let col = rect.left; col < rect.right; col++) {
     selectedColumns.push(col);
   }
-
   return selectedColumns;
 }
-
 /**
  * Get the indices of all currently selected rows.
  *
@@ -390,15 +337,12 @@ export function getAllSelectedColumns(state: EditorState): number[] {
  */
 export function getAllSelectedRows(state: EditorState): number[] {
   const rect = selectedRect(state);
-
   const selectedRows: number[] = [];
   for (let row = rect.top; row < rect.bottom; row++) {
     selectedRows.push(row);
   }
-
   return selectedRows;
 }
-
 /**
  * Get the positions of every unique cell across all selected columns, falling
  * back to a single column when it is not part of the selection.
@@ -419,7 +363,6 @@ export function getCellsInSelectedColumns(
   const columns = selectedColumns.includes(fallbackIndex)
     ? selectedColumns
     : [fallbackIndex];
-
   const seen = new Set<number>();
   const cells: number[] = [];
   columns.forEach((index) => {
@@ -430,10 +373,8 @@ export function getCellsInSelectedColumns(
       }
     });
   });
-
   return cells;
 }
-
 /**
  * Get the positions of every unique cell across all selected rows, falling back
  * to a single row when it is not part of the selection.
@@ -454,7 +395,6 @@ export function getCellsInSelectedRows(
   const rows = selectedRows.includes(fallbackIndex)
     ? selectedRows
     : [fallbackIndex];
-
   const seen = new Set<number>();
   const cells: number[] = [];
   rows.forEach((index) => {
@@ -465,10 +405,8 @@ export function getCellsInSelectedRows(
       }
     });
   });
-
   return cells;
 }
-
 /**
  * Get the total width of selected columns by measuring DOM elements.
  * Uses getBoundingClientRect to get precise rendered widths including decimals.
@@ -490,20 +428,17 @@ export function getWidthFromDom({
   if (!view) {
     return 0;
   }
-
   const tableDOM = view.domAtPos(rect.tableStart).node as HTMLElement;
   const firstRow = tableDOM.closest("table")?.querySelector("tr");
   if (!firstRow) {
     return 0;
   }
-
   const cells = firstRow.querySelectorAll("td, th");
   return selectedColumns.reduce((total, colIndex) => {
     const cell = cells[colIndex] as HTMLElement | undefined;
     return total + (cell?.getBoundingClientRect().width ?? 0);
   }, 0);
 }
-
 /**
  * Get the total width of selected columns from node attributes.
  * Sums the colwidth values stored in the document state.
@@ -523,7 +458,6 @@ export function getWidthFromNodes({
   if (!firstRowCells) {
     return 0;
   }
-
   return selectedColumns.reduce((total, colIndex) => {
     const cell =
       firstRowCells[colIndex] !== undefined
@@ -533,15 +467,12 @@ export function getWidthFromNodes({
     return total + (colwidth?.[0] ?? 0);
   }, 0);
 }
-
 const getCellAttrMark = (cell: Node, type: NodeAttrMarkName) => {
   const mark = (cell.attrs.marks ?? []).find(
     (mark: NodeAttrMark) => mark.type === type
   );
-
   return mark;
 };
-
 export const hasNodeAttrMarkCellSelection = (
   selection: CellSelection,
   type: NodeAttrMarkName
@@ -552,10 +483,8 @@ export const hasNodeAttrMarkCellSelection = (
       hasMark = !!getCellAttrMark(cell, type);
     }
   });
-
   return hasMark;
 };
-
 /**
  * Returns the set of background colors applied to selected cells.
  *
@@ -578,16 +507,14 @@ export function getColorSetForSelectedCells(selection: Selection): Set<string> {
   });
   return colors;
 }
-
 /**
- * Get all unique background colors used in table cells across the entire document.
+ * Get all unique background colors used in table cells across the entire note.
  *
  * @param state The editor state.
- * @returns An array of unique hex color strings used for table cell backgrounds in the document.
+ * @returns An array of unique hex color strings used for table cell backgrounds in the note.
  */
-export function getDocumentTableBackgroundColors(state: EditorState): string[] {
+export function getNoteTableBackgroundColors(state: EditorState): string[] {
   const colors = new Set<string>();
-
   state.doc.descendants((node) => {
     if (node.type.name === "td" || node.type.name === "th") {
       const backgroundMark = (node.attrs.marks ?? []).find(
@@ -598,10 +525,8 @@ export function getDocumentTableBackgroundColors(state: EditorState): string[] {
       }
     }
   });
-
   return Array.from(colors);
 }
-
 /**
  * Returns true if any cell in the selection has a mark of the given type
  * with matching attributes.
@@ -625,6 +550,5 @@ export const hasNodeAttrMarkWithAttrsCellSelection = (
         ([key, value]) => (cellMark.attrs ?? {})[key] === value
       );
   });
-
   return attrsMatch;
 };

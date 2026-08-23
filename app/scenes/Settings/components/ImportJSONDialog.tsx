@@ -4,11 +4,9 @@ import env from "~/env";
 import useStores from "~/hooks/useStores";
 import DropToImport from "./DropToImport";
 import Text from "@shared/components/Text";
-
 function ImportJSONDialog() {
   const { dialogs } = useStores();
   const appName = env.APP_NAME;
-
   return (
     <>
       <Text as="p">
@@ -32,5 +30,4 @@ function ImportJSONDialog() {
     </>
   );
 }
-
 export default ImportJSONDialog;

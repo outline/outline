@@ -1,6 +1,5 @@
 import { Fragment, useState } from "react";
 import { Transition } from "@headlessui/react";
-
 /**
  * Tailwind UI – notifications: with split buttons.
  *
@@ -8,7 +7,6 @@ import { Transition } from "@headlessui/react";
  */
 export function NotificationsWithSplitButtons() {
   const [show, setShow] = useState(true);
-
   return (
     <>
       {/* Global notification live region, render this permanently at the end of the document */}

@@ -1,5 +1,4 @@
 import styled from "styled-components";
-
 const ButtonLink = styled.button`
   margin: 0;
   padding: 0;
@@ -10,5 +9,4 @@ const ButtonLink = styled.button`
   text-decoration: none;
   cursor: pointer;
 `;
-
 export default ButtonLink;

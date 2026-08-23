@@ -1,7 +1,6 @@
 /* oxlint-disable no-console */
 import * as Sentry from "@sentry/react";
 import env from "~/env";
-
 type LogCategory =
   | "lifecycle"
   | "http"
@@ -12,10 +11,8 @@ type LogCategory =
   | "store"
   | "plugins"
   | "policies";
-
 // oxlint-disable-next-line no-explicit-any
 type Extra = Record<string, any>;
-
 class Logger {
   /**
    * Log information
@@ -26,7 +23,6 @@ class Logger {
   info(label: LogCategory, message: string, extra?: Extra) {
     console.info(`[${label}] ${message}`, extra);
   }
-
   /**
    * Debug information
    *
@@ -38,7 +34,6 @@ class Logger {
       console.debug(`[${label}] ${message}`, extra);
     }
   }
-
   /**
    * Log a warning
    *
@@ -49,18 +44,14 @@ class Logger {
     if (env.SENTRY_DSN) {
       Sentry.withScope(function (scope) {
         scope.setLevel("warning");
-
         for (const key in extra) {
           scope.setExtra(key, extra[key]);
         }
-
         Sentry.captureMessage(message);
       });
     }
-
     console.warn(message, extra);
   }
-
   /**
    * Report a runtime error
    *
@@ -72,25 +63,20 @@ class Logger {
     if (env.SENTRY_DSN) {
       Sentry.withScope(function (scope) {
         scope.setLevel("error");
-
         for (const key in extra) {
           scope.setExtra(key, extra[key]);
         }
-
         Sentry.captureException(error);
       });
     }
-
     console.error(message, {
       error,
       extra,
     });
   }
-
   /**
    * Whether additional debug logging is shown in the console or not.
    */
   public debugLoggingEnabled = false;
 }
-
 export default new Logger();

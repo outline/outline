@@ -1,16 +1,18 @@
 import { assign, createMachine } from "xstate";
-
 /** What the machine remembers between moves. */
 interface SubmitContext {
   /** What to tell the person about the attempt that just finished. */
   notice?: string;
 }
-
 /** What can be asked of a submission. */
 export type SubmitEvent =
-  | { type: "SUBMIT" }
-  | { type: "SETTLED"; notice?: string };
-
+  | {
+      type: "SUBMIT";
+    }
+  | {
+      type: "SETTLED";
+      notice?: string;
+    };
 /**
  * One attempt to save something.
  *
@@ -32,7 +34,10 @@ export const submitMachine = createMachine({
   id: "submit",
   initial: "idle",
   context: {} as SubmitContext,
-  types: {} as { context: SubmitContext; events: SubmitEvent },
+  types: {} as {
+    context: SubmitContext;
+    events: SubmitEvent;
+  },
   states: {
     idle: {
       on: {

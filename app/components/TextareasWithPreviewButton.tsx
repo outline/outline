@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -19,7 +19,6 @@ import {
   LinkIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 /**
  * Tailwind UI – textareas: with preview button.
  *

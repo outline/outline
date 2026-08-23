@@ -1,5 +1,4 @@
 import { action, computed, observable } from "mobx";
-
 /**
  * Holds the ephemeral multi-selection state for a single list of models.
  * Backed by an observable set so that list items only re-render when their own
@@ -9,31 +8,25 @@ import { action, computed, observable } from "mobx";
  */
 export class ModelSelection {
   private ids = observable.set<string>();
-
   /** Ordered identifiers of the list, used to resolve shift-click ranges. */
   private order: string[] = [];
-
   /** The identifier last toggled, used as the anchor for range selection. */
   private anchorId: string | undefined;
-
   /** The number of currently selected models. */
   @computed
   get size(): number {
     return this.ids.size;
   }
-
   /** Whether one or more models are currently selected. */
   @computed
   get isActive(): boolean {
     return this.ids.size > 0;
   }
-
   /** The identifiers of the currently selected models. */
   @computed
   get selectedIds(): string[] {
     return Array.from(this.ids);
   }
-
   /**
    * Update the ordered identifiers of the list so that shift-click range
    * selection follows the rendered order, dropping any selected identifiers
@@ -51,7 +44,6 @@ export class ModelSelection {
       }
     }
   };
-
   /**
    * Whether the model with the given identifier is selected.
    *
@@ -59,7 +51,6 @@ export class ModelSelection {
    * @returns true if the model is selected.
    */
   isSelected = (id: string): boolean => this.ids.has(id);
-
   /**
    * Toggle the selected state of a model, making it the anchor for any
    * subsequent range selection.
@@ -75,7 +66,6 @@ export class ModelSelection {
     }
     this.anchorId = id;
   };
-
   /**
    * Select every model between the current anchor and the given identifier
    * inclusive, in the list's display order. Falls back to a plain toggle when
@@ -89,27 +79,23 @@ export class ModelSelection {
       this.toggle(id);
       return;
     }
-
     const from = this.order.indexOf(this.anchorId);
     const to = this.order.indexOf(id);
     if (from === -1 || to === -1) {
       this.toggle(id);
       return;
     }
-
     const [lo, hi] = from <= to ? [from, to] : [to, from];
     for (let i = lo; i <= hi; i++) {
       this.ids.add(this.order[i]);
     }
     // Keep the anchor so consecutive shift-clicks extend from the same origin.
   };
-
   /** Select every model currently in the list. */
   @action
   selectAll = (): void => {
     this.order.forEach((id) => this.ids.add(id));
   };
-
   /** Deselect all models. */
   @action
   clear = (): void => {

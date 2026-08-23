@@ -1,19 +1,22 @@
 import { assign, createMachine } from "xstate";
-
 /** What the machine remembers between moves. */
 interface PanelContext {
   /** Which panel is open, when one is. */
   panel?: string;
 }
-
 /** Which panel, if any, is open to begin with. */
 export interface PanelInput {
   open?: string;
 }
-
 /** What can be asked of the panels on a page. */
-export type PanelEvent = { type: "OPEN"; panel: string } | { type: "CLOSE" };
-
+export type PanelEvent =
+  | {
+      type: "OPEN";
+      panel: string;
+    }
+  | {
+      type: "CLOSE";
+    };
 /**
  * The one panel a page has open.
  *

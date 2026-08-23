@@ -4,7 +4,6 @@ import Model from "./base/Model";
 import Field from "./decorators/Field";
 import { GroupPermission } from "@shared/types";
 import type { Searchable } from "./interfaces/Searchable";
-
 /**
  * Information about a group that is managed by an external provider.
  */
@@ -20,31 +19,23 @@ interface ExternalGroupInfo {
   /** The date and time the group was last synced from the external provider. */
   lastSyncedAt: string | null;
 }
-
 class Group extends Model implements Searchable {
   static modelName = "Group";
-
   @Field
   @observable
   name: string;
-
   @Field
   @observable
   description: string;
-
   @observable
   externalId: string | undefined;
-
   @observable
   memberCount: number;
-
   @Field
   @observable
   disableMentions: boolean;
-
   @observable
   externalGroup: ExternalGroupInfo | undefined;
-
   /**
    * Whether this group's membership is managed by an external authentication provider.
    */
@@ -52,7 +43,6 @@ class Group extends Model implements Searchable {
   get isExternallyManaged(): boolean {
     return !!this.externalGroup;
   }
-
   /**
    * Returns the users that are members of this group.
    */
@@ -61,17 +51,14 @@ class Group extends Model implements Searchable {
     const { users } = this.store.rootStore;
     return users.inGroup(this.id);
   }
-
   @computed
   get searchContent(): string[] {
     return [this.name, this.description].filter(Boolean);
   }
-
   @computed
   get searchSuppressed(): boolean {
     return this.disableMentions;
   }
-
   @computed
   get admins() {
     const { groupUsers } = this.store.rootStore;
@@ -83,18 +70,16 @@ class Group extends Model implements Searchable {
       )
       .map((groupUser) => groupUser.user);
   }
-
   /**
-   * Returns the direct memberships that this group has to documents. Documents that the current
-   * user already has access to through a collection, archived, and trashed documents are not included.
+   * Returns the direct memberships that this group has to notes. Notes that the current
+   * user already has access to through a notebook, archived, and trashed notes are not included.
    *
    * @returns A list of group memberships
    */
   @computed
-  get documentMemberships(): GroupMembership[] {
-    const { groupMemberships, groupUsers, documents, policies, auth } =
+  get noteMemberships(): GroupMembership[] {
+    const { groupMemberships, groupUsers, notes, policies, auth } =
       this.store.rootStore;
-
     return groupMemberships.orderedData
       .filter((groupMembership) =>
         groupUsers.orderedData.some(
@@ -103,17 +88,14 @@ class Group extends Model implements Searchable {
             groupUser.userId === auth.user?.id
         )
       )
-      .filter(
-        (m) => m.groupId === this.id && m.sourceId === null && m.documentId
-      )
+      .filter((m) => m.groupId === this.id && m.sourceId === null && m.noteId)
       .filter((m) => {
-        const document = documents.get(m.documentId!);
-        const policy = document?.collectionId
-          ? policies.get(document.collectionId)
+        const note = notes.get(m.noteId!);
+        const policy = note?.notebookId
+          ? policies.get(note.notebookId)
           : undefined;
-        return !policy?.abilities?.readDocument && !!document?.isActive;
+        return !policy?.abilities?.readNote && !!note?.isActive;
       });
   }
 }
-
 export default Group;

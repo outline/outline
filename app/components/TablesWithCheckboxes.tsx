@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -14,7 +14,6 @@
 */
 import { useLayoutEffect, useRef, useState } from "react";
 import { classNames } from "./classNames";
-
 const people = [
   {
     name: "Lindsay Walton",
@@ -24,7 +23,6 @@ const people = [
   },
   // More people...
 ];
-
 /**
  * Tailwind UI – tables: with checkboxes.
  *
@@ -37,7 +35,6 @@ export function TablesWithCheckboxes() {
   const [selectedPeople, setSelectedPeople] = useState<
     (typeof people)[number][]
   >([]);
-
   useLayoutEffect(() => {
     const isIndeterminate =
       selectedPeople.length > 0 && selectedPeople.length < people.length;
@@ -47,13 +44,11 @@ export function TablesWithCheckboxes() {
       checkbox.current.indeterminate = isIndeterminate;
     }
   }, [selectedPeople]);
-
   function toggleAll() {
     setSelectedPeople(checked || indeterminate ? [] : people);
     setChecked(!checked && !indeterminate);
     setIndeterminate(false);
   }
-
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">

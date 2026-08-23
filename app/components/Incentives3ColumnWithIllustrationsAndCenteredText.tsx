@@ -20,7 +20,6 @@ const incentives = [
       "https://tailwindui.com/img/ecommerce/icons/icon-fast-checkout-light.svg",
   },
 ];
-
 /**
  * Tailwind UI – incentives: 3 column with illustrations and centered text.
  *

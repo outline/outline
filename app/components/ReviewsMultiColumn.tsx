@@ -1,6 +1,5 @@
 import { StarIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const reviews = [
   {
     id: 1,
@@ -16,7 +15,6 @@ const reviews = [
   },
   // More reviews...
 ];
-
 /**
  * Tailwind UI – reviews: multi column.
  *

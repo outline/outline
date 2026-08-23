@@ -7,7 +7,6 @@ import {
   UsersIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const actions = [
   {
     title: "Request time off",
@@ -52,7 +51,6 @@ const actions = [
     iconBackground: "bg-indigo-50",
   },
 ];
-
 /**
  * Tailwind UI – grid lists: actions with shared borders.
  *

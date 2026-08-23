@@ -1,5 +1,4 @@
 import { EnvelopeIcon, PhoneIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – card headings: with avatar and actions.
  *

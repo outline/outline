@@ -7,21 +7,18 @@ import styled from "styled-components";
 import { s } from "../../styles";
 import { toColorFormats } from "../../utils/color";
 import type { EditorNotice } from "../types";
-
 interface Props {
   /** The CSS color to preview, in its original notation. */
   color: string;
   /** Callback used to surface a notice to the user. */
   onNotice?: EditorNotice;
 }
-
 /**
  * The contents of the color hover card – a large preview of the color above the
  * equivalent hex, rgb, and hsl notations. Clicking a notation copies it.
  */
 export function ColorPreview({ color, onNotice }: Props) {
   const { t } = useTranslation();
-
   const preview = useMemo(() => {
     try {
       return {
@@ -34,7 +31,6 @@ export function ColorPreview({ color, onNotice }: Props) {
       return undefined;
     }
   }, [color]);
-
   const handleClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
@@ -43,13 +39,10 @@ export function ColorPreview({ color, onNotice }: Props) {
     },
     [onNotice, t]
   );
-
   if (!preview) {
     return null;
   }
-
   const { formats, borderColor } = preview;
-
   return (
     <>
       <Preview style={{ borderColor }}>
@@ -73,7 +66,6 @@ export function ColorPreview({ color, onNotice }: Props) {
     </>
   );
 }
-
 const Preview = styled.div`
   height: 64px;
   overflow: hidden;
@@ -94,12 +86,10 @@ const Preview = styled.div`
     6px -6px,
     -6px 0px;
 `;
-
 const PreviewColor = styled.div`
   width: 100%;
   height: 100%;
 `;
-
 const Formats = styled.div`
   display: flex;
   flex-direction: column;
@@ -107,7 +97,6 @@ const Formats = styled.div`
   /* The negative bottom margin keeps 8px below the last row of text. */
   margin: 4px 0 -4px;
 `;
-
 const Label = styled.span`
   flex-shrink: 0;
   width: 32px;
@@ -117,7 +106,6 @@ const Label = styled.span`
   color: ${s("textTertiary")};
   transition: color 100ms ease;
 `;
-
 const Value = styled.span`
   font-family: ${s("fontFamilyMono")};
   font-size: 12px;
@@ -126,7 +114,6 @@ const Value = styled.span`
   user-select: all;
   transition: color 100ms ease;
 `;
-
 const Format = styled.button`
   display: flex;
   align-items: baseline;

@@ -1,6 +1,5 @@
 import { Disclosure } from "@headlessui/react";
 import { MinusSmallIcon, PlusSmallIcon } from "@heroicons/react/24/outline";
-
 const faqs = [
   {
     question: "What's the best thing about Switzerland?",
@@ -9,7 +8,6 @@ const faqs = [
   },
   // More questions...
 ];
-
 /**
  * Tailwind UI – faq sections: centered accordion.
  *

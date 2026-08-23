@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import { s } from "@shared/styles";
-
 export const UnreadBadge = styled.div`
   width: 8px;
   height: 8px;

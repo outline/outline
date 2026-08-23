@@ -6,22 +6,19 @@ import { type CommentSortOption, CommentSortType } from "~/types";
 import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
 import Store from "./base/Store";
-
 export default class CommentsStore extends Store<Comment> {
   constructor(rootStore: RootStore) {
     super(rootStore, Comment);
   }
-
   /**
-   * Returns a list of comments in a document.
+   * Returns a list of comments in a note.
    *
    * @param documentId ID of the document to get comments for
    * @returns Array of comments
    */
-  inDocument(documentId: string): Comment[] {
-    return this.filter((comment: Comment) => comment.documentId === documentId);
+  inNote(noteId: string): Comment[] {
+    return this.filter((comment: Comment) => comment.noteId === noteId);
   }
-
   /**
    * Returns a list of comments in a document that are not replies to other
    * comments.
@@ -29,31 +26,27 @@ export default class CommentsStore extends Store<Comment> {
    * @param documentId ID of the document to get comments for
    * @returns Array of comments
    */
-  threadsInDocument(
-    documentId: string,
+  threadsInNote(
+    noteId: string,
     options: CommentSortOption = { type: CommentSortType.MostRecent }
   ) {
     const comments = this.filter(
       (comment: Comment) =>
-        comment.documentId === documentId &&
+        comment.noteId === noteId &&
         !comment.parentCommentId &&
         (!comment.isNew ||
           comment.createdById === this.rootStore.auth.currentUserId)
     );
-
     if (options.type === CommentSortType.MostRecent) {
       return comments;
     }
-
     const commentsById = keyBy(comments, "id");
     const referencedComments = compact(
       uniq(options.referencedCommentIds.map((id) => commentsById[id]))
     );
     const directComments = differenceBy(comments, referencedComments, "id");
-
     return [...referencedComments, ...directComments];
   }
-
   /**
    * Returns a list of resolved comments in a document that are not replies to other
    * comments.
@@ -61,15 +54,14 @@ export default class CommentsStore extends Store<Comment> {
    * @param documentId ID of the document to get comments for
    * @returns Array of comments
    */
-  resolvedThreadsInDocument(
-    documentId: string,
+  resolvedThreadsInNote(
+    noteId: string,
     options: CommentSortOption = { type: CommentSortType.MostRecent }
   ): Comment[] {
-    return this.threadsInDocument(documentId, options).filter(
+    return this.threadsInNote(noteId, options).filter(
       (comment: Comment) => comment.isResolved === true
     );
   }
-
   /**
    * Returns a list of comments in a document that are not replies to other
    * comments.
@@ -77,28 +69,26 @@ export default class CommentsStore extends Store<Comment> {
    * @param documentId ID of the document to get comments for
    * @returns Array of comments
    */
-  unresolvedThreadsInDocument(
-    documentId: string,
+  unresolvedThreadsInNote(
+    noteId: string,
     options: CommentSortOption = { type: CommentSortType.MostRecent }
   ): Comment[] {
-    return this.threadsInDocument(documentId, options).filter(
+    return this.threadsInNote(noteId, options).filter(
       (comment: Comment) => comment.isResolved !== true
     );
   }
-
   /**
-   * Returns the total number of unresolved comments in the given document.
+   * Returns the total number of unresolved comments in the given note.
    *
    * @param documentId ID of the document to get comments for
    * @returns A number of comments
    */
-  unresolvedCommentsInDocumentCount(documentId: string): number {
-    return this.unresolvedThreadsInDocument(documentId).reduce(
+  unresolvedCommentsInNoteCount(noteId: string): number {
+    return this.unresolvedThreadsInNote(noteId).reduce(
       (memo, thread) => memo + this.inThread(thread.id).length,
       0
     );
   }
-
   /**
    * Returns a list of comments that includes the given thread ID and any of it's replies.
    *
@@ -111,7 +101,6 @@ export default class CommentsStore extends Store<Comment> {
         comment.parentCommentId === threadId || comment.id === threadId
     );
   }
-
   /**
    * Resolve a comment thread with the given ID.
    *
@@ -128,7 +117,6 @@ export default class CommentsStore extends Store<Comment> {
     this.add(res.data);
     return this.data.get(res.data.id) as Comment;
   };
-
   /**
    * Unresolve a comment thread with the given ID.
    *
@@ -145,7 +133,6 @@ export default class CommentsStore extends Store<Comment> {
     this.add(res.data);
     return this.data.get(res.data.id) as Comment;
   };
-
   @computed
   get orderedData(): Comment[] {
     return orderBy(Array.from(this.data.values()), "createdAt", "asc");

@@ -1,0 +1,292 @@
+import { uniq } from "es-toolkit/compat";
+import { observer } from "mobx-react";
+import { useMemo, useEffect, useCallback, Suspense } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { Trans, useTranslation } from "react-i18next";
+import styled from "styled-components";
+import Icon from "@shared/components/Icon";
+import { randomElement } from "@shared/random";
+import { NotebookPermission } from "@shared/types";
+import type { Option } from "~/components/InputSelect";
+import { IconLibrary } from "@shared/utils/IconLibrary";
+import { colorPalette } from "@shared/constants";
+import { NotebookValidation } from "@shared/validations";
+import type Notebook from "~/models/Notebook";
+import Button from "~/components/Button";
+import { Collapsible } from "~/components/Collapsible";
+import Input from "~/components/Input";
+import { InputSelect } from "~/components/InputSelect";
+import { InputSelectPermission } from "~/components/InputSelectPermission";
+import { createLazyComponent } from "~/components/LazyLoad";
+import Switch from "~/components/Switch";
+import Text from "~/components/Text";
+import useBoolean from "~/hooks/useBoolean";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useStores from "~/hooks/useStores";
+import { EmptySelectValue } from "~/types";
+import { HStack } from "../primitives/HStack";
+import { useDialogContext } from "~/components/DialogContext";
+const IconPicker = createLazyComponent(() => import("~/components/IconPicker"));
+export type FormData = {
+  name: string;
+  icon: string;
+  color: string | null;
+  sharing: boolean;
+  permission: NotebookPermission | undefined;
+  commenting?: boolean | null;
+  templateManagement: NotebookPermission;
+};
+const useIconColor = (notebook?: Notebook) => {
+  const { notebooks } = useStores();
+  const hasMultipleNotebooks = notebooks.orderedData.length > 1;
+  const notebookColors = uniq(
+    notebooks.orderedData.map((c) => c.color).filter(Boolean)
+  ) as string[];
+  const iconColor = useMemo(
+    () =>
+      notebook?.color ??
+      // If all the existing collections have the same color, use that color,
+      // otherwise pick a random color from the palette
+      (hasMultipleNotebooks && notebookColors.length === 1
+        ? notebookColors[0]
+        : randomElement(colorPalette)),
+    // Deliberately only keyed on the collection color so the randomly picked
+    // fallback stays stable while the form is open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [notebook?.color]
+  );
+  return iconColor;
+};
+export const NotebookForm = observer(function NotebookForm_({
+  handleSubmit,
+  notebook,
+}: {
+  handleSubmit: (data: FormData) => void;
+  notebook?: Notebook;
+}) {
+  const team = useCurrentTeam();
+  const { t } = useTranslation();
+  const dialog = useDialogContext();
+  const [hasOpenedIconPicker, setHasOpenedIconPicker] = useBoolean(false);
+  const templateManagementOptions = useMemo<Option[]>(
+    () => [
+      {
+        type: "item",
+        label: t("Managers"),
+        value: NotebookPermission.Admin,
+      },
+      {
+        type: "item",
+        label: t("Members"),
+        value: NotebookPermission.ReadWrite,
+      },
+    ],
+    [t]
+  );
+  const iconColor = useIconColor(notebook);
+  const fallbackIcon = (
+    <Icon
+      value="collection"
+      initial={notebook?.initial ?? "?"}
+      color={iconColor}
+    />
+  );
+  const {
+    register,
+    handleSubmit: formHandleSubmit,
+    formState,
+    watch,
+    control,
+    setValue,
+    setFocus,
+  } = useForm<FormData>({
+    mode: "all",
+    defaultValues: {
+      name: notebook?.name ?? "",
+      icon: notebook?.icon,
+      sharing: notebook?.sharing ?? true,
+      permission: notebook?.permission,
+      commenting: notebook?.commenting ?? true,
+      templateManagement:
+        notebook?.templateManagement ?? NotebookPermission.Admin,
+      color: iconColor,
+    },
+  });
+  const values = watch();
+  // Preload the IconPicker component on mount
+  useEffect(() => {
+    void IconPicker.preload();
+  }, []);
+  useEffect(() => {
+    // If the user hasn't picked an icon yet, go ahead and suggest one based on
+    // the name of the collection. It's the little things sometimes.
+    if (!hasOpenedIconPicker && !notebook) {
+      setValue(
+        "icon",
+        IconLibrary.findIconByKeyword(values.name) ??
+          values.icon ??
+          "collection"
+      );
+    }
+  }, [notebook, hasOpenedIconPicker, setValue, values.name, values.icon]);
+  useEffect(() => {
+    setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
+  }, [setFocus]);
+  const handleIconChange = useCallback(
+    (icon: string, color: string) => {
+      if (icon !== values.icon) {
+        setFocus("name");
+      }
+      setValue("icon", icon);
+      setValue("color", color);
+    },
+    [setFocus, setValue, values.icon]
+  );
+  const initial = values.name.charAt(0).toUpperCase();
+  const options = (
+    <>
+      <Controller
+        control={control}
+        name="templateManagement"
+        render={({ field }) => (
+          <>
+            <InputSelect
+              value={field.value}
+              onChange={(value: string) => {
+                field.onChange(value as NotebookPermission);
+              }}
+              options={templateManagementOptions}
+              label={t("Manage templates")}
+            />
+            <Text
+              type="secondary"
+              size="small"
+              as="p"
+              style={{ paddingTop: 4 }}
+            >
+              {t("Choose who can create and edit templates in this notebook.")}
+            </Text>
+          </>
+        )}
+      />
+
+      {team.sharing && (
+        <Controller
+          control={control}
+          name="sharing"
+          render={({ field }) => (
+            <Switch
+              id="sharing"
+              label={t("Public document sharing")}
+              note={t(
+                "Allow documents within this notebook to be shared publicly on the internet."
+              )}
+              checked={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      )}
+
+      {team.commentingEnabled && (
+        <Controller
+          control={control}
+          name="commenting"
+          render={({ field }) => (
+            <Switch
+              id="commenting"
+              label={t("Commenting")}
+              note={t("Allow commenting on documents within this notebook.")}
+              checked={!!field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      )}
+    </>
+  );
+  return (
+    <form onSubmit={formHandleSubmit(handleSubmit)}>
+      <Text as="p">
+        <Trans>Notebooks are used to group notes and choose permissions</Trans>
+      </Text>
+      <HStack>
+        <Input
+          type="text"
+          label={t("Name")}
+          {...register("name", {
+            required: true,
+            maxLength: NotebookValidation.maxNameLength,
+          })}
+          prefix={
+            <Suspense fallback={fallbackIcon}>
+              <StyledIconPicker
+                icon={values.icon}
+                color={values.color ?? iconColor}
+                initial={initial}
+                popoverPosition="right"
+                onOpen={setHasOpenedIconPicker}
+                onChange={handleIconChange}
+              />
+            </Suspense>
+          }
+          autoComplete="off"
+          autoFocus
+          flex
+        />
+      </HStack>
+
+      {/* Following controls are available in create flow, but moved elsewhere for edit */}
+      {!notebook && (
+        <Controller
+          control={control}
+          name="permission"
+          render={({ field }) => (
+            <InputSelectPermission
+              ref={field.ref}
+              value={field.value}
+              onChange={(
+                value: NotebookPermission | typeof EmptySelectValue
+              ) => {
+                field.onChange(value === EmptySelectValue ? null : value);
+              }}
+              help={t(
+                "The default access for workspace members, you can share with more users or groups later."
+              )}
+            />
+          )}
+        />
+      )}
+
+      {notebook ? (
+        options
+      ) : (
+        <Collapsible
+          label={t("Advanced options")}
+          onOpenChange={() => dialog.setAnimating(true)}
+        >
+          {options}
+        </Collapsible>
+      )}
+
+      <HStack justify="flex-end">
+        <Button
+          type="submit"
+          disabled={formState.isSubmitting || !formState.isValid}
+        >
+          {notebook
+            ? formState.isSubmitting
+              ? `${t("Saving")}…`
+              : t("Save")
+            : formState.isSubmitting
+              ? `${t("Creating")}…`
+              : t("Create")}
+        </Button>
+      </HStack>
+    </form>
+  );
+});
+const StyledIconPicker = styled(IconPicker.Component)`
+  margin-left: 4px;
+  margin-right: 4px;
+`;

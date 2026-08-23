@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -21,7 +21,6 @@ import {
 import { RadioGroup } from "@headlessui/react";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const product = {
   name: "Everyday Ruck Snack",
   href: "#",
@@ -42,7 +41,6 @@ const product = {
   ],
 };
 const reviews = { average: 4, totalCount: 1624 };
-
 /**
  * Tailwind UI – product overviews: split with image.
  *
@@ -50,7 +48,6 @@ const reviews = { average: 4, totalCount: 1624 };
  */
 export function ProductOverviewsSplitWithImage() {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
-
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:grid lg:max-w-7xl lg:grid-cols-2 lg:gap-x-8 lg:px-8">

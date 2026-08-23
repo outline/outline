@@ -3,14 +3,14 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import type Collection from "~/models/Collection";
+import type Notebook from "~/models/Notebook";
 import type Integration from "~/models/Integration";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
 import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
+import CollectionIcon from "~/components/Icons/NotebookIcon";
 import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
@@ -27,15 +27,15 @@ import SlackListItem from "./components/SlackListItem";
 
 function Slack() {
   const team = useCurrentTeam();
-  const { collections, integrations } = useStores();
+  const { notebooks, integrations } = useStores();
   const { t } = useTranslation();
   const query = useQuery();
   const can = usePolicy(team);
   const error = query.get("error");
 
   React.useEffect(() => {
-    void collections.fetchAll();
-  }, [collections, integrations]);
+    void notebooks.fetchAll();
+  }, [notebooks, integrations]);
 
   const commandIntegration = integrations.find({
     type: IntegrationType.Command,
@@ -47,14 +47,14 @@ function Slack() {
     service: IntegrationService.Slack,
   });
 
-  const groupedCollections = collections.orderedData
-    .map<[Collection, Integration | undefined]>((collection) => {
+  const groupedCollections = notebooks.orderedData
+    .map<[Notebook, Integration | undefined]>((notebook) => {
       const integration = integrations.find({
         service: IntegrationService.Slack,
-        collectionId: collection.id,
+        notebookId: notebook.id,
       });
 
-      return [collection, integration];
+      return [notebook, integration];
     })
     .sort((a) => (a[1] ? -1 : 1));
 
@@ -149,22 +149,22 @@ function Slack() {
             </Flex>
           </SettingRow>
 
-          <Heading as="h2">{t("Collections")}</Heading>
+          <Heading as="h2">{t("Notebooks")}</Heading>
           <Text as="p" type="secondary">
             <Trans>
-              Connect {{ appName }} collections to Slack channels. Messages will
+              Connect {{ appName }} notebooks to Slack channels. Messages will
               be automatically posted to Slack when documents are published or
               updated.
             </Trans>
           </Text>
 
           <List>
-            {groupedCollections.map(([collection, integration]) => {
+            {groupedCollections.map(([notebook, integration]) => {
               if (integration) {
                 return (
                   <SlackListItem
                     key={integration.id}
-                    collection={collection}
+                    notebook={notebook}
                     integration={
                       integration as Integration<IntegrationType.Post>
                     }
@@ -174,16 +174,16 @@ function Slack() {
 
               return (
                 <ListItem
-                  key={collection.id}
-                  title={collection.name}
-                  image={<CollectionIcon collection={collection} />}
+                  key={notebook.id}
+                  title={notebook.name}
+                  image={<CollectionIcon notebook={notebook} />}
                   actions={
                     <SlackButton
                       type={IntegrationType.Post}
                       scopes={["incoming-webhook"]}
                       state={{
                         teamId: team.id,
-                        collectionId: collection.id,
+                        collectionId: notebook.id,
                       }}
                       redirectUri={SlackUtils.connectUrl()}
                       label={t("Connect")}

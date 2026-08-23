@@ -2,7 +2,6 @@ import type OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
 import OAuthAuthenticationRevokeDialog from "~/scenes/Settings/components/OAuthAuthenticationRevokeDialog";
 import { dialogActionFactory } from "./common";
 import { SettingsSection } from "../sections";
-
 export const revokeOAuthAuthenticationActionFactory = ({
   oauthAuthentication,
 }: {

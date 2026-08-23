@@ -43,21 +43,21 @@ import { ExportContentType } from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
 import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
-import Document from "~/models/Document";
+import Note from "~/models/Note";
 import { client } from "~/utils/ApiClient";
-import DocumentDelete from "~/scenes/DocumentDelete";
+import NoteDelete from "~/scenes/NoteDelete";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
-import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
-import DocumentPublish from "~/scenes/DocumentPublish";
-import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
+import NotePermanentDelete from "~/scenes/NotePermanentDelete";
+import NotePublish from "~/scenes/NotePublish";
+import DeleteNotesInTrash from "~/scenes/Trash/components/DeleteNotesInTrash";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { DialogTitle } from "~/components/DialogTitle";
-import DocumentCopy from "~/components/DocumentExplorer/DocumentCopy";
-import { DocumentDownload } from "~/components/Export/DocumentDownload";
+import NoteCopy from "~/components/NoteExplorer/NoteCopy";
+import { NoteDownload } from "~/components/Export/NoteDownload";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
-import { ImportDocumentDialog } from "~/components/ImportDocumentDialog";
+import { ImportNoteDialog } from "~/components/ImportNoteDialog";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
-import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
+import NoteTemplatizeDialog from "~/components/TemplatizeDialog";
 import {
   createAction,
   createActionGroup,
@@ -71,30 +71,30 @@ import {
   performBatchOnActiveModels,
 } from "~/actions/definitions/common";
 import {
-  ActiveDocumentSection,
-  DocumentSection,
+  ActiveNoteSection,
+  NoteSection,
   SearchResultsSection,
   TrashSection,
 } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
 import {
-  documentHistoryPath,
+  noteHistoryPath,
   homePath,
-  newDocumentPath,
-  newNestedDocumentPath,
-  newSiblingDocumentPath,
+  newNotePath,
+  newNestedNotePath,
+  newSiblingNotePath,
   searchPath,
-  documentPath,
+  notePath,
   urlify,
   desktopify,
   trashPath,
-  documentEditPath,
+  noteEditPath,
 } from "~/utils/routeHelpers";
 import { getFocusedSplitPane, openRouteInSplit } from "~/utils/splitView";
-import { recentDocuments } from "~/components/CommandBar/useRecentDocumentActions";
-import { documentBreadcrumbText } from "~/components/DocumentBreadcrumb";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { recentNotes } from "~/components/CommandBar/useRecentNoteActions";
+import { noteBreadcrumbText } from "~/components/NoteBreadcrumb";
+import CollectionIcon from "~/components/Icons/NotebookIcon";
 import type {
   Action,
   ActionContext,
@@ -105,49 +105,43 @@ import lazyWithRetry from "~/utils/lazyWithRetry";
 import env from "~/env";
 import { isMac, isWindows } from "@shared/utils/browser";
 import isCloudHosted from "~/utils/isCloudHosted";
-import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
-
+import NoteMove from "~/components/NoteExplorer/NoteMove";
 const Insights = lazyWithRetry(
-  () => import("~/scenes/Document/components/Insights")
+  () => import("~/scenes/Note/components/Insights")
 );
 const SharePopover = lazyWithRetry(
-  () => import("~/components/Sharing/Document/SharePopover")
+  () => import("~/components/Sharing/Note/SharePopover")
 );
-
-export const openDocument = createActionWithChildren({
+export const openNote = createActionWithChildren({
   name: ({ t }) => t("Open document"),
   analyticsName: "Open document",
-  section: DocumentSection,
+  section: NoteSection,
   shortcut: ["o", "d"],
   keywords: "go to",
   icon: <DocumentIcon />,
-  children: ({ stores, activeDocumentId, t }) => {
-    const nodes = stores.collections.navigationNodes.reduce(
+  children: ({ stores, activeNoteId, t }) => {
+    const nodes = stores.notebooks.navigationNodes.reduce(
       (acc, node) => [...acc, ...node.children],
       [] as NavigationNode[]
     );
-    const documents = stores.documents.orderedData;
-
+    const notes = stores.notes.orderedData;
     // Documents already listed under "Recently viewed" are skipped so that they
     // do not appear twice in the command bar.
     const recentIds = new Set(
-      recentDocuments(stores.documents.recentlyViewed, activeDocumentId).map(
-        (document) => document.id
+      recentNotes(stores.notes.recentlyViewed, activeNoteId).map(
+        (note) => note.id
       )
     );
-
-    return uniqBy([...documents, ...nodes], "id")
+    return uniqBy([...notes, ...nodes], "id")
       .filter((item) => !recentIds.has(item.id))
       .map((item) => {
-        const document = stores.documents.get(item.id);
+        const note = stores.notes.get(item.id);
         return createInternalLinkAction({
           // Note: using url which includes the slug rather than id here to bust
           // cache if the document is renamed
           id: item.url,
           name: item.title,
-          description: document
-            ? documentBreadcrumbText(document, t)
-            : undefined,
+          description: note ? noteBreadcrumbText(note, t) : undefined,
           icon: item.icon ? (
             <Icon
               value={item.icon}
@@ -157,61 +151,50 @@ export const openDocument = createActionWithChildren({
           ) : (
             <DocumentIcon outline={item.isDraft} />
           ),
-          section: DocumentSection,
+          section: NoteSection,
           to: item.url,
         });
       });
   },
 });
-
-export const editDocument = createInternalLinkAction({
+export const editNote = createInternalLinkAction({
   name: ({ t }) => t("Edit"),
   analyticsName: "Edit document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "edit",
   icon: <EditIcon />,
-  visible: ({ activeDocumentId, stores }) => {
+  visible: ({ activeNoteId, stores }) => {
     const { auth, policies } = stores;
-
-    const can = activeDocumentId
-      ? policies.abilities(activeDocumentId)
-      : undefined;
-
+    const can = activeNoteId ? policies.abilities(activeNoteId) : undefined;
     return !!can?.update && !!auth.user?.separateEditMode;
   },
-  to: ({ activeDocumentId, stores }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
+  to: ({ activeNoteId, stores }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (!note) {
       return "";
     }
-
-    return documentEditPath(document);
+    return noteEditPath(note);
   },
 });
-
-export const createDocument = createInternalLinkAction({
+export const createNote = createInternalLinkAction({
   name: ({ t }) => t("New document"),
   analyticsName: "New document",
-  section: DocumentSection,
+  section: NoteSection,
   icon: <NewDocumentIcon />,
   keywords: "create",
-  visible: ({ currentTeamId, activeCollectionId, stores }) => {
+  visible: ({ currentTeamId, activeNotebookId, stores }) => {
     if (
-      activeCollectionId &&
-      !stores.policies.abilities(activeCollectionId).createDocument
+      activeNotebookId &&
+      !stores.policies.abilities(activeNotebookId).createNote
     ) {
       return false;
     }
-
     return (
-      !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument
+      !!currentTeamId && stores.policies.abilities(currentTeamId).createNote
     );
   },
-  to: ({ activeCollectionId, sidebarContext }) => {
-    const [pathname, search] = newDocumentPath(activeCollectionId).split("?");
-
+  to: ({ activeNotebookId, sidebarContext }) => {
+    const [pathname, search] = newNotePath(activeNotebookId).split("?");
     return {
       pathname,
       search,
@@ -219,21 +202,19 @@ export const createDocument = createInternalLinkAction({
     };
   },
 });
-
-export const createDraftDocument = createInternalLinkAction({
+export const createDraftNote = createInternalLinkAction({
   name: ({ t }) => t("New draft"),
   analyticsName: "New document",
-  section: DocumentSection,
+  section: NoteSection,
   icon: <NewDocumentIcon />,
   keywords: "create document",
   visible: ({ currentTeamId, stores }) =>
-    !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument,
+    !!currentTeamId && stores.policies.abilities(currentTeamId).createNote,
   to: ({ sidebarContext }) => ({
-    pathname: newDocumentPath(),
+    pathname: newNotePath(),
     state: { sidebarContext },
   }),
 });
-
 /**
  * Finds the index of a document among its siblings in the collection tree.
  *
@@ -241,31 +222,28 @@ export const createDraftDocument = createInternalLinkAction({
  * @param document - the document to find the index of.
  * @returns the index of the document among its siblings, or -1 if not found.
  */
-function findDocumentSiblingIndex(
+function findNoteSiblingIndex(
   stores: ActionContext["stores"],
-  document: {
+  note: {
     id: string;
-    collectionId?: string | null;
-    parentDocumentId?: string;
+    notebookId?: string | null;
+    parentNoteId?: string;
   }
 ): number {
-  if (!document.collectionId) {
+  if (!note.notebookId) {
     return -1;
   }
-  const collection = stores.collections.get(document.collectionId);
-  if (!collection) {
+  const notebook = stores.notebooks.get(note.notebookId);
+  if (!notebook) {
     return -1;
   }
-
-  const siblings = document.parentDocumentId
-    ? collection.getChildrenForDocument(document.parentDocumentId)
-    : collection.sortedDocuments;
-
-  return siblings?.findIndex((node) => node.id === document.id) ?? -1;
+  const siblings = note.parentNoteId
+    ? notebook.getChildrenForNote(note.parentNoteId)
+    : notebook.sortedNotes;
+  return siblings?.findIndex((node) => node.id === note.id) ?? -1;
 }
-
 /**
- * Determines whether the user can create a sibling of the given document.
+ * Determines whether the user can create a sibling of the given note.
  * A sibling shares the document's parent, so this mirrors the backend's
  * create authorization: create permission on the parent document, or on the
  * collection when the document is at the root.
@@ -274,30 +252,30 @@ function findDocumentSiblingIndex(
  * @param document - the document to create a sibling of.
  * @returns true if the user can create a sibling.
  */
-function canCreateSiblingDocument(
+function canCreateSiblingNote(
   stores: ActionContext["stores"],
-  document: { collectionId?: string | null; parentDocumentId?: string }
+  note: {
+    notebookId?: string | null;
+    parentNoteId?: string;
+  }
 ): boolean {
-  return document.parentDocumentId
-    ? stores.policies.abilities(document.parentDocumentId).createChildDocument
-    : !!document.collectionId &&
-        stores.policies.abilities(document.collectionId).createDocument;
+  return note.parentNoteId
+    ? stores.policies.abilities(note.parentNoteId).createChildNote
+    : !!note.notebookId &&
+        stores.policies.abilities(note.notebookId).createNote;
 }
-
-export const createNestedDocument = createInternalLinkAction({
+export const createNestedNote = createInternalLinkAction({
   name: ({ t }) => t("Nested document"),
   analyticsName: "New document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "create nested",
-  visible: ({ currentTeamId, activeDocumentId, stores }) =>
+  visible: ({ currentTeamId, activeNoteId, stores }) =>
     !!currentTeamId &&
-    !!activeDocumentId &&
-    stores.policies.abilities(currentTeamId).createDocument &&
-    stores.policies.abilities(activeDocumentId).createChildDocument,
-  to: ({ activeDocumentId, sidebarContext }) => {
-    const [pathname, search] =
-      newNestedDocumentPath(activeDocumentId).split("?");
-
+    !!activeNoteId &&
+    stores.policies.abilities(currentTeamId).createNote &&
+    stores.policies.abilities(activeNoteId).createChildNote,
+  to: ({ activeNoteId, sidebarContext }) => {
+    const [pathname, search] = newNestedNotePath(activeNoteId).split("?");
     return {
       pathname,
       search,
@@ -305,41 +283,36 @@ export const createNestedDocument = createInternalLinkAction({
     };
   },
 });
-
-const createDocumentBefore = createInternalLinkAction({
+const createNoteBefore = createInternalLinkAction({
   name: ({ t }) => t("Before"),
   analyticsName: "New document before",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "create before",
-  visible: ({ currentTeamId, activeDocumentId, stores }) => {
-    if (!currentTeamId || !activeDocumentId) {
+  visible: ({ currentTeamId, activeNoteId, stores }) => {
+    if (!currentTeamId || !activeNoteId) {
       return false;
     }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document?.collectionId) {
+    const note = stores.notes.get(activeNoteId);
+    if (!note?.notebookId) {
       return false;
     }
-    const collection = stores.collections.get(document.collectionId);
-    if (collection?.sort.field === "title") {
+    const notebook = stores.notebooks.get(note.notebookId);
+    if (notebook?.sort.field === "title") {
       return false;
     }
-    return canCreateSiblingDocument(stores, document);
+    return canCreateSiblingNote(stores, note);
   },
-  to: ({ activeDocumentId, stores, sidebarContext }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
+  to: ({ activeNoteId, stores, sidebarContext }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (!note) {
       return "";
     }
-
-    const index = findDocumentSiblingIndex(stores, document);
-    const [pathname, search] = newSiblingDocumentPath({
-      collectionId: document.collectionId,
-      parentDocumentId: document.parentDocumentId,
+    const index = findNoteSiblingIndex(stores, note);
+    const [pathname, search] = newSiblingNotePath({
+      notebookId: note.notebookId,
+      parentNoteId: note.parentNoteId,
       index: Math.max(0, index),
     }).split("?");
-
     return {
       pathname,
       search,
@@ -347,41 +320,36 @@ const createDocumentBefore = createInternalLinkAction({
     };
   },
 });
-
-const createDocumentAfter = createInternalLinkAction({
+const createNoteAfter = createInternalLinkAction({
   name: ({ t }) => t("After"),
   analyticsName: "New document after",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "create after",
-  visible: ({ currentTeamId, activeDocumentId, stores }) => {
-    if (!currentTeamId || !activeDocumentId) {
+  visible: ({ currentTeamId, activeNoteId, stores }) => {
+    if (!currentTeamId || !activeNoteId) {
       return false;
     }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document?.collectionId) {
+    const note = stores.notes.get(activeNoteId);
+    if (!note?.notebookId) {
       return false;
     }
-    const collection = stores.collections.get(document.collectionId);
-    if (collection?.sort.field === "title") {
+    const notebook = stores.notebooks.get(note.notebookId);
+    if (notebook?.sort.field === "title") {
       return false;
     }
-    return canCreateSiblingDocument(stores, document);
+    return canCreateSiblingNote(stores, note);
   },
-  to: ({ activeDocumentId, stores, sidebarContext }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
+  to: ({ activeNoteId, stores, sidebarContext }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (!note) {
       return "";
     }
-
-    const index = findDocumentSiblingIndex(stores, document);
-    const [pathname, search] = newSiblingDocumentPath({
-      collectionId: document.collectionId,
-      parentDocumentId: document.parentDocumentId,
+    const index = findNoteSiblingIndex(stores, note);
+    const [pathname, search] = newSiblingNotePath({
+      notebookId: note.notebookId,
+      parentNoteId: note.parentNoteId,
       index: index + 1,
     }).split("?");
-
     return {
       pathname,
       search,
@@ -389,310 +357,277 @@ const createDocumentAfter = createInternalLinkAction({
     };
   },
 });
-
 function isAlphabeticallySorted(
   stores: ActionContext["stores"],
-  activeDocumentId: string
+  activeNoteId: string
 ): boolean {
-  const document = stores.documents.get(activeDocumentId);
-  if (!document?.collectionId) {
+  const note = stores.notes.get(activeNoteId);
+  if (!note?.notebookId) {
     return false;
   }
-  const collection = stores.collections.get(document.collectionId);
-  return collection?.sort.field === "title";
+  const notebook = stores.notebooks.get(note.notebookId);
+  return notebook?.sort.field === "title";
 }
-
-export const createNewDocument = createActionWithChildren({
+export const createNewNote = createActionWithChildren({
   name: ({ t }) => t("New document"),
   analyticsName: "New document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <NewDocumentIcon />,
   keywords: "create",
-  visible: ({ currentTeamId, activeDocumentId, stores }) => {
-    if (!activeDocumentId || !currentTeamId) {
+  visible: ({ currentTeamId, activeNoteId, stores }) => {
+    if (!activeNoteId || !currentTeamId) {
       return false;
     }
-    if (!stores.policies.abilities(currentTeamId).createDocument) {
+    if (!stores.policies.abilities(currentTeamId).createNote) {
       return false;
     }
-    return !isAlphabeticallySorted(stores, activeDocumentId);
+    return !isAlphabeticallySorted(stores, activeNoteId);
   },
-  children: [createDocumentBefore, createDocumentAfter, createNestedDocument],
+  children: [createNoteBefore, createNoteAfter, createNestedNote],
 });
-
-export const createNewDocumentInAlphabeticalCollection =
-  createInternalLinkAction({
-    name: ({ t }) => t("New document"),
-    analyticsName: "New document",
-    section: ActiveDocumentSection,
-    icon: <NewDocumentIcon />,
-    keywords: "create",
-    visible: ({ currentTeamId, activeDocumentId, stores }) => {
-      if (!activeDocumentId || !currentTeamId) {
-        return false;
-      }
-      if (!stores.policies.abilities(currentTeamId).createDocument) {
-        return false;
-      }
-      if (!stores.policies.abilities(activeDocumentId).createChildDocument) {
-        return false;
-      }
-      return isAlphabeticallySorted(stores, activeDocumentId);
-    },
-    to: ({ activeDocumentId, sidebarContext }) => {
-      const [pathname, search] =
-        newNestedDocumentPath(activeDocumentId).split("?");
-
-      return {
-        pathname,
-        search,
-        state: { sidebarContext },
-      };
-    },
-  });
-
-export const starDocument = createAction({
+export const createNewNoteInAlphabeticalNotebook = createInternalLinkAction({
+  name: ({ t }) => t("New document"),
+  analyticsName: "New document",
+  section: ActiveNoteSection,
+  icon: <NewDocumentIcon />,
+  keywords: "create",
+  visible: ({ currentTeamId, activeNoteId, stores }) => {
+    if (!activeNoteId || !currentTeamId) {
+      return false;
+    }
+    if (!stores.policies.abilities(currentTeamId).createNote) {
+      return false;
+    }
+    if (!stores.policies.abilities(activeNoteId).createChildNote) {
+      return false;
+    }
+    return isAlphabeticallySorted(stores, activeNoteId);
+  },
+  to: ({ activeNoteId, sidebarContext }) => {
+    const [pathname, search] = newNestedNotePath(activeNoteId).split("?");
+    return {
+      pathname,
+      search,
+      state: { sidebarContext },
+    };
+  },
+});
+export const starNote = createAction({
   name: ({ t }) => t("Star"),
   analyticsName: "Star document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <StarredIcon />,
   keywords: "favorite bookmark",
   visible: (context) =>
     everyActiveModel(
       context,
-      Document,
-      (document) =>
-        !document.isStarred &&
-        context.stores.policies.abilities(document.id).star
+      Note,
+      (note) =>
+        !note.isStarred && context.stores.policies.abilities(note.id).star
     ),
   perform: async (context) => {
     await performBatchOnActiveModels(
       context,
-      Document,
-      (document) => document.star(),
-      (documents, succeeded, t) =>
-        documents.length > 1
+      Note,
+      (note) => note.star(),
+      (notes, succeeded, t) =>
+        notes.length > 1
           ? t("{{ count }} documents starred", { count: succeeded })
           : undefined
     );
     setPersistedState(getHeaderExpandedKey("starred"), true);
   },
 });
-
-export const unstarDocument = createAction({
+export const unstarNote = createAction({
   name: ({ t }) => t("Unstar"),
   analyticsName: "Unstar document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <UnstarredIcon />,
   keywords: "unfavorite unbookmark",
   visible: (context) =>
     everyActiveModel(
       context,
-      Document,
-      (document) =>
-        document.isStarred &&
-        context.stores.policies.abilities(document.id).unstar
+      Note,
+      (note) =>
+        note.isStarred && context.stores.policies.abilities(note.id).unstar
     ),
   perform: (context) =>
     performBatchOnActiveModels(
       context,
-      Document,
-      (document) => document.unstar(),
-      (documents, succeeded, t) =>
-        documents.length > 1
+      Note,
+      (note) => note.unstar(),
+      (notes, succeeded, t) =>
+        notes.length > 1
           ? t("{{ count }} documents unstarred", { count: succeeded })
           : undefined
     ),
 });
-
-export const publishDocument = createAction({
+export const publishNote = createAction({
   name: ({ t }) => t("Publish"),
   analyticsName: "Publish document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <PublishIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return false;
     }
-    const document = stores.documents.get(activeDocumentId);
-    return (
-      !!document?.isDraft && stores.policies.abilities(activeDocumentId).publish
-    );
+    const note = stores.notes.get(activeNoteId);
+    return !!note?.isDraft && stores.policies.abilities(activeNoteId).publish;
   },
-  perform: async ({ activeDocumentId, stores, t }) => {
-    if (!activeDocumentId) {
+  perform: async ({ activeNoteId, stores, t }) => {
+    if (!activeNoteId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-    if (document?.publishedAt) {
+    const note = stores.notes.get(activeNoteId);
+    if (note?.publishedAt) {
       return;
     }
-
-    if (document?.collectionId) {
-      await document.save(undefined, {
+    if (note?.notebookId) {
+      await note.save(undefined, {
         publish: true,
       });
       toast.success(
         t("Published {{ documentName }}", {
-          documentName: document.noun,
+          noteName: note.noun,
         })
       );
-    } else if (document) {
+    } else if (note) {
       stores.dialogs.openModal({
-        title: <DialogTitle title={t("Publish document")} model={document} />,
-        content: <DocumentPublish document={document} />,
+        title: <DialogTitle title={t("Publish document")} model={note} />,
+        content: <NotePublish note={note} />,
       });
     }
   },
 });
-
-export const unpublishDocument = createAction({
+export const unpublishNote = createAction({
   name: ({ t }) => t("Unpublish"),
   analyticsName: "Unpublish document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <UnpublishIcon />,
   visible: (context) =>
     everyActiveModel(
       context,
-      Document,
-      (document) => !!context.stores.policies.abilities(document.id).unpublish
+      Note,
+      (note) => !!context.stores.policies.abilities(note.id).unpublish
     ),
   perform: (context) =>
     performBatchOnActiveModels(
       context,
-      Document,
-      (document) => document.unpublish(),
-      (documents, succeeded, t) =>
-        documents.length === 1
+      Note,
+      (note) => note.unpublish(),
+      (notes, succeeded, t) =>
+        notes.length === 1
           ? t("Unpublished {{ documentName }}", {
-              documentName: documents[0].noun,
+              noteName: notes[0].noun,
             })
           : t("{{ count }} documents unpublished", { count: succeeded })
     ),
 });
-
-export const subscribeDocument = createAction({
+export const subscribeNote = createAction({
   name: ({ t }) => t("Subscribe"),
   analyticsName: "Subscribe to document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <SubscribeIcon />,
-  tooltip: ({ activeCollectionId, isMenu, stores, t }) => {
-    if (!isMenu || !activeCollectionId) {
+  tooltip: ({ activeNotebookId, isMenu, stores, t }) => {
+    if (!isMenu || !activeNotebookId) {
       return undefined;
     }
-
-    return stores.collections.get(activeCollectionId)?.isSubscribed
-      ? t("Subscription inherited from collection")
+    return stores.notebooks.get(activeNotebookId)?.isSubscribed
+      ? t("Subscription inherited from notebook")
       : undefined;
   },
-  disabled: ({ activeCollectionId, isMenu, stores }) => {
-    if (!isMenu || !activeCollectionId) {
+  disabled: ({ activeNotebookId, isMenu, stores }) => {
+    if (!isMenu || !activeNotebookId) {
       return false;
     }
-
-    return !!stores.collections.get(activeCollectionId)?.isSubscribed;
+    return !!stores.notebooks.get(activeNotebookId)?.isSubscribed;
   },
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return false;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-
+    const note = stores.notes.get(activeNoteId);
     return (
-      !!document?.isActive &&
-      !document?.collection?.isSubscribed &&
-      !document?.isSubscribed &&
-      stores.policies.abilities(activeDocumentId).subscribe
+      !!note?.isActive &&
+      !note?.notebook?.isSubscribed &&
+      !note?.isSubscribed &&
+      stores.policies.abilities(activeNoteId).subscribe
     );
   },
-  perform: async ({ activeDocumentId, stores, t }) => {
-    if (!activeDocumentId) {
+  perform: async ({ activeNoteId, stores, t }) => {
+    if (!activeNoteId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-    await document?.subscribe();
+    const note = stores.notes.get(activeNoteId);
+    await note?.subscribe();
     toast.success(t("Subscribed to document notifications"));
   },
 });
-
-export const unsubscribeDocument = createAction({
+export const unsubscribeNote = createAction({
   name: ({ t }) => t("Unsubscribe"),
   analyticsName: "Unsubscribe from document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <UnsubscribeIcon />,
-  tooltip: ({ activeCollectionId, isMenu, stores, t }) => {
-    if (!isMenu || !activeCollectionId) {
+  tooltip: ({ activeNotebookId, isMenu, stores, t }) => {
+    if (!isMenu || !activeNotebookId) {
       return undefined;
     }
-
-    return stores.collections.get(activeCollectionId)?.isSubscribed
-      ? t("Subscription inherited from collection")
+    return stores.notebooks.get(activeNotebookId)?.isSubscribed
+      ? t("Subscription inherited from notebook")
       : undefined;
   },
-  disabled: ({ activeCollectionId, isMenu, stores }) => {
-    if (!isMenu || !activeCollectionId) {
+  disabled: ({ activeNotebookId, isMenu, stores }) => {
+    if (!isMenu || !activeNotebookId) {
       return false;
     }
-
-    return !!stores.collections.get(activeCollectionId)?.isSubscribed;
+    return !!stores.notebooks.get(activeNotebookId)?.isSubscribed;
   },
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return false;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-
+    const note = stores.notes.get(activeNoteId);
     return (
-      !!document?.isActive &&
-      (!!document?.collection?.isSubscribed ||
-        (!!document?.isSubscribed &&
-          stores.policies.abilities(activeDocumentId).unsubscribe))
+      !!note?.isActive &&
+      (!!note?.notebook?.isSubscribed ||
+        (!!note?.isSubscribed &&
+          stores.policies.abilities(activeNoteId).unsubscribe))
     );
   },
-  perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
-    if (!activeDocumentId || !currentUserId) {
+  perform: async ({ activeNoteId, stores, currentUserId, t }) => {
+    if (!activeNoteId || !currentUserId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-
-    await document?.unsubscribe();
-
+    const note = stores.notes.get(activeNoteId);
+    await note?.unsubscribe();
     toast.success(t("Unsubscribed from document notifications"));
   },
 });
-
-export const shareDocument = createAction({
+export const shareNote = createAction({
   name: ({ t }) => `${t("Permissions")}…`,
   analyticsName: "Share document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <PadlockIcon />,
-  visible: ({ stores, activeDocumentId }) => {
-    if (!activeDocumentId) {
+  visible: ({ stores, activeNoteId }) => {
+    if (!activeNoteId) {
       return false;
     }
-    const can = stores.policies.abilities(activeDocumentId);
+    const can = stores.policies.abilities(activeNoteId);
     return can.manageUsers || can.share;
   },
-  perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
-    if (!activeDocumentId || !currentUserId) {
+  perform: async ({ activeNoteId, stores, currentUserId, t }) => {
+    if (!activeNoteId || !currentUserId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
+    const note = stores.notes.get(activeNoteId);
+    if (!note) {
       return;
     }
-
     stores.dialogs.openModal({
-      title: <DialogTitle title={t("Share document")} model={document} />,
+      title: <DialogTitle title={t("Share document")} model={note} />,
       content: (
         <SharePopover
-          document={document}
+          note={note}
           onRequestClose={stores.dialogs.closeAllModals}
           visible
         />
@@ -700,138 +635,121 @@ export const shareDocument = createAction({
     });
   },
 });
-
-export const downloadDocument = createAction({
+export const downloadNote = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Download") : t("Download document")),
   analyticsName: "Download document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <DownloadIcon />,
   keywords: "export md markdown html",
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ activeDocumentId, t, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) =>
+    !!activeNoteId && stores.policies.abilities(activeNoteId).download,
+  perform: ({ activeNoteId, t, stores }) => {
+    if (!activeNoteId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-    invariant(document, "Document must exist");
-
+    const note = stores.notes.get(activeNoteId);
+    invariant(note, "Document must exist");
     stores.dialogs.openModal({
-      title: <DialogTitle title={t("Download document")} model={document} />,
+      title: <DialogTitle title={t("Download document")} model={note} />,
       content: (
-        <DocumentDownload
-          document={document}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
+        <NoteDownload note={note} onSubmit={stores.dialogs.closeAllModals} />
       ),
     });
   },
 });
-
-export const downloadDocumentAsMarkdown = createAction({
+export const downloadNoteAsMarkdown = createAction({
   name: ({ t }) => t("Download as Markdown"),
   analyticsName: "Download document as Markdown",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "md markdown export",
   icon: <DownloadIcon />,
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: async ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) =>
+    !!activeNoteId && stores.policies.abilities(activeNoteId).download,
+  perform: async ({ activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-    await document?.download({
+    const note = stores.notes.get(activeNoteId);
+    await note?.download({
       contentType: ExportContentType.Markdown,
-      includeChildDocuments: false,
+      includeChildNotes: false,
     });
   },
 });
-
-export const downloadDocumentAsHTML = createAction({
+export const downloadNoteAsHTML = createAction({
   name: ({ t }) => t("Download as HTML"),
   analyticsName: "Download document as HTML",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "xml html export",
   icon: <DownloadIcon />,
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: async ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) =>
+    !!activeNoteId && stores.policies.abilities(activeNoteId).download,
+  perform: async ({ activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-    await document?.download({
+    const note = stores.notes.get(activeNoteId);
+    await note?.download({
       contentType: ExportContentType.Html,
-      includeChildDocuments: false,
+      includeChildNotes: false,
     });
   },
 });
-
-export const downloadDocumentAsTextBundle = createAction({
+export const downloadNoteAsTextBundle = createAction({
   name: ({ t }) => t("Download as TextBundle"),
   analyticsName: "Download document as TextBundle",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "textbundle textpack bear ulysses export",
   icon: <DownloadIcon />,
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: async ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) =>
+    !!activeNoteId && stores.policies.abilities(activeNoteId).download,
+  perform: async ({ activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-    await document?.download({
+    const note = stores.notes.get(activeNoteId);
+    await note?.download({
       contentType: ExportContentType.TextBundle,
-      includeChildDocuments: false,
+      includeChildNotes: false,
     });
   },
 });
-
-export const downloadDocumentAsPDF = createAction({
+export const downloadNoteAsPDF = createAction({
   name: ({ t }) => t("Download as PDF"),
   analyticsName: "Download document as PDF",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "pdf export",
   icon: <DownloadIcon />,
-  visible: ({ activeDocumentId, stores }) =>
+  visible: ({ activeNoteId, stores }) =>
     !!(
-      activeDocumentId &&
-      stores.policies.abilities(activeDocumentId).download &&
+      activeNoteId &&
+      stores.policies.abilities(activeNoteId).download &&
       env.PDF_EXPORT_ENABLED
     ),
-  perform: async ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  perform: async ({ activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-    await document?.download({
+    const note = stores.notes.get(activeNoteId);
+    await note?.download({
       contentType: ExportContentType.Pdf,
-      includeChildDocuments: false,
+      includeChildNotes: false,
     });
   },
 });
-
-export const copyDocumentAsMarkdown = createAction({
+export const copyNoteAsMarkdown = createAction({
   name: ({ t }) => t("Copy as Markdown"),
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "clipboard",
   icon: <MarkdownIcon />,
   iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: async ({ stores, activeDocumentId, t }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (document) {
+  visible: ({ activeNoteId, stores }) =>
+    !!activeNoteId && stores.policies.abilities(activeNoteId).download,
+  perform: async ({ stores, activeNoteId, t }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (note) {
       const res = await client.post("/documents.export", {
-        id: document.id,
+        id: note.id,
         signedUrls: Week.seconds, // 7 days (AWS S3 max for presigned URLs)
       });
       copy(res.data);
@@ -839,244 +757,217 @@ export const copyDocumentAsMarkdown = createAction({
     }
   },
 });
-
-export const copyDocumentAsPlainText = createAction({
+export const copyNoteAsPlainText = createAction({
   name: ({ t }) => t("Copy as text"),
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "clipboard",
   icon: <CaseSensitiveIcon />,
   iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: async ({ stores, activeDocumentId, t }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (document) {
-      copy(ProsemirrorHelper.toPlainText(document));
+  visible: ({ activeNoteId, stores }) =>
+    !!activeNoteId && stores.policies.abilities(activeNoteId).download,
+  perform: async ({ stores, activeNoteId, t }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (note) {
+      copy(ProsemirrorHelper.toPlainText(note));
       toast.success(t("Text copied to clipboard"));
     }
   },
 });
-
-export const copyDocumentShareLink = createAction({
+export const copyNoteShareLink = createAction({
   name: ({ t }) => t("Copy public link"),
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "clipboard share",
   icon: <GlobeIcon />,
   iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId &&
-    !!stores.shares.getByDocumentId(activeDocumentId)?.published,
-  perform: ({ stores, activeDocumentId, t }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) =>
+    !!activeNoteId && !!stores.shares.getByNoteId(activeNoteId)?.published,
+  perform: ({ stores, activeNoteId, t }) => {
+    if (!activeNoteId) {
       return;
     }
-    const share = stores.shares.getByDocumentId(activeDocumentId);
+    const share = stores.shares.getByNoteId(activeNoteId);
     if (share) {
       copy(share.url);
       toast.success(t("Link copied to clipboard"));
     }
   },
 });
-
-export const copyDocumentLink = createAction({
+export const copyNoteLink = createAction({
   name: ({ t }) => t("Copy link"),
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   keywords: "clipboard",
   icon: <CopyIcon />,
   iconInContextMenu: false,
-  visible: ({ activeDocumentId }) => !!activeDocumentId,
-  perform: ({ stores, activeDocumentId, t }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (document) {
-      copy(urlify(documentPath(document)));
+  visible: ({ activeNoteId }) => !!activeNoteId,
+  perform: ({ stores, activeNoteId, t }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (note) {
+      copy(urlify(notePath(note)));
       toast.success(t("Link copied to clipboard"));
     }
   },
 });
-
-export const copyDocument = createActionWithChildren({
+export const copyNote = createActionWithChildren({
   name: ({ t }) => t("Copy"),
   analyticsName: "Copy document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <CopyIcon />,
   keywords: "clipboard",
   children: [
-    copyDocumentLink,
-    copyDocumentShareLink,
-    copyDocumentAsMarkdown,
-    copyDocumentAsPlainText,
+    copyNoteLink,
+    copyNoteShareLink,
+    copyNoteAsMarkdown,
+    copyNoteAsPlainText,
   ],
 });
-
-export const duplicateDocument = createAction({
+export const duplicateNote = createAction({
   name: ({ t, isMenu }) =>
     isMenu ? `${t("Duplicate")}…` : t("Duplicate document"),
   analyticsName: "Duplicate document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <DuplicateIcon />,
   keywords: "copy",
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).duplicate,
-  perform: async ({ activeDocumentId, t, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) =>
+    !!activeNoteId && stores.policies.abilities(activeNoteId).duplicate,
+  perform: async ({ activeNoteId, t, stores }) => {
+    if (!activeNoteId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-    invariant(document, "Document must exist");
-
+    const note = stores.notes.get(activeNoteId);
+    invariant(note, "Document must exist");
     stores.dialogs.openModal({
-      title: <DialogTitle title={t("Duplicate document")} model={document} />,
+      title: <DialogTitle title={t("Duplicate document")} model={note} />,
       content: (
-        <DocumentCopy
-          document={document}
+        <NoteCopy
+          note={note}
           onSubmit={(response) => {
             stores.dialogs.closeAllModals();
-            history.push(documentPath(response[0]));
+            history.push(notePath(response[0]));
           }}
         />
       ),
     });
   },
 });
-
 /**
  * Pin a document to a collection. Pinned documents will be displayed at the top
  * of the collection for all collection members to see.
  */
-export const pinDocumentToCollection = createAction({
+export const pinNoteToNotebook = createAction({
   name: ({ getActiveModels, t, stores }) => {
-    const documents = getActiveModels(Document);
-    if (documents.length === 1) {
-      const collectionName = stores.documents.getCollectionForDocument(
-        documents[0]
-      )?.name;
-      return t("Pin to {{collectionName}}", {
-        collectionName: collectionName ?? t("collection"),
+    const notes = getActiveModels(Note);
+    if (notes.length === 1) {
+      const notebookName = stores.notes.getNotebookForNote(notes[0])?.name;
+      return t("Pin to {{notebookName}}", {
+        notebookName: notebookName ?? t("notebook"),
       });
     }
     return t("Pin");
   },
-  analyticsName: "Pin document to collection",
-  section: ActiveDocumentSection,
+  analyticsName: "Pin document to notebook",
+  section: ActiveNoteSection,
   icon: <PinIcon />,
   iconInContextMenu: false,
   visible: (context) =>
     everyActiveModel(
       context,
-      Document,
-      (document) =>
-        !!document.collectionId &&
-        !document.pinned &&
-        !!context.stores.policies.abilities(document.id).pin
+      Note,
+      (note) =>
+        !!note.notebookId &&
+        !note.pinned &&
+        !!context.stores.policies.abilities(note.id).pin
     ),
   perform: (context) =>
     performBatchOnActiveModels(
       context,
-      Document,
-      (document) => document.pin(document.collectionId),
-      (documents, succeeded, t) =>
-        documents.length === 1
-          ? t("Pinned to collection")
+      Note,
+      (note) => note.pin(note.notebookId),
+      (notes, succeeded, t) =>
+        notes.length === 1
+          ? t("Pinned to notebook")
           : t("{{ count }} documents pinned", { count: succeeded })
     ),
 });
-
 /**
  * Pin a document to team home. Pinned documents will be displayed at the top
  * of the home screen for all team members to see.
  */
-export const pinDocumentToHome = createAction({
+export const pinNoteToHome = createAction({
   name: ({ t }) => t("Pin to home"),
   analyticsName: "Pin document to home",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <PinIcon />,
   iconInContextMenu: false,
-  visible: ({ activeDocumentId, currentTeamId, stores }) => {
-    if (!currentTeamId || !activeDocumentId) {
+  visible: ({ activeNoteId, currentTeamId, stores }) => {
+    if (!currentTeamId || !activeNoteId) {
       return false;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-
+    const note = stores.notes.get(activeNoteId);
     return (
-      !!stores.policies.abilities(activeDocumentId).pinToHome &&
-      !document?.pinnedToHome
+      !!stores.policies.abilities(activeNoteId).pinToHome && !note?.pinnedToHome
     );
   },
-  perform: async ({ activeDocumentId, location, t, stores }) => {
-    if (!activeDocumentId) {
+  perform: async ({ activeNoteId, location, t, stores }) => {
+    if (!activeNoteId) {
       return;
     }
-    const document = stores.documents.get(activeDocumentId);
-
-    await document?.pin();
-
+    const note = stores.notes.get(activeNoteId);
+    await note?.pin();
     if (location.pathname !== homePath()) {
       toast.success(t("Pinned to home"));
     }
   },
 });
-
-export const pinDocument = createActionWithChildren({
+export const pinNote = createActionWithChildren({
   name: ({ t }) => t("Pin"),
   analyticsName: "Pin document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <PinIcon />,
-  children: [pinDocumentToCollection, pinDocumentToHome],
+  children: [pinNoteToNotebook, pinNoteToHome],
 });
-
-export const unpinDocument = createAction({
+export const unpinNote = createAction({
   name: ({ t }) => t("Unpin"),
   analyticsName: "Unpin document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <PinIcon />,
   visible: (context) =>
     everyActiveModel(
       context,
-      Document,
-      (document) =>
-        document.pinned &&
-        !!context.stores.policies.abilities(document.id).unpin
+      Note,
+      (note) =>
+        note.pinned && !!context.stores.policies.abilities(note.id).unpin
     ),
   perform: (context) =>
     performBatchOnActiveModels(
       context,
-      Document,
-      (document) => document.unpin(document.collectionId ?? undefined),
-      (documents, succeeded, t) =>
-        documents.length === 1
+      Note,
+      (note) => note.unpin(note.notebookId ?? undefined),
+      (notes, succeeded, t) =>
+        notes.length === 1
           ? t("Unpinned")
           : t("{{ count }} documents unpinned", { count: succeeded })
     ),
 });
-
-export const searchInDocument = createInternalLinkAction({
+export const searchInNote = createInternalLinkAction({
   name: ({ t }) => t("Search in document"),
   analyticsName: "Search document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   shortcut: [`Meta+/`],
   icon: <SearchIcon />,
-  visible: ({ stores, activeDocumentId }) => {
-    if (!activeDocumentId) {
+  visible: ({ stores, activeNoteId }) => {
+    if (!activeNoteId) {
       return false;
     }
-    const document = stores.documents.get(activeDocumentId);
-    return !!document?.isActive;
+    const note = stores.notes.get(activeNoteId);
+    return !!note?.isActive;
   },
-  to: ({ activeDocumentId, sidebarContext }) => {
-    if (!activeDocumentId) {
+  to: ({ activeNoteId, sidebarContext }) => {
+    if (!activeNoteId) {
       return "";
     }
-
     const [pathname, search] = searchPath({
-      documentId: activeDocumentId,
+      noteId: activeNoteId,
     }).split("?");
-
     return {
       pathname,
       search,
@@ -1084,92 +975,79 @@ export const searchInDocument = createInternalLinkAction({
     };
   },
 });
-
-export const printDocument = createAction({
+export const printNote = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Print") : t("Print document")),
   analyticsName: "Print document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <PrintIcon />,
-  visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
+  visible: ({ activeNoteId }) => !!(activeNoteId && window.print),
   perform: () => {
     setTimeout(window.print, 0);
   },
 });
-
-export const openDocumentInDesktop = createAction({
+export const openNoteInDesktop = createAction({
   name: ({ t }) => t("Open in desktop app"),
   analyticsName: "Open in desktop",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <OpenIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return false;
     }
-    const document = stores.documents.get(activeDocumentId);
+    const note = stores.notes.get(activeNoteId);
     return (
       isCloudHosted &&
       (isMac || isWindows) &&
-      !!document &&
-      !document.isDeleted &&
+      !!note &&
+      !note.isDeleted &&
       !isMobile()
     );
   },
-  perform: ({ activeDocumentId, stores }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (document) {
-      window.location.href = desktopify(documentPath(document));
+  perform: ({ activeNoteId, stores }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (note) {
+      window.location.href = desktopify(notePath(note));
     }
   },
 });
-
-export const openDocumentInSplit = createAction({
+export const openNoteInSplit = createAction({
   name: ({ t }) => t("Open in split view"),
   analyticsName: "Open document in split view",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <SplitIcon />,
   keywords: "split side pane",
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId || isMobile()) {
+  visible: ({ activeNoteId, stores }) => {
+    if (!activeNoteId || isMobile()) {
       return false;
     }
-    return !!stores.documents.get(activeDocumentId);
+    return !!stores.notes.get(activeNoteId);
   },
-  perform: ({ activeDocumentId, stores }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (document) {
-      openRouteInSplit(history, documentPath(document));
+  perform: ({ activeNoteId, stores }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (note) {
+      openRouteInSplit(history, notePath(note));
     }
   },
 });
-
-export const presentDocument = createAction({
+export const presentNote = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Present") : t("Present document")),
   analyticsName: "Present document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <EmbedIcon />,
   shortcut: ["Control+Alt+KeyP"],
-  visible: ({ activeDocumentId }) => !!activeDocumentId && !isMobile(),
-  perform: ({ activeDocumentId, stores }) => {
+  visible: ({ activeNoteId }) => !!activeNoteId && !isMobile(),
+  perform: ({ activeNoteId, stores }) => {
     if (stores.ui.presentationData) {
-      stores.ui.setPresentingDocument(null);
+      stores.ui.setPresentingNote(null);
       return;
     }
-
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (!note) {
       return;
     }
-
-    stores.ui.setPresentingDocument(document);
+    stores.ui.setPresentingNote(note);
   },
 });
-
 /**
  * Returns the document or collection that an import will be nested inside.
  *
@@ -1177,21 +1055,18 @@ export const presentDocument = createAction({
  * @returns the parent model, if it is loaded.
  */
 function getImportParent({
-  activeDocumentId,
-  activeCollectionId,
+  activeNoteId,
+  activeNotebookId,
   stores,
 }: ActionContext) {
-  if (activeDocumentId) {
-    return stores.documents.get(activeDocumentId);
+  if (activeNoteId) {
+    return stores.notes.get(activeNoteId);
   }
-  return activeCollectionId
-    ? stores.collections.get(activeCollectionId)
-    : undefined;
+  return activeNotebookId ? stores.notebooks.get(activeNotebookId) : undefined;
 }
-
-export const importDocument = dialogActionFactory({
+export const importNote = dialogActionFactory({
   analyticsName: "Import document",
-  section: DocumentSection,
+  section: NoteSection,
   width: "640px",
   icon: <ImportIcon />,
   keywords: "upload",
@@ -1202,81 +1077,72 @@ export const importDocument = dialogActionFactory({
       model={getImportParent(context)}
     />
   ),
-  content: (onSubmit, { activeDocumentId, activeCollectionId }) => (
-    <ImportDocumentDialog
-      documentId={activeDocumentId}
-      collectionId={activeCollectionId}
+  content: (onSubmit, { activeNoteId, activeNotebookId }) => (
+    <ImportNoteDialog
+      noteId={activeNoteId}
+      notebookId={activeNotebookId}
       onSubmit={onSubmit}
     />
   ),
-  visible: ({ activeCollectionId, activeDocumentId, stores }) => {
-    if (activeDocumentId) {
-      return !!stores.policies.abilities(activeDocumentId).createChildDocument;
+  visible: ({ activeNotebookId, activeNoteId, stores }) => {
+    if (activeNoteId) {
+      return !!stores.policies.abilities(activeNoteId).createChildNote;
     }
-
-    if (activeCollectionId) {
-      return !!stores.policies.abilities(activeCollectionId).createDocument;
+    if (activeNotebookId) {
+      return !!stores.policies.abilities(activeNotebookId).createNote;
     }
-
     return false;
   },
 });
-
-export const createTemplateFromDocument = createAction({
+export const createTemplateFromNote = createAction({
   name: ({ t }) => `${t("Templatize")}…`,
   analyticsName: "Templatize document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <ShapesIcon />,
   keywords: "new create template",
-  visible: ({ activeCollectionId, activeDocumentId, stores }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document?.isActive) {
+  visible: ({ activeNotebookId, activeNoteId, stores }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (!note?.isActive) {
       return false;
     }
     return !!(
-      !!activeCollectionId &&
-      stores.policies.abilities(activeCollectionId).createTemplate
+      !!activeNotebookId &&
+      stores.policies.abilities(activeNotebookId).createTemplate
     );
   },
-  perform: ({ activeDocumentId, stores, t, event }) => {
+  perform: ({ activeNoteId, stores, t, event }) => {
     event?.preventDefault();
     event?.stopPropagation();
-    if (!activeDocumentId) {
+    if (!activeNoteId) {
       return;
     }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
+    const note = stores.notes.get(activeNoteId);
+    if (!note) {
       return;
     }
     stores.dialogs.openModal({
-      title: <DialogTitle title={t("Create template")} model={document} />,
-      content: <DocumentTemplatizeDialog documentId={activeDocumentId} />,
+      title: <DialogTitle title={t("Create template")} model={note} />,
+      content: <NoteTemplatizeDialog noteId={activeNoteId} />,
     });
   },
 });
-
-export const openRandomDocument = createAction({
+export const openRandomNote = createAction({
   id: "random",
   name: ({ t }) => t(`Open random document`),
   analyticsName: "Open random document",
-  section: DocumentSection,
+  section: NoteSection,
   icon: <ShuffleIcon />,
-  perform: ({ stores, activeDocumentId }) => {
-    const nodes = stores.collections.navigationNodes
+  perform: ({ stores, activeNoteId }) => {
+    const nodes = stores.notebooks.navigationNodes
       .reduce((acc, node) => [...acc, ...node.children], [] as NavigationNode[])
-      .filter((node) => node.id !== activeDocumentId);
-
+      .filter((node) => node.id !== activeNoteId);
     const random = nodes[Math.round(Math.random() * nodes.length)];
-
     if (random) {
       history.push(random.url);
     }
   },
 });
-
-export const searchDocumentsForQueryActionFactory = (query: string) =>
+export const searchNotesForQueryActionFactory = (query: string) =>
   createInternalLinkAction({
     id: "search",
     name: ({ t }) =>
@@ -1288,97 +1154,92 @@ export const searchDocumentsForQueryActionFactory = (query: string) =>
     to: searchPath({ query }),
     visible: ({ location }) => location.pathname !== searchPath(),
   });
-
-export const moveDocumentToCollection = createAction({
+export const moveNoteToNotebook = createAction({
   name: ({ t }) => t("Move"),
   analyticsName: "Move document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <MoveIcon />,
   iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return false;
     }
-    return !!stores.policies.abilities(activeDocumentId).move;
+    return !!stores.policies.abilities(activeNoteId).move;
   },
-  perform: ({ activeDocumentId, stores, t }) => {
-    if (activeDocumentId) {
-      const document = stores.documents.get(activeDocumentId);
-      if (!document) {
+  perform: ({ activeNoteId, stores, t }) => {
+    if (activeNoteId) {
+      const note = stores.notes.get(activeNoteId);
+      if (!note) {
         return;
       }
-
       stores.dialogs.openModal({
         title: (
           <DialogTitle
             title={t("Move {{ documentType }}", {
-              documentType: document.noun,
+              noteType: note.noun,
             })}
-            model={document}
+            model={note}
           />
         ),
-        content: <DocumentMove document={document} />,
+        content: <NoteMove note={note} />,
       });
     }
   },
 });
-
-export const moveDocument = createAction({
+export const moveNote = createAction({
   name: ({ t }) => t("Move"),
   analyticsName: "Move document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <MoveIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return false;
     }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
+    const note = stores.notes.get(activeNoteId);
+    if (!note) {
       return false;
     }
-    return !!stores.policies.abilities(activeDocumentId).move;
+    return !!stores.policies.abilities(activeNoteId).move;
   },
-  perform: moveDocumentToCollection.perform,
+  perform: moveNoteToNotebook.perform,
 });
-
-export const archiveDocument = createAction({
+export const archiveNote = createAction({
   name: ({ t }) => `${t("Archive")}…`,
   analyticsName: "Archive document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <ArchiveIcon />,
   visible: (context) =>
     everyActiveModel(
       context,
-      Document,
-      (document) => !!context.stores.policies.abilities(document.id).archive
+      Note,
+      (note) => !!context.stores.policies.abilities(note.id).archive
     ),
   perform: async ({ getActiveModels, stores, t }) => {
-    const documents = getActiveModels(Document);
-    if (!documents.length) {
+    const notes = getActiveModels(Note);
+    if (!notes.length) {
       return;
     }
-
     stores.dialogs.openModal({
       title:
-        documents.length === 1 ? (
+        notes.length === 1 ? (
           <DialogTitle
-            title={t("Are you sure you want to archive this document?")}
-            model={documents[0]}
+            title={t("Are you sure you want to archive this note?")}
+            model={notes[0]}
           />
         ) : (
-          t("Are you sure you want to archive {{ count }} documents?", {
-            count: documents.length,
+          t("Are you sure you want to archive {{ count }} notes?", {
+            count: notes.length,
           })
         ),
       content: (
         <ConfirmationDialog
           onSubmit={async () => {
-            const succeeded = await performBatch(documents, (document) =>
-              document.archive()
+            const succeeded = await performBatch(notes, (note) =>
+              note.archive()
             );
             if (succeeded) {
               toast.success(
-                documents.length === 1
+                notes.length === 1
                   ? t("Document archived")
                   : t("{{ count }} documents archived", { count: succeeded })
               );
@@ -1386,149 +1247,132 @@ export const archiveDocument = createAction({
           }}
           savingText={`${t("Archiving")}…`}
         >
-          {documents.length === 1
+          {notes.length === 1
             ? t(
-                "Archiving this document will remove it from the collection and search results."
+                "Archiving this document will remove it from the notebook and search results."
               )
             : t(
-                "Archiving these documents will remove them from their collections and search results."
+                "Archiving these documents will remove them from their notebooks and search results."
               )}
         </ConfirmationDialog>
       ),
     });
   },
 });
-
-export const restoreDocument = createAction({
+export const restoreNote = createAction({
   name: ({ t }) => `${t("Restore")}`,
   analyticsName: "Restore document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <RestoreIcon />,
   visible: (context) =>
-    everyActiveModel(context, Document, (document) => {
-      const collection = document.collectionId
-        ? context.stores.collections.get(document.collectionId)
+    everyActiveModel(context, Note, (note) => {
+      const notebook = note.notebookId
+        ? context.stores.notebooks.get(note.notebookId)
         : undefined;
-      const can = context.stores.policies.abilities(document.id);
-      return !!collection?.isActive && !!(can.restore || can.unarchive);
+      const can = context.stores.policies.abilities(note.id);
+      return !!notebook?.isActive && !!(can.restore || can.unarchive);
     }),
   perform: (context) =>
     performBatchOnActiveModels(
       context,
-      Document,
-      (document) => document.restore(),
-      (documents, succeeded, t) =>
-        documents.length === 1
+      Note,
+      (note) => note.restore(),
+      (notes, succeeded, t) =>
+        notes.length === 1
           ? t("{{ documentName }} restored", {
-              documentName: capitalize(documents[0].noun),
+              noteName: capitalize(notes[0].noun),
             })
           : t("{{ count }} documents restored", { count: succeeded })
     ),
 });
-
-export const restoreDocumentToCollection = createActionWithChildren({
+export const restoreNoteToNotebook = createActionWithChildren({
   name: ({ t }) => `${t("Restore")}…`,
   analyticsName: "Restore document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <RestoreIcon />,
-  visible: ({ stores, activeDocumentId }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
+  visible: ({ stores, activeNoteId }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (!note) {
       return false;
     }
-
-    const can = stores.policies.abilities(document.id);
-    const collection = document.collectionId
-      ? stores.collections.get(document.collectionId)
+    const can = stores.policies.abilities(note.id);
+    const notebook = note.notebookId
+      ? stores.notebooks.get(note.notebookId)
       : undefined;
-
-    return !collection?.isActive && !!(can.restore || can.unarchive);
+    return !notebook?.isActive && !!(can.restore || can.unarchive);
   },
-  children: ({ t, activeDocumentId, stores }) => {
-    const { collections, documents, policies } = stores;
-
-    const document = activeDocumentId
-      ? documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
+  children: ({ t, activeNoteId, stores }) => {
+    const { notebooks, notes, policies } = stores;
+    const note = activeNoteId ? notes.get(activeNoteId) : undefined;
+    if (!note) {
       return [];
     }
-
-    const actions = collections.orderedData.map((collection) => {
-      const can = policies.abilities(collection.id);
+    const actions = notebooks.orderedData.map((notebook) => {
+      const can = policies.abilities(notebook.id);
       return createAction({
-        name: collection.name,
-        section: ActiveDocumentSection,
-        icon: <CollectionIcon collection={collection} />,
-        visible: can.createDocument,
+        name: notebook.name,
+        section: ActiveNoteSection,
+        icon: <CollectionIcon notebook={notebook} />,
+        visible: can.createNote,
         perform: async () => {
-          await document.restore({ collectionId: collection.id });
+          await note.restore({ notebookId: notebook.id });
           toast.success(
             t("{{ documentName }} restored", {
-              documentName: capitalize(document.noun),
+              noteName: capitalize(note.noun),
             })
           );
         },
       });
     });
-
-    return [createActionGroup({ name: t("Choose a collection"), actions })];
+    return [createActionGroup({ name: t("Choose a notebook"), actions })];
   },
 });
-
-export const deleteDocument = createAction({
+export const deleteNote = createAction({
   name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <TrashIcon />,
   dangerous: true,
   visible: (context) =>
     everyActiveModel(
       context,
-      Document,
-      (document) => !!context.stores.policies.abilities(document.id).delete
+      Note,
+      (note) => !!context.stores.policies.abilities(note.id).delete
     ),
   perform: ({ getActiveModels, stores, t }) => {
-    const documents = getActiveModels(Document);
-    if (!documents.length) {
+    const notes = getActiveModels(Note);
+    if (!notes.length) {
       return;
     }
-
     // A single document uses the richer delete dialog (permanent delete, child
     // handling); multiple documents use a simple confirmation to move to trash.
-    if (documents.length === 1) {
-      const document = documents[0];
+    if (notes.length === 1) {
+      const note = notes[0];
       stores.dialogs.openModal({
         title: (
           <DialogTitle
             title={t("Delete {{ documentName }}", {
-              documentName: document.noun,
+              noteName: note.noun,
             })}
-            model={document}
+            model={note}
           />
         ),
         content: (
-          <DocumentDelete
-            document={document}
-            onSubmit={stores.dialogs.closeAllModals}
-          />
+          <NoteDelete note={note} onSubmit={stores.dialogs.closeAllModals} />
         ),
       });
       return;
     }
-
     stores.dialogs.openModal({
-      title: t("Delete {{ count }} documents", { count: documents.length }),
+      title: t("Delete {{ count }} documents", { count: notes.length }),
       content: (
         <ConfirmationDialog
           danger
           submitText={t("Delete")}
           savingText={`${t("Deleting")}…`}
           onSubmit={async () => {
-            const succeeded = await performBatch(documents, (document) =>
-              document.delete()
+            const succeeded = await performBatch(notes, (note) =>
+              note.delete()
             );
             if (succeeded) {
               toast.success(
@@ -1543,38 +1387,36 @@ export const deleteDocument = createAction({
     });
   },
 });
-
-export const permanentlyDeleteDocument = createAction({
+export const permanentlyDeleteNote = createAction({
   name: ({ t }) => t("Permanently delete"),
   analyticsName: "Permanently delete document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <CrossIcon />,
   dangerous: true,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  visible: ({ activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return false;
     }
-    return !!stores.policies.abilities(activeDocumentId).permanentDelete;
+    return !!stores.policies.abilities(activeNoteId).permanentDelete;
   },
-  perform: ({ activeDocumentId, stores, t }) => {
-    if (activeDocumentId) {
-      const document = stores.documents.get(activeDocumentId);
-      if (!document) {
+  perform: ({ activeNoteId, stores, t }) => {
+    if (activeNoteId) {
+      const note = stores.notes.get(activeNoteId);
+      if (!note) {
         return;
       }
-
       stores.dialogs.openModal({
         title: (
           <DialogTitle
             title={t("Permanently delete {{ documentName }}", {
-              documentName: document.noun,
+              noteName: note.noun,
             })}
-            model={document}
+            model={note}
           />
         ),
         content: (
-          <DocumentPermanentDelete
-            document={document}
+          <NotePermanentDelete
+            note={note}
             onSubmit={stores.dialogs.closeAllModals}
           />
         ),
@@ -1582,19 +1424,18 @@ export const permanentlyDeleteDocument = createAction({
     }
   },
 });
-
-export const permanentlyDeleteDocumentsInTrash = createAction({
+export const permanentlyDeleteNotesInTrash = createAction({
   name: ({ t }) => `${t("Empty trash")}…`,
   analyticsName: "Empty trash",
   section: TrashSection,
   icon: <TrashIcon />,
   visible: ({ stores }) =>
-    stores.documents.deleted.length > 0 && !!stores.auth.user?.isAdmin,
+    stores.notes.deleted.length > 0 && !!stores.auth.user?.isAdmin,
   perform: ({ stores, t, location }) => {
     stores.dialogs.openModal({
       title: t("Permanently delete documents in trash"),
       content: (
-        <DeleteDocumentsInTrash
+        <DeleteNotesInTrash
           onSubmit={stores.dialogs.closeAllModals}
           shouldRedirect={location.pathname === trashPath()}
         />
@@ -1602,57 +1443,46 @@ export const permanentlyDeleteDocumentsInTrash = createAction({
     });
   },
 });
-
-export const openDocumentComments = createAction({
+export const openNoteComments = createAction({
   name: ({ t }) => t("Comments"),
   analyticsName: "Open comments",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <CommentIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    const can = stores.policies.abilities(activeDocumentId ?? "");
-
+  visible: ({ activeNoteId, stores }) => {
+    const can = stores.policies.abilities(activeNoteId ?? "");
     return (
-      !!activeDocumentId && can.comment && !!stores.auth.team?.commentingEnabled
+      !!activeNoteId && can.comment && !!stores.auth.team?.commentingEnabled
     );
   },
-  perform: ({ activeDocumentId, sidebarContext, stores }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
+  perform: ({ activeNoteId, sidebarContext, stores }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (!note) {
       return;
     }
-
     // Navigate to the document when triggered from outside its scene (e.g. a
     // document list), as the comments sidebar is only rendered there.
-    const path = documentPath(document);
+    const path = notePath(note);
     if (!history.location.pathname.startsWith(path)) {
       history.push(path, { sidebarContext });
     }
-
     stores.ui.setRightSidebar("comments", getFocusedSplitPane());
   },
 });
-
-export const openDocumentHistory = createInternalLinkAction({
+export const openNoteHistory = createInternalLinkAction({
   name: ({ t }) => t("History"),
   analyticsName: "Open document history",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <HistoryIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    const can = stores.policies.abilities(activeDocumentId ?? "");
-    return !!activeDocumentId && can.listRevisions;
+  visible: ({ activeNoteId, stores }) => {
+    const can = stores.policies.abilities(activeNoteId ?? "");
+    return !!activeNoteId && can.listRevisions;
   },
-  to: ({ activeDocumentId, stores, sidebarContext }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
+  to: ({ activeNoteId, stores, sidebarContext }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (!note) {
       return "";
     }
-
-    const [pathname, search] = documentHistoryPath(document).split("?");
-
+    const [pathname, search] = noteHistoryPath(note).split("?");
     return {
       pathname,
       search,
@@ -1660,72 +1490,58 @@ export const openDocumentHistory = createInternalLinkAction({
     };
   },
 });
-
-export const openDocumentInsights = createAction({
+export const openNoteInsights = createAction({
   name: ({ t }) => t("Insights"),
   analyticsName: "Open document insights",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   shortcut: [`Meta+Shift+I`],
   icon: <GraphIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    const can = stores.policies.abilities(activeDocumentId ?? "");
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-
-    return !!activeDocumentId && can.listViews && !document?.isDeleted;
+  visible: ({ activeNoteId, stores }) => {
+    const can = stores.policies.abilities(activeNoteId ?? "");
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    return !!activeNoteId && can.listViews && !note?.isDeleted;
   },
-  perform: ({ activeDocumentId, stores, t }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (!document) {
+  perform: ({ activeNoteId, stores, t }) => {
+    const note = activeNoteId ? stores.notes.get(activeNoteId) : undefined;
+    if (!note) {
       return;
     }
-
     stores.dialogs.openModal({
-      title: <DialogTitle title={t("Insights")} model={document} />,
-      content: <Insights document={document} />,
+      title: <DialogTitle title={t("Insights")} model={note} />,
+      content: <Insights note={note} />,
     });
   },
 });
-
-export const leaveDocument = createAction({
+export const leaveNote = createAction({
   name: ({ t }) => t("Leave document"),
   analyticsName: "Leave document",
-  section: ActiveDocumentSection,
+  section: ActiveNoteSection,
   icon: <LogoutIcon />,
-  visible: ({ currentUserId, activeDocumentId, stores }) => {
+  visible: ({ currentUserId, activeNoteId, stores }) => {
     const membership = stores.userMemberships.orderedData.find(
-      (m) => m.documentId === activeDocumentId && m.userId === currentUserId
+      (m) => m.noteId === activeNoteId && m.userId === currentUserId
     );
-
     return !!membership;
   },
-  perform: async ({ t, location, currentUserId, activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
+  perform: async ({ t, location, currentUserId, activeNoteId, stores }) => {
+    if (!activeNoteId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-
+    const note = stores.notes.get(activeNoteId);
     try {
-      if (document && location.pathname.startsWith(document.path)) {
+      if (note && location.pathname.startsWith(note.path)) {
         history.push(homePath());
       }
-
       await stores.userMemberships.delete({
-        documentId: activeDocumentId,
+        noteId: activeNoteId,
         userId: currentUserId,
       } as UserMembership);
-
       toast.success(t("You have left the shared document"));
     } catch (_err) {
       toast.error(t("Could not leave document"));
     }
   },
 });
-
 export const applyTemplateActionFactory = ({
   actions,
 }: {
@@ -1734,60 +1550,56 @@ export const applyTemplateActionFactory = ({
   createActionWithChildren({
     name: ({ t }) => t("Apply template"),
     analyticsName: "Apply template",
-    section: ActiveDocumentSection,
+    section: ActiveNoteSection,
     icon: <ShapesIcon />,
-    visible: ({ activeDocumentId, stores }) => {
+    visible: ({ activeNoteId, stores }) => {
       const { policies } = stores;
-      const can = activeDocumentId
-        ? policies.abilities(activeDocumentId)
-        : undefined;
-
+      const can = activeNoteId ? policies.abilities(activeNoteId) : undefined;
       return !!can?.update;
     },
     children: actions,
   });
-
-export const rootDocumentActions = [
-  openDocument,
-  archiveDocument,
-  createDocument,
-  createDraftDocument,
-  createNewDocument,
-  createNewDocumentInAlphabeticalCollection,
-  createNestedDocument,
-  createTemplateFromDocument,
-  deleteDocument,
-  importDocument,
-  downloadDocument,
-  downloadDocumentAsMarkdown,
-  downloadDocumentAsHTML,
-  downloadDocumentAsTextBundle,
-  downloadDocumentAsPDF,
-  copyDocumentLink,
-  copyDocumentShareLink,
-  copyDocumentAsMarkdown,
-  copyDocumentAsPlainText,
-  starDocument,
-  unstarDocument,
-  publishDocument,
-  unpublishDocument,
-  subscribeDocument,
-  unsubscribeDocument,
-  searchInDocument,
-  duplicateDocument,
-  leaveDocument,
-  moveDocumentToCollection,
-  openRandomDocument,
-  permanentlyDeleteDocument,
-  permanentlyDeleteDocumentsInTrash,
-  presentDocument,
-  printDocument,
-  pinDocumentToCollection,
-  pinDocumentToHome,
-  openDocumentComments,
-  openDocumentHistory,
-  openDocumentInsights,
-  openDocumentInDesktop,
-  openDocumentInSplit,
-  shareDocument,
+export const rootNoteActions = [
+  openNote,
+  archiveNote,
+  createNote,
+  createDraftNote,
+  createNewNote,
+  createNewNoteInAlphabeticalNotebook,
+  createNestedNote,
+  createTemplateFromNote,
+  deleteNote,
+  importNote,
+  downloadNote,
+  downloadNoteAsMarkdown,
+  downloadNoteAsHTML,
+  downloadNoteAsTextBundle,
+  downloadNoteAsPDF,
+  copyNoteLink,
+  copyNoteShareLink,
+  copyNoteAsMarkdown,
+  copyNoteAsPlainText,
+  starNote,
+  unstarNote,
+  publishNote,
+  unpublishNote,
+  subscribeNote,
+  unsubscribeNote,
+  searchInNote,
+  duplicateNote,
+  leaveNote,
+  moveNoteToNotebook,
+  openRandomNote,
+  permanentlyDeleteNote,
+  permanentlyDeleteNotesInTrash,
+  presentNote,
+  printNote,
+  pinNoteToNotebook,
+  pinNoteToHome,
+  openNoteComments,
+  openNoteHistory,
+  openNoteInsights,
+  openNoteInDesktop,
+  openNoteInSplit,
+  shareNote,
 ];

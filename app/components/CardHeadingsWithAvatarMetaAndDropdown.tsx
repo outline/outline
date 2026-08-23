@@ -7,7 +7,6 @@ import {
   StarIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 /**
  * Tailwind UI – card headings: with avatar  meta  and dropdown.
  *

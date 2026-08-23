@@ -1,5 +1,4 @@
 import { BellIcon } from "@heroicons/react/24/outline";
-
 /**
  * Tailwind UI – multi column: constrained with sticky columns.
  *

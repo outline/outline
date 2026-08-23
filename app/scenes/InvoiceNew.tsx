@@ -14,13 +14,10 @@ import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
 import type { InvoiceLine } from "~/stores/shop";
 import { formatCurrency } from "~/utils/format";
-
 /** A date input wants `yyyy-mm-dd`, not an ISO timestamp. */
 const asDateValue = (date: Date) => date.toISOString().slice(0, 10);
-
 /** Tax applied to every invoice, matching the mock's default. */
 const TAX_RATE = 0.11;
-
 /**
  * Drafting an invoice.
  *
@@ -34,14 +31,13 @@ function InvoiceNew() {
   const history = useHistory();
   const customers = useShop((state) => state.customers);
   const createInvoice = useShop((state) => state.createInvoice);
-
   const [customerName, setCustomerName] = useState("");
   const [dueDate, setDueDate] = useState(
     asDateValue(new Date(Date.now() + 14 * 86400000))
   );
   const [notes, setNotes] = useState("");
-  const [document, sendLine] = useMachine(linesMachine);
-  const lines = document.context.lines as InvoiceLine[];
+  const [note, sendLine] = useMachine(linesMachine);
+  const lines = note.context.lines as InvoiceLine[];
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [unitPrice, setUnitPrice] = useState("");
@@ -50,13 +46,11 @@ function InvoiceNew() {
   // Issuing the invoice is a save, and that one belongs to the machine.
   const [lineNotice, setLineNotice] = useState<string | undefined>();
   const submission = useSubmit();
-
   const subtotal = lines.reduce(
     (sum, line) => sum + line.unitPrice * line.quantity - line.discount,
     0
   );
   const tax = Math.round(subtotal * TAX_RATE);
-
   const handleAddLine = () => {
     if (!name.trim() || Number(unitPrice) <= 0) {
       setLineNotice(t("A line needs a description and a price."));
@@ -77,7 +71,6 @@ function InvoiceNew() {
     setUnitPrice("");
     setDiscount("0");
   };
-
   const handleIssue = () =>
     void submission.run(async () => {
       setLineNotice(undefined);
@@ -87,14 +80,12 @@ function InvoiceNew() {
         notes: notes.trim(),
         items: lines,
       });
-
       if (result?.created && result.invoice) {
         history.push(`/invoices/${result.invoice.id}`);
         return;
       }
       return t("Give us a customer and at least one line.");
     });
-
   return (
     <AppPage
       title={t("New invoice")}
@@ -216,5 +207,4 @@ function InvoiceNew() {
     </AppPage>
   );
 }
-
 export default InvoiceNew;

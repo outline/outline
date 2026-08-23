@@ -5,12 +5,12 @@ import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
-
 const Error402 = () => {
-  const location = useLocation<{ title?: string }>();
+  const location = useLocation<{
+    title?: string;
+  }>();
   const { t } = useTranslation();
   const title = location.state?.title ?? t("Payment Required");
-
   return (
     <Scene title={title}>
       <Heading>{title}</Heading>
@@ -25,5 +25,4 @@ const Error402 = () => {
     </Scene>
   );
 };
-
 export default Error402;

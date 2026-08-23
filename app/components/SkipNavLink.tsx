@@ -1,11 +1,9 @@
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import { id } from "~/components/SkipNavContent";
-
 export default function SkipNavLink() {
   return <Anchor href={`#${id}`}>Skip navigation</Anchor>;
 }
-
 const Anchor = styled.a`
   border: 0;
   clip: rect(0 0 0 0);

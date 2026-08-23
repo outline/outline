@@ -3,7 +3,6 @@ import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-
 interface CollapsibleProps {
   /** The label displayed on the trigger button. */
   label: React.ReactNode;
@@ -18,7 +17,6 @@ interface CollapsibleProps {
   /** Additional class name for the root element. */
   className?: string;
 }
-
 /**
  * An accessible collapsible section built on Radix UI Collapsible.
  * Renders a trigger button with a disclosure chevron and animated content panel.
@@ -49,13 +47,11 @@ export function Collapsible({
     </RadixCollapsible.Root>
   );
 }
-
 const StyledExpandedIcon = styled(ExpandedIcon)`
   flex-shrink: 0;
   transition: transform 150ms ease-out;
   margin-left: -4px;
 `;
-
 const StyledTrigger = styled(RadixCollapsible.Trigger)`
   display: flex;
   align-items: center;
@@ -76,7 +72,6 @@ const StyledTrigger = styled(RadixCollapsible.Trigger)`
     }
   }
 `;
-
 const StyledContent = styled(RadixCollapsible.Content)`
   overflow: hidden;
 

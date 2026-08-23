@@ -27,14 +27,12 @@ import useKeyDown from "~/hooks/useKeyDown";
 import Desktop from "~/utils/Desktop";
 import { useEditor } from "./EditorContext";
 import { HStack } from "~/components/primitives/HStack";
-
 type KeyboardShortcutsProps = {
   open: boolean;
   handleOpen: ({ withReplace }: { withReplace: boolean }) => void;
   handleCaseSensitive: () => void;
   handleRegex: () => void;
 };
-
 function useKeyboardShortcuts({
   open,
   handleOpen,
@@ -55,7 +53,6 @@ function useKeyboardShortcuts({
     },
     { allowInInput: true }
   );
-
   // Enable/disable case sensitive search
   useKeyDown(
     (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyC" && open,
@@ -65,7 +62,6 @@ function useKeyboardShortcuts({
     },
     { allowInInput: true }
   );
-
   // Enable/disable regex search
   useKeyDown(
     (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyR" && open,
@@ -76,7 +72,6 @@ function useKeyboardShortcuts({
     { allowInInput: true }
   );
 }
-
 type Props = {
   /** Whether the find and replace popover is open */
   open: boolean;
@@ -91,7 +86,6 @@ type Props = {
   /** The total number of search results */
   totalResults: number;
 };
-
 export default function FindAndReplace({
   readOnly,
   open,
@@ -113,13 +107,11 @@ export default function FindAndReplace({
   const [regexEnabled, setRegex] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [replaceTerm, setReplaceTerm] = React.useState("");
-
   React.useEffect(() => {
     if (open) {
       setLocalOpen(true);
     }
   }, [open]);
-
   // Hooks for desktop app menu items
   React.useEffect(() => {
     if (!Desktop.bridge) {
@@ -138,13 +130,11 @@ export default function FindAndReplace({
       });
     }
   }, []);
-
   // Callbacks
   const selectInputText = React.useCallback(() => {
     inputRef.current?.focus();
     inputRef.current?.setSelectionRange(0, inputRef.current?.value.length);
   }, []);
-
   const selectInputReplaceText = React.useCallback(() => {
     setTimeout(() => {
       inputReplaceRef.current?.focus();
@@ -154,11 +144,9 @@ export default function FindAndReplace({
       );
     }, 100);
   }, []);
-
   const handleOpen = React.useCallback(
     ({ withReplace }: { withReplace: boolean }) => {
       const shouldShowReplace = !readOnly && withReplace;
-
       // If already open, switch focus to corresponding input text.
       if (localOpen) {
         if (shouldShowReplace) {
@@ -167,53 +155,42 @@ export default function FindAndReplace({
         } else {
           selectInputText();
         }
-
         return;
       }
-
       selectionRef.current = window.getSelection()?.toString();
       setLocalOpen(true);
-
       if (shouldShowReplace) {
         setShowReplace(true);
       }
     },
     [localOpen, readOnly, selectInputText, selectInputReplaceText]
   );
-
   const handleMore = React.useCallback(() => {
     setShowReplace((state) => !state);
     setTimeout(() => inputReplaceRef.current?.focus(), 100);
   }, []);
-
   const handleCaseSensitive = React.useCallback(() => {
     setCaseSensitive((state) => {
       const isCaseSensitive = !state;
-
       editor.commands.find({
         text: searchTerm,
         caseSensitive: isCaseSensitive,
         regexEnabled,
       });
-
       return isCaseSensitive;
     });
   }, [regexEnabled, editor.commands, searchTerm]);
-
   const handleRegex = React.useCallback(() => {
     setRegex((state) => {
       const isRegexEnabled = !state;
-
       editor.commands.find({
         text: searchTerm,
         caseSensitive,
         regexEnabled: isRegexEnabled,
       });
-
       return isRegexEnabled;
     });
   }, [caseSensitive, editor.commands, searchTerm]);
-
   // Searching the document on every keystroke is expensive in long documents –
   // it traverses the entire doc and rebuilds highlights – so debounce.
   const debouncedFind = React.useMemo(
@@ -230,9 +207,7 @@ export default function FindAndReplace({
       ),
     [editor.commands]
   );
-
   React.useEffect(() => () => debouncedFind.cancel(), [debouncedFind]);
-
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
       function nextPrevious() {
@@ -245,7 +220,6 @@ export default function FindAndReplace({
           editor.commands.nextSearchMatch();
         }
       }
-
       switch (ev.key) {
         case "Enter": {
           ev.preventDefault();
@@ -270,7 +244,6 @@ export default function FindAndReplace({
     },
     [debouncedFind, editor.commands, selectInputText]
   );
-
   const handleReplace = React.useCallback(
     (ev) => {
       if (readOnly) {
@@ -281,7 +254,6 @@ export default function FindAndReplace({
     },
     [editor.commands, readOnly, replaceTerm]
   );
-
   const handleReplaceAll = React.useCallback(
     (ev) => {
       if (readOnly) {
@@ -292,13 +264,11 @@ export default function FindAndReplace({
     },
     [editor.commands, readOnly, replaceTerm]
   );
-
   const handleChangeFind = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       ev.preventDefault();
       ev.stopPropagation();
       setSearchTerm(ev.currentTarget.value);
-
       debouncedFind({
         text: ev.currentTarget.value,
         caseSensitive,
@@ -307,7 +277,6 @@ export default function FindAndReplace({
     },
     [caseSensitive, debouncedFind, regexEnabled]
   );
-
   const handleReplaceKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
       if (ev.key === "Enter") {
@@ -317,14 +286,12 @@ export default function FindAndReplace({
     },
     [handleReplace]
   );
-
   useKeyboardShortcuts({
     open: localOpen,
     handleOpen,
     handleCaseSensitive,
     handleRegex,
   });
-
   const style: React.CSSProperties = React.useMemo(
     () => ({
       position: "fixed",
@@ -334,24 +301,20 @@ export default function FindAndReplace({
     }),
     []
   );
-
   React.useEffect(() => {
     if (localOpen) {
       onOpen();
       // The find controls take over highlighting from here.
       clearSearchHighlight();
       const startSearchText = selectionRef.current || searchTerm;
-
       editor.commands.find({
         text: startSearchText,
         caseSensitive,
         regexEnabled,
       });
-
       requestAnimationFrame(() => {
         inputRef.current?.setSelectionRange(0, startSearchText.length);
       });
-
       if (selectionRef.current) {
         setSearchTerm(selectionRef.current);
       }
@@ -365,7 +328,6 @@ export default function FindAndReplace({
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [localOpen]);
-
   const disabled = totalResults === 0;
   const navigation = (
     <>
@@ -399,7 +361,6 @@ export default function FindAndReplace({
       </Tooltip>
     </>
   );
-
   return (
     <Popover open={localOpen} onOpenChange={setLocalOpen}>
       <PopoverTrigger>
@@ -523,16 +484,13 @@ export default function FindAndReplace({
     </Popover>
   );
 }
-
 const SearchModifiers = styled(Flex)`
   margin-right: 4px;
 `;
-
 const StyledInput = styled(Input)`
   width: 196px;
   flex: 1;
 `;
-
 const ButtonSmall = styled(NudeButton)`
   &:hover,
   &[aria-expanded="true"] {
@@ -545,18 +503,15 @@ const ButtonSmall = styled(NudeButton)`
     cursor: default;
   }
 `;
-
 const ButtonLarge = styled(ButtonSmall)`
   width: 32px;
   height: 32px;
 `;
-
 const Content = styled(Flex)`
   padding: 8px 0;
   margin-bottom: -16px;
   position: static;
 `;
-
 const Results = styled.span`
   color: ${s("textSecondary")};
   font-size: 12px;

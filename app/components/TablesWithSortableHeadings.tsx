@@ -1,5 +1,4 @@
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-
 const people = [
   {
     name: "Lindsay Walton",
@@ -9,7 +8,6 @@ const people = [
   },
   // More people...
 ];
-
 /**
  * Tailwind UI – tables: with sortable headings.
  *

@@ -8,15 +8,12 @@ import Text from "../../../components/Text";
 import { VStack } from "~/components/primitives/VStack";
 import { Status } from "./Status";
 import Flex from "@shared/components/Flex";
-
 type Props = {
   integration: ConfigItem;
   isConnected?: boolean;
 };
-
 function IntegrationCard({ integration, isConnected }: Props) {
   const { t } = useTranslation();
-
   return (
     <Card as={Link} to={integration.path}>
       <Flex justify="space-between" align="flex-start">
@@ -36,9 +33,7 @@ function IntegrationCard({ integration, isConnected }: Props) {
     </Card>
   );
 }
-
 export default IntegrationCard;
-
 export const Card = styled.div`
   display: flex;
   flex-direction: column;
@@ -58,7 +53,6 @@ export const Card = styled.div`
       rgba(0, 0, 0, 0.06) 0px 4px 8px;
   }
 `;
-
 const Name = styled(Text)`
   margin: 0 0 -4px;
   font-size: 16px;
@@ -66,7 +60,6 @@ const Name = styled(Text)`
   color: ${s("text")};
   ${ellipsis()}
 `;
-
 const Description = styled(Text)`
   margin: 12px 0 0;
   font-size: 15px;

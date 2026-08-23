@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useParams } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
+import { useFields } from "~/hooks/useFields";
 import { useSubmit } from "~/hooks/useSubmit";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
@@ -13,7 +13,6 @@ import Text from "~/components/Text";
 import { StatusChip } from "~/components/StatusChip";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 /**
  * One purchase order, and booking in what has turned up.
  *
@@ -26,16 +25,15 @@ import { formatCurrency, formatDate } from "~/utils/format";
 function PurchaseOrderDetail() {
   const { t } = useTranslation();
   const history = useHistory();
-  const { purchaseOrderId } = useParams<{ purchaseOrderId: string }>();
+  const { purchaseOrderId } = useParams<{
+    purchaseOrderId: string;
+  }>();
   const purchaseOrders = useShop((state) => state.purchaseOrders);
   const isLoading = useShop((state) => state.isLoading);
   const receivePurchaseOrder = useShop((state) => state.receivePurchaseOrder);
-
-  const [quantities, setQuantities] = useState<Record<string, string>>({});
+  const quantities = useFields();
   const submission = useSubmit();
-
   const order = purchaseOrders.find((item) => item.id === purchaseOrderId);
-
   if (!order) {
     return (
       <AppPage title={t("Purchase order")}>
@@ -54,7 +52,6 @@ function PurchaseOrderDetail() {
       </AppPage>
     );
   }
-
   const value = order.items.reduce(
     (sum, item) => sum + item.cost * item.quantity,
     0
@@ -64,37 +61,31 @@ function PurchaseOrderDetail() {
     0
   );
   const isOpen = order.status !== "received" && order.status !== "cancelled";
-
   const handleReceive = () =>
     submission.run(async () => {
       const asked: Record<string, number> = {};
       order.items.forEach((item) => {
-        const typed = quantities[item.productId];
-        if (typed !== undefined && typed !== "") {
+        const typed = quantities.get(item.productId);
+        if (typed !== "") {
           asked[item.productId] = Number(typed);
         }
       });
-
       const result = await receivePurchaseOrder(
         order.id,
         Object.keys(asked).length > 0 ? asked : undefined
       );
-
       if (result?.received) {
-        setQuantities({});
+        quantities.reset();
         return t("Booked in.");
       }
       return result?.reason === "nothing_to_receive"
         ? t("Nothing to book in.")
         : t("That delivery could not be booked in.");
     });
-
   return (
     <AppPage
       title={order.number}
-      description={`${order.supplierName} · ${t("expected")} ${formatDate(
-        order.expectedAt
-      )}`}
+      description={`${order.supplierName} · ${t("expected")} ${formatDate(order.expectedAt)}`}
       actions={<StatusChip status={order.status} />}
     >
       {submission.notice ? (
@@ -124,12 +115,9 @@ function PurchaseOrderDetail() {
                   label={t("Arriving")}
                   labelHidden
                   placeholder={`${item.quantity - item.received}`}
-                  value={quantities[item.productId] ?? ""}
+                  value={quantities.get(item.productId)}
                   onChange={(event) =>
-                    setQuantities({
-                      ...quantities,
-                      [item.productId]: event.target.value,
-                    })
+                    quantities.set(item.productId, event.target.value)
                   }
                   short
                 />
@@ -168,5 +156,4 @@ function PurchaseOrderDetail() {
     </AppPage>
   );
 }
-
 export default PurchaseOrderDetail;

@@ -1,5 +1,4 @@
 import { deburr } from "es-toolkit/compat";
-
 /**
  * Build a diacritics-stripped version of a string together with a way to map
  * any index in the stripped string back to the corresponding index in the
@@ -24,13 +23,11 @@ export function deburrWithMap(text: string): {
   toOriginalIndex: (index: number) => number;
 } {
   const deburred = deburr(text);
-
   // Fast path: deburring preserved the length, so indices line up one-to-one
   // with the original string and no per-character table is needed.
   if (deburred.length === text.length) {
     return { deburred, toOriginalIndex: (index) => index };
   }
-
   // Slow path: deburring changed the length (e.g. NFD decomposed a CJK/Hangul
   // syllable or expanded a ligature). Rebuild the deburred string per code
   // point so it stays consistent with the index map, recording the original
@@ -38,7 +35,6 @@ export function deburrWithMap(text: string): {
   const parts: string[] = [];
   const map: number[] = [];
   let originalIndex = 0;
-
   // Iterate by code point so surrogate pairs are deburred as a unit.
   for (const char of text) {
     // ASCII characters are never altered or decomposed by deburr, so emit them
@@ -49,7 +45,6 @@ export function deburrWithMap(text: string): {
       originalIndex += 1;
       continue;
     }
-
     const stripped = deburr(char);
     for (let i = 0; i < stripped.length; i++) {
       map.push(originalIndex);
@@ -58,6 +53,5 @@ export function deburrWithMap(text: string): {
     originalIndex += char.length;
   }
   map.push(text.length);
-
   return { deburred: parts.join(""), toOriginalIndex: (index) => map[index] };
 }

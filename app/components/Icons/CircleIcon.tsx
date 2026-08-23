@@ -6,7 +6,6 @@ type Props = {
   /** If true, the icon will retain its color in selected menus and other places that attempt to override it */
   retainColor?: boolean;
 };
-
 export default function CircleIcon({
   size = 24,
   color = "currentColor",
@@ -15,7 +14,6 @@ export default function CircleIcon({
 }: Props) {
   const isGradient = color === "rainbow";
   const fillValue = isGradient ? "url(#circleIconGradient)" : color;
-
   return (
     <svg
       fill={fillValue}

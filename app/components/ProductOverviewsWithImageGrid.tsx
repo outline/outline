@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -23,7 +23,6 @@ import { useState } from "react";
 import { StarIcon } from "@heroicons/react/20/solid";
 import { RadioGroup } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const product = {
   name: "Basic Tee 6-Pack",
   price: "$192",
@@ -77,7 +76,6 @@ const product = {
     'The 6-Pack includes two black, two white, and two heather gray Basic Tees. Sign up for our subscription service and be the first to get new, exciting colors, like our upcoming "Charcoal Gray" limited release.',
 };
 const reviews = { href: "#", average: 4, totalCount: 117 };
-
 /**
  * Tailwind UI – product overviews: with image grid.
  *
@@ -86,7 +84,6 @@ const reviews = { href: "#", average: 4, totalCount: 117 };
 export function ProductOverviewsWithImageGrid() {
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const [selectedSize, setSelectedSize] = useState(product.sizes[2]);
-
   return (
     <div className="bg-white">
       <div className="pt-6">

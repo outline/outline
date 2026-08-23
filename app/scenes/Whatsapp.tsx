@@ -12,7 +12,6 @@ import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
 import { formatDate } from "~/utils/format";
-
 /**
  * WhatsApp templates and what has been sent from them.
  *
@@ -27,15 +26,12 @@ function Whatsapp() {
   const messages = useShop((state) => state.whatsappMessages);
   const customers = useShop((state) => state.customers);
   const sendWhatsapp = useShop((state) => state.sendWhatsapp);
-
   const fields = useFields({ templateId: "", customerId: "" });
   const templateId = fields.get("templateId");
   const customerId = fields.get("customerId");
   const submission = useSubmit();
-
   const selectedTemplate = templateId || templates[0]?.id || "";
   const selectedCustomer = customerId || customers[0]?.id || "";
-
   const handleSend = () =>
     submission.run(async () => {
       const sent = await sendWhatsapp(selectedTemplate, selectedCustomer);
@@ -45,11 +41,9 @@ function Whatsapp() {
         ? t("Sent “{{name}}”.", { name })
         : t("“{{name}}” is not approved yet, so nothing was sent.", { name });
     });
-
   const approved = templates.filter(
     (template) => template.status === "approved"
   ).length;
-
   return (
     <AppPage
       title={t("WhatsApp")}
@@ -115,9 +109,7 @@ function Whatsapp() {
         <ListItem
           key={message.id}
           title={message.customerName}
-          subtitle={`${message.templateName} · ${message.to} · ${formatDate(
-            message.sentAt
-          )}`}
+          subtitle={`${message.templateName} · ${message.to} · ${formatDate(message.sentAt)}`}
           actions={<StatusChip status={message.status} />}
           border
         />
@@ -126,5 +118,4 @@ function Whatsapp() {
     </AppPage>
   );
 }
-
 export default Whatsapp;

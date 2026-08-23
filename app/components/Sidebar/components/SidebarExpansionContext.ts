@@ -1,14 +1,13 @@
 import { action, observable } from "mobx";
 import { createContext, useContext, useEffect, useState } from "react";
 import type { NavigationNode } from "@shared/types";
-
 /**
  * Computes the set of node IDs along the path from any node in `roots` down
  * to a node with `targetId`, inclusive of both endpoints. Returns an empty
  * array when no path exists.
  *
  * @param roots the top-level navigation nodes to search through.
- * @param targetId the id of the target document.
+ * @param targetId the id of the target note.
  * @returns array of ancestor IDs (inclusive of the target).
  */
 function computeAncestorPath(
@@ -34,18 +33,16 @@ function computeAncestorPath(
   search(roots);
   return found ? stack : [];
 }
-
 /**
- * Manages the set of expanded node IDs for a sidebar document tree.
+ * Manages the set of expanded node IDs for a sidebar note tree.
  *
  * Uses a MobX ObservableSet so that individual `observer`-wrapped
- * DocumentLinks only re-render when their own node's membership in the set
+ * NoteLinks only re-render when their own node's membership in the set
  * changes, rather than on every expansion toggle anywhere in the tree.
  */
 export class SidebarExpansionState {
   @observable
   expandedIds = new Set<string>();
-
   /**
    * Whether a given node is currently expanded.
    *
@@ -55,7 +52,6 @@ export class SidebarExpansionState {
   isExpanded(nodeId: string): boolean {
     return this.expandedIds.has(nodeId);
   }
-
   /**
    * Expand a single node.
    *
@@ -65,7 +61,6 @@ export class SidebarExpansionState {
   expand(nodeId: string): void {
     this.expandedIds.add(nodeId);
   }
-
   /**
    * Collapse a single node.
    *
@@ -75,7 +70,6 @@ export class SidebarExpansionState {
   collapse(nodeId: string): void {
     this.expandedIds.delete(nodeId);
   }
-
   /**
    * Expand a node and all of its descendants recursively.
    *
@@ -91,7 +85,6 @@ export class SidebarExpansionState {
     };
     walk(node);
   }
-
   /**
    * Collapse a node and all of its descendants recursively.
    *
@@ -107,9 +100,8 @@ export class SidebarExpansionState {
     };
     walk(node);
   }
-
   /**
-   * Expand all nodes along a path (e.g. ancestors of the active document).
+   * Expand all nodes along a path (e.g. ancestors of the active note).
    *
    * @param ids the node IDs to expand.
    */
@@ -119,7 +111,6 @@ export class SidebarExpansionState {
       this.expandedIds.add(id);
     }
   }
-
   /**
    * Expand every node in the given roots, recursively.
    *
@@ -135,7 +126,6 @@ export class SidebarExpansionState {
     };
     walk(roots);
   }
-
   /**
    * Collapse every node by clearing the set.
    */
@@ -144,16 +134,14 @@ export class SidebarExpansionState {
     this.expandedIds.clear();
   }
 }
-
 /**
  * Context for providing a SidebarExpansionState to descendant sidebar
- * components. Each document tree root (collection, starred doc, shared
+ * components. Each note tree root (collection, starred doc, shared
  * membership) creates its own instance so expansion state is scoped.
  */
 const SidebarExpansionContext = createContext<SidebarExpansionState | null>(
   null
 );
-
 /**
  * Hook to consume the nearest SidebarExpansionState from context.
  *
@@ -168,33 +156,29 @@ export function useSidebarExpansion(): SidebarExpansionState {
   }
   return ctx;
 }
-
 /**
  * Hook that creates a SidebarExpansionState and auto-expands the path
- * to the active document whenever it changes. Returns the state instance
+ * to the active note whenever it changes. Returns the state instance
  * to be provided via SidebarExpansionContext.Provider.
  *
- * @param roots the top-level navigation nodes (e.g. collection documents).
- * @param activeDocumentId the currently active document ID.
+ * @param roots the top-level navigation nodes (e.g. collection notes).
+ * @param activeNoteId the currently active note ID.
  * @returns the expansion state instance.
  */
 export function useSidebarExpansionState(
   roots: NavigationNode[] | undefined,
-  activeDocumentId: string | undefined
+  activeNoteId: string | undefined
 ): SidebarExpansionState {
   const [state] = useState(() => new SidebarExpansionState());
-
   useEffect(() => {
-    if (!roots || !activeDocumentId) {
+    if (!roots || !activeNoteId) {
       return;
     }
-    const path = computeAncestorPath(roots, activeDocumentId);
+    const path = computeAncestorPath(roots, activeNoteId);
     if (path.length > 0) {
       state.expandPath(path);
     }
-  }, [state, roots, activeDocumentId]);
-
+  }, [state, roots, activeNoteId]);
   return state;
 }
-
 export default SidebarExpansionContext;

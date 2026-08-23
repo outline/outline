@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { isMac } from "@shared/utils/browser";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import Key from "~/components/Key";
-
 /** A key in a shortcut, either the name of a well-known key or an explicit definition. */
 export type ShortcutKey =
   | string
@@ -15,7 +14,6 @@ export type ShortcutKey =
       /** Set to true if displaying a single symbol character to disable monospace */
       symbol?: boolean;
     };
-
 /** How the keys of a shortcut relate to one another. */
 export type KeyCombination =
   /** Keys are held down together */
@@ -24,16 +22,17 @@ export type KeyCombination =
   | "sequence"
   /** Any one of the keys triggers the shortcut */
   | "alternative";
-
 type Props = {
   /** The keys that make up the shortcut, in the order they are pressed */
   keys: ShortcutKey[];
   /** How the keys relate to one another, defaults to being held down together */
   combination?: KeyCombination;
 };
-
-type ResolvedKey = { display: string; label: string; symbol: boolean };
-
+type ResolvedKey = {
+  display: string;
+  label: string;
+  symbol: boolean;
+};
 /** Keys that have a platform-specific display, or a name that differs from it. */
 const namedKeys: Record<string, ResolvedKey> = {
   meta: {
@@ -53,7 +52,6 @@ const namedKeys: Record<string, ResolvedKey> = {
   up: { display: "↑", label: "Up arrow", symbol: true },
   down: { display: "↓", label: "Down arrow", symbol: true },
 };
-
 /**
  * Displays a keyboard shortcut as a series of keys, announced to screen readers
  * as a single instruction such as "Command plus K".
@@ -63,7 +61,6 @@ const namedKeys: Record<string, ResolvedKey> = {
  */
 export function KeyboardShortcut({ keys, combination = "hold" }: Props) {
   const { t } = useTranslation();
-
   const resolved = keys.map((key): ResolvedKey => {
     if (typeof key === "string") {
       return (
@@ -74,14 +71,12 @@ export function KeyboardShortcut({ keys, combination = "hold" }: Props) {
         }
       );
     }
-
     return {
       display: key.display,
       label: key.label ?? key.display,
       symbol: key.symbol ?? false,
     };
   });
-
   const separator =
     combination === "hold" ? "+" : combination === "alternative" ? t("or") : "";
   const spokenSeparator =
@@ -90,7 +85,6 @@ export function KeyboardShortcut({ keys, combination = "hold" }: Props) {
       : combination === "alternative"
         ? t("or")
         : t("then");
-
   return (
     <span
       role="img"

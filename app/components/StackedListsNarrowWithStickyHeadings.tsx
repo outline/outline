@@ -1,6 +1,11 @@
 const directory: Record<
   string,
-  { id: number; name: string; email: string; imageUrl: string }[]
+  {
+    id: number;
+    name: string;
+    email: string;
+    imageUrl: string;
+  }[]
 > = {
   A: [
     {
@@ -205,7 +210,6 @@ const directory: Record<
     },
   ],
 };
-
 /**
  * Tailwind UI – stacked lists: narrow with sticky headings.
  *

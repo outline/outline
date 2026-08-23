@@ -13,7 +13,7 @@ import {
 import { Trans } from "react-i18next";
 import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import TemplateMove from "~/components/DocumentExplorer/TemplateMove";
+import TemplateMove from "~/components/NoteExplorer/TemplateMove";
 import {
   createAction,
   createActionWithChildren,
@@ -21,7 +21,7 @@ import {
 } from "~/actions";
 import history from "~/utils/history";
 import {
-  newDocumentPath,
+  newNotePath,
   newTemplatePath,
   settingsPath,
   urlify,
@@ -31,7 +31,6 @@ import { ActiveTemplateSection, TemplateSection } from "../sections";
 import Template from "~/models/Template";
 import { AvatarSize } from "~/components/Avatar";
 import TeamLogo from "~/components/TeamLogo";
-
 export const createTemplate = createInternalLinkAction({
   name: ({ t }) => t("New template"),
   analyticsName: "New template",
@@ -42,7 +41,6 @@ export const createTemplate = createInternalLinkAction({
     !!stores.policies.abilities(currentTeamId!).createTemplate,
   to: newTemplatePath(),
 });
-
 export const deleteTemplate = createAction({
   name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete template",
@@ -56,10 +54,9 @@ export const deleteTemplate = createAction({
     if (!template) {
       return;
     }
-
     stores.dialogs.openModal({
       title: t("Delete {{ documentName }}", {
-        documentName: t("template"),
+        noteName: t("template"),
       }),
       content: (
         <ConfirmationDialog
@@ -85,7 +82,6 @@ export const deleteTemplate = createAction({
     });
   },
 });
-
 export const moveTemplateToWorkspace = createAction({
   name: ({ t }) => t("Move to workspace"),
   analyticsName: "Move template to workspace",
@@ -96,16 +92,15 @@ export const moveTemplateToWorkspace = createAction({
   },
   visible: ({ getActiveModel }) => {
     const template = getActiveModel(Template);
-    return !!template?.collectionId;
+    return !!template?.notebookId;
   },
   perform: async ({ getActiveModel, stores, t }) => {
     const template = getActiveModel(Template);
     if (!template) {
       return;
     }
-
     try {
-      await template.save({ collectionId: null });
+      await template.save({ notebookId: null });
       toast.success(t("Template moved"));
       stores.dialogs.closeAllModals();
     } catch (_err) {
@@ -113,10 +108,9 @@ export const moveTemplateToWorkspace = createAction({
     }
   },
 });
-
-export const moveTemplateToCollection = createAction({
-  name: ({ t }) => t("Move to collection"),
-  analyticsName: "Move template to collection",
+export const moveTemplateToNotebook = createAction({
+  name: ({ t }) => t("Move to notebook"),
+  analyticsName: "Move template to notebook",
   section: ActiveTemplateSection,
   icon: <CollectionIcon />,
   perform: ({ getActiveModel, stores, t }) => {
@@ -124,14 +118,12 @@ export const moveTemplateToCollection = createAction({
     if (!template) {
       return;
     }
-
     stores.dialogs.openModal({
       title: t("Move template"),
       content: <TemplateMove template={template} />,
     });
   },
 });
-
 export const moveTemplate = createActionWithChildren({
   name: ({ t }) => t("Move"),
   analyticsName: "Move template",
@@ -139,10 +131,9 @@ export const moveTemplate = createActionWithChildren({
   icon: <MoveIcon />,
   visible: ({ getActivePolicies }) =>
     getActivePolicies(Template).some((policy) => policy.abilities.move),
-  children: [moveTemplateToWorkspace, moveTemplateToCollection],
+  children: [moveTemplateToWorkspace, moveTemplateToNotebook],
 });
-
-export const createDocumentFromTemplate = createInternalLinkAction({
+export const createNoteFromTemplate = createInternalLinkAction({
   name: ({ t }) => t("New document"),
   analyticsName: "New document from template",
   section: ActiveTemplateSection,
@@ -153,23 +144,20 @@ export const createDocumentFromTemplate = createInternalLinkAction({
     if (!template || !currentTeamId) {
       return false;
     }
-
-    if (template.collectionId) {
-      return !!stores.policies.abilities(template.collectionId).createDocument;
+    if (template.notebookId) {
+      return !!stores.policies.abilities(template.notebookId).createNote;
     }
-    return !!stores.policies.abilities(currentTeamId).createDocument;
+    return !!stores.policies.abilities(currentTeamId).createNote;
   },
-  to: ({ getActiveModel, activeCollectionId, sidebarContext }) => {
+  to: ({ getActiveModel, activeNotebookId, sidebarContext }) => {
     const template = getActiveModel(Template);
     if (!template) {
       return "";
     }
-    const collectionId = template?.collectionId ?? activeCollectionId;
-
-    const [pathname, search] = newDocumentPath(collectionId, {
+    const notebookId = template?.notebookId ?? activeNotebookId;
+    const [pathname, search] = newNotePath(notebookId, {
       templateId: template.id,
     }).split("?");
-
     return {
       pathname,
       search,
@@ -177,7 +165,6 @@ export const createDocumentFromTemplate = createInternalLinkAction({
     };
   },
 });
-
 export const duplicateTemplate = createAction({
   name: ({ t }) => t("Duplicate"),
   analyticsName: "Duplicate template",
@@ -191,11 +178,9 @@ export const duplicateTemplate = createAction({
     if (!template) {
       return;
     }
-
     await stores.templates.duplicate(template);
   },
 });
-
 export const copyTemplateLink = createAction({
   name: ({ t }) => t("Copy link"),
   analyticsName: "Copy template link",
@@ -210,7 +195,6 @@ export const copyTemplateLink = createAction({
     }
   },
 });
-
 export const copyTemplateAsPlainText = createAction({
   name: ({ t }) => t("Copy as text"),
   analyticsName: "Copy template as text",
@@ -225,7 +209,6 @@ export const copyTemplateAsPlainText = createAction({
     }
   },
 });
-
 export const copyTemplate = createActionWithChildren({
   name: ({ t }) => t("Copy"),
   analyticsName: "Copy template",
@@ -234,7 +217,6 @@ export const copyTemplate = createActionWithChildren({
   keywords: "clipboard",
   children: [copyTemplateLink, copyTemplateAsPlainText],
 });
-
 export const printTemplate = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Print") : t("Print template")),
   analyticsName: "Print template",
@@ -245,5 +227,4 @@ export const printTemplate = createAction({
     setTimeout(window.print, 0);
   },
 });
-
-export const rootTemplateActions = [moveTemplate, createDocumentFromTemplate];
+export const rootTemplateActions = [moveTemplate, createNoteFromTemplate];

@@ -5,33 +5,25 @@ import { NotificationsWithActionsBelow } from "~/components/NotificationsWithAct
 import { NotificationsWithAvatar } from "~/components/NotificationsWithAvatar";
 import { NotificationsWithButtonsBelow } from "~/components/NotificationsWithButtonsBelow";
 import { NotificationsWithSplitButtons } from "~/components/NotificationsWithSplitButtons";
-
 const meta: Meta = {
   title: "Application UI/Overlays/Notifications",
 };
-
 export default meta;
-
 export const Condensed: StoryObj = {
   render: () => <NotificationsCondensed />,
 };
-
 export const Simple: StoryObj = {
   render: () => <NotificationsSimple />,
 };
-
 export const WithActionsBelow: StoryObj = {
   render: () => <NotificationsWithActionsBelow />,
 };
-
 export const WithAvatar: StoryObj = {
   render: () => <NotificationsWithAvatar />,
 };
-
 export const WithButtonsBelow: StoryObj = {
   render: () => <NotificationsWithButtonsBelow />,
 };
-
 export const WithSplitButtons: StoryObj = {
   render: () => <NotificationsWithSplitButtons />,
 };

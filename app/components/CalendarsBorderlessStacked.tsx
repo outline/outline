@@ -3,7 +3,6 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import { Menu, Transition } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const days = [
   { date: "2021-12-27" },
   { date: "2021-12-28" },
@@ -61,7 +60,6 @@ const meetings = [
   },
   // More meetings...
 ];
-
 /**
  * Tailwind UI – calendars: borderless stacked.
  *

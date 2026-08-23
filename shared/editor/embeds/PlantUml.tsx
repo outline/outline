@@ -3,13 +3,11 @@ import Frame from "../components/Frame";
 import Image from "../components/Img";
 import type { EmbedProps as Props } from ".";
 import { useTheme } from "styled-components";
-
 function PlantUmlDiagrams({ matches, ...props }: Props) {
   const theme = useTheme();
   const mode = theme.isDark ? "dsvg" : "svg";
   const title = props.attrs.href.split("/uml/")[1];
   const finalUrl = `https://www.plantuml.com/plantuml/${mode}/${title}`;
-
   return (
     <Frame
       {...props}
@@ -27,5 +25,4 @@ function PlantUmlDiagrams({ matches, ...props }: Props) {
     />
   );
 }
-
 export default PlantUmlDiagrams;

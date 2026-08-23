@@ -7,7 +7,6 @@ import {
   ViewColumnsIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const items = [
   {
     title: "Create a List",
@@ -46,7 +45,6 @@ const items = [
     background: "bg-purple-500",
   },
 ];
-
 /**
  * Tailwind UI – empty states: with starting points.
  *

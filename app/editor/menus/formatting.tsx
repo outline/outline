@@ -25,8 +25,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import HighlightColorPicker from "../components/HighlightColorPicker";
-
-import { getDocumentHighlightColors } from "@shared/editor/queries/getDocumentHighlightColors";
+import { getNoteHighlightColors } from "@shared/editor/queries/getNoteHighlightColors";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInList } from "@shared/editor/queries/isInList";
 import { isListActive } from "@shared/editor/queries/isListActive";
@@ -38,7 +37,7 @@ import { t } from "i18next";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import {
   getColorSetForSelectedCells,
-  getDocumentTableBackgroundColors,
+  getNoteTableBackgroundColors,
   hasNodeAttrMarkCellSelection,
   hasNodeAttrMarkWithAttrsCellSelection,
   isMergedCellSelection,
@@ -48,7 +47,6 @@ import type { CellSelection } from "prosemirror-tables";
 import TableCell from "@shared/editor/nodes/TableCell";
 import Highlight from "@shared/editor/marks/Highlight";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
-
 /**
  * Returns menu items for the default formatting selection toolbar.
  *
@@ -68,25 +66,20 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
     isInList: isList,
     isTableCell,
   } = ctx;
-
   const highlight = getMarksBetween(
     state.selection.from,
     state.selection.to,
     state
   ).find(({ mark }) => mark.type === state.schema.marks.highlight);
-
   const cellSelectionHasBackground = isTableCell
     ? hasNodeAttrMarkCellSelection(
         state.selection as CellSelection,
         "background"
       )
     : false;
-
   const selectedCellsColorSet = getColorSetForSelectedCells(state.selection);
-
   const canFormatInline = !isInCodeBlock && (!isMobile || !isEmpty);
   const canFormatBlock = !isInCodeBlock && (!isMobile || isEmpty);
-
   return [
     {
       name: "placeholder",
@@ -139,13 +132,11 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
         ),
       visible: !isInCode && (!isMobile || !isEmpty) && isTableCell,
       children: (): MenuItem[] => {
-        const documentTableColors = getDocumentTableBackgroundColors(state);
-
-        const nonPresetDocumentColors = documentTableColors.filter(
+        const noteTableColors = getNoteTableBackgroundColors(state);
+        const nonPresetNoteColors = noteTableColors.filter(
           (color: string) =>
             !TableCell.isPresetColor(color) && !selectedCellsColorSet.has(color)
         );
-
         return [
           {
             name: "toggleCellSelectionBackgroundAndCollapseSelection",
@@ -183,7 +174,7 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
                 },
               ]
             : []),
-          ...nonPresetDocumentColors.map((color: string) => ({
+          ...nonPresetNoteColors.map((color: string) => ({
             name: "toggleCellSelectionBackgroundAndCollapseSelection",
             label: color,
             icon: <CircleIcon retainColor color={color} />,
@@ -228,14 +219,12 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
       active: () => !!highlight,
       visible: !isInCode && (!isMobile || !isEmpty) && !isTableCell,
       children: (): MenuItem[] => {
-        const documentHighlightColors = getDocumentHighlightColors(state);
-
+        const noteHighlightColors = getNoteHighlightColors(state);
         const currentHighlightColor = highlight?.mark.attrs.color;
-        const nonPresetDocumentColors = documentHighlightColors.filter(
+        const nonPresetNoteColors = noteHighlightColors.filter(
           (color: string) =>
             !Highlight.isPresetColor(color) && color !== currentHighlightColor
         );
-
         return [
           ...(highlight
             ? [
@@ -275,7 +264,7 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
                 },
               ]
             : []),
-          ...nonPresetDocumentColors.map((color: string) => ({
+          ...nonPresetNoteColors.map((color: string) => ({
             name: "highlight",
             label: color,
             icon: <CircleIcon retainColor color={color} />,

@@ -22,7 +22,7 @@ import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
-import Collections from "./components/Collections";
+import Notebooks from "./components/Notebooks";
 import { DraftsLink } from "./components/DraftsLink";
 import DragPlaceholder from "./components/DragPlaceholder";
 import { DismissableSidebarAction } from "./components/DismissableSidebarAction";
@@ -37,16 +37,14 @@ import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
 import useMobile from "~/hooks/useMobile";
-
 function AppSidebar() {
   const { t } = useTranslation();
-  const { documents, ui, collections } = useStores();
+  const { notes, ui, notebooks } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
   const history = useHistory();
   const isMobile = useMobile();
-
   const handleSearchClick = useCallback(() => {
     const basePath = searchPath();
     const { pathname, search } = history.location;
@@ -54,15 +52,12 @@ function AppSidebar() {
       history.push(basePath);
     }
   }, [history]);
-
   useEffect(() => {
-    void collections.fetchAll();
-
+    void notebooks.fetchAll();
     if (!user.isViewer) {
-      void documents.fetchDrafts();
+      void notes.fetchDrafts();
     }
-  }, [documents, collections, user.isViewer]);
-
+  }, [notes, notebooks, user.isViewer]);
   // Scrollable reads ref.current internally for its shadow/ResizeObserver
   // logic, so we must pass an object ref — a callback ref would leave those
   // reads undefined. We mirror the attached node into state so the
@@ -72,7 +67,6 @@ function AppSidebar() {
   useEffect(() => {
     setScrollArea(scrollRef.current);
   }, []);
-
   return (
     <Sidebar hidden={!ui.readyToShow}>
       <DragActiveProvider>
@@ -128,7 +122,7 @@ function AppSidebar() {
                   onClick={handleSearchClick}
                   onClickIntent={Scenes.Search.preload}
                 />
-                {can.createDocument && <DraftsLink />}
+                {can.createNote && <DraftsLink />}
                 <Section>
                   <Starred />
                 </Section>
@@ -136,15 +130,15 @@ function AppSidebar() {
                   <SharedWithMe />
                 </Section>
                 <Section>
-                  <Collections />
+                  <Notebooks />
                 </Section>
-                {can.createDocument && (
+                {can.createNote && (
                   <Section>
                     <ArchiveLink />
                   </Section>
                 )}
                 <Section>
-                  {can.createDocument && <TrashLink />}
+                  {can.createNote && <TrashLink />}
                   <DismissableSidebarAction
                     id="sidebar-import-hidden"
                     action={navigateToImport}
@@ -163,5 +157,4 @@ function AppSidebar() {
     </Sidebar>
   );
 }
-
 export default observer(AppSidebar);

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -22,7 +22,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
 import type { ChangeEvent } from "react";
-
 const projects = [
   {
     id: 1,
@@ -32,7 +31,6 @@ const projects = [
   },
   // More projects...
 ];
-
 const users = [
   {
     id: 1,
@@ -43,7 +41,6 @@ const users = [
   },
   // More users...
 ];
-
 /**
  * Tailwind UI – command palettes: with footer.
  *
@@ -53,7 +50,6 @@ export function CommandPalettesWithFooter() {
   const [open, setOpen] = useState(true);
   const [rawQuery, setRawQuery] = useState("");
   const query = rawQuery.toLowerCase().replace(/^[#>]/, "");
-
   const filteredProjects =
     rawQuery === "#"
       ? projects
@@ -62,14 +58,12 @@ export function CommandPalettesWithFooter() {
         : projects.filter((project) =>
             project.name.toLowerCase().includes(query)
           );
-
   const filteredUsers =
     rawQuery === ">"
       ? users
       : query === "" || rawQuery.startsWith("#")
         ? []
         : users.filter((user) => user.name.toLowerCase().includes(query));
-
   return (
     <Transition.Root
       show={open}

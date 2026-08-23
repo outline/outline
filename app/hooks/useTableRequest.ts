@@ -4,42 +4,34 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { FetchPageParams, PaginatedResponse } from "~/stores/base/Store";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import useRequest from "./useRequest";
-
 const INITIAL_OFFSET = 0;
 const PAGE_SIZE = 25;
-
 type Props<T> = {
   data: T[];
   sort: ColumnSort;
   reqFn: (params: FetchPageParams) => Promise<PaginatedResponse<T>>;
   reqParams: Omit<FetchPageParams, "offset" | "limit">;
 };
-
 type Response<T> = {
   data: T[] | undefined;
   error: unknown;
   loading: boolean;
   next: (() => void) | undefined;
 };
-
-export function useTableRequest<T extends { id: string }>({
-  data,
-  sort,
-  reqFn,
-  reqParams,
-}: Props<T>): Response<T> {
+export function useTableRequest<
+  T extends {
+    id: string;
+  },
+>({ data, sort, reqFn, reqParams }: Props<T>): Response<T> {
   const [total, setTotal] = useState<number>();
   const [offset, setOffset] = useState({ value: INITIAL_OFFSET });
   const prevParamsRef = useRef(reqParams);
   const sortRef = useRef<ColumnSort>(sort);
-
   const fetchPage = useCallback(
     () => reqFn({ ...reqParams, offset: offset.value, limit: PAGE_SIZE }),
     [reqFn, reqParams, offset]
   );
-
   const { request, loading, error } = useRequest(fetchPage);
-
   const nextPage = useCallback(
     () =>
       setOffset((prev) => ({
@@ -47,42 +39,33 @@ export function useTableRequest<T extends { id: string }>({
       })),
     []
   );
-
   const sortedData = data
     ? orderBy(data, sortRef.current.id, sortRef.current.desc ? "desc" : "asc")
     : undefined;
-
   const next =
     !loading && total && sortedData && sortedData.length < total
       ? nextPage
       : undefined;
-
   useEffect(() => {
     if (prevParamsRef.current !== reqParams) {
       prevParamsRef.current = reqParams;
       setOffset({ value: INITIAL_OFFSET });
       return;
     }
-
     let ignore = false;
-
     const handleRequest = async () => {
       const response = await request();
       if (!response || ignore) {
         return;
       }
-
       sortRef.current = sort; // Change sort once we receive a response from server - avoids flicker with stale data.
       setTotal(response[PAGINATION_SYMBOL]?.total);
     };
-
     void handleRequest();
-
     return () => {
       ignore = true;
     };
   }, [sort, reqParams, offset, request]);
-
   return {
     data: sortedData,
     error,

@@ -7,7 +7,6 @@
  */
 export const randomInteger = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1) + min);
-
 /**
  * Choose a random element from an array.
  *
@@ -16,7 +15,6 @@ export const randomInteger = (min: number, max: number) =>
  */
 export const randomElement = <T>(arr: T[]): T =>
   arr[randomInteger(0, arr.length - 1)];
-
 type RandomStringOptions = {
   /** The length of the output string. */
   length: number;
@@ -25,7 +23,6 @@ type RandomStringOptions = {
   /** The capitalization of the string. */
   capitalization?: "lowercase" | "uppercase" | "mixed";
 };
-
 /**
  * Generate a random string of a given length and charset.
  *
@@ -36,7 +33,6 @@ export const randomString = (options: number | RandomStringOptions) => {
   const lowercase = "abcdefghijklmnopqrstuvwxyz";
   const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const numeric = "0123456789";
-
   const length = typeof options === "number" ? options : options.length;
   const charset =
     typeof options === "number"
@@ -44,7 +40,6 @@ export const randomString = (options: number | RandomStringOptions) => {
       : options.charset || "alphanumeric";
   const capitalization =
     typeof options === "number" ? "mixed" : options.capitalization || "mixed";
-
   const chars =
     charset === "numeric"
       ? numeric
@@ -59,7 +54,6 @@ export const randomString = (options: number | RandomStringOptions) => {
           : capitalization === "uppercase"
             ? uppercase + numeric
             : lowercase + uppercase + numeric;
-
   const array = new Uint8Array(length);
   // oxlint-disable-next-line no-restricted-globals
   crypto.getRandomValues(array);

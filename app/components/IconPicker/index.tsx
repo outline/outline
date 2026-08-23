@@ -22,16 +22,12 @@ import EmojiPanel from "./components/EmojiPanel";
 import IconPanel from "./components/IconPanel";
 import { PopoverButton } from "./components/PopoverButton";
 import useStores from "~/hooks/useStores";
-
 const TAB_NAMES = {
   Icon: "icon",
   Emoji: "emoji",
 } as const;
-
 type TabName = (typeof TAB_NAMES)[keyof typeof TAB_NAMES];
-
 const POPOVER_WIDTH = 408;
-
 type Props = {
   icon: string | null;
   color: string;
@@ -46,7 +42,6 @@ type Props = {
   onClose?: () => void;
   children?: React.ReactNode;
 };
-
 const IconPicker = ({
   icon,
   color,
@@ -65,32 +60,25 @@ const IconPicker = ({
   const { emojis } = useStores();
   const { width: windowWidth } = useWindowSize();
   const isMobile = useMobile();
-
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [chosenColor, setChosenColor] = React.useState(color);
-
   const iconType = determineIconType(icon);
   const defaultTab = React.useMemo(
     () =>
       iconType === IconType.Emoji ? TAB_NAMES["Emoji"] : TAB_NAMES["Icon"],
     [iconType]
   );
-
   const [activeTab, setActiveTab] = React.useState<TabName>(defaultTab);
-
   // The Drawer's inner content has 6px padding on each side; subtract it
   // so the panel doesn't overflow horizontally and itemsPerRow is correct.
   const popoverWidth = isMobile ? windowWidth - 12 : POPOVER_WIDTH;
-
   const handleTabChange = React.useCallback((value: string) => {
     setActiveTab(value as TabName);
   }, []);
-
   const resetDefaultTab = React.useCallback(() => {
     setActiveTab(defaultTab);
   }, [defaultTab]);
-
   const handleOpenChange = React.useCallback(
     (isOpen: boolean) => {
       setOpen(isOpen);
@@ -104,7 +92,6 @@ const IconPicker = ({
     },
     [onOpen, onClose, resetDefaultTab]
   );
-
   const handleIconChange = React.useCallback(
     (ic: string) => {
       const icType = determineIconType(ic);
@@ -113,11 +100,9 @@ const IconPicker = ({
     },
     [onChange, chosenColor]
   );
-
   const handleIconColorChange = React.useCallback(
     (c: string) => {
       setChosenColor(c);
-
       const icType = determineIconType(icon);
       if (icType === IconType.SVG) {
         onChange(icon, c);
@@ -125,12 +110,10 @@ const IconPicker = ({
     },
     [icon, onChange]
   );
-
   const handleIconRemove = React.useCallback(() => {
     setOpen(false);
     onChange(null, null);
   }, [setOpen, onChange]);
-
   const pickerTrigger = (
     <PopoverButton
       aria-label={t("Show menu")}
@@ -147,7 +130,6 @@ const IconPicker = ({
       )}
     </PopoverButton>
   );
-
   const pickerContent = (
     <Content
       open={open}
@@ -164,18 +146,15 @@ const IconPicker = ({
       onIconRemove={handleIconRemove}
     />
   );
-
   // Update selected tab when default tab changes
   React.useEffect(() => {
     setActiveTab(defaultTab);
   }, [defaultTab]);
-
   React.useEffect(() => {
     if (open) {
       void emojis.fetchAll();
     }
   }, [open, emojis]);
-
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={setOpen}>
@@ -186,7 +165,6 @@ const IconPicker = ({
       </Drawer>
     );
   }
-
   return (
     <Popover open={open} onOpenChange={handleOpenChange} modal={true}>
       <PopoverTrigger>{pickerTrigger}</PopoverTrigger>
@@ -203,7 +181,6 @@ const IconPicker = ({
     </Popover>
   );
 };
-
 type ContentProps = {
   open: boolean;
   activeTab: TabName;
@@ -218,7 +195,6 @@ type ContentProps = {
   onIconColorChange: (color: string) => void;
   onIconRemove: () => void;
 };
-
 const Content = ({
   open,
   activeTab,
@@ -234,7 +210,6 @@ const Content = ({
   onIconRemove,
 }: ContentProps) => {
   const { t } = useTranslation();
-
   return (
     <Tabs.Root value={activeTab} onValueChange={onTabChange}>
       <TabActionsWrapper justify="space-between" align="center">
@@ -282,7 +257,6 @@ const Content = ({
     </Tabs.Root>
   );
 };
-
 const StyledSmileyIcon = styled(SmileyIcon)`
   flex-shrink: 0;
 
@@ -290,7 +264,6 @@ const StyledSmileyIcon = styled(SmileyIcon)`
     display: none;
   }
 `;
-
 const RemoveButton = styled(NudeButton)`
   width: auto;
   font-weight: 500;
@@ -302,13 +275,13 @@ const RemoveButton = styled(NudeButton)`
     color: ${s("textSecondary")};
   }
 `;
-
 const TabActionsWrapper = styled(Flex)`
   padding-left: 12px;
   border-bottom: 1px solid ${s("inputBorder")};
 `;
-
-const StyledTab = styled(Tabs.Trigger)<{ $active: boolean }>`
+const StyledTab = styled(Tabs.Trigger)<{
+  $active: boolean;
+}>`
   position: relative;
   font-weight: 500;
   font-size: 14px;
@@ -338,10 +311,8 @@ const StyledTab = styled(Tabs.Trigger)<{ $active: boolean }>`
       }
     `}
 `;
-
 const StyledTabContent = styled(Tabs.Content)`
   height: 410px;
   overflow-y: auto;
 `;
-
 export default React.memo(IconPicker);

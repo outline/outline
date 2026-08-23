@@ -33,7 +33,6 @@ import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
 import Input from "./Input";
 import { MenuHeader } from "~/components/primitives/components/Menu";
-
 export type Props<T extends MenuItem = MenuItem> = {
   rtl: boolean;
   isActive: boolean;
@@ -60,16 +59,13 @@ export type Props<T extends MenuItem = MenuItem> = {
   filterable?: boolean;
   items: T[];
 };
-
 /** Incrementing counter used to generate unique, stable ids per menu instance. */
 let menuInstanceCounter = 0;
-
 interface SubmenuState {
   index: number;
   items: MenuItem[];
   selectedIndex: number;
 }
-
 interface UseSuggestionsMenuAriaProps {
   view: EditorView;
   isActive: boolean;
@@ -78,7 +74,6 @@ interface UseSuggestionsMenuAriaProps {
   activeItem?: MenuItem | EmbedDescriptor;
   submenu: SubmenuState | null;
 }
-
 function useSuggestionsMenuAria({
   view,
   isActive,
@@ -104,7 +99,6 @@ function useSuggestionsMenuAria({
     (index: number) => `${submenuListboxId}-option-${index}`,
     [submenuListboxId]
   );
-
   // Expose the suggestion list to assistive technology using the editable
   // combobox pattern: DOM focus stays in the editor while the active option is
   // communicated via aria-activedescendant. aria-owns associates the portaled
@@ -116,7 +110,6 @@ function useSuggestionsMenuAria({
       if (!owns?.split(" ").includes(listboxId)) {
         return;
       }
-
       dom.removeAttribute("aria-owns");
       dom.removeAttribute("aria-controls");
       dom.removeAttribute("aria-activedescendant");
@@ -125,17 +118,14 @@ function useSuggestionsMenuAria({
       dom.removeAttribute("aria-autocomplete");
       dom.setAttribute("role", "textbox");
     };
-
     if (!isActive || isMobile) {
       removeOwnedAttributes();
       return;
     }
-
     dom.setAttribute("role", "combobox");
     dom.setAttribute("aria-expanded", "true");
     dom.setAttribute("aria-haspopup", "listbox");
     dom.setAttribute("aria-autocomplete", "list");
-
     if (submenu) {
       const owns = `${listboxId} ${submenuListboxId}`;
       dom.setAttribute("aria-owns", owns);
@@ -153,7 +143,6 @@ function useSuggestionsMenuAria({
         dom.removeAttribute("aria-activedescendant");
       }
     }
-
     return () => {
       removeOwnedAttributes();
     };
@@ -169,7 +158,6 @@ function useSuggestionsMenuAria({
     submenuOptionId,
     view,
   ]);
-
   return {
     listboxId,
     submenuListboxId,
@@ -177,17 +165,22 @@ function useSuggestionsMenuAria({
     submenuOptionId,
   };
 }
-
 function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const { view, commands, props: editorProps } = useEditor();
   const { t } = useTranslation();
   const isMobile = useMobile();
-  const pointerRef = React.useRef<{ clientX: number; clientY: number }>({
+  const pointerRef = React.useRef<{
+    clientX: number;
+    clientY: number;
+  }>({
     clientX: 0,
     clientY: 0,
   });
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const selectionRef = React.useRef<{ from: number; to: number } | null>(null);
+  const selectionRef = React.useRef<{
+    from: number;
+    to: number;
+  } | null>(null);
   const [insertItem, setInsertItem] = React.useState<
     MenuItem | EmbedDescriptor
   >();
@@ -196,23 +189,19 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const itemRefs = React.useRef<Map<number, HTMLElement>>(new Map());
   const submenuContentRef = React.useRef<HTMLDivElement>(null);
   const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
-
   // Stores the caret bounding rect, snapshotted when the menu opens
   const caretRectRef = React.useRef(new DOMRect());
-
   // Stable virtual element for Radix PopoverAnchor – never replaced so the
   // popper does not trigger unnecessary anchor-change cycles.
   const caretRef = React.useRef({
     getBoundingClientRect: () => caretRectRef.current,
   });
-
   // Compute and store the caret rect during render so it is available before
   // the Radix popper effect runs for the first time.
   const caretRect = React.useMemo(() => {
     if (!props.isActive) {
       return new DOMRect();
     }
-
     try {
       const { selection } = view.state;
       const fromPos = view.coordsAtPos(selection.from);
@@ -227,14 +216,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       return new DOMRect();
     }
   }, [props.isActive, view]);
-
   caretRectRef.current = caretRect;
-
   const resolveChildren = (
     children: MenuItem["children"]
   ): MenuItem[] | undefined =>
     typeof children === "function" ? children() : children;
-
   React.useEffect(() => {
     if (props.isActive) {
       // Save the selection position when the menu opens and as the user types.
@@ -251,23 +237,18 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.isActive, props.search]);
-
   React.useEffect(() => {
     setSubmenu(null);
-
     if (!props.isActive) {
       return;
     }
-
     setSelectedIndex(0);
     setInsertItem(undefined);
   }, [props.isActive]);
-
   React.useEffect(() => {
     setSelectedIndex(0);
     setSubmenu(null);
   }, [props.search]);
-
   const handleClearSearch = React.useCallback(() => {
     const { state, dispatch } = view;
     const selection =
@@ -281,11 +262,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       selection.from
     );
     const trimTrigger = triggers.some((t) => poss.textContent.startsWith(t));
-
     if (!props.search && !trimTrigger) {
       return;
     }
-
     // clear search input
     dispatch(
       state.tr.insertText(
@@ -300,12 +279,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       )
     );
   }, [props.search, props.trigger, view, isMobile]);
-
   const restoreSelection = React.useCallback(() => {
     if (!isMobile) {
       return;
     }
-
     // Restore the saved selection position. On mobile, the editor selection may be
     // lost when the drawer opens or when tapping on menu items.
     if (selectionRef.current) {
@@ -313,21 +290,17 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       const { tr, doc } = view.state;
       const selection = TextSelection.create(doc, from, to);
       view.dispatch(tr.setSelection(selection));
-
       // Re-focus the editor post-click
       requestAnimationFrame(() => view.focus());
     }
   }, [isMobile, view]);
-
   const insertNode = React.useCallback(
     (item: MenuItem | EmbedDescriptor) => {
       restoreSelection();
       handleClearSearch();
-
       const command = item.name ? commands[item.name] : undefined;
       const attrs =
         typeof item.attrs === "function" ? item.attrs(view.state) : item.attrs;
-
       if (item.name === "noop") {
         if ("onClick" in item) {
           item.onClick?.();
@@ -341,20 +314,16 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         const { dispatch } = view;
         dispatch(view.state.tr.insertText(" "));
       }
-
       props.onClose();
     },
     [commands, handleClearSearch, props, restoreSelection, view]
   );
-
   const handleClickItem = React.useCallback(
     (item) => {
       if (item.disabled) {
         return;
       }
-
       props.onSelect?.(item);
-
       switch (item.name) {
         case "link":
           insertNode({
@@ -386,12 +355,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     },
     [editorProps, props, insertNode]
   );
-
   const close = React.useCallback(() => {
     props.onClose();
     view.focus();
   }, [props, view]);
-
   const handleLinkInputKeydown = (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => {
@@ -404,19 +371,15 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     if (!insertItem) {
       return;
     }
-
     if (event.key === "Enter") {
       event.preventDefault();
       event.stopPropagation();
-
       const href = event.currentTarget.value;
       const matches = "matcher" in insertItem && insertItem.matcher(href);
-
       if (!matches) {
         toast.error(t("Sorry, that link won’t work for this embed type"));
         return;
       }
-
       insertNode({
         name: "embed",
         attrs: {
@@ -424,13 +387,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         },
       });
     }
-
     if (event.key === "Escape") {
       props.onClose();
       view.focus();
     }
   };
-
   const handleLinkInputPaste = (
     event: React.ClipboardEvent<HTMLInputElement>
   ) => {
@@ -440,14 +401,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     if (!insertItem) {
       return;
     }
-
     const href = event.clipboardData.getData("text/plain");
     const matches = "matcher" in insertItem && insertItem.matcher(href);
-
     if (matches) {
       event.preventDefault();
       event.stopPropagation();
-
       insertNode({
         name: "embed",
         attrs: {
@@ -456,7 +414,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       });
     }
   };
-
   const triggerFilePick = (accept: string, attrs?: Record<string, unknown>) => {
     if (inputRef.current) {
       if (accept) {
@@ -468,16 +425,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       inputRef.current.click();
     }
   };
-
   const triggerLinkInput = (item: MenuItem) => {
     setInsertItem(item);
   };
-
   const handleFilesPicked = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     restoreSelection();
-
     const {
       uploadFile,
       onFileUploadStart,
@@ -489,13 +443,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     const attrs = event.currentTarget.dataset.attrs
       ? JSON.parse(event.currentTarget.dataset.attrs)
       : undefined;
-
     handleClearSearch();
-
     if (!uploadFile) {
       throw new Error("uploadFile prop is required to replace files");
     }
-
     if (parent) {
       await insertFiles(view, event, parent.pos, files, {
         uploadFile,
@@ -507,19 +458,15 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         attrs,
       });
     }
-
     if (inputRef.current) {
       inputRef.current.value = "";
     }
-
     props.onClose();
   };
-
   const filtered = React.useMemo(() => {
     const { embeds = [], search = "", uploadFile, filterable = true } = props;
     let items: (EmbedDescriptor | MenuItem)[] = [...props.items];
     const embedItems: EmbedDescriptor[] = [];
-
     for (const embed of embeds) {
       if (embed.title && embed.visible !== false && !embed.disabled) {
         embedItems.push(
@@ -527,7 +474,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         );
       }
     }
-
     if (embedItems.length) {
       items = items.concat(
         {
@@ -536,14 +482,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         embedItems
       );
     }
-
     const searchInput = search.toLowerCase();
-
     const matchesSearch = (item: MenuItem | EmbedDescriptor) =>
       (item.name || "").toLocaleLowerCase().includes(searchInput) ||
       (item.title || "").toLocaleLowerCase().includes(searchInput) ||
       (item.keywords || "").toLocaleLowerCase().includes(searchInput);
-
     // When searching, flatten matching children into the top-level list so
     // they are directly navigable with the keyboard. If all children match,
     // exclude the parent item since it would be redundant.
@@ -569,20 +512,16 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       }
       items = items.concat(flattened);
     }
-
     const filtered = items.filter((item) => {
       if (item.name === "separator") {
         return true;
       }
-
       if (fullyFlattenedParents.has(item)) {
         return false;
       }
-
       if (item.visible === false) {
         return false;
       }
-
       // Some extensions may be disabled, remove corresponding menu items
       if (
         item.name &&
@@ -592,24 +531,19 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       ) {
         return false;
       }
-
       // If no image upload callback has been passed, filter the image block out
       if (!uploadFile && item.name === "image") {
         return false;
       }
-
       // some items (defaultHidden) are not visible until a search query exists
       if (!search) {
         return !item.defaultHidden;
       }
-
       if (!filterable) {
         return item;
       }
-
       return matchesSearch(item);
     });
-
     return filterExcessSeparators(
       orderBy(
         filtered.map((item) => ({
@@ -629,7 +563,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       ).map(({ item }) => item)
     );
   }, [commands, props]);
-
   const openSubmenu = React.useCallback(
     (index: number) => {
       const item = filtered[index];
@@ -642,7 +575,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       if (!children?.length) {
         return;
       }
-
       const normalized = filterExcessSeparators(
         children.filter((child) => child.visible !== false)
       );
@@ -653,7 +585,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       if (firstSelectable === -1) {
         return;
       }
-
       setSubmenu({
         index,
         items: normalized,
@@ -662,7 +593,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     },
     [filtered]
   );
-
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.isComposing) {
@@ -671,12 +601,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       if (!props.isActive) {
         return;
       }
-
       // Let the link input's own handlers manage navigation keys
       if (insertItem) {
         return;
       }
-
       // --- Submenu open: route keys into it ---
       if (submenu) {
         if (event.key === "ArrowDown" || (event.ctrlKey && event.key === "n")) {
@@ -699,7 +627,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           }
           return;
         }
-
         if (event.key === "ArrowUp" || (event.ctrlKey && event.key === "p")) {
           event.preventDefault();
           event.stopPropagation();
@@ -719,14 +646,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           }
           return;
         }
-
         if (event.key === "ArrowLeft" || event.key === "Escape") {
           event.preventDefault();
           event.stopPropagation();
           setSubmenu(null);
           return;
         }
-
         if (event.key === "Enter") {
           event.preventDefault();
           event.stopPropagation();
@@ -739,13 +664,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         }
         return;
       }
-
       // --- Normal (no submenu) ---
       if (event.key === "Enter") {
         event.preventDefault();
-
         const item = filtered[selectedIndex];
-
         if (item) {
           const children = resolveChildren(
             "children" in item ? item.children : undefined
@@ -759,7 +681,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           props.onClose(true);
         }
       }
-
       if (event.key === "ArrowRight") {
         const item = filtered[selectedIndex];
         if (item) {
@@ -774,7 +695,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           }
         }
       }
-
       if (
         event.key === "ArrowUp" ||
         (event.key === "Tab" && event.shiftKey) ||
@@ -782,7 +702,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       ) {
         event.preventDefault();
         event.stopPropagation();
-
         if (filtered.length) {
           let prevIndex = selectedIndex - 1;
           while (prevIndex >= 0) {
@@ -802,7 +721,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           close();
         }
       }
-
       if (
         event.key === "ArrowDown" ||
         (event.key === "Tab" && !event.shiftKey) ||
@@ -810,7 +728,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       ) {
         event.preventDefault();
         event.stopPropagation();
-
         if (filtered.length) {
           const total = filtered.length - 1;
           let nextIndex = selectedIndex + 1;
@@ -831,17 +748,14 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           close();
         }
       }
-
       if (event.key === "Escape") {
         event.preventDefault();
         close();
       }
     };
-
     window.addEventListener("keydown", handleKeyDown, {
       capture: true,
     });
-
     return () => {
       window.removeEventListener("keydown", handleKeyDown, {
         capture: true,
@@ -857,7 +771,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     selectedIndex,
     submenu,
   ]);
-
   const { isActive, uploadFile } = props;
   const items = filtered;
   const { listboxId, submenuListboxId, optionId, submenuOptionId } =
@@ -869,7 +782,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       activeItem: filtered[selectedIndex],
       submenu,
     });
-
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
       if (!open) {
@@ -878,7 +790,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     },
     [close]
   );
-
   const fileInput = uploadFile && (
     <VisuallyHidden.Root>
       <label>
@@ -892,14 +803,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       </label>
     </VisuallyHidden.Root>
   );
-
   // Close submenu when parent selection moves away from the trigger
   React.useEffect(() => {
     if (submenu && submenu.index !== selectedIndex) {
       setSubmenu(null);
     }
   }, [selectedIndex, submenu]);
-
   // Cleanup hover timer on unmount
   React.useEffect(
     () => () => {
@@ -909,10 +818,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     },
     []
   );
-
   const renderItems = () => {
     let prevHeading: string | undefined;
-
     return (
       <>
         {items.map((item, index) => {
@@ -923,15 +830,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               </ListItem>
             );
           }
-
           if (!item.title) {
             return null;
           }
-
           const hasChildren = !!(
             "children" in item && resolveChildren(item.children)?.length
           );
-
           const handlePointerMove = (ev: React.PointerEvent) => {
             if (
               !("disabled" in item && item.disabled) &&
@@ -947,7 +851,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               clientX: ev.clientX,
               clientY: ev.clientY,
             };
-
             // Hover to open submenu with delay
             if (hasChildren) {
               if (hoverTimerRef.current) {
@@ -964,7 +867,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               setSubmenu(null);
             }
           };
-
           const handlePointerDown = () => {
             if (
               !("disabled" in item && item.disabled) &&
@@ -973,7 +875,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               setSelectedIndex(index);
             }
           };
-
           const handleOnClick = (ev: React.MouseEvent) => {
             ev.preventDefault();
             ev.stopPropagation();
@@ -983,10 +884,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               handleClickItem(item);
             }
           };
-
           const currentHeading =
             "section" in item ? item.section?.({ t }) : undefined;
-
           const itemRef = (node: HTMLElement | null) => {
             if (node) {
               itemRefs.current.set(index, node);
@@ -994,7 +893,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               itemRefs.current.delete(index);
             }
           };
-
           const response = (
             <React.Fragment key={`${index}-${item.name}`}>
               {currentHeading !== prevHeading && (
@@ -1021,7 +919,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               </ListItem>
             </React.Fragment>
           );
-
           prevHeading = currentHeading;
           return response;
         })}
@@ -1033,7 +930,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       </>
     );
   };
-
   if (isMobile) {
     return (
       <>
@@ -1077,7 +973,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       </>
     );
   }
-
   return (
     <>
       <Popover open={isActive} onOpenChange={handleOpenChange} modal={false}>
@@ -1166,7 +1061,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                 if (!child.title) {
                   return null;
                 }
-
                 const handleChildPointerMove = (ev: React.PointerEvent) => {
                   if (
                     submenu.selectedIndex !== childIndex &&
@@ -1182,14 +1076,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                     clientY: ev.clientY,
                   };
                 };
-
                 const handleChildClick = (ev: React.MouseEvent) => {
                   ev.preventDefault();
                   ev.stopPropagation();
                   handleClickItem(child);
                   setSubmenu(null);
                 };
-
                 return (
                   <ListItem
                     key={`sub-${childIndex}-${child.name}`}
@@ -1215,34 +1107,28 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     </>
   );
 }
-
 const bouncyFadeIn = keyframes`
   from {
     opacity: 0;
     transform: scale(0.95);
   }
 `;
-
 const BouncyPopoverContent = styled(PopoverContent)`
   &[data-state="open"] {
     animation: ${bouncyFadeIn} 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 `;
-
 const SubmenuPopoverContent = styled(PopoverContent)`
   max-height: min(324px, var(--radix-popover-content-available-height));
 `;
-
 const LinkInputWrapper = styled.div`
   margin: 8px;
 `;
-
 const LinkInput = styled(Input)`
   height: 32px;
   width: 100%;
   color: ${s("textSecondary")};
 `;
-
 const List = styled.ol`
   list-style: none;
   text-align: left;
@@ -1257,12 +1143,10 @@ const List = styled.ol`
     border-top: 1px solid ${s("divider")};
   }
 `;
-
 const ListItem = styled.li`
   padding: 0;
   margin: 0;
 `;
-
 const Empty = styled.div`
   display: flex;
   align-items: center;
@@ -1272,9 +1156,7 @@ const Empty = styled.div`
   height: 32px;
   padding: 0 16px;
 `;
-
 const MobileScrollable = styled(Scrollable)`
   max-height: 75vh;
 `;
-
 export default SuggestionsMenu;

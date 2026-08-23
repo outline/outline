@@ -7,7 +7,6 @@ import {
   td,
 } from "@shared/test/editor";
 import { sortTable } from "./table";
-
 /**
  * Builds a table document from a 2D array of cell strings (rows of columns),
  * runs sortTable on the given column, and returns the resulting rows as a 2D
@@ -23,11 +22,9 @@ function runSort(
   ]);
   // place the selection inside the first cell of the table
   let state = createEditorStateWithSelection(testDoc, 4);
-
   sortTable({ index, direction })(state, (tx) => {
     state = state.apply(tx);
   });
-
   const resultTable = state.doc.firstChild as Node;
   const rows: string[][] = [];
   resultTable.forEach((row) => {
@@ -37,7 +34,6 @@ function runSort(
   });
   return rows;
 }
-
 describe("sortTable", () => {
   it("sorts a text column ascending and descending", () => {
     const data = [["banana"], ["apple"], ["cherry"]];
@@ -52,7 +48,6 @@ describe("sortTable", () => {
       ["apple"],
     ]);
   });
-
   it("sorts IP addresses octet-wise within a subnet", () => {
     const data = [["192.168.69.10"], ["192.168.69.9"], ["192.168.69.2"]];
     expect(runSort(data, 0, "asc")).toEqual([
@@ -61,7 +56,6 @@ describe("sortTable", () => {
       ["192.168.69.10"],
     ]);
   });
-
   it("sorts IP addresses octet-wise across subnets", () => {
     const data = [["192.168.150.10"], ["192.168.69.20"], ["10.0.0.1"]];
     expect(runSort(data, 0, "asc")).toEqual([
@@ -70,13 +64,11 @@ describe("sortTable", () => {
       ["192.168.150.10"],
     ]);
   });
-
   it("keeps empty cells last in both directions", () => {
     const data = [["b"], [""], ["a"], ["c"]];
     expect(runSort(data, 0, "asc")).toEqual([["a"], ["b"], ["c"], [""]]);
     expect(runSort(data, 0, "desc")).toEqual([["c"], ["b"], ["a"], [""]]);
   });
-
   it("is stable so sorts can be chained into a multi-key order", () => {
     // Inventory of [VLAN, IP]. First sort by the secondary key (IP), then by
     // the primary key (VLAN). A stable sort must preserve the IP order within
@@ -88,10 +80,8 @@ describe("sortTable", () => {
       ["10", "192.168.10.20"],
       ["10", "192.168.10.3"],
     ];
-
     const byIP = runSort(inventory, 1, "asc");
     const byVlanThenIP = runSort(byIP, 0, "asc");
-
     expect(byVlanThenIP).toEqual([
       ["10", "192.168.10.3"],
       ["10", "192.168.10.5"],

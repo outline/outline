@@ -19,18 +19,15 @@ import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 import { Menu, MenuTrigger } from "~/components/primitives/Menu";
 import { useTranslation } from "react-i18next";
 import EventBoundary from "@shared/components/EventBoundary";
-
 type Props = {
   items: MenuItem[];
 };
-
 type ToolbarDropdownProps = {
   active: boolean;
   item: MenuItem;
   tooltip?: string;
   shortcut?: string;
 };
-
 /**
  * Renders a dropdown menu in the floating toolbar.
  */
@@ -40,16 +37,13 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
   const { item, shortcut, tooltip } = props;
   const { state } = view;
   const [isOpen, setIsOpen] = useState<boolean>(false);
-
   const handleOpenChange = useCallback((open: boolean) => {
     setIsOpen(open);
   }, []);
-
   const items: TMenuItem[] = useMemo(() => {
     if (!isOpen) {
       return [];
     }
-
     const resolvedItemChildren =
       typeof item.children === "function" ? item.children() : item.children;
     return resolvedItemChildren
@@ -59,11 +53,9 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
     // opens, recomputing on every transaction would rebuild the open menu.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, commands]);
-
   const handleCloseAutoFocus = useCallback((ev: Event) => {
     ev.stopImmediatePropagation();
   }, []);
-
   return (
     <Tooltip shortcut={shortcut} content={tooltip} disabled={isOpen}>
       <MenuProvider variant="dropdown">
@@ -89,23 +81,19 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
     </Tooltip>
   );
 }
-
 function ToolbarMenu(props: Props) {
   const { commands, view } = useEditor();
   const { items } = props;
   const { state } = view;
-
   const handleClick = (item: MenuItem) => () => {
     if (!item.name) {
       return;
     }
-
     // if item has an associated onClick prop, run it
     if (item.onClick) {
       item.onClick();
       return;
     }
-
     // otherwise, run the associated editor command
     closeHistory(view);
     commands[item.name](
@@ -113,7 +101,6 @@ function ToolbarMenu(props: Props) {
     );
     closeHistory(view);
   };
-
   return (
     <TooltipProvider>
       <Toolbar.Root asChild>
@@ -126,7 +113,6 @@ function ToolbarMenu(props: Props) {
               return null;
             }
             const isActive = item.active ? item.active(state) : false;
-
             if (item.children) {
               return (
                 <ToolbarDropdown
@@ -140,7 +126,6 @@ function ToolbarMenu(props: Props) {
                 />
               );
             }
-
             return (
               <Tooltip
                 key={index}
@@ -170,7 +155,6 @@ function ToolbarMenu(props: Props) {
     </TooltipProvider>
   );
 }
-
 const FlexibleWrapper = styled.div`
   color: ${s("textSecondary")};
   overflow: hidden;
@@ -187,11 +171,9 @@ const FlexibleWrapper = styled.div`
     ${hideScrollbars()}
   `}
 `;
-
 const Label = styled.span`
   font-size: 15px;
   font-weight: 500;
   color: ${s("text")};
 `;
-
 export default ToolbarMenu;

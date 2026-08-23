@@ -13,7 +13,6 @@ import SkipNavContent from "~/components/SkipNavContent";
 import SkipNavLink from "~/components/SkipNavLink";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
-
 type Props = {
   /** Main content to render in the layout. */
   children?: React.ReactNode;
@@ -24,7 +23,6 @@ type Props = {
   /** Whether the sidebar can be collapsed, defaults to true. */
   sidebarCanCollapse?: boolean;
 };
-
 const Layout = React.forwardRef(function Layout_(
   { title, children, sidebar, sidebarCanCollapse = true }: Props,
   ref: React.RefObject<HTMLDivElement>
@@ -34,7 +32,6 @@ const Layout = React.forwardRef(function Layout_(
   const sidebarCollapsed =
     !showSidebar || (ui.sidebarIsClosed && sidebarCanCollapse);
   const sidebarRight = useRightSidebarContent();
-
   return (
     <Container column auto ref={ref}>
       <Helmet>
@@ -72,21 +69,18 @@ const Layout = React.forwardRef(function Layout_(
     </Container>
   );
 });
-
 const Container = styled(Flex)`
   background: ${s("background")};
   position: relative;
   width: 100%;
   min-height: 100%;
 `;
-
 type ContentProps = {
   $isResizing?: boolean;
   $sidebarCollapsed?: boolean;
   $hasSidebar?: boolean;
   theme: DefaultTheme;
 };
-
 const Content = styled(Flex)<ContentProps>`
   margin: 0;
   transition: ${(props) =>
@@ -107,5 +101,4 @@ const Content = styled(Flex)<ContentProps>`
       `margin-inline-start: ${props.theme.sidebarCollapsedWidth}px;`}
   `};
 `;
-
 export default observer(Layout);

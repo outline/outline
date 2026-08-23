@@ -5,7 +5,6 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import stores from "~/stores";
-
 type IconProps = {
   /** The id of the comment thread this indicator represents. */
   commentId: string;
@@ -14,7 +13,6 @@ type IconProps = {
   /** Callback invoked when the indicator is hovered or unhovered. */
   onHover?: (commentId: string, hovered: boolean) => void;
 };
-
 const CommentGutterIcon = observer(function CommentGutterIcon({
   commentId,
   onClick,
@@ -22,7 +20,6 @@ const CommentGutterIcon = observer(function CommentGutterIcon({
 }: IconProps) {
   const count = stores.comments.inThread(commentId).length;
   const setHovered = (hovered: boolean) => onHover?.(commentId, hovered);
-
   return (
     <Icon
       type="button"
@@ -41,7 +38,6 @@ const CommentGutterIcon = observer(function CommentGutterIcon({
     </Icon>
   );
 });
-
 type Props = {
   /** The ids of the comment threads present on this line. */
   commentIds: string[];
@@ -50,7 +46,6 @@ type Props = {
   /** Callback invoked when an indicator is hovered, highlighting the mark. */
   onHoverCommentMark?: (commentId: string, hovered: boolean) => void;
 };
-
 /**
  * Renders the comment indicators shown in the gutter beside a line that
  * contains one or more unresolved comment marks.
@@ -77,7 +72,6 @@ export function CommentGutter({
     </Gutter>
   );
 }
-
 const Gutter = styled.div`
   position: absolute;
   inset-inline-start: calc(100% + ${EditorStyleHelper.padding}px);
@@ -89,7 +83,6 @@ const Gutter = styled.div`
   user-select: none;
   white-space: nowrap;
 `;
-
 const Icon = styled.button`
   display: inline-flex;
   align-items: center;

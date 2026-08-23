@@ -1,5 +1,4 @@
 import { CheckCircleIcon } from "@heroicons/react/20/solid";
-
 const tiers = [
   {
     name: "Basic",
@@ -46,7 +45,6 @@ const tiers = [
     ],
   },
 ];
-
 /**
  * Tailwind UI – pricing: three tiers with dividers.
  *

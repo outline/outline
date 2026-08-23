@@ -8,7 +8,7 @@ import styled from "styled-components";
 import { errToString } from "@shared/utils/error";
 import {
   AttachmentPreset,
-  CollectionPermission,
+  NotebookPermission,
   type ImportableIntegrationService,
 } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -24,7 +24,6 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 import { uploadFile } from "~/utils/files";
-
 type Props = {
   children: JSX.Element;
   /** The importable service to create an import for. */
@@ -33,17 +32,15 @@ type Props = {
   activeClassName?: string;
   onSubmit: () => void;
 };
-
 function DropToImport({ disabled, onSubmit, children, service }: Props) {
   const { t } = useTranslation();
   const { imports } = useStores();
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setImporting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [permission, setPermission] = useState<CollectionPermission | null>(
-    CollectionPermission.ReadWrite
+  const [permission, setPermission] = useState<NotebookPermission | null>(
+    NotebookPermission.ReadWrite
   );
-
   const handleFiles = (files: File[]) => {
     if (files.length > 1) {
       toast.error(t("Please choose a single file to import"));
@@ -51,21 +48,18 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
     }
     setFile(files[0]);
   };
-
   const handleStartImport = async () => {
     if (!file) {
       return;
     }
     setImporting(true);
     setUploadProgress(0);
-
     try {
       const attachment = await uploadFile(file, {
         name: file.name,
         preset: AttachmentPreset.WorkspaceImport,
         onProgress: (progress) => setUploadProgress(progress),
       });
-
       await imports.create(
         { service },
         {
@@ -73,7 +67,6 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
           permission: permission ?? undefined,
         }
       );
-
       onSubmit();
       toast.message(file.name, {
         description: t(
@@ -87,15 +80,12 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
       setUploadProgress(0);
     }
   };
-
   const handleRejection = useCallback(() => {
     toast.error(t("File not supported – please upload a valid ZIP file"));
   }, [t]);
-
   if (disabled) {
     return children;
   }
-
   return (
     <Flex gap={8} column>
       {isImporting && <LoadingIndicator />}
@@ -127,13 +117,13 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
       <div>
         <InputSelectPermission
           value={permission}
-          onChange={(value: CollectionPermission | typeof EmptySelectValue) => {
+          onChange={(value: NotebookPermission | typeof EmptySelectValue) => {
             setPermission(value === EmptySelectValue ? null : value);
           }}
         />
         <Text as="span" type="secondary">
           {t(
-            "Set the default permission level for collections created from the import"
+            "Set the default permission level for notebooks created from the import"
           )}
           .
         </Text>
@@ -150,13 +140,10 @@ function DropToImport({ disabled, onSubmit, children, service }: Props) {
     </Flex>
   );
 }
-
 const Icon = styled(NewDocumentIcon)`
   ${dropzoneIcon}
 `;
-
 const Container = styled(DropzoneContainer)`
   padding: 52px;
 `;
-
 export default observer(DropToImport);

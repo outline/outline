@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -25,7 +25,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { Listbox, Transition } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const activity = [
   {
     id: 1,
@@ -120,7 +119,6 @@ const moods = [
     bgColor: "bg-transparent",
   },
 ];
-
 /**
  * Tailwind UI – feeds: with comments.
  *
@@ -128,7 +126,6 @@ const moods = [
  */
 export function FeedsWithComments() {
   const [selected, setSelected] = useState(moods[5]);
-
   return (
     <>
       <ul role="list" className="space-y-6">

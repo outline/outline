@@ -5,28 +5,22 @@ import type { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
 import type { DefaultTheme } from "styled-components";
 import type { Primitive } from "utility-types";
-
 export type NodeWithPos = {
   pos: number;
   node: ProsemirrorNode;
 };
-
 export type PlainTextSerializer = (node: ProsemirrorNode) => string;
-
 /** The severity of a notice surfaced to the user from the editor. */
 export type EditorNoticeType = "info" | "success" | "warning" | "error";
-
 /**
  * Callback used by the editor to surface a short notice (e.g. a toast) to the
  * user. Provided by the host application so shared editor code stays agnostic
  * of any specific notification library.
  */
 export type EditorNotice = (message: string, type?: EditorNoticeType) => void;
-
 export enum TableLayout {
   fullWidth = "full-width",
 }
-
 /** How a selection toolbar menu is presented. */
 export enum MenuType {
   /** A horizontal strip of buttons; nested options open behind a trigger. */
@@ -34,9 +28,7 @@ export enum MenuType {
   /** A vertical menu rendered directly, anchored to the selection. */
   inline = "inline",
 }
-
 type Section = ({ t }: { t: TFunction }) => string;
-
 export type MenuItem = {
   icon?: React.ReactNode;
   name?: string;
@@ -66,7 +58,6 @@ export type MenuItem = {
   /** Condition to check before preventing the submenu from closing */
   preventCloseCondition?: () => boolean;
 };
-
 export type ComponentProps = {
   /** The current editor theme. */
   theme: DefaultTheme;
@@ -78,14 +69,13 @@ export type ComponentProps = {
   isSelected: boolean;
   /** Whether the editor is editable. */
   isEditable: boolean;
-  /** A function that returns the current position of the node in the document. */
+  /** A function that returns the current position of the node in the note. */
   getPos: () => number;
   /** The decorations applied to the node. */
   decorations: Decoration[];
   /** Ref callback marking the element that ProseMirror-managed content is mounted within. */
   contentRef?: (element: HTMLElement | null) => void;
 };
-
 export type NodeAttrMarkName =
   | "strong"
   | "em"
@@ -96,12 +86,10 @@ export type NodeAttrMarkName =
   | "underline"
   | "placeholder"
   | "comment";
-
 export interface NodeAttrMark {
   type: NodeAttrMarkName;
   attrs?: Record<string, unknown>;
 }
-
 /**
  * Cached selection state computed once per editor update and shared across
  * all menu functions. Avoids repeated queries against the same EditorState.
@@ -144,7 +132,6 @@ export interface SelectionContext {
   /** The selected row index when a row drag handle is active. */
   rowIndex: number | undefined;
 }
-
 /**
  * Describes a selection toolbar menu contributed by an extension. Extensions
  * return this from their `selectionToolbarMenu()` method so the toolbar can

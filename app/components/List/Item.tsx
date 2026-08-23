@@ -9,7 +9,6 @@ import styled, { useTheme } from "styled-components";
 import { s, hover, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NavLink from "~/components/NavLink";
-
 export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   /** An icon or image to display to the left of the list item */
   image?: React.ReactNode;
@@ -35,7 +34,6 @@ export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   keyboardNavigation?: boolean;
   enableEllipsis?: boolean;
 };
-
 const ListItem = (
   {
     image,
@@ -53,19 +51,16 @@ const ListItem = (
 ) => {
   const theme = useTheme();
   const compact = !subtitle;
-
   let itemRef: React.RefObject<HTMLAnchorElement> =
     React.useRef<HTMLAnchorElement>(null);
   if (ref) {
     itemRef = ref;
   }
-
   const { focused, ...rovingTabIndex } = useRovingTabIndex(
     itemRef,
     keyboardNavigation || to ? false : true
   );
   useFocusEffect(focused, itemRef);
-
   const handleFocus = React.useCallback(() => {
     if (itemRef.current) {
       scrollIntoView(itemRef.current, {
@@ -76,7 +71,6 @@ const ListItem = (
       });
     }
   }, [itemRef]);
-
   const content = (selected: boolean) => (
     <>
       {image && <Image>{image}</Image>}
@@ -101,7 +95,6 @@ const ListItem = (
       )}
     </>
   );
-
   if (to) {
     return (
       <Wrapper
@@ -136,7 +129,6 @@ const ListItem = (
       </Wrapper>
     );
   }
-
   return (
     <Wrapper
       ref={itemRef}
@@ -166,7 +158,6 @@ const ListItem = (
     </Wrapper>
   );
 };
-
 const Wrapper = styled.a<{
   $small?: boolean;
   $border?: boolean;
@@ -177,11 +168,9 @@ const Wrapper = styled.a<{
   display: flex;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
   min-height: 32px;
-  margin: ${(props) =>
-    props.$border === false ? (props.$small ? "8px 0" : "16px 0") : 0};
+  margin: ${(props) => (props.$border === false ? (props.$small ? "8px 0" : "16px 0") : 0)};
   border-bottom: 1px solid
-    ${(props) =>
-      props.$border === false ? "transparent" : props.theme.divider};
+    ${(props) => (props.$border === false ? "transparent" : props.theme.divider)};
 
   &:last-child {
     border-bottom: 0;
@@ -194,14 +183,11 @@ const Wrapper = styled.a<{
   &:${hover},
   &:focus,
   &:focus-within {
-    background: ${(props) =>
-      props.$hover ? props.theme.backgroundSecondary : "inherit"};
+    background: ${(props) => (props.$hover ? props.theme.backgroundSecondary : "inherit")};
   }
 
-  cursor: ${(props) =>
-    props.to || props.onClick ? "var(--pointer)" : "default"};
+  cursor: ${(props) => (props.to || props.onClick ? "var(--pointer)" : "default")};
 `;
-
 const Image = styled(Flex)`
   padding-inline-end: 8px;
   max-height: 32px;
@@ -211,34 +197,39 @@ const Image = styled(Flex)`
   align-self: center;
   color: ${s("text")};
 `;
-
-const Heading = styled.p<{ $small?: boolean; $ellipsis?: boolean }>`
+const Heading = styled.p<{
+  $small?: boolean;
+  $ellipsis?: boolean;
+}>`
   font-size: ${(props) => (props.$small ? 14 : 16)}px;
   font-weight: 500;
   ${(props) => (props.$ellipsis !== false ? ellipsis() : "")}
   line-height: ${(props) => (props.$small ? 1.3 : 1.2)};
   margin: 0;
 `;
-
-const Content = styled(Flex)<{ $selected: boolean }>`
+const Content = styled(Flex)<{
+  $selected: boolean;
+}>`
   flex-direction: column;
   flex-grow: 1;
   color: ${s("text")};
 `;
-
-const Subtitle = styled.p<{ $small?: boolean; $selected?: boolean }>`
+const Subtitle = styled.p<{
+  $small?: boolean;
+  $selected?: boolean;
+}>`
   margin: 0;
   font-size: ${(props) => (props.$small ? 13 : 14)}px;
   color: ${s("textTertiary")};
   margin-top: -2px;
   overflow-wrap: break-word;
 `;
-
-export const Actions = styled(Flex)<{ $selected?: boolean }>`
+export const Actions = styled(Flex)<{
+  $selected?: boolean;
+}>`
   align-self: center;
   justify-content: center;
   flex-shrink: 0;
   color: ${s("textSecondary")};
 `;
-
 export default React.forwardRef(ListItem);

@@ -5,17 +5,14 @@ import Route from "~/components/ProfiledRoute";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import { settingsPath } from "~/utils/routeHelpers";
 import { observer } from "mobx-react";
-
 const Application = lazy(() => import("~/scenes/Settings/Application"));
 const GroupMembers = lazy(() => import("~/scenes/Settings/GroupMembers"), {
   exportName: "GroupMembersScene",
 });
 const Template = lazy(() => import("~/scenes/Settings/Template"));
 const TemplateNew = lazy(() => import("~/scenes/Settings/TemplateNew"));
-
 function SettingsRoutes() {
   const configs = useSettingsConfig();
-
   return (
     <Switch>
       {configs.map((config) => (
@@ -57,5 +54,4 @@ function SettingsRoutes() {
     </Switch>
   );
 }
-
 export default observer(SettingsRoutes);

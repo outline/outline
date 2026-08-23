@@ -15,94 +15,87 @@ import { RevisionSection } from "~/actions/sections";
 import env from "~/env";
 import history from "~/utils/history";
 import {
-  documentHistoryPath,
-  matchDocumentHistory,
+  noteHistoryPath,
+  matchNoteHistory,
   urlify,
 } from "~/utils/routeHelpers";
-
 function getActiveRevisionId({ location, getActiveModel }: ActionContext) {
-  const match = matchPath<{ revisionId: string }>(location.pathname, {
-    path: matchDocumentHistory,
+  const match = matchPath<{
+    revisionId: string;
+  }>(location.pathname, {
+    path: matchNoteHistory,
   });
   return getActiveModel(Revision)?.id ?? match?.params.revisionId;
 }
-
 export const restoreRevision = createInternalLinkAction({
   name: ({ t }) => t("Restore"),
   analyticsName: "Restore revision",
   icon: <RestoreIcon />,
   section: RevisionSection,
   visible: (context) =>
-    !!context.activeDocumentId &&
-    stores.policies.abilities(context.activeDocumentId).update &&
+    !!context.activeNoteId &&
+    stores.policies.abilities(context.activeNoteId).update &&
     !!getActiveRevisionId(context),
   to: (context) => {
     const revisionId = getActiveRevisionId(context);
-    const document = context.activeDocumentId
-      ? stores.documents.get(context.activeDocumentId)
+    const note = context.activeNoteId
+      ? stores.notes.get(context.activeNoteId)
       : undefined;
-
-    if (!document || !revisionId) {
+    if (!note || !revisionId) {
       return context.location;
     }
-
     return {
-      pathname: document.url,
+      pathname: note.url,
       state: { restore: true, revisionId },
     };
   },
 });
-
 export const deleteRevision = createAction({
   name: ({ t }) => t("Delete"),
   analyticsName: "Delete revision",
   icon: <TrashIcon />,
   section: RevisionSection,
   dangerous: true,
-  visible: ({ activeDocumentId }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).update,
-  perform: async ({ t, event, location, activeDocumentId }) => {
+  visible: ({ activeNoteId }) =>
+    !!activeNoteId && stores.policies.abilities(activeNoteId).update,
+  perform: async ({ t, event, location, activeNoteId }) => {
     event?.preventDefault();
-    if (!activeDocumentId) {
+    if (!activeNoteId) {
       return;
     }
-
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
+    const note = stores.notes.get(activeNoteId);
+    if (!note) {
       return;
     }
-
-    const match = matchPath<{ revisionId: string }>(location.pathname, {
-      path: matchDocumentHistory,
+    const match = matchPath<{
+      revisionId: string;
+    }>(location.pathname, {
+      path: matchNoteHistory,
     });
     const revisionId = match?.params.revisionId;
     if (revisionId) {
       const revision = stores.revisions.get(revisionId);
       await revision?.delete();
       toast.success(t("This version of the document was deleted"));
-      history.push(documentHistoryPath(document));
+      history.push(noteHistoryPath(note));
     }
   },
 });
-
 export const copyLinkToRevisionActionFactory = (revisionId: string) =>
   createAction({
     name: ({ t }) => t("Copy link"),
     analyticsName: "Copy link to revision",
     icon: <LinkIcon />,
     section: RevisionSection,
-    perform: async ({ activeDocumentId, t }) => {
-      if (!activeDocumentId) {
+    perform: async ({ activeNoteId, t }) => {
+      if (!activeNoteId) {
         return;
       }
-
-      const document = stores.documents.get(activeDocumentId);
-      if (!document) {
+      const note = stores.notes.get(activeNoteId);
+      if (!note) {
         return;
       }
-
-      const url = urlify(documentHistoryPath(document, revisionId));
-
+      const url = urlify(noteHistoryPath(note, revisionId));
       copy(url, {
         format: "text/plain",
         onCopy: () => {
@@ -111,7 +104,6 @@ export const copyLinkToRevisionActionFactory = (revisionId: string) =>
       });
     },
   });
-
 export const downloadRevisionAsHTMLActionFactory = (revisionId: string) =>
   createAction({
     name: ({ t }) => t("HTML"),
@@ -120,15 +112,13 @@ export const downloadRevisionAsHTMLActionFactory = (revisionId: string) =>
     keywords: "html export",
     icon: <DownloadIcon />,
     iconInContextMenu: false,
-    visible: ({ activeDocumentId }) =>
-      !!activeDocumentId &&
-      stores.policies.abilities(activeDocumentId).download,
+    visible: ({ activeNoteId }) =>
+      !!activeNoteId && stores.policies.abilities(activeNoteId).download,
     perform: async () => {
       const revision = stores.revisions.get(revisionId);
       await revision?.download(ExportContentType.Html);
     },
   });
-
 export const downloadRevisionAsPDFActionFactory = (revisionId: string) =>
   createAction({
     name: ({ t }) => t("PDF"),
@@ -137,10 +127,10 @@ export const downloadRevisionAsPDFActionFactory = (revisionId: string) =>
     keywords: "export",
     icon: <DownloadIcon />,
     iconInContextMenu: false,
-    visible: ({ activeDocumentId }) =>
+    visible: ({ activeNoteId }) =>
       !!(
-        activeDocumentId &&
-        stores.policies.abilities(activeDocumentId).download &&
+        activeNoteId &&
+        stores.policies.abilities(activeNoteId).download &&
         env.PDF_EXPORT_ENABLED
       ),
     perform: ({ t }) => {
@@ -151,7 +141,6 @@ export const downloadRevisionAsPDFActionFactory = (revisionId: string) =>
         .finally(() => id && toast.dismiss(id));
     },
   });
-
 export const downloadRevisionAsMarkdownActionFactory = (revisionId: string) =>
   createAction({
     name: ({ t }) => t("Markdown"),
@@ -160,15 +149,13 @@ export const downloadRevisionAsMarkdownActionFactory = (revisionId: string) =>
     keywords: "md markdown export",
     icon: <DownloadIcon />,
     iconInContextMenu: false,
-    visible: ({ activeDocumentId }) =>
-      !!activeDocumentId &&
-      stores.policies.abilities(activeDocumentId).download,
+    visible: ({ activeNoteId }) =>
+      !!activeNoteId && stores.policies.abilities(activeNoteId).download,
     perform: async () => {
       const revision = stores.revisions.get(revisionId);
       await revision?.download(ExportContentType.Markdown);
     },
   });
-
 export const downloadRevisionActionFactory = (revisionId: string) =>
   createActionWithChildren({
     name: ({ t, isMenu }) => (isMenu ? t("Download") : t("Download revision")),
@@ -176,14 +163,12 @@ export const downloadRevisionActionFactory = (revisionId: string) =>
     section: RevisionSection,
     icon: <DownloadIcon />,
     keywords: "export",
-    visible: ({ activeDocumentId }) =>
-      !!activeDocumentId &&
-      stores.policies.abilities(activeDocumentId).download,
+    visible: ({ activeNoteId }) =>
+      !!activeNoteId && stores.policies.abilities(activeNoteId).download,
     children: [
       downloadRevisionAsHTMLActionFactory(revisionId),
       downloadRevisionAsPDFActionFactory(revisionId),
       downloadRevisionAsMarkdownActionFactory(revisionId),
     ],
   });
-
 export const rootRevisionActions = [];

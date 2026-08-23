@@ -12,18 +12,16 @@ import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useStores from "~/hooks/useStores";
 import LoadingIndicator from "../LoadingIndicator";
 import { CARD_MARGIN } from "./Components";
-import HoverPreviewDocument from "./HoverPreviewDocument";
+import HoverPreviewNote from "./HoverPreviewNote";
 import HoverPreviewGroup from "./HoverPreviewGroup";
 import HoverPreviewIssue from "./HoverPreviewIssue";
 import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
 import HoverPreviewProject from "./HoverPreviewProject";
 import HoverPreviewPullRequest from "./HoverPreviewPullRequest";
-
 const DELAY_CLOSE = 500;
 const POINTER_HEIGHT = 22;
 const POINTER_WIDTH = 22;
-
 type Props = {
   /** The HTML element that is being hovered over, or null if none. */
   element: HTMLElement | null;
@@ -34,12 +32,10 @@ type Props = {
   /** A callback on close of the hover preview. */
   onClose: () => void;
 };
-
 enum Direction {
   UP,
   DOWN,
 }
-
 const HoverPreviewDesktop = observer(
   ({ element, unfurlId, dataLoading, onClose }: Props) => {
     const { unfurls } = useStores();
@@ -53,23 +49,19 @@ const HoverPreviewDesktop = observer(
         isVisible,
       });
     const data = unfurlId ? unfurls.get(unfurlId)?.data : undefined;
-
     const closePreview = React.useCallback(() => {
       setVisible(false);
       onClose();
     }, [onClose]);
-
     const stopCloseTimer = React.useCallback(() => {
       if (timerClose.current) {
         clearTimeout(timerClose.current);
         timerClose.current = undefined;
       }
     }, []);
-
     const startCloseTimer = React.useCallback(() => {
       timerClose.current = setTimeout(closePreview, DELAY_CLOSE);
     }, [closePreview]);
-
     // Open and close the preview when the element changes.
     React.useEffect(() => {
       if (element && data && !dataLoading) {
@@ -78,41 +70,33 @@ const HoverPreviewDesktop = observer(
         startCloseTimer();
       }
     }, [startCloseTimer, element, data, dataLoading]);
-
     // Close the preview on Escape, scroll, or click outside.
     useOnClickOutside(cardRef, closePreview);
     useKeyDown("Escape", closePreview);
     useEventListener("scroll", closePreview, window, { capture: true });
-
     // Ensure that the preview stays open while the user is hovering over the card.
     React.useEffect(() => {
       const card = cardRef.current;
-
       if (isVisible) {
         if (card) {
           card.addEventListener("mouseenter", stopCloseTimer);
           card.addEventListener("mouseleave", startCloseTimer);
         }
       }
-
       return () => {
         if (card) {
           card.removeEventListener("mouseenter", stopCloseTimer);
           card.removeEventListener("mouseleave", startCloseTimer);
         }
-
         stopCloseTimer();
       };
     }, [element, startCloseTimer, isVisible, stopCloseTimer]);
-
     if (dataLoading) {
       return <LoadingIndicator />;
     }
-
     if (!data) {
       return null;
     }
-
     return (
       <Portal>
         <Position top={cardTop} left={cardLeft} aria-hidden>
@@ -161,8 +145,8 @@ const HoverPreviewDesktop = observer(
                   memberCount={data.memberCount}
                   users={data.users}
                 />
-              ) : data.type === UnfurlResourceType.Document ? (
-                <HoverPreviewDocument
+              ) : data.type === UnfurlResourceType.Note ? (
+                <HoverPreviewNote
                   ref={cardRef}
                   url={data.url}
                   id={data.id}
@@ -226,13 +210,11 @@ const HoverPreviewDesktop = observer(
     );
   }
 );
-
 function HoverPreview({ element, unfurlId, dataLoading, ...rest }: Props) {
   const isMobile = useMobile();
   if (isMobile) {
     return null;
   }
-
   return (
     <HoverPreviewDesktop
       {...rest}
@@ -242,7 +224,6 @@ function HoverPreview({ element, unfurlId, dataLoading, ...rest }: Props) {
     />
   );
 }
-
 function useHoverPosition({
   cardRef,
   element,
@@ -257,12 +238,10 @@ function useHoverPosition({
   const [pointerLeft, setPointerLeft] = React.useState(0);
   const [pointerTop, setPointerTop] = React.useState(0);
   const [pointerDir, setPointerDir] = React.useState(Direction.UP);
-
   React.useLayoutEffect(() => {
     if (isVisible && element && cardRef.current) {
       const elem = element.getBoundingClientRect();
       const card = cardRef.current.getBoundingClientRect();
-
       let cTop = elem.bottom + window.scrollY + CARD_MARGIN;
       let pTop = -POINTER_HEIGHT;
       let pDir = Direction.UP;
@@ -279,7 +258,6 @@ function useHoverPosition({
       setCardTop(cTop);
       setPointerTop(pTop);
       setPointerDir(pDir);
-
       let cLeft = elem.left;
       let pLeft = elem.width / 2;
       if (cLeft + card.width > window.innerWidth) {
@@ -288,7 +266,6 @@ function useHoverPosition({
         // shift a little further to leave some margin between card and window boundary
         shiftBy += CARD_MARGIN;
         cLeft -= shiftBy;
-
         // shift pointer rightwards by same amount so as to position it back correctly
         pLeft += shiftBy;
       }
@@ -296,17 +273,18 @@ function useHoverPosition({
       setPointerLeft(pLeft);
     }
   }, [isVisible, cardRef, element]);
-
   return { cardLeft, cardTop, pointerLeft, pointerTop, pointerDir };
 }
-
 const Animate = styled(m.div)`
   @media print {
     display: none;
   }
 `;
-
-const Position = styled.div<{ fixed?: boolean; top?: number; left?: number }>`
+const Position = styled.div<{
+  fixed?: boolean;
+  top?: number;
+  left?: number;
+}>`
   position: ${({ fixed }) => (fixed ? "fixed" : "absolute")};
   z-index: ${depths.hoverPreview};
   display: flex;
@@ -315,8 +293,11 @@ const Position = styled.div<{ fixed?: boolean; top?: number; left?: number }>`
   ${({ top }) => (top !== undefined ? `top: ${top}px` : "")};
   ${({ left }) => (left !== undefined ? `left: ${left}px` : "")};
 `;
-
-const Pointer = styled.div<{ top: number; left: number; direction: Direction }>`
+const Pointer = styled.div<{
+  top: number;
+  left: number;
+  direction: Direction;
+}>`
   top: ${(props) => props.top}px;
   left: ${(props) => props.left}px;
   width: ${POINTER_WIDTH}px;
@@ -352,5 +333,4 @@ const Pointer = styled.div<{ top: number; left: number; direction: Direction }>`
         : `border-top-color: ${theme.menuBackground}`};
   }
 `;
-
 export default HoverPreview;

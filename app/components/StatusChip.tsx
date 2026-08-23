@@ -1,9 +1,7 @@
 import styled from "styled-components";
 import { s } from "@shared/styles";
-
 /** Tones a status can be rendered in. */
 type Tone = "positive" | "pending" | "neutral" | "negative";
-
 const TONES: Record<string, Tone> = {
   active: "positive",
   paid: "positive",
@@ -31,8 +29,9 @@ const TONES: Record<string, Tone> = {
   refunded: "neutral",
   cancelled: "negative",
 };
-
-const Chip = styled.span<{ $tone: Tone }>`
+const Chip = styled.span<{
+  $tone: Tone;
+}>`
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
@@ -59,7 +58,6 @@ const Chip = styled.span<{ $tone: Tone }>`
           ? `${theme.danger}1a`
           : s("backgroundSecondary")({ theme })};
 `;
-
 /**
  * A status pill using the app's own theme colours, so pet store records read
  * the same as the rest of Outline rather than carrying their own palette.

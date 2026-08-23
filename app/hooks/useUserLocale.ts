@@ -1,5 +1,4 @@
 import useCurrentUser from "./useCurrentUser";
-
 /**
  * Returns the user's locale, or undefined if the user is not logged in.
  *

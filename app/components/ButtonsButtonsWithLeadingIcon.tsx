@@ -1,5 +1,4 @@
 import { CheckCircleIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – buttons: buttons with leading icon.
  *

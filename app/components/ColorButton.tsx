@@ -2,7 +2,6 @@ import * as React from "react";
 import styled, { css } from "styled-components";
 import NudeButton from "./NudeButton";
 import { hover, s } from "@shared/styles";
-
 type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** The current color value in hex format. If no color is passed a radial gradient will be shown */
   color?: string;
@@ -11,7 +10,6 @@ type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** The size of the button in pixels */
   size?: number;
 };
-
 export const ColorButton = React.forwardRef(
   (
     { color, active = false, size = 24, ...rest }: Props,
@@ -28,10 +26,8 @@ export const ColorButton = React.forwardRef(
     </ColorButtonInternal>
   )
 );
-
 /** Highlight for the hovered or selected swatch, falls back for the gradient. */
 const ring = css`2px solid var(--color, ${s("textTertiary")})`;
-
 const Selected = styled.span`
   width: 10px;
   height: 5px;
@@ -39,7 +35,6 @@ const Selected = styled.span`
   border-bottom: 2px solid white;
   transform: translateY(-25%) rotate(-45deg);
 `;
-
 const ColorButtonInternal = styled(NudeButton)<{
   $active: boolean;
   $size: number;

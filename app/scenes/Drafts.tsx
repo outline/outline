@@ -5,31 +5,29 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import type { DateFilter as TDateFilter } from "@shared/types";
-import CollectionFilter from "~/scenes/Search/components/CollectionFilter";
+import NotebookFilter from "~/scenes/Search/components/NotebookFilter";
 import { Action } from "~/components/Actions";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import InputSearchPage from "~/components/InputSearchPage";
-import PaginatedDocumentList from "~/components/PaginatedDocumentList";
+import PaginatedNoteList from "~/components/PaginatedNoteList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
 import useStores from "~/hooks/useStores";
-import NewDocumentMenu from "~/menus/NewDocumentMenu";
+import NewNoteMenu from "~/menus/NewNoteMenu";
 import DateFilter from "./Search/components/DateFilter";
-
 function Drafts() {
   const { t } = useTranslation();
-  const { documents } = useStores();
+  const { notes } = useStores();
   const history = useHistory();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const collectionId = params.get("collectionId") || undefined;
+  const notebookId = params.get("collectionId") || undefined;
   const dateFilter = (params.get("dateFilter") || undefined) as TDateFilter;
-
   const handleFilterChange = (search: {
     dateFilter?: string | null | undefined;
-    collectionId?: string | null | undefined;
+    notebookId?: string | null | undefined;
   }) => {
     history.replace({
       pathname: location.pathname,
@@ -41,13 +39,11 @@ function Drafts() {
       ),
     });
   };
-
-  const isFiltered = collectionId || dateFilter;
+  const isFiltered = notebookId || dateFilter;
   const options = {
     dateFilter,
-    collectionId,
+    notebookId,
   };
-
   return (
     <Scene
       icon={<DraftsIcon />}
@@ -55,7 +51,7 @@ function Drafts() {
       left={<InputSearchPage source="drafts" label={t("Search notes")} />}
       actions={
         <Action>
-          <NewDocumentMenu />
+          <NewNoteMenu />
         </Action>
       }
     >
@@ -63,11 +59,11 @@ function Drafts() {
       <Subheading sticky>
         {t("Notes")}
         <Filters>
-          <CollectionFilter
-            collectionId={collectionId}
-            onSelect={(collectionId) =>
+          <NotebookFilter
+            notebookId={notebookId}
+            onSelect={(notebookId) =>
               handleFilterChange({
-                collectionId,
+                notebookId,
               })
             }
           />
@@ -82,7 +78,7 @@ function Drafts() {
         </Filters>
       </Subheading>
 
-      <PaginatedDocumentList
+      <PaginatedNoteList
         empty={
           <Empty>
             {isFiltered
@@ -90,16 +86,15 @@ function Drafts() {
               : t("You’ve not got any drafts at the moment.")}
           </Empty>
         }
-        fetch={documents.fetchDrafts}
-        documents={documents.drafts(options)}
+        fetch={notes.fetchDrafts}
+        notes={notes.drafts(options)}
         options={options}
-        showParentDocuments
-        showCollection
+        showParentNotes
+        showNotebook
       />
     </Scene>
   );
 }
-
 const Filters = styled(Flex)`
   opacity: 0.85;
   transition: opacity 100ms ease-in-out;
@@ -113,5 +108,4 @@ const Filters = styled(Flex)`
     opacity: 1;
   }
 `;
-
 export default observer(Drafts);

@@ -1,58 +1,57 @@
 import { createContext, useContext } from "react";
-import type Document from "~/models/Document";
+import type Note from "~/models/Note";
 import type User from "~/models/User";
-
 export type SidebarContextType =
+  | "notebooks"
+  /** @deprecated Use "notebooks" instead. */
   | "collections"
   | "shared"
   | "archive"
   | `group-${string}`
   | `starred-${string}`
   | undefined;
-
 const SidebarContext = createContext<SidebarContextType>(undefined);
-
+/**
+ * Converts legacy sidebar context values to their canonical names.
+ *
+ * @param context the sidebar context to normalize.
+ * @returns the canonical sidebar context.
+ */
+export const normalizeSidebarContext = (
+  context: SidebarContextType
+): SidebarContextType => (context === "collections" ? "notebooks" : context);
 export const useSidebarContext = () => useContext(SidebarContext);
-
 export const groupSidebarContext = (groupId: string): SidebarContextType =>
   `group-${groupId}`;
-
 export const starredSidebarContext = (modelId: string): SidebarContextType =>
   `starred-${modelId}`;
-
 export const determineSidebarContext = ({
-  document,
+  note,
   user,
   currentContext,
 }: {
-  document: Document;
+  note: Note;
   user: User;
   currentContext?: SidebarContextType;
 }): SidebarContextType => {
-  const isStarred = document.isStarred || !!document.collection?.isStarred;
+  const isStarred = note.isStarred || !!note.notebook?.isStarred;
   const preferStarred = !currentContext || currentContext.startsWith("starred");
-
   if (isStarred && preferStarred) {
-    const currentlyInStarredCollection =
-      currentContext === starredSidebarContext(document.collectionId ?? "");
-
-    return document.isStarred && !currentlyInStarredCollection
-      ? starredSidebarContext(document.id)
-      : starredSidebarContext(document.collectionId!);
+    const currentlyInStarredNotebook =
+      currentContext === starredSidebarContext(note.notebookId ?? "");
+    return note.isStarred && !currentlyInStarredNotebook
+      ? starredSidebarContext(note.id)
+      : starredSidebarContext(note.notebookId!);
   }
-
-  if (document.collection) {
-    return document.collection.isArchived ? "archive" : "collections";
-  } else if (
-    user.documentMemberships.find((m) => m.documentId === document.id)
-  ) {
+  if (note.notebook) {
+    return note.notebook.isArchived ? "archive" : "notebooks";
+  } else if (user.noteMemberships.find((m) => m.noteId === note.id)) {
     return "shared";
   } else {
-    const group = user.groupsWithDocumentMemberships.find(
-      (g) => !!g.documentMemberships.find((m) => m.documentId === document.id)
+    const group = user.groupsWithNoteMemberships.find(
+      (g) => !!g.noteMemberships.find((m) => m.noteId === note.id)
     );
     return groupSidebarContext(group?.id ?? "");
   }
 };
-
 export default SidebarContext;

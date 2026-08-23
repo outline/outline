@@ -17,30 +17,25 @@ import mathRule, { REGEX_INLINE_MATH_DOLLARS } from "../rules/math";
 import Node from "./Node";
 import { InputRule } from "prosemirror-inputrules";
 import { isInCode } from "../queries/isInCode";
-
 export default class Math extends Node {
   get name() {
     return "math_inline";
   }
-
   get schema(): NodeSpec {
     return mathSchemaSpec.nodes.math_inline;
   }
-
   commands({ type }: { type: NodeType }) {
     return (): Command => (state, dispatch) => {
       dispatch?.(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
       return true;
     };
   }
-
   inputRules({ schema }: { schema: Schema }) {
     return [
       new InputRule(REGEX_INLINE_MATH_DOLLARS, (state, match, start, end) => {
         if (isInCode(state)) {
           return null;
         }
-
         let $start = state.doc.resolve(start);
         let index = $start.index();
         let $end = state.doc.resolve(end);
@@ -66,28 +61,23 @@ export default class Math extends Node {
       }),
     ];
   }
-
   keys({ type }: { type: NodeType }) {
     return {
       "Mod-Space": insertMathCmd(type),
       Backspace: mathBackspaceCmd,
     };
   }
-
   get plugins(): Plugin[] {
     return [MathPlugin];
   }
-
   get rulePlugins(): PluginSimple[] {
     return [mathRule];
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write("$");
     state.text(node.textContent, false);
     state.write("$");
   }
-
   parseMarkdown() {
     return {
       node: "math_inline",

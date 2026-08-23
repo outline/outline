@@ -4,7 +4,6 @@ import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 import Flex from "../../components/Flex";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-
 type Props = {
   /** Icon to display on the left side of the widget */
   icon: React.ReactNode;
@@ -25,12 +24,10 @@ type Props = {
   /** Callback fired when the widget is clicked */
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 };
-
 export default function Widget(props: Props) {
   const className = props.isSelected
     ? "ProseMirror-selectednode widget"
     : "widget";
-
   return (
     <Wrapper
       className={className}
@@ -50,7 +47,6 @@ export default function Widget(props: Props) {
     </Wrapper>
   );
 }
-
 const Children = styled.div`
   margin-left: auto;
   height: 20px;
@@ -60,7 +56,6 @@ const Children = styled.div`
     color: ${s("text")};
   }
 `;
-
 export const Title = styled.strong`
   font-weight: 500;
   font-size: 14px;
@@ -71,7 +66,6 @@ export const Title = styled.strong`
   user-select: none;
   color: ${s("text")};
 `;
-
 export const Preview = styled(Flex).attrs({
   gap: 8,
   align: "center",
@@ -79,7 +73,6 @@ export const Preview = styled(Flex).attrs({
   flex-grow: 1;
   color: ${s("textTertiary")};
 `;
-
 export const Subtitle = styled.span`
   font-size: 13px;
   line-height: 28px;
@@ -90,7 +83,6 @@ export const Subtitle = styled.span`
   user-select: none;
   color: ${s("textTertiary")} !important;
 `;
-
 const Wrapper = styled.a`
   display: flex;
   align-items: center;

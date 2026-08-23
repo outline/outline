@@ -1,7 +1,7 @@
 import { classNames } from "./classNames";
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -35,7 +35,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – order summaries: with large images and progress bars.
  *

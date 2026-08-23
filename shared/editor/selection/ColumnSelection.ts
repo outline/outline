@@ -3,12 +3,10 @@ import { type Node } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
 import { CellSelection, inSameTable, TableMap } from "prosemirror-tables";
 import type { Mappable } from "prosemirror-transform";
-
 export class ColumnSelection extends CellSelection {
   getBookmark(): ColumnBookmark {
     return new ColumnBookmark(this.$anchorCell.pos, this.$headCell.pos);
   }
-
   public static colSelection(
     $anchorCell: ResolvedPos,
     $headCell: ResolvedPos = $anchorCell
@@ -16,11 +14,9 @@ export class ColumnSelection extends CellSelection {
     const table = $anchorCell.node(-1);
     const map = TableMap.get(table);
     const tableStart = $anchorCell.start(-1);
-
     const anchorRect = map.findCell($anchorCell.pos - tableStart);
     const headRect = map.findCell($headCell.pos - tableStart);
     const doc = $anchorCell.node(0);
-
     if (anchorRect.top <= headRect.top) {
       if (anchorRect.top > 0) {
         $anchorCell = doc.resolve(tableStart + map.map[anchorRect.left]);
@@ -45,17 +41,14 @@ export class ColumnSelection extends CellSelection {
     return new ColumnSelection($anchorCell, $headCell);
   }
 }
-
 export class ColumnBookmark {
   constructor(
     public anchor: number,
     public head: number
   ) {}
-
   map(mapping: Mappable): ColumnBookmark {
     return new ColumnBookmark(mapping.map(this.anchor), mapping.map(this.head));
   }
-
   resolve(doc: Node): CellSelection | Selection {
     const $anchorCell = doc.resolve(this.anchor),
       $headCell = doc.resolve(this.head);

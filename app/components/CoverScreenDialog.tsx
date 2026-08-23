@@ -6,12 +6,10 @@ import Input from "~/components/Input";
 import Text from "~/components/Text";
 import { coverScreen } from "~/components/ScreenCover";
 import useStores from "~/hooks/useStores";
-
 interface Props {
   /** Called once the cover is down. */
   onCovered: () => void;
 }
-
 /**
  * Asks for the number that will lift the screen cover.
  *
@@ -29,14 +27,12 @@ export function CoverScreenDialog({ onCovered }: Props) {
   const { t } = useTranslation();
   const { dialogs } = useStores();
   const [pin, setPin] = useState("");
-
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     coverScreen(pin);
     dialogs.closeAllModals();
     onCovered();
   };
-
   return (
     <form onSubmit={handleSubmit}>
       <Text as="p" type="secondary">

@@ -10,7 +10,6 @@ const people = [
   },
   // More people...
 ];
-
 /**
  * Tailwind UI – tables: with avatars and multi line content.
  *

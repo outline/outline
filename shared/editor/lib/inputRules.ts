@@ -3,7 +3,6 @@ import type { ResolvedPos } from "prosemirror-model";
 import type { EditorState, Transaction } from "prosemirror-state";
 import { Plugin, Selection, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
-
 /**
  * The public typings for prosemirror-inputrules hide the `match`, `handler` and
  * `undoable` members as `@internal`, but they are needed to re-run rules here.
@@ -20,19 +19,18 @@ declare module "prosemirror-inputrules" {
     undoable: boolean;
   }
 }
-
 /** A rule that fired, paired with the transaction that applies its effect. */
-type InputRuleMatch = { tr: Transaction; rule: InputRule };
-
+type InputRuleMatch = {
+  tr: Transaction;
+  rule: InputRule;
+};
 type PluginState = {
   transform: Transaction;
   from: number;
   to: number;
   text: string;
 } | null;
-
 const MAX_MATCH = 500;
-
 /**
  * Applies the first input rule that matches the text typed in front of the
  * cursor, mirroring prosemirror-inputrules but additionally matching
@@ -63,7 +61,6 @@ export function applyInputRules(
       null,
       "\ufffc"
     ) + text;
-
   for (const rule of rules) {
     if (!isRuleAllowed(rule, $from)) {
       continue;
@@ -81,10 +78,8 @@ export function applyInputRules(
       return { tr, rule };
     }
   }
-
   return matchAfterSoftBreak(state, from, to, text, rules);
 }
-
 /**
  * Creates an input rules plugin. A drop-in replacement for the equivalent plugin
  * from prosemirror-inputrules that also fires block-anchored rules after a soft
@@ -137,10 +132,8 @@ export function inputRules({ rules }: { rules: readonly InputRule[] }) {
     // Marks this as an input rules plugin so `undoInputRule` can find it.
     isInputRules: true,
   });
-
   return plugin;
 }
-
 /**
  * Retries block-anchored rules against the soft line following the last hard
  * break, splitting the block at that break so the rule applies only to the soft
@@ -157,10 +150,8 @@ function matchAfterSoftBreak(
   if (!breakType) {
     return null;
   }
-
   const $from = state.doc.resolve(from);
   const parent = $from.parent;
-
   // Locate the hard break immediately preceding the cursor within the block,
   // stopping at the cursor rather than scanning the rest of the block.
   let breakEnd = -1; // offset within the block just after the last hard break
@@ -179,10 +170,8 @@ function matchAfterSoftBreak(
   if (breakPos < 0) {
     return null;
   }
-
   const textBefore =
     parent.textBetween(breakEnd, $from.parentOffset, null, "\ufffc") + text;
-
   for (const rule of rules) {
     if (!isBlockAnchored(rule) || !isRuleAllowed(rule, $from)) {
       continue;
@@ -195,21 +184,18 @@ function matchAfterSoftBreak(
     if (hasCodeMarkBetween(rule, state, start, $from.pos)) {
       continue;
     }
-
     // Split the block at the hard break so the soft line becomes its own block,
     // then apply the rule to that new block. Both edits form a single, undoable
     // transaction.
     const tr = state.tr;
     tr.delete(breakPos, breakPos + 1);
     tr.split(breakPos);
-
     // Bail out if a plugin filters or appends to the intermediate transaction,
     // as the handler's steps would then be computed against a different doc.
     const applied = state.apply(tr);
     if (applied.doc !== tr.doc) {
       continue;
     }
-
     const ruleTr = rule.handler(
       applied,
       match,
@@ -219,9 +205,7 @@ function matchAfterSoftBreak(
     if (!ruleTr) {
       continue;
     }
-
     ruleTr.steps.forEach((step) => tr.step(step));
-
     // Carry over a selection set by the handler, re-resolved as the docs are
     // equal but not reference-equal.
     if (ruleTr.selectionSet) {
@@ -232,15 +216,12 @@ function matchAfterSoftBreak(
     }
     return { tr, rule };
   }
-
   return null;
 }
-
 /** A rule is block-anchored when its match is pinned to the start of a block. */
 function isBlockAnchored(rule: InputRule): boolean {
   return rule.match.source.startsWith("^");
 }
-
 /** Mirrors the code / code-mark context guards from prosemirror-inputrules. */
 function isRuleAllowed(rule: InputRule, $from: ResolvedPos): boolean {
   if (!rule.inCodeMark && $from.marks().some((mark) => mark.type.spec.code)) {
@@ -251,7 +232,6 @@ function isRuleAllowed(rule: InputRule, $from: ResolvedPos): boolean {
   }
   return rule.inCode !== "only";
 }
-
 /** Whether the matched range overlaps an inline code mark, unless allowed. */
 function hasCodeMarkBetween(
   rule: InputRule,
@@ -270,7 +250,6 @@ function hasCodeMarkBetween(
   });
   return found;
 }
-
 function dispatch(
   view: EditorView,
   { tr, rule }: InputRuleMatch,

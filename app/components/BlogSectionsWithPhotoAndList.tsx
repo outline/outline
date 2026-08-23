@@ -27,7 +27,6 @@ const jobOpenings = [
     location: "San Francisco, CA",
   },
 ];
-
 /**
  * Tailwind UI – blog sections: with photo and list.
  *

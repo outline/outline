@@ -17,18 +17,15 @@ import { deleteAllDatabases } from "~/utils/developer";
 import Logger from "~/utils/Logger";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Store from "./base/Store";
-
 type PersistedData = Pick<
   AuthStore,
   "user" | "team" | "collaborationToken" | "availableTeams" | "policies"
 >;
-
 type Provider = {
   id: string;
   name: string;
   authUrl: string;
 };
-
 export type Config = {
   name?: string;
   logo?: string;
@@ -36,26 +33,20 @@ export type Config = {
   hostname?: string;
   providers: Provider[];
 };
-
 export default class AuthStore extends Store<Team> {
   private name = "AUTH_STORE";
-
   /* The ID of the user that is currently signed in. */
   @observable
   public currentUserId?: string | null;
-
   /* The ID of the team that is currently signed in. */
   @observable
   public currentTeamId?: string | null;
-
   /* A short-lived token to be used to authenticate with the collaboration server. */
   @observable
   public collaborationToken?: string | null;
-
   /* When set, the user will be redirected to this URL after logging out. */
   @observable
   public logoutRedirectUri?: string;
-
   /* A list of teams that the current user has access to. */
   @observable
   public availableTeams?: {
@@ -65,43 +56,31 @@ export default class AuthStore extends Store<Team> {
     url: string;
     isSignedIn: boolean;
   }[];
-
   /* The authentication provider the user signed in with. */
   @observable
   public lastSignedIn?: string | null;
-
   /* Whether the user is currently suspended. */
   @observable
   public isSuspended = false;
-
   /* The email address to contact if the user is suspended. */
   @observable
   public suspendedContactEmail?: string | null;
-
   /* The auth configuration for the current domain. */
   @observable
   public config: Config | null | undefined;
-
   rootStore: RootStore;
-
   constructor(rootStore: RootStore) {
     super(rootStore, Team);
-
     this.rootStore = rootStore;
-
     // attempt to load the previous state of this store from localstorage
     const data: PersistedData = Storage.get(this.name) || {};
-
     this.rehydrate(data);
-
     client.setUnauthorizedHandler((reason) =>
       reason === "user_suspended"
         ? this.logout({ savePath: false, revokeToken: false, clearCache: true })
         : this.logout({ savePath: true, revokeToken: false, clearCache: false })
     );
-
     void this.fetchAuth();
-
     // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
       // Don't persist the empty state we hold while the initial auth request is
@@ -112,18 +91,15 @@ export default class AuthStore extends Store<Team> {
       }
       Storage.set(this.name, this.asJson);
     });
-
     // listen to the localstorage value changing in other tabs to react to
     // signin/signout events in other tabs and follow suite.
     window.addEventListener("storage", (event) => {
       if (event.key === this.name && event.newValue) {
         const newData: PersistedData | null = JSON.parse(event.newValue);
-
         // data may be null if key is deleted in localStorage
         if (!newData) {
           return;
         }
-
         // If we're not signed in then hydrate from the received data, otherwise if
         // we are signed in and the received data contains no user then sign out
         if (this.authenticated) {
@@ -140,7 +116,6 @@ export default class AuthStore extends Store<Team> {
       }
     });
   }
-
   @action
   rehydrate(data: PersistedData) {
     if (data.policies) {
@@ -152,13 +127,11 @@ export default class AuthStore extends Store<Team> {
     if (data.user) {
       this.rootStore.users.add(data.user);
     }
-
     this.currentTeamId = data.team?.id;
     this.currentUserId = data.user?.id;
     this.collaborationToken = data.collaborationToken;
     this.lastSignedIn = getCookie("lastSignedIn");
   }
-
   /** The current user */
   @computed
   get user() {
@@ -166,13 +139,11 @@ export default class AuthStore extends Store<Team> {
       ? this.rootStore.users.get(this.currentUserId)
       : undefined;
   }
-
   /** The current team */
   @computed
   get team() {
     return this.currentTeamId ? this.get(this.currentTeamId) : undefined;
   }
-
   /** The current team's policies */
   @computed
   get policies() {
@@ -181,13 +152,11 @@ export default class AuthStore extends Store<Team> {
       : undefined;
     return policy ? [policy] : [];
   }
-
   /** Whether the user is signed in */
   @computed
   get authenticated(): boolean {
     return !!this.user && !!this.team;
   }
-
   @computed
   get asJson(): PersistedData {
     return {
@@ -198,24 +167,20 @@ export default class AuthStore extends Store<Team> {
       policies: this.policies,
     };
   }
-
   @action
   fetchConfig = async () => {
     const res = await client.post("/auth.config");
     invariant(res?.data, "Config not available");
     this.config = res.data;
   };
-
   @action
   fetchAuth = async () => {
     this.isFetching = true;
-
     try {
       const res = await client.post("/auth.info", undefined, {
         credentials: "same-origin",
       });
       invariant(res?.data, "Auth not available");
-
       runInAction("AuthStore#refresh", () => {
         const { data } = res;
         this.addPolicies(res.policies);
@@ -225,21 +190,17 @@ export default class AuthStore extends Store<Team> {
         data.groupUsers.map(this.rootStore.groupUsers.add);
         this.currentUserId = data.user.id;
         this.currentTeamId = data.team.id;
-
         this.availableTeams = res.data.availableTeams;
         this.collaborationToken = res.data.collaborationToken;
-
         if (env.SENTRY_DSN) {
           const scope = Sentry.getCurrentScope();
           scope.setUser({ id: this.currentUserId! });
           scope.setExtra("team", this.team?.name);
           scope.setExtra("teamId", this.currentTeamId);
         }
-
         // Redirect to the correct custom domain or team subdomain if needed
         // Occurs when the (sub)domain is changed in admin and the user hits an old url
         const { hostname, pathname } = window.location;
-
         if (data.team.domain) {
           if (data.team.domain !== hostname) {
             window.location.href = `${data.team.url}${pathname}`;
@@ -252,7 +213,6 @@ export default class AuthStore extends Store<Team> {
           window.location.href = `${data.team.url}${pathname}`;
           return;
         }
-
         // Update the user's timezone if it has changed
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (data.user.timezone !== timezone) {
@@ -282,11 +242,8 @@ export default class AuthStore extends Store<Team> {
       this.isFetching = false;
     }
   };
-
   requestDeleteUser = () => client.post(`/users.requestDelete`);
-
   requestDeleteTeam = () => client.post(`/teams.requestDelete`);
-
   @action
   deleteUser = async (data: { code: string }) => {
     await client.post(`/users.delete`, data);
@@ -299,11 +256,9 @@ export default class AuthStore extends Store<Team> {
       );
     });
   };
-
   @action
   deleteTeam = async (data: { code: string }) => {
     await client.post(`/teams.delete`, data);
-
     runInAction("AuthStore#deleteTeam", () => {
       this.currentUserId = null;
       this.currentTeamId = null;
@@ -312,21 +267,17 @@ export default class AuthStore extends Store<Team> {
       );
     });
   };
-
   @action
   createTeam = async (params: { name: string }) => {
     this.isSaving = true;
-
     try {
       const res = await client.post(`/teams.create`, params);
       invariant(res?.success, "Unable to create team");
-
       window.location.href = res.data.transferUrl;
     } finally {
       this.isSaving = false;
     }
   };
-
   /**
    * Logs the user out and optionally revokes the authentication token.
    *
@@ -353,7 +304,6 @@ export default class AuthStore extends Store<Team> {
     if (savePath) {
       setPostLoginPath(window.location.pathname + window.location.search);
     }
-
     if (revokeToken) {
       try {
         // invalidate authentication token on server and unset auth cookie
@@ -362,10 +312,8 @@ export default class AuthStore extends Store<Team> {
         Logger.error("Failed to delete authentication", toError(err));
       }
     }
-
     // remove session record on apex cookie
     const team = this.team;
-
     if (team) {
       const sessions = JSON.parse(getCookie("sessions") || "{}");
       delete sessions[team.id];
@@ -373,7 +321,6 @@ export default class AuthStore extends Store<Team> {
         domain: getCookieDomain(window.location.hostname, isCloudHosted),
       });
     }
-
     if (
       userInitiated &&
       (env.OIDC_LOGOUT_URI || this.lastSignedIn === "oidc")
@@ -382,18 +329,15 @@ export default class AuthStore extends Store<Team> {
       // logout URL (including the id_token_hint) for the OIDC provider.
       this.logoutRedirectUri = "/auth/oidc.logout";
     }
-
     if (clearCache) {
       // clear IndexedDB databases used for document caching
       await deleteAllDatabases();
     }
-
     // clear all credentials from cache (and local storage via autorun)
     this.currentUserId = null;
     this.currentTeamId = null;
     this.collaborationToken = null;
     this.rootStore.clear();
-
     // Tell the host application we logged out, if any – allows window cleanup.
     if (Desktop.isElectron()) {
       void Desktop.bridge?.onLogout?.();

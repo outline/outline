@@ -1,5 +1,4 @@
 import type { DocType } from "./formSchema";
-
 /**
  * The rooms a branch offers.
  *
@@ -50,7 +49,6 @@ export const RoomDocType: DocType = {
     },
   ],
 };
-
 /** A product in the catalogue. */
 export const ProductDocType: DocType = {
   name: "Product",
@@ -96,7 +94,6 @@ export const ProductDocType: DocType = {
     },
   ],
 };
-
 /** An owner and the pet they bring in. */
 export const CustomerDocType: DocType = {
   name: "Customer",
@@ -123,7 +120,6 @@ export const CustomerDocType: DocType = {
     },
   ],
 };
-
 /**
  * Someone who works here.
  *
@@ -177,7 +173,6 @@ export function staffDocType(branches: string[]): DocType {
     ],
   };
 }
-
 /** Somewhere stock is bought from. */
 export const SupplierDocType: DocType = {
   name: "Supplier",
@@ -195,7 +190,6 @@ export const SupplierDocType: DocType = {
     },
   ],
 };
-
 /**
  * Somewhere stock is kept.
  *
@@ -219,7 +213,6 @@ export function warehouseDocType(branches: string[]): DocType {
     ],
   };
 }
-
 /** A place the shop trades from. */
 export const BranchDocType: DocType = {
   name: "Branch",

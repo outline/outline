@@ -1,5 +1,4 @@
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – heroes: split with screenshot on dark.
  *

@@ -60,7 +60,6 @@ const activityItems = [
     dateTime: "2023-01-18T12:34",
   },
 ];
-
 /**
  * Tailwind UI – stacked lists: narrow with small avatars.
  *

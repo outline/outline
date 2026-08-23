@@ -13,7 +13,6 @@ import {
   ServiceUnavailableError,
   UpdateRequiredError,
 } from "./errors";
-
 /**
  * Initializes the Sentry error tracking client for the browser.
  *
@@ -32,7 +31,6 @@ export function initSentry(history: History) {
     ServiceUnavailableError,
     UpdateRequiredError,
   ];
-
   Sentry.init({
     dsn: env.SENTRY_DSN,
     environment: env.ENVIRONMENT,

@@ -8,12 +8,10 @@ import toggleList from "../commands/toggleList";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { listWrappingInputRule } from "../lib/listInputRule";
 import Node from "./Node";
-
 export default class BulletList extends Node {
   get name() {
     return "bullet_list";
   }
-
   get schema(): NodeSpec {
     return {
       content: "list_item+",
@@ -22,25 +20,20 @@ export default class BulletList extends Node {
       toDOM: () => ["ul", 0],
     };
   }
-
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
     return () => toggleList(type, schema.nodes.list_item);
   }
-
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
       "Shift-Ctrl-8": toggleList(type, schema.nodes.list_item),
     };
   }
-
   inputRules({ type }: { type: NodeType }) {
     return [listWrappingInputRule(/^\s*([-+*])\s$/, type)];
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorModel) {
     state.renderList(node, "  ", () => (node.attrs.bullet || "*") + " ");
   }
-
   parseMarkdown() {
     return { block: "bullet_list" };
   }

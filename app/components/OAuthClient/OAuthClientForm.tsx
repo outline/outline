@@ -12,7 +12,6 @@ import isCloudHosted from "~/utils/isCloudHosted";
 import Switch from "../Switch";
 import EventBoundary from "@shared/components/EventBoundary";
 import { InputClientType } from "./InputClientType";
-
 export type FormData = {
   name: string;
   developerName: string;
@@ -23,7 +22,6 @@ export type FormData = {
   published: boolean;
   clientType: "confidential" | "public";
 };
-
 export const OAuthClientForm = observer(function OAuthClientForm_({
   handleSubmit,
   oauthClient,
@@ -32,7 +30,6 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
   oauthClient?: OAuthClient;
 }) {
   const { t } = useTranslation();
-
   const {
     register,
     handleSubmit: formHandleSubmit,
@@ -52,11 +49,9 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
       clientType: oauthClient?.clientType ?? "confidential",
     },
   });
-
   useEffect(() => {
     setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
   }, [setFocus]);
-
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <>

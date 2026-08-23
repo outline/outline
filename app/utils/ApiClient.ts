@@ -26,27 +26,21 @@ import {
 import { BatchableApiMethods, BatchMaxRequests, CSRF } from "@shared/constants";
 import { getCSRFToken } from "./csrf";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-
 type Options = {
   baseUrl?: string;
 };
-
 /** An HTTP method supported by the API client. */
 type Method = "GET" | "POST" | "PUT";
-
 /** Shape of an error payload returned by the API. */
 interface ApiErrorResponse {
   message?: string;
   error?: string;
   data?: Record<string, unknown>;
 }
-
 /** Reason the server rejected a request as unauthenticated. */
 export type UnauthorizedReason = "unauthorized" | "user_suspended";
-
 /** Handler invoked when a request is rejected as unauthenticated. */
 type UnauthorizedHandler = (reason: UnauthorizedReason) => void | Promise<void>;
-
 interface FetchOptions {
   download?: boolean;
   retry?: boolean;
@@ -54,7 +48,6 @@ interface FetchOptions {
   headers?: Record<string, string>;
   baseUrl?: string;
 }
-
 /** A request captured during a batch, awaiting dispatch in a `/batch` call. */
 interface BatchedRequest {
   method: string;
@@ -62,7 +55,6 @@ interface BatchedRequest {
   resolve: (value: unknown) => void;
   reject: (reason: unknown) => void;
 }
-
 /** A single sub-response within a `/batch` response. */
 interface BatchSubResponse {
   ok: boolean;
@@ -73,38 +65,29 @@ interface BatchSubResponse {
   error?: string;
   message?: string;
 }
-
 /** Methods that may be collected into a single `/batch` request. */
 const batchableMethods = new Set<string>(BatchableApiMethods);
-
 class ApiClient {
   baseUrl: string;
-
   shareId?: string;
-
   /** Map of in-flight requests for deduplication, keyed by method + path + body. */
   // oxlint-disable-next-line no-explicit-any
   private inflightRequests = new Map<string, Promise<any>>();
-
   /** Requests collected while a batch is open, or undefined when not batching. */
   private batchQueue?: BatchedRequest[];
-
   private onUnauthorized?: UnauthorizedHandler;
-
   constructor(options: Options = {}) {
     this.baseUrl = options.baseUrl || "/api";
   }
-
   /**
    * Sets the share identifier appended to subsequent requests, used to
-   * authenticate access to publicly shared documents.
+   * authenticate access to publicly shared notes.
    *
    * @param shareId the share identifier, or undefined to clear it.
    */
   setShareId = (shareId: string | undefined) => {
     this.shareId = shareId;
   };
-
   /**
    * Registers a handler invoked when a request is rejected as unauthenticated
    * (a 401, or a 403 indicating the user was suspended). Used to keep
@@ -115,7 +98,6 @@ class ApiClient {
   setUnauthorizedHandler = (handler: UnauthorizedHandler) => {
     this.onUnauthorized = handler;
   };
-
   /**
    * Performs an HTTP request against the API, handling serialization, headers,
    * CSRF, retries, and error mapping.
@@ -139,7 +121,6 @@ class ApiClient {
     let modifiedPath: string | undefined;
     let urlToFetch: string;
     let isJson = false;
-
     if (this.shareId) {
       if (data instanceof FormData) {
         data.append("shareId", this.shareId);
@@ -150,7 +131,6 @@ class ApiClient {
         };
       }
     }
-
     if (method === "GET") {
       if (data) {
         modifiedPath = `${path}?${queryString.stringify(data)}`;
@@ -162,7 +142,6 @@ class ApiClient {
         body = data;
       } else {
         isJson = true;
-
         // Only stringify data if its a normal object and
         // not if it's [object FormData], in addition to
         // toggling Content-Type to application/json
@@ -174,13 +153,11 @@ class ApiClient {
         }
       }
     }
-
     if (path.match(/^http/)) {
       urlToFetch = modifiedPath || path;
     } else {
       urlToFetch = (options.baseUrl ?? this.baseUrl) + (modifiedPath || path);
     }
-
     const headerOptions: Record<string, string> = {
       Accept: "application/json",
       "cache-control": "no-cache",
@@ -190,23 +167,19 @@ class ApiClient {
       pragma: "no-cache",
       ...options?.headers,
     };
-
     // Mutating requests require a CSRF token, unless exempt server-side.
     const isModifyingRequest = method === "POST" || method === "PUT";
     const canAccessWithReadOnly = AuthenticationHelper.canAccess(path, [
       Scope.Read,
     ]);
     const requiresCsrfToken = isModifyingRequest && !canAccessWithReadOnly;
-
     // for multipart forms or other non JSON requests fetch
     // populates the Content-Type without needing to explicitly
     // set it.
     if (isJson) {
       headerOptions["Content-Type"] = "application/json";
     }
-
     const headers = new Headers(headerOptions);
-
     // The token is read before each attempt so that retries reflect any
     // rotation of the cookie since the request was prepared.
     const fetchWithFreshCsrfToken: typeof fetch = (input, init) => {
@@ -218,10 +191,8 @@ class ApiClient {
       }
       return fetch(input, init);
     };
-
     const timeStart = window.performance.now();
     let response;
-
     try {
       response = await (
         options?.retry === false
@@ -242,10 +213,8 @@ class ApiClient {
         throw new OfflineError("No internet connection available");
       }
     }
-
     const timeEnd = window.performance.now();
     const success = response.status >= 200 && response.status < 300;
-
     if (options.download && success) {
       const blob = await response.blob();
       const fileName = (
@@ -258,13 +227,11 @@ class ApiClient {
     } else if (success) {
       return response.json();
     }
-
     // The gateway or an upstream proxy failed before the app could respond; the
     // raw body is captured for diagnosis.
     if (response.status === 502) {
       const text = await response.text();
       const err = new BadGatewayError(text);
-
       Logger.error("BadGatewayError", err, {
         url: urlToFetch,
         requestTime: Math.round(timeEnd - timeStart),
@@ -273,7 +240,6 @@ class ApiClient {
       });
       throw err;
     }
-
     // Parse the structured error payload, if present.
     const error: ApiErrorResponse = {};
     try {
@@ -284,18 +250,14 @@ class ApiClient {
     } catch (_err) {
       // we're trying to parse an error so JSON may not be valid
     }
-
     const err = await this.toError(response.status, error.error, error.message);
-
     // Log failures that aren't mapped to a specific error type.
     if (err.constructor === RequestError) {
       Logger.error("Request failed", err, { ...error, url: urlToFetch });
     }
-
     // Still need to throw to trigger retry
     throw err;
   };
-
   /**
    * Maps a failed response's status and error code to the corresponding error
    * type, triggering the unauthorized handler for authentication failures.
@@ -318,61 +280,48 @@ class ApiClient {
       }
       return new AuthorizationError();
     }
-
     if (status === 400 && code === "editor_update_required") {
       window.location.reload();
       return new UpdateRequiredError(message);
     }
-
     if (status === 400) {
       return new BadRequestError(message);
     }
-
     if (status === 402) {
       return new PaymentRequiredError(message);
     }
-
     if (status === 403) {
       if (code === "user_suspended") {
         await this.onUnauthorized?.("user_suspended");
       }
-
       if (code === "csrf_error") {
         return new AuthorizationError(
           "CSRF token invalid, please try reloading."
         );
       }
-
       return new AuthorizationError(message);
     }
-
     if (status === 404) {
       return new NotFoundError(message);
     }
-
     if (status === 503) {
       return new ServiceUnavailableError(message);
     }
-
     if (status === 422) {
       return new UnprocessableEntityError(message);
     }
-
     if (status === 429) {
       return new RateLimitExceededError(
         `Too many requests, try again in a minute.`
       );
     }
-
     // The client, or an intermediate proxy, closed the connection before the
     // response was received – there is nothing actionable to report.
     if (status === 499) {
       return new ClientClosedRequestError(message);
     }
-
     return new RequestError(`Error ${status}`);
   };
-
   /**
    * Performs a GET request against the API.
    *
@@ -387,7 +336,6 @@ class ApiClient {
     data: JSONObject | undefined,
     options?: FetchOptions
   ) => this.fetch<T>(path, "GET", data, options);
-
   /**
    * Performs a POST request against the API. Identical in-flight requests are
    * deduplicated and share a single response, except for multipart uploads.
@@ -420,7 +368,6 @@ class ApiClient {
     }
     return this.deduplicate<T>(path, "POST", data, options);
   };
-
   /**
    * Collects every batchable POST request issued during the synchronous
    * execution of `fn` and dispatches them as a single `/batch` request once
@@ -434,7 +381,6 @@ class ApiClient {
     if (this.batchQueue) {
       return fn();
     }
-
     const queue: BatchedRequest[] = [];
     this.batchQueue = queue;
     try {
@@ -444,7 +390,6 @@ class ApiClient {
       void this.flushBatch(queue);
     }
   };
-
   /**
    * Performs a PUT request against the API. Identical in-flight requests are
    * deduplicated and share a single response, except for multipart uploads.
@@ -460,7 +405,6 @@ class ApiClient {
     data?: JSONObject | FormData,
     options?: FetchOptions
   ): Promise<T> => this.deduplicate<T>(path, "PUT", data, options);
-
   /**
    * Sends a request, deduplicating identical in-flight requests so concurrent
    * callers share a single response. Multipart uploads are never deduplicated.
@@ -481,22 +425,17 @@ class ApiClient {
     if (data instanceof FormData) {
       return this.fetch<T>(path, method, data, options);
     }
-
-    const key = `${method}:${path}:${JSON.stringify(data)}:${JSON.stringify(
-      options
-    )}`;
+    const key = `${method}:${path}:${JSON.stringify(data)}:${JSON.stringify(options)}`;
     const inflight = this.inflightRequests.get(key);
     if (inflight) {
       return inflight;
     }
-
     const promise = this.fetch<T>(path, method, data, options).finally(() => {
       this.inflightRequests.delete(key);
     });
     this.inflightRequests.set(key, promise);
     return promise;
   };
-
   /**
    * Dispatches the requests collected during a batch, splitting them into
    * serial `/batch` calls that respect the server's per-batch limit, and
@@ -508,11 +447,11 @@ class ApiClient {
   private flushBatch = async (queue: BatchedRequest[]): Promise<void> => {
     for (const group of chunk(queue, BatchMaxRequests)) {
       try {
-        const res = await this.fetch<{ data: BatchSubResponse[] }>(
-          "/batch",
-          "POST",
-          { requests: group.map(({ method, body }) => ({ method, body })) }
-        );
+        const res = await this.fetch<{
+          data: BatchSubResponse[];
+        }>("/batch", "POST", {
+          requests: group.map(({ method, body }) => ({ method, body })),
+        });
         for (let index = 0; index < group.length; index++) {
           const request = group[index];
           const result = res?.data?.[index];
@@ -534,6 +473,5 @@ class ApiClient {
     }
   };
 }
-
 /** Shared API client instance configured against the default base URL. */
 export const client = new ApiClient();

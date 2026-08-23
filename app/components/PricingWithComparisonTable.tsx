@@ -1,7 +1,6 @@
 import { Fragment } from "react";
 import { CheckIcon, MinusIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const tiers = [
   {
     name: "Basic",
@@ -31,7 +30,10 @@ const tiers = [
 ];
 const sections: {
   name?: string;
-  features: { name: string; tiers: Record<string, string | boolean> }[];
+  features: {
+    name: string;
+    tiers: Record<string, string | boolean>;
+  }[];
 }[] = [
   {
     name: "Features",
@@ -85,7 +87,6 @@ const sections: {
     ],
   },
 ];
-
 /**
  * Tailwind UI – pricing: with comparison table.
  *

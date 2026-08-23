@@ -21,16 +21,13 @@ import { UploadPlugin } from "../plugins/UploadPlugin";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
 import { LightboxImageFactory } from "../lib/Lightbox";
-
 export default class SimpleImage extends Node {
   options: Options & {
     userId?: string;
   };
-
   get name() {
     return "image";
   }
-
   get schema(): NodeSpec {
     return {
       inline: true,
@@ -86,7 +83,6 @@ export default class SimpleImage extends Node {
         node.attrs.alt ? `(image: ${node.attrs.alt})` : "(image)",
     };
   }
-
   handleClick =
     ({ view, getPos }: ComponentProps) =>
     () => {
@@ -94,11 +90,9 @@ export default class SimpleImage extends Node {
         LightboxImageFactory.createLightboxImage(view, getPos())
       );
     };
-
   component = (props: ComponentProps) => (
     <ImageComponent {...props} onClick={this.handleClick(props)} />
   );
-
   keys(): Record<string, Command> {
     return {
       Enter: (state, dispatch) => {
@@ -120,12 +114,10 @@ export default class SimpleImage extends Node {
           }
           return true;
         }
-
         return false;
       },
     };
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write(
       " ![" +
@@ -135,7 +127,6 @@ export default class SimpleImage extends Node {
         ")"
     );
   }
-
   parseMarkdown() {
     return {
       node: "image",
@@ -145,7 +136,6 @@ export default class SimpleImage extends Node {
       }),
     };
   }
-
   commands({ type }: { type: NodeType }) {
     return {
       deleteImage: (): Command => (state, dispatch) => {
@@ -165,15 +155,12 @@ export default class SimpleImage extends Node {
           onFileUploadProgress,
           onNotice,
         } = this.editor.props;
-
         if (!uploadFile) {
           throw new Error("uploadFile prop is required to replace images");
         }
-
         if (node.type.name !== "image") {
           return false;
         }
-
         // create an input element and click to trigger picker
         const inputElement = document.createElement("input");
         inputElement.type = "file";
@@ -209,7 +196,6 @@ export default class SimpleImage extends Node {
           if (position === undefined) {
             return false;
           }
-
           const node = type.create(attrs);
           const transaction = state.tr.insert(position, node);
           dispatch?.(transaction);
@@ -217,7 +203,6 @@ export default class SimpleImage extends Node {
         },
     };
   }
-
   inputRules({ type }: { type: NodeType }) {
     /**
      * Matches following attributes in Markdown-typed image: [, alt, src, class]
@@ -229,12 +214,10 @@ export default class SimpleImage extends Node {
      */
     const IMAGE_INPUT_REGEX =
       /!\[(?<alt>[^\][]*?)]\((?<filename>[^\][]*?)(?=“|\))“?(?<layoutclass>[^\][”]+)?”?\)$/;
-
     return [
       new InputRule(IMAGE_INPUT_REGEX, (state, match, start, end) => {
         const [okay, alt, src] = match;
         const { tr } = state;
-
         if (okay) {
           tr.replaceWith(
             start - 1,
@@ -245,12 +228,10 @@ export default class SimpleImage extends Node {
             })
           );
         }
-
         return tr;
       }),
     ];
   }
-
   get plugins() {
     return [uploadPlaceholderPlugin, new UploadPlugin(this.options)];
   }

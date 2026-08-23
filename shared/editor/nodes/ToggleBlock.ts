@@ -44,32 +44,25 @@ import { isToggleBlock, getToggleBlockDepth } from "../queries/toggleBlock";
 import Node from "./Node";
 import { ToggleBlockView } from "./ToggleBlockView";
 import { isRemoteTransaction } from "../lib/multiplayer";
-
 export enum Action {
   INIT,
   FOLD,
   UNFOLD,
 }
-
 interface ToggleFoldState {
   foldedIds: Set<string>;
   decorations: DecorationSet;
 }
-
 /** Plugin key for toggle block fold state management. */
 export const toggleFoldPluginKey = new PluginKey<ToggleFoldState>("toggleFold");
-
 /** Plugin key for toggle block fold/unfold events. */
 export const toggleEventPluginKey = new PluginKey("toggleBlockEvent");
-
 /** Build the localStorage key used to persist a toggle block's fold state. */
 export const toggleStorageKey = (id: string) => `toggle:${id}`;
-
 export default class ToggleBlock extends Node {
   get name() {
     return "container_toggle";
   }
-
   get schema(): NodeSpec {
     return {
       content: "(paragraph | heading) block*",
@@ -94,7 +87,6 @@ export default class ToggleBlock extends Node {
       ],
     };
   }
-
   get plugins() {
     // Assign IDs and auto-fold empty
     const plugin = new Plugin({
@@ -102,18 +94,14 @@ export default class ToggleBlock extends Node {
         if (!transactions.some((tr) => tr.docChanged)) {
           return null;
         }
-
         // Single pass to find all toggle blocks
         const toggleBlocks = findBlockNodes(newState.doc, true).filter(
           (b) => b.node.type.name === this.name
         );
-
         if (toggleBlocks.length === 0) {
           return null;
         }
-
         let tr: Transaction | null = null;
-
         // Assign IDs to blocks that need them and default to unfolded in this browser
         const blocksNeedingIds = toggleBlocks.filter((b) => !b.node.attrs.id);
         if (blocksNeedingIds.length > 0) {
@@ -124,7 +112,6 @@ export default class ToggleBlock extends Node {
             Storage.set(toggleStorageKey(id), { fold: false });
           });
         }
-
         // Auto-fold toggle blocks with empty bodies, only if no structural
         // changes were made (positions would be invalid)
         if (!tr) {
@@ -136,7 +123,6 @@ export default class ToggleBlock extends Node {
                 b.node.attrs.id &&
                 !pluginState.foldedIds.has(b.node.attrs.id)
             );
-
             if (emptyBodyBlock) {
               return newState.tr.setMeta(toggleFoldPluginKey, {
                 type: Action.FOLD,
@@ -145,15 +131,12 @@ export default class ToggleBlock extends Node {
             }
           }
         }
-
         return tr;
       },
     });
-
     // Main fold state management
     const foldPlugin = new Plugin<ToggleFoldState>({
       key: toggleFoldPluginKey,
-
       state: {
         init: (_config, state) => {
           const foldedIds = this.initFoldedIds(state);
@@ -162,7 +145,6 @@ export default class ToggleBlock extends Node {
             decorations: this.createDecorations(state.doc, foldedIds),
           };
         },
-
         apply: (tr, pluginState, _oldState, newState) => {
           if (isRemoteTransaction(tr)) {
             const foldedIds = this.initFoldedIds(newState);
@@ -171,22 +153,17 @@ export default class ToggleBlock extends Node {
               decorations: this.createDecorations(newState.doc, foldedIds),
             };
           }
-
           const action = tr.getMeta(toggleFoldPluginKey);
-
           // No action - just map decorations through the transaction
           if (!action) {
             if (!tr.docChanged) {
               return pluginState;
             }
-
             // Check if any toggle blocks were added and need fold state
             const currentBlocks = findBlockNodes(tr.doc, true).filter(
               (b) => b.node.type.name === this.name && b.node.attrs.id
             );
-
             const newFoldedIds = new Set(pluginState.foldedIds);
-
             // For any new blocks, check storage and default to folded
             currentBlocks.forEach((block) => {
               const id = block.node.attrs.id as string;
@@ -198,7 +175,6 @@ export default class ToggleBlock extends Node {
                 }
               }
             });
-
             // Always rebuild decorations to ensure head positions are correct
             // (mapping can produce incorrect positions when first child changes)
             return {
@@ -206,10 +182,8 @@ export default class ToggleBlock extends Node {
               decorations: this.createDecorations(tr.doc, newFoldedIds),
             };
           }
-
           // Handle actions that change fold state
           const newFoldedIds = new Set(pluginState.foldedIds);
-
           switch (action.type) {
             case Action.FOLD: {
               const node = newState.doc.nodeAt(action.at);
@@ -219,7 +193,6 @@ export default class ToggleBlock extends Node {
               }
               break;
             }
-
             case Action.UNFOLD: {
               const node = newState.doc.nodeAt(action.at);
               if (node?.attrs.id) {
@@ -229,14 +202,12 @@ export default class ToggleBlock extends Node {
               break;
             }
           }
-
           return {
             foldedIds: newFoldedIds,
             decorations: this.createDecorations(newState.doc, newFoldedIds),
           };
         },
       },
-
       props: {
         decorations: (state) =>
           toggleFoldPluginKey.getState(state)?.decorations,
@@ -252,22 +223,17 @@ export default class ToggleBlock extends Node {
         },
       },
     });
-
     // Handle fold/unfold side effects (cursor management, empty body handling)
     const eventPlugin = new Plugin({
       key: toggleEventPluginKey,
-
       appendTransaction: (transactions, _oldState, newState) => {
         const eventTr = transactions.find((tr) =>
           tr.getMeta(toggleEventPluginKey)
         );
-
         let tr: Transaction | null = null;
-
         if (eventTr) {
           const event = eventTr.getMeta(toggleEventPluginKey);
           const node = newState.doc.nodeAt(event.at);
-
           if (node) {
             if (event.type === Action.FOLD) {
               // Move cursor out of body if folding
@@ -275,7 +241,6 @@ export default class ToggleBlock extends Node {
               const startOfNode = event.at + 1;
               const endOfFirstChild = startOfNode + node.firstChild!.nodeSize;
               const endOfNode = startOfNode + node.nodeSize - 1;
-
               if ($anchor.pos > endOfFirstChild && $anchor.pos < endOfNode) {
                 const $endOfFirstChild = newState.doc.resolve(endOfFirstChild);
                 tr = newState.tr.setSelection(
@@ -293,29 +258,24 @@ export default class ToggleBlock extends Node {
             }
           }
         }
-
         // Auto-unfold if cursor is in body of folded toggle
         // Skip if we're handling a fold event (cursor will be moved out of body)
         const isFoldEvent =
           eventTr?.getMeta(toggleEventPluginKey)?.type === Action.FOLD;
-
         if (!isFoldEvent) {
           const { $from } = newState.selection;
           const pluginState = toggleFoldPluginKey.getState(newState);
           const isToggle = isToggleBlock(newState);
-
           if (pluginState) {
             const toggleBlockAncestor = ancestors($from).find(
               (node) =>
                 isToggle(node) && pluginState.foldedIds.has(node.attrs.id)
             );
-
             if (toggleBlockAncestor) {
               const d = getToggleBlockDepth($from, toggleBlockAncestor);
               const posAfterHead =
                 $from.start(d) + toggleBlockAncestor.firstChild!.nodeSize;
               const posAtEnd = $from.end(d);
-
               if ($from.pos > posAfterHead && $from.pos < posAtEnd) {
                 tr = (tr ?? newState.tr).setMeta(toggleFoldPluginKey, {
                   type: Action.UNFOLD,
@@ -325,11 +285,9 @@ export default class ToggleBlock extends Node {
             }
           }
         }
-
         return tr;
       },
     });
-
     return [
       plugin,
       foldPlugin,
@@ -368,11 +326,9 @@ export default class ToggleBlock extends Node {
       ),
     ];
   }
-
   get rulePlugins() {
     return [toggleBlocksRule];
   }
-
   keys(): Record<string, Command> {
     return {
       Backspace: chainCommands(
@@ -400,7 +356,6 @@ export default class ToggleBlock extends Node {
       "Mod-Enter": toggleBlock,
     };
   }
-
   inputRules({ type }: { type: NodeType }) {
     return [
       wrappingInputRule(
@@ -411,7 +366,6 @@ export default class ToggleBlock extends Node {
       ),
     ];
   }
-
   commands({
     type,
     schema,
@@ -428,7 +382,6 @@ export default class ToggleBlock extends Node {
         typeof attrs.level === "number"
           ? attrs.level
           : undefined;
-
       if (isNodeActive(type)(state)) {
         dispatch?.(liftChildrenOfNodeAt($from.before(-1), state.tr));
         return true;
@@ -456,10 +409,8 @@ export default class ToggleBlock extends Node {
         if (!wrapping) {
           return false;
         }
-
         Storage.set(toggleStorageKey(id), { fold: false });
         const tr = state.tr.wrap(range!, wrapping);
-
         // When a heading level is provided, make the toggle's title a heading
         // rather than a paragraph (a collapsible heading).
         if (level) {
@@ -467,7 +418,6 @@ export default class ToggleBlock extends Node {
             level,
           });
         }
-
         dispatch?.(
           tr.insert(
             tr.selection.$from.after(),
@@ -476,23 +426,19 @@ export default class ToggleBlock extends Node {
         );
         return true;
       }
-
       return false;
     };
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write(state.repeat("+", 3 + height(node)) + "\n");
     state.renderContent(node);
     state.write(state.repeat("+", 3 + height(node)) + "\n");
   }
-
   parseMarkdown(): ParseSpec | void {
     return {
       block: "container_toggle",
     };
   }
-
   private initFoldedIds(state: EditorState) {
     const pluginState = toggleFoldPluginKey.getState(state);
     const foldedIds = new Set<string>(pluginState?.foldedIds);
@@ -510,19 +456,15 @@ export default class ToggleBlock extends Node {
           Storage.set(toggleStorageKey(id), { fold: true });
         }
       });
-
     return foldedIds;
   }
-
   private createDecorations(doc: ProsemirrorNode, foldedIds: Set<string>) {
     const decorations: Decoration[] = [];
-
     findBlockNodes(doc, true)
       .filter((b) => b.node.type.name === "container_toggle" && b.node.attrs.id)
       .forEach((block) => {
         const id = block.node.attrs.id as string;
         const isFolded = foldedIds.has(id);
-
         // Decoration on the toggle block itself (for fold state)
         decorations.push(
           Decoration.node(
@@ -532,7 +474,6 @@ export default class ToggleBlock extends Node {
             { nodeId: id, fold: isFolded, target: "container_toggle" }
           )
         );
-
         // Decoration on the head (first child) for styling
         decorations.push(
           Decoration.node(
@@ -542,7 +483,6 @@ export default class ToggleBlock extends Node {
             { nodeId: id, target: "container_toggle>:firstChild" }
           )
         );
-
         // If doc is read-only, add a decoration to show pointer cursor on the head
         // to indicate it's clickable for toggling
         if (this.editor.props.readOnly) {
@@ -556,21 +496,17 @@ export default class ToggleBlock extends Node {
           );
         }
       });
-
     return DecorationSet.create(doc, decorations);
   }
-
   static isEmpty(toggleBlock: ProsemirrorNode) {
     return (
       ToggleBlock.isHeadEmpty(toggleBlock) &&
       ToggleBlock.isBodyEmpty(toggleBlock)
     );
   }
-
   static isHeadEmpty(toggleBlock: ProsemirrorNode) {
     return toggleBlock.firstChild!.content.size === 0;
   }
-
   static isBodyEmpty(toggleBlock: ProsemirrorNode) {
     for (let i = 1; i < toggleBlock.childCount; i++) {
       if (toggleBlock.child(i).content.size > 0) {

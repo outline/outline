@@ -1,6 +1,5 @@
 import type { RefractorSyntax } from "refractor";
 import { FrequencyTracker } from "../../utils/FrequencyTracker";
-
 /**
  * Describes a code language supported by the editor.
  */
@@ -18,7 +17,6 @@ type CodeLanguage = {
    */
   alias?: boolean;
 };
-
 /**
  * List of supported code languages.
  *
@@ -349,7 +347,6 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     loader: () => import("refractor/lang/zig").then((m) => m.default),
   },
 };
-
 /**
  * Get the human-readable label for a given language.
  *
@@ -361,7 +358,6 @@ export const getLabelForLanguage = (language: string) => {
     codeLanguages[language as keyof typeof codeLanguages] ?? codeLanguages.none;
   return lang.label;
 };
-
 /**
  * Get the Refractor language identifier for a given language.
  *
@@ -372,7 +368,6 @@ export const getRefractorLangForLanguage = (
   language: string
 ): string | undefined =>
   codeLanguages[language as keyof typeof codeLanguages]?.lang;
-
 /**
  * Get the loader function for a given language.
  *
@@ -381,14 +376,11 @@ export const getRefractorLangForLanguage = (
  */
 export const getLoaderForLanguage = (language: string) =>
   codeLanguages[language as keyof typeof codeLanguages]?.loader;
-
 // Mermaid diagrams have a separate insertion entry point, so they should never
 // be remembered as a recently or frequently used code language.
 const nonPersistableLanguages = ["mermaid", "mermaidjs"];
-
 const isPersistableCodeLanguage = (language: string) =>
   !nonPersistableLanguages.includes(language);
-
 const codeLanguageFrequency = new FrequencyTracker<keyof typeof codeLanguages>({
   key: "frequent-code-languages",
   recentKey: "rme-code-language",
@@ -396,7 +388,6 @@ const codeLanguageFrequency = new FrequencyTracker<keyof typeof codeLanguages>({
   get: 5,
   filter: isPersistableCodeLanguage,
 });
-
 /**
  * Set the most recent code language used.
  *
@@ -404,21 +395,18 @@ const codeLanguageFrequency = new FrequencyTracker<keyof typeof codeLanguages>({
  */
 export const setRecentlyUsedCodeLanguage = (language: string) =>
   codeLanguageFrequency.track(language as keyof typeof codeLanguages);
-
 /**
  * Get the most recent code language used.
  *
  * @returns The most recent code language used, or undefined if none is set.
  */
 export const getRecentlyUsedCodeLanguage = () => codeLanguageFrequency.recent;
-
 /**
  * Get the most frequent code languages used.
  *
  * @returns An array of the most frequent code languages used.
  */
 export const getFrequentCodeLanguages = () => codeLanguageFrequency.frequent;
-
 export const languagesWithFourSpaceIndent = [
   "python",
   "java",

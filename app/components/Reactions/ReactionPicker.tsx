@@ -15,17 +15,13 @@ import useWindowSize from "~/hooks/useWindowSize";
 import Tooltip from "../Tooltip";
 import { HStack } from "../primitives/HStack";
 import { VStack } from "../primitives/VStack";
-
 const EmojiPanel = createLazyComponent(
   () => import("~/components/IconPicker/components/EmojiPanel")
 );
-
 /** Fits nine 32px emoji per row, with 12px of padding on either side. */
 const PANEL_WIDTH = 332;
-
 /** Leaves room for two more 32px rows than the panel's minimum. */
 const PANEL_HEIGHT = 364;
-
 type Props = {
   /** Callback when an emoji is selected by the user. */
   onSelect: (emoji: string) => Promise<void>;
@@ -33,20 +29,15 @@ type Props = {
   className?: string;
   size?: number;
 };
-
 const ReactionPicker: React.FC<Props> = ({ onSelect, className, size }) => {
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
-
   const { width: windowWidth } = useWindowSize();
   const isMobile = useMobile();
-
   const [query, setQuery] = React.useState("");
-
   const popoverWidth = isMobile ? windowWidth : PANEL_WIDTH;
   // In mobile, popover is absolutely positioned to leave 8px on both sides.
   const panelWidth = isMobile ? windowWidth - 16 : popoverWidth;
-
   const handleEmojiSelect = React.useCallback(
     (emoji: string) => {
       setOpen(false);
@@ -54,7 +45,6 @@ const ReactionPicker: React.FC<Props> = ({ onSelect, className, size }) => {
     },
     [onSelect]
   );
-
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
       <Tooltip content={t("Add reaction")} placement="top">
@@ -99,7 +89,6 @@ const ReactionPicker: React.FC<Props> = ({ onSelect, className, size }) => {
     </Popover>
   );
 };
-
 const Placeholder = React.memo(
   () => (
     <VStack
@@ -116,5 +105,4 @@ const Placeholder = React.memo(
   () => true
 );
 Placeholder.displayName = "ReactionPickerPlaceholder";
-
 export default ReactionPicker;

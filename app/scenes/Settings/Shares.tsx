@@ -18,18 +18,16 @@ import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { SharesTable } from "./components/SharesTable";
 import { StickyFilters } from "./components/StickyFilters";
-
 function Shares() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const location = useLocation();
   const history = useHistory();
   const { shares, auth } = useStores();
-  const canShareDocuments = auth.team && auth.team.sharing;
+  const canShareNotes = auth.team && auth.team.sharing;
   const can = usePolicy(team);
   const params = useQuery();
   const [query, setQuery] = useState("");
-
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
@@ -40,7 +38,6 @@ function Shares() {
     }),
     [params]
   );
-
   const sort: ColumnSort = useMemo(
     () => ({
       id: reqParams.sort,
@@ -48,14 +45,12 @@ function Shares() {
     }),
     [reqParams.sort, reqParams.direction]
   );
-
   const { data, error, loading, next } = useTableRequest({
     data: shares.findByQuery(reqParams.query ?? ""),
     sort,
     reqFn: shares.fetchPage,
     reqParams,
   });
-
   const updateParams = useCallback(
     (name: string, value: string) => {
       if (value) {
@@ -63,7 +58,6 @@ function Shares() {
       } else {
         params.delete(name);
       }
-
       history.replace({
         pathname: location.pathname,
         search: params.toString(),
@@ -71,28 +65,24 @@ function Shares() {
     },
     [params, history, location.pathname]
   );
-
   const handleSearch = useCallback((event) => {
     const { value } = event.target;
     setQuery(value);
   }, []);
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load shares"));
     }
   }, [t, error]);
-
   useEffect(() => {
     const timeout = setTimeout(() => updateParams("query", query), 250);
     return () => clearTimeout(timeout);
   }, [query, updateParams]);
-
   return (
     <Scene title={t("Shared Links")} icon={<GlobeIcon />} wide>
       <Heading>{t("Shared Links")}</Heading>
 
-      {can.update && !canShareDocuments && (
+      {can.update && !canShareNotes && (
         <>
           <Notice icon={<WarningIcon />}>
             {t("Sharing is currently disabled.")}{" "}
@@ -138,5 +128,4 @@ function Shares() {
     </Scene>
   );
 }
-
 export default observer(Shares);

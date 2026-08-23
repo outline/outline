@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -17,7 +17,6 @@ import {
   EnvelopeIcon,
   PhoneIcon,
 } from "@heroicons/react/24/outline";
-
 /**
  * Tailwind UI – contact sections: split with pattern.
  *

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -101,7 +101,6 @@ const navigation = {
     },
   ],
 };
-
 /**
  * Tailwind UI – footers: 4 column with newsletter dark.
  *

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -21,7 +21,6 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const assignees = [
   { name: "Unassigned", value: null },
   {
@@ -42,7 +41,6 @@ const dueDates = [
   { name: "Today", value: "today" },
   // More items...
 ];
-
 /**
  * Tailwind UI – textareas: with title and pill actions.
  *
@@ -52,7 +50,6 @@ export function TextareasWithTitleAndPillActions() {
   const [assigned, setAssigned] = useState(assignees[0]);
   const [labelled, setLabelled] = useState(labels[0]);
   const [dated, setDated] = useState(dueDates[0]);
-
   return (
     <form action="#" className="relative">
       <div className="overflow-hidden rounded-lg border border-gray-300 shadow-xs focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">

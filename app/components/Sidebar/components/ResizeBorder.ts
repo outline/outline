@@ -1,7 +1,6 @@
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import { undraggableOnDesktop } from "~/styles";
-
 const ResizeBorder = styled.div<{
   dir?: "left" | "right";
   /** When true, the border does not highlight on hover. */
@@ -36,5 +35,4 @@ const ResizeBorder = styled.div<{
     ${undraggableOnDesktop()}
   }
 `;
-
 export default ResizeBorder;

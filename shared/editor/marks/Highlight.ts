@@ -10,7 +10,6 @@ import {
   toHexColor,
   validateColorHex,
 } from "@shared/utils/color";
-
 /**
  * Whether an ancestor element already paints the same background, in which case
  * the element is inheriting the shading of a container – such as a table cell –
@@ -21,7 +20,6 @@ function isInheritedBackground(dom: HTMLElement, color: string): boolean {
   if (!hex) {
     return false;
   }
-
   let parent = dom.parentElement;
   while (parent) {
     // Ancestors that paint nothing, such as a transparent background, are
@@ -33,17 +31,13 @@ function isInheritedBackground(dom: HTMLElement, color: string): boolean {
     }
     parent = parent.parentElement;
   }
-
   return false;
 }
-
 export default class Highlight extends Mark {
   /** The default opacity of the highlight */
   static opacity = 0.4;
-
   /** Preset colors available for highlighting */
   static presetColors = presetColors;
-
   /**
    * Checks if a color is one of the highlight preset colors.
    *
@@ -53,7 +47,6 @@ export default class Highlight extends Mark {
   static isPresetColor(color: string): boolean {
     return Highlight.presetColors.some((c) => c.hex === color);
   }
-
   /**
    * Finds the preset color matching a CSS color value. Opacity is ignored, so a
    * preset rendered translucently still matches.
@@ -64,7 +57,6 @@ export default class Highlight extends Mark {
   static findMatchingPresetColor(cssColor: string): string | null {
     try {
       const { red, green, blue } = parseToRgb(cssColor);
-
       for (const preset of Highlight.presetColors) {
         const presetRgb = hexToRgba(preset.hex);
         if (
@@ -80,11 +72,9 @@ export default class Highlight extends Mark {
     }
     return null;
   }
-
   get name() {
     return "highlight";
   }
-
   get schema(): MarkSpec {
     return {
       attrs: {
@@ -98,7 +88,6 @@ export default class Highlight extends Mark {
           tag: "mark",
           getAttrs: (dom) => {
             const color = dom.getAttribute("data-color") || "";
-
             return {
               color: validateColorHex(color) ? color : null,
             };
@@ -122,29 +111,22 @@ export default class Highlight extends Mark {
         "mark",
         {
           "data-color": node.attrs.color,
-          style: `background-color: ${rgba(
-            node.attrs.color || Highlight.presetColors[0].hex,
-            Highlight.opacity
-          )}`,
+          style: `background-color: ${rgba(node.attrs.color || Highlight.presetColors[0].hex, Highlight.opacity)}`,
         },
       ],
     };
   }
-
   inputRules({ type }: { type: MarkType }) {
     return [markInputRuleForPattern("==", type)];
   }
-
   keys({ type }: { type: MarkType }) {
     return {
       "Mod-Shift-h": toggleMark(type),
     };
   }
-
   get rulePlugins() {
     return [markRule({ delim: "==", mark: "highlight" })];
   }
-
   toMarkdown() {
     return {
       open: "==",
@@ -153,7 +135,6 @@ export default class Highlight extends Mark {
       expelEnclosingWhitespace: true,
     };
   }
-
   parseMarkdown() {
     return { mark: "highlight" };
   }

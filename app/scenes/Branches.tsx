@@ -7,7 +7,6 @@ import { formatDate } from "~/utils/format";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
-
 import { SchemaForm } from "~/components/SchemaForm";
 import type { FormValues } from "~/utils/formSchema";
 import { BranchDocType, RoomDocType } from "~/utils/doctypes";
@@ -15,7 +14,6 @@ import ListItem from "~/components/List/Item";
 import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
-
 /**
  * Branches and the rooms at each.
  *
@@ -41,7 +39,6 @@ function Branches() {
   const removeHoliday = useShop((state) => state.removeHoliday);
   const updateRoom = useShop((state) => state.updateRoom);
   const deleteRoom = useShop((state) => state.deleteRoom);
-
   const panels = usePanel();
   // Two of the three panels carry which record they are for, so the panel is
   // named after it.
@@ -52,7 +49,6 @@ function Branches() {
     ? panels.current.slice("edit:".length)
     : undefined;
   const submission = useSubmit();
-
   const handleAddBranch = (values: FormValues) =>
     submission.run(async () => {
       const result = await saveBranch({
@@ -67,7 +63,6 @@ function Branches() {
       }
       return t("A branch needs a name.");
     });
-
   const handleDeleteBranch = (id: string, name: string) =>
     submission.run(async () => {
       const result = await deleteBranch(id);
@@ -75,7 +70,6 @@ function Branches() {
         ? undefined
         : t("{{name}} still has rooms or staff, so it was kept.", { name });
     });
-
   const handleCloseDay = (branchName: string, values: FormValues) =>
     submission.run(async () => {
       const result = await addHoliday({
@@ -92,9 +86,7 @@ function Branches() {
           ? t("That day is already closed.")
           : t("Give a day to close.");
     });
-
   const resetForm = () => panels.close();
-
   const handleCreate = async (branch: string, values: FormValues) => {
     await createRoom({
       name: values.name.trim(),
@@ -104,7 +96,6 @@ function Branches() {
     });
     resetForm();
   };
-
   const handleSave = async (id: string, values: FormValues) => {
     await updateRoom(id, {
       name: values.name.trim() || undefined,
@@ -113,7 +104,6 @@ function Branches() {
     });
     resetForm();
   };
-
   const handleDelete = (id: string, roomName: string) =>
     submission.run(async () => {
       const deleted = await deleteRoom(id);
@@ -123,7 +113,6 @@ function Branches() {
             name: roomName,
           });
     });
-
   // The room form is built from its DocType, so what appears on screen and
   // what counts as valid come from one description.
   const form = (
@@ -139,7 +128,6 @@ function Branches() {
       onCancel={resetForm}
     />
   );
-
   return (
     <AppPage
       title={t("Branches")}
@@ -173,7 +161,6 @@ function Branches() {
           (total, room) => total + room.capacity,
           0
         );
-
         return (
           <Flex column key={branch.id}>
             <Flex align="center" justify="space-between">
@@ -330,5 +317,4 @@ function Branches() {
     </AppPage>
   );
 }
-
 export default Branches;

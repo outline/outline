@@ -9,7 +9,6 @@ import {
   UsersIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Dashboard", href: "#", icon: HomeIcon, current: true },
   {
@@ -37,7 +36,6 @@ const navigation = [
   { name: "Documents", href: "#", icon: DocumentDuplicateIcon, current: false },
   { name: "Reports", href: "#", icon: ChartPieIcon, current: false },
 ];
-
 /**
  * Tailwind UI – sidebar navigation: with secondary navigation.
  *

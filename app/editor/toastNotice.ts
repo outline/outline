@@ -1,6 +1,5 @@
 import { toast } from "sonner";
 import type { EditorNotice } from "@shared/editor/types";
-
 /**
  * The default editor notice handler, rendering a toast. This keeps knowledge of
  * the toast library at the application layer, out of shared editor code.

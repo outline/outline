@@ -4,44 +4,39 @@ import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { Schema } from "prosemirror-model";
 import { Node } from "prosemirror-model";
-
 interface HasData {
   data: ProsemirrorData;
 }
-
 const extensionManager = new ExtensionManager(withComments(richExtensions));
 const schema = new Schema({
   nodes: extensionManager.nodes,
   marks: extensionManager.marks,
 });
 const serializer = extensionManager.serializer();
-
 export class ProsemirrorHelper {
   /**
    * Returns the markdown representation of the document derived from the ProseMirror data.
    *
    * @returns The markdown representation of the document as a string.
    */
-  static toMarkdown = (document: HasData) => {
+  static toMarkdown = (note: HasData) => {
     const doc = Node.fromJSON(
       schema,
-      SharedProsemirrorHelper.attachmentsToAbsoluteUrls(document.data)
+      SharedProsemirrorHelper.attachmentsToAbsoluteUrls(note.data)
     );
-
     const markdown = serializer.serialize(doc, {
       commonMark: true,
     });
     return markdown;
   };
-
   /**
    * Returns the plain text representation of the document derived from the ProseMirror data.
    *
    * @returns The plain text representation of the document as a string.
    */
-  static toPlainText = (document: HasData) => {
+  static toPlainText = (note: HasData) => {
     const text = SharedProsemirrorHelper.toPlainText(
-      Node.fromJSON(schema, document.data)
+      Node.fromJSON(schema, note.data)
     );
     return text;
   };

@@ -1,6 +1,5 @@
 export const hasOwn = (obj: object, key: PropertyKey): boolean =>
   Object.prototype.hasOwnProperty.call(obj, key);
-
 export function objectType(object: unknown) {
   if (object === undefined) {
     return "undefined";
@@ -13,13 +12,11 @@ export function objectType(object: unknown) {
   }
   return typeof object;
 }
-
 function isNonPrimitive(value: unknown): value is object {
   // loose-equality checking for null is faster than strict checking for each of null/undefined/true/false
   // checking null first, then calling typeof, is faster than vice-versa
   return value !== null && typeof value === "object";
 }
-
 /**
  * Recursively copy a value.
  *

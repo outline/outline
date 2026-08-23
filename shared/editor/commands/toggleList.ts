@@ -10,7 +10,6 @@ import { chainTransactions } from "../lib/chainTransactions";
 import { findParentNode } from "../queries/findParentNode";
 import { isList } from "../queries/isList";
 import clearNodes from "./clearNodes";
-
 export default function toggleList(
   listType: NodeType,
   itemType: NodeType,
@@ -21,29 +20,23 @@ export default function toggleList(
     const { $from, $to } = selection;
     const range = $from.blockRange($to);
     const { tr } = state;
-
     if (!range) {
       return false;
     }
-
     const parentList = findParentNode((node) => isList(node, schema))(
       selection
     );
-
     if (range.depth >= 1 && parentList && range.depth - parentList.depth <= 1) {
       const currentStyle = parentList.node.attrs.listStyle;
       const differentListStyle = currentStyle && currentStyle !== listStyle;
-
       if (
         parentList.node.type === listType &&
         (!differentListStyle || !listStyle)
       ) {
         return liftListItem(itemType)(state, dispatch);
       }
-
       const currentItemType = parentList.node.content.firstChild?.type;
       const differentType = currentItemType && currentItemType !== itemType;
-
       if (differentType) {
         // Convert the list in place, preserving any nested list structure,
         // rather than clearing the nodes and re-wrapping which would flatten
@@ -71,7 +64,6 @@ export default function toggleList(
           )(state, dispatch);
         }
       }
-
       if (
         isList(parentList.node, schema) &&
         listType.validContent(parentList.node.content)
@@ -92,26 +84,21 @@ export default function toggleList(
             }
           }
         );
-
         dispatch?.(tr);
         return false;
       }
     }
-
     const attrs = listStyle ? { listStyle } : undefined;
     const canWrapInList = wrapInList(listType, attrs)(state);
-
     if (canWrapInList) {
       return wrapInList(listType, attrs)(state, dispatch);
     }
-
     return chainTransactions(clearNodes(), wrapInList(listType, attrs))(
       state,
       dispatch
     );
   };
 }
-
 /**
  * Recursively converts a list node, its items, and any lists nested within
  * those items to the given list and item type, preserving nesting structure.

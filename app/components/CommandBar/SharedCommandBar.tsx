@@ -8,13 +8,11 @@ import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import CommandBarResults from "./CommandBarResults";
 import SharedSearchActions from "./SharedSearchActions";
-
 /**
  * A simplified command bar for public shares that only provides search.
  */
 function SharedCommandBar() {
   const { t } = useTranslation();
-
   return (
     <>
       <SharedSearchActions />
@@ -29,27 +27,21 @@ function SharedCommandBar() {
     </>
   );
 }
-
 type Props = {
   children?: React.ReactNode;
 };
-
 const KBarPortal: React.FC = ({ children }: Props) => {
   const { showing } = useKBar((state) => ({
     showing: state.visualState !== "hidden",
   }));
-
   if (!showing) {
     return null;
   }
-
   return <Portal>{children}</Portal>;
 };
-
 const Positioner = styled(KBarPositioner)`
   z-index: ${depths.commandBar};
 `;
-
 const SearchInput = styled(KBarSearch)`
   position: relative;
   padding: 16px 12px;
@@ -70,7 +62,6 @@ const SearchInput = styled(KBarSearch)`
     opacity: 1;
   }
 `;
-
 const Animator = styled(KBarAnimator)`
   max-width: 600px;
   max-height: 75vh;
@@ -90,5 +81,4 @@ const Animator = styled(KBarAnimator)`
     display: none;
   }
 `;
-
 export default observer(SharedCommandBar);

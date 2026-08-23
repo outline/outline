@@ -8,7 +8,6 @@ const people = [
   },
   // More people...
 ];
-
 /**
  * Tailwind UI – team sections: full width with vertical images.
  *

@@ -1,35 +1,29 @@
 import { observable } from "mobx";
 import type StarsStore from "~/stores/StarsStore";
-import Collection from "./Collection";
-import Document from "./Document";
+import Notebook from "./Notebook";
+import Note from "./Note";
 import Model from "./base/Model";
-import Field from "./decorators/Field";
+import Field, { WireAlias } from "./decorators/Field";
 import Relation from "./decorators/Relation";
-
 class Star extends Model {
   static modelName = "Star";
-
   /** The sort order of the star */
   @Field
   @observable
   index: string;
-
-  /** The document ID that is starred. */
-  documentId?: string;
-
-  /** The document that is starred. */
-  @Relation(() => Document, { onDelete: "cascade" })
-  document?: Document;
-
-  /** The collection ID that is starred. */
-  collectionId?: string;
-
-  /** The collection that is starred. */
-  @Relation(() => Collection, { onDelete: "cascade" })
-  collection: Collection;
-
+  /** The note ID that is starred. */
+  @WireAlias("documentId")
+  noteId?: string;
+  /** The note that is starred. */
+  @Relation(() => Note, { onDelete: "cascade" })
+  note?: Note;
+  /** The notebook ID that is starred. */
+  @WireAlias("collectionId")
+  notebookId?: string;
+  /** The notebook that is starred. */
+  @Relation(() => Notebook, { onDelete: "cascade" })
+  notebook: Notebook;
   store: StarsStore;
-
   /**
    * Returns the next star in the list, or undefined if this is the last star.
    */
@@ -37,7 +31,6 @@ class Star extends Model {
     const index = this.store.orderedData.indexOf(this);
     return this.store.orderedData[index + 1];
   }
-
   /**
    * Returns the previous star in the list, or undefined if this is the first star.
    */
@@ -46,5 +39,4 @@ class Star extends Model {
     return this.store.orderedData[index + 1];
   }
 }
-
 export default Star;

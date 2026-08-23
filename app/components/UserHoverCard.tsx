@@ -14,7 +14,6 @@ import { usePortalContext } from "~/components/Portal";
 import useMobile from "~/hooks/useMobile";
 import type User from "~/models/User";
 import { fadeAndScaleIn } from "~/styles/animations";
-
 type Props = {
   /** The user to display a profile card for. */
   user: User;
@@ -25,7 +24,6 @@ type Props = {
   /** The element that triggers the card on hover. */
   children: React.ReactNode;
 };
-
 /**
  * Displays a card with a summary of the given user's profile when the wrapped
  * element is hovered.
@@ -33,11 +31,9 @@ type Props = {
 export const UserHoverCard = ({ user, info, side, children }: Props) => {
   const container = usePortalContext();
   const isMobile = useMobile();
-
   if (isMobile) {
     return <>{children}</>;
   }
-
   return (
     <HoverCardPrimitive.Root openDelay={500} closeDelay={150}>
       <HoverCardPrimitive.Trigger asChild>
@@ -51,7 +47,6 @@ export const UserHoverCard = ({ user, info, side, children }: Props) => {
     </HoverCardPrimitive.Root>
   );
 };
-
 /**
  * The contents of the hover card, rendered only while the card is open so that
  * the per-minute clock updates do not affect avatars on the page.
@@ -62,7 +57,6 @@ const Profile = observer(function Profile_({
 }: Pick<Props, "user" | "info">) {
   const { t } = useTranslation();
   const localTime = user.localTime;
-
   return (
     <>
       <Flex gap={12} align="center">
@@ -107,11 +101,9 @@ const Profile = observer(function Profile_({
     </>
   );
 });
-
 const NameRow = styled(Flex).attrs({ align: "center", gap: 4 })`
   min-width: 0;
 `;
-
 const Name = styled(Text).attrs({
   as: "h3",
   weight: "bold",
@@ -121,7 +113,6 @@ const Name = styled(Text).attrs({
   min-width: 0;
   font-size: 15px;
 `;
-
 // Scaled down from the default badge to sit comfortably beside the name.
 const RoleBadge = styled(Badge)`
   flex-shrink: 0;
@@ -130,7 +121,6 @@ const RoleBadge = styled(Badge)`
   border-radius: 6px;
   font-size: 10px;
 `;
-
 const Info = styled(Text).attrs({
   as: "p",
   type: "tertiary",
@@ -139,13 +129,11 @@ const Info = styled(Text).attrs({
   margin: 0;
   white-space: nowrap;
 `;
-
 const Divider = styled.div`
   height: 1px;
   margin: 12px 0;
   background: ${s("divider")};
 `;
-
 const Row = styled(Flex).attrs({ align: "center", gap: 8 })`
   color: ${s("textSecondary")};
   font-size: 13px;
@@ -156,7 +144,6 @@ const Row = styled(Flex).attrs({ align: "center", gap: 8 })`
     flex-shrink: 0;
   }
 `;
-
 const Content = styled(HoverCardPrimitive.Content)`
   z-index: ${depths.tooltip};
   transform-origin: var(--radix-hover-card-content-transform-origin);

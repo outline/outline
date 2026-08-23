@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -44,7 +44,6 @@ const categories = [
       "Be more productive than enterprise project managers with a single piece of paper.",
   },
 ];
-
 /**
  * Tailwind UI – category previews: three column with description.
  *

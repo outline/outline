@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { s } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { useTranslation } from "react-i18next";
-
 type Props = {
   /** Callback triggered when the caption is blurred */
   onBlur: (event: React.FocusEvent<HTMLParagraphElement>) => void;
@@ -19,7 +18,6 @@ type Props = {
   style?: React.CSSProperties;
   children: React.ReactNode;
 };
-
 /**
  * A component that renders a caption for an image or video.
  */
@@ -37,14 +35,12 @@ function Caption({
     const text = event.clipboardData.getData("text/plain");
     window.document.execCommand("insertText", false, text);
   };
-
   const handleMouseDown = (ev: React.MouseEvent<HTMLParagraphElement>) => {
     // always prevent clicks in caption from bubbling to the editor
     ev.stopPropagation();
   };
-
   const handleKeyDown = (event: React.KeyboardEvent<HTMLParagraphElement>) => {
-    // Cmd/Ctrl-A should select the caption text, not the whole document.
+    // Cmd/Ctrl-A should select the caption text, not the whole note.
     if ((event.metaKey || event.ctrlKey) && event.key === "a") {
       event.preventDefault();
       event.stopPropagation();
@@ -57,7 +53,6 @@ function Caption({
     }
     onKeyDown(event);
   };
-
   return (
     <Content
       $width={width}
@@ -79,8 +74,10 @@ function Caption({
     </Content>
   );
 }
-
-const Content = styled.p<{ $width: number; $isSelected: boolean }>`
+const Content = styled.p<{
+  $width: number;
+  $isSelected: boolean;
+}>`
   cursor: text;
   width: ${(props) => props.$width}px;
   min-width: 200px;
@@ -100,5 +97,4 @@ const Content = styled.p<{ $width: number; $isSelected: boolean }>`
     }
   }
 `;
-
 export default Caption;

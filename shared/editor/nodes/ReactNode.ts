@@ -1,6 +1,5 @@
 import type { ComponentProps } from "../types";
 import Node from "./Node";
-
 export default abstract class ReactNode<
   TOptions extends object = object,
 > extends Node<TOptions> {

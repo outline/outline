@@ -5,7 +5,6 @@
  */
 export async function loadPolyfills() {
   const polyfills = [];
-
   if (!supportsResizeObserver()) {
     polyfills.push(
       import("@juggle/resize-observer").then((module) => {
@@ -13,10 +12,8 @@ export async function loadPolyfills() {
       })
     );
   }
-
   return Promise.all(polyfills);
 }
-
 /**
  * Detect ResizeObserver compatability.
  *

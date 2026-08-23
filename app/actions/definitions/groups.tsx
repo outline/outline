@@ -11,7 +11,6 @@ import {
 } from "~/actions/definitions/common";
 import { GroupSection } from "~/actions/sections";
 import { settingsPath } from "~/utils/routeHelpers";
-
 export const groupMembers = createInternalLinkAction({
   name: ({ t }) => t("Members"),
   analyticsName: "Group members",
@@ -24,7 +23,6 @@ export const groupMembers = createInternalLinkAction({
     return group ? settingsPath("groups", group.id, "members") : "";
   },
 });
-
 export const editGroup = dialogActionFactory({
   analyticsName: "Edit group",
   section: GroupSection,
@@ -39,7 +37,6 @@ export const editGroup = dialogActionFactory({
     getActiveModels(Group).length === 1 &&
     getActivePolicies(Group).some((policy) => policy.abilities.update),
 });
-
 export const deleteGroup = dialogActionFactory({
   analyticsName: "Delete group",
   section: GroupSection,
@@ -62,7 +59,6 @@ export const deleteGroup = dialogActionFactory({
       (group) => context.stores.policies.abilities(group.id).delete
     ),
 });
-
 /** Read-only row surfacing the group's identifier. */
 export const groupExternalId = createExternalLinkAction({
   name: ({ getActiveModel }) => getActiveModel(Group)?.externalId ?? "",
@@ -71,7 +67,6 @@ export const groupExternalId = createExternalLinkAction({
   disabled: true,
   url: "",
 });
-
 /** Read-only row surfacing the identifier of the group in its provider. */
 export const groupProviderExternalId = createExternalLinkAction({
   name: ({ getActiveModel }) =>

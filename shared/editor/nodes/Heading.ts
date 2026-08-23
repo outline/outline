@@ -19,14 +19,12 @@ import toggleBlockType from "../commands/toggleBlockType";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-
 export enum HeadingLevel {
   One = 1,
   Two,
   Three,
   Four,
 }
-
 /**
  * Options for the Heading node.
  */
@@ -36,18 +34,15 @@ type HeadingOptions = {
   /** Offset added to the rendered heading level (e.g. 1 renders an `h2` for level 1). */
   offset?: number;
 };
-
 export default class Heading extends Node<HeadingOptions> {
   get name() {
     return "heading";
   }
-
   get defaultOptions(): Partial<HeadingOptions> {
     return {
       levels: [1, 2, 3, 4],
     };
   }
-
   get schema(): NodeSpec {
     return {
       attrs: {
@@ -77,13 +72,11 @@ export default class Heading extends Node<HeadingOptions> {
       ],
     };
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write(state.repeat("#", node.attrs.level) + " ");
     state.renderInline(node);
     state.closeBlock(node);
   }
-
   parseMarkdown() {
     return {
       block: "heading",
@@ -92,22 +85,18 @@ export default class Heading extends Node<HeadingOptions> {
       }),
     };
   }
-
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
     return (attrs: Record<string, Primitive>) =>
       toggleBlockType(type, schema.nodes.paragraph, attrs);
   }
-
   handleCopyLink = (event: MouseEvent) => {
     if (!(event.currentTarget instanceof HTMLButtonElement)) {
       return;
     }
-
     const heading = event.currentTarget.closest(".heading-content");
     if (!heading) {
       return;
     }
-
     // Search previous siblings for the anchor element, as other elements
     // (e.g. multiplayer cursors) may be inserted between the anchor and heading.
     let anchor = heading.previousElementSibling;
@@ -117,13 +106,10 @@ export default class Heading extends Node<HeadingOptions> {
     ) {
       anchor = anchor.previousElementSibling;
     }
-
     if (!anchor) {
       return;
     }
-
     const hash = `#${anchor.id}`;
-
     // the existing url might contain a hash already, lets make sure to remove
     // that rather than appending another one, along with any /edit suffix.
     const normalizedUrl = removeUrlPathSuffix(
@@ -142,7 +128,6 @@ export default class Heading extends Node<HeadingOptions> {
       );
     }
   };
-
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     const options = this.options.levels.reduce(
       (items: Record<string, Command>, level: number) => ({
@@ -153,7 +138,6 @@ export default class Heading extends Node<HeadingOptions> {
       }),
       {}
     );
-
     return {
       ...options,
       Backspace: backspaceToParagraph(type),
@@ -161,17 +145,14 @@ export default class Heading extends Node<HeadingOptions> {
         if (!isSafari) {
           return false;
         }
-
         const { $from, empty } = state.selection;
         if (!empty || $from.parent.type !== type) {
           return false;
         }
-
         const end = $from.end();
         if ($from.pos !== end || !$from.parent.lastChild?.isText) {
           return false;
         }
-
         if (dispatch) {
           dispatch(
             state.tr
@@ -206,11 +187,9 @@ export default class Heading extends Node<HeadingOptions> {
       }) as Command,
     };
   }
-
   get plugins() {
     const createWidgetDecorations = (doc: ProsemirrorNode): Decoration[] => {
       const decorations: Decoration[] = [];
-
       doc.descendants((node, pos) => {
         if (node.type.name === "heading") {
           // Create anchor button to copy a link to the heading
@@ -223,7 +202,6 @@ export default class Heading extends Node<HeadingOptions> {
           anchor.addEventListener("mousedown", (event) =>
             this.handleCopyLink(event)
           );
-
           decorations.push(
             Decoration.widget(
               // Safari requires the widget to be placed at the end of the node rather than the beginning
@@ -240,7 +218,6 @@ export default class Heading extends Node<HeadingOptions> {
               }
             )
           );
-
           // Creates a "space" for the caret to move to before the widget.
           // Without this it is very hard to place the caret at the beginning
           // of the heading when it begins with an atom element.
@@ -256,10 +233,8 @@ export default class Heading extends Node<HeadingOptions> {
           }
         }
       });
-
       return decorations;
     };
-
     const widgetsPlugin: Plugin = new Plugin({
       state: {
         init(_, { doc }) {
@@ -281,10 +256,8 @@ export default class Heading extends Node<HeadingOptions> {
         },
       },
     });
-
     return [widgetsPlugin];
   }
-
   inputRules({ type }: { type: NodeType }) {
     return this.options.levels.map((level: number) =>
       textblockTypeInputRule(new RegExp(`^(#{1,${level}})\\s$`), type, () => ({

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -17,7 +17,6 @@ const notificationMethods = [
   { id: "sms", title: "Phone (SMS)" },
   { id: "push", title: "Push notification" },
 ];
-
 /**
  * Tailwind UI – radio groups: simple list.
  *

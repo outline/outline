@@ -2,9 +2,9 @@ import { filter, isEqual, orderBy, uniq } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import type Document from "~/models/Document";
+import type Note from "~/models/Note";
 import { AvatarSize, AvatarWithPresence } from "~/components/Avatar";
-import DocumentViews from "~/components/DocumentViews";
+import NoteViews from "~/components/NoteViews";
 import Facepile from "~/components/Facepile";
 import NudeButton from "~/components/NudeButton";
 import {
@@ -14,17 +14,15 @@ import {
 } from "~/components/primitives/Popover";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import { useDocumentPresence } from "~/stores/presence";
-
+import { useNotePresence } from "~/stores/presence";
 type Props = {
-  /** The document to display live collaborators for */
-  document: Document;
+  /** The note to display live collaborators for */
+  note: Note;
   /** The maximum number of collaborators to display, defaults to 6 */
   limit?: number;
 };
-
 /**
- * Displays a list of live collaborators for a document, including their avatars
+ * Displays a list of live collaborators for a note, including their avatars
  * and presence status.
  */
 function Collaborators(props: Props) {
@@ -34,36 +32,34 @@ function Collaborators(props: Props) {
   const currentUserId = user?.id;
   const [requestedUserIds, setRequestedUserIds] = useState<string[]>([]);
   const { users, ui } = useStores();
-  const { document } = props;
+  const { note } = props;
   const { observingUserId } = ui;
-  const documentPresence = useDocumentPresence(document.id);
-  const documentPresenceArray = useMemo(
-    () => (documentPresence ? Array.from(documentPresence.values()) : []),
-    [documentPresence]
+  const notePresence = useNotePresence(note.id);
+  const notePresenceArray = useMemo(
+    () => (notePresence ? Array.from(notePresence.values()) : []),
+    [notePresence]
   );
-
   // Use Set for O(1) lookups and stable references. The current user is
   // always included to avoid a flash while the multiplayer connection forms.
   const presentIds = useMemo(() => {
-    const ids = new Set(documentPresenceArray.map((p) => p.userId));
+    const ids = new Set(notePresenceArray.map((p) => p.userId));
     if (currentUserId) {
       ids.add(currentUserId);
     }
     return ids;
-  }, [documentPresenceArray, currentUserId]);
+  }, [notePresenceArray, currentUserId]);
   const editingIds = useMemo(
     () =>
       new Set(
-        documentPresenceArray.filter((p) => p.isEditing).map((p) => p.userId)
+        notePresenceArray.filter((p) => p.isEditing).map((p) => p.userId)
       ),
-    [documentPresenceArray]
+    [notePresenceArray]
   );
-
   // ensure currently present via websocket are always ordered first
   // Memoize collaboratorIds as a Set for efficient lookup
   const collaboratorIdsSet = useMemo(
-    () => new Set(document.collaboratorIds ?? []),
-    [document.collaboratorIds]
+    () => new Set(note.collaboratorIds ?? []),
+    [note.collaboratorIds]
   );
   const collaborators = useMemo(
     () =>
@@ -79,7 +75,6 @@ function Collaborators(props: Props) {
       ),
     [collaboratorIdsSet, users.all, presentIds]
   );
-
   // load any users we don't yet have in memory
   // Memoize ids to avoid unnecessary effect executions
   const missingUserIds = useMemo(
@@ -89,7 +84,6 @@ function Collaborators(props: Props) {
         .sort(),
     [collaboratorIdsSet, presentIds, users]
   );
-
   useEffect(() => {
     if (
       !isEqual(requestedUserIds, missingUserIds) &&
@@ -99,7 +93,6 @@ function Collaborators(props: Props) {
       void users.fetchPage({ ids: missingUserIds, limit: 100 });
     }
   }, [missingUserIds, requestedUserIds, users]);
-
   // Memoize onClick handler to avoid inline function creation
   const handleAvatarClick = useCallback(
     (
@@ -117,14 +110,12 @@ function Collaborators(props: Props) {
       },
     [ui]
   );
-
   const renderAvatar = useCallback(
     ({ model: collaborator, ...rest }) => {
       const isPresent = presentIds.has(collaborator.id);
       const isEditing = editingIds.has(collaborator.id);
       const isObserving = observingUserId === collaborator.id;
       const isObservable = collaborator.id !== currentUserId;
-
       return (
         <AvatarWithPresence
           key={collaborator.id}
@@ -157,11 +148,9 @@ function Collaborators(props: Props) {
       t,
     ]
   );
-
-  if (!document.insightsEnabled) {
+  if (!note.insightsEnabled) {
     return null;
   }
-
   return (
     <Popover>
       <PopoverTrigger>
@@ -179,10 +168,9 @@ function Collaborators(props: Props) {
         </NudeButton>
       </PopoverTrigger>
       <PopoverContent aria-label={t("Viewers")} side="bottom" align="end">
-        <DocumentViews document={document} />
+        <NoteViews note={note} />
       </PopoverContent>
     </Popover>
   );
 }
-
 export default observer(Collaborators);

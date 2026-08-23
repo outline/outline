@@ -2,7 +2,6 @@ import { isNull } from "es-toolkit/compat";
 import type { NodeSpec } from "prosemirror-model";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import Node from "./Node";
-
 /**
  * Options for the Doc node.
  */
@@ -10,18 +9,15 @@ type DocOptions = {
   /** Placeholder text shown when the document is empty. */
   placeholder: string;
 };
-
 export default class Doc extends Node<DocOptions> {
   get name() {
     return "doc";
   }
-
   get schema(): NodeSpec {
     return {
       content: "block+",
     };
   }
-
   get plugins() {
     return [
       new PlaceholderPlugin([

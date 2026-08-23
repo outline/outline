@@ -1,7 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "./Flex";
-
 type Props = {
   /** The width and height of the squircle */
   size?: number;
@@ -11,7 +10,6 @@ type Props = {
   className?: string;
   style?: React.CSSProperties;
 };
-
 /**
  * Squircle is a component that renders a square with rounded corners (squircle shape).
  * It's commonly used for app icons, avatars, and other UI elements where a softer
@@ -43,8 +41,9 @@ const Squircle: React.FC<Props> = ({
     <Content>{children}</Content>
   </Wrapper>
 );
-
-const Wrapper = styled(Flex)<{ size: number }>`
+const Wrapper = styled(Flex)<{
+  size: number;
+}>`
   position: relative;
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
@@ -54,7 +53,6 @@ const Wrapper = styled(Flex)<{ size: number }>`
     transition-delay: var(--delay);
   }
 `;
-
 const Content = styled.div`
   display: flex;
   transform: translate(-50%, -50%);
@@ -62,5 +60,4 @@ const Content = styled.div`
   top: 50%;
   left: 50%;
 `;
-
 export default Squircle;

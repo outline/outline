@@ -1,6 +1,5 @@
 import { addDays, endOfDay } from "date-fns";
 import i18next from "i18next";
-
 export enum ExpiryType {
   Week = "7 days",
   Month = "30 days",
@@ -9,12 +8,10 @@ export enum ExpiryType {
   Custom = "Custom",
   NoExpiration = "No expiration",
 }
-
 type ExpiryValue = {
   label: string;
   value?: number;
 };
-
 export const ExpiryValues: Map<ExpiryType, ExpiryValue> = new Map([
   [ExpiryType.Week, { label: i18next.t("7 days"), value: 7 }],
   [ExpiryType.Month, { label: i18next.t("30 days"), value: 30 }],
@@ -23,7 +20,6 @@ export const ExpiryValues: Map<ExpiryType, ExpiryValue> = new Map([
   [ExpiryType.Custom, { label: i18next.t("Custom") }],
   [ExpiryType.NoExpiration, { label: i18next.t("No expiration") }],
 ]);
-
 export const calculateExpiryDate = (
   currentDate: Date,
   expiryType: ExpiryType

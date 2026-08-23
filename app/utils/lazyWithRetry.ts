@@ -1,10 +1,8 @@
 import * as React from "react";
-
 // oxlint-disable no-explicit-any -- ComponentType<any> is the standard React pattern for generic component constraints
 type ComponentPromise<T extends React.ComponentType<any>> = Promise<{
   default: T;
 }>;
-
 /**
  * Lazy load a component with automatic retry on failure.
  *
@@ -20,7 +18,6 @@ export default function lazyWithRetry<T extends React.ComponentType<any>>(
 ): React.LazyExoticComponent<T> {
   return React.lazy(() => retry(component, retries, interval));
 }
-
 function retry<T extends React.ComponentType<any>>(
   fn: () => ComponentPromise<T>,
   retriesLeft = 3,
@@ -45,9 +42,7 @@ function retry<T extends React.ComponentType<any>>(
       });
   });
 }
-
 const reloadSessionKey = "chunkReload";
-
 /**
  * Reloads the page when a dynamic import fails because the chunk no longer
  * exists, typically after a deploy left an open tab referencing stale URLs.
@@ -62,11 +57,9 @@ function reloadIfStaleChunk(error: unknown): boolean {
     /Failed to fetch dynamically imported module|Importing a module script failed/i.test(
       message
     );
-
   if (!isChunkError) {
     return false;
   }
-
   try {
     if (sessionStorage.getItem(reloadSessionKey)) {
       return false;
@@ -77,7 +70,6 @@ function reloadIfStaleChunk(error: unknown): boolean {
     // we can't guard against a reload loop, so fail safe and don't reload.
     return false;
   }
-
   window.location.reload();
   return true;
 }

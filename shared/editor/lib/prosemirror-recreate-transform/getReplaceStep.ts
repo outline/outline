@@ -1,12 +1,10 @@
 import type { Node } from "prosemirror-model";
 import { ReplaceStep } from "prosemirror-transform";
-
 export function getReplaceStep(fromDoc: Node, toDoc: Node) {
   let start = toDoc.content.findDiffStart(fromDoc.content);
   if (start === null) {
     return false;
   }
-
   let { a: endA, b: endB } = toDoc.content.findDiffEnd(fromDoc.content) as {
     a: number;
     b: number;
@@ -26,6 +24,5 @@ export function getReplaceStep(fromDoc: Node, toDoc: Node) {
       endB += overlap;
     }
   }
-
   return new ReplaceStep(start, endB, toDoc.slice(start, endA));
 }

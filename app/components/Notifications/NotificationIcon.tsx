@@ -4,11 +4,9 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import useStores from "~/hooks/useStores";
 import Relative from "../Sidebar/components/Relative";
-
 const NotificationIcon = () => {
   const { notifications } = useStores();
   const count = notifications.approximateUnreadCount;
-
   return (
     <Relative style={{ height: 24 }}>
       <SubscribeIcon />
@@ -16,7 +14,6 @@ const NotificationIcon = () => {
     </Relative>
   );
 };
-
 const Badge = styled.div`
   position: absolute;
   width: 8px;
@@ -26,5 +23,4 @@ const Badge = styled.div`
   top: 0;
   right: 0;
 `;
-
 export default observer(NotificationIcon);

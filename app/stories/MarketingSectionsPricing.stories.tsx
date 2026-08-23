@@ -12,61 +12,46 @@ import { PricingTwoTiersWithEmphasizedTier } from "~/components/PricingTwoTiersW
 import { PricingTwoTiersWithExtraTier } from "~/components/PricingTwoTiersWithExtraTier";
 import { PricingWithComparisonTable } from "~/components/PricingWithComparisonTable";
 import { PricingWithComparisonTableOnDark } from "~/components/PricingWithComparisonTableOnDark";
-
 const meta: Meta = {
   title: "Marketing/Sections/Pricing",
 };
-
 export default meta;
-
 export const FourTiersWithToggle: StoryObj = {
   render: () => <PricingFourTiersWithToggle />,
 };
-
 export const SinglePriceWithDetails: StoryObj = {
   render: () => <PricingSinglePriceWithDetails />,
 };
-
 export const ThreeTiers: StoryObj = {
   render: () => <PricingThreeTiers />,
 };
-
 export const ThreeTiersWithDividers: StoryObj = {
   render: () => <PricingThreeTiersWithDividers />,
 };
-
 export const ThreeTiersWithEmphasizedTier: StoryObj = {
   render: () => <PricingThreeTiersWithEmphasizedTier />,
 };
-
 export const ThreeTiersWithFeatureComparison: StoryObj = {
   render: () => <PricingThreeTiersWithFeatureComparison />,
 };
-
 export const ThreeTiersWithToggle: StoryObj = {
   render: () => <PricingThreeTiersWithToggle />,
 };
-
 export const ThreeTiersWithToggleOnDark: StoryObj = {
   render: () => <PricingThreeTiersWithToggleOnDark />,
 };
-
 export const TwoTiers: StoryObj = {
   render: () => <PricingTwoTiers />,
 };
-
 export const TwoTiersWithEmphasizedTier: StoryObj = {
   render: () => <PricingTwoTiersWithEmphasizedTier />,
 };
-
 export const TwoTiersWithExtraTier: StoryObj = {
   render: () => <PricingTwoTiersWithExtraTier />,
 };
-
 export const WithComparisonTable: StoryObj = {
   render: () => <PricingWithComparisonTable />,
 };
-
 export const WithComparisonTableOnDark: StoryObj = {
   render: () => <PricingWithComparisonTableOnDark />,
 };

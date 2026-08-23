@@ -1,5 +1,4 @@
 import { InboxIcon, TrashIcon, UsersIcon } from "@heroicons/react/24/outline";
-
 const features = [
   {
     name: "Unlimited inboxes",
@@ -23,7 +22,6 @@ const features = [
     icon: TrashIcon,
   },
 ];
-
 /**
  * Tailwind UI – feature sections: simple three column with large icons.
  *

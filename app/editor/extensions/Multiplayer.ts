@@ -15,7 +15,6 @@ import Extension from "@shared/editor/lib/Extension";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { Second } from "@shared/utils/time";
-
 type UserAwareness = {
   user?: {
     id: string;
@@ -23,36 +22,33 @@ type UserAwareness = {
   anchor: object;
   head: object;
 };
-
 /**
  * Options for the Multiplayer extension.
  */
 type MultiplayerOptions = {
   /** The local user, used for cursor presence and the persistent user/client mapping. */
-  user: { id: string; color: string };
+  user: {
+    id: string;
+    color: string;
+  };
   /** The Hocuspocus provider used for awareness and document sync. */
   provider: HocuspocusProvider;
   /** The shared Yjs document this editor is bound to. */
-  document: Y.Doc;
+  note: Y.Doc;
 };
-
 export default class Multiplayer extends Extension<MultiplayerOptions> {
   get name() {
     return "multiplayer";
   }
-
   get allowInReadOnly() {
     return true;
   }
-
   get plugins() {
-    const { user, provider, document: doc } = this.options;
+    const { user, provider, note: doc } = this.options;
     const type = doc.get("default", Y.XmlFragment);
-
     // Assign a user to a client ID once they've made a change and then remove the listener
     const assignUser = (tr: Y.Transaction) => {
       const clientIds = Array.from(doc.store.clients.keys());
-
       if (
         tr.local &&
         tr.changed.size > 0 &&
@@ -63,18 +59,17 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
         doc.off("afterTransaction", assignUser);
       }
     };
-
     const userAwarenessCache = new Map<
       string,
-      { aw: UserAwareness; changedAt: Date }
+      {
+        aw: UserAwareness;
+        changedAt: Date;
+      }
     >();
-
     // The opacity of a remote user's selection.
     const selectionOpacity = 70;
-
     // The time in milliseconds after which a remote user's selection will be hidden.
     const selectionTimeout = 10 * Second.ms;
-
     // We're hijacking this method to store the last time a user's awareness changed as a side
     // effect, and otherwise behaving as the default.
     const awarenessStateFilter = (
@@ -85,7 +80,6 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
       if (currentClientId === userClientId) {
         return false;
       }
-
       const userId = aw.user?.id;
       const cached = userId ? userAwarenessCache.get(userId) : undefined;
       if (!cached || !isEqual(cached?.aw, aw)) {
@@ -93,10 +87,8 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
           userAwarenessCache.set(userId, { aw, changedAt: new Date() });
         }
       }
-
       return true;
     };
-
     // Override the default selection builder to add a background color to the selection
     // only if the user's awareness has changed recently – this stops selections from lingering.
     const selectionBuilder = (u: { id: string; color: string }) => {
@@ -105,19 +97,15 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
         !cached || cached?.changedAt > new Date(Date.now() - selectionTimeout)
           ? selectionOpacity
           : 0;
-
       return {
         style: `background-color: ${u.color}${opacity}`,
         class: EditorStyleHelper.multiplayerSelection,
       };
     };
-
     provider.setAwarenessField("user", user);
-
     // only once an actual change has been made do we add the userId <> clientId
     // mapping, this avoids stored mappings for clients that never made a change
     doc.on("afterTransaction", assignUser);
-
     return [
       ySyncPlugin(type),
       yCursorPlugin(provider.awareness, {
@@ -132,14 +120,12 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
       }),
     ];
   }
-
   commands() {
     return {
       undo: () => undo,
       redo: () => redo,
     };
   }
-
   keys() {
     return {
       "Mod-z": undoCommand,

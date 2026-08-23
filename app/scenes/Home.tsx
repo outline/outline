@@ -9,30 +9,28 @@ import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
 import InputSearchPage from "~/components/InputSearchPage";
 import LanguagePrompt from "~/components/LanguagePrompt";
-import PaginatedDocumentList from "~/components/PaginatedDocumentList";
-import PinnedDocuments from "~/components/PinnedDocuments";
+import PaginatedNoteList from "~/components/PaginatedNoteList";
+import PinnedNotes from "~/components/PinnedNotes";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scene from "~/components/Scene";
 import { Tab, Tabs } from "~/components/Tabs";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
+import { usePinnedNotes } from "~/hooks/usePinnedNotes";
 import usePersistedState from "~/hooks/usePersistedState";
 import useStores from "~/hooks/useStores";
-import NewDocumentMenu from "~/menus/NewDocumentMenu";
-
+import NewNoteMenu from "~/menus/NewNoteMenu";
 enum HomeTab {
   Viewed = "",
   Popular = "popular",
   Updated = "recent",
   Created = "created",
 }
-
 function Home() {
-  const { documents, ui } = useStores();
+  const { notes, ui } = useStores();
   const user = useCurrentUser();
   const { t } = useTranslation();
   const userId = user?.id;
-  const { pins, count } = usePinnedDocuments("home");
+  const { pins, count } = usePinnedNotes("home");
   const [homeTab, setHomeTab] = usePersistedState<HomeTab>(
     "home-tab",
     HomeTab.Viewed,
@@ -40,38 +38,33 @@ function Home() {
       listen: false,
     }
   );
-
   // When landing on the index the last viewed tab is restored, the tabs are
   // hidden until the redirect resolves so that the active indicator does not
   // animate across from the first tab on mount.
   const isIndex = !!useRouteMatch({ path: "/home", exact: true });
   const redirectTo =
     isIndex && homeTab !== HomeTab.Viewed ? `/home/${homeTab}` : undefined;
-
   const recentlyViewed = (
-    <PaginatedDocumentList
+    <PaginatedNoteList
       key="recent"
-      documents={documents.recentlyViewed}
-      fetch={documents.fetchRecentlyViewed}
+      notes={notes.recentlyViewed}
+      fetch={notes.fetchRecentlyViewed}
       empty={
         <Empty>
           {t("Notes you’ve recently viewed will be here for easy access")}
         </Empty>
       }
-      showCollection
+      showNotebook
     />
   );
-
   return (
     <Scene
       icon={<HomeIcon />}
       title={t("Home")}
-      left={
-        <InputSearchPage source="dashboard" label={t("Search notes")} />
-      }
+      left={<InputSearchPage source="dashboard" label={t("Search notes")} />}
       actions={
         <Action>
-          <NewDocumentMenu />
+          <NewNoteMenu />
         </Action>
       }
     >
@@ -79,12 +72,8 @@ function Home() {
         {!ui.languagePromptDismissed && <LanguagePrompt key="language" />}
       </ResizingHeightContainer>
       <Heading>{t("Home")}</Heading>
-      <PinnedDocuments
-        pins={pins}
-        placeholderCount={count}
-        collapseKey="home"
-      />
-      <Documents>
+      <PinnedNotes pins={pins} placeholderCount={count} collapseKey="home" />
+      <Notes>
         {!redirectTo && (
           <Tabs>
             <Tab to="/home" exact onClick={() => setHomeTab(HomeTab.Viewed)}>
@@ -114,50 +103,46 @@ function Home() {
             {redirectTo ? <Redirect to={redirectTo} /> : recentlyViewed}
           </Route>
           <Route path="/home/recent">
-            <PaginatedDocumentList
-              documents={documents.recentlyUpdated}
-              fetch={documents.fetchRecentlyUpdated}
+            <PaginatedNoteList
+              notes={notes.recentlyUpdated}
+              fetch={notes.fetchRecentlyUpdated}
               empty={<Empty>{t("Weird, this shouldn't ever be empty")}</Empty>}
-              showCollection
+              showNotebook
             />
           </Route>
           <Route path="/home/popular">
-            <PaginatedDocumentList
+            <PaginatedNoteList
               key="popular"
-              documents={documents.popular}
-              fetch={documents.fetchPopular}
+              notes={notes.popular}
+              fetch={notes.fetchPopular}
               empty={
                 <Empty>
                   {t("Notes with recent activity will appear here")}
                 </Empty>
               }
-              showCollection
+              showNotebook
             />
           </Route>
           <Route path="/home/created">
-            <PaginatedDocumentList
+            <PaginatedNoteList
               key="created"
-              documents={documents.createdByUser(userId)}
-              fetch={documents.fetchOwned}
+              notes={notes.createdByUser(userId)}
+              fetch={notes.fetchOwned}
               options={{
                 userId,
               }}
-              empty={
-                <Empty>{t("You haven’t created any notes yet")}</Empty>
-              }
-              showCollection
+              empty={<Empty>{t("You haven’t created any notes yet")}</Empty>}
+              showNotebook
             />
           </Route>
           <Route path="/home">{recentlyViewed}</Route>
         </Switch>
-      </Documents>
+      </Notes>
     </Scene>
   );
 }
-
-const Documents = styled.div`
+const Notes = styled.div`
   position: relative;
   background: ${s("background")};
 `;
-
 export default observer(Home);

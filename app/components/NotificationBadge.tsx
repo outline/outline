@@ -4,7 +4,6 @@ import { NotificationBadgeType, UserPreference } from "@shared/types";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import Desktop from "~/utils/Desktop";
-
 /**
  * Component that keeps the app icon notification badge in sync with unread
  * notification count. Renders nothing visible — mount near the app root so it
@@ -13,10 +12,8 @@ import Desktop from "~/utils/Desktop";
 function NotificationBadge() {
   const { notifications } = useStores();
   const user = useCurrentUser();
-
   const badgeType = user.getPreference(UserPreference.NotificationBadge);
   const unreadCount = notifications.approximateUnreadCount;
-
   React.useEffect(() => {
     // Desktop app badge
     if (Desktop.bridge && "setNotificationCount" in Desktop.bridge) {
@@ -28,7 +25,6 @@ function NotificationBadge() {
         void Desktop.bridge.setNotificationCount("・");
       }
     }
-
     // PWA badge
     if ("setAppBadge" in navigator) {
       if (unreadCount > 0 && badgeType !== NotificationBadgeType.Disabled) {
@@ -40,8 +36,6 @@ function NotificationBadge() {
       }
     }
   }, [unreadCount, badgeType]);
-
   return null;
 }
-
 export default observer(NotificationBadge);

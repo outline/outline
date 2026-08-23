@@ -1,13 +1,11 @@
 import * as React from "react";
 import styled from "styled-components";
 import type { UnfurlResourceType, UnfurlResponse } from "../types";
-
 type Props = {
   state: UnfurlResponse[UnfurlResourceType.PR]["state"];
   size?: number;
   className?: string;
 };
-
 /**
  * Issue status icon based on GitHub pull requests, but can be used for any git-style integration.
  */
@@ -18,8 +16,9 @@ export function PullRequestIcon({ size, className, state }: Props) {
     </Icon>
   );
 }
-
-const Icon = styled.span<{ size?: number }>`
+const Icon = styled.span<{
+  size?: number;
+}>`
   display: inline-flex;
   flex-shrink: 0;
   width: ${(props) => props.size ?? 24}px;
@@ -27,7 +26,6 @@ const Icon = styled.span<{ size?: number }>`
   align-items: center;
   justify-content: center;
 `;
-
 function BaseIcon({ state }: Pick<Props, "state">) {
   switch (state.name) {
     case "opened":

@@ -1,6 +1,5 @@
 import { Schema } from "prosemirror-model";
 import { getCellAttrs, isValidCellAlignment, isValidCellMarks } from "./table";
-
 const schema = new Schema({
   nodes: {
     doc: { content: "text*" },
@@ -14,24 +13,20 @@ const schema = new Schema({
     em: {},
   },
 });
-
 describe("isValidCellAlignment", () => {
   it("accepts null", () => {
     expect(isValidCellAlignment(null)).toBe(true);
   });
-
   it("accepts the three allowed alignment strings", () => {
     expect(isValidCellAlignment("left")).toBe(true);
     expect(isValidCellAlignment("center")).toBe(true);
     expect(isValidCellAlignment("right")).toBe(true);
   });
-
   it("rejects arbitrary strings", () => {
     expect(isValidCellAlignment("justify")).toBe(false);
     expect(isValidCellAlignment("LEFT")).toBe(false);
     expect(isValidCellAlignment("")).toBe(false);
   });
-
   it("rejects CSS injection payloads", () => {
     expect(
       isValidCellAlignment(
@@ -40,7 +35,6 @@ describe("isValidCellAlignment", () => {
     ).toBe(false);
     expect(isValidCellAlignment("left; background: red")).toBe(false);
   });
-
   it("rejects non-string non-null values", () => {
     expect(isValidCellAlignment(undefined)).toBe(false);
     expect(isValidCellAlignment(0)).toBe(false);
@@ -48,17 +42,14 @@ describe("isValidCellAlignment", () => {
     expect(isValidCellAlignment([])).toBe(false);
   });
 });
-
 describe("isValidCellMarks", () => {
   it("accepts undefined and null", () => {
     expect(isValidCellMarks(undefined)).toBe(true);
     expect(isValidCellMarks(null)).toBe(true);
   });
-
   it("accepts an empty array", () => {
     expect(isValidCellMarks([])).toBe(true);
   });
-
   it("accepts a background mark with a valid 6-digit hex color", () => {
     expect(
       isValidCellMarks(
@@ -67,7 +58,6 @@ describe("isValidCellMarks", () => {
       )
     ).toBe(true);
   });
-
   it("accepts a background mark with a valid 8-digit hex color", () => {
     expect(
       isValidCellMarks(
@@ -76,7 +66,6 @@ describe("isValidCellMarks", () => {
       )
     ).toBe(true);
   });
-
   it("accepts a background mark with a valid 3-digit hex color", () => {
     expect(
       isValidCellMarks(
@@ -85,7 +74,6 @@ describe("isValidCellMarks", () => {
       )
     ).toBe(true);
   });
-
   it("accepts a background mark with a valid 4-digit hex color", () => {
     expect(
       isValidCellMarks(
@@ -94,7 +82,6 @@ describe("isValidCellMarks", () => {
       )
     ).toBe(true);
   });
-
   it("rejects a background mark with a malformed 4-digit hex color", () => {
     expect(
       isValidCellMarks(
@@ -103,7 +90,6 @@ describe("isValidCellMarks", () => {
       )
     ).toBe(false);
   });
-
   it("rejects a background mark with a non-hex color", () => {
     expect(
       isValidCellMarks(
@@ -112,7 +98,6 @@ describe("isValidCellMarks", () => {
       )
     ).toBe(false);
   });
-
   it("rejects a background mark carrying a CSS injection payload", () => {
     expect(
       isValidCellMarks(
@@ -128,28 +113,23 @@ describe("isValidCellMarks", () => {
       )
     ).toBe(false);
   });
-
   it("rejects a background mark with a missing color attr", () => {
     expect(isValidCellMarks([{ type: "background", attrs: {} }], schema)).toBe(
       false
     );
     expect(isValidCellMarks([{ type: "background" }], schema)).toBe(false);
   });
-
   it("rejects mark types that are not registered in the schema", () => {
     expect(isValidCellMarks([{ type: "not_a_mark" }], schema)).toBe(false);
   });
-
   it("does not check schema registration when no schema is provided", () => {
     expect(isValidCellMarks([{ type: "anything_goes" }])).toBe(true);
   });
-
   it("rejects non-array values", () => {
     expect(isValidCellMarks("marks")).toBe(false);
     expect(isValidCellMarks({})).toBe(false);
     expect(isValidCellMarks(42)).toBe(false);
   });
-
   it("rejects arrays containing malformed entries", () => {
     expect(isValidCellMarks([null], schema)).toBe(false);
     expect(isValidCellMarks(["strong"], schema)).toBe(false);
@@ -159,13 +139,11 @@ describe("isValidCellMarks", () => {
       false
     );
   });
-
   it("accepts registered marks without attrs", () => {
     expect(isValidCellMarks([{ type: "strong" }], schema)).toBe(true);
     expect(isValidCellMarks([{ type: "em" }], schema)).toBe(true);
   });
 });
-
 // Shared tests run in both node and jsdom; reading cell attributes requires a DOM.
 describe.runIf(typeof document !== "undefined")("getCellAttrs", () => {
   const cell = (attributes: Record<string, string>) => {
@@ -175,13 +153,11 @@ describe.runIf(typeof document !== "undefined")("getCellAttrs", () => {
     }
     return getCellAttrs(element);
   };
-
   it("reads the background written by the editor", () => {
     expect(cell({ "data-bgcolor": "#FDEA9B" }).marks).toEqual([
       { type: "background", attrs: { color: "#FDEA9B" } },
     ]);
   });
-
   it("reads a background styled by an external application", () => {
     expect(cell({ style: "background-color: #93c47d" }).marks).toEqual([
       { type: "background", attrs: { color: "#93c47d" } },
@@ -190,7 +166,6 @@ describe.runIf(typeof document !== "undefined")("getCellAttrs", () => {
       { type: "background", attrs: { color: "#ffff00" } },
     ]);
   });
-
   it("ignores near-white and transparent cell backgrounds", () => {
     expect(cell({ style: "background-color: #ffffff" }).marks).toBe(undefined);
     expect(cell({ style: "background-color: transparent" }).marks).toBe(

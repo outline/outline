@@ -13,14 +13,11 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { IntegrationScene } from "./components/IntegrationScene";
 import SettingRow from "./components/SettingRow";
 import { HStack } from "~/components/primitives/HStack";
-
 /** List of embed providers available for configuration. */
 const providers = embeds.filter((e) => e.id !== "embed");
-
 function Embeds() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-
   const showSuccessMessage = React.useMemo(
     () =>
       debounce(() => {
@@ -28,7 +25,6 @@ function Embeds() {
       }, 250),
     [t]
   );
-
   const saveData = React.useCallback(
     async (newData: Record<string, unknown>) => {
       try {
@@ -40,23 +36,19 @@ function Embeds() {
     },
     [team, showSuccessMessage]
   );
-
-  const handleDocumentEmbedsChange = React.useCallback(
+  const handleNoteEmbedsChange = React.useCallback(
     async (checked: boolean) => {
-      await saveData({ documentEmbeds: checked });
+      await saveData({ noteEmbeds: checked });
     },
     [saveData]
   );
-
   const handleToggleEmbed = React.useCallback(
     async (id: string, enabled: boolean) => {
       const disabledEmbeds =
         (team.getPreference(TeamPreference.DisabledEmbeds) as string[]) || [];
-
       const updated = enabled
         ? disabledEmbeds.filter((t) => t !== id)
         : [...disabledEmbeds, id];
-
       team.setPreference(TeamPreference.DisabledEmbeds, updated);
       await saveData({
         preferences: { ...team.preferences },
@@ -64,11 +56,9 @@ function Embeds() {
     },
     [team, saveData]
   );
-
   const handleToggleAllEmbeds = React.useCallback(
     async (enabled: boolean) => {
       const updated = enabled ? [] : providers.map((e) => e.id);
-
       team.setPreference(TeamPreference.DisabledEmbeds, updated);
       await saveData({
         preferences: { ...team.preferences },
@@ -76,10 +66,8 @@ function Embeds() {
     },
     [team, saveData]
   );
-
   const disabledEmbeds =
     (team.getPreference(TeamPreference.DisabledEmbeds) as string[]) || [];
-
   return (
     <IntegrationScene title={t("Embeds")} icon={<BrowserIcon />}>
       <Heading>{t("Embeds")}</Heading>
@@ -93,12 +81,12 @@ function Embeds() {
       >
         <Switch
           id="documentEmbeds"
-          checked={team.documentEmbeds}
-          onChange={handleDocumentEmbedsChange}
+          checked={team.noteEmbeds}
+          onChange={handleNoteEmbedsChange}
         />
       </SettingRow>
 
-      {team.documentEmbeds && (
+      {team.noteEmbeds && (
         <>
           <Heading as="h2">{t("Providers")}</Heading>
           <Text as="p" type="secondary">
@@ -153,5 +141,4 @@ function Embeds() {
     </IntegrationScene>
   );
 }
-
 export default observer(Embeds);

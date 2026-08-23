@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -21,7 +21,6 @@ import {
   StarIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const product = {
   name: "Everyday Ruck Snack",
   price: "$220",
@@ -36,7 +35,6 @@ const product = {
     { name: "20L", description: "Enough room for a serious amount of snacks." },
   ],
 };
-
 /**
  * Tailwind UI – product quickviews: with large size selector.
  *
@@ -45,7 +43,6 @@ const product = {
 export function ProductQuickviewsWithLargeSizeSelector() {
   const [open, setOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
-
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={setOpen}>

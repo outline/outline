@@ -20,12 +20,10 @@ import Node from "./Node";
 import { isInList } from "../queries/isInList";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { isList } from "../queries/isList";
-
 export default class Embed extends Node {
   get name() {
     return "embed";
   }
-
   get schema(): NodeSpec {
     return {
       content: "inline*",
@@ -49,13 +47,11 @@ export default class Embed extends Node {
             const embeds = this.editor?.props.embeds ?? defaultEmbeds;
             const href = dom.getAttribute("data-canonical-url") || "";
             const response = getMatchingEmbed(embeds, href);
-
             if (response) {
               return {
                 href,
               };
             }
-
             return false;
           },
         },
@@ -70,7 +66,6 @@ export default class Embed extends Node {
         const embeds = this.editor?.props.embeds ?? defaultEmbeds;
         const response = getMatchingEmbed(embeds, node.attrs.href);
         const src = response?.embed.transformMatch?.(response.matches);
-
         if (src) {
           return [
             "iframe",
@@ -99,13 +94,11 @@ export default class Embed extends Node {
       leafText: (node) => node.attrs.href,
     };
   }
-
   handleChangeSize =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
     ({ width, height }: { width: number; height?: number }) => {
       const { view } = this.editor;
       const { tr } = view.state;
-
       const pos = getPos();
       const transaction = tr
         .setNodeMarkup(pos, undefined, {
@@ -117,10 +110,8 @@ export default class Embed extends Node {
       const $pos = transaction.doc.resolve(getPos());
       view.dispatch(transaction.setSelection(new NodeSelection($pos)));
     };
-
   component = (props: ComponentProps) => {
     const { embeds, embedsDisabled } = this.editor.props;
-
     return (
       <EmbedComponent
         {...props}
@@ -130,7 +121,6 @@ export default class Embed extends Node {
       />
     );
   };
-
   commands({ type }: { type: NodeType }) {
     return {
       embed:
@@ -149,27 +139,21 @@ export default class Embed extends Node {
             selection instanceof TextSelection
               ? selection.$cursor?.pos
               : selection.$to.pos;
-
           if (position === undefined || !isInList(state)) {
             return false;
           }
-
           const resolvedPos = state.tr.doc.resolve(position);
           const nodeWithPos = findParentNodeClosestToPos(resolvedPos, (node) =>
             isList(node, this.editor.schema)
           );
-
           if (!nodeWithPos) {
             return false;
           }
-
           const listNode = nodeWithPos.node,
             from = nodeWithPos.pos,
             to = from + listNode.nodeSize;
-
           const nodes = transformListToEmbeds(listNode, this.editor.schema);
           const slice = new Slice(Fragment.fromArray(nodes), 0, 0);
-
           const tr = state.tr.deleteRange(from, to);
           dispatch?.(
             tr
@@ -177,19 +161,15 @@ export default class Embed extends Node {
               .replaceSelection(slice)
               .scrollIntoView()
           );
-
           return true;
         },
     };
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     if (!state.inTable) {
       state.ensureNewLine();
     }
-
     const href = node.attrs.href.replace(/_/g, "%5F");
-
     state.write(
       "[" + state.esc(href, false) + "](" + state.esc(href, false) + ")"
     );
@@ -197,7 +177,6 @@ export default class Embed extends Node {
       state.write("\n\n");
     }
   }
-
   parseMarkdown() {
     return {
       node: "embed",

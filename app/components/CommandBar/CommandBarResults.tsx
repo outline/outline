@@ -2,14 +2,11 @@ import { useMatches, KBarResults } from "kbar";
 import styled from "styled-components";
 import Text from "~/components/Text";
 import CommandBarItem from "./CommandBarItem";
-
 export default function CommandBarResults() {
   const { results, rootActionId } = useMatches();
-
   if (results.length === 0) {
     return null;
   }
-
   return (
     <Container>
       <KBarResults
@@ -32,14 +29,12 @@ export default function CommandBarResults() {
     </Container>
   );
 }
-
 // Cannot style KBarResults unfortunately, so we must wrap and target the inner
 const Container = styled.div`
   > div {
     padding-bottom: 8px;
   }
 `;
-
 const Header = styled(Text).attrs({ as: "h3" })`
   letter-spacing: 0.03em;
   margin: 0;

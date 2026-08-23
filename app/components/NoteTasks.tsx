@@ -1,0 +1,62 @@
+import type { TFunction } from "i18next";
+import { observer } from "mobx-react";
+import { DoneIcon } from "outline-icons";
+import { useTranslation } from "react-i18next";
+import styled, { useTheme } from "styled-components";
+import type Note from "~/models/Note";
+import CircularProgressBar from "~/components/CircularProgressBar";
+import usePrevious from "~/hooks/usePrevious";
+import { bounceIn } from "~/styles/animations";
+import Flex from "./Flex";
+type Props = {
+  note: Note;
+};
+function getMessage(t: TFunction, total: number, completed: number): string {
+  if (completed === 0) {
+    return t(`{{ total }} task`, {
+      total,
+      count: total,
+    });
+  } else if (completed === total) {
+    return t(`{{ completed }} task done`, {
+      completed,
+      count: completed,
+    });
+  } else {
+    return t(`{{ completed }} of {{ total }} tasks`, {
+      total,
+      completed,
+    });
+  }
+}
+function NoteTasks({ note }: Props) {
+  const { tasks, tasksPercentage } = note;
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const { completed, total } = tasks;
+  const done = completed === total;
+  const previousDone = usePrevious(done);
+  const message = getMessage(t, total, completed);
+  return (
+    <Flex align="center" style={{ padding: "0 1px" }} gap={2} shrink={false}>
+      {completed === total ? (
+        <Done
+          color={theme.accent}
+          size={20}
+          $animated={done && previousDone === false}
+        />
+      ) : (
+        <CircularProgressBar percentage={tasksPercentage} label={message} />
+      )}
+      {message}
+    </Flex>
+  );
+}
+const Done = styled(DoneIcon)<{
+  $animated: boolean;
+}>`
+  margin: -1px;
+  animation: ${(props) => (props.$animated ? bounceIn : "none")} 600ms;
+  transform-origin: center center;
+`;
+export default observer(NoteTasks);

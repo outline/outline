@@ -10,7 +10,7 @@ import { hover } from "@shared/styles";
 import type Template from "~/models/Template";
 import ButtonLink from "~/components/ButtonLink";
 import { HEADER_HEIGHT } from "~/components/Header";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
+import CollectionIcon from "~/components/Icons/NotebookIcon";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import {
   type Props as TableProps,
@@ -26,12 +26,9 @@ import TemplateMenu from "~/menus/TemplateMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import history from "~/utils/history";
 import usePolicy from "~/hooks/usePolicy";
-
 const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
-
 type Props = Omit<TableProps<Template>, "columns" | "rowHeight">;
-
 const TemplateRowContextMenu = observer(function TemplateRowContextMenu({
   template,
   menuLabel,
@@ -52,14 +49,11 @@ const TemplateRowContextMenu = observer(function TemplateRowContextMenu({
     </ActionContextProvider>
   );
 });
-
 export function TemplatesTable(props: Props) {
   const { t } = useTranslation();
-
   const handleOpen = (template: Template) => {
     history.push(template.path);
   };
-
   const applyContextMenu = useCallback(
     (template: Template, rowElement: React.ReactNode) => (
       <TemplateRowContextMenu
@@ -71,7 +65,6 @@ export function TemplatesTable(props: Props) {
     ),
     [t]
   );
-
   const columns = React.useMemo<TableColumn<Template>[]>(
     () =>
       compact<TableColumn<Template>>([
@@ -89,7 +82,7 @@ export function TemplatesTable(props: Props) {
           type: "data",
           id: "collectionId",
           header: t("Visibility"),
-          accessor: (template) => template.collection?.name,
+          accessor: (template) => template.notebook?.name,
           component: (template) => <Permission template={template} />,
           width: "2fr",
         },
@@ -127,7 +120,6 @@ export function TemplatesTable(props: Props) {
       ]),
     [t]
   );
-
   return (
     <SortableTable
       id="templates"
@@ -139,7 +131,6 @@ export function TemplatesTable(props: Props) {
     />
   );
 }
-
 const TemplateLink = observer(
   ({
     template,
@@ -169,32 +160,26 @@ const TemplateLink = observer(
         )}
       </Flex>
     );
-
     if (!can.update) {
       return content;
     }
-
     return <ButtonLink onClick={() => onClick(template)}>{content}</ButtonLink>;
   }
 );
-
 const Permission = observer(({ template }: { template: Template }) => {
   const { t } = useTranslation();
-
   React.useEffect(() => {
     void template?.loadRelations();
   }, [template]);
-
   return (
     <Flex align="center" gap={4}>
-      {template.collection ? (
-        <CollectionIcon collection={template.collection} />
+      {template.notebook ? (
+        <CollectionIcon notebook={template.notebook} />
       ) : null}
-      {template.collectionId ? template.collection?.name : t("Workspace")}
+      {template.notebookId ? template.notebook?.name : t("Workspace")}
     </Flex>
   );
 });
-
 const Title = styled(Text)`
   &: ${hover} {
     text-decoration: underline;

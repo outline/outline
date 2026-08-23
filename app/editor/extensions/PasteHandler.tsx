@@ -18,12 +18,11 @@ import { isList } from "@shared/editor/queries/isList";
 import type { MenuItem } from "@shared/editor/types";
 import { IconType, MentionType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
-import parseCollectionSlug from "@shared/utils/parseCollectionSlug";
-import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import { isCollectionUrl, isDocumentUrl, isUrl } from "@shared/utils/urls";
+import parseNotebookSlug from "@shared/utils/parseNotebookSlug";
+import parseNoteSlug from "@shared/utils/parseNoteSlug";
+import { isNotebookUrl, isNoteUrl, isUrl } from "@shared/utils/urls";
 import stores from "~/stores";
 import { PasteMenu } from "../components/PasteMenu";
-
 export default class PasteHandler extends Extension {
   state: {
     open: boolean;
@@ -34,13 +33,10 @@ export default class PasteHandler extends Extension {
     query: "",
     pastedText: "",
   });
-
   get name() {
     return "paste-handler";
   }
-
   private key = new PluginKey(this.name);
-
   get plugins() {
     return [
       new Plugin({
@@ -68,7 +64,6 @@ export default class PasteHandler extends Extension {
             if (!view.editable || !event.clipboardData) {
               return false;
             }
-
             const { state, dispatch } = view;
             const iframeSrc = parseSingleIframeSrc(
               event.clipboardData.getData("text/plain")
@@ -79,7 +74,6 @@ export default class PasteHandler extends Extension {
                 : event.clipboardData.getData("text/plain");
             const html = event.clipboardData.getData("text/html");
             const vscode = event.clipboardData.getData("vscode-editor-data");
-
             // If the users selection is currently in a code block then paste
             // as plain text, ignore all formatting and HTML content.
             if (isInCode(state, { inclusive: true })) {
@@ -87,7 +81,6 @@ export default class PasteHandler extends Extension {
               view.dispatch(state.tr.insertText(text));
               return true;
             }
-
             // Because VSCode is an especially popular editor that places metadata
             // on the clipboard, we can parse it to find out what kind of content
             // was pasted.
@@ -95,7 +88,6 @@ export default class PasteHandler extends Extension {
             const pasteCodeLanguage = vscodeMeta?.mode;
             const supportsCodeBlock = !!state.schema.nodes.code_block;
             const supportsCodeMark = !!state.schema.marks.code_inline;
-
             if (!this.shiftKey) {
               // If the HTML on the clipboard is from Prosemirror then the best
               // compatability is to just use the HTML parser, regardless of
@@ -103,13 +95,11 @@ export default class PasteHandler extends Extension {
               if (html?.includes("data-pm-slice")) {
                 return false;
               }
-
               // If the HTML on the clipboard is from Claude then the best
               // compatability is to just use the HTML parser.
               if (html?.includes("font-claude-response-body")) {
                 return false;
               }
-
               // Check if the clipboard contents can be parsed as a single url.
               // Trim first so surrounding whitespace from the clipboard (e.g. a
               // trailing newline appended by the source) doesn't prevent URL
@@ -123,33 +113,29 @@ export default class PasteHandler extends Extension {
                   })(state, dispatch);
                   return true;
                 }
-
-                // Is the link a link to a document? If so, we can grab the title and insert it.
+                // Is the link a link to a note? If so, we can grab the title and insert it.
                 const containsHash = trimmedText.includes("#");
-
-                if (isDocumentUrl(trimmedText)) {
-                  const slug = parseDocumentSlug(trimmedText);
-
+                if (isNoteUrl(trimmedText)) {
+                  const slug = parseNoteSlug(trimmedText);
                   if (slug) {
-                    void stores.documents
+                    void stores.notes
                       .fetch(slug)
-                      .then((document) => {
+                      .then((note) => {
                         if (view.isDestroyed) {
                           return;
                         }
-                        if (document) {
+                        if (note) {
                           if (state.schema.nodes.mention) {
                             const { hash } = new URL(trimmedText);
                             const trimmedHash = hash.substring(1);
-
                             view.dispatch(
                               view.state.tr.replaceWith(
                                 state.selection.from,
                                 state.selection.to,
                                 state.schema.nodes.mention.create({
-                                  type: MentionType.Document,
-                                  modelId: document.id,
-                                  label: document.titleWithDefault,
+                                  type: MentionType.Note,
+                                  modelId: note.id,
+                                  label: note.titleWithDefault,
                                   id: uuidv4(),
                                   anchorId: trimmedHash.length
                                     ? trimmedHash
@@ -160,14 +146,9 @@ export default class PasteHandler extends Extension {
                           } else {
                             const { hash } = new URL(trimmedText);
                             const hasEmoji =
-                              determineIconType(document.icon) ===
-                              IconType.Emoji;
-
-                            const title = `${hasEmoji ? document.icon + " " : ""}${
-                              document.titleWithDefault
-                            }`;
-
-                            this.insertLink(`${document.path}${hash}`, title);
+                              determineIconType(note.icon) === IconType.Emoji;
+                            const title = `${hasEmoji ? note.icon + " " : ""}${note.titleWithDefault}`;
+                            this.insertLink(`${note.path}${hash}`, title);
                           }
                         }
                       })
@@ -178,26 +159,25 @@ export default class PasteHandler extends Extension {
                         this.insertLink(trimmedText);
                       });
                   }
-                } else if (isCollectionUrl(trimmedText)) {
-                  const slug = parseCollectionSlug(trimmedText);
-
+                } else if (isNotebookUrl(trimmedText)) {
+                  const slug = parseNotebookSlug(trimmedText);
                   if (slug) {
-                    stores.collections
+                    stores.notebooks
                       .fetch(slug)
-                      .then((collection) => {
+                      .then((notebook) => {
                         if (view.isDestroyed) {
                           return;
                         }
-                        if (collection) {
+                        if (notebook) {
                           if (state.schema.nodes.mention && !containsHash) {
                             view.dispatch(
                               view.state.tr.replaceWith(
                                 state.selection.from,
                                 state.selection.to,
                                 state.schema.nodes.mention.create({
-                                  type: MentionType.Collection,
-                                  modelId: collection.id,
-                                  label: collection.name,
+                                  type: MentionType.Notebook,
+                                  modelId: notebook.id,
+                                  label: notebook.name,
                                   id: uuidv4(),
                                 })
                               )
@@ -205,14 +185,10 @@ export default class PasteHandler extends Extension {
                           } else {
                             const { hash } = new URL(trimmedText);
                             const hasEmoji =
-                              determineIconType(collection.icon) ===
+                              determineIconType(notebook.icon) ===
                               IconType.Emoji;
-
-                            const title = `${hasEmoji ? collection.icon + " " : ""}${
-                              collection.name
-                            }`;
-
-                            this.insertLink(`${collection.path}${hash}`, title);
+                            const title = `${hasEmoji ? notebook.icon + " " : ""}${notebook.name}`;
+                            this.insertLink(`${notebook.path}${hash}`, title);
                           }
                         }
                       })
@@ -226,10 +202,8 @@ export default class PasteHandler extends Extension {
                 } else {
                   this.insertLink(trimmedText);
                 }
-
                 return true;
               }
-
               if (pasteCodeLanguage && pasteCodeLanguage !== "markdown") {
                 if (text.includes("\n") && supportsCodeBlock) {
                   event.preventDefault();
@@ -248,7 +222,6 @@ export default class PasteHandler extends Extension {
                   );
                   return true;
                 }
-
                 if (supportsCodeMark) {
                   event.preventDefault();
                   view.dispatch(
@@ -268,7 +241,6 @@ export default class PasteHandler extends Extension {
                 }
               }
             }
-
             // If the text on the clipboard looks like Markdown OR there is no
             // html on the clipboard then try to parse content as Markdown
             if (
@@ -280,7 +252,6 @@ export default class PasteHandler extends Extension {
               !html
             ) {
               event.preventDefault();
-
               // get pasted content as slice
               const paste = this.editor.pasteParser.parse(
                 normalizePastedMarkdown(text)
@@ -288,10 +259,8 @@ export default class PasteHandler extends Extension {
               if (!paste) {
                 return false;
               }
-
               const slice = paste.slice(0);
               const tr = view.state.tr;
-
               // If the pasted content is a single paragraph then we slice
               // the outer paragraph so that the text is inserted directly.
               const singleNode = sliceSingleNode(slice);
@@ -308,7 +277,6 @@ export default class PasteHandler extends Extension {
               } else {
                 tr.replaceSelection(slice);
               }
-
               view.dispatch(
                 tr
                   .scrollIntoView()
@@ -317,7 +285,6 @@ export default class PasteHandler extends Extension {
               );
               return true;
             }
-
             // otherwise use the default HTML parser which will handle all paste
             // "from the web" events
             return false;
@@ -327,11 +294,9 @@ export default class PasteHandler extends Extension {
           init: () => DecorationSet.empty,
           apply: (tr, set) => {
             let mapping = tr.mapping;
-
             // See if the transaction adds or removes any placeholders
             const meta = tr.getMeta(this.key);
             const hasDecorations = set.find().length;
-
             // We only want a single paste placeholder at a time, so if we're adding a new
             // placeholder we can just return a new DecorationSet and avoid mapping logic.
             if (meta?.add) {
@@ -350,7 +315,6 @@ export default class PasteHandler extends Extension {
               ];
               return DecorationSet.create(tr.doc, decorations);
             }
-
             if (hasDecorations && (isRemoteTransaction(tr) || meta)) {
               try {
                 mapping = recreateTransform(tr.before, tr.doc, {
@@ -363,9 +327,7 @@ export default class PasteHandler extends Extension {
                 console.warn("Failed to recreate transform: ", err);
               }
             }
-
             set = set.map(mapping, tr.doc);
-
             if (meta?.remove) {
               const { id } = meta.remove;
               const decorations = set.find(
@@ -375,31 +337,25 @@ export default class PasteHandler extends Extension {
               );
               return set.remove(decorations);
             }
-
             return set;
           },
         },
       }),
     ];
   }
-
   private shiftKey = false;
-
   private showPasteMenu = action((text: string | string[]) => {
     this.state.pastedText = text;
     this.state.open = true;
   });
-
   private hidePasteMenu = action(() => {
     this.state.open = false;
   });
-
   private insertLink(href: string, title?: string) {
     const { view } = this.editor;
     const { state } = view;
     const { from } = state.selection;
     const to = from + (title ?? href).length;
-
     const transaction = view.state.tr
       .insertText(title ?? href, state.selection.from, state.selection.to)
       .addMark(from, to, state.schema.marks.link.create({ href }))
@@ -407,29 +363,24 @@ export default class PasteHandler extends Extension {
     view.dispatch(transaction);
     this.showPasteMenu(href);
   }
-
   private insertEmbed = () => {
     const { view } = this.editor;
     const { state } = view;
     const result = this.findPlaceholder(state, this.placeholderId());
-
     if (result) {
       const tr = state.tr.deleteRange(result[0], result[1]);
       view.dispatch(
         tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
       );
     }
-
     this.editor.commands.embed({
       href: this.state.pastedText as string,
     });
   };
-
   private insertMention = () => {
     const { view } = this.editor;
     const { state } = view;
     const result = this.findPlaceholder(state, this.placeholderId());
-
     // Remove just the placeholder here.
     // Mention node will be created by SuggestionsMenu.
     if (result) {
@@ -439,77 +390,63 @@ export default class PasteHandler extends Extension {
       );
     }
   };
-
   private insertMentionList = () => {
     const { view } = this.editor;
     const { state } = view;
     const result = this.findPlaceholder(state, this.placeholderId());
-
     // Remove just the placeholder here.
     // Mention list will be created by SuggestionsMenu.
     if (result) {
       const tr = state.tr.setMeta(this.key, {
         remove: { id: this.placeholderId() },
       });
-
       view.dispatch(
         tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
       );
     }
   };
-
   // Not a list of embeds technically, but inserts many embeds at once.
   private insertEmbedList = () => {
     const { view } = this.editor;
     const { state } = view;
     const result = this.findPlaceholder(state, this.placeholderId());
-
     // Remove just the placeholder here.
     // Embed list will be created by SuggestionsMenu.
     if (result) {
       const tr = state.tr.setMeta(this.key, {
         remove: { id: this.placeholderId() },
       });
-
       view.dispatch(
         tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
       );
     }
   };
-
   private handleList(listNode: Node) {
     const { view, schema } = this.editor;
     const { state } = view;
     const { from } = state.selection;
     let tr = state.tr;
-
     const links: string[] = [];
     let allLinks = true;
     listNode.descendants((node) => {
       if (!allLinks) {
         return false;
       }
-
       if (isList(node, schema) || node.type.name === "list_item") {
         return true;
       }
-
       if (node.type.name === "paragraph" && isUrl(node.textContent)) {
         links.push(node.textContent);
         return false;
       }
-
       allLinks = false;
       return false;
     });
-
     const showPasteMenu = allLinks && links.length;
-
     // it's possible that the links can be converted to mentions
     if (showPasteMenu) {
       const placeholderId = links[0];
       const to = from + listNode.nodeSize;
-
       tr = state.tr.replaceSelectionWith(listNode).setMeta(this.key, {
         add: { from, to, id: placeholderId },
       });
@@ -517,26 +454,20 @@ export default class PasteHandler extends Extension {
       // Paste as simple list
       tr = tr.replaceSelectionWith(listNode, this.shiftKey);
     }
-
     view.dispatch(tr);
-
     if (showPasteMenu) {
       this.showPasteMenu(links);
     }
   }
-
   private placeholderId = () =>
     typeof this.state.pastedText === "string"
       ? this.state.pastedText
       : this.state.pastedText[0];
-
   private removePlaceholder = () => {
     const { view } = this.editor;
     const { state } = view;
-
     const placeholderId = this.placeholderId();
     const result = this.findPlaceholder(state, placeholderId);
-
     if (result) {
       view.dispatch(
         state.tr.setMeta(this.key, {
@@ -545,7 +476,6 @@ export default class PasteHandler extends Extension {
       );
     }
   };
-
   private findPlaceholder = (
     state: EditorState,
     id: string
@@ -554,7 +484,6 @@ export default class PasteHandler extends Extension {
     const found = decos?.find(undefined, undefined, (spec) => spec.id === id);
     return found?.length ? [found[0].from, found[0].to] : null;
   };
-
   private handleSelect = (item: MenuItem) => {
     switch (item.name) {
       case "noop": {
@@ -586,7 +515,6 @@ export default class PasteHandler extends Extension {
         break;
     }
   };
-
   keys() {
     return {
       Backspace: () => {
@@ -599,7 +527,6 @@ export default class PasteHandler extends Extension {
       },
     };
   }
-
   widget = ({ rtl }: WidgetProps) => (
     <PasteMenu
       rtl={rtl}
@@ -612,7 +539,6 @@ export default class PasteHandler extends Extension {
     />
   );
 }
-
 /**
  * Checks if the HTML string is likely coming from Dropbox Paper.
  *
@@ -622,7 +548,6 @@ export default class PasteHandler extends Extension {
 function isDropboxPaper(html: string): boolean {
   return html?.includes("usually-unique-id");
 }
-
 /**
  * Checks if the HTML string contains an image.
  *
@@ -632,7 +557,6 @@ function isDropboxPaper(html: string): boolean {
 function isContainingImage(html: string): boolean {
   return html?.includes("<img");
 }
-
 function sliceSingleNode(slice: Slice) {
   return slice.openStart === 0 &&
     slice.openEnd === 0 &&
@@ -640,7 +564,6 @@ function sliceSingleNode(slice: Slice) {
     ? slice.content.firstChild
     : null;
 }
-
 /**
  * Parses the text contents of an HTML string and returns the src of the first
  * iframe if it exists.
@@ -652,7 +575,6 @@ function parseSingleIframeSrc(html: string) {
   try {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, "text/html");
-
     if (
       doc.body.children.length === 1 &&
       doc.body.firstElementChild?.tagName === "IFRAME"

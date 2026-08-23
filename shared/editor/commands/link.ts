@@ -8,14 +8,12 @@ import { getMarkRange } from "../queries/getMarkRange";
 import { sanitizeUrl } from "@shared/utils/urls";
 import { getMarkRangeNodeSelection } from "../queries/getMarkRange";
 import type { EditorNotice, NodeAttrMark } from "@shared/editor/types";
-
 const addLinkTextSelection =
   (attrs: Attrs): Command =>
   (state, dispatch) => {
     if (!(state.selection instanceof TextSelection)) {
       return false;
     }
-
     dispatch?.(
       state.tr
         .setSelection(TextSelection.create(state.doc, state.tr.selection.to))
@@ -25,10 +23,8 @@ const addLinkTextSelection =
           state.schema.marks.link.create(attrs)
         )
     );
-
     return true;
   };
-
 const addLinkNodeSelection =
   (attrs: Attrs): Command =>
   (state, dispatch) => {
@@ -47,7 +43,6 @@ const addLinkNodeSelection =
     );
     return true;
   };
-
 const openLinkTextSelection =
   (
     onClickLink:
@@ -65,7 +60,6 @@ const openLinkTextSelection =
     if (!(state.selection instanceof TextSelection)) {
       return false;
     }
-
     const range = getMarkRange(state.selection.$from, state.schema.marks.link);
     if (range && range.mark && onClickLink) {
       try {
@@ -78,7 +72,6 @@ const openLinkTextSelection =
     }
     return false;
   };
-
 const openLinkNodeSelection =
   (
     onClickLink:
@@ -96,17 +89,14 @@ const openLinkNodeSelection =
     if (!(state.selection instanceof NodeSelection)) {
       return false;
     }
-
     if (!onClickLink) {
       return false;
     }
-
     const marks = state.selection.node.attrs.marks ?? [];
     const linkMark = marks.find((mark: NodeAttrMark) => mark.type === "link");
     if (!linkMark) {
       return false;
     }
-
     try {
       const event = new KeyboardEvent("keydown", { metaKey: false });
       onClickLink(sanitizeUrl(linkMark.attrs.href) ?? "", event);
@@ -115,16 +105,13 @@ const openLinkNodeSelection =
     }
     return true;
   };
-
 const updateLinkTextSelection =
   (attrs: Attrs): Command =>
   (state, dispatch) => {
     if (!(state.selection instanceof TextSelection)) {
       return false;
     }
-
     const range = getMarkRange(state.selection.$from, state.schema.marks.link);
-
     if (range && range.mark) {
       const nextSelection =
         Selection.findFrom(state.doc.resolve(range.to), 1, true) ??
@@ -139,14 +126,12 @@ const updateLinkTextSelection =
     }
     return false;
   };
-
 const updateLinkNodeSelection =
   (attrs: Attrs): Command =>
   (state, dispatch) => {
     if (!(state.selection instanceof NodeSelection)) {
       return false;
     }
-
     const markRange = getMarkRangeNodeSelection(
       state.selection,
       state.schema.marks.link
@@ -154,7 +139,6 @@ const updateLinkNodeSelection =
     if (!markRange) {
       return false;
     }
-
     const existingMarks = state.selection.node.attrs.marks ?? [];
     const updatedMarks = existingMarks.map((mark: NodeAttrMark) =>
       mark.type === "link"
@@ -171,7 +155,6 @@ const updateLinkNodeSelection =
     );
     return true;
   };
-
 const removeLinkTextSelection = (): Command => (state, dispatch) => {
   if (!(state.selection instanceof TextSelection)) {
     return false;
@@ -190,12 +173,10 @@ const removeLinkTextSelection = (): Command => (state, dispatch) => {
   }
   return false;
 };
-
 const removeLinkNodeSelection = (): Command => (state, dispatch) => {
   if (!(state.selection instanceof NodeSelection)) {
     return false;
   }
-
   const markRange = getMarkRangeNodeSelection(
     state.selection,
     state.schema.marks.link
@@ -203,12 +184,10 @@ const removeLinkNodeSelection = (): Command => (state, dispatch) => {
   if (!markRange) {
     return false;
   }
-
   const existingMarks = state.selection.node.attrs.marks ?? [];
   const updatedMarks = existingMarks.filter(
     (mark: NodeAttrMark) => mark.type !== "link"
   );
-
   const nextValidSelection =
     Selection.findFrom(state.doc.resolve(markRange.to), 1, true) ??
     TextSelection.create(state.tr.doc, 0);
@@ -219,24 +198,20 @@ const removeLinkNodeSelection = (): Command => (state, dispatch) => {
   );
   return true;
 };
-
 const toggleLinkTextSelection =
   (attrs: Attrs): Command =>
   (state, dispatch) => {
     if (!(state.selection instanceof TextSelection)) {
       return false;
     }
-
     return toggleMark(state.schema.marks.link, attrs)(state, dispatch);
   };
-
 const toggleLinkNodeSelection =
   (attrs: Attrs): Command =>
   (state, dispatch) => {
     if (!(state.selection instanceof NodeSelection)) {
       return false;
     }
-
     const existingMarks = state.selection.node.attrs.marks ?? [];
     const linkMark = existingMarks.find(
       (mark: NodeAttrMark) => mark.type === "link"
@@ -247,13 +222,10 @@ const toggleLinkNodeSelection =
       return addLinkNodeSelection(attrs)(state, dispatch);
     }
   };
-
 export const toggleLink = (attrs: Attrs): Command =>
   chainCommands(toggleLinkTextSelection(attrs), toggleLinkNodeSelection(attrs));
-
 export const addLink = (attrs: Attrs): Command =>
   chainCommands(addLinkTextSelection(attrs), addLinkNodeSelection(attrs));
-
 export const openLink = (
   onClickLink:
     | ((
@@ -267,9 +239,7 @@ export const openLink = (
     openLinkTextSelection(onClickLink, onNotice),
     openLinkNodeSelection(onClickLink, onNotice)
   );
-
 export const updateLink = (attrs: Attrs): Command =>
   chainCommands(updateLinkTextSelection(attrs), updateLinkNodeSelection(attrs));
-
 export const removeLink = (): Command =>
   chainCommands(removeLinkTextSelection(), removeLinkNodeSelection());

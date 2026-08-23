@@ -1,5 +1,4 @@
 import { CheckIcon, ClockIcon } from "@heroicons/react/20/solid";
-
 const products = [
   {
     id: 1,
@@ -28,7 +27,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – shopping carts: single column.
  *

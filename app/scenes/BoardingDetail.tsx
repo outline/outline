@@ -10,13 +10,11 @@ import Text from "~/components/Text";
 import { StatusChip } from "~/components/StatusChip";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 /** Nights between two dates, minimum one. */
 function nights(checkIn: string, checkOut: string): number {
   const span = new Date(checkOut).getTime() - new Date(checkIn).getTime();
   return Math.max(1, Math.round(span / 86400000));
 }
-
 /**
  * One reservation: who is in, where, for how long, and what it comes to.
  *
@@ -28,14 +26,14 @@ function nights(checkIn: string, checkOut: string): number {
 function BoardingDetail() {
   const { t } = useTranslation();
   const history = useHistory();
-  const { boardingId } = useParams<{ boardingId: string }>();
+  const { boardingId } = useParams<{
+    boardingId: string;
+  }>();
   const boardings = useShop((state) => state.boardings);
   const customers = useShop((state) => state.customers);
   const isLoading = useShop((state) => state.isLoading);
   const setBoardingStatus = useShop((state) => state.setBoardingStatus);
-
   const boarding = boardings.find((item) => item.id === boardingId);
-
   if (!boarding) {
     return (
       <AppPage title={t("Boarding")}>
@@ -54,11 +52,9 @@ function BoardingDetail() {
       </AppPage>
     );
   }
-
   const stay = nights(boarding.checkIn, boarding.checkOut);
   const owner = customers.find((item) => item.id === boarding.customerId);
   const pet = owner?.pets.find((item) => item.name === boarding.petName);
-
   const facts = [
     { label: t("Room"), value: `${boarding.roomName}, ${boarding.branch}` },
     { label: t("Check in"), value: formatDate(boarding.checkIn) },
@@ -73,7 +69,6 @@ function BoardingDetail() {
       value: pet ? `${pet.species} · ${pet.breed}` : boarding.petName,
     },
   ];
-
   return (
     <AppPage
       title={`${boarding.petName} · ${boarding.code}`}
@@ -141,5 +136,4 @@ function BoardingDetail() {
     </AppPage>
   );
 }
-
 export default BoardingDetail;

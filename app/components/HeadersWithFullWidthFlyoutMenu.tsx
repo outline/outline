@@ -15,7 +15,6 @@ import {
   RectangleGroupIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const products = [
   {
     name: "Analytics",
@@ -47,7 +46,6 @@ const callsToAction = [
   { name: "Contact sales", href: "#", icon: PhoneIcon },
   { name: "View all products", href: "#", icon: RectangleGroupIcon },
 ];
-
 /**
  * Tailwind UI – headers: with full width flyout menu.
  *
@@ -55,7 +53,6 @@ const callsToAction = [
  */
 export function HeadersWithFullWidthFlyoutMenu() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <header className="relative isolate z-10 bg-white">
       <nav

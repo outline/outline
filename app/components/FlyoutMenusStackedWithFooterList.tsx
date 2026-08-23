@@ -6,7 +6,6 @@ import {
   CalendarDaysIcon,
   LifebuoyIcon,
 } from "@heroicons/react/24/outline";
-
 const resources = [
   {
     name: "Help center",
@@ -51,7 +50,6 @@ const recentPosts = [
     datetime: "2023-02-21",
   },
 ];
-
 /**
  * Tailwind UI – flyout menus: stacked with footer list.
  *

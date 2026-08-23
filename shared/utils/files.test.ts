@@ -1,20 +1,16 @@
 import { bytesToHumanReadable, getFileNameFromUrl } from "./files";
-
 // Mock the browser detection with a mutable value
 let mockIsMacValue = false;
-
 vi.mock("./browser", () => ({
   get isMac() {
     return mockIsMacValue;
   },
 }));
-
 describe("bytesToHumanReadable", () => {
   describe("on macOS (decimal units)", () => {
     beforeEach(() => {
       mockIsMacValue = true;
     });
-
     it("outputs readable string using decimal units", () => {
       expect(bytesToHumanReadable(0)).toBe("0 Bytes");
       expect(bytesToHumanReadable(0.0)).toBe("0 Bytes");
@@ -29,12 +25,10 @@ describe("bytesToHumanReadable", () => {
       expect(bytesToHumanReadable(undefined)).toBe("0 Bytes");
     });
   });
-
   describe("on Windows/other platforms (binary units)", () => {
     beforeEach(() => {
       mockIsMacValue = false;
     });
-
     it("outputs readable string using binary units", () => {
       expect(bytesToHumanReadable(0)).toBe("0 Bytes");
       expect(bytesToHumanReadable(0.0)).toBe("0 Bytes");
@@ -51,22 +45,18 @@ describe("bytesToHumanReadable", () => {
       expect(bytesToHumanReadable(undefined)).toBe("0 Bytes");
     });
   });
-
   describe("platform-specific behavior for issue #10085", () => {
     const fileSize = 91435827; // 87.2MB in binary, ~91.44MB in decimal
-
     it("displays correctly on macOS (decimal)", () => {
       mockIsMacValue = true;
       expect(bytesToHumanReadable(fileSize)).toBe("91.44 MB");
     });
-
     it("displays correctly on Windows (binary)", () => {
       mockIsMacValue = false;
       expect(bytesToHumanReadable(fileSize)).toBe("87.2 MB");
     });
   });
 });
-
 describe("getFileNameFromUrl", () => {
   it("returns the filename from a URL", () => {
     expect(getFileNameFromUrl("https://example.com/file")).toBe("file");
@@ -82,7 +72,6 @@ describe("getFileNameFromUrl", () => {
     ).toBe("file.txt");
     expect(getFileNameFromUrl("https://example.com/")).toBe("");
   });
-
   it("decodes percent-encoded filenames", () => {
     expect(getFileNameFromUrl("https://example.com/My%20Report.pdf")).toBe(
       "My Report.pdf"
@@ -94,7 +83,6 @@ describe("getFileNameFromUrl", () => {
       getFileNameFromUrl("https://example.com/report%20final.pdf?v=2#top")
     ).toBe("report final.pdf");
   });
-
   it("falls back to the raw filename on malformed encoding", () => {
     expect(getFileNameFromUrl("https://example.com/bad%name.txt")).toBe(
       "bad%name.txt"

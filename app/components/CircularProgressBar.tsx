@@ -1,11 +1,9 @@
 import styled, { useTheme } from "styled-components";
-
 const cleanPercentage = (percentage: number) => {
   const tooLow = !Number.isFinite(+percentage) || percentage < 0;
   const tooHigh = percentage > 100;
   return tooLow ? 0 : tooHigh ? 100 : +percentage;
 };
-
 const Circle = ({
   color,
   percentage,
@@ -18,13 +16,11 @@ const Circle = ({
   const radius = offset * 0.7;
   const circumference = 2 * Math.PI * radius;
   let strokePercentage;
-
   if (percentage) {
     // because the circle is so small, anything greater than 85% appears like 100%
     percentage = percentage > 85 && percentage < 100 ? 85 : percentage;
     strokePercentage = ((100 - percentage) * circumference) / 100;
   }
-
   return (
     <circle
       r={radius}
@@ -42,7 +38,6 @@ const Circle = ({
     />
   );
 };
-
 /**
  * Renders a small circular progress indicator.
  *
@@ -63,7 +58,6 @@ const CircularProgressBar = ({
   const theme = useTheme();
   percentage = cleanPercentage(percentage);
   const offset = Math.floor(size / 2);
-
   return (
     <SVG
       width={size}
@@ -87,9 +81,7 @@ const CircularProgressBar = ({
     </SVG>
   );
 };
-
 const SVG = styled.svg`
   flex-shrink: 0;
 `;
-
 export default CircularProgressBar;

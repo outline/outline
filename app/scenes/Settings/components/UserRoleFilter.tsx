@@ -4,15 +4,12 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { UserRole } from "@shared/types";
 import FilterOptions from "~/components/FilterOptions";
-
 type Props = {
   activeKey: string;
   onSelect: (key: string | null | undefined) => void;
 };
-
 const UserRoleFilter = ({ activeKey, onSelect, ...rest }: Props) => {
   const { t } = useTranslation();
-
   const options = useMemo(
     () =>
       compact([
@@ -35,7 +32,6 @@ const UserRoleFilter = ({ activeKey, onSelect, ...rest }: Props) => {
       ]),
     [t]
   );
-
   return (
     <FilterOptions
       options={options}
@@ -46,5 +42,4 @@ const UserRoleFilter = ({ activeKey, onSelect, ...rest }: Props) => {
     />
   );
 };
-
 export default observer(UserRoleFilter);

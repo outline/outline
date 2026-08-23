@@ -6,7 +6,7 @@ import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import ListItem from "~/components/List/Item";
 import Scene from "~/components/Scene";
-import RevisionViewer from "~/scenes/Document/components/RevisionViewer";
+import RevisionViewer from "~/scenes/Note/components/RevisionViewer";
 import stores from "~/stores";
 import { examples } from "./components/ExampleData";
 import useQuery from "~/hooks/useQuery";
@@ -16,7 +16,6 @@ import Scrollable from "~/components/Scrollable";
 import Switch from "~/components/Switch";
 import { runInAction } from "mobx";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
-
 /**
  * Changesets scene for developer playground.
  * Provides a way to test and visualize different ProseMirror diff scenarios.
@@ -33,7 +32,6 @@ function Changesets() {
     usePersistedState<boolean>("show-before-after-docs", false);
   const id = query.get("id");
   const selectedExample = examples.find((e) => e.id === id) ?? examples[0];
-
   /**
    * We use a side effect to sync the mock models in the store when the example changes.
    * This ensures that MobX reactions in RevisionViewer and the model computed properties
@@ -42,10 +40,9 @@ function Changesets() {
   React.useEffect(() => {
     runInAction(() => {
       stores.revisions.data.clear();
-      stores.documents.data.clear();
-
+      stores.notes.data.clear();
       // Mock the main document (after state)
-      stores.documents.add({
+      stores.notes.add({
         id: "mock-document-id",
         title: selectedExample.name,
         urlId: "mock-document-id",
@@ -53,39 +50,35 @@ function Changesets() {
         updatedAt: "2024-01-02T12:00:00.000Z",
         data: selectedExample.after,
       });
-
       // Mock the "before" revision
       stores.revisions.add({
         id: "mock-before-revision-" + id,
-        documentId: "mock-document-id",
+        noteId: "mock-document-id",
         title: "Before",
         createdAt: "2024-01-01T12:00:00.000Z",
         data: selectedExample.before,
       });
-
       // Mock the "after" revision
       stores.revisions.add({
         id: "mock-after-revision-" + id,
-        documentId: "mock-document-id",
+        noteId: "mock-document-id",
         title: "After",
         createdAt: "2024-01-02T12:00:00.000Z",
         data: selectedExample.after,
       });
-
       // Mock the revision that will be used for diffing
       // Revisions are sorted by createdAt desc in the store.
       // The "before" version must be older than the "after" version.
       stores.revisions.add({
         id: "mock-diff-revision-" + id,
-        documentId: "mock-document-id",
+        noteId: "mock-document-id",
         title: selectedExample.name,
         createdAt: "2024-01-02T12:00:00.000Z",
         data: selectedExample.after,
       });
     });
   }, [selectedExample, id]);
-
-  const mockDocument = stores.documents.get("mock-document-id");
+  const mockNote = stores.notes.get("mock-document-id");
   const mockDiffRevision = stores.revisions.get("mock-diff-revision-" + id);
   const mockBeforeRevision = stores.revisions.get("mock-before-revision-" + id);
   const mockAfterRevision = stores.revisions.get("mock-after-revision-" + id);
@@ -93,7 +86,6 @@ function Changesets() {
     mockDiffRevision?.data,
     mockDiffRevision?.before?.data
   );
-
   return (
     <Scene title="Changeset Playground" centered>
       <Sidebar
@@ -131,11 +123,11 @@ function Changesets() {
         </Scrollable>
       </Sidebar>
       <Flex auto column>
-        {mockDocument && mockDiffRevision ? (
+        {mockNote && mockDiffRevision ? (
           <>
             <RevisionViewer
               key={mockDiffRevision.id} // Force remount on example change
-              document={mockDocument}
+              note={mockNote}
               revision={mockDiffRevision}
               id={mockDiffRevision.id}
               showChanges={true}
@@ -143,13 +135,13 @@ function Changesets() {
             {showBeforeAfterDocs && mockBeforeRevision && mockAfterRevision && (
               <>
                 <RevisionViewer
-                  document={mockDocument}
+                  note={mockNote}
                   revision={mockBeforeRevision}
                   id={mockBeforeRevision.id}
                   showChanges={false}
                 />
                 <RevisionViewer
-                  document={mockDocument}
+                  note={mockNote}
                   revision={mockAfterRevision}
                   id={mockAfterRevision.id}
                   showChanges={false}
@@ -168,14 +160,14 @@ function Changesets() {
     </Scene>
   );
 }
-
 const Sidebar = styled(Flex)`
   position: absolute;
   top: 110px;
   bottom: 0;
 `;
-
-const ExampleItem = styled(ListItem)<{ $active: boolean }>`
+const ExampleItem = styled(ListItem)<{
+  $active: boolean;
+}>`
   padding: 4px 8px;
   min-height: 0;
   margin: 1px 0 0 0;
@@ -183,7 +175,6 @@ const ExampleItem = styled(ListItem)<{ $active: boolean }>`
   background: ${(props) =>
     props.$active ? props.theme.sidebarActiveBackground : "transparent"};
 `;
-
 const Pre = styled.pre`
   background: ${(props) => props.theme.codeBackground};
   color: ${(props) => props.theme.code};
@@ -195,5 +186,4 @@ const Pre = styled.pre`
   white-space: pre-wrap;
   word-wrap: break-word;
 `;
-
 export default observer(Changesets);

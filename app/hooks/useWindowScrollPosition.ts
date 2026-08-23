@@ -3,16 +3,13 @@
 import { throttle } from "es-toolkit/compat";
 import { useState, useEffect } from "react";
 import { supportsPassiveListener } from "@shared/utils/browser";
-
 const getPosition = () => ({
   x: window.pageXOffset,
   y: window.pageYOffset,
 });
-
 const defaultOptions = {
   throttle: 100,
 };
-
 /**
  * Hook to track the window's scroll position.
  *
@@ -28,7 +25,6 @@ export default function useWindowScrollPosition(options: {
 } {
   const opts = Object.assign({}, defaultOptions, options);
   const [position, setPosition] = useState(getPosition());
-
   useEffect(() => {
     const handleScroll = throttle(() => {
       setPosition(getPosition());
@@ -47,6 +43,5 @@ export default function useWindowScrollPosition(options: {
       window.removeEventListener("scroll", handleScroll);
     };
   }, [opts.throttle]);
-
   return position;
 }

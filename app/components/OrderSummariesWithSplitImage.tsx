@@ -12,7 +12,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – order summaries: with split image.
  *
@@ -22,13 +21,13 @@ export function OrderSummariesWithSplitImage() {
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full bg-white">
+          <body class="h-full">
+          ```
+        */}
       <main className="relative lg:min-h-full">
         <div className="h-80 overflow-hidden lg:absolute lg:h-full lg:w-1/2 lg:pr-4 xl:pr-12">
           <img

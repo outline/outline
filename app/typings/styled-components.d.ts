@@ -1,6 +1,5 @@
 // import original module declarations
 import "styled-components";
-
 // and extend them!
 declare module "styled-components" {
   interface CodeTheme {
@@ -26,7 +25,6 @@ declare module "styled-components" {
     codeImportant: string;
     codeOperator: string;
   }
-
   interface EditorTheme extends CodeTheme {
     isDark: boolean;
     background: string;
@@ -62,7 +60,6 @@ declare module "styled-components" {
     noticeSuccessBackground: string;
     noticeSuccessText: string;
   }
-
   interface Colors {
     transparent: string;
     almostBlack: string;
@@ -103,7 +100,6 @@ declare module "styled-components" {
       yellow: string;
     };
   }
-
   interface Breakpoints {
     breakpoints: {
       mobile: number;
@@ -113,7 +109,6 @@ declare module "styled-components" {
       desktopLarge: number;
     };
   }
-
   interface Spacing {
     sidebarWidth: number;
     sidebarRightWidth: number;
@@ -122,7 +117,6 @@ declare module "styled-components" {
     sidebarMaxWidth: number;
     sidebarResizeMinWidth: number;
   }
-
   export interface DefaultTheme
     extends Colors, Spacing, Breakpoints, EditorTheme {
     background: string;

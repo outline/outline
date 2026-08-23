@@ -44,21 +44,17 @@ import usePersistedState from "~/hooks/usePersistedState";
 import usePrevious from "~/hooks/usePrevious";
 import { preventDefault } from "~/utils/events";
 import { transparentize } from "polished";
-
 const HEADER_HEIGHT = 40;
-
 type DataColumn<TData> = {
   type: "data";
   header: string;
   accessor: AccessorFn<TData>;
   sortable?: boolean;
 };
-
 type ActionColumn = {
   type: "action";
   header?: string | (() => React.ReactNode);
 };
-
 export type Column<TData> = {
   id: string;
   component: (data: TData) => React.ReactNode;
@@ -66,12 +62,10 @@ export type Column<TData> = {
   /** Whether the column is hidden on narrow viewports (defaults to false). */
   hideOnMobile?: boolean;
 } & (DataColumn<TData> | ActionColumn);
-
 /** The minimum shape of a row, rows are identified by the model identifier. */
 export type RowData = {
   id: string;
 };
-
 export type Props<TData> = {
   /**
    * Unique identifier for this table. When provided the visibility of columns
@@ -98,7 +92,6 @@ export type Props<TData> = {
   /** Toolbar of bulk actions, rendered while a selection is active. */
   selectionToolbar?: React.ReactNode;
 };
-
 /**
  * Wraps the table in a selection provider when multi-selection is enabled, so
  * that any table can offer bulk actions by supplying `isRowSelectable` and a
@@ -106,7 +99,6 @@ export type Props<TData> = {
  */
 function Table<TData extends RowData>(props: Props<TData>) {
   const { data, isRowSelectable, selectionToolbar } = props;
-
   const selectableIds = React.useMemo(
     () =>
       isRowSelectable
@@ -114,18 +106,15 @@ function Table<TData extends RowData>(props: Props<TData>) {
         : [],
     [data, isRowSelectable]
   );
-
   if (!isRowSelectable) {
     return <TableView {...props} />;
   }
-
   return (
     <ModelSelectionProvider items={selectableIds} toolbar={selectionToolbar}>
       <TableView {...props} selectableCount={selectableIds.length} />
     </ModelSelectionProvider>
   );
 }
-
 function TableViewInner<TData extends RowData>({
   id,
   data,
@@ -139,19 +128,19 @@ function TableViewInner<TData extends RowData>({
   decorateRow,
   isRowSelectable,
   selectableCount = 0,
-}: Props<TData> & { selectableCount?: number }) {
+}: Props<TData> & {
+  selectableCount?: number;
+}) {
   const { t } = useTranslation();
   const selection = useModelSelection();
   const isMobile = useMobile();
   const virtualContainerRef = React.useRef<HTMLDivElement>(null);
   const [virtualContainerTop, setVirtualContainerTop] =
     React.useState<number>();
-
   const [hiddenColumns, setHiddenColumns] = usePersistedState<string[]>(
     `hiddenTableColumns-${id}`,
     []
   );
-
   const handleToggleColumn = React.useCallback(
     (columnId: string) => {
       setHiddenColumns((hidden) =>
@@ -162,7 +151,6 @@ function TableViewInner<TData extends RowData>({
     },
     [setHiddenColumns]
   );
-
   const visibleColumns = React.useMemo(
     () =>
       columns.filter(
@@ -172,12 +160,10 @@ function TableViewInner<TData extends RowData>({
       ),
     [id, columns, hiddenColumns, isMobile]
   );
-
   const allColumns = React.useMemo(() => {
     if (!selection || !isRowSelectable) {
       return visibleColumns;
     }
-
     const selectColumn: Column<TData> = {
       type: "action",
       id: "select",
@@ -198,10 +184,8 @@ function TableViewInner<TData extends RowData>({
         ) : null,
       width: "28px",
     };
-
     return [selectColumn, ...visibleColumns];
   }, [visibleColumns, selection, isRowSelectable, selectableCount, t]);
-
   const columnHelper = React.useMemo(() => createColumnHelper<TData>(), []);
   const observedColumns = React.useMemo(
     () =>
@@ -209,7 +193,6 @@ function TableViewInner<TData extends RowData>({
         const cell = ({ row }: CellContext<TData, unknown>) => (
           <ObservedCell data={row.original} render={column.component} />
         );
-
         return column.type === "data"
           ? columnHelper.accessor(column.accessor, {
               id: column.id,
@@ -225,12 +208,10 @@ function TableViewInner<TData extends RowData>({
       }),
     [allColumns, columnHelper]
   );
-
   const gridColumns = React.useMemo(
     () => allColumns.map((column) => column.width).join(" "),
     [allColumns]
   );
-
   const handleChangeSort = React.useCallback(
     (sortState: SortingState) => {
       const newState = functionalUpdate(sortState, [sort]);
@@ -239,13 +220,10 @@ function TableViewInner<TData extends RowData>({
     },
     [sort, onChangeSort]
   );
-
   const prevSort = usePrevious(sort);
   const sortChanged = sort !== prevSort;
-
   const isEmpty = !loading && data.length === 0;
   const showPlaceholder = loading && data.length === 0;
-
   const table = useReactTable({
     data,
     columns: observedColumns,
@@ -258,32 +236,26 @@ function TableViewInner<TData extends RowData>({
     },
     onSortingChange: handleChangeSort,
   });
-
   const { rows } = table.getRowModel();
-
   const rowVirtualizer = useWindowVirtualizer({
     count: rows.length,
     estimateSize: () => rowHeight,
     scrollMargin: virtualContainerTop,
     overscan: 5,
   });
-
   React.useEffect(() => {
     if (!sortChanged || !virtualContainerTop) {
       return;
     }
-
     const scrollThreshold =
       virtualContainerTop - (stickyOffset + HEADER_HEIGHT);
     const reset = window.scrollY > scrollThreshold;
-
     if (reset) {
       rowVirtualizer.scrollToOffset(scrollThreshold, {
         behavior: "smooth",
       });
     }
   }, [rowVirtualizer, sortChanged, virtualContainerTop, stickyOffset]);
-
   React.useLayoutEffect(() => {
     if (virtualContainerRef.current) {
       // determine the scrollable virtual container offsetTop on mount
@@ -292,7 +264,6 @@ function TableViewInner<TData extends RowData>({
       );
     }
   }, []);
-
   return (
     <>
       <InnerTable role="table">
@@ -312,7 +283,6 @@ function TableViewInner<TData extends RowData>({
                       toggleSorting?.(ev);
                     }
                   };
-
                   return (
                     <TH
                       role="columnheader"
@@ -353,7 +323,6 @@ function TableViewInner<TData extends RowData>({
                 })}
               </TR>
             );
-
             return id && !isMobile ? (
               <ColumnVisibilityMenu
                 key={headerGroup.id}
@@ -388,9 +357,7 @@ function TableViewInner<TData extends RowData>({
               "data-index": virtualRow.index,
               style: {
                 position: "absolute" as const,
-                transform: `translateY(${
-                  virtualRow.start - rowVirtualizer.options.scrollMargin
-                }px)`,
+                transform: `translateY(${virtualRow.start - rowVirtualizer.options.scrollMargin}px)`,
                 height: `${virtualRow.size}px`,
               },
               $columns: gridColumns,
@@ -410,7 +377,6 @@ function TableViewInner<TData extends RowData>({
                 </TD>
               )),
             };
-
             const baseRow = selection ? (
               <SelectableRow
                 key={row.id}
@@ -421,7 +387,6 @@ function TableViewInner<TData extends RowData>({
             ) : (
               <TR key={row.id} {...rowProps} />
             );
-
             return decorateRow ? (
               <React.Fragment key={row.id}>
                 {decorateRow(row.original, baseRow)}
@@ -446,16 +411,13 @@ function TableViewInner<TData extends RowData>({
     </>
   );
 }
-
 // The observer wrapper does not preserve the generic signature of the table.
 const TableView = observer(TableViewInner) as typeof TableViewInner;
-
 type ColumnVisibilityProps<TData> = {
   columns: Column<TData>[];
   hiddenColumns: string[];
   onToggleColumn: (columnId: string) => void;
 };
-
 /**
  * Menu items that toggle the visibility of individual columns. Only columns
  * that display data can be hidden, and at least one must remain visible.
@@ -472,12 +434,10 @@ function ColumnVisibilityItems<TData>({
   const visibleCount = dataColumns.filter(
     (column) => !hiddenColumns.includes(column.id)
   ).length;
-
   return (
     <>
       {dataColumns.map((column) => {
         const visible = !hiddenColumns.includes(column.id);
-
         return (
           <MenuButton
             key={column.id}
@@ -492,15 +452,15 @@ function ColumnVisibilityItems<TData>({
     </>
   );
 }
-
 /** Column visibility options, opened by right-clicking the header row. */
 function ColumnVisibilityMenu<TData>({
   children,
   ...rest
-}: ColumnVisibilityProps<TData> & { children: React.ReactNode }) {
+}: ColumnVisibilityProps<TData> & {
+  children: React.ReactNode;
+}) {
   const { t } = useTranslation();
   const label = t("Columns");
-
   return (
     <MenuProvider variant="context">
       <Menu>
@@ -512,12 +472,10 @@ function ColumnVisibilityMenu<TData>({
     </MenuProvider>
   );
 }
-
 /** Column visibility options, opened by a button at the end of the header row. */
 function ColumnVisibilityButton<TData>(props: ColumnVisibilityProps<TData>) {
   const { t } = useTranslation();
   const label = t("Columns");
-
   return (
     <MenuProvider variant="dropdown">
       <Menu>
@@ -539,7 +497,6 @@ function ColumnVisibilityButton<TData>(props: ColumnVisibilityProps<TData>) {
     </MenuProvider>
   );
 }
-
 const SelectableRow = observer(function SelectableRow_({
   selection,
   id,
@@ -550,7 +507,6 @@ const SelectableRow = observer(function SelectableRow_({
 } & React.ComponentProps<typeof TR>) {
   return <TR aria-selected={selection.isSelected(id)} {...rest} />;
 });
-
 const RowSelectCheckbox = observer(function RowSelectCheckbox_({
   selection,
   id,
@@ -568,7 +524,6 @@ const RowSelectCheckbox = observer(function RowSelectCheckbox_({
       selection.toggle(id);
     }
   };
-
   return (
     <SelectionCheckbox
       checked={selection.isSelected(id)}
@@ -577,7 +532,6 @@ const RowSelectCheckbox = observer(function RowSelectCheckbox_({
     />
   );
 });
-
 const SelectAllCheckbox = observer(function SelectAllCheckbox_({
   selection,
   count,
@@ -588,7 +542,6 @@ const SelectAllCheckbox = observer(function SelectAllCheckbox_({
   label: string;
 }) {
   const checked = count > 0 && selection.size === count;
-
   const handleClick = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (selection.isActive) {
@@ -597,7 +550,6 @@ const SelectAllCheckbox = observer(function SelectAllCheckbox_({
       selection.selectAll();
     }
   };
-
   return (
     <SelectionCheckbox
       checked={checked}
@@ -607,7 +559,6 @@ const SelectAllCheckbox = observer(function SelectAllCheckbox_({
     />
   );
 });
-
 const ObservedCell = observer(function <TData>({
   data,
   render,
@@ -617,7 +568,6 @@ const ObservedCell = observer(function <TData>({
 }) {
   return <>{render(data)}</>;
 });
-
 function Placeholder({
   columns,
   rows = 3,
@@ -643,7 +593,6 @@ function Placeholder({
     </DelayedMount>
   );
 }
-
 const DescSortIcon = styled(CollapsedIcon)`
   margin-left: -2px;
 
@@ -651,12 +600,12 @@ const DescSortIcon = styled(CollapsedIcon)`
     fill: ${s("text")};
   }
 `;
-
 const AscSortIcon = styled(DescSortIcon)`
   transform: rotate(180deg);
 `;
-
-const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
+const SortWrapper = styled(Flex)<{
+  $sortable: boolean;
+}>`
   display: inline-flex;
   height: 24px;
   user-select: none;
@@ -676,7 +625,6 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
     outline-offset: 2px;
   }
 `;
-
 const ColumnOptions = styled(NudeButton)`
   position: absolute;
   top: ${(HEADER_HEIGHT - 24) / 2}px;
@@ -691,12 +639,12 @@ const ColumnOptions = styled(NudeButton)`
     background: ${s("sidebarControlHoverBackground")};
   }
 `;
-
 const InnerTable = styled.div`
   width: 100%;
 `;
-
-const THead = styled.div<{ $topPos: number }>`
+const THead = styled.div<{
+  $topPos: number;
+}>`
   position: sticky;
   top: ${({ $topPos }) => `${$topPos}px`};
   height: ${HEADER_HEIGHT}px;
@@ -709,13 +657,15 @@ const THead = styled.div<{ $topPos: number }>`
     ${(props) => transparentize(0.3, props.theme.divider)};
   background: ${s("background")};
 `;
-
-const TBody = styled.div<{ $height: number }>`
+const TBody = styled.div<{
+  $height: number;
+}>`
   position: relative;
   height: ${({ $height }) => `${$height}px`};
 `;
-
-const TR = styled.div<{ $columns: string }>`
+const TR = styled.div<{
+  $columns: string;
+}>`
   width: 100%;
   display: grid;
   grid-template-columns: ${({ $columns }) => `${$columns}`};
@@ -756,7 +706,6 @@ const TR = styled.div<{ $columns: string }>`
     border-bottom-right-radius: 0;
   }
 `;
-
 const TH = styled.span`
   position: relative;
   padding: 6px;
@@ -769,7 +718,6 @@ const TH = styled.span`
     padding-right: 0;
   }
 `;
-
 const TD = styled.span`
   /* Positioned so cells paint above the row's selected highlight. */
   position: relative;
@@ -824,5 +772,4 @@ const TD = styled.span`
     }
   }
 `;
-
 export default observer(Table);

@@ -1,7 +1,6 @@
 import { Fragment, useState } from "react";
 import { Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – notifications: condensed.
  *
@@ -9,7 +8,6 @@ import { XMarkIcon } from "@heroicons/react/20/solid";
  */
 export function NotificationsCondensed() {
   const [show, setShow] = useState(true);
-
   return (
     <>
       {/* Global notification live region, render this permanently at the end of the document */}

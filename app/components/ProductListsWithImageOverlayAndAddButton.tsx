@@ -12,7 +12,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – product lists: with image overlay and add button.
  *

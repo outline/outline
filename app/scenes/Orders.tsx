@@ -19,9 +19,7 @@ import {
   Th,
 } from "~/components/Surface";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 const FILTERS = ["All", "Paid", "Unpaid"] as const;
-
 /**
  * Sales history. Anything still in draft is an unpaid invoice and can be
  * settled from here.
@@ -34,7 +32,6 @@ function Orders() {
   const markOrderPaid = useShop((state) => state.markOrderPaid);
   const chosen = usePanel<(typeof FILTERS)[number]>("All");
   const filter = chosen.current ?? "All";
-
   const visible = orders.filter((order) => {
     if (filter === "Paid") {
       return order.status === "paid";
@@ -44,11 +41,9 @@ function Orders() {
     }
     return true;
   });
-
   const outstanding = orders
     .filter((order) => order.status !== "paid")
     .reduce((total, order) => total + order.total, 0);
-
   return (
     <AppPage
       title={t("Orders")}
@@ -125,5 +120,4 @@ function Orders() {
     </AppPage>
   );
 }
-
 export default Orders;

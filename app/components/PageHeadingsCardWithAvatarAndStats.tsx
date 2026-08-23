@@ -9,7 +9,6 @@ const stats = [
   { label: "Sick days left", value: 4 },
   { label: "Personal days left", value: 2 },
 ];
-
 /**
  * Tailwind UI – page headings: card with avatar and stats.
  *

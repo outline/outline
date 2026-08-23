@@ -12,9 +12,7 @@ import useQuery from "~/hooks/useQuery";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import { getCSRFToken } from "~/utils/csrf";
-
 type Props = React.ComponentProps<typeof ButtonLarge>;
-
 /**
  * Flattens a nested object into form field entries using bracket notation
  * (e.g. `response[authenticatorData]`) so the values can be rendered as hidden
@@ -34,19 +32,15 @@ function flattenFormFields(
     if (value === undefined || value === null) {
       return;
     }
-
     const fieldName = prefix ? `${prefix}[${key}]` : key;
-
     if (typeof value === "object" && !Array.isArray(value)) {
       flattenFormFields(value as Record<string, unknown>, fieldName, out);
     } else {
       out[fieldName] = String(value as string | number | boolean);
     }
   });
-
   return out;
 }
-
 /**
  * Renders the "Continue with Passkey" login option and runs the WebAuthn
  * authentication ceremony.
@@ -65,19 +59,16 @@ export function PasskeyAuthenticationProvider(props: Props) {
   );
   const [isAuthenticating, setIsAuthenticating] = React.useState(false);
   const [hasError, setHasError] = React.useState(false);
-
   // True when this page was opened in the system browser from the desktop app
   // to complete a passkey login (see the /auth/passkey route). In that case the
   // resulting session must be handed back to the desktop app rather than the
   // browser.
   const isDesktopRedirect =
     query.get("method") === "passkey" && query.get("client") === Client.Desktop;
-
   // When returning to the system browser from the desktop app the ceremony is
   // triggered automatically, so the button is hidden behind the "Signing in"
   // screen. It is revealed again if the ceremony fails so the user can retry.
   const autoStarting = isDesktopRedirect && !Desktop.isElectron();
-
   const runAuthentication = React.useCallback(async (verifyClient: Client) => {
     setIsAuthenticating(true);
     setHasError(false);
@@ -91,7 +82,6 @@ export function PasskeyAuthenticationProvider(props: Props) {
       );
       const { challengeId, ...optionsData } = resp.data;
       const authResp = await startAuthentication(optionsData);
-
       // Render the authentication response as hidden inputs; the effect below
       // submits the form natively once they're in the DOM so the browser
       // follows the redirect and applies cookies.
@@ -111,14 +101,12 @@ export function PasskeyAuthenticationProvider(props: Props) {
       setHasError(true);
     }
   }, []);
-
   // Submit the form once the hidden fields from the ceremony have rendered.
   React.useEffect(() => {
     if (fields) {
       formRef.current?.submit();
     }
   }, [fields]);
-
   // When returning from the desktop app to complete passkey login, start the
   // ceremony automatically once.
   React.useEffect(() => {
@@ -127,10 +115,8 @@ export function PasskeyAuthenticationProvider(props: Props) {
       void runAuthentication(Client.Desktop);
     }
   }, [isDesktopRedirect, runAuthentication]);
-
   const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     // The WebAuthn ceremony cannot run inside Electron's Chromium as it lacks
     // platform authenticator support. Open the flow in the system browser,
     // which returns to the app via the outline:// deep link like SSO login.
@@ -138,10 +124,8 @@ export function PasskeyAuthenticationProvider(props: Props) {
       window.location.href = `/auth/passkey?client=${Client.Desktop}`;
       return;
     }
-
     void runAuthentication(isDesktopRedirect ? Client.Desktop : Client.Web);
   };
-
   return (
     <Wrapper>
       <Form
@@ -175,11 +159,9 @@ export function PasskeyAuthenticationProvider(props: Props) {
     </Wrapper>
   );
 }
-
 const Wrapper = styled.div`
   width: 100%;
 `;
-
 const Form = styled.form`
   width: 100%;
   display: flex;

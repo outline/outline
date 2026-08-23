@@ -5,7 +5,6 @@ import {
   QueueListIcon,
   RssIcon,
 } from "@heroicons/react/24/solid";
-
 const links = [
   {
     name: "Documentation",
@@ -69,7 +68,6 @@ const social = [
     ),
   },
 ];
-
 /**
  * Tailwind UI – 404 pages: with popular pages.
  *

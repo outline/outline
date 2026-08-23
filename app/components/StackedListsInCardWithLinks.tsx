@@ -1,5 +1,4 @@
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
-
 const people = [
   {
     name: "Leslie Alexander",
@@ -60,7 +59,6 @@ const people = [
     lastSeen: null,
   },
 ];
-
 /**
  * Tailwind UI – stacked lists: in card with links.
  *

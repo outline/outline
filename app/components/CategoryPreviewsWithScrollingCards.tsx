@@ -30,7 +30,6 @@ const categories = [
       "https://tailwindui.com/img/ecommerce-images/home-page-01-category-03.jpg",
   },
 ];
-
 /**
  * Tailwind UI – category previews: with scrolling cards.
  *

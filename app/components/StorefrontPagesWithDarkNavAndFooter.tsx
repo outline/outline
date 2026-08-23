@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -24,7 +24,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const currencies = ["CAD", "USD", "AUD", "EUR", "GBP"];
 const navigation = {
   categories: [
@@ -139,7 +138,7 @@ const categories = [
       "https://tailwindui.com/img/ecommerce-images/home-page-01-category-03.jpg",
   },
 ];
-const collections = [
+const notebooks = [
   {
     name: "Handcrafted Collection",
     href: "#",
@@ -199,7 +198,6 @@ const footerNavigation = {
     { name: "Pinterest", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – storefront pages: with dark nav and footer.
  *
@@ -207,7 +205,6 @@ const footerNavigation = {
  */
 export function StorefrontPagesWithDarkNavAndFooter() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <div className="bg-white">
       {/* Mobile menu */}
@@ -771,10 +768,10 @@ export function StorefrontPagesWithDarkNavAndFooter() {
           </p>
 
           <div className="mt-10 space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-8 lg:space-y-0">
-            {collections.map((collection) => (
+            {notebooks.map((notebook) => (
               <a
-                key={collection.name}
-                href={collection.href}
+                key={notebook.name}
+                href={notebook.href}
                 className="group block"
               >
                 <div
@@ -782,16 +779,16 @@ export function StorefrontPagesWithDarkNavAndFooter() {
                   className="lg:aspect-[5/6] overflow-hidden rounded-lg group-hover:opacity-75"
                 >
                   <img
-                    src={collection.imageSrc}
-                    alt={collection.imageAlt}
+                    src={notebook.imageSrc}
+                    alt={notebook.imageAlt}
                     className="h-full w-full object-cover object-center"
                   />
                 </div>
                 <h3 className="mt-4 text-base font-semibold text-gray-900">
-                  {collection.name}
+                  {notebook.name}
                 </h3>
                 <p className="mt-2 text-sm text-gray-500">
-                  {collection.description}
+                  {notebook.description}
                 </p>
               </a>
             ))}

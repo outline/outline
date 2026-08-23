@@ -3,7 +3,6 @@ import { InputRule } from "prosemirror-inputrules";
 import type { MarkType } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { getMarksBetween } from "../queries/getMarksBetween";
-
 /**
  * A factory function for creating a Prosemirror InputRule that automatically apply a mark to text
  * that matches a given regular expression.
@@ -36,38 +35,31 @@ export default function markInputRule(
       const captureGroup = match.groups?.text ?? match[match.length - 1];
       const removalGroup = match.groups?.remove ?? match[match.length - 2];
       const fullMatch = match[0];
-
       if (captureGroup) {
         const matchStart = start + fullMatch.lastIndexOf(removalGroup);
         const textStart = start + fullMatch.lastIndexOf(captureGroup);
         const textEnd = textStart + captureGroup.length;
-
         const excludedMarks = getMarksBetween(start, end, state)
           .filter((item) => item.mark.type.excludes(markType))
           .filter((item) => item.end > matchStart);
-
         if (excludedMarks.length) {
           return null;
         }
-
         if (textEnd < end) {
           tr.delete(textEnd, end);
         }
         if (textStart > start) {
           tr.delete(matchStart, textStart);
         }
-
         start = matchStart;
         end = start + captureGroup.length;
       }
-
       tr.addMark(start, end, markType.create(attrs));
       tr.removeStoredMark(markType);
       return tr;
     }
   );
 }
-
 /**
  * A factory function for creating a Prosemirror InputRule that automatically applies a mark to
  * text that is surrounded by a given pattern.
@@ -83,7 +75,6 @@ export function markInputRuleForPattern(
   getAttrs?: (match: string[]) => Record<string, unknown>
 ): InputRule {
   const escapedPattern = escapeRegExp(pattern);
-
   return markInputRule(
     new RegExp(
       `(?:^|[\\s\\[\\{\\(])(?<remove>${escapedPattern}(?<text>[^${escapedPattern}]+)${escapedPattern})$`

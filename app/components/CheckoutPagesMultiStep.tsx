@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -13,7 +13,6 @@
   ```
 */
 import { UserIcon } from "@heroicons/react/24/outline";
-
 const products = [
   {
     id: 1,
@@ -28,7 +27,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – checkout pages: multi step.
  *

@@ -14,7 +14,6 @@ import Text from "~/components/Text";
 import { StatusChip } from "~/components/StatusChip";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 const TABS = [
   "Overview",
   "Bookings",
@@ -22,7 +21,6 @@ const TABS = [
   "Reviews",
   "Settings",
 ] as const;
-
 /**
  * Renders a rating as stars.
  *
@@ -38,7 +36,6 @@ const stars = (rating: number) => {
     "☆".repeat(Math.max(0, 5 - filled - half))
   );
 };
-
 /**
  * The shop's side of the public shopfront.
  *
@@ -59,11 +56,9 @@ function Portal() {
   );
   const deletePortalService = useShop((state) => state.deletePortalService);
   const savePortalSettings = useShop((state) => state.savePortalSettings);
-
   const tabs = usePanel<(typeof TABS)[number]>("Overview");
   const tab = tabs.current ?? "Overview";
   const submission = useSubmit();
-
   const fields = useFields({
     serviceName: "",
     serviceCategory: "Grooming",
@@ -73,11 +68,9 @@ function Portal() {
     name: "",
     tagline: "",
   });
-
   const portalBookings = boardings.filter(
     (boarding) => boarding.customerId === "public"
   );
-
   const summary = stats
     ? [
         { label: t("Reviews"), value: `${stats.reviews}` },
@@ -102,7 +95,6 @@ function Portal() {
         },
       ]
     : [];
-
   const handleAddService = () =>
     submission.run(async () => {
       if (!fields.get("serviceName").trim()) {
@@ -119,7 +111,6 @@ function Portal() {
       fields.set("servicePrice", "");
       return undefined;
     });
-
   const handleSaveSettings = () =>
     submission.run(async () => {
       // Blank fields are left out rather than sent empty, so saving one
@@ -133,7 +124,6 @@ function Portal() {
         ? t("Saved.")
         : t("A web address can only use letters, numbers and dashes.");
     });
-
   const handleTogglePortal = () =>
     submission.run(async () => {
       const result = await savePortalSettings({
@@ -145,7 +135,6 @@ function Portal() {
           : t("The shopfront is open.")
         : t("That could not be saved.");
     });
-
   return (
     <AppPage
       title={t("Portal")}
@@ -373,5 +362,4 @@ function Portal() {
     </AppPage>
   );
 }
-
 export default Portal;

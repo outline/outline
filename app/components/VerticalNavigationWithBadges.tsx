@@ -7,7 +7,6 @@ const navigation = [
   { name: "Documents", href: "#", current: false },
   { name: "Reports", href: "#", current: false },
 ];
-
 /**
  * Tailwind UI – vertical navigation: with badges.
  *

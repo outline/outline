@@ -7,7 +7,6 @@ const people = [
   },
   // More people...
 ];
-
 /**
  * Tailwind UI – tables: with striped rows.
  *

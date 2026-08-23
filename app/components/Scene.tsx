@@ -3,7 +3,6 @@ import styled from "styled-components";
 import CenteredContent from "~/components/CenteredContent";
 import Header from "~/components/Header";
 import PageTitle from "~/components/PageTitle";
-
 type Props = {
   /** An icon to display in the header when content has scrolled past the title */
   icon?: React.ReactNode;
@@ -22,7 +21,6 @@ type Props = {
   /** The content of the scene */
   children?: React.ReactNode;
 };
-
 const Scene: React.FC<Props> = ({
   title,
   icon,
@@ -58,9 +56,7 @@ const Scene: React.FC<Props> = ({
     )}
   </FillWidth>
 );
-
 const FillWidth = styled.div`
   width: 100%;
 `;
-
 export default Scene;

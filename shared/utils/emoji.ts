@@ -5,12 +5,9 @@ import FuzzySearch from "fuzzy-search";
 import { capitalize, sortBy } from "es-toolkit/compat";
 import type { Emoji, EmojiVariants } from "../types";
 import { EmojiCategory, EmojiSkinTone } from "../types";
-
 init({ data: RawData });
-
 // Data has the pre-processed "search" terms.
 const TypedData = Data as EmojiMartData;
-
 // Slightly modified version of https://github.com/koala-interactive/is-emoji-supported/blob/master/src/is-emoji-supported.ts
 const isFlagEmojiSupported = (): boolean => {
   const emoji = "🇺🇸";
@@ -19,52 +16,41 @@ const isFlagEmojiSupported = (): boolean => {
     ctx = document
       .createElement("canvas")
       .getContext("2d", { willReadFrequently: true });
-
     if (!ctx) {
       return false;
     }
-
     const CANVAS_HEIGHT = 25;
     const CANVAS_WIDTH = 20;
     const textSize = Math.floor(CANVAS_HEIGHT / 2);
-
     // Initialize canvas context
     ctx.font = textSize + "px Arial, Sans-Serif";
     ctx.textBaseline = "top";
     ctx.canvas.width = CANVAS_WIDTH * 2;
     ctx.canvas.height = CANVAS_HEIGHT;
-
     // Draw in red on the left
     ctx.fillStyle = "#FF0000";
     ctx.fillText(emoji, 0, 22);
-
     // Draw in blue on right
     ctx.fillStyle = "#0000FF";
     ctx.fillText(emoji, CANVAS_WIDTH, 22);
-
     const a = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT).data;
     const count = a.length;
     let i = 0;
-
     // Search the first visible pixel
     // oxlint-disable-next-line curly
     for (; i < count && !a[i + 3]; i += 4);
-
     // No visible pixel
     if (i >= count) {
       return false;
     }
-
     // Emoji has immutable color, so we check the color of the emoji in two different colors
     // the result should be the same.
     const x = CANVAS_WIDTH + ((i / 4) % CANVAS_WIDTH);
     const y = Math.floor(i / 4 / CANVAS_WIDTH);
     const b = ctx.getImageData(x, y, 1, 1).data;
-
     if (a[i] !== b[0] || a[i + 2] !== b[2]) {
       return false;
     }
-
     // Some emojis are a contraction of different ones, so if it's not
     // supported, it will show multiple characters
     if (ctx.measureText(emoji).width >= CANVAS_WIDTH) {
@@ -73,24 +59,19 @@ const isFlagEmojiSupported = (): boolean => {
   } catch {
     return false;
   }
-
   // Supported
   return true;
 };
-
 const allowFlagEmoji = isFlagEmojiSupported();
-
 const flagEmojiIds =
   TypedData.categories
     .filter(({ id }) => id === EmojiCategory.Flags.toLowerCase())
     .map(({ emojis }) => emojis)[0] ?? [];
-
 const Categories = allowFlagEmoji
   ? TypedData.categories
   : TypedData.categories.filter(
       ({ id }) => capitalize(id) !== EmojiCategory.Flags
     );
-
 const Emojis = allowFlagEmoji
   ? TypedData.emojis
   : Object.fromEntries(
@@ -98,12 +79,10 @@ const Emojis = allowFlagEmoji
         ([id]) => !flagEmojiIds.includes(id)
       )
     );
-
 const searcher = new FuzzySearch(Object.values(Emojis), ["search"], {
   caseSensitive: false,
   sort: true,
 });
-
 // Codes defined by unicode.org
 const SKINTONE_CODE_TO_ENUM = {
   "1f3fb": EmojiSkinTone.Light,
@@ -112,13 +91,11 @@ const SKINTONE_CODE_TO_ENUM = {
   "1f3fe": EmojiSkinTone.MediumDark,
   "1f3ff": EmojiSkinTone.Dark,
 };
-
 type GetVariantsProps = {
   id: string;
   name: string;
   skins: Skin[];
 };
-
 const getVariants = ({ id, name, skins }: GetVariantsProps): EmojiVariants =>
   skins.reduce((obj, skin) => {
     const skinToneCode = skin.unified.split(
@@ -129,7 +106,6 @@ const getVariants = ({ id, name, skins }: GetVariantsProps): EmojiVariants =>
     obj[skinToneType] = { id, name, value: skin.native } satisfies Emoji;
     return obj;
   }, {} as EmojiVariants);
-
 const EMOJI_ID_TO_VARIANTS = Object.entries(Emojis).reduce(
   (obj, [id, emoji]) => {
     obj[id] = getVariants({
@@ -141,7 +117,6 @@ const EMOJI_ID_TO_VARIANTS = Object.entries(Emojis).reduce(
   },
   {} as Record<string, EmojiVariants>
 );
-
 const CATEGORY_TO_EMOJI_IDS: Record<EmojiCategory, string[]> =
   Categories.reduce(
     (obj, { id, emojis }) => {
@@ -155,7 +130,6 @@ const CATEGORY_TO_EMOJI_IDS: Record<EmojiCategory, string[]> =
     },
     {} as Record<EmojiCategory, string[]>
   );
-
 export const getEmojis = ({
   ids,
   skinTone,
@@ -168,7 +142,6 @@ export const getEmojis = ({
       EMOJI_ID_TO_VARIANTS[id][skinTone] ??
       EMOJI_ID_TO_VARIANTS[id][EmojiSkinTone.Default]
   );
-
 export const getEmojisWithCategory = ({
   skinTone,
 }: {
@@ -187,16 +160,13 @@ export const getEmojisWithCategory = ({
     },
     {} as Record<EmojiCategory, Emoji[]>
   );
-
 export const getEmojiVariants = ({ id }: { id: string }) =>
   EMOJI_ID_TO_VARIANTS[id];
-
 type CustomEmoji = {
   id: string;
   name: string;
   url: string;
 };
-
 export const search = ({
   query,
   skinTone,
@@ -208,7 +178,6 @@ export const search = ({
 }) => {
   const queryLowercase = query.toLowerCase();
   const emojiSkinTone = skinTone ?? EmojiSkinTone.Default;
-
   // Search built-in emojis
   const matchedEmojis = searcher
     .search(queryLowercase)
@@ -217,7 +186,6 @@ export const search = ({
         EMOJI_ID_TO_VARIANTS[emoji.id][emojiSkinTone] ??
         EMOJI_ID_TO_VARIANTS[emoji.id][EmojiSkinTone.Default]
     );
-
   // Search custom emojis
   const matchedCustomEmojis = customEmojis
     .filter((emoji) => {
@@ -235,16 +203,13 @@ export const search = ({
           value: customEmoji.id,
         }) as Emoji
     );
-
   // Combine and sort all results
   const allEmojis = [...matchedEmojis, ...matchedCustomEmojis];
-
   return sortBy(allEmojis, (emoji) => {
     const nlc = emoji.name.toLowerCase();
     return query === nlc ? -1 : nlc.startsWith(queryLowercase) ? 0 : 1;
   });
 };
-
 /**
  * Get an emoji's human-readable ID from its string.
  *

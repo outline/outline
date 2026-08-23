@@ -1,7 +1,6 @@
 import type { IntegrationSettings, IntegrationType } from "@shared/types";
 import { IntegrationService, MentionType } from "@shared/types";
 import type Integration from "~/models/Integration";
-
 const gitlabSystemPaths = new Set([
   "explore",
   "help",
@@ -14,7 +13,6 @@ const gitlabSystemPaths = new Set([
   "search",
   "-",
 ]);
-
 /**
  * Checks whether a URL can be converted to a mention for the given
  * integration.
@@ -30,23 +28,19 @@ export const isURLMentionable = ({
   integration: Integration;
 }): boolean => {
   const { hostname, pathname } = url;
-
   switch (integration.service) {
     case IntegrationService.GitHub: {
       return hostname === "github.com";
     }
-
     case IntegrationService.Linear: {
       const pathParts = pathname.split("/");
       const settings =
         integration.settings as IntegrationSettings<IntegrationType.Embed>;
-
       return (
         hostname === "linear.app" &&
         settings.linear?.workspace.key === pathParts[1] // ensure installed workspace key matches with the provided url.
       );
     }
-
     case IntegrationService.GitLab: {
       const settings =
         integration.settings as IntegrationSettings<IntegrationType.Embed>;
@@ -59,15 +53,12 @@ export const isURLMentionable = ({
         // Invalid URL stored in settings
         return false;
       }
-
       return hostname === "gitlab.com" || hostname === gitlabHostname;
     }
-
     default:
       return false;
   }
 };
-
 /**
  * Determines the type of mention a URL represents for the given integration,
  * such as an issue, pull request, or project.
@@ -84,7 +75,6 @@ export const determineMentionType = ({
 }): MentionType | undefined => {
   const { pathname } = url;
   const pathParts = pathname.split("/");
-
   switch (integration.service) {
     case IntegrationService.GitHub: {
       const type = pathParts[3];
@@ -96,7 +86,6 @@ export const determineMentionType = ({
             ? MentionType.Project
             : undefined;
     }
-
     case IntegrationService.Linear: {
       const type = pathParts[2];
       return type === "issue"
@@ -105,10 +94,8 @@ export const determineMentionType = ({
           ? MentionType.Project
           : undefined;
     }
-
     case IntegrationService.GitLab: {
       const hasShowParam = url.searchParams.has("show");
-
       if (
         /\/-\/merge_requests\/\d+/.test(pathname) ||
         (/\/-\/merge_requests\/?$/.test(pathname) && hasShowParam)
@@ -129,7 +116,6 @@ export const determineMentionType = ({
       }
       return undefined;
     }
-
     default:
       return;
   }

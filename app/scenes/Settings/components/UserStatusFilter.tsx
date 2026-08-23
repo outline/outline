@@ -4,16 +4,13 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import FilterOptions from "~/components/FilterOptions";
 import useCurrentUser from "~/hooks/useCurrentUser";
-
 type Props = {
   activeKey: string;
   onSelect: (key: string | null | undefined) => void;
 };
-
 const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
   const { t } = useTranslation();
   const user = useCurrentUser();
-
   const options = useMemo(
     () =>
       compact([
@@ -40,7 +37,6 @@ const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
       ]),
     [t, user.isAdmin]
   );
-
   return (
     <FilterOptions
       options={options}
@@ -51,5 +47,4 @@ const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
     />
   );
 };
-
 export default observer(UserStatusFilter);

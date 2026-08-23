@@ -2,7 +2,6 @@ import { Fragment, useState } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const people = [
   { id: 1, name: "Wade Cooper" },
   { id: 2, name: "Arlene Mccoy" },
@@ -15,7 +14,6 @@ const people = [
   { id: 9, name: "Claudie Smitham" },
   { id: 10, name: "Emil Schaefer" },
 ];
-
 /**
  * Tailwind UI – select menus: custom with check on left.
  *
@@ -23,7 +21,6 @@ const people = [
  */
 export function SelectMenusCustomWithCheckOnLeft() {
   const [selected, setSelected] = useState(people[3]);
-
   return (
     <Listbox value={selected} onChange={setSelected}>
       {({ open }) => (

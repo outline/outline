@@ -43,11 +43,8 @@ import TableHeader from "./TableHeader";
 import TableRow from "./TableRow";
 import Text from "./Text";
 import ToggleBlock from "./ToggleBlock";
-
 import Video from "./Video";
-
 type Nodes = AnyExtensionClass[];
-
 /**
  * A set of inline nodes that are used in the editor. This is used for simple
  * editors that need basic formatting.
@@ -73,7 +70,6 @@ export const inlineExtensions: Nodes = [
   DeleteNearAtom,
   ColorSwatchPreview,
 ];
-
 export const listExtensions: Nodes = [
   CheckboxList,
   CheckboxItem,
@@ -81,7 +77,6 @@ export const listExtensions: Nodes = [
   OrderedList,
   ListItem,
 ];
-
 export const tableExtensions: Nodes = [
   TableCell,
   TableHeader,
@@ -90,13 +85,11 @@ export const tableExtensions: Nodes = [
   // plugins for table grips in TableCell and TableHeader.
   Table,
 ];
-
 /**
  * The basic set of nodes that are used in the editor. This is used for simple
  * editors that need basic formatting and lists.
  */
 export const basicExtensions: Nodes = [...inlineExtensions, ...listExtensions];
-
 /**
  * The full set of nodes that are used in the editor. This is used for rich
  * editors that need advanced formatting.
@@ -124,7 +117,6 @@ export const richExtensions: Nodes = [
   ...listExtensions,
   ...tableExtensions,
 ];
-
 /**
  * Add commenting and mentions to a set of nodes
  */

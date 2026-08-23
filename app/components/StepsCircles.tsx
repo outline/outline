@@ -1,6 +1,5 @@
 import { CheckIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const steps = [
   { name: "Step 1", href: "#", status: "complete" },
   { name: "Step 2", href: "#", status: "complete" },
@@ -8,7 +7,6 @@ const steps = [
   { name: "Step 4", href: "#", status: "upcoming" },
   { name: "Step 5", href: "#", status: "upcoming" },
 ];
-
 /**
  * Tailwind UI – steps: circles.
  *

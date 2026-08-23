@@ -42,7 +42,6 @@ const people = [
     href: "#",
   },
 ];
-
 /**
  * Tailwind UI – stacked lists: narrow with actions.
  *

@@ -4,7 +4,6 @@ type Props = {
   /** The color of the icon, defaults to the current text color */
   color?: string;
 };
-
 export default function GoogleIcon({
   size = 24,
   color = "currentColor",

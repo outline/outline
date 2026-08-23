@@ -9,19 +9,19 @@ import UserMembership from "~/models/UserMembership";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
-import DocumentMenu from "~/menus/DocumentMenu";
+import NoteMenu from "~/menus/NoteMenu";
 import * as Scenes from "~/routes/scenes";
 import {
   useDragMembership,
   useDropToReorderUserMembership,
-  useDropToReparentDocument,
+  useDropToReparentNote,
 } from "../hooks/useDragAndDrop";
 import SidebarExpansionContext, {
   useSidebarExpansionState,
 } from "./SidebarExpansionContext";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
-import DocumentLink from "./DocumentLink";
-import DocumentRow from "./DocumentRow";
+import NoteLink from "./NoteLink";
+import NoteRow from "./NoteRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import SidebarDisclosureContext, {
@@ -29,64 +29,46 @@ import SidebarDisclosureContext, {
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
 import { useSidebarContext, type SidebarContextType } from "./SidebarContext";
-
 type Props = {
   membership: UserMembership | GroupMembership;
   depth?: number;
 };
-
 function SharedWithMeLink({ membership, depth = 0 }: Props) {
-  const { ui, collections, documents } = useStores();
-  const { fetchChildDocuments } = documents;
+  const { ui, notebooks, notes } = useStores();
+  const { fetchChildNotes } = notes;
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
-  const { documentId } = membership;
-  const isActiveDocument = documentId === ui.activeDocumentId;
+  const { noteId } = membership;
+  const isActiveNote = noteId === ui.activeNoteId;
   const activeSidebarContext = useActiveSidebarContext();
   const sidebarContext = useSidebarContext();
-  const document = documentId ? documents.get(documentId) : undefined;
-
-  const membershipDocuments = membership.documents;
-  const expansion = useSidebarExpansionState(
-    membershipDocuments,
-    ui.activeDocumentId
-  );
-  const isActiveDocumentInPath = ui.activeDocumentId
-    ? membership.pathToDocument(ui.activeDocumentId).length > 0
+  const note = noteId ? notes.get(noteId) : undefined;
+  const membershipNotes = membership.notes;
+  const expansion = useSidebarExpansionState(membershipNotes, ui.activeNoteId);
+  const isActiveNoteInPath = ui.activeNoteId
+    ? membership.pathToNote(ui.activeNoteId).length > 0
     : false;
-
   const [expanded, setExpanded, setCollapsed] = useBoolean(
-    isActiveDocumentInPath && activeSidebarContext === sidebarContext
+    isActiveNoteInPath && activeSidebarContext === sidebarContext
   );
-
   const { event: disclosureEvent, onDisclosureClick } =
     useSidebarDisclosureState();
-
   useSidebarDisclosure(setExpanded, setCollapsed);
-
   React.useEffect(() => {
-    if (isActiveDocumentInPath && activeSidebarContext === sidebarContext) {
+    if (isActiveNoteInPath && activeSidebarContext === sidebarContext) {
       setExpanded();
     }
-  }, [
-    isActiveDocumentInPath,
-    sidebarContext,
-    activeSidebarContext,
-    setExpanded,
-  ]);
-
+  }, [isActiveNoteInPath, sidebarContext, activeSidebarContext, setExpanded]);
   React.useEffect(() => {
-    if (documentId) {
-      void documents.fetch(documentId);
-      void membership.fetchDocuments();
+    if (noteId) {
+      void notes.fetch(noteId);
+      void membership.fetchNotes();
     }
-  }, [documentId, documents, membership]);
-
+  }, [noteId, notes, membership]);
   React.useEffect(() => {
-    if (isActiveDocument && membership.documentId) {
-      void fetchChildDocuments(membership.documentId);
+    if (isActiveNote && membership.noteId) {
+      void fetchChildNotes(membership.noteId);
     }
-  }, [fetchChildDocuments, isActiveDocument, membership.documentId]);
-
+  }, [fetchChildNotes, isActiveNote, membership.noteId]);
   const handleDisclosureClick = React.useCallback(
     (ev?: React.MouseEvent<HTMLElement>) => {
       ev?.preventDefault();
@@ -94,8 +76,8 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       const willExpand = !expanded;
       if (willExpand) {
         setExpanded();
-        if (ev?.altKey && membershipDocuments) {
-          expansion.expandAll(membershipDocuments);
+        if (ev?.altKey && membershipNotes) {
+          expansion.expandAll(membershipNotes);
         }
       } else {
         setCollapsed();
@@ -111,24 +93,18 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       setCollapsed,
       onDisclosureClick,
       expansion,
-      membershipDocuments,
+      membershipNotes,
     ]
   );
-
   const parentRef = React.useRef<HTMLDivElement>(null);
-  const reparentableNode = React.useMemo(
-    () => document?.asNavigationNode,
-    [document]
-  );
-  const [{ isOverReparent }, dropToReparent] = useDropToReparentDocument(
+  const reparentableNode = React.useMemo(() => note?.asNavigationNode, [note]);
+  const [{ isOverReparent }, dropToReparent] = useDropToReparentNote(
     reparentableNode,
     setExpanded,
     parentRef
   );
-
   const { icon } = useSidebarLabelAndIcon(membership);
   const [{ isDragging }, draggableRef] = useDragMembership(membership);
-
   const getIndex = () => {
     if (membership instanceof UserMembership) {
       const next = membership?.next();
@@ -138,51 +114,41 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   };
   const [reorderProps, dropToReorderRef] =
     useDropToReorderUserMembership(getIndex);
-
   const isActive = React.useCallback(
-    (match, location: Location<{ sidebarContext?: SidebarContextType }>) =>
-      !!match && location.state?.sidebarContext === sidebarContext,
+    (
+      match,
+      location: Location<{
+        sidebarContext?: SidebarContextType;
+      }>
+    ) => !!match && location.state?.sidebarContext === sidebarContext,
     [sidebarContext]
   );
-
-  const displayChildDocuments = expanded && !isDragging;
-
-  if (!document) {
+  const displayChildNotes = expanded && !isDragging;
+  if (!note) {
     return null;
   }
-
-  const { icon: docIcon } = document;
+  const { icon: docIcon } = note;
   const label =
     determineIconType(docIcon) === IconType.Emoji
-      ? document.title.replace(docIcon!, "")
-      : document.titleWithDefault;
-  const collection = document.collectionId
-    ? collections.get(document.collectionId)
-    : undefined;
-
-  const childDocuments = membershipDocuments ?? [];
-  const hasChildren = childDocuments.length > 0;
-
+      ? note.title.replace(docIcon!, "")
+      : note.titleWithDefault;
+  const notebook = note.notebookId ? notebooks.get(note.notebookId) : undefined;
+  const childNotes = membershipNotes ?? [];
+  const hasChildren = childNotes.length > 0;
   const unreadBadge =
-    document.unreadNotifications.filter(
+    note.unreadNotifications.filter(
       (notification) =>
-        notification.event === NotificationEventType.AddUserToDocument
+        notification.event === NotificationEventType.AddUserToNote
     ).length > 0;
-
   const menu = !isDragging ? (
-    <DocumentMenu
-      document={document}
-      onOpen={handleMenuOpen}
-      onClose={handleMenuClose}
-    />
+    <NoteMenu note={note} onOpen={handleMenuOpen} onClose={handleMenuClose} />
   ) : undefined;
-
   return (
-    <DocumentRow
-      documentId={documentId ?? ""}
-      document={document}
-      to={{ pathname: document.path, state: { sidebarContext } }}
-      onClickIntent={Scenes.Document.preload}
+    <NoteRow
+      noteId={noteId ?? ""}
+      note={note}
+      to={{ pathname: note.path, state: { sidebarContext } }}
+      onClickIntent={Scenes.Note.preload}
       depth={depth}
       icon={icon}
       canEdit={false}
@@ -204,18 +170,18 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     >
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
         <SidebarExpansionContext.Provider value={expansion}>
-          <Folder expanded={displayChildDocuments}>
-            {childDocuments.map((childNode, index) => (
-              <DocumentLink
+          <Folder expanded={displayChildNotes}>
+            {childNotes.map((childNode, index) => (
+              <NoteLink
                 key={childNode.id}
                 node={childNode}
-                collection={collection}
+                notebook={notebook}
                 membership={membership}
-                activeDocument={documents.active}
+                activeNote={notes.active}
                 isDraft={childNode.isDraft}
                 depth={depth + 1}
                 index={index}
-                parentId={document.id}
+                parentId={note.id}
               />
             ))}
           </Folder>
@@ -227,8 +193,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
           innerRef={dropToReorderRef}
         />
       )}
-    </DocumentRow>
+    </NoteRow>
   );
 }
-
 export default observer(SharedWithMeLink);

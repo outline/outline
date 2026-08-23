@@ -12,7 +12,6 @@ import {
   CalendarDaysIcon,
   UsersIcon,
 } from "@heroicons/react/24/outline";
-
 const primaryFeatures = [
   {
     name: "Server monitoring",
@@ -169,7 +168,6 @@ const footerNavigation = {
     },
   ],
 };
-
 /**
  * Tailwind UI – landing pages: with screenshots and stats.
  *

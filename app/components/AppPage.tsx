@@ -7,19 +7,16 @@ import Heading from "~/components/Heading";
 import Text from "~/components/Text";
 import Scene from "~/components/Scene";
 import { useShop } from "~/stores/shop";
-
 const Frame = styled.div`
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 4px 64px;
 `;
-
 const Header = styled(Flex)`
   margin-bottom: 24px;
   gap: 12px;
 `;
-
 const ErrorNote = styled.p`
   padding: 12px 16px;
   border-radius: 6px;
@@ -27,7 +24,6 @@ const ErrorNote = styled.p`
   color: ${s("danger")};
   background: ${s("backgroundSecondary")};
 `;
-
 interface Props {
   /** Title shown in the scene header and browser tab. */
   title: string;
@@ -37,7 +33,6 @@ interface Props {
   actions?: ReactNode;
   children: ReactNode;
 }
-
 /**
  * Shared frame for the pet store pages.
  *
@@ -52,11 +47,9 @@ export function AppPage({ title, description, actions, children }: Props) {
   const fetchAll = useShop((state) => state.fetchAll);
   const isLoading = useShop((state) => state.isLoading);
   const error = useShop((state) => state.error);
-
   useEffect(() => {
     void fetchAll();
   }, [fetchAll]);
-
   return (
     <Scene title={title}>
       <Frame>

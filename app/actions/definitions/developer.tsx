@@ -22,7 +22,6 @@ import Logger from "~/utils/Logger";
 import { deleteAllDatabases } from "~/utils/developer";
 import history from "~/utils/history";
 import { homePath, debugPath } from "~/utils/routeHelpers";
-
 export const goToDebug = createInternalLinkAction({
   name: "Go to debug screen",
   icon: <BeakerIcon />,
@@ -30,7 +29,6 @@ export const goToDebug = createInternalLinkAction({
   visible: () => env.ENVIRONMENT === "development",
   to: debugPath(),
 });
-
 export const copyId = createActionWithChildren({
   name: ({ t }) => t("Copy ID"),
   icon: <CopyIcon />,
@@ -39,8 +37,8 @@ export const copyId = createActionWithChildren({
   children: ({
     currentTeamId,
     currentUserId,
-    activeCollectionId,
-    activeDocumentId,
+    activeNotebookId,
+    activeNoteId,
   }) => {
     function copyAndToast(text: string | null | undefined) {
       if (text) {
@@ -48,7 +46,6 @@ export const copyId = createActionWithChildren({
         toast.success("Copied to clipboard");
       }
     }
-
     return [
       createAction({
         name: "Copy User ID",
@@ -65,18 +62,18 @@ export const copyId = createActionWithChildren({
         perform: () => copyAndToast(currentTeamId),
       }),
       createAction({
-        name: "Copy Collection ID",
+        name: "Copy Notebook ID",
         icon: <CopyIcon />,
         section: DeveloperSection,
-        visible: () => !!activeCollectionId,
-        perform: () => copyAndToast(activeCollectionId),
+        visible: () => !!activeNotebookId,
+        perform: () => copyAndToast(activeNotebookId),
       }),
       createAction({
         name: "Copy Document ID",
         icon: <CopyIcon />,
         section: DeveloperSection,
-        visible: () => !!activeDocumentId,
-        perform: () => copyAndToast(activeDocumentId),
+        visible: () => !!activeNoteId,
+        perform: () => copyAndToast(activeNoteId),
       }),
       createAction({
         name: "Copy Team ID",
@@ -95,7 +92,6 @@ export const copyId = createActionWithChildren({
     ];
   },
 });
-
 function generateRandomText() {
   const characters =
     "abcdefghijklmno pqrstuvwxyzABCDEFGHIJKL MNOPQRSTUVWXYZ 0123456789\n";
@@ -105,29 +101,25 @@ function generateRandomText() {
   }
   return text;
 }
-
 export const startTyping = createAction({
   name: "Start automatic typing",
   icon: <EditIcon />,
   section: DeveloperSection,
-  visible: ({ activeDocumentId }) =>
-    !!activeDocumentId && env.ENVIRONMENT === "development",
+  visible: ({ activeNoteId }) =>
+    !!activeNoteId && env.ENVIRONMENT === "development",
   perform: () => {
     const intervalId = setInterval(() => {
       const text = generateRandomText();
       document.execCommand("insertText", false, text);
     }, 250);
-
     window.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && intervalId) {
         clearInterval(intervalId);
       }
     });
-
     toast.info("Automatic typing started, press Escape to stop");
   },
 });
-
 export const clearIndexedDB = createAction({
   name: ({ t }) => t("Clear IndexedDB cache"),
   icon: <TrashIcon />,
@@ -139,7 +131,6 @@ export const clearIndexedDB = createAction({
     toast.success(t("IndexedDB cache cleared"));
   },
 });
-
 export const clearStorage = createAction({
   name: ({ t }) => t("Clear local storage"),
   icon: <TrashIcon />,
@@ -150,7 +141,6 @@ export const clearStorage = createAction({
     toast.success(t("Local storage cleared"));
   },
 });
-
 export const createTestUsers = createAction({
   name: "Create 10 test users",
   icon: <UserIcon />,
@@ -162,7 +152,6 @@ export const createTestUsers = createAction({
     toast.message(`${count} test users created`);
   },
 });
-
 export const createTestNotifications = createAction({
   name: "Create 10 notifications",
   icon: <BeakerIcon />,
@@ -174,7 +163,6 @@ export const createTestNotifications = createAction({
     toast.message(`${count} test notifications created`);
   },
 });
-
 export const createToast = createAction({
   name: "Create toast",
   section: DeveloperSection,
@@ -185,7 +173,6 @@ export const createToast = createAction({
     });
   },
 });
-
 export const toggleDebugLogging = createAction({
   name: ({ t }) => t("Toggle debug logging"),
   icon: <ToolsIcon />,
@@ -199,7 +186,6 @@ export const toggleDebugLogging = createAction({
     );
   },
 });
-
 export const toggleDebugSafeArea = createAction({
   name: () => "Toggle menu safe area debugging",
   icon: <ToolsIcon />,
@@ -214,7 +200,6 @@ export const toggleDebugSafeArea = createAction({
     );
   },
 });
-
 export const toggleFeatureFlag = createActionWithChildren({
   name: "Toggle feature flag",
   icon: <BeakerIcon />,
@@ -238,7 +223,6 @@ export const toggleFeatureFlag = createActionWithChildren({
     })
   ),
 });
-
 export const developer = createActionWithChildren({
   name: ({ t }) => t("Development"),
   keywords: "debug",
@@ -259,5 +243,4 @@ export const developer = createActionWithChildren({
     startTyping,
   ],
 });
-
 export const rootDeveloperActions = [developer];

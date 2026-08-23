@@ -7,16 +7,13 @@ import env from "~/env";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { DefaultHost } from "../urls";
-
 type Props = {
   config?: Config;
   onBack?: () => void;
 };
-
 export function BackButton({ onBack, config }: Props) {
   const { t } = useTranslation();
   const isSubdomain = !!config?.hostname;
-
   if (onBack) {
     return (
       <Link onClick={onBack}>
@@ -24,32 +21,27 @@ export function BackButton({ onBack, config }: Props) {
       </Link>
     );
   }
-
   // In the desktop app any host other than the default is one the user has
   // switched to, so back always returns to the default host.
   if (Desktop.isElectron()) {
     if (window.location.origin === DefaultHost) {
       return null;
     }
-
     return (
       <Link href={DefaultHost}>
         <BackIcon /> {t("Back")}
       </Link>
     );
   }
-
   if (!isCloudHosted || parseDomain(window.location.origin).custom) {
     return null;
   }
-
   return (
     <Link href={isSubdomain ? env.URL : "https://www.getoutline.com"}>
       <BackIcon /> {t("Back to home")}
     </Link>
   );
 }
-
 const Link = styled.a`
   display: flex;
   align-items: center;

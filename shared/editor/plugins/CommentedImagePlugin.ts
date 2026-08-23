@@ -4,7 +4,6 @@ import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { changedDescendants } from "../lib/changedDescendants";
 import { isRemoteTransaction } from "../lib/multiplayer";
-
 /**
  * Plugin that applies a light outline decoration to image nodes that have
  * comment marks, providing a visual indicator that the image has been commented
@@ -21,11 +20,9 @@ export class CommentedImagePlugin extends Plugin {
           if (!tr.docChanged) {
             return pluginState;
           }
-
           if (isRemoteTransaction(tr) || this.hasImageChange(tr)) {
             return { decorations: this.createDecorations(newState) };
           }
-
           return {
             decorations: pluginState.decorations.map(tr.mapping, tr.doc),
           };
@@ -39,7 +36,6 @@ export class CommentedImagePlugin extends Plugin {
       },
     });
   }
-
   /**
    * Check if the transaction added, removed, or modified any image nodes.
    */
@@ -50,24 +46,25 @@ export class CommentedImagePlugin extends Plugin {
         found = true;
       }
     };
-
     changedDescendants(tr.before, tr.doc, 0, check);
     if (!found) {
       changedDescendants(tr.doc, tr.before, 0, check);
     }
     return found;
   }
-
   private createDecorations(state: EditorState) {
     const decorations: Decoration[] = [];
-
     state.doc.descendants((node, pos) => {
       if (
         node.type.name === "image" &&
         Array.isArray(node.attrs.marks) &&
         node.attrs.marks.some(
-          (mark: { type: string; attrs?: { resolved?: boolean } }) =>
-            mark.type === "comment" && !mark.attrs?.resolved
+          (mark: {
+            type: string;
+            attrs?: {
+              resolved?: boolean;
+            };
+          }) => mark.type === "comment" && !mark.attrs?.resolved
         )
       ) {
         decorations.push(
@@ -77,9 +74,7 @@ export class CommentedImagePlugin extends Plugin {
         );
       }
     });
-
     return DecorationSet.create(state.doc, decorations);
   }
 }
-
 export const commentedImagePlugin = () => new CommentedImagePlugin();

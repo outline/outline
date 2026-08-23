@@ -11,7 +11,6 @@ import { DraftCommentAnchorPlugin } from "../plugins/DraftCommentAnchorPlugin";
 import { isMarkActive } from "../queries/isMarkActive";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import Mark from "./Mark";
-
 /**
  * Options for the Comment mark.
  */
@@ -20,25 +19,26 @@ type CommentOptions = {
   userId?: string;
   /** Whether the editor is in read-only mode. */
   readOnly?: boolean;
-  /** Whether the current user has permission to edit the document. */
+  /** Whether the current user has permission to edit the note. */
   canUpdate?: boolean;
-  /** Callback invoked when a comment mark is created in the document. */
+  /** Callback invoked when a comment mark is created in the note. */
   onCreateCommentMark?: (
     commentId: string,
     userId: string,
-    options?: { focus: boolean; anchor?: CommentAnchor }
+    options?: {
+      focus: boolean;
+      anchor?: CommentAnchor;
+    }
   ) => void;
   /** Callback invoked when an existing comment mark is clicked. */
   onClickCommentMark?: (commentId: string) => void;
   /** Callback invoked to request that the comments sidebar be opened. */
   onOpenCommentsSidebar?: () => void;
 };
-
 export default class Comment extends Mark<CommentOptions> {
   get name() {
     return "comment";
   }
-
   get schema(): MarkSpec {
     return {
       // Allow multiple comments to overlap
@@ -61,11 +61,10 @@ export default class Comment extends Mark<CommentOptions> {
           tag: `.${EditorStyleHelper.comment}`,
           getAttrs: (dom: HTMLSpanElement) => {
             // Ignore comment markers from other documents
-            const documentId = dom.getAttribute("data-document-id");
-            if (documentId && documentId !== this.editor?.props.id) {
+            const noteId = dom.getAttribute("data-document-id");
+            if (noteId && noteId !== this.editor?.props.id) {
               return false;
             }
-
             return {
               id: dom.getAttribute("id")?.replace("comment-", ""),
               userId: dom.getAttribute("data-user-id"),
@@ -88,11 +87,9 @@ export default class Comment extends Mark<CommentOptions> {
       ],
     };
   }
-
   get allowInReadOnly() {
     return true;
   }
-
   keys({ type }: { type: MarkType }): Record<string, Command> {
     return {
       "Mod-Alt-m": (state, dispatch) => {
@@ -100,15 +97,12 @@ export default class Comment extends Mark<CommentOptions> {
           this.options.onOpenCommentsSidebar();
           return true;
         }
-
         if (!this.options.onCreateCommentMark) {
           return false;
         }
-
         if (this.isAnchorOnly) {
           return this.draftCommentAnchorCommand(state, dispatch);
         }
-
         if (
           isMarkActive(state.schema.marks.comment, {
             resolved: false,
@@ -116,7 +110,6 @@ export default class Comment extends Mark<CommentOptions> {
         ) {
           return false;
         }
-
         chainTransactions(
           toggleMark(type, {
             id: uuidv4(),
@@ -125,12 +118,10 @@ export default class Comment extends Mark<CommentOptions> {
           }),
           collapseSelection()
         )(state, dispatch);
-
         return true;
       },
     };
   }
-
   commands() {
     if (!this.options.onCreateCommentMark) {
       return undefined;
@@ -140,7 +131,6 @@ export default class Comment extends Mark<CommentOptions> {
     }
     return (): Command => addComment({ userId: this.options.userId });
   }
-
   toMarkdown() {
     return {
       open: "",
@@ -149,7 +139,6 @@ export default class Comment extends Mark<CommentOptions> {
       expelEnclosingWhitespace: true,
     };
   }
-
   /**
    * Whether inline comments must be created through anchoring rather than by
    * writing the mark into the document, which is the case for users that can
@@ -158,7 +147,6 @@ export default class Comment extends Mark<CommentOptions> {
   private get isAnchorOnly(): boolean {
     return !!this.options.readOnly && !this.options.canUpdate;
   }
-
   private get draftCommentAnchorCommand(): Command {
     return addDraftCommentAnchor({
       userId: this.options.userId,
@@ -166,7 +154,6 @@ export default class Comment extends Mark<CommentOptions> {
       onOpenCommentsSidebar: this.options.onOpenCommentsSidebar,
     });
   }
-
   get plugins(): Plugin[] {
     return [
       new DraftCommentAnchorPlugin(),
@@ -179,7 +166,6 @@ export default class Comment extends Mark<CommentOptions> {
           ) {
             return;
           }
-
           // Record existing comment marks
           const existingComments: PMMark[] = [];
           oldState.doc.descendants((node) => {
@@ -190,7 +176,6 @@ export default class Comment extends Mark<CommentOptions> {
             });
             return true;
           });
-
           // Remove comment marks that are new duplicates of existing ones. This allows us to cut
           // and paste a comment mark, but not copy and paste.
           let tr = newState.tr;
@@ -204,10 +189,8 @@ export default class Comment extends Mark<CommentOptions> {
                 tr = tr.removeMark(pos, pos + node.nodeSize, mark.type);
               }
             });
-
             return true;
           });
-
           return tr;
         },
         props: {
@@ -216,24 +199,20 @@ export default class Comment extends Mark<CommentOptions> {
               if (!(event.target instanceof HTMLElement)) {
                 return false;
               }
-
               const comment = event.target.closest(
                 `.${EditorStyleHelper.comment}`
               );
               if (!comment) {
                 return false;
               }
-
               const commentId = comment.id.replace("comment-", "");
               const resolved = comment.getAttribute("data-resolved");
               const draftByUser =
                 comment.getAttribute("data-draft") &&
                 comment.getAttribute("data-user-id") === this.options.userId;
-
               if ((commentId && !resolved) || draftByUser) {
                 this.options?.onClickCommentMark?.(commentId);
               }
-
               return false;
             },
           },

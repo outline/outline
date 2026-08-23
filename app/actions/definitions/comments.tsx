@@ -6,9 +6,8 @@ import CommentDeleteDialog from "~/components/CommentDeleteDialog";
 import ViewReactionsDialog from "~/components/Reactions/ViewReactionsDialog";
 import { createAction } from "..";
 import { dialogActionFactory } from "./common";
-import { ActiveDocumentSection } from "../sections";
+import { ActiveNoteSection } from "../sections";
 import { commentPath, urlify } from "~/utils/routeHelpers";
-
 export const deleteCommentActionFactory = ({
   comment,
   onDelete,
@@ -18,7 +17,7 @@ export const deleteCommentActionFactory = ({
 }) =>
   dialogActionFactory({
     analyticsName: "Delete comment",
-    section: ActiveDocumentSection,
+    section: ActiveNoteSection,
     name: (t) => `${t("Delete")}…`,
     title: (t) => t("Delete comment"),
     content: () => (
@@ -30,7 +29,6 @@ export const deleteCommentActionFactory = ({
     stopEvent: true,
     visible: ({ stores }) => stores.policies.abilities(comment.id).delete,
   });
-
 export const resolveCommentActionFactory = ({
   comment,
   onResolve,
@@ -41,18 +39,17 @@ export const resolveCommentActionFactory = ({
   createAction({
     name: ({ t }) => t("Mark as resolved"),
     analyticsName: "Resolve thread",
-    section: ActiveDocumentSection,
+    section: ActiveNoteSection,
     icon: <DoneIcon outline />,
     visible: ({ stores }) =>
       stores.policies.abilities(comment.id).resolve &&
-      stores.policies.abilities(comment.documentId).update,
+      stores.policies.abilities(comment.noteId).update,
     perform: async ({ t }) => {
       await comment.resolve();
       onResolve();
       toast.success(t("Thread resolved"));
     },
   });
-
 export const unresolveCommentActionFactory = ({
   comment,
   onUnresolve,
@@ -63,17 +60,16 @@ export const unresolveCommentActionFactory = ({
   createAction({
     name: ({ t }) => t("Mark as unresolved"),
     analyticsName: "Unresolve thread",
-    section: ActiveDocumentSection,
+    section: ActiveNoteSection,
     icon: <DoneIcon outline />,
     visible: ({ stores }) =>
       stores.policies.abilities(comment.id).unresolve &&
-      stores.policies.abilities(comment.documentId).update,
+      stores.policies.abilities(comment.noteId).update,
     perform: async () => {
       await comment.unresolve();
       onUnresolve();
     },
   });
-
 export const copyCommentLinkActionFactory = ({
   comment,
 }: {
@@ -82,20 +78,18 @@ export const copyCommentLinkActionFactory = ({
   createAction({
     name: ({ t }) => t("Copy link"),
     analyticsName: "Copy comment link",
-    section: ActiveDocumentSection,
+    section: ActiveNoteSection,
     icon: <CopyIcon />,
     keywords: "clipboard",
     perform: ({ stores, t }) => {
-      const document = stores.documents.get(comment.documentId);
-      if (!document) {
+      const note = stores.notes.get(comment.noteId);
+      if (!note) {
         return;
       }
-
-      copy(urlify(commentPath(document, comment)));
+      copy(urlify(commentPath(note, comment)));
       toast.message(t("Link copied to clipboard"));
     },
   });
-
 export const viewCommentReactionsActionFactory = ({
   comment,
 }: {
@@ -103,7 +97,7 @@ export const viewCommentReactionsActionFactory = ({
 }) =>
   dialogActionFactory({
     analyticsName: "View comment reactions",
-    section: ActiveDocumentSection,
+    section: ActiveNoteSection,
     name: (t) => t("View reactions"),
     title: (t) => t("Reactions"),
     content: () => <ViewReactionsDialog model={comment} />,

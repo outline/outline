@@ -15,34 +15,28 @@ import {
 } from "../hooks/useDragAndDrop";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
-import PlaceholderCollections from "./PlaceholderCollections";
+import PlaceholderNotebooks from "./PlaceholderNotebooks";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import StarredLink from "./StarredLink";
-
 const STARRED_PAGINATION_LIMIT = 10;
-
 function Starred() {
   const { stars } = useStores();
   const { t } = useTranslation();
-
   const { loading, next, end, error, page } = usePaginatedRequest<Star>(
     stars.fetchPage
   );
   const [reorderStarProps, dropToReorder] = useDropToReorderStar();
   const [createStarProps, dropToStarRef] = useDropToCreateStar();
   const [sectionStarProps, dropToSectionRef] = useDropToCreateStar();
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load starred documents"));
     }
   }, [t, error]);
-
   if (!stars.orderedData.length) {
     return null;
   }
-
   return (
     <Flex column>
       <Section
@@ -83,7 +77,7 @@ function Starred() {
             {loading && (
               <Flex column>
                 <DelayedMount>
-                  <PlaceholderCollections />
+                  <PlaceholderNotebooks />
                 </DelayedMount>
               </Flex>
             )}
@@ -93,8 +87,9 @@ function Starred() {
     </Flex>
   );
 }
-
-const Section = styled.div<{ $isActiveDrop?: boolean }>`
+const Section = styled.div<{
+  $isActiveDrop?: boolean;
+}>`
   border-radius: 8px;
   transition: background 100ms ease-in-out;
 
@@ -104,5 +99,4 @@ const Section = styled.div<{ $isActiveDrop?: boolean }>`
       background: ${s("sidebarActiveBackground")};
     `}
 `;
-
 export default observer(Starred);

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -21,7 +21,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
 import type { ChangeEvent } from "react";
-
 const items = [
   {
     id: 1,
@@ -33,7 +32,6 @@ const items = [
   },
   // More items...
 ];
-
 /**
  * Tailwind UI – command palettes: with images and descriptions.
  *
@@ -42,14 +40,12 @@ const items = [
 export function CommandPalettesWithImagesAndDescriptions() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(true);
-
   const filteredItems =
     query === ""
       ? []
       : items.filter((item) =>
           item.name.toLowerCase().includes(query.toLowerCase())
         );
-
   return (
     <Transition.Root
       show={open}

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
@@ -34,7 +33,6 @@ const footer = {
     { name: "Terms", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – 404 pages: with navbar and footer.
  *
@@ -42,17 +40,16 @@ const footer = {
  */
 export function NotFoundPagesWithNavbarAndFooter() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full">
+          <body class="h-full">
+          ```
+        */}
       <div className="flex min-h-full flex-col">
         <header className="mx-auto w-full max-w-7xl px-6 pt-6 lg:px-8">
           <nav

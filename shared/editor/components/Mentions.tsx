@@ -35,19 +35,16 @@ import { cn } from "../styles/utils";
 import type { ComponentProps } from "../types";
 import { toDisplayUrl, cdnPath } from "../../utils/urls";
 import Squircle from "../../components/Squircle";
-
 type Attrs = {
   className: string;
   unfurl?: UnfurlResponse[keyof UnfurlResponse];
 } & Record<string, JSONValue>;
-
 const getAttributesFromNode = (node: Node): Attrs => {
   const spec = node.type.spec.toDOM?.(node) as unknown as Record<
     string,
     JSONValue
   >[];
   const { class: className, "data-unfurl": unfurl, ...attrs } = spec[1];
-
   return {
     className: className as Attrs["className"],
     unfurl: unfurl
@@ -56,7 +53,6 @@ const getAttributesFromNode = (node: Node): Attrs => {
     ...attrs,
   };
 };
-
 export const MentionUser = observer(function MentionUser_(
   props: ComponentProps
 ) {
@@ -64,7 +60,6 @@ export const MentionUser = observer(function MentionUser_(
   const { users } = useStores();
   const user = users.get(node.attrs.modelId);
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
-
   return (
     <span
       {...attrs}
@@ -77,7 +72,6 @@ export const MentionUser = observer(function MentionUser_(
     </span>
   );
 });
-
 export const MentionGroup = observer(function MentionGroup_(
   props: ComponentProps
 ) {
@@ -85,7 +79,6 @@ export const MentionGroup = observer(function MentionGroup_(
   const { groups } = useStores();
   const group = groups.get(node.attrs.modelId);
   const { className, ...attrs } = getAttributesFromNode(node);
-
   return (
     <span
       {...attrs}
@@ -98,32 +91,28 @@ export const MentionGroup = observer(function MentionGroup_(
     </span>
   );
 });
-
-export const MentionDocument = observer(function MentionDocument_(
+export const MentionNote = observer(function MentionNote_(
   props: ComponentProps
 ) {
   const { isSelected, node } = props;
-  const { documents } = useStores();
-  const doc = documents.get(node.attrs.modelId);
+  const { notes } = useStores();
+  const doc = notes.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
   const anchorId = node.attrs.anchorId;
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
-
   React.useEffect(() => {
     if (modelId) {
-      void documents.prefetchDocument(modelId);
+      void notes.prefetchNote(modelId);
     }
-  }, [modelId, documents]);
-
-  const documentPath = doc?.path ?? `/doc/${node.attrs.modelId}`;
-
+  }, [modelId, notes]);
+  const notePath = doc?.path ?? `/doc/${node.attrs.modelId}`;
   return (
     <Link
       {...attrs}
       className={cn(className, {
         "ProseMirror-selectednode": isSelected,
       })}
-      to={anchorId ? `${documentPath}#${anchorId}` : documentPath}
+      to={anchorId ? `${notePath}#${anchorId}` : notePath}
     >
       {doc?.icon ? (
         <Icon
@@ -139,45 +128,41 @@ export const MentionDocument = observer(function MentionDocument_(
     </Link>
   );
 });
-
-export const MentionCollection = observer(function MentionCollection_(
+export const MentionNotebook = observer(function MentionNotebook_(
   props: ComponentProps
 ) {
   const { isSelected, node } = props;
-  const { collections } = useStores();
-  const collection = collections.get(node.attrs.modelId);
+  const { notebooks } = useStores();
+  const notebook = notebooks.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
-
   React.useEffect(() => {
     if (modelId) {
-      void collections.fetch(modelId);
+      void notebooks.fetch(modelId);
     }
-  }, [modelId, collections]);
-
+  }, [modelId, notebooks]);
   return (
     <Link
       {...attrs}
       className={cn(className, {
         "ProseMirror-selectednode": isSelected,
       })}
-      to={collection?.path ?? `/collection/${node.attrs.modelId}`}
+      to={notebook?.path ?? `/notebook/${node.attrs.modelId}`}
     >
-      {collection?.icon ? (
+      {notebook?.icon ? (
         <Icon
-          value={collection.icon}
-          initial={collection.initial}
-          color={collection.color}
+          value={notebook.icon}
+          initial={notebook.initial}
+          color={notebook.color}
           size={18}
         />
       ) : (
         <CollectionIcon size={18} />
       )}
-      {collection?.title || node.attrs.label}
+      {notebook?.title || node.attrs.label}
     </Link>
   );
 });
-
 type IssuePrProps = ComponentProps & {
   onChangeUnfurl: (
     unfurl:
@@ -185,41 +170,33 @@ type IssuePrProps = ComponentProps & {
       | UnfurlResponse[UnfurlResourceType.PR]
   ) => void;
 };
-
 type IssueUrlProps = ComponentProps & {
   onChangeUnfurl: (unfurl: UnfurlResponse[UnfurlResourceType.URL]) => void;
 };
-
 export const MentionURL = (props: IssueUrlProps) => {
   const { unfurls } = useStores();
   const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
-
   const { isSelected, node } = props;
   const {
     className,
     unfurl: unfurlAttr,
     ...attrs
   } = getAttributesFromNode(node);
-
   const url = typeof attrs.href === "string" ? attrs.href : undefined;
   const unfurl = url ? (unfurls.get(url)?.data ?? unfurlAttr) : undefined;
-
   React.useEffect(() => {
     if (!url) {
       setLoaded(true);
       return;
     }
-
     const fetchUnfurl = async () => {
       try {
         const unfurlModel = await unfurls.fetchUnfurl({ url });
-
         if (!isMounted()) {
           return;
         }
-
         // We got a result back from the server, so update the unfurl in the node attributes.
         if (unfurlModel) {
           onChangeUnfurl(
@@ -227,7 +204,6 @@ export const MentionURL = (props: IssueUrlProps) => {
           );
           return;
         }
-
         const attrs = getAttributesFromNode(node);
         // If we have a unfurl attribute, use that.
         // Otherwise, set a basic unfurl to avoid refetching again in future.
@@ -250,10 +226,8 @@ export const MentionURL = (props: IssueUrlProps) => {
         }
       }
     };
-
     void fetchUnfurl();
   }, [unfurls, url, node, isMounted, onChangeUnfurl]);
-
   if (!unfurl) {
     return !loaded ? (
       <MentionLoading className={className} />
@@ -261,7 +235,6 @@ export const MentionURL = (props: IssueUrlProps) => {
       <MentionError className={className} />
     );
   }
-
   return (
     <a
       {...attrs}
@@ -281,43 +254,34 @@ export const MentionURL = (props: IssueUrlProps) => {
     </a>
   );
 };
-
 export const MentionIssue = observer((props: IssuePrProps) => {
   const { unfurls } = useStores();
   const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
-
   const { isSelected, node } = props;
   const {
     className,
     unfurl: unfurlAttr,
     ...attrs
   } = getAttributesFromNode(node);
-
   const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
-
   React.useEffect(() => {
     const fetchIssue = async () => {
       const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
-
       if (!isMounted()) {
         return;
       }
-
       if (unfurlModel) {
         onChangeUnfurl({
           ...unfurlModel.data,
           description: null,
         } satisfies UnfurlResponse[UnfurlResourceType.Issue]);
       }
-
       setLoaded(true);
     };
-
     void fetchIssue();
   }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
-
   if (!unfurl) {
     return !loaded ? (
       <MentionLoading className={className} />
@@ -325,9 +289,7 @@ export const MentionIssue = observer((props: IssuePrProps) => {
       <MentionError className={className} />
     );
   }
-
   const issue = unfurl as UnfurlResponse[UnfurlResourceType.Issue];
-
   let service = IntegrationService.GitLab;
   try {
     const parsedUrl = new URL(issue.url);
@@ -340,7 +302,6 @@ export const MentionIssue = observer((props: IssuePrProps) => {
   } catch {
     // Invalid URL in unfurl data, default to GitLab
   }
-
   return (
     <a
       {...attrs}
@@ -363,47 +324,37 @@ export const MentionIssue = observer((props: IssuePrProps) => {
     </a>
   );
 });
-
 type ProjectProps = ComponentProps & {
   onChangeUnfurl: (unfurl: UnfurlResponse[UnfurlResourceType.Project]) => void;
 };
-
 export const MentionProject = observer((props: ProjectProps) => {
   const { unfurls } = useStores();
   const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current;
-
   const { isSelected, node } = props;
   const {
     className,
     unfurl: unfurlAttr,
     ...attrs
   } = getAttributesFromNode(node);
-
   const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
-
   React.useEffect(() => {
     const fetchProject = async () => {
       const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
-
       if (!isMounted()) {
         return;
       }
-
       if (unfurlModel) {
         onChangeUnfurl({
           ...unfurlModel.data,
           description: null,
         } satisfies UnfurlResponse[UnfurlResourceType.Project]);
       }
-
       setLoaded(true);
     };
-
     void fetchProject();
   }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
-
   if (!unfurl) {
     return !loaded ? (
       <MentionLoading className={className} />
@@ -411,9 +362,7 @@ export const MentionProject = observer((props: ProjectProps) => {
       <MentionError className={className} />
     );
   }
-
   const project = unfurl as UnfurlResponse[UnfurlResourceType.Project];
-
   return (
     <a
       {...attrs}
@@ -444,49 +393,39 @@ export const MentionProject = observer((props: ProjectProps) => {
     </a>
   );
 });
-
 export const MentionPullRequest = observer((props: IssuePrProps) => {
   const { unfurls } = useStores();
   const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
-
   const { isSelected, node } = props;
   const {
     className,
     unfurl: unfurlAttr,
     ...attrs
   } = getAttributesFromNode(node);
-
   const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
-
   React.useEffect(() => {
     const fetchPR = async () => {
       const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
-
       if (!isMounted()) {
         return;
       }
-
       if (unfurlModel) {
         onChangeUnfurl({
           ...unfurlModel.data,
           description: null,
         } satisfies UnfurlResponse[UnfurlResourceType.PR]);
       }
-
       setLoaded(true);
     };
-
     void fetchPR();
   }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
-
   const sharedProps = {
     className: cn(className, {
       "ProseMirror-selectednode": isSelected,
     }),
   };
-
   if (!unfurl) {
     return !loaded ? (
       <MentionLoading {...sharedProps} />
@@ -494,9 +433,7 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
       <MentionError {...sharedProps} />
     );
   }
-
   const pullRequest = unfurl as UnfurlResponse[UnfurlResourceType.PR];
-
   return (
     <a
       {...attrs}
@@ -517,27 +454,22 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
     </a>
   );
 });
-
 type DateProps = ComponentProps & {
   onChangeDate: (modelId: string) => void;
 };
-
 // Loaded lazily so its browser-only dependencies (Radix, react-day-picker)
 // don't enter the editor schema's static import graph, which is also used on
 // the server.
 const DateMentionPicker = React.lazy(() => import("./DateMentionPicker"));
-
 export const MentionDate = observer(function MentionDate_(props: DateProps) {
   const { isSelected, isEditable, node, onChangeDate } = props;
   const { t } = useTranslation();
   const { auth } = useStores();
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
-
   const language = auth.user?.language;
   const iso = typeof node.attrs.modelId === "string" ? node.attrs.modelId : "";
   const display = dateToRelativeReadable(iso, t, language);
   const selectedDate = parseISODate(iso) ?? undefined;
-
   const content = (
     <DateMention
       {...attrs}
@@ -549,11 +481,9 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
       {display}
     </DateMention>
   );
-
   if (!isEditable) {
     return content;
   }
-
   return (
     <React.Suspense fallback={content}>
       <DateMentionPicker
@@ -567,10 +497,8 @@ export const MentionDate = observer(function MentionDate_(props: DateProps) {
     </React.Suspense>
   );
 });
-
 const MentionLoading = ({ className }: { className: string }) => {
   const { t } = useTranslation();
-
   return (
     <span className={className}>
       <Spinner />
@@ -578,10 +506,8 @@ const MentionLoading = ({ className }: { className: string }) => {
     </span>
   );
 };
-
 const MentionError = ({ className }: { className: string }) => {
   const { t } = useTranslation();
-
   return (
     <span className={className}>
       <StyledWarningIcon size={20} color={theme.danger} />
@@ -589,21 +515,19 @@ const MentionError = ({ className }: { className: string }) => {
     </span>
   );
 };
-
-const DateMention = styled.span<{ $editable: boolean }>`
+const DateMention = styled.span<{
+  $editable: boolean;
+}>`
   cursor: ${(props) => (props.$editable ? "pointer" : "default")};
   user-select: none;
 `;
-
 const StyledWarningIcon = styled(WarningIcon)`
   margin: 0 -2px;
 `;
-
 const Logo = styled.img`
   width: 16px;
   height: 16px;
 `;
-
 const ProjectAvatar = styled.img`
   width: 12px;
   height: 12px;

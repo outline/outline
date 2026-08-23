@@ -2,13 +2,11 @@ import * as React from "react";
 import styled from "styled-components";
 import { s } from "../styles";
 import Squircle from "./Squircle";
-
 type Props = {
   /** The width and height of the icon, including standard padding. */
   size?: number;
   children: React.ReactNode;
 };
-
 /**
  * A squircle shaped icon with a letter inside, used for collections.
  */
@@ -19,8 +17,9 @@ const LetterIcon = ({ children, size = 24, ...rest }: Props) => (
     </Squircle>
   </LetterIconWrapper>
 );
-
-const LetterIconWrapper = styled.div<{ $size: number }>`
+const LetterIconWrapper = styled.div<{
+  $size: number;
+}>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -31,5 +30,4 @@ const LetterIconWrapper = styled.div<{ $size: number }>`
   font-size: ${({ $size }) => $size / 2}px;
   color: var(--background, ${s("background")});
 `;
-
 export default LetterIcon;

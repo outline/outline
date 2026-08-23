@@ -1,24 +1,29 @@
 import { assign, createMachine } from "xstate";
 import type { CartLine } from "~/stores/shop";
-
 /** What the machine remembers between moves. */
 interface TicketContext {
   lines: CartLine[];
 }
-
 /** What can be asked of a ticket. */
 export type TicketEvent =
-  | { type: "ADD"; line: CartLine; available: number }
-  | { type: "SET_QUANTITY"; key: string; quantity: number }
-  | { type: "CLEAR" };
-
+  | {
+      type: "ADD";
+      line: CartLine;
+      available: number;
+    }
+  | {
+      type: "SET_QUANTITY";
+      key: string;
+      quantity: number;
+    }
+  | {
+      type: "CLEAR";
+    };
 /** A line is identified by the size sold, when it has one. */
 const keyOf = (line: CartLine) => line.variantId ?? line.productId;
-
 /** How many of a line the ticket already holds. */
 const heldSoFar = (lines: CartLine[], key: string) =>
   lines.find((line) => keyOf(line) === key)?.quantity ?? 0;
-
 /** The ticket with one more of a line on it. */
 const withOneMore = (lines: CartLine[], line: CartLine): CartLine[] => {
   const key = keyOf(line);
@@ -28,7 +33,6 @@ const withOneMore = (lines: CartLine[], line: CartLine): CartLine[] => {
       )
     : [...lines, line];
 };
-
 /**
  * The ticket at the till.
  *
@@ -45,7 +49,10 @@ export const ticketMachine = createMachine({
   id: "ticket",
   initial: "empty",
   context: { lines: [] } as TicketContext,
-  types: {} as { context: TicketContext; events: TicketEvent },
+  types: {} as {
+    context: TicketContext;
+    events: TicketEvent;
+  },
   states: {
     empty: {
       on: {

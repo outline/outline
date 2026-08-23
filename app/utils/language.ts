@@ -3,7 +3,6 @@ import type { locales } from "@shared/utils/date";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { isRTLLanguage } from "@shared/utils/rtl";
 import Desktop from "./Desktop";
-
 /**
  * Formats a number using the user's locale where possible. Use `useFormatNumber` hook
  * instead of this function in React components, to automatically use the user's locale.
@@ -19,7 +18,6 @@ export function formatNumber(number: number, locale: string) {
     return number.toString();
   }
 }
-
 /**
  * Detects the user's language based on the browser's language settings.
  *
@@ -30,7 +28,6 @@ export function detectLanguage() {
   const region = (r || ln).toUpperCase();
   return `${ln}_${region}` as keyof typeof locales;
 }
-
 /**
  * Changes the language of the app, and updates the spellchecker language
  * if running in the desktop shell.
@@ -45,17 +42,14 @@ export async function changeLanguage(
   // Languages are stored in en_US format in the database, however the
   // frontend translation framework (i18next) expects en-US
   const localeBCP = locale ? unicodeCLDRtoBCP47(locale) : undefined;
-
   if (localeBCP && instance.languages?.[0] !== localeBCP) {
     await instance.changeLanguage(localeBCP);
     await Desktop.bridge?.setSpellCheckerLanguages(["en-US", localeBCP]);
   }
-
   if (typeof document !== "undefined") {
     document.documentElement.dir = isRTLLanguage(locale) ? "rtl" : "ltr";
   }
 }
-
 /**
  * Languages with special styling, in ISO 639-1 format.
  */
@@ -82,7 +76,6 @@ const scriptsWithLang = new Set([
   "am", // Amharic
   "mn", // Mongolian
 ]);
-
 /**
  * Returns the language code if it requires special text styling, otherwise undefined.
  * This is used to determine if a lang attribute should be set on elements for CSS styling.

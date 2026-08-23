@@ -9,7 +9,6 @@ const projects = [
   },
   // More projects...
 ];
-
 /**
  * Tailwind UI – tables: with summary rows.
  *

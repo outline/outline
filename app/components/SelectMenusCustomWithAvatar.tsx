@@ -2,7 +2,6 @@ import { Fragment, useState } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const people = [
   {
     id: 1,
@@ -65,7 +64,6 @@ const people = [
       "https://images.unsplash.com/photo-1561505457-3bcad021f8ee?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
   },
 ];
-
 /**
  * Tailwind UI – select menus: custom with avatar.
  *
@@ -73,7 +71,6 @@ const people = [
  */
 export function SelectMenusCustomWithAvatar() {
   const [selected, setSelected] = useState(people[3]);
-
   return (
     <Listbox value={selected} onChange={setSelected}>
       {({ open }) => (

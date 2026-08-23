@@ -7,14 +7,12 @@ import { s } from "@shared/styles";
 import type { Props as ActionButtonProps } from "~/components/ActionButton";
 import ActionButton from "~/components/ActionButton";
 import { undraggableOnDesktop } from "~/styles";
-
 type RealProps = {
   $fullwidth?: boolean;
   $borderOnHover?: boolean;
   $neutral?: boolean;
   $danger?: boolean;
 };
-
 const RealButton = styled(ActionButton)<RealProps>`
   display: ${(props) => (props.$fullwidth ? "block" : "inline-block")};
   width: ${(props) => (props.$fullwidth ? "100%" : "auto")};
@@ -76,9 +74,7 @@ const RealButton = styled(ActionButton)<RealProps>`
           ? props.theme.buttonNeutralBackground
           : props.theme.buttonNeutralHoverBackground
       };
-      box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${
-        props.theme.buttonNeutralBorder
-      } 0 0 0 1px inset;
+      box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset;
       transition: background 0s;
     }
 
@@ -117,15 +113,15 @@ const RealButton = styled(ActionButton)<RealProps>`
       }
   `};
 `;
-
-const Label = styled.span<{ hasIcon?: boolean }>`
+const Label = styled.span<{
+  hasIcon?: boolean;
+}>`
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 
   ${(props) => props.hasIcon && "padding-inline-start: 4px;"};
 `;
-
 export const Inner = styled.span<{
   disclosure?: boolean;
   hasIcon?: boolean;
@@ -142,7 +138,6 @@ export const Inner = styled.span<{
   ${(props) => props.hasIcon && props.hasText && "padding-inline-start: 4px;"};
   ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
 `;
-
 export type Props<T> = ActionButtonProps & {
   icon?: React.ReactNode;
   children?: React.ReactNode;
@@ -159,7 +154,6 @@ export type Props<T> = ActionButtonProps & {
   "data-event-category"?: string;
   "data-event-action"?: string;
 };
-
 const Button = <T extends React.ElementType = "button">(
   props: Props<T> & React.ComponentPropsWithoutRef<T>,
   ref: React.Ref<HTMLButtonElement>
@@ -181,7 +175,6 @@ const Button = <T extends React.ElementType = "button">(
   const hasText = !!children || value !== undefined;
   const ic = hideIcon ? undefined : (action?.icon ?? icon);
   const hasIcon = ic !== undefined;
-
   return (
     <RealButton
       type={type || "button"}
@@ -201,9 +194,7 @@ const Button = <T extends React.ElementType = "button">(
     </RealButton>
   );
 };
-
 const StyledDisclosureIcon = styled(DisclosureIcon)`
   opacity: 0.8;
 `;
-
 export default React.forwardRef(Button);

@@ -15,19 +15,17 @@ import { detectLanguage } from "~/utils/language";
 import Login from "../Login";
 import { Background } from "./Background";
 import { Centered } from "./Centered";
-
-type Props = { sessions: Sessions };
-
+type Props = {
+  sessions: Sessions;
+};
 export function TeamSwitcher({ sessions }: Props) {
   const { t } = useTranslation();
   const [showLogin, setShowLogin] = useState(false);
   const url = new URL(window.location.href);
   const appName = env.APP_NAME;
-
   if (showLogin) {
     return <Login onBack={() => setShowLogin(false)} />;
   }
-
   return (
     <Background>
       <ChangeLanguage locale={detectLanguage()} />
@@ -69,14 +67,12 @@ export function TeamSwitcher({ sessions }: Props) {
     </Background>
   );
 }
-
 const StyledArrowIcon = styled(ArrowIcon)`
   position: absolute;
   transition: all 0.2s ease-in-out;
   opacity: 0;
   right: 12px;
 `;
-
 const TeamLink = styled.a`
   position: relative;
   left: -8px;
@@ -100,7 +96,6 @@ const TeamLink = styled.a`
     }
   }
 `;
-
 const StyledHeading = styled(Heading).attrs({
   as: "h2",
   centered: true,

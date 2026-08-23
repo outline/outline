@@ -5,15 +5,12 @@ import type Emoji from "~/models/Emoji";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { useEmojiMenuActions } from "~/hooks/useEmojiMenuActions";
-
 type Props = {
   emoji: Emoji;
 };
-
 function EmojisMenu({ emoji }: Props) {
   const { t } = useTranslation();
   const rootAction = useEmojiMenuActions(emoji);
-
   return (
     <DropdownMenu
       action={rootAction}
@@ -24,5 +21,4 @@ function EmojisMenu({ emoji }: Props) {
     </DropdownMenu>
   );
 }
-
 export default observer(EmojisMenu);

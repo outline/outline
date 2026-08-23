@@ -8,18 +8,17 @@ import User from "~/models/User";
 import Tooltip from "~/components/Tooltip";
 import { UserHoverCard } from "~/components/UserHoverCard";
 import Avatar, { AvatarSize } from "./Avatar";
-
 /**
  * Props for the AvatarWithPresence component
  */
 type Props = {
   /** The user to display the avatar for */
   user: User;
-  /** Whether the user is currently present in the document */
+  /** Whether the user is currently present in the note */
   isPresent: boolean;
-  /** Whether the user is currently editing the document */
+  /** Whether the user is currently editing the note */
   isEditing: boolean;
-  /** Whether the user is currently observing the document */
+  /** Whether the user is currently observing the note */
   isObserving: boolean;
   /** Whether this avatar represents the current user */
   isCurrentUser: boolean;
@@ -32,7 +31,6 @@ type Props = {
   /** Optional inline styles to apply to the avatar wrapper */
   style?: React.CSSProperties;
 };
-
 /**
  * AvatarWithPresence component displays a user's avatar with visual indicators
  * for their current status (present, editing, observing).
@@ -66,7 +64,6 @@ function AvatarWithPresence({
       ? t("currently editing")
       : t("currently viewing")
     : t("previously edited");
-
   const avatar = (
     <AvatarPresence
       $isPresent={isPresent}
@@ -77,7 +74,6 @@ function AvatarWithPresence({
       <Avatar model={user} onClick={onClick} size={size} alt={alt} />
     </AvatarPresence>
   );
-
   // The facepile overflow badge is rendered with a placeholder in place of a
   // real user, there's no profile to show for it.
   if (!(user instanceof User)) {
@@ -87,7 +83,6 @@ function AvatarWithPresence({
       </Tooltip>
     );
   }
-
   return (
     <UserHoverCard
       user={user}
@@ -110,11 +105,9 @@ function AvatarWithPresence({
     </UserHoverCard>
   );
 }
-
 const Centered = styled.div`
   text-align: center;
 `;
-
 /**
  * Props for the AvatarPresence styled component
  */
@@ -126,7 +119,6 @@ type AvatarWrapperProps = {
   /** The user's color for border highlighting */
   $color: string;
 };
-
 /**
  * Styled component that wraps the Avatar and provides visual indicators
  * for the user's presence status.
@@ -177,5 +169,4 @@ const AvatarPresence = styled.div<AvatarWrapperProps>`
       }
     `}
 `;
-
 export default observer(AvatarWithPresence);

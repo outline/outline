@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import { s } from "@shared/styles";
-
 const Separator = styled.div`
   height: 36px;
   width: 1px;
@@ -9,5 +8,4 @@ const Separator = styled.div`
   display: inline-block;
   margin: -6px 2px;
 `;
-
 export default Separator;

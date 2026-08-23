@@ -27,7 +27,6 @@ import {
   columnDragPluginKey,
   type ColumnDragState,
 } from "../plugins/TableDragState";
-
 /**
  * Sets up drag tracking for column grip interactions.
  *
@@ -42,7 +41,6 @@ function setupColumnDragTracking(
 ): void {
   let isDragging = false;
   let currentToIndex = fromIndex;
-
   /**
    * Finds the table wrapper element from the current editor DOM.
    */
@@ -61,7 +59,6 @@ function setupColumnDragTracking(
     }
     return tables.length > 0 ? (tables[0] as HTMLElement) : null;
   };
-
   /**
    * Updates the drag state in the plugin via a transaction.
    */
@@ -73,7 +70,6 @@ function setupColumnDragTracking(
     });
     view.dispatch(tr);
   };
-
   /**
    * Clears the drag state in the plugin.
    */
@@ -85,53 +81,42 @@ function setupColumnDragTracking(
     });
     view.dispatch(tr);
   };
-
   const handleMouseMove = (e: MouseEvent) => {
     const tableElement = findTableElement();
     if (!tableElement) {
       return;
     }
-
     if (!isDragging) {
       isDragging = true;
       document.body.classList.add(EditorStyleHelper.tableDragging);
     }
-
     const table = tableElement.querySelector("table");
     if (!table) {
       return;
     }
-
     const headerRow = table.querySelector("tr");
     if (!headerRow) {
       return;
     }
-
     const cells = headerRow.querySelectorAll("th, td");
     const cols = getCellsInRow(0)(view.state);
     let targetIndex = fromIndex;
-
     cells.forEach((cell, index) => {
       const rect = cell.getBoundingClientRect();
       if (e.clientX >= rect.left && e.clientX <= rect.right) {
         targetIndex = index;
       }
     });
-
     targetIndex = Math.max(0, Math.min(targetIndex, cols.length - 1));
-
     if (targetIndex !== currentToIndex) {
       currentToIndex = targetIndex;
       updateDragState(targetIndex);
     }
   };
-
   const handleMouseUp = () => {
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
-
     document.body.classList.remove(EditorStyleHelper.tableDragging);
-
     if (isDragging && currentToIndex !== fromIndex && isInTable(view.state)) {
       // Verify both indices are still valid for the current table. The document
       // may have changed during the drag (e.g. collaborative editing)
@@ -141,7 +126,6 @@ function setupColumnDragTracking(
         fromIndex < currentCols.length &&
         currentToIndex >= 0 &&
         currentToIndex < currentCols.length;
-
       if (inBounds) {
         const moved = moveTableColumn({ from: fromIndex, to: currentToIndex })(
           view.state,
@@ -153,14 +137,11 @@ function setupColumnDragTracking(
         }
       }
     }
-
     clearDragState();
   };
-
   document.addEventListener("mousemove", handleMouseMove);
   document.addEventListener("mouseup", handleMouseUp);
 }
-
 /**
  * Builds a widget decoration for the column drag indicator.
  */
@@ -171,7 +152,6 @@ function buildColumnDragIndicator(
   const className = isMovingRight
     ? EditorStyleHelper.tableDragIndicatorRight
     : EditorStyleHelper.tableDragIndicatorLeft;
-
   return Decoration.widget(
     pos + 1,
     () => {
@@ -184,34 +164,27 @@ function buildColumnDragIndicator(
     }
   );
 }
-
 /**
  * Creates decorations for the column drag drop indicator.
  */
 function createColumnDragDecorations(state: EditorState): DecorationSet {
   const dragState = columnDragPluginKey.getState(state);
-
   if (!dragState?.isDragging || dragState.toIndex < 0) {
     return DecorationSet.empty;
   }
-
   const decorations: Decoration[] = [];
   const isMovingRight = dragState.toIndex > dragState.fromIndex;
-
   // Get first cell in the target column to place the indicator
   const cellsInColumn = getCellsInColumn(dragState.toIndex)(state);
   if (cellsInColumn.length > 0) {
     decorations.push(buildColumnDragIndicator(cellsInColumn[0], isMovingRight));
   }
-
   return DecorationSet.create(state.doc, decorations);
 }
-
 export default class TableHeader extends Node {
   get name() {
     return "th";
   }
-
   get schema(): NodeSpec {
     return {
       content: "block+",
@@ -235,11 +208,9 @@ export default class TableHeader extends Node {
       },
     };
   }
-
   toMarkdown() {
     // see: renderTable
   }
-
   parseMarkdown() {
     return {
       block: "th",
@@ -248,13 +219,11 @@ export default class TableHeader extends Node {
       }),
     };
   }
-
   get plugins() {
     function buildAddColumnDecoration(pos: number, index: number) {
       const className = cn(EditorStyleHelper.tableAddColumn, {
         first: index === 0,
       });
-
       return Decoration.widget(
         pos + 1,
         () => {
@@ -269,7 +238,6 @@ export default class TableHeader extends Node {
         }
       );
     }
-
     // Plugin for column drag and drop indicator
     const columnDragPlugin = new Plugin<ColumnDragState>({
       key: columnDragPluginKey,
@@ -287,22 +255,18 @@ export default class TableHeader extends Node {
         decorations: createColumnDragDecorations,
       },
     });
-
     const createColumnDecorations = (state: EditorState) => {
       if (!this.editor.view?.editable) {
         return DecorationSet.empty;
       }
-
       // Hide add column buttons when dragging rows or columns
       const columnDragState = columnDragPluginKey.getState(state);
       const rowDragState = rowDragPluginKey.getState(state);
       const isDragging =
         columnDragState?.isDragging || rowDragState?.isDragging;
-
       const { doc } = state;
       const decorations: Decoration[] = [];
       const cols = getCellsInRow(0)(state);
-
       if (cols) {
         cols.forEach((pos, index) => {
           const className = cn(EditorStyleHelper.tableGripColumn, {
@@ -310,7 +274,6 @@ export default class TableHeader extends Node {
             first: index === 0,
             last: index === cols.length - 1,
           });
-
           decorations.push(
             Decoration.widget(
               pos + 1,
@@ -326,58 +289,47 @@ export default class TableHeader extends Node {
               }
             )
           );
-
           // The add-column affordance is too small to tap on mobile, where
           // columns can be added via the inline menu instead.
           if (!isDragging && !isMobile()) {
             if (index === 0) {
               decorations.push(buildAddColumnDecoration(pos, index));
             }
-
             decorations.push(buildAddColumnDecoration(pos, index + 1));
           }
         });
       }
-
       return DecorationSet.create(doc, decorations);
     };
-
     const createHeaderDecorations = (state: EditorState) => {
       const { doc } = state;
       const decorations: Decoration[] = [];
-
       // Iterate through all tables in the document
       doc.descendants((node, pos) => {
         if (node.type.spec.tableRole === "table") {
           const map = TableMap.get(node);
-
           // Mark cells in the first column and last row of this table
           node.descendants((cellNode, cellPos) => {
             if (cellNode.type.spec.tableRole === "header_cell") {
               const cellOffset = cellPos;
               const cellIndex = map.map.indexOf(cellOffset);
-
               if (cellIndex !== -1) {
                 const col = cellIndex % map.width;
                 const row = Math.floor(cellIndex / map.width);
                 const rowspan = cellNode.attrs.rowspan || 1;
                 const colspan = cellNode.attrs.colspan || 1;
                 const attrs: Record<string, string> = {};
-
                 if (col === 0) {
                   attrs["data-first-column"] = "true";
                 }
-
                 // Mark cells that extend into the last column (accounting for colspan)
                 if (col + colspan >= map.width) {
                   attrs["data-last-column"] = "true";
                 }
-
                 // Mark cells that extend into the last row (accounting for rowspan)
                 if (row + rowspan >= map.height) {
                   attrs["data-last-row"] = "true";
                 }
-
                 if (Object.keys(attrs).length > 0) {
                   decorations.push(
                     Decoration.node(
@@ -392,10 +344,8 @@ export default class TableHeader extends Node {
           });
         }
       });
-
       return DecorationSet.create(doc, decorations);
     };
-
     return [
       columnDragPlugin,
       new Plugin({
@@ -407,7 +357,6 @@ export default class TableHeader extends Node {
             if (!tr.docChanged) {
               return pluginState;
             }
-
             return createHeaderDecorations(newState);
           },
         },
@@ -431,7 +380,6 @@ export default class TableHeader extends Node {
             ) {
               return pluginState;
             }
-
             return createColumnDecorations(newState);
           },
         },
@@ -441,7 +389,6 @@ export default class TableHeader extends Node {
               if (!(event.target instanceof HTMLElement)) {
                 return false;
               }
-
               const targetAddColumn = event.target.closest(
                 `.${EditorStyleHelper.tableAddColumn}`
               );
@@ -454,14 +401,12 @@ export default class TableHeader extends Node {
                 addColumnBefore({ index })(view.state, view.dispatch);
                 return true;
               }
-
               const targetGripColumn = event.target.closest(
                 `.${EditorStyleHelper.tableGripColumn}`
               );
               if (targetGripColumn instanceof HTMLElement) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-
                 const colIndex = Number(
                   targetGripColumn.getAttribute("data-index")
                 );
@@ -469,12 +414,10 @@ export default class TableHeader extends Node {
                   view.state,
                   view.dispatch
                 );
-
                 // Setup drag tracking for potential drag operation
                 setupColumnDragTracking(view, targetGripColumn, colIndex);
                 return true;
               }
-
               return false;
             },
           },

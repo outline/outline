@@ -19,12 +19,10 @@ import {
   isSplitViewModifierEvent,
   openRouteInSplit,
 } from "~/utils/splitView";
-
 const resolveToLocation = (
   to: LocationDescriptor | ((location: Location) => LocationDescriptor),
   currentLocation: Location
 ) => (typeof to === "function" ? to(currentLocation) : to);
-
 const normalizeToLocation = (
   to: LocationDescriptor,
   currentLocation: Location
@@ -32,17 +30,14 @@ const normalizeToLocation = (
   typeof to === "string"
     ? createLocation(to, null, undefined, currentLocation)
     : to;
-
 const joinClassnames = (...classnames: (string | undefined)[]) =>
   classnames.filter((i) => i).join(" ");
-
 interface PendingNavigation {
   /** The current location when the fast click began. */
   from: Location;
   /** The target location of the fast click. */
   to: Location;
 }
-
 // The target of a fast-click navigation, shared between all NavLinks so that
 // only links matching it can render as active before the location changes.
 // Only honored while `from` is still the current location, so a stale value
@@ -50,11 +45,9 @@ interface PendingNavigation {
 const pendingNavigation = observable.box<PendingNavigation | null>(null, {
   deep: false,
 });
-
 const setPendingNavigation = action((value: PendingNavigation | null) => {
   pendingNavigation.set(value);
 });
-
 /**
  * Props for the NavLink component.
  * Extends standard anchor element attributes with React Router navigation functionality.
@@ -83,7 +76,6 @@ export interface Props extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   /** Callback fired when an active link is clicked */
   onActiveClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }
-
 /**
  * A <Link> wrapper that clicks extra fast and knows if it's "active" or not.
  */
@@ -122,7 +114,6 @@ const NavLink = observer(function NavLink({
     currentLocation
   );
   const { pathname: path } = toLocation;
-
   const pathMatch = path
     ? matchPath(activeLocation.pathname, {
         // Regex taken from: https://github.com/pillarjs/path-to-regexp/blob/master/index.js#L202
@@ -131,7 +122,6 @@ const NavLink = observer(function NavLink({
         strict,
       })
     : null;
-
   const isActive = !!(isActiveProp
     ? isActiveProp(pathMatch, activeLocation)
     : pathMatch);
@@ -139,7 +129,6 @@ const NavLink = observer(function NavLink({
     ? joinClassnames(classNameProp, activeClassName)
     : classNameProp;
   const style = isActive ? { ...styleProp, ...activeStyle } : styleProp;
-
   React.useLayoutEffect(() => {
     if (isActive && linkRef.current && scrollIntoViewIfNeeded !== false) {
       scrollIntoView(linkRef.current, {
@@ -149,7 +138,6 @@ const NavLink = observer(function NavLink({
       });
     }
   }, [linkRef, scrollIntoViewIfNeeded, isActive]);
-
   const shouldFastClick = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>): boolean =>
       event.button === 0 && // Only intercept left clicks
@@ -163,7 +151,6 @@ const NavLink = observer(function NavLink({
       !event.currentTarget.querySelector('[data-state="open"]'),
     [rest.target, isActive]
   );
-
   const navigateTo = React.useCallback(() => {
     if (replace) {
       history.replace(to);
@@ -171,27 +158,22 @@ const NavLink = observer(function NavLink({
       history.push(to);
     }
   }, [to, replace]);
-
   // Whether the link was active when the click gesture began, so a fast click
   // is not also treated as a click on an already-active link.
   const wasActiveAtMouseDown = React.useRef<boolean>();
-
   const handleMouseDown = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
       wasActiveAtMouseDown.current = isActive;
       onClick?.(event);
-
       if (shouldFastClick(event)) {
         // Capture the element as React nulls currentTarget once the handler
         // returns, which would make the deferred blur a no-op.
         const element = event.currentTarget;
         element.focus();
-
         setPendingNavigation({
           from: currentLocation,
           to: createLocation(toLocation, undefined, undefined, currentLocation),
         });
-
         // Wait a frame until following the link
         requestAnimationFrame(() => {
           requestAnimationFrame(navigateTo);
@@ -208,7 +190,6 @@ const NavLink = observer(function NavLink({
       isActive,
     ]
   );
-
   const handleClick = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
       // In the desktop app a modifier-click opens the link in a split view,
@@ -223,12 +204,10 @@ const NavLink = observer(function NavLink({
         openRouteInSplit(history, createPath(toLocation));
         return;
       }
-
       // Keyboard-triggered clicks have no preceding mousedown, fall back to
       // the current active state.
       const wasActive = wasActiveAtMouseDown.current ?? isActive;
       wasActiveAtMouseDown.current = undefined;
-
       // Prevent navigation if link is active, event is synthetic, or context menu is open
       if (
         isActive ||
@@ -237,7 +216,6 @@ const NavLink = observer(function NavLink({
       ) {
         event.preventDefault();
       }
-
       // Fire onActiveClick on click rather than mousedown so that the native
       // HTML5 drag gesture can initiate from an active row without being
       // blocked by a preventDefault on mousedown.
@@ -247,7 +225,6 @@ const NavLink = observer(function NavLink({
     },
     [isActive, onActiveClick, toLocation]
   );
-
   // Release a pending navigation once it is no longer honored, without
   // disturbing one that is still in flight.
   React.useEffect(() => {
@@ -256,7 +233,6 @@ const NavLink = observer(function NavLink({
       setPendingNavigation(null);
     }
   }, [currentLocation]);
-
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLAnchorElement>) => {
       if (["Enter", " "].includes(event.key)) {
@@ -266,7 +242,6 @@ const NavLink = observer(function NavLink({
     },
     [navigateTo]
   );
-
   return (
     <Link
       ref={linkRef}
@@ -283,5 +258,4 @@ const NavLink = observer(function NavLink({
     />
   );
 });
-
 export default NavLink;

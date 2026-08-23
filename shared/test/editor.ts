@@ -3,12 +3,10 @@ import { EditorState, TextSelection } from "prosemirror-state";
 import type { Plugin } from "prosemirror-state";
 import ExtensionManager from "../editor/lib/ExtensionManager";
 import { richExtensions } from "../editor/nodes";
-
 /**
  * Extension manager using the full rich extensions from the editor.
  */
 export const extensionManager = new ExtensionManager(richExtensions);
-
 /**
  * Schema using the actual rich extensions from the editor.
  * This should be used for testing to ensure we're testing against real node definitions.
@@ -17,7 +15,6 @@ export const schema = new Schema({
   nodes: extensionManager.nodes,
   marks: extensionManager.marks,
 });
-
 /**
  * Creates an editor state with the given document and plugins.
  *
@@ -35,7 +32,6 @@ export function createEditorState(
     plugins,
   });
 }
-
 /**
  * Creates an editor state with the selection set inside a specific position.
  * Useful for tests that require the selection to be inside a table or other node.
@@ -55,7 +51,6 @@ export function createEditorStateWithSelection(
   const selection = TextSelection.near($pos);
   return state.apply(state.tr.setSelection(selection));
 }
-
 /**
  * Creates a paragraph node with optional text content.
  *
@@ -68,7 +63,6 @@ export function p(text: string) {
     text ? schema.text(text) : undefined
   );
 }
-
 /**
  * Creates a table cell (td) node.
  *
@@ -87,7 +81,6 @@ export function td(
 ) {
   return schema.nodes.td.create(attrs ?? null, p(content));
 }
-
 /**
  * Creates a table header cell (th) node.
  *
@@ -106,7 +99,6 @@ export function th(
 ) {
   return schema.nodes.th.create(attrs ?? null, p(content));
 }
-
 /**
  * Creates a table row (tr) node.
  *
@@ -116,7 +108,6 @@ export function th(
 export function tr(cells: ReturnType<typeof td | typeof th>[]) {
   return schema.nodes.tr.create(null, cells);
 }
-
 /**
  * Creates a table node.
  *
@@ -126,11 +117,12 @@ export function tr(cells: ReturnType<typeof td | typeof th>[]) {
  */
 export function table(
   rows: ReturnType<typeof tr>[],
-  attrs?: { layout?: string | null }
+  attrs?: {
+    layout?: string | null;
+  }
 ) {
   return schema.nodes.table.create(attrs ?? null, rows);
 }
-
 /**
  * Creates a heading node.
  *
@@ -144,7 +136,6 @@ export function heading(text: string, level: 1 | 2 | 3 | 4 | 5 | 6 = 1) {
     text ? schema.text(text) : undefined
   );
 }
-
 /**
  * Creates a blockquote node.
  *
@@ -157,7 +148,6 @@ export function blockquote(
   const children = typeof content === "string" ? [p(content)] : content;
   return schema.nodes.blockquote.create(null, children);
 }
-
 /**
  * Creates a bullet list node.
  *
@@ -170,7 +160,6 @@ export function bulletList(items: string[]) {
     items.map((text) => schema.nodes.list_item.create(null, p(text)))
   );
 }
-
 /**
  * Creates an ordered list node.
  *
@@ -183,7 +172,6 @@ export function orderedList(items: string[]) {
     items.map((text) => schema.nodes.list_item.create(null, p(text)))
   );
 }
-
 /**
  * Creates a code block node.
  *
@@ -197,7 +185,6 @@ export function codeBlock(code: string, language?: string) {
     code ? schema.text(code) : undefined
   );
 }
-
 /**
  * Creates a horizontal rule node.
  *
@@ -206,11 +193,10 @@ export function codeBlock(code: string, language?: string) {
 export function hr() {
   return schema.nodes.hr.create();
 }
-
 /**
  * Creates a document node with the given content.
  *
- * @param content - block node(s) to include in the document.
+ * @param content - block node(s) to include in the note.
  * @returns doc node.
  */
 export function doc(
@@ -238,7 +224,6 @@ export function doc(
 ) {
   return schema.nodes.doc.create(null, content);
 }
-
 /**
  * A plain-object representation of a ProseMirror node, as returned by
  * `Node.toJSON()`.
@@ -249,7 +234,6 @@ export interface JSONNode {
   attrs?: Record<string, unknown>;
   text?: string;
 }
-
 /**
  * Recursively collects all nodes of the given type from a `Node.toJSON()`
  * tree, including the root node itself.

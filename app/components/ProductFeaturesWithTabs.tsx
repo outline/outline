@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -15,7 +15,6 @@
 import { Fragment } from "react";
 import { Tab } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const tabs = [
   {
     name: "Design",
@@ -74,7 +73,6 @@ const tabs = [
     ],
   },
 ];
-
 /**
  * Tailwind UI – product features: with tabs.
  *

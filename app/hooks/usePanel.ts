@@ -1,7 +1,6 @@
 import { useMachine } from "@xstate/react";
 import { useCallback } from "react";
 import { panelMachine } from "~/machines/panel";
-
 /** What a scene needs to show one panel at a time. */
 export interface Panels<T extends string> {
   /** Whether this panel is the open one. */
@@ -13,7 +12,6 @@ export interface Panels<T extends string> {
   /** Closes whatever is open. */
   close: () => void;
 }
-
 /**
  * Shows one panel at a time on a page.
  *
@@ -30,14 +28,12 @@ export function usePanel<T extends string = string>(initial?: T): Panels<T> {
   const [state, send] = useMachine(panelMachine, {
     input: { open: initial },
   });
-
   const open = useCallback((panel: T) => send({ type: "OPEN", panel }), [send]);
   const close = useCallback(() => send({ type: "CLOSE" }), [send]);
   const isOpen = useCallback(
     (panel: T) => state.context.panel === panel,
     [state.context.panel]
   );
-
   return {
     isOpen,
     // The machine only ever holds what open() was given, and that is T.

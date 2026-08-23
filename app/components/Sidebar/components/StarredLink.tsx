@@ -7,24 +7,24 @@ import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { type NavigationNode, UserPreference } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
-import type Collection from "~/models/Collection";
-import type Document from "~/models/Document";
+import type Notebook from "~/models/Notebook";
+import type Note from "~/models/Note";
 import type Star from "~/models/Star";
 import type { RefHandle } from "~/components/EditableTitle";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";
 import useBoolean from "~/hooks/useBoolean";
-import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
+import { useNotebookMenuAction } from "~/hooks/useNotebookMenuAction";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import { useNoteMenuAction } from "~/hooks/useNoteMenuAction";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import CollectionMenu from "~/menus/CollectionMenu";
-import DocumentMenu from "~/menus/DocumentMenu";
+import NotebookMenu from "~/menus/NotebookMenu";
+import NoteMenu from "~/menus/NoteMenu";
 import * as Scenes from "~/routes/scenes";
-import { documentEditPath } from "~/utils/routeHelpers";
+import { noteEditPath } from "~/utils/routeHelpers";
 import {
   useDragStar,
-  useDropToChangeCollection,
+  useDropToChangeNotebook,
   useDropToCreateStar,
   useDropToReorderStar,
 } from "../hooks/useDragAndDrop";
@@ -32,10 +32,10 @@ import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
 import SidebarExpansionContext, {
   useSidebarExpansionState,
 } from "./SidebarExpansionContext";
-import CollectionLinkChildren from "./CollectionLinkChildren";
-import CollectionRow from "./CollectionRow";
-import DocumentLink from "./DocumentLink";
-import DocumentRow from "./DocumentRow";
+import NotebookLinkChildren from "./NotebookLinkChildren";
+import NotebookRow from "./NotebookRow";
+import NoteLink from "./NoteLink";
+import NoteRow from "./NoteRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import Relative from "./Relative";
@@ -45,14 +45,12 @@ import SidebarDisclosureContext, {
   useSidebarDisclosure,
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
-
 type Props = {
   star: Star;
 };
-
-type StarredDocumentLinkProps = {
+type StarredNoteLinkProps = {
   star: Star;
-  document: Document;
+  note: Note;
   expanded: boolean;
   sidebarContext: SidebarContextType;
   handleDisclosureClick: (ev?: React.MouseEvent<HTMLElement>) => void;
@@ -65,22 +63,19 @@ type StarredDocumentLinkProps = {
   handleMenuClose: () => void;
   cursor: React.ReactNode;
 };
-
-type StarredCollectionLinkProps = {
+type StarredNotebookLinkProps = {
   star: Star;
-  collection: Collection;
+  notebook: Notebook;
   expanded: boolean;
   sidebarContext: SidebarContextType;
   handleDisclosureClick: (ev?: React.MouseEvent<HTMLElement>) => void;
   cursor: React.ReactNode;
   isDraggingAnyStar: boolean;
 };
-
-const emptyChildDocuments: NavigationNode[] = [];
-
-const StarredDocumentLink = observer(function StarredDocumentLink({
+const emptyChildNotes: NavigationNode[] = [];
+const StarredNoteLink = observer(function StarredNoteLink({
   star,
-  document,
+  note,
   expanded,
   sidebarContext,
   handleDisclosureClick,
@@ -92,129 +87,117 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   handleMenuOpen,
   handleMenuClose,
   cursor,
-}: StarredDocumentLinkProps) {
+}: StarredNoteLinkProps) {
   const history = useHistory();
   const user = useCurrentUser();
-  const { collections, documents } = useStores();
-  const can = usePolicy(document);
+  const { notebooks, notes } = useStores();
+  const can = usePolicy(note);
   const editableTitleRef = React.useRef<RefHandle>(null);
   const [{ isDragging }, draggableRef] = useDragStar(star);
-
-  const documentCollection = document.collectionId
-    ? collections.get(document.collectionId)
+  const noteNotebook = note.notebookId
+    ? notebooks.get(note.notebookId)
     : undefined;
-  const childDocuments = documentCollection
-    ? documentCollection.getChildrenForDocument(document.id)
-    : emptyChildDocuments;
-  const hasChildDocuments = childDocuments.length > 0;
-  const displayChildDocuments = expanded && !isDragging;
-  const expansion = useSidebarExpansionState(
-    childDocuments,
-    documents.active?.id
-  );
-
+  const childNotes = noteNotebook
+    ? noteNotebook.getChildrenForNote(note.id)
+    : emptyChildNotes;
+  const hasChildNotes = childNotes.length > 0;
+  const displayChildNotes = expanded && !isDragging;
+  const expansion = useSidebarExpansionState(childNotes, notes.active?.id);
   const handleCascadeExpand = React.useCallback(() => {
-    if (childDocuments.length) {
-      expansion.expandAll(childDocuments);
+    if (childNotes.length) {
+      expansion.expandAll(childNotes);
     }
-  }, [expansion, childDocuments]);
-
+  }, [expansion, childNotes]);
   const handleCascadeCollapse = React.useCallback(() => {
     expansion.collapseAll();
   }, [expansion]);
-
   useSidebarDisclosure(handleCascadeExpand, handleCascadeCollapse);
-
   const handleRename = React.useCallback(() => {
     editableTitleRef.current?.setIsEditing(true);
   }, []);
-
   const handleTitleChange = React.useCallback(
     async (value: string) => {
-      if (!document) {
+      if (!note) {
         return;
       }
-      await documents.update({
-        id: document.id,
+      await notes.update({
+        id: note.id,
         title: value,
       });
     },
-    [documents, document]
+    [notes, note]
   );
-
   const handleNewDoc = React.useCallback(
     async (input: string) => {
-      if (!document) {
+      if (!note) {
         return;
       }
-      const newDocument = await documents.create(
+      const newNote = await notes.create(
         {
-          collectionId: documentCollection?.id,
-          parentDocumentId: document.id,
+          notebookId: noteNotebook?.id,
+          parentNoteId: note.id,
           fullWidth:
-            document.fullWidth ??
-            user.getPreference(UserPreference.FullWidthDocuments),
+            note.fullWidth ?? user.getPreference(UserPreference.FullWidthNotes),
           title: input,
           data: ProsemirrorDataHelper.getEmpty(),
         },
         { publish: true }
       );
-      documentCollection?.addDocument(newDocument, document.id);
+      noteNotebook?.addNote(newNote, note.id);
       history.push({
-        pathname: documentEditPath(newDocument),
+        pathname: noteEditPath(newNote),
         state: { sidebarContext },
       });
     },
-    [documents, document, documentCollection, sidebarContext, user, history]
+    [notes, note, noteNotebook, sidebarContext, user, history]
   );
-
-  const contextMenuAction = useDocumentMenuAction({
-    documentId: document.id,
+  const contextMenuAction = useNoteMenuAction({
+    noteId: note.id,
     onRename: handleRename,
   });
-
   const isActive = React.useCallback(
-    (match, location: Location<{ sidebarContext?: SidebarContextType }>) => {
+    (
+      match,
+      location: Location<{
+        sidebarContext?: SidebarContextType;
+      }>
+    ) => {
       if (location.state?.sidebarContext !== sidebarContext) {
         return false;
       }
-      return (
-        !!match || (!!document && location.pathname.endsWith(document.urlId))
-      );
+      return !!match || (!!note && location.pathname.endsWith(note.urlId));
     },
-    [sidebarContext, document]
+    [sidebarContext, note]
   );
-
   const menu = (
-    <DocumentMenu
-      document={document}
+    <NoteMenu
+      note={note}
       onRename={handleRename}
       onOpen={handleMenuOpen}
       onClose={handleMenuClose}
     />
   );
-
   return (
     <Draggable ref={draggableRef} $isDragging={isDragging}>
-      <DocumentRow
-        documentId={document.id}
-        document={document}
-        to={{ pathname: document.path, state: { sidebarContext } }}
+      <NoteRow
+        noteId={note.id}
+        note={note}
+        to={{ pathname: note.path, state: { sidebarContext } }}
         depth={0}
         icon={icon}
         canEdit={can.update}
-        labelText={document.titleWithDefault}
+        labelText={note.titleWithDefault}
         onTitleChange={handleTitleChange}
         editableTitleRef={editableTitleRef}
         expanded={expanded}
-        hasChildren={hasChildDocuments}
+        hasChildren={hasChildNotes}
         onDisclosureClick={handleDisclosureClick}
         onExpand={onExpand}
         onCollapse={onCollapse}
         isDragging={isDragging}
         menu={menu}
         menuOpen={menuOpen}
-        canCreateChild={can.createChildDocument}
+        canCreateChild={can.createChildNote}
         onCreateChild={handleNewDoc}
         newChildDepth={2}
         contextAction={contextMenuAction}
@@ -224,18 +207,18 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         <SidebarContext.Provider value={sidebarContext}>
           <SidebarExpansionContext.Provider value={expansion}>
             <Relative>
-              <Folder expanded={displayChildDocuments}>
-                {childDocuments.map((node, index) => (
-                  <DocumentLink
+              <Folder expanded={displayChildNotes}>
+                {childNotes.map((node, index) => (
+                  <NoteLink
                     key={node.id}
                     node={node}
-                    collection={documentCollection}
-                    activeDocument={documents.active}
-                    prefetchDocument={documents.prefetchDocument}
+                    notebook={noteNotebook}
+                    activeNote={notes.active}
+                    prefetchNote={notes.prefetchNote}
                     isDraft={node.isDraft}
                     depth={2}
                     index={index}
-                    parentId={document.id}
+                    parentId={note.id}
                   />
                 ))}
               </Folder>
@@ -243,174 +226,159 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
             </Relative>
           </SidebarExpansionContext.Provider>
         </SidebarContext.Provider>
-      </DocumentRow>
+      </NoteRow>
     </Draggable>
   );
 });
-
-const StarredCollectionLink = observer(function StarredCollectionLink({
+const StarredNotebookLink = observer(function StarredNotebookLink({
   star,
-  collection,
+  notebook,
   expanded,
   sidebarContext,
   handleDisclosureClick,
   cursor,
   isDraggingAnyStar,
-}: StarredCollectionLinkProps) {
-  const { documents } = useStores();
+}: StarredNotebookLinkProps) {
+  const { notes } = useStores();
   const history = useHistory();
   const user = useCurrentUser();
-  const can = usePolicy(collection.id);
+  const can = usePolicy(notebook.id);
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const editableTitleRef = React.useRef<RefHandle>(null);
   const [{ isDragging }, draggableRef] = useDragStar(star);
-  const displayChildDocuments = expanded && !isDragging;
-
+  const displayChildNotes = expanded && !isDragging;
   const handleTitleChange = React.useCallback(
     async (name: string) => {
-      await collection.save({ name });
+      await notebook.save({ name });
     },
-    [collection]
+    [notebook]
   );
-
   const handleExpand = React.useCallback(() => {
-    if (!displayChildDocuments) {
+    if (!displayChildNotes) {
       handleDisclosureClick();
     }
-  }, [displayChildDocuments, handleDisclosureClick]);
-
+  }, [displayChildNotes, handleDisclosureClick]);
   const parentRef = React.useRef<HTMLDivElement>(null);
-  const [{ isOver, canDrop }, dropRef] = useDropToChangeCollection(
-    collection,
+  const [{ isOver, canDrop }, dropRef] = useDropToChangeNotebook(
+    notebook,
     handleExpand,
     parentRef
   );
-
   const handleRename = React.useCallback(() => {
     editableTitleRef.current?.setIsEditing(true);
   }, []);
-
   const handlePrefetch = React.useCallback(() => {
-    void Scenes.Collection.preload();
-    void collection.fetchDocuments();
-  }, [collection]);
-
+    void Scenes.Notebook.preload();
+    void notebook.fetchNotes();
+  }, [notebook]);
   const handleNewDoc = React.useCallback(
     async (input: string) => {
-      const newDocument = await documents.create(
+      const newNote = await notes.create(
         {
-          collectionId: collection.id,
+          notebookId: notebook.id,
           title: input,
-          fullWidth: user.getPreference(UserPreference.FullWidthDocuments),
+          fullWidth: user.getPreference(UserPreference.FullWidthNotes),
           data: ProsemirrorDataHelper.getEmpty(),
         },
         { publish: true }
       );
-      collection?.addDocument(newDocument);
+      notebook?.addNote(newNote);
       history.push({
-        pathname: documentEditPath(newDocument),
+        pathname: noteEditPath(newNote),
         state: { sidebarContext },
       });
     },
-    [user, sidebarContext, history, collection, documents]
+    [user, sidebarContext, history, notebook, notes]
   );
-
-  const contextMenuAction = useCollectionMenuAction({
-    collectionId: collection.id,
+  const contextMenuAction = useNotebookMenuAction({
+    notebookId: notebook.id,
     onRename: handleRename,
   });
-
   const menu = !isDraggingAnyStar ? (
-    <CollectionMenu
-      collection={collection}
+    <NotebookMenu
+      notebook={notebook}
       onRename={handleRename}
       onOpen={handleMenuOpen}
       onClose={handleMenuClose}
     />
   ) : undefined;
-
   return (
     <SidebarContext.Provider value={sidebarContext}>
       <Draggable ref={draggableRef} $isDragging={isDragging}>
-        <CollectionRow
-          collection={collection}
-          to={{ pathname: collection.path, state: { sidebarContext } }}
-          expanded={isDragging ? undefined : displayChildDocuments}
+        <NotebookRow
+          notebook={notebook}
+          to={{ pathname: notebook.path, state: { sidebarContext } }}
+          expanded={isDragging ? undefined : displayChildNotes}
           onDisclosureClick={handleDisclosureClick}
           onExpand={handleExpand}
           onClickIntent={handlePrefetch}
           canEdit={can.update}
-          labelText={collection.name}
+          labelText={notebook.name}
           onTitleChange={handleTitleChange}
           editableTitleRef={editableTitleRef}
           contextAction={contextMenuAction}
           menu={menu}
           menuOpen={menuOpen}
-          canCreateChild={!isDraggingAnyStar && can.createDocument}
+          canCreateChild={!isDraggingAnyStar && can.createNote}
           onCreateChild={handleNewDoc}
           parentRef={parentRef}
           dropRef={dropRef}
           isActiveDropTarget={isOver && canDrop}
         >
-          <CollectionLinkChildren
-            collection={collection}
-            expanded={displayChildDocuments}
-            prefetchDocument={documents.prefetchDocument}
+          <NotebookLinkChildren
+            notebook={notebook}
+            expanded={displayChildNotes}
+            prefetchNote={notes.prefetchNote}
           />
-        </CollectionRow>
+        </NotebookRow>
       </Draggable>
       <Relative>{cursor}</Relative>
     </SidebarContext.Provider>
   );
 });
-
 function StarredLink({ star }: Props) {
-  const { ui, collections, documents } = useStores();
+  const { ui, notebooks, notes } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
-  const { documentId, collectionId } = star;
-  const collection = collectionId ? collections.get(collectionId) : undefined;
-  const document = documentId ? documents.get(documentId) : undefined;
+  const { noteId, notebookId } = star;
+  const notebook = notebookId ? notebooks.get(notebookId) : undefined;
+  const note = noteId ? notes.get(noteId) : undefined;
   const activeSidebarContext = useActiveSidebarContext();
   const sidebarContext = starredSidebarContext(
-    star.documentId ?? star.collectionId ?? ""
+    star.noteId ?? star.notebookId ?? ""
   );
   const [expanded, setExpanded] = useState(
-    (star.documentId
-      ? star.documentId === ui.activeDocumentId
-      : star.collectionId === ui.activeCollectionId) &&
+    (star.noteId
+      ? star.noteId === ui.activeNoteId
+      : star.notebookId === ui.activeNotebookId) &&
       sidebarContext === activeSidebarContext
   );
-
   const { event: disclosureEvent, onDisclosureClick } =
     useSidebarDisclosureState();
-
   React.useEffect(() => {
     if (
-      star.documentId === ui.activeDocumentId &&
+      star.noteId === ui.activeNoteId &&
       sidebarContext === activeSidebarContext
     ) {
       setExpanded(true);
     } else if (
-      star.collectionId === ui.activeCollectionId &&
+      star.notebookId === ui.activeNotebookId &&
       sidebarContext === activeSidebarContext
     ) {
       setExpanded(true);
     }
   }, [
-    star.documentId,
-    star.collectionId,
-    ui.activeDocumentId,
-    ui.activeCollectionId,
+    star.noteId,
+    star.notebookId,
+    ui.activeNoteId,
+    ui.activeNotebookId,
     sidebarContext,
     activeSidebarContext,
   ]);
-
   useEffect(() => {
-    if (documentId) {
-      void documents.fetch(documentId);
+    if (noteId) {
+      void notes.fetch(noteId);
     }
-  }, [documentId, documents]);
-
+  }, [noteId, notes]);
   const handleDisclosureClick = React.useCallback(
     (ev?: React.MouseEvent<HTMLElement>) => {
       ev?.preventDefault();
@@ -423,27 +391,23 @@ function StarredLink({ star }: Props) {
     },
     [onDisclosureClick]
   );
-
   const handleExpand = React.useCallback(() => {
     setExpanded(true);
   }, []);
-
   const handleCollapse = React.useCallback(() => {
     setExpanded(false);
   }, []);
-
   const handlePrefetch = React.useCallback(() => {
-    if (documentId) {
-      void Scenes.Document.preload();
-      void documents.prefetchDocument(documentId);
-      const document = documents.get(documentId);
-      const documentCollection = document?.collectionId
-        ? collections.get(document.collectionId)
+    if (noteId) {
+      void Scenes.Note.preload();
+      void notes.prefetchNote(noteId);
+      const note = notes.get(noteId);
+      const noteNotebook = note?.notebookId
+        ? notebooks.get(note.notebookId)
         : undefined;
-      void documentCollection?.fetchDocuments();
+      void noteNotebook?.fetchNotes();
     }
-  }, [documents, documentId, collections]);
-
+  }, [notes, noteId, notebooks]);
   const getIndex = () => {
     const next = star?.next();
     return fractionalIndex(star?.index || null, next?.index || null);
@@ -451,7 +415,6 @@ function StarredLink({ star }: Props) {
   const { icon } = useSidebarLabelAndIcon(star);
   const [reorderStarProps, dropToReorderRef] = useDropToReorderStar(getIndex);
   const [createStarProps, dropToStarRef] = useDropToCreateStar(getIndex);
-
   const cursor = (
     <>
       {reorderStarProps.isDragging && (
@@ -468,13 +431,12 @@ function StarredLink({ star }: Props) {
       )}
     </>
   );
-
-  if (document) {
+  if (note) {
     return (
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
-        <StarredDocumentLink
+        <StarredNoteLink
           star={star}
-          document={document}
+          note={note}
           expanded={expanded}
           sidebarContext={sidebarContext}
           handleDisclosureClick={handleDisclosureClick}
@@ -490,13 +452,12 @@ function StarredLink({ star }: Props) {
       </SidebarDisclosureContext.Provider>
     );
   }
-
-  if (collection) {
+  if (notebook) {
     return (
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
-        <StarredCollectionLink
+        <StarredNotebookLink
           star={star}
-          collection={collection}
+          notebook={notebook}
           expanded={expanded}
           sidebarContext={sidebarContext}
           handleDisclosureClick={handleDisclosureClick}
@@ -506,14 +467,13 @@ function StarredLink({ star }: Props) {
       </SidebarDisclosureContext.Provider>
     );
   }
-
   return null;
 }
-
-const Draggable = styled.div<{ $isDragging?: boolean }>`
+const Draggable = styled.div<{
+  $isDragging?: boolean;
+}>`
   position: relative;
   transition: opacity 250ms ease;
   opacity: ${(props) => (props.$isDragging ? 0.1 : 1)};
 `;
-
 export default observer(StarredLink);

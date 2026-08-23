@@ -3,16 +3,15 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import usePrevious from "~/hooks/usePrevious";
 import { useScrollContext } from "./ScrollContext";
-
 type Props = {
   children: JSX.Element;
 };
-
 export default function ScrollToTop({ children }: Props) {
-  const location = useLocation<{ retainScrollPosition?: boolean }>();
+  const location = useLocation<{
+    retainScrollPosition?: boolean;
+  }>();
   const previousLocationPathname = usePrevious(location.pathname);
   const scrollContainerRef = useScrollContext();
-
   useEffect(() => {
     if (
       location.pathname === previousLocationPathname ||
@@ -20,7 +19,7 @@ export default function ScrollToTop({ children }: Props) {
     ) {
       return;
     }
-    // exception for when entering or exiting document edit, scroll position should not reset
+    // exception for when entering or exiting note edit, scroll position should not reset
     if (
       location.pathname.match(/\/edit\/?$/) ||
       previousLocationPathname?.match(/\/edit\/?$/)
@@ -34,6 +33,5 @@ export default function ScrollToTop({ children }: Props) {
     previousLocationPathname,
     location.state?.retainScrollPosition,
   ]);
-
   return children;
 }

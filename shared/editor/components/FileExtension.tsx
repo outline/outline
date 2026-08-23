@@ -3,18 +3,15 @@ import * as React from "react";
 import styled from "styled-components";
 import { s } from "../../styles";
 import { stringToColor } from "../../utils/color";
-
 type Props = {
   /** The title of the file */
   title?: string;
   /** The size of the icon */
   size?: number;
 };
-
 export default function FileExtension(props: Props) {
   const parts = (props.title ?? "Unknown").split(".");
   const extension = parts.length > 1 ? parts.pop() : undefined;
-
   return (
     <Icon
       style={{ background: stringToColor(extension || "") }}
@@ -24,8 +21,9 @@ export default function FileExtension(props: Props) {
     </Icon>
   );
 }
-
-const Icon = styled.span<{ $size: number }>`
+const Icon = styled.span<{
+  $size: number;
+}>`
   font-family: ${s("fontFamilyMono")};
   display: inline-flex;
   align-items: center;

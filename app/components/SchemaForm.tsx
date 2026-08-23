@@ -7,7 +7,6 @@ import { InputSelect } from "~/components/InputSelect";
 import Text from "~/components/Text";
 import type { DocType, FormValues } from "~/utils/formSchema";
 import { validateForm, visibleFields } from "~/utils/formSchema";
-
 interface Props {
   doctype: DocType;
   /** Starting values, for editing an existing record. */
@@ -16,7 +15,6 @@ interface Props {
   onSubmit: (values: FormValues) => void;
   onCancel?: () => void;
 }
-
 /**
  * A form built from a description rather than written out.
  *
@@ -42,9 +40,7 @@ export function SchemaForm({
     return { ...defaults, ...initial };
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-
   const shown = visibleFields(doctype, values);
-
   const set = (fieldname: string, value: string) => {
     setValues({ ...values, [fieldname]: value });
     // Clear the complaint as soon as they start fixing it.
@@ -54,7 +50,6 @@ export function SchemaForm({
       setErrors(next);
     }
   };
-
   const handleSubmit = () => {
     const found = validateForm(doctype, values);
     setErrors(found);
@@ -62,7 +57,6 @@ export function SchemaForm({
       onSubmit(values);
     }
   };
-
   return (
     <Flex column gap={8} style={{ padding: "8px 0" }}>
       <Flex gap={8} wrap align="flex-end">

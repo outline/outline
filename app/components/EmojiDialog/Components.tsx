@@ -9,12 +9,10 @@ import { bytesToHumanReadable } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import Text from "~/components/Text";
 import { VStack } from "~/components/primitives/VStack";
-
 interface UseEmojiFileUploadOptions {
   /** Optional callback fired after a valid file is selected. */
   onFileSelected?: (file: File) => void;
 }
-
 /**
  * Hook that manages emoji image file selection with validation, drag-and-drop,
  * and paste support.
@@ -22,20 +20,17 @@ interface UseEmojiFileUploadOptions {
 export function useEmojiFileUpload(options?: UseEmojiFileUploadOptions) {
   const { t } = useTranslation();
   const [file, setFile] = React.useState<File | null>(null);
-
   const handleFileSelection = React.useCallback(
     (selected: File) => {
       const isValidType = AttachmentValidation.emojiContentTypes.includes(
         selected.type
       );
-
       if (!isValidType) {
         toast.error(
           t("File type not supported. Please use PNG, JPG, GIF, or WebP.")
         );
         return;
       }
-
       if (selected.size > AttachmentValidation.emojiMaxFileSize) {
         toast.error(
           t("File size too large. Maximum size is {{ size }}.", {
@@ -44,13 +39,11 @@ export function useEmojiFileUpload(options?: UseEmojiFileUploadOptions) {
         );
         return;
       }
-
       setFile(selected);
       options?.onFileSelected?.(selected);
     },
     [t, options]
   );
-
   const handleDrop = React.useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
@@ -59,7 +52,6 @@ export function useEmojiFileUpload(options?: UseEmojiFileUploadOptions) {
     },
     [handleFileSelection]
   );
-
   React.useEffect(() => {
     const handlePaste = (event: ClipboardEvent) => {
       const files = getDataTransferFiles(event);
@@ -68,21 +60,17 @@ export function useEmojiFileUpload(options?: UseEmojiFileUploadOptions) {
         handleFileSelection(files[0]);
       }
     };
-
     document.addEventListener("paste", handlePaste);
     return () => document.removeEventListener("paste", handlePaste);
   }, [handleFileSelection]);
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDropAccepted: handleDrop,
     accept: AttachmentValidation.emojiContentTypes,
     maxSize: AttachmentValidation.emojiMaxFileSize,
     maxFiles: 1,
   });
-
   return { file, getRootProps, getInputProps, isDragActive };
 }
-
 interface EmojiImageDropZoneProps {
   /** The currently selected file, if any. */
   file: File | null;
@@ -93,7 +81,6 @@ interface EmojiImageDropZoneProps {
   /** Whether a drag is currently active. */
   isDragActive: boolean;
 }
-
 /**
  * Shared drop zone component for emoji image upload, showing either a file
  * preview or placeholder text.
@@ -105,7 +92,6 @@ export function EmojiImageDropZone({
   isDragActive,
 }: EmojiImageDropZoneProps) {
   const { t } = useTranslation();
-
   return (
     <DropZone {...getRootProps()}>
       <input {...getInputProps()} />
@@ -138,7 +124,6 @@ export function EmojiImageDropZone({
     </DropZone>
   );
 }
-
 const DropZone = styled.div`
   border: 2px dashed ${s("inputBorder")};
   border-radius: 8px;
@@ -152,7 +137,6 @@ const DropZone = styled.div`
     border-color: ${s("inputBorderFocused")};
   }
 `;
-
 const PreviewImage = styled.img`
   width: 64px;
   height: 64px;

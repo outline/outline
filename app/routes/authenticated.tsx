@@ -2,11 +2,11 @@ import { observer } from "mobx-react";
 import { Suspense } from "react";
 import type { RouteComponentProps } from "react-router-dom";
 import { Switch, Redirect } from "react-router-dom";
-import DocumentNew from "~/scenes/DocumentNew";
+import NoteNew from "~/scenes/NoteNew";
 import Error404 from "~/scenes/Errors/Error404";
 import AuthenticatedLayout from "~/components/AuthenticatedLayout";
 import CenteredContent from "~/components/CenteredContent";
-import PlaceholderDocument from "~/components/PlaceholderDocument";
+import PlaceholderNote from "~/components/PlaceholderNote";
 import Route from "~/components/ProfiledRoute";
 import { SplitView } from "~/components/SplitView";
 import WebsocketProvider from "~/components/WebsocketProvider";
@@ -23,29 +23,30 @@ import {
   homePath,
   searchPath,
   settingsPath,
-  matchDocumentSlug as documentSlug,
-  matchCollectionSlug as collectionSlug,
+  matchNoteSlug as noteSlug,
+  matchNotebookSlug as notebookSlug,
+  legacyNotebookPath,
   trashPath,
   debugPath,
 } from "~/utils/routeHelpers";
 import env from "~/env";
-
 const SettingsRoutes = lazy(() => import("./settings"));
 const Debug = lazy(() => import("~/scenes/Developer/Debug"));
 const Changesets = lazy(() => import("~/scenes/Developer/Changesets"));
-
-const RedirectDocument = ({
+const RedirectNote = ({
   match,
-}: RouteComponentProps<{ documentSlug: string }>) => (
+}: RouteComponentProps<{
+  noteSlug: string;
+}>) => (
   <Redirect
-    to={
-      match.params.documentSlug
-        ? `/doc/${match.params.documentSlug}`
-        : homePath()
-    }
+    to={match.params.noteSlug ? `/doc/${match.params.noteSlug}` : homePath()}
   />
 );
-
+const RedirectLegacyNotebook = ({ location }: RouteComponentProps) => (
+  <Redirect
+    to={legacyNotebookPath(location.pathname, location.search, location.hash)}
+  />
+);
 /**
  * The authenticated routes are all the routes of the application that require
  * the user to be logged in.
@@ -55,35 +56,34 @@ function AuthenticatedRoutes() {
   useKeyboardShortcutsQuery();
   const team = useCurrentTeam();
   const can = usePolicy(team);
-
   return (
     <WebsocketProvider>
       <AuthenticatedLayout>
         <Suspense
           fallback={
             <CenteredContent>
-              <PlaceholderDocument />
+              <PlaceholderNote />
             </CenteredContent>
           }
         >
           <SplitView>
             <RequireRole>
               <Switch>
-                {can.createDocument && (
+                {can.createNote && (
                   <Route
                     exact
                     path={draftsPath()}
                     component={Scenes.Drafts.Component}
                   />
                 )}
-                {can.createDocument && (
+                {can.createNote && (
                   <Route
                     exact
                     path={archivePath()}
                     component={Scenes.Archive.Component}
                   />
                 )}
-                {can.createDocument && (
+                {can.createNote && (
                   <Route
                     exact
                     path={trashPath()}
@@ -227,41 +227,41 @@ function AuthenticatedRoutes() {
                   from="/templates"
                   to={settingsPath("templates")}
                 />
-                <Redirect exact from="/collections/*" to="/collection/*" />
                 <Route
                   exact
-                  path={`/collection/${collectionSlug}/new`}
-                  component={DocumentNew}
+                  path={["/collections/*", "/collection/*"]}
+                  component={RedirectLegacyNotebook}
                 />
                 <Route
                   exact
-                  path={`/collection/${collectionSlug}/overview/edit`}
-                  component={Scenes.Collection.Component}
+                  path={`/notebook/${notebookSlug}/new`}
+                  component={NoteNew}
                 />
                 <Route
                   exact
-                  path={`/collection/${collectionSlug}/:tab?`}
-                  component={Scenes.Collection.Component}
-                />
-                <Route exact path="/doc/new" component={DocumentNew} />
-                <Route
-                  exact
-                  path={`/d/${documentSlug}`}
-                  component={RedirectDocument}
+                  path={`/notebook/${notebookSlug}/overview/edit`}
+                  component={Scenes.Notebook.Component}
                 />
                 <Route
                   exact
-                  path={`/doc/${documentSlug}/history/:revisionId?`}
-                  component={Scenes.Document.Component}
+                  path={`/notebook/${notebookSlug}/:tab?`}
+                  component={Scenes.Notebook.Component}
+                />
+                <Route exact path="/doc/new" component={NoteNew} />
+                <Route exact path={`/d/${noteSlug}`} component={RedirectNote} />
+                <Route
+                  exact
+                  path={`/doc/${noteSlug}/history/:revisionId?`}
+                  component={Scenes.Note.Component}
                 />
                 <Route
                   exact
-                  path={`/doc/${documentSlug}/edit`}
-                  component={Scenes.Document.Component}
+                  path={`/doc/${noteSlug}/edit`}
+                  component={Scenes.Note.Component}
                 />
                 <Route
-                  path={`/doc/${documentSlug}`}
-                  component={Scenes.Document.Component}
+                  path={`/doc/${noteSlug}`}
+                  component={Scenes.Note.Component}
                 />
                 <Route
                   exact
@@ -289,5 +289,4 @@ function AuthenticatedRoutes() {
     </WebsocketProvider>
   );
 }
-
 export default observer(AuthenticatedRoutes);

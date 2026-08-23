@@ -17,7 +17,6 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import ApiKeyListItem from "./components/ApiKeyListItem";
 import OAuthAuthenticationListItem from "./components/OAuthAuthenticationListItem";
-
 function APIAndAccess() {
   const team = useCurrentTeam();
   const user = useCurrentUser();
@@ -25,7 +24,6 @@ function APIAndAccess() {
   const { apiKeys, oauthAuthentications } = useStores();
   const can = usePolicy(team);
   const appName = env.APP_NAME;
-
   return (
     <Scene
       title={t("API & Access")}
@@ -97,5 +95,4 @@ function APIAndAccess() {
     </Scene>
   );
 }
-
 export default observer(APIAndAccess);

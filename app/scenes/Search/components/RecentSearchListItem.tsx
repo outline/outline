@@ -12,19 +12,14 @@ import type SearchQuery from "~/models/SearchQuery";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import { searchPath } from "~/utils/routeHelpers";
-
 type Props = {
   searchQuery: SearchQuery;
 };
-
 function RecentSearchListItem({ searchQuery }: Props) {
   const { t } = useTranslation();
-
   const ref = useRef<HTMLAnchorElement>(null);
-
   const { focused, ...rovingTabIndex } = useRovingTabIndex(ref, false);
   useFocusEffect(focused, ref);
-
   return (
     <RecentSearch
       to={searchPath({ query: searchQuery.query })}
@@ -46,7 +41,6 @@ function RecentSearchListItem({ searchQuery }: Props) {
     </RecentSearch>
   );
 }
-
 const RemoveButton = styled(NudeButton)`
   opacity: 0;
   color: ${s("textTertiary")};
@@ -57,7 +51,6 @@ const RemoveButton = styled(NudeButton)`
     color: ${s("text")};
   }
 `;
-
 const RecentSearch = styled(Link)`
   display: flex;
   justify-content: space-between;
@@ -83,5 +76,4 @@ const RecentSearch = styled(Link)`
     }
   }
 `;
-
 export default RecentSearchListItem;

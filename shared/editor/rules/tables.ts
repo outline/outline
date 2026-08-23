@@ -1,6 +1,5 @@
 import type MarkdownIt from "markdown-it";
 import { unescapeRawTableCell } from "../lib/markdown/tableCell";
-
 const BREAK_REGEX = /(?<=^|[^\\])\\n/;
 const BR_TAG_REGEX = /<br\s*\/?>/gi;
 // Matches checkbox syntax with optional list prefix: "- [x] Task" or "[x] Task"
@@ -9,7 +8,6 @@ const CHECKBOX_REGEX = /^(?:-\s*)?\[(X|\s|_|-)\]\s([^<\n]*)?/i;
 // Matches the opening of a notice (:::style), toggle (+++), code (```) or math
 // ($$) fence
 const FENCE_OPEN_REGEX = /^(?::::\S|\+{3,}|```|\$\$)/;
-
 /**
  * Block content (notice, toggle, code & math fences) is serialized onto a
  * single table-cell line using <br> in place of newlines so it does not break
@@ -32,13 +30,11 @@ function parseFencedCell(
   if (!source.includes("\n") || !FENCE_OPEN_REGEX.test(source)) {
     return null;
   }
-
   // Code & math fences are raw, so the parser won't undo the escaping the
   // serializer added to keep the cell intact — reverse it here. Notice and
   // toggle content is inline, so markdown unescapes it on re-parse.
   const isRawFence = source.startsWith("```") || source.startsWith("$$");
   const unescaped = isRawFence ? unescapeRawTableCell(source) : source;
-
   const tokens = md.parse(unescaped, env);
   const type = tokens[0]?.type;
   if (
@@ -51,18 +47,15 @@ function parseFencedCell(
   }
   return null;
 }
-
 export default function markdownTables(md: MarkdownIt): void {
   // insert a new rule after the "inline" rules are parsed
   md.core.ruler.after("inline", "tables-pm", (state) => {
     const tokens = state.tokens;
     let inside = false;
-
     for (let i = tokens.length - 1; i > 0; i--) {
       if (inside) {
         tokens[i].level--;
       }
-
       // convert unescaped \n and <br> tags in the text into real br tokens
       if (
         tokens[i].type === "inline" &&
@@ -71,23 +64,18 @@ export default function markdownTables(md: MarkdownIt): void {
       ) {
         const existing = tokens[i].children || [];
         tokens[i].children = [];
-
         existing.forEach((child) => {
           // Skip processing math content to preserve LaTeX escape sequences
           if (child.type === "math_inline") {
             tokens[i].children?.push(child);
             return;
           }
-
           let content = child.content;
-
           // First handle <br> tags
           if (content.match(BR_TAG_REGEX) && child.type !== "code_inline") {
             content = content.replace(BR_TAG_REGEX, "\\n");
           }
-
           const breakParts = content.split(BREAK_REGEX);
-
           // a schema agnostic way to know if a node is inline code would be
           // great, for now we are stuck checking the node type.
           if (breakParts.length > 1 && child.type !== "code_inline") {
@@ -95,7 +83,6 @@ export default function markdownTables(md: MarkdownIt): void {
               const token = new state.Token("text", "", 1);
               token.content = part.trim();
               tokens[i].children?.push(token);
-
               if (index < breakParts.length - 1) {
                 const brToken = new state.Token("br", "br", 1);
                 tokens[i].children?.push(brToken);
@@ -106,7 +93,6 @@ export default function markdownTables(md: MarkdownIt): void {
           }
         });
       }
-
       // filter out incompatible tokens from markdown-it that we don't need
       // in prosemirror. thead/tbody do nothing.
       if (
@@ -117,7 +103,6 @@ export default function markdownTables(md: MarkdownIt): void {
         inside = !inside;
         tokens.splice(i, 1);
       }
-
       if (["th_open", "td_open"].includes(tokens[i].type)) {
         // markdown-it table parser stores alignment as html styles, convert
         // to a simple string here
@@ -126,7 +111,6 @@ export default function markdownTables(md: MarkdownIt): void {
           const style = tokenAttrs[0][1];
           tokens[i].info = style.split(":")[1];
         }
-
         // Find the corresponding close token
         const closeType =
           tokens[i].type === "th_open" ? "th_close" : "td_close";
@@ -137,7 +121,6 @@ export default function markdownTables(md: MarkdownIt): void {
         ) {
           closeIndex++;
         }
-
         // Check if the cell content looks like a checkbox (or multiple checkboxes)
         const inlineToken = tokens[i + 1];
         if (inlineToken?.type !== "inline") {
@@ -150,7 +133,6 @@ export default function markdownTables(md: MarkdownIt): void {
           tokens.splice(i + 1, 0, new state.Token("paragraph_open", "p", 1));
           continue;
         }
-
         // Reconstruct notice, toggle, code & math fences that were serialized
         // onto a single line, replacing the inline token with the block tokens.
         const fenceTokens = parseFencedCell(md, inlineToken.content, state.env);
@@ -158,11 +140,12 @@ export default function markdownTables(md: MarkdownIt): void {
           tokens.splice(i + 1, closeIndex - i - 1, ...fenceTokens);
           continue;
         }
-
         // Split content by <br> to find all checkboxes
         const parts = inlineToken.content.split(BR_TAG_REGEX);
-        const checkboxItems: Array<{ checked: boolean; label: string }> = [];
-
+        const checkboxItems: Array<{
+          checked: boolean;
+          label: string;
+        }> = [];
         for (const part of parts) {
           const match = part.trim().match(CHECKBOX_REGEX);
           if (match) {
@@ -172,14 +155,11 @@ export default function markdownTables(md: MarkdownIt): void {
             });
           }
         }
-
         if (checkboxItems.length > 0) {
           // Build tokens for all checkbox items
           const newTokens: InstanceType<typeof state.Token>[] = [];
-
           // Opening: checkbox_list_open
           newTokens.push(new state.Token("checkbox_list_open", "ul", 1));
-
           // Add each checkbox item
           for (const item of checkboxItems) {
             const itemOpen = new state.Token("checkbox_item_open", "li", 1);
@@ -188,7 +168,6 @@ export default function markdownTables(md: MarkdownIt): void {
             }
             newTokens.push(itemOpen);
             newTokens.push(new state.Token("paragraph_open", "p", 1));
-
             // Create inline token for the label
             const labelInline = new state.Token("inline", "", 0);
             labelInline.content = item.label;
@@ -196,14 +175,11 @@ export default function markdownTables(md: MarkdownIt): void {
             textToken.content = item.label;
             labelInline.children = [textToken];
             newTokens.push(labelInline);
-
             newTokens.push(new state.Token("paragraph_close", "p", -1));
             newTokens.push(new state.Token("checkbox_item_close", "li", -1));
           }
-
           // Closing: checkbox_list_close
           newTokens.push(new state.Token("checkbox_list_close", "ul", -1));
-
           // Replace the inline token with our new structure
           tokens.splice(i + 1, closeIndex - i - 1, ...newTokens);
         } else {
@@ -220,7 +196,6 @@ export default function markdownTables(md: MarkdownIt): void {
         }
       }
     }
-
     return false;
   });
 }

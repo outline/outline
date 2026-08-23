@@ -8,18 +8,14 @@ import Text from "../Text";
 import { Overlay } from "./components/Overlay";
 import { m } from "framer-motion";
 import useMeasure from "react-use-measure";
-
 /** Root Drawer component - all the other components are rendered inside it. */
 const Drawer = (props: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
   <DrawerPrimitive.Root {...props} />
 );
 Drawer.displayName = "Drawer";
-
 /** Drawer's trigger. */
 const DrawerTrigger = DrawerPrimitive.Trigger;
-
 const DrawerHandle = DrawerPrimitive.Handle;
-
 /** Drawer's content - renders the overlay and the actual content. */
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
@@ -27,7 +23,6 @@ const DrawerContent = React.forwardRef<
 >((props, ref) => {
   const { children, ...rest } = props;
   const [measureRef, bounds] = useMeasure();
-
   return (
     <DrawerPrimitive.Portal>
       <DrawerPrimitive.Overlay asChild>
@@ -53,20 +48,17 @@ const DrawerContent = React.forwardRef<
   );
 });
 DrawerContent.displayName = DrawerPrimitive.Content.displayName;
-
 /** Drawer's title shown in the center. */
 const DrawerTitle = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>
 >((props, ref) => {
   const { hidden, children, ...rest } = props;
-
   const title = (
     <StyledText size="medium" weight="bold" as={TitleWrapper} justify="center">
       {children}
     </StyledText>
   );
-
   return (
     <DrawerPrimitive.Title ref={ref} {...rest} asChild>
       {hidden ? (
@@ -78,11 +70,9 @@ const DrawerTitle = React.forwardRef<
   );
 });
 DrawerTitle.displayName = DrawerPrimitive.Title.displayName;
-
 const StyledText = styled(Text)`
   flex-shrink: 0;
 `;
-
 /** Styled components. */
 const StyledContent = styled(m.div)`
   z-index: ${depths.menu};
@@ -99,15 +89,12 @@ const StyledContent = styled(m.div)`
 
   background: ${s("menuBackground")};
 `;
-
 const StyledInnerContent = styled(Flex)`
   padding: 6px;
   padding-bottom: calc(6px + var(--sab, 0px));
   height: 100%;
 `;
-
 const TitleWrapper = styled(Flex)`
   padding: 8px 0;
 `;
-
 export { Drawer, DrawerTrigger, DrawerHandle, DrawerContent, DrawerTitle };

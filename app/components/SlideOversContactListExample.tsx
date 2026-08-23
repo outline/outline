@@ -3,7 +3,6 @@ import { Dialog, Menu, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const tabs = [
   { name: "All", href: "#", current: true },
   { name: "Online", href: "#", current: false },
@@ -20,7 +19,6 @@ const team = [
   },
   // More people...
 ];
-
 /**
  * Tailwind UI – slide overs: contact list example.
  *
@@ -28,7 +26,6 @@ const team = [
  */
 export function SlideOversContactListExample() {
   const [open, setOpen] = useState(true);
-
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={setOpen}>

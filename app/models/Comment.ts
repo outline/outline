@@ -6,21 +6,18 @@ import type { CommentAnchor } from "@shared/editor/commands/comment";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
-import Document from "./Document";
+import Note from "./Note";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
-
 class Comment extends Model {
   static modelName = "Comment";
-
   /**
    * The Prosemirror data representing the comment content
    */
   @Field
   @observable.shallow
   data: ProsemirrorData;
-
   /**
    * If this comment is a reply then the parent comment will be set, otherwise
    * it is a top thread.
@@ -28,62 +25,52 @@ class Comment extends Model {
   @Field
   @observable
   parentCommentId: string | null;
-
   /**
    * The comment that this comment is a reply to.
    */
   @Relation(() => Comment, { onDelete: "cascade" })
   parentComment?: Comment;
-
   /**
-   * The document ID to which this comment belongs.
+   * The note ID to which this comment belongs.
    */
-  @Field
+  @Field("documentId")
   @observable
-  documentId: string;
-
+  noteId: string;
   /**
-   * The document that this comment belongs to.
+   * The note that this comment belongs to.
    */
-  @Relation(() => Document, { onDelete: "cascade" })
-  document: Document;
-
+  @Relation(() => Note, { onDelete: "cascade" })
+  note: Note;
   /**
    * The user who created this comment.
    */
   @Relation(() => User)
   createdBy: User;
-
   /**
    * The ID of the user who created this comment.
    */
   createdById: string;
-
   /**
    * The anchor location for a draft inline comment created by a user without
    * edit access. Sent with the create request so the server can apply the
-   * comment mark to the document, and not otherwise persisted.
+   * comment mark to the note, and not otherwise persisted.
    */
   @observable
   pendingAnchor?: CommentAnchor;
-
   /**
    * The date and time that this comment was resolved, if it has been resolved.
    */
   @observable
   resolvedAt: string;
-
   /**
    * The user who resolved this comment, if it has been resolved.
    */
   @Relation(() => User)
   resolvedBy: User | null;
-
   /**
    * The ID of the user who resolved this comment, if it has been resolved.
    */
   resolvedById: string | null;
-
   /**
    * Active reactions for this comment.
    *
@@ -91,18 +78,15 @@ class Comment extends Model {
    */
   @observable
   reactions: ReactionSummary[];
-
   /**
    * Denotes whether the user data for the active reactions are loaded.
    */
   @observable
   reactedUsersLoaded: boolean = false;
-
   /**
    * Denotes whether there is an in-flight request for loading reacted users.
    */
   private reactedUsersLoading = false;
-
   /**
    * Whether the comment is resolved
    */
@@ -110,7 +94,6 @@ class Comment extends Model {
   public get isResolved(): boolean {
     return !!this.resolvedAt || !!this.parentComment?.isResolved;
   }
-
   /**
    * Whether the comment is a reply to another comment.
    */
@@ -118,21 +101,18 @@ class Comment extends Model {
   public get isReply() {
     return !!this.parentCommentId;
   }
-
   /**
    * Resolve the comment
    */
   public resolve() {
     return this.store.rootStore.comments.resolve(this.id);
   }
-
   /**
    * Unresolve the comment
    */
   public unresolve() {
     return this.store.rootStore.comments.unresolve(this.id);
   }
-
   /**
    * Add an emoji as a reaction to this comment.
    *
@@ -160,7 +140,6 @@ class Comment extends Model {
       this.updateReaction({ type: "remove", emoji, user });
     }
   };
-
   /**
    * Remove an emoji as a reaction from this comment.
    *
@@ -188,7 +167,6 @@ class Comment extends Model {
       this.updateReaction({ type: "add", emoji, user });
     }
   };
-
   /**
    * Update the `reactions` cache.
    *
@@ -208,9 +186,7 @@ class Comment extends Model {
     user: User;
   }) => {
     const reaction = this.reactions.find((r) => r.emoji === emoji);
-
     // Step 1: Update the reactions cache.
-
     if (type === "add") {
       if (!reaction) {
         this.reactions.push({ emoji, userIds: [user.id] });
@@ -221,18 +197,15 @@ class Comment extends Model {
       if (reaction) {
         reaction.userIds = reaction.userIds.filter((id) => id !== user.id);
       }
-
       if (reaction?.userIds.length === 0) {
         this.reactions = this.reactions.filter(
           (r) => r.emoji !== reaction.emoji
         );
       }
     }
-
     // Step 2: Add the user to the store.
     this.store.rootStore.users.add(user);
   };
-
   /**
    * Load the users for the active reactions.
    *
@@ -242,14 +215,16 @@ class Comment extends Model {
    */
   @action
   loadReactedUsersData = async (
-    { limit }: { limit: number } = { limit: Pagination.defaultLimit }
+    {
+      limit,
+    }: {
+      limit: number;
+    } = { limit: Pagination.defaultLimit }
   ) => {
     if (this.reactedUsersLoading || this.reactedUsersLoaded) {
       return;
     }
-
     this.reactedUsersLoading = true;
-
     try {
       const fetchPage = async (offset: number = 0) => {
         const res = await client.post("/reactions.list", {
@@ -257,31 +232,24 @@ class Comment extends Model {
           offset,
           limit,
         });
-
         invariant(res?.data, "Data not available");
         // @ts-expect-error reaction from server response
         res.data.map((reaction) =>
           this.store.rootStore.users.add(reaction.user)
         );
-
         return res.pagination;
       };
-
       const { total } = await fetchPage();
-
       const pages = Math.ceil(total / limit);
       const fetchPages = [];
       for (let page = 1; page < pages; page++) {
         fetchPages.push(fetchPage(page * limit));
       }
-
       await Promise.all(fetchPages);
-
       this.reactedUsersLoaded = true;
     } finally {
       this.reactedUsersLoading = false;
     }
   };
 }
-
 export default Comment;

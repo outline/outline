@@ -1,6 +1,5 @@
 import { getCookie } from "tiny-cookie";
 import { CSRF } from "@shared/constants";
-
 /**
  * Reads the CSRF token that the server attached to the current document,
  * preferring the host-bound cookie when present.

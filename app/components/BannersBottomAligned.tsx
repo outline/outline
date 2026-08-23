@@ -1,5 +1,4 @@
 import { XMarkIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – banners: bottom aligned.
  *
@@ -9,9 +8,9 @@ export function BannersBottomAligned() {
   return (
     <>
       {/*
-        Make sure you add some bottom padding to pages that include a sticky banner like this to prevent
-        your content from being obscured when the user scrolls to the bottom of the page.
-      */}
+          Make sure you add some bottom padding to pages that include a sticky banner like this to prevent
+          your content from being obscured when the user scrolls to the bottom of the page.
+        */}
       <div className="fixed inset-x-0 bottom-0">
         <div className="flex items-center gap-x-6 bg-gray-900 px-6 py-2.5 sm:px-3.5 sm:before:flex-1">
           <p className="text-sm leading-6 text-white">

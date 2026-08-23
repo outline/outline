@@ -4,11 +4,9 @@ import { isBrowser } from "../../utils/browser";
 import { isNearWhite, toHexColor, validateColorHex } from "../../utils/color";
 import type { TableLayout, NodeAttrMark } from "../types";
 import { readableColor } from "polished";
-
 export interface TableAttrs {
   layout: TableLayout | null;
 }
-
 export interface CellAttrs {
   colspan: number;
   rowspan: number;
@@ -16,9 +14,7 @@ export interface CellAttrs {
   alignment: "center" | "left" | "right" | null;
   marks?: NodeAttrMark[];
 }
-
 const ALLOWED_ALIGNMENTS = new Set(["left", "center", "right"]);
-
 /**
  * Validates an alignment attribute value.
  *
@@ -30,7 +26,6 @@ export const isValidCellAlignment = (
 ): value is "left" | "center" | "right" | null =>
   value === null ||
   (typeof value === "string" && ALLOWED_ALIGNMENTS.has(value));
-
 /**
  * Validates a table cell's `marks` attribute against the given schema. Checks
  * that the value is an array of well-formed mark objects whose type exists in
@@ -75,7 +70,6 @@ export const isValidCellMarks = (
     return true;
   });
 };
-
 /**
  * Reads a background color styled on a cell by an external application, such as
  * a spreadsheet or word processor, so that it is retained when pasting.
@@ -90,7 +84,6 @@ function getCellBackground(dom: HTMLElement): string | null {
   }
   return toHexColor(background);
 }
-
 /**
  * Helper to get cell attributes from a DOM node, used when pasting table content.
  *
@@ -101,16 +94,13 @@ export function getCellAttrs(dom: HTMLElement | string): Attrs {
   if (typeof dom === "string") {
     return {};
   }
-
   const widthAttr = dom.getAttribute("data-colwidth");
   const widths =
     widthAttr && /^\d+(,\d+)*$/.test(widthAttr)
       ? widthAttr.split(",").map(Number)
       : null;
   const colspan = Number(dom.getAttribute("colspan") || 1);
-
   const bgColor = dom.getAttribute("data-bgcolor") ?? getCellBackground(dom);
-
   return {
     colspan,
     rowspan: Number(dom.getAttribute("rowspan") || 1),
@@ -134,7 +124,6 @@ export function getCellAttrs(dom: HTMLElement | string): Attrs {
         : undefined,
   } satisfies CellAttrs;
 }
-
 /**
  * Helper to serialize cell attributes on a node, used when copying table content.
  *
@@ -176,6 +165,5 @@ export function setCellAttrs(node: Node): Attrs {
         `--cell-bg-color: ${color}; --cell-text-color: ${readableColor(color)};`;
     }
   }
-
   return attrs;
 }

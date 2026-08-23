@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -21,7 +21,6 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const navigation = {
   categories: [
     {
@@ -151,7 +150,6 @@ const navigation = {
     { name: "Stores", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – store navigation: with featured categories.
  *
@@ -159,7 +157,6 @@ const navigation = {
  */
 export function StoreNavigationWithFeaturedCategories() {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="bg-white">
       {/* Mobile menu */}

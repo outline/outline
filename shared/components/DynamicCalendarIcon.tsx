@@ -1,10 +1,10 @@
 import { useTheme } from "styled-components";
-
-type Props = { day?: number; className?: string };
-
+type Props = {
+  day?: number;
+  className?: string;
+};
 export function DynamicCalendarIcon({ day, className }: Props) {
   const theme = useTheme();
-
   return (
     <svg
       width="24"

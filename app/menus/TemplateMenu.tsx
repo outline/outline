@@ -6,16 +6,13 @@ import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useTemplateSettingsActions } from "~/hooks/useTemplateSettingsActions";
-
 type Props = {
   template: Template;
   onEdit?: () => void;
 };
-
 function TemplateMenu({ template, onEdit }: Props) {
   const { t } = useTranslation();
   const rootAction = useTemplateSettingsActions(template, onEdit);
-
   return (
     <ActionContextProvider value={{ activeModels: [template] }}>
       <DropdownMenu
@@ -28,5 +25,4 @@ function TemplateMenu({ template, onEdit }: Props) {
     </ActionContextProvider>
   );
 }
-
 export default observer(TemplateMenu);

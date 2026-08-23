@@ -1,7 +1,6 @@
 import type { TFunction } from "i18next";
 import { capitalize, uniq } from "es-toolkit/compat";
 import { Scope } from "@shared/types";
-
 export class OAuthScopeHelper {
   public static normalizeScopes(scopes: string[], t: TFunction): string[] {
     const methodToReadable = {
@@ -14,13 +13,12 @@ export class OAuthScopeHelper {
       delete: t("write"),
       "*": t("read and write"),
     };
-
     const translatedNamespaces = {
       apiKeys: t("API keys"),
       attachments: t("attachments"),
-      collections: t("collections"),
+      notebooks: t("collections"),
       comments: t("comments"),
-      documents: t("documents"),
+      notes: t("documents"),
       events: t("events"),
       groups: t("groups"),
       integrations: t("integrations"),
@@ -32,7 +30,6 @@ export class OAuthScopeHelper {
       teams: t("teams"),
       "*": t("workspace"),
     };
-
     const normalizedScopes = scopes.map((scope) => {
       if (scope === "*" || scope === "/api/*.*") {
         return t("Full access");
@@ -46,20 +43,17 @@ export class OAuthScopeHelper {
       if (scope === Scope.Create) {
         return t("Create all data");
       }
-
       const [namespace, method] = scope.replace("/api/", "").split(/[:.]/g);
       const readableMethod =
         methodToReadable[method as keyof typeof methodToReadable] ?? method;
       if (!readableMethod) {
         return scope;
       }
-
       const translatedNamespace =
         translatedNamespaces[namespace as keyof typeof translatedNamespaces] ??
         namespace;
       return capitalize(`${readableMethod} ${translatedNamespace}`);
     });
-
     return uniq(normalizedScopes);
   }
 }

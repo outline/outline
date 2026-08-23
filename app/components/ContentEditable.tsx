@@ -3,7 +3,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import useOnScreen from "~/hooks/useOnScreen";
-
 type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
   disabled?: boolean;
   readOnly?: boolean;
@@ -19,14 +18,12 @@ type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
   children?: React.ReactNode;
   value: string;
 };
-
 export type RefHandle = {
   focus: () => void;
   focusAtStart: () => void;
   focusAtEnd: () => void;
   getComputedDirection: () => string;
 };
-
 /**
  * Defines a content editable component with the same interface as a native
  * HTMLInputElement (or, as close as we can get).
@@ -55,7 +52,6 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
   const contentRef = React.useRef<HTMLSpanElement>(null);
   const [innerValue, setInnerValue] = React.useState<string>(value);
   const lastValue = React.useRef(value);
-
   React.useImperativeHandle(ref, () => ({
     focus: () => {
       if (contentRef.current) {
@@ -85,7 +81,6 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
       return "ltr";
     },
   }));
-
   const wrappedEvent =
     <E extends React.SyntheticEvent<HTMLSpanElement>>(
       callback: ((event: E) => void) | undefined
@@ -94,9 +89,7 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
       if (readOnly) {
         return;
       }
-
       const text = event.currentTarget.textContent || "";
-
       if (
         maxLength &&
         event.nativeEvent instanceof KeyboardEvent &&
@@ -106,27 +99,22 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
         event.preventDefault();
         return;
       }
-
       if (text !== lastValue.current) {
         lastValue.current = text;
         onChange?.(text);
       }
-
       callback?.(event);
     };
-
   // This is to account for being within a React.Suspense boundary, in this
   // case the component may be rendered with display: none. React 18 may solve
   // this in the future by delaying useEffect hooks:
   // https://github.com/facebook/react/issues/14536#issuecomment-861980492
   const isVisible = useOnScreen(contentRef);
-
   React.useEffect(() => {
     if (autoFocus && isVisible && !disabled && !readOnly) {
       contentRef.current?.focus();
     }
   }, [autoFocus, disabled, isVisible, readOnly, contentRef]);
-
   React.useEffect(() => {
     if (contentRef.current && value !== contentRef.current.textContent) {
       if (document.activeElement === contentRef.current) {
@@ -139,7 +127,6 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
       }
     }
   }, [value, contentRef]);
-
   // Ensure only plain text can be pasted into input when pasting from another
   // rich text source. Note: If `onPaste` prop is passed then it takes
   // priority over this behavior.
@@ -152,7 +139,6 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
     []
   );
   const contentEditable = !disabled && !readOnly;
-
   return (
     <div className={className} dir={dir} onClick={onClick} tabIndex={-1}>
       {children}
@@ -174,7 +160,6 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
     </div>
   );
 });
-
 function placeCaret(element: HTMLElement, atStart: boolean) {
   if (
     typeof window.getSelection !== "undefined" &&
@@ -188,7 +173,6 @@ function placeCaret(element: HTMLElement, atStart: boolean) {
     sel?.addRange(range);
   }
 }
-
 const Content = styled.span`
   background: ${s("background")};
   color: ${s("text")};
@@ -211,5 +195,4 @@ const Content = styled.span`
     height: 0;
   }
 `;
-
 export default ContentEditable;

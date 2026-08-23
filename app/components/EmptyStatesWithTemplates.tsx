@@ -5,7 +5,6 @@ import {
   MegaphoneIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const items = [
   {
     name: "Marketing Campaign",
@@ -30,7 +29,6 @@ const items = [
     icon: CalendarIcon,
   },
 ];
-
 /**
  * Tailwind UI – empty states: with templates.
  *

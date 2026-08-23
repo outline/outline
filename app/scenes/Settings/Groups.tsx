@@ -26,17 +26,14 @@ import { CreateGroupDialog } from "./components/GroupDialogs";
 import GroupSourceFilter from "./components/GroupSourceFilter";
 import { GroupsTable } from "./components/GroupsTable";
 import { StickyFilters } from "./components/StickyFilters";
-
 function getFilteredGroups(groups: Group[], query?: string, source?: string) {
   let filtered = groups;
-
   if (query?.length) {
     const normalizedQuery = deburr(query.toLocaleLowerCase());
     filtered = filtered.filter((group) =>
       deburr(group.name).toLocaleLowerCase().includes(normalizedQuery)
     );
   }
-
   if (source === "manual") {
     filtered = filtered.filter((group) => !group.externalGroup);
   } else if (source) {
@@ -44,10 +41,8 @@ function getFilteredGroups(groups: Group[], query?: string, source?: string) {
       (group) => group.externalGroup?.provider === source
     );
   }
-
   return filtered;
 }
-
 function Groups() {
   const { t } = useTranslation();
   const { dialogs, groups } = useStores();
@@ -57,7 +52,6 @@ function Groups() {
   const location = useLocation();
   const params = useQuery();
   const [query, setQuery] = useState("");
-
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
@@ -69,7 +63,6 @@ function Groups() {
     }),
     [params]
   );
-
   const sort: ColumnSort = useMemo(
     () => ({
       id: reqParams.sort,
@@ -77,7 +70,6 @@ function Groups() {
     }),
     [reqParams.sort, reqParams.direction]
   );
-
   const { data, error, loading, next } = useTableRequest({
     data: getFilteredGroups(
       groups.orderedData,
@@ -88,9 +80,7 @@ function Groups() {
     reqFn: groups.fetchPage,
     reqParams,
   });
-
   const isEmpty = !loading && !groups.orderedData.length;
-
   const updateParams = useCallback(
     (name: string, value: string) => {
       if (value) {
@@ -98,7 +88,6 @@ function Groups() {
       } else {
         params.delete(name);
       }
-
       history.replace({
         pathname: location.pathname,
         search: params.toString(),
@@ -106,12 +95,10 @@ function Groups() {
     },
     [params, history, location.pathname]
   );
-
   const handleSourceFilter = useCallback(
     (source: string | null | undefined) => updateParams("source", source ?? ""),
     [updateParams]
   );
-
   const handleSearch = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const { value } = event.target;
@@ -119,25 +106,21 @@ function Groups() {
     },
     []
   );
-
   const handleNewGroup = useCallback(() => {
     dialogs.openModal({
       title: t("Create a group"),
       content: <CreateGroupDialog />,
     });
   }, [t, dialogs]);
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load groups"));
     }
   }, [t, error]);
-
   useEffect(() => {
     const timeout = setTimeout(() => updateParams("query", query), 250);
     return () => clearTimeout(timeout);
   }, [query, updateParams]);
-
   return (
     <Scene
       title={t("Groups")}
@@ -197,9 +180,7 @@ function Groups() {
     </Scene>
   );
 }
-
 const LargeGroupSourceFilter = styled(GroupSourceFilter)`
   height: 32px;
 `;
-
 export default observer(Groups);

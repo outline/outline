@@ -2,7 +2,6 @@ import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const statuses: Record<string, string> = {
   Paid: "text-green-700 bg-green-50 ring-green-600/20",
   Withdraw: "text-gray-600 bg-gray-50 ring-gray-500/10",
@@ -43,7 +42,6 @@ const clients = [
     },
   },
 ];
-
 /**
  * Tailwind UI – grid lists: logos cards with description list.
  *

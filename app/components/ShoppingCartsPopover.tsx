@@ -4,7 +4,6 @@ import {
   ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
 import { Popover, Transition } from "@headlessui/react";
-
 const navigation = [
   { name: "Women", href: "#" },
   { name: "Men", href: "#" },
@@ -34,7 +33,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – shopping carts: popover.
  *

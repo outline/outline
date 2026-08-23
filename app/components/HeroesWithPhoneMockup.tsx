@@ -2,14 +2,12 @@ import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
-
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
   { name: "Marketplace", href: "#" },
   { name: "Company", href: "#" },
 ];
-
 /**
  * Tailwind UI – heroes: with phone mockup.
  *
@@ -17,7 +15,6 @@ const navigation = [
  */
 export function HeroesWithPhoneMockup() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <div className="bg-white">
       <header className="absolute inset-x-0 top-0 z-50">

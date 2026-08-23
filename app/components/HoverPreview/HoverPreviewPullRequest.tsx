@@ -18,16 +18,13 @@ import {
   CardContent,
   Info,
 } from "./Components";
-
 type Props = Omit<UnfurlResponse[UnfurlResourceType.PR], "type">;
-
 const HoverPreviewPullRequest = React.forwardRef(
   function HoverPreviewPullRequest_(
     { url, title, id, description, author, state, createdAt }: Props,
     ref: React.Ref<HTMLDivElement>
   ) {
     const authorName = author.name;
-
     return (
       <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
         <Flex column ref={ref}>
@@ -70,9 +67,7 @@ const HoverPreviewPullRequest = React.forwardRef(
     );
   }
 );
-
 const StyledPullRequestIcon = styled(PullRequestIcon)`
   margin-top: 2px;
 `;
-
 export default HoverPreviewPullRequest;

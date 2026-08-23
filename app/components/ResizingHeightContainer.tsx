@@ -3,7 +3,6 @@ import { m } from "framer-motion";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import useMeasure from "react-use-measure";
-
 type Props = {
   /** The children to render */
   children: React.ReactNode;
@@ -16,7 +15,6 @@ type Props = {
   /** Optional styles. */
   style?: React.CSSProperties;
 };
-
 /**
  * Automatically animates the height of a container based on it's contents.
  */
@@ -33,9 +31,7 @@ export const ResizingHeightContainer = React.forwardRef<HTMLDivElement, Props>(
       },
       style,
     } = props;
-
     const [measureRef, { height }] = useMeasure();
-
     return (
       <m.div
         animate={{

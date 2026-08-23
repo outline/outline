@@ -10,16 +10,13 @@ import { OneTimePasswordInput } from "~/components/OneTimePasswordInput";
 import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
-
 type FormData = {
   code: string;
 };
-
 type Props = {
   /** Callback to close the dialog when user deletion completes. */
   onSubmit: () => void;
 };
-
 function UserDelete({ onSubmit }: Props) {
   const [isWaitingCode, setWaitingCode] = React.useState(false);
   const { auth } = useStores();
@@ -29,11 +26,9 @@ function UserDelete({ onSubmit }: Props) {
     handleSubmit: formHandleSubmit,
     formState,
   } = useForm<FormData>();
-
   const handleRequestDelete = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-
       try {
         await auth.requestDeleteUser();
         setWaitingCode(true);
@@ -43,7 +38,6 @@ function UserDelete({ onSubmit }: Props) {
     },
     [auth]
   );
-
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
@@ -61,9 +55,7 @@ function UserDelete({ onSubmit }: Props) {
     },
     [auth, onSubmit]
   );
-
   const appName = env.APP_NAME;
-
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       {isWaitingCode ? (
@@ -129,5 +121,4 @@ function UserDelete({ onSubmit }: Props) {
     </form>
   );
 }
-
 export default observer(UserDelete);

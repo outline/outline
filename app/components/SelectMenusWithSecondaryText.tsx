@@ -2,7 +2,6 @@ import { Fragment, useState } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const people = [
   { name: "Wade Cooper", username: "@wadecooper" },
   { name: "Arlene Mccoy", username: "@arlenemccoy" },
@@ -15,7 +14,6 @@ const people = [
   { name: "Claudie Smitham", username: "@claudiesmitham" },
   { name: "Emil Schaefer", username: "@emilschaefer" },
 ];
-
 /**
  * Tailwind UI – select menus: with secondary text.
  *
@@ -23,7 +21,6 @@ const people = [
  */
 export function SelectMenusWithSecondaryText() {
   const [selected, setSelected] = useState(people[3]);
-
   return (
     <Listbox value={selected} onChange={setSelected}>
       {({ open }) => (

@@ -63,7 +63,6 @@ const testimonials = [
     ],
   ],
 ];
-
 /**
  * Tailwind UI – testimonials: grid.
  *

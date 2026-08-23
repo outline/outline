@@ -10,7 +10,6 @@ import Text from "~/components/Text";
 import { StatusChip } from "~/components/StatusChip";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 /**
  * What has been ordered from suppliers and what is still to arrive.
  *
@@ -20,19 +19,16 @@ function PurchaseOrders() {
   const { t } = useTranslation();
   const history = useHistory();
   const purchaseOrders = useShop((state) => state.purchaseOrders);
-
   const open = purchaseOrders.filter(
     (order) => order.status !== "received" && order.status !== "cancelled"
   );
   const closed = purchaseOrders.filter(
     (order) => order.status === "received" || order.status === "cancelled"
   );
-
   const groups = [
     { key: "open", title: t("Still to arrive"), orders: open },
     { key: "closed", title: t("Closed"), orders: closed },
   ];
-
   return (
     <AppPage
       title={t("Purchase orders")}
@@ -58,7 +54,6 @@ function PurchaseOrders() {
                 (sum, item) => sum + (item.quantity - item.received),
                 0
               );
-
               return (
                 <ListItem
                   key={order.id}
@@ -108,5 +103,4 @@ function PurchaseOrders() {
     </AppPage>
   );
 }
-
 export default PurchaseOrders;

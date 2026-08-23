@@ -3,7 +3,6 @@ import {
   CloudArrowUpIcon,
   LockClosedIcon,
 } from "@heroicons/react/20/solid";
-
 const features = [
   {
     name: "Push to deploy",
@@ -27,7 +26,6 @@ const features = [
     icon: ArrowPathIcon,
   },
 ];
-
 /**
  * Tailwind UI – feature sections: simple three column with small icons on dark.
  *

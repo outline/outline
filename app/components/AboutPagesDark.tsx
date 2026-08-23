@@ -10,7 +10,6 @@ import {
   SunIcon,
   UserGroupIcon,
 } from "@heroicons/react/20/solid";
-
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
@@ -168,7 +167,6 @@ const footerNavigation = {
     },
   ],
 };
-
 /**
  * Tailwind UI – about pages: dark.
  *
@@ -176,7 +174,6 @@ const footerNavigation = {
  */
 export function AboutPagesDark() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <div className="bg-gray-900">
       {/* Header */}

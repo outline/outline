@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -15,7 +15,6 @@
 import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-
 const products = [
   {
     id: 1,
@@ -41,7 +40,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – shopping carts: modal.
  *
@@ -49,7 +47,6 @@ const products = [
  */
 export function ShoppingCartsModal() {
   const [open, setOpen] = useState(true);
-
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={setOpen}>

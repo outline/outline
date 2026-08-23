@@ -16,14 +16,12 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import useStores from "~/hooks/useStores";
 import { compressImage } from "~/utils/compressImage";
 import { uploadFile, dataUrlToBlob } from "~/utils/files";
-
 export type Props = {
   onSuccess: (url: string | null) => void | Promise<void>;
   onError: (error: string) => void;
   submitText?: string;
   borderRadius?: number;
 };
-
 const ImageUpload: React.FC<Props> = ({
   onSuccess,
   onError,
@@ -33,10 +31,8 @@ const ImageUpload: React.FC<Props> = ({
 }) => {
   const { dialogs } = useStores();
   const { t } = useTranslation();
-
   const [isUploading, setIsUploading] = useState(false);
   const [isCropping, setIsCropping] = useState(false);
-
   const uploadImage = React.useCallback(
     async (blob: Blob, file: File) => {
       try {
@@ -59,7 +55,6 @@ const ImageUpload: React.FC<Props> = ({
     },
     [dialogs, onSuccess, onError]
   );
-
   const handleUpload = React.useCallback(
     (blob: Blob, file: File) => {
       setIsUploading(true);
@@ -69,12 +64,10 @@ const ImageUpload: React.FC<Props> = ({
     },
     [uploadImage]
   );
-
   const handleClose = React.useCallback(() => {
     setIsUploading(false);
     setIsCropping(false);
   }, []);
-
   const onDropAccepted = React.useCallback(
     async (files: File[]) => {
       setIsCropping(true);
@@ -102,16 +95,13 @@ const ImageUpload: React.FC<Props> = ({
       submitText,
     ]
   );
-
   const { getRootProps, getInputProps } = useDropzone({
     accept: AttachmentValidation.avatarContentTypes.join(", "),
     onDropAccepted,
   });
-
   if (isCropping) {
     return null; // onDropAccepted would have opened a modal for cropping the image.
   }
-
   return (
     <div {...getRootProps()}>
       <input {...getInputProps()} />
@@ -119,7 +109,6 @@ const ImageUpload: React.FC<Props> = ({
     </div>
   );
 };
-
 type AvatarEditorDialogProps = {
   file: File;
   onUpload: (blob: Blob, file: File) => void;
@@ -127,32 +116,27 @@ type AvatarEditorDialogProps = {
   borderRadius: number;
   submitText: string;
 };
-
 const AvatarEditorDialog: React.FC<AvatarEditorDialogProps> = observer(
   ({ file, onUpload, isUploading, borderRadius, submitText }) => {
     const { ui } = useStores();
     const { t } = useTranslation();
     const [zoom, setZoom] = useState(1);
     const avatarEditorRef = useRef<AvatarEditor>(null);
-
     const handleUpload = React.useCallback(() => {
       const canvas = avatarEditorRef.current?.getImage();
       invariant(canvas, "canvas is not defined");
       const blob = dataUrlToBlob(canvas.toDataURL());
       onUpload(blob, file);
     }, [file, onUpload]);
-
     const handleZoom = React.useCallback(
       (event: React.ChangeEvent<HTMLInputElement>) => {
         const target = event.target;
-
         if (target instanceof HTMLInputElement) {
           setZoom(parseFloat(target.value));
         }
       },
       []
     );
-
     return (
       <Flex auto column align="center" justify="center">
         {isUploading && <LoadingIndicator />}
@@ -185,11 +169,9 @@ const AvatarEditorDialog: React.FC<AvatarEditorDialogProps> = observer(
     );
   }
 );
-
 const AvatarEditorContainer = styled(Flex)`
   margin-bottom: 30px;
 `;
-
 const RangeInput = styled.input`
   display: block;
   width: 300px;
@@ -214,5 +196,4 @@ const RangeInput = styled.input`
     outline: none;
   }
 `;
-
 export default observer(ImageUpload);

@@ -6,12 +6,10 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { ConnectedIcon } from "~/components/Icons/ConnectedIcon";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-
 type Props = ButtonProps<HTMLButtonElement> & {
   confirmationMessage: React.ReactNode;
   onClick: () => Promise<void> | void;
 };
-
 export function ConnectedButton({
   onClick,
   confirmationMessage,
@@ -19,7 +17,6 @@ export function ConnectedButton({
 }: Props) {
   const { t } = useTranslation();
   const { dialogs } = useStores();
-
   const handleClick = () => {
     dialogs.openModal({
       title: t("Disconnect integration"),
@@ -31,14 +28,12 @@ export function ConnectedButton({
       ),
     });
   };
-
   return (
     <Button icon={<ConnectedIcon />} neutral onClick={handleClick} {...rest}>
       {t("Connected")}
     </Button>
   );
 }
-
 function ConfirmDisconnectDialog({
   confirmationMessage,
   onSubmit,

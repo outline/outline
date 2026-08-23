@@ -3,7 +3,6 @@ import { WarningIcon } from "outline-icons";
 import { Trans } from "react-i18next";
 import Notice from "~/components/Notice";
 import useQuery from "~/hooks/useQuery";
-
 function Message({ notice }: { notice: string }) {
   switch (notice) {
     case "invalid-code":
@@ -125,15 +124,12 @@ function Message({ notice }: { notice: string }) {
       return <Trans>Sorry, an unknown error occurred.</Trans>;
   }
 }
-
 export function Notices() {
   const query = useQuery();
   const notice = query.get("notice");
-
   if (!notice) {
     return null;
   }
-
   return (
     <Notice icon={<WarningIcon color="currentcolor" />}>
       <Message notice={notice} />

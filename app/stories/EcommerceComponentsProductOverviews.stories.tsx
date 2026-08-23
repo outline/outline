@@ -4,29 +4,22 @@ import { ProductOverviewsWithImageGalleryAndExpandableDetails } from "~/componen
 import { ProductOverviewsWithImageGrid } from "~/components/ProductOverviewsWithImageGrid";
 import { ProductOverviewsWithTabs } from "~/components/ProductOverviewsWithTabs";
 import { ProductOverviewsWithTieredImages } from "~/components/ProductOverviewsWithTieredImages";
-
 const meta: Meta = {
   title: "Ecommerce/Components/Product Overviews",
 };
-
 export default meta;
-
 export const SplitWithImage: StoryObj = {
   render: () => <ProductOverviewsSplitWithImage />,
 };
-
 export const WithImageGalleryAndExpandableDetails: StoryObj = {
   render: () => <ProductOverviewsWithImageGalleryAndExpandableDetails />,
 };
-
 export const WithImageGrid: StoryObj = {
   render: () => <ProductOverviewsWithImageGrid />,
 };
-
 export const WithTabs: StoryObj = {
   render: () => <ProductOverviewsWithTabs />,
 };
-
 export const WithTieredImages: StoryObj = {
   render: () => <ProductOverviewsWithTieredImages />,
 };

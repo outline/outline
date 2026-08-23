@@ -2,21 +2,17 @@ import { action, computed, observable, runInAction } from "mobx";
 import type { JSONObject, NavigationNode } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import Model from "./Model";
-import type Document from "../Document";
-
+import type Note from "../Note";
 export default abstract class NavigableModel extends Model {
   private isFetching = false;
-
-  /** The document ID associated with this model. */
-  documentId?: string;
-
+  /** The note ID associated with this model. */
+  noteId?: string;
   @observable
   node?: NavigationNode;
-
   /**
-   * Fetches the child documents structure from the server.
+   * Fetches the child notes structure from the server.
    */
-  async fetchDocuments(options: {
+  async fetchNotes(options: {
     path: string;
     params: JSONObject;
     force?: boolean;
@@ -24,160 +20,132 @@ export default abstract class NavigableModel extends Model {
     if (this.isFetching) {
       return;
     }
-
-    if (this.documents && options.force !== true) {
+    if (this.notes && options.force !== true) {
       return;
     }
-
     try {
       this.isFetching = true;
       const res = await client.post(options.path, options.params);
-
-      runInAction(`${NavigableModel.modelName}#fetchDocuments`, () => {
+      runInAction(`${NavigableModel.modelName}#fetchNotes`, () => {
         this.node = res.data;
       });
     } finally {
       this.isFetching = false;
     }
   }
-
   /**
-   * Child documents structure of the document shared with this membership.
+   * Child notes structure of the note shared with this membership.
    */
   @computed
-  get documents(): NavigationNode[] | undefined {
+  get notes(): NavigationNode[] | undefined {
     return this.node?.children;
   }
-
   /**
-   * Returns a lookup from document id to child documents.
+   * Returns a lookup from note id to child notes.
    *
-   * @returns a map of document id to child document nodes.
+   * @returns a map of note id to child note nodes.
    */
   @computed({ keepAlive: true })
-  get childrenByDocumentId(): Map<string, NavigationNode[]> {
-    const childrenByDocumentId = new Map<string, NavigationNode[]>();
-
+  get childrenByNoteId(): Map<string, NavigationNode[]> {
+    const childrenByNoteId = new Map<string, NavigationNode[]>();
     const travelNodes = (nodes: NavigationNode[]) => {
       for (const node of nodes) {
-        childrenByDocumentId.set(node.id, node.children);
+        childrenByNoteId.set(node.id, node.children);
         travelNodes(node.children);
       }
     };
-
     if (this.node) {
       travelNodes([this.node]);
     }
-
-    return childrenByDocumentId;
+    return childrenByNoteId;
   }
-
   @action
-  setDocuments(value: NavigationNode[] | undefined) {
+  setNotes(value: NavigationNode[] | undefined) {
     if (this.node && value) {
       this.node.children = value;
     }
   }
-
   /**
-   * Returns the document path from the original document shared with this membership.
+   * Returns the note path from the original note shared with this membership.
    */
-  pathToDocument(documentId: string) {
+  pathToNote(noteId: string) {
     let path: NavigationNode[] | undefined = [];
-    const document = this.store.rootStore.documents.get(documentId);
-    if (!document) {
+    const note = this.store.rootStore.notes.get(noteId);
+    if (!note) {
       return path;
     }
-
     const travelNodes = (
       nodes: NavigationNode[],
       previousPath: NavigationNode[]
     ) => {
       nodes.forEach((node) => {
         const newPath = [...previousPath, node];
-
-        if (node.id === documentId) {
+        if (node.id === noteId) {
           path = newPath;
           return;
         }
-
-        if (
-          document.parentDocumentId &&
-          node.id === document.parentDocumentId
-        ) {
-          path = [...newPath, document.asNavigationNode];
+        if (note.parentNoteId && node.id === note.parentNoteId) {
+          path = [...newPath, note.asNavigationNode];
           return;
         }
-
         return travelNodes(node.children, newPath);
       });
     };
-
     if (this.node) {
       travelNodes([this.node], path);
     }
-
     return path;
   }
-
   /**
-   * Returns the child documents structure for the document.
+   * Returns the child notes structure for the note.
    */
-  getChildrenForDocument(documentId: string) {
-    return this.childrenByDocumentId.get(documentId) ?? [];
+  getChildrenForNote(noteId: string) {
+    return this.childrenByNoteId.get(noteId) ?? [];
   }
-
   /**
-   * Adds the document identified by the given id to the model in
-   * memory. Does not add the document to the database or store.
+   * Adds the note identified by the given id to the model in
+   * memory. Does not add the note to the database or store.
    *
-   * @param document The document to add.
-   * @param parentDocumentId The id of the document to add the new document to.
+   * @param note The note to add.
+   * @param parentNoteId The id of the note to add the new note to.
    */
   @action
-  addDocument(document: Document, parentDocumentId: string) {
-    if (!this.documents || !document || !parentDocumentId?.trim()) {
+  addNote(note: Note, parentNoteId: string) {
+    if (!this.notes || !note || !parentNoteId?.trim()) {
       return;
     }
-
-    if (this.documentId && parentDocumentId === this.documentId) {
-      this.setDocuments([document.asNavigationNode, ...(this.documents ?? [])]);
+    if (this.noteId && parentNoteId === this.noteId) {
+      this.setNotes([note.asNavigationNode, ...(this.notes ?? [])]);
     }
-
     const travelNodes = (nodes: NavigationNode[]) =>
       nodes.forEach((node) => {
-        if (node.id === parentDocumentId) {
-          node.children = [document.asNavigationNode, ...(node.children ?? [])];
+        if (node.id === parentNoteId) {
+          node.children = [note.asNavigationNode, ...(node.children ?? [])];
         } else {
           travelNodes(node.children);
         }
       });
-
-    travelNodes(this.documents);
+    travelNodes(this.notes);
   }
-
   /**
-   * Removes the document identified by the given id from the model in
-   * memory. Does not remove the document from the database.
+   * Removes the note identified by the given id from the model in
+   * memory. Does not remove the note from the database.
    *
-   * @param documentId The id of the document to remove.
+   * @param noteId The id of the note to remove.
    */
   @action
-  removeDocument(documentId: string) {
-    if (!this.documents) {
+  removeNote(noteId: string) {
+    if (!this.notes) {
       return;
     }
-
-    this.setDocuments(
-      this.documents.filter(function f(node): boolean {
-        if (node.id === documentId) {
+    this.setNotes(
+      this.notes.filter(function f(node): boolean {
+        if (node.id === noteId) {
           return false;
         }
-
         if (node.children) {
           node.children = node.children.filter(f);
         }
-
         return true;
       })
     );

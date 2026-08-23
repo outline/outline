@@ -22,49 +22,41 @@ import SidebarExpansionContext, {
   useSidebarExpansionState,
 } from "./components/SidebarExpansionContext";
 import Section from "./components/Section";
-import { SharedCollectionLink } from "./components/SharedCollectionLink";
-import { SharedDocumentLink } from "./components/SharedDocumentLink";
+import { SharedNotebookLink } from "./components/SharedNotebookLink";
+import { SharedNoteLink } from "./components/SharedNoteLink";
 import SidebarButton from "./components/SidebarButton";
-
 type Props = {
   share: Share;
 };
-
 function SharedSidebar({ share }: Props) {
   const user = useCurrentUser({ rejectOnEmpty: false });
-  const { ui, documents, collections } = useStores();
+  const { ui, notes, notebooks } = useStores();
   const { t } = useTranslation();
   const { query } = useKBar();
-
   const { displayName, displayLogoUrl, displayLogoModel, brandingAvailable } =
     useShareBranding(share);
   const rootNode = share.tree;
   const shareId = share.urlId || share.id;
-  const collection = collections.get(rootNode?.id);
-  const hideRootNode = collection
-    ? ProsemirrorDataHelper.isEmpty(collection.data)
+  const notebook = notebooks.get(rootNode?.id);
+  const hideRootNode = notebook
+    ? ProsemirrorDataHelper.isEmpty(notebook.data)
     : false;
-
   const handleOpenSearch = useCallback(() => {
     query.toggle();
   }, [query]);
-
   const rootChildren = useMemo(
     () => (rootNode ? [rootNode] : undefined),
     [rootNode]
   );
-  const expansion = useSidebarExpansionState(rootChildren, ui.activeDocumentId);
-
+  const expansion = useSidebarExpansionState(rootChildren, ui.activeNoteId);
   useEffect(() => {
     ui.tocVisible = share.showTOC;
     // Only seed the initial visibility, the user can toggle it afterwards.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   if (!rootNode?.children.length) {
     return null;
   }
-
   return (
     <Sidebar canCollapse={false}>
       {brandingAvailable && (
@@ -99,22 +91,22 @@ function SharedSidebar({ share }: Props) {
         </TopSection>
         <Section as="nav" aria-label={t("Documents")}>
           <SidebarExpansionContext.Provider value={expansion}>
-            {share.collectionId ? (
-              <SharedCollectionLink
+            {share.notebookId ? (
+              <SharedNotebookLink
                 node={rootNode}
                 shareId={shareId}
                 hideRootNode={hideRootNode}
               />
             ) : (
-              <SharedDocumentLink
+              <SharedNoteLink
                 index={0}
                 // If the root node has an icon we need some extra space for it
                 depth={rootNode.icon ? 1 : 0}
                 shareId={shareId}
                 node={rootNode}
-                prefetchDocument={documents.prefetchDocument}
-                activeDocumentId={ui.activeDocumentId}
-                activeDocument={documents.active}
+                prefetchNote={notes.prefetchNote}
+                activeNoteId={ui.activeNoteId}
+                activeNote={notes.active}
               />
             )}
           </SidebarExpansionContext.Provider>
@@ -123,16 +115,13 @@ function SharedSidebar({ share }: Props) {
     </Sidebar>
   );
 }
-
 const ScrollContainer = styled(Scrollable)`
   padding-bottom: 16px;
 `;
-
 const TopSection = styled(Flex)`
   padding: 8px;
   flex-shrink: 0;
 `;
-
 const SearchButton = styled.button`
   display: flex;
   align-items: center;
@@ -152,16 +141,13 @@ const SearchButton = styled.button`
     color: ${s("textSecondary")};
   }
 `;
-
 const SearchLabel = styled.span`
   flex-grow: 1;
   text-align: start;
 `;
-
 const Shortcut = styled.span`
   flex-shrink: 0;
   font-size: 13px;
   font-feature-settings: "cv08", "zero";
 `;
-
 export default observer(SharedSidebar);

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -31,7 +31,6 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Dashboard", href: "#", icon: HomeIcon, current: true },
   { name: "Team", href: "#", icon: UsersIcon, current: false },
@@ -49,7 +48,6 @@ const userNavigation = [
   { name: "Your profile", href: "#" },
   { name: "Sign out", href: "#" },
 ];
-
 /**
  * Tailwind UI – sidebar: light sidebar with header.
  *
@@ -57,17 +55,16 @@ const userNavigation = [
  */
 export function SidebarLightSidebarWithHeader() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full bg-white">
+          <body class="h-full">
+          ```
+        */}
       <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog

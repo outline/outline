@@ -1,5 +1,4 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – pagination: card footer with page buttons.
  *

@@ -6,7 +6,6 @@ import {
   useState,
   useCallback,
 } from "react";
-
 /**
  * Represents a recursive expand/collapse event broadcast through context.
  */
@@ -19,20 +18,18 @@ export interface SidebarDisclosureEvent {
    */
   generation: number;
 }
-
 /**
  * Context for broadcasting recursive expand/collapse events from a parent
- * (e.g. a collection or document disclosure toggle with alt-click) to all
- * descendant DocumentLinks in the sidebar tree.
+ * (e.g. a collection or note disclosure toggle with alt-click) to all
+ * descendant NoteLinks in the sidebar tree.
  *
  * The nearest provider determines the scope — only descendants within that
- * provider react to the event. Each DocumentLink should both consume and
+ * provider react to the event. Each NoteLink should both consume and
  * provide this context so that alt-click at any level only affects its subtree.
  */
 const SidebarDisclosureContext = createContext<SidebarDisclosureEvent | null>(
   null
 );
-
 /**
  * Hook that subscribes to recursive expand/collapse events from an ancestor
  * provider. When a new event is detected, the appropriate callback is invoked.
@@ -50,13 +47,11 @@ export function useSidebarDisclosure(
 ): void {
   const event = useContext(SidebarDisclosureContext);
   const lastHandledGeneration = useRef(-1);
-
   useEffect(() => {
     if (!event || event.generation === lastHandledGeneration.current) {
       return;
     }
     lastHandledGeneration.current = event.generation;
-
     if (event.action === "expand") {
       onExpand();
     } else {
@@ -64,7 +59,6 @@ export function useSidebarDisclosure(
     }
   }, [event, onExpand, onCollapse]);
 }
-
 /**
  * Hook for the producing side of the disclosure context. Returns the current
  * event value (to pass to a Provider) and a single callback to handle
@@ -81,7 +75,6 @@ export function useSidebarDisclosureState() {
   const parentEvent = useContext(SidebarDisclosureContext);
   const [event, setEvent] = useState<SidebarDisclosureEvent | null>(null);
   const lastForwardedParentGeneration = useRef(-1);
-
   // Forward parent disclosure events into our own provider value so that
   // grandchildren (and beyond) see the event even though each level creates
   // its own independent provider.
@@ -98,7 +91,6 @@ export function useSidebarDisclosureState() {
       generation: (prev?.generation ?? 0) + 1,
     }));
   }, [parentEvent]);
-
   /**
    * Call from a disclosure click handler after toggling expand/collapse state.
    * When alt is held, broadcasts a recursive expand or collapse event to all
@@ -120,8 +112,6 @@ export function useSidebarDisclosureState() {
     },
     []
   );
-
   return { event, onDisclosureClick };
 }
-
 export default SidebarDisclosureContext;

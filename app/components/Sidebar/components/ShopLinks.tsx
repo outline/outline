@@ -22,7 +22,6 @@ import SidebarLink from "./SidebarLink";
 import { canAccessRoute } from "../../../../src/mocks/access";
 import { currentRole } from "../../../../src/mocks/shop";
 import { BranchSwitcher } from "~/components/BranchSwitcher";
-
 /** Every shop destination, in the order the sidebar lists them. */
 const LINKS = [
   { to: "/dashboard", label: "Dashboard", icon: <HomeIcon />, exact: true },
@@ -43,7 +42,6 @@ const LINKS = [
   { to: "/branches", label: "Branches", icon: <BranchIcon /> },
   { to: "/portal", label: "Portal", icon: <GlobeIcon /> },
 ];
-
 /**
  * Navigation for the shop pages.
  *
@@ -57,13 +55,10 @@ const LINKS = [
 export function ShopLinks() {
   const { t } = useTranslation();
   const role = currentRole();
-
   const links = LINKS.filter((link) => role && canAccessRoute(role, link.to));
-
   if (links.length === 0) {
     return null;
   }
-
   return (
     <Relative>
       <BranchSwitcher />

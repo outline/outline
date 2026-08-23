@@ -2,9 +2,7 @@ import * as React from "react";
 import { DayPicker } from "react-day-picker";
 import styled from "styled-components";
 import { s } from "../styles";
-
 type Props = React.ComponentProps<typeof DayPicker>;
-
 /**
  * A themed calendar built on react-day-picker. It is styled from scratch (the
  * library's base stylesheet is intentionally not relied upon) so that it looks
@@ -23,7 +21,6 @@ export function Calendar(props: Props) {
     </Wrapper>
   );
 }
-
 const Wrapper = styled.div`
   padding: 12px;
   color: ${s("text")};

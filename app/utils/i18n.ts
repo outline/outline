@@ -6,7 +6,6 @@ import { unicodeCLDRtoBCP47, unicodeBCP47toCLDR } from "@shared/utils/date";
 import { isRTLLanguage } from "@shared/utils/rtl";
 import { cdnPath } from "@shared/utils/urls";
 import Logger from "./Logger";
-
 /**
  * Initializes i18n library, loading all available translations from the
  * API backend.
@@ -17,13 +16,11 @@ import Logger from "./Logger";
  */
 export function initI18n(defaultLanguage = "en_US") {
   const lng = unicodeCLDRtoBCP47(defaultLanguage);
-
   if (typeof document !== "undefined") {
     document.documentElement.dir = isRTLLanguage(defaultLanguage)
       ? "rtl"
       : "ltr";
   }
-
   void i18n
     .use(backend)
     .use(initReactI18next)
@@ -50,6 +47,5 @@ export function initI18n(defaultLanguage = "en_US") {
     .catch((err) => {
       Logger.error("Failed to initialize i18n", err);
     });
-
   return i18n;
 }

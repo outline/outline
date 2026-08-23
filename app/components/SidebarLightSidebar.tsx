@@ -11,7 +11,6 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Dashboard", href: "#", icon: HomeIcon, current: true },
   { name: "Team", href: "#", icon: UsersIcon, current: false },
@@ -25,7 +24,6 @@ const teams = [
   { id: 2, name: "Tailwind Labs", href: "#", initial: "T", current: false },
   { id: 3, name: "Workcation", href: "#", initial: "W", current: false },
 ];
-
 /**
  * Tailwind UI – sidebar: light sidebar.
  *
@@ -33,17 +31,16 @@ const teams = [
  */
 export function SidebarLightSidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full bg-white">
+          <body class="h-full">
+          ```
+        */}
       <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog

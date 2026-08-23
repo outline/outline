@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { client } from "~/utils/ApiClient";
 import { BusinessLayout } from "./BusinessLayout";
-
 /** A product as the public shopfront describes it. */
 interface PublicProduct {
   id: string;
@@ -12,7 +11,6 @@ interface PublicProduct {
   sku: string;
   inStock: boolean;
 }
-
 /** Formats rupiah for the public pages. */
 const money = (amount: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -20,7 +18,6 @@ const money = (amount: number) =>
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(amount);
-
 /**
  * One product on the public shopfront.
  *
@@ -35,7 +32,6 @@ function Product() {
     productId: string;
   }>();
   const [product, setProduct] = useState<PublicProduct | null | undefined>();
-
   useEffect(() => {
     let cancelled = false;
     void client
@@ -49,7 +45,6 @@ function Product() {
       cancelled = true;
     };
   }, [businessSlug, productId]);
-
   if (product === undefined) {
     return (
       <BusinessLayout current="featured">
@@ -57,7 +52,6 @@ function Product() {
       </BusinessLayout>
     );
   }
-
   if (product === null) {
     return (
       <BusinessLayout current="featured">
@@ -76,7 +70,6 @@ function Product() {
       </BusinessLayout>
     );
   }
-
   return (
     <BusinessLayout current="featured">
       <p className="text-xs uppercase tracking-wide text-gray-500">
@@ -106,5 +99,4 @@ function Product() {
     </BusinessLayout>
   );
 }
-
 export default Product;

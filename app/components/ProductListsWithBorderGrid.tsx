@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -14,7 +14,6 @@
 */
 import { StarIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const products = [
   {
     id: 1,
@@ -62,7 +61,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – product lists: with border grid.
  *

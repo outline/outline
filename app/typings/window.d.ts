@@ -1,6 +1,5 @@
 /// <reference types="google.analytics" />
 import type RootStore from "~/stores/RootStore";
-
 declare global {
   interface ImportMeta {
     /**
@@ -9,121 +8,105 @@ declare global {
     glob: {
       (
         pattern: string | string[],
-        option: { eager: true }
+        option: {
+          eager: true;
+        }
       ): Record<string, unknown>;
       (
         pattern: string | string[],
-        option?: { eager?: false }
+        option?: {
+          eager?: false;
+        }
       ): Record<string, () => Promise<unknown>>;
     };
   }
-
   interface Window {
     dataLayer: any[];
     gtag: (...args: any[]) => void;
-
     stores: RootStore;
-
     DesktopBridge?: {
       /**
        * The name of the platform running on.
        */
       platform: string;
-
       /**
        * The version of the loaded application.
        */
       version: () => string;
-
       /**
        * Restarts the application.
        */
       restart: () => Promise<void>;
-
       /**
        * Restarts the application and installs the update.
        */
       restartAndInstall: () => Promise<void>;
-
       /**
        * Tells the updater to check for updates now.
        */
       checkForUpdates: () => Promise<void>;
-
       /**
        * Passes double click events from titlebar area
        */
       onTitlebarDoubleClick: () => Promise<void>;
-
       /**
        * Passes log out events from the app to the main process
        */
       onLogout: () => Promise<void>;
-
       /**
        * Adds a custom host to config
        */
       addCustomHost: (host: string) => Promise<void>;
-
       /**
        * Loads the authentication configuration for the given host from the main
        * process, bypassing renderer CORS restrictions. Used to verify a host is
        * a reachable Outline installation before switching to it.
        */
-      loadAuthConfig: (host: string) => Promise<{ providers: unknown[] }>;
-
+      loadAuthConfig: (host: string) => Promise<{
+        providers: unknown[];
+      }>;
       /**
        * Clears the desktop configuration, removing any custom hosts. Intended
        * for debugging use.
        */
       clearConfig: () => Promise<void>;
-
       /**
        * Set the language used by the spellchecker on Windows/Linux.
        */
       setSpellCheckerLanguages: (languages: string[]) => Promise<void>;
-
       /**
        * Set the badge on the app icon.
        */
       setNotificationCount: (count: number | string) => Promise<void>;
-
       /**
        * Registers a callback to be called when the window is focused.
        */
       focus: (callback: () => void) => void;
-
       /**
        * Registers a callback to be called when the window loses focus.
        */
       blur: (callback: () => void) => void;
-
       /**
        * Registers a callback to be called when a route change is requested from the main process.
        * This would usually be when it is responding to a deeplink.
        */
       redirect: (callback: (path: string, replace: boolean) => void) => void;
-
       /**
        * Registers a callback to be called when the application is ready to update.
        */
       updateDownloaded: (callback: () => void) => void;
-
       /**
        * Registers a callback to be called when the application wants to open keyboard shortcuts.
        */
       openKeyboardShortcuts: (callback: () => void) => void;
-
       /**
        * Go back in history, if possible
        */
       goBack: () => void;
-
       /**
        * Go forward in history, if possible
        */
       goForward: () => void;
-
       /**
        * Registers a callback to be called when the navigation state changes (e.g. after
        * navigating to a new page). Receives whether back/forward navigation is possible.
@@ -131,22 +114,18 @@ declare global {
       onNavigationStateChanged: (
         callback: (state: { canGoBack: boolean; canGoForward: boolean }) => void
       ) => () => void;
-
       /**
        * Registers a callback to be called when the application wants to open the find in page dialog.
        */
       onFindInPage: (callback: () => void) => void;
-
       /**
        * Registers a callback to be called when the application wants to open the replace in page dialog.
        */
       onReplaceInPage: (callback: () => void) => void;
-
       /**
        * Get whether the app is configured to launch at login.
        */
       getAutoLaunch: () => Promise<boolean>;
-
       /**
        * Enable or disable launching the app at login. Resolves with the
        * resulting state as reported by the OS.
@@ -155,5 +134,4 @@ declare global {
     };
   }
 }
-
 export {};

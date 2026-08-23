@@ -3,7 +3,6 @@ import {
   ChatBubbleLeftRightIcon,
   ComputerDesktopIcon,
 } from "@heroicons/react/24/outline";
-
 /**
  * Tailwind UI – contact sections: simple centered.
  *

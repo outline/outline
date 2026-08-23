@@ -17,5 +17,4 @@ const depths = {
   presentation: 40000,
   tooltip: 50000,
 };
-
 export default depths;

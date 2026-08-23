@@ -1,12 +1,10 @@
 import type { EmojiMartData } from "@emoji-mart/data";
 import { isUUID } from "validator";
 import type { ProsemirrorData } from "../../types";
-
 export const emojiMartToGemoji: Record<string, string> = {
   "+1": "thumbs_up",
   "-1": "thumbs_down",
 };
-
 /**
  * Convert kebab case to snake case.
  *
@@ -14,17 +12,14 @@ export const emojiMartToGemoji: Record<string, string> = {
  * @returns The converted string
  */
 export const snakeCase = (str: string) => str.replace(/(\w)-(\w)/g, "$1_$2");
-
 /**
  * A map of emoji shortcode to emoji character. The shortcode is snake cased
- * for backwards compatibility with those already encoded into documents.
+ * for backwards compatibility with those already encoded into notes.
  * Populated lazily on first access to avoid loading @emoji-mart/data in the
  * initial bundle.
  */
 export let nameToEmoji: Record<string, string> = {};
-
 let emojiDataLoaded = false;
-
 /**
  * Synchronously populate nameToEmoji from the given emoji data. This mutates
  * the existing object so references captured at init time (e.g. by
@@ -43,7 +38,6 @@ export function populateEmojiData(data: EmojiMartData): void {
   }
   emojiDataLoaded = true;
 }
-
 /**
  * Lazily load the emoji data and populate nameToEmoji. Use this on the client
  * to avoid including @emoji-mart/data in the initial bundle.
@@ -58,7 +52,6 @@ export async function loadEmojiData(): Promise<Record<string, string>> {
   populateEmojiData(data as EmojiMartData);
   return nameToEmoji;
 }
-
 /**
  * Get the emoji character for a given emoji shortcode.
  *
@@ -67,7 +60,6 @@ export async function loadEmojiData(): Promise<Record<string, string>> {
  */
 export const getEmojiFromName = (name: string) =>
   nameToEmoji[name.replace(/:/g, "")] ?? "?";
-
 /**
  * Get the emoji shortcode for a given emoji character.
  *
@@ -76,7 +68,6 @@ export const getEmojiFromName = (name: string) =>
  */
 export const getNameFromEmoji = (emoji: string) =>
   Object.entries(nameToEmoji).find(([, value]) => value === emoji)?.[0];
-
 /**
  * Resolve an emoji node name to the value used to react with.
  *
@@ -88,18 +79,15 @@ function getReactionFromName(name: unknown): string | undefined {
   if (typeof name !== "string") {
     return undefined;
   }
-
   // Custom emojis are stored as UUIDs and reacted with directly.
   if (isUUID(name)) {
     return name;
   }
-
   const character = getEmojiFromName(name);
   return character === "?" ? undefined : character;
 }
-
 /**
- * Detect the "+:emoji:" reaction shorthand within a comment's document. When a
+ * Detect the "+:emoji:" reaction shorthand within a comment's note. When a
  * comment consists solely of a leading "+" immediately followed by a single
  * emoji it is treated as a request to react to the comment above rather than as
  * a new comment, mirroring the Slack shorthand.
@@ -115,17 +103,14 @@ export function parseReactionShorthand(
   if (blocks.length !== 1) {
     return undefined;
   }
-
   const paragraph = blocks[0];
   if (paragraph.type !== "paragraph") {
     return undefined;
   }
-
   // Ignore whitespace-only text nodes so that "+ :emoji:" still matches.
   const inline = (paragraph.content ?? []).filter(
     (node) => !(node.type === "text" && !node.text?.trim())
   );
-
   // The common case: a "+" text node followed by an emoji node inserted via
   // the emoji menu.
   if (inline.length === 2) {
@@ -139,7 +124,6 @@ export function parseReactionShorthand(
     }
     return undefined;
   }
-
   // Fallback: literal "+:shortcode:" text that was never converted to a node.
   if (inline.length === 1 && inline[0].type === "text") {
     const match = inline[0].text?.trim().match(/^\+\s*:([\w-]+):$/);
@@ -147,6 +131,5 @@ export function parseReactionShorthand(
       return getReactionFromName(match[1]);
     }
   }
-
   return undefined;
 }

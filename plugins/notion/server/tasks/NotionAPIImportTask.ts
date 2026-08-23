@@ -2,7 +2,7 @@ import { APIResponseError, APIErrorCode } from "@notionhq/client";
 import type { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
 import type { IntegrationService, ProsemirrorDoc } from "@shared/types";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
-import { CollectionValidation, DocumentValidation } from "@shared/validations";
+import { DocumentValidation, NotebookValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
 import type ImportTask from "@server/models/ImportTask";
@@ -110,7 +110,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     const collectionExternalId = item.collectionExternalId ?? item.externalId;
     const titleMaxLength =
       item.externalId === collectionExternalId // This means it's a root page which will be imported as a collection
-        ? CollectionValidation.maxNameLength
+        ? NotebookValidation.maxNameLength
         : DocumentValidation.maxTitleLength;
 
     try {

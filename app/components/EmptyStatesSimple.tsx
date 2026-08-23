@@ -1,5 +1,4 @@
 import { PlusIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – empty states: simple.
  *

@@ -3,7 +3,6 @@ import type { Node, ResolvedPos } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-
 type Config = Array<{
   /** Condition to meet for the placeholder to be applied to a node */
   condition: (args: {
@@ -21,7 +20,6 @@ type Config = Array<{
   /** Placeholder text */
   text: string;
 }>;
-
 export class PlaceholderPlugin extends Plugin {
   /**
    * @param config Placeholder conditions to evaluate against candidate nodes.
@@ -52,7 +50,6 @@ export class PlaceholderPlugin extends Plugin {
       },
     });
   }
-
   private createDecorations(
     state: EditorState,
     config: Config,
@@ -70,7 +67,6 @@ export class PlaceholderPlugin extends Plugin {
       }
       return true;
     });
-
     const textContent = state.doc.textContent;
     const decorations: Decoration[] = filter(
       map(paras, (para) => {

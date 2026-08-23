@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import { useShop } from "~/stores/shop";
 import { currentBranch, setCurrentBranch } from "../../src/mocks/shop";
-
 const Select = styled.select`
   width: 100%;
   margin: 4px 12px 8px;
@@ -14,7 +13,6 @@ const Select = styled.select`
   border: 1px solid ${s("inputBorder")};
   border-radius: 4px;
 `;
-
 /**
  * Which branch the shop pages are showing.
  *
@@ -28,11 +26,9 @@ export function BranchSwitcher() {
   const { t } = useTranslation();
   const branches = useShop((state) => state.branches);
   const chosen = currentBranch() ?? "";
-
   if (branches.length < 2) {
     return null;
   }
-
   return (
     <Select
       aria-label={t("Branch")}

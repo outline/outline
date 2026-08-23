@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useParams } from "react-router-dom";
 import { AppPage } from "~/components/AppPage";
@@ -18,14 +17,11 @@ import Text from "~/components/Text";
 import { StatusChip } from "~/components/StatusChip";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 const TABS = ["Profile", "Commission", "Advances", "Shifts"] as const;
-
 const SOURCES = [
   { value: "manual", label: "Paid back" },
   { value: "commission", label: "Taken from commission" },
 ];
-
 /** Minutes past midnight for a `hh:mm` clock time, or undefined if unparsable. */
 function minutesOfDay(time: string): number | undefined {
   const match = /^(\d{1,2}):(\d{2})$/.exec(time);
@@ -34,7 +30,6 @@ function minutesOfDay(time: string): number | undefined {
   }
   return Number(match[1]) * 60 + Number(match[2]);
 }
-
 /**
  * Hours worked between two clock times on the same day.
  *
@@ -58,7 +53,6 @@ function hours(clockIn: string, clockOut: string | null): number | undefined {
   const span = end >= start ? end - start : end + 24 * 60 - start;
   return Math.round((span / 60) * 10) / 10;
 }
-
 /**
  * One staff member: what they earn, what they owe, and when they worked.
  *
@@ -70,7 +64,9 @@ function hours(clockIn: string, clockOut: string | null): number | undefined {
 function StaffDetail() {
   const { t } = useTranslation();
   const history = useHistory();
-  const { staffId } = useParams<{ staffId: string }>();
+  const { staffId } = useParams<{
+    staffId: string;
+  }>();
   const staff = useShop((state) => state.staff);
   const commissions = useShop((state) => state.commissions);
   const advances = useShop((state) => state.advances);
@@ -82,16 +78,13 @@ function StaffDetail() {
   const clockOut = useShop((state) => state.clockOut);
   const createAdvance = useShop((state) => state.createAdvance);
   const repayAdvance = useShop((state) => state.repayAdvance);
-
   const tabs = usePanel<(typeof TABS)[number]>("Profile");
   const tab = tabs.current ?? "Profile";
   const submission = useSubmit();
   const fields = useFields({ amount: "", installment: "", notes: "" });
-  const [repayments, setRepayments] = useState<Record<string, string>>({});
-  const [sources, setSources] = useState<Record<string, string>>({});
-
+  const repayments = useFields();
+  const sources = useFields();
   const member = staff.find((item) => item.id === staffId);
-
   if (!member) {
     return (
       <AppPage title={t("Staff")}>
@@ -106,12 +99,10 @@ function StaffDetail() {
       </AppPage>
     );
   }
-
   const commission = commissions.find((row) => row.id === member.id);
   const theirAdvances = advances.filter((row) => row.staffId === member.id);
   const theirShifts = shifts.filter((row) => row.staffId === member.id);
   const owed = theirAdvances.reduce((sum, row) => sum + row.remaining, 0);
-
   const handleLend = () =>
     submission.run(async () => {
       if (Number(fields.get("amount")) <= 0) {
@@ -128,15 +119,12 @@ function StaffDetail() {
       fields.reset();
       return t("Advance recorded.");
     });
-
   const working = onShift.find((entry) => entry.staffId === member.id);
-
   const handleClock = () =>
     submission.run(async () => {
       const result = working
         ? await clockOut(member.id)
         : await clockIn(member.id);
-
       if (result?.ok) {
         return working ? t("Clocked out.") : t("Clocked in.");
       }
@@ -144,17 +132,15 @@ function StaffDetail() {
         ? t("They are not working today, so they cannot start a shift.")
         : t("That could not be recorded.");
     });
-
   const handleRepay = (id: string) =>
     submission.run(async () => {
       const result = await repayAdvance(
         id,
-        Number(repayments[id] ?? 0),
-        sources[id] === "commission" ? "commission" : "manual"
+        Number(repayments.get(id)),
+        sources.get(id) === "commission" ? "commission" : "manual"
       );
-
       if (result?.repaid) {
-        setRepayments({ ...repayments, [id]: "" });
+        repayments.set(id, "");
         return t("Repayment recorded.");
       }
       if (result?.reason === "overpay") {
@@ -164,7 +150,6 @@ function StaffDetail() {
       }
       return t("Enter an amount to repay.");
     });
-
   const profile = [
     { label: t("Role"), value: <Capitalize>{t(member.role)}</Capitalize> },
     { label: t("Branch"), value: member.branch },
@@ -173,7 +158,6 @@ function StaffDetail() {
     { label: t("Commission rate"), value: `${member.commissionRate}%` },
     { label: t("Advances outstanding"), value: formatCurrency(owed) },
   ];
-
   return (
     <AppPage
       title={member.name}
@@ -289,21 +273,16 @@ function StaffDetail() {
                 <Flex gap={8} wrap align="flex-end">
                   <Input
                     label={t("Repay")}
-                    value={repayments[advance.id] ?? ""}
+                    value={repayments.get(advance.id)}
                     onChange={(event) =>
-                      setRepayments({
-                        ...repayments,
-                        [advance.id]: event.target.value,
-                      })
+                      repayments.set(advance.id, event.target.value)
                     }
                     short
                   />
                   <InputSelect
                     label={t("How")}
-                    value={sources[advance.id] ?? "manual"}
-                    onChange={(value) =>
-                      setSources({ ...sources, [advance.id]: value })
-                    }
+                    value={sources.get(advance.id) || "manual"}
+                    onChange={(value) => sources.set(advance.id, value)}
                     options={SOURCES.map((option) => ({
                       type: "item",
                       label: t(option.label),
@@ -411,5 +390,4 @@ function StaffDetail() {
     </AppPage>
   );
 }
-
 export default StaffDetail;

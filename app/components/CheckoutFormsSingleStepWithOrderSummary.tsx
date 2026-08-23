@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -16,7 +16,6 @@ import { useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { CheckCircleIcon, TrashIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const products = [
   {
     id: 1,
@@ -45,7 +44,6 @@ const paymentMethods = [
   { id: "paypal", title: "PayPal" },
   { id: "etransfer", title: "eTransfer" },
 ];
-
 /**
  * Tailwind UI – checkout forms: single step with order summary.
  *
@@ -55,7 +53,6 @@ export function CheckoutFormsSingleStepWithOrderSummary() {
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(
     deliveryMethods[0]
   );
-
   return (
     <div className="bg-gray-50">
       <div className="mx-auto max-w-2xl px-4 pb-24 pt-16 sm:px-6 lg:max-w-7xl lg:px-8">

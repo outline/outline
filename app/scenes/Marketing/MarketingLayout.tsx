@@ -1,19 +1,16 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import PageTitle from "~/components/PageTitle";
-
 const NAV = [
   { to: "/docs", label: "Docs" },
   { to: "/download", label: "Download" },
   { to: "/contact", label: "Contact" },
 ];
-
 const FOOTER = [
   { to: "/privacy", label: "Privacy" },
   { to: "/terms", label: "Terms" },
   { to: "/contact", label: "Contact" },
 ];
-
 interface Props {
   /** Page heading, also used for the browser tab. */
   title: string;
@@ -21,7 +18,6 @@ interface Props {
   description?: string;
   children: ReactNode;
 }
-
 /**
  * Chrome for the public content pages.
  *

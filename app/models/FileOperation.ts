@@ -10,47 +10,34 @@ import { bytesToHumanReadable } from "@shared/utils/files";
 import type FileOperationsStore from "~/stores/FileOperationsStore";
 import User from "./User";
 import Model from "./base/Model";
+import { WireAlias } from "./decorators/Field";
 import { AfterChange } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
-
 class FileOperation extends Model {
   static modelName = "FileOperation";
-
   store: FileOperationsStore;
-
   @observable
   state: FileOperationState;
-
   name: string;
-
   error: string | null;
-
-  collectionId: string | null;
-
-  documentId: string | null;
-
+  @WireAlias("collectionId")
+  notebookId: string | null;
+  noteId: string | null;
   @observable
   size: number;
-
   type: FileOperationType;
-
   format: FileOperationFormat;
-
   @Relation(() => User)
   user: User;
-
   @computed
   get sizeInMB(): string {
     return bytesToHumanReadable(this.size);
   }
-
   @computed
   get downloadUrl(): string {
     return `/api/fileOperations.redirect?id=${this.id}`;
   }
-
   // Hooks
-
   @AfterChange
   static handleExportToast(
     model: FileOperation,
@@ -59,17 +46,14 @@ class FileOperation extends Model {
     if (model.type !== FileOperationType.Export) {
       return;
     }
-
     const { ui, auth } = model.store.rootStore;
     if (model.user?.id !== auth.user?.id) {
       return;
     }
-
     const tracked = ui.exportToasts.get(model.id);
     if (!tracked) {
       return;
     }
-
     if (
       previousAttributes.state !== model.state &&
       model.state === FileOperationState.Complete
@@ -85,7 +69,6 @@ class FileOperation extends Model {
       });
       ui.removeExportToast(model.id);
     }
-
     if (
       previousAttributes.state !== model.state &&
       model.state === FileOperationState.Error
@@ -98,5 +81,4 @@ class FileOperation extends Model {
     }
   }
 }
-
 export default FileOperation;

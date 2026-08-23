@@ -11,7 +11,6 @@ import { useModelSelection } from "~/components/ModelSelectionContext";
 import useStores from "~/hooks/useStores";
 import type User from "~/models/User";
 import type { Action } from "~/types";
-
 /**
  * The user actions offered in the bulk selection toolbar. These are the same
  * action definitions used by the user menu — they operate on the active models,
@@ -24,7 +23,6 @@ const toolbarActions: Action[] = [
   revokeInvite,
   deleteUser,
 ];
-
 /**
  * Renders the selection toolbar with the bulk actions available for users.
  *
@@ -33,15 +31,12 @@ const toolbarActions: Action[] = [
 function UserSelectionToolbar() {
   const selection = useModelSelection();
   const { users } = useStores();
-
   if (!selection) {
     return null;
   }
-
   const selectedUsers = selection.selectedIds
     .map((id) => users.get(id))
     .filter((user): user is User => !!user);
-
   return (
     <ModelSelectionActionToolbar
       models={selectedUsers}
@@ -49,5 +44,4 @@ function UserSelectionToolbar() {
     />
   );
 }
-
 export default observer(UserSelectionToolbar);

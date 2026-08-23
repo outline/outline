@@ -11,7 +11,6 @@ import {
   ReplaceAroundStep,
   replaceStep,
 } from "prosemirror-transform";
-
 const textblockAt = (node: Node, side: "start" | "end", only = false) => {
   for (
     let scan: Node | null = node;
@@ -27,7 +26,6 @@ const textblockAt = (node: Node, side: "start" | "end", only = false) => {
   }
   return false;
 };
-
 const joinMaybeClear = (
   tr: Transaction,
   $pos: ResolvedPos
@@ -49,7 +47,6 @@ const joinMaybeClear = (
   }
   return tr.join($pos.pos).scrollIntoView();
 };
-
 const deleteBarrier = (
   tr: Transaction,
   $cut: ResolvedPos,
@@ -65,7 +62,6 @@ const deleteBarrier = (
       return joinMaybeTr;
     }
   }
-
   const canDelAfter =
     !isolated && $cut.parent.canReplace($cut.index(), $cut.index() + 1);
   if (
@@ -80,7 +76,6 @@ const deleteBarrier = (
     for (let i = conn.length - 1; i >= 0; i--) {
       wrap = Fragment.from(conn[i].create(null, wrap));
     }
-
     wrap = Fragment.from(before.copy(wrap));
     tr = tr.step(
       new ReplaceAroundStep(
@@ -103,7 +98,6 @@ const deleteBarrier = (
     }
     return tr.scrollIntoView();
   }
-
   const selAfter =
     after.type.spec.isolating || (dir > 0 && isolated)
       ? null
@@ -113,7 +107,6 @@ const deleteBarrier = (
   if (target !== null && target >= $cut.depth) {
     return tr.lift(range!, target).scrollIntoView();
   }
-
   if (
     canDelAfter &&
     textblockAt(after, "start", true) &&
@@ -133,13 +126,11 @@ const deleteBarrier = (
     for (; !afterText.isTextblock; afterText = afterText.firstChild!) {
       afterDepth++;
     }
-
     if (at.canReplace(at.childCount, at.childCount, afterText.content)) {
       let end = Fragment.empty;
       for (let i = wrap.length - 1; i >= 0; i--) {
         end = Fragment.from(wrap[i].copy(end));
       }
-
       tr = tr.step(
         new ReplaceAroundStep(
           $cut.pos - wrap.length,
@@ -154,10 +145,8 @@ const deleteBarrier = (
       return tr.scrollIntoView();
     }
   }
-
   return null;
 };
-
 /**
  * Finds the position after the current block where a cut can be made.
  *
@@ -178,7 +167,6 @@ export const findCutAfter = ($pos: ResolvedPos): ResolvedPos | null => {
   }
   return null;
 };
-
 /**
  * Returns the cursor position if it's at the end of a text block.
  *
@@ -192,7 +180,6 @@ export const atBlockEnd = (selection: Selection): ResolvedPos | null => {
   }
   return $cursor;
 };
-
 /**
  * Deletes the current selection if it's not empty.
  *
@@ -205,7 +192,6 @@ export const deleteSelectionTr = (tr: Transaction): Transaction => {
   }
   return tr.deleteSelection();
 };
-
 /**
  * Joins the current block with the next block when at the end of a text block.
  *
@@ -217,20 +203,17 @@ export const joinForwardTr = (tr: Transaction): Transaction => {
   if (!$cursor) {
     return tr;
   }
-
   const $cut = findCutAfter($cursor);
   // If there is no node after this, there's nothing to do
   if (!$cut) {
     return tr;
   }
-
   const after = $cut.nodeAfter!;
   // Try the joining algorithm
   const delBarrierTr = deleteBarrier(tr, $cut, 1);
   if (delBarrierTr) {
     return delBarrierTr;
   }
-
   // If the node above has no content and the node below is
   // selectable, delete the node above and select the one below.
   if (
@@ -257,15 +240,12 @@ export const joinForwardTr = (tr: Transaction): Transaction => {
       return tr.scrollIntoView();
     }
   }
-
   // If the next node is an atom, delete it
   if (after.isAtom && $cut.depth === $cursor.depth - 1) {
     return tr.delete($cut.pos, $cut.pos + after.nodeSize).scrollIntoView();
   }
-
   return tr;
 };
-
 /**
  * Selects the next node when at the end of a text block.
  *
@@ -292,7 +272,6 @@ export const selectNodeForwardTr = (tr: Transaction): Transaction => {
     .setSelection(NodeSelection.create(tr.doc, $cut!.pos))
     .scrollIntoView();
 };
-
 /**
  * Wraps the node at the given position with the specified node type.
  *
@@ -317,7 +296,6 @@ export const wrapNodeAt = (
   }
   return tr.wrap(range!, wrapping).scrollIntoView();
 };
-
 /**
  * Finds the position before the current block where a cut can be made.
  *
@@ -337,7 +315,6 @@ export const findCutBefore = ($pos: ResolvedPos): ResolvedPos | null => {
   }
   return null;
 };
-
 /**
  * Selects the previous node when at the start of a text block.
  *
@@ -350,7 +327,6 @@ export const selectNodeBackwardTr = (tr: Transaction): Transaction => {
   if (!empty) {
     return tr;
   }
-
   if ($head.parent.isTextblock) {
     if ($head.parentOffset > 0) {
       return tr;
@@ -365,7 +341,6 @@ export const selectNodeBackwardTr = (tr: Transaction): Transaction => {
     .setSelection(NodeSelection.create(tr.doc, $cut!.pos - node.nodeSize))
     .scrollIntoView();
 };
-
 /**
  * Returns the cursor position if it's at the start of a text block.
  *
@@ -379,7 +354,6 @@ export const atBlockStart = (selection: Selection): ResolvedPos | null => {
   }
   return $cursor;
 };
-
 /**
  * Joins the current block with the previous block when at the start of a text block.
  *
@@ -391,9 +365,7 @@ export const joinBackwardTr = (tr: Transaction): Transaction => {
   if (!$cursor) {
     return tr;
   }
-
   const $cut = findCutBefore($cursor);
-
   // If there is no node before this, try to lift
   if (!$cut) {
     const range = $cursor.blockRange(),
@@ -403,14 +375,12 @@ export const joinBackwardTr = (tr: Transaction): Transaction => {
     }
     return tr.lift(range!, target).scrollIntoView();
   }
-
   const before = $cut.nodeBefore!;
   // Apply the joining algorithm
   const delBarrierTr = deleteBarrier(tr, $cut, 1);
   if (delBarrierTr) {
     return delBarrierTr;
   }
-
   // If the node below has no content and the node above is
   // selectable, delete the node below and select the one above.
   if (
@@ -445,44 +415,37 @@ export const joinBackwardTr = (tr: Transaction): Transaction => {
       }
     }
   }
-
   // If the node before is an atom, delete it
   if (before.isAtom && $cut.depth === $cursor.depth - 1) {
     return tr.delete($cut.pos - before.nodeSize, $cut.pos).scrollIntoView();
   }
-
   return tr;
 };
-
 /**
  * Returns an array of ancestor nodes for the given position, ordered by increasing depth.
  *
  * @param $from - the resolved position to get ancestors for.
  * @param pred - optional predicate to filter ancestors.
- * @returns an array of ancestor nodes, where index corresponds to depth in the document.
+ * @returns an array of ancestor nodes, where index corresponds to depth in the note.
  */
 export const ancestors = (
   $from: ResolvedPos,
   pred?: (ancestor: Node, index?: number, arr?: Node[]) => boolean
 ): Node[] => {
   const ancestorArray: Node[] = [];
-
   // Notice that ancestors are arranged in increasing order of depth
   // within the array, which implies that the index of an ancestor
-  // within the array actually represents its depth within the document.
+  // within the array actually represents its depth within the note.
   for (let d = 0; d <= $from.depth; d++) {
     ancestorArray.push($from.node(d));
   }
-
   if (pred) {
     return filter(ancestorArray, (ancestor, index, ancestorArray) =>
       pred(ancestor, index, ancestorArray as Node[])
     );
   }
-
   return ancestorArray;
 };
-
 /**
  * Returns the nearest ancestor from an array produced by the `ancestors` function.
  *
@@ -490,7 +453,6 @@ export const ancestors = (
  * @returns the nearest (deepest) ancestor node.
  */
 export const nearest = (ancestors: Node[]): Node | undefined => ancestors.pop();
-
 /**
  * Calculates the height of a ProseMirror node tree.
  *
@@ -501,16 +463,13 @@ export const height = (node: Node): number => {
   if (node.isLeaf) {
     return 0;
   }
-
   let h = 0;
   for (let i = 0; i < node.childCount; i++) {
     const child = node.child(i);
     h = Math.max(h, height(child));
   }
-
   return 1 + h;
 };
-
 /**
  * Returns the previous sibling node at the specified depth.
  *
@@ -529,7 +488,6 @@ export const prevSibling = (
   }
   return ancestor.child(index - 1);
 };
-
 /**
  * Lifts all children of the node at the given position up one level.
  *
@@ -554,6 +512,5 @@ export const liftChildrenOfNodeAt = (
   if (isNull(target)) {
     return tr;
   }
-
   return tr.lift(range, target);
 };

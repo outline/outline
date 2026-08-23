@@ -11,7 +11,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – product lists: with cta link.
  *

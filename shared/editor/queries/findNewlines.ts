@@ -1,5 +1,4 @@
 import type { ResolvedPos } from "prosemirror-model";
-
 /**
  * Find the position of the previous newline character.
  *
@@ -8,7 +7,6 @@ import type { ResolvedPos } from "prosemirror-model";
  */
 export function findPreviousNewline($pos: ResolvedPos) {
   const beginningOfNode = $pos.pos - $pos.parentOffset;
-
   // The easiest way to find the previous newline is to reverse the string and
   // perform a forward seach as if looking for the next newline.
   const startOfLine = $pos.parent.textContent
@@ -16,11 +14,9 @@ export function findPreviousNewline($pos: ResolvedPos) {
     .reverse()
     .join("")
     .indexOf("\n", $pos.parent.nodeSize - $pos.parentOffset - 2);
-
   const pos = startOfLine === -1 ? 0 : $pos.parent.nodeSize - startOfLine - 2;
   return beginningOfNode + pos;
 }
-
 /**
  * Find the position of the next newline character.
  *
@@ -30,7 +26,6 @@ export function findPreviousNewline($pos: ResolvedPos) {
 export function findNextNewline($pos: ResolvedPos) {
   const beginningOfNode = $pos.pos - $pos.parentOffset;
   const endOfLine = $pos.parent.textContent.indexOf("\n", $pos.parentOffset);
-
   const pos = endOfLine === -1 ? $pos.parent.nodeSize - 2 : endOfLine;
   return beginningOfNode + pos;
 }

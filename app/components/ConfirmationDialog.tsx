@@ -7,7 +7,6 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-
 type Props = {
   /** Callback when the dialog is submitted. Return false to prevent closing. */
   onSubmit: () => Promise<void | boolean> | void;
@@ -21,7 +20,6 @@ type Props = {
   disabled?: boolean;
   children?: React.ReactNode;
 };
-
 const ConfirmationDialog: React.FC<Props> = ({
   onSubmit,
   children,
@@ -33,7 +31,6 @@ const ConfirmationDialog: React.FC<Props> = ({
   const [isSaving, setIsSaving] = React.useState(false);
   const { t } = useTranslation();
   const { dialogs } = useStores();
-
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -52,7 +49,6 @@ const ConfirmationDialog: React.FC<Props> = ({
     },
     [onSubmit, dialogs]
   );
-
   return (
     <form onSubmit={handleSubmit}>
       <Flex gap={12} column>
@@ -72,5 +68,4 @@ const ConfirmationDialog: React.FC<Props> = ({
     </form>
   );
 };
-
 export default observer(ConfirmationDialog);

@@ -3,11 +3,8 @@ import { isModKey } from "@shared/utils/keyboard";
 import { SplitViewContext } from "~/components/SplitView/context";
 import isTextInput from "~/utils/isTextInput";
 import { getFocusedSplitPane } from "~/utils/splitView";
-
 type Callback = (event: KeyboardEvent) => void;
-
 export type KeyFilter = ((event: KeyboardEvent) => boolean) | string;
-
 export type Options = {
   allowInInput?: boolean;
   /** Require the platform modifier key (Cmd on macOS, Ctrl elsewhere) to be held. */
@@ -17,19 +14,15 @@ export type Options = {
   /** Require the Shift key to be held. */
   shiftKey?: boolean;
 };
-
 type RegisteredCallback = {
   callback: Callback;
   options?: Options;
 };
-
 // Registered keyboard event callbacks
 let callbacks: RegisteredCallback[] = [];
-
 // Track if IME input suggestions are open so we can ignore keydown shortcuts
 // in this case, they should never be triggered from mobile keyboards.
 let imeOpen = false;
-
 // Returns true when the event's modifier keys satisfy the given options.
 const matchesModifiers = (event: KeyboardEvent, options?: Options) => {
   if (options?.metaKey ? !isModKey(event) : isModKey(event)) {
@@ -43,7 +36,6 @@ const matchesModifiers = (event: KeyboardEvent, options?: Options) => {
   }
   return true;
 };
-
 // Based on implementation in react-use
 // https://github.com/streamich/react-use/blob/master/src/useKey.ts#L15-L22
 // A string filter matches the bare key with the modifiers described by options;
@@ -57,7 +49,6 @@ const createKeyPredicate = (keyFilter: KeyFilter, options?: Options) =>
           if (!event.key) {
             return false;
           }
-
           // Match case-insensitively only when Shift is required, since a
           // shifted letter reports an uppercase event.key (e.g. Cmd+Shift+P).
           // Otherwise match exactly so a bare shortcut does not fire when Shift
@@ -70,7 +61,6 @@ const createKeyPredicate = (keyFilter: KeyFilter, options?: Options) =>
       : keyFilter
         ? (_event: KeyboardEvent) => true
         : (_event: KeyboardEvent) => false;
-
 /**
  * Registers a global keyboard shortcut for the lifetime of the component.
  *
@@ -86,7 +76,6 @@ export default function useKeyDown(
 ): void {
   const { pane, isSplitView } = useContext(SplitViewContext);
   const predicate = createKeyPredicate(key, options);
-
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       // Shortcuts registered within an unfocused split view pane are ignored
@@ -94,39 +83,32 @@ export default function useKeyDown(
       if (isSplitView && pane !== getFocusedSplitPane()) {
         return;
       }
-
       if (predicate(event)) {
         fn(event);
       }
     };
-
     callbacks.push({
       callback: handler,
       options,
     });
-
     return () => {
       callbacks = callbacks.filter((cb) => cb.callback !== handler);
     };
   }, [fn, predicate, options, isSplitView, pane]);
 }
-
 window.addEventListener("keydown", (event) => {
   if (imeOpen) {
     return;
   }
-
   // Track whether defaultPrevented was already set by an external handler (e.g.
   // Radix UI's DismissableLayer) so we only break on preventDefault calls made
   // by our own callbacks.
   const wasDefaultPrevented = event.defaultPrevented;
-
   // reverse so that the last registered callbacks get executed first
   for (const registered of [...callbacks].reverse()) {
     if (!wasDefaultPrevented && event.defaultPrevented) {
       break;
     }
-
     if (
       !isTextInput(event.target as HTMLElement) ||
       registered.options?.allowInInput ||
@@ -136,11 +118,9 @@ window.addEventListener("keydown", (event) => {
     }
   }
 });
-
 window.addEventListener("compositionstart", () => {
   imeOpen = true;
 });
-
 window.addEventListener("compositionend", () => {
   imeOpen = false;
 });

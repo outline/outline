@@ -9,28 +9,25 @@ import Template from "~/models/Template";
 import { Action } from "~/components/Actions";
 import Breadcrumb from "~/components/Breadcrumb";
 import Button from "~/components/Button";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
+import CollectionIcon from "~/components/Icons/NotebookIcon";
 import Scene from "~/components/Scene";
 import { TemplateForm } from "~/components/Template/TemplateForm";
 import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { collectionPath, settingsPath } from "~/utils/routeHelpers";
+import { notebookPath, settingsPath } from "~/utils/routeHelpers";
 import history from "~/utils/history";
-
 function TemplateNewScene() {
   const { t } = useTranslation();
-  const { templates, collections } = useStores();
+  const { templates, notebooks } = useStores();
   const params = useQuery();
-  const collectionId = params.get("collectionId") || undefined;
-  const collection = collectionId ? collections.get(collectionId) : undefined;
-
+  const notebookId = params.get("collectionId") || undefined;
+  const notebook = notebookId ? notebooks.get(notebookId) : undefined;
   const [template] = useState(
-    () => new Template({ title: "", collectionId }, templates)
+    () => new Template({ title: "", notebookId }, templates)
   );
   const [saving, setSaving] = useState(false);
-
   const breadcrumbActions = useMemo(
     () => [
       createInternalLinkAction({
@@ -39,26 +36,24 @@ function TemplateNewScene() {
         icon: <ShapesIcon />,
         to: settingsPath("templates"),
       }),
-      ...(collection
+      ...(notebook
         ? [
             createInternalLinkAction({
-              name: collection.name,
+              name: notebook.name,
               section: NavigationSection,
-              icon: <CollectionIcon collection={collection} />,
-              to: collectionPath(collection),
+              icon: <CollectionIcon notebook={notebook} />,
+              to: notebookPath(notebook),
             }),
           ]
         : []),
     ],
-    [t, collection]
+    [t, notebook]
   );
-
   const handleSubmit = useCallback(async () => {
     if (!template.data || ProsemirrorDataHelper.isEmpty(template.data)) {
       toast.message(t("A template must have content"));
       return;
     }
-
     setSaving(true);
     try {
       await template.save();
@@ -69,7 +64,6 @@ function TemplateNewScene() {
       setSaving(false);
     }
   }, [template, t]);
-
   return (
     <Scene
       title={t("New template")}
@@ -86,5 +80,4 @@ function TemplateNewScene() {
     </Scene>
   );
 }
-
 export default observer(TemplateNewScene);

@@ -16,7 +16,6 @@ import {
   ServerIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
@@ -128,7 +127,6 @@ const footerNavigation = {
     { name: "Terms", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – landing pages: with background image hero and pricing section.
  *
@@ -136,7 +134,6 @@ const footerNavigation = {
  */
 export function LandingPagesWithBackgroundImageHeroAndPricingSection() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <div className="bg-white">
       {/* Header */}

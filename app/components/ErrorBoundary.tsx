@@ -17,7 +17,6 @@ import isCloudHosted from "~/utils/isCloudHosted";
 import Storage from "@shared/utils/Storage";
 import { deleteAllDatabases } from "~/utils/developer";
 import Flex from "./Flex";
-
 interface OwnProps {
   /** Whether to reload the page if a chunk fails to load. */
   reloadOnChunkMissing?: boolean;
@@ -28,33 +27,25 @@ interface OwnProps {
   /** Children rendered when no error is present. */
   children?: React.ReactNode;
 }
-
 type Props = OwnProps & {
   t: TFunction;
 };
-
 const ERROR_TRACKING_KEY = "error-boundary-tracking";
 const ERROR_TRACKING_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
-
 @observer
 class ErrorBoundaryClass extends React.Component<Props> {
   @observable
   error: Error | null | undefined;
-
   @observable
   showDetails = false;
-
   @observable
   isRepeatedError = false;
-
   componentDidMount() {
     this.checkForPreviousErrors();
   }
-
   componentDidCatch(error: Error) {
     this.error = error;
     this.trackError();
-
     if (
       this.props.reloadOnChunkMissing &&
       error.message &&
@@ -68,68 +59,54 @@ class ErrorBoundaryClass extends React.Component<Props> {
       window.location.reload();
       return;
     }
-
     Logger.error("ErrorBoundary", error);
   }
-
   private checkForPreviousErrors = () => {
     try {
       const stored = Storage.get(ERROR_TRACKING_KEY);
       if (!stored) {
         return;
       }
-
       const errors: number[] = JSON.parse(stored);
       const cutoff = Date.now() - ERROR_TRACKING_WINDOW_MS;
       const recentErrors = errors.filter((timestamp) => timestamp > cutoff);
-
       this.isRepeatedError = recentErrors.length > 0;
     } catch (err) {
       Logger.warn("Failed to parse stored errors for error boundary", { err });
     }
   };
-
   private trackError = () => {
     try {
       const stored = Storage.get(ERROR_TRACKING_KEY);
       const errors: number[] = stored ? JSON.parse(stored) : [];
       const cutoff = Date.now() - ERROR_TRACKING_WINDOW_MS;
-
       // Filter out old errors and add current one
       const updatedErrors = [
         ...errors.filter((timestamp) => timestamp > cutoff),
         Date.now(),
       ];
-
       Storage.set(ERROR_TRACKING_KEY, JSON.stringify(updatedErrors));
-
       this.isRepeatedError = updatedErrors.length > 1;
     } catch (err) {
       Logger.warn("Failed to track error in error boundary", { err });
     }
   };
-
   handleReload = () => {
     window.location.reload();
   };
-
   handleShowDetails = () => {
     this.showDetails = true;
   };
-
   handleReportBug = () => {
     window.open(isCloudHosted ? UrlHelper.contact : UrlHelper.github);
   };
-
   handleClearCache = async () => {
     await deleteAllDatabases();
     Storage.clear();
     window.location.reload();
   };
-
   render() {
     const { t, component: Component = CenteredContent, showTitle } = this.props;
-
     if (this.error) {
       const error = this.error;
       const isReported = !!env.SENTRY_DSN && isCloudHosted;
@@ -137,7 +114,6 @@ class ErrorBoundaryClass extends React.Component<Props> {
         "module script failed",
         "dynamically imported module",
       ].some((msg) => this.error?.message?.includes(msg));
-
       if (isChunkError) {
         return (
           <Component>
@@ -162,7 +138,6 @@ class ErrorBoundaryClass extends React.Component<Props> {
           </Component>
         );
       }
-
       return (
         <Component>
           {showTitle && (
@@ -216,11 +191,9 @@ class ErrorBoundaryClass extends React.Component<Props> {
         </Component>
       );
     }
-
     return this.props.children;
   }
 }
-
 const Pre = styled.pre`
   background: ${s("backgroundSecondary")};
   padding: 16px;
@@ -228,10 +201,8 @@ const Pre = styled.pre`
   font-size: 12px;
   white-space: pre-wrap;
 `;
-
 function ErrorBoundary(props: OwnProps) {
   const { t } = useTranslation();
   return <ErrorBoundaryClass t={t} {...props} />;
 }
-
 export default ErrorBoundary;

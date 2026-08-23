@@ -7,7 +7,6 @@ import { download } from "~/utils/download";
 import useStores from "~/hooks/useStores";
 import usePolicy from "~/hooks/usePolicy";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-
 type Props = {
   /** Request parameters for filtering users */
   reqParams: {
@@ -18,7 +17,6 @@ type Props = {
     direction?: "ASC" | "DESC";
   };
 };
-
 /**
  * A button that exports all users to a CSV file.
  */
@@ -28,7 +26,6 @@ export function ExportCSV({ reqParams }: Props) {
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const [isExporting, setIsExporting] = useState(false);
-
   const handleExportCSV = useCallback(async () => {
     setIsExporting(true);
     try {
@@ -36,7 +33,6 @@ export function ExportCSV({ reqParams }: Props) {
         ...reqParams,
         limit: 100,
       });
-
       // Convert to CSV format with formatted dates
       const csvData = allUsers.map((user) => ({
         id: user.id,
@@ -48,7 +44,6 @@ export function ExportCSV({ reqParams }: Props) {
           : "",
         createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : "",
       }));
-
       const headers: (keyof (typeof csvData)[0])[] = [
         "id",
         "name",
@@ -58,7 +53,6 @@ export function ExportCSV({ reqParams }: Props) {
         "createdAt",
       ];
       const csv = CSVHelper.convertToCSV(csvData, headers);
-
       // Trigger download
       download(csv, "users.csv", "text/csv");
       toast.success(t("Users exported successfully"));
@@ -68,11 +62,9 @@ export function ExportCSV({ reqParams }: Props) {
       setIsExporting(false);
     }
   }, [users, reqParams, t]);
-
   if (!can.createExport) {
     return null;
   }
-
   return (
     <Button
       type="button"

@@ -9,12 +9,10 @@ import toggleWrap from "../commands/toggleWrap";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { isNodeActive } from "../queries/isNodeActive";
 import Node from "./Node";
-
 export default class Blockquote extends Node {
   get name() {
     return "blockquote";
   }
-
   get schema(): NodeSpec {
     return {
       content: "block+",
@@ -28,15 +26,12 @@ export default class Blockquote extends Node {
       toDOM: () => ["blockquote", 0],
     };
   }
-
   inputRules({ type }: { type: NodeType }) {
     return [wrappingInputRule(/^\s*>\s$/, type)];
   }
-
   commands({ type }: { type: NodeType }) {
     return () => toggleWrap(type);
   }
-
   keys({ type }: { type: NodeType }): Record<string, Command> {
     return {
       "Ctrl->": toggleWrap(type),
@@ -45,18 +40,15 @@ export default class Blockquote extends Node {
         if (!isNodeActive(type)(state)) {
           return false;
         }
-
         const { tr, selection } = state;
         dispatch?.(tr.split(selection.to));
         return true;
       },
     };
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.wrapBlock("> ", undefined, node, () => state.renderContent(node));
   }
-
   parseMarkdown() {
     return { block: "blockquote" };
   }

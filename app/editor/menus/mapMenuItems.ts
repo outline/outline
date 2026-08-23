@@ -4,12 +4,10 @@ import { closeHistory } from "@shared/editor/lib/closeHistory";
 import type { CommandFactory } from "@shared/editor/lib/Extension";
 import type { MenuItem } from "@shared/editor/types";
 import type { MenuItem as TMenuItem } from "~/types";
-
 const resolveChildren = (
   children: MenuItem[] | (() => MenuItem[]) | undefined
 ): MenuItem[] | undefined =>
   typeof children === "function" ? children() : children;
-
 /**
  * Maps editor `MenuItem`s into the primitive `MenuItem`s consumed by
  * `toMenuItems`. Shared by the toolbar dropdown and the inline menu so menu
@@ -42,16 +40,13 @@ export function mapMenuItems(
       item.onClick();
     }
   };
-
   return items.map((item) => {
     if (item.name === "separator") {
       return { type: "separator", visible: item.visible };
     }
-
     if ("content" in item) {
       return { type: "custom", visible: item.visible, content: item.content };
     }
-
     const resolvedChildren = resolveChildren(item.children);
     if (resolvedChildren) {
       const childWithPreventClose = resolvedChildren.find(
@@ -66,7 +61,6 @@ export function mapMenuItems(
         items: mapMenuItems(resolvedChildren, commands, view, state),
       };
     }
-
     return {
       type: "button",
       title: item.label,

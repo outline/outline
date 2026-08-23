@@ -21,7 +21,6 @@ import {
   Th,
 } from "~/components/Surface";
 import { formatCurrency } from "~/utils/format";
-
 /**
  * Product catalogue with stock levels, flagging anything at or below its
  * reorder level.
@@ -34,14 +33,12 @@ function Products() {
   const adjustStock = useShop((state) => state.adjustStock);
   const saveProduct = useShop((state) => state.saveProduct);
   const deleteProduct = useShop((state) => state.deleteProduct);
-
   const panels = usePanel();
   // Editing carries which product, so the panel is named for it.
   const editing = panels.current?.startsWith("edit:")
     ? panels.current.slice("edit:".length)
     : undefined;
   const submission = useSubmit();
-
   const handleSave = (values: Record<string, string>, id?: string) =>
     submission.run(async () => {
       const result = await saveProduct({
@@ -52,7 +49,6 @@ function Products() {
         price: Number(values.price) || 0,
         reorderLevel: Number(values.reorderLevel) || 0,
       });
-
       if (result?.saved) {
         panels.close();
         return undefined;
@@ -61,7 +57,6 @@ function Products() {
         ? t("Another product already uses that code.")
         : t("A product needs a name and a code.");
     });
-
   const handleDelete = (id: string, name: string) =>
     submission.run(async () => {
       const result = await deleteProduct(id);
@@ -71,7 +66,6 @@ function Products() {
             name,
           });
     });
-
   return (
     <AppPage
       title={t("Products")}
@@ -142,7 +136,6 @@ function Products() {
           <TBody>
             {products.map((product) => {
               const low = product.stock <= product.reorderLevel;
-
               return (
                 <tr key={product.id}>
                   <TdMono>
@@ -267,5 +260,4 @@ function Products() {
     </AppPage>
   );
 }
-
 export default Products;

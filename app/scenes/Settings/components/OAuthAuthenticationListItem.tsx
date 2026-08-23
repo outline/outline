@@ -8,15 +8,12 @@ import ListItem from "~/components/List/Item";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import OAuthAuthenticationMenu from "~/menus/OAuthAuthenticationMenu";
-
 type Props = {
   /** The OAuthAuthentication to display */
   oauthAuthentication: OAuthAuthentication;
 };
-
 const OAuthAuthenticationListItem = ({ oauthAuthentication }: Props) => {
   const { t } = useTranslation();
-
   const subtitle = (
     <>
       <Text type="tertiary">
@@ -40,7 +37,6 @@ const OAuthAuthenticationListItem = ({ oauthAuthentication }: Props) => {
       )}
     </>
   );
-
   return (
     <ListItem
       key={oauthAuthentication.id}
@@ -59,5 +55,4 @@ const OAuthAuthenticationListItem = ({ oauthAuthentication }: Props) => {
     />
   );
 };
-
 export default observer(OAuthAuthenticationListItem);

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -19,7 +19,6 @@ const tabs = [
   { name: "Collaborators", href: "#", current: false },
   { name: "Notifications", href: "#", current: false },
 ];
-
 /**
  * Tailwind UI – tabs: simple on dark.
  *

@@ -2,7 +2,6 @@ import type { EditorState, Selection } from "prosemirror-state";
 import Suggestion from "~/editor/extensions/Suggestion";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
-
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { buildSelectionContext } from "@shared/editor/lib/buildSelectionContext";
 import {
@@ -27,7 +26,6 @@ import ToolbarMenu from "./ToolbarMenu";
 import InlineMenu from "./InlineMenu";
 import StickyBlockToolbar from "./StickyBlockToolbar";
 import { isModKey } from "@shared/utils/keyboard";
-
 type Props = {
   /** Whether the text direction is right-to-left */
   rtl: boolean;
@@ -44,27 +42,22 @@ type Props = {
   /** Whether the user has permission to update the document */
   canUpdate?: boolean;
 };
-
 function useIsDragging(state: EditorState) {
   const [isDragging, setDragging, setNotDragging] = useBoolean();
   useEventListener("dragstart", setDragging);
   useEventListener("dragend", setNotDragging);
   useEventListener("drop", setNotDragging);
-
   const columnDragState = columnDragPluginKey.getState(state);
   const rowDragState = rowDragPluginKey.getState(state);
   const isTableDragging =
     columnDragState?.isDragging || rowDragState?.isDragging;
-
   return isDragging || isTableDragging;
 }
-
 enum Toolbar {
   Link = "link",
   Media = "media",
   Menu = "menu",
 }
-
 export function SelectionToolbar(props: Props) {
   const { readOnly = false } = props;
   const { view, extensions, commands, selectionToolbarMenus } = useEditor();
@@ -78,24 +71,19 @@ export function SelectionToolbar(props: Props) {
   const [activeToolbar, setActiveToolbar] = React.useState<Toolbar | null>(
     null
   );
-
   const linkMark =
     selection instanceof NodeSelection
       ? getMarkRangeNodeSelection(selection, state.schema.marks.link)
       : getMarkRange(selection.$from, state.schema.marks.link);
-
   const isEmbedSelection =
     selection instanceof NodeSelection && selection.node.type.name === "embed";
-
   const isCodeSelection = isInCode(state, { onlyBlock: true });
   const isNoticeSelection = isInNotice(state);
-
   React.useLayoutEffect(() => {
     if (!isActive) {
       setActiveToolbar(null);
       return;
     }
-
     if (isEmbedSelection && !readOnly) {
       setActiveToolbar(Toolbar.Media);
     } else if (
@@ -125,13 +113,11 @@ export function SelectionToolbar(props: Props) {
     isCodeSelection,
     isNoticeSelection,
   ]);
-
   React.useLayoutEffect(() => {
     if (autoFocusLinkInput && activeToolbar !== Toolbar.Link) {
       setAutoFocusLinkInput(false);
     }
   }, [activeToolbar, autoFocusLinkInput]);
-
   const prevActiveToolbar = React.useRef(activeToolbar);
   React.useLayoutEffect(() => {
     if (
@@ -144,7 +130,6 @@ export function SelectionToolbar(props: Props) {
     }
     prevActiveToolbar.current = activeToolbar;
   }, [activeToolbar, readOnly, isActive, view]);
-
   React.useLayoutEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
       if (
@@ -157,22 +142,18 @@ export function SelectionToolbar(props: Props) {
       if (view.dom.contains(ev.target as HTMLElement)) {
         return;
       }
-
       if (!isActive || document.activeElement?.tagName === "INPUT") {
         return;
       }
-
       const isSuggestionMenuOpen = extensions.extensions.some(
         (ext) => ext instanceof Suggestion && ext.isOpen
       );
       if (isSuggestionMenuOpen) {
         return;
       }
-
       if (!window.getSelection()?.isCollapsed) {
         return;
       }
-
       const { dispatch } = view;
       dispatch(
         view.state.tr.setSelection(
@@ -180,14 +161,11 @@ export function SelectionToolbar(props: Props) {
         )
       );
     };
-
     window.addEventListener("mouseup", handleClickOutside);
-
     return () => {
       window.removeEventListener("mouseup", handleClickOutside);
     };
   }, [isActive, readOnly, view, extensions]);
-
   useEventListener(
     "keydown",
     (ev: KeyboardEvent) => {
@@ -207,22 +185,16 @@ export function SelectionToolbar(props: Props) {
     view.dom,
     { capture: true }
   );
-
   if (isDragging) {
     return null;
   }
-
   const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
-
   // Build selection context once, shared across all menu matchers
   const ctx = buildSelectionContext(state, { readOnly, isTemplate, rtl });
-
   // Find the first matching menu from the registry (sorted by priority)
   const matched = selectionToolbarMenus.find((menu) => menu.matches(ctx));
-
   let items: MenuItem[] = matched ? matched.getItems(ctx) : [];
   const align = matched?.align ?? "center";
-
   // Filter out items for disabled extensions or invisible items
   items = items.filter((item) => {
     if (item.name === "separator") {
@@ -239,7 +211,6 @@ export function SelectionToolbar(props: Props) {
     }
     return true;
   });
-
   items = filterExcessSeparators(items);
   items = items.map((item) => {
     if (item.children && Array.isArray(item.children)) {
@@ -252,7 +223,6 @@ export function SelectionToolbar(props: Props) {
         return child;
       });
     }
-
     if (item.name === "linkOnImage" || item.name === "addLink") {
       item.onClick = () => {
         setAutoFocusLinkInput(true);
@@ -261,14 +231,12 @@ export function SelectionToolbar(props: Props) {
     }
     return item;
   });
-
   const handleClickOutsideLinkEditor = (ev: MouseEvent | TouchEvent) => {
     if (ev.target instanceof Element && ev.target.closest(".image-wrapper")) {
       return;
     }
     setActiveToolbar(null);
   };
-
   // Inline menus render as a vertical menu anchored to the selection rather
   // than as a horizontal toolbar with trigger buttons.
   if (
@@ -278,7 +246,6 @@ export function SelectionToolbar(props: Props) {
   ) {
     return <InlineMenu items={items} rtl={rtl} />;
   }
-
   // Block toolbars (code, notice) stick to the top of the viewport as the block
   // scrolls instead of floating at a position fixed on selection. On mobile the
   // floating toolbar renders as a bottom bar, so the sticky path is desktop only.
@@ -290,7 +257,6 @@ export function SelectionToolbar(props: Props) {
   ) {
     return <StickyBlockToolbar ref={menuRef} items={items} rtl={rtl} />;
   }
-
   return (
     <FloatingToolbar
       align={align}

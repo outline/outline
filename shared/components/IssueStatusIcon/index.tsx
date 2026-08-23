@@ -9,17 +9,14 @@ import { IntegrationService } from "../../types";
 import { GitHubIssueStatusIcon } from "./GitHubIssueStatusIcon";
 import { LinearIssueStatusIcon } from "./LinearIssueStatusIcon";
 import { GitLabIssueStatusIcon } from "./GitLabIssueStatusIcon";
-
 export type BaseIconProps = {
   state: UnfurlResponse[UnfurlResourceType.Issue]["state"];
   className?: string;
   size?: number;
 };
-
 type Props = BaseIconProps & {
   service: IssueTrackerIntegrationService;
 };
-
 export function IssueStatusIcon(props: Props) {
   return (
     <Icon size={props.size} className={props.className}>
@@ -27,7 +24,6 @@ export function IssueStatusIcon(props: Props) {
     </Icon>
   );
 }
-
 function getIcon(props: Props) {
   switch (props.service) {
     case IntegrationService.GitHub:
@@ -38,8 +34,9 @@ function getIcon(props: Props) {
       return <GitLabIssueStatusIcon {...props} />;
   }
 }
-
-const Icon = styled.span<{ size?: number }>`
+const Icon = styled.span<{
+  size?: number;
+}>`
   display: inline-flex;
   flex-shrink: 0;
   width: ${(props) => props.size ?? 24}px;

@@ -1,6 +1,5 @@
 import { setCookie } from "tiny-cookie";
 import { randomString } from "@shared/random";
-
 /**
  * Generate a random nonce, persist it in a same-origin cookie, and return it
  * for embedding in the `state` parameter of an outbound OAuth flow.

@@ -8,8 +8,8 @@ import { Router, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import CenteredContent from "~/components/CenteredContent";
-import { DocumentContextProvider } from "~/components/DocumentContext";
-import PlaceholderDocument from "~/components/PlaceholderDocument";
+import { NoteContextProvider } from "~/components/NoteContext";
+import PlaceholderNote from "~/components/PlaceholderNote";
 import {
   RightSidebarProvider,
   useRightSidebarContent,
@@ -28,12 +28,10 @@ import {
   setSplitPath,
 } from "~/utils/splitView";
 import { SplitViewContext } from "./context";
-
 type Props = {
   /** The routes to render, once per open pane. */
   children: React.ReactNode;
 };
-
 /**
  * Renders the application routes in a single pane, or side by side in two
  * panes when a secondary route is present in the split query parameter. The
@@ -48,7 +46,6 @@ export const SplitView = observer(function SplitView({ children }: Props) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const splitPath = isMobile ? undefined : getSplitPath(location.search);
   const focusedPane = getFocusedSplitPane();
-
   // Return focus to the primary pane and reset the secondary pane's sidebar
   // and size whenever the split view closes.
   React.useEffect(() => {
@@ -58,14 +55,12 @@ export const SplitView = observer(function SplitView({ children }: Props) {
       ui.setSplitViewRatio(0.5);
     }
   }, [splitPath, ui]);
-
   const measure = React.useCallback(
     (event: MouseEvent) => {
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect || rect.width === 0) {
         return undefined;
       }
-
       const offset =
         direction === "rtl"
           ? rect.right - event.clientX
@@ -74,21 +69,17 @@ export const SplitView = observer(function SplitView({ children }: Props) {
     },
     [direction]
   );
-
   // Panes divide the available space, so the ratio is clamped by the store rather than stretched.
   const { startResize } = useResizeHandle({
     measure,
     onResize: ui.setSplitViewRatio,
   });
-
   const handleResizeReset = React.useCallback(() => {
     ui.setSplitViewRatio(0.5);
   }, [ui]);
-
   if (!splitPath) {
     return <>{children}</>;
   }
-
   return (
     <Container ref={containerRef}>
       <Pane
@@ -118,7 +109,6 @@ export const SplitView = observer(function SplitView({ children }: Props) {
     </Container>
   );
 });
-
 type PaneProps = {
   pane: SplitViewPane;
   isFocused: boolean;
@@ -128,7 +118,6 @@ type PaneProps = {
   resizeBorder?: React.ReactNode;
   children: React.ReactNode;
 };
-
 const Pane = ({
   pane,
   isFocused,
@@ -142,7 +131,6 @@ const Pane = ({
     () => ({ pane, isSplitView: true, isFocused }),
     [pane, isFocused]
   );
-
   const handleFocus = React.useCallback(
     (event: React.SyntheticEvent) => {
       // Grabbing the resize handle should not move focus between panes.
@@ -156,7 +144,6 @@ const Pane = ({
     },
     [pane]
   );
-
   return (
     <PaneContainer
       role="group"
@@ -167,13 +154,13 @@ const Pane = ({
       onFocusCapture={handleFocus}
     >
       <SplitViewContext.Provider value={contextValue}>
-        <DocumentContextProvider>
+        <NoteContextProvider>
           <RightSidebarProvider>
             <PaneContent>
               <React.Suspense
                 fallback={
                   <CenteredContent>
-                    <PlaceholderDocument />
+                    <PlaceholderNote />
                   </CenteredContent>
                 }
               >
@@ -183,15 +170,14 @@ const Pane = ({
             <PaneAside />
             <FocusRing $visible={isFocused} aria-hidden />
           </RightSidebarProvider>
-        </DocumentContextProvider>
+        </NoteContextProvider>
       </SplitViewContext.Provider>
       {resizeBorder}
     </PaneContainer>
   );
 };
-
 /**
- * Renders the pane's right sidebar content, such as document comments or
+ * Renders the pane's right sidebar content, such as note comments or
  * history, inside the pane so that each pane displays the sidebar for its
  * own route. Rendered without open and close animations as the sidebar
  * content visibly overflows the pane while its width animates.
@@ -200,16 +186,14 @@ const PaneAside = () => {
   const content = useRightSidebarContent();
   return <>{content}</>;
 };
-
 type SecondaryRouterProps = {
   /** The path currently displayed in the secondary pane. */
   splitPath: string;
   children: React.ReactNode;
 };
-
 /**
  * Hosts the secondary pane routes inside an in-memory router so navigation
- * within the pane, such as following document links, stays in the pane. The
+ * within the pane, such as following note links, stays in the pane. The
  * pane location is mirrored to the split query parameter of the browser URL,
  * while navigation to routes that cannot render in a pane is promoted to the
  * primary browser history.
@@ -222,33 +206,27 @@ const SecondaryRouter = ({ splitPath, children }: SecondaryRouterProps) => {
     });
     const memoryPush = memory.push.bind(memory);
     const memoryReplace = memory.replace.bind(memory);
-
     const handled =
       (navigate: (to: LocationDescriptor) => void) =>
       (to: LocationDescriptor, state?: LocationState) => {
         const descriptor = toLocationDescriptor(to, state);
         const pathname = descriptor.pathname ?? memory.location.pathname;
-
         if (!isSplittablePath(pathname)) {
           history.push(descriptor);
           return;
         }
-
         navigate(descriptor);
       };
-
     memory.push = handled(memoryPush);
     memory.replace = handled(memoryReplace);
     return memory;
   }, []);
-
   // Mirror pane navigation into the split query parameter of the browser URL.
   React.useEffect(
     () =>
       memoryHistory.listen((paneLocation) => {
         const path = createPath(paneLocation);
         const current = history.location;
-
         if (getSplitPath(current.search) !== path) {
           history.replace(
             patchLocation(current, {
@@ -259,7 +237,6 @@ const SecondaryRouter = ({ splitPath, children }: SecondaryRouterProps) => {
       }),
     [memoryHistory]
   );
-
   // Apply external changes to the split query parameter, such as opening a
   // different route in the split view or browser back/forward navigation.
   React.useEffect(() => {
@@ -267,24 +244,22 @@ const SecondaryRouter = ({ splitPath, children }: SecondaryRouterProps) => {
       memoryHistory.replace(splitPath);
     }
   }, [memoryHistory, splitPath]);
-
   return <Router history={memoryHistory}>{children}</Router>;
 };
-
 const Container = styled.div`
   display: flex;
   width: 100%;
   height: 100vh;
   overflow: hidden;
 `;
-
-const PaneContainer = styled.div<{ $secondary: boolean }>`
+const PaneContainer = styled.div<{
+  $secondary: boolean;
+}>`
   position: relative;
   display: flex;
   flex: 1 1 50%;
   min-width: 0;
 `;
-
 const PaneContent = styled.div`
   flex: 1;
   min-width: 0;
@@ -292,12 +267,12 @@ const PaneContent = styled.div`
   overflow-y: auto;
   overflow-x: hidden;
 `;
-
 const SplitResizeBorder = styled(ResizeBorder)`
   z-index: ${depths.sidebar + 1};
 `;
-
-const FocusRing = styled.div<{ $visible: boolean }>`
+const FocusRing = styled.div<{
+  $visible: boolean;
+}>`
   position: absolute;
   inset: 0;
   pointer-events: none;

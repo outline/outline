@@ -1,0 +1,102 @@
+import { sortBy } from "es-toolkit/compat";
+import { observer } from "mobx-react";
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { PAGINATION_SYMBOL } from "~/stores/base/Store";
+import type Notebook from "~/models/Notebook";
+import { AvatarSize } from "~/components/Avatar";
+import Facepile from "~/components/Facepile";
+import Fade from "~/components/Fade";
+import NudeButton from "~/components/NudeButton";
+import useMobile from "~/hooks/useMobile";
+import useStores from "~/hooks/useStores";
+type Props = {
+  notebook: Notebook;
+  limit?: number;
+};
+const MembershipPreview = ({ notebook, limit = 8 }: Props) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [usersCount, setUsersCount] = useState(0);
+  const [groupsCount, setGroupsCount] = useState(0);
+  const { t } = useTranslation();
+  const { memberships, groupMemberships, users } = useStores();
+  const notebookUsers = users.inNotebook(notebook.id);
+  const isMobile = useMobile();
+  useEffect(() => {
+    const fetchData = async () => {
+      if (notebook.permission || isMobile) {
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const options = {
+          id: notebook.id,
+          limit,
+        };
+        const [users, groups] = await Promise.all([
+          memberships.fetchPage(options),
+          groupMemberships.fetchPage(options),
+        ]);
+        if (users[PAGINATION_SYMBOL]) {
+          setUsersCount(users[PAGINATION_SYMBOL].total ?? 0);
+        }
+        if (groups[PAGINATION_SYMBOL]) {
+          setGroupsCount(groups[PAGINATION_SYMBOL].total ?? 0);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    void fetchData();
+  }, [
+    isMobile,
+    notebook.permission,
+    notebook.id,
+    groupMemberships,
+    memberships,
+    limit,
+  ]);
+  if (isLoading || notebook.permission || isMobile) {
+    return null;
+  }
+  const overflow = usersCount + groupsCount - notebookUsers.length;
+  return (
+    <NudeButton
+      tooltip={{
+        content:
+          usersCount > 0
+            ? groupsCount > 0
+              ? groupsCount > 1
+                ? t(
+                    `{{ usersCount }} users and {{ groupsCount }} groups with access`,
+                    { usersCount, groupsCount, count: usersCount }
+                  )
+                : t(`{{ usersCount }} users and a group have access`, {
+                    usersCount,
+                    count: usersCount,
+                  })
+              : t(`{{ usersCount }} users with access`, {
+                  usersCount,
+                  count: usersCount,
+                })
+            : t(`{{ groupsCount }} groups with access`, {
+                groupsCount,
+                count: groupsCount,
+              }),
+        delay: 250,
+      }}
+      width="auto"
+      height="auto"
+    >
+      <Fade>
+        <Facepile
+          size={AvatarSize.Large}
+          users={sortBy(notebookUsers, "lastActiveAt")}
+          overflow={overflow}
+          limit={limit}
+        />
+      </Fade>
+    </NudeButton>
+  );
+};
+export default observer(MembershipPreview);

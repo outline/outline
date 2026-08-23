@@ -8,7 +8,6 @@ import {
 } from "outline-icons";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
-
 /**
  * Returns menu items for the notice/callout selection toolbar.
  *
@@ -18,14 +17,12 @@ import type { MenuItem, SelectionContext } from "@shared/editor/types";
 export default function noticeMenuItems(ctx: SelectionContext): MenuItem[] {
   const node = ctx.selection.$from.node(-1);
   const currentStyle = node?.attrs.style as NoticeTypes;
-
   const mapping = {
     [NoticeTypes.Info]: t("Info notice"),
     [NoticeTypes.Warning]: t("Warning notice"),
     [NoticeTypes.Success]: t("Success notice"),
     [NoticeTypes.Tip]: t("Tip notice"),
   };
-
   return [
     {
       name: "container_notice",

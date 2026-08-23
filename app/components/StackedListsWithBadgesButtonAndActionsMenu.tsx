@@ -2,7 +2,6 @@ import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const statuses: Record<string, string> = {
   Complete: "text-green-700 bg-green-50 ring-green-600/20",
   "In progress": "text-gray-600 bg-gray-50 ring-gray-500/10",
@@ -55,7 +54,6 @@ const projects = [
     dueDateTime: "2023-06-10T00:00Z",
   },
 ];
-
 /**
  * Tailwind UI – stacked lists: with badges  button  and actions menu.
  *

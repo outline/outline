@@ -1,7 +1,7 @@
 import { classNames } from "./classNames";
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -32,7 +32,6 @@ const features = [
     imageAlt: "Detail of zipper pull with tan leather and silver rivet.",
   },
 ];
-
 /**
  * Tailwind UI – product features: with alternating sections.
  *

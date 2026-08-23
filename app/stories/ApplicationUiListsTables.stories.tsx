@@ -19,89 +19,67 @@ import { TablesWithStripedRows } from "~/components/TablesWithStripedRows";
 import { TablesWithSummaryRows } from "~/components/TablesWithSummaryRows";
 import { TablesWithUppercaseHeadings } from "~/components/TablesWithUppercaseHeadings";
 import { TablesWithVerticalLines } from "~/components/TablesWithVerticalLines";
-
 const meta: Meta = {
   title: "Application UI/Lists/Tables",
 };
-
 export default meta;
-
 export const FullWidth: StoryObj = {
   render: () => <TablesFullWidth />,
 };
-
 export const FullWidthWithAvatarsOnDark: StoryObj = {
   render: () => <TablesFullWidthWithAvatarsOnDark />,
 };
-
 export const FullWidthWithConstrainedContent: StoryObj = {
   render: () => <TablesFullWidthWithConstrainedContent />,
 };
-
 export const Simple: StoryObj = {
   render: () => <TablesSimple />,
 };
-
 export const SimpleInCard: StoryObj = {
   render: () => <TablesSimpleInCard />,
 };
-
 export const SimpleOnDark: StoryObj = {
   render: () => <TablesSimpleOnDark />,
 };
-
 export const WithAvatarsAndMultiLineContent: StoryObj = {
   render: () => <TablesWithAvatarsAndMultiLineContent />,
 };
-
 export const WithBorder: StoryObj = {
   render: () => <TablesWithBorder />,
 };
-
 export const WithCheckboxes: StoryObj = {
   render: () => <TablesWithCheckboxes />,
 };
-
 export const WithCondensedContent: StoryObj = {
   render: () => <TablesWithCondensedContent />,
 };
-
 export const WithGroupedRows: StoryObj = {
   render: () => <TablesWithGroupedRows />,
 };
-
 export const WithHiddenColumnsOnMobile: StoryObj = {
   render: () => <TablesWithHiddenColumnsOnMobile />,
 };
-
 export const WithHiddenHeadings: StoryObj = {
   render: () => <TablesWithHiddenHeadings />,
 };
-
 export const WithSortableHeadings: StoryObj = {
   render: () => <TablesWithSortableHeadings />,
 };
-
 export const WithStackedColumnsOnMobile: StoryObj = {
   render: () => <TablesWithStackedColumnsOnMobile />,
 };
-
 export const WithStickyHeader: StoryObj = {
   render: () => <TablesWithStickyHeader />,
 };
-
 export const WithStripedRows: StoryObj = {
   render: () => <TablesWithStripedRows />,
 };
-
 export const WithSummaryRows: StoryObj = {
   render: () => <TablesWithSummaryRows />,
 };
-
 export const WithUppercaseHeadings: StoryObj = {
   render: () => <TablesWithUppercaseHeadings />,
 };
-
 export const WithVerticalLines: StoryObj = {
   render: () => <TablesWithVerticalLines />,
 };

@@ -9,14 +9,12 @@ import { ActionContext, ActionContextProvider } from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
 import type Model from "~/models/base/Model";
 import type { Action } from "~/types";
-
 type Props = {
   /** The models the actions should operate on, usually the current selection. */
   models: Model[];
   /** The action definitions offered for the selection. */
   actions: Action[];
 };
-
 /**
  * Renders the bulk selection toolbar for the given action definitions, feeding
  * the selected models in as the active models so that the same definitions used
@@ -27,18 +25,15 @@ type Props = {
  */
 export function ModelSelectionActionToolbar({ models, actions }: Props) {
   const selection = useModelSelection();
-
   if (!selection) {
     return null;
   }
-
   return (
     <ActionContextProvider value={{ activeModels: models, isButton: true }}>
       <Toolbar selection={selection} actions={actions} />
     </ActionContextProvider>
   );
 }
-
 const Toolbar = observer(function Toolbar_({
   selection,
   actions,
@@ -51,7 +46,6 @@ const Toolbar = observer(function Toolbar_({
   if (!context) {
     return null;
   }
-
   const toolbarActions: ModelSelectionAction[] = actions.map((action) => ({
     key: action.id,
     label: resolve<string>(action.name, context),
@@ -61,7 +55,6 @@ const Toolbar = observer(function Toolbar_({
     perform: async () => {
       const openModals = dialogs.modalStack.size;
       await performAction(action, context);
-
       // `openModal` adds to the stack on a macrotask, so wait one before
       // checking (its timer, scheduled first, runs before ours). If the action
       // opened a dialog, leave the selection alone — cancelling keeps it and it
@@ -75,7 +68,6 @@ const Toolbar = observer(function Toolbar_({
       }
     },
   }));
-
   return (
     <ModelSelectionToolbar selection={selection} actions={toolbarActions} />
   );

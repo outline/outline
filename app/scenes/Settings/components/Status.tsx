@@ -1,14 +1,14 @@
 import Text from "@shared/components/Text";
 import { s } from "@shared/styles";
 import styled, { css } from "styled-components";
-
 type StatusColor = "accent" | "warning" | "danger" | "textTertiary" | "success";
-
 export const Status = styled(Text).attrs({
   type: "secondary",
   size: "small",
   as: "span",
-})<{ $color?: StatusColor }>`
+})<{
+  $color?: StatusColor;
+}>`
   display: inline-flex;
   align-items: center;
 

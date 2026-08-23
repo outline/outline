@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -38,7 +38,6 @@ const features = [
     imageAlt: "Black canvas body with chrome zipper and key ring.",
   },
 ];
-
 /**
  * Tailwind UI – product features: with wide images.
  *

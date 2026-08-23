@@ -18,7 +18,6 @@ import {
   ResizeBottomRight,
 } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
-
 type Props = ComponentProps & {
   /** Callback triggered when the image is clicked */
   onClick: () => void;
@@ -32,10 +31,8 @@ type Props = ComponentProps & {
   view: EditorView;
   children?: React.ReactElement;
 };
-
 /** Images rendered smaller than this width are displayed as inline icons. */
 export const InlineIconMaxWidth = 48;
-
 type ImageClassNameOptions = {
   /** Layout modifier, e.g. "full-width", "left-50". */
   layoutClass?: string | null;
@@ -44,7 +41,6 @@ type ImageClassNameOptions = {
   /** Whether the image failed to load. */
   error?: boolean;
 };
-
 /**
  * Whether an image should render as an inline icon rather than a block. Small
  * images are displayed inline with the surrounding text.
@@ -64,7 +60,6 @@ export function isInlineImageIcon({
     !error
   );
 }
-
 /**
  * Builds the className for an image node's container, including the layout and
  * inline-icon modifiers. Shared by the live NodeView and the static HTML
@@ -82,7 +77,6 @@ export function imageClassName(options: ImageClassNameOptions): string {
     .filter(Boolean)
     .join(" ");
 }
-
 const Image = (props: Props) => {
   const { isSelected, node, isEditable, onChangeSize, onClick } = props;
   const { src, layoutClass } = node.attrs;
@@ -103,14 +97,11 @@ const Image = (props: Props) => {
       onChangeSize,
       ref,
     });
-
   const isFullWidth = layoutClass === "full-width";
   const isInlineIcon = isInlineImageIcon({ layoutClass, width, error });
   const isResizable = !!props.onChangeSize && !error && !isInlineIcon;
   const isDownloadable = !!props.onDownload && !error;
-
   const className = imageClassName({ layoutClass, width, error });
-
   const sanitizedSrc = sanitizeImageSrc(src);
   const linkMarkType = props.view.state.schema.marks.link;
   const imgLink =
@@ -122,32 +113,26 @@ const Image = (props: Props) => {
   const handleOpen = React.useCallback(() => {
     window.open(sanitizedSrc, "_blank");
   }, [sanitizedSrc]);
-
   const widthStyle = isFullWidth
     ? { width: "var(--container-width)" }
     : width
       ? { ["--image-width"]: `${width}px` }
       : { width: "auto" };
-
   const handleImageTouchStart = (ev: React.TouchEvent<HTMLDivElement>) => {
     const currentTime = Date.now();
     const timeSinceLastTap = currentTime - lastTapTimeRef.current;
-
     if (timeSinceLastTap < 300 && isSelected) {
       ev.preventDefault();
       onClick();
     }
-
     lastTapTimeRef.current = currentTime;
   };
-
   const handleImageClick = (ev: React.MouseEvent<HTMLDivElement>) => {
     if (!isEditable || isSelected) {
       ev.preventDefault();
       onClick();
     }
   };
-
   const handleDownload = async (ev: React.MouseEvent<HTMLButtonElement>) => {
     ev.preventDefault();
     if (props.onDownload) {
@@ -159,7 +144,6 @@ const Image = (props: Props) => {
       }
     }
   };
-
   const actions = [
     isExternalUrl(src) && (
       <Button key="open" onClick={handleOpen} aria-label={t("Open")}>
@@ -190,7 +174,6 @@ const Image = (props: Props) => {
       </Button>
     ),
   ].filter(Boolean);
-
   return (
     <div contentEditable={false} className={className} ref={ref}>
       <ImageWrapper
@@ -264,9 +247,7 @@ const Image = (props: Props) => {
               ...widthStyle,
               display: "block",
             }}
-            src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-              getPlaceholder(width, height)
-            )}`}
+            src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(getPlaceholder(width, height))}`}
           />
         )}
         {isEditable && !isFullWidth && isResizable && (
@@ -312,11 +293,9 @@ const Image = (props: Props) => {
     </div>
   );
 };
-
 function getPlaceholder(width: number, height: number) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" />`;
 }
-
 export const Error = styled(Flex)`
   max-width: 100%;
   color: ${s("textTertiary")};
@@ -328,7 +307,6 @@ export const Error = styled(Flex)`
   justify-content: center;
   user-select: none;
 `;
-
 const Actions = styled.div`
   display: flex;
   align-items: center;
@@ -342,7 +320,6 @@ const Actions = styled.div`
     opacity: 1;
   }
 `;
-
 const Button = styled.button`
   border: 0;
   margin: 0;
@@ -388,8 +365,10 @@ const Button = styled.button`
     }
   }
 `;
-
-const ImageWrapper = styled.div<{ isFullWidth: boolean; $dragging: boolean }>`
+const ImageWrapper = styled.div<{
+  isFullWidth: boolean;
+  $dragging: boolean;
+}>`
   line-height: 0;
   position: relative;
   margin-left: auto;
@@ -419,12 +398,12 @@ const ImageWrapper = styled.div<{ isFullWidth: boolean; $dragging: boolean }>`
     }
   }
 `;
-
-const Separator = styled.div<{ height?: number }>`
+const Separator = styled.div<{
+  height?: number;
+}>`
   flex-shrink: 0;
   width: 1px;
   height: ${(props) => props.height || 28}px;
   background: ${s("divider")};
 `;
-
 export default Image;

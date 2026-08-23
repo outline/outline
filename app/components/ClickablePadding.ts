@@ -1,5 +1,4 @@
 import styled from "styled-components";
-
 const ClickablePadding = styled.div<{
   grow?: boolean;
   minHeight?: React.CSSProperties["paddingBottom"];
@@ -8,5 +7,4 @@ const ClickablePadding = styled.div<{
   flex-grow: 100;
   cursor: text;
 `;
-
 export default ClickablePadding;

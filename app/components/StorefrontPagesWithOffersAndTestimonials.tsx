@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -24,7 +24,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const currencies = ["CAD", "USD", "AUD", "EUR", "GBP"];
 const navigation = {
   categories: [
@@ -35,7 +34,7 @@ const navigation = {
         { name: "Swimwear", href: "#" },
         { name: "Underwear", href: "#" },
       ],
-      collection: [
+      notebook: [
         { name: "Everything", href: "#" },
         { name: "Core", href: "#" },
         { name: "New Arrivals", href: "#" },
@@ -63,7 +62,7 @@ const navigation = {
         { name: "Boxers", href: "#" },
         { name: "Outdoor", href: "#" },
       ],
-      collection: [
+      notebook: [
         { name: "Everything", href: "#" },
         { name: "Core", href: "#" },
         { name: "New Arrivals", href: "#" },
@@ -126,7 +125,7 @@ const trendingProducts = [
   },
   // More products...
 ];
-const collections = [
+const notebooks = [
   {
     name: "Desk and Office",
     description: "Work from home accessories",
@@ -211,7 +210,6 @@ const footerNavigation = {
     { name: "Terms", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – storefront pages: with offers and testimonials.
  *
@@ -219,7 +217,6 @@ const footerNavigation = {
  */
 export function StorefrontPagesWithOffersAndTestimonials() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <div className="bg-white">
       {/* Mobile menu */}
@@ -354,7 +351,7 @@ export function StorefrontPagesWithOffersAndTestimonials() {
                                 aria-labelledby="mobile-collection-heading"
                                 className="mt-6 space-y-6"
                               >
-                                {category.collection.map((item) => (
+                                {category.notebook.map((item) => (
                                   <li key={item.name} className="flex">
                                     <a
                                       href={item.href}
@@ -646,7 +643,7 @@ export function StorefrontPagesWithOffersAndTestimonials() {
                                                 aria-labelledby="desktop-collection-heading"
                                                 className="mt-6 space-y-6 sm:mt-4 sm:space-y-4"
                                               >
-                                                {category.collection.map(
+                                                {category.notebook.map(
                                                   (item) => (
                                                     <li
                                                       key={item.name}
@@ -968,23 +965,23 @@ export function StorefrontPagesWithOffersAndTestimonials() {
               </h2>
 
               <div className="mt-6 space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-6 lg:space-y-0">
-                {collections.map((collection) => (
-                  <div key={collection.name} className="group relative">
+                {notebooks.map((notebook) => (
+                  <div key={notebook.name} className="group relative">
                     <div className="relative h-80 w-full overflow-hidden rounded-lg bg-white lg:aspect-[1/1] group-hover:opacity-75 sm:h-64">
                       <img
-                        src={collection.imageSrc}
-                        alt={collection.imageAlt}
+                        src={notebook.imageSrc}
+                        alt={notebook.imageAlt}
                         className="h-full w-full object-cover object-center"
                       />
                     </div>
                     <h3 className="mt-6 text-sm text-gray-500">
-                      <a href={collection.href}>
+                      <a href={notebook.href}>
                         <span className="absolute inset-0" />
-                        {collection.name}
+                        {notebook.name}
                       </a>
                     </h3>
                     <p className="text-base font-semibold text-gray-900">
-                      {collection.description}
+                      {notebook.description}
                     </p>
                   </div>
                 ))}

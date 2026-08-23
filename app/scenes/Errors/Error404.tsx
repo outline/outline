@@ -10,11 +10,9 @@ import {
 import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
 import useCurrentUser from "~/hooks/useCurrentUser";
-
 const Error404 = () => {
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
-
   return (
     <Scene title={t("Not found")}>
       <Heading>{t("Not found")}</Heading>
@@ -39,5 +37,4 @@ const Error404 = () => {
     </Scene>
   );
 };
-
 export default Error404;

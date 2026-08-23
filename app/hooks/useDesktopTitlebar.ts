@@ -1,32 +1,26 @@
 import { useEffect } from "react";
 import Desktop from "~/utils/Desktop";
-
 export const useDesktopTitlebar = () => {
   useEffect(() => {
     if (!Desktop.bridge) {
       return;
     }
-
     const handleDoubleClick = async (event: MouseEvent) => {
       // Ignore double clicks on interactive elements such as inputs and buttons
       if (event.composedPath().some(elementIsInteractive)) {
         return;
       }
-
       // Ignore if the mouse position is further down than the header height
       if (event.clientY > 64) {
         return;
       }
-
       event.preventDefault();
       await Desktop.bridge?.onTitlebarDoubleClick();
     };
-
     window.addEventListener("dblclick", handleDoubleClick);
     return () => window.removeEventListener("dblclick", handleDoubleClick);
   }, []);
 };
-
 /**
  * Check if an element is user interactive.
  *

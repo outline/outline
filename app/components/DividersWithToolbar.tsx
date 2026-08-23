@@ -4,7 +4,6 @@ import {
   PencilIcon,
   TrashIcon,
 } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – dividers: with toolbar.
  *

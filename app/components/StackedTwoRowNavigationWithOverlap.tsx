@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -17,7 +17,6 @@ import { Menu, Popover, Transition } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const user = {
   name: "Tom Cook",
   email: "tom@example.com",
@@ -36,7 +35,6 @@ const userNavigation = [
   { name: "Settings", href: "#" },
   { name: "Sign out", href: "#" },
 ];
-
 /**
  * Tailwind UI – stacked: two row navigation with overlap.
  *
@@ -46,13 +44,13 @@ export function StackedTwoRowNavigationWithOverlap() {
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full bg-gray-100">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full bg-gray-100">
+          <body class="h-full">
+          ```
+        */}
       <div className="min-h-full">
         <Popover as="header" className="bg-indigo-600 pb-24">
           {({ open }) => (

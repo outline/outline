@@ -1,5 +1,4 @@
 import { Scope } from "../types";
-
 export default class AuthenticationHelper {
   /**
    * The mapping of method names to their scopes, anything not listed here
@@ -18,7 +17,7 @@ export default class AuthenticationHelper {
     list: Scope.Read,
     info: Scope.Read,
     search: Scope.Read,
-    documents: Scope.Read,
+    notes: Scope.Read,
     drafts: Scope.Read,
     viewed: Scope.Read,
     export: Scope.Read,
@@ -26,7 +25,6 @@ export default class AuthenticationHelper {
     memberships: Scope.Read,
     group_memberships: Scope.Read,
   };
-
   /**
    * Matches exactly one of the supported scope grammars:
    *
@@ -37,7 +35,6 @@ export default class AuthenticationHelper {
    */
   public static scopeGrammarRegex =
     /^(\*|read|write|create|\w+:(read|write|create)|\/api\/(\*|\w+)\.(\*|\w+))$/;
-
   /**
    * Returns whether the given string is a well-formed scope. Scopes that mix
    * route and namespaced forms (e.g. `/api/documents.list:read`) are rejected
@@ -50,7 +47,9 @@ export default class AuthenticationHelper {
    */
   public static isValidScope = (
     scope: string,
-    options: { allowRootWildcard?: boolean } = {}
+    options: {
+      allowRootWildcard?: boolean;
+    } = {}
   ): boolean => {
     const { allowRootWildcard = true } = options;
     if (!AuthenticationHelper.scopeGrammarRegex.test(scope)) {
@@ -61,7 +60,6 @@ export default class AuthenticationHelper {
     }
     return true;
   };
-
   /**
    * Returns whether the given path can be accessed with any of the scopes. We
    * support scopes in the formats of:
@@ -81,30 +79,24 @@ export default class AuthenticationHelper {
     if (scopes.includes("*")) {
       return true;
     }
-
     // strip any query string or fragment, these are never used as part of scope matching
     path = path.split("?")[0].split("#")[0];
-
     const resource = path.split("/").pop() ?? "";
     const [namespace, method] = resource.split(".");
-
     return scopes.some((scope) => {
       if (!AuthenticationHelper.isValidScope(scope)) {
         return false;
       }
-
       const [scopeNamespace, scopeMethod] = scope.match(/[:.]/g)
         ? scope.replace("/api/", "").split(/[:.]/g)
         : ["*", scope];
       const isRouteScope = scope.startsWith("/api/");
-
       if (isRouteScope) {
         return (
           (namespace === scopeNamespace || scopeNamespace === "*") &&
           (method === scopeMethod || scopeMethod === "*")
         );
       }
-
       return (
         (namespace === scopeNamespace || scopeNamespace === "*") &&
         (scopeMethod === Scope.Write ||

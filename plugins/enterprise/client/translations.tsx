@@ -24,7 +24,7 @@ export const Translations = () => (
     <Trans defaults={`No`} />
     <Trans defaults={`Search or ask a question`} />
     <Trans
-      defaults={`Invited {{roleName}} will not receive access to any collections or documents unless explicitly shared.`}
+      defaults={`Invited {{roleName}} will not receive access to any notebooks or documents unless explicitly shared.`}
     />
     <Trans defaults={`Can view only what is explicitly shared`} />
     <Trans
@@ -87,9 +87,9 @@ export const Translations = () => (
     <Trans defaults={`View and edit`} />
     <Trans defaults={`Sharing enabled`} />
     <Trans defaults={`Date archived`} />
-    <Trans defaults={`Could not load collections`} />
+    <Trans defaults={`Could not load notebooks`} />
     <Trans
-      defaults={`Manage the permissions and settings of all collections in the knowledge base. As a workspace admin you can also administer private collections.`}
+      defaults={`Manage the permissions and settings of all notebooks in the knowledge base. As a workspace admin you can also administer private notebooks.`}
     />
     <Trans
       defaults={`Automatically index and search document content from {{appName}} inside <4>Glean</4> in realtime.`}
@@ -101,7 +101,7 @@ export const Translations = () => (
       defaults={`Details of the current {{appName}} license. To arrange contract renewal as expiry or seat limits approach or increase licensed seats please contact your account manager or email <4>priority@getoutline.com</4>.`}
     />
     <Trans
-      defaults={`Sorry, an answer could not be found in the collection, try widening your search.`}
+      defaults={`Sorry, an answer could not be found in the notebook, try widening your search.`}
     />
     <Trans
       defaults={`Sorry, an answer could not be found in the workspace, try widening your search.`}

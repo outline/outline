@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -23,7 +23,6 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const navigation = {
   categories: [
     {
@@ -208,7 +207,6 @@ const footerNavigation = {
     { name: "Find a store", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – order history pages: with invoice list.
  *
@@ -216,7 +214,6 @@ const footerNavigation = {
  */
 export function OrderHistoryPagesWithInvoiceList() {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="bg-white">
       {/* Mobile menu */}

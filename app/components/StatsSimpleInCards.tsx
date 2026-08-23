@@ -1,7 +1,6 @@
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import Text from "~/components/Text";
-
 /** One figure on the card row. */
 export interface StatCard {
   name: string;
@@ -9,14 +8,12 @@ export interface StatCard {
   /** A quieter line under the figure, e.g. what it is out of. */
   hint?: string;
 }
-
 interface Props {
   /** The figures to show; the sample is used when none is given. */
   stats?: StatCard[];
   /** Heading above the row; omitted when not given. */
   title?: string;
 }
-
 /**
  * Column counts, spelled out.
  *
@@ -29,7 +26,6 @@ const COLUMNS: Record<number, string> = {
   3: "sm:grid-cols-3",
   4: "sm:grid-cols-4",
 };
-
 const Card = styled.div`
   overflow: hidden;
   border-radius: 8px;
@@ -37,7 +33,6 @@ const Card = styled.div`
   background: ${s("backgroundSecondary")};
   border: 1px solid ${s("divider")};
 `;
-
 const Figure = styled.dd`
   margin: 4px 0 0;
   font-size: 30px;
@@ -45,19 +40,16 @@ const Figure = styled.dd`
   letter-spacing: -0.025em;
   color: ${s("text")};
 `;
-
 const Label = styled.dt`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `;
-
 const sampleStats: StatCard[] = [
   { name: "Total Subscribers", stat: "71,897" },
   { name: "Avg. Open Rate", stat: "58.16%" },
   { name: "Avg. Click Rate", stat: "24.57%" },
 ];
-
 /**
  * Tailwind UI – stats: simple in cards.
  *
@@ -65,7 +57,6 @@ const sampleStats: StatCard[] = [
  */
 export function StatsSimpleInCards({ stats, title }: Props = {}) {
   const shown = stats ?? sampleStats;
-
   return (
     <div>
       {title === undefined || title ? (
@@ -74,9 +65,7 @@ export function StatsSimpleInCards({ stats, title }: Props = {}) {
         </Text>
       ) : null}
       <dl
-        className={`grid grid-cols-1 gap-5 ${
-          COLUMNS[Math.min(4, shown.length)] ?? COLUMNS[3]
-        } ${title === "" ? "" : "mt-5"}`}
+        className={`grid grid-cols-1 gap-5 ${COLUMNS[Math.min(4, shown.length)] ?? COLUMNS[3]} ${title === "" ? "" : "mt-5"}`}
       >
         {shown.map((item) => (
           <Card key={item.name}>

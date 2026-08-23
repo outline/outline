@@ -6,7 +6,6 @@ import type Emoji from "~/models/Emoji";
 import { EmojiCreateDialog } from "~/components/EmojiDialog/EmojiCreateDialog";
 import { EmojiDeleteDialog } from "~/components/EmojiDialog/EmojiDeleteDialog";
 import { EmojiReplaceDialog } from "~/components/EmojiDialog/EmojiReplaceDialog";
-
 export const createEmoji = dialogActionFactory({
   analyticsName: "Create emoji",
   section: TeamSection,
@@ -18,7 +17,6 @@ export const createEmoji = dialogActionFactory({
   visible: () =>
     stores.policies.abilities(stores.auth.team?.id || "").createEmoji,
 });
-
 export const replaceEmojiActionFactory = (emoji: Emoji) =>
   dialogActionFactory({
     analyticsName: "Replace emoji",
@@ -31,7 +29,6 @@ export const replaceEmojiActionFactory = (emoji: Emoji) =>
     icon: <ReplaceIcon />,
     visible: () => stores.policies.abilities(emoji.id).update,
   });
-
 export const deleteEmojiActionFactory = (emoji: Emoji) =>
   dialogActionFactory({
     analyticsName: "Delete emoji",

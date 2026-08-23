@@ -1,17 +1,14 @@
 import { throttle } from "es-toolkit/compat";
 import * as React from "react";
 import useUnmount from "./useUnmount";
-
 interface ThrottleSettings {
   leading?: boolean | undefined;
   trailing?: boolean | undefined;
 }
-
 const defaultOptions: ThrottleSettings = {
   leading: false,
   trailing: true,
 };
-
 /**
  * A hook that returns a throttled callback function.
  *
@@ -33,10 +30,8 @@ export default function useThrottledCallback<
     // oxlint-disable-next-line react-hooks/exhaustive-deps
     dependencies
   );
-
   useUnmount(() => {
     handler.cancel();
   });
-
   return handler;
 }

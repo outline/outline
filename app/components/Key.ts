@@ -1,10 +1,8 @@
 import styled from "styled-components";
-
 type Props = {
   /** Set to true if displaying a single symbol character to disable monospace */
   symbol?: boolean;
 };
-
 const Key = styled.kbd<Props>`
   display: inline-block;
   padding: 4px 6px;
@@ -21,5 +19,4 @@ const Key = styled.kbd<Props>`
   border-bottom-color: ${(props) => props.theme.slate};
   border-radius: 3px;
 `;
-
 export default Key;

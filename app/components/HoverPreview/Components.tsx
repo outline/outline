@@ -3,19 +3,14 @@ import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import Text from "~/components/Text";
-
 export const CARD_MARGIN = 10;
-
 const NUMBER_OF_LINES = 10;
-
 const sharedVars = css`
   --line-height: 1.6em;
 `;
-
 const StyledText = styled(Text)`
   margin-bottom: 0;
 `;
-
 export const Preview = styled(Link)`
   cursor: ${(props: { as?: string }) =>
     props.as === "div" ? "default" : "var(--pointer)"};
@@ -27,7 +22,6 @@ export const Preview = styled(Link)`
   position: absolute;
   width: 375px;
 `;
-
 export const Title = styled(Text).attrs({ as: "h2", size: "large" })`
   margin-bottom: 4px;
   display: flex;
@@ -35,28 +29,26 @@ export const Title = styled(Text).attrs({ as: "h2", size: "large" })`
   justify-content: flex-start;
   gap: 6px;
 `;
-
 export const Info = styled(StyledText).attrs(() => ({
   type: "tertiary",
   size: "xsmall",
 }))`
   white-space: nowrap;
 `;
-
-export const Description = styled(StyledText)<{ $margin?: string }>`
+export const Description = styled(StyledText)<{
+  $margin?: string;
+}>`
   ${sharedVars}
   margin-top: ${(props) => props.$margin ?? "0.5em"};
   line-height: var(--line-height);
   max-height: calc(var(--line-height) * ${NUMBER_OF_LINES});
   overflow: hidden;
 `;
-
 export const Thumbnail = styled.img`
   object-fit: cover;
   height: 200px;
   background: ${s("menuBackground")};
 `;
-
 export const Label = styled(Text).attrs({ size: "xsmall", weight: "bold" })<{
   color?: string;
 }>`
@@ -80,14 +72,15 @@ export const Label = styled(Text).attrs({ size: "xsmall", weight: "bold" })<{
       props.color || props.theme.backgroundSecondary};
   }
 `;
-
 export const CardContent = styled.div`
   overflow: hidden;
   user-select: none;
 `;
-
 // &:after — gradient mask for overflow text
-export const Card = styled.div<{ fadeOut?: boolean; $borderRadius?: string }>`
+export const Card = styled.div<{
+  fadeOut?: boolean;
+  $borderRadius?: string;
+}>`
   ${sharedVars}
   backdrop-filter: blur(10px);
   background: ${s("menuBackground")};

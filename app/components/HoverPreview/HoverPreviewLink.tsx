@@ -8,7 +8,6 @@ import {
   CardContent,
   Thumbnail,
 } from "./Components";
-
 type Props = {
   /** Link url */
   url: string;
@@ -19,7 +18,6 @@ type Props = {
   /** Some description about the link provider */
   description: string;
 };
-
 const HoverPreviewLink = React.forwardRef(function HoverPreviewLink_(
   { url, thumbnailUrl, title, description }: Props,
   ref: React.Ref<HTMLDivElement>
@@ -40,5 +38,4 @@ const HoverPreviewLink = React.forwardRef(function HoverPreviewLink_(
     </Preview>
   );
 });
-
 export default HoverPreviewLink;

@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { depths, s } from "../../styles";
 import type { EditorNotice } from "../types";
 import { ColorPreview } from "./ColorPreview";
-
 interface Props {
   /** The CSS color to preview, in its original notation. */
   color: string;
@@ -21,7 +20,6 @@ interface Props {
   /** The swatch the card is anchored to. */
   children: ReactNode;
 }
-
 /**
  * The hover card shown alongside a color swatch. It lives in its own module so
  * that its browser-only dependency on Radix is loaded lazily and stays out of
@@ -58,7 +56,6 @@ export default function ColorHoverCard({
     </PopoverPrimitive.Root>
   );
 }
-
 const Card = styled.div`
   /* Sized to the widest notation so that no value has to wrap. */
   width: max-content;

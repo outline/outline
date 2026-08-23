@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
 import type { FrequencyTracker } from "@shared/utils/FrequencyTracker";
-
 /**
  * Read the most frequent items from a tracker, snapshotted on mount so the
  * order does not shift beneath the user while the component remains open.
@@ -13,6 +12,5 @@ export default function useFrequencyTracker<T extends string>(
 ) {
   const [frequent] = useState(() => tracker.frequent);
   const track = useCallback((item: T) => tracker.track(item), [tracker]);
-
   return { frequent, track };
 }

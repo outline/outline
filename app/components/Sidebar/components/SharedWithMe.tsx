@@ -15,7 +15,7 @@ import { useDropToReorderUserMembership } from "../hooks/useDragAndDrop";
 import DropCursor from "./DropCursor";
 import GroupLink from "./GroupLink";
 import Header from "./Header";
-import PlaceholderCollections from "./PlaceholderCollections";
+import PlaceholderNotebooks from "./PlaceholderNotebooks";
 import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
 import SidebarContext, { groupSidebarContext } from "./SidebarContext";
@@ -23,46 +23,37 @@ import SidebarLink from "./SidebarLink";
 import { useHistory } from "react-router-dom";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import { patchLocation } from "~/utils/history";
-
 function SharedWithMe() {
   const { ui, userMemberships, groupMemberships } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser();
   const history = useHistory();
   const locationSidebarContext = useLocationSidebarContext();
-
   usePaginatedRequest<GroupMembership>(groupMemberships.fetchAll);
-
   const { loading, next, end, error, page } =
     usePaginatedRequest<UserMembership>(userMemberships.fetchPage, {
       limit: Pagination.sidebarLimit,
     });
-
-  // Drop to reorder document
+  // Drop to reorder note
   const [reorderProps, dropToReorderRef] = useDropToReorderUserMembership(() =>
-    fractionalIndex(null, user.documentMemberships[0].index)
+    fractionalIndex(null, user.noteMemberships[0].index)
   );
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load shared documents"));
     }
   }, [error, t]);
-
   useEffect(() => {
     const isContextInSharedSection =
       locationSidebarContext === "shared" ||
       locationSidebarContext?.startsWith("group");
-
-    if (!ui.activeDocumentId || isContextInSharedSection) {
+    if (!ui.activeNoteId || isContextInSharedSection) {
       return;
     }
-
-    const isActiveDocSharedDirectly = user.documentMemberships.find(
-      (m) => m.pathToDocument(ui.activeDocumentId!).length > 0
+    const isActiveNoteSharedDirectly = user.noteMemberships.find(
+      (m) => m.pathToNote(ui.activeNoteId!).length > 0
     );
-
-    if (isActiveDocSharedDirectly) {
+    if (isActiveNoteSharedDirectly) {
       history.push(
         patchLocation(history.location, {
           state: {
@@ -71,49 +62,40 @@ function SharedWithMe() {
           },
         })
       );
-
       return;
     }
-
-    const groupWithActiveDocument = user.groupsWithDocumentMemberships.find(
-      (group) =>
-        group.documentMemberships.some(
-          (m) => m.pathToDocument(ui.activeDocumentId!).length > 0
-        )
+    const groupWithActiveNote = user.groupsWithNoteMemberships.find((group) =>
+      group.noteMemberships.some(
+        (m) => m.pathToNote(ui.activeNoteId!).length > 0
+      )
     );
-
-    if (groupWithActiveDocument) {
+    if (groupWithActiveNote) {
       history.push(
         patchLocation(history.location, {
           state: {
             ...(history.location.state as Record<string, unknown>),
-            sidebarContext: groupSidebarContext(groupWithActiveDocument.id),
+            sidebarContext: groupSidebarContext(groupWithActiveNote.id),
           },
         })
       );
     }
     // `history` is read imperatively, the sidebar context should only be
-    // recalculated when the active document or memberships change.
+    // recalculated when the active note or memberships change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    ui.activeDocumentId,
+    ui.activeNoteId,
     locationSidebarContext,
-    user.documentMemberships,
-    user.groupsWithDocumentMemberships,
+    user.noteMemberships,
+    user.groupsWithNoteMemberships,
   ]);
-
-  if (
-    !user.documentMemberships.length &&
-    !user.groupsWithDocumentMemberships.length
-  ) {
+  if (!user.noteMemberships.length && !user.groupsWithNoteMemberships.length) {
     return null;
   }
-
   return (
     <SidebarContext.Provider value="shared">
       <Flex column>
         <Header id="shared" title={t("Shared with me")}>
-          {user.groupsWithDocumentMemberships.map((group) => (
+          {user.groupsWithNoteMemberships.map((group) => (
             <GroupLink key={group.id} group={group} />
           ))}
           <Relative>
@@ -124,7 +106,7 @@ function SharedWithMe() {
                 position="top"
               />
             )}
-            {user.documentMemberships
+            {user.noteMemberships
               .slice(0, page * Pagination.sidebarLimit)
               .map((membership) => (
                 <SharedWithMeLink key={membership.id} membership={membership} />
@@ -140,7 +122,7 @@ function SharedWithMe() {
             {loading && (
               <Flex column>
                 <DelayedMount>
-                  <PlaceholderCollections />
+                  <PlaceholderNotebooks />
                 </DelayedMount>
               </Flex>
             )}
@@ -150,5 +132,4 @@ function SharedWithMe() {
     </SidebarContext.Provider>
   );
 }
-
 export default observer(SharedWithMe);

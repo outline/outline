@@ -3,13 +3,11 @@ import { Link } from "react-router-dom";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import { AuthLayout, fieldClass, submitClass } from "./AuthLayout";
-
 const MESSAGES: Record<string, string> = {
   missing: "Enter your email and password.",
   unknown: "We don't recognise that email.",
   invalid: "That password isn't right.",
 };
-
 /**
  * Sign in to manage the business.
  *
@@ -21,7 +19,6 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSaving(true);
@@ -42,7 +39,6 @@ function Login() {
       setIsSaving(false);
     }
   };
-
   return (
     <AuthLayout
       title="Sign in"
@@ -109,5 +105,4 @@ function Login() {
     </AuthLayout>
   );
 }
-
 export default Login;

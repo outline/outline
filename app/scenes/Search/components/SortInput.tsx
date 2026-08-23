@@ -3,7 +3,6 @@ import { SortAscendingIcon, SortDescendingIcon } from "outline-icons";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import FilterOptions from "~/components/FilterOptions";
-
 type Props = {
   /** The selected sort field */
   sort?: TSortFilter | null;
@@ -12,7 +11,6 @@ type Props = {
   /** Callback when a sort option is selected */
   onSelect: (sort: string, direction: string) => void;
 };
-
 export const SortInput = ({ sort, direction, onSelect }: Props) => {
   const { t } = useTranslation();
   const options = useMemo(
@@ -55,15 +53,12 @@ export const SortInput = ({ sort, direction, onSelect }: Props) => {
     ],
     [t]
   );
-
   const selectedKey =
     sort && direction ? `${sort}-${direction}` : "relevance-DESC";
-
   const handleSelect = (key: string) => {
     const [sortField, sortDirection] = key.split("-");
     onSelect(sortField, sortDirection);
   };
-
   return (
     <FilterOptions
       showFilter={false}

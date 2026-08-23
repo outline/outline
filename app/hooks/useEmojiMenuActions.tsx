@@ -5,7 +5,6 @@ import {
   replaceEmojiActionFactory,
 } from "~/actions/definitions/emojis";
 import { useMenuAction } from "~/hooks/useMenuAction";
-
 /**
  * Hook that constructs the action menu for emoji management operations.
  *
@@ -23,6 +22,5 @@ export function useEmojiMenuActions(targetEmoji: Emoji | null) {
         : [],
     [targetEmoji]
   );
-
   return useMenuAction(actions);
 }

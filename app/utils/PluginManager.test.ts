@@ -1,12 +1,10 @@
 import { createLazyComponent } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "./PluginManager";
-
 const SettingsComponent = () => null;
 const Icon = () => null;
 const component = createLazyComponent(async () => ({
   default: SettingsComponent,
 }));
-
 describe("PluginManager", () => {
   it("returns registered hooks from observable plugin arrays", () => {
     PluginManager.add([
@@ -33,11 +31,9 @@ describe("PluginManager", () => {
         },
       },
     ]);
-
     const hooks = PluginManager.getHooks(Hook.Settings).filter((plugin) =>
       plugin.id.startsWith("test-settings-plugin")
     );
-
     expect(hooks.map((plugin) => plugin.id)).toEqual([
       "test-settings-plugin-high",
       "test-settings-plugin-low",

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -14,7 +14,6 @@
 */
 import { StarIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const reviews = [
   {
     id: 1,
@@ -42,7 +41,6 @@ const reviews = [
   },
   // More reviews...
 ];
-
 /**
  * Tailwind UI – reviews: simple with avatars.
  *

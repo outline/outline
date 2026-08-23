@@ -8,22 +8,17 @@ import type {
   ActionWithChildren,
 } from "~/types";
 import usePrevious from "./usePrevious";
-
 type Actions = (ActionVariant | ActionGroup | ActionSeparator)[];
-
 export function useMenuAction(actions: Actions) {
   const rootActionRef = useRef<ActionWithChildren>();
   const prevActions = usePrevious(actions);
-
   if (!rootActionRef.current) {
     rootActionRef.current = createRootMenuAction(actions);
     return rootActionRef.current;
   }
-
   if (!prevActions || isEqual(actions, prevActions)) {
     return rootActionRef.current;
   }
-
   rootActionRef.current = createRootMenuAction(actions);
   return rootActionRef.current;
 }

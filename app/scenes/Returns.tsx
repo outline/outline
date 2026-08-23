@@ -13,12 +13,10 @@ import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 const METHODS = [
   { value: "cash", label: "Cash" },
   { value: "bank", label: "Bank transfer" },
 ];
-
 /**
  * Goods handed back, and the money given back for them.
  *
@@ -33,20 +31,16 @@ function Returns() {
   const orders = useShop((state) => state.orders);
   const returns = useShop((state) => state.returns);
   const createReturn = useShop((state) => state.createReturn);
-
   const fields = useFields({ orderId: "", reason: "", method: "cash" });
   const orderId = fields.get("orderId");
-  const [quantities, setQuantities] = useState<Record<string, string>>({});
+  const quantities = useFields();
   const [damaged, setDamaged] = useState<Record<string, boolean>>({});
   const submission = useSubmit();
-
   const paidOrders = orders.filter((order) => order.status === "paid");
   const selected = paidOrders.find((order) => order.id === orderId);
-
   /** A line is identified by its size when it has one. */
   const keyOf = (line: { productId: string; variantId?: string }) =>
     line.variantId ?? line.productId;
-
   /** How many of a line have not been handed back yet. */
   const refundable = (line: { productId: string; variantId?: string }) => {
     if (!selected) {
@@ -62,31 +56,27 @@ function Returns() {
       .reduce((sum, item) => sum + item.quantity, 0);
     return bought - returned;
   };
-
   const handleSubmit = () =>
     submission.run(async () => {
       if (!selected) {
         return t("Choose the order the goods came from.");
       }
-
       const items = selected.items
         .map((item) => ({
           productId: item.productId,
           variantId: item.variantId,
-          quantity: Number(quantities[keyOf(item)] ?? 0),
+          quantity: Number(quantities.get(keyOf(item))),
           isDamaged: Boolean(damaged[keyOf(item)]),
         }))
         .filter((item) => item.quantity > 0);
-
       const result = await createReturn({
         orderId: selected.id,
         reason: fields.get("reason").trim(),
         refundMethod: fields.get("method") === "bank" ? "bank" : "cash",
         items,
       });
-
       if (result?.created) {
-        setQuantities({});
+        quantities.reset();
         setDamaged({});
         // The order and the refund method stay chosen: a second return
         // against the same sale is the common next step.
@@ -100,9 +90,7 @@ function Returns() {
       }
       return t("Say how many of what is coming back.");
     });
-
   const refunded = returns.reduce((sum, item) => sum + item.refundAmount, 0);
-
   return (
     <AppPage
       title={t("Returns")}
@@ -174,12 +162,9 @@ function Returns() {
                         label={t("Back")}
                         labelHidden
                         placeholder="0"
-                        value={quantities[keyOf(item)] ?? ""}
+                        value={quantities.get(keyOf(item))}
                         onChange={(event) =>
-                          setQuantities({
-                            ...quantities,
-                            [keyOf(item)]: event.target.value,
-                          })
+                          quantities.set(keyOf(item), event.target.value)
                         }
                         short
                       />
@@ -233,9 +218,7 @@ function Returns() {
               {item.items
                 .map(
                   (line) =>
-                    `${line.quantity} × ${line.name}${
-                      line.isDamaged ? ` (${t("damaged")})` : ""
-                    }`
+                    `${line.quantity} × ${line.name}${line.isDamaged ? ` (${t("damaged")})` : ""}`
                 )
                 .join(", ")}
               {item.reason ? ` · ${item.reason}` : ""}
@@ -253,5 +236,4 @@ function Returns() {
     </AppPage>
   );
 }
-
 export default Returns;

@@ -7,7 +7,6 @@ import {
   UsersIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Dashboard", href: "#", icon: HomeIcon, count: "5", current: true },
   { name: "Team", href: "#", icon: UsersIcon, current: false },
@@ -33,7 +32,6 @@ const teams = [
   { id: 2, name: "Tailwind Labs", href: "#", initial: "T", current: false },
   { id: 3, name: "Workcation", href: "#", initial: "W", current: false },
 ];
-
 /**
  * Tailwind UI – sidebar navigation: light.
  *

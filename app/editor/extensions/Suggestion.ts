@@ -9,7 +9,6 @@ import {
   SuggestionsMenuPlugin,
 } from "@shared/editor/plugins/SuggestionsMenuPlugin";
 import { isInCode } from "@shared/editor/queries/isInCode";
-
 /**
  * Options shared by all suggestion-style extensions (block menu, emoji menu,
  * mention menu).
@@ -30,13 +29,11 @@ export type SuggestionOptions = {
   /** Whether the menu only opens once at least one character has been typed after the trigger. */
   requireSearchTerm: boolean;
 };
-
 export default class Suggestion<
   TOptions extends SuggestionOptions = SuggestionOptions,
 > extends Extension<TOptions> {
   constructor(options: TOptions) {
     super(options);
-
     const triggers = Array.isArray(this.options.trigger)
       ? this.options.trigger
       : [this.options.trigger];
@@ -44,15 +41,11 @@ export default class Suggestion<
       triggers.length === 1
         ? escapeRegExp(triggers[0])
         : `(?:${triggers.map(escapeRegExp).join("|")})`;
-
     this.openRegex = new RegExp(
-      `(?:^|\\s|\\(|\\+|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${triggerPattern}(${`[\\p{L}/\\p{M}\\d${
-        this.options.allowSpaces ? "\\s{1}" : ""
-      }\\.\\-–_]+`})${this.options.requireSearchTerm ? "" : "?"}$`,
+      `(?:^|\\s|\\(|\\+|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${triggerPattern}(${`[\\p{L}/\\p{M}\\d${this.options.allowSpaces ? "\\s{1}" : ""}\\.\\-–_]+`})${this.options.requireSearchTerm ? "" : "?"}$`,
       "u"
     );
   }
-
   get plugins(): Plugin[] {
     return [
       new SuggestionsMenuPlugin(
@@ -62,12 +55,10 @@ export default class Suggestion<
       ),
     ];
   }
-
   /** Whether the menu may open when the trigger character carries a mark. */
   protected get enabledInMarks(): boolean {
     return this.options.enabledInMarks ?? true;
   }
-
   keys() {
     return {
       Space: action(() => {
@@ -78,7 +69,6 @@ export default class Suggestion<
       }),
     };
   }
-
   inputRules = (_options: { type: NodeType; schema: Schema }) => [
     new InputRule(
       this.openRegex,
@@ -107,9 +97,7 @@ export default class Suggestion<
       )
     ),
   ];
-
   protected openRegex: RegExp;
-
   protected state: {
     open: boolean;
     query: string;
@@ -117,7 +105,6 @@ export default class Suggestion<
     open: false,
     query: "",
   });
-
   /** Whether the suggestion menu is currently open. */
   get isOpen(): boolean {
     return this.state.open;

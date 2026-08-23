@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
   { name: "Marketplace", href: "#" },
   { name: "Company", href: "#" },
 ];
-
 /**
  * Tailwind UI – headers: with left aligned nav.
  *
@@ -16,7 +14,6 @@ const navigation = [
  */
 export function HeadersWithLeftAlignedNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <header className="bg-white">
       <nav

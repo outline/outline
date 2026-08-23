@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { DocumentTemplateSettings } from "./DocumentTemplate";
-
+import { NoteTemplateSettings } from "./NoteTemplate";
 /**
  * Wording on the point of sale receipt.
  *
@@ -8,14 +7,12 @@ import { DocumentTemplateSettings } from "./DocumentTemplate";
  */
 function Receipts() {
   const { t } = useTranslation();
-
   return (
-    <DocumentTemplateSettings
+    <NoteTemplateSettings
       type="receipt"
       title={t("Receipts")}
       description={t("What prints at the till after a sale.")}
     />
   );
 }
-
 export default Receipts;

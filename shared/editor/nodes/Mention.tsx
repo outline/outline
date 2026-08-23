@@ -16,8 +16,8 @@ import type { UnfurlResponse } from "../../types";
 import { MentionType, UnfurlResourceType } from "../../types";
 import { dateToReadable } from "../../utils/date";
 import {
-  MentionCollection,
-  MentionDocument,
+  MentionNotebook,
+  MentionNote,
   MentionGroup,
   MentionIssue,
   MentionProject,
@@ -34,7 +34,6 @@ import { isList } from "../queries/isList";
 import mentionRule from "../rules/mention";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
-
 /**
  * Formats a date mention's stored value (a date-only or time-specific ISO
  * string) into a human-readable label for display and serialization.
@@ -48,12 +47,10 @@ function dateMentionLabel(node: ProsemirrorNode): string {
     ? dateToReadable(modelId)
     : node.attrs.label;
 }
-
 export default class Mention extends Node {
   get name() {
     return "mention";
   }
-
   get schema(): NodeSpec {
     const toPlainText = (node: ProsemirrorNode) => {
       if (node.attrs.type === MentionType.User) {
@@ -64,7 +61,6 @@ export default class Mention extends Node {
       }
       return node.attrs.label;
     };
-
     return {
       attrs: {
         type: {
@@ -103,7 +99,6 @@ export default class Mention extends Node {
             if (!type || !modelId) {
               return false;
             }
-
             return {
               type,
               modelId,
@@ -137,12 +132,10 @@ export default class Mention extends Node {
             node.attrs.type === MentionType.User ||
             node.attrs.type === MentionType.Date
               ? undefined
-              : node.attrs.type === MentionType.Document
-                ? `${env.URL}/doc/${node.attrs.modelId}${
-                    node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""
-                  }`
-                : node.attrs.type === MentionType.Collection
-                  ? `${env.URL}/collection/${node.attrs.modelId}`
+              : node.attrs.type === MentionType.Note
+                ? `${env.URL}/doc/${node.attrs.modelId}${node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""}`
+                : node.attrs.type === MentionType.Notebook
+                  ? `${env.URL}/notebook/${node.attrs.modelId}`
                   : sanitizeUrl(node.attrs.href),
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
@@ -161,17 +154,16 @@ export default class Mention extends Node {
       leafText: toPlainText,
     };
   }
-
   component = (props: ComponentProps) => {
     switch (props.node.attrs.type) {
       case MentionType.User:
         return <MentionUser {...props} />;
       case MentionType.Group:
         return <MentionGroup {...props} />;
-      case MentionType.Document:
-        return <MentionDocument {...props} />;
-      case MentionType.Collection:
-        return <MentionCollection {...props} />;
+      case MentionType.Note:
+        return <MentionNote {...props} />;
+      case MentionType.Notebook:
+        return <MentionNotebook {...props} />;
       case MentionType.Issue:
         return (
           <MentionIssue
@@ -208,11 +200,9 @@ export default class Mention extends Node {
         return null;
     }
   };
-
   get rulePlugins() {
     return [mentionRule];
   }
-
   get plugins() {
     return [
       // Ensure mentions have unique IDs
@@ -221,7 +211,6 @@ export default class Mention extends Node {
           const tr = newState.tr;
           const existingIds = new Set();
           let modified = false;
-
           tr.doc.descendants((node, pos) => {
             let nodeId = node.attrs.id;
             if (
@@ -234,26 +223,22 @@ export default class Mention extends Node {
             }
             existingIds.add(nodeId);
           });
-
           if (modified) {
             return tr;
           }
-
           return null;
         },
       }),
     ];
   }
-
   keys(): Record<string, Command> {
     const NavigableMention = [
-      MentionType.Collection,
-      MentionType.Document,
+      MentionType.Notebook,
+      MentionType.Note,
       MentionType.Issue,
       MentionType.PullRequest,
       MentionType.Project,
     ];
-
     return {
       Enter: (state) => {
         const { selection } = state;
@@ -263,9 +248,7 @@ export default class Mention extends Node {
           NavigableMention.includes(selection.node.attrs.type)
         ) {
           const mentionType = selection.node.attrs.type;
-
           let link: string;
-
           if (
             mentionType === MentionType.Issue ||
             mentionType === MentionType.PullRequest ||
@@ -274,19 +257,16 @@ export default class Mention extends Node {
             link = selection.node.attrs.href;
           } else {
             const { modelId } = selection.node.attrs;
-
             const linkType =
-              selection.node.attrs.type === MentionType.Document
+              selection.node.attrs.type === MentionType.Note
                 ? "doc"
                 : "collection";
-
             link = `/${linkType}/${modelId}${
               selection.node.attrs.anchorId
                 ? `#${selection.node.attrs.anchorId}`
                 : ""
             }`;
           }
-
           this.editor.props.onClickLink?.(link);
           return true;
         }
@@ -294,7 +274,6 @@ export default class Mention extends Node {
       },
     };
   }
-
   commands({ type }: { type: NodeType; schema: Schema }) {
     return {
       mention:
@@ -308,7 +287,6 @@ export default class Mention extends Node {
           if (position === undefined) {
             return false;
           }
-
           const node = type.create(attrs);
           const transaction = state.tr.insert(position, node);
           dispatch?.(transaction);
@@ -322,42 +300,34 @@ export default class Mention extends Node {
             selection instanceof TextSelection
               ? selection.$cursor?.pos
               : selection.$to.pos;
-
           if (position === undefined || !isInList(state)) {
             return false;
           }
-
           const resolvedPos = state.tr.doc.resolve(position);
           const nodeWithPos = findParentNodeClosestToPos(resolvedPos, (node) =>
             isList(node, this.editor.schema)
           );
-
           if (!nodeWithPos) {
             return false;
           }
-
           const listNode = nodeWithPos.node,
             from = nodeWithPos.pos,
             to = from + listNode.nodeSize;
-
           const listNodeWithMentions = transformListToMentions(
             listNode,
             this.editor.schema,
             attrs
           );
-
           const tr = state.tr.deleteRange(from, to);
           dispatch?.(
             tr
               .setSelection(TextSelection.near(tr.doc.resolve(from)))
               .replaceSelectionWith(listNodeWithMentions)
           );
-
           return true;
         },
     };
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     const mType = node.attrs.type;
     const mId = node.attrs.modelId;
@@ -366,22 +336,18 @@ export default class Mention extends Node {
     const label =
       mType === MentionType.Date ? dateMentionLabel(node) : node.attrs.label;
     const id = node.attrs.id;
-
     // Use regular links for document and collection mentions
-    if (mType === MentionType.Document) {
+    if (mType === MentionType.Note) {
       state.write(
-        `[${label}](/doc/${mId}${
-          node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""
-        })`
+        `[${label}](/doc/${mId}${node.attrs.anchorId ? `#${node.attrs.anchorId}` : ""})`
       );
-    } else if (mType === MentionType.Collection) {
-      state.write(`[${label}](/collection/${mId})`);
+    } else if (mType === MentionType.Notebook) {
+      state.write(`[${label}](/notebook/${mId})`);
     } else {
       // Keep the existing mention:// format for other types (user, group, issue, pull_request, url)
       state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
     }
   }
-
   parseMarkdown() {
     return {
       node: "mention",
@@ -393,18 +359,15 @@ export default class Mention extends Node {
       }),
     };
   }
-
   handleChangeDate =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
     (modelId: string) => {
       const { view } = this.editor;
       const { tr } = view.state;
       const pos = getPos();
-
       if (node.attrs.modelId === modelId) {
         return;
       }
-
       const transaction = tr.setNodeMarkup(pos, undefined, {
         ...node.attrs,
         modelId,
@@ -412,13 +375,11 @@ export default class Mention extends Node {
       });
       view.dispatch(transaction);
     };
-
   handleChangeUnfurl =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
     (unfurl: UnfurlResponse[keyof UnfurlResponse]) => {
       const { view } = this.editor;
       const { tr } = view.state;
-
       const label =
         unfurl.type === UnfurlResourceType.Issue ||
         unfurl.type === UnfurlResourceType.PR ||
@@ -427,12 +388,9 @@ export default class Mention extends Node {
           : unfurl.type === UnfurlResourceType.Project
             ? unfurl.name
             : undefined;
-
       const overrides: Record<string, unknown> = label ? { label } : {};
       overrides.unfurl = unfurl;
-
       const pos = getPos();
-
       if (!isMatch(node.attrs, overrides)) {
         const transaction = tr.setNodeMarkup(pos, undefined, {
           ...node.attrs,

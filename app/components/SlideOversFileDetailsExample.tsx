@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -16,7 +16,6 @@ import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { HeartIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { PencilIcon, PlusIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – slide overs: file details example.
  *
@@ -24,7 +23,6 @@ import { PencilIcon, PlusIcon } from "@heroicons/react/20/solid";
  */
 export function SlideOversFileDetailsExample() {
   const [open, setOpen] = useState(true);
-
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={setOpen}>

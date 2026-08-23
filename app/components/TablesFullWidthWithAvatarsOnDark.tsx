@@ -109,7 +109,6 @@ const activityItems = [
     dateTime: "2023-01-09T08:45",
   },
 ];
-
 /**
  * Tailwind UI – tables: full width with avatars on dark.
  *

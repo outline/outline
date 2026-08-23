@@ -4,7 +4,6 @@ import styled from "styled-components";
 import useBoolean from "~/hooks/useBoolean";
 import Initials from "./Initials";
 import Tooltip from "../Tooltip";
-
 export enum AvatarSize {
   Small = 16,
   Toast = 18,
@@ -14,12 +13,10 @@ export enum AvatarSize {
   XXLarge = 48,
   Upload = 64,
 }
-
 export enum AvatarVariant {
   Round = "round",
   Square = "square",
 }
-
 export interface IAvatar {
   avatarUrl: string | null;
   color?: string;
@@ -27,7 +24,6 @@ export interface IAvatar {
   name?: string;
   id?: string;
 }
-
 export type AvatarProps = {
   /** The size of the avatar */
   size?: AvatarSize;
@@ -53,7 +49,6 @@ export type AvatarProps = {
   React.ComponentPropsWithoutRef<"div">,
   "onClick" | "className" | "style"
 >;
-
 const Avatar = React.forwardRef(function Avatar_(
   props: AvatarProps,
   ref: React.Ref<HTMLDivElement>
@@ -75,7 +70,6 @@ const Avatar = React.forwardRef(function Avatar_(
   const [error, handleError] = useBoolean(false);
   const initial =
     model?.initial || (model?.name ? model.name[0] : "").toUpperCase();
-
   const content = (
     <Relative
       ref={ref}
@@ -105,15 +99,16 @@ const Avatar = React.forwardRef(function Avatar_(
       )}
     </Relative>
   );
-
   return showTooltip ? (
     <Tooltip content={alt || model?.name || ""}>{content}</Tooltip>
   ) : (
     content
   );
 });
-
-const Relative = styled.div<{ $variant: AvatarVariant; $size: AvatarSize }>`
+const Relative = styled.div<{
+  $variant: AvatarVariant;
+  $size: AvatarSize;
+}>`
   position: relative;
   user-select: none;
   flex-shrink: 0;
@@ -123,11 +118,11 @@ const Relative = styled.div<{ $variant: AvatarVariant; $size: AvatarSize }>`
   width: ${(props) => props.$size}px;
   height: ${(props) => props.$size}px;
 `;
-
-const Image = styled.img<{ size: number }>`
+const Image = styled.img<{
+  size: number;
+}>`
   display: block;
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
 `;
-
 export default observer(Avatar);

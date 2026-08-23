@@ -10,7 +10,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Home", href: "#" },
   { name: "Invoices", href: "#" },
@@ -145,7 +144,6 @@ const clients = [
     },
   },
 ];
-
 /**
  * Tailwind UI – home screens: stacked.
  *
@@ -153,7 +151,6 @@ const clients = [
  */
 export function HomeScreensStacked() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <>
       <header className="absolute inset-x-0 top-0 z-50 flex h-16 border-b border-gray-900/10">

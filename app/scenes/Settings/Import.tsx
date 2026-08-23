@@ -23,7 +23,6 @@ import FileOperationListItem from "./components/FileOperationListItem";
 import ImportJSONDialog from "./components/ImportJSONDialog";
 import { ImportListItem } from "./components/ImportListItem";
 import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
-
 type Config = {
   /** The title of the import. */
   title: string;
@@ -34,12 +33,10 @@ type Config = {
   /** Trigger for the import. */
   action: React.ReactElement;
 };
-
 function useImportsConfig() {
   const { t } = useTranslation();
   const { dialogs } = useStores();
   const appName = env.APP_NAME;
-
   return React.useMemo(() => {
     const items: Config[] = [
       {
@@ -88,11 +85,9 @@ function useImportsConfig() {
         ),
       },
     ];
-
     PluginManager.getHooks(Hook.Imports).forEach((plugin) => {
       items.push({ ...plugin.value });
     });
-
     items.push({
       title: "Confluence",
       subtitle: t("Import pages from a Confluence instance"),
@@ -103,20 +98,16 @@ function useImportsConfig() {
         </Button>
       ),
     });
-
     return items;
   }, [t, dialogs, appName]);
 }
-
 function Import() {
   const { t } = useTranslation();
   const { fileOperations, imports } = useStores();
   const configs = useImportsConfig();
   const appName = env.APP_NAME;
-
   const [, setForceRender] = React.useState(0);
   const offset = React.useMemo(() => ({ imports: 0, fileOperations: 0 }), []);
-
   const fetchImports = React.useCallback(async () => {
     const [importsArr, fileOpsArr] = await Promise.all([
       imports.fetchPage({
@@ -129,26 +120,20 @@ function Import() {
         limit: Pagination.defaultLimit,
       }),
     ]);
-
     const pageImports = orderBy(
       [...importsArr, ...fileOpsArr],
       "createdAt",
       "desc"
     ).slice(0, Pagination.defaultLimit);
-
     const apiImportsCount = pageImports.filter(
       (item) => item instanceof ImportModel
     ).length;
-
     offset.imports += apiImportsCount;
     offset.fileOperations += pageImports.length - apiImportsCount;
-
     // needed to re-render after mobx store and offset is updated
     setForceRender((s) => ++s);
-
     return pageImports;
   }, [imports, fileOperations, offset]);
-
   const allImports = orderBy(
     [
       ...imports.orderedData,
@@ -157,7 +142,6 @@ function Import() {
     "createdAt",
     "desc"
   ).slice(0, offset.imports + offset.fileOperations);
-
   return (
     <Scene title={t("Import")} icon={<NewDocumentIcon />}>
       <Heading>{t("Import")}</Heading>
@@ -165,8 +149,7 @@ function Import() {
         <Trans>
           Quickly transfer your existing documents, pages, and files from other
           tools and services into {{ appName }}. You can also drag and drop any
-          HTML, Markdown, and text documents directly into Collections in the
-          app.
+          HTML, Markdown, and text documents directly into Notebooks in the app.
         </Trans>
       </Text>
 
@@ -202,5 +185,4 @@ function Import() {
     </Scene>
   );
 }
-
 export default observer(Import);

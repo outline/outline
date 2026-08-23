@@ -2,12 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { client } from "~/utils/ApiClient";
 import { AuthLayout, fieldClass, submitClass } from "./AuthLayout";
-
 const MESSAGES: Record<string, string> = {
   missing: "Enter a business name and a valid email.",
   taken: "There's already an account with that email.",
 };
-
 /**
  * Create a business account.
  *
@@ -19,7 +17,6 @@ function Signup() {
   const [done, setDone] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSaving(true);
@@ -40,7 +37,6 @@ function Signup() {
       setIsSaving(false);
     }
   };
-
   return (
     <AuthLayout
       title="Create your account"
@@ -108,5 +104,4 @@ function Signup() {
     </AuthLayout>
   );
 }
-
 export default Signup;

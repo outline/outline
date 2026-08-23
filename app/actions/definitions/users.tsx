@@ -27,7 +27,6 @@ import {
 } from "~/actions/definitions/common";
 import { UserSection } from "~/actions/sections";
 import type { ActionContext } from "~/types";
-
 export const inviteUser = dialogActionFactory({
   analyticsName: "Invite people",
   section: UserSection,
@@ -40,7 +39,6 @@ export const inviteUser = dialogActionFactory({
   visible: () =>
     stores.policies.abilities(stores.auth.team?.id || "").inviteUser,
 });
-
 /**
  * Creates an action that sets the role of the active users, marked as selected
  * when it is the role they already have.
@@ -60,7 +58,6 @@ const updateUserRoleActionFactory = (role: UserRole) =>
         if (user.role === role) {
           return true;
         }
-
         const can = context.stores.policies.abilities(user.id);
         return UserRoleHelper.isRoleHigher(role, user.role)
           ? can.promote
@@ -71,7 +68,6 @@ const updateUserRoleActionFactory = (role: UserRole) =>
       if (!users.length) {
         return;
       }
-
       rootStore.dialogs.openModal({
         title: t("Update role"),
         content: (
@@ -84,7 +80,6 @@ const updateUserRoleActionFactory = (role: UserRole) =>
       });
     },
   });
-
 export const changeUserRole = createActionWithChildren({
   name: ({ t }) => t("Change role"),
   analyticsName: "Change user role",
@@ -98,7 +93,6 @@ export const changeUserRole = createActionWithChildren({
     updateUserRoleActionFactory(role)
   ),
 });
-
 export const changeUserAvatar = dialogActionFactory({
   analyticsName: "Change user avatar",
   section: UserSection,
@@ -111,7 +105,6 @@ export const changeUserAvatar = dialogActionFactory({
   },
   visible: (context) => canUpdateSingleUser(context),
 });
-
 export const changeUserName = dialogActionFactory({
   analyticsName: "Change user name",
   section: UserSection,
@@ -124,7 +117,6 @@ export const changeUserName = dialogActionFactory({
   },
   visible: (context) => canUpdateSingleUser(context),
 });
-
 export const changeUserEmail = dialogActionFactory({
   analyticsName: "Change user email",
   section: UserSection,
@@ -137,7 +129,6 @@ export const changeUserEmail = dialogActionFactory({
   },
   visible: (context) => canUpdateSingleUser(context),
 });
-
 export const suspendUser = dialogActionFactory({
   analyticsName: "Suspend user",
   section: UserSection,
@@ -164,7 +155,6 @@ export const suspendUser = dialogActionFactory({
         context.stores.policies.abilities(user.id).suspend
     ),
 });
-
 export const activateUser = createAction({
   name: ({ t }) => t("Activate user"),
   analyticsName: "Activate user",
@@ -191,7 +181,6 @@ export const activateUser = createAction({
           : t("{{ count }} user activated", { count: succeeded })
     ),
 });
-
 export const resendInvite = createAction({
   name: ({ t }) => t("Resend invite"),
   analyticsName: "Resend invite",
@@ -217,7 +206,6 @@ export const resendInvite = createAction({
             })
           : t("{{ count }} invite resent", { count })
     );
-
     if (succeeded < users.length) {
       toast.error(
         context.t("Could not resend {{ count }} invite", {
@@ -227,7 +215,6 @@ export const resendInvite = createAction({
     }
   },
 });
-
 export const revokeInvite = createAction({
   name: ({ t }) => `${t("Revoke invite")}…`,
   analyticsName: "Revoke invite",
@@ -248,7 +235,6 @@ export const revokeInvite = createAction({
           : t("{{ count }} invite revoked", { count: succeeded })
     ),
 });
-
 export const deleteUser = dialogActionFactory({
   analyticsName: "Delete user",
   section: UserSection,
@@ -271,15 +257,12 @@ export const deleteUser = dialogActionFactory({
       (user) => context.stores.policies.abilities(user.id).delete
     ),
 });
-
 export const rootUserActions = [inviteUser];
-
 /** The active user, when a single one is active. */
 const singleActiveUser = ({ getActiveModels }: ActionContext) => {
   const users = getActiveModels(User);
   return users.length === 1 ? users[0] : undefined;
 };
-
 const canUpdateSingleUser = (context: ActionContext) => {
   const user = singleActiveUser(context);
   return !!user && context.stores.policies.abilities(user.id).update;

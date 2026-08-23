@@ -4,7 +4,6 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
-
 type Props = {
   children?: React.ReactNode;
   label: React.ReactNode;
@@ -14,8 +13,10 @@ type Props = {
   border?: boolean;
   compact?: boolean;
 };
-
-const Row = styled(Flex)<{ $border?: boolean; $compact?: boolean }>`
+const Row = styled(Flex)<{
+  $border?: boolean;
+  $compact?: boolean;
+}>`
   padding: ${(props) => (props.$compact ? "12px 0" : "22px 0")};
   align-items: ${(props) => (props.$compact ? "center" : "initial")};
   border-bottom: 1px solid
@@ -28,7 +29,6 @@ const Row = styled(Flex)<{ $border?: boolean; $compact?: boolean }>`
     border-bottom: 0;
   }
 `;
-
 const Column = styled.div`
   display: flex;
   flex-direction: column;
@@ -63,11 +63,9 @@ const Column = styled.div`
     }
   `};
 `;
-
 const Label = styled(Text)`
   margin-bottom: 4px;
 `;
-
 const SettingRow: React.FC<Props> = ({
   visible,
   description,
@@ -80,7 +78,6 @@ const SettingRow: React.FC<Props> = ({
   if (visible === false) {
     return null;
   }
-
   return (
     <Row gap={32} $border={border} $compact={compact}>
       <Column>
@@ -97,5 +94,4 @@ const SettingRow: React.FC<Props> = ({
     </Row>
   );
 };
-
 export default SettingRow;

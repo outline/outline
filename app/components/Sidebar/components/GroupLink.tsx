@@ -11,22 +11,18 @@ import SidebarDisclosureContext, {
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
 import SidebarLink from "./SidebarLink";
-
 type Props = {
   /** The group to render */
   group: Group;
 };
-
 const GroupLink: React.FC<Props> = ({ group }) => {
   const activeSidebarContext = useActiveSidebarContext();
   const sidebarContext = groupSidebarContext(group.id);
   const [expanded, setExpanded] = React.useState(
     activeSidebarContext === sidebarContext
   );
-
   const { event: disclosureEvent, onDisclosureClick } =
     useSidebarDisclosureState();
-
   const handleDisclosureClick = React.useCallback(
     (ev) => {
       ev?.preventDefault();
@@ -38,13 +34,11 @@ const GroupLink: React.FC<Props> = ({ group }) => {
     },
     [onDisclosureClick]
   );
-
   React.useEffect(() => {
     if (activeSidebarContext === sidebarContext) {
       setExpanded(true);
     }
   }, [sidebarContext, activeSidebarContext, setExpanded]);
-
   return (
     <Relative>
       <SidebarLink
@@ -57,7 +51,7 @@ const GroupLink: React.FC<Props> = ({ group }) => {
       <SidebarContext.Provider value={sidebarContext}>
         <SidebarDisclosureContext.Provider value={disclosureEvent}>
           <Folder expanded={expanded}>
-            {group.documentMemberships.map((membership) => (
+            {group.noteMemberships.map((membership) => (
               <SharedWithMeLink
                 key={membership.id}
                 membership={membership}
@@ -70,5 +64,4 @@ const GroupLink: React.FC<Props> = ({ group }) => {
     </Relative>
   );
 };
-
 export default observer(GroupLink);

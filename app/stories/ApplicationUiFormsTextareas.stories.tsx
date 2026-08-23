@@ -4,29 +4,22 @@ import { TextareasWithAvatarAndActions } from "~/components/TextareasWithAvatarA
 import { TextareasWithPreviewButton } from "~/components/TextareasWithPreviewButton";
 import { TextareasWithTitleAndPillActions } from "~/components/TextareasWithTitleAndPillActions";
 import { TextareasWithUnderlineAndActions } from "~/components/TextareasWithUnderlineAndActions";
-
 const meta: Meta = {
   title: "Application UI/Forms/Textareas",
 };
-
 export default meta;
-
 export const Simple: StoryObj = {
   render: () => <TextareasSimple />,
 };
-
 export const WithAvatarAndActions: StoryObj = {
   render: () => <TextareasWithAvatarAndActions />,
 };
-
 export const WithPreviewButton: StoryObj = {
   render: () => <TextareasWithPreviewButton />,
 };
-
 export const WithTitleAndPillActions: StoryObj = {
   render: () => <TextareasWithTitleAndPillActions />,
 };
-
 export const WithUnderlineAndActions: StoryObj = {
   render: () => <TextareasWithUnderlineAndActions />,
 };

@@ -16,12 +16,10 @@ import Tooltip from "~/components/Tooltip";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import NudeButton from "~/components/NudeButton";
 import { useTheme } from "styled-components";
-
 function Features() {
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const theme = useTheme();
-
   const handleMCPChange = React.useCallback(
     async (checked: boolean) => {
       team.setPreference(TeamPreference.MCP, checked);
@@ -30,25 +28,20 @@ function Features() {
     },
     [team, t]
   );
-
   const handleGuidanceMCPChange = React.useCallback(
     async (ev: React.ChangeEvent<HTMLTextAreaElement>) => {
       team.guidanceMCP = ev.target.value || null;
     },
     [team]
   );
-
   const handleGuidanceMCPBlur = React.useCallback(async () => {
     await team.save();
     toast.success(t("Settings saved"));
   }, [team, t]);
-
   const handleCopied = React.useCallback(() => {
     toast.success(t("Copied to clipboard"));
   }, [t]);
-
   const mcpEndpoint = window.location.origin + "/mcp";
-
   return (
     <Scene title={t("AI")} icon={<SparklesIcon />}>
       <Heading>{t("AI")}</Heading>
@@ -152,5 +145,4 @@ function Features() {
     </Scene>
   );
 }
-
 export default observer(Features);

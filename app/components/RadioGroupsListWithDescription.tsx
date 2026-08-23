@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -29,7 +29,6 @@ const plans = [
     description: "16 GB RAM / 8 CPUS / 320 GB SSD Storage",
   },
 ];
-
 /**
  * Tailwind UI – radio groups: list with description.
  *

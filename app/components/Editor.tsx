@@ -24,9 +24,7 @@ import useStores from "~/hooks/useStores";
 import { uploadFile, uploadFileFromUrl } from "~/utils/files";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import useShare from "@shared/hooks/useShare";
-
 const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
-
 export type Props = Optional<
   EditorProps,
   "placeholder" | "defaultValue" | "onClickLink" | "embeds" | "extensions"
@@ -36,7 +34,6 @@ export type Props = Optional<
   onPublish?: (event: React.MouseEvent) => void;
   editorStyle?: React.CSSProperties;
 };
-
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const {
     id,
@@ -53,7 +50,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const localRef = React.useRef<SharedEditor>();
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
   const previousCommentIds = React.useRef<string[]>();
-
   // Upload progress tracking for delayed toast
   const progressMap = React.useMemo(() => new Map<string, number>(), []);
   const uploadState = React.useRef<{
@@ -61,7 +57,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     timeoutId?: ReturnType<typeof setTimeout>;
     progress: Map<string, number>;
   }>({ progress: progressMap });
-
   const handleUploadFile = React.useCallback(
     async (
       file: File | string,
@@ -72,8 +67,8 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     ) => {
       const options = {
         id: uploadOptions?.id,
-        documentId: id,
-        preset: AttachmentPreset.DocumentAttachment,
+        noteId: id,
+        preset: AttachmentPreset.NoteAttachment,
         onProgress: uploadOptions?.onProgress,
       };
       const result =
@@ -84,9 +79,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     },
     [id]
   );
-
   const { handleClickLink } = useEditorClickHandlers({ shareId });
-
   // Show toast only after uploads have been running for 2 seconds
   const handleFileUploadStart = React.useCallback(() => {
     uploadState.current.timeoutId = setTimeout(() => {
@@ -96,17 +89,14 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     }, 2000);
     onFileUploadStart?.();
   }, [onFileUploadStart, t]);
-
   const handleFileUploadProgress = React.useCallback(
     (fileId: string, fractionComplete: number) => {
       uploadState.current.progress.set(fileId, fractionComplete);
-
       // Calculate average progress across all files
       const progressValues = Array.from(uploadState.current.progress.values());
       const avgProgress =
         progressValues.reduce((a, b) => a + b, 0) / progressValues.length;
       const percent = Math.round(avgProgress * 100);
-
       // Update toast if visible
       if (uploadState.current.toastId) {
         toast.loading(t("Uploading… {{ progress }}%", { progress: percent }), {
@@ -116,7 +106,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     },
     [t]
   );
-
   const handleFileUploadStop = React.useCallback(() => {
     if (uploadState.current.timeoutId) {
       clearTimeout(uploadState.current.timeoutId);
@@ -129,51 +118,41 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     uploadState.current.progress.clear();
     onFileUploadStop?.();
   }, [onFileUploadStop]);
-
   const focusAtEnd = React.useCallback(() => {
     localRef?.current?.focusAtEnd();
   }, [localRef]);
-
   const handleDrop = React.useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
       const files = getDataTransferFiles(event);
-
       const view = localRef?.current?.view;
       if (!view) {
         return;
       }
-
       // Find a valid position at the end of the document to insert our content
       const pos = TextSelection.near(
         view.state.doc.resolve(view.state.doc.nodeSize - 2)
       ).from;
-
       // If there are no files in the drop event attempt to parse the html
       // as a fragment and insert it at the end of the document
       if (files.length === 0) {
         const text =
           event.dataTransfer.getData("text/html") ||
           event.dataTransfer.getData("text/plain");
-
         const dom = new DOMParser().parseFromString(text, "text/html");
-
         view.dispatch(
           view.state.tr.insert(
             pos,
             ProsemirrorDOMParser.fromSchema(view.state.schema).parse(dom)
           )
         );
-
         return;
       }
-
       // Insert all files as attachments if any of the files are not images.
       const isAttachment = files.some(
         (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
       );
-
       return insertFiles(view, event, pos, files, {
         uploadFile: handleUploadFile,
         onFileUploadStart: handleFileUploadStart,
@@ -191,7 +170,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       handleUploadFile,
     ]
   );
-
   // see: https://stackoverflow.com/a/50233827/192065
   const handleDragOver = React.useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
@@ -200,14 +178,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     },
     []
   );
-
   const updateComments = React.useCallback(
     (event?: { remote: boolean }) => {
       if (onCreateCommentMark && onDeleteCommentMark && localRef.current) {
         const commentMarks = localRef.current.getComments();
         const commentIds = comments.orderedData.map((c) => c.id);
         const commentMarkIds = commentMarks?.map((c) => c.id);
-
         // Only marks created by a local change should steal focus. Marks that
         // arrive through a remote or sync transaction, or that are discovered
         // by a rescan outside of a change event – such as the initial load of
@@ -219,29 +195,24 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           previousCommentIds.current ?? [],
           commentIds
         );
-
         newCommentIds.forEach((commentId) => {
           const mark = commentMarks.find((c) => c.id === commentId);
           if (mark) {
             onCreateCommentMark(mark.id, mark.userId, { focus });
           }
         });
-
         const removedCommentIds = difference(
           previousCommentIds.current ?? [],
           commentMarkIds ?? []
         );
-
         removedCommentIds.forEach((commentId) => {
           onDeleteCommentMark(commentId);
         });
-
         previousCommentIds.current = commentMarkIds;
       }
     },
     [onCreateCommentMark, onDeleteCommentMark, comments.orderedData]
   );
-
   const handleChange = React.useCallback<NonNullable<EditorProps["onChange"]>>(
     (value, event) => {
       onChange?.(value, event);
@@ -249,7 +220,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     },
     [onChange, updateComments]
   );
-
   const handleRefChanged = React.useCallback(
     (node: SharedEditor | null) => {
       if (node) {
@@ -258,14 +228,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     },
     [updateComments]
   );
-
   const paragraphs = React.useMemo(() => {
     if (props.readOnly && typeof props.value === "object") {
       return ProsemirrorHelper.getPlainParagraphs(props.value);
     }
     return undefined;
   }, [props.readOnly, props.value]);
-
   return (
     <ErrorBoundary component="div" reloadOnChunkMissing>
       <>
@@ -315,5 +283,4 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     </ErrorBoundary>
   );
 }
-
 export default observer(React.forwardRef(Editor));

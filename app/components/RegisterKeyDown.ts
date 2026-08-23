@@ -1,6 +1,5 @@
 import type { KeyFilter, Options } from "~/hooks/useKeyDown";
 import useKeyDown from "~/hooks/useKeyDown";
-
 type Props = {
   trigger: KeyFilter;
   handler: (event: KeyboardEvent) => void;
@@ -12,7 +11,6 @@ type Props = {
   shiftKey?: boolean;
   options?: Options;
 };
-
 /**
  * This method is a wrapper around the useKeyDown hook to allow easier use in
  * class components that have not yet been converted to functions. Do not use

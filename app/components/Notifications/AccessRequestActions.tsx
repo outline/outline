@@ -3,53 +3,47 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { DocumentPermission } from "@shared/types";
+import { NotePermission } from "@shared/types";
 import type Notification from "~/models/Notification";
 import { client } from "~/utils/ApiClient";
 import Button from "../Button";
 import Flex from "../Flex";
 import { SplitButton } from "../primitives/SplitButton";
-
 type Props = {
   notification: Notification;
 };
-
 function AccessRequestActions({ notification }: Props) {
   const { t } = useTranslation();
   const [processing, setProcessing] = React.useState(false);
   const [selectedPermission, setSelectedPermission] =
-    React.useState<DocumentPermission>(DocumentPermission.Read);
-
+    React.useState<NotePermission>(NotePermission.Read);
   const permissionOptions = React.useMemo(
     () => [
       {
         label: t("View only"),
-        value: DocumentPermission.Read,
+        value: NotePermission.Read,
         description: t("Can view the document"),
       },
       {
         label: t("Can edit"),
-        value: DocumentPermission.ReadWrite,
+        value: NotePermission.ReadWrite,
         description: t("Can view and edit the document"),
       },
       {
         label: t("Manage"),
-        value: DocumentPermission.Admin,
+        value: NotePermission.Admin,
         description: t("Full access including sharing"),
       },
     ],
     [t]
   );
-
   const selectedLabel = permissionOptions.find(
     (o) => o.value === selectedPermission
   )?.label;
-
   const handleApprove = React.useCallback(async () => {
     if (!notification.actor || processing) {
       return;
     }
-
     setProcessing(true);
     try {
       await client.post("/accessRequests.approve", {
@@ -69,12 +63,10 @@ function AccessRequestActions({ notification }: Props) {
       setProcessing(false);
     }
   }, [notification, processing, selectedPermission, t]);
-
   const handleDismiss = React.useCallback(async () => {
     if (processing) {
       return;
     }
-
     setProcessing(true);
     try {
       await client.post("/accessRequests.dismiss", {
@@ -89,12 +81,10 @@ function AccessRequestActions({ notification }: Props) {
       setProcessing(false);
     }
   }, [notification, processing, t]);
-
   const handleContainerClick = React.useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
-
   return (
     <Container gap={8} align="center" onClick={handleContainerClick}>
       <Button onClick={handleDismiss} disabled={processing} neutral>
@@ -103,7 +93,7 @@ function AccessRequestActions({ notification }: Props) {
       <SplitButton
         options={permissionOptions}
         selectedValue={selectedPermission}
-        onSelect={(value) => setSelectedPermission(value as DocumentPermission)}
+        onSelect={(value) => setSelectedPermission(value as NotePermission)}
         onClick={handleApprove}
         disabled={processing}
       >
@@ -112,10 +102,8 @@ function AccessRequestActions({ notification }: Props) {
     </Container>
   );
 }
-
 const Container = styled(Flex)`
   margin-top: 8px;
   flex-wrap: wrap;
 `;
-
 export default observer(AccessRequestActions);

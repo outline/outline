@@ -7,7 +7,6 @@ import { isInNotice } from "../queries/isInNotice";
 import { getColumnIndex, getRowIndex, isTableSelected } from "../queries/table";
 import { isMobile as isMobileDevice, isTouchDevice } from "../../utils/browser";
 import type { SelectionContext } from "../types";
-
 /**
  * Build a SelectionContext from the current editor state and options. This
  * object is computed once per toolbar render and shared across all menu
@@ -19,10 +18,13 @@ import type { SelectionContext } from "../types";
  */
 export function buildSelectionContext(
   state: EditorState,
-  options: { readOnly: boolean; isTemplate: boolean; rtl: boolean }
+  options: {
+    readOnly: boolean;
+    isTemplate: boolean;
+    rtl: boolean;
+  }
 ): SelectionContext {
   const { selection, schema } = state;
-
   return {
     state,
     schema,

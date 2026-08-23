@@ -7,12 +7,12 @@ import styled, { ThemeProvider } from "styled-components";
 import { s } from "@shared/styles";
 import { isModKey } from "@shared/utils/keyboard";
 import type { NavigationNode } from "@shared/types";
-import Collection from "~/models/Collection";
-import Document from "~/models/Document";
+import Notebook from "~/models/Notebook";
+import Note from "~/models/Note";
 import type Share from "~/models/Share";
 import Error404 from "~/scenes/Errors/Error404";
 import SharedCommandBar from "~/components/CommandBar/SharedCommandBar";
-import { DocumentContextProvider } from "~/components/DocumentContext";
+import { NoteContextProvider } from "~/components/NoteContext";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
 import { TeamContext } from "~/components/TeamContext";
@@ -29,17 +29,15 @@ import { client } from "~/utils/ApiClient";
 import { AuthorizationError, OfflineError } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
-import Loading from "../Document/components/Loading";
+import Loading from "../Note/components/Loading";
 import ErrorOffline from "../Errors/ErrorOffline";
-import { Collection as CollectionScene } from "./Collection";
-import { Document as DocumentScene } from "./Document";
+import { Notebook as NotebookScene } from "./Notebook";
+import { Note as NoteScene } from "./Note";
 import DelayedMount from "~/components/DelayedMount";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { ShareContext } from "@shared/hooks/useShare";
 import ClickablePadding from "~/components/ClickablePadding";
-
 const Login = lazyWithRetry(() => import("../Login"));
-
 // Parse the canonical origin from the SSR HTML, only needs to be done once.
 const canonicalUrl = document
   .querySelector("link[rel=canonical]")
@@ -47,46 +45,36 @@ const canonicalUrl = document
 const canonicalOrigin = canonicalUrl
   ? new URL(canonicalUrl).origin
   : window.location.origin;
-
 type PathParams = {
   shareId?: string;
-  collectionSlug?: string;
-  documentSlug?: string;
+  notebookSlug?: string;
+  noteSlug?: string;
 };
-
 type LocationState = {
   title?: string;
 };
-
 function useModel() {
-  const { collections, documents, shares } = useStores();
+  const { notebooks, notes, shares } = useStores();
   const {
     shareId = env.ROOT_SHARE_ID,
-    collectionSlug,
-    documentSlug,
+    notebookSlug,
+    noteSlug,
   } = useParams<PathParams>();
-
-  if (collectionSlug || documentSlug) {
-    return documentSlug
-      ? documents.get(documentSlug)
-      : collections.get(collectionSlug!);
+  if (notebookSlug || noteSlug) {
+    return noteSlug ? notes.get(noteSlug) : notebooks.get(notebookSlug!);
   }
-
   const share = shares.get(shareId);
-  return share?.collectionId
-    ? collections.get(share.collectionId)
-    : share?.documentId
-      ? documents.get(share.documentId)
+  return share?.notebookId
+    ? notebooks.get(share.notebookId)
+    : share?.noteId
+      ? notes.get(share.noteId)
       : undefined;
 }
-
 function useActivePage(share?: Share) {
-  const { collectionSlug, documentSlug } = useParams<PathParams>();
-
+  const { notebookSlug, noteSlug } = useParams<PathParams>();
   if (!share) {
     return;
   }
-
   const findInTree = (
     node: NavigationNode,
     slugToFind: string
@@ -104,57 +92,50 @@ function useActivePage(share?: Share) {
     }
     return;
   };
-
   if (!share.tree) {
-    return share.collectionId
-      ? { type: "collection", id: share.collectionId }
-      : { type: "document", id: share.documentId };
-  } else if (documentSlug) {
-    return { type: "document", id: findInTree(share.tree, documentSlug) };
-  } else if (collectionSlug) {
-    return { type: "collection", id: findInTree(share.tree, collectionSlug) };
+    return share.notebookId
+      ? { type: "collection", id: share.notebookId }
+      : { type: "document", id: share.noteId };
+  } else if (noteSlug) {
+    return { type: "document", id: findInTree(share.tree, noteSlug) };
+  } else if (notebookSlug) {
+    return { type: "collection", id: findInTree(share.tree, notebookSlug) };
   } else {
-    if (share.collectionId) {
-      return { type: "collection", id: share.collectionId };
+    if (share.notebookId) {
+      return { type: "collection", id: share.notebookId };
     } else {
-      return { type: "document", id: share.documentId };
+      return { type: "document", id: share.noteId };
     }
   }
 }
-
 function SharedScene() {
   const { t, i18n } = useTranslation();
-  const { shareId = env.ROOT_SHARE_ID, documentSlug } = useParams<PathParams>();
+  const { shareId = env.ROOT_SHARE_ID, noteSlug } = useParams<PathParams>();
   const location = useLocation<LocationState>();
-  const { documents, shares, ui } = useStores();
+  const { notes, shares, ui } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const [, setPostLoginPath] = usePostLoginPath();
-
   const model = useModel();
   const share = shares.get(shareId);
   const activePage = useActivePage(share);
-
   const team = share?.team;
   const theme = useBuildTheme(team?.customTheme);
-
   const pageTitle =
-    model instanceof Collection
+    model instanceof Notebook
       ? model.name
-      : model instanceof Document
+      : model instanceof Note
         ? model.title
         : undefined;
-
   const { request, error, loading, loaded } = useRequest(
     useCallback(
       () =>
         Promise.all([
           shares.fetch(shareId),
-          documentSlug ? documents.fetch(documentSlug) : undefined,
+          noteSlug ? notes.fetch(noteSlug) : undefined,
         ]),
-      [shares, documents, shareId, documentSlug]
+      [shares, notes, shareId, noteSlug]
     )
   );
-
   useKeyDown(
     useCallback(
       (ev: KeyboardEvent) => isModKey(ev) && ev.shiftKey && ev.code === "KeyL",
@@ -166,46 +147,38 @@ function SharedScene() {
       }
     }, [ui])
   );
-
   useEffect(() => {
     if (!user) {
       void changeLanguage(detectLanguage(), i18n);
     }
   }, [user, i18n]);
-
   useEffect(() => {
     client.setShareId(shareId);
     return () => client.setShareId(undefined);
   }, [shareId]);
-
   useEffect(() => {
     if (!activePage || !activePage.id) {
       return;
     }
-
     if (activePage.type === "document") {
-      ui.setActiveDocument(activePage.id);
+      ui.setActiveNote(activePage.id);
     } else {
-      ui.setActiveCollection(activePage.id);
+      ui.setActiveNotebook(activePage.id);
     }
-
     return () => {
       if (activePage.type === "document") {
-        ui.clearActiveDocument();
+        ui.clearActiveNote();
       } else {
-        ui.setActiveCollection(undefined);
+        ui.setActiveNotebook(undefined);
       }
     };
   }, [ui, activePage]);
-
   useEffect(() => {
     void request();
   }, [request]);
-
   if (loading && !loaded) {
     return <Loading location={location} />;
   }
-
   if (error) {
     if (error instanceof OfflineError) {
       return <ErrorOffline />;
@@ -234,7 +207,6 @@ function SharedScene() {
     }
     return <Error404 />;
   }
-
   if (!share) {
     return (
       <DelayedMount>
@@ -242,9 +214,7 @@ function SharedScene() {
       </DelayedMount>
     );
   }
-
   const hasSidebar = !!share.tree?.children.length;
-
   return (
     <ShareContext.Provider
       value={{
@@ -262,31 +232,29 @@ function SharedScene() {
       </Helmet>
       <TeamContext.Provider value={team}>
         <ThemeProvider theme={theme}>
-          <DocumentContextProvider>
+          <NoteContextProvider>
             <Layout
               title={pageTitle}
               sidebar={hasSidebar ? <Sidebar share={share} /> : null}
               sidebarCanCollapse={false}
             >
-              {model instanceof Document ? (
-                <DocumentScene document={model} />
-              ) : model instanceof Collection ? (
-                <CollectionScene collection={model} />
+              {model instanceof Note ? (
+                <NoteScene note={model} />
+              ) : model instanceof Notebook ? (
+                <NotebookScene notebook={model} />
               ) : null}
             </Layout>
             <SharedCommandBar />
             <ClickablePadding minHeight="20vh" />
-          </DocumentContextProvider>
+          </NoteContextProvider>
         </ThemeProvider>
       </TeamContext.Provider>
     </ShareContext.Provider>
   );
 }
-
 const Content = styled(Text)`
   color: ${s("textSecondary")};
   text-align: center;
   margin-top: -8px;
 `;
-
 export default observer(SharedScene);

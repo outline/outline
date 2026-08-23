@@ -8,7 +8,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { Menu, Transition } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 /** One event on a day in the month. */
 export interface CalendarEvent {
   id: string | number;
@@ -20,7 +19,6 @@ export interface CalendarEvent {
   /** The fuller description, shown on hover. */
   detail?: string;
 }
-
 /** One day in the grid. */
 export interface CalendarDay {
   date: string;
@@ -29,7 +27,6 @@ export interface CalendarDay {
   isSelected?: boolean;
   events: CalendarEvent[];
 }
-
 interface Props {
   /** The days to draw; the sample month is used when none is given. */
   days?: CalendarDay[];
@@ -41,7 +38,6 @@ interface Props {
   addLabel?: string;
   onAdd?: () => void;
 }
-
 const sampleDays: CalendarDay[] = [
   { date: "2021-12-27", events: [] },
   { date: "2021-12-28", events: [] },
@@ -161,7 +157,6 @@ const sampleDays: CalendarDay[] = [
   { date: "2022-02-05", events: [] },
   { date: "2022-02-06", events: [] },
 ];
-
 /**
  * Tailwind UI – calendars: month view.
  *
@@ -176,7 +171,6 @@ export function CalendarsMonthView({
 }: Props = {}) {
   const shown = days ?? sampleDays;
   const selectedDay = shown.find((day) => day.isSelected);
-
   return (
     <div className="lg:flex lg:h-full lg:flex-col">
       <header className="flex items-center justify-between border-b border-gray-200 px-6 py-4 lg:flex-none">

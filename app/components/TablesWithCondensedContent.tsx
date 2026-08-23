@@ -10,7 +10,6 @@ const transactions = [
   },
   // More transactions...
 ];
-
 /**
  * Tailwind UI – tables: with condensed content.
  *

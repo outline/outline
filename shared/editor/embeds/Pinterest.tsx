@@ -2,14 +2,17 @@ import * as React from "react";
 import styled from "styled-components";
 import Frame from "../components/Frame";
 import type { EmbedProps as Props } from ".";
-
 function Pinterest({ matches, ...props }: Props) {
   const boardUrl = props.attrs.href;
   const frame = React.useRef<HTMLIFrameElement>(null);
   const [height, setHeight] = React.useState(400);
-
   React.useEffect(() => {
-    const handler = (event: MessageEvent<{ type: string; value: number }>) => {
+    const handler = (
+      event: MessageEvent<{
+        type: string;
+        value: number;
+      }>
+    ) => {
       const contentWindow =
         frame.current?.contentWindow ||
         frame.current?.contentDocument?.defaultView;
@@ -21,10 +24,8 @@ function Pinterest({ matches, ...props }: Props) {
       }
     };
     window.addEventListener("message", handler);
-
     return () => window.removeEventListener("message", handler);
   }, []);
-
   return (
     <PinterestFrame
       {...props}
@@ -36,9 +37,7 @@ function Pinterest({ matches, ...props }: Props) {
     />
   );
 }
-
 const PinterestFrame = styled(Frame)`
   border-radius: 18px;
 `;
-
 export default Pinterest;

@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { createActionWithChildren, createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
-
 const useSettingsAction = () => {
   const config = useSettingsConfig();
   const actions = useMemo(
@@ -20,7 +19,6 @@ const useSettingsAction = () => {
       }),
     [config]
   );
-
   const navigateToSettings = useMemo(
     () =>
       createActionWithChildren({
@@ -33,8 +31,6 @@ const useSettingsAction = () => {
       }),
     [actions]
   );
-
   return navigateToSettings;
 };
-
 export default useSettingsAction;

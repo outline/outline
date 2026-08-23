@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { s, hover } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
-
 export interface FileFormat<T extends string> {
   /** The name of the format, e.g. "Markdown" */
   title: string;
@@ -15,7 +14,6 @@ export interface FileFormat<T extends string> {
   /** The value chosen when this format is selected */
   value: T;
 }
-
 type Props<T extends string> = {
   /** The formats available to choose between */
   formats: FileFormat<T>[];
@@ -24,7 +22,6 @@ type Props<T extends string> = {
   /** Called with the newly selected format */
   onChange: (value: NoInfer<T>) => void;
 };
-
 /**
  * A list of file formats to choose between, displayed as selectable cards.
  *
@@ -42,7 +39,6 @@ export function FileFormatSelector<T extends string>({
     },
     [onChange]
   );
-
   return (
     <Flex gap={8} column>
       {formats.map((format) => (
@@ -68,20 +64,17 @@ export function FileFormatSelector<T extends string>({
     </Flex>
   );
 }
-
 const HiddenInput = styled.input`
   position: absolute;
   opacity: 0;
   pointer-events: none;
 `;
-
 const FormatIcon = styled.span`
   display: flex;
   flex-shrink: 0;
   color: ${s("textSecondary")};
   transition: color 100ms ease-in-out;
 `;
-
 const Format = styled.label`
   position: relative;
   display: flex;

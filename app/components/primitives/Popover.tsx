@@ -5,11 +5,8 @@ import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import { fadeAndScaleIn } from "~/styles/animations";
 import { usePortalContext } from "../Portal";
-
 const Popover = PopoverPrimitive.Root;
-
 const PopoverAnchor = PopoverPrimitive.Anchor;
-
 const PopoverTrigger = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger>
@@ -22,7 +19,6 @@ const PopoverTrigger = React.forwardRef<
   );
 });
 PopoverTrigger.displayName = PopoverPrimitive.Trigger.displayName;
-
 type ContentProps = {
   /** The width of the popover, defaults to 380px. */
   width?: number;
@@ -35,7 +31,6 @@ type ContentProps = {
   /** Shrink the padding of the popover */
   shrink?: boolean;
 } & React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>;
-
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   ContentProps
@@ -54,7 +49,6 @@ const PopoverContent = React.forwardRef<
     ...rest
   } = props;
   const resolvedWidth = width ?? (minWidth ? undefined : 380);
-
   const enablePointerEvents = React.useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -63,7 +57,6 @@ const PopoverContent = React.forwardRef<
       ref.current.style.pointerEvents = "auto";
     }
   }, []);
-
   const disablePointerEvents = React.useCallback(() => {
     if (ref.current) {
       ref.current.style.pointerEvents = "none";
@@ -73,7 +66,6 @@ const PopoverContent = React.forwardRef<
       enablePointerEvents();
     }, 500);
   }, [enablePointerEvents]);
-
   return (
     <PopoverPrimitive.Portal container={container}>
       <StyledContent
@@ -94,7 +86,6 @@ const PopoverContent = React.forwardRef<
   );
 });
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
-
 type StyledContentProps = {
   $width?: number;
   $minWidth?: number;
@@ -102,7 +93,6 @@ type StyledContentProps = {
   $scrollable: boolean;
   $shrink: boolean;
 };
-
 const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
   z-index: ${depths.modal};
   max-height: min(85vh, var(--radix-popover-content-available-height));
@@ -133,5 +123,4 @@ const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
     animation: ${fadeAndScaleIn} 150ms cubic-bezier(0.08, 0.82, 0.17, 1);
   }
 `;
-
 export { Popover, PopoverAnchor, PopoverTrigger, PopoverContent };

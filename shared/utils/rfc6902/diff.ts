@@ -1,7 +1,6 @@
 import { isEqual } from "es-toolkit/compat";
 import type { Pointer } from "./pointer";
 import { hasOwn, objectType } from "./util";
-
 /**
  * All diff* functions should return a list of operations, often empty.
  *
@@ -24,7 +23,6 @@ import { hasOwn, objectType } from "./util";
  * Everything Else, which is pretty much just what JSON substantially
  * differentiates between.
  */
-
 export interface AddOperation {
   op: "add";
   path: string;
@@ -54,7 +52,6 @@ export interface TestOperation {
   path: string;
   value: unknown;
 }
-
 export type Operation =
   | AddOperation
   | RemoveOperation
@@ -62,11 +59,9 @@ export type Operation =
   | MoveOperation
   | CopyOperation
   | TestOperation;
-
 export function isDestructive({ op }: Operation): boolean {
   return op === "remove" || op === "replace" || op === "copy" || op === "move";
 }
-
 export type Diff = (
   input: unknown,
   output: unknown,
@@ -82,7 +77,6 @@ export type VoidableDiff = (
   output: unknown,
   ptr: Pointer
 ) => Operation[] | void;
-
 /**
  * List the keys in `minuend` that are not in `subtrahend`.
  *
@@ -95,11 +89,17 @@ export type VoidableDiff = (
  * @returns array of keys that are in `minuend` but not in `subtrahend`.
  */
 export function subtract(
-  minuend: { [index: string]: unknown },
-  subtrahend: { [index: string]: unknown }
+  minuend: {
+    [index: string]: unknown;
+  },
+  subtrahend: {
+    [index: string]: unknown;
+  }
 ): string[] {
   // initialize empty object; we only care about the keys, the values can be anything
-  const obj: { [index: string]: number } = {};
+  const obj: {
+    [index: string]: number;
+  } = {};
   // build up obj with all the properties of minuend
   for (const add_key in minuend) {
     if (hasOwn(minuend, add_key) && minuend[add_key] !== undefined) {
@@ -116,7 +116,6 @@ export function subtract(
   // finally, extract whatever keys remain in obj
   return Object.keys(obj);
 }
-
 /**
  * List the keys that shared by all `objects`.
  *
@@ -126,11 +125,15 @@ export function subtract(
  * @returns array of keys that are in ("own-properties" of) every object in `objects`.
  */
 export function intersection(
-  objects: ArrayLike<{ [index: string]: unknown }>
+  objects: ArrayLike<{
+    [index: string]: unknown;
+  }>
 ): string[] {
   const length = objects.length;
   // prepare empty counter to keep track of how many objects each key occurred in
-  const counter: { [index: string]: number } = {};
+  const counter: {
+    [index: string]: number;
+  } = {};
   // go through each object and increment the counter for each key in that object
   for (let i = 0; i < length; i++) {
     const object = objects[i];
@@ -149,7 +152,6 @@ export function intersection(
   // finally, extract whatever keys remain in the counter
   return Object.keys(counter);
 }
-
 interface ArrayAdd {
   op: "add";
   index: number;
@@ -179,7 +181,6 @@ function isArrayRemove(
 ): array_operation is ArrayRemove {
   return array_operation.op === "remove";
 }
-
 interface DynamicAlternative {
   /** Previous i coordinate (-1 means no previous) */
   prevI: number;
@@ -191,7 +192,6 @@ interface DynamicAlternative {
    */
   cost: number;
 }
-
 function buildOperations(
   memo: Array<Array<DynamicAlternative>>,
   i: number,
@@ -208,7 +208,6 @@ function buildOperations(
   }
   return operations.reverse();
 }
-
 /**
  * Calculate the shortest sequence of operations to get from `input` to `output`,
  * using a dynamic programming implementation of the Levenshtein distance algorithm.
@@ -249,7 +248,6 @@ export function diffArrays<T>(
     isNaN(input.length) || input.length <= 0 ? 0 : input.length;
   const output_length =
     isNaN(output.length) || output.length <= 0 ? 0 : output.length;
-
   // Skip matching prefix
   let start = 0;
   while (
@@ -259,7 +257,6 @@ export function diffArrays<T>(
   ) {
     start++;
   }
-
   // Skip matching suffix
   let input_end = input_length;
   let output_end = output_length;
@@ -271,11 +268,9 @@ export function diffArrays<T>(
       break;
     }
   }
-
   // Calculate the size of the subproblem
   const subInput = input_end - start;
   const subOutput = output_end - start;
-
   // oxlint-disable-next-line unicorn/no-new-array
   const memo: Array<Array<DynamicAlternative>> = new Array(subInput + 1);
   for (let i = 0; i <= subInput; i++) {
@@ -283,18 +278,15 @@ export function diffArrays<T>(
     memo[i] = new Array(subOutput + 1);
   }
   memo[0][0] = { prevI: -1, prevJ: -1, operation: null, cost: 0 };
-
   for (let i = 0; i <= subInput; i++) {
     for (let j = 0; j <= subOutput; j++) {
       let memoized = memo[i][j];
       if (memoized) {
         continue;
       }
-
       // Map back to original array indices
       const inputIdx = start + i - 1;
       const outputIdx = start + j - 1;
-
       if (j === 0) {
         memoized = {
           prevI: i - 1,
@@ -393,7 +385,6 @@ export function diffArrays<T>(
   );
   return padded_operations;
 }
-
 export function diffObjects(
   input: Record<string, unknown>,
   output: Record<string, unknown>,
@@ -419,7 +410,6 @@ export function diffObjects(
   });
   return operations;
 }
-
 /**
  * `diffAny()` returns an empty array if `input` and `output` are materially equal
  * (i.e., would produce equivalent JSON); otherwise it produces an array of patches

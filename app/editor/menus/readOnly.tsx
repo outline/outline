@@ -2,12 +2,11 @@ import { t } from "i18next";
 import { CommentIcon } from "outline-icons";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
-
 /**
  * Returns menu items for the read-only selection toolbar.
  *
  * @param ctx - the current selection context.
- * @param canComment - whether the user has permission to comment on the document.
+ * @param canComment - whether the user has permission to comment on the note.
  * @returns an array of menu items.
  */
 export default function readOnlyMenuItems(
@@ -15,7 +14,6 @@ export default function readOnlyMenuItems(
   canComment: boolean
 ): MenuItem[] {
   const { schema } = ctx;
-
   return [
     {
       visible: canComment && !ctx.isEmpty,

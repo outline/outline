@@ -1,9 +1,8 @@
 import queryString from "query-string";
-import type Collection from "~/models/Collection";
+import type Notebook from "~/models/Notebook";
 import type Comment from "~/models/Comment";
-import type Document from "~/models/Document";
+import type Note from "~/models/Note";
 import env from "~/env";
-
 /**
  * Returns the path to the home screen.
  *
@@ -12,7 +11,6 @@ import env from "~/env";
 export function homePath(): string {
   return env.ROOT_SHARE_ID ? "/" : "/home";
 }
-
 /**
  * Returns the location descriptor used to trigger a logout.
  *
@@ -24,7 +22,6 @@ export function logoutPath() {
     search: "logout=true",
   };
 }
-
 /**
  * Returns the path to the drafts screen.
  *
@@ -33,7 +30,6 @@ export function logoutPath() {
 export function draftsPath(): string {
   return "/drafts";
 }
-
 /**
  * Returns the path to the archive screen.
  *
@@ -42,7 +38,6 @@ export function draftsPath(): string {
 export function archivePath(): string {
   return "/archive";
 }
-
 /**
  * Returns the path to the trash screen.
  *
@@ -51,7 +46,6 @@ export function archivePath(): string {
 export function trashPath(): string {
   return "/trash";
 }
-
 /**
  * Returns the path to the debug screen.
  *
@@ -60,7 +54,6 @@ export function trashPath(): string {
 export function debugPath(): string {
   return "/debug";
 }
-
 /**
  * Returns the path to the changesets debug screen.
  *
@@ -69,7 +62,6 @@ export function debugPath(): string {
 export function debugChangesetsPath(): string {
   return "/debug/changesets";
 }
-
 /**
  * Returns the path to a settings screen.
  *
@@ -79,86 +71,87 @@ export function debugChangesetsPath(): string {
 export function settingsPath(...args: string[]): string {
   return "/settings" + (args.length > 0 ? `/${args.join("/")}` : "");
 }
-
 /**
- * Returns the path to a comment within a document.
+ * Returns the path to a comment within a note.
  *
  * @param document the document the comment belongs to.
  * @param comment the comment to link to.
  * @returns the path to the comment.
  */
-export function commentPath(document: Document, comment: Comment): string {
-  return `${documentPath(document)}?commentId=${comment.id}${
-    comment.isResolved ? "&resolved=1" : ""
-  }`;
+export function commentPath(note: Note, comment: Comment): string {
+  return `${notePath(note)}?commentId=${comment.id}${comment.isResolved ? "&resolved=1" : ""}`;
 }
-
 /**
- * Returns the path to a collection, optionally within a specific section.
+ * Returns the path to a notebook, optionally within a specific section.
  *
- * @param collection the collection to link to.
- * @param section an optional section within the collection.
- * @returns the path to the collection.
+ * @param notebook the notebook to link to.
+ * @param section an optional section within the notebook.
+ * @returns the path to the notebook.
  */
-export function collectionPath(
-  collection: Collection,
-  section?: string
-): string {
+export function notebookPath(notebook: Notebook, section?: string): string {
   if (section) {
-    return `${collection.path}/${section}`;
+    return `${notebook.path}/${section}`;
   }
-  return collection.path;
+  return notebook.path;
 }
-
 /**
- * Returns the path to edit a collection's overview.
+ * Converts a legacy collection URL to the canonical notebook URL.
  *
- * @param collection the collection to edit.
- * @returns the path to the collection edit screen.
+ * @param pathname the legacy pathname to convert.
+ * @param search the query string to preserve.
+ * @param hash the hash fragment to preserve.
+ * @returns the canonical notebook URL.
  */
-export function collectionEditPath(collection: Collection): string {
-  return collectionPath(collection, "overview/edit");
+export function legacyNotebookPath(
+  pathname: string,
+  search = "",
+  hash = ""
+): string {
+  const canonicalPathname = pathname.replace(
+    /^\/collections?(?=\/|$)/,
+    "/notebook"
+  );
+  return `${canonicalPathname}${search}${hash}`;
 }
-
 /**
- * Replaces the collection part of a URL with the collection's current path,
- * for use when the collection slug has been updated.
+ * Returns the path to edit a notebook's overview.
+ *
+ * @param notebook the notebook to edit.
+ * @returns the path to the notebook edit screen.
+ */
+export function notebookEditPath(notebook: Notebook): string {
+  return notebookPath(notebook, "overview/edit");
+}
+/**
+ * Replaces the notebook part of a URL with the notebook's current path,
+ * for use when the notebook slug has been updated.
  *
  * @param oldUrl the URL to update.
- * @param collection the collection with the current path.
+ * @param notebook the notebook with the current path.
  * @returns the updated URL.
  */
-export function updateCollectionPath(
-  oldUrl: string,
-  collection: Collection
-): string {
+export function updateNotebookPath(oldUrl: string, notebook: Notebook): string {
   // Update url to match the current one
-  return oldUrl.replace(
-    new RegExp("/collection/[0-9a-zA-Z-_~]*"),
-    collection.path
-  );
+  return oldUrl.replace(new RegExp("/notebook/[0-9a-zA-Z-_~]*"), notebook.path);
 }
-
 /**
- * Returns the path to a document.
+ * Returns the path to a note.
  *
  * @param doc the document to link to.
- * @returns the path to the document.
+ * @returns the path to the note.
  */
-export function documentPath(doc: Document): string {
+export function notePath(doc: Note): string {
   return doc.path;
 }
-
 /**
- * Returns the path to edit a document.
+ * Returns the path to edit a note.
  *
  * @param doc the document to edit.
  * @returns the path to the document edit screen.
  */
-export function documentEditPath(doc: Document): string {
-  return `${documentPath(doc)}/edit`;
+export function noteEditPath(doc: Note): string {
+  return `${notePath(doc)}/edit`;
 }
-
 /**
  * Returns the path to a document's history, optionally at a specific
  * revision.
@@ -167,102 +160,90 @@ export function documentEditPath(doc: Document): string {
  * @param revisionId an optional revision to link to.
  * @returns the path to the document history screen.
  */
-export function documentHistoryPath(
-  doc: Document,
-  revisionId?: string
-): string {
-  let base = `${documentPath(doc)}/history`;
+export function noteHistoryPath(doc: Note, revisionId?: string): string {
+  let base = `${notePath(doc)}/history`;
   if (revisionId) {
     base += `/${revisionId}`;
   }
   return base;
 }
-
 /**
  * Replace full url's document part with the new one in case
  * the document slug has been updated
  */
-export function updateDocumentPath(oldUrl: string, document: Document): string {
+export function updateNotePath(oldUrl: string, note: Note): string {
   // Update url to match the current one
   return oldUrl.replace(
     new RegExp("/doc/([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})"),
-    document.url
+    note.url
   );
 }
-
 /**
  * Returns the path to create a new template, optionally associated with a
- * collection.
+ * notebook.
  *
- * @param collectionId an optional collection to associate the template with.
+ * @param notebookId an optional notebook to associate the template with.
  * @returns the path to the new template screen.
  */
-export function newTemplatePath(collectionId?: string) {
-  return collectionId
-    ? settingsPath("templates") + `/new?collectionId=${collectionId}`
+export function newTemplatePath(notebookId?: string) {
+  return notebookId
+    ? settingsPath("templates") + `/new?collectionId=${notebookId}`
     : `${settingsPath("templates")}/new`;
 }
-
 /**
- * Returns the path to create a new document, optionally within a collection
+ * Returns the path to create a new document, optionally within a notebook
  * or from a template.
  *
- * @param collectionId an optional collection to create the document in.
+ * @param notebookId an optional notebook to create the document in.
  * @param params optional parameters such as a template to base the document on.
  * @returns the path to the new document screen.
  */
-export function newDocumentPath(
-  collectionId?: string | null,
+export function newNotePath(
+  notebookId?: string | null,
   params: {
     templateId?: string;
   } = {}
 ): string {
   const search = queryString.stringify(params);
-
-  return collectionId
-    ? `/collection/${collectionId}/new${search ? `?${search}` : ""}`
+  return notebookId
+    ? `/notebook/${notebookId}/new${search ? `?${search}` : ""}`
     : `/doc/new${search ? `?${search}` : ""}`;
 }
-
 /**
- * Returns the path to create a new document nested under a parent document.
+ * Returns the path to create a new document nested under a parent note.
  *
  * @param parentDocumentId an optional parent document to nest under.
  * @returns the path to the new nested document screen.
  */
-export function newNestedDocumentPath(parentDocumentId?: string): string {
-  const search = parentDocumentId
-    ? `?${queryString.stringify({ parentDocumentId })}`
+export function newNestedNotePath(parentNoteId?: string): string {
+  const search = parentNoteId
+    ? `?${queryString.stringify({ parentNoteId })}`
     : "";
-
   return `/doc/new${search}`;
 }
-
 /**
  * Returns the path to create a new document as a sibling at a given index,
- * optionally within a collection or under a parent document.
+ * optionally within a notebook or under a parent note.
  *
- * @param params the collection, parent document, and index for the new document.
+ * @param params the notebook, parent document, and index for the new note.
  * @returns the path to the new sibling document screen.
  */
-export function newSiblingDocumentPath(params: {
-  collectionId?: string | null;
-  parentDocumentId?: string;
+export function newSiblingNotePath(params: {
+  notebookId?: string | null;
+  parentNoteId?: string;
   index: number;
 }): string {
   const query: Record<string, string> = {
     index: String(params.index),
   };
-  if (params.parentDocumentId) {
-    query.parentDocumentId = params.parentDocumentId;
+  if (params.parentNoteId) {
+    query.parentNoteId = params.parentNoteId;
   }
-  if (params.collectionId) {
-    query.collectionId = params.collectionId;
+  if (params.notebookId) {
+    query.notebookId = params.notebookId;
   }
-
   return `/doc/new?${queryString.stringify(query)}`;
 }
-
 /**
  * Returns the path to the search screen, optionally with a query and filters.
  *
@@ -271,25 +252,23 @@ export function newSiblingDocumentPath(params: {
  */
 export function searchPath({
   query,
-  collectionId,
-  documentId,
+  notebookId,
+  noteId,
   ref,
 }: {
   query?: string;
-  collectionId?: string;
-  documentId?: string;
+  notebookId?: string;
+  noteId?: string;
   ref?: string;
 } = {}): string {
   const search = queryString.stringify({
     q: query,
-    collectionId,
-    documentId,
+    notebookId,
+    noteId,
     ref,
   });
-
   return `/search${search ? `?${search}` : ""}`;
 }
-
 /**
  * Returns the public path for a shared model.
  *
@@ -301,10 +280,8 @@ export function sharedModelPath(shareId: string, modelPath?: string) {
   if (shareId === env.ROOT_SHARE_ID) {
     return modelPath ? modelPath : "/";
   }
-
   return modelPath ? `/s/${shareId}${modelPath}` : `/s/${shareId}`;
 }
-
 /**
  * Converts a path to a full URL by prepending an origin.
  *
@@ -318,7 +295,6 @@ export function urlify(
 ): string {
   return `${origin}${path}`;
 }
-
 /**
  * Converts a path to a desktop app URL using the outline:// protocol.
  *
@@ -329,20 +305,15 @@ export function urlify(
 export function desktopify(path: string, origin?: string): string {
   return urlify(path, origin).replace(/^https?:\/\//, "outline://");
 }
-
-/** Route matcher for a collection slug. */
-export const matchCollectionSlug =
-  ":collectionSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
-
-/** Route matcher for the collection edit screen. */
-export const matchCollectionEdit = `/collection/${matchCollectionSlug}/overview/edit`;
-
+/** Route matcher for a notebook slug. */
+export const matchNotebookSlug =
+  ":notebookSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
+/** Route matcher for the notebook edit screen. */
+export const matchNotebookEdit = `/notebook/${matchNotebookSlug}/overview/edit`;
 /** Route matcher for a document slug. */
-export const matchDocumentSlug =
+export const matchNoteSlug =
   ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
-
 /** Route matcher for the document edit screen. */
-export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
-
+export const matchNoteEdit = `/doc/${matchNoteSlug}/edit`;
 /** Route matcher for the document history screen. */
-export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;
+export const matchNoteHistory = `/doc/${matchNoteSlug}/history/:revisionId?`;

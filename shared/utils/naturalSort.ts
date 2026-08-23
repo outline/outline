@@ -1,19 +1,14 @@
 import emojiRegex from "emoji-regex";
 import { deburr } from "es-toolkit/compat";
 import naturalSort from "natural-sort";
-
 type NaturalSortOptions = {
   caseSensitive?: boolean;
   direction?: "asc" | "desc";
 };
-
 const sorter = naturalSort();
 const regex = emojiRegex();
-
 const stripEmojis = (value: string) => value.replace(regex, "");
-
 const cleanValue = (value: string) => stripEmojis(deburr(value));
-
 function getSortByField<T extends object>(
   item: T,
   keyOrCallback: string | ((item: T) => string)
@@ -24,7 +19,6 @@ function getSortByField<T extends object>(
       : keyOrCallback(item);
   return cleanValue(typeof field === "string" ? field : "");
 }
-
 function naturalSortBy<T extends object>(
   items: T[],
   key: string | ((item: T) => string),
@@ -39,10 +33,8 @@ function naturalSortBy<T extends object>(
         direction: sortOptions.direction === "desc" ? "desc" : undefined,
       })
     : sorter;
-
   return items.sort((a: T, b: T) =>
     sort(getSortByField(a, key), getSortByField(b, key))
   );
 }
-
 export default naturalSortBy;

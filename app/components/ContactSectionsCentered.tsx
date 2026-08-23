@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -16,7 +16,6 @@ import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { Switch } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 /**
  * Tailwind UI – contact sections: centered.
  *
@@ -24,7 +23,6 @@ import { classNames } from "./classNames";
  */
 export function ContactSectionsCentered() {
   const [agreed, setAgreed] = useState(false);
-
   return (
     <div className="isolate bg-white px-6 py-24 sm:py-32 lg:px-8">
       <div

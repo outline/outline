@@ -1,7 +1,6 @@
 import { useCallback, useRef } from "react";
 import { CSRF } from "@shared/constants";
 import { getCSRFToken } from "~/utils/csrf";
-
 /**
  * Form component that automatically includes a CSRF token as a hidden input
  * field, read from the cookie at submission time.
@@ -12,7 +11,6 @@ export const Form = ({
   ...props
 }: React.FormHTMLAttributes<HTMLFormElement>) => {
   const tokenRef = useRef<HTMLInputElement>(null);
-
   const handleSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
       if (tokenRef.current) {
@@ -22,7 +20,6 @@ export const Form = ({
     },
     [onSubmit]
   );
-
   return (
     <form {...props} onSubmit={handleSubmit}>
       <input

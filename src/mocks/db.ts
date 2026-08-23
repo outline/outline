@@ -22,18 +22,18 @@ export interface MockTeam {
   allowedDomains: string[];
 }
 
-export interface MockCollection {
+export interface MockNotebook {
   id: string;
-  /** The short id that appears at the end of the collection slug. */
+  /** The short id that appears at the end of the notebook slug. */
   urlId: string;
-  /** The path the collection is reachable at, as returned by the real API. */
+  /** The path the notebook is reachable at, as returned by the real API. */
   url: string;
   name: string;
   description: string | null;
   color: string;
   icon: string | null;
   index: string;
-  /** The sort field and direction for documents in this collection. */
+  /** The sort field and direction for documents in this notebook. */
   sort: { field: string; direction: "asc" | "desc" };
   permission: string;
   createdAt: string;
@@ -60,7 +60,7 @@ export interface MockDocument {
   lastModifiedById: string;
   /** Checklist task counts shown in the document meta. */
   tasks: { total: number; completed: number };
-  /** Whether the document's collection has been deleted. */
+  /** Whether the document's notebook has been deleted. */
   isCollectionDeleted: boolean;
   archivedAt: string | null;
   deletedAt: string | null;
@@ -91,19 +91,19 @@ export interface MockPin {
 export interface MockState {
   user: MockUser;
   team: MockTeam;
-  collections: MockCollection[];
+  notebooks: MockNotebook[];
   documents: MockDocument[];
   comments: MockComment[];
   pins: MockPin[];
   starredDocumentIds: string[];
 }
 
-const STORAGE_KEY = "outline_mock_db_v3";
+const STORAGE_KEY = "outline_mock_db_v5";
 
 /**
- * Builds the url-safe slug the app uses in collection and document paths.
+ * Builds the url-safe slug the app uses in notebook and document paths.
  *
- * @param title the collection or document title.
+ * @param title the notebook or document title.
  * @returns the slugified title, or an empty string when there is no title.
  */
 function slugifyTitle(title: string): string {
@@ -114,14 +114,14 @@ function slugifyTitle(title: string): string {
 }
 
 /**
- * Builds the path a collection is reachable at, matching the real API's `url`.
+ * Builds the path a notebook is reachable at, matching the real API's `url`.
  *
- * @param name the collection name.
- * @param urlId the collection's short url id.
- * @returns the collection path.
+ * @param name the notebook name.
+ * @param urlId the notebook's short url id.
+ * @returns the notebook path.
  */
-function collectionUrl(name: string, urlId: string): string {
-  return `/collection/${slugifyTitle(name)}-${urlId}`;
+function notebookUrl(name: string, urlId: string): string {
+  return `/notebook/${slugifyTitle(name)}-${urlId}`;
 }
 
 /**
@@ -297,11 +297,11 @@ const initialSeedState: MockState = {
     customDomain: null,
     allowedDomains: ["outline.dev", "acme.com"],
   },
-  collections: [
+  notebooks: [
     {
       id: "col-eng",
       urlId: "engineering1",
-      url: collectionUrl("Engineering", "engineering1"),
+      url: notebookUrl("Engineering", "engineering1"),
       name: "Engineering",
       description:
         "Technical guides, system architecture, and API documentation",
@@ -317,7 +317,7 @@ const initialSeedState: MockState = {
     {
       id: "col-prod",
       urlId: "product0001",
-      url: collectionUrl("Product", "product0001"),
+      url: notebookUrl("Product", "product0001"),
       name: "Product",
       description: "Roadmaps, feature specs, and design assets",
       color: "#D9534F",
@@ -332,7 +332,7 @@ const initialSeedState: MockState = {
     {
       id: "col-gen",
       urlId: "general0001",
-      url: collectionUrl("General & Onboarding", "general0001"),
+      url: notebookUrl("General & Onboarding", "general0001"),
       name: "General & Onboarding",
       description: "Company policies, team directory, and welcome resources",
       color: "#00B0FF",
@@ -559,44 +559,44 @@ export class MockDatabase {
     return true;
   }
 
-  // --- Collection Operations ---
-  public getCollections(): MockCollection[] {
-    return this.state.collections.filter((c) => !c.deletedAt);
+  // --- Notebook Operations ---
+  public getNotebooks(): MockNotebook[] {
+    return this.state.notebooks.filter((notebook) => !notebook.deletedAt);
   }
 
   /**
-   * Looks up a collection by its id, its urlId, or the full slug used in urls.
+   * Looks up a notebook by its id, its urlId, or the full slug used in urls.
    *
    * @param id an id, urlId, or `name-urlId` slug.
-   * @returns the matching collection, or undefined.
+   * @returns the matching notebook, or undefined.
    */
-  public getCollection(id: string): MockCollection | undefined {
-    return this.state.collections.find(
-      (c) => !c.deletedAt && matchesIdentifier(c.id, c.urlId, id)
+  public getNotebook(id: string): MockNotebook | undefined {
+    return this.state.notebooks.find(
+      (notebook) => !notebook.deletedAt && matchesIdentifier(notebook.id, notebook.urlId, id)
     );
   }
 
-  public createCollection(data: Partial<MockCollection>): MockCollection {
-    const name = data.name || "New Collection";
+  public createNotebook(data: Partial<MockNotebook>): MockNotebook {
+    const name = data.name || "New Notebook";
     const urlId = generateUrlId();
-    const col: MockCollection = {
+    const notebook: MockNotebook = {
       id: `col-${Date.now()}`,
       urlId,
-      url: collectionUrl(name, urlId),
+      url: notebookUrl(name, urlId),
       name,
       description: data.description || null,
       color: data.color || "#4E5BA6",
       icon: data.icon || "collection",
-      index: String.fromCharCode(97 + this.state.collections.length),
+      index: String.fromCharCode(97 + this.state.notebooks.length),
       sort: { field: "index", direction: "asc" },
       permission: "read_write",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       deletedAt: null,
     };
-    this.state.collections.push(col);
+    this.state.notebooks.push(notebook);
     this.saveState();
-    return col;
+    return notebook;
   }
 
   // --- Comments ---

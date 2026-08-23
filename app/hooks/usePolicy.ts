@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import type Model from "~/models/base/Model";
 import useCurrentUser from "./useCurrentUser";
 import useStores from "./useStores";
-
 /**
  * Retrieve the abilities of a policy for a given entity, if the policy is not
  * located in the store, it will be fetched from the server.
@@ -19,7 +18,6 @@ export default function usePolicy(entity?: string | Model | null) {
       : entity.id
     : "";
   const policy = policies.get(entityId);
-
   useEffect(() => {
     if (
       entity &&
@@ -34,6 +32,5 @@ export default function usePolicy(entity?: string | Model | null) {
       }
     }
   }, [policies, policy, user, entity]);
-
   return policies.abilities(entityId);
 }

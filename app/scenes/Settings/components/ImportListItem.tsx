@@ -18,12 +18,10 @@ import useStores from "~/hooks/useStores";
 import { ImportMenu } from "~/menus/ImportMenu";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
-
 type Props = {
   /** Import that's displayed as list item. */
   importModel: Import;
 };
-
 export const ImportListItem = observer(({ importModel }: Props) => {
   const { t } = useTranslation();
   const { dialogs } = useStores();
@@ -33,7 +31,6 @@ export const ImportListItem = observer(({ importModel }: Props) => {
   const showProgress =
     importModel.state !== ImportState.Canceled &&
     importModel.state !== ImportState.Errored;
-
   const stateMap = useMemo(
     () => ({
       [ImportState.Created]: t("Processing"),
@@ -45,7 +42,6 @@ export const ImportListItem = observer(({ importModel }: Props) => {
     }),
     [t]
   );
-
   const iconMap = useMemo(
     () => ({
       [ImportState.Created]: <Spinner />,
@@ -57,7 +53,6 @@ export const ImportListItem = observer(({ importModel }: Props) => {
     }),
     [theme]
   );
-
   const handleCancel = useCallback(async () => {
     const onCancel = async () => {
       try {
@@ -67,7 +62,6 @@ export const ImportListItem = observer(({ importModel }: Props) => {
         toast.error(errToString(err));
       }
     };
-
     dialogs.openModal({
       title: t("Are you sure you want to cancel this import?"),
       content: (
@@ -84,7 +78,6 @@ export const ImportListItem = observer(({ importModel }: Props) => {
       ),
     });
   }, [t, dialogs, importModel]);
-
   const handleDelete = useCallback(async () => {
     const onDelete = async () => {
       try {
@@ -94,7 +87,6 @@ export const ImportListItem = observer(({ importModel }: Props) => {
         toast.error(errToString(err));
       }
     };
-
     dialogs.openModal({
       title: t("Are you sure you want to delete this import?"),
       content: (
@@ -104,17 +96,15 @@ export const ImportListItem = observer(({ importModel }: Props) => {
           danger
         >
           {t(
-            "Deleting this import will also delete all collections and documents that were created from it. This cannot be undone."
+            "Deleting this import will also delete all notebooks and documents that were created from it. This cannot be undone."
           )}
         </ConfirmationDialog>
       ),
     });
   }, [t, dialogs, importModel]);
-
   const selfHostedHelp = isCloudHosted
     ? ""
     : `. ${t("Check server logs for more details.")}`;
-
   return (
     <ListItem
       title={importModel.name}
@@ -142,8 +132,8 @@ export const ImportListItem = observer(({ importModel }: Props) => {
             <>
               &nbsp;•&nbsp;
               {t("{{ total }} document imported", {
-                total: formatNumber(importModel.documentCount),
-                count: importModel.documentCount,
+                total: formatNumber(importModel.noteCount),
+                count: importModel.noteCount,
               })}
             </>
           )}

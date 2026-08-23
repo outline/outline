@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -17,7 +17,6 @@ import { Fragment } from "react";
 import { StarIcon } from "@heroicons/react/20/solid";
 import { Tab } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const product = {
   name: "Application UI Icon Pack",
   version: { name: "1.0", date: "June 5, 2021", datetime: "2021-06-05" },
@@ -83,30 +82,29 @@ const license = {
     "For personal and professional use. You cannot resell or redistribute these icons in their original or modified state.",
   content: `
     <h4>Overview</h4>
-    
+
     <p>For personal and professional use. You cannot resell or redistribute these icons in their original or modified state.</p>
-    
+
     <ul role="list">
     <li>You're allowed to use the icons in unlimited projects.</li>
     <li>Attribution is not required to use the icons.</li>
     </ul>
-    
+
     <h4>What you can do with it</h4>
-    
+
     <ul role="list">
     <li>Use them freely in your personal and professional work.</li>
     <li>Make them your own. Change the colors to suit your project or brand.</li>
     </ul>
-    
+
     <h4>What you can't do with it</h4>
-    
+
     <ul role="list">
     <li>Don't be greedy. Selling or distributing these icons in their original or modified state is prohibited.</li>
     <li>Don't be evil. These icons cannot be used on websites or applications that promote illegal or immoral beliefs or activities.</li>
     </ul>
   `,
 };
-
 /**
  * Tailwind UI – product overviews: with tabs.
  *

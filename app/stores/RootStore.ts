@@ -4,11 +4,11 @@ import pluralize from "pluralize";
 import ApiKeysStore from "./ApiKeysStore";
 import AuthStore from "./AuthStore";
 import AuthenticationProvidersStore from "./AuthenticationProvidersStore";
-import CollectionsStore from "./CollectionsStore";
+import NotebooksStore from "./NotebooksStore";
 import CommentsStore from "./CommentsStore";
 import { useDialogs } from "./dialogs";
 import { usePresence } from "./presence";
-import DocumentsStore from "./DocumentsStore";
+import NotesStore from "./NotesStore";
 import EventsStore from "./EventsStore";
 import EmojisStore from "./EmojiStore";
 import FileOperationsStore from "./FileOperationsStore";
@@ -36,18 +36,16 @@ import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
 import WebhookSubscriptionsStore from "./WebhookSubscriptionStore";
 import type Store from "./base/Store";
-
 /** Stores that RootStore instantiates and assigns; `dialogs` is a getter. */
 type WritableStoreName = Exclude<keyof RootStore, "dialogs" | "presence">;
-
 export default class RootStore {
   apiKeys: ApiKeysStore;
   auth: AuthStore;
   authenticationProviders: AuthenticationProvidersStore;
-  collections: CollectionsStore;
+  notebooks: NotebooksStore;
   groupMemberships: GroupMembershipsStore;
   comments: CommentsStore;
-  documents: DocumentsStore;
+  notes: NotesStore;
   emojis: EmojisStore;
   events: EventsStore;
   groups: GroupsStore;
@@ -73,15 +71,14 @@ export default class RootStore {
   fileOperations: FileOperationsStore;
   webhookSubscriptions: WebhookSubscriptionsStore;
   userMemberships: UserMembershipsStore;
-
   constructor() {
     // Models
     this.registerStore(ApiKeysStore);
     this.registerStore(AuthenticationProvidersStore);
-    this.registerStore(CollectionsStore);
+    this.registerStore(NotebooksStore, "notebooks");
     this.registerStore(GroupMembershipsStore);
     this.registerStore(CommentsStore);
-    this.registerStore(DocumentsStore);
+    this.registerStore(NotesStore, "notes");
     this.registerStore(EmojisStore);
     this.registerStore(EventsStore);
     this.registerStore(GroupsStore);
@@ -106,14 +103,11 @@ export default class RootStore {
     this.registerStore(FileOperationsStore);
     this.registerStore(WebhookSubscriptionsStore);
     this.registerStore(UserMembershipsStore);
-
     // Non-models
     this.registerStore(UiStore, "ui");
-
     // AuthStore must be initialized last as it makes use of the other stores.
     this.registerStore(AuthStore, "auth");
   }
-
   /**
    * Dialog state, held in a zustand store rather than a mobx one.
    *
@@ -126,16 +120,14 @@ export default class RootStore {
   public get dialogs() {
     return useDialogs.getState();
   }
-
   /**
-   * Document presence, held in a zustand store rather than a mobx one.
+   * Note presence, held in a zustand store rather than a mobx one.
    *
    * @returns the presence store state and actions.
    */
   public get presence() {
     return usePresence.getState();
   }
-
   /**
    * Get a store by model name.
    *
@@ -144,11 +136,9 @@ export default class RootStore {
   public getStoreForModelName<K extends keyof RootStore>(modelName: string) {
     const storeName = this.getStoreNameForModelName(modelName);
     invariant(storeName, `No store found for model name "${modelName}"`);
-
     const store = this[storeName];
     return store as RootStore[K];
   }
-
   /**
    * Clear all data from the stores except for auth and ui.
    */
@@ -156,7 +146,6 @@ export default class RootStore {
     // The zustand stores are accessors, so they are not own properties and
     // are not reached by the loop below.
     this.presence.clear();
-
     Object.getOwnPropertyNames(this)
       .filter((key) => ["auth", "ui"].includes(key) === false)
       .forEach((key: keyof RootStore) => {
@@ -166,7 +155,6 @@ export default class RootStore {
         }
       });
   }
-
   /**
    * Register a store with the root store.
    *
@@ -180,10 +168,8 @@ export default class RootStore {
     const store = new StoreClass(this);
     const storeName = name ?? this.getStoreNameForModelName(store.modelName);
     invariant(storeName, `No store found for model name "${store.modelName}"`);
-
     this[storeName] = store;
   }
-
   private getStoreNameForModelName(modelName: string) {
     for (const key of Object.keys(this)) {
       const store = this[key as keyof RootStore];
@@ -191,12 +177,10 @@ export default class RootStore {
         return key as WritableStoreName;
       }
     }
-
     const storeName = pluralize(lowerFirst(modelName)) as WritableStoreName;
     if (storeName) {
       return storeName;
     }
-
     return undefined;
   }
 }

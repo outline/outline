@@ -2,7 +2,6 @@ import { Fragment, useState } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const people = [
   { id: 1, name: "Wade Cooper", online: true },
   { id: 2, name: "Arlene Mccoy", online: false },
@@ -15,7 +14,6 @@ const people = [
   { id: 9, name: "Claudie Smitham", online: true },
   { id: 10, name: "Emil Schaefer", online: false },
 ];
-
 /**
  * Tailwind UI – select menus: custom with status indicator.
  *
@@ -23,7 +21,6 @@ const people = [
  */
 export function SelectMenusCustomWithStatusIndicator() {
   const [selected, setSelected] = useState(people[3]);
-
   return (
     <Listbox value={selected} onChange={setSelected}>
       {({ open }) => (

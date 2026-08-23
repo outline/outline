@@ -1,6 +1,5 @@
 import type { EditorState } from "prosemirror-state";
 import { isNodeActive } from "./isNodeActive";
-
 /**
  * Returns true if the selection is inside a notice block.
  *

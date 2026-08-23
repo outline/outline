@@ -4,7 +4,6 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-
 const features = [
   {
     name: "Spam report",
@@ -31,7 +30,6 @@ const features = [
     icon: HeartIcon,
   },
 ];
-
 /**
  * Tailwind UI – feature sections: offset 2x2 grid.
  *

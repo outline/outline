@@ -10,7 +10,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
@@ -124,7 +123,6 @@ const footerNavigation = {
     { name: "Terms", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – landing pages: with large screenshot and testimonial.
  *
@@ -132,7 +130,6 @@ const footerNavigation = {
  */
 export function LandingPagesWithLargeScreenshotAndTestimonial() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <div className="bg-white">
       {/* Header */}

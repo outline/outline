@@ -1,7 +1,6 @@
 import type { EditorState } from "prosemirror-state";
 import { isMarkActive } from "./isMarkActive";
 import { isNodeActive } from "./isNodeActive";
-
 type Options = {
   /** Only check if the selection is inside a code block. */
   onlyBlock?: boolean;
@@ -10,7 +9,6 @@ type Options = {
   /** If true then code must contain entire selection */
   inclusive?: boolean;
 };
-
 /**
  * Returns true if the selection is inside a code block or code mark.
  *
@@ -24,7 +22,6 @@ export function isInCode(state: EditorState, options?: Options): boolean {
     options?.inclusive !== undefined
       ? { inclusive: options?.inclusive }
       : undefined;
-
   if (!options?.onlyMark) {
     if (
       nodes.code_block &&
@@ -39,12 +36,10 @@ export function isInCode(state: EditorState, options?: Options): boolean {
       return true;
     }
   }
-
   if (!options?.onlyBlock) {
     if (marks.code_inline) {
       return isMarkActive(marks.code_inline, undefined, opts)(state);
     }
   }
-
   return false;
 }

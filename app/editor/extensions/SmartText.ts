@@ -1,7 +1,6 @@
 import Extension from "@shared/editor/lib/Extension";
 import { InputRule } from "@shared/editor/lib/InputRule";
 import type { UserPreferences } from "@shared/types";
-
 const rightArrow = new InputRule(/->$/, "→");
 // Note that the suppression of pipe here prevents conflict with table creation rule.
 const emdash = new InputRule(/(?:^|[^|])(--\s)$/, "— ");
@@ -11,15 +10,12 @@ const copyright = new InputRule(/\(c\)$/, "©️");
 const registered = new InputRule(/\(r\)$/, "®️");
 const trademarked = new InputRule(/\(tm\)$/, "™️");
 const ellipsis = new InputRule(/\.\.\.$/, "…");
-
 // Double quotes
 const openDoubleQuote = new InputRule(/(?:^|[\s{[(<'"\u2018\u201C])(")$/, "“");
 const closeDoubleQuote = new InputRule(/^(?!.*`)[\s\S]*(")$/, "”");
-
 // Single quotes
 const openSingleQuote = new InputRule(/(?:^|[\s{[(<'"\u2018\u201C])(')$/, "‘");
 const closeSingleQuote = new InputRule(/^(?!.*`)[\s\S]*(')$/, "’");
-
 /**
  * Options for the SmartText extension.
  */
@@ -27,12 +23,10 @@ type SmartTextOptions = {
   /** Display preferences for the logged in user, if any. */
   userPreferences?: UserPreferences | null;
 };
-
 export default class SmartText extends Extension<SmartTextOptions> {
   get name() {
     return "smart_text";
   }
-
   inputRules() {
     if (this.options.userPreferences?.enableSmartText ?? true) {
       return [
@@ -50,7 +44,6 @@ export default class SmartText extends Extension<SmartTextOptions> {
         closeSingleQuote,
       ];
     }
-
     return [];
   }
 }

@@ -20,14 +20,11 @@ import EmojisMenu from "~/menus/EmojisMenu";
 import { s } from "@shared/styles";
 import styled from "styled-components";
 import { HStack } from "~/components/primitives/HStack";
-
 const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
-
 type Props = Omit<TableProps<Emoji>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
-
 const EmojiRowContextMenu = observer(function EmojiRowContextMenu({
   emoji,
   menuLabel,
@@ -44,13 +41,11 @@ const EmojiRowContextMenu = observer(function EmojiRowContextMenu({
     </ContextMenu>
   );
 });
-
 const EmojisTable = observer(function EmojisTable({
   canManage,
   ...rest
 }: Props) {
   const { t } = useTranslation();
-
   const applyContextMenu = useCallback(
     (emoji: Emoji, rowElement: React.ReactNode) => (
       <EmojiRowContextMenu emoji={emoji} menuLabel={t("Emoji options")}>
@@ -59,7 +54,6 @@ const EmojisTable = observer(function EmojisTable({
     ),
     [t]
   );
-
   const columns = React.useMemo(
     (): TableColumn<Emoji>[] =>
       compact([
@@ -109,7 +103,6 @@ const EmojisTable = observer(function EmojisTable({
       ]),
     [t, canManage]
   );
-
   return (
     <SortableTable
       id="emojis"
@@ -121,11 +114,9 @@ const EmojisTable = observer(function EmojisTable({
     />
   );
 });
-
 export const EmojiPreview = styled(HStack)`
   font-family: monospace;
   font-size: 14px;
   color: ${s("textSecondary")};
 `;
-
 export default EmojisTable;

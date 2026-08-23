@@ -87,7 +87,6 @@ const navigation = {
     },
   ],
 };
-
 /**
  * Tailwind UI – footers: 4 column with company mission on dark.
  *

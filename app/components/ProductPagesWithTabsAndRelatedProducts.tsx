@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -24,7 +24,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = {
   categories: [
     {
@@ -210,23 +209,23 @@ const license = {
     "For personal and professional use. You cannot resell or redistribute these icons in their original or modified state.",
   content: `
     <h4>Overview</h4>
-    
+
     <p>For personal and professional use. You cannot resell or redistribute these icons in their original or modified state.</p>
-    
+
     <ul role="list">
     <li>You're allowed to use the icons in unlimited projects.</li>
     <li>Attribution is not required to use the icons.</li>
     </ul>
-    
+
     <h4>What you can do with it</h4>
-    
+
     <ul role="list">
     <li>Use them freely in your personal and professional work.</li>
     <li>Make them your own. Change the colors to suit your project or brand.</li>
     </ul>
-    
+
     <h4>What you can't do with it</h4>
-    
+
     <ul role="list">
     <li>Don't be greedy. Selling or distributing these icons in their original or modified state is prohibited.</li>
     <li>Don't be evil. These icons cannot be used on websites or applications that promote illegal or immoral beliefs or activities.</li>
@@ -269,7 +268,6 @@ const footerNavigation = {
     { name: "FAQ", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – product pages: with tabs and related products.
  *
@@ -277,7 +275,6 @@ const footerNavigation = {
  */
 export function ProductPagesWithTabsAndRelatedProducts() {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="bg-white">
       {/* Mobile menu */}

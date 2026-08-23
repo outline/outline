@@ -14,12 +14,10 @@ import Text from "~/components/Text";
 import { StatusChip } from "~/components/StatusChip";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 const METHODS = [
   { value: "cash", label: "Cash" },
   { value: "bank", label: "Bank transfer" },
 ];
-
 /**
  * One invoice, its lines, and what has been paid against it.
  *
@@ -31,17 +29,16 @@ const METHODS = [
 function InvoiceDetail() {
   const { t } = useTranslation();
   const history = useHistory();
-  const { invoiceId } = useParams<{ invoiceId: string }>();
+  const { invoiceId } = useParams<{
+    invoiceId: string;
+  }>();
   const invoices = useShop((state) => state.invoices);
   const isLoading = useShop((state) => state.isLoading);
   const recordInvoicePayment = useShop((state) => state.recordInvoicePayment);
   const voidInvoice = useShop((state) => state.voidInvoice);
-
   const fields = useFields({ amount: "", method: "cash", reference: "" });
   const submission = useSubmit();
-
   const invoice = invoices.find((item) => item.id === invoiceId);
-
   if (!invoice) {
     return (
       <AppPage title={t("Invoice")}>
@@ -60,7 +57,6 @@ function InvoiceDetail() {
       </AppPage>
     );
   }
-
   const handlePay = () =>
     submission.run(async () => {
       const result = await recordInvoicePayment(
@@ -69,7 +65,6 @@ function InvoiceDetail() {
         fields.get("method") === "bank" ? "bank" : "cash",
         fields.get("reference").trim()
       );
-
       if (result?.recorded) {
         // The method stays chosen for the next payment.
         fields.set("amount", "");
@@ -83,7 +78,6 @@ function InvoiceDetail() {
       }
       return t("Enter an amount to record.");
     });
-
   const handleVoid = () =>
     submission.run(async () => {
       const result = await voidInvoice(invoice.id);
@@ -93,13 +87,10 @@ function InvoiceDetail() {
           ? t("It has been paid against, so it cannot be voided.")
           : t("That invoice could not be voided.");
     });
-
   return (
     <AppPage
       title={invoice.number}
-      description={`${invoice.customerName} · ${t("due")} ${formatDate(
-        invoice.dueDate
-      )}`}
+      description={`${invoice.customerName} · ${t("due")} ${formatDate(invoice.dueDate)}`}
       actions={
         <Flex align="center" gap={8}>
           <StatusChip status={invoice.status} />
@@ -238,5 +229,4 @@ function InvoiceDetail() {
     </AppPage>
   );
 }
-
 export default InvoiceDetail;

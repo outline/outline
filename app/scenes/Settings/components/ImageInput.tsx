@@ -9,7 +9,6 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import type { Props as ImageUploadProps } from "./ImageUpload";
 import ImageUpload from "./ImageUpload";
-
 type Props = ImageUploadProps & {
   /** The model whose avatar is displayed and updated by this input. */
   model: IAvatar;
@@ -21,7 +20,6 @@ type Props = ImageUploadProps & {
    */
   showRemoveOption?: boolean;
 };
-
 export default function ImageInput({
   model,
   onSuccess,
@@ -30,7 +28,6 @@ export default function ImageInput({
   ...rest
 }: Props) {
   const { t } = useTranslation();
-
   return (
     <Flex gap={8} justify="space-between">
       <ImageBox>
@@ -58,12 +55,10 @@ export default function ImageInput({
     </Flex>
   );
 }
-
 const avatarStyles = `
   width: ${AvatarSize.Upload}px;
   height: ${AvatarSize.Upload}px;
 `;
-
 const ImageBox = styled(Flex)`
   ${avatarStyles};
   position: relative;

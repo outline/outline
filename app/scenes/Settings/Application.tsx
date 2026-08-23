@@ -5,7 +5,6 @@ import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
-
 import { errToString } from "@shared/utils/error";
 import { OAuthClientValidation } from "@shared/validations";
 import type OAuthClient from "~/models/oauth/OAuthClient";
@@ -33,13 +32,13 @@ import SettingRow from "./components/SettingRow";
 import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import { InputClientType } from "~/components/OAuthClient/InputClientType";
-
 type Props = {
   oauthClient: OAuthClient;
 };
-
 const LoadingState = observer(function LoadingState() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{
+    id: string;
+  }>();
   const { oauthClients } = useStores();
   const oauthClient = oauthClients.get(id);
   const fetchOAuthClient = useCallback(
@@ -47,24 +46,19 @@ const LoadingState = observer(function LoadingState() {
     [oauthClients, id]
   );
   const { request } = useRequest(fetchOAuthClient);
-
   useEffect(() => {
     if (!oauthClient) {
       void request();
     }
   }, [oauthClient, request]);
-
   if (!oauthClient) {
     return <LoadingIndicator />;
   }
-
   return <Application oauthClient={oauthClient} />;
 });
-
 const Application = observer(function Application({ oauthClient }: Props) {
   const { t } = useTranslation();
   const { dialogs } = useStores();
-
   const {
     register,
     handleSubmit: formHandleSubmit,
@@ -85,7 +79,6 @@ const Application = observer(function Application({ oauthClient }: Props) {
       clientType: oauthClient.clientType,
     },
   });
-
   const breadcrumbActions = useMemo(
     () => [
       createInternalLinkAction({
@@ -97,7 +90,6 @@ const Application = observer(function Application({ oauthClient }: Props) {
     ],
     [t]
   );
-
   const handleSubmit = useCallback(
     async (data: FormData) => {
       try {
@@ -113,7 +105,6 @@ const Application = observer(function Application({ oauthClient }: Props) {
     },
     [oauthClient, t]
   );
-
   const handleRotateSecret = useCallback(async () => {
     const onDelete = async () => {
       try {
@@ -123,7 +114,6 @@ const Application = observer(function Application({ oauthClient }: Props) {
         toast.error(errToString(err));
       }
     };
-
     dialogs.openModal({
       title: t("Rotate secret"),
       content: (
@@ -135,7 +125,6 @@ const Application = observer(function Application({ oauthClient }: Props) {
       ),
     });
   }, [t, dialogs, oauthClient]);
-
   return (
     <Scene
       title={oauthClient.name}
@@ -364,5 +353,4 @@ const Application = observer(function Application({ oauthClient }: Props) {
     </Scene>
   );
 });
-
 export default LoadingState;

@@ -7,17 +7,14 @@ import useStores from "~/hooks/useStores";
 import { settingsPath } from "~/utils/routeHelpers";
 import type { FormData } from "./OAuthClientForm";
 import { OAuthClientForm } from "./OAuthClientForm";
-
 type Props = {
   onSubmit: () => void;
 };
-
 export const OAuthClientNew = observer(function OAuthClientNew_({
   onSubmit,
 }: Props) {
   const { oauthClients } = useStores();
   const history = useHistory();
-
   const handleSubmit = useCallback(
     async (data: FormData) => {
       try {
@@ -30,6 +27,5 @@ export const OAuthClientNew = observer(function OAuthClientNew_({
     },
     [oauthClients, history, onSubmit]
   );
-
   return <OAuthClientForm handleSubmit={handleSubmit} />;
 });

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -23,7 +23,6 @@ import {
   ServerIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
@@ -226,7 +225,6 @@ const footerNavigation = {
     },
   ],
 };
-
 /**
  * Tailwind UI – landing pages: with mobile screenshot and testimonials grid.
  *
@@ -234,7 +232,6 @@ const footerNavigation = {
  */
 export function LandingPagesWithMobileScreenshotAndTestimonialsGrid() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <div className="bg-white">
       {/* Header */}

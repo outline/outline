@@ -1,6 +1,5 @@
 import { CheckIcon } from "@heroicons/react/24/solid";
 import { classNames } from "./classNames";
-
 const steps = [
   {
     id: "01",
@@ -24,7 +23,6 @@ const steps = [
     status: "upcoming",
   },
 ];
-
 /**
  * Tailwind UI – steps: panels with border.
  *

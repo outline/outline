@@ -3,7 +3,6 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { isRemoteTransaction, mapDecorations } from "../lib/multiplayer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-
 interface DraftAnchorMeta {
   add?: {
     /** The id of the pending comment. */
@@ -17,17 +16,16 @@ interface DraftAnchorMeta {
     /** The id of the user that created the pending comment. */
     userId?: string;
   };
-  remove?: { id: string };
+  remove?: {
+    id: string;
+  };
 }
-
 interface PluginState {
   decorations: DecorationSet;
 }
-
 export const draftCommentAnchorPluginKey = new PluginKey<PluginState>(
   "draft-comment-anchor"
 );
-
 /**
  * Plugin that renders a local-only highlight for pending inline comments
  * created by users without edit access. These users cannot write the comment
@@ -47,13 +45,10 @@ export class DraftCommentAnchorPlugin extends Plugin<PluginState> {
           const meta = tr.getMeta(draftCommentAnchorPluginKey) as
             | DraftAnchorMeta
             | undefined;
-
           if (!meta && !tr.docChanged) {
             return pluginState;
           }
-
           let decorations = mapDecorations(pluginState.decorations, tr);
-
           if (meta?.add) {
             const { id, from, to, isNode, userId } = meta.add;
             decorations = decorations.add(tr.doc, [
@@ -83,7 +78,6 @@ export class DraftCommentAnchorPlugin extends Plugin<PluginState> {
               decorations.find(undefined, undefined, (spec) => spec.id === id)
             );
           }
-
           // Once the server-applied comment mark syncs down we can drop the
           // local decoration in favor of the real mark.
           if (
@@ -100,7 +94,6 @@ export class DraftCommentAnchorPlugin extends Plugin<PluginState> {
               )
             );
           }
-
           return { decorations };
         },
       },

@@ -1,0 +1,46 @@
+import * as React from "react";
+import { richExtensions } from "@shared/editor/nodes";
+import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import Editor from "~/components/Editor";
+import Flex from "~/components/Flex";
+import ErrorBoundary from "../ErrorBoundary";
+import {
+  Preview,
+  Title,
+  Info,
+  Card,
+  CardContent,
+  Description,
+} from "./Components";
+type Props = Omit<UnfurlResponse[UnfurlResourceType.Note], "type">;
+const HoverPreviewNote = React.forwardRef(function HoverPreviewNote_(
+  { url, id, title, summary, lastActivityByViewer }: Props,
+  ref: React.Ref<HTMLDivElement>
+) {
+  return (
+    <Preview to={url}>
+      <Card ref={ref}>
+        <CardContent>
+          <ErrorBoundary showTitle={false} reloadOnChunkMissing={false}>
+            <Flex column gap={2}>
+              <Title>{title}</Title>
+              {lastActivityByViewer && <Info>{lastActivityByViewer}</Info>}
+              <Description as="div">
+                <React.Suspense fallback={<div />}>
+                  <Editor
+                    key={id}
+                    extensions={richExtensions}
+                    defaultValue={summary}
+                    embedsDisabled
+                    readOnly
+                  />
+                </React.Suspense>
+              </Description>
+            </Flex>
+          </ErrorBoundary>
+        </CardContent>
+      </Card>
+    </Preview>
+  );
+});
+export default HoverPreviewNote;

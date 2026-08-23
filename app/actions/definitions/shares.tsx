@@ -6,7 +6,6 @@ import { ArrowIcon, CopyIcon, TrashIcon } from "outline-icons";
 import { ShareSection } from "../sections";
 import env from "~/env";
 import { toast } from "sonner";
-
 export const copyShareUrlActionFactory = ({ share }: { share: Share }) =>
   createAction({
     name: ({ t }) => t("Copy link"),
@@ -21,20 +20,18 @@ export const copyShareUrlActionFactory = ({ share }: { share: Share }) =>
       toast.success(t("Share link copied"));
     },
   });
-
 export const goToShareSourceActionFactory = ({ share }: { share: Share }) =>
   createInternalLinkAction({
     name: ({ t }) =>
-      share.collectionId ? t("Go to collection") : t("Go to document"),
+      share.notebookId ? t("Go to notebook") : t("Go to document"),
     analyticsName: "Go to share source",
     section: ShareSection,
     icon: <ArrowIcon />,
     to: {
       pathname: share.sourcePathWithFallback,
-      state: { sidebarContext: "collections" }, // optimistic preference of "collections"
+      state: { sidebarContext: "notebooks" }, // optimistic preference of "notebooks"
     },
   });
-
 export const revokeShareActionFactory = ({
   share,
   can,

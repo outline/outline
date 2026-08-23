@@ -4,7 +4,6 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import ReactDOM from "react-dom";
 import FileExtension from "../components/FileExtension";
 import { mapDecorations } from "./multiplayer";
-
 // based on the example at: https://prosemirror.net/examples/upload/
 const uploadPlaceholder = new Plugin({
   state: {
@@ -16,7 +15,6 @@ const uploadPlaceholder = new Plugin({
       // different depending on if we're uploading an image, video or plain file
       const action = tr.getMeta(this);
       set = mapDecorations(set, tr, !!action);
-
       if (action?.add) {
         if (action.add.replaceExisting) {
           const $pos = tr.doc.resolve(action.add.pos);
@@ -24,7 +22,6 @@ const uploadPlaceholder = new Plugin({
           if (!nodeAfter) {
             return;
           }
-
           const deco = Decoration.node(
             $pos.pos,
             $pos.pos + nodeAfter.nodeSize,
@@ -39,15 +36,12 @@ const uploadPlaceholder = new Plugin({
         } else if (action.add.isImage) {
           const element = document.createElement("div");
           element.className = "image placeholder";
-
           const img = document.createElement("img");
           img.src =
             action.add.src ||
             (action.add.file ? URL.createObjectURL(action.add.file) : "");
           img.style.width = `${action.add.dimensions?.width}px`;
-
           element.appendChild(img);
-
           const deco = Decoration.widget(action.add.pos, element, {
             id: action.add.id,
           });
@@ -55,16 +49,13 @@ const uploadPlaceholder = new Plugin({
         } else if (action.add.isVideo) {
           const element = document.createElement("div");
           element.className = "video placeholder";
-
           const video = document.createElement("video");
           video.src = URL.createObjectURL(action.add.file);
           video.autoplay = false;
           video.controls = false;
           video.width = action.add.dimensions?.width;
           video.height = action.add.dimensions?.height;
-
           element.appendChild(video);
-
           const deco = Decoration.widget(action.add.pos, element, {
             id: action.add.id,
           });
@@ -72,29 +63,23 @@ const uploadPlaceholder = new Plugin({
         } else {
           const element = document.createElement("div");
           element.className = "file placeholder";
-
           const icon = document.createElement("div");
           const title = document.createElement("div");
           title.className = "title";
           title.innerText = action.add.file.name;
-
           const subtitle = document.createElement("div");
           subtitle.className = "subtitle";
           subtitle.innerText = "Uploading…";
-
           ReactDOM.render(<FileExtension title={action.add.file.name} />, icon);
-
           element.appendChild(icon);
           element.appendChild(title);
           element.appendChild(subtitle);
-
           const deco = Decoration.widget(action.add.pos, element, {
             id: action.add.id,
           });
           set = set.add(tr.doc, [deco]);
         }
       }
-
       if (action?.remove) {
         set = set.remove(
           set.find(undefined, undefined, (spec) => spec.id === action.remove.id)
@@ -109,9 +94,7 @@ const uploadPlaceholder = new Plugin({
     },
   },
 });
-
 export default uploadPlaceholder;
-
 /**
  * Find the position of a placeholder by its ID
  *

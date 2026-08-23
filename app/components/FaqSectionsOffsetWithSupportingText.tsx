@@ -6,7 +6,6 @@ const faqs = [
   },
   // More questions...
 ];
-
 /**
  * Tailwind UI – faq sections: offset with supporting text.
  *

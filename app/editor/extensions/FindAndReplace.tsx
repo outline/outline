@@ -13,11 +13,9 @@ import { ancestors } from "@shared/editor/utils";
 import isTextInput from "~/utils/isTextInput";
 import FindAndReplace from "../components/FindAndReplace";
 import { deburrWithMap } from "./deburrWithMap";
-
 const pluginKey = new PluginKey("find-and-replace");
 const supportsHighlightAPI =
   typeof CSS !== "undefined" && CSS.highlights !== undefined;
-
 /**
  * Options for the FindAndReplace extension.
  */
@@ -27,19 +25,16 @@ type FindAndReplaceOptions = {
   /** Whether the search query should be interpreted as a regular expression by default. */
   regexEnabled: boolean;
 };
-
 export default class FindAndReplaceExtension extends Extension<FindAndReplaceOptions> {
   public get name() {
     return "find-and-replace";
   }
-
   public get defaultOptions(): FindAndReplaceOptions {
     return {
       caseSensitive: false,
       regexEnabled: false,
     };
   }
-
   keys(): Record<string, Command> {
     return {
       Escape: () => {
@@ -51,7 +46,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       },
     };
   }
-
   public commands() {
     return {
       /**
@@ -68,89 +62,71 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         caseSensitive?: boolean;
         regexEnabled?: boolean;
       }) => this.find(attrs.text, attrs.caseSensitive, attrs.regexEnabled),
-
       /**
        * Find and highlight the next matching result in the document
        */
       nextSearchMatch: () => this.goToMatch(1),
-
       /**
        * Find and highlight the previous matching result in the document
        */
       prevSearchMatch: () => this.goToMatch(-1),
-
       /**
        * Replace the current highlighted result with the given text
        *
        * @param attrs.text The text to replace the current result with
        */
       replace: (attrs: { text: string }) => this.replace(attrs.text),
-
       /**
        * Replace all matching results with the given text
        *
        * @param attrs.text The text to replace all results with
        */
       replaceAll: (attrs: { text: string }) => this.replaceAll(attrs.text),
-
       /**
        * Clear the current search
        */
       clearSearch: () => this.clear(),
-
       /**
        * Open the find and replace UI
        */
       openFindAndReplace: () => this.openFindAndReplace(),
     };
   }
-
   public replace(replace: string): Command {
     return (state, dispatch) => {
       // Redo the search to ensure we have the latest results, the document may
       // have changed underneath us since the last search.
       this.search(state.doc);
-
       if (this.currentResultIndex >= this.results.length) {
         return false;
       }
-
       const result = this.results[this.currentResultIndex];
-
       if (!result) {
         return false;
       }
-
       const { from, to } = result;
       dispatch?.(state.tr.insertText(replace, from, to).setMeta(pluginKey, {}));
-
       return true;
     };
   }
-
   public replaceAll(replace: string): Command {
     return (state, dispatch) => {
       // Redo the search to ensure we have the latest results, the document may
       // have changed underneath us since the last search.
       this.search(state.doc);
-
       const tr = state.tr;
       let offset: number | undefined;
-
       if (!this.results.length) {
         return false;
       }
-
       this.results.forEach(({ from, to }, index) => {
         tr.insertText(replace, from, to);
         offset = this.rebaseNextResult(replace, index, offset);
       });
-
       dispatch?.(tr);
       return true;
     };
   }
-
   public find(
     searchTerm: string,
     caseSensitive = this.options.caseSensitive,
@@ -161,42 +137,35 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       this.options.regexEnabled = regexEnabled;
       this.searchTerm = regexEnabled ? searchTerm : escapeRegExp(searchTerm);
       this.currentResultIndex = 0;
-
       dispatch?.(state.tr.setMeta(pluginKey, {}));
       this.expandFoldedTogglesForCurrentMatch();
       this.expandCollapsedCodeBlockForCurrentMatch();
       this.scrollToCurrentMatch();
-
       return true;
     };
   }
-
   public clear(): Command {
     return (state, dispatch) => {
       this.searchTerm = "";
       this.currentResultIndex = 0;
       this.results = [];
       this.clearHighlights();
-
       dispatch?.(state.tr.setMeta(pluginKey, {}));
       return true;
     };
   }
-
   public openFindAndReplace(): Command {
     return (state, dispatch) => {
       dispatch?.(state.tr.setMeta(pluginKey, { open: true }));
       return true;
     };
   }
-
   private get findRegExp() {
     return RegExp(
       this.searchTerm.replace(/\\+$/, ""),
       !this.options.caseSensitive ? "gui" : "gu"
     );
   }
-
   private goToMatch(direction: number): Command {
     return (state, dispatch) => {
       if (direction > 0) {
@@ -212,7 +181,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
           this.currentResultIndex -= 1;
         }
       }
-
       dispatch?.(state.tr.setMeta(pluginKey, {}));
       this.expandFoldedTogglesForCurrentMatch();
       this.expandCollapsedCodeBlockForCurrentMatch();
@@ -220,7 +188,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       return true;
     };
   }
-
   private scrollToCurrentMatch() {
     if (supportsHighlightAPI) {
       if (this.currentHighlightRange) {
@@ -243,7 +210,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       }
     }
   }
-
   /**
    * Expand any folded toggle blocks that contain the current match.
    */
@@ -251,32 +217,26 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
     if (this.currentResultIndex >= this.results.length) {
       return;
     }
-
     const result = this.results[this.currentResultIndex];
     if (!result) {
       return;
     }
-
     const state = this.editor.view.state;
     const pluginState = toggleFoldPluginKey.getState(state);
     if (!pluginState) {
       return;
     }
-
     const $pos = state.doc.resolve(result.from);
     const isToggle = isToggleBlock(state);
-
     // Find all ancestor toggle block IDs that are folded
     const foldedToggleIds = ancestors($pos)
       .filter(
         (node) => isToggle(node) && pluginState.foldedIds.has(node.attrs.id)
       )
       .map((node) => node.attrs.id as string);
-
     // Unfold each toggle by ID (getting fresh state after each dispatch)
     foldedToggleIds.forEach((toggleId) => {
       const currentState = this.editor.view.state;
-
       // Find the position of this toggle in the current document
       let togglePos: number | null = null;
       currentState.doc.descendants((node, pos) => {
@@ -289,7 +249,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         }
         return true;
       });
-
       if (togglePos !== null) {
         this.editor.view.dispatch(
           currentState.tr.setMeta(toggleFoldPluginKey, {
@@ -300,7 +259,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       }
     });
   }
-
   /**
    * Expand a collapsed code block if it contains the current match.
    */
@@ -309,30 +267,23 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
     if (!result) {
       return;
     }
-
     this.editor.commands.expandCodeBlockAt(result.from);
   }
-
   private rebaseNextResult(replace: string, index: number, lastOffset = 0) {
     const nextIndex = index + 1;
-
     if (nextIndex >= this.results.length) {
       return undefined;
     }
-
     const { from: currentFrom, to: currentTo } = this.results[index];
     const offset = currentTo - currentFrom - replace.length + lastOffset;
     const { from, to, type } = this.results[nextIndex];
-
     this.results[nextIndex] = {
       to: to - offset,
       from: from - offset,
       type,
     };
-
     return offset;
   }
-
   private search(doc: Node) {
     this.results = [];
     const mergedTextNodes: (
@@ -349,11 +300,9 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         }
     )[] = [];
     let index = 0;
-
     if (!this.searchTerm) {
       return;
     }
-
     doc.descendants((node, pos) => {
       if (node.isText) {
         if (mergedTextNodes[index]) {
@@ -381,15 +330,12 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         ++index;
       }
     });
-
     // Tracks already-seen match positions so duplicate matches (possible because
     // we search both the deburred and the original text) can be skipped in
     // constant time rather than rescanning the entire results array.
     const seen = new Set<string>();
-
     mergedTextNodes.forEach((node) => {
       const { text = "", pos, type } = node;
-
       // Collects matches found in `haystack`, translating string indices into
       // original-text indices via `toOriginalIndex`.
       const collect = (
@@ -399,21 +345,17 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         try {
           let m;
           const search = this.findRegExp;
-
           while ((m = search.exec(haystack))) {
             if (m[0] === "") {
               break;
             }
-
             const start = toOriginalIndex(m.index);
             const end = toOriginalIndex(m.index + m[0].length);
             if (start === undefined || end === undefined) {
               continue;
             }
-
             const from = type === "inline" ? pos + start : pos;
             const to = type === "inline" ? pos + end : pos + node.nodeSize;
-
             // A match against the deburred text can cover only part of a
             // decomposed sequence (e.g. a single jamo of a Hangul syllable),
             // which maps back to a zero-length range in the original text.
@@ -421,7 +363,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
             if (to <= from) {
               continue;
             }
-
             // Check if already exists in results, possible because we search
             // over both the deburred and the original text.
             const key = `${from}:${to}`;
@@ -429,18 +370,15 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
               continue;
             }
             seen.add(key);
-
             this.results.push({ from, to, type });
           }
         } catch (_err) {
           // Invalid RegExp
         }
       };
-
       // Search the original text so that queries containing diacritics (e.g.
       // "café") match, and to cover any text that deburring alters.
       collect(text, (index) => index);
-
       // Also search the diacritics-stripped text so that, for example, "cafe"
       // matches "café". Because deburring can change the string length (e.g. it
       // decomposes CJK/Hangul characters), match indices are translated back to
@@ -452,7 +390,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       }
     });
   }
-
   /**
    * Build ProseMirror decorations from search results (fallback for browsers
    * without CSS Custom Highlight API support).
@@ -469,7 +406,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         : Decoration.inline(deco.from, deco.to, attrs);
     });
   }
-
   /**
    * Create a DecorationSet from the current search results.
    */
@@ -480,7 +416,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       ? DecorationSet.create(doc, decos)
       : DecorationSet.empty;
   }
-
   /**
    * Update CSS Custom Highlight API highlights based on current search results.
    */
@@ -490,11 +425,9 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       this.clearHighlights();
       return;
     }
-
     const allRanges: StaticRange[] = [];
     const currentRanges: StaticRange[] = [];
     this.currentHighlightRange = undefined;
-
     for (let i = 0; i < this.results.length; i++) {
       const result = this.results[i];
       try {
@@ -507,7 +440,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
           endOffset: to.offset,
         });
         allRanges.push(range);
-
         if (i === this.currentResultIndex) {
           currentRanges.push(range);
           this.currentHighlightRange = range;
@@ -516,7 +448,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         // Position may not be in the visible DOM (e.g. inside folded toggle)
       }
     }
-
     this.highlightRanges = allRanges;
     CSS.highlights.set("search-results", new Highlight(...allRanges));
     if (currentRanges.length) {
@@ -528,7 +459,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       CSS.highlights.delete("search-results-current");
     }
   }
-
   private clearHighlights() {
     this.highlightRanges = [];
     if (!supportsHighlightAPI) {
@@ -538,7 +468,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
     CSS.highlights.delete("search-results-current");
     this.currentHighlightRange = undefined;
   }
-
   /**
    * Determine whether the highlight ranges need to be rebuilt against the live
    * DOM. The CSS Custom Highlight API holds static ranges that detach when the
@@ -557,7 +486,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         !range.startContainer.isConnected || !range.endContainer.isConnected
     );
   }
-
   private handleEscape = () => {
     const params = new URLSearchParams(window.location.search);
     if (params.has("q")) {
@@ -569,14 +497,12 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         window.location.pathname + (search ? `?${search}` : "")
       );
     }
-
     const view = this.editor?.view;
     if (view) {
       this.clear()(view.state, view.dispatch);
     }
   };
-
-  private handleDocumentKeyDown = (event: KeyboardEvent) => {
+  private handleNoteKeyDown = (event: KeyboardEvent) => {
     if (event.key !== "Escape" || !this.searchTerm) {
       return;
     }
@@ -588,26 +514,20 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
     }
     this.handleEscape();
   };
-
   private currentHighlightRange?: StaticRange;
-
   private highlightRanges: StaticRange[] = [];
-
   get allowInReadOnly() {
     return true;
   }
-
   get focusAfterExecution() {
     return false;
   }
-
   get plugins() {
     const highlightPlugin = supportsHighlightAPI
       ? this.highlightAPIPlugin
       : this.decorationPlugin;
     return [highlightPlugin, this.escapeListenerPlugin];
   }
-
   /**
    * Plugin that listens for Escape at the document level so the search
    * highlight can be cleared even when the editor is not focused.
@@ -615,16 +535,15 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
   private get escapeListenerPlugin() {
     return new Plugin({
       view: () => {
-        document.addEventListener("keydown", this.handleDocumentKeyDown);
+        document.addEventListener("keydown", this.handleNoteKeyDown);
         return {
           destroy: () => {
-            document.removeEventListener("keydown", this.handleDocumentKeyDown);
+            document.removeEventListener("keydown", this.handleNoteKeyDown);
           },
         };
       },
     });
   }
-
   /** Plugin using the CSS Custom Highlight API (no DOM modifications). */
   private get highlightAPIPlugin() {
     return new Plugin({
@@ -633,7 +552,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         init: () => 0,
         apply: (tr, generation) => {
           const action = tr.getMeta(pluginKey);
-
           if (action) {
             if (action.open) {
               this.open = true;
@@ -641,18 +559,15 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
             this.search(tr.doc);
             return generation + 1;
           }
-
           if (tr.docChanged && this.searchTerm) {
             this.search(tr.doc);
             return generation + 1;
           }
-
           // Toggle fold/unfold changes DOM visibility without changing the doc,
           // so we need to rebuild highlight ranges for newly visible matches.
           if (tr.getMeta(toggleFoldPluginKey) && this.searchTerm) {
             return generation + 1;
           }
-
           return generation;
         },
       },
@@ -687,7 +602,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       },
     });
   }
-
   /** Fallback plugin using ProseMirror decorations. */
   private get decorationPlugin() {
     return new Plugin({
@@ -696,18 +610,15 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         init: () => DecorationSet.empty,
         apply: (tr, decorationSet) => {
           const action = tr.getMeta(pluginKey);
-
           if (action) {
             if (action.open) {
               this.open = true;
             }
             return this.createDecorationSet(tr.doc);
           }
-
           if (tr.docChanged) {
             return decorationSet.map(tr.mapping, tr.doc);
           }
-
           return decorationSet;
         },
       },
@@ -718,7 +629,6 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       },
     });
   }
-
   public widget = ({ readOnly }: WidgetProps) => (
     <FindAndReplace
       currentIndex={this.currentResultIndex}
@@ -733,15 +643,15 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
       }}
     />
   );
-
   @observable
   private open = false;
-
   @observable
-  private results: { from: number; to: number; type: "inline" | "node" }[] = [];
-
+  private results: {
+    from: number;
+    to: number;
+    type: "inline" | "node";
+  }[] = [];
   @observable
   private currentResultIndex = 0;
-
   private searchTerm = "";
 }

@@ -1,7 +1,6 @@
 import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { CheckIcon } from "@heroicons/react/24/outline";
-
 /**
  * Tailwind UI – modals: centered with single action.
  *
@@ -9,7 +8,6 @@ import { CheckIcon } from "@heroicons/react/24/outline";
  */
 export function ModalsCenteredWithSingleAction() {
   const [open, setOpen] = useState(true);
-
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={setOpen}>

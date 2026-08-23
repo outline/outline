@@ -2,7 +2,6 @@ import { throttle } from "es-toolkit/compat";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Minute } from "@shared/utils/time";
 import useIsMounted from "./useIsMounted";
-
 const activityEvents = [
   "click",
   "mousemove",
@@ -14,7 +13,6 @@ const activityEvents = [
   "touchmove",
   "focus",
 ];
-
 /**
  * Hook to detect user idle state.
  *
@@ -29,19 +27,16 @@ export default function useIdle(
   const isMounted = useIsMounted();
   const [isIdle, setIsIdle] = useState(false);
   const timeout = useRef<ReturnType<typeof setTimeout>>();
-
   const onActivity = useCallback(() => {
     if (timeout.current) {
       clearTimeout(timeout.current);
     }
-
     timeout.current = setTimeout(() => {
       if (isMounted()) {
         setIsIdle(true);
       }
     }, timeToIdle);
   }, [isMounted, timeToIdle]);
-
   useEffect(() => {
     const handleUserActivityEvent = throttle(() => {
       if (isMounted()) {
@@ -49,15 +44,12 @@ export default function useIdle(
         onActivity();
       }
     }, 1000);
-
     events.forEach((eventName) =>
       window.addEventListener(eventName, handleUserActivityEvent)
     );
-
     // Start the countdown immediately, otherwise the user is never considered
     // idle unless activity occurs after mount.
     onActivity();
-
     return () => {
       handleUserActivityEvent.cancel();
       if (timeout.current) {
@@ -68,6 +60,5 @@ export default function useIdle(
       );
     };
   }, [events, isMounted, onActivity]);
-
   return isIdle;
 }

@@ -21,13 +21,11 @@ import useMobile from "~/hooks/useMobile";
 import { mapMenuItems } from "../menus/mapMenuItems";
 import { useEditor } from "./EditorContext";
 import { useInlineMenuAnchor } from "./useInlineMenuAnchor";
-
 type Props = {
   items: MenuItem[];
   /** Whether the document is right-to-left. */
   rtl: boolean;
 };
-
 // The virtual anchor is an invisible zero-size element; the hook positions it
 // over the selection and Radix anchors the menu to it.
 const anchorStyle: React.CSSProperties = {
@@ -35,7 +33,6 @@ const anchorStyle: React.CSSProperties = {
   width: 0,
   height: 0,
 };
-
 /**
  * Renders a selection-toolbar menu inline — a vertical menu anchored to the
  * selection with no trigger button — by holding a Radix dropdown `open`
@@ -57,21 +54,17 @@ const InlineMenu: React.FC<Props> = ({ items, rtl }) => {
     align,
     sideOffset,
   } = useInlineMenuAnchor(rtl);
-
   const mapped = React.useMemo(
     () => mapMenuItems(items, commands, view, state),
     [items, commands, view, state]
   );
-
   const preventFocus = React.useCallback((ev: Event) => {
     ev.preventDefault();
   }, []);
-
   // Dismiss the menu by collapsing the selection so the toolbar stops matching.
   const handleDismiss = React.useCallback(() => {
     collapseSelection()(view.state, view.dispatch);
   }, [view]);
-
   if (isMobile) {
     return (
       <InlineMenuDrawer
@@ -81,7 +74,6 @@ const InlineMenu: React.FC<Props> = ({ items, rtl }) => {
       />
     );
   }
-
   return (
     <MenuProvider variant="dropdown">
       <DropdownMenuPrimitive.Root
@@ -119,18 +111,15 @@ const InlineMenu: React.FC<Props> = ({ items, rtl }) => {
     </MenuProvider>
   );
 };
-
 // Time for the drawer's close animation to play before the selection is
 // collapsed (which unmounts the menu).
 const DRAWER_CLOSE_MS = 500;
-
 type InlineMenuDrawerProps = {
   items: TMenuItem[];
   ariaLabel: string;
   /** Collapse the selection so the toolbar stops rendering the menu. */
   onDismiss: () => void;
 };
-
 /**
  * Mobile presentation of the inline menu: a bottom drawer with submenu drill-in,
  * matching the other menus. The menu is held open while the selection matches;
@@ -143,7 +132,6 @@ function InlineMenuDrawer({
 }: InlineMenuDrawerProps) {
   const [open, setOpen] = React.useState(true);
   const [submenuName, setSubmenuName] = React.useState<string>();
-
   const close = React.useCallback(() => {
     setOpen(false);
     setTimeout(() => {
@@ -151,7 +139,6 @@ function InlineMenuDrawer({
       onDismiss();
     }, DRAWER_CLOSE_MS);
   }, [onDismiss]);
-
   const handleOpenChange = React.useCallback(
     (isOpen: boolean) => {
       if (!isOpen) {
@@ -160,7 +147,6 @@ function InlineMenuDrawer({
     },
     [close]
   );
-
   const menuItems = React.useMemo(() => {
     if (!items.length || !submenuName) {
       return items;
@@ -170,9 +156,7 @@ function InlineMenuDrawer({
     ) as MenuItemWithChildren | undefined;
     return submenu?.items ?? items;
   }, [items, submenuName]);
-
   const content = toMobileMenuItems(menuItems, close, setSubmenuName);
-
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent aria-label={ariaLabel} aria-describedby={undefined}>
@@ -182,9 +166,7 @@ function InlineMenuDrawer({
     </Drawer>
   );
 }
-
 const StyledScrollable = styled(Scrollable)`
   max-height: 75vh;
 `;
-
 export default InlineMenu;

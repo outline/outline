@@ -7,7 +7,6 @@ const people = [
   },
   // More people...
 ];
-
 /**
  * Tailwind UI – team sections: grid with round images.
  *

@@ -3,7 +3,6 @@ const tabs = [
   { name: "Open", href: "#", current: true },
   { name: "Closed", href: "#", current: false },
 ];
-
 /**
  * Tailwind UI – section headings: with inline tabs.
  *

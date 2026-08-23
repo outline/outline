@@ -2,24 +2,22 @@ import type { Location, LocationDescriptor } from "history";
 import type { TFunction } from "i18next";
 import type {
   JSONValue,
-  CollectionPermission,
-  DocumentPermission,
+  NotebookPermission,
+  NotePermission,
   GroupPermission,
 } from "@shared/types";
 import type RootStore from "~/stores/RootStore";
 import type { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
 import type Model from "./models/base/Model";
-import type Document from "./models/Document";
+import type Note from "./models/Note";
 import type FileOperation from "./models/FileOperation";
 import type Pin from "./models/Pin";
 import type Star from "./models/Star";
 import type User from "./models/User";
 import type UserMembership from "./models/UserMembership";
 import type Policy from "./models/Policy";
-
 export type PartialExcept<T, K extends keyof T> = Partial<Omit<T, K>> &
   Required<Pick<T, K>>;
-
 export type MenuItemButton = {
   type: "button";
   title: React.ReactNode;
@@ -32,7 +30,6 @@ export type MenuItemButton = {
   tooltip?: React.ReactChild;
   shortcut?: string[];
 };
-
 export type MenuItemWithChildren = {
   type: "submenu";
   title: React.ReactNode;
@@ -45,18 +42,15 @@ export type MenuItemWithChildren = {
   items: MenuItem[];
   icon?: React.ReactNode;
 };
-
 export type MenuSeparator = {
   type: "separator";
   visible?: boolean;
 };
-
 export type MenuHeading = {
   type: "heading";
   visible?: boolean;
   title: React.ReactNode;
 };
-
 export type MenuInternalLink = {
   type: "route";
   title: React.ReactNode;
@@ -67,11 +61,15 @@ export type MenuInternalLink = {
   icon?: React.ReactNode;
   shortcut?: string[];
 };
-
 export type MenuExternalLink = {
   type: "link";
   title: React.ReactNode;
-  href: string | { url: string; target?: string };
+  href:
+    | string
+    | {
+        url: string;
+        target?: string;
+      };
   visible?: boolean;
   selected?: boolean;
   disabled?: boolean;
@@ -79,7 +77,6 @@ export type MenuExternalLink = {
   icon?: React.ReactNode;
   shortcut?: string[];
 };
-
 export type MenuGroup = {
   type: "group";
   title: React.ReactNode;
@@ -87,13 +84,11 @@ export type MenuGroup = {
   icon?: React.ReactNode; // added for backward compatibility
   items: MenuItem[];
 };
-
 export type MenuCustomContent = {
   type: "custom";
   visible?: boolean;
   content: React.ReactNode;
 };
-
 export type MenuItem =
   | MenuInternalLink
   | MenuItemButton
@@ -103,17 +98,14 @@ export type MenuItem =
   | MenuHeading
   | MenuGroup
   | MenuCustomContent;
-
 export type ActionContext = {
   isMenu: boolean;
   isCommandBar: boolean;
   isButton: boolean;
   sidebarContext?: SidebarContextType;
-
   // Legacy (backward compatibility) - returns primary active model's ID
-  activeCollectionId?: string | undefined;
-  activeDocumentId: string | undefined;
-
+  activeNotebookId?: string | undefined;
+  activeNoteId: string | undefined;
   // New API - work directly with Model instances
   getActiveModels: <T extends Model>(
     modelClass: new (...args: never[]) => T
@@ -126,7 +118,6 @@ export type ActionContext = {
   ) => Policy[];
   isModelActive: (model: Model) => boolean;
   activeModels: ReadonlySet<Model>;
-
   currentUserId: string | undefined;
   currentTeamId: string | undefined;
   location: Location;
@@ -134,7 +125,6 @@ export type ActionContext = {
   event?: Event;
   t: TFunction;
 };
-
 type BaseAction = {
   type: "action";
   id: string;
@@ -153,7 +143,6 @@ type BaseAction = {
   visible?: ((context: ActionContext) => boolean) | boolean;
   disabled?: ((context: ActionContext) => boolean) | boolean;
 };
-
 export type Action = BaseAction & {
   variant: "action";
   dangerous?: boolean;
@@ -162,18 +151,15 @@ export type Action = BaseAction & {
     | React.ReactChild;
   perform: (context: ActionContext) => unknown;
 };
-
 export type InternalLinkAction = BaseAction & {
   variant: "internal_link";
   to: ((context: ActionContext) => LocationDescriptor) | LocationDescriptor;
 };
-
 export type ExternalLinkAction = BaseAction & {
   variant: "external_link";
   url: string;
   target?: string;
 };
-
 export type ActionWithChildren = BaseAction & {
   variant: "action_with_children";
   children:
@@ -182,27 +168,22 @@ export type ActionWithChildren = BaseAction & {
       ) => (ActionVariant | ActionGroup | ActionSeparator)[])
     | (ActionVariant | ActionGroup | ActionSeparator)[];
 };
-
 export type ActionFactory = () => ActionWithChildren;
-
 export type ActionVariant =
   | Action
   | InternalLinkAction
   | ExternalLinkAction
   | ActionWithChildren;
-
 // Specific to menu
 export type ActionGroup = {
   type: "action_group";
   name: string;
   actions: (ActionVariant | ActionSeparator)[];
 };
-
 // Specific to menu
 export type ActionSeparator = {
   type: "action_separator";
 };
-
 export type CommandBarAction = {
   id: string;
   name: string;
@@ -215,30 +196,25 @@ export type CommandBarAction = {
   children?: string[];
   parent?: string;
 };
-
 export type LocationWithState = Location & {
   state: Record<string, string>;
 };
-
 export type FetchOptions = {
   prefetch?: boolean;
   revisionId?: string;
   shareId?: string;
   force?: boolean;
 };
-
-export type CollectionSort = {
+export type NotebookSort = {
   field: string;
   direction: "asc" | "desc";
 };
-
 // Pagination response in an API call
 export type Pagination = {
   limit: number;
   nextPath: string;
   offset: number;
 };
-
 // Pagination request params
 export type PaginationParams = {
   limit?: number;
@@ -246,48 +222,50 @@ export type PaginationParams = {
   sort?: string;
   direction?: "ASC" | "DESC";
 };
-
 export type SearchResult = {
   id: string;
   ranking: number;
   context?: string;
-  document: Document;
+  note: Note;
 };
-
 export type WebsocketEntityDeletedEvent = {
   modelId: string;
 };
-
 export type WebsocketEntitiesEvent = {
-  documentIds: { id: string; updatedAt?: string }[];
-  collectionIds: { id: string; updatedAt?: string }[];
-  groupIds: { id: string; updatedAt?: string }[];
+  noteIds: {
+    id: string;
+    updatedAt?: string;
+  }[];
+  collectionIds: {
+    id: string;
+    updatedAt?: string;
+  }[];
+  groupIds: {
+    id: string;
+    updatedAt?: string;
+  }[];
   invalidatedPolicies: string[];
   teamIds: string[];
   event: string;
 };
-
-export type WebsocketCollectionUpdateIndexEvent = {
+export type WebsocketNotebookUpdateIndexEvent = {
   collectionId: string;
   index: string;
 };
-
 export type WebsocketCommentReactionEvent = {
   emoji: string;
   commentId: string;
   user: User;
 };
-
 export type WebsocketEvent =
   | PartialExcept<Pin, "id">
   | PartialExcept<Star, "id">
   | PartialExcept<FileOperation, "id">
   | PartialExcept<UserMembership, "id">
-  | WebsocketCollectionUpdateIndexEvent
+  | WebsocketNotebookUpdateIndexEvent
   | WebsocketEntityDeletedEvent
   | WebsocketEntitiesEvent
   | WebsocketCommentReactionEvent;
-
 type CursorPosition = {
   type: {
     client: number;
@@ -300,45 +278,45 @@ type CursorPosition = {
   };
   assoc: number;
 };
-
 type Cursor = {
   anchor: CursorPosition;
   head: CursorPosition;
 };
-
 export type AwarenessChangeEvent = {
   states: {
     clientId: number;
-    user?: { id: string };
+    user?: {
+      id: string;
+    };
     cursor: Cursor;
     scrollY: number | undefined;
   }[];
 };
-
 export const EmptySelectValue = "__empty__";
-
 export type Permission = {
   label: string;
   value:
-    | CollectionPermission
-    | DocumentPermission
+    | NotebookPermission
+    | NotePermission
     | GroupPermission
     | typeof EmptySelectValue;
   divider?: boolean;
 };
-
 // TODO: Can we make this type driven by the @Field decorator
 export type Properties<C> = {
   [Property in keyof C as C[Property] extends JSONValue
     ? Property
     : never]?: C[Property];
 };
-
 export enum CommentSortType {
   MostRecent = "mostRecent",
-  OrderInDocument = "orderInDocument",
+  OrderInNote = "orderInDocument",
 }
-
 export type CommentSortOption =
-  | { type: CommentSortType.MostRecent }
-  | { type: CommentSortType.OrderInDocument; referencedCommentIds: string[] };
+  | {
+      type: CommentSortType.MostRecent;
+    }
+  | {
+      type: CommentSortType.OrderInNote;
+      referencedCommentIds: string[];
+    };

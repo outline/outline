@@ -61,7 +61,6 @@ const navigation = [
     ),
   },
 ];
-
 /**
  * Tailwind UI – footers: social links only.
  *

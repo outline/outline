@@ -2,7 +2,6 @@ import { useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { CheckCircleIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const mailingLists = [
   {
     id: 1,
@@ -23,7 +22,6 @@ const mailingLists = [
     users: "2740 users",
   },
 ];
-
 /**
  * Tailwind UI – radio groups: cards.
  *
@@ -33,7 +31,6 @@ export function RadioGroupsCards() {
   const [selectedMailingLists, setSelectedMailingLists] = useState(
     mailingLists[0]
   );
-
   return (
     <RadioGroup value={selectedMailingLists} onChange={setSelectedMailingLists}>
       <RadioGroup.Label className="text-base font-semibold leading-6 text-gray-900">

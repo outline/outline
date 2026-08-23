@@ -1,5 +1,4 @@
 import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – alerts: with description.
  *

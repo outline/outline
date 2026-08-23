@@ -1,8 +1,6 @@
 import type { EmbedDescriptor } from "../embeds";
 import type { MenuItem } from "../types";
-
 type Item = MenuItem | EmbedDescriptor;
-
 export default function filterExcessSeparators<T extends Item>(
   items: T[]
 ): T[] {

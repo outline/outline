@@ -22,17 +22,17 @@ import {
   toISODate,
   toISODateTime,
 } from "@shared/utils/date";
-import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
+import parseNoteSlug from "@shared/utils/parseNoteSlug";
 import { parseNaturalLanguageDate } from "@shared/utils/parseNaturalLanguageDate";
 import { Avatar, AvatarSize, GroupAvatar } from "~/components/Avatar";
-import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
+import NoteBreadcrumb from "~/components/NoteBreadcrumb";
 import { DynamicCalendarIcon } from "@shared/components/DynamicCalendarIcon";
 import Flex from "~/components/Flex";
 import {
   DateSection,
-  DocumentsSection,
+  NotesSection,
   UserSection,
-  CollectionsSection,
+  NotebooksSection,
   GroupSection,
 } from "~/actions/sections";
 import useRequest from "~/hooks/useRequest";
@@ -42,7 +42,6 @@ import { client } from "~/utils/ApiClient";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
-
 interface MentionItem extends MenuItem {
   attrs: {
     id: string;
@@ -52,28 +51,24 @@ interface MentionItem extends MenuItem {
     actorId?: string;
   };
 }
-
 type Props = Omit<
   SuggestionsMenuProps<MentionItem>,
   "renderMenuItem" | "items" | "embeds"
 >;
-
 function MentionMenu({ search = "", isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
   const { t } = useTranslation();
-  const { auth, documents, users, collections, groups } = useStores();
+  const { auth, notes, users, notebooks, groups } = useStores();
   const actorId = auth.currentUserId;
   const location = useLocation();
-  const documentId = parseDocumentSlug(location.pathname);
+  const noteId = parseNoteSlug(location.pathname);
   const userLocale = useUserLocale();
   const maxResultsInSection = search ? 25 : 5;
-
   // Surface a date suggestion when the search query parses as a natural
   // language date (e.g. "tomorrow", "next friday", "jan 2", "1pm"). Parsing is
   // asynchronous as chrono-node is loaded lazily, so the result is held in
   // state and applied once resolved.
   const [parsedISODate, setParsedISODate] = useState<string | undefined>();
-
   useEffect(() => {
     if (!search) {
       setParsedISODate(undefined);
@@ -103,13 +98,10 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
       cancelled = true;
     };
   }, [search]);
-
   let dateItems: MentionItem[] = [];
-
   if (actorId && parsedISODate) {
     const title = dateToRelativeReadable(parsedISODate, t, userLocale);
     const subtitle = dateToReadable(parsedISODate, userLocale);
-
     dateItems = [
       {
         name: "mention",
@@ -130,35 +122,30 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
       } as MentionItem,
     ];
   }
-
   const { loading, request } = useRequest(
     useCallback(async () => {
       const res = await client.post("/suggestions.mention", {
         query: search,
         limit: maxResultsInSection,
       });
-
       runInAction(() => {
-        res.data.documents.map(documents.add);
+        res.data.documents.map(notes.add);
         res.data.users.map(users.add);
-        res.data.collections.map(collections.add);
+        res.data.collections.map(notebooks.add);
         res.data.groups.map(groups.add);
       });
-    }, [search, documents, users, collections, groups, maxResultsInSection])
+    }, [search, notes, users, notebooks, groups, maxResultsInSection])
   );
-
   useEffect(() => {
     if (isActive) {
       void request();
     }
   }, [request, isActive]);
-
   useEffect(() => {
     if (actorId && !loading) {
       setLoaded(true);
     }
   }, [actorId, loading]);
-
   // Computed in the render body so MobX observer can track store access
   // (e.g. searchSuppressed). Previously this lived inside a useEffect which
   // runs outside the reactive context and triggered MobX warnings.
@@ -224,62 +211,60 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
             }))
         )
         .concat(
-          documents
-            .findByQuery(search, { maxResults: maxResultsInSection })
-            .map(
-              (doc) =>
-                ({
-                  name: "mention",
-                  icon: doc.icon ? (
-                    <Icon
-                      value={doc.icon}
-                      initial={doc.initial}
-                      color={doc.color ?? undefined}
-                    />
-                  ) : (
-                    <DocumentIcon />
-                  ),
-                  title: doc.title,
-                  subtitle: doc.collectionId ? (
-                    <DocumentBreadcrumb document={doc} onlyText maxDepth={2} />
-                  ) : undefined,
-                  section: DocumentsSection,
-                  appendSpace: true,
-                  attrs: {
-                    id: uuidv4(),
-                    type: MentionType.Document,
-                    modelId: doc.id,
-                    actorId,
-                    label: doc.title,
-                  },
-                }) as MentionItem
-            )
+          notes.findByQuery(search, { maxResults: maxResultsInSection }).map(
+            (doc) =>
+              ({
+                name: "mention",
+                icon: doc.icon ? (
+                  <Icon
+                    value={doc.icon}
+                    initial={doc.initial}
+                    color={doc.color ?? undefined}
+                  />
+                ) : (
+                  <DocumentIcon />
+                ),
+                title: doc.title,
+                subtitle: doc.notebookId ? (
+                  <NoteBreadcrumb note={doc} onlyText maxDepth={2} />
+                ) : undefined,
+                section: NotesSection,
+                appendSpace: true,
+                attrs: {
+                  id: uuidv4(),
+                  type: MentionType.Note,
+                  modelId: doc.id,
+                  actorId,
+                  label: doc.title,
+                },
+              }) as MentionItem
+          )
         )
         .concat(
-          collections
+          notebooks
             .findByQuery(search, { maxResults: maxResultsInSection })
             .map(
-              (collection) =>
+              (notebook) =>
                 ({
                   name: "mention",
-                  icon: collection.icon ? (
+                  icon: notebook.icon ? (
                     <Icon
-                      value={collection.icon}
-                      initial={collection.initial}
-                      color={collection.color ?? undefined}
+                      value={notebook.icon}
+                      initial={notebook.initial}
+                      color={notebook.color ?? undefined}
                     />
                   ) : (
                     <CollectionIcon />
                   ),
-                  title: collection.name,
-                  section: CollectionsSection,
+                  title: notebook.name,
+                  section: NotebooksSection,
                   appendSpace: true,
                   attrs: {
                     id: uuidv4(),
-                    type: MentionType.Collection,
-                    modelId: collection.id,
+                    type: MentionType.Notebook,
+                    modelId: notebook.id,
                     actorId,
-                    label: collection.name,
+                    label: notebook.name,
                   },
                 }) as MentionItem
             )
@@ -289,14 +274,14 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
             name: "link",
             icon: <PlusIcon />,
             title: search?.trim(),
-            section: DocumentsSection,
+            section: NotesSection,
             subtitle: t("Create a new doc"),
             visible: !!search && !isEmail(search),
             priority: -1,
             appendSpace: true,
             attrs: {
               id: uuidv4(),
-              type: MentionType.Document,
+              type: MentionType.Note,
               modelId: uuidv4(),
               actorId,
               label: search,
@@ -306,14 +291,14 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
             name: "link",
             icon: <NewDocumentIcon />,
             title: search?.trim(),
-            section: DocumentsSection,
+            section: NotesSection,
             subtitle: t("Create a nested doc"),
-            visible: !!search && !isEmail(search) && !!documentId,
+            visible: !!search && !isEmail(search) && !!noteId,
             priority: -2,
             appendSpace: true,
             attrs: {
               id: uuidv4(),
-              type: MentionType.Document,
+              type: MentionType.Note,
               modelId: uuidv4(),
               actorId,
               label: search,
@@ -322,25 +307,23 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
           } as MentionItem,
         ])
     : [];
-
   const items: MentionItem[] = [...dateItems, ...mentionItems];
-
   const handleSelect = useCallback(
     async (item: MentionItem) => {
       if (
         item.attrs.type === MentionType.Date ||
-        item.attrs.type === MentionType.Document ||
-        item.attrs.type === MentionType.Collection
+        item.attrs.type === MentionType.Note ||
+        item.attrs.type === MentionType.Notebook
       ) {
         return;
       }
-      if (!documentId) {
+      if (!noteId) {
         return;
       }
       if (item.attrs.type === MentionType.User) {
         // Check if the mentioned user has access to the document
         const res = await client.post("/documents.users", {
-          id: documentId,
+          id: noteId,
           userId: item.attrs.modelId,
         });
         if (!res.data.length) {
@@ -374,9 +357,8 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
         );
       }
     },
-    [t, users, documentId, groups]
+    [t, users, noteId, groups]
   );
-
   const renderMenuItem = useCallback(
     (item, _index, options) => (
       <SuggestionsMenuItem
@@ -388,13 +370,11 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
     ),
     []
   );
-
   // Prevent showing the menu until we have data otherwise it will be positioned
   // incorrectly due to the height being unknown.
   if (!loaded) {
     return null;
   }
-
   return (
     <SuggestionsMenu
       {...rest}
@@ -407,5 +387,4 @@ function MentionMenu({ search = "", isActive, ...rest }: Props) {
     />
   );
 }
-
 export default observer(MentionMenu);

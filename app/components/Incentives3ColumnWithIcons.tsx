@@ -3,13 +3,11 @@ import {
   CheckBadgeIcon,
   TruckIcon,
 } from "@heroicons/react/24/outline";
-
 const incentives = [
   { name: "Free, contactless delivery", icon: TruckIcon },
   { name: "No questions asked returns", icon: CheckBadgeIcon },
   { name: "2-year warranty", icon: CalendarIcon },
 ];
-
 /**
  * Tailwind UI – incentives: 3 column with icons.
  *

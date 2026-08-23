@@ -1,7 +1,8 @@
 import styled from "styled-components";
 import { s } from "../../styles";
-
-export const ResizeLeft = styled.div<{ $dragging: boolean }>`
+export const ResizeLeft = styled.div<{
+  $dragging: boolean;
+}>`
   cursor: ew-resize;
   position: absolute;
   left: -4px;
@@ -31,7 +32,6 @@ export const ResizeLeft = styled.div<{ $dragging: boolean }>`
     display: none;
   }
 `;
-
 export const ResizeRight = styled(ResizeLeft)`
   left: initial;
   right: -4px;
@@ -41,7 +41,6 @@ export const ResizeRight = styled(ResizeLeft)`
     right: 8px;
   }
 `;
-
 export const ResizeBottom = styled(ResizeLeft)`
   cursor: ns-resize;
   left: 30%;
@@ -61,8 +60,9 @@ export const ResizeBottom = styled(ResizeLeft)`
     min-height: 0;
   }
 `;
-
-export const ResizeCorner = styled.div<{ $dragging: boolean }>`
+export const ResizeCorner = styled.div<{
+  $dragging: boolean;
+}>`
   position: absolute;
   width: 8px;
   height: 8px;
@@ -76,25 +76,21 @@ export const ResizeCorner = styled.div<{ $dragging: boolean }>`
     display: none;
   }
 `;
-
 export const ResizeTopLeft = styled(ResizeCorner)`
   cursor: nwse-resize;
   top: -4px;
   left: -4px;
 `;
-
 export const ResizeTopRight = styled(ResizeCorner)`
   cursor: nesw-resize;
   top: -4px;
   right: -4px;
 `;
-
 export const ResizeBottomLeft = styled(ResizeCorner)`
   cursor: nesw-resize;
   bottom: -4px;
   left: -4px;
 `;
-
 export const ResizeBottomRight = styled(ResizeCorner)`
   cursor: nwse-resize;
   bottom: -4px;

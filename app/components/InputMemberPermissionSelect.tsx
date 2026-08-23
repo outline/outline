@@ -6,18 +6,17 @@ import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
 import type { Permission } from "~/types";
 import { EmptySelectValue } from "~/types";
-
 type Props = Pick<
   React.ComponentProps<typeof InputSelect>,
   "value" | "onChange" | "disabled" | "className"
 >;
-
 export default function InputMemberPermissionSelect(
-  props: Props & { permissions: Permission[] }
+  props: Props & {
+    permissions: Permission[];
+  }
 ) {
   const { value, onChange, ...rest } = props;
   const { t } = useTranslation();
-
   const options = React.useMemo<Option[]>(
     () =>
       props.permissions.reduce((acc, permission) => {
@@ -32,7 +31,6 @@ export default function InputMemberPermissionSelect(
       }, [] as Option[]),
     [props.permissions]
   );
-
   return (
     <Select
       options={options}
@@ -45,7 +43,6 @@ export default function InputMemberPermissionSelect(
     />
   );
 }
-
 const Select = styled(InputSelect)`
   color: ${s("textSecondary")};
 `;

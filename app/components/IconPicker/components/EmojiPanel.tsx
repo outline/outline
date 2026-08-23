@@ -21,9 +21,7 @@ import { MenuButton } from "./MenuButton";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import { IconButton } from "./IconButton";
-
 const GRID_HEIGHT = 410;
-
 type Props = {
   panelWidth: number;
   query: string;
@@ -32,7 +30,6 @@ type Props = {
   onEmojiChange: (emoji: string) => void;
   onQueryChange: (query: string) => void;
 };
-
 const EmojiPanel = ({
   panelWidth,
   query,
@@ -51,53 +48,44 @@ const EmojiPanel = ({
     () => emojis.orderedData.map(toIcon),
     [emojis.orderedData]
   );
-
   const {
     emojiSkinTone: skinTone,
     setEmojiSkinTone,
     incrementIconCount,
     frequentIcons: freqEmojis,
   } = useIconState(IconType.Emoji);
-
   const {
     incrementIconCount: incrementCustomIconCount,
     frequentIcons: freqCustomEmojiIds,
   } = useIconState(IconType.Custom);
-
   const [freqCustomEmojis, setFreqCustomEmojis] = React.useState<EmojiNode[]>(
     []
   );
-
   const handleFilter = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       onQueryChange(event.target.value);
     },
     [onQueryChange]
   );
-
   const handleSkinChange = React.useCallback(
     (emojiSkinTone: EmojiSkinTone) => {
       setEmojiSkinTone(emojiSkinTone);
     },
     [setEmojiSkinTone]
   );
-
   const handleUploadClick = React.useCallback(() => {
     dialogs.openModal({
       title: t("Upload emoji"),
       content: <EmojiCreateDialog onSubmit={dialogs.closeAllModals} />,
     });
   }, [dialogs, t]);
-
   const handleEmojiSelection = React.useCallback(
     ({ id, value }: { id: string; value: string }) => {
       onEmojiChange(value);
-
       // Determine if this is a custom emoji by checking if it's in the custom emoji data
       const isCustomEmoji =
         customEmojis.some((emoji) => emoji.id === id) ||
         freqCustomEmojis.some((emoji) => emoji.id === id);
-
       if (isCustomEmoji) {
         incrementCustomIconCount(id);
       } else {
@@ -112,7 +100,6 @@ const EmojiPanel = ({
       freqCustomEmojis,
     ]
   );
-
   React.useEffect(() => {
     // Load frequent custom emojis, preserving frequency order and skipping
     // any that no longer exist.
@@ -124,21 +111,17 @@ const EmojiPanel = ({
       );
     });
   }, [emojis, freqCustomEmojiIds]);
-
   const [activeEmoji, setActiveEmoji] = React.useState<EmojiNode>();
   const [hasMoreBelow, setHasMoreBelow] = React.useState(false);
-
   const handleEmojiActive = React.useCallback((icon: IconNode) => {
     if (icon.type !== IconType.SVG) {
       setActiveEmoji(icon);
     }
   }, []);
-
   // Drop the preview when the grid contents change out from under it.
   React.useEffect(() => {
     setActiveEmoji(undefined);
   }, [query, skinTone]);
-
   const isSearch = query !== "";
   const templateData: DataNode[] = isSearch
     ? getSearchResults({
@@ -152,7 +135,6 @@ const EmojiPanel = ({
         customEmojis,
         freqCustomEmojis,
       });
-
   React.useLayoutEffect(() => {
     if (!panelActive) {
       return;
@@ -160,7 +142,6 @@ const EmojiPanel = ({
     scrollableRef.current?.scroll({ top: 0 });
     requestAnimationFrame(() => searchRef.current?.focus());
   }, [panelActive]);
-
   return (
     <Flex column>
       <UserInputContainer>
@@ -204,13 +185,11 @@ const EmojiPanel = ({
     </Flex>
   );
 };
-
 /** The first icon shown in the grid, previewed until the user hovers another. */
 const firstIcon = (data: DataNode[]): EmojiNode | undefined => {
   const icon = data.find((node) => node.icons.length)?.icons[0];
   return icon && icon.type !== IconType.SVG ? icon : undefined;
 };
-
 const getSearchResults = ({
   query,
   skinTone,
@@ -221,12 +200,10 @@ const getSearchResults = ({
   customEmojis: EmojiNode[];
 }): DataNode[] => {
   const emojis = search({ query, skinTone });
-
   // Search custom emojis by name
   const matchingCustomEmojis = customEmojis.filter((emoji) =>
     emoji.name?.toLowerCase().includes(query.toLowerCase())
   );
-
   const allResults = [
     ...matchingCustomEmojis,
     ...emojis.map((emoji) => ({
@@ -236,7 +213,6 @@ const getSearchResults = ({
       name: emoji.name,
     })),
   ];
-
   return [
     {
       category: DisplayCategory.Search,
@@ -244,7 +220,6 @@ const getSearchResults = ({
     },
   ];
 };
-
 const getAllEmojis = ({
   skinTone,
   freqEmojis,
@@ -257,10 +232,8 @@ const getAllEmojis = ({
   freqCustomEmojis: EmojiNode[];
 }): DataNode[] => {
   const emojisWithCategory = getEmojisWithCategory({ skinTone });
-
   const getFrequentIcons = (): DataNode => {
     const emojis = getEmojis({ ids: freqEmojis, skinTone });
-
     // Combine frequent standard and custom emojis
     const allFrequent = [
       ...emojis.map((emoji) => ({
@@ -271,13 +244,11 @@ const getAllEmojis = ({
       })),
       ...freqCustomEmojis,
     ];
-
     return {
       category: DisplayCategory.Frequent,
       icons: allFrequent,
     };
   };
-
   const getCategoryData = (emojiCategory: EmojiCategory): DataNode => {
     const emojis = emojisWithCategory[emojiCategory] ?? [];
     return {
@@ -290,7 +261,6 @@ const getAllEmojis = ({
       })),
     };
   };
-
   const allData = concat(
     getFrequentIcons(),
     getCategoryData(EmojiCategory.People),
@@ -302,22 +272,18 @@ const getAllEmojis = ({
     getCategoryData(EmojiCategory.Symbols),
     getCategoryData(EmojiCategory.Flags)
   );
-
   if (customEmojis.length) {
     allData.push({
       category: "Custom",
       icons: customEmojis,
     });
   }
-
   return allData;
 };
-
 const toIcon = (emoji: Emoji): EmojiNode => ({
   type: IconType.Custom,
   id: emoji.id,
   value: emoji.id,
   name: emoji.name,
 });
-
 export default EmojiPanel;

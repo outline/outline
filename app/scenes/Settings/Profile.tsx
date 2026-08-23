@@ -16,17 +16,14 @@ import useStores from "~/hooks/useStores";
 import { UserValidation } from "@shared/validations";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
-
 const Profile = () => {
   const user = useCurrentUser();
   const { dialogs } = useStores();
   const form = React.useRef<HTMLFormElement>(null);
   const [name, setName] = React.useState<string>(user.name);
   const { t } = useTranslation();
-
   const handleSubmit = async (ev: React.SyntheticEvent) => {
     ev.preventDefault();
-
     try {
       await user.save({ name });
       toast.success(t("Profile saved"));
@@ -34,7 +31,6 @@ const Profile = () => {
       toast.error(errToString(err));
     }
   };
-
   const handleChangeEmail = () => {
     dialogs.openModal({
       title: t("Change email"),
@@ -43,23 +39,18 @@ const Profile = () => {
       ),
     });
   };
-
   const handleNameChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setName(ev.target.value);
   };
-
   const handleAvatarChange = async (avatarUrl: string) => {
     await user.save({ avatarUrl });
     toast.success(t("Profile picture updated"));
   };
-
   const handleAvatarError = (error: string | null | undefined) => {
     toast.error(error || t("Unable to upload new profile picture"));
   };
-
   const isValid = form.current?.checkValidity();
   const { isSaving } = user;
-
   return (
     <Scene title={t("Profile")} icon={<ProfileIcon />}>
       <Heading>{t("Profile")}</Heading>
@@ -117,5 +108,4 @@ const Profile = () => {
     </Scene>
   );
 };
-
 export default observer(Profile);

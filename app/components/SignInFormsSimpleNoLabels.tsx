@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -21,13 +21,13 @@ export function SignInFormsSimpleNoLabels() {
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full bg-white">
+          <body class="h-full">
+          ```
+        */}
       <div className="flex min-h-full flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-sm space-y-10">
           <div>

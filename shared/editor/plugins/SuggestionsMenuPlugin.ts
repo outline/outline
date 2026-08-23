@@ -3,14 +3,11 @@ import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
-
 const MAX_MATCH = 500;
-
 type ExtensionState = {
   open: boolean;
   query: string;
 };
-
 /**
  * Determine whether the trigger character of a suggestion match carries any
  * marks (e.g. bold, code, link).
@@ -33,7 +30,6 @@ export function isTriggerMarked(
   }
   return getMarksBetween(triggerStart, triggerEnd, state).length > 0;
 }
-
 export class SuggestionsMenuPlugin extends Plugin {
   constructor(
     extensionState: ExtensionState,
@@ -104,7 +100,6 @@ export class SuggestionsMenuPlugin extends Plugin {
               );
             }, 0);
           }
-
           // Another plugin (e.g. the Placeholder mark) may consume the
           // handleTextInput event by returning true, which prevents the
           // InputRule from evaluating the trigger character. We use a timeout
@@ -138,7 +133,6 @@ export class SuggestionsMenuPlugin extends Plugin {
               );
             }, 0);
           }
-
           // If the menu is open then just ignore the key events in the editor
           // itself until we're done.
           if (
@@ -149,13 +143,11 @@ export class SuggestionsMenuPlugin extends Plugin {
           ) {
             return extensionState.open;
           }
-
           return false;
         },
       },
     });
   }
-
   // based on the input rules code in Prosemirror, here:
   // https://github.com/ProseMirror/prosemirror-inputrules/blob/master/src/inputrules.js
   private execute(
@@ -178,14 +170,12 @@ export class SuggestionsMenuPlugin extends Plugin {
     if ($from.parent.type.spec.code) {
       return false;
     }
-
     const textBefore = $from.parent.textBetween(
       Math.max(0, $from.parentOffset - MAX_MATCH),
       $from.parentOffset,
       undefined,
       "\ufffc"
     );
-
     const match = regex.exec(textBefore);
     const result = handler(
       state,

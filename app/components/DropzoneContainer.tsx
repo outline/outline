@@ -1,6 +1,5 @@
 import styled, { css } from "styled-components";
 import { hover, s } from "@shared/styles";
-
 /**
  * A dashed drop target for choosing files, highlighted while a file is dragged
  * over it.
@@ -25,7 +24,6 @@ export const DropzoneContainer = styled.div<{
     background: ${s("backgroundSecondary")};
   }
 `;
-
 /** Styles the icon shown inside a dropzone as a colored badge. */
 export const dropzoneIcon = css`
   padding: 4px;

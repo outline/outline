@@ -9,7 +9,6 @@ import {
   MenuIconWrapper,
   MenuLabel,
 } from "~/components/primitives/components/Menu";
-
 export type Props = {
   /** Whether the item is selected */
   selected: boolean;
@@ -30,7 +29,6 @@ export type Props = {
   /** Whether to show a disclosure arrow indicating a submenu */
   disclosure?: boolean;
 };
-
 function SuggestionsMenuItem({
   selected,
   disabled,
@@ -59,7 +57,6 @@ function SuggestionsMenuItem({
     },
     [selected, portal]
   );
-
   return (
     <MenuButton
       ref={ref}
@@ -86,15 +83,17 @@ function SuggestionsMenuItem({
     </MenuButton>
   );
 }
-
-const Subtitle = styled.span<{ $active?: boolean }>`
+const Subtitle = styled.span<{
+  $active?: boolean;
+}>`
   color: ${(props) =>
     props.$active
       ? transparentize(0.35, props.theme.accentText)
       : props.theme.textTertiary};
 `;
-
-const Shortcut = styled.span<{ $active?: boolean }>`
+const Shortcut = styled.span<{
+  $active?: boolean;
+}>`
   color: ${(props) =>
     props.$active
       ? transparentize(0.35, props.theme.accentText)
@@ -102,5 +101,4 @@ const Shortcut = styled.span<{ $active?: boolean }>`
   flex-grow: 1;
   text-align: right;
 `;
-
 export default React.memo(SuggestionsMenuItem);

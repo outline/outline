@@ -20,23 +20,19 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import FileOperationMenu from "~/menus/FileOperationMenu";
 import isCloudHosted from "~/utils/isCloudHosted";
-
 type Props = {
   fileOperation: FileOperation;
 };
-
 const TerminalStates = [
   FileOperationState.Complete,
   FileOperationState.Error,
   FileOperationState.Expired,
 ];
-
 const FileOperationListItem = ({ fileOperation }: Props) => {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const theme = useTheme();
   const { dialogs, fileOperations } = useStores();
-
   const stateMapping = {
     [FileOperationState.Creating]: t("Processing"),
     [FileOperationState.Uploading]: t("Processing"),
@@ -44,7 +40,6 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
     [FileOperationState.Complete]: t("Completed"),
     [FileOperationState.Error]: t("Failed"),
   };
-
   const iconMapping: Record<FileOperationState, React.JSX.Element> = {
     [FileOperationState.Creating]: <Spinner />,
     [FileOperationState.Uploading]: <Spinner />,
@@ -52,7 +47,6 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
     [FileOperationState.Complete]: <DoneIcon color={theme.accent} />,
     [FileOperationState.Error]: <WarningIcon color={theme.danger} />,
   };
-
   const formatMapping: Record<FileOperationFormat, string> = {
     [FileOperationFormat.JSON]: "JSON",
     [FileOperationFormat.Notion]: "Notion",
@@ -61,19 +55,16 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
     [FileOperationFormat.TextBundleZip]: "TextBundle",
     [FileOperationFormat.PDF]: "PDF",
   };
-
   const format = formatMapping[fileOperation.format];
   const title =
     fileOperation.type === FileOperationType.Import ||
-    fileOperation.collectionId ||
-    fileOperation.documentId
+    fileOperation.notebookId ||
+    fileOperation.noteId
       ? fileOperation.name
-      : t("All collections");
-
+      : t("All notebooks");
   const handleDelete = React.useCallback(async () => {
     try {
       await fileOperations.delete(fileOperation);
-
       if (fileOperation.type === FileOperationType.Import) {
         toast.success(t("Import deleted"));
       } else {
@@ -83,7 +74,6 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
       toast.error(errToString(err));
     }
   }, [fileOperation, fileOperations, t]);
-
   const handleConfirmDelete = React.useCallback(async () => {
     dialogs.openModal({
       title: t("Are you sure you want to delete this import?"),
@@ -94,22 +84,19 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
           danger
         >
           {t(
-            "Deleting this import will also delete all collections and documents that were created from it. This cannot be undone."
+            "Deleting this import will also delete all notebooks and documents that were created from it. This cannot be undone."
           )}
         </ConfirmationDialog>
       ),
     });
   }, [dialogs, t, handleDelete]);
-
   const showMenu =
     (fileOperation.type === FileOperationType.Export &&
       TerminalStates.includes(fileOperation.state)) ||
     fileOperation.type === FileOperationType.Import;
-
   const selfHostedHelp = isCloudHosted
     ? ""
     : `. ${t("Check server logs for more details.")}`;
-
   return (
     <ListItem
       title={title}
@@ -152,5 +139,4 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
     />
   );
 };
-
 export default observer(FileOperationListItem);

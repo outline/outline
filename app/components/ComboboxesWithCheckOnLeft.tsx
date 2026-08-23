@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -17,12 +17,10 @@ import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { Combobox } from "@headlessui/react";
 import { classNames } from "./classNames";
 import type { ChangeEvent } from "react";
-
 const people = [
   { id: 1, name: "Leslie Alexander" },
   // More users...
 ];
-
 /**
  * Tailwind UI – comboboxes: with check on left.
  *
@@ -33,14 +31,12 @@ export function ComboboxesWithCheckOnLeft() {
   const [selectedPerson, setSelectedPerson] = useState<
     (typeof people)[number] | null
   >(null);
-
   const filteredPeople =
     query === ""
       ? people
       : people.filter((person) =>
           person.name.toLowerCase().includes(query.toLowerCase())
         );
-
   return (
     <Combobox as="div" value={selectedPerson} onChange={setSelectedPerson}>
       <Combobox.Label className="block text-sm font-medium leading-6 text-gray-900">

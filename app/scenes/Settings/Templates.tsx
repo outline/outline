@@ -22,18 +22,15 @@ import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { StickyFilters } from "./components/StickyFilters";
 import { TemplatesTable } from "./components/TemplatesTable";
-
 function getFilteredTemplates(templates: Template[], query?: string) {
   if (!query?.length) {
     return templates;
   }
-
   const normalizedQuery = deburr(query.toLocaleLowerCase());
   return templates.filter((template) =>
     deburr(template.title).toLocaleLowerCase().includes(normalizedQuery)
   );
 }
-
 function Templates() {
   const { t } = useTranslation();
   const { templates } = useStores();
@@ -43,7 +40,6 @@ function Templates() {
   const location = useLocation();
   const params = useQuery();
   const [query, setQuery] = useState("");
-
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
@@ -54,7 +50,6 @@ function Templates() {
     }),
     [params]
   );
-
   const sort: ColumnSort = useMemo(
     () => ({
       id: reqParams.sort,
@@ -62,16 +57,13 @@ function Templates() {
     }),
     [reqParams.sort, reqParams.direction]
   );
-
   const { data, error, loading, next } = useTableRequest({
     data: getFilteredTemplates(templates.all, reqParams.query),
     sort,
     reqFn: templates.fetchPage,
     reqParams,
   });
-
   const isEmpty = !loading && !templates.all.length;
-
   const updateQuery = useCallback(
     (value: string) => {
       if (value) {
@@ -79,7 +71,6 @@ function Templates() {
       } else {
         params.delete("query");
       }
-
       history.replace({
         pathname: location.pathname,
         search: params.toString(),
@@ -87,23 +78,19 @@ function Templates() {
     },
     [params, history, location.pathname]
   );
-
   const handleSearch = useCallback((event) => {
     const { value } = event.target;
     setQuery(value);
   }, []);
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load templates"));
     }
   }, [t, error]);
-
   useEffect(() => {
     const timeout = setTimeout(() => updateQuery(query), 250);
     return () => clearTimeout(timeout);
   }, [query, updateQuery]);
-
   return (
     <Scene
       title={t("Templates")}
@@ -152,5 +139,4 @@ function Templates() {
     </Scene>
   );
 }
-
 export default observer(Templates);

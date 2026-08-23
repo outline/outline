@@ -6,7 +6,6 @@ import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import { fadeAndScaleIn } from "~/styles/animations";
 import { undraggableOnDesktop } from "~/styles";
-
 interface Option {
   /** Display label for the option. */
   label: string;
@@ -15,7 +14,6 @@ interface Option {
   /** Optional description shown below the label. */
   description?: string;
 }
-
 interface SplitButtonProps {
   /** The options available in the dropdown. */
   options: Option[];
@@ -31,7 +29,6 @@ interface SplitButtonProps {
   neutral?: boolean;
   children: React.ReactNode;
 }
-
 /**
  * A split button with a main action and a dropdown disclosure for selecting
  * from a set of options. Built on Radix UI DropdownMenu.
@@ -49,7 +46,6 @@ export function SplitButton({
   const containerRef = React.useRef<HTMLSpanElement>(null);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const [alignOffset, setAlignOffset] = React.useState(0);
-
   const handleOpenChange = React.useCallback((open: boolean) => {
     if (!open || !containerRef.current || !triggerRef.current) {
       return;
@@ -58,7 +54,6 @@ export function SplitButton({
     const triggerLeft = triggerRef.current.getBoundingClientRect().left;
     setAlignOffset(containerLeft - triggerLeft);
   }, []);
-
   return (
     <DropdownMenuPrimitive.Root onOpenChange={handleOpenChange}>
       <Container $neutral={neutral} $disabled={disabled} ref={containerRef}>
@@ -122,13 +117,11 @@ export function SplitButton({
     </DropdownMenuPrimitive.Root>
   );
 }
-
 const accentStyles = css`
   background: ${s("accent")};
   color: ${s("accentText")};
   box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px;
 `;
-
 const neutralStyles = css`
   background: inherit;
   color: ${(props) => props.theme.buttonNeutralText};
@@ -136,8 +129,10 @@ const neutralStyles = css`
     rgba(0, 0, 0, 0.07) 0px 1px 2px,
     ${(props) => props.theme.buttonNeutralBorder} 0 0 0 1px inset;
 `;
-
-const Container = styled.span<{ $neutral?: boolean; $disabled?: boolean }>`
+const Container = styled.span<{
+  $neutral?: boolean;
+  $disabled?: boolean;
+}>`
   display: inline-flex;
   align-items: stretch;
   border-radius: 6px;
@@ -156,7 +151,6 @@ const Container = styled.span<{ $neutral?: boolean; $disabled?: boolean }>`
     opacity: 0.7;
   `}
 `;
-
 const buttonReset = css`
   margin: 0;
   padding: 0;
@@ -172,8 +166,9 @@ const buttonReset = css`
     pointer-events: none;
   }
 `;
-
-const MainButton = styled.button<{ $neutral?: boolean }>`
+const MainButton = styled.button<{
+  $neutral?: boolean;
+}>`
   ${buttonReset}
   display: flex;
   align-items: center;
@@ -190,8 +185,9 @@ const MainButton = styled.button<{ $neutral?: boolean }>`
     transition: background 0s;
   }
 `;
-
-const DisclosureButton = styled.button<{ $neutral?: boolean }>`
+const DisclosureButton = styled.button<{
+  $neutral?: boolean;
+}>`
   ${buttonReset}
   display: flex;
   align-items: center;
@@ -209,8 +205,9 @@ const DisclosureButton = styled.button<{ $neutral?: boolean }>`
     transition: background 0s;
   }
 `;
-
-const Divider = styled.span<{ $neutral?: boolean }>`
+const Divider = styled.span<{
+  $neutral?: boolean;
+}>`
   width: 1px;
   align-self: stretch;
   margin: 6px 0;
@@ -219,11 +216,9 @@ const Divider = styled.span<{ $neutral?: boolean }>`
       ? transparentize(0.7, props.theme.buttonNeutralText)
       : "rgba(255, 255, 255, 0.3)"};
 `;
-
 const StyledExpandedIcon = styled(ExpandedIcon)`
   opacity: 0.8;
 `;
-
 const MenuContent = styled.div`
   z-index: 4000;
   min-width: 180px;
@@ -239,7 +234,6 @@ const MenuContent = styled.div`
     animation: ${fadeAndScaleIn} 150ms ease-out;
   }
 `;
-
 const MenuItem = styled.button`
   ${buttonReset}
   position: relative;
@@ -260,24 +254,20 @@ const MenuItem = styled.button`
     outline: none;
   }
 `;
-
 const MenuItemContent = styled.div`
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   text-align: left;
 `;
-
 const MenuItemLabel = styled.span`
   font-weight: 500;
 `;
-
 const MenuItemDescription = styled.span`
   font-size: 12px;
   opacity: 0.75;
   margin-top: 1px;
 `;
-
 const CheckmarkWrapper = styled.span`
   width: 18px;
   height: 18px;

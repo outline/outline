@@ -21,7 +21,6 @@ export class EventHelper {
     "users.demote",
     "userMemberships.update",
   ] as const;
-
   public static AUDIT_EVENTS = [
     "api_keys.create",
     "api_keys.delete",

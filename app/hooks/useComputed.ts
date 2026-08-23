@@ -1,6 +1,5 @@
 import { computed } from "mobx";
 import { type DependencyList, useMemo } from "react";
-
 /**
  * Hook around MobX computed function that runs computation whenever observable values change.
  *

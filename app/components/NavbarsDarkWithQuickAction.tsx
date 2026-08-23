@@ -3,7 +3,6 @@ import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const user = {
   name: "Tom Cook",
   email: "tom@example.com",
@@ -21,7 +20,6 @@ const userNavigation = [
   { name: "Settings", href: "#" },
   { name: "Sign out", href: "#" },
 ];
-
 /**
  * Tailwind UI – navbars: dark with quick action.
  *

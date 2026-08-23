@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -13,7 +13,6 @@
   ```
 */
 import { CheckIcon, ClockIcon } from "@heroicons/react/20/solid";
-
 const products = [
   {
     id: 1,
@@ -40,7 +39,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – shopping carts: with extended summary.
  *
@@ -146,7 +144,7 @@ export function ShoppingCartsWithExtendedSummary() {
                       <span>
                         {product.inStock
                           ? "In stock"
-                          : `Ships in ${"leadTime" in product ? product.leadTime : ""}`}
+                          : `Ships in ${"leadTime" in product ? String(product.leadTime) : ""}`}
                       </span>
                     </p>
                   </div>

@@ -24,12 +24,9 @@ import { HStack } from "~/components/primitives/HStack";
 import { dateToExpiry } from "~/utils/date";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import { CopyIcon } from "outline-icons";
-
 const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
-
 type Props = Omit<TableProps<ApiKey>, "columns" | "rowHeight">;
-
 const ApiKeyRowContextMenu = observer(function ApiKeyRowContextMenu({
   apiKey,
   menuLabel,
@@ -46,11 +43,9 @@ const ApiKeyRowContextMenu = observer(function ApiKeyRowContextMenu({
     </ContextMenu>
   );
 });
-
 export const ApiKeysTable = observer(function ApiKeysTable(props: Props) {
   const { t } = useTranslation();
   const userLocale = useUserLocale();
-
   const applyContextMenu = useCallback(
     (apiKey: ApiKey, rowElement: React.ReactNode) => (
       <ApiKeyRowContextMenu apiKey={apiKey} menuLabel={t("API key")}>
@@ -59,7 +54,6 @@ export const ApiKeysTable = observer(function ApiKeysTable(props: Props) {
     ),
     [t]
   );
-
   const columns = useMemo<TableColumn<ApiKey>[]>(
     () => [
       {
@@ -159,7 +153,6 @@ export const ApiKeysTable = observer(function ApiKeysTable(props: Props) {
     ],
     [t, userLocale]
   );
-
   return (
     <SortableTable
       id="apiKeys"
@@ -171,7 +164,6 @@ export const ApiKeysTable = observer(function ApiKeysTable(props: Props) {
     />
   );
 });
-
 const CopyableText = styled(Text)`
   cursor: pointer;
   display: flex;

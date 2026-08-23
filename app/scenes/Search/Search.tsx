@@ -15,8 +15,8 @@ import type {
 } from "@shared/types";
 import { StatusFilter as TStatusFilter } from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
-import DocumentListItem from "~/components/DocumentListItem";
-import DocumentSelectionToolbar from "~/components/DocumentSelectionToolbar";
+import NoteListItem from "~/components/NoteListItem";
+import NoteSelectionToolbar from "~/components/NoteSelectionToolbar";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
@@ -33,42 +33,40 @@ import type { PaginationParams, SearchResult } from "~/types";
 import { preventDefault } from "~/utils/events";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe, isTruthyQueryValue } from "~/utils/urls";
-import CollectionFilter from "./components/CollectionFilter";
+import NotebookFilter from "./components/NotebookFilter";
 import DateFilter from "./components/DateFilter";
-import { DocumentFilter } from "./components/DocumentFilter";
-import DocumentTypeFilter from "./components/DocumentTypeFilter";
+import { NoteFilter } from "./components/NoteFilter";
+import NoteTypeFilter from "./components/NoteTypeFilter";
 import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
 import { SortInput } from "./components/SortInput";
 import UserFilter from "./components/UserFilter";
 import { HStack } from "~/components/primitives/HStack";
 import useMobile from "~/hooks/useMobile";
-
 function Search() {
   const { t } = useTranslation();
-  const { documents, searches, policies } = useStores();
+  const { notes, searches, policies } = useStores();
   const isMobile = useMobile();
-
   // routing
   const params = useQuery();
   const location = useLocation();
   const history = useHistory();
-  const routeMatch = useRouteMatch<{ query: string }>();
+  const routeMatch = useRouteMatch<{
+    query: string;
+  }>();
   const handleGoBack = React.useCallback(() => history.goBack(), [history]);
-
   // refs
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const resultListRef = React.useRef<HTMLDivElement | null>(null);
   const recentSearchesRef = React.useRef<HTMLDivElement | null>(null);
-
   // filters
   const decodedQuery = decodeURIComponentSafe(
     routeMatch.params.query ?? params.get("q") ?? params.get("query") ?? ""
   ).trim();
   const query = decodedQuery !== "" ? decodedQuery : undefined;
-  const collectionId = params.get("collectionId") ?? "";
+  const notebookId = params.get("collectionId") ?? "";
   const userId = params.get("userId") ?? "";
-  const documentId = params.get("documentId") ?? undefined;
+  const noteId = params.get("documentId") ?? undefined;
   const dateFilter = (params.get("dateFilter") as TDateFilter) ?? "";
   // Keyed on the serialized value so the array keeps a stable identity between
   // renders and can be used directly as a dependency.
@@ -83,46 +81,41 @@ function Search() {
   const titleFilter = isTruthyQueryValue(params.get("titleFilter"));
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
-
-  const isSearchable = !!(query || collectionId || userId);
-
-  const document = documentId ? documents.get(documentId) : undefined;
-
+  const isSearchable = !!(query || notebookId || userId);
+  const note = noteId ? notes.get(noteId) : undefined;
   const filterVisibility = {
-    document: !!document,
-    collection: !document,
-    user: !document || !!(document && query),
-    documentType: isSearchable,
+    note: !!note,
+    notebook: !note,
+    user: !note || !!(note && query),
+    noteType: isSearchable,
     date: isSearchable,
-    title: !!query && !document,
+    title: !!query && !note,
     sort: isSearchable,
   };
-
   const filters = React.useMemo(
     () => ({
       query,
       statusFilter,
-      collectionId,
+      notebookId,
       userId,
       dateFilter,
       titleFilter,
-      documentId,
+      noteId,
       sort,
       direction,
     }),
     [
       query,
       statusFilter,
-      collectionId,
+      notebookId,
       userId,
       dateFilter,
       titleFilter,
-      documentId,
+      noteId,
       sort,
       direction,
     ]
   );
-
   const requestFn = React.useMemo(() => {
     // Add to the searches store so this search can immediately appear in the recent searches list
     // without a flash of loading.
@@ -133,7 +126,6 @@ function Search() {
         createdAt: new Date().toISOString(),
       });
     }
-
     if (isSearchable) {
       return async (params?: PaginationParams) => {
         const paginationParams = {
@@ -141,31 +133,26 @@ function Search() {
           limit: params?.limit,
         };
         return titleFilter
-          ? await documents.searchTitles({ ...filters, ...paginationParams })
-          : await documents.search({ ...filters, ...paginationParams });
+          ? await notes.searchTitles({ ...filters, ...paginationParams })
+          : await notes.search({ ...filters, ...paginationParams });
       };
     }
-
     return () => Promise.resolve([] as SearchResult[]);
-  }, [query, titleFilter, filters, searches, documents, isSearchable]);
-
+  }, [query, titleFilter, filters, searches, notes, isSearchable]);
   const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,
   });
-
   // Only updatable documents are selectable, matching the per-item checkboxes.
   const itemIds = React.useMemo(
     () =>
       data
-        ?.filter((result) => policies.abilities(result.document.id).update)
-        .map((result) => result.document.id) ?? [],
+        ?.filter((result) => policies.abilities(result.note.id).update)
+        .map((result) => result.note.id) ?? [],
     [data, policies]
   );
-
   const updateLocation = (query: string) => {
     // If query came from route params, navigate to base search path
     const pathname = routeMatch.params.query ? searchPath() : location.pathname;
-
     history.replace({
       pathname,
       search: queryString.stringify(
@@ -176,12 +163,11 @@ function Search() {
       ),
     });
   };
-
   // All filters go through the query string so that searches are bookmarkable, which neccesitates
   // some complexity as the query string is the source of truth for the filters.
   const handleFilterChange = (search: {
-    collectionId?: string | undefined;
-    documentId?: string | undefined;
+    notebookId?: string | undefined;
+    noteId?: string | undefined;
     userId?: string | undefined;
     dateFilter?: TDateFilter;
     statusFilter?: TStatusFilter[];
@@ -193,7 +179,6 @@ function Search() {
       search.sort = undefined;
       search.direction = undefined;
     }
-
     history.replace({
       pathname: location.pathname,
       search: queryString.stringify(
@@ -204,22 +189,18 @@ function Search() {
       ),
     });
   };
-
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
     if (ev.nativeEvent.isComposing) {
       return;
     }
-
     if (ev.key === "Enter") {
       updateLocation(ev.currentTarget.value);
       return;
     }
-
     if (ev.key === "Escape") {
       ev.preventDefault();
       return history.goBack();
     }
-
     if (ev.key === "ArrowUp") {
       if (ev.currentTarget.value) {
         const length = ev.currentTarget.value.length;
@@ -231,10 +212,8 @@ function Search() {
         }
       }
     }
-
     if (ev.key === "ArrowDown" && !ev.shiftKey) {
       ev.preventDefault();
-
       if (ev.currentTarget.value) {
         const length = ev.currentTarget.value.length;
         const selectionStart = ev.currentTarget.selectionStart || 0;
@@ -244,17 +223,13 @@ function Search() {
           return;
         }
       }
-
       const firstItem = (resultListRef.current?.firstElementChild ??
         recentSearchesRef.current?.firstElementChild) as HTMLAnchorElement;
-
       firstItem?.focus();
     }
   };
-
   const handleEscape = () => searchInputRef.current?.focus();
   const showEmpty = !loading && query && data?.length === 0;
-
   const sortInput = filterVisibility.sort ? (
     <SortInput
       sort={sort}
@@ -262,7 +237,6 @@ function Search() {
       onSelect={(sort, direction) => handleFilterChange({ sort, direction })}
     />
   ) : null;
-
   return (
     <Scene
       textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
@@ -277,9 +251,9 @@ function Search() {
             key={query ? "search" : "recent"}
             ref={searchInputRef}
             placeholder={`${
-              documentId
+              noteId
                 ? t("Search in note")
-                : collectionId
+                : notebookId
                   ? t("Search in notebook")
                   : t("Search")
             }…`}
@@ -288,20 +262,18 @@ function Search() {
           />
           <Filters>
             <Flex align="center" gap={4} wrap>
-              {filterVisibility.document && (
-                <DocumentFilter
-                  document={document!}
+              {filterVisibility.note && (
+                <NoteFilter
+                  note={note!}
                   onClick={() => {
-                    handleFilterChange({ documentId: undefined });
+                    handleFilterChange({ noteId: undefined });
                   }}
                 />
               )}
-              {filterVisibility.collection && (
-                <CollectionFilter
-                  collectionId={collectionId}
-                  onSelect={(collectionId) =>
-                    handleFilterChange({ collectionId })
-                  }
+              {filterVisibility.notebook && (
+                <NotebookFilter
+                  notebookId={notebookId}
+                  onSelect={(notebookId) => handleFilterChange({ notebookId })}
                 />
               )}
               {filterVisibility.user && (
@@ -310,8 +282,8 @@ function Search() {
                   onSelect={(userId) => handleFilterChange({ userId })}
                 />
               )}
-              {filterVisibility.documentType && (
-                <DocumentTypeFilter
+              {filterVisibility.noteType && (
+                <NoteTypeFilter
                   statusFilter={statusFilter}
                   onSelect={({ statusFilter }) =>
                     handleFilterChange({ statusFilter })
@@ -365,7 +337,7 @@ function Search() {
             ) : null}
             <ModelSelectionProvider
               items={itemIds}
-              toolbar={<DocumentSelectionToolbar />}
+              toolbar={<NoteSelectionToolbar />}
             >
               <ResultList column>
                 <StyledArrowKeyNavigation
@@ -377,12 +349,12 @@ function Search() {
                   {() =>
                     data?.length && !error
                       ? data.map((result) => (
-                          <DocumentListItem
-                            key={result.document.id}
-                            document={result.document}
+                          <NoteListItem
+                            key={result.note.id}
+                            note={result.note}
                             highlight={query}
                             context={result.context}
-                            showCollection
+                            showNotebook
                           />
                         ))
                       : null
@@ -396,37 +368,32 @@ function Search() {
               </ResultList>
             </ModelSelectionProvider>
           </>
-        ) : documentId ? null : (
+        ) : noteId ? null : (
           <RecentSearches ref={recentSearchesRef} onEscape={handleEscape} />
         )}
       </ResultsWrapper>
     </Scene>
   );
 }
-
 const Centered = styled(Flex)`
   text-align: center;
   margin: 30vh auto 0;
   max-width: 380px;
   transform: translateY(-50%);
 `;
-
 const ResultsWrapper = styled(Flex)`
   ${breakpoint("tablet")`
     margin-top: 40px;
   `};
 `;
-
 const ResultList = styled(Flex)`
   margin-bottom: 150px;
 `;
-
 const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   display: flex;
   flex-direction: column;
   flex: 1;
 `;
-
 const Filters = styled(HStack)`
   flex-wrap: wrap;
   justify-content: space-between;
@@ -438,7 +405,6 @@ const Filters = styled(HStack)`
     padding: 0;
   `};
 `;
-
 const SearchTitlesFilter = styled(Switch)`
   white-space: nowrap;
   margin-left: 8px;
@@ -446,5 +412,4 @@ const SearchTitlesFilter = styled(Switch)`
   font-weight: 400;
   height: 28px;
 `;
-
 export default observer(Search);

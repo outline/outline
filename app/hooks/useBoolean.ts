@@ -1,7 +1,5 @@
 import { useState, useCallback } from "react";
-
 type InitialState = boolean | (() => boolean);
-
 /**
  * React hook to manage booleans
  *
@@ -14,10 +12,8 @@ export default function useBoolean(
   const setTrue = useCallback(() => {
     setValue(true);
   }, []);
-
   const setFalse = useCallback(() => {
     setValue(false);
   }, []);
-
   return [value, setTrue, setFalse];
 }

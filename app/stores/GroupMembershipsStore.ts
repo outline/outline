@@ -1,9 +1,6 @@
 import invariant from "invariant";
 import { action, runInAction } from "mobx";
-import {
-  type CollectionPermission,
-  type DocumentPermission,
-} from "@shared/types";
+import { type NotebookPermission, type NotePermission } from "@shared/types";
 import GroupMembership from "~/models/GroupMembership";
 import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -13,161 +10,148 @@ import Store, {
   type PaginatedResponse,
   RPCAction,
 } from "./base/Store";
-
 export default class GroupMembershipsStore extends Store<GroupMembership> {
   actions = [RPCAction.Create, RPCAction.Delete];
-
   constructor(rootStore: RootStore) {
     super(rootStore, GroupMembership);
   }
-
   /**
    * Remove a membership, and the access that it granted.
    *
    * @param id the ID of the membership to remove.
    */
   @action
-  remove(id: string, options?: { permanent?: boolean }): void {
+  remove(
+    id: string,
+    options?: {
+      permanent?: boolean;
+    }
+  ): void {
     super.remove(id, options);
     this.rootStore.policies.removeForMembership(id);
   }
-
   @action
   fetchPage = async ({
-    collectionId,
-    documentId,
+    notebookId,
+    noteId,
     ...params
   }: PaginationParams & {
-    documentId?: string;
-    collectionId?: string;
+    noteId?: string;
+    notebookId?: string;
     groupId?: string;
   }): Promise<PaginatedResponse<GroupMembership>> => {
     this.isFetching = true;
-
     try {
-      const res = collectionId
+      const res = notebookId
         ? await client.post(`/collections.group_memberships`, {
-            id: collectionId,
+            id: notebookId,
             ...params,
           })
-        : documentId
+        : noteId
           ? await client.post(`/documents.group_memberships`, {
-              id: documentId,
+              id: noteId,
               ...params,
             })
           : await client.post(`/groupMemberships.list`, params);
       invariant(res?.data, "Data not available");
-
       let response: PaginatedResponse<GroupMembership> = [];
       runInAction(`GroupMembershipsStore#fetchPage`, () => {
         res.data.groups?.forEach(this.rootStore.groups.add);
-        res.data.documents?.forEach(this.rootStore.documents.add);
+        res.data.documents?.forEach(this.rootStore.notes.add);
         response = res.data.groupMemberships.map(this.add);
         this.isLoaded = true;
       });
-
       response[PAGINATION_SYMBOL] = res.pagination;
       return response;
     } finally {
       this.isFetching = false;
     }
   };
-
   @action
   async create({
-    collectionId,
-    documentId,
+    notebookId,
+    noteId,
     groupId,
     permission,
   }: {
-    collectionId?: string;
-    documentId?: string;
+    notebookId?: string;
+    noteId?: string;
     groupId: string;
-    permission?: CollectionPermission | DocumentPermission;
+    permission?: NotebookPermission | NotePermission;
   }) {
-    const res = collectionId
+    const res = notebookId
       ? await client.post("/collections.add_group", {
-          id: collectionId,
+          id: notebookId,
           groupId,
           permission,
         })
       : await client.post("/documents.add_group", {
-          id: documentId,
+          id: noteId,
           groupId,
           permission,
         });
     invariant(res?.data, "Membership data should be available");
-
     const cgm = res.data.groupMemberships.map(this.add);
     return cgm[0];
   }
-
   @action
   async delete({
-    collectionId,
-    documentId,
+    notebookId,
+    noteId,
     groupId,
   }: {
-    collectionId?: string;
-    documentId?: string;
+    notebookId?: string;
+    noteId?: string;
     groupId: string;
   }) {
-    if (collectionId) {
+    if (notebookId) {
       await client.post("/collections.remove_group", {
-        id: collectionId,
+        id: notebookId,
         groupId,
       });
     } else {
       await client.post("/documents.remove_group", {
-        id: documentId,
+        id: noteId,
         groupId,
       });
     }
-
     this.removeAll(
-      collectionId
+      notebookId
         ? {
-            collectionId,
+            notebookId,
             groupId,
           }
         : {
-            documentId,
+            noteId,
             groupId,
           }
     );
   }
-
   /**
-   * Returns all group memberships for the given collection
+   * Returns all group memberships for the given notebook
    *
    * @param collectionId The collection ID
    * @returns A list of group memberships
    */
-  inCollection = (collectionId: string) =>
-    this.orderedData.filter((cgm) => cgm.collectionId === collectionId);
-
+  inNotebook = (notebookId: string) =>
+    this.orderedData.filter((cgm) => cgm.notebookId === notebookId);
   /**
-   * Returns all group memberships for the given document
+   * Returns all group memberships for the given note
    *
-   * @param documentId The document ID
+   * @param noteId The note ID
    * @returns A list of group memberships
    */
-  inDocument = (documentId: string) =>
-    this.orderedData.filter((cgm) => cgm.documentId === documentId);
-
+  inNote = (noteId: string) =>
+    this.orderedData.filter((cgm) => cgm.noteId === noteId);
   /**
-   * Returns the group membership associated with the document.
+   * Returns the group membership associated with the note.
    */
-  getByDocumentId = (documentId: string): GroupMembership | undefined => {
-    const membership = this.find({ documentId });
-
+  getByNoteId = (noteId: string): GroupMembership | undefined => {
+    const membership = this.find({ noteId });
     if (membership) {
       return membership;
     }
-
-    const document = this.rootStore.documents.get(documentId);
-    return document?.parentDocumentId
-      ? this.getByDocumentId(document.parentDocumentId)
-      : undefined;
+    const note = this.rootStore.notes.get(noteId);
+    return note?.parentNoteId ? this.getByNoteId(note.parentNoteId) : undefined;
   };
 }

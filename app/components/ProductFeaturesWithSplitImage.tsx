@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -34,7 +34,6 @@ const features = [
       "Responsibly and sustainably made real close to wherever you are, somehow.",
   },
 ];
-
 /**
  * Tailwind UI – product features: with split image.
  *

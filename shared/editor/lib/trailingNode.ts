@@ -1,8 +1,6 @@
 import { Fragment, type Node } from "prosemirror-model";
-
 /** Node names after which a trailing paragraph is not required. */
 export const trailingNodeNotAfter = ["paragraph", "heading"];
-
 /**
  * Determines whether the editor would insert a trailing paragraph after the
  * document's last node. Mirrors the behavior of the TrailingNode extension so
@@ -32,7 +30,6 @@ export function requiresTrailingNode(
   }
   return !notAfter.includes(lastNode.type.name);
 }
-
 /**
  * Appends a trailing paragraph to the document if the editor would add one on
  * load, returning the normalized document unchanged otherwise.

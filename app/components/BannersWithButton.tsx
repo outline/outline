@@ -1,5 +1,4 @@
 import { XMarkIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – banners: with button.
  *

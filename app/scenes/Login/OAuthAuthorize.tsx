@@ -32,16 +32,13 @@ import { Centered } from "./components/Centered";
 import { ConnectHeader } from "./components/ConnectHeader";
 import { TeamSwitcher } from "./components/TeamSwitcher";
 import { Form } from "~/components/primitives/Form";
-
 export default function OAuthAuthorize() {
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const sessions = useLoggedInSessions();
-
   // We're self-hosted or on a team subdomain already, just show the authorize screen.
   if (team) {
     return <Authorize />;
   }
-
   // Cloud hosted and on root domain – show the workspace switcher.
   const isAppRoot =
     parseDomain(window.location.hostname).host === parseDomain(env.URL).host;
@@ -49,27 +46,21 @@ export default function OAuthAuthorize() {
   if (isCloudHosted && hasLoggedInSessions && isAppRoot) {
     return <TeamSwitcher sessions={sessions} />;
   }
-
   return <Login />;
 }
-
 function inputScopes(scope?: string): string[] {
   const defaultScopes = ["read", "write"];
-
   // Some clients don't send the scope parameter if it's empty, so we default to "read write".
   if (!scope) {
     return defaultScopes;
   }
-
   // Handle invalid "claudeai" scope sent by Claude:
   // https://github.com/modelcontextprotocol/modelcontextprotocol/issues/653
   if (scope === "claudeai") {
     return defaultScopes;
   }
-
   return scope.split(" ").filter(Boolean);
 }
-
 /**
  * Authorize component is responsible for handling the OAuth authorization process.
  * It retrieves the OAuth client information, displays the authorization request,
@@ -96,7 +87,6 @@ function Authorize() {
   const { error: clientError, data: response } = useRequest<{
     data: OAuthClient;
   }>(() => client.post("/oauthClients.info", { clientId, redirectUri }), true);
-
   const handleCancel = () => {
     if (redirectUri && !clientError) {
       const url = new URL(redirectUri);
@@ -110,12 +100,10 @@ function Authorize() {
       window.location.href = "/";
     }
   };
-
   const handleSubmit = () => {
     setIsSubmitting(true);
     timeoutRef.current = window.setTimeout(() => setIsSubmitting(false), 5000);
   };
-
   useEffect(() => {
     const readyTimeout = window.setTimeout(() => setIsReady(true), 1000);
     return () => {
@@ -125,14 +113,12 @@ function Authorize() {
       }
     };
   }, []);
-
   const missingParams = [
     !clientId && "client_id",
     !redirectUri && "redirect_uri",
     !responseType && "response_type",
     !state && "state",
   ].filter(Boolean);
-
   if (missingParams.length || clientError || !team) {
     return (
       <Background>
@@ -176,13 +162,10 @@ function Authorize() {
       </Background>
     );
   }
-
   if (!response) {
     return <LoadingIndicator />;
   }
-
   const { name, developerName, developerUrl } = response.data;
-
   return (
     <Background>
       <ChangeLanguage locale={detectLanguage()} />
@@ -292,18 +275,15 @@ function Authorize() {
     </Background>
   );
 }
-
 const Button = styled(ButtonLarge)`
   width: calc(50% - 4px);
 `;
-
 const StyledHeading = styled(Heading).attrs({
   as: "h2",
   centered: true,
 })`
   margin-top: 0;
 `;
-
 const Pre = styled.pre`
   background: ${s("backgroundSecondary")};
   padding: 16px;

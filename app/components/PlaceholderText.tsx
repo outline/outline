@@ -4,7 +4,6 @@ import { randomInteger } from "@shared/random";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import { pulsate } from "~/styles/animations";
-
 export type Props = React.ComponentProps<typeof Flex> & {
   header?: boolean;
   width?: number;
@@ -13,11 +12,9 @@ export type Props = React.ComponentProps<typeof Flex> & {
   maxWidth?: number;
   delay?: number;
 };
-
 function PlaceholderText({ minWidth, maxWidth, ...restProps }: Props) {
   // We only want to compute the width once so we are storing it inside ref
   const widthRef = React.useRef(randomInteger(minWidth || 75, maxWidth || 100));
-
   return (
     <Mask
       width={`${widthRef.current / (restProps.header ? 2 : 1)}%`}
@@ -25,7 +22,6 @@ function PlaceholderText({ minWidth, maxWidth, ...restProps }: Props) {
     />
   );
 }
-
 const Mask = styled(Flex)<{
   width: number | string;
   height?: number;
@@ -46,7 +42,6 @@ const Mask = styled(Flex)<{
     margin-bottom: 0;
   }
 `;
-
 // We don't want the component to re-render on any props change
 // So returning true from the custom comparison function to avoid re-render
 export default React.memo(PlaceholderText, () => true);

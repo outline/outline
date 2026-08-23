@@ -4,7 +4,6 @@ const steps = [
   { name: "Step 3", href: "#", status: "upcoming" },
   { name: "Step 4", href: "#", status: "upcoming" },
 ];
-
 /**
  * Tailwind UI – steps: bullets.
  *

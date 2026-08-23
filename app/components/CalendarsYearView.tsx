@@ -7,7 +7,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { Menu, Transition } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const months = [
   {
     name: "January",
@@ -58,7 +57,6 @@ const months = [
   },
   // More months...
 ];
-
 /**
  * Tailwind UI – calendars: year view.
  *

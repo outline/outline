@@ -3,25 +3,19 @@ import { StorefrontPagesWithDarkNavAndFooter } from "~/components/StorefrontPage
 import { StorefrontPagesWithImageTilesAndFeatureSections } from "~/components/StorefrontPagesWithImageTilesAndFeatureSections";
 import { StorefrontPagesWithOffersAndTestimonials } from "~/components/StorefrontPagesWithOffersAndTestimonials";
 import { StorefrontPagesWithOverlappingImageTilesAndPerks } from "~/components/StorefrontPagesWithOverlappingImageTilesAndPerks";
-
 const meta: Meta = {
   title: "Ecommerce/Page Examples/Storefront Pages",
 };
-
 export default meta;
-
 export const WithDarkNavAndFooter: StoryObj = {
   render: () => <StorefrontPagesWithDarkNavAndFooter />,
 };
-
 export const WithImageTilesAndFeatureSections: StoryObj = {
   render: () => <StorefrontPagesWithImageTilesAndFeatureSections />,
 };
-
 export const WithOffersAndTestimonials: StoryObj = {
   render: () => <StorefrontPagesWithOffersAndTestimonials />,
 };
-
 export const WithOverlappingImageTilesAndPerks: StoryObj = {
   render: () => <StorefrontPagesWithOverlappingImageTilesAndPerks />,
 };

@@ -1,8 +1,6 @@
 import type { Node } from "prosemirror-model";
 import type { NodeWithPos } from "../types";
-
 type Predicate = (node: Node) => boolean;
-
 export function flatten(node: Node, descend = true): NodeWithPos[] {
   if (!node) {
     throw new Error('Invalid "node" parameter');
@@ -17,7 +15,6 @@ export function flatten(node: Node, descend = true): NodeWithPos[] {
   });
   return result;
 }
-
 /**
  * Iterates over descendants of a given `node`, returning child nodes predicate
  * returns truthy for. It doesn't descend into a node when descend argument is
@@ -40,7 +37,6 @@ export function findChildren(
   }
   return flatten(node, descend).filter((child) => predicate(child.node));
 }
-
 /**
  * Iterates over descendants of a given `node`, returning child nodes that
  * are blocks.

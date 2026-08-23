@@ -8,19 +8,15 @@ import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import type { IconNode } from "./GridTemplate";
-
 /** Height of the preview bar, used to size the grid above it. */
 export const PREVIEW_HEIGHT = 56;
-
 const GLYPH_SIZE = 28;
-
 type Props = {
   /** The icon or emoji to preview, nothing is rendered when empty */
   icon?: IconNode;
   /** Whether the grid above has content below the fold, fades the last row */
   showFade?: boolean;
 };
-
 /**
  * Displays a large preview of the hovered icon or emoji alongside its name and
  * shortcode.
@@ -60,20 +56,19 @@ export const IconPreview = ({ icon, showFade }: Props) => (
     )}
   </Container>
 );
-
 const displayName = (icon: IconNode) =>
   icon.type === IconType.SVG
     ? startCase(icon.name)
     : startCase(icon.name ?? "");
-
 const shortcode = (icon: IconNode) => {
   if (icon.type === IconType.SVG) {
     return icon.name;
   }
   return icon.type === IconType.Custom ? (icon.name ?? icon.value) : icon.id;
 };
-
-const Container = styled(Flex)<{ $showFade?: boolean }>`
+const Container = styled(Flex)<{
+  $showFade?: boolean;
+}>`
   position: relative;
   flex-shrink: 0;
   height: ${PREVIEW_HEIGHT}px;
@@ -97,21 +92,17 @@ const Container = styled(Flex)<{ $showFade?: boolean }>`
     background: linear-gradient(to bottom, transparent, ${s("menuBackground")});
   }
 `;
-
 const Name = styled(Text)`
   font-size: 15px;
 `;
-
 const Glyph = styled(Flex)`
   width: ${GLYPH_SIZE}px;
   height: ${GLYPH_SIZE}px;
   flex-shrink: 0;
 `;
-
 const Labels = styled(Flex)`
   min-width: 0;
 `;
-
 const Icon = styled.svg`
   flex-shrink: 0;
 `;

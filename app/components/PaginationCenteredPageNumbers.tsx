@@ -2,7 +2,6 @@ import {
   ArrowLongLeftIcon,
   ArrowLongRightIcon,
 } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – pagination: centered page numbers.
  *

@@ -21,7 +21,6 @@
 function unescape(token: string): string {
   return token.replace(/~1/g, "/").replace(/~0/g, "~");
 }
-
 /**
  * Escape token part of a JSON Pointer string
  *
@@ -34,19 +33,16 @@ function unescape(token: string): string {
 function escape(token: string): string {
   return token.replace(/~/g, "~0").replace(/\//g, "~1");
 }
-
 export interface PointerEvaluation {
   parent: unknown;
   key: string;
   value: unknown;
 }
-
 /**
  * JSON Pointer representation
  */
 export class Pointer {
   constructor(public tokens = [""]) {}
-
   /**
    * `path` *must* be a properly escaped string.
    */
@@ -57,11 +53,9 @@ export class Pointer {
     }
     return new Pointer(tokens);
   }
-
   toString(): string {
     return this.tokens.map(escape).join("/");
   }
-
   /**
    * Returns an object with 'parent', 'key', and 'value' properties.
    * In the special case that this Pointer's path == "",
@@ -83,11 +77,9 @@ export class Pointer {
     }
     return { parent, key, value };
   }
-
   get(object: unknown): unknown {
     return this.evaluate(object).value;
   }
-
   set(object: unknown, value: unknown): void {
     let cursor = object as Record<string, unknown> | undefined;
     for (let i = 1, l = this.tokens.length - 1; i < l; i++) {
@@ -101,12 +93,10 @@ export class Pointer {
       cursor[this.tokens[this.tokens.length - 1]] = value;
     }
   }
-
   push(token: string): void {
     // mutable
     this.tokens.push(token);
   }
-
   /**
    * `token` should be a String. It'll be coerced to one anyway.
    *

@@ -20,7 +20,6 @@ const plans = [
   },
   // More plans...
 ];
-
 /**
  * Tailwind UI – tables: with border.
  *

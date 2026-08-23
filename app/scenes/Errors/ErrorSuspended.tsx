@@ -4,11 +4,9 @@ import CenteredContent from "~/components/CenteredContent";
 import Heading from "~/components/Heading";
 import PageTitle from "~/components/PageTitle";
 import useStores from "~/hooks/useStores";
-
 const ErrorSuspended = () => {
   const { t } = useTranslation();
   const { auth } = useStores();
-
   return (
     <CenteredContent>
       <PageTitle title={t("Your account has been suspended")} />
@@ -33,5 +31,4 @@ const ErrorSuspended = () => {
     </CenteredContent>
   );
 };
-
 export default observer(ErrorSuspended);

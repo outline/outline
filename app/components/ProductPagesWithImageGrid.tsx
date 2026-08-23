@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -37,7 +37,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon, StarIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const currencies = ["CAD", "USD", "AUD", "EUR", "GBP"];
 const navigation = {
   categories: [
@@ -48,7 +47,7 @@ const navigation = {
         { name: "Swimwear", href: "#" },
         { name: "Underwear", href: "#" },
       ],
-      collection: [
+      notebook: [
         { name: "Everything", href: "#" },
         { name: "Core", href: "#" },
         { name: "New Arrivals", href: "#" },
@@ -76,7 +75,7 @@ const navigation = {
         { name: "Boxers", href: "#" },
         { name: "Outdoor", href: "#" },
       ],
-      collection: [
+      notebook: [
         { name: "Everything", href: "#" },
         { name: "Core", href: "#" },
         { name: "New Arrivals", href: "#" },
@@ -235,7 +234,6 @@ const footerNavigation = {
     { name: "Twitter", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – product pages: with image grid.
  *
@@ -245,7 +243,6 @@ export function ProductPagesWithImageGrid() {
   const [open, setOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const [selectedSize, setSelectedSize] = useState(product.sizes[2]);
-
   return (
     <div className="bg-white">
       {/* Mobile menu */}
@@ -376,7 +373,7 @@ export function ProductPagesWithImageGrid() {
                                 aria-labelledby="mobile-collection-heading"
                                 className="mt-6 space-y-6"
                               >
-                                {category.collection.map((item) => (
+                                {category.notebook.map((item) => (
                                   <li key={item.name} className="flex">
                                     <a
                                       href={item.href}
@@ -668,7 +665,7 @@ export function ProductPagesWithImageGrid() {
                                                 aria-labelledby="desktop-collection-heading"
                                                 className="mt-6 space-y-6 sm:mt-4 sm:space-y-4"
                                               >
-                                                {category.collection.map(
+                                                {category.notebook.map(
                                                   (item) => (
                                                     <li
                                                       key={item.name}

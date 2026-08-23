@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -16,7 +16,6 @@ import { Fragment } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon, FunnelIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const filters = {
   price: [
     { value: "0", label: "$0 - $25", checked: false },
@@ -53,7 +52,6 @@ const sortOptions = [
   { name: "Best Rating", href: "#", current: false },
   { name: "Newest", href: "#", current: false },
 ];
-
 /**
  * Tailwind UI – category filters: with expandable product filter panel.
  *

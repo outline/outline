@@ -2,7 +2,6 @@ import { Fragment, useState } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const publishingOptions = [
   {
     title: "Published",
@@ -15,7 +14,6 @@ const publishingOptions = [
     current: false,
   },
 ];
-
 /**
  * Tailwind UI – select menus: branded with supported text.
  *
@@ -23,7 +21,6 @@ const publishingOptions = [
  */
 export function SelectMenusBrandedWithSupportedText() {
   const [selected, setSelected] = useState(publishingOptions[0]);
-
   return (
     <Listbox value={selected} onChange={setSelected}>
       {({ open }) => (

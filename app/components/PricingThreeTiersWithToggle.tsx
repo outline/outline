@@ -2,7 +2,6 @@ import { useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const frequencies: {
   value: "monthly" | "annually";
   label: string;
@@ -58,7 +57,6 @@ const tiers = [
     mostPopular: false,
   },
 ];
-
 /**
  * Tailwind UI – pricing: three tiers with toggle.
  *
@@ -66,7 +64,6 @@ const tiers = [
  */
 export function PricingThreeTiersWithToggle() {
   const [frequency, setFrequency] = useState(frequencies[0]);
-
   return (
     <div className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">

@@ -1,10 +1,8 @@
 import Compressor from "compressorjs";
-
 type Options = {
   maxWidth?: number;
   maxHeight?: number;
 };
-
 /**
  * Compresses an image file or blob, optionally constraining its dimensions.
  *

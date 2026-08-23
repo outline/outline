@@ -1,6 +1,5 @@
 import { StarIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const reviews = {
   average: 4,
   totalCount: 1624,
@@ -25,7 +24,6 @@ const reviews = {
     // More reviews...
   ],
 };
-
 /**
  * Tailwind UI – reviews: with summary chart.
  *

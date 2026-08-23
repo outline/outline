@@ -14,7 +14,6 @@ import { useEditor } from "./EditorContext";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
-
 /**
  * Hook that returns a template menu item with children for inserting template
  * content into the editor, or undefined if no templates are available.
@@ -22,29 +21,25 @@ import SuggestionsMenuItem from "./SuggestionsMenuItem";
 function useTemplateMenuItem(): MenuItem | undefined {
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
-  const { documents, templates: templatesStore } = useStores();
+  const { notes, templates: templatesStore } = useStores();
   const editor = useEditor();
-  const documentId = editor.props.id;
-  const document = documentId ? documents.get(documentId) : undefined;
-  const collectionId = document?.collectionId;
-
+  const noteId = editor.props.id;
+  const note = noteId ? notes.get(noteId) : undefined;
+  const notebookId = note?.notebookId;
   return useMemo(() => {
     if (!user) {
       return undefined;
     }
-
     const allTemplates = templatesStore.orderedData.filter(
       (template) => template.isActive
     );
     const hasTemplates = allTemplates.some(
       (template) =>
-        template.isWorkspaceTemplate || template.collectionId === collectionId
+        template.isWorkspaceTemplate || template.notebookId === notebookId
     );
-
     if (!hasTemplates) {
       return undefined;
     }
-
     const toMenuItem = (template: (typeof allTemplates)[0]): MenuItem => ({
       name: "noop",
       title: TextHelper.replaceTemplateVariables(
@@ -67,32 +62,25 @@ function useTemplateMenuItem(): MenuItem | undefined {
         editor.insertContent(data);
       },
     });
-
     const children = (): MenuItem[] => {
-      const collectionTemplates = allTemplates.filter(
+      const notebookTemplates = allTemplates.filter(
         (template) =>
-          !template.isWorkspaceTemplate &&
-          template.collectionId === collectionId
+          !template.isWorkspaceTemplate && template.notebookId === notebookId
       );
       const workspaceTemplates = allTemplates.filter(
         (tmpl) => tmpl.isWorkspaceTemplate
       );
-
-      const items: MenuItem[] = collectionTemplates.map(toMenuItem);
-
-      if (collectionTemplates.length && workspaceTemplates.length) {
+      const items: MenuItem[] = notebookTemplates.map(toMenuItem);
+      if (notebookTemplates.length && workspaceTemplates.length) {
         items.push({ name: "separator" });
       }
-
       if (workspaceTemplates.length) {
         for (const template of workspaceTemplates) {
           items.push(toMenuItem(template));
         }
       }
-
       return items;
     };
-
     return {
       name: "noop",
       title: t("Templates"),
@@ -100,27 +88,21 @@ function useTemplateMenuItem(): MenuItem | undefined {
       keywords: "template",
       children,
     } satisfies MenuItem;
-  }, [user, templatesStore.orderedData, collectionId, editor, t]);
+  }, [user, templatesStore.orderedData, notebookId, editor, t]);
 }
-
 type Props = Omit<SuggestionsMenuProps, "renderMenuItem" | "items"> &
   Required<Pick<SuggestionsMenuProps, "embeds">>;
-
 function BlockMenu(props: Props) {
   const { t } = useTranslation();
   const { elementRef } = useEditor();
   const templateMenuItem = useTemplateMenuItem();
-
   const items = useMemo(() => {
     const baseItems = getMenuItems(t, elementRef);
-
     if (!templateMenuItem) {
       return baseItems;
     }
-
     return [...baseItems, { name: "separator" } as MenuItem, templateMenuItem];
   }, [t, elementRef, templateMenuItem]);
-
   const renderMenuItem = useCallback(
     (item, _index, options) => (
       <SuggestionsMenuItem
@@ -133,7 +115,6 @@ function BlockMenu(props: Props) {
     ),
     []
   );
-
   return (
     <SuggestionsMenu
       {...props}
@@ -144,5 +125,4 @@ function BlockMenu(props: Props) {
     />
   );
 }
-
 export default observer(BlockMenu);

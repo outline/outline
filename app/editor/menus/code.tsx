@@ -14,7 +14,6 @@ import { isMermaid } from "@shared/editor/lib/isCode";
 import { t } from "i18next";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
-
 /**
  * Returns menu items for the code block selection toolbar.
  *
@@ -27,14 +26,11 @@ export default function codeMenuItems(ctx: SelectionContext): MenuItem[] {
     state.selection instanceof NodeSelection
       ? state.selection.node
       : state.selection.$from.node();
-
   const frequentLanguages = getFrequentCodeLanguages();
-
   const frequentLangMenuItems = frequentLanguages.map((value) => {
     const label = codeLanguages[value]?.label;
     return langToMenuItem({ node, value, label });
   });
-
   const remainingLangMenuItems = Object.entries(codeLanguages)
     .filter(
       ([value, item]) =>
@@ -42,7 +38,6 @@ export default function codeMenuItems(ctx: SelectionContext): MenuItem[] {
         !frequentLanguages.includes(value as keyof typeof codeLanguages)
     )
     .map(([value, item]) => langToMenuItem({ node, value, label: item.label }));
-
   const getLanguageMenuItems = () =>
     frequentLangMenuItems.length
       ? [
@@ -51,10 +46,8 @@ export default function codeMenuItems(ctx: SelectionContext): MenuItem[] {
           ...remainingLangMenuItems,
         ]
       : remainingLangMenuItems;
-
   const isEditingMermaid = !!(mermaidPluginKey.getState(state) as MermaidState)
     ?.editingId;
-
   return [
     {
       name: "copyToClipboard",
@@ -96,7 +89,6 @@ export default function codeMenuItems(ctx: SelectionContext): MenuItem[] {
     },
   ];
 }
-
 const langToMenuItem = ({
   node,
   value,

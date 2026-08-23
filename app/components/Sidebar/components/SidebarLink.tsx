@@ -15,7 +15,6 @@ import NavLink from "./NavLink";
 import type { ActionFactory, ActionWithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
-
 /**
  * Props for the SidebarLink component.
  * Extends NavLink props with additional sidebar-specific functionality.
@@ -49,7 +48,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   expanded?: boolean;
   /** Whether this link is the current active drop target for drag and drop */
   isActiveDrop?: boolean;
-  /** Whether this link represents a draft document */
+  /** Whether this link represents a draft note */
   isDraft?: boolean;
   /** Nesting depth level for indentation (0-based) */
   depth?: number;
@@ -60,18 +59,15 @@ type Props = Omit<NavLinkProps, "to"> & {
   /** Optional context menu action to display */
   contextAction?: ActionWithChildren | ActionFactory;
 };
-
 const activeDropStyle = {
   fontWeight: 600,
 };
-
 // Prevents the parent NavLink's mousedown handler from firing (which would
 // navigate or toggle), without calling preventDefault — that would block the
 // native HTML5 drag from initiating on the draggable row.
 const stopPropagation = (ev: React.MouseEvent) => {
   ev.stopPropagation();
 };
-
 function SidebarLink(
   {
     icon,
@@ -109,14 +105,12 @@ function SidebarLink(
     }),
     [depth, icon, unreadBadge]
   );
-
   const unreadStyle = React.useMemo(
     () => ({
       insetInlineEnd: -20,
     }),
     []
   );
-
   const activeStyle = React.useMemo(
     () => ({
       color: theme.text,
@@ -125,7 +119,6 @@ function SidebarLink(
     }),
     [theme.text, theme.sidebarActiveBackground, style]
   );
-
   const handleClick = React.useCallback(
     (ev: React.MouseEvent<HTMLAnchorElement>) => {
       if (onClick && !disabled && ev.isDefaultPrevented() === false) {
@@ -134,7 +127,6 @@ function SidebarLink(
     },
     [onClick, disabled]
   );
-
   const handleDisclosureClick = React.useCallback(
     (ev: React.MouseEvent<HTMLElement>) => {
       if (!hasDisclosure) {
@@ -146,7 +138,6 @@ function SidebarLink(
     },
     [onDisclosureClick, hasDisclosure]
   );
-
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLElement>) => {
       // Let nested controls (menu buttons, disclosure) handle their own keys.
@@ -160,9 +151,7 @@ function SidebarLink(
     },
     []
   );
-
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
-
   const linkContent = (
     <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
       <Content>
@@ -180,18 +169,15 @@ function SidebarLink(
       </Content>
     </ContextMenu>
   );
-
   const actionsContent = menu ? (
     <Actions $showActions={$showActions}>{menu}</Actions>
   ) : null;
-
   if (!to) {
     // A row that contains its own controls (a disclosure, or action buttons)
     // cannot be a <button> itself, nested interactive elements are invalid
     // HTML. Fall back to a focusable element with an explicit button role.
     const element = href ? "a" : menu || hasDisclosure ? "div" : "button";
     const isRoleButton = element === "div";
-
     return (
       <Link
         as={element}
@@ -217,7 +203,6 @@ function SidebarLink(
       </Link>
     );
   }
-
   return (
     <Link
       $isActiveDrop={isActiveDrop}
@@ -243,7 +228,6 @@ function SidebarLink(
     </Link>
   );
 }
-
 // accounts for whitespace around icon
 export const IconWrapper = styled.span`
   margin-inline-start: -4px;
@@ -252,7 +236,6 @@ export const IconWrapper = styled.span`
   flex-shrink: 0;
   transition: opacity 200ms ease-in-out;
 `;
-
 const Content = styled.span`
   display: flex;
   align-items: start;
@@ -260,8 +243,9 @@ const Content = styled.span`
   width: 100%;
   min-width: 0;
 `;
-
-const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
+const Actions = styled(EventBoundary)<{
+  $showActions?: boolean;
+}>`
   display: inline-flex;
   visibility: ${(props) => (props.$showActions ? "visible" : "hidden")};
 
@@ -292,7 +276,6 @@ const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
     }
   }
 `;
-
 const HiddenDisclosure = styled(Disclosure)`
   position: inherit;
   inset-inline-start: initial;
@@ -300,7 +283,6 @@ const HiddenDisclosure = styled(Disclosure)`
   margin-inline-start: -2px;
   margin-inline-end: 6px;
 `;
-
 const Link = styled(NavLink)<{
   $isActiveDrop?: boolean;
   $isDraft?: boolean;
@@ -328,8 +310,7 @@ const Link = styled(NavLink)<{
   user-select: none;
   white-space: nowrap;
   background: var(--background);
-  color: ${(props) =>
-    props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
+  color: ${(props) => (props.$isActiveDrop ? props.theme.white : props.theme.sidebarText)};
   font-size: 16px;
   cursor: var(--pointer);
   overflow: hidden;
@@ -393,8 +374,7 @@ const Link = styled(NavLink)<{
 
     &:hover,
     &:has([data-state="open"]) {
-      color: ${(props) =>
-        props.$isActiveDrop ? props.theme.white : props.theme.text};
+      color: ${(props) => (props.$isActiveDrop ? props.theme.white : props.theme.text)};
     }
   }
 
@@ -409,8 +389,9 @@ const Link = styled(NavLink)<{
     }
   }
 `;
-
-const Label = styled.div<{ $ellipsis: boolean }>`
+const Label = styled.div<{
+  $ellipsis: boolean;
+}>`
   position: relative;
   width: 100%;
   line-height: 24px;
@@ -424,5 +405,4 @@ const Label = styled.div<{ $ellipsis: boolean }>`
     unicode-bidi: plaintext;
   }
 `;
-
 export default React.forwardRef<HTMLAnchorElement, Props>(SidebarLink);

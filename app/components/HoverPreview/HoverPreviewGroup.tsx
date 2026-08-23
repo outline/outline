@@ -14,15 +14,12 @@ import {
   Description,
 } from "./Components";
 import ErrorBoundary from "../ErrorBoundary";
-
 type Props = Omit<UnfurlResponse[UnfurlResourceType.Group], "type">;
-
 const HoverPreviewGroup = React.forwardRef(function HoverPreviewGroup_(
   { name, description, memberCount, users }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {
   const { t } = useTranslation();
-
   return (
     <Preview as="div">
       <Card fadeOut={false} ref={ref}>
@@ -66,5 +63,4 @@ const HoverPreviewGroup = React.forwardRef(function HoverPreviewGroup_(
     </Preview>
   );
 });
-
 export default HoverPreviewGroup;

@@ -7,13 +7,13 @@ export function CategoryPreviewsWithSplitImages() {
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full bg-gray-50">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full bg-gray-50">
+          <body class="h-full">
+          ```
+        */}
       <div className="grid min-h-full grid-cols-1 grid-rows-2 lg:grid-cols-2 lg:grid-rows-1">
         <div className="relative flex">
           <img

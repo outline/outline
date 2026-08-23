@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { client } from "~/utils/ApiClient";
 import { BusinessLayout } from "./BusinessLayout";
-
 const ROOM_TYPES = [
   { value: "standard", label: "Standard", from: 150000 },
   { value: "deluxe", label: "Deluxe", from: 210000 },
   { value: "suite", label: "Suite", from: 275000 },
 ];
-
 /** Formats rupiah for the public pages. */
 const money = (amount: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -15,7 +13,6 @@ const money = (amount: number) =>
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(amount);
-
 /**
  * Public booking request.
  *
@@ -30,11 +27,15 @@ function Booking() {
   const [petName, setPetName] = useState("");
   const [roomType, setRoomType] = useState("standard");
   const [result, setResult] = useState<
-    | { created: boolean; code?: string; room?: string; reason?: string }
+    | {
+        created: boolean;
+        code?: string;
+        room?: string;
+        reason?: string;
+      }
     | undefined
   >();
   const [isSaving, setIsSaving] = useState(false);
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSaving(true);
@@ -53,7 +54,6 @@ function Booking() {
       setIsSaving(false);
     }
   };
-
   return (
     <BusinessLayout current="booking">
       <h2 className="text-lg font-semibold text-gray-900">Request a stay</h2>
@@ -151,5 +151,4 @@ function Booking() {
     </BusinessLayout>
   );
 }
-
 export default Booking;

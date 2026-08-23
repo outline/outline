@@ -1,6 +1,5 @@
 import { CheckIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const tiers = [
   {
     name: "Personal",
@@ -34,7 +33,6 @@ const tiers = [
     featured: false,
   },
 ];
-
 /**
  * Tailwind UI – pricing: two tiers.
  *

@@ -2,7 +2,6 @@ import type { Transaction } from "prosemirror-state";
 import type { DecorationSet } from "prosemirror-view";
 import { ySyncPluginKey } from "y-prosemirror";
 import { recreateTransform } from "./prosemirror-recreate-transform";
-
 /**
  * Checks if a transaction is a remote transaction
  *
@@ -11,13 +10,11 @@ import { recreateTransform } from "./prosemirror-recreate-transform";
  */
 export function isRemoteTransaction(tr: Transaction): boolean {
   const meta = tr.getMeta(ySyncPluginKey);
-
   // This logic seems to be flipped? But it's correct.
   return !!meta?.isChangeOrigin;
 }
-
 /**
- * Map the set of decorations in response to a change in the document.
+ * Map the set of decorations in response to a change in the note.
  *
  * @param set The current set of decorations
  * @param tr The Prosemirror transaction
@@ -31,7 +28,6 @@ export function mapDecorations(
 ): DecorationSet {
   let mapping = tr.mapping;
   const hasDecorations = set.find().length;
-
   if (hasDecorations && (isRemoteTransaction(tr) || force)) {
     try {
       mapping = recreateTransform(tr.before, tr.doc, {
@@ -44,6 +40,5 @@ export function mapDecorations(
       console.warn("Failed to recreate transform: ", err);
     }
   }
-
   return set.map(mapping, tr.doc);
 }

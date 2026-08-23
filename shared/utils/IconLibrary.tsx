@@ -176,19 +176,16 @@ import {
 import * as React from "react";
 import styled from "styled-components";
 import LetterIcon from "../components/LetterIcon";
-
 type IconMapping = {
   component: React.ComponentType<FAProps>;
   keywords?: string;
 };
-
 type FAProps = {
   color?: string;
   size?: number;
   className?: string;
   style?: React.CSSProperties;
 };
-
 export class IconLibrary {
   /**
    * Get the component for a given icon name
@@ -199,7 +196,6 @@ export class IconLibrary {
   public static getComponent(icon: string) {
     return this.mapping[icon].component;
   }
-
   /**
    * Find an icon by keyword. This is useful for searching for an icon based on a user's input.
    *
@@ -208,21 +204,17 @@ export class IconLibrary {
    */
   public static findIconByKeyword(keyword: string) {
     const keys = Object.keys(this.mapping);
-
     for (const key of keys) {
       const icon = this.mapping[key];
       const keywords = icon.keywords?.split(" ");
       const namewords = keyword.toLocaleLowerCase().split(" ");
       const matches = intersection(namewords, keywords);
-
       if (matches.length > 0) {
         return key;
       }
     }
-
     return undefined;
   }
-
   /**
    * Find icons.
    *
@@ -234,7 +226,6 @@ export class IconLibrary {
       .map((key) => {
         const icon = this.mapping[key];
         const keywords = `${icon.keywords ?? ""} ${key}`;
-
         if (keywords.includes(query.toLocaleLowerCase())) {
           return key;
         }
@@ -242,7 +233,6 @@ export class IconLibrary {
       })
       .filter((icon: string | undefined): icon is string => !!icon);
   }
-
   /**
    * A map of all icons available to end users in the app. This does not include icons that are used
    * internally only, which can be imported from `outline-icons` directly.
@@ -273,7 +263,7 @@ export class IconLibrary {
       component: BrowserIcon,
       keywords: "browser web app",
     },
-    collection: {
+    notebook: {
       component: (props) => <CollectionIcon expanded {...props} />,
       keywords: "collection",
     },
@@ -465,7 +455,6 @@ export class IconLibrary {
       component: WarningIcon,
       keywords: "warning alert error",
     },
-
     // Font awesome
     ...Object.fromEntries(
       [
@@ -605,8 +594,9 @@ export class IconLibrary {
     ),
   } as const;
 }
-
-const FontAwesomeWrapper = styled.span<{ size: number }>`
+const FontAwesomeWrapper = styled.span<{
+  size: number;
+}>`
   display: flex;
   align-items: center;
   justify-content: center;

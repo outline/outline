@@ -11,15 +11,12 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
-
 type FormData = {
   code: string;
 };
-
 type Props = {
   onSubmit: () => void;
 };
-
 function TeamDelete({ onSubmit }: Props) {
   const [isWaitingCode, setWaitingCode] = React.useState(false);
   const { auth } = useStores();
@@ -30,11 +27,9 @@ function TeamDelete({ onSubmit }: Props) {
     handleSubmit: formHandleSubmit,
     formState,
   } = useForm<FormData>();
-
   const handleRequestDelete = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-
       try {
         await auth.requestDeleteTeam();
         setWaitingCode(true);
@@ -44,7 +39,6 @@ function TeamDelete({ onSubmit }: Props) {
     },
     [auth]
   );
-
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
@@ -62,10 +56,8 @@ function TeamDelete({ onSubmit }: Props) {
     },
     [auth, onSubmit]
   );
-
   const appName = env.APP_NAME;
   const workspaceName = team?.name;
-
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       {isWaitingCode ? (
@@ -104,8 +96,8 @@ function TeamDelete({ onSubmit }: Props) {
           <Text as="p" type="secondary">
             <Trans>
               Deleting the <strong>{{ workspaceName }}</strong> workspace will
-              destroy all collections, documents, users, and associated data.
-              You will be immediately logged out of {{ appName }}.
+              destroy all notebooks, notes, users, and associated data. You will
+              be immediately logged out of {{ appName }}.
             </Trans>
           </Text>
         </>
@@ -131,5 +123,4 @@ function TeamDelete({ onSubmit }: Props) {
     </form>
   );
 }
-
 export default observer(TeamDelete);

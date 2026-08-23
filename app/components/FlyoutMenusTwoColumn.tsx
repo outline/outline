@@ -9,7 +9,6 @@ import {
   FingerPrintIcon,
   SquaresPlusIcon,
 } from "@heroicons/react/24/outline";
-
 const solutions = [
   {
     name: "Analytics",
@@ -48,7 +47,6 @@ const solutions = [
     icon: DocumentChartBarIcon,
   },
 ];
-
 /**
  * Tailwind UI – flyout menus: two column.
  *

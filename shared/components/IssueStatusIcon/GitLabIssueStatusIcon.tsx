@@ -1,9 +1,7 @@
 import React from "react";
 import type { BaseIconProps } from ".";
-
 export function GitLabIssueStatusIcon(props: BaseIconProps) {
   const { state, className, size = 16 } = props;
-
   switch (state.name) {
     case "opened":
       return (

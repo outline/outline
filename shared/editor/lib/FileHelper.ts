@@ -1,10 +1,8 @@
 import { inflate } from "pako";
 import extract from "png-chunks-extract";
-
 export enum ImageSource {
   DiagramsNet = "diagrams.net",
 }
-
 export default class FileHelper {
   /**
    * Checks if a file is an image.
@@ -15,7 +13,6 @@ export default class FileHelper {
   static isImage(contentType: string) {
     return /^image\/[!#$%&'*+.^\w`|~-]+$/i.test(contentType);
   }
-
   /**
    * Checks if a file is a video.
    *
@@ -25,7 +22,6 @@ export default class FileHelper {
   static isVideo(contentType: string) {
     return /^video\/[!#$%&'*+.^\w`|~-]+$/i.test(contentType);
   }
-
   /**
    * Checks if a file is an audio file.
    *
@@ -35,7 +31,6 @@ export default class FileHelper {
   static isAudio(contentType: string) {
     return /^audio\/[!#$%&'*+.^\w`|~-]+$/i.test(contentType);
   }
-
   /**
    * Checks if a file is a pdf.
    *
@@ -45,7 +40,6 @@ export default class FileHelper {
   static isPdf(contentType: string) {
     return /^application\/pdf$/i.test(contentType);
   }
-
   /**
    * Download a file from a URL and return it as a File object.
    *
@@ -62,16 +56,19 @@ export default class FileHelper {
       type: blob.type,
     });
   }
-
   /**
    * Loads the dimensions of a video file.
    *
    * @param file The file to load the dimensions for
    * @returns The dimensions of the video, if known.
    */
-  static getVideoDimensions(
-    file: File
-  ): Promise<{ width: number; height: number } | undefined> {
+  static getVideoDimensions(file: File): Promise<
+    | {
+        width: number;
+        height: number;
+      }
+    | undefined
+  > {
     return new Promise((resolve) => {
       const video = document.createElement("video");
       video.preload = "metadata";
@@ -89,7 +86,6 @@ export default class FileHelper {
       video.src = URL.createObjectURL(file);
     });
   }
-
   /**
    * Loads the dimensions of an image file – for PNG's we parse the pHYs chunk to get the
    * "real" dimensions of a retina image, for SVG's we parse the width/height or viewBox
@@ -98,9 +94,13 @@ export default class FileHelper {
    * @param file The file to load the dimensions for
    * @returns The dimensions of the image, if known.
    */
-  static async getImageDimensions(
-    file: File
-  ): Promise<{ width: number; height: number } | undefined> {
+  static async getImageDimensions(file: File): Promise<
+    | {
+        width: number;
+        height: number;
+      }
+    | undefined
+  > {
     function parsePhys(view: DataView) {
       return {
         ppux: view.getUint32(0),
@@ -108,25 +108,21 @@ export default class FileHelper {
         unit: view.getUint8(4),
       };
     }
-
     function parseIHDR(view: DataView) {
       return {
         width: view.getUint32(0),
         height: view.getUint32(4),
       };
     }
-
     if (file.type === "image/png") {
       try {
         const buffer = await file.arrayBuffer();
         const chunks = extract(new Uint8Array(buffer));
         const pHYsChunk = chunks.find((chunk) => chunk.name === "pHYs");
         const iHDRChunk = chunks.find((chunk) => chunk.name === "IHDR");
-
         if (pHYsChunk && iHDRChunk) {
           const idhrData = parseIHDR(new DataView(iHDRChunk.data.buffer));
           const physData = parsePhys(new DataView(pHYsChunk.data.buffer));
-
           if (physData.unit === 0 && physData.ppux === physData.ppuy) {
             const pixelRatio = Math.round(physData.ppux / 2834.5);
             return {
@@ -139,7 +135,6 @@ export default class FileHelper {
         // Fallback to loading from image
       }
     }
-
     if (file.type === "image/svg+xml") {
       try {
         const text = await file.text();
@@ -151,14 +146,12 @@ export default class FileHelper {
         // Fallback to loading from image
       }
     }
-
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = function () {
         window.URL.revokeObjectURL(img.src);
         resolve({ width: img.width, height: img.height });
       };
-
       img.onerror = () => {
         window.URL.revokeObjectURL(img.src);
         // oxlint-disable-next-line no-console
@@ -168,20 +161,21 @@ export default class FileHelper {
       img.src = URL.createObjectURL(file);
     });
   }
-
   /**
    * Parses SVG dimensions from the width/height attributes or viewBox.
    *
    * @param svgText The SVG content as a string
    * @returns The dimensions if found, undefined otherwise
    */
-  private static parseSvgDimensions(
-    svgText: string
-  ): { width: number; height: number } | undefined {
+  private static parseSvgDimensions(svgText: string):
+    | {
+        width: number;
+        height: number;
+      }
+    | undefined {
     // Try to parse width/height attributes first
     const widthMatch = svgText.match(/\bwidth=["'](\d+(?:\.\d+)?)(px)?["']/);
     const heightMatch = svgText.match(/\bheight=["'](\d+(?:\.\d+)?)(px)?["']/);
-
     if (widthMatch && heightMatch) {
       const width = parseFloat(widthMatch[1]);
       const height = parseFloat(heightMatch[1]);
@@ -189,7 +183,6 @@ export default class FileHelper {
         return { width, height };
       }
     }
-
     // Fall back to viewBox
     const viewBoxMatch = svgText.match(
       /\bviewBox=["'][\d.-]+\s+[\d.-]+\s+([\d.]+)\s+([\d.]+)["']/
@@ -201,10 +194,8 @@ export default class FileHelper {
         return { width, height };
       }
     }
-
     return undefined;
   }
-
   /**
    * Determines the source of an image file, if known.
    *
@@ -219,7 +210,6 @@ export default class FileHelper {
     }
     return undefined;
   }
-
   /**
    * Checks if a file contains embedded Draw.io/Diagrams.net data.
    * Supports both PNG and SVG formats.
@@ -236,7 +226,6 @@ export default class FileHelper {
     }
     return false;
   }
-
   /**
    * Checks if an SVG file contains embedded Draw.io/Diagrams.net data.
    * Diagrams.net embeds the mxfile XML in a "content" attribute on the SVG root element.
@@ -257,7 +246,6 @@ export default class FileHelper {
       return false;
     }
   }
-
   /**
    * Reads a PNG file and detects if it contains embedded Draw.io/Diagrams.net data.
    *
@@ -267,15 +255,12 @@ export default class FileHelper {
   private static async isDiagramsNetPng(file: File): Promise<boolean> {
     const buffer = await file.arrayBuffer();
     const bytes = new Uint8Array(buffer);
-
     // Validate PNG signature
     const pngSignature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
     if (!pngSignature.every((b, i) => bytes[i] === b)) {
       return false;
     }
-
     let pos = 8; // skip PNG header
-
     while (pos < bytes.length) {
       // Read chunk length and type
       const length =
@@ -286,12 +271,10 @@ export default class FileHelper {
       const type = String.fromCharCode(...bytes.slice(pos + 4, pos + 8));
       const data = bytes.slice(pos + 8, pos + 8 + length);
       pos += 12 + length; // advance to next chunk
-
       // The IEND chunk marks the end of a valid PNG stream
       if (type === "IEND") {
         break;
       }
-
       // Check for text chunks where Draw.io embeds metadata
       if (type === "tEXt" || type === "zTXt" || type === "iTXt") {
         const nullIndex = data.indexOf(0);
@@ -299,11 +282,9 @@ export default class FileHelper {
           continue;
         }
         const keyword = new TextDecoder().decode(data.slice(0, nullIndex));
-
         if (keyword.includes("mxfile")) {
           try {
             let textContent: string;
-
             if (type === "tEXt") {
               // tEXt: keyword + null + uncompressed text
               textContent = new TextDecoder().decode(data.slice(nullIndex + 1));
@@ -354,7 +335,6 @@ export default class FileHelper {
                 continue; // Invalid compression flag
               }
             }
-
             if (textContent.includes("%3Cmxfile")) {
               return true;
             }
@@ -364,10 +344,8 @@ export default class FileHelper {
         }
       }
     }
-
     return false;
   }
-
   /**
    * Converts an image URL to a base64 data URI string.
    *
@@ -386,7 +364,6 @@ export default class FileHelper {
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
     }
-
     const blob = await response.blob();
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -399,7 +376,6 @@ export default class FileHelper {
       reader.readAsDataURL(blob);
     });
   }
-
   /**
    * Converts base64 encoded data to a File object.
    *
@@ -417,15 +393,12 @@ export default class FileHelper {
     const base64 = base64Data.includes(",")
       ? base64Data.split(",")[1]
       : base64Data;
-
     // Decode base64 to binary
     const binaryString = atob(base64);
     const bytes = new Uint8Array(binaryString.length);
-
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
-
     return new File([bytes], filename, { type: mimeType });
   }
 }

@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -23,7 +23,6 @@ import {
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const sortOptions = [
   { name: "Most Popular", href: "#" },
   { name: "Best Rating", href: "#" },
@@ -67,7 +66,6 @@ const filters = [
     ],
   },
 ];
-
 /**
  * Tailwind UI – category filters: with centered text and dropdown product filters.
  *
@@ -75,7 +73,6 @@ const filters = [
  */
 export function CategoryFiltersWithCenteredTextAndDropdownProductFilters() {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="bg-gray-50">
       {/* Mobile filter dialog */}

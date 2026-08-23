@@ -15,22 +15,18 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useUserLocale from "~/hooks/useUserLocale";
 import ApiKeyMenu from "~/menus/ApiKeyMenu";
 import { dateToExpiry } from "~/utils/date";
-
 type Props = {
   /** The API key to display */
   apiKey: ApiKey;
 };
-
 const ApiKeyListItem = ({ apiKey }: Props) => {
   const { t } = useTranslation();
   const userLocale = useUserLocale();
   const user = useCurrentUser();
-
   const creatorText =
     apiKey.userId === user.id
       ? ""
       : t(`by {{ name }}`, { name: apiKey.user.name });
-
   const subtitle = (
     <>
       {apiKey.isExpired ? (
@@ -76,10 +72,8 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
       )}
     </>
   );
-
   const [copied, setCopied] = useState<boolean>(false);
   const copyTimeoutIdRef = useRef<ReturnType<typeof setTimeout>>();
-
   const handleCopy = useCallback(() => {
     if (copyTimeoutIdRef.current) {
       clearTimeout(copyTimeoutIdRef.current);
@@ -90,7 +84,6 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
     }, 3000);
     toast.message(t("API key copied to clipboard"));
   }, [t]);
-
   return (
     <ListItem
       key={apiKey.id}
@@ -119,5 +112,4 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
     />
   );
 };
-
 export default observer(ApiKeyListItem);

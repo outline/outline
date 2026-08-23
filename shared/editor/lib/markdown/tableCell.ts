@@ -10,7 +10,6 @@
 export function escapeRawTableCell(text: string): string {
   return text.replace(/[\\|]/g, "\\$&");
 }
-
 /**
  * Reverses `escapeRawTableCell` when a fenced block is reconstructed from a
  * table cell, restoring the escaped backslashes and pipes. Markdown does not

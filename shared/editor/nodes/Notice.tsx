@@ -14,23 +14,19 @@ import noticesRule from "../rules/notices";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
-
 export enum NoticeTypes {
   Info = "info",
   Success = "success",
   Tip = "tip",
   Warning = "warning",
 }
-
 export default class Notice extends Node {
   get name() {
     return "container_notice";
   }
-
   get rulePlugins() {
     return [noticesRule];
   }
-
   get schema(): NodeSpec {
     return {
       attrs: {
@@ -102,7 +98,6 @@ export default class Notice extends Node {
       ],
     };
   }
-
   commands({ type }: { type: NodeType }) {
     return {
       container_notice: (attrs: Record<string, Primitive>) =>
@@ -117,7 +112,6 @@ export default class Notice extends Node {
         this.handleStyleChange(state, dispatch, NoticeTypes.Tip),
     };
   }
-
   handleStyleChange = (
     state: EditorState,
     dispatch: ((tr: Transaction) => void) | undefined,
@@ -126,7 +120,6 @@ export default class Notice extends Node {
     const { tr, selection } = state;
     const { $from } = selection;
     const node = $from.node(-1);
-
     if (node?.type.name === this.name) {
       if (dispatch) {
         const transaction = tr.setNodeMarkup($from.before(-1), undefined, {
@@ -139,10 +132,8 @@ export default class Notice extends Node {
     }
     return false;
   };
-
   component = (props: ComponentProps) => {
     const { node } = props;
-
     let icon;
     if (node.attrs.style === NoticeTypes.Tip) {
       icon = <StarredIcon />;
@@ -153,7 +144,6 @@ export default class Notice extends Node {
     } else {
       icon = <InfoIcon />;
     }
-
     return (
       <div className={`${EditorStyleHelper.notice} ${node.attrs.style}`}>
         <div className={EditorStyleHelper.noticeIcon} contentEditable={false}>
@@ -166,11 +156,9 @@ export default class Notice extends Node {
       </div>
     );
   };
-
   inputRules({ type }: { type: NodeType }) {
     return [wrappingInputRule(/^:::$/, type)];
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write("\n:::" + (node.attrs.style || "info") + "\n");
     state.renderContent(node);
@@ -178,7 +166,6 @@ export default class Notice extends Node {
     state.write(":::");
     state.closeBlock(node);
   }
-
   parseMarkdown() {
     return {
       block: "container_notice",

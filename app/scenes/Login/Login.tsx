@@ -47,22 +47,18 @@ import { SwitchHostButton } from "./components/SwitchHostButton";
 import { navigateToSubdomain } from "./urls";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { getRedirectUrl } from "~/utils/urls";
-
 const WorkspaceSetup = lazyWithRetry(
   () => import("./components/WorkspaceSetup")
 );
-
 type Props = {
   children?: (config?: Config) => React.ReactNode;
   onBack?: () => void;
 };
-
 function Login({ children, onBack }: Props) {
   const location = useLocation();
   const query = useQuery();
   const notice = query.get("notice");
   const forceOTP = query.get("forceOTP");
-
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { auth } = useStores();
@@ -76,7 +72,6 @@ function Login({ children, onBack }: Props) {
   const [lastVisitedPath] = useLastVisitedPath();
   const [spendPostLoginPath] = usePostLoginPath();
   const hasRedirectedToOidc = React.useRef(false);
-
   const shouldRedirectToOidc =
     !auth.authenticated &&
     !auth.isFetching &&
@@ -85,46 +80,38 @@ function Login({ children, onBack }: Props) {
     !env.OIDC_DISABLE_REDIRECT &&
     !query.get("notice") &&
     !query.get("logout");
-
   React.useEffect(() => {
     if (shouldRedirectToOidc && !hasRedirectedToOidc.current && config) {
       hasRedirectedToOidc.current = true;
       window.location.href = getRedirectUrl(config.providers[0].authUrl);
     }
   }, [shouldRedirectToOidc, config]);
-
   const handleReset = React.useCallback(() => {
     setEmailLinkSentTo("");
   }, []);
   const handleEmailSuccess = React.useCallback((email) => {
     setEmailLinkSentTo(email);
   }, []);
-
   const handleGoSubdomain = React.useCallback(async (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target));
     await navigateToSubdomain(data.subdomain as string);
   }, []);
-
   React.useEffect(() => {
     auth.fetchConfig().catch(setError);
   }, [auth]);
-
   React.useEffect(() => {
     const entries = Object.fromEntries(query.entries());
     const existing = getCookie("signupQueryParams");
-
     // We don't want to set this cookie if we're viewing an error notice via
     // query string(notice =), if there are no query params, or it's already set
     if (Object.keys(entries).length && !query.get("notice") && !existing) {
       setCookie("signupQueryParams", JSON.stringify(entries));
     }
   }, [query]);
-
   // A passkey login initiated from the desktop app must complete the login
   // ceremony even when this browser already has a session.
   const isPasskeyLogin = query.get("method") === "passkey";
-
   // When the desktop app forces a passkey login it opens this page in the
   // system browser, where the ceremony is triggered automatically. Show the
   // "Signing in" screen rather than the login buttons.
@@ -132,28 +119,22 @@ function Login({ children, onBack }: Props) {
     isPasskeyLogin &&
     query.get("client") === Client.Desktop &&
     !Desktop.isElectron();
-
   if (auth.authenticated && !isPasskeyLogin) {
     const postLoginPath = spendPostLoginPath();
     if (postLoginPath) {
       return <Redirect to={postLoginPath} />;
     }
-
     if (rememberLastPath && lastVisitedPath !== location.pathname) {
       return <Redirect to={lastVisitedPath} />;
     }
-
-    if (auth.team?.defaultCollectionId) {
-      return <Redirect to={`/collection/${auth.team?.defaultCollectionId}`} />;
+    if (auth.team?.defaultNotebookId) {
+      return <Redirect to={`/notebook/${auth.team?.defaultNotebookId}`} />;
     }
-
     if (!currentRole()) {
       return <Redirect to={homePath()} />;
     }
-
     return <Redirect to="/dashboard" />;
   }
-
   if (error) {
     return (
       <Background>
@@ -177,13 +158,11 @@ function Login({ children, onBack }: Props) {
       </Background>
     );
   }
-
   // we're counting on the config request being fast, so just a simple loading
   // indicator here that's delayed by 250ms
   if (!config) {
     return <LoadingIndicator />;
   }
-
   // The passkey ceremony is triggered automatically here, so render the
   // "Signing in" screen in place of the login buttons. The passkey provider is
   // still mounted (hidden) to drive the ceremony and form submission, revealing
@@ -199,9 +178,7 @@ function Login({ children, onBack }: Props) {
       </Background>
     );
   }
-
   const isCustomDomain = parseDomain(window.location.origin).custom;
-
   // Unmapped custom domain
   if (isCloudHosted && isCustomDomain && !config.name) {
     return (
@@ -220,7 +197,6 @@ function Login({ children, onBack }: Props) {
       </Background>
     );
   }
-
   if (Desktop.isElectron() && notice === "domain-required") {
     return (
       <Background>
@@ -253,7 +229,6 @@ function Login({ children, onBack }: Props) {
       </Background>
     );
   }
-
   const firstRun =
     config.providers.length === 0 && !isCloudHosted && !config.name;
   const hasMultipleProviders = config.providers.length > 1;
@@ -263,7 +238,6 @@ function Login({ children, onBack }: Props) {
   );
   const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
   const preferOTP = isPWA || !!forceOTP;
-
   if (firstRun) {
     return (
       <React.Suspense fallback={null}>
@@ -271,7 +245,6 @@ function Login({ children, onBack }: Props) {
       </React.Suspense>
     );
   }
-
   if (emailLinkSentTo) {
     return (
       <Background>
@@ -324,13 +297,11 @@ function Login({ children, onBack }: Props) {
       </Background>
     );
   }
-
   // If there is only one provider and it's OIDC, the redirect is performed
   // from the effect above – render a loading indicator while we wait.
   if (shouldRedirectToOidc) {
     return <LoadingIndicator />;
   }
-
   return (
     <Background>
       <BackButton onBack={onBack} config={config} />
@@ -394,7 +365,6 @@ function Login({ children, onBack }: Props) {
           if (defaultProvider && provider.id === defaultProvider.id) {
             return null;
           }
-
           return (
             <AuthenticationProvider
               key={provider.id}
@@ -417,34 +387,27 @@ function Login({ children, onBack }: Props) {
     </Background>
   );
 }
-
 const Form = styled.form`
   margin: 1em 0;
 `;
-
 const StyledHeading = styled(Heading)`
   margin: 0;
 `;
-
 const Domain = styled.div`
   color: ${s("textSecondary")};
   padding: 0 8px 0 0;
 `;
-
 const CheckEmailIcon = styled(EmailIcon)`
   margin-bottom: -1.5em;
 `;
-
 const Logo = styled.div`
   margin-bottom: -4px;
 `;
-
 const Content = styled(Text)`
   color: ${s("textSecondary")};
   text-align: center;
   margin-top: -8px;
 `;
-
 const Note = styled(Text)`
   color: ${s("textTertiary")};
   text-align: center;
@@ -456,7 +419,6 @@ const Note = styled(Text)`
     font-weight: 500;
   }
 `;
-
 const Or = styled.hr`
   margin: 1em 0;
   position: relative;
@@ -479,5 +441,4 @@ const Or = styled.hr`
     padding: 0 4px;
   }
 `;
-
 export default observer(Login);

@@ -1,5 +1,4 @@
 import type { Node as ProseMirrorNode } from "prosemirror-model";
-
 /**
  * Returns the text content between two positions.
  *
@@ -16,10 +15,8 @@ export default function textBetween(
   let text = "";
   let first = true;
   const blockSeparator = "\n";
-
   doc.nodesBetween(from, to, (node, pos) => {
     let nodeText = "";
-
     if (node.type.spec.leafText) {
       nodeText += node.type.spec.leafText(node);
     } else if (node.isText) {
@@ -29,7 +26,6 @@ export default function textBetween(
         blockSeparator
       );
     }
-
     if (
       node.isBlock &&
       ((node.isLeaf && nodeText) || node.isTextblock) &&
@@ -41,9 +37,7 @@ export default function textBetween(
         text += blockSeparator;
       }
     }
-
     text += nodeText;
   });
-
   return text;
 }

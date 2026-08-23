@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -15,7 +15,6 @@
 import { Fragment } from "react";
 import { ChevronRightIcon, ChevronUpIcon } from "@heroicons/react/20/solid";
 import { Popover, Transition } from "@headlessui/react";
-
 const steps = [
   { name: "Cart", href: "#", status: "complete" },
   { name: "Billing Information", href: "#", status: "current" },
@@ -36,7 +35,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – checkout pages: with mobile order summary overlay.
  *

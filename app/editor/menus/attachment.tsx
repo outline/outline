@@ -3,7 +3,6 @@ import { TrashIcon, DownloadIcon, ReplaceIcon, PDFIcon } from "outline-icons";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { isPDFAttachmentActive } from "@shared/editor/queries/isPDFAttachment";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
-
 /**
  * Returns menu items for the attachment selection toolbar.
  *
@@ -14,12 +13,10 @@ export default function attachmentMenuItems(ctx: SelectionContext): MenuItem[] {
   if (ctx.readOnly) {
     return [];
   }
-
   const { schema, state } = ctx;
   const isAttachmentWithPreview = isNodeActive(schema.nodes.attachment, {
     preview: true,
   });
-
   return [
     {
       name: "replaceAttachment",

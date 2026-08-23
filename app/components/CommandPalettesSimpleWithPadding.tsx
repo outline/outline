@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -17,12 +17,10 @@ import { UsersIcon } from "@heroicons/react/24/outline";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { classNames } from "./classNames";
 import type { ChangeEvent } from "react";
-
 const people = [
   { id: 1, name: "Leslie Alexander", url: "#" },
   // More people...
 ];
-
 /**
  * Tailwind UI – command palettes: simple with padding.
  *
@@ -31,14 +29,12 @@ const people = [
 export function CommandPalettesSimpleWithPadding() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(true);
-
   const filteredPeople =
     query === ""
       ? []
       : people.filter((person) =>
           person.name.toLowerCase().includes(query.toLowerCase())
         );
-
   return (
     <Transition.Root
       show={open}

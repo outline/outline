@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -17,7 +17,6 @@ const accounts = [
   { id: "savings", name: "Savings", description: "Bank of America ••••0149" },
   { id: "mastercard", name: "Mastercard", description: "Capital One ••••7877" },
 ];
-
 /**
  * Tailwind UI – radio groups: list with radio on right.
  *

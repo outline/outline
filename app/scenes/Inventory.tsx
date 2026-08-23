@@ -27,9 +27,10 @@ import { SupplierDocType, warehouseDocType } from "~/utils/doctypes";
 import Subheading from "~/components/Subheading";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 /** How close a batch is to its expiry date, which sets how loudly it reads. */
-const Expiry = styled.span<{ $urgency: "past" | "soon" | "later" }>`
+const Expiry = styled.span<{
+  $urgency: "past" | "soon" | "later";
+}>`
   font-weight: ${({ $urgency }) => ($urgency === "later" ? 400 : 600)};
   color: ${({ $urgency, theme }) =>
     $urgency === "past"
@@ -38,7 +39,6 @@ const Expiry = styled.span<{ $urgency: "past" | "soon" | "later" }>`
         ? theme.warning
         : theme.text};
 `;
-
 /**
  * The tabs, and the page whose permission each one borrows.
  *
@@ -53,7 +53,6 @@ const TABS = [
   { name: "Suppliers", route: "/suppliers" },
   { name: "Warehouses", route: "/warehouses" },
 ] as const;
-
 /**
  * Inventory across warehouses.
  *
@@ -76,7 +75,6 @@ function Inventory() {
   const deleteSupplier = useShop((state) => state.deleteSupplier);
   const saveWarehouse = useShop((state) => state.saveWarehouse);
   const deleteWarehouse = useShop((state) => state.deleteWarehouse);
-
   const role = currentRole();
   const tabs = TABS.filter(
     (option) => role && canAccessRoute(role, option.route)
@@ -85,11 +83,9 @@ function Inventory() {
   // apart from it.
   const chosen = usePanel<(typeof TABS)[number]["name"]>("Batches");
   const tab = chosen.current ?? "Batches";
-
   /** Whether a tab's content may be rendered, not merely offered. */
   const allowed = (name: string) => tabs.some((option) => option.name === name);
   const submission = useSubmit();
-
   const handleRemoveSupplier = (id: string, name: string) =>
     submission.run(async () => {
       const result = await deleteSupplier(id);
@@ -97,7 +93,6 @@ function Inventory() {
         ? undefined
         : t("{{name}} still has an order open, so it was kept.", { name });
     });
-
   const handleAddSupplier = (values: Record<string, string>) =>
     submission.run(async () => {
       const result = await saveSupplier({
@@ -108,7 +103,6 @@ function Inventory() {
       });
       return result?.saved ? undefined : t("A supplier needs a name.");
     });
-
   const handleRemoveWarehouse = (id: string, name: string) =>
     submission.run(async () => {
       const result = await deleteWarehouse(id);
@@ -116,7 +110,6 @@ function Inventory() {
         ? undefined
         : t("{{name}} still holds stock, so it was kept.", { name });
     });
-
   const handleAddWarehouse = (values: Record<string, string>) =>
     submission.run(async () => {
       const result = await saveWarehouse({
@@ -125,10 +118,8 @@ function Inventory() {
       });
       return result?.saved ? undefined : t("A warehouse needs a name.");
     });
-
   const warehouseName = (id: string) =>
     warehouses.find((warehouse) => warehouse.id === id)?.name ?? id;
-
   const expired = batches.filter(
     (batch) => new Date(batch.expiresAt).getTime() < Date.now()
   ).length;
@@ -136,7 +127,6 @@ function Inventory() {
     const days = (new Date(batch.expiresAt).getTime() - Date.now()) / 86400000;
     return days >= 0 && days <= 30;
   }).length;
-
   return (
     <AppPage
       title={t("Inventory")}
@@ -262,7 +252,6 @@ function Inventory() {
               (total, item) => total + item.quantity,
               0
             );
-
             return (
               <ListItem
                 key={order.id}
@@ -317,7 +306,6 @@ function Inventory() {
               (order) =>
                 order.supplierId === supplier.id && order.status !== "received"
             ).length;
-
             return (
               <ListItem
                 key={supplier.id}
@@ -369,7 +357,6 @@ function Inventory() {
               (batch) => batch.warehouseId === warehouse.id
             );
             const units = held.reduce((sum, batch) => sum + batch.quantity, 0);
-
             return (
               <ListItem
                 key={warehouse.id}
@@ -411,5 +398,4 @@ function Inventory() {
     </AppPage>
   );
 }
-
 export default Inventory;

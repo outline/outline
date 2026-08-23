@@ -1,6 +1,5 @@
 import { type TFunction } from "i18next";
 import { GroupPermission } from "../types";
-
 export class GroupPermissionHelper {
   /**
    * Get the display name for a group permission.
@@ -21,7 +20,6 @@ export class GroupPermissionHelper {
       }
     }
   }
-
   /**
    * List of all group permissions, in order from lowest to highest.
    */

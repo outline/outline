@@ -11,13 +11,11 @@ import useStores from "~/hooks/useStores";
 import { detectLanguage } from "~/utils/language";
 import { LanguageIcon } from "./Icons/LanguageIcon";
 import Text from "./Text";
-
 export default function LanguagePrompt() {
   const { ui } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser();
   const language = detectLanguage();
-
   if (
     language === "en_US" ||
     language === user.language ||
@@ -25,11 +23,9 @@ export default function LanguagePrompt() {
   ) {
     return null;
   }
-
   const option = find(languageOptions, (o) => o.value === language);
   const optionLabel = option ? option.label : "";
   const appName = env.APP_NAME;
-
   return (
     <Wrapper
       animate={{ opacity: 1, y: 0 }}
@@ -61,7 +57,6 @@ export default function LanguagePrompt() {
     </Wrapper>
   );
 }
-
 const Wrapper = styled(m.p)`
   color: ${(props) => props.theme.text};
   border: 1px solid ${(props) => props.theme.divider};
@@ -80,7 +75,6 @@ const Wrapper = styled(m.p)`
     text-decoration: underline;
   }
 `;
-
 const Link = styled(ButtonLink)`
   cursor: var(--cursor-pointer);
   color: ${(props) => props.theme.text};

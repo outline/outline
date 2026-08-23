@@ -2,7 +2,6 @@ import * as OneTimePasswordField from "@radix-ui/react-one-time-password-field";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-
 type Props = React.ComponentProps<typeof OneTimePasswordRoot> & {
   /** The length of the OTP */
   length?: number;
@@ -12,10 +11,8 @@ type Props = React.ComponentProps<typeof OneTimePasswordRoot> & {
    */
   alphanumeric?: boolean;
 };
-
 const sanitizeAlphanumeric = (value: string) =>
   value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-
 export const OneTimePasswordInput = React.forwardRef(
   function OneTimePasswordInput_(
     { length = 6, alphanumeric, ...rest }: Props,
@@ -27,7 +24,6 @@ export const OneTimePasswordInput = React.forwardRef(
           sanitizeValue: sanitizeAlphanumeric,
         }
       : undefined;
-
     return (
       <OneTimePasswordRoot {...alphanumericProps} {...rest}>
         {Array.from({ length }, (_, i) => (
@@ -38,14 +34,12 @@ export const OneTimePasswordInput = React.forwardRef(
     );
   }
 );
-
 const OneTimePasswordRoot = styled(OneTimePasswordField.Root)`
   display: flex;
   gap: 0.5rem;
   flex-wrap: nowrap;
   justify-content: space-between;
 `;
-
 const OneTimePasswordInputField = styled(OneTimePasswordField.Input)`
   all: unset;
   box-sizing: border-box;

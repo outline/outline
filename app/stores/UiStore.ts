@@ -4,33 +4,27 @@ import { flushSync } from "react-dom";
 import { light as defaultTheme } from "@shared/styles/theme";
 import type { ProsemirrorData } from "@shared/types";
 import Storage from "@shared/utils/Storage";
-import Document from "~/models/Document";
+import Note from "~/models/Note";
 import type Model from "~/models/base/Model";
-import Collection from "~/models/Collection";
-import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
+import Notebook from "~/models/Notebook";
+import type { ConnectionStatus } from "~/scenes/Note/components/MultiplayerEditor";
 import type { SplitViewPane } from "~/utils/splitView";
 import { isTruthyQueryValue } from "~/utils/urls";
 import { startViewTransition } from "~/utils/viewTransition";
 import type RootStore from "./RootStore";
-
 const UI_STORE = "UI_STORE";
-
 export enum Theme {
   Light = "light",
   Dark = "dark",
   System = "system",
 }
-
 export enum SystemTheme {
   Light = "light",
   Dark = "dark",
 }
-
 export type ResolvedTheme = "light" | "dark" | "system";
-
 /** The panels that can be displayed in the right sidebar. */
 export type RightSidebarPanel = "comments" | "history";
-
 type PersistedData = Pick<
   UiStore,
   | "languagePromptDismissed"
@@ -41,80 +35,59 @@ type PersistedData = Pick<
   | "sidebarCollapsed"
   | "tocVisible"
 >;
-
 class UiStore {
   // has the user seen the prompt to change the UI language and actioned it
   @observable
   languagePromptDismissed: boolean | undefined;
-
   // theme represents the users UI preference (defaults to system)
   @observable
   theme: Theme;
-
   // themeOverride is set when a theme query parameter is detected, persists for the session
   @observable
   themeOverride: Theme | undefined;
-
   // systemTheme represents the system UI theme (Settings -> General in macOS)
   @observable
   systemTheme: SystemTheme;
-
   @observable
   activeModels = observable.map<string, Model>();
-
   @observable
   observingUserId: string | undefined;
-
   @observable
   progressBarVisible = false;
-
   @observable
   tocVisible: boolean | undefined;
-
   @observable
   mobileSidebarVisible = false;
-
   @observable
   sidebarWidth: number;
-
   @observable
   sidebarRightWidth: number;
-
   @observable
   sidebarCollapsed = false;
-
-  // Whether the sidebar is hidden entirely, e.g. when embedding a document via
+  // Whether the sidebar is hidden entirely, e.g. when embedding a note via
   // the ?sidebarHidden=1 query parameter. Not persisted across reloads.
   @observable
   sidebarHidden = isTruthyQueryValue(
     new URLSearchParams(window.location.search).get("sidebarHidden")
   );
-
   @observable
   rightSidebar: RightSidebarPanel | null = null;
-
   // The right sidebar panel displayed in the secondary split view pane. Not
   // persisted as the pane itself only exists for the current session.
   @observable
   secondaryRightSidebar: RightSidebarPanel | null = null;
-
   // The fraction of the split view's width occupied by the primary pane. Not
   // persisted, reset when the split view closes.
   @observable
   splitViewRatio = 0.5;
-
   @observable
   sidebarIsResizing = false;
-
   @observable
   multiplayerStatus: ConnectionStatus;
-
   @observable
   multiplayerErrorCode?: number;
-
   @observable
   debugSafeArea = false;
-
   /** Data for the currently active presentation, if any. */
   @observable
   presentationData: {
@@ -123,35 +96,33 @@ class UiStore {
     color?: string | null;
     data: ProsemirrorData;
   } | null = null;
-
   /**
-   * Enter presentation mode for the given document.
+   * Enter presentation mode for the given note.
    *
-   * @param document the document to present, or null to exit.
+   * @param note the note to present, or null to exit.
    */
   @action
-  setPresentingDocument = (document: Document | null): void => {
-    this.presentationData = document
+  setPresentingNote = (note: Note | null): void => {
+    this.presentationData = note
       ? {
-          title: document.titleWithDefault,
-          icon: document.icon,
-          color: document.color,
-          data: document.data,
+          title: note.titleWithDefault,
+          icon: note.icon,
+          color: note.color,
+          data: note.data,
         }
       : null;
   };
-
   /** Tracks active export toasts for in-place updates when export completes */
   exportToasts = observable.map<
     string,
-    { toastId: string; timeoutId: ReturnType<typeof setTimeout> }
+    {
+      toastId: string;
+      timeoutId: ReturnType<typeof setTimeout>;
+    }
   >();
-
   rootStore: RootStore;
-
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
-
     // Rehydrate
     const data: PersistedData = Storage.get(UI_STORE) || {};
     this.languagePromptDismissed = data.languagePromptDismissed;
@@ -173,26 +144,21 @@ class UiStore {
     this.tocVisible = data.tocVisible;
     this.rightSidebar = data.rightSidebar ?? null;
     this.theme = data.theme || Theme.System;
-
     // system theme listeners
     if (window.matchMedia) {
       const colorSchemeQueryList = window.matchMedia(
         "(prefers-color-scheme: dark)"
       );
-
       const setSystemTheme = (event: MediaQueryListEvent | MediaQueryList) => {
         this.systemTheme = event.matches ? SystemTheme.Dark : SystemTheme.Light;
       };
-
       setSystemTheme(colorSchemeQueryList);
-
       if (typeof colorSchemeQueryList.addEventListener === "function") {
         colorSchemeQueryList.addEventListener("change", setSystemTheme);
       } else if (typeof colorSchemeQueryList.addListener === "function") {
         colorSchemeQueryList.addListener(setSystemTheme);
       }
     }
-
     window.addEventListener("storage", (event) => {
       if (event.key === UI_STORE && event.newValue) {
         let newData: PersistedData | null;
@@ -201,12 +167,10 @@ class UiStore {
         } catch {
           return;
         }
-
         // data may be null if key is deleted in localStorage
         if (!newData) {
           return;
         }
-
         // Note: we do not sync all properties here, sidebar widths cause fighting between windows
         this.theme = newData.theme;
         this.languagePromptDismissed = newData.languagePromptDismissed;
@@ -215,7 +179,6 @@ class UiStore {
       }
     });
   }
-
   /**
    * Add a model instance to the active set.
    *
@@ -225,7 +188,6 @@ class UiStore {
   addActiveModel = (model: Model): void => {
     this.activeModels.set(model.id, model);
   };
-
   /**
    * Remove a model instance from the active set.
    *
@@ -235,7 +197,6 @@ class UiStore {
   removeActiveModel = (model: Model): void => {
     this.activeModels.delete(model.id);
   };
-
   /**
    * Get all active models of a specific type.
    *
@@ -249,7 +210,6 @@ class UiStore {
       (model) => model.constructor === modelClass
     ) as T[];
   }
-
   /**
    * Check if a model instance is in the active set.
    *
@@ -259,7 +219,6 @@ class UiStore {
   isModelActive(model: Model): boolean {
     return this.activeModels.has(model.id);
   }
-
   /**
    * Clear all active models, or only models of a specific type.
    *
@@ -274,7 +233,6 @@ class UiStore {
       this.activeModels.clear();
     }
   }
-
   /**
    * Get the most recently added model of a specific type (primary).
    *
@@ -287,23 +245,20 @@ class UiStore {
     const models = this.getActiveModels<T>(modelClass);
     return models[models.length - 1];
   }
-
   @computed
-  get activeDocumentId(): string | undefined {
-    return this.getPrimaryActiveModel<Document>(Document)?.id;
+  get activeNoteId(): string | undefined {
+    return this.getPrimaryActiveModel<Note>(Note)?.id;
   }
-
   @computed
-  get activeCollectionId(): string | undefined {
-    // Derive from the active document so it resolves even if the collection
-    // loads after the document became active.
-    const activeDocument = this.getPrimaryActiveModel<Document>(Document);
-    if (activeDocument?.isActive && activeDocument.collectionId) {
-      return activeDocument.collectionId;
+  get activeNotebookId(): string | undefined {
+    // Derive from the active note so it resolves even if the collection
+    // loads after the note became active.
+    const activeNote = this.getPrimaryActiveModel<Note>(Note);
+    if (activeNote?.isActive && activeNote.notebookId) {
+      return activeNote.notebookId;
     }
-    return this.getPrimaryActiveModel<Collection>(Collection)?.id;
+    return this.getPrimaryActiveModel<Notebook>(Notebook)?.id;
   }
-
   @action
   setTheme = (theme: Theme) => {
     startViewTransition(() => {
@@ -313,7 +268,6 @@ class UiStore {
       });
     });
   };
-
   /**
    * Set a theme override from a query parameter. This persists for the session
    * but is not saved to localStorage.
@@ -324,34 +278,28 @@ class UiStore {
   setThemeOverride = (theme: Theme | undefined) => {
     this.themeOverride = theme;
   };
-
   @action
-  setActiveDocument = (document: Document | string): void => {
-    let model: Document | undefined;
-
-    if (typeof document === "string") {
-      model = this.rootStore.documents.get(document);
+  setActiveNote = (note: Note | string): void => {
+    let model: Note | undefined;
+    if (typeof note === "string") {
+      model = this.rootStore.notes.get(note);
     } else {
-      model = document;
+      model = note;
     }
-
     if (!model) {
       return;
     }
-
-    this.clearActiveModels(Document);
+    this.clearActiveModels(Note);
     this.addActiveModel(model);
     this.observingUserId = undefined;
-
-    if (model.isActive && model.collectionId) {
-      const collection = this.rootStore.collections.get(model.collectionId);
-      if (collection) {
-        this.clearActiveModels(Collection);
-        this.addActiveModel(collection);
+    if (model.isActive && model.notebookId) {
+      const notebook = this.rootStore.notebooks.get(model.notebookId);
+      if (notebook) {
+        this.clearActiveModels(Notebook);
+        this.addActiveModel(notebook);
       }
     }
   };
-
   @action
   setMultiplayerStatus = (
     status: ConnectionStatus,
@@ -360,12 +308,10 @@ class UiStore {
     this.multiplayerStatus = status;
     this.multiplayerErrorCode = errorCode;
   };
-
   @action
   setSidebarResizing = (sidebarIsResizing: boolean): void => {
     this.sidebarIsResizing = sidebarIsResizing;
   };
-
   /**
    * Sets the fraction of the split view's width occupied by the primary pane,
    * clamped so that neither pane becomes unusably narrow.
@@ -376,7 +322,6 @@ class UiStore {
   setSplitViewRatio = (ratio: number): void => {
     this.splitViewRatio = Math.min(0.8, Math.max(0.2, ratio));
   };
-
   /**
    * Returns the right sidebar panel displayed in the given split view pane.
    *
@@ -387,7 +332,6 @@ class UiStore {
     pane: SplitViewPane = "primary"
   ): RightSidebarPanel | null =>
     pane === "secondary" ? this.secondaryRightSidebar : this.rightSidebar;
-
   /**
    * Sets the right sidebar panel displayed in the given split view pane.
    *
@@ -405,47 +349,39 @@ class UiStore {
       this.rightSidebar = panel;
     }
   };
-
   @action
-  setActiveCollection = (collectionId: string | undefined): void => {
-    if (collectionId === undefined || collectionId === null) {
-      this.clearActiveModels(Collection);
+  setActiveNotebook = (notebookId: string | undefined): void => {
+    if (notebookId === undefined || notebookId === null) {
+      this.clearActiveModels(Notebook);
       return;
     }
-
-    const model = this.rootStore.collections.get(collectionId);
+    const model = this.rootStore.notebooks.get(notebookId);
     if (model) {
-      this.clearActiveModels(Collection);
+      this.clearActiveModels(Notebook);
       this.addActiveModel(model);
     }
   };
-
   @action
   setObservingUser = (userId: string | undefined): void => {
     this.observingUserId = userId;
   };
-
   @action
-  clearActiveDocument = (): void => {
-    this.clearActiveModels(Document);
+  clearActiveNote = (): void => {
+    this.clearActiveModels(Note);
     this.observingUserId = undefined;
-
-    // Unset when navigating away from a document (e.g. to another document, home, settings, etc.)
-    // Next document's onMount will set the right activeCollectionId.
-    this.clearActiveModels(Collection);
+    // Unset when navigating away from a note (e.g. to another note, home, settings, etc.)
+    // Next note's onMount will set the right activeNotebookId.
+    this.clearActiveModels(Notebook);
   };
-
   @action
   collapseSidebar = () => {
     this.set({ sidebarCollapsed: true });
   };
-
   @action
   expandSidebar = () => {
     this.sidebarHidden = false;
     this.set({ sidebarCollapsed: false });
   };
-
   @action
   set = (data: Partial<PersistedData>) => {
     for (const key in data) {
@@ -454,38 +390,31 @@ class UiStore {
     }
     this.persist();
   };
-
   @action
   toggleCollapsedSidebar = () => {
     this.sidebarHidden = false;
     this.set({ sidebarCollapsed: !this.sidebarCollapsed });
   };
-
   @action
   enableProgressBar = () => {
     this.progressBarVisible = true;
   };
-
   @action
   disableProgressBar = () => {
     this.progressBarVisible = false;
   };
-
   @action
   toggleMobileSidebar = () => {
     this.mobileSidebarVisible = !this.mobileSidebarVisible;
   };
-
   @action
   hideMobileSidebar = () => {
     this.mobileSidebarVisible = false;
   };
-
   @action
   toggleDebugSafeArea = () => {
     this.debugSafeArea = !this.debugSafeArea;
   };
-
   @action
   registerExportToast = (
     fileOperationId: string,
@@ -494,7 +423,6 @@ class UiStore {
   ) => {
     this.exportToasts.set(fileOperationId, { toastId, timeoutId });
   };
-
   @action
   removeExportToast = (fileOperationId: string) => {
     const tracked = this.exportToasts.get(fileOperationId);
@@ -503,17 +431,15 @@ class UiStore {
       this.exportToasts.delete(fileOperationId);
     }
   };
-
   @computed
   get readyToShow() {
     return (
       !this.rootStore.auth.user ||
-      (this.rootStore.collections.isLoaded &&
+      (this.rootStore.notebooks.isLoaded &&
         this.rootStore.stars.isLoaded &&
         this.rootStore.userMemberships.isLoaded)
     );
   }
-
   /**
    * Returns the current state of the sidebar taking into account user preference
    * and whether the sidebar has been hidden as part of launching in a new
@@ -523,20 +449,16 @@ class UiStore {
   get sidebarIsClosed() {
     return this.sidebarCollapsed || this.sidebarHidden;
   }
-
   @computed
   get resolvedTheme(): Theme | SystemTheme {
     if (this.themeOverride) {
       return this.themeOverride;
     }
-
     if (this.theme === "system") {
       return this.systemTheme;
     }
-
     return this.theme;
   }
-
   @computed
   get asJson(): PersistedData {
     return {
@@ -549,10 +471,8 @@ class UiStore {
       theme: this.theme,
     };
   }
-
   private persist = () => {
     Storage.set(UI_STORE, this.asJson);
   };
 }
-
 export default UiStore;

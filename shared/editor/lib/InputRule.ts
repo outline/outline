@@ -1,7 +1,6 @@
 import { InputRule as ProsemirrorInputRule } from "prosemirror-inputrules";
 import type { EditorState } from "prosemirror-state";
 import { isInCode } from "../queries/isInCode";
-
 /**
  * A factory function for creating Prosemirror input rules that automatically insert text
  * that matches a given regular expression unless the selection is inside a code block or code mark.
@@ -19,7 +18,6 @@ export class InputRule extends ProsemirrorInputRule {
         if (isInCode(state)) {
           return null;
         }
-
         if (match[1]) {
           const offset = match[0].lastIndexOf(match[1]);
           insert += match[0].slice(offset + match[1].length);
@@ -30,7 +28,6 @@ export class InputRule extends ProsemirrorInputRule {
             start = end;
           }
         }
-
         return state.tr.insertText(insert, start, end);
       }
     );

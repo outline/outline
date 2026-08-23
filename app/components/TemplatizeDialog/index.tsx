@@ -9,36 +9,28 @@ import Flex from "~/components/Flex";
 import Switch from "~/components/Switch";
 import useStores from "~/hooks/useStores";
 import SelectLocation from "./SelectLocation";
-
 type Props = {
-  documentId: string;
+  noteId: string;
 };
-
-function DocumentTemplatizeDialog({ documentId }: Props) {
+function NoteTemplatizeDialog({ noteId }: Props) {
   const history = useHistory();
   const { t } = useTranslation();
-  const { documents, templates } = useStores();
-  const document = documents.get(documentId);
-  invariant(document, "Document must exist");
-
+  const { notes, templates } = useStores();
+  const note = notes.get(noteId);
+  invariant(note, "Note must exist");
   const [publish, setPublish] = React.useState(true);
-  const [collectionId, setCollectionId] = React.useState(
-    document.collectionId ?? null
-  );
-
+  const [notebookId, setNotebookId] = React.useState(note.notebookId ?? null);
   const handleSubmit = React.useCallback(async () => {
     const template = await templates.templatize({
-      id: documentId,
-      collectionId,
+      id: noteId,
+      notebookId,
       publish,
     });
-
     if (template) {
       history.push(template.path);
       toast.success(t("Template created, go ahead and customize it"));
     }
-  }, [t, templates, documentId, history, collectionId, publish]);
-
+  }, [t, templates, noteId, history, notebookId, publish]);
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}
@@ -52,8 +44,8 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
           )}
         </div>
         <SelectLocation
-          defaultCollectionId={collectionId}
-          onSelect={setCollectionId}
+          defaultNotebookId={notebookId}
+          onSelect={setNotebookId}
         />
         <Switch
           name="publish"
@@ -66,5 +58,4 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
     </ConfirmationDialog>
   );
 }
-
-export default observer(DocumentTemplatizeDialog);
+export default observer(NoteTemplatizeDialog);

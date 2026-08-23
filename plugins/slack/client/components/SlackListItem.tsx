@@ -6,12 +6,12 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import type { IntegrationType } from "@shared/types";
-import type Collection from "~/models/Collection";
+import type Notebook from "~/models/Notebook";
 import type Integration from "~/models/Integration";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
 import ButtonLink from "~/components/ButtonLink";
 import Flex from "~/components/Flex";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
+import CollectionIcon from "~/components/Icons/NotebookIcon";
 import ListItem from "~/components/List/Item";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -23,10 +23,10 @@ import {
 
 type Props = {
   integration: Integration<IntegrationType.Post>;
-  collection: Collection;
+  notebook: Notebook;
 };
 
-function SlackListItem({ integration, collection }: Props) {
+function SlackListItem({ integration, notebook }: Props) {
   const { t } = useTranslation();
 
   const handleChange = (eventName: string) => async (checked: boolean) => {
@@ -51,7 +51,7 @@ function SlackListItem({ integration, collection }: Props) {
       key={integration.id}
       title={
         <Flex align="center" gap={6}>
-          <CollectionIcon collection={collection} /> {collection.name}
+          <CollectionIcon notebook={notebook} /> {notebook.name}
         </Flex>
       }
       subtitle={

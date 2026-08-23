@@ -4,12 +4,10 @@ import type { Command } from "prosemirror-state";
 import { toggleMark } from "../commands/toggleMark";
 import { markInputRuleForPattern } from "../lib/markInputRule";
 import Mark from "./Mark";
-
 export default class Italic extends Mark {
   get name() {
     return "em";
   }
-
   get schema(): MarkSpec {
     return {
       parseDOM: [
@@ -23,21 +21,18 @@ export default class Italic extends Mark {
       toDOM: () => ["em"],
     };
   }
-
   inputRules({ type }: { type: MarkType }): InputRule[] {
     return [
       markInputRuleForPattern("_", type),
       markInputRuleForPattern("*", type),
     ];
   }
-
   keys({ type }: { type: MarkType }): Record<string, Command> {
     return {
       "Mod-i": toggleMark(type),
       "Mod-I": toggleMark(type),
     };
   }
-
   toMarkdown() {
     return {
       open: "*",
@@ -46,7 +41,6 @@ export default class Italic extends Mark {
       expelEnclosingWhitespace: true,
     };
   }
-
   parseMarkdown() {
     return { mark: "em" };
   }

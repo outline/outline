@@ -7,10 +7,8 @@ import PageTitle from "~/components/PageTitle";
 import { navigateToHome } from "~/actions/definitions/navigation";
 import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
-
 const ErrorUnknown = () => {
   const { t } = useTranslation();
-
   return (
     <CenteredContent>
       <PageTitle title={t("Something went wrong")} />
@@ -31,5 +29,4 @@ const ErrorUnknown = () => {
     </CenteredContent>
   );
 };
-
 export default ErrorUnknown;

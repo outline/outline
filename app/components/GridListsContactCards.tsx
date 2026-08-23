@@ -1,5 +1,4 @@
 import { EnvelopeIcon, PhoneIcon } from "@heroicons/react/20/solid";
-
 const people = [
   {
     name: "Jane Cooper",
@@ -12,7 +11,6 @@ const people = [
   },
   // More people...
 ];
-
 /**
  * Tailwind UI – grid lists: contact cards.
  *

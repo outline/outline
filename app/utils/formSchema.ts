@@ -6,7 +6,6 @@ export type FieldType =
   | "currency"
   | "select"
   | "textarea";
-
 /** One field on a form, described rather than written out. */
 export interface FieldSchema {
   fieldname: string;
@@ -15,24 +14,24 @@ export interface FieldSchema {
   required?: boolean;
   min?: number;
   max?: number;
-  options?: { value: string; label: string }[];
+  options?: {
+    value: string;
+    label: string;
+  }[];
   defaultValue?: string;
   placeholder?: string;
   /** Only shown while this holds, e.g. `type == suite`. */
   dependsOn?: string;
   short?: boolean;
 }
-
 /** A whole form, described as data. */
 export interface DocType {
   name: string;
   title: string;
   fields: FieldSchema[];
 }
-
 /** The values a form is holding, keyed by field name. */
 export type FormValues = Record<string, string>;
-
 /**
  * Whether a field's condition holds.
  *
@@ -47,24 +46,20 @@ export function evaluateDependsOn(
   if (!expression) {
     return true;
   }
-
   const comparison = /^\s*(\w+)\s*(==|!=)\s*(.+?)\s*$/.exec(expression);
   if (comparison) {
     const [, field, operator, expected] = comparison;
     const actual = values[field] ?? "";
     return operator === "==" ? actual === expected : actual !== expected;
   }
-
   // A bare field name means "has a value".
   if (/^\s*\w+\s*$/.test(expression)) {
     return Boolean(values[expression.trim()]);
   }
-
   // Anything else cannot be judged, and a field nobody can explain is better
   // hidden than shown on a guess.
   return false;
 }
-
 /**
  * The fields that should be on screen for the values given.
  *
@@ -80,7 +75,6 @@ export function visibleFields(
     evaluateDependsOn(field.dependsOn, values)
   );
 }
-
 /**
  * Checks a form against its description.
  *
@@ -93,13 +87,11 @@ export function validateForm(
   values: FormValues
 ): Record<string, string> {
   const errors: Record<string, string> = {};
-
   // Only what is on screen is checked: demanding a field nobody can see would
   // leave the form unsubmittable with nothing to fix.
   visibleFields(doctype, values).forEach((field) => {
     const raw = values[field.fieldname] ?? "";
     const value = raw.trim();
-
     if (field.required && !value) {
       errors[field.fieldname] = `${field.label} is required.`;
       return;
@@ -107,7 +99,6 @@ export function validateForm(
     if (!value) {
       return;
     }
-
     if (field.fieldtype === "number" || field.fieldtype === "currency") {
       const asNumber = Number(value);
       if (!Number.isFinite(asNumber)) {
@@ -125,7 +116,6 @@ export function validateForm(
         return;
       }
     }
-
     if (
       field.fieldtype === "email" &&
       !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)
@@ -133,7 +123,6 @@ export function validateForm(
       errors[field.fieldname] = `${field.label} has to be an email address.`;
       return;
     }
-
     if (
       field.fieldtype === "select" &&
       field.options &&
@@ -142,6 +131,5 @@ export function validateForm(
       errors[field.fieldname] = `${field.label} is not one of the choices.`;
     }
   });
-
   return errors;
 }

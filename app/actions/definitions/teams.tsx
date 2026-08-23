@@ -14,7 +14,6 @@ import type { ActionContext, ExternalLinkAction } from "~/types";
 import Desktop from "~/utils/Desktop";
 import { dialogActionFactory } from "./common";
 import { TeamSection } from "../sections";
-
 export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
   stores.auth.availableTeams?.map<ExternalLinkAction>((session) =>
     createExternalLinkAction({
@@ -41,7 +40,6 @@ export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
       target: "_self",
     })
   ) ?? [];
-
 export const switchTeam = createActionWithChildren({
   name: ({ t }) => t("Switch workspace"),
   placeholder: ({ t }) => t("Select a workspace"),
@@ -52,7 +50,6 @@ export const switchTeam = createActionWithChildren({
     !!stores.auth.availableTeams && stores.auth.availableTeams?.length > 1,
   children: switchTeamsList,
 });
-
 export const createTeam = createAction({
   name: ({ t }) => `${t("New workspace")}…`,
   analyticsName: "New workspace",
@@ -64,7 +61,6 @@ export const createTeam = createAction({
   perform: ({ t, event, stores }) => {
     event?.preventDefault();
     event?.stopPropagation();
-
     const { user } = stores.auth;
     if (user) {
       stores.dialogs.openModal({
@@ -74,7 +70,6 @@ export const createTeam = createAction({
     }
   },
 });
-
 export const desktopLoginTeam = dialogActionFactory({
   analyticsName: "Login to workspace",
   section: TeamSection,
@@ -86,10 +81,8 @@ export const desktopLoginTeam = dialogActionFactory({
   stopEvent: true,
   visible: () => Desktop.isElectron(),
 });
-
 const StyledTeamLogo = styled(TeamLogo)`
   border-radius: 2px;
   border: 0;
 `;
-
 export const rootTeamActions = [switchTeam, createTeam, desktopLoginTeam];

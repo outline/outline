@@ -12,7 +12,6 @@ import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 /**
  * The tier a points balance falls into.
  *
@@ -25,11 +24,13 @@ import { formatCurrency, formatDate } from "~/utils/format";
  */
 function tierFor(
   points: number,
-  tiers: { name: string; from: number }[]
+  tiers: {
+    name: string;
+    from: number;
+  }[]
 ): string {
   return tiers.find((tier) => points >= tier.from)?.name ?? "";
 }
-
 /**
  * Loyalty standing per customer, and the ledger of how they got there.
  *
@@ -44,12 +45,9 @@ function Loyalty() {
   const loyalty = useShop((state) => state.loyalty);
   const redeemPoints = useShop((state) => state.redeemPoints);
   const config = useShop((state) => state.loyaltyConfig);
-
   const fields = useFields({ customerId: "", points: "" });
   const submission = useSubmit();
-
   const selected = fields.get("customerId") || customers[0]?.id || "";
-
   const handleRedeem = () =>
     submission.run(async () => {
       const value = Number(fields.get("points"));
@@ -69,12 +67,10 @@ function Loyalty() {
             points: value,
           });
     });
-
   const outstanding = customers.reduce(
     (total, customer) => total + customer.loyaltyPoints,
     0
   );
-
   return (
     <AppPage
       title={t("Loyalty")}
@@ -162,5 +158,4 @@ function Loyalty() {
     </AppPage>
   );
 }
-
 export default Loyalty;

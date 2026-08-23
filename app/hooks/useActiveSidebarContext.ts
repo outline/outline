@@ -1,7 +1,9 @@
-import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
+import {
+  normalizeSidebarContext,
+  type SidebarContextType,
+} from "~/components/Sidebar/components/SidebarContext";
 import { useFocusedSplitLocation } from "./useFocusedSplitLocation";
 import { useLocationSidebarContext } from "./useLocationSidebarContext";
-
 /**
  * Hook to retrieve the sidebar context that the sidebar should treat as
  * active. When a secondary split view pane has focus, this resolves to that
@@ -16,10 +18,8 @@ import { useLocationSidebarContext } from "./useLocationSidebarContext";
 export function useActiveSidebarContext(): SidebarContextType {
   const locationSidebarContext = useLocationSidebarContext();
   const splitLocation = useFocusedSplitLocation();
-
   if (splitLocation) {
-    return splitLocation.state?.sidebarContext;
+    return normalizeSidebarContext(splitLocation.state?.sidebarContext);
   }
-
   return locationSidebarContext;
 }

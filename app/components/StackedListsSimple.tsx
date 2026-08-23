@@ -52,7 +52,6 @@ const people = [
     lastSeen: null,
   },
 ];
-
 /**
  * Tailwind UI – stacked lists: simple.
  *

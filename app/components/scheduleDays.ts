@@ -2,7 +2,6 @@ import type {
   CalendarDay,
   CalendarEvent,
 } from "~/components/CalendarsMonthView";
-
 /** A room's occupancy across days. */
 interface OccupancyRow {
   roomId: string;
@@ -12,10 +11,13 @@ interface OccupancyRow {
     date: string;
     occupied: number;
     isClosed: boolean;
-    guests: { boardingId: string; petName: string; customerName: string }[];
+    guests: {
+      boardingId: string;
+      petName: string;
+      customerName: string;
+    }[];
   }[];
 }
-
 /** A groomer's appointments across days. */
 interface GroomingRow {
   groomerId: string;
@@ -32,10 +34,8 @@ interface GroomingRow {
     }[];
   }[];
 }
-
 /** The day part of an ISO timestamp. */
 const dayKey = (iso: string) => iso.slice(0, 10);
-
 /**
  * Collapses per-row grids into the month grid the calendar draws.
  *
@@ -53,7 +53,6 @@ function toDays(
 ): CalendarDay[] {
   const today = new Date().toISOString().slice(0, 10);
   const month = dates[0]?.slice(0, 7);
-
   return dates.map((date) => ({
     date,
     isCurrentMonth: date.slice(0, 7) === month,
@@ -61,7 +60,6 @@ function toDays(
     events: eventsByDay.get(date) ?? [],
   }));
 }
-
 /**
  * Boarding stays as calendar days.
  *
@@ -71,7 +69,6 @@ function toDays(
 export function boardingsToCalendar(rows: OccupancyRow[]): CalendarDay[] {
   const dates = rows[0]?.days.map((day) => dayKey(day.date)) ?? [];
   const byDay = new Map<string, CalendarEvent[]>();
-
   rows.forEach((row) => {
     row.days.forEach((day) => {
       const key = dayKey(day.date);
@@ -99,10 +96,8 @@ export function boardingsToCalendar(rows: OccupancyRow[]): CalendarDay[] {
       byDay.set(key, events);
     });
   });
-
   return toDays(dates, byDay);
 }
-
 /**
  * Grooming appointments as calendar days.
  *
@@ -112,7 +107,6 @@ export function boardingsToCalendar(rows: OccupancyRow[]): CalendarDay[] {
 export function groomingToCalendar(rows: GroomingRow[]): CalendarDay[] {
   const dates = rows[0]?.days.map((day) => dayKey(day.date)) ?? [];
   const byDay = new Map<string, CalendarEvent[]>();
-
   rows.forEach((row) => {
     row.days.forEach((day) => {
       const key = dayKey(day.date);
@@ -130,6 +124,5 @@ export function groomingToCalendar(rows: GroomingRow[]): CalendarDay[] {
       byDay.set(key, events);
     });
   });
-
   return toDays(dates, byDay);
 }

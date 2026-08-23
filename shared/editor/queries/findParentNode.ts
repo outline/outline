@@ -1,20 +1,16 @@
 import type { Node, ResolvedPos } from "prosemirror-model";
 import type { Selection } from "prosemirror-state";
-
 type Predicate = (node: Node) => boolean;
-
 type ContentNodeWithPos = {
   pos: number;
   start: number;
   depth: number;
   node: Node;
 };
-
 export const findParentNode =
   (predicate: Predicate) =>
   ({ $from }: Selection) =>
     findParentNodeClosestToPos($from, predicate);
-
 /**
  * Iterates over parent nodes starting from the given `$pos`, returning the
  * closest node and its start position `predicate` returns truthy for. `start`
@@ -39,6 +35,5 @@ export const findParentNodeClosestToPos = (
       };
     }
   }
-
   return undefined;
 };

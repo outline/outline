@@ -38,33 +38,29 @@ import GroupPermissionFilter from "./components/GroupPermissionFilter";
 import { GroupMembersTable } from "./components/GroupMembersTable";
 import { StickyFilters } from "./components/StickyFilters";
 import { settingsPath } from "~/utils/routeHelpers";
-
 /**
  * Settings page that lists members of a specific group.
  */
 function GroupMembers() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{
+    id: string;
+  }>();
   const { groups } = useStores();
   const group = groups.get(id);
   const { request, error } = useRequest(() => groups.fetch(id));
-
   useEffect(() => {
     if (!group) {
       void request();
     }
   }, [group, request]);
-
   if (error) {
     return <Error404 />;
   }
-
   if (!group) {
     return <LoadingIndicator />;
   }
-
   return <GroupMembersPage groupId={group.id} />;
 }
-
 const GroupMembersPage = observer(function GroupMembersPage({
   groupId,
 }: {
@@ -79,7 +75,6 @@ const GroupMembersPage = observer(function GroupMembersPage({
   const location = useLocation();
   const params = useQuery();
   const [query, setQuery] = useState("");
-
   const reqParams = useMemo(
     () => ({
       id: group.id,
@@ -92,7 +87,6 @@ const GroupMembersPage = observer(function GroupMembersPage({
     }),
     [params, group.id]
   );
-
   const sort: ColumnSort = useMemo(
     () => ({
       id: reqParams.sort,
@@ -100,7 +94,6 @@ const GroupMembersPage = observer(function GroupMembersPage({
     }),
     [reqParams.sort, reqParams.direction]
   );
-
   const fetchMembers = useCallback(
     async (fetchParams: FetchPageParams): Promise<PaginatedResponse<User>> => {
       const response = await groupUsers.fetchPage(fetchParams);
@@ -110,7 +103,6 @@ const GroupMembersPage = observer(function GroupMembersPage({
     },
     [groupUsers]
   );
-
   const filteredUsers = useMemo(() => {
     let result = users.inGroup(group.id, reqParams.query);
     if (reqParams.permission) {
@@ -132,14 +124,12 @@ const GroupMembersPage = observer(function GroupMembersPage({
     reqParams.query,
     reqParams.permission,
   ]);
-
   const { data, error, loading, next } = useTableRequest({
     data: filteredUsers,
     sort,
     reqFn: fetchMembers,
     reqParams,
   });
-
   const updateParams = useCallback(
     (name: string, value: string) => {
       if (value) {
@@ -147,7 +137,6 @@ const GroupMembersPage = observer(function GroupMembersPage({
       } else {
         params.delete(name);
       }
-
       history.replace({
         pathname: location.pathname,
         search: params.toString(),
@@ -155,18 +144,15 @@ const GroupMembersPage = observer(function GroupMembersPage({
     },
     [params, history, location.pathname]
   );
-
   const updateQuery = useCallback(
     (value: string) => updateParams("query", value),
     [updateParams]
   );
-
   const handlePermissionFilter = useCallback(
     (permission: string | null | undefined) =>
       updateParams("permission", permission ?? ""),
     [updateParams]
   );
-
   const handleSearch = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const { value } = event.target;
@@ -174,18 +160,15 @@ const GroupMembersPage = observer(function GroupMembersPage({
     },
     []
   );
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load group members"));
     }
   }, [t, error]);
-
   useEffect(() => {
     const timeout = setTimeout(() => updateQuery(query), 250);
     return () => clearTimeout(timeout);
   }, [query, updateQuery]);
-
   const breadcrumbActions = useMemo(
     () => [
       createInternalLinkAction({
@@ -197,7 +180,6 @@ const GroupMembersPage = observer(function GroupMembersPage({
     ],
     [t]
   );
-
   return (
     <ActionContextProvider value={{ activeModels: [group] }}>
       <Scene
@@ -273,9 +255,7 @@ const GroupMembersPage = observer(function GroupMembersPage({
     </ActionContextProvider>
   );
 });
-
 const LargeGroupPermissionFilter = styled(GroupPermissionFilter)`
   height: 32px;
 `;
-
 export const GroupMembersScene = observer(GroupMembers);

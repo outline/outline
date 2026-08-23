@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -48,7 +48,6 @@ const features = [
       "Stack of three green cardstock boxes with 3 hole cutouts showing cards inside.",
   },
 ];
-
 /**
  * Tailwind UI – product features: with square images.
  *

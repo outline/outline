@@ -4,50 +4,39 @@ import type { NodeType, MarkType, Schema } from "prosemirror-model";
 import type { Command, Plugin, Selection } from "prosemirror-state";
 import type { Editor } from "../../../app/editor";
 import type { SelectionToolbarMenuDescriptor } from "../types";
-
 export type CommandFactory = (attrs?: unknown, options?: unknown) => Command;
-
 export type WidgetProps = {
   rtl: boolean;
   readOnly: boolean | undefined;
   selection?: Selection;
 };
-
 export default class Extension<TOptions extends object = object> {
   options: TOptions;
   editor: Editor;
-
   constructor(options: Partial<TOptions> = {}) {
     this.options = {
       ...this.defaultOptions,
       ...options,
     } as TOptions;
   }
-
   bindEditor(editor: Editor) {
     this.editor = editor;
   }
-
   get type() {
     return "extension";
   }
-
   get name() {
     return "";
   }
-
   get plugins(): Plugin[] {
     return [];
   }
-
   get rulePlugins(): PluginSimple[] {
     return [];
   }
-
   get defaultOptions(): Partial<TOptions> {
     return {};
   }
-
   /**
    * Whether this extension is needed in read-only mode. When false (default), pure Extension types
    * are not instantiated and their commands are blocked. Node and Mark extensions are always
@@ -56,11 +45,9 @@ export default class Extension<TOptions extends object = object> {
   get allowInReadOnly(): boolean {
     return false;
   }
-
   get focusAfterExecution(): boolean {
     return true;
   }
-
   /**
    * A widget is a React component to be rendered in the editor's context, independent of any
    * specific node or mark. It can be used to render things like toolbars, menus, etc. Note that
@@ -71,7 +58,6 @@ export default class Extension<TOptions extends object = object> {
   widget(_props: WidgetProps): React.ReactElement | undefined {
     return undefined;
   }
-
   /**
    * A map of ProseMirror keymap bindings. It can be used to bind keyboard shortcuts to commands.
    *
@@ -83,7 +69,6 @@ export default class Extension<TOptions extends object = object> {
   }): Record<string, Command | CommandFactory> {
     return {};
   }
-
   /**
    * A map of ProseMirror input rules. It can be used to automatically replace certain patterns
    * while typing.
@@ -96,7 +81,6 @@ export default class Extension<TOptions extends object = object> {
   }): InputRule[] {
     return [];
   }
-
   /**
    * A map of ProseMirror commands. It can be used to expose commands to the editor. If a single
    * command is returned, it will be available under the extension's name.
@@ -109,7 +93,6 @@ export default class Extension<TOptions extends object = object> {
   }): Record<string, CommandFactory> | CommandFactory | undefined {
     return {};
   }
-
   /**
    * Declares selection toolbar menus contributed by this extension. When
    * the user selects content or clicks a node, the toolbar evaluates all

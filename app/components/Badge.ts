@@ -1,7 +1,9 @@
 import { darken, transparentize } from "polished";
 import styled from "styled-components";
-
-const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
+const Badge = styled.span<{
+  yellow?: boolean;
+  primary?: boolean;
+}>`
   padding: 1.5px 5.5px;
   margin: 0 2px;
   background: ${({ yellow, primary, theme }) =>
@@ -29,5 +31,4 @@ const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
   user-select: none;
   white-space: nowrap;
 `;
-
 export default Badge;

@@ -4,7 +4,6 @@ import { useLocation } from "react-router-dom";
 import { actionToKBar } from "~/actions";
 import type { ActionVariant } from "~/types";
 import useActionContext from "./useActionContext";
-
 /**
  * Hook to add actions to the command bar while the hook is inside a mounted
  * component.
@@ -19,11 +18,9 @@ export default function useCommandBarActions(
   const context = useActionContext({
     isCommandBar: true,
   });
-
   const registerable = flattenDeep(
     actions.map((action) => actionToKBar(action, context))
   );
-
   useRegisterActions(registerable, [
     registerable.map((r) => r.id).join(""),
     location.pathname,

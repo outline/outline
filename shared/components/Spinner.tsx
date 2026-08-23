@@ -1,10 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
-
 type Props = React.HTMLAttributes<HTMLOrSVGElement> & {
   color?: string;
 };
-
 export default function Spinner({ color, ...props }: Props) {
   return (
     <SVG
@@ -26,7 +24,6 @@ export default function Spinner({ color, ...props }: Props) {
     </SVG>
   );
 }
-
 const SVG = styled.svg`
   @keyframes rotator {
     0% {
@@ -40,8 +37,9 @@ const SVG = styled.svg`
   animation: rotator 1.4s linear infinite;
   margin: 4px;
 `;
-
-const Circle = styled.circle<{ $color?: string }>`
+const Circle = styled.circle<{
+  $color?: string;
+}>`
   @keyframes dash {
     0% {
       stroke-dashoffset: 47;

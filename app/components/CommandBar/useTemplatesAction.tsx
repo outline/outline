@@ -3,20 +3,17 @@ import { useEffect, useMemo } from "react";
 import Icon from "@shared/components/Icon";
 import { createActionWithChildren, createInternalLinkAction } from "~/actions";
 import {
-  ActiveCollectionSection,
-  DocumentSection,
+  ActiveNotebookSection,
+  NoteSection,
   TeamSection,
 } from "~/actions/sections";
 import useStores from "~/hooks/useStores";
-import { newDocumentPath } from "~/utils/routeHelpers";
-
+import { newNotePath } from "~/utils/routeHelpers";
 const useTemplatesAction = () => {
   const { templates } = useStores();
-
   useEffect(() => {
     void templates.fetchAll();
   }, [templates]);
-
   const actions = useMemo(
     () =>
       templates.alphabetical.map((template) =>
@@ -25,7 +22,7 @@ const useTemplatesAction = () => {
           analyticsName: "New document",
           section: template.isWorkspaceTemplate
             ? TeamSection
-            : ActiveCollectionSection,
+            : ActiveNotebookSection,
           icon: template.icon ? (
             <Icon
               value={template.icon}
@@ -36,28 +33,27 @@ const useTemplatesAction = () => {
             <NewDocumentIcon />
           ),
           keywords: "create",
-          visible: ({ currentTeamId, activeCollectionId, stores }) => {
-            if (activeCollectionId) {
+          visible: ({ currentTeamId, activeNotebookId, stores }) => {
+            if (activeNotebookId) {
               return (
-                stores.policies.abilities(activeCollectionId).createDocument &&
-                (template.collectionId === activeCollectionId ||
+                stores.policies.abilities(activeNotebookId).createNote &&
+                (template.notebookId === activeNotebookId ||
                   template.isWorkspaceTemplate)
               );
             }
             return (
               !!currentTeamId &&
-              stores.policies.abilities(currentTeamId).createDocument &&
+              stores.policies.abilities(currentTeamId).createNote &&
               template.isWorkspaceTemplate
             );
           },
-          to: ({ activeCollectionId, sidebarContext }) => {
-            const [pathname, search] = newDocumentPath(
-              template.collectionId ?? activeCollectionId,
+          to: ({ activeNotebookId, sidebarContext }) => {
+            const [pathname, search] = newNotePath(
+              template.notebookId ?? activeNotebookId,
               {
                 templateId: template.id,
               }
             ).split("?");
-
             return {
               pathname,
               search,
@@ -68,30 +64,27 @@ const useTemplatesAction = () => {
       ),
     [templates.alphabetical]
   );
-
   const newFromTemplate = useMemo(
     () =>
       createActionWithChildren({
         id: "templates",
         name: ({ t }) => t("New from template"),
         placeholder: ({ t }) => t("Choose a template"),
-        section: DocumentSection,
+        section: NoteSection,
         icon: <ShapesIcon />,
-        visible: ({ currentTeamId, activeCollectionId, stores }) => {
-          if (activeCollectionId) {
-            return stores.policies.abilities(activeCollectionId).createDocument;
+        visible: ({ currentTeamId, activeNotebookId, stores }) => {
+          if (activeNotebookId) {
+            return stores.policies.abilities(activeNotebookId).createNote;
           }
           return (
             !!currentTeamId &&
-            stores.policies.abilities(currentTeamId).createDocument
+            stores.policies.abilities(currentTeamId).createNote
           );
         },
         children: actions,
       }),
     [actions]
   );
-
   return newFromTemplate;
 };
-
 export default useTemplatesAction;

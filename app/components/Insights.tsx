@@ -5,12 +5,10 @@ import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import { StatusChip } from "~/components/StatusChip";
 import { useShop } from "~/stores/shop";
-
 interface Props {
   /** How many to show; the rest stay on the list behind them. */
   limit?: number;
 }
-
 /**
  * What the records say is worth attention.
  *
@@ -24,7 +22,6 @@ export function Insights({ limit }: Props) {
   const { t } = useTranslation();
   const insights = useShop((state) => state.insights);
   const shown = limit ? insights.slice(0, limit) : insights;
-
   return (
     <>
       <Subheading>

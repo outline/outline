@@ -9,12 +9,10 @@ import * as Scenes from "~/routes/scenes";
 import { draftsPath } from "~/utils/routeHelpers";
 import { useDropToUnpublish } from "../hooks/useDragAndDrop";
 import SidebarLink from "./SidebarLink";
-
 export const DraftsLink = observer(() => {
   const { t } = useTranslation();
-  const { documents } = useStores();
+  const { notes } = useStores();
   const [{ isOver, canDrop }, dropRef] = useDropToUnpublish();
-
   return (
     <div ref={dropRef}>
       <SidebarLink
@@ -24,9 +22,9 @@ export const DraftsLink = observer(() => {
         label={
           <Flex align="center" justify="space-between">
             {t("Drafts")}
-            {documents.totalDrafts > 0 ? (
+            {notes.totalDrafts > 0 ? (
               <Drafts size="xsmall" type="tertiary">
-                {documents.totalDrafts > 25 ? "25+" : documents.totalDrafts}
+                {notes.totalDrafts > 25 ? "25+" : notes.totalDrafts}
               </Drafts>
             ) : null}
           </Flex>
@@ -36,7 +34,6 @@ export const DraftsLink = observer(() => {
     </div>
   );
 });
-
 const Drafts = styled(Text)`
   margin: 0 4px;
 `;

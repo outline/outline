@@ -31,7 +31,6 @@ const posts = [
   },
   // More posts...
 ];
-
 /**
  * Tailwind UI – blog sections: with featured post.
  *

@@ -1,7 +1,6 @@
 import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-
 const products = [
   {
     id: 1,
@@ -29,7 +28,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – shopping carts: slide over.
  *
@@ -37,7 +35,6 @@ const products = [
  */
 export function ShoppingCartsSlideOver() {
   const [open, setOpen] = useState(true);
-
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={setOpen}>

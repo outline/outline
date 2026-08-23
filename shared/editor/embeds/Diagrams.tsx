@@ -2,7 +2,6 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import Image from "../components/Img";
 import type { EmbedProps as Props } from ".";
-
 function Diagrams({ matches, ...props }: Props) {
   const { embed } = props;
   const embedUrl = matches[0];
@@ -11,7 +10,6 @@ function Diagrams({ matches, ...props }: Props) {
   const title = params.get("title")
     ? `${titlePrefix} (${params.get("title")})`
     : titlePrefix;
-
   return (
     <Frame
       {...props}
@@ -30,5 +28,4 @@ function Diagrams({ matches, ...props }: Props) {
     />
   );
 }
-
 export default Diagrams;

@@ -11,27 +11,22 @@ import { Portal } from "~/components/Portal";
 import useWindowSize from "~/hooks/useWindowSize";
 import { useEditor } from "./EditorContext";
 import ToolbarMenu from "./ToolbarMenu";
-
 type Props = {
   /** The menu items to render in the toolbar. */
   items: MenuItem[];
   /** Whether the text direction is right-to-left. */
   rtl: boolean;
 };
-
 type TrackRect = {
   top: number;
   left: number;
   width: number;
   height: number;
 };
-
 // Height of the toolbar, used to offset it above the block.
 const menuHeight = 36;
-
 // Gap between the toolbar and the block / document header.
 const margin = 8;
-
 /**
  * Resolves the DOM element of the block (code or notice) the current selection
  * is anchored to, which the toolbar tracks.
@@ -52,7 +47,6 @@ function getBlockElement(view: EditorView): HTMLElement | null {
   const dom = view.nodeDOM(block.pos);
   return dom instanceof HTMLElement ? dom : null;
 }
-
 function sameRect(a: TrackRect | null, b: TrackRect | null) {
   if (a === b) {
     return true;
@@ -67,7 +61,6 @@ function sameRect(a: TrackRect | null, b: TrackRect | null) {
     a.height === b.height
   );
 }
-
 /**
  * Renders a block toolbar (code, notice) as a sticky element that pins to the
  * top of the viewport while the block is scrolled through, rather than a
@@ -89,12 +82,9 @@ const StickyBlockToolbar = React.forwardRef(function StickyBlockToolbar_(
   const trackRef = ref || React.createRef<HTMLDivElement>();
   const [rect, setRect] = React.useState<TrackRect | null>(null);
   const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
-
   // Re-measure when the window resizes; scroll is handled by `position: sticky`.
   useWindowSize();
-
   const element = getBlockElement(view);
-
   // Re-measure when the block's size changes (e.g. after an auto-expand that
   // settles after the initial mount, or a font load that shifts layout).
   React.useEffect(() => {
@@ -105,7 +95,6 @@ const StickyBlockToolbar = React.forwardRef(function StickyBlockToolbar_(
     observer.observe(element);
     return () => observer.disconnect();
   }, [element, forceUpdate]);
-
   // Measure the block relative to the portal's offset parent. Runs after every
   // render by design, the rect comparison prevents a loop.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -115,7 +104,6 @@ const StickyBlockToolbar = React.forwardRef(function StickyBlockToolbar_(
       setRect((prev) => (prev === null ? prev : null));
       return;
     }
-
     const offsetParent = track.offsetParent;
     const parent = offsetParent
       ? offsetParent.getBoundingClientRect()
@@ -132,10 +120,8 @@ const StickyBlockToolbar = React.forwardRef(function StickyBlockToolbar_(
       width: Math.round(bounds.width),
       height: Math.round(bounds.height + offset),
     };
-
     setRect((prev) => (sameRect(prev, next) ? prev : next));
   });
-
   return (
     <Portal>
       <Track
@@ -162,8 +148,9 @@ const StickyBlockToolbar = React.forwardRef(function StickyBlockToolbar_(
     </Portal>
   );
 });
-
-const Track = styled.div<{ $rtl: boolean }>`
+const Track = styled.div<{
+  $rtl: boolean;
+}>`
   position: absolute;
   top: 0;
   left: -10000px;
@@ -178,19 +165,16 @@ const Track = styled.div<{ $rtl: boolean }>`
     display: none;
   }
 `;
-
 const Sticky = styled.div`
   position: sticky;
   top: calc(var(--header-offset, ${HEADER_HEIGHT}px) + ${margin}px);
   pointer-events: auto;
   line-height: 0;
 `;
-
 const Background = styled.div`
   background-color: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
   border-radius: 4px;
   height: 36px;
 `;
-
 export default StickyBlockToolbar;

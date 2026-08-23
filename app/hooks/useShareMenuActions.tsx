@@ -8,7 +8,6 @@ import {
   revokeShareActionFactory,
 } from "~/actions/definitions/shares";
 import { useMenuAction } from "~/hooks/useMenuAction";
-
 /**
  * Hook that constructs the action menu for share management operations.
  *
@@ -17,7 +16,6 @@ import { useMenuAction } from "~/hooks/useMenuAction";
  */
 export function useShareMenuActions(targetShare: Share | null) {
   const can = usePolicy(targetShare ?? ({} as Share));
-
   const actionList = React.useMemo(
     () =>
       !targetShare
@@ -30,6 +28,5 @@ export function useShareMenuActions(targetShare: Share | null) {
           ],
     [targetShare, can]
   );
-
   return useMenuAction(actionList);
 }

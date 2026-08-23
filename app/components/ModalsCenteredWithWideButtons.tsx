@@ -1,7 +1,6 @@
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { CheckIcon } from "@heroicons/react/24/outline";
-
 /**
  * Tailwind UI – modals: centered with wide buttons.
  *
@@ -9,9 +8,7 @@ import { CheckIcon } from "@heroicons/react/24/outline";
  */
 export function ModalsCenteredWithWideButtons() {
   const [open, setOpen] = useState(true);
-
   const cancelButtonRef = useRef(null);
-
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog

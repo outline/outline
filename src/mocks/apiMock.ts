@@ -1,6 +1,6 @@
 import { documentPath, mockDb, textToProsemirror } from "./db";
 import { handleShopRequest, hasSession } from "./shop";
-import type { MockCollection, MockDocument } from "./db";
+import type { MockDocument, MockNotebook } from "./db";
 
 /**
  * The envelope every mock endpoint answers with.
@@ -93,14 +93,14 @@ function policiesFor(ids: string[]) {
 }
 
 /**
- * Attaches the nested document structure the sidebar renders for a collection.
- * The real API embeds this tree on every collection it returns.
+ * Attaches the nested document structure the sidebar renders for a notebook.
+ * The real API embeds this tree on every notebook it returns.
  *
- * @param collection the collection to decorate.
- * @returns the collection with its `documents` navigation tree.
+ * @param notebook the notebook to decorate.
+ * @returns the notebook with its `documents` navigation tree.
  */
-function withDocumentStructure(collection: MockCollection) {
-  const documents = mockDb.getDocuments(collection.id);
+function withDocumentStructure(notebook: MockNotebook) {
+  const documents = mockDb.getDocuments(notebook.id);
 
   const toNode = (parentDocumentId: string | null): unknown[] =>
     documents
@@ -110,11 +110,11 @@ function withDocumentStructure(collection: MockCollection) {
         title: doc.title,
         url: documentPath(doc.title, doc.urlId),
         emoji: doc.emoji ?? undefined,
-        collectionId: collection.id,
+        collectionId: notebook.id,
         children: toNode(doc.id),
       }));
 
-  return { ...collection, documents: toNode(null) };
+  return { ...notebook, documents: toNode(null) };
 }
 
 export function setupApiMock(): void {
@@ -324,14 +324,14 @@ function handleApiRequest(
 
     case "collections.list":
       return {
-        data: mockDb.getCollections().map(withDocumentStructure),
+        data: mockDb.getNotebooks().map(withDocumentStructure),
         policies: [],
       };
 
     case "collections.info": {
-      const col = mockDb.getCollection(String(body.id));
+      const notebook = mockDb.getNotebook(String(body.id));
       return {
-        data: col ? withDocumentStructure(col) : null,
+        data: notebook ? withDocumentStructure(notebook) : null,
         policies: [],
       };
     }
@@ -349,9 +349,9 @@ function handleApiRequest(
       };
 
     case "collections.create": {
-      const col = mockDb.createCollection(body);
+      const notebook = mockDb.createNotebook(body);
       return {
-        data: col,
+        data: notebook,
         policies: [],
       };
     }

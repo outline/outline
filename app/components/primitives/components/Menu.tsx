@@ -6,13 +6,11 @@ import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import { fadeAndScaleIn } from "~/styles/animations";
-
 type BaseMenuItemProps = {
   disabled?: boolean;
   $active?: boolean;
   $dangerous?: boolean;
 };
-
 const BaseMenuItemCSS = css<BaseMenuItemProps>`
   position: relative;
   display: flex;
@@ -51,9 +49,7 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     `
     color: ${props.theme.accentText};
     background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
-    outline-color: ${
-      props.$dangerous ? props.theme.danger : props.theme.accent
-    };
+    outline-color: ${props.$dangerous ? props.theme.danger : props.theme.accent};
     box-shadow: none;
     cursor: var(--pointer);
 
@@ -71,9 +67,7 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
       &:focus-visible {
         color: ${props.theme.accentText};
         background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
-        outline-color: ${
-          props.$dangerous ? props.theme.danger : props.theme.accent
-        };
+        outline-color: ${props.$dangerous ? props.theme.danger : props.theme.accent};
         box-shadow: none;
         cursor: var(--pointer);
 
@@ -89,34 +83,27 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     font-size: 14px;
   `}
 `;
-
 type MenuButtonProps = BaseMenuItemProps & {
   $dangerous?: boolean;
 };
-
 export const MenuButton = styled.button<MenuButtonProps>`
   ${BaseMenuItemCSS}
 `;
-
 export const MenuInternalLink = styled(Link)`
   ${BaseMenuItemCSS}
 `;
-
 export const MenuExternalLink = styled.a`
   ${BaseMenuItemCSS}
 `;
-
 export const MenuSubTrigger = styled.div<BaseMenuItemProps>`
   ${BaseMenuItemCSS}
   // Reserve space for the absolutely-positioned disclosure arrow so long
   // labels truncate before it rather than overlapping.
   padding-inline-end: 32px;
 `;
-
 export const MenuSeparator = styled.hr`
   margin: 6px 0;
 `;
-
 export const MenuLabel = styled.div`
   ${ellipsis()}
   flex-grow: 1;
@@ -124,7 +111,6 @@ export const MenuLabel = styled.div`
   align-items: center;
   gap: 4px;
 `;
-
 export const MenuHeader = styled.h3`
   font-size: 11px;
   font-weight: 600;
@@ -134,7 +120,6 @@ export const MenuHeader = styled.h3`
   margin: 1em 12px 0.5em;
   user-select: none;
 `;
-
 export const MenuDisclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);
   position: absolute;
@@ -145,7 +130,6 @@ export const MenuDisclosure = styled(ExpandedIcon)`
     transform: rotate(90deg);
   }
 `;
-
 export const MenuIconWrapper = styled.span`
   width: 24px;
   height: 24px;
@@ -157,7 +141,6 @@ export const MenuIconWrapper = styled.span`
   align-items: center;
   justify-content: center;
 `;
-
 export const SelectedIconWrapper = styled.span`
   width: 24px;
   height: 24px;
@@ -168,7 +151,6 @@ export const SelectedIconWrapper = styled.span`
   align-items: center;
   justify-content: center;
 `;
-
 export const MenuShortcut = styled.span`
   display: flex;
   align-items: center;
@@ -180,12 +162,10 @@ export const MenuShortcut = styled.span`
   margin-inline-start: 16px;
   flex-shrink: 0;
 `;
-
 type MenuContentProps = {
   maxHeightVar: string;
   transformOriginVar: string;
 };
-
 export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
   (props) => ({
     // Fades the last item out at the bottom edge when the menu is scrollable.

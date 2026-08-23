@@ -16,7 +16,6 @@ import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 import { getMatchingEmbed } from "@shared/editor/lib/embeds";
-
 type Props = Omit<
   SuggestionsMenuProps,
   "renderMenuItem" | "items" | "embeds" | "trigger"
@@ -24,25 +23,20 @@ type Props = Omit<
   pastedText: string | string[];
   embeds: EmbedDescriptor[];
 };
-
 interface EmbedCheckState {
   loading: boolean;
   embeddable?: boolean;
 }
-
 export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
   const items = useItems({ pastedText, embeds });
-
   const renderMenuItem = useCallback(
     (item, _index, options) => <SuggestionsMenuItem {...options} {...item} />,
     []
   );
-
   if (!items) {
     props.onClose();
     return null;
   }
-
   return (
     <SuggestionsMenu
       {...props}
@@ -53,7 +47,6 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
     />
   );
 });
-
 function useItems({
   pastedText,
   embeds,
@@ -64,7 +57,6 @@ function useItems({
   const [embedCheck, setEmbedCheck] = useState<EmbedCheckState>({
     loading: false,
   });
-
   const singleUrl =
     typeof pastedText === "string" && isUrl(pastedText) ? pastedText : null;
   const isInternal = singleUrl ? isInternalUrl(singleUrl) : false;
@@ -72,19 +64,19 @@ function useItems({
     ? getMatchingEmbed(embeds, singleUrl)?.embed
     : null;
   const embed = matchedEmbed?.disabled ? null : matchedEmbed;
-
   // Check embeddability for single URL
   useEffect(() => {
     if (!singleUrl || !embed || isInternal) {
       setEmbedCheck({ loading: false });
       return;
     }
-
     let cancelled = false;
     setEmbedCheck({ loading: true });
-
     client
-      .post<{ embeddable: boolean; reason?: string }>("/urls.checkEmbed", {
+      .post<{
+        embeddable: boolean;
+        reason?: string;
+      }>("/urls.checkEmbed", {
         url: singleUrl,
       })
       .then((res) => {
@@ -98,27 +90,22 @@ function useItems({
           setEmbedCheck({ loading: false, embeddable: true });
         }
       });
-
     return () => {
       cancelled = true;
     };
   }, [singleUrl, embed, isInternal]);
-
   // single item is pasted.
   if (typeof pastedText === "string") {
     let mentionType: MentionType | undefined;
-
     if (pastedText && isUrl(pastedText)) {
       const url = new URL(pastedText);
       const integration = integrations.find((intg: Integration) =>
         isURLMentionable({ url, integration: intg })
       );
-
       mentionType = integration
         ? determineMentionType({ url, integration })
         : MentionType.URL;
     }
-
     return [
       {
         name: "noop",
@@ -153,37 +140,29 @@ function useItems({
       },
     ];
   }
-
   // list is pasted.
-
   // Check if the links can be converted to mentions.
   const linksToMentionType: Record<string, MentionType> = {};
   const convertibleToMentionList = pastedText.every((text) => {
     if (!isUrl(text)) {
       return false;
     }
-
     const url = new URL(text);
     const integration = integrations.find((intg: Integration) =>
       isURLMentionable({ url, integration: intg })
     );
-
     const mentionType = integration
       ? determineMentionType({ url, integration })
       : MentionType.URL;
-
     if (mentionType) {
       linksToMentionType[text] = mentionType;
     }
-
     return !!mentionType;
   });
-
   // don't render the menu when it can't be converted to mentions.
   if (!convertibleToMentionList) {
     return;
   }
-
   return [
     {
       name: "noop",

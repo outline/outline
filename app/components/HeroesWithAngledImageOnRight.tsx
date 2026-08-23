@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
@@ -9,7 +8,6 @@ const navigation = [
   { name: "Company", href: "#" },
   { name: "Log in", href: "#" },
 ];
-
 /**
  * Tailwind UI – heroes: with angled image on right.
  *
@@ -17,7 +15,6 @@ const navigation = [
  */
 export function HeroesWithAngledImageOnRight() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <div className="bg-white">
       <header className="absolute inset-x-0 top-0 z-50">

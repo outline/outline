@@ -1,7 +1,6 @@
 import { transparentize } from "polished";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-
 const Input = styled.input`
   font-size: 15px;
   background: ${s("inputBorder")};
@@ -23,5 +22,4 @@ const Input = styled.input`
     height: 34px;
   }
 `;
-
 export default Input;

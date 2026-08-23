@@ -1,5 +1,4 @@
 import { useLayoutEffect } from "react";
-
 /**
  * Temporarily hides a DOM element while `enabled` is true, restoring its
  * previous visibility when disabled or unmounted. Useful for shared-element

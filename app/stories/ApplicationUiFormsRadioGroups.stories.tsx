@@ -11,57 +11,43 @@ import { RadioGroupsSimpleListWithRadioOnRight } from "~/components/RadioGroupsS
 import { RadioGroupsSimpleTable } from "~/components/RadioGroupsSimpleTable";
 import { RadioGroupsSmallCards } from "~/components/RadioGroupsSmallCards";
 import { RadioGroupsStackedCards } from "~/components/RadioGroupsStackedCards";
-
 const meta: Meta = {
   title: "Application UI/Forms/Radio Groups",
 };
-
 export default meta;
-
 export const Cards: StoryObj = {
   render: () => <RadioGroupsCards />,
 };
-
 export const ColorPicker: StoryObj = {
   render: () => <RadioGroupsColorPicker />,
 };
-
 export const ListWithDescription: StoryObj = {
   render: () => <RadioGroupsListWithDescription />,
 };
-
 export const ListWithDescriptionsInPanel: StoryObj = {
   render: () => <RadioGroupsListWithDescriptionsInPanel />,
 };
-
 export const ListWithInlineDescription: StoryObj = {
   render: () => <RadioGroupsListWithInlineDescription />,
 };
-
 export const ListWithRadioOnRight: StoryObj = {
   render: () => <RadioGroupsListWithRadioOnRight />,
 };
-
 export const SimpleInlineList: StoryObj = {
   render: () => <RadioGroupsSimpleInlineList />,
 };
-
 export const SimpleList: StoryObj = {
   render: () => <RadioGroupsSimpleList />,
 };
-
 export const SimpleListWithRadioOnRight: StoryObj = {
   render: () => <RadioGroupsSimpleListWithRadioOnRight />,
 };
-
 export const SimpleTable: StoryObj = {
   render: () => <RadioGroupsSimpleTable />,
 };
-
 export const SmallCards: StoryObj = {
   render: () => <RadioGroupsSmallCards />,
 };
-
 export const StackedCards: StoryObj = {
   render: () => <RadioGroupsStackedCards />,
 };

@@ -1,12 +1,9 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as React from "react";
-
 export const TooltipContext = React.createContext<boolean>(false);
-
 export function useTooltipContext() {
   return React.useContext(TooltipContext);
 }
-
 type Props = {
   children: React.ReactNode;
   /** The duration from when the mouse enters the trigger until the tooltip gets opened */
@@ -21,7 +18,6 @@ type Props = {
     [key: string]: unknown;
   };
 };
-
 /**
  * Wrap a collection of tooltips in a provider to allow them to share the same provider instance.
  */
@@ -34,7 +30,6 @@ export function TooltipProvider({
 }: Props) {
   // Handle backward compatibility with tippyProps
   const finalDelayDuration = tippyProps?.delay ?? delayDuration;
-
   return (
     <TooltipPrimitive.Provider
       delayDuration={finalDelayDuration}

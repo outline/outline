@@ -1,6 +1,5 @@
 import { CheckIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const tiers = [
   {
     name: "Freelancer",
@@ -47,7 +46,6 @@ const tiers = [
     mostPopular: false,
   },
 ];
-
 /**
  * Tailwind UI – pricing: three tiers.
  *

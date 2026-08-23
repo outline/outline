@@ -24,9 +24,7 @@ import Desktop from "~/utils/Desktop";
 import history from "~/utils/history";
 import { closeSplitPane } from "~/utils/splitView";
 import { TooltipProvider } from "./TooltipContext";
-
 export { HEADER_HEIGHT };
-
 type Props = {
   left?: React.ReactNode;
   title: React.ReactNode;
@@ -36,7 +34,6 @@ type Props = {
   hasSidebar?: boolean;
   className?: string;
 };
-
 function Header(
   { left, title, actions, hasSidebar, className }: Props,
   ref: React.RefObject<HTMLDivElement> | null
@@ -49,31 +46,26 @@ function Header(
   const [internalMeasureRef, size] = useMeasure();
   const [breadcrumbsMeasureRef, breadcrumbsSize] = useMeasure();
   const passThrough = !actions && !left && !title && !isSplitView;
-
   const handleCloseSplitPane = React.useCallback(() => {
     closeSplitPane(history, pane);
   }, [pane]);
-
   const [isScrolled, setScrolled] = React.useState(false);
   const handleScroll = React.useMemo(
     () => throttle(() => setScrolled(window.scrollY > 75), 50),
     []
   );
-
   useEventListener(
     "scroll",
     handleScroll,
     window,
     supportsPassiveListener ? { passive: true } : { capture: false }
   );
-
   const handleClickTitle = React.useCallback(() => {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
   }, []);
-
   const setBreadcrumbRef = React.useCallback(
     (node: HTMLDivElement | null) => {
       if (node?.firstElementChild) {
@@ -82,10 +74,8 @@ function Header(
     },
     [breadcrumbsMeasureRef]
   );
-
   const breadcrumbMakesCompact = breadcrumbsSize.width > size.width / 3;
   const isCompact = size.width < 1000 || breadcrumbMakesCompact;
-
   return (
     <TooltipProvider>
       <Wrapper
@@ -134,7 +124,6 @@ function Header(
     </TooltipProvider>
   );
 }
-
 const Breadcrumbs = styled("div")`
   flex-grow: 1;
   flex-basis: 0;
@@ -147,7 +136,6 @@ const Breadcrumbs = styled("div")`
     min-width: auto;
   `};
 `;
-
 const Actions = styled(Flex)`
   flex-grow: 1;
   flex-basis: 0;
@@ -160,12 +148,10 @@ const Actions = styled(Flex)`
     position: unset;
   `};
 `;
-
 type WrapperProps = {
   $passThrough?: boolean;
   $insetTitleAdjust?: boolean;
 };
-
 const Wrapper = styled(Flex)<WrapperProps>`
   top: 0;
   z-index: ${depths.header};
@@ -212,7 +198,6 @@ const Wrapper = styled(Flex)<WrapperProps>`
     ${(props: WrapperProps) => props.$insetTitleAdjust && `padding-left: 64px;`}
     `};
 `;
-
 const Title = styled("div")`
   display: none;
   font-size: 16px;
@@ -237,7 +222,6 @@ const Title = styled("div")`
     flex-grow: 0 !important;
   }
 `;
-
 const MobileMenuButton = styled(Button)`
   margin-right: 8px;
   pointer-events: auto;
@@ -246,9 +230,7 @@ const MobileMenuButton = styled(Button)`
     display: none;
   }
 `;
-
 const CloseSplitPaneButton = styled(Button)`
   pointer-events: auto;
 `;
-
 export default observer(React.forwardRef(Header));

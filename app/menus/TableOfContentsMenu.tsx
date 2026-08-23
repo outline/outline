@@ -5,21 +5,19 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { EmojiText } from "@shared/components/EmojiText";
 import { createAction, createActionGroup } from "~/actions";
-import { ActiveDocumentSection } from "~/actions/sections";
+import { ActiveNoteSection } from "~/actions/sections";
 import Button from "~/components/Button";
-import { useDocumentContext } from "~/components/DocumentContext";
+import { useNoteContext } from "~/components/NoteContext";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import history, { patchLocation } from "~/utils/history";
-
 function TableOfContentsMenu() {
-  const { headings } = useDocumentContext();
+  const { headings } = useNoteContext();
   const { t } = useTranslation();
   const minHeading = headings.reduce(
     (memo, heading) => (heading.level < memo ? heading.level : memo),
     Infinity
   );
-
   const headingActions = useMemo(
     () =>
       headings
@@ -31,7 +29,7 @@ function TableOfContentsMenu() {
                 <EmojiText>{heading.title}</EmojiText>
               </HeadingWrapper>
             ),
-            section: ActiveDocumentSection,
+            section: ActiveNoteSection,
             perform: () =>
               requestAnimationFrame(() =>
                 requestAnimationFrame(() =>
@@ -46,10 +44,8 @@ function TableOfContentsMenu() {
         ),
     [headings, minHeading]
   );
-
   const actions = useMemo(() => {
     let childActions = headingActions;
-
     if (!childActions.length) {
       childActions = [
         createAction({
@@ -58,13 +54,12 @@ function TableOfContentsMenu() {
               {t("Headings you add to the document will appear here")}
             </HeadingWrapper>
           ),
-          section: ActiveDocumentSection,
+          section: ActiveNoteSection,
           disabled: true,
           perform: () => {},
         }),
       ];
     }
-
     return [
       createActionGroup({
         name: t("Contents"),
@@ -72,9 +67,7 @@ function TableOfContentsMenu() {
       }),
     ];
   }, [t, headingActions]);
-
   const rootAction = useMenuAction(actions);
-
   return (
     <DropdownMenu action={rootAction} ariaLabel={t("Table of contents")}>
       <Button
@@ -86,13 +79,13 @@ function TableOfContentsMenu() {
     </DropdownMenu>
   );
 }
-
-const HeadingWrapper = styled.div<{ $level?: number }>`
+const HeadingWrapper = styled.div<{
+  $level?: number;
+}>`
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;
 
   margin-left: ${({ $level }) => `${12 * ($level ?? 0)}px`};
 `;
-
 export default observer(TableOfContentsMenu);

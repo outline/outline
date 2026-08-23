@@ -4,18 +4,15 @@ import styled, { keyframes } from "styled-components";
 import { extraArea, s } from "@shared/styles";
 import usePersistedState from "~/hooks/usePersistedState";
 import { undraggableOnDesktop } from "~/styles";
-
 type Props = {
   /** Unique header id – if passed the header will become toggleable */
   id?: string;
   title: React.ReactNode;
   children?: React.ReactNode;
 };
-
 export function getHeaderExpandedKey(id: string) {
   return `sidebar-header-${id}`;
 }
-
 /**
  * Toggleable sidebar header
  */
@@ -25,17 +22,14 @@ export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
     getHeaderExpandedKey(id ?? ""),
     true
   );
-
   React.useEffect(() => {
     if (!expanded) {
       setFirstRender(false);
     }
   }, [expanded]);
-
   const handleClick = React.useCallback(() => {
     setExpanded(!expanded);
   }, [expanded, setExpanded]);
-
   return (
     <>
       <H3>
@@ -48,7 +42,6 @@ export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
     </>
   );
 };
-
 export const fadeAndSlideDown = keyframes`
   from {
     opacity: 0;
@@ -60,11 +53,9 @@ export const fadeAndSlideDown = keyframes`
     transform: translateY(0px);
   }
 `;
-
 const Fade = styled.span`
   animation: ${fadeAndSlideDown} 100ms ease-in-out;
 `;
-
 const Button = styled.button`
   display: inline-flex;
   align-items: center;
@@ -91,8 +82,9 @@ const Button = styled.button`
     cursor: var(--pointer);
   }
 `;
-
-const Disclosure = styled(CollapsedIcon)<{ $expanded?: boolean }>`
+const Disclosure = styled(CollapsedIcon)<{
+  $expanded?: boolean;
+}>`
   transition:
     opacity 100ms ease,
     transform 100ms ease,
@@ -104,7 +96,6 @@ const Disclosure = styled(CollapsedIcon)<{ $expanded?: boolean }>`
     ${(props) => !props.$expanded && "transform: rotate(90deg);"};
   }
 `;
-
 const H3 = styled.h3`
   margin: 0;
 
@@ -115,5 +106,4 @@ const H3 = styled.h3`
     }
   }
 `;
-
 export default Header;

@@ -9,49 +9,37 @@ import { PanelsCardWithHeaderAndFooter } from "~/components/PanelsCardWithHeader
 import { PanelsWell } from "~/components/PanelsWell";
 import { PanelsWellEdgeToEdgeOnMobile } from "~/components/PanelsWellEdgeToEdgeOnMobile";
 import { PanelsWellOnGray } from "~/components/PanelsWellOnGray";
-
 const meta: Meta = {
   title: "Application UI/Layout/Panels",
 };
-
 export default meta;
-
 export const BasicCard: StoryObj = {
   render: () => <PanelsBasicCard />,
 };
-
 export const CardEdgeToEdgeOnMobile: StoryObj = {
   render: () => <PanelsCardEdgeToEdgeOnMobile />,
 };
-
 export const CardWithFooter: StoryObj = {
   render: () => <PanelsCardWithFooter />,
 };
-
 export const CardWithGrayBody: StoryObj = {
   render: () => <PanelsCardWithGrayBody />,
 };
-
 export const CardWithGrayFooter: StoryObj = {
   render: () => <PanelsCardWithGrayFooter />,
 };
-
 export const CardWithHeader: StoryObj = {
   render: () => <PanelsCardWithHeader />,
 };
-
 export const CardWithHeaderAndFooter: StoryObj = {
   render: () => <PanelsCardWithHeaderAndFooter />,
 };
-
 export const Well: StoryObj = {
   render: () => <PanelsWell />,
 };
-
 export const WellEdgeToEdgeOnMobile: StoryObj = {
   render: () => <PanelsWellEdgeToEdgeOnMobile />,
 };
-
 export const WellOnGray: StoryObj = {
   render: () => <PanelsWellOnGray />,
 };

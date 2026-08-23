@@ -6,7 +6,6 @@ import Flex from "~/components/Flex";
 import useMobile from "~/hooks/useMobile";
 import Input, { NativeInput } from "../../Input";
 import { HeaderInput } from "../components";
-
 type Props = {
   query: string;
   onChange: React.ChangeEventHandler;
@@ -15,16 +14,13 @@ type Props = {
   back: React.ReactNode;
   action: React.ReactNode;
 };
-
 export const SearchInput = React.forwardRef(function SearchInput_(
   { onChange, onClick, onKeyDown, query, back, action }: Props,
   ref: React.Ref<HTMLInputElement>
 ) {
   const { t } = useTranslation();
   const inputRef = React.useRef<HTMLInputElement>(null);
-
   const isMobile = useMobile();
-
   const focusInput = React.useCallback(
     (event) => {
       if (event.target.closest("button")) {
@@ -35,7 +31,6 @@ export const SearchInput = React.forwardRef(function SearchInput_(
     },
     [onClick]
   );
-
   return isMobile ? (
     <Flex align="center" style={{ marginBottom: 12 }} auto>
       {back}

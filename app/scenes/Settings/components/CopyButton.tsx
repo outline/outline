@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
-
 type Props = {
   /** The value to be copied */
   value: string;
@@ -15,7 +14,6 @@ type Props = {
   /** An optional icon */
   icon?: React.ReactNode;
 };
-
 /**
  * A button that copies a value to the clipboard when clicked and shows a
  * single icon.
@@ -27,19 +25,16 @@ export function CopyButton({
   icon = <LinkIcon size={20} />,
 }: Props) {
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
-
   const handleCopied = React.useCallback(() => {
     timeout.current = setTimeout(() => {
       toast.message(success);
     }, 100);
-
     return () => {
       if (timeout.current) {
         clearTimeout(timeout.current);
       }
     };
   }, [success]);
-
   return (
     <Tooltip content={tooltip} placement="top">
       <CopyToClipboard text={value} onCopy={handleCopied}>

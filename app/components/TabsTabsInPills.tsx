@@ -1,7 +1,7 @@
 import { classNames } from "./classNames";
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -19,7 +19,6 @@ const tabs = [
   { name: "Team Members", href: "#", current: true },
   { name: "Billing", href: "#", current: false },
 ];
-
 /**
  * Tailwind UI – tabs: tabs in pills.
  *

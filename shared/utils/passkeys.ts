@@ -1,13 +1,11 @@
 /**
  * Utility functions for working with passkeys and WebAuthn.
  */
-
 interface ParsedUserAgent {
   browser?: string;
   os?: string;
   device?: string;
 }
-
 export enum PasskeyBrand {
   AliasVault = "a11a5faa-9f32-4b8c-8c5d-2f7d13e8c942",
   GooglePasswordManager = "ea9b8d66-4d01-1d21-3ce4-b6b48cb575d4",
@@ -47,7 +45,6 @@ export enum PasskeyBrand {
   Initial = "6d212b28-a2c1-4638-b375-5932070f62e9",
   HeimlaneVault = "d49b2120-b865-4191-8cea-be84a52b0485",
 }
-
 export const PasskeyBrandNames: Record<PasskeyBrand, string> = {
   [PasskeyBrand.AliasVault]: "AliasVault",
   [PasskeyBrand.GooglePasswordManager]: "Google Password Manager",
@@ -87,7 +84,6 @@ export const PasskeyBrandNames: Record<PasskeyBrand, string> = {
   [PasskeyBrand.Initial]: "initial",
   [PasskeyBrand.HeimlaneVault]: "Heimlane Vault",
 };
-
 /**
  * Parses a user agent string to extract browser, OS, and device information.
  *
@@ -98,10 +94,8 @@ function parseUserAgent(userAgent: string): ParsedUserAgent {
   if (!userAgent) {
     return {};
   }
-
   const ua = userAgent.toLowerCase();
   const result: ParsedUserAgent = {};
-
   // Detect browser
   if (ua.includes("edg/") || ua.includes("edga/") || ua.includes("edgios/")) {
     result.browser = "Edge";
@@ -114,7 +108,6 @@ function parseUserAgent(userAgent: string): ParsedUserAgent {
   } else if (ua.includes("firefox")) {
     result.browser = "Firefox";
   }
-
   // Detect OS (check iPhone/iPad before macOS since they contain "Mac OS X")
   if (ua.includes("windows")) {
     result.os = "Windows";
@@ -138,10 +131,8 @@ function parseUserAgent(userAgent: string): ParsedUserAgent {
   } else if (ua.includes("cros")) {
     result.os = "Chrome OS";
   }
-
   return result;
 }
-
 /**
  * Determines the type of authenticator based on transports.
  *
@@ -152,12 +143,10 @@ function getAuthenticatorType(transports?: string[]): string | undefined {
   if (!transports || transports.length === 0) {
     return undefined;
   }
-
   // Platform authenticators typically use "internal"
   if (transports.includes("internal")) {
     return undefined;
   }
-
   // Security keys typically use USB, NFC, or BLE
   if (
     transports.includes("usb") ||
@@ -166,15 +155,12 @@ function getAuthenticatorType(transports?: string[]): string | undefined {
   ) {
     return "Security Key";
   }
-
   // Hybrid authenticators use hybrid transport (phone as authenticator)
   if (transports.includes("hybrid")) {
     return "Phone";
   }
-
   return undefined;
 }
-
 /**
  * Generates a default passkey name when user agent parsing fails.
  *
@@ -183,14 +169,11 @@ function getAuthenticatorType(transports?: string[]): string | undefined {
  */
 function generateDefaultName(transports?: string[]): string {
   const authenticatorType = getAuthenticatorType(transports);
-
   if (authenticatorType) {
     return authenticatorType;
   }
-
   return "Passkey";
 }
-
 /**
  * Generates a friendly name for a passkey based on AAGUID, user agent, and transport information.
  *
@@ -208,15 +191,12 @@ export function generatePasskeyName(
   if (aaguid && PasskeyBrandNames[aaguid as PasskeyBrand]) {
     return PasskeyBrandNames[aaguid as PasskeyBrand];
   }
-
   // Fall back to user agent parsing if AAGUID is not recognized
   if (!userAgent) {
     return generateDefaultName(transports);
   }
-
   const parsed = parseUserAgent(userAgent);
   const parts: string[] = [];
-
   // Prioritize device name if available (e.g., "iPhone", "iPad")
   if (parsed.device) {
     parts.push(parsed.device);
@@ -229,16 +209,13 @@ export function generatePasskeyName(
       parts.push(`on ${parsed.os}`);
     }
   }
-
   // Add authenticator type hint if available
   const authenticatorType = getAuthenticatorType(transports);
   if (authenticatorType) {
     parts.push(`(${authenticatorType})`);
   }
-
   if (parts.length === 0) {
     return generateDefaultName(transports);
   }
-
   return parts.join(" ");
 }

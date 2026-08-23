@@ -1,0 +1,228 @@
+import { noop } from "es-toolkit/compat";
+import { observer } from "mobx-react";
+import * as React from "react";
+import { useTranslation } from "react-i18next";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
+import { SubscriptionType, UserPreference } from "@shared/types";
+import type Note from "~/models/Note";
+import type Template from "~/models/Template";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import Switch from "~/components/Switch";
+import { ActionContextProvider } from "~/hooks/useActionContext";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useMobile from "~/hooks/useMobile";
+import usePolicy from "~/hooks/usePolicy";
+import useRequest from "~/hooks/useRequest";
+import useStores from "~/hooks/useStores";
+import { MenuSeparator } from "~/components/primitives/components/Menu";
+import { useNoteMenuAction } from "~/hooks/useNoteMenuAction";
+type Props = {
+  /** Document for which the menu is to be shown */
+  note: Note;
+  /** Alignment w.r.t trigger - defaults to start */
+  align?: "start" | "end";
+  /** Trigger's variant - renders nude variant if unset */
+  neutral?: boolean;
+  /** Pass true if the document is currently being displayed */
+  showDisplayOptions?: boolean;
+  /** Whether to include the option of toggling embeds as menu item */
+  showToggleEmbeds?: boolean;
+  /** Invoked when the "Find and replace" menu item is clicked */
+  onFindAndReplace?: () => void;
+  /** Callback when a template is selected to apply its content to the document */
+  onSelectTemplate?: (template: Template) => void;
+  /** Invoked when the "Rename" menu item is clicked */
+  onRename?: () => void;
+  /** Invoked when menu is opened */
+  onOpen?: () => void;
+  /** Invoked when menu is closed */
+  onClose?: () => void;
+};
+function NoteMenu({
+  note,
+  align,
+  neutral,
+  showToggleEmbeds,
+  showDisplayOptions,
+  onSelectTemplate,
+  onRename,
+  onOpen,
+  onClose,
+  onFindAndReplace,
+}: Props) {
+  const { t } = useTranslation();
+  const user = useCurrentUser();
+  const isMobile = useMobile();
+  const can = usePolicy(note);
+  const { userMemberships, groupMemberships, subscriptions, pins } =
+    useStores();
+  const isShared = !!(
+    userMemberships.getByNoteId(note.id) ||
+    groupMemberships.getByNoteId(note.id)
+  );
+  const {
+    loading: auxDataLoading,
+    loaded: auxDataLoaded,
+    request: auxDataRequest,
+  } = useRequest(() =>
+    Promise.all([
+      subscriptions.fetchOne({
+        noteId: note.id,
+        event: SubscriptionType.Note,
+      }),
+      note.notebookId
+        ? subscriptions.fetchOne({
+            notebookId: note.notebookId,
+            event: SubscriptionType.Note,
+          })
+        : noop,
+      pins.fetchOne({
+        noteId: note.id,
+        notebookId: note.notebookId ?? null,
+      }),
+    ])
+  );
+  const handlePointerEnter = React.useCallback(() => {
+    if (!auxDataLoading && !auxDataLoaded) {
+      void auxDataRequest();
+      void note.loadRelations();
+    }
+  }, [auxDataLoading, auxDataLoaded, auxDataRequest, note]);
+  const handleEmbedsToggle = React.useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        note.enableEmbeds();
+      } else {
+        note.disableEmbeds();
+      }
+    },
+    [note]
+  );
+  const handleFullWidthToggle = React.useCallback(
+    (checked: boolean) => {
+      user.setPreference(UserPreference.FullWidthNotes, checked);
+      void user.save();
+      note.fullWidth = checked;
+      void note.save({ fullWidth: checked });
+    },
+    [user, note]
+  );
+  const handleInsightsToggle = React.useCallback(
+    (checked: boolean) => {
+      void note.save({ insightsEnabled: checked });
+    },
+    [note]
+  );
+  const rootAction = useNoteMenuAction({
+    noteId: note.id,
+    onFindAndReplace,
+    onRename,
+    onSelectTemplate,
+  });
+  const toggleSwitches = React.useMemo<React.ReactNode>(() => {
+    if (!can.update || !(showDisplayOptions || showToggleEmbeds)) {
+      return;
+    }
+    return (
+      <>
+        <MenuSeparator />
+        <DisplayOptions>
+          {can.updateInsights && (
+            <Style>
+              <ToggleMenuItem
+                width={26}
+                height={14}
+                label={t("Enable viewer insights")}
+                labelPosition="left"
+                checked={note.insightsEnabled}
+                onChange={handleInsightsToggle}
+              />
+            </Style>
+          )}
+          {showToggleEmbeds && (
+            <Style>
+              <ToggleMenuItem
+                width={26}
+                height={14}
+                label={t("Enable embeds")}
+                labelPosition="left"
+                checked={!note.embedsDisabled}
+                onChange={handleEmbedsToggle}
+              />
+            </Style>
+          )}
+          {showDisplayOptions && !isMobile && (
+            <Style>
+              <ToggleMenuItem
+                width={26}
+                height={14}
+                label={t("Full width")}
+                labelPosition="left"
+                checked={note.fullWidth}
+                onChange={handleFullWidthToggle}
+              />
+            </Style>
+          )}
+        </DisplayOptions>
+      </>
+    );
+  }, [
+    t,
+    can.update,
+    can.updateInsights,
+    note.embedsDisabled,
+    note.fullWidth,
+    note.insightsEnabled,
+    isMobile,
+    showDisplayOptions,
+    showToggleEmbeds,
+    handleEmbedsToggle,
+    handleFullWidthToggle,
+    handleInsightsToggle,
+  ]);
+  return (
+    <ActionContextProvider
+      value={{
+        activeModels: [
+          note,
+          ...(!isShared && note.notebook ? [note.notebook] : []),
+        ],
+      }}
+    >
+      <DropdownMenu
+        action={rootAction}
+        align={align}
+        onOpen={onOpen}
+        onClose={onClose}
+        ariaLabel={t("Document options")}
+        append={toggleSwitches}
+      >
+        <OverflowMenuButton
+          neutral={neutral}
+          onPointerEnter={handlePointerEnter}
+        />
+      </DropdownMenu>
+    </ActionContextProvider>
+  );
+}
+const ToggleMenuItem = styled(Switch)`
+  * {
+    font-weight: normal;
+    color: ${s("textSecondary")};
+  }
+`;
+const DisplayOptions = styled.div`
+  padding: 8px 0 0;
+`;
+const Style = styled.div`
+  padding: 12px;
+
+  ${breakpoint("tablet")`
+    padding: 4px 12px;
+    font-size: 14px;
+  `};
+`;
+export default observer(NoteMenu);

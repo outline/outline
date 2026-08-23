@@ -2,12 +2,10 @@ import { createGlobalStyle } from "styled-components";
 import styledNormalize from "styled-normalize";
 import { breakpoints, depths, s } from ".";
 import { EditorStyleHelper } from "../editor/styles/EditorStyleHelper";
-
 type Props = {
   staticHTML?: boolean;
   useCursorPointer?: boolean;
 };
-
 export default createGlobalStyle<Props>`
   ${styledNormalize}
 

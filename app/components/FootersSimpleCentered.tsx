@@ -71,7 +71,6 @@ const navigation = {
     },
   ],
 };
-
 /**
  * Tailwind UI – footers: simple centered.
  *

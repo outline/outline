@@ -1,7 +1,6 @@
 import { darken, lighten, transparentize } from "polished";
 import type { DefaultTheme, Colors } from "styled-components";
 import breakpoints from "./breakpoints";
-
 const defaultColors: Colors = {
   transparent: "transparent",
   almostBlack: "#111319",
@@ -42,12 +41,9 @@ const defaultColors: Colors = {
     yellow: "#F5BE31",
   },
 };
-
 /** The narrowest the content of a sidebar can be, excluding its padding. */
 const sidebarMinWidth = 240;
-
 const sidebarPadding = 16;
-
 const spacing = {
   sidebarWidth: 260,
   sidebarRightWidth: 300,
@@ -57,13 +53,11 @@ const spacing = {
   /** The narrowest a sidebar can be resized to, including its padding. */
   sidebarResizeMinWidth: sidebarMinWidth + sidebarPadding,
 };
-
 const buildBaseTheme = (input: Partial<Colors>) => {
   const colors = {
     ...defaultColors,
     ...input,
   };
-
   return {
     fontFamily:
       "-apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto, Oxygen, sans-serif",
@@ -116,10 +110,8 @@ const buildBaseTheme = (input: Partial<Colors>) => {
     ...spacing,
   };
 };
-
 export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
   const colors = buildBaseTheme(input);
-
   return {
     ...colors,
     isDark: false,
@@ -145,12 +137,10 @@ export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
     sidebarText: "rgb(78, 92, 110)",
     backdrop: "rgba(0, 0, 0, 0.2)",
     shadow: "rgba(0, 0, 0, 0.2)",
-
     modalBackdrop: "rgba(0, 0, 0, 0.25)",
     modalBackground: colors.white,
     modalShadow:
       "0 4px 8px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 0%), 0 30px 40px rgb(0 0 0 / 8%)",
-
     menuItemSelected: colors.warmGrey,
     menuBackground: colors.white,
     menuShadow:
@@ -182,10 +172,8 @@ export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
     scrollbarThumb: darken(0.15, colors.smokeDark),
   };
 };
-
 export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
   const colors = buildBaseTheme(input);
-
   return {
     ...colors,
     isDark: true,
@@ -211,12 +199,10 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     sidebarText: colors.slate,
     backdrop: "rgba(0, 0, 0, 0.5)",
     shadow: "rgba(0, 0, 0, 0.6)",
-
     modalBackdrop: colors.black50,
     modalBackground: "#181c25",
     modalShadow:
       "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
-
     menuItemSelected: lighten(0.09, "#181c25"),
     menuBackground: "#181c25",
     menuShadow:
@@ -272,17 +258,13 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     scrollbarThumb: colors.lightBlack,
   };
 };
-
 export const buildPitchBlackTheme = (input: Partial<Colors>) => {
   const colors = buildDarkTheme(input);
-
   return {
     ...colors,
     background: colors.black,
     codeBackground: colors.almostBlack,
   };
 };
-
 export const light = buildLightTheme(defaultColors);
-
 export default light as DefaultTheme;

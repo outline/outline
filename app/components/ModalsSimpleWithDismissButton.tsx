@@ -4,7 +4,6 @@ import {
   ExclamationTriangleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-
 /**
  * Tailwind UI – modals: simple with dismiss button.
  *
@@ -12,7 +11,6 @@ import {
  */
 export function ModalsSimpleWithDismissButton() {
   const [open, setOpen] = useState(true);
-
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={setOpen}>

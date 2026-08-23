@@ -1,5 +1,4 @@
 import { CheckIcon } from "@heroicons/react/20/solid";
-
 const features = [
   {
     name: "Invite team members",
@@ -42,7 +41,6 @@ const features = [
       "Nulla est saepe accusamus nostrum est est. Fugit voluptatum omnis quidem voluptatem.",
   },
 ];
-
 /**
  * Tailwind UI – feature sections: offset with feature list.
  *

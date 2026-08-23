@@ -12,9 +12,7 @@ import Text from "~/components/Text";
 import { StatusChip } from "~/components/StatusChip";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 const TABS = ["All", "Unpaid", "Partial", "Paid", "Void"] as const;
-
 /**
  * Money owed to the shop.
  *
@@ -30,19 +28,16 @@ function Invoices() {
   const invoices = useShop((state) => state.invoices);
   const tabs = usePanel<(typeof TABS)[number]>("All");
   const tab = tabs.current ?? "All";
-
   const shown =
     tab === "All"
       ? invoices
       : invoices.filter((invoice) => invoice.status === tab.toLowerCase());
-
   const owed = invoices
     .filter((invoice) => invoice.status !== "void")
     .reduce((sum, invoice) => sum + invoice.due, 0);
   const overdue = invoices
     .filter((invoice) => invoice.isOverdue)
     .reduce((sum, invoice) => sum + invoice.due, 0);
-
   return (
     <AppPage
       title={t("Invoices")}
@@ -121,5 +116,4 @@ function Invoices() {
     </AppPage>
   );
 }
-
 export default Invoices;

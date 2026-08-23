@@ -1,5 +1,4 @@
 /* oxlint-disable no-control-regex */
-
 /**
  * Helper class for CSV operations.
  */
@@ -14,7 +13,6 @@ export class CSVHelper {
     if (!value) {
       return "";
     }
-
     return (
       value
         .toString()
@@ -28,7 +26,6 @@ export class CSVHelper {
         .replace(/[\u202A-\u202E\u2066-\u2069]/g, "")
     );
   }
-
   /**
    * Escapes a CSV field value by wrapping it in quotes if necessary.
    *
@@ -39,12 +36,10 @@ export class CSVHelper {
     if (value === null || value === undefined) {
       return "";
     }
-
     const stringValue =
       typeof value === "object"
         ? JSON.stringify(value)
         : String(value as string | number | boolean);
-
     // If the value contains comma, quote, or newline, wrap it in quotes and escape internal quotes
     if (
       stringValue.includes(",") ||
@@ -53,10 +48,8 @@ export class CSVHelper {
     ) {
       return `"${stringValue.replace(/"/g, '""')}"`;
     }
-
     return stringValue;
   }
-
   /**
    * Converts an array of objects to CSV format.
    *
@@ -76,13 +69,11 @@ export class CSVHelper {
           .join(",") + "\n"
       );
     }
-
     // Create header row
     const headerRow = headers
       .map((h) => String(h))
       .map((h) => this.escapeCSVField(this.sanitizeValue(h)))
       .join(",");
-
     // Create data rows
     const dataRows = data.map((row) =>
       headers
@@ -94,7 +85,6 @@ export class CSVHelper {
         })
         .join(",")
     );
-
     return [headerRow, ...dataRows].join("\n");
   }
 }

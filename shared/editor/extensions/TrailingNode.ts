@@ -4,7 +4,6 @@ import {
   requiresTrailingNode,
   trailingNodeNotAfter,
 } from "../lib/trailingNode";
-
 /**
  * Options for the TrailingNode extension.
  */
@@ -14,22 +13,18 @@ type TrailingNodeOptions = {
   /** Node names after which a trailing node should not be inserted. */
   notAfter: string[];
 };
-
 export default class TrailingNode extends Extension<TrailingNodeOptions> {
   get name() {
     return "trailing_node";
   }
-
   get defaultOptions(): TrailingNodeOptions {
     return {
       node: "paragraph",
       notAfter: trailingNodeNotAfter,
     };
   }
-
   get plugins() {
     const plugin = new PluginKey(this.name);
-
     return [
       new Plugin({
         key: plugin,
@@ -37,11 +32,9 @@ export default class TrailingNode extends Extension<TrailingNodeOptions> {
           update: (view) => {
             const { state } = view;
             const insertNodeAtEnd = plugin.getState(state);
-
             if (!insertNodeAtEnd || !view.editable) {
               return;
             }
-
             const { doc, schema, tr } = state;
             const type = schema.nodes[this.options.node];
             const transaction = tr.insert(doc.content.size, type.create());

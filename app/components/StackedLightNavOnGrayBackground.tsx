@@ -2,7 +2,6 @@ import { Fragment } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const user = {
   name: "Tom Cook",
   email: "tom@example.com",
@@ -20,7 +19,6 @@ const userNavigation = [
   { name: "Settings", href: "#" },
   { name: "Sign out", href: "#" },
 ];
-
 /**
  * Tailwind UI – stacked: light nav on gray background.
  *
@@ -30,13 +28,13 @@ export function StackedLightNavOnGrayBackground() {
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full bg-gray-100">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full bg-gray-100">
+          <body class="h-full">
+          ```
+        */}
       <div className="min-h-full">
         <Disclosure as="nav" className="bg-white shadow-xs">
           {({ open }) => (

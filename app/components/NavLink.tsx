@@ -1,7 +1,6 @@
 import type { LocationDescriptor, LocationDescriptorObject } from "history";
 import * as React from "react";
 import { type match, NavLink, Route } from "react-router-dom";
-
 type Props = React.ComponentProps<typeof NavLink> & {
   children?: (
     match:
@@ -19,7 +18,6 @@ type Props = React.ComponentProps<typeof NavLink> & {
   /** The path to match against the current location */
   to: LocationDescriptor;
 };
-
 function NavLinkWithChildrenFunc(
   { to, exact = false, children, ...rest }: Props,
   ref?: React.Ref<HTMLAnchorElement>
@@ -39,7 +37,6 @@ function NavLinkWithChildrenFunc(
     </Route>
   );
 }
-
 export default React.forwardRef<HTMLAnchorElement, Props>(
   NavLinkWithChildrenFunc
 );

@@ -1,5 +1,4 @@
 import { BellIcon } from "@heroicons/react/24/outline";
-
 /**
  * Tailwind UI – multi column: constrained three column.
  *
@@ -9,13 +8,13 @@ export function MultiColumnConstrainedThreeColumn() {
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full bg-white">
+          <body class="h-full">
+          ```
+        */}
       <div className="flex min-h-full flex-col">
         <header className="shrink-0 bg-gray-900">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">

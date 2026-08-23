@@ -11,7 +11,6 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Dashboard", href: "#", icon: HomeIcon, current: true },
   { name: "Team", href: "#", icon: UsersIcon, current: false },
@@ -20,7 +19,6 @@ const navigation = [
   { name: "Documents", href: "#", icon: DocumentDuplicateIcon, current: false },
   { name: "Reports", href: "#", icon: ChartPieIcon, current: false },
 ];
-
 /**
  * Tailwind UI – multi column: full width with narrow sidebar.
  *
@@ -28,17 +26,16 @@ const navigation = [
  */
 export function MultiColumnFullWidthWithNarrowSidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full bg-white">
+          <body class="h-full">
+          ```
+        */}
       <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog

@@ -8,12 +8,10 @@ import {
   groupProviderExternalId,
 } from "~/actions/definitions/groups";
 import { useMenuAction } from "~/hooks/useMenuAction";
-
 interface Options {
   /** Whether to hide the "Members" navigation action. */
   hideMembers?: boolean;
 }
-
 /**
  * Hook that constructs the action menu for group management operations. The
  * group is read from the active models in the action context.
@@ -33,6 +31,5 @@ export function useGroupMenuActions(options?: Options) {
     ],
     [options?.hideMembers]
   );
-
   return useMenuAction(actions);
 }

@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
-
 interface VStackProps {
   /** The spacing between children in pixels. Defaults to 8. */
   spacing?: number;
@@ -14,7 +13,6 @@ interface VStackProps {
   /** Whether the children should wrap. */
   wrap?: boolean;
 }
-
 /**
  * VStack is a vertical layout component that stacks its children vertically with a gap.
  */
@@ -27,5 +25,4 @@ export const VStack = styled(Flex)
     align: props.align ?? "center",
     gap: props.spacing !== undefined ? props.spacing : 8,
   }))<VStackProps>``;
-
 VStack.displayName = "VStack";

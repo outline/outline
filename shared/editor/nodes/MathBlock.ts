@@ -14,20 +14,16 @@ import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { escapeRawTableCell } from "../lib/markdown/tableCell";
 import mathRule, { REGEX_BLOCK_MATH_DOLLARS } from "../rules/math";
 import Node from "./Node";
-
 export default class MathBlock extends Node {
   get name() {
     return "math_block";
   }
-
   get schema(): NodeSpec {
     return mathSchemaSpec.nodes.math_display;
   }
-
   get rulePlugins(): PluginSimple[] {
     return [mathRule];
   }
-
   commands({ type }: { type: NodeType }) {
     return (): Command => (state, dispatch) => {
       const tr = state.tr.replaceSelectionWith(type.create());
@@ -41,25 +37,21 @@ export default class MathBlock extends Node {
       return true;
     };
   }
-
   inputRules({ type }: { type: NodeType }) {
     return [makeBlockMathInputRule(REGEX_BLOCK_MATH_DOLLARS, type)];
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     // Block content bypasses esc(), so when inside a table cell escape it here
     // so it cannot break out of the column.
     const content = state.inTable
       ? escapeRawTableCell(node.textContent)
       : node.textContent;
-
     state.write("$$\n");
     state.text(content, false);
     state.ensureNewLine();
     state.write("$$");
     state.closeBlock(node);
   }
-
   parseMarkdown() {
     return {
       node: "math_block",

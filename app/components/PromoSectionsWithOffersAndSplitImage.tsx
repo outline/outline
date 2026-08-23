@@ -15,7 +15,6 @@ const offers = [
     href: "#",
   },
 ];
-
 /**
  * Tailwind UI – promo sections: with offers and split image.
  *

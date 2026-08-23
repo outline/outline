@@ -10,7 +10,6 @@ import { determineIconType } from "../utils/icon";
 import EmojiIcon from "./EmojiIcon";
 import Flex from "./Flex";
 import { CustomEmoji } from "./CustomEmoji";
-
 export type Props = {
   /** The icon to render */
   value: string;
@@ -28,7 +27,6 @@ export type Props = {
    */
   forceColor?: boolean;
 };
-
 const Icon = ({
   value: icon,
   color,
@@ -38,14 +36,12 @@ const Icon = ({
   className,
 }: Props) => {
   const iconType = determineIconType(icon);
-
   if (!iconType) {
     // Logger.warn("Failed to determine icon type", {
     //   icon,
     // });
     return null;
   }
-
   try {
     if (iconType === IconType.SVG) {
       return (
@@ -59,7 +55,6 @@ const Icon = ({
         />
       );
     }
-
     if (iconType === IconType.Custom) {
       return (
         <Span size={size} className={className}>
@@ -67,15 +62,12 @@ const Icon = ({
         </Span>
       );
     }
-
     return <EmojiIcon emoji={icon} size={size} className={className} />;
   } catch (_err) {
     // Ignore
   }
-
   return null;
 };
-
 const SVGIcon = observer(
   ({
     value: icon,
@@ -87,21 +79,17 @@ const SVGIcon = observer(
   }: Props) => {
     const { ui } = useStores();
     let color = inputColor ?? colorPalette[0];
-
     // If the chosen icon color is very dark then we invert it in dark mode
     if (!forceColor) {
       if (ui.resolvedTheme === "dark" && color !== "currentColor") {
         color = getLuminance(color) > 0.09 ? color : "currentColor";
       }
-
       // If the chosen icon color is very light then we invert it in light mode
       if (ui.resolvedTheme === "light" && color !== "currentColor") {
         color = getLuminance(color) < 0.9 ? color : "currentColor";
       }
     }
-
     const Component = IconLibrary.getComponent(icon);
-
     return (
       <Component color={color} size={size} className={className}>
         {initial?.charAt(0).toUpperCase()}
@@ -109,8 +97,9 @@ const SVGIcon = observer(
     );
   }
 );
-
-export const IconTitleWrapper = styled(Flex)<{ dir?: string }>`
+export const IconTitleWrapper = styled(Flex)<{
+  dir?: string;
+}>`
   align-items: center;
   justify-content: center;
   position: absolute;
@@ -127,12 +116,12 @@ export const IconTitleWrapper = styled(Flex)<{ dir?: string }>`
       props.dir === "rtl" ? "right: -44px" : "left: -44px"};
   `}
 `;
-
-const Span = styled(Flex)<{ size: number }>`
+const Span = styled(Flex)<{
+  size: number;
+}>`
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
   align-items: center;
   justify-content: center;
 `;
-
 export default Icon;

@@ -10,7 +10,6 @@ import { draftCommentAnchorPluginKey } from "../plugins/DraftCommentAnchorPlugin
 import { addMark } from "./addMark";
 import { collapseSelection } from "./collapseSelection";
 import { chainCommands } from "prosemirror-commands";
-
 /**
  * Anchor information describing where a comment should be attached in a
  * document, matching the anchor fields accepted by the `comments.create` API.
@@ -25,19 +24,15 @@ export interface CommentAnchor {
   /** Hash identifying the node the comment is anchored to. */
   anchorNodeId?: string;
 }
-
 /** Amount of surrounding plain text captured to disambiguate an anchor. */
 const anchorContextLength = 15;
-
 /** Anchor text at least this long is treated as unambiguous on its own. */
 const unambiguousAnchorLength = 30;
-
 export const addComment = (attrs: Attrs): Command =>
   chainCommands(addCommentTextSelection(attrs), addCommentNodeSelection(attrs));
-
 /**
  * Returns a command that records a pending inline comment anchor for the
- * current selection without modifying the document. Used by users who can
+ * current selection without modifying the note. Used by users who can
  * comment but not edit — the highlight is rendered as a local decoration and
  * the comment mark is applied server-side on submission.
  *
@@ -52,7 +47,10 @@ export const addDraftCommentAnchor =
     onCreate?: (
       commentId: string,
       userId: string,
-      options: { focus: boolean; anchor: CommentAnchor }
+      options: {
+        focus: boolean;
+        anchor: CommentAnchor;
+      }
     ) => void;
     onOpenCommentsSidebar?: () => void;
   }): Command =>
@@ -62,7 +60,6 @@ export const addDraftCommentAnchor =
     let from: number;
     let to: number;
     let isNode = false;
-
     if (selection instanceof NodeSelection) {
       anchor = { anchorNodeId: ProsemirrorHelper.getNodeHash(selection.node) };
       from = selection.from;
@@ -78,14 +75,11 @@ export const addDraftCommentAnchor =
       ) {
         return false;
       }
-
       const anchorText = textBetween(doc, selection.from, selection.to);
       if (!anchorText) {
         return false;
       }
-
       anchor = { anchorText };
-
       // Short selections are more likely to be ambiguous, so capture a small
       // window of surrounding text to disambiguate.
       if (anchorText.length < unambiguousAnchorLength) {
@@ -105,7 +99,6 @@ export const addDraftCommentAnchor =
     } else {
       return false;
     }
-
     // Commands are also invoked without `dispatch` purely to check whether
     // they are available, so all side effects must be guarded behind it.
     if (dispatch) {
@@ -122,7 +115,6 @@ export const addDraftCommentAnchor =
     }
     return true;
   };
-
 const addCommentNodeSelection =
   (attrs: Attrs): Command =>
   (state, dispatch) => {
@@ -146,7 +138,6 @@ const addCommentNodeSelection =
     dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, newAttrs));
     return true;
   };
-
 const addCommentTextSelection =
   (attrs: Attrs): Command =>
   (state, dispatch) => {
@@ -156,7 +147,6 @@ const addCommentTextSelection =
     if (state.selection.empty) {
       return false;
     }
-
     if (
       isMarkActive(
         state.schema.marks.comment,
@@ -168,7 +158,6 @@ const addCommentTextSelection =
     ) {
       return false;
     }
-
     chainTransactions(
       addMark(state.schema.marks.comment, {
         id: uuidv4(),
@@ -177,6 +166,5 @@ const addCommentTextSelection =
       }),
       collapseSelection()
     )(state, dispatch);
-
     return true;
   };

@@ -1,6 +1,5 @@
 import styled, { css } from "styled-components";
 import { ellipsis } from "../styles";
-
 type Props = {
   /** The type of text to render */
   type?: "secondary" | "tertiary" | "danger";
@@ -19,7 +18,6 @@ type Props = {
   /** Whether the text should be monospaced */
   monospace?: boolean;
 };
-
 /**
  * Use this component for all interface text that should not be selectable
  * by the user, this is the majority of UI text explainers, notes, headings.
@@ -69,5 +67,4 @@ const Text = styled.span<Props>`
 
   ${(props) => props.ellipsis && ellipsis()}
 `;
-
 export default Text;

@@ -1,5 +1,4 @@
 import { EnvelopeIcon, PhoneIcon } from "@heroicons/react/20/solid";
-
 const profile = {
   name: "Ricardo Cooper",
   email: "ricardo.cooper@example.com",
@@ -18,7 +17,6 @@ const profile = {
     ["Birthday", "June 8, 1990"],
   ],
 };
-
 /**
  * Tailwind UI – page headings: with banner image.
  *

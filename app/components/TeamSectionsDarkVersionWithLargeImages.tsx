@@ -9,7 +9,6 @@ const people = [
   },
   // More people...
 ];
-
 /**
  * Tailwind UI – team sections: dark version with large images.
  *

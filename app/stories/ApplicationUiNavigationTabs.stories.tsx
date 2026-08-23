@@ -8,45 +8,34 @@ import { TabsTabsInPillsWithBrandColor } from "~/components/TabsTabsInPillsWithB
 import { TabsTabsWithUnderline } from "~/components/TabsTabsWithUnderline";
 import { TabsTabsWithUnderlineAndBadges } from "~/components/TabsTabsWithUnderlineAndBadges";
 import { TabsTabsWithUnderlineAndIcons } from "~/components/TabsTabsWithUnderlineAndIcons";
-
 const meta: Meta = {
   title: "Application UI/Navigation/Tabs",
 };
-
 export default meta;
-
 export const BarWithUnderline: StoryObj = {
   render: () => <TabsBarWithUnderline />,
 };
-
 export const FullWidthTabsWithUnderline: StoryObj = {
   render: () => <TabsFullWidthTabsWithUnderline />,
 };
-
 export const SimpleOnDark: StoryObj = {
   render: () => <TabsSimpleOnDark />,
 };
-
 export const TabsInPills: StoryObj = {
   render: () => <TabsTabsInPills />,
 };
-
 export const TabsInPillsOnGray: StoryObj = {
   render: () => <TabsTabsInPillsOnGray />,
 };
-
 export const TabsInPillsWithBrandColor: StoryObj = {
   render: () => <TabsTabsInPillsWithBrandColor />,
 };
-
 export const TabsWithUnderline: StoryObj = {
   render: () => <TabsTabsWithUnderline />,
 };
-
 export const TabsWithUnderlineAndBadges: StoryObj = {
   render: () => <TabsTabsWithUnderlineAndBadges />,
 };
-
 export const TabsWithUnderlineAndIcons: StoryObj = {
   render: () => <TabsTabsWithUnderlineAndIcons />,
 };

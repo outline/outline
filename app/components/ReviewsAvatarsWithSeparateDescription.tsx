@@ -1,6 +1,5 @@
 import { StarIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const reviews = [
   {
     id: 1,
@@ -36,7 +35,6 @@ const reviews = [
       "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
   },
 ];
-
 /**
  * Tailwind UI – reviews: avatars with separate description.
  *

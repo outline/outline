@@ -4,7 +4,6 @@ const stats = [
   { name: "Number of servers", value: "3" },
   { name: "Success rate", value: "98.5%" },
 ];
-
 /**
  * Tailwind UI – stats: simple on dark.
  *

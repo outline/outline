@@ -6,7 +6,6 @@ export enum LightboxStatus {
   CLOSING,
   CLOSED,
 }
-
 export enum ImageStatus {
   LOADING,
   ERROR,
@@ -15,32 +14,49 @@ export enum ImageStatus {
   MAX_ZOOM,
   ZOOMED,
 }
-
 export type Status = {
   lightbox: LightboxStatus | null;
   image: ImageStatus | null;
 };
-
 export type Action =
   /** The lightbox mounted and is ready to begin its opening animation. */
-  | { type: "mounted" }
+  | {
+      type: "mounted";
+    }
   /** A new image started loading, either the first one or after navigating. */
-  | { type: "imageLoading" }
-  | { type: "imageLoaded" }
-  | { type: "imageErrored" }
+  | {
+      type: "imageLoading";
+    }
+  | {
+      type: "imageLoaded";
+    }
+  | {
+      type: "imageErrored";
+    }
   /** The zoom level changed, either by the user or by resetting the transform. */
-  | { type: "zoomChanged"; zoom: ImageStatus }
+  | {
+      type: "zoomChanged";
+      zoom: ImageStatus;
+    }
   /** The opening fade and zoom keyframes have been measured and applied. */
-  | { type: "openAnimationPrepared" }
-  | { type: "openAnimationEnded" }
+  | {
+      type: "openAnimationPrepared";
+    }
+  | {
+      type: "openAnimationEnded";
+    }
   /** The user asked to close, e.g. via Escape, the close button, or a swipe. */
-  | { type: "closeRequested" }
+  | {
+      type: "closeRequested";
+    }
   /** The closing fade and zoom keyframes have been measured and applied. */
-  | { type: "closeAnimationPrepared" }
-  | { type: "closeAnimationEnded" };
-
+  | {
+      type: "closeAnimationPrepared";
+    }
+  | {
+      type: "closeAnimationEnded";
+    };
 export const initialStatus: Status = { lightbox: null, image: null };
-
 /**
  * Settles the image at minimum zoom once the lightbox has finished opening and
  * the image has loaded, whichever of the two happens last.
@@ -54,7 +70,6 @@ function settle(status: Status): Status {
     ? { ...status, image: ImageStatus.MIN_ZOOM }
     : status;
 }
-
 /**
  * Drives the lightbox open and close choreography. Transitions are guarded so
  * that events arriving out of order — a slow image load completing after the

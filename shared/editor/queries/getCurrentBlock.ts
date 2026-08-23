@@ -1,6 +1,5 @@
 import type { Node } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
-
 /**
  * Gets the current block node that contains the selection
  * @param state The editor state
@@ -10,7 +9,6 @@ export function getCurrentBlock(
   state: EditorState
 ): [Node, number] | undefined {
   const { $head } = state.selection;
-
   // Walk up the tree to find the first block node
   for (let d = $head.depth; d > 0; d--) {
     const node = $head.node(d);
@@ -18,6 +16,5 @@ export function getCurrentBlock(
       return [node, $head.before(d)];
     }
   }
-
   return undefined;
 }

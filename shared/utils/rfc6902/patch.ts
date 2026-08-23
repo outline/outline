@@ -10,14 +10,12 @@ import type {
   Operation,
 } from "./diff";
 import { diffAny } from "./diff";
-
 export class MissingError extends Error {
   constructor(public path: string) {
     super(`Value required at path: ${path}`);
     this.name = "MissingError";
   }
 }
-
 export class TestError extends Error {
   constructor(
     public actual: unknown,
@@ -27,7 +25,6 @@ export class TestError extends Error {
     this.name = "TestError";
   }
 }
-
 function _add(object: unknown, key: string, value: unknown): void {
   if (Array.isArray(object)) {
     // `key` must be an index
@@ -41,7 +38,6 @@ function _add(object: unknown, key: string, value: unknown): void {
     (object as Record<string, unknown>)[key] = value;
   }
 }
-
 function _remove(object: unknown, key: string): void {
   if (Array.isArray(object)) {
     // '-' syntax doesn't make sense when removing
@@ -52,7 +48,6 @@ function _remove(object: unknown, key: string): void {
     delete (object as Record<string, unknown>)[key];
   }
 }
-
 /**
  * >  o  If the target location specifies an array index, a new value is
  * >     inserted into the array at the specified index.
@@ -73,7 +68,6 @@ export function add(
   _add(endpoint.parent, endpoint.key, clone(operation.value));
   return null;
 }
-
 /**
  * > The "remove" operation removes the value at the target location.
  * > The target location MUST exist for the operation to be successful.
@@ -91,7 +85,6 @@ export function remove(
   _remove(endpoint.parent, endpoint.key);
   return null;
 }
-
 /**
  * > The "replace" operation replaces the value at the target location
  * > with a new value.  The operation object MUST contain a "value" member
@@ -123,7 +116,6 @@ export function replace(
   (endpoint.parent as Record<string, unknown>)[endpoint.key] = operation.value;
   return null;
 }
-
 /**
  * > The "move" operation removes the value at a specified location and
  * > adds it to the target location.
@@ -143,7 +135,6 @@ export function move(
 ): MissingError | InvalidOperationError | null {
   const from_pointer = Pointer.fromJSON(operation.from);
   const path_pointer = Pointer.fromJSON(operation.path);
-
   // The "from" location MUST NOT be a proper prefix of the "path" location
   if (
     from_pointer.tokens.length < path_pointer.tokens.length &&
@@ -151,7 +142,6 @@ export function move(
   ) {
     return new InvalidOperationError(operation);
   }
-
   const from_endpoint = from_pointer.evaluate(object);
   if (from_endpoint.value === undefined) {
     return new MissingError(operation.from);
@@ -164,7 +154,6 @@ export function move(
   _add(endpoint.parent, endpoint.key, from_endpoint.value);
   return null;
 }
-
 /**
  * > The "copy" operation copies the value at a specified location to the
  * > target location.
@@ -193,7 +182,6 @@ export function copy(
   _add(endpoint.parent, endpoint.key, clone(from_endpoint.value));
   return null;
 }
-
 /**
  * > The "test" operation tests that a value at the target location is
  * > equal to a specified value.
@@ -213,14 +201,12 @@ export function test(
   }
   return null;
 }
-
 export class InvalidOperationError extends Error {
   constructor(public operation: Operation) {
     super(`Invalid operation: ${operation.op}`);
     this.name = "InvalidOperationError";
   }
 }
-
 /**
  * Switch on `operation.op`, applying the corresponding patch function for each
  * case to `object`.

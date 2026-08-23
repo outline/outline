@@ -19,12 +19,11 @@ import { ImageSource } from "@shared/editor/lib/FileHelper";
 import Desktop from "~/utils/Desktop";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { t } from "i18next";
-
 /**
  * Returns menu items for the image selection toolbar.
  *
  * @param ctx - the current selection context.
- * @param canComment - whether the user has permission to comment on the document.
+ * @param canComment - whether the user has permission to comment on the note.
  * @returns an array of menu items.
  */
 export default function imageMenuItems(
@@ -62,7 +61,6 @@ export default function imageMenuItems(
     source: ImageSource.DiagramsNet,
     src: "",
   });
-
   // Small images are displayed as inline icons, so alignment controls don't apply.
   const selectedNode =
     state.selection instanceof NodeSelection ? state.selection.node : undefined;
@@ -71,7 +69,6 @@ export default function imageMenuItems(
     selectedNode.attrs.layoutClass !== "full-width" &&
     !!selectedNode.attrs.width &&
     selectedNode.attrs.width < InlineIconMaxWidth;
-
   return [
     {
       name: "alignLeft",

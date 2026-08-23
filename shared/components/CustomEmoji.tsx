@@ -1,12 +1,10 @@
 import useShare from "@shared/hooks/useShare";
-
 type Props = React.ImgHTMLAttributes<HTMLImageElement> & {
   value: string;
   size?: number | string;
   /** Optional cache-busting key, e.g. updatedAt timestamp. */
   cacheKey?: string;
 };
-
 export const CustomEmoji = ({
   value,
   size = 16,

@@ -2,7 +2,6 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
-
 export const Action = styled(Flex)`
   justify-content: center;
   align-items: center;
@@ -14,14 +13,12 @@ export const Action = styled(Flex)`
     display: none;
   }
 `;
-
 export const Separator = styled.div`
   flex-shrink: 0;
   width: 1px;
   height: 28px;
   background: ${s("divider")};
 `;
-
 const Actions = styled(Flex)`
   position: fixed;
   top: 0;
@@ -42,5 +39,4 @@ const Actions = styled(Flex)`
     padding: 24px;
   `};
 `;
-
 export default Actions;

@@ -4,15 +4,12 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { extraArea, s } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
-
 type Props = React.ComponentProps<typeof Button> & {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   expanded: boolean;
 };
-
 function Disclosure({ onClick, expanded, as, ...rest }: Props) {
   const { t } = useTranslation();
-
   return (
     <Button
       as={as}
@@ -26,7 +23,6 @@ function Disclosure({ onClick, expanded, as, ...rest }: Props) {
     </Button>
   );
 }
-
 const Button = styled(NudeButton)`
   position: absolute;
   inset-inline-start: -24px;
@@ -40,7 +36,6 @@ const Button = styled(NudeButton)`
     background: ${s("sidebarControlHoverBackground")};
   }
 `;
-
 const StyledCollapsedIcon = styled(CollapsedIcon)<{
   $expanded?: boolean;
 }>`
@@ -57,8 +52,6 @@ const StyledCollapsedIcon = styled(CollapsedIcon)<{
     transform: rotate(90deg);
   }
 `;
-
 // Enables identifying this component within styled components
 const StyledDisclosure = styled(Disclosure)``;
-
 export default StyledDisclosure;

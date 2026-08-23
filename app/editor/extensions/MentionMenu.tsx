@@ -2,7 +2,6 @@ import { action } from "mobx";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import Suggestion from "~/editor/extensions/Suggestion";
 import MentionMenu from "../components/MentionMenu";
-
 export default class MentionMenuExtension extends Suggestion {
   get defaultOptions() {
     return {
@@ -12,11 +11,9 @@ export default class MentionMenuExtension extends Suggestion {
       enabledInCode: false,
     };
   }
-
   get name() {
     return "mention-menu";
   }
-
   widget = ({ rtl }: WidgetProps) => (
     <MentionMenu
       rtl={rtl}

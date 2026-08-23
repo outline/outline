@@ -20,7 +20,6 @@ const posts = [
   },
   // More posts...
 ];
-
 /**
  * Tailwind UI – blog sections: three column with images.
  *

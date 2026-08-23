@@ -6,12 +6,10 @@ import { isMac } from "@shared/utils/browser";
 import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import { KeyboardShortcut } from "~/components/KeyboardShortcut";
-
 type Props = {
   /** Initial search query to filter shortcuts */
   defaultQuery?: string;
 };
-
 function KeyboardShortcuts({ defaultQuery = "" }: Props) {
   const { t } = useTranslation();
   const categories = useMemo(
@@ -390,7 +388,6 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
   const handleChange = useCallback((event) => {
     setSearchTerm(event.target.value);
   }, []);
-
   const handleKeyDown = useCallback((event) => {
     if (event.currentTarget.value && event.key === "Escape") {
       event.preventDefault();
@@ -398,7 +395,6 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
       setSearchTerm("");
     }
   }, []);
-
   return (
     <Flex column>
       <StickySearch>
@@ -420,11 +416,9 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
                 item.label.toLocaleLowerCase().includes(normalizedSearchTerm)
               )
           : category.items;
-
         if (!filtered.length) {
           return null;
         }
-
         return (
           <Fragment key={x}>
             <Header>{category.title}</Header>
@@ -444,7 +438,6 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
     </Flex>
   );
 }
-
 const StickySearch = styled.div`
   position: sticky;
   top: -16px;
@@ -454,13 +447,11 @@ const StickySearch = styled.div`
   background: ${s("background")};
   border-radius: 8px;
 `;
-
 const Header = styled.h2`
   font-size: 15px;
   font-weight: 500;
   margin-top: 2em;
 `;
-
 const List = styled.dl`
   font-size: 14px;
   width: 100%;
@@ -469,7 +460,6 @@ const List = styled.dl`
   margin: 0;
   user-select: none;
 `;
-
 const Keys = styled.dt`
   float: inline-end;
   width: 45%;
@@ -482,7 +472,6 @@ const Keys = styled.dt`
   align-items: center;
   justify-content: flex-end;
 `;
-
 const Label = styled.dd`
   float: inline-start;
   width: 55%;
@@ -491,5 +480,4 @@ const Label = styled.dd`
   align-items: center;
   color: ${s("textSecondary")};
 `;
-
 export default memo(KeyboardShortcuts);

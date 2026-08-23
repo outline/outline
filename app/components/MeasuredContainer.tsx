@@ -1,6 +1,5 @@
 import * as React from "react";
 import useMeasure from "react-use-measure";
-
 export const MeasuredContainer = <T extends React.ElementType>({
   as: As = "div",
   name,
@@ -12,7 +11,6 @@ export const MeasuredContainer = <T extends React.ElementType>({
   children?: React.ReactNode;
 } & React.ComponentProps<T>) => {
   const [measureRef, rect] = useMeasure();
-
   return (
     <As
       {...rest}

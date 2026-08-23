@@ -1,11 +1,11 @@
 export class RevisionHelper {
   /**
-   * Get a static id for the latest revision of a document.
+   * Get a static id for the latest revision of a note.
    *
    * @param documentId The document to generate an ID for.
-   * @returns The ID of the latest revision of the document.
+   * @returns The ID of the latest revision of the note.
    */
-  static latestId(documentId?: string) {
-    return documentId ? `latest-${documentId}` : "";
+  static latestId(noteId?: string) {
+    return noteId ? `latest-${noteId}` : "";
   }
 }

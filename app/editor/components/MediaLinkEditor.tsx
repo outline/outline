@@ -10,7 +10,6 @@ import Tooltip from "~/components/Tooltip";
 import Input from "~/editor/components/Input";
 import ToolbarButton from "./ToolbarButton";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
-
 type Props = {
   node?: Node;
   view: EditorView;
@@ -20,7 +19,6 @@ type Props = {
   onEscape: () => void;
   onClickOutside: (ev: MouseEvent | TouchEvent) => void;
 };
-
 export function MediaLinkEditor({
   node,
   view,
@@ -33,12 +31,10 @@ export function MediaLinkEditor({
   const url = (node?.attrs.href ?? node?.attrs.src) as string;
   const [localUrl, setLocalUrl] = useState(url);
   const wrapperRef = useRef<HTMLDivElement>(null);
-
   // If we're attempting to edit an image, autofocus the input
   // Not doing for embed type because it made the editor scroll to top
   // unexpectedly–leaving that out for now
   const isEditingImgUrl = node?.type.name === "image";
-
   const moveSelectionToEnd = useCallback(() => {
     const { state, dispatch } = view;
     const nextSelection = Selection.findFrom(
@@ -46,22 +42,18 @@ export function MediaLinkEditor({
       1,
       true
     );
-
     const selection = nextSelection ?? TextSelection.create(state.tr.doc, 0);
     dispatch(state.tr.setSelection(selection));
     view.focus();
   }, [view]);
-
   const openLink = useCallback(() => {
     window.open(url, "_blank");
   }, [url]);
-
   const remove = useCallback(() => {
     const { state, dispatch } = view;
     dispatch(state.tr.deleteSelection());
     onLinkRemove();
   }, [view, onLinkRemove]);
-
   const update = useCallback(() => {
     const { state } = view;
     const hrefType = node?.type.name === "image" ? "src" : "href";
@@ -69,27 +61,22 @@ export function MediaLinkEditor({
       ...node?.attrs,
       [hrefType]: localUrl,
     });
-
     view.dispatch(tr);
     moveSelectionToEnd();
     onLinkUpdate();
   }, [localUrl, node, view, moveSelectionToEnd, onLinkUpdate]);
-
   useOnClickOutside(wrapperRef, onClickOutside);
-
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.nativeEvent.isComposing) {
         return;
       }
-
       switch (event.key) {
         case "Enter": {
           event.preventDefault();
           update();
           return;
         }
-
         case "Escape": {
           event.preventDefault();
           moveSelectionToEnd();
@@ -100,11 +87,9 @@ export function MediaLinkEditor({
     },
     [update, moveSelectionToEnd, onEscape]
   );
-
   if (!node) {
     return null;
   }
-
   return (
     <Wrapper ref={wrapperRef}>
       <Input
@@ -134,7 +119,6 @@ export function MediaLinkEditor({
     </Wrapper>
   );
 }
-
 const Wrapper = styled(Flex)`
   pointer-events: all;
   gap: 6px;

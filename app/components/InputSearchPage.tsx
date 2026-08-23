@@ -12,7 +12,6 @@ import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
 import { searchPath } from "~/utils/routeHelpers";
 import Input from "./Input";
-
 type Props = {
   /** A string representing where the search started, for tracking. */
   source: string;
@@ -23,7 +22,7 @@ type Props = {
   /** Whether the label should be hidden. */
   labelHidden?: boolean;
   /** An optional ID of a collection to search within. */
-  collectionId?: string;
+  notebookId?: string;
   /** The current value of the input. */
   value?: string;
   /** Event handler for when the input value changes. */
@@ -31,14 +30,13 @@ type Props = {
   /** Event handler for when a key is pressed. */
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => unknown;
 };
-
 function InputSearchPage({
   onKeyDown,
   value,
   onChange,
   placeholder,
   label,
-  collectionId,
+  notebookId,
   source,
 }: Props) {
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -47,7 +45,6 @@ function InputSearchPage({
   const { t } = useTranslation();
   const isMobile = useMobile();
   const [isFocused, setFocused, setUnfocused] = useBoolean(false);
-
   useKeyDown(
     "f",
     (ev: KeyboardEvent) => {
@@ -58,19 +55,17 @@ function InputSearchPage({
     },
     { metaKey: true }
   );
-
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
       if (ev.nativeEvent.isComposing) {
         return;
       }
-
       if (ev.key === "Enter") {
         ev.preventDefault();
         history.push(
           searchPath({
             query: ev.currentTarget.value,
-            collectionId,
+            notebookId,
             ref: source,
           })
         );
@@ -79,14 +74,12 @@ function InputSearchPage({
         ev.preventDefault();
         inputRef.current?.blur();
       }
-
       if (onKeyDown) {
         onKeyDown(ev);
       }
     },
-    [history, collectionId, source, onKeyDown]
+    [history, notebookId, source, onKeyDown]
   );
-
   return (
     <InputMaxWidth
       ref={inputRef}
@@ -107,7 +100,7 @@ function InputSearchPage({
       labelHidden
     >
       {!isMobile && (
-        <Shortcut $visible={!isFocused && !value && !collectionId}>
+        <Shortcut $visible={!isFocused && !value && !notebookId}>
           {metaDisplay}
           {shortcutSeparator}K
         </Shortcut>
@@ -115,7 +108,6 @@ function InputSearchPage({
     </InputMaxWidth>
   );
 }
-
 const InputMaxWidth = styled(Input).attrs({ round: true })`
   max-width: min(calc(30vw + 20px), 100%);
 
@@ -125,8 +117,9 @@ const InputMaxWidth = styled(Input).attrs({ round: true })`
     margin-inline-end: 8px;
   `}
 `;
-
-const Shortcut = styled.span<{ $visible: boolean }>`
+const Shortcut = styled.span<{
+  $visible: boolean;
+}>`
   flex-shrink: 0;
   font-size: 13px;
   font-feature-settings: "cv08", "zero";
@@ -136,5 +129,4 @@ const Shortcut = styled.span<{ $visible: boolean }>`
   opacity: ${(props) => (props.$visible ? 1 : 0)};
   transition: opacity 100ms ease-in-out;
 `;
-
 export default observer(InputSearchPage);

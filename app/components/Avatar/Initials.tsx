@@ -2,7 +2,6 @@ import { getLuminance } from "polished";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
-
 const Initials = styled(Flex)<{
   /** The color of the background, defaults to textTertiary. */
   color?: string;
@@ -28,5 +27,4 @@ const Initials = styled(Flex)<{
   font-size: ${(props) => props.size / 2 - (props.content?.length ?? 0)}px;
   font-weight: 500;
 `;
-
 export default Initials;

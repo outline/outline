@@ -18,14 +18,12 @@ import Section from "./components/Section";
 import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Version from "./components/Version";
-
 function SettingsSidebar() {
   const { integrations } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation();
   const configs = useSettingsConfig();
-
   const groupedConfig = groupBy(
     configs.filter((item) =>
       item.group === t("Integrations") && item.pluginId
@@ -34,11 +32,9 @@ function SettingsSidebar() {
     ),
     "group"
   );
-
   const returnToApp = useCallback(() => {
     history.push("/home");
   }, [history]);
-
   return (
     <Sidebar canCollapse={false}>
       <SidebarButton
@@ -82,7 +78,6 @@ function SettingsSidebar() {
     </Sidebar>
   );
 }
-
 const StyledBackIcon = styled(BackIcon)`
   margin-inline-start: 4px;
 
@@ -90,5 +85,4 @@ const StyledBackIcon = styled(BackIcon)`
     transform: rotate(180deg);
   }
 `;
-
 export default observer(SettingsSidebar);

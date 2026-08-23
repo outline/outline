@@ -1,5 +1,4 @@
 import { StarIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – testimonials: with star rating.
  *

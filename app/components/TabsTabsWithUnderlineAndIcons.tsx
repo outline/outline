@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -19,14 +19,12 @@ import {
   UsersIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const tabs = [
   { name: "My Account", href: "#", icon: UserIcon, current: false },
   { name: "Company", href: "#", icon: BuildingOfficeIcon, current: false },
   { name: "Team Members", href: "#", icon: UsersIcon, current: true },
   { name: "Billing", href: "#", icon: CreditCardIcon, current: false },
 ];
-
 /**
  * Tailwind UI – tabs: tabs with underline and icons.
  *

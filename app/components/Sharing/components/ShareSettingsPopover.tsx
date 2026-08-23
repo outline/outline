@@ -37,14 +37,12 @@ import {
   PopoverContent,
 } from "~/components/primitives/Popover";
 import { ListItem } from "./ListItem";
-
 type Props = {
   /** The share model to configure settings for. */
   share: Share;
   /** Custom trigger element. If not provided, a default settings icon button is rendered. */
   children?: React.ReactElement;
 };
-
 /**
  * A popover triggered by a settings icon that contains toggle options
  * for configuring a published share link (indexing, subscriptions, etc.),
@@ -62,7 +60,6 @@ function ShareSettingsPopover({ share, children }: Props) {
   const showTOCId = `${idPrefix}-show-toc`;
   const indexingId = `${idPrefix}-indexing`;
   const subscriptionsId = `${idPrefix}-subscriptions`;
-
   const handleTitleChange = React.useMemo(
     () =>
       debounce(async (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,18 +73,15 @@ function ShareSettingsPopover({ share, children }: Props) {
       }, 500),
     [share]
   );
-
   const triggerUpload = React.useCallback(() => {
     fileInputRef.current?.click();
   }, []);
-
   const handleLogoUpload = React.useCallback(
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
       const file = ev.target.files?.[0];
       if (!file) {
         return;
       }
-
       setIsUploading(true);
       try {
         const compressed = await compressImage(file, {
@@ -111,7 +105,6 @@ function ShareSettingsPopover({ share, children }: Props) {
     },
     [share]
   );
-
   const handleLogoRemove = React.useCallback(async () => {
     try {
       await share.save({ iconUrl: null });
@@ -120,7 +113,6 @@ function ShareSettingsPopover({ share, children }: Props) {
       toast.error(errToString(err));
     }
   }, [share]);
-
   const handleIndexingChanged = React.useCallback(
     async (checked: boolean) => {
       try {
@@ -132,7 +124,6 @@ function ShareSettingsPopover({ share, children }: Props) {
     },
     [share]
   );
-
   const handleSubscriptionsChanged = React.useCallback(
     async (checked: boolean) => {
       try {
@@ -144,7 +135,6 @@ function ShareSettingsPopover({ share, children }: Props) {
     },
     [share]
   );
-
   const handleShowLastModifiedChanged = React.useCallback(
     async (checked: boolean) => {
       try {
@@ -156,7 +146,6 @@ function ShareSettingsPopover({ share, children }: Props) {
     },
     [share]
   );
-
   const handleShowTOCChanged = React.useCallback(
     async (checked: boolean) => {
       try {
@@ -168,14 +157,12 @@ function ShareSettingsPopover({ share, children }: Props) {
     },
     [share]
   );
-
   const flushChangeToast = React.useCallback(() => {
     if (hasChangesRef.current) {
       toast.success(t("Sharing settings updated"));
       hasChangesRef.current = false;
     }
   }, [t]);
-
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
       if (!open) {
@@ -184,7 +171,6 @@ function ShareSettingsPopover({ share, children }: Props) {
     },
     [flushChangeToast]
   );
-
   // Also flush on unmount in case the parent popover closes us before
   // onOpenChange fires.
   React.useEffect(
@@ -193,7 +179,6 @@ function ShareSettingsPopover({ share, children }: Props) {
     },
     [flushChangeToast]
   );
-
   const iconActions = React.useMemo(
     () => [
       createAction({
@@ -215,7 +200,6 @@ function ShareSettingsPopover({ share, children }: Props) {
     [triggerUpload, handleLogoRemove]
   );
   const iconRootAction = useMenuAction(iconActions);
-
   return (
     <Popover modal onOpenChange={handleOpenChange}>
       <Tooltip content={t("Display settings")} placement="top">
@@ -395,14 +379,12 @@ function ShareSettingsPopover({ share, children }: Props) {
     </Popover>
   );
 }
-
 const SwitchLabel = styled.label`
   display: flex;
   align-items: center;
   color: ${s("textSecondary")};
   cursor: var(--pointer);
 `;
-
 const SettingsTrigger = styled(NudeButton)`
   width: 32px;
   height: 32px;
@@ -411,7 +393,6 @@ const SettingsTrigger = styled(NudeButton)`
   top: -2px;
   right: -4px;
 `;
-
 const LogoButton = styled.button`
   background: none;
   border: 0;
@@ -424,5 +405,4 @@ const LogoButton = styled.button`
     cursor: default;
   }
 `;
-
 export default observer(ShareSettingsPopover);

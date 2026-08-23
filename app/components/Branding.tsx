@@ -3,11 +3,9 @@ import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import env from "~/env";
 import OutlineIcon from "./Icons/OutlineIcon";
-
 type Props = {
   href?: string;
 };
-
 function Branding({ href = env.URL }: Props) {
   return (
     <Link href={href} target="_blank">
@@ -16,7 +14,6 @@ function Branding({ href = env.URL }: Props) {
     </Link>
   );
 }
-
 const Link = styled.a`
   justify-content: center;
   padding-bottom: 16px;
@@ -44,5 +41,4 @@ const Link = styled.a`
     background: ${s("sidebarControlHoverBackground")};
   }
 `;
-
 export default React.memo(Branding);

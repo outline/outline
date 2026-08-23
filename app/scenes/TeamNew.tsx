@@ -10,21 +10,17 @@ import Input from "~/components/Input";
 import Notice from "~/components/Notice";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-
 type Props = {
   user: User;
 };
-
 function TeamNew({ user }: Props) {
   const { auth } = useStores();
   const { t } = useTranslation();
   const [name, setName] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
-
   const handleSubmit = async (ev: React.SyntheticEvent) => {
     ev.preventDefault();
     setIsSaving(true);
-
     try {
       if (name.trim().length > 1) {
         await auth.createTeam({
@@ -37,11 +33,9 @@ function TeamNew({ user }: Props) {
       setIsSaving(false);
     }
   };
-
   const handleNameChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setName(ev.target.value);
   };
-
   return (
     <>
       <form onSubmit={handleSubmit}>
@@ -90,5 +84,4 @@ function TeamNew({ user }: Props) {
     </>
   );
 }
-
 export default observer(TeamNew);

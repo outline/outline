@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -27,7 +27,6 @@ import {
   XMarkIcon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const moods = [
   {
     name: "Excited",
@@ -72,7 +71,6 @@ const moods = [
     bgColor: "bg-transparent",
   },
 ];
-
 /**
  * Tailwind UI – textareas: with underline and actions.
  *
@@ -80,7 +78,6 @@ const moods = [
  */
 export function TextareasWithUnderlineAndActions() {
   const [selected, setSelected] = useState(moods[5]);
-
   return (
     <div className="flex items-start space-x-4">
       <div className="shrink-0">

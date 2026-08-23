@@ -4,20 +4,17 @@ import { sanitizeUrl } from "../../utils/urls";
 import type { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
-
 type Props = ComponentProps & {
   /** Callback triggered when the video is resized */
   onChangeSize?: (props: { width: number; height?: number }) => void;
   children?: React.ReactElement;
 };
-
 export default function Video(props: Props) {
   const { isSelected, node, isEditable, children, onChangeSize } = props;
   const [naturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight] = React.useState(node.attrs.height);
   const ref = React.useRef<HTMLDivElement>(null);
   const isResizable = !!onChangeSize;
-
   const { width, height, handlePointerDown, handleDoubleClick, dragging } =
     useDragResize({
       width: node.attrs.width ?? naturalWidth,
@@ -27,13 +24,11 @@ export default function Video(props: Props) {
       onChangeSize,
       ref,
     });
-
   const style: React.CSSProperties = {
     width: width || "auto",
     maxHeight: height || "auto",
     pointerEvents: dragging ? "none" : "all",
   };
-
   return (
     <div contentEditable={false} ref={ref}>
       <VideoWrapper
@@ -66,7 +61,6 @@ export default function Video(props: Props) {
     </div>
   );
 }
-
 export const videoStyle = css`
   max-width: 100%;
   height: auto;
@@ -77,12 +71,12 @@ export const videoStyle = css`
   border-radius: 8px;
   box-shadow: 0 0 0 1px ${(props) => props.theme.divider};
 `;
-
 const StyledVideo = styled.video`
   ${videoStyle}
 `;
-
-const VideoWrapper = styled.div<{ $dragging: boolean }>`
+const VideoWrapper = styled.div<{
+  $dragging: boolean;
+}>`
   line-height: 0;
   position: relative;
   margin-left: auto;

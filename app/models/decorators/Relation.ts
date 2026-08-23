@@ -3,12 +3,10 @@ import { singular } from "pluralize";
 import { toError } from "@shared/utils/error";
 import type Model from "../base/Model";
 import Logger from "~/utils/Logger";
-
 /** The behavior of a relationship on deletion */
 type DeleteBehavior = "cascade" | "null" | "ignore";
 /** The behavior of a relationship on archival */
 type ArchiveBehavior = "cascade" | "null" | "ignore";
-
 type RelationOptions<T = Model> = {
   /** Whether this relation is required. */
   required?: boolean;
@@ -19,7 +17,6 @@ type RelationOptions<T = Model> = {
   /** Behavior of this model when relationship is archived. */
   onArchive?: ArchiveBehavior | ((item: T) => ArchiveBehavior);
 };
-
 type RelationProperties<T = Model> = {
   /** The name of the property on the model that stores the ID of the relation. */
   idKey: keyof T;
@@ -28,14 +25,11 @@ type RelationProperties<T = Model> = {
   /** Options for the relation. */
   options: RelationOptions<T>;
 };
-
 type InverseRelationProperties = RelationProperties & {
   /** The name of the model class that owns this relation */
   modelName: string;
 };
-
 const relations = new Map<string, Map<string, RelationProperties>>(new Map());
-
 /**
  * Returns the inverse relation properties for the given model class.
  *
@@ -44,7 +38,6 @@ const relations = new Map<string, Map<string, RelationProperties>>(new Map());
  */
 export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
   const inverseRelations = new Map<string, InverseRelationProperties>();
-
   relations.forEach((relation, modelName) => {
     relation.forEach((properties, propertyName) => {
       try {
@@ -67,13 +60,10 @@ export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
       }
     });
   });
-
   return inverseRelations;
 };
-
 export const getRelationsForModelClass = (targetClass: typeof Model) =>
   relations.get(targetClass.modelName);
-
 /**
  * A decorator that records this key as a relation field on the model.
  * Properties decorated with @Relation will merge and read their data from
@@ -90,7 +80,6 @@ export default function Relation<T extends typeof Model>(
     const idKey = options?.multiple
       ? `${String(singular(propertyKey))}Ids`
       : `${String(propertyKey)}Id`;
-
     // If the relation has options provided then register them in a map for later lookup. We can use
     // this to determine how to update relations when a model is deleted.
     //
@@ -109,14 +98,12 @@ export default function Relation<T extends typeof Model>(
         relations.set(modelName, configForClass);
       }
     });
-
     Object.defineProperty(target, propertyKey, {
       get() {
         const relationClassName = classResolver().modelName;
         const store =
           this.store.rootStore.getStoreForModelName(relationClassName);
         invariant(store, `Store for ${relationClassName} not found`);
-
         if (options?.multiple) {
           const ids: string[] | undefined = this[idKey];
           if (!Array.isArray(ids) || ids.length === 0) {
@@ -143,9 +130,7 @@ export default function Relation<T extends typeof Model>(
             this[idKey] = [];
             if (options?.required) {
               throw new Error(
-                `Cannot set required ${String(
-                  propertyKey
-                )} to undefined or empty array`
+                `Cannot set required ${String(propertyKey)} to undefined or empty array`
               );
             }
             return;
@@ -160,9 +145,7 @@ export default function Relation<T extends typeof Model>(
         } else {
           if (Array.isArray(newValue)) {
             throw new Error(
-              `Cannot set array value to single relation property ${String(
-                propertyKey
-              )}`
+              `Cannot set array value to single relation property ${String(propertyKey)}`
             );
           }
           this[idKey] = newValue ? newValue.id : undefined;

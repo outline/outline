@@ -26,14 +26,11 @@ import { GroupMemberMenu } from "~/menus/GroupMemberMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import GroupMemberSelectionToolbar from "./GroupMemberSelectionToolbar";
 import { HStack } from "~/components/primitives/HStack";
-
 const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
-
 type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
   group: Group;
 };
-
 const GroupMemberRowContextMenu = observer(function GroupMemberRowContextMenu({
   group,
   user,
@@ -54,7 +51,6 @@ const GroupMemberRowContextMenu = observer(function GroupMemberRowContextMenu({
     </ActionContextProvider>
   );
 });
-
 /**
  * Table component for displaying group members with permission management.
  */
@@ -66,12 +62,10 @@ export const GroupMembersTable = observer(function GroupMembersTable({
   const { groupUsers } = useStores();
   const can = usePolicy(group);
   const canManage = can.update && !group.isExternallyManaged;
-
   const isRowSelectable = useCallback(
     (user: User) => !!groupUsers.membership(group.id, user.id),
     [groupUsers, group.id]
   );
-
   const applyContextMenu = useCallback(
     (user: User, rowElement: React.ReactNode) => (
       <GroupMemberRowContextMenu
@@ -84,7 +78,6 @@ export const GroupMembersTable = observer(function GroupMembersTable({
     ),
     [group, t]
   );
-
   const columns = useMemo<TableColumn<User>[]>(
     () =>
       compact<TableColumn<User>>([
@@ -152,7 +145,6 @@ export const GroupMembersTable = observer(function GroupMembersTable({
       ]),
     [t, canManage, group, groupUsers]
   );
-
   return (
     <SortableTable
       id="groupMembers"

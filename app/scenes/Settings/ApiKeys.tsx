@@ -20,7 +20,6 @@ import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { ApiKeysTable } from "./components/ApiKeysTable";
 import { StickyFilters } from "./components/StickyFilters";
-
 function ApiKeys() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
@@ -30,7 +29,6 @@ function ApiKeys() {
   const history = useHistory();
   const location = useLocation();
   const [query, setQuery] = useState(params.get("query") || "");
-
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
@@ -41,7 +39,6 @@ function ApiKeys() {
     }),
     [params]
   );
-
   const sort: ColumnSort = useMemo(
     () => ({
       id: reqParams.sort,
@@ -49,21 +46,18 @@ function ApiKeys() {
     }),
     [reqParams.sort, reqParams.direction]
   );
-
   const orderedData = apiKeys.orderedData;
   const filteredApiKeys = useMemo(
     () =>
       reqParams.query ? apiKeys.findByQuery(reqParams.query) : orderedData,
     [apiKeys, orderedData, reqParams.query]
   );
-
   const { data, error, loading, next } = useTableRequest({
     data: filteredApiKeys,
     sort,
     reqFn: apiKeys.fetchPage,
     reqParams,
   });
-
   const updateParams = useCallback(
     (name: string, value: string) => {
       if (value) {
@@ -71,7 +65,6 @@ function ApiKeys() {
       } else {
         params.delete(name);
       }
-
       history.replace({
         pathname: location.pathname,
         search: params.toString(),
@@ -79,25 +72,21 @@ function ApiKeys() {
     },
     [params, history, location.pathname]
   );
-
   const handleSearch = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setQuery(event.target.value);
     },
     []
   );
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load API keys"));
     }
   }, [t, error]);
-
   useEffect(() => {
     const timeout = setTimeout(() => updateParams("query", query), 250);
     return () => clearTimeout(timeout);
   }, [query, updateParams]);
-
   return (
     <Scene
       title={t("API")}
@@ -155,5 +144,4 @@ function ApiKeys() {
     </Scene>
   );
 }
-
 export default observer(ApiKeys);

@@ -11,19 +11,17 @@ import {
   EMPTY_DIAGRAM_IMAGE,
 } from "../lib/DiagramsNetClient";
 import { sanitizeUrl } from "../../utils/urls";
-
 /**
  * Tracks the mutable state for a single diagram editing session. Callbacks
  * close over a session object so that concurrent or overlapping sessions
  * do not interfere with each other.
  */
 interface DiagramSession {
-  /** The current src used to locate the node in the document. Updated after each successful export. */
+  /** The current src used to locate the node in the note. Updated after each successful export. */
   nodeSrc: string;
   /** The format to use for exporting the diagram (xmlsvg or xmlpng). */
   format: "xmlsvg" | "xmlpng";
 }
-
 /**
  * An editor extension that adds commands to insert and edit diagrams using diagrams.net.
  *
@@ -35,26 +33,21 @@ export default class Diagrams extends Extension {
   get name() {
     return "diagrams";
   }
-
   commands(): Record<string, CommandFactory> {
     return {
       editDiagram: (): Command => (state, dispatch) => {
         if (!dispatch) {
           return true;
         }
-
         const selectedNode = this.getSelectedImageNode(state);
-
         if (!selectedNode) {
           this.insertEmptyDiagram(state, dispatch);
         }
-
         this.openDiagramEditor(selectedNode);
         return true;
       },
     };
   }
-
   /**
    * Gets the currently selected image node if it exists.
    *
@@ -70,7 +63,6 @@ export default class Diagrams extends Extension {
     }
     return;
   }
-
   /**
    * Inserts an empty diagram placeholder at the current cursor position.
    *
@@ -92,7 +84,6 @@ export default class Diagrams extends Extension {
     );
     dispatch(transaction);
   }
-
   /**
    * Opens the diagram editor for creating or editing a diagram.
    *
@@ -101,25 +92,20 @@ export default class Diagrams extends Extension {
   private openDiagramEditor(node?: Node) {
     const nodeSrc = node?.attrs.src ?? "";
     const sourceUrl = nodeSrc || EMPTY_DIAGRAM_IMAGE;
-
     // Create a per-session object. Async callbacks close over this object so
     // that a second editing session does not clobber the first session's state.
     // Format defaults to SVG and is updated after fetching the actual content.
     const session: DiagramSession = { nodeSrc, format: "xmlsvg" };
-
     // Clean up any existing client
     if (this.client) {
       this.client.close();
     }
-
     this.client = new DiagramsNetClient(
       (client) => this.onDiagramReady(client, sourceUrl, session),
       (base64Data) => this.onDiagramExported(base64Data, session)
     );
-
     this.client.open(this.getDiagramsNetUrl());
   }
-
   /**
    * Called when the diagram editor is ready to receive commands.
    *
@@ -133,7 +119,6 @@ export default class Diagrams extends Extension {
     session: DiagramSession
   ) {
     let data: string;
-
     if (sourceUrl === EMPTY_DIAGRAM_IMAGE) {
       // For empty diagram, send full data URI
       data = `data:image/svg+xml;base64,${EMPTY_DIAGRAM_IMAGE}`;
@@ -141,15 +126,12 @@ export default class Diagrams extends Extension {
       // For existing diagrams, send the full data URI
       data = await FileHelper.urlToBase64(sourceUrl);
     }
-
     // Detect format from the data URI now that we have the actual content.
     const format = data.startsWith("data:image/png") ? "xmlpng" : "xmlsvg";
     session.format = format;
     client.format = format;
-
     client.loadDiagram(data);
   }
-
   /**
    * Called when a diagram has been exported from the editor.
    *
@@ -162,17 +144,13 @@ export default class Diagrams extends Extension {
       const isPng = session.format === "xmlpng";
       const filename = isPng ? "diagram.png" : "diagram.svg";
       const mimeType = isPng ? "image/png" : "image/svg+xml";
-
       const file = FileHelper.base64ToFile(base64Data, filename, mimeType);
-
       const dimensions = await FileHelper.getImageDimensions(file);
       const uploadedUrl = await this.uploadDiagramFile(file);
-
       // Capture the src we need to search for *before* updating the session,
       // then update the document and the session atomically.
       const srcToFind = session.nodeSrc;
-      this.updateDiagramInDocument(uploadedUrl, dimensions || {}, srcToFind);
-
+      this.updateDiagramInNote(uploadedUrl, dimensions || {}, srcToFind);
       // Update session so that subsequent saves within the same editing session
       // can locate the node by its new uploaded URL.
       session.nodeSrc = uploadedUrl;
@@ -181,7 +159,6 @@ export default class Diagrams extends Extension {
       console.error("Failed to export diagram:", error);
     }
   }
-
   /**
    * Uploads the diagram file using the editor's upload handler.
    *
@@ -196,35 +173,34 @@ export default class Diagrams extends Extension {
     }
     return uploadFile(file);
   }
-
   /**
-   * Updates or inserts the diagram image in the document. Always reads fresh
+   * Updates or inserts the diagram image in the note. Always reads fresh
    * editor state at call-time so that positions are accurate even after async
    * gaps.
    *
    * @param uploadedUrl - the URL of the uploaded diagram.
    * @param dimensions - the image dimensions.
-   * @param srcToFind - the src attribute value to search for in the document.
+   * @param srcToFind - the src attribute value to search for in the note.
    */
-  private updateDiagramInDocument(
+  private updateDiagramInNote(
     uploadedUrl: string,
-    dimensions: { width?: number; height?: number },
+    dimensions: {
+      width?: number;
+      height?: number;
+    },
     srcToFind: string
   ) {
     // Read fresh state at the moment of dispatch to avoid stale positions.
     const { state } = this.editor.view;
     const { dispatch } = this.editor.view;
     const imageType = this.editor.schema.nodes.image;
-
     // Try to find and update the existing node by its current src attribute.
     const existingNode = this.findImageNodeBySrc(state, srcToFind);
-
     const attrs = {
       ...dimensions,
       src: uploadedUrl,
       source: ImageSource.DiagramsNet,
     };
-
     if (existingNode) {
       dispatch(
         state.tr.setNodeMarkup(existingNode.pos, undefined, {
@@ -238,7 +214,6 @@ export default class Diagrams extends Extension {
       dispatch(transaction);
     }
   }
-
   /**
    * Finds an image node in the document by its src attribute.
    *
@@ -260,7 +235,6 @@ export default class Diagrams extends Extension {
     });
     return foundNode;
   }
-
   /**
    * Gets the configured diagrams.net URL or returns the default.
    *
@@ -277,6 +251,5 @@ export default class Diagrams extends Extension {
       ) + `?embed=1&ui=${uiTheme}&spin=1&modified=unsavedChanges&proto=json`
     );
   }
-
   private client: DiagramsNetClient;
 }

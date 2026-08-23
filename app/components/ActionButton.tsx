@@ -7,7 +7,6 @@ import { performAction, resolve } from "~/actions";
 import useIsMounted from "~/hooks/useIsMounted";
 import useActionContext from "~/hooks/useActionContext";
 import type { ActionVariant, ActionWithChildren } from "~/types";
-
 export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** Show the button in a disabled state */
   disabled?: boolean;
@@ -18,7 +17,6 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** If tooltip props are provided the button will be wrapped in a tooltip */
   tooltip?: Omit<TooltipProps, "children">;
 };
-
 /**
  * Button that can be used to trigger an action definition.
  */
@@ -32,26 +30,20 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
     });
     const isMounted = useIsMounted();
     const [executing, setExecuting] = React.useState(false);
-
     if (!actionContext || !action) {
       return <button {...rest} ref={ref} />;
     }
-
     const actionIsDisabled =
       action.visible && !resolve<boolean>(action.visible, actionContext);
-
     if (actionIsDisabled && hideOnActionDisabled) {
       return null;
     }
-
     const disabled = rest.disabled || actionIsDisabled;
-
     const label =
       rest["aria-label"] ??
       (typeof action.name === "function"
         ? action.name(actionContext)
         : action.name);
-
     const button = (
       <button
         {...rest}
@@ -77,13 +69,10 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
         {rest.children ?? label}
       </button>
     );
-
     if (tooltip) {
       return <Tooltip {...tooltip}>{button}</Tooltip>;
     }
-
     return button;
   }
 );
-
 export default observer(ActionButton);

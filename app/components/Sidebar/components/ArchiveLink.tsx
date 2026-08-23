@@ -4,58 +4,48 @@ import { ArchiveIcon } from "outline-icons";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Flex from "@shared/components/Flex";
-import type Collection from "~/models/Collection";
+import type Notebook from "~/models/Notebook";
 import PaginatedList from "~/components/PaginatedList";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import * as Scenes from "~/routes/scenes";
 import { archivePath } from "~/utils/routeHelpers";
 import { useDropToArchive } from "../hooks/useDragAndDrop";
-import { ArchivedCollectionLink } from "./ArchivedCollectionLink";
-import { StyledError } from "./Collections";
-import PlaceholderCollections from "./PlaceholderCollections";
+import { ArchivedNotebookLink } from "./ArchivedNotebookLink";
+import { StyledError } from "./Notebooks";
+import PlaceholderNotebooks from "./PlaceholderNotebooks";
 import Relative from "./Relative";
 import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
-
 function ArchiveLink() {
-  const { collections } = useStores();
+  const { notebooks } = useStores();
   const { t } = useTranslation();
-
   const [disclosure, setDisclosure] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<boolean | undefined>();
-
-  const { data, loading, error } = useRequest(collections.fetchArchived, true);
-
+  const { data, loading, error } = useRequest(notebooks.fetchArchived, true);
   useEffect(() => {
     if (!isUndefined(data) && !loading && isUndefined(error)) {
       setDisclosure(data.length > 0);
     }
   }, [data, loading, error]);
-
   useEffect(() => {
-    setDisclosure(collections.archived.length > 0);
-  }, [collections.archived]);
-
+    setDisclosure(notebooks.archived.length > 0);
+  }, [notebooks.archived]);
   useEffect(() => {
     if (disclosure && isUndefined(expanded)) {
       setExpanded(false);
     }
   }, [disclosure, expanded]);
-
   const handleDisclosureClick = useCallback((ev) => {
     ev.preventDefault();
     ev.stopPropagation();
     setExpanded((e) => !e);
   }, []);
-
   const handleClick = useCallback(() => {
     setExpanded(true);
   }, []);
-
   const [{ isOverArchiveSection, isDragging }, dropToArchiveRef] =
     useDropToArchive();
-
   return (
     <SidebarContext.Provider value="archive">
       <Flex column>
@@ -75,18 +65,14 @@ function ArchiveLink() {
         </div>
         {expanded === true ? (
           <Relative>
-            <PaginatedList<Collection>
+            <PaginatedList<Notebook>
               aria-label={t("Archived notebooks")}
-              fetch={collections.fetchArchived}
-              items={collections.archived}
-              loading={<PlaceholderCollections />}
+              fetch={notebooks.fetchArchived}
+              items={notebooks.archived}
+              loading={<PlaceholderNotebooks />}
               renderError={(props) => <StyledError {...props} />}
               renderItem={(item) => (
-                <ArchivedCollectionLink
-                  key={item.id}
-                  depth={2}
-                  collection={item}
-                />
+                <ArchivedNotebookLink key={item.id} depth={2} notebook={item} />
               )}
             />
           </Relative>
@@ -95,5 +81,4 @@ function ArchiveLink() {
     </SidebarContext.Provider>
   );
 }
-
 export default observer(ArchiveLink);

@@ -1,6 +1,5 @@
 import * as React from "react";
 import useEventListener from "./useEventListener";
-
 /**
  * Hook to detect clicks outside of a specified element.
  *
@@ -22,7 +21,6 @@ export default function useOnClickOutside(
     },
     [ref, callback]
   );
-
   useEventListener("pointerdown", listener, window, options);
   useEventListener("touchstart", listener, window, options);
 }

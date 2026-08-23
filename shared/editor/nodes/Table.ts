@@ -49,16 +49,13 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { TableLayout } from "../types";
 import Node from "./Node";
 import { TableView } from "./TableView";
-
 export type TableAttrs = {
   layout: TableLayout | null;
 };
-
 export default class Table extends Node {
   get name() {
     return "table";
   }
-
   get schema(): NodeSpec {
     return {
       content: "tr+",
@@ -81,11 +78,9 @@ export default class Table extends Node {
       },
     };
   }
-
   get rulePlugins() {
     return [tablesRule];
   }
-
   commands() {
     return {
       createTable,
@@ -116,7 +111,6 @@ export default class Table extends Node {
       toggleCellSelectionBackgroundAndCollapseSelection,
     };
   }
-
   keys() {
     return {
       Tab: chainCommands(goToNextCell(1), addRowAndMoveSelection()),
@@ -138,7 +132,6 @@ export default class Table extends Node {
       ArrowUp: moveOutOfTable(-1),
     };
   }
-
   inputRules() {
     return [
       new InputRule(/^(\|--)$/, (state, _, start, end) => {
@@ -150,16 +143,13 @@ export default class Table extends Node {
       }),
     ];
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.renderTable(node);
     state.closeBlock(node);
   }
-
   parseMarkdown() {
     return { block: "table" };
   }
-
   get plugins() {
     return [
       // Note: Important to register columnResizing before tableEditing

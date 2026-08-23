@@ -1,11 +1,9 @@
 import { extensionManager, schema } from "../../test/editor";
-
 const serializer = extensionManager.serializer();
 const parser = extensionManager.parser({
   schema,
   plugins: extensionManager.rulePlugins,
 });
-
 /**
  * Wraps a block node in a single-cell table so cell serialization/parsing can
  * be exercised in isolation.
@@ -40,7 +38,6 @@ function tableWith(cell: Record<string, unknown>) {
     ],
   });
 }
-
 it("round-trips a notice inside a table cell", () => {
   const doc = tableWith({
     type: "container_notice",
@@ -56,11 +53,9 @@ it("round-trips a notice inside a table cell", () => {
       },
     ],
   });
-
   const markdown = serializer.serialize(doc, { commonMark: true });
   expect(parser.parse(markdown)!.toJSON()).toEqual(doc.toJSON());
 });
-
 it("round-trips a code fence inside a table cell", () => {
   // A ``` fence always parses to a code_block node (see CodeFence.parseMarkdown),
   // so the round-trippable shape is code_block regardless of the table.
@@ -69,11 +64,9 @@ it("round-trips a code fence inside a table cell", () => {
     attrs: { language: "javascript", wrap: false },
     content: [{ type: "text", text: "a | b\nc \\ d" }],
   });
-
   const markdown = serializer.serialize(doc, { commonMark: true });
   expect(parser.parse(markdown)!.toJSON()).toEqual(doc.toJSON());
 });
-
 it("round-trips a toggle block inside a table cell", () => {
   const doc = tableWith({
     type: "container_toggle",
@@ -88,21 +81,17 @@ it("round-trips a toggle block inside a table cell", () => {
       },
     ],
   });
-
   const markdown = serializer.serialize(doc, { commonMark: true });
   expect(parser.parse(markdown)!.toJSON()).toEqual(doc.toJSON());
 });
-
 it("round-trips a math block inside a table cell", () => {
   const doc = tableWith({
     type: "math_block",
     content: [{ type: "text", text: "a | b\n\\frac{1}{2}" }],
   });
-
   const markdown = serializer.serialize(doc, { commonMark: true });
   expect(parser.parse(markdown)!.toJSON()).toEqual(doc.toJSON());
 });
-
 it("keeps a multi-line paragraph cell as hard breaks, not a fenced block", () => {
   const doc = tableWith({
     type: "paragraph",
@@ -112,7 +101,6 @@ it("keeps a multi-line paragraph cell as hard breaks, not a fenced block", () =>
       { type: "text", text: "Line two" },
     ],
   });
-
   const markdown = serializer.serialize(doc, { commonMark: true });
   expect(parser.parse(markdown)!.toJSON()).toEqual(doc.toJSON());
 });

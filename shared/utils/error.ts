@@ -7,7 +7,6 @@
 export function toError(value: unknown): Error {
   return value instanceof Error ? value : new Error(String(value));
 }
-
 /**
  * Extract a human-readable message from an unknown value, such as a value caught in a try/catch.
  *
@@ -17,7 +16,6 @@ export function toError(value: unknown): Error {
 export function errToString(value: unknown): string {
   return value instanceof Error ? value.message : String(value);
 }
-
 /**
  * Extract the identifier from an unknown value, such as a value caught in a try/catch. Errors
  * thrown by the application carry an `id` describing the type of failure, however they may not

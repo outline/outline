@@ -5,24 +5,20 @@ import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { formatCurrency } from "~/utils/format";
-
 /** One line's sales. */
 export interface Seller {
   name: string;
   units: number;
   revenue: number;
 }
-
 interface Props {
   sellers: Seller[];
   /** How many to show. */
   limit?: number;
 }
-
 const Row = styled(Flex)`
   padding: 6px 0;
 `;
-
 const Track = styled.div`
   flex: 1;
   height: 6px;
@@ -30,14 +26,14 @@ const Track = styled.div`
   background: ${s("backgroundSecondary")};
   overflow: hidden;
 `;
-
-const Fill = styled.div<{ $share: number }>`
+const Fill = styled.div<{
+  $share: number;
+}>`
   width: ${(props) => Math.max(2, props.$share * 100)}%;
   height: 100%;
   background: ${s("accent")};
   opacity: 0.7;
 `;
-
 /**
  * What is selling, as bars against the best seller.
  *
@@ -53,11 +49,9 @@ export function TopSellers({ sellers, limit = 5 }: Props) {
   const selling = sellers.filter((seller) => seller.units > 0);
   const shown = selling.slice(0, limit);
   const best = shown[0]?.units ?? 0;
-
   if (shown.length === 0) {
     return <Empty>{t("Nothing has sold yet.")}</Empty>;
   }
-
   return (
     <>
       {shown.map((seller) => (

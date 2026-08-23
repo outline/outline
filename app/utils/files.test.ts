@@ -1,5 +1,4 @@
 import { extname } from "./files";
-
 describe("#extname", () => {
   test("should extract file extension from string", () => {
     expect(extname("one.doc")).toBe(".doc");

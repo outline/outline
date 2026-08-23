@@ -28,25 +28,21 @@ import { ConnectedIcon } from "~/components/Icons/ConnectedIcon";
 import { client } from "~/utils/ApiClient";
 import { useTheme } from "styled-components";
 import { VStack } from "~/components/primitives/VStack";
-
 function Authentication() {
   const { authenticationProviders, dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const theme = useTheme();
-
   const {
     data: providers,
     loading,
     request,
   } = useRequest(authenticationProviders.fetchPage);
-
   React.useEffect(() => {
     if (!providers && !loading) {
       void request();
     }
   }, [loading, providers, request]);
-
   const handleGuestSigninChange = React.useCallback(
     async (checked: boolean) => {
       try {
@@ -58,7 +54,6 @@ function Authentication() {
     },
     [team, t]
   );
-
   const handleToggleProvider = React.useCallback(
     async (provider: AuthenticationProvider, isEnabled: boolean) => {
       try {
@@ -70,7 +65,6 @@ function Authentication() {
     },
     [t]
   );
-
   const handleRemoveProvider = React.useCallback(
     async (provider: AuthenticationProvider) => {
       dialogs.openModal({
@@ -96,14 +90,12 @@ function Authentication() {
     },
     [dialogs, t]
   );
-
   const handleConnectProvider = React.useCallback((name: string) => {
     setPostLoginPath(settingsPath("authentication"));
     // Start the flow on the current workspace origin so the signed-in actor is
     // captured from the host-scoped session before bouncing to the apex.
     window.location.href = toRelative(getRedirectUrl(`/auth/${name}`));
   }, []);
-
   const handleToggleGroupSync = React.useCallback(
     (provider: AuthenticationProvider, checked: boolean) => {
       if (checked) {
@@ -134,7 +126,6 @@ function Authentication() {
     },
     [t, dialogs]
   );
-
   const handleGroupClaimChange = React.useCallback(
     async (provider: AuthenticationProvider, groupClaim: string) => {
       try {
@@ -151,12 +142,10 @@ function Authentication() {
     },
     [t]
   );
-
   const showSuccessMessage = React.useMemo(
     () => () => toast.success(t("Settings saved")),
     [t]
   );
-
   return (
     <Scene title={t("Authentication")} icon={<PadlockIcon />}>
       <Heading>{t("Authentication")}</Heading>
@@ -322,7 +311,6 @@ function Authentication() {
     </Scene>
   );
 }
-
 const DisableGroupSyncDialog = observer(function DisableGroupSyncDialog({
   provider,
   onSubmit,
@@ -333,7 +321,6 @@ const DisableGroupSyncDialog = observer(function DisableGroupSyncDialog({
   const { t } = useTranslation();
   const [action, setAction] = React.useState("keep");
   const [isSaving, setIsSaving] = React.useState(false);
-
   const options = React.useMemo(
     () => [
       {
@@ -351,7 +338,6 @@ const DisableGroupSyncDialog = observer(function DisableGroupSyncDialog({
     ],
     [t]
   );
-
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -363,13 +349,11 @@ const DisableGroupSyncDialog = observer(function DisableGroupSyncDialog({
             groupSyncEnabled: false,
           },
         });
-
         if (action === "delete") {
           await client.post("/groups.deleteAll", {
             authenticationProviderId: provider.id,
           });
         }
-
         toast.success(t("Settings saved"));
         onSubmit();
       } catch (err) {
@@ -380,7 +364,6 @@ const DisableGroupSyncDialog = observer(function DisableGroupSyncDialog({
     },
     [provider, action, onSubmit, t]
   );
-
   return (
     <form onSubmit={handleSubmit}>
       <Flex gap={12} column>
@@ -405,5 +388,4 @@ const DisableGroupSyncDialog = observer(function DisableGroupSyncDialog({
     </form>
   );
 });
-
 export default observer(Authentication);

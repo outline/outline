@@ -10,13 +10,11 @@ import Text from "~/components/Text";
 import { StatusChip } from "~/components/StatusChip";
 import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 /** Nights between two dates, minimum one. */
 function nights(checkIn: string, checkOut: string): number {
   const span = new Date(checkOut).getTime() - new Date(checkIn).getTime();
   return Math.max(1, Math.round(span / 86400000));
 }
-
 /**
  * One customer: their pets, and everything the shop has done for them.
  *
@@ -28,16 +26,16 @@ function nights(checkIn: string, checkOut: string): number {
 function CustomerDetail() {
   const { t } = useTranslation();
   const history = useHistory();
-  const { customerId } = useParams<{ customerId: string }>();
+  const { customerId } = useParams<{
+    customerId: string;
+  }>();
   const customers = useShop((state) => state.customers);
   const boardings = useShop((state) => state.boardings);
   const grooming = useShop((state) => state.grooming);
   const invoices = useShop((state) => state.invoices);
   const loyalty = useShop((state) => state.loyalty);
   const isLoading = useShop((state) => state.isLoading);
-
   const customer = customers.find((item) => item.id === customerId);
-
   if (!customer) {
     return (
       <AppPage title={t("Customer")}>
@@ -56,7 +54,6 @@ function CustomerDetail() {
       </AppPage>
     );
   }
-
   const theirBoardings = boardings.filter(
     (item) => item.customerId === customer.id
   );
@@ -70,7 +67,6 @@ function CustomerDetail() {
   const owed = theirInvoices
     .filter((invoice) => invoice.status !== "void")
     .reduce((sum, invoice) => sum + invoice.due, 0);
-
   return (
     <AppPage
       title={customer.name}
@@ -140,9 +136,7 @@ function CustomerDetail() {
         <ListItem
           key={appointment.id}
           title={`${appointment.service} · ${appointment.petName}`}
-          subtitle={`${formatDate(appointment.scheduledAt)} · ${
-            appointment.groomerName
-          }`}
+          subtitle={`${formatDate(appointment.scheduledAt)} · ${appointment.groomerName}`}
           actions={
             <Flex align="center" gap={8}>
               <StatusChip status={appointment.status} />
@@ -223,5 +217,4 @@ function CustomerDetail() {
     </AppPage>
   );
 }
-
 export default CustomerDetail;

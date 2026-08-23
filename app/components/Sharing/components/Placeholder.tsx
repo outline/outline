@@ -4,11 +4,9 @@ import Fade from "~/components/Fade";
 import PlaceholderText from "~/components/PlaceholderText";
 import { ListItem } from "../components/ListItem";
 import DelayedMount from "~/components/DelayedMount";
-
 type Props = {
   count?: number;
 };
-
 /**
  * Placeholder for a list item in the share popover.
  */

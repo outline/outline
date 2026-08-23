@@ -28,7 +28,6 @@ import { StickyFilters } from "./components/StickyFilters";
 import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
 import { HStack } from "~/components/primitives/HStack";
-
 function Users() {
   const appName = env.APP_NAME;
   const location = useLocation();
@@ -39,7 +38,6 @@ function Users() {
   const params = useQuery();
   const can = usePolicy(team);
   const [query, setQuery] = useState("");
-
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
@@ -52,7 +50,6 @@ function Users() {
     }),
     [params]
   );
-
   const sort: ColumnSort = useMemo(
     () => ({
       id: reqParams.sort,
@@ -60,7 +57,6 @@ function Users() {
     }),
     [reqParams.sort, reqParams.direction]
   );
-
   const { data, error, loading, next } = useTableRequest({
     data: getFilteredUsers({
       users,
@@ -72,7 +68,6 @@ function Users() {
     reqFn: users.fetchPage,
     reqParams,
   });
-
   const updateParams = useCallback(
     (name: string, value: string) => {
       if (value) {
@@ -80,7 +75,6 @@ function Users() {
       } else {
         params.delete(name);
       }
-
       history.replace({
         pathname: location.pathname,
         search: params.toString(),
@@ -88,33 +82,27 @@ function Users() {
     },
     [params, history, location.pathname]
   );
-
   const handleStatusFilter = useCallback(
     (status) => updateParams("filter", status),
     [updateParams]
   );
-
   const handleRoleFilter = useCallback(
     (role) => updateParams("role", role),
     [updateParams]
   );
-
   const handleSearch = useCallback((event) => {
     const { value } = event.target;
     setQuery(value);
   }, []);
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load users"));
     }
   }, [t, error]);
-
   useEffect(() => {
     const timeout = setTimeout(() => updateParams("query", query), 250);
     return () => clearTimeout(timeout);
   }, [query, updateParams]);
-
   return (
     <Scene
       title={t("Users")}
@@ -181,7 +169,6 @@ function Users() {
     </Scene>
   );
 }
-
 function getFilteredUsers({
   users,
   query,
@@ -194,7 +181,6 @@ function getFilteredUsers({
   role?: string;
 }) {
   let filteredUsers;
-
   switch (filter) {
     case "all":
       filteredUsers = users.all;
@@ -208,24 +194,18 @@ function getFilteredUsers({
     default:
       filteredUsers = users.active;
   }
-
   if (role) {
     filteredUsers = filteredUsers.filter((user) => user.role === role);
   }
-
   if (query) {
     filteredUsers = queriedUsers(filteredUsers, query);
   }
-
   return filteredUsers;
 }
-
 const LargeUserStatusFilter = styled(UserStatusFilter)`
   height: 32px;
 `;
-
 const LargeUserRoleFilter = styled(UserRoleFilter)`
   height: 32px;
 `;
-
 export default observer(Users);

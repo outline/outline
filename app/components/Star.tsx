@@ -3,43 +3,33 @@ import { StarredIcon, UnstarredIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import { hover } from "@shared/styles";
-import type Collection from "~/models/Collection";
-import type Document from "~/models/Document";
-import {
-  starCollection,
-  unstarCollection,
-} from "~/actions/definitions/collections";
-import { starDocument, unstarDocument } from "~/actions/definitions/documents";
+import type Notebook from "~/models/Notebook";
+import type Note from "~/models/Note";
+import { starNotebook, unstarNotebook } from "~/actions/definitions/notebooks";
+import { starNote, unstarNote } from "~/actions/definitions/documents";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import NudeButton from "./NudeButton";
-
 type Props = {
   /** Target collection */
-  collection?: Collection;
-  /** Target document */
-  document?: Document;
+  notebook?: Notebook;
+  /** Target note */
+  note?: Note;
   /** Size of the star */
   size?: number;
   /** Color override for the star */
   color?: string;
 };
-
-function Star({ size, document, collection, color, ...rest }: Props) {
+function Star({ size, note, notebook, color, ...rest }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-
-  const target = document || collection;
-
+  const target = note || notebook;
   if (!target) {
     return null;
   }
-
   return (
     <ActionContextProvider
       value={{
-        activeModels: [document, collection].filter(
-          (m): m is Document | Collection => !!m
-        ),
+        activeModels: [note, notebook].filter((m): m is Note | Notebook => !!m),
       }}
     >
       <NudeButton
@@ -49,14 +39,14 @@ function Star({ size, document, collection, color, ...rest }: Props) {
           delay: 500,
         }}
         action={
-          collection
-            ? collection.isStarred
-              ? unstarCollection
-              : starCollection
-            : document
-              ? document.isStarred
-                ? unstarDocument
-                : starDocument
+          notebook
+            ? notebook.isStarred
+              ? unstarNotebook
+              : starNotebook
+            : note
+              ? note.isStarred
+                ? unstarNote
+                : starNote
               : undefined
         }
         size={size}
@@ -75,7 +65,6 @@ function Star({ size, document, collection, color, ...rest }: Props) {
     </ActionContextProvider>
   );
 }
-
 export const AnimatedStar = styled(StarredIcon)`
   flex-shrink: 0;
   transition: all 100ms ease-in-out;
@@ -91,5 +80,4 @@ export const AnimatedStar = styled(StarredIcon)`
     display: none;
   }
 `;
-
 export default observer(Star);

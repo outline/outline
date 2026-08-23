@@ -33,7 +33,6 @@ import { MentionType } from "@shared/types";
 import { toISODate } from "@shared/utils/date";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Desktop from "~/utils/Desktop";
-
 const Img = styled(Image)`
   border-radius: 2px;
   background: #fff;
@@ -42,13 +41,11 @@ const Img = styled(Image)`
   width: 18px;
   height: 18px;
 `;
-
 export default function blockMenuItems(
   t: TFunction,
-  documentRef: React.RefObject<HTMLDivElement>
+  noteRef: React.RefObject<HTMLDivElement>
 ): MenuItem[] {
-  const documentWidth = documentRef.current?.clientWidth ?? 0;
-
+  const noteWidth = noteRef.current?.clientWidth ?? 0;
   const items = [
     {
       name: "heading",
@@ -142,7 +139,7 @@ export default function blockMenuItems(
       attrs: {
         rowsCount: 3,
         colsCount: 3,
-        colWidth: documentWidth / 3,
+        colWidth: noteWidth / 3,
       },
     },
     {
@@ -282,7 +279,6 @@ export default function blockMenuItems(
       keywords: "diagram flowchart draw.io",
     },
   ];
-
   // Filter out diagrams.net in desktop app
   return Desktop.isElectron()
     ? items.filter((item) => item.name !== "editDiagram")

@@ -10,16 +10,13 @@ import { InputSelect } from "~/components/InputSelect";
 import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import { useShop } from "~/stores/shop";
-
 /** A date input wants `yyyy-mm-dd`, not an ISO timestamp. */
 const asDateValue = (date: Date) => date.toISOString().slice(0, 10);
-
 /** Nights between two dates, minimum one. */
 function nights(checkIn: string, checkOut: string): number {
   const span = new Date(checkOut).getTime() - new Date(checkIn).getTime();
   return Math.max(1, Math.round(span / 86400000));
 }
-
 /**
  * Front-desk intake for a stay.
  *
@@ -35,7 +32,6 @@ function BoardingNew() {
   const rooms = useShop((state) => state.rooms);
   const customers = useShop((state) => state.customers);
   const createBoarding = useShop((state) => state.createBoarding);
-
   const fields = useFields({
     customerName: "",
     petName: "",
@@ -44,13 +40,11 @@ function BoardingNew() {
     checkOut: asDateValue(new Date(Date.now() + 3 * 86400000)),
   });
   const submission = useSubmit();
-
   const roomId = fields.get("roomId");
   const checkIn = fields.get("checkIn");
   const checkOut = fields.get("checkOut");
   const room = rooms.find((item) => item.id === roomId);
   const stay = nights(checkIn, checkOut);
-
   const handleSubmit = () =>
     void submission.run(async () => {
       const result = await createBoarding({
@@ -60,7 +54,6 @@ function BoardingNew() {
         checkIn,
         checkOut,
       });
-
       if (result?.created && result.boarding) {
         history.push(`/boardings/${result.boarding.id}`);
         return;
@@ -73,7 +66,6 @@ function BoardingNew() {
       }
       return t("Give us the owner, the pet, and a room.");
     });
-
   return (
     <AppPage
       title={t("New boarding")}
@@ -160,5 +152,4 @@ function BoardingNew() {
     </AppPage>
   );
 }
-
 export default BoardingNew;

@@ -11,14 +11,12 @@ import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import { useResizeHandle } from "~/hooks/useResizeHandle";
 import { sidebarAppearDuration } from "~/styles/animations";
 import { useDirection } from "@radix-ui/react-direction";
-
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   border?: boolean;
   /** When true, skip the entrance animation and render at full width immediately. */
   skipInitialAnimation?: boolean;
 }
-
 function Aside({ children, border, className, skipInitialAnimation }: Props) {
   const theme = useTheme();
   const { ui } = useStores();
@@ -27,7 +25,6 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
   const minWidth = theme.sidebarResizeMinWidth;
   const windowScrollbarWidth = useWindowScrollbarWidth();
   const direction = useDirection();
-
   const measure = React.useCallback(
     (event: MouseEvent) => {
       // Measure from the sidebar's own anchored edge rather than the window,
@@ -36,7 +33,6 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
       if (!rect) {
         return undefined;
       }
-
       const distance =
         direction === "rtl"
           ? event.clientX - rect.left
@@ -45,17 +41,14 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
     },
     [direction, windowScrollbarWidth]
   );
-
   const handleResize = React.useCallback(
     (width: number) => ui.set({ sidebarRightWidth: width }),
     [ui]
   );
-
   const handleResizeEnd = React.useCallback(() => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
-
     // Settle within the bounds if released while stretched beyond them.
     const settled = Math.max(
       Math.min(ui.sidebarRightWidth, maxWidth),
@@ -65,7 +58,6 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
       ui.set({ sidebarRightWidth: settled });
     }
   }, [ui, minWidth, maxWidth]);
-
   const { isResizing, startResize } = useResizeHandle({
     measure,
     onResize: handleResize,
@@ -73,11 +65,9 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
     min: minWidth,
     max: maxWidth,
   });
-
   const handleReset = React.useCallback(() => {
     ui.set({ sidebarRightWidth: theme.sidebarRightWidth });
   }, [ui, theme.sidebarRightWidth]);
-
   // Resizing tracks the pointer exactly, otherwise width changes spring – which also animates the
   // snap back to the maximum or minimum when released from a stretched position.
   const transition = isResizing
@@ -87,7 +77,6 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
         bounce: 0.2,
         duration: sidebarAppearDuration / 1000,
       };
-
   const animationProps = {
     initial: skipInitialAnimation
       ? false
@@ -105,7 +94,6 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
       opacity: 0,
     },
   };
-
   // The inner element is positioned out of flow, so it must follow the same width to stay in step
   // with the container it visually fills.
   const positionAnimationProps = {
@@ -115,7 +103,6 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
       width: ui.sidebarRightWidth - (windowScrollbarWidth ?? 0),
     },
   };
-
   return (
     <Sidebar
       {...animationProps}
@@ -135,7 +122,6 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
     </Sidebar>
   );
 }
-
 const Position = styled(m.div)`
   display: flex;
   flex-direction: column;
@@ -144,7 +130,6 @@ const Position = styled(m.div)`
   bottom: 0;
   max-width: 80%;
 `;
-
 const Sidebar = styled(m.div)<{
   $border?: boolean;
 }>`
@@ -169,5 +154,4 @@ const Sidebar = styled(m.div)<{
     position: relative;
   `}
 `;
-
 export default observer(Aside);

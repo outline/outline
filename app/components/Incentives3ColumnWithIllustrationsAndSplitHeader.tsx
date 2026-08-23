@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -35,7 +35,6 @@ const incentives = [
       "If you don't like it, trade it to one of your friends for something of theirs. Don't send it here though.",
   },
 ];
-
 /**
  * Tailwind UI – incentives: 3 column with illustrations and split header.
  *

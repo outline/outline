@@ -9,21 +9,17 @@ import Flex from "~/components/Flex";
 import Key from "~/components/Key";
 import Text from "~/components/Text";
 import { HStack } from "../primitives/HStack";
-
 type Props = {
   action: ActionImpl;
   active: boolean;
   currentRootActionId: string | null | undefined;
 };
-
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
-
 function replaceResultMarks(tag: string) {
   // don't use SEARCH_RESULT_REGEX here as it causes
   // an infinite loop to trigger a regex inside it's own callback
   return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
 }
-
 function CommandBarItem(
   { action, active, currentRootActionId }: Props,
   ref: React.RefObject<HTMLDivElement>
@@ -36,13 +32,11 @@ function CommandBarItem(
     const index = action.ancestors.findIndex(
       (ancestor) => ancestor.id === currentRootActionId
     );
-
     // +1 removes the currentRootAction; e.g. if we are on the "Set theme"
     // parent action, the UI should not display "Set theme… > Dark" but rather
     // just "Dark"
     return action.ancestors.slice(index + 1);
   }, [action.ancestors, currentRootActionId]);
-
   return (
     <Item active={active} ref={ref}>
       <Content>
@@ -103,13 +97,11 @@ function CommandBarItem(
     </Item>
   );
 }
-
 const Shortcut = styled.div`
   display: grid;
   grid-auto-flow: column;
   gap: 4px;
 `;
-
 const Icon = styled(Flex)`
   align-items: center;
   justify-content: center;
@@ -118,17 +110,16 @@ const Icon = styled(Flex)`
   color: ${s("textSecondary")};
   flex-shrink: 0;
 `;
-
 const Ancestor = styled.span`
   color: ${s("textSecondary")};
 `;
-
 const Content = styled(HStack)`
   ${ellipsis()}
   flex-shrink: 1;
 `;
-
-const Item = styled.div<{ active?: boolean }>`
+const Item = styled.div<{
+  active?: boolean;
+}>`
   font-size: 14px;
   padding: 9px 12px;
   margin: 0 8px;
@@ -152,10 +143,8 @@ const Item = styled.div<{ active?: boolean }>`
       }
     `}
 `;
-
 const ForwardIcon = styled(BackIcon)`
   transform: rotate(180deg);
   flex-shrink: 0;
 `;
-
 export default React.forwardRef<HTMLDivElement, Props>(CommandBarItem);

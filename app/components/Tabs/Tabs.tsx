@@ -5,8 +5,9 @@ import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import useWindowSize from "~/hooks/useWindowSize";
-
-const Nav = styled.nav<{ $shadowVisible?: boolean }>`
+const Nav = styled.nav<{
+  $shadowVisible?: boolean;
+}>`
   border-bottom: 1px solid ${s("divider")};
   margin: 12px 0;
   overflow-y: auto;
@@ -41,7 +42,6 @@ const Nav = styled.nav<{ $shadowVisible?: boolean }>`
         : `transparent`};
   }
 `;
-
 // When sticky we need extra background coverage around the sides otherwise
 // items that scroll past can "stick out" the sides of the heading
 const Sticky = styled.div`
@@ -52,18 +52,15 @@ const Sticky = styled.div`
   background: ${s("background")};
   z-index: 1;
 `;
-
 export const Separator = styled.span`
   border-left: 1px solid ${s("divider")};
   position: relative;
   top: 2px;
   margin-top: 6px;
 `;
-
 type Props = {
   children?: React.ReactNode;
 };
-
 export const Tabs: React.FC = ({ children }: Props) => {
   const ref = React.useRef<HTMLElement>(null);
   const [shadowVisible, setShadow] = React.useState(false);
@@ -71,7 +68,6 @@ export const Tabs: React.FC = ({ children }: Props) => {
   // Namespace the shared layout animation so multiple tab bars on screen at
   // once don't share the "underline" layoutId and animate between each other.
   const layoutGroupId = React.useMemo(() => uniqueId("tabs-"), []);
-
   const updateShadows = React.useCallback(() => {
     const c = ref.current;
     if (!c) {
@@ -80,16 +76,13 @@ export const Tabs: React.FC = ({ children }: Props) => {
     const scrollLeft = c.scrollLeft;
     const wrapperWidth = c.scrollWidth - c.clientWidth;
     const fade = !!(wrapperWidth - scrollLeft !== 0);
-
     if (fade !== shadowVisible) {
       setShadow(fade);
     }
   }, [shadowVisible]);
-
   React.useEffect(() => {
     updateShadows();
   }, [width, updateShadows]);
-
   return (
     <LayoutGroup id={layoutGroupId}>
       <Sticky>

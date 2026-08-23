@@ -1,6 +1,5 @@
-import { useDocumentContext } from "~/components/DocumentContext";
+import { useNoteContext } from "~/components/NoteContext";
 import useIdle from "./useIdle";
-
 const activityEvents = [
   "click",
   "mousemove",
@@ -11,9 +10,8 @@ const activityEvents = [
   "touchmove",
   "focus",
 ];
-
 export default function useEditingFocus() {
-  const { editor } = useDocumentContext();
+  const { editor } = useNoteContext();
   const isIdle = useIdle(3000, activityEvents);
   return isIdle && !!editor?.view.hasFocus();
 }

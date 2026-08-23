@@ -1,6 +1,5 @@
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const statuses: Record<string, string> = {
   offline: "text-gray-500 bg-gray-100/10",
   online: "text-green-400 bg-green-400/10",
@@ -52,7 +51,6 @@ const deployments = [
     environment: "Preview",
   },
 ];
-
 /**
  * Tailwind UI – stacked lists: narrow with badges on dark.
  *

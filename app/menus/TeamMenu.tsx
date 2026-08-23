@@ -14,15 +14,12 @@ import useActionContext from "~/hooks/useActionContext";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { ActionSeparator } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
-
 type Props = {
   children?: React.ReactNode;
 };
-
 const TeamMenu: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
   const context = useActionContext({ isMenu: true });
-
   // NOTE: it's useful to memoize on the team id and session because the action
   // menu is not cached at all.
   const actions = React.useMemo(
@@ -36,14 +33,11 @@ const TeamMenu: React.FC = ({ children }: Props) => {
     ],
     [context]
   );
-
   const rootAction = useMenuAction(actions);
-
   return (
     <DropdownMenu action={rootAction} align="start" ariaLabel={t("Account")}>
       {children}
     </DropdownMenu>
   );
 };
-
 export default observer(TeamMenu);

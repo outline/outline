@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { errToString } from "@shared/utils/error";
 import { s, ellipsis } from "@shared/styles";
 import EventBoundary from "@shared/components/EventBoundary";
-
 type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onSubmit"> & {
   /** A callback when the title is submitted. */
   onSubmit: (title: string) => Promise<void> | void;
@@ -21,12 +20,10 @@ type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onSubmit"> & {
   /** The default editing state. */
   isEditing?: boolean;
 };
-
 export type RefHandle = {
   /** A function to set the editing state. */
   setIsEditing: (isEditing: boolean) => void;
 };
-
 function EditableTitle(
   { title, onSubmit, canUpdate, onEditing, onCancel, ...rest }: Props,
   ref: React.RefObject<RefHandle>
@@ -35,22 +32,18 @@ function EditableTitle(
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-
   React.useImperativeHandle(ref, () => ({
     setIsEditing,
   }));
-
   React.useEffect(() => {
     setValue(title);
   }, [title]);
-
   const handleChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setValue(event.target.value);
     },
     []
   );
-
   const handleDoubleClick = React.useCallback(
     (event: React.MouseEvent<HTMLSpanElement>) => {
       if (event.altKey) {
@@ -62,7 +55,6 @@ function EditableTitle(
     },
     []
   );
-
   const stopPropagation = React.useCallback(
     (event: React.MouseEvent<HTMLSpanElement>) => {
       event.preventDefault();
@@ -70,14 +62,12 @@ function EditableTitle(
     },
     []
   );
-
   const handleFocus = React.useCallback(
     (event: React.FocusEvent<HTMLInputElement>) => {
       event.target.select();
     },
     []
   );
-
   const handleSave = React.useCallback(
     async (
       ev:
@@ -87,20 +77,16 @@ function EditableTitle(
     ) => {
       ev.preventDefault();
       ev.stopPropagation();
-
       if (isSubmitting) {
         return;
       }
-
       const trimmedValue = value.trim();
-
       if (trimmedValue === originalValue || trimmedValue.length === 0) {
         setValue(originalValue);
         setIsEditing(false);
         onCancel?.();
         return;
       }
-
       setIsSubmitting(true);
       try {
         await onSubmit(trimmedValue);
@@ -109,7 +95,6 @@ function EditableTitle(
       } catch (error) {
         setValue(value);
         setIsEditing(true);
-
         toast.error(errToString(error));
         throw error;
       } finally {
@@ -118,7 +103,6 @@ function EditableTitle(
     },
     [originalValue, value, onCancel, onSubmit, isSubmitting]
   );
-
   const handleKeyDown = React.useCallback(
     async (ev: React.KeyboardEvent<HTMLInputElement>) => {
       if (ev.nativeEvent.isComposing) {
@@ -135,11 +119,9 @@ function EditableTitle(
     },
     [handleSave, onCancel, originalValue]
   );
-
   React.useEffect(() => {
     onEditing?.(isEditing);
   }, [onEditing, isEditing]);
-
   return (
     <>
       {isEditing ? (
@@ -170,11 +152,9 @@ function EditableTitle(
     </>
   );
 }
-
 const Text = styled.div`
   ${ellipsis()}
 `;
-
 const Input = styled.input`
   color: ${s("text")};
   background: ${s("background")};
@@ -189,5 +169,4 @@ const Input = styled.input`
     outline-color: ${s("accent")};
   }
 `;
-
 export default React.forwardRef(EditableTitle);

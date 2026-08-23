@@ -7,7 +7,6 @@ import ExtensionManager from "./ExtensionManager";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 import { richExtensions, withComments } from "../nodes";
 import type { ProsemirrorData } from "../../types";
-
 /**
  * The structural subset of a changeset `Change` that this module reads and
  * produces. Using a `Pick` rather than the `Change` class avoids requiring
@@ -17,7 +16,6 @@ type ChangeFields<T> = Pick<
   Change<T>,
   "fromA" | "toA" | "fromB" | "toB" | "deleted" | "inserted"
 >;
-
 /**
  * The maximum number of unchanged characters allowed between two adjacent
  * changes for them to still be merged into a single change. This is
@@ -29,7 +27,6 @@ type ChangeFields<T> = Pick<
  * unchanged words.
  */
 const MAX_UNCHANGED_GAP = 3;
-
 /**
  * Merges adjacent Change objects that represent interleaved deletions/insertions.
  *
@@ -46,32 +43,29 @@ const MAX_UNCHANGED_GAP = 3;
  * @param docOld - The old document (to extract merged deletion content)
  * @returns Changes with adjacent interleaved changes merged
  */
-function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
-  changes: readonly ChangeFields<T>[],
-  docOld: Node
-): ChangeFields<T>[] {
+function mergeInterleavedChanges<
+  T extends {
+    step: Step;
+    slice: Slice | null;
+  },
+>(changes: readonly ChangeFields<T>[], docOld: Node): ChangeFields<T>[] {
   if (changes.length <= 1) {
     return [...changes];
   }
-
   const result: ChangeFields<T>[] = [];
   let i = 0;
-
   while (i < changes.length) {
     const current = changes[i];
-
     // Check if this change and subsequent changes form a contiguous replacement
     // (i.e., they're adjacent in both old and new document positions)
     let j = i + 1;
     while (j < changes.length) {
       const prev = changes[j - 1];
       const next = changes[j];
-
       // Check if changes are adjacent (toA of prev equals fromA of next, same for B)
       // Allow gaps (like hyphens or other unchanged characters between changes)
       const gapA = next.fromA - prev.toA;
       const gapB = next.fromB - prev.toB;
-
       // Check if changes are in the same parent node (e.g., same table cell, same paragraph)
       // by verifying that the gap in the old document doesn't cross node boundaries
       let crossesNodeBoundary = false;
@@ -89,7 +83,6 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
           crossesNodeBoundary = true;
         }
       }
-
       // If gaps are equal, reasonably small, and don't cross node boundaries,
       // they're part of the same logical replacement
       if (
@@ -103,24 +96,31 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
         break;
       }
     }
-
     // The merged change only needs the first deletion/insertion in the window
     // to carry forward the originating step; the spans themselves are
     // recomputed from the window bounds below.
-    let firstDeleted: { length: number; data: T } | undefined;
-    let firstInserted: { length: number; data: T } | undefined;
+    let firstDeleted:
+      | {
+          length: number;
+          data: T;
+        }
+      | undefined;
+    let firstInserted:
+      | {
+          length: number;
+          data: T;
+        }
+      | undefined;
     for (let k = i; k < j; k++) {
       firstDeleted ??= changes[k].deleted[0];
       firstInserted ??= changes[k].inserted[0];
     }
-
     // Merge the window only when it is a genuine replacement — it must contain
     // both a deletion and an insertion. Otherwise a cluster of pure insertions
     // (or pure deletions) separated by a short unchanged gap would merge and
     // render the unchanged text between them as inserted/deleted.
     if (j > i + 1 && firstDeleted && firstInserted) {
       const lastChange = changes[j - 1];
-
       // Create merged change. The deletion slice holds the original (old) text
       // spanning the whole window so it renders as one block; it is not treated
       // as a modification downstream because its text differs from the insertion.
@@ -145,7 +145,6 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
           },
         ],
       };
-
       result.push(mergedChange);
       i = j;
     } else {
@@ -153,15 +152,12 @@ function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
       i++;
     }
   }
-
   return result;
 }
-
 /**
  * Marks that carry no document content and should not be surfaced as changes.
  */
 const IGNORED_MARKS = ["comment"];
-
 /**
  * Recursively removes marks that are irrelevant to a diff from a node, so that
  * adding or removing one does not render as a change to the text it covers.
@@ -173,18 +169,15 @@ function removeIgnoredMarks(node: Node): Node {
   const marks = node.marks.filter(
     (mark) => !IGNORED_MARKS.includes(mark.type.name)
   );
-
   if (node.isText || !node.childCount) {
     return node.mark(marks);
   }
-
   const children: Node[] = [];
   node.content.forEach((child) => children.push(removeIgnoredMarks(child)));
   return node.copy(Fragment.fromArray(children)).mark(marks);
 }
-
 /**
- * Represents a modification (attribute change) in the document.
+ * Represents a modification (attribute change) in the note.
  */
 export type Modification = {
   length: number;
@@ -195,7 +188,6 @@ export type Modification = {
     newAttrs: Record<string, unknown>;
   };
 };
-
 /**
  * Extended Change type that includes modifications.
  */
@@ -205,36 +197,28 @@ export interface ExtendedChange extends Pick<
 > {
   modified: readonly Modification[];
 }
-
 export type DiffChanges = {
   changes: readonly ExtendedChange[];
   doc: Node;
 };
-
 class AttributeEncoder implements TokenEncoder<string | number> {
   public encodeCharacter(char: number, marks: Mark[]): string | number {
     return `${char}:${this.encodeMarks(marks)}`;
   }
-
   public encodeNodeStart(node: Node): string {
     const nodeName = node.type.name;
     const marks = node.marks;
-
     // Add node attributes if they exist
     let nodeStr = nodeName;
-
     // Enable more attribute encoding as tested
     if (Object.keys(node.attrs).length) {
       nodeStr += ":" + JSON.stringify(node.attrs);
     }
-
     if (!marks.length) {
       return nodeStr;
     }
-
     return `${nodeStr}:${this.encodeMarks(marks)}`;
   }
-
   // See: https://github.com/ProseMirror/prosemirror-changeset/blob/23f67c002e5489e454a0473479e407decb238afe/src/diff.ts#L26
   public encodeNodeEnd({ type }: Node): number {
     let cache: Record<string, number> =
@@ -247,11 +231,9 @@ class AttributeEncoder implements TokenEncoder<string | number> {
     }
     return id;
   }
-
   public compareTokens(a: string | number, b: string | number): boolean {
     return a === b;
   }
-
   private encodeMarks(marks: readonly Mark[]): string {
     return marks
       .map((m) => {
@@ -265,14 +247,13 @@ class AttributeEncoder implements TokenEncoder<string | number> {
       .join(",");
   }
 }
-
 export class ChangesetHelper {
   /**
-   * Calculates a changeset between two revisions of a document.
+   * Calculates a changeset between two revisions of a note.
    *
    * @param revision - The current revision data.
    * @param previousRevision - The previous revision data to compare against.
-   * @returns An object containing the simplified changes and the new document.
+   * @returns An object containing the simplified changes and the new note.
    */
   public static getChangeset(
     revision?: ProsemirrorData | null,
@@ -282,7 +263,6 @@ export class ChangesetHelper {
       // This is the first revision, nothing to compare against
       return null;
     }
-
     try {
       // Create schema from extensions
       const extensionManager = new ExtensionManager(
@@ -292,25 +272,21 @@ export class ChangesetHelper {
         nodes: extensionManager.nodes,
         marks: extensionManager.marks,
       });
-
       // Parse documents from JSON (old = previous revision, new = current revision)
       const original = Node.fromJSON(schema, revision);
-
       // Diffing runs against copies without the ignored marks. Stripping marks
       // leaves every position unchanged, so the resulting changes still line up
-      // with the original document.
+      // with the original note.
       const docOld = removeIgnoredMarks(
         Node.fromJSON(schema, previousRevision)
       );
       const docNew = removeIgnoredMarks(original);
-
       // Calculate the transform and changeset
       const tr = recreateTransform(docOld, docNew, {
         complexSteps: false,
         wordDiffs: true,
         simplifyDiff: true,
       });
-
       // Map steps to capture the actual content being replaced from the document
       // state at that specific step. This ensures deleted content is correctly
       // captured for diff rendering.
@@ -328,33 +304,27 @@ export class ChangesetHelper {
               : null,
         }))
       );
-
       // Merge interleaved deletions/insertions into cleaner blocks
       const changes = mergeInterleavedChanges(
         simplifyChanges(changeset.changes, docNew),
         docOld
       );
-
       // Post-process changes to detect modifications (attribute-only changes)
       const extendedChanges: ExtendedChange[] = changes.map((change) => {
         const modified: Modification[] = [];
         const matchedDeletionIndices = new Set<number>();
         const matchedInsertionIndices = new Set<number>();
-
         // Each deletion entry contains both old (step.slice) and new (slice) content
         // Check if the deletion represents a modification by comparing these
         for (let i = 0; i < change.deleted.length; i++) {
           const deletion = change.deleted[i];
-
           if (!deletion.data.slice || !deletion.data.step.slice) {
             continue;
           }
-
           // deletion.data.step.slice = OLD content (what was in the document)
           // deletion.data.slice = NEW content (what it changed to)
           const oldSlice = deletion.data.step.slice;
           const newSlice = deletion.data.slice;
-
           // Check if both slices have the same number of nodes
           if (
             oldSlice.content.childCount === newSlice.content.childCount &&
@@ -365,17 +335,14 @@ export class ChangesetHelper {
               oldNode: Node;
               newNode: Node;
             }> = [];
-
             // Check each corresponding node pair
             for (let index = 0; index < oldSlice.content.childCount; index++) {
               const oldNode = oldSlice.content.child(index);
               const newNode = newSlice.content.child(index);
-
               // For modifications, we allow:
               // 1. Same node type with different attributes (e.g., code_block language change)
               // 2. Related node types with same semantic group (e.g., td <-> th share "tableCell" group)
               const isSameType = oldNode.type.name === newNode.type.name;
-
               // Check if nodes share a common semantic group (excluding generic "block"/"inline")
               const getSemanticGroups = (node: Node): Set<string> => {
                 const groups = node.type.spec.group?.split(" ") || [];
@@ -383,14 +350,12 @@ export class ChangesetHelper {
                   groups.filter((g) => g !== "block" && g !== "inline")
                 );
               };
-
               const oldGroups = getSemanticGroups(oldNode);
               const newGroups = getSemanticGroups(newNode);
               const hasSharedGroup = Array.from(oldGroups).some((g) =>
                 newGroups.has(g)
               );
               const isRelatedNodeType = !isSameType && hasSharedGroup;
-
               try {
                 if (
                   oldNode.textContent !== newNode.textContent ||
@@ -405,13 +370,11 @@ export class ChangesetHelper {
                   // Same type and same attributes = not a modification
                   isModification = false;
                 }
-
                 nodes.push({ oldNode, newNode });
               } catch {
                 isModification = false;
               }
             }
-
             if (isModification) {
               modified.push({
                 length: deletion.length,
@@ -422,10 +385,8 @@ export class ChangesetHelper {
                   newAttrs: nodes.length === 1 ? nodes[0].newNode.attrs : {},
                 },
               });
-
               // Mark this deletion for removal
               matchedDeletionIndices.add(i);
-
               // Also find and mark corresponding insertion for removal
               for (let j = 0; j < change.inserted.length; j++) {
                 const insertion = change.inserted[j];
@@ -440,7 +401,6 @@ export class ChangesetHelper {
             }
           }
         }
-
         return Object.assign({}, change, {
           deleted: change.deleted.filter(
             (_, index) => !matchedDeletionIndices.has(index)
@@ -451,7 +411,6 @@ export class ChangesetHelper {
           modified,
         });
       });
-
       return {
         changes: extendedChanges,
         doc: original,
@@ -460,6 +419,5 @@ export class ChangesetHelper {
       return null;
     }
   }
-
   private static attributeEncoder = new AttributeEncoder();
 }

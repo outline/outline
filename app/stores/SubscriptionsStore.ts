@@ -2,38 +2,58 @@ import invariant from "invariant";
 import { action } from "mobx";
 import type { SubscriptionType } from "@shared/types";
 import Subscription from "~/models/Subscription";
+import type { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
-
 export default class SubscriptionsStore extends Store<Subscription> {
   actions = [RPCAction.List, RPCAction.Create, RPCAction.Delete];
-
   constructor(rootStore: RootStore) {
     super(rootStore, Subscription);
   }
-
+  @action
+  async create(params: Properties<Subscription>): Promise<Subscription> {
+    const { notebookId, ...rest } = params;
+    const wireParams = {
+      ...rest,
+      collectionId: notebookId,
+    };
+    return super.create(wireParams);
+  }
   @action
   async fetchOne(
-    options: { event: SubscriptionType } & (
-      | { documentId: string }
-      | { collectionId: string }
+    options: {
+      event: SubscriptionType;
+    } & (
+      | {
+          noteId: string;
+        }
+      | {
+          notebookId: string;
+        }
     )
   ) {
     const subscription =
-      "collectionId" in options
-        ? this.getByCollectionId(options.collectionId)
-        : this.getByDocumentId(options.documentId);
-
+      "notebookId" in options
+        ? this.getByNotebookId(options.notebookId)
+        : this.getByNoteId(options.noteId);
     if (subscription) {
       return subscription;
     }
-
     this.isFetching = true;
-
     try {
-      const res = await client.post(`/${this.apiEndpoint}.info`, options);
+      const wireOptions =
+        "notebookId" in options
+          ? (() => {
+              const { notebookId, ...rest } = options;
+              return {
+                ...rest,
+                collectionId: notebookId,
+              };
+            })()
+          : options;
+      const res = await client.post(`/${this.apiEndpoint}.info`, wireOptions);
       if (!res) {
         return;
       }
@@ -48,10 +68,8 @@ export default class SubscriptionsStore extends Store<Subscription> {
       this.isFetching = false;
     }
   }
-
-  getByDocumentId = (documentId: string): Subscription | undefined =>
-    this.find({ documentId });
-
-  getByCollectionId = (collectionId: string): Subscription | undefined =>
-    this.find({ collectionId });
+  getByNoteId = (noteId: string): Subscription | undefined =>
+    this.find({ noteId });
+  getByNotebookId = (notebookId: string): Subscription | undefined =>
+    this.find({ notebookId });
 }

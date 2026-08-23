@@ -1,11 +1,10 @@
 import type { ProsemirrorData } from "../types";
-
 /**
  * Helpers that operate on plain `ProsemirrorData` JSON.
  */
 export class ProsemirrorDataHelper {
   /**
-   * Get a new empty document.
+   * Get a new empty note.
    *
    * @returns a new empty document as JSON.
    */
@@ -20,9 +19,8 @@ export class ProsemirrorDataHelper {
       ],
     };
   }
-
   /**
-   * Returns true if the data looks like an empty document.
+   * Returns true if the data looks like an empty note.
    *
    * @param data The ProsemirrorData to check.
    * @returns True if the document is empty.
@@ -31,7 +29,6 @@ export class ProsemirrorDataHelper {
     if (data.type !== "doc") {
       return false;
     }
-
     if (data.content?.length === 1) {
       const node = data.content[0];
       return (
@@ -41,7 +38,6 @@ export class ProsemirrorDataHelper {
           node.content.length === 0)
       );
     }
-
     return !data.content || data.content.length === 0;
   }
 }

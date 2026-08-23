@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -13,7 +13,6 @@
   ```
 */
 import { PlusIcon } from "@heroicons/react/20/solid";
-
 const people = [
   {
     name: "Lindsay Walton",
@@ -52,7 +51,6 @@ const people = [
       "https://images.unsplash.com/photo-1463453091185-61582044d556?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
   },
 ];
-
 /**
  * Tailwind UI – empty states: with recommendations grid.
  *

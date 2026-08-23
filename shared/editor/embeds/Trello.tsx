@@ -1,10 +1,8 @@
 import * as React from "react";
 import Frame from "../components/Frame";
 import type { EmbedProps as Props } from ".";
-
 function Trello({ matches, ...props }: Props) {
   const objectId = matches[2];
-
   if (matches[1] === "c") {
     return (
       <Frame
@@ -15,7 +13,6 @@ function Trello({ matches, ...props }: Props) {
       />
     );
   }
-
   return (
     <Frame
       {...props}
@@ -26,5 +23,4 @@ function Trello({ matches, ...props }: Props) {
     />
   );
 }
-
 export default Trello;

@@ -1,5 +1,4 @@
 import { assign, createMachine } from "xstate";
-
 /** What the machine remembers between moves. */
 interface FieldsContext {
   /** What has been typed, by field name. */
@@ -7,17 +6,20 @@ interface FieldsContext {
   /** What the form started with, so it can be put back. */
   initial: Record<string, string>;
 }
-
 /** What the form starts with. */
 export interface FieldsInput {
   initial: Record<string, string>;
 }
-
 /** What can be asked of a form's fields. */
 export type FieldsEvent =
-  | { type: "SET"; field: string; value: string }
-  | { type: "RESET" };
-
+  | {
+      type: "SET";
+      field: string;
+      value: string;
+    }
+  | {
+      type: "RESET";
+    };
 /**
  * The values a form is holding.
  *

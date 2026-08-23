@@ -8,7 +8,6 @@ import Logger from "~/utils/Logger";
 import Flex from "../Flex";
 import { ResizingHeightContainer } from "../ResizingHeightContainer";
 import Reaction from "./Reaction";
-
 type Props = {
   /** Model for which to show the reactions. */
   model: Comment;
@@ -21,7 +20,6 @@ type Props = {
   /** Picker to render as the last element */
   picker?: React.ReactElement;
 };
-
 const ReactionList: React.FC<Props> = ({
   model,
   onAddReaction,
@@ -31,12 +29,10 @@ const ReactionList: React.FC<Props> = ({
 }) => {
   const { users } = useStores();
   const listRef = React.useRef<HTMLDivElement>(null);
-
   const hovered = useHover({
     ref: listRef,
     duration: 250,
   });
-
   React.useEffect(() => {
     const loadReactedUsersData = async () => {
       try {
@@ -45,12 +41,10 @@ const ReactionList: React.FC<Props> = ({
         Logger.warn("Could not prefetch reaction data");
       }
     };
-
     if (hovered) {
       void loadReactedUsersData();
     }
   }, [hovered, model]);
-
   const hasReactions = !!model.reactions.length;
   const style = React.useMemo(() => {
     if (hasReactions) {
@@ -58,7 +52,6 @@ const ReactionList: React.FC<Props> = ({
     }
     return undefined;
   }, [hasReactions]);
-
   return (
     <ResizingHeightContainer style={style}>
       <Flex ref={listRef} className={className} align="center" gap={6} wrap>
@@ -66,7 +59,6 @@ const ReactionList: React.FC<Props> = ({
           const reactedUsers = compact(
             reaction.userIds.map((id) => users.get(id))
           );
-
           return (
             <Reaction
               key={reaction.emoji}
@@ -83,5 +75,4 @@ const ReactionList: React.FC<Props> = ({
     </ResizingHeightContainer>
   );
 };
-
 export default observer(ReactionList);

@@ -8,7 +8,6 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Fade from "~/components/Fade";
 import { undraggableOnDesktop } from "~/styles";
-
 export const NativeTextarea = styled.textarea<{
   hasIcon?: boolean;
   hasPrefix?: boolean;
@@ -34,7 +33,6 @@ export const NativeTextarea = styled.textarea<{
     opacity: 1;
   }
 `;
-
 export const NativeInput = styled.input<{
   hasIcon?: boolean;
   hasPrefix?: boolean;
@@ -77,7 +75,6 @@ export const NativeInput = styled.input<{
     font-size: 16px;
   `};
 `;
-
 export const Wrapper = styled.div<{
   flex?: boolean;
   short?: boolean;
@@ -92,14 +89,12 @@ export const Wrapper = styled.div<{
   min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : "0")};
   max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : "initial")};
 `;
-
 const IconWrapper = styled.span`
   position: relative;
   inset-inline-start: 4px;
   width: 24px;
   height: 24px;
 `;
-
 export const Outline = styled(Flex)<{
   margin?: string | number;
   hasError?: boolean;
@@ -128,8 +123,9 @@ export const Outline = styled(Flex)<{
   /* Prevents an issue where input placeholder appears in a selected style when double clicking title bar */
   user-select: none;
 `;
-
-const CharacterCount = styled.span<{ $warning?: boolean }>`
+const CharacterCount = styled.span<{
+  $warning?: boolean;
+}>`
   position: absolute;
   top: 0;
   inset-inline-end: 0;
@@ -146,13 +142,11 @@ const CharacterCount = styled.span<{ $warning?: boolean }>`
     props.$warning ? props.theme.white : props.theme.textTertiary};
   pointer-events: none;
 `;
-
 export const LabelText = styled.div`
   font-weight: 500;
   padding-bottom: 4px;
   display: inline-block;
 `;
-
 export interface Props extends Omit<
   React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>,
   "prefix"
@@ -197,7 +191,6 @@ export interface Props extends Omit<
   onFocus?: (ev: React.SyntheticEvent) => unknown;
   onBlur?: (ev: React.SyntheticEvent) => unknown;
 }
-
 function Input(
   props: Props,
   ref: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
@@ -213,29 +206,23 @@ function Input(
     }
     return 0;
   });
-
   React.useEffect(() => {
     if (typeof props.value === "string") {
       setCharCount(props.value.length);
     }
   }, [props.value]);
-
   const handleBlur = (ev: React.SyntheticEvent) => {
     setFocused(false);
-
     if (props.onBlur) {
       props.onBlur(ev);
     }
   };
-
   const handleFocus = (ev: React.SyntheticEvent) => {
     setFocused(true);
-
     if (props.onFocus) {
       props.onFocus(ev);
     }
   };
-
   const handleChange = (
     ev: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -244,7 +231,6 @@ function Input(
       props.onChange(ev);
     }
   };
-
   const handleKeyDown = (
     ev: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -254,18 +240,15 @@ function Input(
         return;
       }
     }
-
     if (props.onKeyDown) {
       props.onKeyDown(ev);
     }
   };
-
   React.useEffect(() => {
     if (props.autoSelect && internalRef.current) {
       internalRef.current.select();
     }
   }, [props.autoSelect, internalRef]);
-
   const {
     type = "text",
     icon,
@@ -291,18 +274,14 @@ function Input(
     children,
     ...rest
   } = props;
-
   const showCharCount =
     (type === "textarea" || showCharacterCount) &&
     maxLength !== undefined &&
     (charCount >= maxLength * 0.9 ||
       (warningLimit !== undefined && charCount >= warningLimit));
-
   const overWarningLimit =
     warningLimit !== undefined && charCount > warningLimit;
-
   const wrappedLabel = <LabelText>{label}</LabelText>;
-
   // Ensure the control always has an accessible name. When no visible or
   // visually-hidden label is provided, fall back to the placeholder text so
   // that screen readers announce a persistent name for the field. A caller
@@ -312,7 +291,6 @@ function Input(
     !label && typeof props.placeholder === "string"
       ? props.placeholder
       : undefined;
-
   return (
     <Wrapper className={className} short={short} flex={flex}>
       <label>
@@ -384,11 +362,9 @@ function Input(
     </Wrapper>
   );
 }
-
 export const TextWrapper = styled.span`
   min-height: 16px;
   display: block;
   margin-top: -16px;
 `;
-
 export default React.forwardRef(Input);

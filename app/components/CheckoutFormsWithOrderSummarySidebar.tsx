@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -14,7 +14,6 @@
 */
 import { Disclosure } from "@headlessui/react";
 import { LockClosedIcon } from "@heroicons/react/20/solid";
-
 const subtotal = "$108.00";
 const discount = { code: "CHEAPSKATE", amount: "$16.00" };
 const taxes = "$9.92";
@@ -35,7 +34,6 @@ const products = [
   },
   // More products...
 ];
-
 /**
  * Tailwind UI – checkout forms: with order summary sidebar.
  *
@@ -45,13 +43,13 @@ export function CheckoutFormsWithOrderSummarySidebar() {
   return (
     <>
       {/*
-        This example requires updating your template:
+          This example requires updating your template:
 
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full">
-        ```
-      */}
+          ```
+          <html class="h-full bg-white">
+          <body class="h-full">
+          ```
+        */}
       <main className="lg:flex lg:min-h-full lg:flex-row-reverse lg:overflow-hidden">
         <h1 className="sr-only">Checkout</h1>
 

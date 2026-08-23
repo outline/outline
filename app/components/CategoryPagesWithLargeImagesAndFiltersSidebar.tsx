@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -36,7 +36,6 @@ import {
   Squares2X2Icon,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = {
   categories: [
     {
@@ -269,7 +268,6 @@ const footerNavigation = {
     { name: "Twitter", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – category pages: with large images and filters sidebar.
  *
@@ -278,7 +276,6 @@ const footerNavigation = {
 export function CategoryPagesWithLargeImagesAndFiltersSidebar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
   return (
     <div className="bg-white">
       <div>

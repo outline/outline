@@ -9,15 +9,12 @@ import { navigateToNotificationSettings } from "~/actions/definitions/navigation
 import { markNotificationsAsArchived } from "~/actions/definitions/notifications";
 import { useMemo } from "react";
 import { useMenuAction } from "~/hooks/useMenuAction";
-
 const NotificationMenu: React.FC = () => {
   const actions = useMemo(
     () => [markNotificationsAsArchived, navigateToNotificationSettings],
     []
   );
-
   const rootAction = useMenuAction(actions);
-
   return (
     <DropdownMenu action={rootAction} ariaLabel={t("Notifications")}>
       <Button aria-label={t("Notifications")}>
@@ -26,7 +23,6 @@ const NotificationMenu: React.FC = () => {
     </DropdownMenu>
   );
 };
-
 const Button = styled(NudeButton)`
   color: ${s("textSecondary")};
 
@@ -37,5 +33,4 @@ const Button = styled(NudeButton)`
     background: ${s("sidebarControlHoverBackground")};
   }
 `;
-
 export default NotificationMenu;

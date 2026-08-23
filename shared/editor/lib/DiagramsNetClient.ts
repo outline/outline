@@ -11,7 +11,6 @@ export enum DiagramsNetEvent {
   /** Editor is closing. */
   Exit = "exit",
 }
-
 /**
  * Actions that can be sent to diagrams.net.
  */
@@ -21,7 +20,6 @@ export enum DiagramsNetAction {
   /** Export the current diagram. */
   Export = "export",
 }
-
 /**
  * Message format for communication with diagrams.net.
  */
@@ -39,7 +37,6 @@ export interface DiagramsNetMessage {
   /** Loading spinner key. */
   spinKey?: string;
 }
-
 /**
  * Handles communication with the diagrams.net editor window.
  *
@@ -48,10 +45,8 @@ export interface DiagramsNetMessage {
  */
 export class DiagramsNetClient {
   private window: Window | null = null;
-
   /** The format to use when exporting diagrams. */
   format: "xmlsvg" | "xmlpng" = "xmlsvg";
-
   /**
    * Creates a new DiagramsNetClient instance.
    *
@@ -62,7 +57,6 @@ export class DiagramsNetClient {
     private onDiagramReady: (client: DiagramsNetClient) => void,
     private onDiagramExported: (base64Data: string) => void
   ) {}
-
   /**
    * Opens the diagrams.net editor in a new window.
    *
@@ -72,23 +66,19 @@ export class DiagramsNetClient {
     if (this.window) {
       this.close();
     }
-
     window.addEventListener("message", this.handleMessage);
     this.window = window.open(url);
   }
-
   /**
    * Closes the editor window and cleans up event listeners.
    */
   close(): void {
     window.removeEventListener("message", this.handleMessage);
-
     if (this.window) {
       this.window.close();
       this.window = null;
     }
   }
-
   /**
    * Loads a diagram from a data URI containing embedded XML.
    * Supports both PNG and SVG data URIs (e.g., "data:image/svg+xml;base64,...").
@@ -101,7 +91,6 @@ export class DiagramsNetClient {
       xml: dataUri,
     });
   };
-
   /**
    * Requests an export of the current diagram with embedded XML.
    * Uses the current format setting (xmlsvg or xmlpng).
@@ -113,7 +102,6 @@ export class DiagramsNetClient {
       spinKey: "saving",
     });
   };
-
   /**
    * Sends a message to the diagrams.net window.
    *
@@ -126,7 +114,6 @@ export class DiagramsNetClient {
     }
     this.window.postMessage(JSON.stringify(message), "*");
   };
-
   /**
    * Handles incoming messages from the diagrams.net window.
    *
@@ -136,31 +123,25 @@ export class DiagramsNetClient {
     if (!event.data.length || event.source !== this.window) {
       return;
     }
-
     const message = JSON.parse(event.data) as DiagramsNetMessage;
-
     switch (message.event) {
       case DiagramsNetEvent.Init:
         this.onDiagramReady(this);
         break;
-
       case DiagramsNetEvent.Save:
         this.exportDiagram();
         break;
-
       case DiagramsNetEvent.Export:
         if (message.data) {
           this.onDiagramExported(message.data);
         }
         break;
-
       case DiagramsNetEvent.Exit:
         this.close();
         break;
     }
   };
 }
-
 /**
  * Base64 encoded empty diagram image (minimal SVG with embedded diagrams.net metadata).
  * The mxfile XML is embedded in the content attribute of the SVG.

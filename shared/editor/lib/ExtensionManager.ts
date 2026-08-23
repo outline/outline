@@ -14,20 +14,16 @@ import type Extension from "./Extension";
 import type { AnyExtension, AnyExtensionClass } from "./types";
 import makeRules from "./markdown/rules";
 import { MarkdownSerializer } from "./markdown/serializer";
-
 export default class ExtensionManager {
   extensions: AnyExtension[] = [];
   readOnly: boolean;
-
   constructor(
     extensions: (AnyExtensionClass | AnyExtension)[] = [],
     editor?: Editor
   ) {
     this.readOnly = editor?.props.readOnly ?? false;
-
     extensions.forEach((ext) => {
       let extension: AnyExtension;
-
       if (typeof ext === "function") {
         // Check the prototype before instantiation to avoid constructor cost
         // for extensions not needed in read-only mode.
@@ -38,7 +34,6 @@ export default class ExtensionManager {
         ) {
           return;
         }
-
         // Cast away abstract: registration treats all classes uniformly and
         // concrete subclasses are required at the public boundary.
         const Ctor = ext as new (
@@ -50,18 +45,14 @@ export default class ExtensionManager {
         if (this.readOnly && ext.type === "extension" && !ext.allowInReadOnly) {
           return;
         }
-
         extension = ext;
       }
-
       if (editor) {
         extension.bindEditor(editor);
       }
-
       this.extensions.push(extension);
     });
   }
-
   get widgets() {
     return Object.fromEntries(
       this.extensions
@@ -75,14 +66,12 @@ export default class ExtensionManager {
         ])
     );
   }
-
   get nodes() {
     const nodes: Record<string, NodeSpec> = Object.fromEntries(
       this.extensions
         .filter((extension) => extension.type === "node")
         .map((node: Node) => [node.name, node.schema])
     );
-
     for (const i in nodes) {
       const { marks } = nodes[i];
       if (marks) {
@@ -94,17 +83,14 @@ export default class ExtensionManager {
           .join(" ");
       }
     }
-
     return nodes;
   }
-
   get marks() {
     const marks: Record<string, MarkSpec> = Object.fromEntries(
       this.extensions
         .filter((extension) => extension.type === "mark")
         .map((mark: Mark) => [mark.name, mark.schema])
     );
-
     for (const i in marks) {
       const { excludes } = marks[i];
       if (excludes) {
@@ -116,10 +102,8 @@ export default class ExtensionManager {
           .join(" ");
       }
     }
-
     return marks;
   }
-
   serializer() {
     const nodes = Object.fromEntries(
       this.extensions
@@ -130,7 +114,6 @@ export default class ExtensionManager {
             extension.toMarkdown(...args),
         ])
     );
-
     const marks = Object.fromEntries(
       this.extensions
         .filter((extension) => extension.type === "mark")
@@ -140,10 +123,8 @@ export default class ExtensionManager {
             extension.toMarkdown(...args),
         ])
     );
-
     return new MarkdownSerializer(nodes, marks);
   }
-
   parser({
     schema,
     rules,
@@ -166,20 +147,17 @@ export default class ExtensionManager {
           return [[extension.markdownToken || extension.name, parseSpec]];
         })
     );
-
     return new MarkdownParser(
       schema,
       makeRules({ rules, schema, plugins }),
       tokens
     );
   }
-
   get plugins() {
     return this.extensions
       .filter((extension) => "plugins" in extension)
       .reduce((allPlugins, { plugins }) => [...allPlugins, ...plugins], []);
   }
-
   get rulePlugins() {
     return this.extensions
       .filter((extension) => "rulePlugins" in extension)
@@ -191,7 +169,6 @@ export default class ExtensionManager {
         []
       );
   }
-
   keymaps({ schema }: { schema: Schema }) {
     const keymaps = this.extensions
       .filter((extension) => extension.keys)
@@ -206,16 +183,13 @@ export default class ExtensionManager {
         }
         return (extension as Extension).keys({ schema });
       });
-
     return keymaps.map(keymap);
   }
-
   inputRules({ schema }: { schema: Schema }) {
     const extensionInputRules = this.extensions
       .filter((extension) => extension.type === "extension")
       .filter((extension) => extension.inputRules)
       .map((extension: Extension) => extension.inputRules({ schema }));
-
     const nodeMarkInputRules = this.extensions
       .filter(
         (extension) => extension.type === "node" || extension.type === "mark"
@@ -229,13 +203,11 @@ export default class ExtensionManager {
         const mark = extension as Mark;
         return mark.inputRules({ type: schema.marks[mark.name], schema });
       });
-
     return [...extensionInputRules, ...nodeMarkInputRules].reduce(
       (allInputRules, inputRules) => [...allInputRules, ...inputRules],
       []
     );
   }
-
   /**
    * Collects selection toolbar menu descriptors from all extensions and returns
    * them sorted by priority (highest first). The toolbar evaluates these in
@@ -246,14 +218,12 @@ export default class ExtensionManager {
       .flatMap((extension) => extension.selectionToolbarMenus())
       .sort((a, b) => b.priority - a.priority);
   }
-
   commands({ schema, view }: { schema: Schema; view: EditorView }) {
     return this.extensions
       .filter((extension) => extension.commands)
       .reduce((allCommands, extension) => {
         const { name } = extension;
         const commands: Record<string, CommandFactory> = {};
-
         let value: ReturnType<Extension["commands"]>;
         if (extension.type === "node") {
           const node = extension as Node;
@@ -264,7 +234,6 @@ export default class ExtensionManager {
         } else {
           value = (extension as Extension).commands({ schema });
         }
-
         const apply = (
           callback: CommandFactory,
           attrs: Record<string, Primitive>
@@ -289,17 +258,14 @@ export default class ExtensionManager {
           }
           return callback(attrs)?.(view.state, view.dispatch, view);
         };
-
         const handle = (_name: string, _value: CommandFactory) => {
           const values: CommandFactory[] = Array.isArray(_value)
             ? _value
             : [_value];
-
           // @ts-expect-error FIXME
           commands[_name] = (attrs: Record<string, Primitive>) =>
             values.forEach((callback) => apply(callback, attrs));
         };
-
         if (typeof value === "object") {
           Object.entries(value).forEach(([commandName, commandValue]) => {
             handle(commandName, commandValue);
@@ -307,7 +273,6 @@ export default class ExtensionManager {
         } else if (value) {
           handle(name, value);
         }
-
         return {
           ...allCommands,
           ...commands,

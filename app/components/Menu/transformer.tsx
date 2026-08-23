@@ -13,15 +13,12 @@ import * as Components from "~/components/primitives/components/Menu";
 import type { MenuItem } from "~/types";
 import { MouseSafeArea } from "~/components/MouseSafeArea";
 import { createRef } from "react";
-
 export function toMenuItems(items: MenuItem[]) {
   const filteredItems = filterMenuItems(items);
   const parentRef = createRef<HTMLDivElement>();
-
   if (!filteredItems.length) {
     return null;
   }
-
   const showIcon = filteredItems.find(
     (item) =>
       item.type !== "separator" &&
@@ -30,14 +27,12 @@ export function toMenuItems(items: MenuItem[]) {
       item.type !== "custom" &&
       !!item.icon
   );
-
   return filteredItems.map((item, index) => {
     const icon = showIcon ? (
       <Components.MenuIconWrapper aria-hidden>
         {"icon" in item ? item.icon : null}
       </Components.MenuIconWrapper>
     ) : undefined;
-
     switch (item.type) {
       case "button":
         return (
@@ -53,7 +48,6 @@ export function toMenuItems(items: MenuItem[]) {
             onClick={item.onClick}
           />
         );
-
       case "route":
         return (
           <MenuInternalLink
@@ -65,7 +59,6 @@ export function toMenuItems(items: MenuItem[]) {
             to={item.to}
           />
         );
-
       case "link":
         return (
           <MenuExternalLink
@@ -80,20 +73,16 @@ export function toMenuItems(items: MenuItem[]) {
             }
           />
         );
-
       case "submenu": {
         const submenuItems = toMenuItems(item.items);
-
         if (!submenuItems?.length) {
           return null;
         }
-
         const preventCloseHandler = (ev: Event) => {
           if (item.preventCloseCondition && item.preventCloseCondition()) {
             ev.preventDefault();
           }
         };
-
         return (
           <SubMenu key={`${item.type}-${index}`}>
             <SubMenuTrigger
@@ -111,14 +100,11 @@ export function toMenuItems(items: MenuItem[]) {
           </SubMenu>
         );
       }
-
       case "group": {
         const groupItems = toMenuItems(item.items);
-
         if (!groupItems?.length) {
           return null;
         }
-
         return (
           <MenuGroup
             key={`${item.type}-${index}`}
@@ -127,30 +113,24 @@ export function toMenuItems(items: MenuItem[]) {
           />
         );
       }
-
       case "separator":
         return <MenuSeparator key={`${item.type}-${index}`} />;
-
       case "custom":
         return <div key={`${item.type}-${index}`}>{item.content}</div>;
-
       default:
         return null;
     }
   });
 }
-
 export function toMobileMenuItems(
   items: MenuItem[],
   closeMenu: () => void,
   openSubmenu: (submenuName: string) => void
 ) {
   const filteredItems = filterMenuItems(items);
-
   if (!filteredItems.length) {
     return null;
   }
-
   const showIcon = filteredItems.find(
     (item) =>
       item.type !== "separator" &&
@@ -159,14 +139,12 @@ export function toMobileMenuItems(
       item.type !== "custom" &&
       !!item.icon
   );
-
   return filteredItems.map((item, index) => {
     const icon = showIcon ? (
       <Components.MenuIconWrapper aria-hidden>
         {"icon" in item ? item.icon : null}
       </Components.MenuIconWrapper>
     ) : undefined;
-
     switch (item.type) {
       case "button":
         return (
@@ -188,7 +166,6 @@ export function toMobileMenuItems(
             )}
           </Components.MenuButton>
         );
-
       case "route":
         return (
           <Components.MenuInternalLink
@@ -201,7 +178,6 @@ export function toMobileMenuItems(
             <Components.MenuLabel>{item.title}</Components.MenuLabel>
           </Components.MenuInternalLink>
         );
-
       case "link":
         return (
           <Components.MenuExternalLink
@@ -217,18 +193,15 @@ export function toMobileMenuItems(
             <Components.MenuLabel>{item.title}</Components.MenuLabel>
           </Components.MenuExternalLink>
         );
-
       case "submenu": {
         const submenuItems = toMobileMenuItems(
           item.items,
           closeMenu,
           openSubmenu
         );
-
         if (!submenuItems?.length) {
           return null;
         }
-
         return (
           <Components.MenuButton
             key={`${item.type}-${index}`}
@@ -243,18 +216,15 @@ export function toMobileMenuItems(
           </Components.MenuButton>
         );
       }
-
       case "group": {
         const groupItems = toMobileMenuItems(
           item.items,
           closeMenu,
           openSubmenu
         );
-
         if (!groupItems?.length) {
           return null;
         }
-
         return (
           <div key={`${item.type}-${index}`}>
             <Components.MenuHeader>{item.title}</Components.MenuHeader>
@@ -262,19 +232,15 @@ export function toMobileMenuItems(
           </div>
         );
       }
-
       case "separator":
         return <Components.MenuSeparator key={`${item.type}-${index}`} />;
-
       case "custom":
         return <div key={`${item.type}-${index}`}>{item.content}</div>;
-
       default:
         return null;
     }
   });
 }
-
 function filterMenuItems(items: MenuItem[]): MenuItem[] {
   return items
     .filter((item) => item.visible !== false)

@@ -1,7 +1,6 @@
 // Type-only import is fully erased at compile time, so it does not pull
 // chrono-node into the bundle.
 import type * as Chrono from "chrono-node";
-
 /**
  * chrono-node is a sizeable dependency, so it is loaded lazily on first use
  * via a dynamic import. The bundler splits it into its own chunk that is only
@@ -9,7 +8,6 @@ import type * as Chrono from "chrono-node";
  * the mention menu), keeping it out of the main bundle.
  */
 let chronoPromise: Promise<typeof Chrono> | undefined;
-
 function loadChrono(): Promise<typeof Chrono> {
   if (!chronoPromise) {
     chronoPromise = import("chrono-node").catch((err) => {
@@ -22,14 +20,12 @@ function loadChrono(): Promise<typeof Chrono> {
   }
   return chronoPromise;
 }
-
 export interface ParsedNaturalLanguageDate {
   /** The matched date, at local midnight unless a time was given. */
   date: Date;
   /** Whether the input named a specific time of day. */
   hasTime: boolean;
 }
-
 /**
  * Parse a natural language string such as "tomorrow", "next friday",
  * "jan 2", "in 3 days" or "1pm" into a calendar date.
@@ -52,23 +48,19 @@ export async function parseNaturalLanguageDate(
   if (!trimmed) {
     return null;
   }
-
   const chrono = await loadChrono();
   const results = chrono.parse(trimmed, referenceDate, { forwardDate: true });
   const result = results[0];
   if (!result) {
     return null;
   }
-
   // Only accept matches that span (roughly) the whole input so that
   // unrelated text typed after "@" does not accidentally resolve to a date.
   if (result.text.trim().length < trimmed.length) {
     return null;
   }
-
   const date = result.start.date();
   const hasTime = result.start.isCertain("hour");
-
   return {
     date: hasTime
       ? new Date(

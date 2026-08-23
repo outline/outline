@@ -6,7 +6,6 @@ import { HEADER_HEIGHT } from "../../constants";
 import { breakpoints, hover } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
-
 export type Props = {
   $rtl: boolean;
   readOnly?: boolean;
@@ -18,18 +17,15 @@ export type Props = {
   theme: DefaultTheme;
   userId?: string;
 };
-
 export const fadeIn = keyframes`
   from { opacity: 0; }
   to { opacity: 1; }
 `;
-
 export const pulse = (color: string) => keyframes`
   0% { box-shadow: 0 0 0 1px ${color} }
   50% { box-shadow: 0 0 0 4px ${color} }
   100% { box-shadow: 0 0 0 1px ${color} }
 `;
-
 const codeMarkCursor = () => css`
   /* Based on https://github.com/curvenote/editor/blob/main/packages/prosemirror-codemark/src/codemark.css */
   .no-cursor {
@@ -46,7 +42,6 @@ const codeMarkCursor = () => css`
     z-index: 1;
   }
 `;
-
 const mathStyle = (props: Props) => css`
   /* Based on https://github.com/benrbray/prosemirror-math/blob/master/style/math.css */
 
@@ -153,7 +148,6 @@ const mathStyle = (props: Props) => css`
     padding-top: 2px;
   }
 `;
-
 const codeBlockStyle = (props: Props) => css`
   .token.comment,
   .token.prolog,
@@ -282,7 +276,6 @@ const codeBlockStyle = (props: Props) => css`
     cursor: help;
   }
 `;
-
 const diffStyle = (props: Props) => css`
   .${EditorStyleHelper.diffNodeInsertion},
     .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
@@ -403,7 +396,6 @@ const diffStyle = (props: Props) => css`
     border-color: ${transparentize(0.5, "#FFA500")};
   }
 `;
-
 const findAndReplaceStyle = (props: Props) => css`
   & ::highlight(search-results) {
     background-color: rgba(255, 213, 0, 0.25);
@@ -426,7 +418,6 @@ const findAndReplaceStyle = (props: Props) => css`
     color: ${props.theme.textHighlightForeground};
   }
 `;
-
 const emailStyle = (props: Props) => css`
   .attachment {
     display: block;
@@ -441,7 +432,6 @@ const emailStyle = (props: Props) => css`
     height: auto;
   }
 `;
-
 /**
  * Adjustments to line-height and paragraph margins for complex scripts. If adding
  * scripts here you also need to update the `getLangFor` method.
@@ -524,7 +514,6 @@ const textStyle = () => css`
     }
   }
 `;
-
 const style = (props: Props) => css`
 --font-size-p: var(--font-size-body);
 --font-size-h1: 28px;
@@ -891,9 +880,7 @@ th .image .image-wrapper img {
 }
 
 .${EditorStyleHelper.tableFullWidth} {
-  transform: translateX(calc(50% + ${
-    EditorStyleHelper.padding
-  }px + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
+  transform: translateX(calc(50% + ${EditorStyleHelper.padding}px + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
 
   .${EditorStyleHelper.tableScrollable},
   table {
@@ -1212,9 +1199,7 @@ ${
   props.commenting
     ? `
 .${EditorStyleHelper.comment} {
-  &:not([data-resolved]):not([data-draft]), &[data-draft][data-user-id="${
-    props.userId ?? ""
-  }"]  {
+  &:not([data-resolved]):not([data-draft]), &[data-draft][data-user-id="${props.userId ?? ""}"]  {
     text-decoration: underline 2px ${props.theme.commentMarkBackground};
     transition: background 100ms ease-in-out;
 
@@ -1612,9 +1597,7 @@ ul.checkbox_list {
   .checkbox {
     display: inline-block;
     cursor: var(--pointer);
-    pointer-events: ${
-      props.readOnly && !props.readOnlyWriteCheckboxes ? "none" : "initial"
-    };
+    pointer-events: ${props.readOnly && !props.readOnlyWriteCheckboxes ? "none" : "initial"};
     width: 14px;
     height: 14px;
     position: relative;
@@ -1669,17 +1652,11 @@ ul.checkbox_list {
 
     /* Static fallback for environments without inline SVG (e.g. SSR) */
     &:not(:has(svg)) {
-      background-image: ${`url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM3 2C2.44772 2 2 2.44772 2 3V11C2 11.5523 2.44772 12 3 12H11C11.5523 12 12 11.5523 12 11V3C12 2.44772 11.5523 2 11 2H3Z' fill='${props.theme.text.replace(
-        /#/g,
-        "%23"
-      )}' /%3E%3C/svg%3E%0A");`}
+      background-image: ${`url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM3 2C2.44772 2 2 2.44772 2 3V11C2 11.5523 2.44772 12 3 12H11C11.5523 12 12 11.5523 12 11V3C12 2.44772 11.5523 2 11 2H3Z' fill='${props.theme.text.replace(/#/g, "%23")}' /%3E%3C/svg%3E%0A");`}
 
       &[aria-checked=true] {
         background-image: ${`url(
-            "data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM4.26825 5.85982L5.95873 7.88839L9.70003 2.9C10.0314 2.45817 10.6582 2.36863 11.1 2.7C11.5419 3.03137 11.6314 3.65817 11.3 4.1L6.80002 10.1C6.41275 10.6164 5.64501 10.636 5.2318 10.1402L2.7318 7.14018C2.37824 6.71591 2.43556 6.08534 2.85984 5.73178C3.28412 5.37821 3.91468 5.43554 4.26825 5.85982Z' fill='${props.theme.accent.replace(
-              /#/g,
-              "%23"
-            )}' /%3E%3C/svg%3E%0A"
+            "data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM4.26825 5.85982L5.95873 7.88839L9.70003 2.9C10.0314 2.45817 10.6582 2.36863 11.1 2.7C11.5419 3.03137 11.6314 3.65817 11.3 4.1L6.80002 10.1C6.41275 10.6164 5.64501 10.636 5.2318 10.1402L2.7318 7.14018C2.37824 6.71591 2.43556 6.08534 2.85984 5.73178C3.28412 5.37821 3.91468 5.43554 4.26825 5.85982Z' fill='${props.theme.accent.replace(/#/g, "%23")}' /%3E%3C/svg%3E%0A"
         )`};
       }
     }
@@ -2136,9 +2113,7 @@ table {
       background-color: ${props.theme.accent};
       background-size: 16px 16px;
       background-position: 50% 50%;
-      background-image: url("data:image/svg+xml;base64,${btoa(
-        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 5C11.4477 5 11 5.44772 11 6V11H6C5.44772 11 5 11.4477 5 12C5 12.5523 5.44772 13 6 13H11V18C11 18.5523 11.4477 19 12 19C12.5523 19 13 18.5523 13 18V13H18C18.5523 13 19 12.5523 19 12C19 11.4477 18.5523 11 18 11H13V6C13 5.44772 12.5523 5 12 5Z" fill="white"/></svg>'
-      )}")
+      background-image: url("data:image/svg+xml;base64,${btoa('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 5C11.4477 5 11 5.44772 11 6V11H6C5.44772 11 5 11.4477 5 12C5 12.5523 5.44772 13 6 13H11V18C11 18.5523 11.4477 19 12 19C12.5523 19 13 18.5523 13 18V13H18C18.5523 13 19 12.5523 19 12C19 11.4477 18.5523 11 18 11H13V6C13 5.44772 12.5523 5 12 5Z" fill="white"/></svg>')}")
     }
 
     // extra clickable area
@@ -2477,9 +2452,7 @@ table {
   transition: border 250ms ease-in-out 0s;
 
   &:hover {
-    scrollbar-color: ${props.theme.scrollbarThumb} ${
-      props.theme.scrollbarBackground
-    };
+    scrollbar-color: ${props.theme.scrollbarThumb} ${props.theme.scrollbarBackground};
   }
 
   & ::-webkit-scrollbar {
@@ -2520,18 +2493,14 @@ table {
 .${EditorStyleHelper.tableShadowLeft}::before {
   left: -${EditorStyleHelper.padding}px;
   right: auto;
-  box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
-    props.theme.isDark ? 1 : 0.25
-  });
+  box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${props.theme.isDark ? 1 : 0.25});
   border-left: ${EditorStyleHelper.padding}px solid ${props.theme.background};
 }
 
 .${EditorStyleHelper.tableShadowRight}::after {
   right: -${EditorStyleHelper.padding}px;
   left: auto;
-  box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, ${
-    props.theme.isDark ? 1 : 0.25
-  });
+  box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, ${props.theme.isDark ? 1 : 0.25});
   border-right: ${EditorStyleHelper.padding}px solid ${props.theme.background};
 }
 
@@ -2765,7 +2734,6 @@ li > .${EditorStyleHelper.toggleBlock} {
   }
 }
 `;
-
 const EditorContainer = styled.div<Props>`
   ${style}
   ${mathStyle}
@@ -2776,5 +2744,4 @@ const EditorContainer = styled.div<Props>`
   ${emailStyle}
   ${textStyle}
 `;
-
 export default EditorContainer;

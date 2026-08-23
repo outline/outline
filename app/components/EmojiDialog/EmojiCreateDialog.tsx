@@ -11,12 +11,10 @@ import { uploadFile } from "~/utils/files";
 import { compressImage } from "~/utils/compressImage";
 import { generateEmojiNameFromFilename } from "~/utils/emoji";
 import { useEmojiFileUpload, EmojiImageDropZone } from "./Components";
-
 interface Props {
   /** Callback invoked after successful creation. */
   onSubmit: () => void;
 }
-
 /**
  * Dialog for creating a new custom emoji with image upload and name input.
  */
@@ -25,7 +23,6 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
   const { emojis } = useStores();
   const [name, setName] = React.useState("");
   const [isUploading, setIsUploading] = React.useState(false);
-
   const handleFileSelected = React.useCallback((selected: File) => {
     setName((currentName) => {
       if (!currentName.trim()) {
@@ -35,21 +32,17 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
       return currentName;
     });
   }, []);
-
   const { file, getRootProps, getInputProps, isDragActive } =
     useEmojiFileUpload({ onFileSelected: handleFileSelected });
-
   const handleSubmit = async () => {
     if (!name.trim()) {
       toast.error(t("Please enter a name for the emoji"));
       return;
     }
-
     if (!file) {
       toast.error(t("Please select an image file"));
       return;
     }
-
     setIsUploading(true);
     try {
       const fileToUpload =
@@ -59,32 +52,26 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
               maxHeight: 64,
               maxWidth: 64,
             });
-
       const attachment = await uploadFile(fileToUpload, {
         name: file.name,
         preset: AttachmentPreset.Emoji,
       });
-
       await emojis.create({
         name: name.trim(),
         attachmentId: attachment.id,
       });
-
       toast.success(t("Emoji created successfully"));
       onSubmit();
     } finally {
       setIsUploading(false);
     }
   };
-
   const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     setName(value);
   };
-
   const isValidName = EmojiValidation.allowedNameCharacters.test(name);
   const isValid = name.trim().length > 0 && file && isValidName;
-
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}

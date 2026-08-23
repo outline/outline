@@ -16,7 +16,6 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import { isUUID } from "validator";
 import { CustomEmoji } from "@shared/components/CustomEmoji";
 import useStores from "~/hooks/useStores";
-
 type Props = {
   /** Thin reaction data - contains the emoji & active user ids for this reaction. */
   reaction: ReactionSummary;
@@ -29,7 +28,6 @@ type Props = {
   /** Callback when the user intends to remove the reaction. */
   onRemoveReaction: (emoji: string) => Promise<void>;
 };
-
 const useTooltipContent = ({
   reactedUsers,
   currUser,
@@ -47,7 +45,6 @@ const useTooltipContent = ({
   const [transformedEmoji, setTransformedEmoji] = React.useState(
     customEmoji?.shortName ?? `:${getEmojiId(emoji)}:`
   );
-
   // If the emoji is a custom emoji ID, we need to get its short name for display
   React.useEffect(() => {
     if (isUUID(emoji)) {
@@ -58,11 +55,9 @@ const useTooltipContent = ({
       });
     }
   }, [emoji, emojis]);
-
   if (!reactedUsers.length) {
     return;
   }
-
   switch (reactedUsers.length) {
     case 1: {
       return t("{{ username }} reacted with {{ emoji }}", {
@@ -70,13 +65,11 @@ const useTooltipContent = ({
         emoji: transformedEmoji,
       });
     }
-
     case 2: {
       const firstUsername = active ? t("You") : reactedUsers[0].name;
       const secondUsername = active
         ? reactedUsers.find((user) => user.id !== currUser.id)?.name
         : reactedUsers[1].name;
-
       return t(
         "{{ firstUsername }} and {{ secondUsername }} reacted with {{ emoji }}",
         {
@@ -86,11 +79,9 @@ const useTooltipContent = ({
         }
       );
     }
-
     default: {
       const firstUsername = active ? t("You") : reactedUsers[0].name;
       const count = reactedUsers.length - 1;
-
       return t(
         "{{ firstUsername }} and {{ count }} others reacted with {{ emoji }}",
         {
@@ -102,7 +93,6 @@ const useTooltipContent = ({
     }
   }
 };
-
 const Reaction: React.FC<Props> = ({
   reaction,
   reactedUsers,
@@ -111,16 +101,13 @@ const Reaction: React.FC<Props> = ({
   onRemoveReaction,
 }) => {
   const user = useCurrentUser();
-
   const active = reaction.userIds.includes(user.id);
-
   const tooltipContent = useTooltipContent({
     reactedUsers,
     currUser: user,
     emoji: reaction.emoji,
     active,
   });
-
   const handleClick = React.useCallback(
     (event: React.SyntheticEvent<HTMLButtonElement>) => {
       event.stopPropagation();
@@ -132,7 +119,6 @@ const Reaction: React.FC<Props> = ({
     },
     [reaction, active, onAddReaction, onRemoveReaction]
   );
-
   const DisplayedEmoji = React.useMemo(
     () => (
       <EmojiButton disabled={disabled} $active={active} onClick={handleClick}>
@@ -148,7 +134,6 @@ const Reaction: React.FC<Props> = ({
     ),
     [reaction.emoji, reaction.userIds, disabled, active, handleClick]
   );
-
   return tooltipContent ? (
     <Tooltip content={tooltipContent} placement="bottom">
       {DisplayedEmoji}
@@ -157,7 +142,6 @@ const Reaction: React.FC<Props> = ({
     <>{DisplayedEmoji}</>
   );
 };
-
 const EmojiButton = styled(NudeButton)<{
   $active: boolean;
   disabled: boolean;
@@ -183,12 +167,10 @@ const EmojiButton = styled(NudeButton)<{
       }
     `}
 `;
-
 const Count = styled(Text)`
   font-size: 11px;
   color: ${s("buttonNeutralText")};
   padding-right: 1px;
   font-variant-numeric: tabular-nums;
 `;
-
 export default observer(Reaction);

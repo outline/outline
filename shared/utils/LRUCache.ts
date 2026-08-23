@@ -1,5 +1,4 @@
 import { Storage } from "./Storage";
-
 /** Options accepted when constructing an `LRUCache`. */
 export interface LRUCacheOptions {
   /** The maximum number of entries to retain before evicting. */
@@ -9,7 +8,6 @@ export interface LRUCacheOptions {
   /** Mirror entries to sessionStorage, requires a namespace. */
   persistToSession?: boolean;
 }
-
 /**
  * A cache holding a bounded number of entries, evicting the least recently used
  * once full. Reading or writing an entry marks it as the most recently used.
@@ -26,7 +24,6 @@ export class LRUCache<T> {
     this.namespace = options.namespace;
     this.persistToSession = options.persistToSession;
   }
-
   /**
    * Returns the value stored under a key, marking it as most recently used.
    *
@@ -35,7 +32,6 @@ export class LRUCache<T> {
    */
   public get(key: string): T | undefined {
     this.hydrate();
-
     // `has` distinguishes a missing key from one that is persisted but has not
     // been read into memory yet.
     const value = this.data.has(key)
@@ -44,14 +40,12 @@ export class LRUCache<T> {
     if (value === undefined) {
       return undefined;
     }
-
     // Re-insert so that the entry becomes the most recently used.
     this.data.delete(key);
     this.data.set(key, value);
     this.writeKeys();
     return value;
   }
-
   /**
    * Stores a value under a key, evicting the least recently used entries when
    * the cache is over its maximum size.
@@ -61,11 +55,9 @@ export class LRUCache<T> {
    */
   public set(key: string, value: T) {
     this.hydrate();
-
     this.data.delete(key);
     this.data.set(key, value);
     this.writeValue(key, value);
-
     // Map iteration follows insertion order, so the first key is the least
     // recently used.
     while (this.data.size > this.max) {
@@ -76,10 +68,8 @@ export class LRUCache<T> {
       this.data.delete(oldest);
       this.removeValue(oldest);
     }
-
     this.writeKeys();
   }
-
   /**
    * Returns whether a key is cached, without affecting its recency.
    *
@@ -90,7 +80,6 @@ export class LRUCache<T> {
     this.hydrate();
     return this.data.has(key);
   }
-
   /**
    * Removes the entry stored under a key.
    *
@@ -99,33 +88,27 @@ export class LRUCache<T> {
    */
   public delete(key: string): boolean {
     this.hydrate();
-
     if (!this.data.delete(key)) {
       return false;
     }
-
     this.removeValue(key);
     this.writeKeys();
     return true;
   }
-
   /** Removes every entry from the cache, including any persisted copies. */
   public clear() {
     this.hydrate();
-
     for (const key of this.data.keys()) {
       this.removeValue(key);
     }
     this.data.clear();
     this.writeKeys();
   }
-
   /** The number of entries currently cached. */
   public get size(): number {
     this.hydrate();
     return this.data.size;
   }
-
   private max: number;
   private namespace?: string;
   private persistToSession?: boolean;
@@ -133,16 +116,13 @@ export class LRUCache<T> {
   private data = new Map<string, T | undefined>();
   private storage?: Storage;
   private hydrated = false;
-
   /** The storage key holding the cached keys in least-to-most recent order. */
   private get keysKey(): string {
     return `${this.namespace}:keys`;
   }
-
   private valueKey(key: string): string {
     return `${this.namespace}:${key}`;
   }
-
   /**
    * Loads persisted entries into memory, deferred until first use so that
    * constructing a cache at module scope does not read from storage on import.
@@ -152,26 +132,21 @@ export class LRUCache<T> {
       return;
     }
     this.hydrated = true;
-
     if (!this.persistToSession || !this.namespace) {
       return;
     }
-
     this.storage = new Storage("session");
-
     // A corrupt or absent index reads as undefined, leaving the cache empty.
     const keys: unknown = this.storage.get(this.keysKey);
     if (!Array.isArray(keys)) {
       return;
     }
-
     for (const key of keys.slice(-this.max)) {
       if (typeof key === "string") {
         this.data.set(key, undefined);
       }
     }
   }
-
   /**
    * Reads a persisted value into memory, dropping the key if its value is no
    * longer stored, which happens when an earlier write exceeded the quota.
@@ -183,19 +158,15 @@ export class LRUCache<T> {
       this.writeKeys();
       return undefined;
     }
-
     this.data.set(key, value);
     return value;
   }
-
   private writeValue(key: string, value: T) {
     this.storage?.set(this.valueKey(key), value);
   }
-
   private removeValue(key: string) {
     this.storage?.remove(this.valueKey(key));
   }
-
   private writeKeys() {
     this.storage?.set(this.keysKey, [...this.data.keys()]);
   }

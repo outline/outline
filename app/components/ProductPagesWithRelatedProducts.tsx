@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -33,7 +33,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = {
   categories: [
     {
@@ -357,7 +356,6 @@ const footerNavigation = {
     { name: "Find a store", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – product pages: with related products.
  *
@@ -367,7 +365,6 @@ export function ProductPagesWithRelatedProducts() {
   const [open, setOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const [selectedSize, setSelectedSize] = useState(product.sizes[2]);
-
   return (
     <div className="bg-white">
       {/* Mobile menu */}

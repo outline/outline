@@ -1,51 +1,46 @@
 import { DocumentIcon, QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
 import Icon from "@shared/components/Icon";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
+import CollectionIcon from "~/components/Icons/NotebookIcon";
 import useStores from "~/hooks/useStores";
-
 interface SidebarItem {
-  documentId?: string;
-  collectionId?: string;
+  noteId?: string;
+  notebookId?: string;
   groupId?: string;
 }
-
 export function useSidebarLabelAndIcon({
-  documentId,
-  collectionId,
+  noteId,
+  notebookId,
   groupId,
 }: SidebarItem) {
-  const { collections, documents } = useStores();
+  const { notebooks, notes } = useStores();
   const icon = <QuestionMarkIcon />;
-
-  if (documentId) {
-    const document = documents.get(documentId);
-    if (document) {
+  if (noteId) {
+    const note = notes.get(noteId);
+    if (note) {
       return {
-        label: document.titleWithDefault,
-        icon: document.icon ? (
+        label: note.titleWithDefault,
+        icon: note.icon ? (
           <Icon
-            value={document.icon}
-            initial={document.initial}
-            color={document.color ?? undefined}
+            value={note.icon}
+            initial={note.initial}
+            color={note.color ?? undefined}
           />
         ) : groupId ? null : (
-          <DocumentIcon outline={document.isDraft} />
+          <DocumentIcon outline={note.isDraft} />
         ),
       };
     }
   }
-
-  if (collectionId) {
-    const collection = collections.get(collectionId);
-    if (collection) {
+  if (notebookId) {
+    const notebook = notebooks.get(notebookId);
+    if (notebook) {
       return {
-        label: collection.name,
-        icon: <CollectionIcon collection={collection} />,
+        label: notebook.name,
+        icon: <CollectionIcon notebook={notebook} />,
       };
     }
   }
-
   return {
     label: "",
     icon,

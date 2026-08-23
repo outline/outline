@@ -13,13 +13,11 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import OAuthClientListItem from "./components/OAuthClientListItem";
-
 function Applications() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { oauthClients } = useStores();
   const can = usePolicy(team);
-
   return (
     <Scene
       title={t("Applications")}
@@ -63,5 +61,4 @@ function Applications() {
     </Scene>
   );
 }
-
 export default observer(Applications);

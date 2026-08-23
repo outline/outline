@@ -1,5 +1,4 @@
 import { MarketingLayout } from "./MarketingLayout";
-
 const PLATFORMS = [
   {
     name: "Windows",
@@ -22,7 +21,6 @@ const PLATFORMS = [
     action: "Get it on iOS",
   },
 ];
-
 /**
  * Where to get the apps.
  *
@@ -66,5 +64,4 @@ function Download() {
     </MarketingLayout>
   );
 }
-
 export default Download;

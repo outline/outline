@@ -2,33 +2,27 @@ import type { Node, Schema } from "prosemirror-model";
 import type { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import { isList } from "../queries/isList";
-
 export function transformListToMentions(
   listNode: Node,
   schema: Schema,
   attrs: Record<string, Primitive>
 ): Node {
   const childNodes: Node[] = [];
-
   listNode.forEach((node) => {
     childNodes.push(transformListItemToMentions(node, schema, attrs));
   });
-
   return listNode.type.create(listNode.attrs, childNodes);
 }
-
 function transformListItemToMentions(
   listItemNode: Node,
   schema: Schema,
   attrs: Record<string, Primitive>
 ) {
   const childNodes: Node[] = [];
-
   listItemNode.forEach((node) => {
     if (node.type.name === "paragraph") {
       const link = node.textContent;
       const mentionType = attrs[link];
-
       if (mentionType) {
         childNodes.push(
           node.type.create(
@@ -51,6 +45,5 @@ function transformListItemToMentions(
       childNodes.push(subListNode);
     }
   });
-
   return listItemNode.type.create(listItemNode.attrs, childNodes);
 }

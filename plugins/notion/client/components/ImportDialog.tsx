@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import type { ImportInput } from "@shared/schema";
-import type { CollectionPermission } from "@shared/types";
+import type { NotebookPermission } from "@shared/types";
 import { IntegrationService } from "@shared/types";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -24,10 +24,10 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   const { t } = useTranslation();
   const { imports } = useStores();
   const [submitting, setSubmitting, resetSubmitting] = useBoolean();
-  const [permission, setPermission] = React.useState<CollectionPermission>();
+  const [permission, setPermission] = React.useState<NotebookPermission>();
 
   const handlePermissionChange = React.useCallback(
-    (value: CollectionPermission | typeof EmptySelectValue) => {
+    (value: NotebookPermission | typeof EmptySelectValue) => {
       setPermission(value === EmptySelectValue ? undefined : value);
     },
     []
@@ -73,7 +73,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
         />
         <Text as="span" type="secondary">
           {t(
-            "Set the default permission level for collections created from the import"
+            "Set the default permission level for notebooks created from the import"
           )}
           .
         </Text>

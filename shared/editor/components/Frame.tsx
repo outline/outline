@@ -5,7 +5,6 @@ import styled from "styled-components";
 import type { Optional } from "utility-types";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
-
 type Props = Omit<
   Optional<React.ComponentProps<typeof Iframe>>,
   "children" | "style"
@@ -27,11 +26,9 @@ type Props = Omit<
   /** The allow policy of the frame */
   allow?: string;
 };
-
 type PropsWithRef = Props & {
   forwardedRef: React.Ref<HTMLIFrameElement>;
 };
-
 const Frame = ({
   border,
   style = {},
@@ -47,27 +44,22 @@ const Frame = ({
 }: PropsWithRef) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const mountedRef = useRef(true);
-
   useEffect(() => {
     // Set mounted flag
     mountedRef.current = true;
-
     // Load iframe after a small delay
     const timer = setTimeout(() => {
       if (mountedRef.current) {
         setIsLoaded(true);
       }
     }, 0);
-
     // Cleanup function
     return () => {
       mountedRef.current = false;
       clearTimeout(timer);
     };
   }, []);
-
   const showBottomBar = !!(icon || canonicalUrl);
-
   return (
     <Rounded
       style={style}
@@ -106,12 +98,12 @@ const Frame = ({
     </Rounded>
   );
 };
-
-const Iframe = styled.iframe<{ $showBottomBar: boolean }>`
+const Iframe = styled.iframe<{
+  $showBottomBar: boolean;
+}>`
   border-radius: ${(props) => (props.$showBottomBar ? "3px 3px 0 0" : "3px")};
   display: block;
 `;
-
 const Rounded = styled.div<{
   $showBottomBar: boolean;
   $border?: boolean;
@@ -127,7 +119,6 @@ const Rounded = styled.div<{
     padding-bottom: 28px;
   `}
 `;
-
 const Open = styled.a`
   color: ${s("textSecondary")} !important;
   font-size: 13px;
@@ -138,13 +129,11 @@ const Open = styled.a`
   right: 0;
   padding: 0 8px;
 `;
-
 const Title = styled.span`
   font-size: 13px;
   font-weight: 500;
   padding-left: 4px;
 `;
-
 const Bar = styled.div`
   display: flex;
   align-items: center;
@@ -158,7 +147,6 @@ const Bar = styled.div`
   height: 28px;
   position: relative;
 `;
-
 export default React.forwardRef<HTMLIFrameElement, Props>((props, ref) => (
   <Frame {...props} forwardedRef={ref} />
 ));

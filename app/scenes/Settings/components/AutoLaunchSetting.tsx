@@ -6,17 +6,14 @@ import env from "~/env";
 import Logger from "~/utils/Logger";
 import Desktop from "~/utils/Desktop";
 import SettingRow from "./SettingRow";
-
 export function AutoLaunchSetting() {
   const { t } = useTranslation();
   const bridge = Desktop.bridge;
   const supported =
     Desktop.isElectron() && !!bridge?.getAutoLaunch && !!bridge?.setAutoLaunch;
-
   const [autoLaunch, setAutoLaunch] = React.useState<boolean | undefined>(
     undefined
   );
-
   React.useEffect(() => {
     if (!bridge?.getAutoLaunch) {
       return;
@@ -35,12 +32,10 @@ export function AutoLaunchSetting() {
           toast.error(t("Could not load preference"));
         }
       });
-
     return () => {
       cancelled = true;
     };
   }, [bridge, t]);
-
   const handleChange = React.useCallback(
     async (checked: boolean) => {
       if (!bridge?.setAutoLaunch) {
@@ -57,13 +52,10 @@ export function AutoLaunchSetting() {
     },
     [bridge, t]
   );
-
   if (!supported) {
     return null;
   }
-
   const isLoading = autoLaunch === undefined;
-
   return (
     <SettingRow
       name="autoLaunch"

@@ -3,20 +3,18 @@ import { AttachmentPreset } from "@shared/types";
 import { dataUrlToBlob } from "@shared/utils/files";
 import { client } from "./ApiClient";
 import Logger from "./Logger";
-
 type UploadOptions = {
   /** The user generated ID of the file */
   id?: string;
   /** The user facing name of the file */
   name?: string;
   /** The document that this file was uploaded in, if any */
-  documentId?: string;
+  noteId?: string;
   /** The preset to use for attachment configuration */
   preset: AttachmentPreset;
   /** Callback will be passed a number between 0-1 as upload progresses */
   onProgress?: (fractionComplete: number) => void;
 };
-
 /**
  * Upload a file from a URL
  *
@@ -29,13 +27,12 @@ export const uploadFileFromUrl = async (
   options: UploadOptions
 ) => {
   const response = await client.post("/attachments.createFromUrl", {
-    documentId: options.documentId,
+    documentId: options.noteId,
     url,
     id: options.id,
   });
   return response.data;
 };
-
 /**
  * Upload a file
  *
@@ -47,13 +44,13 @@ export const uploadFile = async (
   file: File | Blob,
   options: UploadOptions = {
     name: "",
-    preset: AttachmentPreset.DocumentAttachment,
+    preset: AttachmentPreset.NoteAttachment,
   }
 ) => {
   const name = file instanceof File ? file.name : options.name;
   const response = await client.post("/attachments.create", {
     preset: options.preset,
-    documentId: options.documentId,
+    documentId: options.noteId,
     contentType: file.type,
     size: file.size,
     name,
@@ -63,7 +60,6 @@ export const uploadFile = async (
   const data = response.data;
   const attachment = data.attachment;
   const usePut = data.mode === "put";
-
   // Using XMLHttpRequest instead of fetch because fetch doesn't support progress
   const xhr = new XMLHttpRequest();
   const success = await new Promise((resolve) => {
@@ -79,12 +75,10 @@ export const uploadFile = async (
         contentType: file.type,
         size: file.size,
       };
-
       if (xhr.status === 0) {
         Logger.warn("File upload failed before response", extra);
         return;
       }
-
       Logger.error(
         "File upload failed",
         new Error(`${xhr.status} ${xhr.statusText}`),
@@ -94,7 +88,6 @@ export const uploadFile = async (
     xhr.addEventListener("loadend", () => {
       resolve(xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400);
     });
-
     if (usePut) {
       xhr.open("PUT", data.url, true);
       if (data.headers) {
@@ -118,7 +111,6 @@ export const uploadFile = async (
       } else {
         formData.append("file", file);
       }
-
       // Do not send credentials if uploading to a different origin, as the
       // combination of CORS and cookies will cause preflight request failure.
       // However S3-like storage on the same host can work with credentials.
@@ -130,24 +122,18 @@ export const uploadFile = async (
           parsed.origin !== window.location.origin;
         xhr.withCredentials = !requiresPreflightRequest;
       }
-
       xhr.open("POST", data.uploadUrl, true);
       xhr.send(formData);
     }
   });
-
   if (!success) {
     throw new Error("Upload failed");
   }
-
   return attachment;
 };
-
 export { dataUrlToBlob };
-
 const CHAR_FORWARD_SLASH = 47; /* / */
 const CHAR_DOT = 46; /* . */
-
 // Based on the NodeJS Library https://github.com/nodejs/node/blob/896b75a4da58a7283d551c4595e0aa454baca3e0/lib/path.js
 // Copyright Joyent, Inc. and other Node contributors.
 /**
@@ -164,7 +150,6 @@ export const extname = (path: string) => {
       `The "path" argument must be of type string. Received type ${typeof path}`
     );
   }
-
   let startDot = -1;
   let startPart = 0;
   let end = -1;
@@ -202,7 +187,6 @@ export const extname = (path: string) => {
       preDotState = -1;
     }
   }
-
   if (
     startDot === -1 ||
     end === -1 ||

@@ -1,7 +1,6 @@
 import { Fragment } from "react";
 import { Popover, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-
 const solutions = [
   { name: "Analytics", href: "#" },
   { name: "Engagement", href: "#" },
@@ -10,7 +9,6 @@ const solutions = [
   { name: "Automations", href: "#" },
   { name: "Reports", href: "#" },
 ];
-
 /**
  * Tailwind UI – flyout menus: simple.
  *

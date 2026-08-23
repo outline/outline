@@ -4,18 +4,15 @@ import { useTranslation } from "react-i18next";
 import { GroupPermission } from "@shared/types";
 import { GroupPermissionHelper } from "@shared/utils/GroupPermissionHelper";
 import FilterOptions from "~/components/FilterOptions";
-
 type Props = {
   activeKey: string;
   onSelect: (key: string | null | undefined) => void;
 };
-
 /**
  * Filter component for group member permissions.
  */
 const GroupPermissionFilter = ({ activeKey, onSelect, ...rest }: Props) => {
   const { t } = useTranslation();
-
   const options = useMemo(
     () => [
       {
@@ -33,7 +30,6 @@ const GroupPermissionFilter = ({ activeKey, onSelect, ...rest }: Props) => {
     ],
     [t]
   );
-
   return (
     <FilterOptions
       options={options}
@@ -44,5 +40,4 @@ const GroupPermissionFilter = ({ activeKey, onSelect, ...rest }: Props) => {
     />
   );
 };
-
 export default observer(GroupPermissionFilter);

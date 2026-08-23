@@ -1,6 +1,5 @@
 import { Fragment } from "react";
 import { classNames } from "./classNames";
-
 const locations = [
   {
     name: "Edinburgh",
@@ -21,7 +20,6 @@ const locations = [
   },
   // More people...
 ];
-
 /**
  * Tailwind UI – tables: with grouped rows.
  *

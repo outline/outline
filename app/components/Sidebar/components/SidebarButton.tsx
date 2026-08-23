@@ -9,7 +9,6 @@ import Text from "~/components/Text";
 import { draggableOnDesktop, undraggableOnDesktop } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import { HStack } from "~/components/primitives/HStack";
-
 export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
   position?: "top" | "bottom";
   title: React.ReactNode;
@@ -18,7 +17,6 @@ export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
   onClick: React.MouseEventHandler<HTMLButtonElement>;
   children?: React.ReactNode;
 };
-
 const SidebarButton = observer(
   React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
     function SidebarButton_(
@@ -60,29 +58,26 @@ const SidebarButton = observer(
     }
   )
 );
-
 const StyledMoreIcon = styled(MoreIcon)`
   flex-shrink: 0;
 `;
-
-const Container = styled(Flex)<{ $position: "top" | "bottom" }>`
+const Container = styled(Flex)<{
+  $position: "top" | "bottom";
+}>`
   overflow: hidden;
   padding-top: ${(props) =>
     props.$position === "top" && Desktop.hasInsetTitlebar() ? 40 : 0}px;
   ${draggableOnDesktop()}
 `;
-
 const Title = styled(Text)`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
-
 const Content = styled(HStack)`
   flex-shrink: 1;
   flex-grow: 1;
 `;
-
 const Button = styled(Flex)<{
   $position: "top" | "bottom";
 }>`
@@ -123,5 +118,4 @@ const Button = styled(Flex)<{
     }
   }
 `;
-
 export default SidebarButton;

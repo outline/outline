@@ -6,14 +6,12 @@ import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { useDesktopTitlebar } from "~/hooks/useDesktopTitlebar";
 import useStores from "~/hooks/useStores";
 import Desktop from "~/utils/Desktop";
-
 export default function DesktopEventHandler() {
   useDesktopTitlebar();
   const { t } = useTranslation();
   const history = useHistory();
   const { dialogs } = useStores();
   const hasDisabledUpdateMessage = useRef(false);
-
   useEffect(() => {
     Desktop.bridge?.redirect((path: string, replace: boolean) => {
       if (replace) {
@@ -22,12 +20,10 @@ export default function DesktopEventHandler() {
         history.push(path);
       }
     });
-
     Desktop.bridge?.updateDownloaded(() => {
       if (hasDisabledUpdateMessage.current) {
         return;
       }
-
       hasDisabledUpdateMessage.current = true;
       toast.message("An update is ready to install.", {
         duration: Infinity,
@@ -40,15 +36,12 @@ export default function DesktopEventHandler() {
         },
       });
     });
-
     Desktop.bridge?.focus(() => {
       window.document.body.classList.remove("backgrounded");
     });
-
     Desktop.bridge?.blur(() => {
       window.document.body.classList.add("backgrounded");
     });
-
     Desktop.bridge?.openKeyboardShortcuts(() => {
       dialogs.openGuide({
         title: t("Keyboard shortcuts"),
@@ -56,6 +49,5 @@ export default function DesktopEventHandler() {
       });
     });
   }, [t, history, dialogs]);
-
   return null;
 }

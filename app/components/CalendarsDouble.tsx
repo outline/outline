@@ -1,6 +1,5 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const months = [
   {
     name: "January",
@@ -97,7 +96,6 @@ const months = [
     ],
   },
 ];
-
 /**
  * Tailwind UI – calendars: double.
  *

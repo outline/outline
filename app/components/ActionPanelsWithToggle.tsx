@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Switch } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 /**
  * Tailwind UI – action panels: with toggle.
  *
@@ -9,7 +8,6 @@ import { classNames } from "./classNames";
  */
 export function ActionPanelsWithToggle() {
   const [enabled, setEnabled] = useState(false);
-
   return (
     <div className="bg-white shadow-sm sm:rounded-lg">
       <Switch.Group as="div" className="px-4 py-5 sm:p-6">

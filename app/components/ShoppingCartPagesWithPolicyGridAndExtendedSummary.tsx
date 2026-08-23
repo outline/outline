@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -24,7 +24,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckIcon, ClockIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = {
   categories: [
     {
@@ -302,7 +301,6 @@ const footerNavigation = {
     { name: "Find a store", href: "#" },
   ],
 };
-
 /**
  * Tailwind UI – shopping cart pages: with policy grid and extended summary.
  *
@@ -310,7 +308,6 @@ const footerNavigation = {
  */
 export function ShoppingCartPagesWithPolicyGridAndExtendedSummary() {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="bg-white">
       {/* Mobile menu */}
@@ -815,7 +812,7 @@ export function ShoppingCartPagesWithPolicyGridAndExtendedSummary() {
                           <span>
                             {product.inStock
                               ? "In stock"
-                              : `Ships in ${"leadTime" in product ? product.leadTime : ""}`}
+                              : `Ships in ${"leadTime" in product ? String(product.leadTime) : ""}`}
                           </span>
                         </p>
                       </div>

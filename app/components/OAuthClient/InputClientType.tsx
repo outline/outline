@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { InputSelect } from "../InputSelect";
-
 /**
  * An input that allows a choice of OAuth client type.
  */

@@ -7,21 +7,18 @@ import { client } from "~/utils/ApiClient";
 import Logger from "~/utils/Logger";
 import type RootStore from "./RootStore";
 import Store from "./base/Store";
-
 // oxlint-disable-next-line @typescript-eslint/no-explicit-any
 class UnfurlsStore extends Store<Unfurl<any>> {
   actions = []; // no default actions allowed for unfurls.
-
   constructor(rootStore: RootStore) {
     super(rootStore, Unfurl);
   }
-
   fetchUnfurl = async <UnfurlType extends UnfurlResourceType>({
     url,
-    documentId,
+    noteId,
   }: {
     url: string;
-    documentId?: string;
+    noteId?: string;
   }): Promise<Unfurl<UnfurlType> | undefined> => {
     try {
       const protocol = new URL(url).protocol;
@@ -35,52 +32,43 @@ class UnfurlsStore extends Store<Unfurl<any>> {
     } catch (_err) {
       return;
     }
-
     const unfurl = this.get(url);
-
     if (unfurl) {
-      this.refetch({ unfurl: unfurl as Unfurl<UnfurlType>, documentId });
+      this.refetch({ unfurl: unfurl as Unfurl<UnfurlType>, noteId });
       return unfurl;
     }
-
-    return this.unfurl<UnfurlType>({ url, documentId });
+    return this.unfurl<UnfurlType>({ url, noteId });
   };
-
   private refetch = <UnfurlType extends UnfurlResourceType>({
     unfurl,
-    documentId,
+    noteId,
   }: {
     unfurl: Unfurl<UnfurlType>;
-    documentId?: string;
+    noteId?: string;
   }) => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);
-
     if (new Date(unfurl.fetchedAt) < fiveMinutesAgo) {
-      void this.unfurl({ url: unfurl.id, documentId });
+      void this.unfurl({ url: unfurl.id, noteId });
     }
   };
-
   @action
   private unfurl = async <UnfurlType extends UnfurlResourceType>({
     url,
-    documentId,
+    noteId,
   }: {
     url: string;
-    documentId?: string;
+    noteId?: string;
   }): Promise<Unfurl<UnfurlType> | undefined> => {
     try {
       this.isFetching = true;
-
       const data = await client.post("/urls.unfurl", {
         url,
-        documentId,
+        documentId: noteId,
       });
-
       // unfurls can succeed with no data.
       if (!data) {
         return;
       }
-
       return this.add({
         id: url,
         type: data.type,
@@ -98,5 +86,4 @@ class UnfurlsStore extends Store<Unfurl<any>> {
     }
   };
 }
-
 export default UnfurlsStore;

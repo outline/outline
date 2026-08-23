@@ -3,7 +3,6 @@ const steps = [
   { id: "Step 2", name: "Application form", href: "#", status: "current" },
   { id: "Step 3", name: "Preview", href: "#", status: "upcoming" },
 ];
-
 /**
  * Tailwind UI – steps: simple.
  *

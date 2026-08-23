@@ -4,14 +4,11 @@ import { FileOperationType } from "@shared/types";
 import FileOperation from "~/models/FileOperation";
 import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
-
 export default class FileOperationsStore extends Store<FileOperation> {
   actions = [RPCAction.List, RPCAction.Info, RPCAction.Delete];
-
   constructor(rootStore: RootStore) {
     super(rootStore, FileOperation);
   }
-
   @computed
   get imports(): FileOperation[] {
     return orderBy(
@@ -24,7 +21,6 @@ export default class FileOperationsStore extends Store<FileOperation> {
       "desc"
     );
   }
-
   @computed
   get exports(): FileOperation[] {
     return orderBy(

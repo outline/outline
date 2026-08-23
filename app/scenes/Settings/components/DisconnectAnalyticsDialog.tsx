@@ -8,22 +8,18 @@ import { useHistory } from "react-router-dom";
 import { settingsPath } from "~/utils/routeHelpers";
 import { observer } from "mobx-react";
 import { capitalize } from "es-toolkit/compat";
-
 type Props = {
   integration: Integration<IntegrationType.Analytics>;
 };
-
 export const DisconnectAnalyticsDialog = observer(({ integration }: Props) => {
   const { t } = useTranslation();
   const { dialogs } = useStores();
   const history = useHistory();
-
   const handleSubmit = async () => {
     await integration.delete();
     history.push(settingsPath("integrations"));
     dialogs.closeAllModals();
   };
-
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}

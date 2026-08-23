@@ -5,14 +5,13 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type { ProsemirrorData } from "@shared/types";
 import type Template from "~/models/Template";
-import Editor from "~/scenes/Document/components/Editor";
-import { DocumentContextProvider } from "~/components/DocumentContext";
+import Editor from "~/scenes/Note/components/Editor";
+import { NoteContextProvider } from "~/components/NoteContext";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Notice from "~/components/Notice";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-
 export const TemplateForm = observer(function TemplateForm_({
   handleSubmit,
   template,
@@ -27,38 +26,31 @@ export const TemplateForm = observer(function TemplateForm_({
   const ref = useRef(null);
   const [isUploading, handleStartUpload, handleStopUpload] = useBoolean();
   const readOnly = !can.update && !template.isNew;
-
   const handleChangeTitle = (title: string) => {
     template.title = title;
   };
-
   const handleChangeIcon = (icon: string, color: string) => {
     template.icon = icon;
     template.color = color;
   };
-
   const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
     dataRef.current = value(false);
     template.data = dataRef.current;
   };
-
   const handleSave = (options: { autosave?: boolean }) => {
     if (options.autosave) {
       return;
     }
     handleSubmit(template);
   };
-
   const handleCancel = () => {
     dialogs.closeAllModals();
   };
-
   if (!template) {
     return null;
   }
-
   return (
-    <DocumentContextProvider>
+    <NoteContextProvider>
       <React.Suspense fallback={null}>
         {isUploading && <LoadingIndicator />}
         <Notice
@@ -76,7 +68,7 @@ export const TemplateForm = observer(function TemplateForm_({
           id={template.id}
           ref={ref}
           isDraft={false}
-          document={template}
+          note={template}
           value={readOnly ? template.data : undefined}
           defaultValue={template.data}
           onFileUploadStart={handleStartUpload}
@@ -92,10 +84,9 @@ export const TemplateForm = observer(function TemplateForm_({
           template
         />
       </React.Suspense>
-    </DocumentContextProvider>
+    </NoteContextProvider>
   );
 });
-
 const PlaceholderIcon = styled(InputIcon)`
   position: relative;
   top: 6px;

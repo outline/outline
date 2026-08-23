@@ -4,17 +4,14 @@ import { action, observable } from "mobx";
 import queryString from "query-string";
 import { isMobile } from "@shared/utils/browser";
 import { isModKey } from "@shared/utils/keyboard";
-
 /**
  * Name of the query string parameter that holds the route displayed in the
  * secondary pane of the split view. Keeping the value in the URL allows a
  * reload to hydrate both panes.
  */
 export const splitViewQueryParam = "split";
-
 /** Identifies a pane within the split view. */
 export type SplitViewPane = "primary" | "secondary";
-
 /**
  * Parses the split view route from a location search string.
  *
@@ -25,24 +22,19 @@ export type SplitViewPane = "primary" | "secondary";
 export function getSplitPath(search: string): string | undefined {
   const value = queryString.parse(search)[splitViewQueryParam];
   const path = Array.isArray(value) ? value[value.length - 1] : value;
-
   if (typeof path !== "string") {
     return undefined;
   }
-
   // Only allow internal, absolute paths – never protocol-relative or full
   // URLs – as the value is used to drive the router directly.
   if (!path.startsWith("/") || path.startsWith("//")) {
     return undefined;
   }
-
   if (!isSplittablePath(parsePath(path).pathname)) {
     return undefined;
   }
-
   return path;
 }
-
 /**
  * Returns a new search string with the split view route set or removed,
  * preserving all other query parameters.
@@ -54,17 +46,14 @@ export function getSplitPath(search: string): string | undefined {
  */
 export function setSplitPath(search: string, path: string | undefined): string {
   const params = queryString.parse(search);
-
   if (path === undefined) {
     delete params[splitViewQueryParam];
   } else {
     params[splitViewQueryParam] = path;
   }
-
   const stringified = queryString.stringify(params);
   return stringified ? `?${stringified}` : "";
 }
-
 const nonSplitViewPrefixes = [
   "/settings",
   "/s",
@@ -77,7 +66,6 @@ const nonSplitViewPrefixes = [
   "/auth",
   "/404",
 ];
-
 /**
  * Whether a route can be rendered inside a split view pane. Routes such as
  * settings or authentication render their own chrome and must always be
@@ -92,18 +80,14 @@ export function isSplittablePath(pathname: string): boolean {
   if (!pathname.startsWith("/") || pathname.startsWith("//")) {
     return false;
   }
-
   if (pathname === "/") {
     return false;
   }
-
   return !nonSplitViewPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
 }
-
 const focusedSplitPane = observable.box<SplitViewPane>("primary");
-
 /**
  * Returns the pane of the split view that currently has focus. Defaults to
  * the primary pane when no split view is open. The value is observable, so
@@ -114,7 +98,6 @@ const focusedSplitPane = observable.box<SplitViewPane>("primary");
 export function getFocusedSplitPane(): SplitViewPane {
   return focusedSplitPane.get();
 }
-
 /**
  * Sets the pane of the split view that currently has focus. Navigation
  * triggered outside of a pane, such as from the sidebar or command bar, is
@@ -125,9 +108,7 @@ export function getFocusedSplitPane(): SplitViewPane {
 export const setFocusedSplitPane = action((pane: SplitViewPane): void => {
   focusedSplitPane.set(pane);
 });
-
 let navigationSuppressed = false;
-
 /**
  * Whether split view handling of navigation is temporarily suppressed, used
  * when closing the split view so that the navigation is not rewritten.
@@ -137,7 +118,6 @@ let navigationSuppressed = false;
 export function isSplitViewNavigationSuppressed(): boolean {
   return navigationSuppressed;
 }
-
 /**
  * Runs a callback with split view handling of navigation disabled, allowing
  * the exact location passed to history.push or history.replace to be used.
@@ -152,9 +132,7 @@ export function withoutSplitViewNavigation(callback: () => void): void {
     navigationSuppressed = false;
   }
 }
-
 let splitModifierPressed = false;
-
 /**
  * Whether an event carries the modifier combination that opens a route in the
  * secondary pane of the split view.
@@ -167,7 +145,6 @@ export function isSplitViewModifierEvent(
 ): boolean {
   return isModKey(event) && !event.shiftKey && !event.altKey;
 }
-
 /**
  * Starts tracking whether the split view modifier combination is held during
  * events dispatched to the window, allowing code without direct access to the
@@ -189,17 +166,14 @@ export function trackSplitViewModifier(): () => void {
     }
     record(event);
   };
-
   window.addEventListener("keydown", record, { capture: true });
   window.addEventListener("click", handleClick, { capture: true });
-
   return () => {
     splitModifierPressed = false;
     window.removeEventListener("keydown", record, { capture: true });
     window.removeEventListener("click", handleClick, { capture: true });
   };
 }
-
 /**
  * Whether the split view modifier combination was held during the most recent
  * tracked event, see trackSplitViewModifier. Intended to be read while that
@@ -210,7 +184,6 @@ export function trackSplitViewModifier(): () => void {
 export function isSplitViewModifierPressed(): boolean {
   return splitModifierPressed;
 }
-
 /**
  * Navigates to the given location, opening it in the secondary pane of the
  * split view instead when the split view modifier is held and the route can
@@ -225,7 +198,6 @@ export function pushOrOpenInSplit(
 ): void {
   if (isSplitViewModifierPressed() && !isMobile()) {
     const location = typeof to === "string" ? parsePath(to) : to;
-
     // Location state cannot be represented in the split query parameter, so
     // routes that rely on it must navigate normally.
     if (
@@ -237,10 +209,8 @@ export function pushOrOpenInSplit(
       return;
     }
   }
-
   history.push(to);
 }
-
 /**
  * Opens the given path in the secondary pane of the split view, keeping the
  * current route in the primary pane, and focuses the secondary pane.
@@ -258,7 +228,6 @@ export function openRouteInSplit(history: History, path: string): void {
     search: setSplitPath(location.search, path),
   });
 }
-
 /**
  * Closes one pane of the split view, leaving the other pane's route as the
  * single displayed route, and returns focus to the primary pane. Closing the
@@ -283,7 +252,6 @@ export function closeSplitPane(
       });
       return;
     }
-
     history.push({
       pathname: location.pathname,
       hash: location.hash,

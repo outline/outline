@@ -8,8 +8,8 @@ import { toast } from "sonner";
 import { errToString } from "@shared/utils/error";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import type Collection from "~/models/Collection";
-import type Document from "~/models/Document";
+import type Notebook from "~/models/Notebook";
+import type Note from "~/models/Note";
 import type GroupMembership from "~/models/GroupMembership";
 import type Star from "~/models/Star";
 import UserMembership from "~/models/UserMembership";
@@ -19,24 +19,21 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { AuthorizationError } from "~/utils/errors";
 import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
-
 export type DragObject = NavigationNode & {
   depth: number;
-  collectionId: string;
+  notebookId: string;
   /**
    * Whether the drag ghost should stay tethered to the sidebar. Defaults to
    * tethered when unset — the placeholder only lets the ghost follow the
-   * cursor when this is explicitly `false` (e.g. drags from a document list).
+   * cursor when this is explicitly `false` (e.g. drags from a note list).
    */
   constrainToSidebar?: boolean;
 };
-
 function useHover(
   elementRef: React.RefObject<HTMLDivElement>,
   callback: () => void
 ) {
   const hoverTimeoutRef = React.useRef<ReturnType<typeof setTimeout>>();
-
   const startHover = React.useCallback(() => {
     if (!hoverTimeoutRef.current) {
       hoverTimeoutRef.current = setTimeout(() => {
@@ -45,36 +42,34 @@ function useHover(
       }, 500);
     }
   }, [callback]);
-
   const unsetHover = React.useCallback(() => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = undefined;
     }
   }, []);
-
-  // We set a timeout when the user first starts hovering over the document link,
+  // We set a timeout when the user first starts hovering over the note link,
   // to trigger expansion of children. Clear this timeout when they stop hovering.
   React.useEffect(() => {
     const element = elementRef.current;
     element?.addEventListener("dragleave", unsetHover);
     return () => element?.removeEventListener("dragleave", unsetHover);
   }, [elementRef, unsetHover]);
-
   return startHover;
 }
-
 /**
  * Hook for shared logic that allows dragging a Starred item
  *
  * @param star The related Star model.
  */
-export function useDragStar(
-  star: Star
-): [{ isDragging: boolean }, ConnectDragSource] {
+export function useDragStar(star: Star): [
+  {
+    isDragging: boolean;
+  },
+  ConnectDragSource,
+] {
   const id = star.id;
   const { label: title, icon } = useSidebarLabelAndIcon(star);
-
   const [{ isDragging }, draggableRef, preview] = useDrag({
     type: "star",
     item: () => ({ id, title, icon }),
@@ -82,16 +77,13 @@ export function useDragStar(
       isDragging: !!monitor.isDragging(),
     }),
   });
-
   React.useEffect(() => {
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
-
   return [{ isDragging }, draggableRef];
 }
-
 /**
- * Hook for shared logic that allows dropping documents and collections to create a star
+ * Hook for shared logic that allows dropping notes and notebooks to create a star
  *
  * @param getIndex A function to get the index of the current item where the star should be inserted.
  */
@@ -102,13 +94,15 @@ export function useDropToCreateStar(getIndex?: () => string) {
     "userMembership",
     "groupMembership",
   ];
-  const { documents, stars, collections, userMemberships, groupMemberships } =
+  const { notes, stars, notebooks, userMemberships, groupMemberships } =
     useStores();
-
   return useDrop<
     DragObject,
     Promise<void>,
-    { isOverCursor: boolean; isDragging: boolean }
+    {
+      isOverCursor: boolean;
+      isDragging: boolean;
+    }
   >({
     accept,
     drop: async (item, monitor) => {
@@ -117,18 +111,16 @@ export function useDropToCreateStar(getIndex?: () => string) {
       if (monitor.didDrop()) {
         return;
       }
-
       const type = monitor.getItemType();
       let model;
-
       if (type === "collection") {
-        model = collections.get(item.id);
+        model = notebooks.get(item.id);
       } else if (type === "userMembership") {
-        model = userMemberships.get(item.id)?.document;
+        model = userMemberships.get(item.id)?.note;
       } else if (type === "groupMembership") {
-        model = groupMemberships.get(item.id)?.document;
+        model = groupMemberships.get(item.id)?.note;
       } else {
-        model = documents.get(item.id);
+        model = notes.get(item.id);
       }
       await model?.star(
         getIndex?.() ?? fractionalIndex(null, stars.orderedData[0].index)
@@ -140,7 +132,6 @@ export function useDropToCreateStar(getIndex?: () => string) {
     }),
   });
 }
-
 /**
  * Hook for shared logic that allows dropping stars to reorder
  *
@@ -148,11 +139,13 @@ export function useDropToCreateStar(getIndex?: () => string) {
  */
 export function useDropToReorderStar(getIndex?: () => string) {
   const { stars } = useStores();
-
   return useDrop<
     DragObject,
     Promise<void>,
-    { isOverCursor: boolean; isDragging: boolean }
+    {
+      isOverCursor: boolean;
+      isDragging: boolean;
+    }
   >({
     accept: "star",
     drop: async (item) => {
@@ -168,33 +161,33 @@ export function useDropToReorderStar(getIndex?: () => string) {
     }),
   });
 }
-
 /**
- * Hook for shared logic that allows dragging documents.
+ * Hook for shared logic that allows dragging notes.
  *
  * @param node The NavigationNode model to drag.
  * @param depth The depth of the node in the sidebar.
- * @param document The related Document model.
+ * @param note The related Note model.
  * @param isEditing Whether the sidebar item is currently being edited.
  * @param constrainToSidebar Whether the drag ghost should stay tethered to the
  * sidebar. Defaults to true; pass false when dragging from outside the sidebar
- * (e.g. a document list) so the ghost follows the cursor.
+ * (e.g. a note list) so the ghost follows the cursor.
  */
-export function useDragDocument(
+export function useDragNote(
   node: NavigationNode,
   depth: number,
-  document?: Document,
+  note?: Note,
   isEditing?: boolean,
   constrainToSidebar = true
 ) {
-  const icon = document?.icon || node.icon || node.emoji;
-  const color = document?.color || node.color;
-  const initial = document?.initial || node.title;
-
+  const icon = note?.icon || node.icon || node.emoji;
+  const color = note?.color || node.color;
+  const initial = note?.initial || node.title;
   const [{ isDragging }, draggableRef, preview] = useDrag<
     DragObject,
     Promise<void>,
-    { isDragging: boolean }
+    {
+      isDragging: boolean;
+    }
   >({
     type: "document",
     item: () =>
@@ -204,63 +197,60 @@ export function useDragDocument(
         icon: icon ? (
           <Icon initial={initial} value={icon} color={color} />
         ) : undefined,
-        collectionId: document?.collectionId || "",
+        notebookId: note?.notebookId || "",
         constrainToSidebar,
       }) as DragObject,
-    canDrag: () => !!document?.isActive && !isEditing,
+    canDrag: () => !!note?.isActive && !isEditing,
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
   });
-
   React.useEffect(() => {
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
-
   return [{ isDragging }, draggableRef] as const;
 }
-
-export function useDropToChangeCollection(
-  collection: Collection,
+export function useDropToChangeNotebook(
+  notebook: Notebook,
   expandNode: () => void,
   parentRef: React.RefObject<HTMLDivElement>
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs, policies } = useStores();
-  const can = usePolicy(collection);
+  const { notes, notebooks, dialogs, policies } = useStores();
+  const can = usePolicy(notebook);
   const startHover = useHover(parentRef, expandNode);
-
   return useDrop<
     DragObject,
     Promise<void>,
-    { isOver: boolean; canDrop: boolean }
+    {
+      isOver: boolean;
+      canDrop: boolean;
+    }
   >({
     accept: "document",
     drop: async (item, monitor) => {
       if (monitor.didDrop()) {
         return;
       }
-
-      const { id, collectionId } = item;
-      const prevCollection = collections.get(collectionId);
-      const document = documents.get(id);
-
+      const { id, notebookId } = item;
+      const prevNotebook = notebooks.get(notebookId);
+      const note = notes.get(id);
       if (
-        prevCollection &&
-        prevCollection.permission !== collection.permission &&
-        !document?.isDraft
+        prevNotebook &&
+        prevNotebook.permission !== notebook.permission &&
+        !note?.isDraft
       ) {
         dialogs.openModal({
           title: t("Change permissions?"),
           content: (
-            <ConfirmMoveDialog item={item} collection={collection} index={0} />
+            <ConfirmMoveDialog item={item} notebook={notebook} index={0} />
           ),
         });
       } else {
         try {
-          await documents.move({
-            documentId: id,
-            collectionId: collection.id,
+          await notes.move({
+            noteId: id,
+            notebookId: notebook.id,
             index: 0,
           });
           expandNode();
@@ -268,10 +258,10 @@ export function useDropToChangeCollection(
           if (err instanceof AuthorizationError) {
             toast.error(
               t(
-                "You do not have permission to move {{ documentName }} to the {{ collectionName }} collection",
+                "You do not have permission to move {{ documentName }} to the {{ notebookName }} notebook",
                 {
-                  documentName: item.title,
-                  collectionName: collection.name,
+                  noteName: item.title,
+                  notebookName: notebook.name,
                 }
               )
             );
@@ -281,10 +271,10 @@ export function useDropToChangeCollection(
         }
       }
     },
-    canDrop: (item) => can.createDocument && !!policies.abilities(item.id).move,
+    canDrop: (item) => can.createNote && !!policies.abilities(item.id).move,
     hover: (_, monitor) => {
       if (
-        collection.hasDocuments &&
+        notebook.hasNotes &&
         monitor.canDrop() &&
         monitor.isOver({ shallow: true })
       ) {
@@ -297,62 +287,63 @@ export function useDropToChangeCollection(
     }),
   });
 }
-
 /**
- * Hook for shared logic that allows dropping documents to reparent
+ * Hook for shared logic that allows dropping notes to reparent
  *
  * @param node The NavigationNode model to drop.
  * @param setExpanded A function to expand the parent node.
  * @param parentRef A ref to the parent element that will be used to detect when the user is no longer hovering..
  */
-export function useDropToReparentDocument(
+export function useDropToReparentNote(
   node: NavigationNode | undefined,
   setExpanded: () => void,
   parentRef: React.RefObject<HTMLDivElement>
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs, policies } = useStores();
-  const hasChildDocuments = !!node?.children.length;
-  const document = node ? documents.get(node.id) : undefined;
+  const { notes, notebooks, dialogs, policies } = useStores();
+  const hasChildNotes = !!node?.children.length;
+  const note = node ? notes.get(node.id) : undefined;
   const pathToNode = React.useMemo(
-    () => document?.pathTo.map((item) => item.id),
-    [document]
+    () => note?.pathTo.map((item) => item.id),
+    [note]
   );
-
   const startHover = useHover(parentRef, setExpanded);
-
-  return useDrop<DragObject, Promise<void>, { isOverReparent: boolean }>({
+  return useDrop<
+    DragObject,
+    Promise<void>,
+    {
+      isOverReparent: boolean;
+    }
+  >({
     accept: "document",
     drop: async (item, monitor) => {
       if (monitor.didDrop() || !node) {
         return;
       }
-
-      const collection = node.collectionId
-        ? collections.get(node.collectionId)
+      const notebook = node.notebookId
+        ? notebooks.get(node.notebookId)
         : undefined;
-      const prevCollection = collections.get(item.collectionId);
-
+      const prevNotebook = notebooks.get(item.notebookId);
       if (
-        collection &&
-        prevCollection &&
-        prevCollection.permission !== collection.permission
+        notebook &&
+        prevNotebook &&
+        prevNotebook.permission !== notebook.permission
       ) {
         dialogs.openModal({
           title: t("Change permissions?"),
           content: (
             <ConfirmMoveDialog
               item={item}
-              collection={collection}
-              parentDocumentId={node.id}
+              notebook={notebook}
+              parentNoteId={node.id}
             />
           ),
         });
       } else {
         try {
-          await documents.move({
-            documentId: item.id,
-            parentDocumentId: node.id,
+          await notes.move({
+            noteId: item.id,
+            parentNoteId: node.id,
           });
           setExpanded();
         } catch (err) {
@@ -361,8 +352,8 @@ export function useDropToReparentDocument(
               t(
                 "{{ documentName }} cannot be moved within {{ parentDocumentName }}",
                 {
-                  documentName: item.title,
-                  parentDocumentName: node.title,
+                  noteName: item.title,
+                  parentNoteName: node.title,
                 }
               )
             );
@@ -376,18 +367,16 @@ export function useDropToReparentDocument(
       if (!node || item.id === node.id || !policies.abilities(item.id).move) {
         return false;
       }
-
-      if (!document) {
-        return true; // optimistic, in case the document is not loaded yet; server will check for permissions before performing the move.
+      if (!note) {
+        return true; // optimistic, in case the note is not loaded yet; server will check for permissions before performing the move.
       }
-
-      return document.isActive && !!pathToNode && !pathToNode.includes(item.id);
+      return note.isActive && !!pathToNode && !pathToNode.includes(item.id);
     },
     hover: (_item, monitor) => {
-      // Enables expansion of document children when hovering over the document
+      // Enables expansion of note children when hovering over the note
       // for more than half a second.
       if (
-        hasChildDocuments &&
+        hasChildNotes &&
         monitor.canDrop() &&
         monitor.isOver({
           shallow: true,
@@ -404,77 +393,71 @@ export function useDropToReparentDocument(
     }),
   });
 }
-
 /**
- * Hook for shared logic that allows dropping documents to reorder
+ * Hook for shared logic that allows dropping notes to reorder
  *
  * @param node The NavigationNode model to drop.
- * @param collection The related Collection model, if published
- * @param getMoveParams A function to get the move parameters for the document.
+ * @param notebook The related Notebook model, if published
+ * @param getMoveParams A function to get the move parameters for the note.
  */
-export function useDropToReorderDocument(
+export function useDropToReorderNote(
   node: NavigationNode,
-  collection: Collection | undefined,
+  notebook: Notebook | undefined,
   getMoveParams: (item: DragObject) =>
     | undefined
     | {
-        documentId: string;
-        collectionId: string;
-        parentDocumentId: string | undefined;
+        noteId: string;
+        notebookId: string;
+        parentNoteId: string | undefined;
         index: number;
       }
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs, policies } = useStores();
-
-  const document = documents.get(node.id);
-
-  return useDrop<DragObject, Promise<void>, { isOverReorder: boolean }>({
+  const { notes, notebooks, dialogs, policies } = useStores();
+  const note = notes.get(node.id);
+  return useDrop<
+    DragObject,
+    Promise<void>,
+    {
+      isOverReorder: boolean;
+    }
+  >({
     accept: "document",
     canDrop: (item: DragObject) => {
-      if (item.id === node.id || (document && !document.isActive)) {
+      if (item.id === node.id || (note && !note.isActive)) {
         return false;
       }
       return !!policies.abilities(item.id).move;
     },
     drop: async (item) => {
-      if (!collection?.isManualSort && item.collectionId === collection?.id) {
+      if (!notebook?.isManualSort && item.notebookId === notebook?.id) {
         toast.message(
-          t(
-            "You can't reorder documents in an alphabetically sorted collection"
-          )
+          t("You can't reorder documents in an alphabetically sorted notebook")
         );
         return;
       }
-
       const params = getMoveParams(item);
-
       if (params) {
-        const prevCollection = collections.get(item.collectionId);
-
+        const prevNotebook = notebooks.get(item.notebookId);
         if (
-          collection &&
-          prevCollection &&
-          prevCollection.permission !== collection.permission
+          notebook &&
+          prevNotebook &&
+          prevNotebook.permission !== notebook.permission
         ) {
           dialogs.openModal({
             title: t("Change permissions?"),
             content: (
-              <ConfirmMoveDialog
-                item={item}
-                collection={collection}
-                {...params}
-              />
+              <ConfirmMoveDialog item={item} notebook={notebook} {...params} />
             ),
           });
         } else {
           try {
-            await documents.move(params);
+            await notes.move(params);
           } catch (err) {
             if (err instanceof AuthorizationError) {
               toast.error(
                 t("{{ documentName }} cannot be moved here", {
-                  documentName: item.title,
+                  noteName: item.title,
                 })
               );
             } else {
@@ -492,7 +475,6 @@ export function useDropToReorderDocument(
     }),
   });
 }
-
 /**
  * Hook for shared logic that allows dragging user memberships.
  *
@@ -503,7 +485,6 @@ export function useDragMembership(
 ) {
   const id = membership.id;
   const { label: title, icon } = useSidebarLabelAndIcon(membership);
-
   const [{ isDragging }, draggableRef, preview] = useDrag({
     type:
       membership instanceof UserMembership
@@ -514,14 +495,11 @@ export function useDragMembership(
       isDragging: !!monitor.isDragging(),
     }),
   });
-
   React.useEffect(() => {
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
-
   return [{ isDragging }, draggableRef] as const;
 }
-
 /**
  * Hook for shared logic that allows dropping user memberships to reorder
  *
@@ -530,19 +508,20 @@ export function useDragMembership(
 export function useDropToReorderUserMembership(getIndex?: () => string) {
   const { userMemberships } = useStores();
   const user = useCurrentUser();
-
   return useDrop<
     DragObject,
     Promise<void>,
-    { isOverCursor: boolean; isDragging: boolean }
+    {
+      isOverCursor: boolean;
+      isDragging: boolean;
+    }
   >({
     accept: "userMembership",
     drop: async (item) => {
       const userMembership = userMemberships.get(item.id);
       void userMembership?.save({
         index:
-          getIndex?.() ??
-          fractionalIndex(null, user.documentMemberships[0].index),
+          getIndex?.() ?? fractionalIndex(null, user.noteMemberships[0].index),
       });
     },
     collect: (monitor) => ({
@@ -551,36 +530,35 @@ export function useDropToReorderUserMembership(getIndex?: () => string) {
     }),
   });
 }
-
 /**
- * Hook for shared logic that allows dropping documents and collections onto archive section
+ * Hook for shared logic that allows dropping notes and notebooks onto archive section
  */
 export function useDropToArchive() {
   const accept = ["document", "collection"];
-  const { documents, collections, policies } = useStores();
+  const { notes, notebooks, policies } = useStores();
   const { t } = useTranslation();
-
   return useDrop<
     DragObject,
     Promise<void>,
-    { isOverArchiveSection: boolean; isDragging: boolean }
+    {
+      isOverArchiveSection: boolean;
+      isDragging: boolean;
+    }
   >({
     accept,
     drop: async (item, monitor) => {
       const type = monitor.getItemType();
       let model;
-
       if (type === "collection") {
-        model = collections.get(item.id);
+        model = notebooks.get(item.id);
       } else {
-        model = documents.get(item.id);
+        model = notes.get(item.id);
       }
-
       if (model) {
         await model.archive();
         toast.success(
           type === "collection"
-            ? t("Collection archived")
+            ? t("Notebook archived")
             : t("Document archived")
         );
       }
@@ -592,28 +570,28 @@ export function useDropToArchive() {
     }),
   });
 }
-
 export function useDropToUnpublish() {
   const { t } = useTranslation();
-  const { policies, documents } = useStores();
-
+  const { policies, notes } = useStores();
   return useDrop<
     DragObject,
     Promise<void>,
-    { isOver: boolean; canDrop: boolean }
+    {
+      isOver: boolean;
+      canDrop: boolean;
+    }
   >({
     accept: "document",
     drop: async (item) => {
-      const document = documents.get(item.id);
-      if (!document) {
+      const note = notes.get(item.id);
+      if (!note) {
         return;
       }
-
       try {
-        await document.unpublish({ detach: true });
+        await note.unpublish({ detach: true });
         toast.success(
           t("Unpublished {{ documentName }}", {
-            documentName: document.noun,
+            noteName: note.noun,
           })
         );
       } catch (err) {
@@ -625,7 +603,6 @@ export function useDropToUnpublish() {
       if (!policy) {
         return true; // optimistic, let the server check for the necessary permission.
       }
-
       return policy.unpublish;
     },
     collect: (monitor) => ({

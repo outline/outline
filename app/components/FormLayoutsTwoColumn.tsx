@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -13,7 +13,6 @@
   ```
 */
 import { PhotoIcon, UserCircleIcon } from "@heroicons/react/24/solid";
-
 /**
  * Tailwind UI – form layouts: two column.
  *

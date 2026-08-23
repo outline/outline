@@ -1,0 +1,316 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { subDays } from "date-fns";
+import { m } from "framer-motion";
+import { observer } from "mobx-react";
+import { CloseIcon, DocumentIcon, ClockIcon } from "outline-icons";
+import { useRef, useCallback, Suspense } from "react";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import styled, { useTheme } from "styled-components";
+import Icon from "@shared/components/Icon";
+import Squircle from "@shared/components/Squircle";
+import { s, hover, ellipsis } from "@shared/styles";
+import { IconType } from "@shared/types";
+import { determineIconType } from "@shared/utils/icon";
+import type Note from "~/models/Note";
+import type Pin from "~/models/Pin";
+import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
+import Time from "~/components/Time";
+import usePolicy from "~/hooks/usePolicy";
+import useStores from "~/hooks/useStores";
+import CollectionIcon from "./Icons/NotebookIcon";
+import Text from "./Text";
+import Tooltip from "./Tooltip";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+const ReadingTime = lazyWithRetry(() => import("./ReadingTime"));
+type Props = {
+  /** The pin record */
+  pin: Pin | undefined;
+  /** The note related to the pin */
+  note: Note;
+  /** Whether this pin can be reordered by dragging */
+  isDraggable?: boolean;
+};
+function NoteCard(props: Props) {
+  const { t } = useTranslation();
+  const { notebooks } = useStores();
+  const theme = useTheme();
+  const { note, pin, isDraggable } = props;
+  const canPin = usePolicy(pin);
+  const canNote = usePolicy(note);
+  const pinnedToHome = useRef(!pin?.notebookId).current;
+  // Pins in a collection are governed by the note policy, pins on home by
+  // the policy of the pin itself.
+  const canReorder = pin?.notebookId ? canNote.pin : canPin.update;
+  const canUnpin = pin?.notebookId ? canNote.unpin : canPin.delete;
+  const notebook = note.notebookId ? notebooks.get(note.notebookId) : undefined;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: props.note.id,
+    disabled: !isDraggable || !canReorder,
+  });
+  const hasEmojiInTitle = determineIconType(note.icon) === IconType.Emoji;
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  const handleUnpin = useCallback(
+    async (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      await pin?.delete();
+    },
+    [pin]
+  );
+  // If the note was updated within the last 7 days, show a timestamp instead of reading time
+  const isRecentlyUpdated = new Date(note.updatedAt) > subDays(new Date(), 7);
+  const updatedAt = (
+    <>
+      <Clock size={18} />
+      <Time dateTime={note.updatedAt} addSuffix shorten />
+    </>
+  );
+  return (
+    <Reorderable
+      ref={setNodeRef}
+      style={style}
+      $isDragging={isDragging}
+      {...attributes}
+      {...listeners}
+      tabIndex={-1}
+    >
+      <AnimatePresence
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          transition: {
+            type: "spring",
+            bounce: 0.6,
+          },
+        }}
+        exit={{ opacity: 0, scale: 0.95 }}
+      >
+        <NoteLink
+          dir={note.dir}
+          $isDragging={isDragging}
+          to={{
+            pathname: note.path,
+            state: {
+              title: note.titleWithDefault,
+            },
+          }}
+        >
+          <Content justify="space-between" column>
+            <Fold
+              width="20"
+              height="21"
+              viewBox="0 0 20 21"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M19.5 20.5H6C2.96243 20.5 0.5 18.0376 0.5 15V0.5H0.792893L19.5 19.2071V20.5Z" />
+              <path d="M19.5 19.5H6C2.96243 19.5 0.5 17.0376 0.5 14V0.5H0.792893L19.5 19.2071V19.5Z" />
+            </Fold>
+
+            {note.icon ? (
+              <NoteSquircle
+                icon={note.icon}
+                color={note.color ?? undefined}
+                initial={note.initial}
+              />
+            ) : (
+              <Squircle
+                color={
+                  notebook?.color ??
+                  (pinnedToHome ? theme.slateLight : theme.slateDark)
+                }
+              >
+                {notebook?.icon &&
+                notebook?.icon !== "letter" &&
+                notebook?.icon !== "collection" &&
+                pinnedToHome ? (
+                  <CollectionIcon notebook={notebook} color="white" />
+                ) : (
+                  <DocumentIcon color="white" />
+                )}
+              </Squircle>
+            )}
+            <div>
+              <Heading dir={note.dir}>
+                {hasEmojiInTitle
+                  ? note.titleWithDefault.replace(note.icon!, "")
+                  : note.titleWithDefault}
+              </Heading>
+              <NoteMeta size="xsmall">
+                {isRecentlyUpdated ? (
+                  updatedAt
+                ) : (
+                  <Suspense fallback={updatedAt}>
+                    <ReadingTime note={note} />
+                  </Suspense>
+                )}
+              </NoteMeta>
+            </div>
+          </Content>
+          {canUnpin && !isDragging && pin && (
+            <Actions dir={note.dir} gap={4}>
+              <Tooltip content={t("Unpin")}>
+                <PinButton onClick={handleUnpin} aria-label={t("Unpin")}>
+                  <CloseIcon />
+                </PinButton>
+              </Tooltip>
+            </Actions>
+          )}
+        </NoteLink>
+      </AnimatePresence>
+    </Reorderable>
+  );
+}
+const NoteSquircle = ({
+  icon,
+  initial,
+  color,
+}: {
+  icon: string;
+  initial: string;
+  color?: string;
+}) => {
+  const theme = useTheme();
+  const iconType = determineIconType(icon)!;
+  const squircleColor = iconType === IconType.SVG ? color : theme.slateLight;
+  const style = {
+    "--background": squircleColor,
+  } as React.CSSProperties;
+  return (
+    <Squircle color={squircleColor} style={style}>
+      <Icon value={icon} color={theme.white} initial={initial} forceColor />
+    </Squircle>
+  );
+};
+const Clock = styled(ClockIcon)`
+  flex-shrink: 0;
+`;
+const AnimatePresence = styled(m.div)`
+  width: 100%;
+  height: 100%;
+`;
+const Fold = styled.svg`
+  fill: ${s("background")};
+  stroke: ${s("inputBorder")};
+  background: ${s("background")};
+
+  position: absolute;
+  top: -1px;
+  right: -2px;
+`;
+const PinButton = styled(NudeButton)`
+  color: ${s("textTertiary")};
+
+  &:${hover},
+  &:active {
+    color: ${s("text")};
+  }
+`;
+const Actions = styled(Flex)`
+  position: absolute;
+  top: 4px;
+  right: ${(props) => (props.dir === "rtl" ? "auto" : "4px")};
+  left: ${(props) => (props.dir === "rtl" ? "4px" : "auto")};
+  opacity: 0;
+  color: ${s("textTertiary")};
+
+  // move actions above content
+  z-index: 2;
+`;
+const Reorderable = styled.div<{
+  $isDragging: boolean;
+}>`
+  position: relative;
+  user-select: none;
+  touch-action: none;
+  width: 170px;
+  height: 180px;
+  transition: box-shadow 200ms ease;
+
+  // move above other cards when dragging
+  z-index: ${(props) => (props.$isDragging ? 1 : "inherit")};
+  pointer-events: ${(props) => (props.$isDragging ? "none" : "inherit")};
+
+  &: ${hover} ${Actions} {
+    opacity: 1;
+  }
+`;
+const Content = styled(Flex)`
+  min-width: 0;
+  height: 100%;
+`;
+const NoteMeta = styled(Text)`
+  ${ellipsis()}
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: ${s("textTertiary")};
+  margin: 0 0 0 -2px;
+`;
+const NoteLink = styled(Link)<{
+  $isDragging?: boolean;
+}>`
+  position: relative;
+  display: block;
+  padding: 12px;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  cursor: var(--pointer);
+  background: ${s("background")};
+  transition: transform 50ms ease-in-out;
+  border: 1px solid ${s("inputBorder")};
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+
+  ${Actions} {
+    opacity: 0;
+  }
+
+  &:${hover},
+  &:active,
+  &:focus,
+  &:focus-within {
+    transform: ${(props) => (props.$isDragging ? "scale(1.1)" : "scale(1.08)")}
+      rotate(-2deg);
+    box-shadow: ${(props) =>
+      props.$isDragging
+        ? "0 0 20px rgba(0,0,0,0.2);"
+        : "0 0 10px rgba(0,0,0,0.1)"};
+    z-index: 1;
+
+    ${Fold} {
+      display: none;
+    }
+
+    ${Actions} {
+      opacity: 1;
+    }
+  }
+`;
+const Heading = styled.h3`
+  margin-top: 0;
+  margin-bottom: 0.35em;
+  line-height: 22px;
+  max-height: 66px; // 3*line-height
+  overflow: hidden;
+
+  color: ${s("text")};
+  font-family: ${s("fontFamily")};
+  font-weight: 500;
+`;
+export default observer(NoteCard);

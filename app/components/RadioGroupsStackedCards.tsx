@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const plans = [
   {
     name: "Hobby",
@@ -32,7 +31,6 @@ const plans = [
     price: "$240",
   },
 ];
-
 /**
  * Tailwind UI – radio groups: stacked cards.
  *
@@ -40,7 +38,6 @@ const plans = [
  */
 export function RadioGroupsStackedCards() {
   const [selected, setSelected] = useState(plans[0]);
-
   return (
     <RadioGroup value={selected} onChange={setSelected}>
       <RadioGroup.Label className="sr-only">Server size</RadioGroup.Label>

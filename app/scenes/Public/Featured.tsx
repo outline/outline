@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { client } from "~/utils/ApiClient";
 import { BusinessLayout } from "./BusinessLayout";
-
 /** A product on the public shopfront. */
 interface FeaturedProduct {
   id: string;
@@ -10,14 +9,12 @@ interface FeaturedProduct {
   category: string;
   price: number;
 }
-
 const money = (amount: number) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(amount);
-
 /**
  * The public shopfront.
  *
@@ -27,9 +24,10 @@ const money = (amount: number) =>
  * @returns the rendered featured products page.
  */
 function Featured() {
-  const { businessSlug } = useParams<{ businessSlug: string }>();
+  const { businessSlug } = useParams<{
+    businessSlug: string;
+  }>();
   const [products, setProducts] = useState<FeaturedProduct[]>([]);
-
   useEffect(() => {
     let cancelled = false;
     void client.post("/public.featured").then((response) => {
@@ -41,7 +39,6 @@ function Featured() {
       cancelled = true;
     };
   }, []);
-
   return (
     <BusinessLayout current="featured">
       <h2 className="text-lg font-semibold text-gray-900">In the shop</h2>
@@ -76,5 +73,4 @@ function Featured() {
     </BusinessLayout>
   );
 }
-
 export default Featured;

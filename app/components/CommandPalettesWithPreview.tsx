@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -19,7 +19,6 @@ import { UsersIcon } from "@heroicons/react/24/outline";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
 import type { ChangeEvent } from "react";
-
 const people = [
   {
     id: 1,
@@ -34,9 +33,7 @@ const people = [
   },
   // More people...
 ];
-
 const recent = [people[5], people[4], people[2], people[10], people[16]];
-
 /**
  * Tailwind UI – command palettes: with preview.
  *
@@ -45,14 +42,12 @@ const recent = [people[5], people[4], people[2], people[10], people[16]];
 export function CommandPalettesWithPreview() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(true);
-
   const filteredPeople =
     query === ""
       ? []
       : people.filter((person) =>
           person.name.toLowerCase().includes(query.toLowerCase())
         );
-
   return (
     <Transition.Root
       show={open}

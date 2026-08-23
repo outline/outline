@@ -15,19 +15,16 @@ import useStores from "~/hooks/useStores";
 import { ListItem } from "./ListItem";
 import Flex from "@shared/components/Flex";
 import { useTranslation } from "react-i18next";
-
 type Props = {
   /** The group to display members for */
   group: Group;
   /** The trigger element that opens the popover */
   children: React.ReactElement;
 };
-
 export const GroupMembersPopover = observer(({ group, children }: Props) => {
   const { t } = useTranslation();
   const { groupUsers } = useStores();
   const [open, setOpen] = React.useState(false);
-
   // `orderedData` is an observable dependency, it is what recomputes the list
   // when group membership changes in the store.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -36,14 +33,12 @@ export const GroupMembersPopover = observer(({ group, children }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [groupUsers.orderedData, group.id]
   );
-
   const fetchOptions = React.useMemo(
     () => ({
       id: group.id,
     }),
     [group.id]
   );
-
   const renderItem = React.useCallback(
     (groupUser: GroupUser) => (
       <ListItem
@@ -55,7 +50,6 @@ export const GroupMembersPopover = observer(({ group, children }: Props) => {
     ),
     []
   );
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>{children}</PopoverTrigger>
@@ -89,7 +83,6 @@ export const GroupMembersPopover = observer(({ group, children }: Props) => {
     </Popover>
   );
 });
-
 const Container = styled.div`
   display: flex;
   flex-direction: column;

@@ -4,29 +4,22 @@ import { NotFoundPagesSplitWithImage } from "~/components/NotFoundPagesSplitWith
 import { NotFoundPagesWithBackgroundImage } from "~/components/NotFoundPagesWithBackgroundImage";
 import { NotFoundPagesWithNavbarAndFooter } from "~/components/NotFoundPagesWithNavbarAndFooter";
 import { NotFoundPagesWithPopularPages } from "~/components/NotFoundPagesWithPopularPages";
-
 const meta: Meta = {
   title: "Marketing/Feedback/404 Pages",
 };
-
 export default meta;
-
 export const Simple: StoryObj = {
   render: () => <NotFoundPagesSimple />,
 };
-
 export const SplitWithImage: StoryObj = {
   render: () => <NotFoundPagesSplitWithImage />,
 };
-
 export const WithBackgroundImage: StoryObj = {
   render: () => <NotFoundPagesWithBackgroundImage />,
 };
-
 export const WithNavbarAndFooter: StoryObj = {
   render: () => <NotFoundPagesWithNavbarAndFooter />,
 };
-
 export const WithPopularPages: StoryObj = {
   render: () => <NotFoundPagesWithPopularPages />,
 };

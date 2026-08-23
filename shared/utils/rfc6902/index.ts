@@ -1,5 +1,4 @@
 import { Pointer } from "./pointer";
-
 import { apply } from "./patch";
 import type { Diff, VoidableDiff } from "./diff";
 import {
@@ -9,10 +8,8 @@ import {
   isDestructive,
   diffAny,
 } from "./diff";
-
 export { Operation, TestOperation, ReplaceOperation };
 export type Patch = Operation[];
-
 /**
  * Apply a 'application/json-patch+json'-type patch to an object.
  *
@@ -32,7 +29,6 @@ export type Patch = Operation[];
 export function applyPatch(object: unknown, patch: Operation[]) {
   return patch.map((operation) => apply(object, operation));
 }
-
 function wrapVoidableDiff(diff: VoidableDiff): Diff {
   function wrappedDiff(
     input: unknown,
@@ -47,7 +43,6 @@ function wrapVoidableDiff(diff: VoidableDiff): Diff {
   }
   return wrappedDiff;
 }
-
 /**
  * Produce a 'application/json-patch+json'-type patch to get from one object to
  * another.
@@ -70,7 +65,6 @@ export function createPatch(
   // a new Pointer gets a default path of [''] if not specified
   return (diff ? wrapVoidableDiff(diff) : diffAny)(input, output, ptr);
 }
-
 /**
  * Create a test operation based on `input`'s current evaluation of the JSON
  * Pointer `path`; if such a pointer cannot be resolved, returns undefined.
@@ -82,7 +76,6 @@ function createTest(input: unknown, path: string): TestOperation | undefined {
   }
   return undefined;
 }
-
 /**
  * Produce an 'application/json-patch+json'-type list of tests, to verify that
  * existing values in an object are identical to the those captured at some

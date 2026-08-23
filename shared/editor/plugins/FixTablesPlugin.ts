@@ -4,7 +4,6 @@ import { Plugin } from "prosemirror-state";
 import { TableMap } from "prosemirror-tables";
 import { changedDescendants } from "../lib/changedDescendants";
 import { getCellsInColumn } from "../queries/table";
-
 /**
  * A ProseMirror plugin that fixes various ways that tables can end up in an incorrect state:
  *
@@ -30,7 +29,6 @@ export class FixTablesPlugin extends Plugin {
       },
     });
   }
-
   private fixTable(
     state: EditorState,
     table: Node,
@@ -42,7 +40,6 @@ export class FixTablesPlugin extends Plugin {
     if (!tr) {
       tr = state.tr;
     }
-
     // If the table has only one column, remove the colwidth attribute on all cells
     if (map.width === 1) {
       const cells = getCellsInColumn(0)(state);
@@ -57,7 +54,6 @@ export class FixTablesPlugin extends Plugin {
         }
       });
     }
-
     // If the table has header cells that are not in the first row or column
     // then convert them to regular cells
     const cellPositions = map.cellsInRect({
@@ -66,7 +62,6 @@ export class FixTablesPlugin extends Plugin {
       right: map.width,
       bottom: map.height,
     });
-
     for (let i = 0; i < cellPositions.length; i++) {
       const cellPos = cellPositions[i];
       const cell = table.nodeAt(cellPos);
@@ -79,7 +74,6 @@ export class FixTablesPlugin extends Plugin {
         );
       }
     }
-
     return fixed ? tr : undefined;
   }
 }

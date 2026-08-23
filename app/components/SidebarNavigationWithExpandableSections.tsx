@@ -1,7 +1,6 @@
 import { Disclosure } from "@headlessui/react";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Dashboard", href: "#", current: true },
   {
@@ -27,7 +26,6 @@ const navigation = [
   { name: "Documents", href: "#", current: false },
   { name: "Reports", href: "#", current: false },
 ];
-
 /**
  * Tailwind UI – sidebar navigation: with expandable sections.
  *

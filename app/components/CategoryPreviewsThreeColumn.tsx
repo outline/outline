@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -40,7 +40,6 @@ const callouts = [
     href: "#",
   },
 ];
-
 /**
  * Tailwind UI – category previews: three column.
  *

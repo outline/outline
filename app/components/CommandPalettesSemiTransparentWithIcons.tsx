@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -24,7 +24,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { classNames } from "./classNames";
 import type { ChangeEvent } from "react";
-
 const projects = [
   { id: 1, name: "Workflow Inc. / Website Redesign", url: "#" },
   // More projects...
@@ -36,7 +35,6 @@ const quickActions = [
   { name: "Add hashtag...", icon: HashtagIcon, shortcut: "H", url: "#" },
   { name: "Add label...", icon: TagIcon, shortcut: "L", url: "#" },
 ];
-
 /**
  * Tailwind UI – command palettes: semi transparent with icons.
  *
@@ -45,14 +43,12 @@ const quickActions = [
 export function CommandPalettesSemiTransparentWithIcons() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(true);
-
   const filteredProjects =
     query === ""
       ? []
       : projects.filter((project) =>
           project.name.toLowerCase().includes(query.toLowerCase())
         );
-
   return (
     <Transition.Root
       show={open}

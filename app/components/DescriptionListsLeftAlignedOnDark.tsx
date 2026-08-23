@@ -1,5 +1,4 @@
 import { PaperClipIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – description lists: left aligned on dark.
  *

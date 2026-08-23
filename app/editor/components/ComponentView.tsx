@@ -5,7 +5,6 @@ import type Extension from "@shared/editor/lib/Extension";
 import type { ComponentProps } from "@shared/editor/types";
 import type { Editor } from "~/editor";
 import { NodeViewRenderer } from "./NodeViewRenderer";
-
 type ComponentViewConstructor = {
   /** The editor instance. */
   editor: Editor;
@@ -20,7 +19,6 @@ type ComponentViewConstructor = {
   /** The decorations applied to the node. */
   decorations: Decoration[];
 };
-
 export default class ComponentView {
   /** The React component to render. */
   component: FunctionComponent<ComponentProps>;
@@ -46,7 +44,6 @@ export default class ComponentView {
   contentDOM: HTMLElement | null = null;
   /** The base class name for the node's DOM element. */
   className?: string;
-
   // See https://prosemirror.net/docs/ref/#view.NodeView
   constructor(
     component: FunctionComponent<ComponentProps>,
@@ -69,29 +66,23 @@ export default class ComponentView {
     this.dom = node.type.spec.inline
       ? document.createElement("span")
       : document.createElement("div");
-
     if (!node.isLeaf) {
       this.contentDOM = document.createElement(
         node.type.spec.inline ? "span" : "div"
       );
     }
-
     this.className = `component-${node.type.name}`;
     this.dom.classList.add(this.className);
     this.renderer = new NodeViewRenderer(this.dom, this.component, this.props);
-
     // Add the renderer to the editor's set of node renderers so that it is included in the React tree.
     this.editor.nodeRenderers.add(this.renderer);
-
     // Apply decoration classes to the DOM element.
     this.applyDecorationClasses();
   }
-
   update(node: ProsemirrorNode, decorations: Decoration[]) {
     if (node.type !== this.node.type) {
       return false;
     }
-
     // Ensure we don't reuse NodeViews for different nodes that have a distinct identity
     // This prevents attribute swapping during drag operations.
     if (
@@ -100,14 +91,12 @@ export default class ComponentView {
     ) {
       return false;
     }
-
     this.node = node;
     this.decorations = decorations;
     this.applyDecorationClasses();
     this.renderer.updateProps(this.props);
     return true;
   }
-
   /**
    * Apply decoration classes to the DOM element.
    * Extracts classes from inline decorations that overlap with this node's position.
@@ -116,19 +105,23 @@ export default class ComponentView {
     if (!this.dom) {
       return;
     }
-
     // Remove all existing decoration classes.
     this.dom.classList.forEach((className) => {
       if (className !== this.className) {
         this.dom?.classList.remove(className);
       }
     });
-
     // Apply classes from inline decorations.
     this.decorations.forEach((decoration) => {
       // For inline decorations, attrs contain the class property.
       const attrs = (
-        decoration as Decoration & { type?: { attrs?: { class?: string } } }
+        decoration as Decoration & {
+          type?: {
+            attrs?: {
+              class?: string;
+            };
+          };
+        }
       ).type?.attrs;
       if (attrs?.class) {
         const classes = attrs.class.split(" ");
@@ -140,21 +133,18 @@ export default class ComponentView {
       }
     });
   }
-
   selectNode() {
     if (this.view.editable) {
       this.isSelected = true;
       this.renderer.updateProps(this.props);
     }
   }
-
   deselectNode() {
     if (this.view.editable) {
       this.isSelected = false;
       this.renderer.updateProps(this.props);
     }
   }
-
   /**
    * Ref callback for the component to mark the element that the node's
    * editable content should be mounted within. The content itself is managed
@@ -169,7 +159,6 @@ export default class ComponentView {
       element.appendChild(this.contentDOM);
     }
   };
-
   stopEvent(event: Event) {
     if (
       this.contentDOM &&
@@ -184,20 +173,17 @@ export default class ComponentView {
       !event.type.startsWith("drop")
     );
   }
-
   destroy() {
     this.editor.nodeRenderers.delete(this.renderer);
     this.dom = null;
     this.contentDOM = null;
   }
-
   ignoreMutation(mutation: MutationRecord) {
     if (this.contentDOM) {
       return !this.contentDOM.contains(mutation.target);
     }
     return true;
   }
-
   get props() {
     return {
       node: this.node,

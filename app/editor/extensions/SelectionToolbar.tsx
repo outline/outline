@@ -14,7 +14,6 @@ import {
 import { SelectionToolbar } from "../components/SelectionToolbar";
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
-
 import getFormattingMenuItems from "../menus/formatting";
 import getImageMenuItems from "../menus/image";
 import getNoticeMenuItems from "../menus/notice";
@@ -22,16 +21,13 @@ import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
-
 export default class SelectionToolbarExtension extends Extension {
   get name() {
     return "selection-toolbar";
   }
-
   get allowInReadOnly() {
     return true;
   }
-
   get plugins(): Plugin[] {
     return [
       new Plugin({
@@ -41,10 +37,8 @@ export default class SelectionToolbarExtension extends Extension {
       }),
     ];
   }
-
   @observable
   state: Selection | boolean = false;
-
   /**
    * Returns all selection toolbar menu descriptors. Each descriptor declares
    * when it matches (via a predicate on SelectionContext) and what items to
@@ -113,71 +107,56 @@ export default class SelectionToolbarExtension extends Extension {
       },
     ];
   }
-
   private handleUpdate = action((view: EditorView) => {
     const { state } = view;
     this.state = this.calculateState(state);
   });
-
   private calculateState(state: EditorState): Selection | boolean {
     const { selection, doc, schema } = state;
-
     if (isMarkActive(schema.marks.link)(state)) {
       return selection;
     }
-
     if (
       isNodeActive(schema.nodes.code_block)(state) ||
       isNodeActive(schema.nodes.code_fence)(state)
     ) {
       return selection;
     }
-
     if (isInNotice(state) && selection.from > 0) {
       return selection;
     }
-
     if (!selection || selection.empty) {
       return false;
     }
-
     if (
       selection instanceof NodeSelection &&
       selection.node.type.name === "hr"
     ) {
       return selection;
     }
-
     if (
       selection instanceof NodeSelection &&
       ["image", "attachment", "embed"].includes(selection.node.type.name)
     ) {
       return selection;
     }
-
     if (selection instanceof NodeSelection) {
       return false;
     }
-
     const selectionText = doc.cut(selection.from, selection.to).textContent;
     if (selection instanceof TextSelection && !selectionText) {
       return false;
     }
-
     const fragment = selection.content().content;
-
     for (let i = 0; i < fragment.childCount; i++) {
       if (fragment.child(i).content.size) {
         return selection;
       }
     }
-
     return false;
   }
-
   widget = (props: WidgetProps) => {
     const editorProps = this.editor.props;
-
     return (
       <SelectionToolbar
         {...props}

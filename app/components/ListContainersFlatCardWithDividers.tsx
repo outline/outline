@@ -2,7 +2,6 @@ const items = [
   { id: 1 },
   // More items...
 ];
-
 /**
  * Tailwind UI – list containers: flat card with dividers.
  *

@@ -17,7 +17,6 @@ export default class Analytics {
     if (window.ga) {
       window.ga("send", "event", event, action);
     }
-
     // GA4
     if (window.dataLayer) {
       window.dataLayer.push({

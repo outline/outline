@@ -13,12 +13,10 @@ import { isNodeActive } from "../queries/isNodeActive";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import type { SelectionToolbarMenuDescriptor } from "../types";
 import Node from "./Node";
-
 export default class HorizontalRule extends Node {
   get name() {
     return "hr";
   }
-
   get schema(): NodeSpec {
     return {
       attrs: {
@@ -34,7 +32,6 @@ export default class HorizontalRule extends Node {
       ],
     };
   }
-
   commands({ type }: { type: NodeType }) {
     return (attrs: Record<string, Primitive>): Command =>
       (state, dispatch) => {
@@ -44,7 +41,6 @@ export default class HorizontalRule extends Node {
         return true;
       };
   }
-
   selectionToolbarMenus(): SelectionToolbarMenuDescriptor[] {
     return [
       {
@@ -72,7 +68,6 @@ export default class HorizontalRule extends Node {
       },
     ];
   }
-
   keys({ type }: { type: NodeType }): Record<string, Command> {
     return {
       "Mod-_": (state, dispatch) => {
@@ -83,27 +78,22 @@ export default class HorizontalRule extends Node {
       },
     };
   }
-
   inputRules({ type }: { type: NodeType }) {
     return [
       new InputRule(/^(?:---|___|\*\*\*)$/, (state, match, start, end) => {
         const { tr } = state;
-
         if (match[0]) {
           const markup = match[0].trim();
           tr.replaceWith(start - 1, end, type.create({ markup }));
         }
-
         return tr;
       }),
     ];
   }
-
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write(`\n${node.attrs.markup}`);
     state.closeBlock(node);
   }
-
   parseMarkdown() {
     return {
       node: "hr",

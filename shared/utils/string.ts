@@ -11,7 +11,6 @@ export function hashString(str: string): string {
   }
   return (hash >>> 0).toString(16);
 }
-
 /**
  * Returns the index of the first occurrence of a substring in a string that matches a regular expression.
  *
@@ -25,22 +24,18 @@ export const regexIndexOf = function (
   startPos?: number
 ) {
   startPos = startPos || 0;
-
   if (!re.global) {
     const flags = "g" + (re.multiline ? "m" : "") + (re.ignoreCase ? "i" : "");
     re = new RegExp(re.source, flags);
   }
-
   re.lastIndex = startPos;
   const match = re.exec(text);
-
   if (match) {
     return match.index;
   } else {
     return -1;
   }
 };
-
 /**
  * Returns the index of the last occurrence of a substring in a string that matches a regular expression.
  *
@@ -54,26 +49,21 @@ export const regexLastIndexOf = function (
   startPos?: number
 ) {
   startPos = startPos === undefined ? text.length : startPos;
-
   if (!re.global) {
     const flags = "g" + (re.multiline ? "m" : "") + (re.ignoreCase ? "i" : "");
     re = new RegExp(re.source, flags);
   }
-
   let lastSuccess = -1;
   for (let pos = 0; pos <= startPos; pos++) {
     re.lastIndex = pos;
-
     const match = re.exec(text);
     if (!match) {
       break;
     }
-
     pos = match.index;
     if (pos <= startPos) {
       lastSuccess = pos;
     }
   }
-
   return lastSuccess;
 };

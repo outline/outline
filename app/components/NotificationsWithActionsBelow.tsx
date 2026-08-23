@@ -2,7 +2,6 @@ import { Fragment, useState } from "react";
 import { Transition } from "@headlessui/react";
 import { InboxIcon } from "@heroicons/react/24/outline";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – notifications: with actions below.
  *
@@ -10,7 +9,6 @@ import { XMarkIcon } from "@heroicons/react/20/solid";
  */
 export function NotificationsWithActionsBelow() {
   const [show, setShow] = useState(true);
-
   return (
     <>
       {/* Global notification live region, render this permanently at the end of the document */}

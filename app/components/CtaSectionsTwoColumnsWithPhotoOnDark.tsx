@@ -1,5 +1,4 @@
 import { CheckCircleIcon } from "@heroicons/react/20/solid";
-
 const benefits = [
   "Competitive salaries",
   "Flexible work hours",
@@ -8,7 +7,6 @@ const benefits = [
   "Benefits for you and your family",
   "A great work environment",
 ];
-
 /**
  * Tailwind UI – cta sections: two columns with photo on dark.
  *

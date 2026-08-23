@@ -8,7 +8,6 @@ import styled from "styled-components";
 import { Calendar } from "../../components/Calendar";
 import { depths, s } from "../../styles";
 import { dateLocale, toISODate, toISODateTime } from "../../utils/date";
-
 type Props = {
   /** The currently selected date, if any. */
   selectedDate?: Date;
@@ -21,7 +20,6 @@ type Props = {
   /** The trigger element the calendar popover is anchored to. */
   children: React.ReactNode;
 };
-
 /**
  * The interactive calendar popover for a date mention. It lives in its own
  * module so that its browser-only dependencies (Radix, react-day-picker) are
@@ -39,11 +37,9 @@ export default function DateMentionPicker({
 }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
-
   const handleSelect = React.useCallback(
     (date: Date) => {
       setOpen(false);
-
       // The calendar only changes the day, so an existing time is carried over.
       if (includeTime && selectedDate) {
         onChange(
@@ -56,12 +52,10 @@ export default function DateMentionPicker({
         );
         return;
       }
-
       onChange(toISODate(date));
     },
     [onChange, includeTime, selectedDate]
   );
-
   return (
     <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
       <PopoverPrimitive.Trigger
@@ -95,7 +89,6 @@ export default function DateMentionPicker({
     </PopoverPrimitive.Root>
   );
 }
-
 const DatePopoverContent = styled.div`
   z-index: ${depths.modal};
   background: ${s("menuBackground")};

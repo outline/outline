@@ -5,7 +5,6 @@ import { useLocation } from "react-router-dom";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { useSplitView } from "~/components/SplitView/context";
 import { getFocusedSplitPane, getSplitPath } from "~/utils/splitView";
-
 /**
  * Returns a synthetic location decoded from the split query parameter while
  * the secondary split view pane has focus, for components rendered outside
@@ -19,24 +18,25 @@ import { getFocusedSplitPane, getSplitPath } from "~/utils/splitView";
  * pane and the router context already provides the pane's location.
  */
 export function useFocusedSplitLocation():
-  | Location<{ sidebarContext?: SidebarContextType }>
+  | Location<{
+      sidebarContext?: SidebarContextType;
+    }>
   | undefined {
-  const location = useLocation<{ sidebarContext?: SidebarContextType }>();
+  const location = useLocation<{
+    sidebarContext?: SidebarContextType;
+  }>();
   const focusedPane = getFocusedSplitPane();
   const { isSplitView } = useSplitView();
-
   return useMemo(() => {
     if (isSplitView || focusedPane !== "secondary") {
       return undefined;
     }
-
     const splitPath = getSplitPath(location.search);
     if (!splitPath) {
       return undefined;
     }
-
     return createLocation(splitPath, {
-      sidebarContext: location.state?.sidebarContext ?? "collections",
+      sidebarContext: location.state?.sidebarContext ?? "notebooks",
     });
   }, [isSplitView, focusedPane, location]);
 }

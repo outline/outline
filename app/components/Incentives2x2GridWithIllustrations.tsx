@@ -28,7 +28,6 @@ const perks = [
       "Like you, we love the planet, and so we've pledged 1% of all sales to the preservation and restoration of the natural environment.",
   },
 ];
-
 /**
  * Tailwind UI – incentives: 2x2 grid with illustrations.
  *

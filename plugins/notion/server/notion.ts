@@ -20,7 +20,7 @@ import { compact, truncate } from "es-toolkit/compat";
 import { z } from "zod";
 import { Second } from "@shared/utils/time";
 import { isUrl } from "@shared/utils/urls";
-import { CollectionValidation, DocumentValidation } from "@shared/validations";
+import { DocumentValidation, NotebookValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
 import { NotionUtils } from "../shared/NotionUtils";
 import type { Block, Page } from "../shared/types";
@@ -229,7 +229,7 @@ export class NotionClient {
             type: item.object === "page" ? PageType.Page : PageType.Database,
             id: item.id,
             name: this.parseTitle(item, {
-              maxLength: CollectionValidation.maxNameLength,
+              maxLength: NotebookValidation.maxNameLength,
             }),
             emoji: this.parseEmoji(item),
           });

@@ -2,7 +2,6 @@
 // @ts-nocheck
 // https://raw.githubusercontent.com/ProseMirror/prosemirror-markdown/master/src/to_markdown.js
 // forked for table support
-
 /** Options that control how a ProseMirror document is serialized to Markdown. */
 type Options = {
   /** Whether list items are rendered without blank lines between them. */
@@ -15,7 +14,6 @@ type Options = {
    */
   commonMark?: boolean;
 };
-
 // ::- A specification for serializing a ProseMirror document as
 // Markdown/CommonMark text.
 export class MarkdownSerializer {
@@ -59,7 +57,6 @@ export class MarkdownSerializer {
     // :: Object The mark serializer info.
     this.marks = marks;
   }
-
   // :: (Node, ?Object) → string
   // Serialize the content of the given node to
   // [CommonMark](http://commonmark.org/).
@@ -68,36 +65,35 @@ export class MarkdownSerializer {
     state.renderContent(content);
     return state.out;
   }
-
   // Serialize the content and return both the markdown string and a
   // block-level position map that records the ProseMirror position range
   // and markdown character range for each top-level child node.
   serializeWithPositions(
     content,
     options?: Options
-  ): { markdown: string; blockMap: BlockMapEntry[] } {
+  ): {
+    markdown: string;
+    blockMap: BlockMapEntry[];
+  } {
     const state = new MarkdownSerializerState(this.nodes, this.marks, options);
     state.blockMap = [];
     state.renderContent(content);
     return { markdown: state.out, blockMap: state.blockMap };
   }
 }
-
 // Tracks whether we have already warned about direct assignment to `out`,
 // so a hot loop cannot flood the console.
 let warnedDirectOutAssignment = false;
-
 export interface BlockMapEntry {
   /** Start position in the ProseMirror document (offset within parent content). */
   pmFrom: number;
-  /** End position in the ProseMirror document. */
+  /** End position in the ProseMirror note. */
   pmTo: number;
   /** Start character offset in the serialized markdown string. */
   mdFrom: number;
   /** End character offset in the serialized markdown string. */
   mdTo: number;
 }
-
 // ::- This is an object used to track state and expose
 // methods related to markdown serialization. Instances are passed to
 // node and mark serialization methods (see `toMarkdown`).
@@ -111,15 +107,13 @@ export class MarkdownSerializerState {
   lastChar = "";
   options: Options;
   blockMap = null;
-
   // The serialized output so far. Use `append` to add to it — direct
   // assignment still works but reads the last character back out of the
   // string, which forces V8 to flatten the internal rope and is slow when
-  // done repeatedly on large documents.
+  // done repeatedly on large notes.
   get out() {
     return this._out;
   }
-
   set out(value) {
     if (!warnedDirectOutAssignment) {
       warnedDirectOutAssignment = true;
@@ -131,7 +125,6 @@ export class MarkdownSerializerState {
     this._out = value;
     this.lastChar = value === "" ? "" : value.charAt(value.length - 1);
   }
-
   constructor(nodes, marks, options) {
     this.nodes = nodes;
     this.marks = marks;
@@ -151,18 +144,16 @@ export class MarkdownSerializerState {
       this.options.tightLists = true;
     }
   }
-
   // :: (string)
   // Append a string to the output, tracking `lastChar` without reading
   // characters back out of `out` — that would force V8 to flatten the
-  // internal rope, which is quadratic on large documents.
+  // internal rope, which is quadratic on large notes.
   append(content) {
     if (content) {
       this._out += content;
       this.lastChar = content.charAt(content.length - 1);
     }
   }
-
   flushClose(size) {
     if (this.closed) {
       if (!this.atBlank()) {
@@ -184,7 +175,6 @@ export class MarkdownSerializerState {
       this.closed = false;
     }
   }
-
   // :: (string, ?string, Node, ())
   // Render a block, prefixing each line with `delim`, and the first
   // line in `firstDelim`. `node` should be the node that is closed at
@@ -198,11 +188,9 @@ export class MarkdownSerializerState {
     this.delim = old;
     this.closeBlock(node);
   }
-
   atBlank() {
     return this.lastChar === "" || this.lastChar === "\n";
   }
-
   // :: ()
   // Ensure the current content ends with a newline.
   ensureNewLine() {
@@ -210,7 +198,6 @@ export class MarkdownSerializerState {
       this.append("\n");
     }
   }
-
   // :: (?string)
   // Prepare the state for writing output (closing closed paragraphs,
   // adding delimiters, and so on), and then optionally add content
@@ -224,15 +211,13 @@ export class MarkdownSerializerState {
       this.append(content);
     }
   }
-
   // :: (Node)
   // Close the block for the given node.
   closeBlock(node) {
     this.closed = node;
   }
-
   // :: (string, ?bool)
-  // Add the given text to the document. When escape is not `false`,
+  // Add the given text to the note. When escape is not `false`,
   // it will be escaped.
   text(text, escape) {
     const lines = text.split("\n");
@@ -247,7 +232,6 @@ export class MarkdownSerializerState {
       }
     }
   }
-
   // :: (Node)
   // Render the given node as a block.
   render(node, parent, index) {
@@ -256,7 +240,6 @@ export class MarkdownSerializerState {
     }
     this.nodes[node.type.name](this, node, parent, index);
   }
-
   // :: (Node)
   // Render the contents of `parent` as block nodes.
   renderContent(parent) {
@@ -281,7 +264,6 @@ export class MarkdownSerializerState {
       }
     });
   }
-
   // :: (Node)
   // Render the contents of `parent` as inline content.
   renderInline(parent) {
@@ -289,7 +271,6 @@ export class MarkdownSerializerState {
     let trailing = "";
     const progress = (node, _, index) => {
       let marks = node ? node.marks : [];
-
       // Remove marks from `hard_break` that are the last node inside
       // that mark to prevent parser edge cases with new lines just
       // before closing marks.
@@ -306,7 +287,6 @@ export class MarkdownSerializerState {
           );
         });
       }
-
       let leading = trailing;
       trailing = "";
       // If whitespace has to be expelled from the node, adjust
@@ -330,11 +310,9 @@ export class MarkdownSerializerState {
           }
         }
       }
-
       const inner = marks.length && marks[marks.length - 1],
         noEsc = inner && this.marks[inner.type.name]().escape === false;
       const len = marks.length - (noEsc ? 1 : 0);
-
       // Try to reorder 'mixable' marks, such as em and strong, which
       // in Markdown may be opened and closed in different order, so
       // that order of the marks for the token matches the order in
@@ -367,7 +345,6 @@ export class MarkdownSerializerState {
           }
         }
       }
-
       // Find the prefix of the mark set that didn't change
       let keep = 0;
       while (
@@ -376,17 +353,14 @@ export class MarkdownSerializerState {
       ) {
         ++keep;
       }
-
       // Close the marks that need to be closed
       while (keep < active.length) {
         this.text(this.markString(active.pop(), false, parent, index), false);
       }
-
       // Output any previously expelled trailing whitespace outside the marks
       if (leading) {
         this.text(leading);
       }
-
       // Open the marks that need to be opened
       if (node) {
         while (active.length < len) {
@@ -394,14 +368,12 @@ export class MarkdownSerializerState {
           active.push(add);
           this.text(this.markString(add, true, parent, index), false);
         }
-
         // Render the node. Special case code marks, since their content is not
         // escaped, apart from pipes in tables.
         if (noEsc && node.isText) {
           const text = this.inTable
             ? node.text.replace(/\|/gi, "\\$&")
             : node.text;
-
           this.text(
             this.markString(inner, true, parent, index) +
               text +
@@ -416,7 +388,6 @@ export class MarkdownSerializerState {
     parent.forEach(progress);
     progress(null, null, parent.childCount);
   }
-
   // :: (Node, string, (number) → string)
   // Render a node's content as a list. `delim` should be the extra
   // indentation added to all lines except the first in an item,
@@ -435,13 +406,11 @@ export class MarkdownSerializerState {
       });
       return;
     }
-
     if (this.closed && this.closed.type === node.type) {
       this.flushClose(3);
     } else if (this.inTightList) {
       this.flushClose(1);
     }
-
     const isTight =
       typeof node.attrs.tight !== "undefined"
         ? node.attrs.tight
@@ -461,18 +430,14 @@ export class MarkdownSerializerState {
     this.inList = prevList;
     this.inTightList = prevTight;
   }
-
   renderTable(node) {
     // A table with no rows is not valid Markdown and has nothing to serialize.
     if (node.childCount === 0) {
       return;
     }
-
     this.flushClose(1);
-
     const prevTable = this.inTable;
     this.inTable = true;
-
     // Calculate column widths from header row
     const columnWidths: number[] = [];
     const headerRow = node.child(0);
@@ -480,15 +445,12 @@ export class MarkdownSerializerState {
       // Use textContent length as minimum width (minimum 3 for separator)
       columnWidths[j] = Math.max(cell.textContent.length, 3);
     });
-
     // Ensure there is an empty newline above all tables
     this.append("\n");
-
     // Render rows
     node.forEach((row, _, i) => {
       row.forEach((cell, _, j) => {
         this.append(j === 0 ? "| " : " | ");
-
         // A table row is a single line of Markdown, so render the cell into an
         // isolated buffer and flatten any newlines its block content (notices,
         // code fences, blockquotes, …) produced into <br>.
@@ -500,7 +462,6 @@ export class MarkdownSerializerState {
         cellState.inTable = true;
         cellState.inList = this.inList;
         cellState.inTightList = this.inTightList;
-
         cell.forEach((cellNode) => {
           if (
             !(
@@ -513,19 +474,15 @@ export class MarkdownSerializerState {
             cellState.render(cellNode, row, j);
           }
         });
-
         const content = cellState.out
           .replace(/^\n+|\n+$/g, "")
           .replace(/\n/g, "<br>");
         this.append(content);
-
         // Pad to column width
         const padding = Math.max(0, columnWidths[j] - content.length);
         this.append(" ".repeat(padding));
       });
-
       this.append(" |\n");
-
       // Header separator after first row
       if (i === 0) {
         headerRow.forEach((cell, _, j) => {
@@ -543,10 +500,8 @@ export class MarkdownSerializerState {
         this.append("|\n");
       }
     });
-
     this.inTable = prevTable;
   }
-
   // :: (string, ?bool) → string
   // Escape the given string so that it can safely appear in Markdown
   // content. If `startOfLine` is true, also escape characters that
@@ -559,20 +514,16 @@ export class MarkdownSerializerState {
     if (startOfLine) {
       str = str.replace(/^[:#\-*+]/, "\\$&").replace(/^(\d+)\./, "$1\\.");
     }
-
     if (this.inTable) {
       str = str.replace(/\|/gi, "\\$&");
     }
-
     return str;
   }
-
   quote(str) {
     const wrap =
       str.indexOf('"') === -1 ? '""' : str.indexOf("'") === -1 ? "''" : "()";
     return wrap[0] + str + wrap[1];
   }
-
   // :: (string, number) → string
   // Repeat the given string `n` times.
   repeat(str, n) {
@@ -582,7 +533,6 @@ export class MarkdownSerializerState {
     }
     return out;
   }
-
   // : (Mark, bool, string?) → string
   // Get the markdown string for a given opening or closing mark.
   markString(mark, open, parent, index) {
@@ -590,7 +540,6 @@ export class MarkdownSerializerState {
     const value = open ? info.open : info.close;
     return typeof value === "string" ? value : value(this, mark, parent, index);
   }
-
   // :: (string) → { leading: ?string, trailing: ?string }
   // Get leading and trailing whitespace from a string. Values of
   // leading or trailing property of the return object will be undefined

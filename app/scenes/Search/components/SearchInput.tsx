@@ -3,12 +3,10 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
-
 interface Props extends React.HTMLAttributes<HTMLInputElement> {
   name: string;
   defaultValue: string;
 }
-
 function SearchInput(
   { defaultValue, ...rest }: Props,
   ref: React.RefObject<HTMLInputElement>
@@ -17,7 +15,6 @@ function SearchInput(
   const focusInput = React.useCallback(() => {
     ref.current?.focus();
   }, [ref]);
-
   React.useEffect(() => {
     // ensure that focus is placed at end of input
     const len = (defaultValue || "").length;
@@ -25,12 +22,10 @@ function SearchInput(
     const timeoutId = setTimeout(() => {
       focusInput();
     }, 100); // arbitrary number
-
     return () => {
       clearTimeout(timeoutId);
     };
   }, [ref, defaultValue, focusInput]);
-
   return (
     <Wrapper align="center">
       <StyledIcon size={46} color={theme.placeholder} onClick={focusInput} />
@@ -45,12 +40,10 @@ function SearchInput(
     </Wrapper>
   );
 }
-
 const Wrapper = styled(Flex)`
   position: relative;
   margin-bottom: 8px;
 `;
-
 const StyledInput = styled.input`
   width: 100%;
   padding-block: 10px 10px;
@@ -79,11 +72,9 @@ const StyledInput = styled.input`
     color: ${s("placeholder")};
   }
 `;
-
 const StyledIcon = styled(SearchIcon)`
   position: absolute;
   inset-inline-start: 8px;
   opacity: 0.7;
 `;
-
 export default React.forwardRef(SearchInput);

@@ -3,29 +3,23 @@ import styled from "styled-components";
 import { colorPalette } from "@shared/constants";
 import { SwatchButton } from "~/components/SwatchButton";
 import { ColorButton } from "~/components/ColorButton";
-
 const SWATCH_SIZE = 20;
-
 type Props = {
   width: number;
   activeColor: string;
   onSelect: (color: string) => void;
 };
-
 const IconColorPicker = ({ activeColor, onSelect }: Props) => {
   const [selectedColor, setSelectedColor] = React.useState(activeColor);
   const isBuiltInColor = colorPalette.includes(selectedColor);
   const color = isBuiltInColor ? undefined : selectedColor;
-
   React.useEffect(() => {
     setSelectedColor(activeColor);
   }, [activeColor]);
-
   const handleSelect = (color: string) => {
     setSelectedColor(color);
     onSelect(color);
   };
-
   return (
     <Container>
       <PresetColors activeColor={selectedColor} onClick={handleSelect} />
@@ -39,7 +33,6 @@ const IconColorPicker = ({ activeColor, onSelect }: Props) => {
     </Container>
   );
 };
-
 const PresetColors = ({
   activeColor,
   onClick,
@@ -59,7 +52,6 @@ const PresetColors = ({
     ))}
   </>
 );
-
 // One column per preset color plus the custom swatch, matching the horizontal
 // rhythm of the icon grid below.
 const Container = styled.div`
@@ -70,5 +62,4 @@ const Container = styled.div`
   height: 48px;
   padding: 8px 12px;
 `;
-
 export default IconColorPicker;

@@ -1,12 +1,10 @@
 import { CheckIcon } from "@heroicons/react/20/solid";
-
 const includedFeatures = [
   "Private forum access",
   "Member resources",
   "Entry to annual conference",
   "Official member t-shirt",
 ];
-
 /**
  * Tailwind UI – pricing: single price with details.
  *

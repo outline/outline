@@ -17,11 +17,9 @@ import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { isTruthyQueryValue } from "~/utils/urls";
 import Notifications from "./Notifications";
-
 type Props = {
   children?: React.ReactNode;
 };
-
 const NotificationsPopover: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
   const { notifications } = useStores();
@@ -30,42 +28,34 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
   const isMobile = useMobile();
   const scrollableRef = useRef<HTMLDivElement>(null);
   const drawerContentRef = useRef<React.ElementRef<typeof DrawerContent>>(null);
-
   useEffect(() => {
     void notifications.fetchPage({ archived: false });
   }, [notifications]);
-
   const handleRequestClose = useCallback(() => {
     setOpen(false);
   }, []);
-
   const handleAutoFocus = useCallback((event: Event) => {
     // Prevent focus from moving to the popover content
     event.preventDefault();
-
     // Reset scroll position to the top when popover is opened
     if (scrollableRef.current) {
       scrollableRef.current.scrollTop = 0;
       scrollableRef.current.focus();
     }
   }, []);
-
   const enablePointerEvents = useCallback(() => {
     if (drawerContentRef.current) {
       drawerContentRef.current.style.pointerEvents = "auto";
     }
   }, []);
-
   const disablePointerEvents = useCallback(() => {
     if (drawerContentRef.current) {
       drawerContentRef.current.style.pointerEvents = "none";
     }
   }, []);
-
   const notificationsList = (
     <Notifications onRequestClose={handleRequestClose} ref={scrollableRef} />
   );
-
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={setOpen}>
@@ -83,7 +73,6 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
       </Drawer>
     );
   }
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>{children}</PopoverTrigger>
@@ -100,5 +89,4 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
     </Popover>
   );
 };
-
 export default observer(NotificationsPopover);

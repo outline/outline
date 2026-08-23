@@ -13,14 +13,12 @@ export function download(
   const blob =
     data instanceof Blob ? data : new Blob([data], { type: mimeType });
   const url = URL.createObjectURL(blob);
-
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = fileName || "download";
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
-
   // Delay revocation so the browser has time to start the download.
   setTimeout(() => URL.revokeObjectURL(url), 250);
 }

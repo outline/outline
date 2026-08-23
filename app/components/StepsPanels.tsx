@@ -1,11 +1,9 @@
 import { CheckIcon } from "@heroicons/react/24/solid";
-
 const steps = [
   { id: "01", name: "Job details", href: "#", status: "complete" },
   { id: "02", name: "Application form", href: "#", status: "current" },
   { id: "03", name: "Preview", href: "#", status: "upcoming" },
 ];
-
 /**
  * Tailwind UI – steps: panels.
  *

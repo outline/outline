@@ -10,7 +10,6 @@ const testimonials = [
   },
   // More testimonials...
 ];
-
 /**
  * Tailwind UI – testimonials: off white grid.
  *

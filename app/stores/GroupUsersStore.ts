@@ -11,38 +11,31 @@ import Store, {
   PAGINATION_SYMBOL,
   RPCAction,
 } from "./base/Store";
-
 export default class GroupUsersStore extends Store<GroupUser> {
   actions = [RPCAction.Create, RPCAction.Update, RPCAction.Delete];
-
   constructor(rootStore: RootStore) {
     super(rootStore, GroupUser);
   }
-
   @action
   fetchPage = async (
     params: PaginationParams | undefined
   ): Promise<PaginatedResponse<GroupUser>> => {
     this.isFetching = true;
-
     try {
       const res = await client.post(`/groups.memberships`, params);
       invariant(res?.data, "Data not available");
-
       let response: PaginatedResponse<GroupUser> = [];
       runInAction(`GroupUsersStore#fetchPage`, () => {
         res.data.users.forEach(this.rootStore.users.add);
         response = res.data.groupMemberships.map(this.add);
         this.isLoaded = true;
       });
-
       response[PAGINATION_SYMBOL] = res.pagination;
       return response;
     } finally {
       this.isFetching = false;
     }
   };
-
   @action
   async create({
     groupId,
@@ -59,16 +52,13 @@ export default class GroupUsersStore extends Store<GroupUser> {
       permission,
     });
     invariant(res?.data, "Group Membership data should be available");
-
     return runInAction(`GroupUsersStore#create`, () => {
       res.data.users.forEach(this.rootStore.users.add);
       res.data.groups.forEach(this.rootStore.groups.add);
-
       const groupMemberships = res.data.groupMemberships.map(this.add);
       return groupMemberships[0];
     });
   }
-
   @action
   async delete({ groupId, userId }: { groupId: string; userId: string }) {
     const res = await client.post("/groups.remove_user", {
@@ -82,7 +72,6 @@ export default class GroupUsersStore extends Store<GroupUser> {
       this.isLoaded = true;
     });
   }
-
   @action
   async update({
     groupId,
@@ -99,16 +88,13 @@ export default class GroupUsersStore extends Store<GroupUser> {
       permission,
     });
     invariant(res?.data, "Group Membership data should be available");
-
     return runInAction(`GroupUsersStore#update`, () => {
       res.data.users.forEach(this.rootStore.users.add);
       res.data.groups.forEach(this.rootStore.groups.add);
-
       const groupMemberships = res.data.groupMemberships.map(this.add);
       return groupMemberships[0];
     });
   }
-
   @action
   removeGroupMemberships = (groupId: string) => {
     this.data.forEach((_, key) => {
@@ -117,10 +103,8 @@ export default class GroupUsersStore extends Store<GroupUser> {
       }
     });
   };
-
   inGroup = (groupId: string) =>
     filter(this.orderedData, (member) => member.groupId === groupId);
-
   /**
    * Returns the membership of a user in a group, if loaded.
    *

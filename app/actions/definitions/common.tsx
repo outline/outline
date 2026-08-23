@@ -6,10 +6,8 @@ import type Model from "~/models/base/Model";
 import type { Action, ActionContext } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { createAction } from "..";
-
 /** A model class, as accepted by the action context's `getActiveModels`. */
 type ModelClass<T extends Model> = new (...args: never[]) => T;
-
 /**
  * Runs a batchable per-item operation across the given items, coalescing the
  * requests into a single batch request.
@@ -27,7 +25,6 @@ export async function performBatch<T>(
   );
   return results.filter((result) => result.status === "fulfilled").length;
 }
-
 /**
  * Whether there is at least one active model of the given class and every one
  * of them satisfies the predicate — the common shape of a bulk action's
@@ -46,7 +43,6 @@ export function everyActiveModel<T extends Model>(
   const models = context.getActiveModels(modelClass);
   return models.length > 0 && models.every(predicate);
 }
-
 /**
  * Runs a batchable operation across all active models of the given class,
  * coalescing the requests into a single batch and optionally showing a toast.
@@ -70,7 +66,6 @@ export async function performBatchOnActiveModels<T extends Model>(
   if (!models.length) {
     return 0;
   }
-
   const succeeded = await performBatch(models, operation);
   const text = succeeded ? message?.(models, succeeded, context.t) : undefined;
   if (text) {
@@ -78,7 +73,6 @@ export async function performBatchOnActiveModels<T extends Model>(
   }
   return succeeded;
 }
-
 /**
  * Creates an action that opens a dialog, taking care of wiring the dialog's
  * submit handler to close it again.
@@ -155,7 +149,6 @@ export const dialogActionFactory = ({
         context.event?.preventDefault();
         context.event?.stopPropagation();
       }
-
       stores.dialogs.openModal({
         title: title(context.t, context),
         content: content(stores.dialogs.closeAllModals, context),
@@ -163,7 +156,6 @@ export const dialogActionFactory = ({
       });
     },
   });
-
 /**
  * Creates an action that begins renaming a model, either by switching an inline
  * title into edit mode or by opening a rename dialog.

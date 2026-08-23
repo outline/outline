@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -13,7 +13,6 @@
   ```
 */
 import { CalendarDaysIcon, HandRaisedIcon } from "@heroicons/react/24/outline";
-
 /**
  * Tailwind UI – newsletter sections: side by side with details.
  *

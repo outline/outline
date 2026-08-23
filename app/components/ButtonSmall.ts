@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import Button, { Inner } from "./Button";
-
 const ButtonSmall = styled(Button)`
   font-size: 13px;
   height: 26px;
@@ -11,5 +10,4 @@ const ButtonSmall = styled(Button)`
     min-height: 26px;
   }
 `;
-
 export default ButtonSmall;

@@ -1,6 +1,5 @@
 import type { BackendFactory } from "dnd-core";
 import { HTML5Backend } from "react-dnd-html5-backend";
-
 /**
  * react-dnd's HTML5 backend installs global drag listeners on `window` in both
  * the capture and bubble phases. The bubble-phase `dragover` handler runs after
@@ -25,10 +24,8 @@ const topHandlerNames = [
   "handleTopDropCapture",
   "handleTopDragEndCapture",
 ] as const;
-
 const isWithinEditor = (target: EventTarget | null): boolean =>
   target instanceof Element && Boolean(target.closest(".ProseMirror"));
-
 /**
  * An HTML5 drag-and-drop backend that ignores drag events originating within the
  * rich text editor so that ProseMirror can handle them itself.
@@ -45,14 +42,12 @@ export const EditorAwareHTML5Backend: BackendFactory = (
 ) => {
   const backend = HTML5Backend(manager, context, options);
   const monitor = manager.getMonitor();
-
   // The top-level handlers are private instance fields on the backend, so reach
   // for them through an index signature view of the instance.
   const handlers = backend as unknown as Record<
     string,
     (event: DragEvent) => void
   >;
-
   for (const name of topHandlerNames) {
     const original = handlers[name];
     if (typeof original === "function") {
@@ -76,6 +71,5 @@ export const EditorAwareHTML5Backend: BackendFactory = (
       };
     }
   }
-
   return backend;
 };

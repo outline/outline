@@ -5,14 +5,12 @@ export enum UserRole {
   Viewer = "viewer",
   Guest = "guest",
 }
-
 /** Scopes for OAuth and API keys. */
 export enum Scope {
   Read = "read",
   Write = "write",
   Create = "create",
 }
-
 /** The method used to authenticate a request. */
 export enum AuthenticationType {
   API = "api",
@@ -20,54 +18,44 @@ export enum AuthenticationType {
   MCP = "mcp",
   OAUTH = "oauth",
 }
-
 export type DateFilter = "day" | "week" | "month" | "year";
-
 export enum StatusFilter {
   Published = "published",
   Archived = "archived",
   Draft = "draft",
 }
-
 export enum SortFilter {
   CreatedAt = "createdAt",
   UpdatedAt = "updatedAt",
   Title = "title",
 }
-
 export enum DirectionFilter {
   ASC = "ASC",
   DESC = "DESC",
 }
-
 /** Model types that support search indexing. */
 export enum SearchableModel {
-  Document = "document",
-  Collection = "collection",
+  Note = "document",
+  Notebook = "collection",
   Comment = "comment",
 }
-
-export enum CollectionStatusFilter {
+export enum NotebookStatusFilter {
   Archived = "archived",
 }
-
 export enum CommentStatusFilter {
   Resolved = "resolved",
   Unresolved = "unresolved",
 }
-
 export enum Client {
   Web = "web",
   Desktop = "desktop",
 }
-
 export enum ExportContentType {
   Markdown = "text/markdown",
   Html = "text/html",
   TextBundle = "application/x-textbundle",
   Pdf = "application/pdf",
 }
-
 export enum FileOperationFormat {
   JSON = "json",
   MarkdownZip = "outline-markdown",
@@ -76,12 +64,10 @@ export enum FileOperationFormat {
   PDF = "pdf",
   Notion = "notion",
 }
-
 export enum FileOperationType {
   Import = "import",
   Export = "export",
 }
-
 export enum FileOperationState {
   Creating = "creating",
   Uploading = "uploading",
@@ -89,7 +75,6 @@ export enum FileOperationState {
   Error = "error",
   Expired = "expired",
 }
-
 export enum ImportState {
   Created = "created",
   InProgress = "in_progress",
@@ -98,7 +83,6 @@ export enum ImportState {
   Errored = "errored",
   Canceled = "canceled",
 }
-
 export enum ImportTaskState {
   Created = "created",
   InProgress = "in_progress",
@@ -106,7 +90,6 @@ export enum ImportTaskState {
   Errored = "errored",
   Canceled = "canceled",
 }
-
 /**
  * Classifies the work an `ImportTask` row represents. Set when the task is
  * created and used by `APIImportTask` to dispatch to the right handler.
@@ -121,11 +104,10 @@ export enum ImportTaskPhase {
   Bootstrap = "bootstrap",
   Page = "page",
 }
-
 export enum MentionType {
   User = "user",
-  Document = "document",
-  Collection = "collection",
+  Note = "document",
+  Notebook = "collection",
   Group = "group",
   Issue = "issue",
   PullRequest = "pull_request",
@@ -133,7 +115,6 @@ export enum MentionType {
   URL = "url",
   Date = "date",
 }
-
 export type PublicEnv = {
   ROOT_SHARE_ID?: string;
   analytics: {
@@ -141,15 +122,13 @@ export type PublicEnv = {
     settings: IntegrationSettings<IntegrationType.Analytics>;
   }[];
 };
-
 export enum AttachmentPreset {
-  DocumentAttachment = "documentAttachment",
+  NoteAttachment = "documentAttachment",
   WorkspaceImport = "workspaceImport",
   Import = "import",
   Avatar = "avatar",
   Emoji = "emoji",
 }
-
 export enum IntegrationType {
   /** An integration that posts updates to an external system. */
   Post = "post",
@@ -164,7 +143,6 @@ export enum IntegrationType {
   /** An integration that imports documents into Outline. */
   Import = "import",
 }
-
 export enum IntegrationService {
   Diagrams = "diagrams",
   Grist = "grist",
@@ -181,7 +159,6 @@ export enum IntegrationService {
   Slab = "slab",
   JSON = "json",
 }
-
 export type ImportableIntegrationService = Extract<
   IntegrationService,
   | IntegrationService.Notion
@@ -189,27 +166,23 @@ export type ImportableIntegrationService = Extract<
   | IntegrationService.Slab
   | IntegrationService.JSON
 >;
-
 export const ImportableIntegrationService = {
   Notion: IntegrationService.Notion,
   Markdown: IntegrationService.Markdown,
   Slab: IntegrationService.Slab,
   JSON: IntegrationService.JSON,
 } as const;
-
 export type IssueTrackerIntegrationService = Extract<
   IntegrationService,
   | IntegrationService.GitHub
   | IntegrationService.GitLab
   | IntegrationService.Linear
 >;
-
 export const IssueTrackerIntegrationService = {
   GitHub: IntegrationService.GitHub,
   GitLab: IntegrationService.GitLab,
   Linear: IntegrationService.Linear,
 } as const;
-
 export type UserCreatableIntegrationService = Extract<
   IntegrationService,
   | IntegrationService.Diagrams
@@ -219,7 +192,6 @@ export type UserCreatableIntegrationService = Extract<
   | IntegrationService.Umami
   | IntegrationService.GitLab
 >;
-
 export const UserCreatableIntegrationService = {
   Diagrams: IntegrationService.Diagrams,
   Grist: IntegrationService.Grist,
@@ -228,24 +200,20 @@ export const UserCreatableIntegrationService = {
   Umami: IntegrationService.Umami,
   GitLab: IntegrationService.GitLab,
 } as const;
-
-export enum CollectionPermission {
+export enum NotebookPermission {
   Read = "read",
   ReadWrite = "read_write",
   Admin = "admin",
 }
-
-export enum DocumentPermission {
+export enum NotePermission {
   Read = "read",
   ReadWrite = "read_write",
   Admin = "admin",
 }
-
 export enum GroupPermission {
   Member = "member",
   Admin = "admin",
 }
-
 /** Settings stored on an AuthenticationProvider for group synchronization. */
 export interface AuthenticationProviderSettings {
   /** Whether group sync from this provider is enabled. */
@@ -261,43 +229,72 @@ export interface AuthenticationProviderSettings {
    */
   groupSyncScopes?: string[];
 }
-
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? {
       url?: string;
       github?: {
         installation: {
           id: number;
-          account: { id: number; name: string; avatarUrl: string };
+          account: {
+            id: number;
+            name: string;
+            avatarUrl: string;
+          };
         };
       };
       gitlab?: {
         url?: string;
         installation?: {
           id: number;
-          account: { id: number; name: string; avatarUrl: string };
+          account: {
+            id: number;
+            name: string;
+            avatarUrl: string;
+          };
         };
       };
       linear?: {
-        workspace: { id: string; name: string; key: string; logoUrl?: string };
+        workspace: {
+          id: string;
+          name: string;
+          key: string;
+          logoUrl?: string;
+        };
       };
       diagrams?: {
         url: string;
       };
     }
   : T extends IntegrationType.Analytics
-    ? { measurementId: string; instanceUrl?: string; scriptName?: string }
+    ? {
+        measurementId: string;
+        instanceUrl?: string;
+        scriptName?: string;
+      }
     : T extends IntegrationType.Post
-      ? { url: string; channel: string; channelId: string }
+      ? {
+          url: string;
+          channel: string;
+          channelId: string;
+        }
       : T extends IntegrationType.Command
-        ? { serviceTeamId: string }
+        ? {
+            serviceTeamId: string;
+          }
         : T extends IntegrationType.Import
           ? {
-              externalWorkspace: { id: string; name: string; iconUrl?: string };
+              externalWorkspace: {
+                id: string;
+                name: string;
+                iconUrl?: string;
+              };
             }
           : T extends IntegrationType.LinkedAccount
             ? {
-                slack?: { serviceTeamId: string; serviceUserId: string };
+                slack?: {
+                  serviceTeamId: string;
+                  serviceUserId: string;
+                };
                 figma?: {
                   account: {
                     id: string;
@@ -308,7 +305,9 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                 };
               }
             :
-                | { url: string }
+                | {
+                    url: string;
+                  }
                 | {
                     github?: {
                       installation: {
@@ -335,16 +334,17 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                       url: string;
                     };
                   }
-                | { serviceTeamId: string }
+                | {
+                    serviceTeamId: string;
+                  }
                 | {
                     measurementId: string;
                     instanceUrl?: string;
                     scriptName?: string;
                   }
                 | undefined;
-
 export enum UserPreference {
-  /** Whether reopening the app should redirect to the last viewed document. */
+  /** Whether reopening the app should redirect to the last viewed note. */
   RememberLastPath = "rememberLastPath",
   /** If web-style hand pointer should be used on interactive elements. */
   UseCursorPointer = "useCursorPointer",
@@ -353,9 +353,9 @@ export enum UserPreference {
   /** Whether documents have a separate edit mode instead of always editing. */
   SeamlessEdit = "seamlessEdit",
   /** Whether documents should start in full-width mode. */
-  FullWidthDocuments = "fullWidthDocuments",
-  /** Whether to sort the comments by their order in the document. */
-  SortCommentsByOrderInDocument = "sortCommentsByOrderInDocument",
+  FullWidthNotes = "fullWidthDocuments",
+  /** Whether to sort the comments by their order in the note. */
+  SortCommentsByOrderInNote = "sortCommentsByOrderInDocument",
   /** Whether to display a comment indicator in the gutter beside commented lines. */
   CommentsInGutter = "commentsInGutter",
   /** Whether smart text replacements should be enabled. */
@@ -363,7 +363,6 @@ export enum UserPreference {
   /** The style of notification badge to display. */
   NotificationBadge = "notificationBadge",
 }
-
 export enum NotificationBadgeType {
   /** Do not show a notification badge. */
   Disabled = "disabled",
@@ -372,19 +371,17 @@ export enum NotificationBadgeType {
   /** Show an unread indicator dot. */
   Indicator = "indicator",
 }
-
 export type UserPreferences = {
   [UserPreference.RememberLastPath]?: boolean;
   [UserPreference.UseCursorPointer]?: boolean;
   [UserPreference.CodeBlockLineNumers]?: boolean;
   [UserPreference.SeamlessEdit]?: boolean;
-  [UserPreference.FullWidthDocuments]?: boolean;
-  [UserPreference.SortCommentsByOrderInDocument]?: boolean;
+  [UserPreference.FullWidthNotes]?: boolean;
+  [UserPreference.SortCommentsByOrderInNote]?: boolean;
   [UserPreference.CommentsInGutter]?: boolean;
   [UserPreference.EnableSmartText]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
 };
-
 export type SourceMetadata = {
   /** The original source file name. */
   fileName?: string;
@@ -399,36 +396,31 @@ export type SourceMetadata = {
   /** Whether the item was created through a trial license. */
   trial?: boolean;
   /** The ID of the original document when this document was duplicated. */
-  originalDocumentId?: string;
+  originalNoteId?: string;
   /** The ID of the original collection when this collection was duplicated. */
-  originalCollectionId?: string;
+  originalNotebookId?: string;
   /** The type of authentication used to make the change. */
   authType?: AuthenticationType;
 };
-
 export type CustomTheme = {
   accent: string;
   accentText: string;
 };
-
 export type PublicTeam = {
   avatarUrl: string;
   name: string;
   customTheme: Partial<CustomTheme>;
   tocPosition: TOCPosition;
 };
-
 export enum TOCPosition {
   Left = "left",
   Right = "right",
 }
-
 export enum EmailDisplay {
   None = "none",
   Members = "members",
   Everyone = "everyone",
 }
-
 export enum CommentingAccess {
   /** No one can comment. */
   None = "none",
@@ -437,7 +429,6 @@ export enum CommentingAccess {
   /** Members and guests can comment. */
   Everyone = "everyone",
 }
-
 export enum TeamPreference {
   /** Whether documents have a separate edit mode instead of always editing. */
   SeamlessEdit = "seamlessEdit",
@@ -453,14 +444,14 @@ export enum TeamPreference {
   MembersCanDeleteAccount = "membersCanDeleteAccount",
   /** Whether notification emails include document and comment content. */
   PreviewsInEmails = "previewsInEmails",
-  /** Who can comment on documents. */
+  /** Who can comment on notes. */
   Commenting = "commenting",
   /** The custom theme for the team. */
   CustomTheme = "customTheme",
   /** Side to display the document's table of contents in relation to the main content. */
   TocPosition = "tocPosition",
   /** Whether to prevent shared documents from being embedded in iframes on external websites. */
-  PreventDocumentEmbedding = "preventDocumentEmbedding",
+  PreventNoteEmbedding = "preventDocumentEmbedding",
   /** Who can see user email addresses. */
   EmailDisplay = "emailDisplay",
   /** Whether external MCP clients can connect to the workspace. */
@@ -468,7 +459,6 @@ export enum TeamPreference {
   /** List of disabled embed provider titles. */
   DisabledEmbeds = "disabledEmbeds",
 }
-
 export type TeamPreferences = {
   [TeamPreference.SeamlessEdit]?: boolean;
   [TeamPreference.PublicBranding]?: boolean;
@@ -480,19 +470,17 @@ export type TeamPreferences = {
   [TeamPreference.Commenting]?: CommentingAccess;
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
-  [TeamPreference.PreventDocumentEmbedding]?: boolean;
+  [TeamPreference.PreventNoteEmbedding]?: boolean;
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];
 };
-
 export enum NavigationNodeType {
-  Collection = "collection",
-  Document = "document",
+  Notebook = "collection",
+  Note = "document",
   UserMembership = "userMembership",
   GroupMembership = "groupMembership",
 }
-
 export type NavigationNode = {
   id: string;
   title: string;
@@ -502,52 +490,46 @@ export type NavigationNode = {
   color?: string;
   children: NavigationNode[];
   isDraft?: boolean;
-  collectionId?: string;
+  notebookId?: string;
   type?: NavigationNodeType;
   parent?: NavigationNode | null;
   depth?: number;
 };
-
-export type CollectionSort = {
+export type NotebookSort = {
   field: string;
   direction: "asc" | "desc";
 };
-
 export enum SubscriptionType {
-  Document = "documents.update",
+  Note = "documents.update",
 }
-
 export enum NotificationEventType {
-  PublishDocument = "documents.publish",
-  UpdateDocument = "documents.update",
-  AddUserToDocument = "documents.add_user",
-  AddUserToCollection = "collections.add_user",
+  PublishNote = "documents.publish",
+  UpdateNote = "documents.update",
+  AddUserToNote = "documents.add_user",
+  AddUserToNotebook = "collections.add_user",
   CreateRevision = "revisions.create",
-  CreateCollection = "collections.create",
+  CreateNotebook = "collections.create",
   CreateComment = "comments.create",
   ResolveComment = "comments.resolve",
   ReactionsCreate = "reactions.create",
-  MentionedInDocument = "documents.mentioned",
+  MentionedInNote = "documents.mentioned",
   MentionedInComment = "comments.mentioned",
-  GroupMentionedInDocument = "documents.group_mentioned",
+  GroupMentionedInNote = "documents.group_mentioned",
   GroupMentionedInComment = "comments.group_mentioned",
   InviteAccepted = "emails.invite_accepted",
   Onboarding = "emails.onboarding",
   Features = "emails.features",
   ExportCompleted = "emails.export_completed",
-  RequestDocumentAccess = "access_requests.create",
+  RequestNoteAccess = "access_requests.create",
 }
-
 export enum NotificationChannelType {
   App = "app",
   Email = "email",
   Chat = "chat",
 }
-
 export type NotificationData = {
   emoji?: string;
 };
-
 export type NotificationSettings = {
   [event in NotificationEventType]?:
     | {
@@ -555,39 +537,36 @@ export type NotificationSettings = {
       }
     | boolean;
 };
-
 export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
   {
-    [NotificationEventType.PublishDocument]: false,
-    [NotificationEventType.UpdateDocument]: true,
-    [NotificationEventType.CreateCollection]: false,
+    [NotificationEventType.PublishNote]: false,
+    [NotificationEventType.UpdateNote]: true,
+    [NotificationEventType.CreateNotebook]: false,
     [NotificationEventType.CreateComment]: true,
     [NotificationEventType.ResolveComment]: true,
     [NotificationEventType.ReactionsCreate]: true,
     [NotificationEventType.CreateRevision]: false,
-    [NotificationEventType.MentionedInDocument]: true,
+    [NotificationEventType.MentionedInNote]: true,
     [NotificationEventType.MentionedInComment]: true,
-    [NotificationEventType.GroupMentionedInDocument]: true,
+    [NotificationEventType.GroupMentionedInNote]: true,
     [NotificationEventType.GroupMentionedInComment]: true,
     [NotificationEventType.InviteAccepted]: true,
     [NotificationEventType.Onboarding]: true,
     [NotificationEventType.Features]: true,
     [NotificationEventType.ExportCompleted]: true,
-    [NotificationEventType.AddUserToDocument]: true,
-    [NotificationEventType.AddUserToCollection]: true,
-    [NotificationEventType.RequestDocumentAccess]: true,
+    [NotificationEventType.AddUserToNote]: true,
+    [NotificationEventType.AddUserToNotebook]: true,
+    [NotificationEventType.RequestNoteAccess]: true,
   };
-
 export enum UnfurlResourceType {
   URL = "url",
   Mention = "mention",
   Group = "group",
-  Document = "document",
+  Note = "document",
   Issue = "issue",
   PR = "pull",
   Project = "project",
 }
-
 export type UnfurlResponse = {
   [UnfurlResourceType.URL]: {
     /** The resource type */
@@ -636,16 +615,16 @@ export type UnfurlResponse = {
       color: string;
     }>;
   };
-  [UnfurlResourceType.Document]: {
+  [UnfurlResourceType.Note]: {
     /** The resource type */
-    type: UnfurlResourceType.Document;
+    type: UnfurlResourceType.Note;
     /** URL pointing to the resource */
     url: string;
-    /** Document id */
+    /** Note id */
     id: string;
-    /** Document title */
+    /** Note title */
     title: string;
-    /** Document summary */
+    /** Note summary */
     summary: string;
     /** Viewer's last activity on this document */
     lastActivityByViewer?: string;
@@ -662,9 +641,15 @@ export type UnfurlResponse = {
     /** Issue description */
     description: string | null;
     /** Issue's author */
-    author: { name: string; avatarUrl: string };
+    author: {
+      name: string;
+      avatarUrl: string;
+    };
     /** Issue's labels */
-    labels: Array<{ name: string; color: string }>;
+    labels: Array<{
+      name: string;
+      color: string;
+    }>;
     /** Issue's status */
     state: {
       type?: string;
@@ -687,9 +672,16 @@ export type UnfurlResponse = {
     /** Pull Request description */
     description: string | null;
     /** Pull Request author */
-    author: { name: string; avatarUrl: string };
+    author: {
+      name: string;
+      avatarUrl: string;
+    };
     /** Pull Request status */
-    state: { name: string; color: string; draft?: boolean };
+    state: {
+      name: string;
+      color: string;
+      draft?: boolean;
+    };
     /** Pull Request creation time */
     createdAt: string;
   };
@@ -709,7 +701,10 @@ export type UnfurlResponse = {
     /** Project description */
     description: string | null;
     /** Project lead */
-    lead: { name: string; avatarUrl: string } | null;
+    lead: {
+      name: string;
+      avatarUrl: string;
+    } | null;
     /** Project state */
     state: {
       name: string;
@@ -717,7 +712,10 @@ export type UnfurlResponse = {
       type: string;
     };
     /** Project labels */
-    labels: Array<{ name: string; color: string }>;
+    labels: Array<{
+      name: string;
+      color: string;
+    }>;
     /** Project progress (0-1) */
     progress?: number;
     /** Project creation time */
@@ -726,30 +724,29 @@ export type UnfurlResponse = {
     targetDate: string | null;
   };
 };
-
 export enum QueryNotices {
-  UnsubscribeDocument = "unsubscribe-document",
-  UnsubscribeCollection = "unsubscribe-collection",
+  UnsubscribeNote = "unsubscribe-document",
+  UnsubscribeNotebook = "unsubscribe-collection",
   Subscribed = "subscribed",
   Unsubscribed = "unsubscribed",
 }
-
 export type JSONValue =
   | string
   | number
   | boolean
   | undefined
   | null
-  | { [x: string]: JSONValue }
+  | {
+      [x: string]: JSONValue;
+    }
   | Array<JSONValue>;
-
-export type JSONObject = { [x: string]: JSONValue };
-
+export type JSONObject = {
+  [x: string]: JSONValue;
+};
 export type ProsemirrorMark = {
   type: string;
   attrs?: JSONObject;
 };
-
 export type ProsemirrorData = {
   type: string;
   content?: ProsemirrorData[];
@@ -757,30 +754,26 @@ export type ProsemirrorData = {
   attrs?: JSONObject;
   marks?: ProsemirrorMark[];
 };
-
 export type ProsemirrorDoc = {
   type: "doc";
   content: ProsemirrorData[];
 };
-
 export enum IconType {
   SVG = "svg",
   Emoji = "emoji",
   Custom = "custom",
 }
-
 /** Edit modes for document text updates. */
 export enum TextEditMode {
   /** Replace existing content with new content (default). */
   Replace = "replace",
-  /** Append new content to the end of the document. */
+  /** Append new content to the end of the note. */
   Append = "append",
-  /** Prepend new content to the beginning of the document. */
+  /** Prepend new content to the beginning of the note. */
   Prepend = "prepend",
   /** Patch specific content within the document by finding and replacing text. */
   Patch = "patch",
 }
-
 export enum EmojiCategory {
   People = "People",
   Nature = "Nature",
@@ -791,7 +784,6 @@ export enum EmojiCategory {
   Symbols = "Symbols",
   Flags = "Flags",
 }
-
 export enum EmojiSkinTone {
   Default = "Default",
   Light = "Light",
@@ -800,13 +792,11 @@ export enum EmojiSkinTone {
   MediumDark = "MediumDark",
   Dark = "Dark",
 }
-
 export type Emoji = {
   id: string;
   name: string;
   value: string;
 };
-
 export type EmojiVariants = {
   [EmojiSkinTone.Default]: Emoji;
   [EmojiSkinTone.Light]?: Emoji;
@@ -815,7 +805,6 @@ export type EmojiVariants = {
   [EmojiSkinTone.MediumDark]?: Emoji;
   [EmojiSkinTone.Dark]?: Emoji;
 };
-
 export type ReactionSummary = {
   emoji: string;
   userIds: string[];

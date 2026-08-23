@@ -3,7 +3,6 @@ import {
   NewspaperIcon,
   PhoneIcon,
 } from "@heroicons/react/20/solid";
-
 const cards = [
   {
     name: "Sales",
@@ -24,7 +23,6 @@ const cards = [
     icon: NewspaperIcon,
   },
 ];
-
 /**
  * Tailwind UI – header: with cards.
  *

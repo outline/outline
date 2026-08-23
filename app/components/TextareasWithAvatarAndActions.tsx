@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -24,7 +24,6 @@ import {
 } from "@heroicons/react/20/solid";
 import { Listbox, Transition } from "@headlessui/react";
 import { classNames } from "./classNames";
-
 const moods = [
   {
     name: "Excited",
@@ -69,7 +68,6 @@ const moods = [
     bgColor: "bg-transparent",
   },
 ];
-
 /**
  * Tailwind UI – textareas: with avatar and actions.
  *
@@ -77,7 +75,6 @@ const moods = [
  */
 export function TextareasWithAvatarAndActions() {
   const [selected, setSelected] = useState(moods[5]);
-
   return (
     <div className="flex items-start space-x-4">
       <div className="shrink-0">

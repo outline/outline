@@ -1,12 +1,10 @@
 import { CheckCircleIcon } from "@heroicons/react/20/solid";
-
 const steps = [
   { name: "Create account", href: "#", status: "complete" },
   { name: "Profile information", href: "#", status: "current" },
   { name: "Theme", href: "#", status: "upcoming" },
   { name: "Preview", href: "#", status: "upcoming" },
 ];
-
 /**
  * Tailwind UI – steps: bullets and text.
  *

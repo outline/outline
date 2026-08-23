@@ -17,19 +17,23 @@ export function presentUserNotLinkedBlocks(team?: Team) {
             {
               ...opts(),
               appName,
+              returnObjects: false,
             }
           ) +
           ". " +
           (team
-            ? `<${team.url}/settings/integrations/slack|${t(
-                "Link your account",
-                opts()
+            ? `<${team.url}/settings/integrations/slack|${String(
+                t("Link your account", {
+                  ...opts(),
+                  returnObjects: false,
+                })
               )}>`
             : t(
                 "Link your account in {{ appName }} settings to search from Slack",
                 {
                   ...opts(),
                   appName,
+                  returnObjects: false,
                 }
               )),
       },

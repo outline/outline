@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -20,7 +20,6 @@ import {
   PlusIcon,
   QuestionMarkCircleIcon,
 } from "@heroicons/react/20/solid";
-
 const team = [
   {
     name: "Tom Cook",
@@ -58,7 +57,6 @@ const team = [
       "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
   },
 ];
-
 /**
  * Tailwind UI – slide overs: wide create project form example.
  *
@@ -66,7 +64,6 @@ const team = [
  */
 export function SlideOversWideCreateProjectFormExample() {
   const [open, setOpen] = useState(true);
-
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={setOpen}>

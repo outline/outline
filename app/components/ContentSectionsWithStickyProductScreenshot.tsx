@@ -3,7 +3,6 @@ import {
   LockClosedIcon,
   ServerIcon,
 } from "@heroicons/react/20/solid";
-
 /**
  * Tailwind UI – content sections: with sticky product screenshot.
  *

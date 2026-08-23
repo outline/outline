@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
-
 export const Centered = styled(Flex).attrs({
   align: "center",
   justify: "center",

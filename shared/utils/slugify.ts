@@ -1,7 +1,5 @@
 import slug from "slug";
-
 slug.defaults.mode = "rfc3986";
-
 /**
  * Convert a string to a slug that can be used in a URL in kebab-case format,
  * and remove periods.

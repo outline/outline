@@ -1,6 +1,5 @@
 import { breakpoints } from "@shared/styles";
 import useMediaQuery from "~/hooks/useMediaQuery";
-
 /**
  * Hook to detect if the current viewport is mobile-sized.
  *

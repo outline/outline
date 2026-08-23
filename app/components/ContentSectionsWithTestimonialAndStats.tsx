@@ -4,7 +4,6 @@ const stats = [
   { label: "Countries", value: "12" },
   { label: "Raised", value: "$25M" },
 ];
-
 /**
  * Tailwind UI – content sections: with testimonial and stats.
  *

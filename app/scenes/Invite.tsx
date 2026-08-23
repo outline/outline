@@ -22,16 +22,13 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-
 type Props = {
   onSubmit: () => void;
 };
-
 type InviteRequest = {
   email: string;
   name: string;
 };
-
 function Invite({ onSubmit }: Props) {
   const [isSaving, setIsSaving] = React.useState(false);
   const [invites, setInvites] = React.useState<InviteRequest[]>([
@@ -40,25 +37,22 @@ function Invite({ onSubmit }: Props) {
       name: "",
     },
   ]);
-  const { users, collections } = useStores();
+  const { users, notebooks } = useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const predictedDomain = parseEmail(user.email).domain;
   const can = usePolicy(team);
   const [role, setRole] = React.useState<UserRole>(UserRole.Member);
-
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
       setIsSaving(true);
-
       try {
         const response = await users.invite(
           invites.filter((i) => i.email).map((memo) => ({ ...memo, role }))
         );
         onSubmit();
-
         if (response.length > 0) {
           toast.success(
             t("{{ count }} invites sent", { count: response.length })
@@ -74,7 +68,6 @@ function Invite({ onSubmit }: Props) {
     },
     [onSubmit, invites, role, t, users]
   );
-
   const handleChange = React.useCallback((ev, index: number) => {
     setInvites((prevInvites) => {
       const newInvites = [...prevInvites];
@@ -83,7 +76,6 @@ function Invite({ onSubmit }: Props) {
       return newInvites;
     });
   }, []);
-
   const handleAdd = React.useCallback(() => {
     if (invites.length >= UserValidation.maxInvitesPerRequest) {
       toast.message(
@@ -92,7 +84,6 @@ function Invite({ onSubmit }: Props) {
         })
       );
     }
-
     setInvites((prevInvites) => {
       const newInvites = [...prevInvites];
       newInvites.push({
@@ -102,7 +93,6 @@ function Invite({ onSubmit }: Props) {
       return newInvites;
     });
   }, [invites, t]);
-
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
       if (ev.key === "Enter") {
@@ -112,32 +102,29 @@ function Invite({ onSubmit }: Props) {
     },
     [handleAdd]
   );
-
   const roleName = pluralize(role);
-  const collectionCount = collections.nonPrivate.length;
-  const collectionAccessNote = collectionCount ? (
+  const notebookCount = notebooks.nonPrivate.length;
+  const notebookAccessNote = notebookCount ? (
     <span>
       <Trans>Invited {{ roleName }} will receive access to</Trans>{" "}
       <Tooltip
         content={
           <>
-            {collections.nonPrivate.map((collection) => (
-              <li key={collection.id}>{collection.name}</li>
+            {notebooks.nonPrivate.map((notebook) => (
+              <li key={notebook.id}>{notebook.name}</li>
             ))}
           </>
         }
       >
         <strong>
-          <Trans>{{ collectionCount }} collections</Trans>
+          <Trans>{{ notebookCount }} notebooks</Trans>
         </strong>
       </Tooltip>
       .{" "}
     </span>
   ) : undefined;
-
   const options = React.useMemo<Option[]>(() => {
     const memo: Option[] = [];
-
     if (user.isAdmin) {
       memo.push({
         type: "item",
@@ -146,7 +133,6 @@ function Invite({ onSubmit }: Props) {
         value: UserRole.Admin,
       });
     }
-
     return [
       ...memo,
       {
@@ -163,7 +149,6 @@ function Invite({ onSubmit }: Props) {
       },
     ];
   }, [t, user]);
-
   return (
     <form onSubmit={handleSubmit}>
       <Flex gap={8} column>
@@ -175,7 +160,7 @@ function Invite({ onSubmit }: Props) {
                 signinMethods: team.signinMethods,
               }}
             />{" "}
-            {collectionAccessNote}
+            {notebookAccessNote}
           </Text>
         ) : (
           <Text as="p" type="secondary">
@@ -185,7 +170,7 @@ function Invite({ onSubmit }: Props) {
                 signinMethods: team.signinMethods,
               }}
             />{" "}
-            {collectionAccessNote}
+            {notebookAccessNote}
             {can.update && (
               <Trans>
                 As an admin you can also{" "}
@@ -263,11 +248,9 @@ function Invite({ onSubmit }: Props) {
     </form>
   );
 }
-
 const StyledInput = styled(Input)`
   margin-bottom: -4px;
   min-width: 0;
   flex-shrink: 1;
 `;
-
 export default observer(Invite);

@@ -10,15 +10,12 @@ import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import OAuthClientMenu from "~/menus/OAuthClientMenu";
 import { settingsPath } from "~/utils/routeHelpers";
-
 type Props = {
   oauthClient: OAuthClient;
 };
-
 const OAuthClientListItem = ({ oauthClient }: Props) => {
   const { t } = useTranslation();
   const user = useCurrentUser();
-
   const subtitle = (
     <>
       <Text type="tertiary">
@@ -29,7 +26,6 @@ const OAuthClientListItem = ({ oauthClient }: Props) => {
       </Text>
     </>
   );
-
   return (
     <ListItem
       key={oauthClient.id}
@@ -50,5 +46,4 @@ const OAuthClientListItem = ({ oauthClient }: Props) => {
     />
   );
 };
-
 export default observer(OAuthClientListItem);

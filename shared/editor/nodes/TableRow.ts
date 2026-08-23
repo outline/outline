@@ -20,7 +20,6 @@ import {
   columnDragPluginKey,
   type RowDragState,
 } from "../plugins/TableDragState";
-
 /**
  * Sets up drag tracking for row grip interactions.
  *
@@ -35,7 +34,6 @@ function setupRowDragTracking(
 ): void {
   let isDragging = false;
   let currentToIndex = fromIndex;
-
   /**
    * Finds the table wrapper element from the current editor DOM.
    */
@@ -54,7 +52,6 @@ function setupRowDragTracking(
     }
     return tables.length > 0 ? (tables[0] as HTMLElement) : null;
   };
-
   /**
    * Updates the drag state in the plugin via a transaction.
    */
@@ -66,7 +63,6 @@ function setupRowDragTracking(
     });
     view.dispatch(tr);
   };
-
   /**
    * Clears the drag state in the plugin.
    */
@@ -78,48 +74,38 @@ function setupRowDragTracking(
     });
     view.dispatch(tr);
   };
-
   const handleMouseMove = (e: MouseEvent) => {
     const tableElement = findTableElement();
     if (!tableElement) {
       return;
     }
-
     if (!isDragging) {
       isDragging = true;
       document.body.classList.add(EditorStyleHelper.tableDragging);
     }
-
     const table = tableElement.querySelector("table");
     if (!table) {
       return;
     }
-
     const rows = getRowsInTable(view.state);
     const tableRows = table.querySelectorAll("tr");
     let targetIndex = fromIndex;
-
     tableRows.forEach((row, index) => {
       const rect = row.getBoundingClientRect();
       if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
         targetIndex = index;
       }
     });
-
     targetIndex = Math.max(0, Math.min(targetIndex, rows.length - 1));
-
     if (targetIndex !== currentToIndex) {
       currentToIndex = targetIndex;
       updateDragState(targetIndex);
     }
   };
-
   const handleMouseUp = () => {
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
-
     document.body.classList.remove(EditorStyleHelper.tableDragging);
-
     if (isDragging && currentToIndex !== fromIndex && isInTable(view.state)) {
       // Verify both indices are still valid for the current table. The document
       // may have changed during the drag (e.g. collaborative editing)
@@ -129,7 +115,6 @@ function setupRowDragTracking(
         fromIndex < currentRows.length &&
         currentToIndex >= 0 &&
         currentToIndex < currentRows.length;
-
       if (inBounds) {
         const moved = moveTableRow({ from: fromIndex, to: currentToIndex })(
           view.state,
@@ -141,14 +126,11 @@ function setupRowDragTracking(
         }
       }
     }
-
     clearDragState();
   };
-
   document.addEventListener("mousemove", handleMouseMove);
   document.addEventListener("mouseup", handleMouseUp);
 }
-
 /**
  * Builds a widget decoration for the row drag indicator.
  */
@@ -156,7 +138,6 @@ function buildRowDragIndicator(pos: number, isMovingDown: boolean): Decoration {
   const className = isMovingDown
     ? EditorStyleHelper.tableDragIndicatorBottom
     : EditorStyleHelper.tableDragIndicatorTop;
-
   return Decoration.widget(
     pos + 1,
     () => {
@@ -169,34 +150,27 @@ function buildRowDragIndicator(pos: number, isMovingDown: boolean): Decoration {
     }
   );
 }
-
 /**
  * Creates decorations for the row drag drop indicator.
  */
 function createRowDragDecorations(state: EditorState): DecorationSet {
   const dragState = rowDragPluginKey.getState(state);
-
   if (!dragState?.isDragging || dragState.toIndex < 0) {
     return DecorationSet.empty;
   }
-
   const decorations: Decoration[] = [];
   const isMovingDown = dragState.toIndex > dragState.fromIndex;
-
   // Get first cell in the target row to place the indicator
   const cellsInRow = getCellsInRow(dragState.toIndex)(state);
   if (cellsInRow.length > 0) {
     decorations.push(buildRowDragIndicator(cellsInRow[0], isMovingDown));
   }
-
   return DecorationSet.create(state.doc, decorations);
 }
-
 export default class TableRow extends Node {
   get name() {
     return "tr";
   }
-
   get schema(): NodeSpec {
     return {
       content: "(th | td)*",
@@ -207,7 +181,6 @@ export default class TableRow extends Node {
       },
     };
   }
-
   get plugins() {
     // Plugin for row drag and drop indicator
     const rowDragPlugin = new Plugin<RowDragState>({
@@ -226,12 +199,10 @@ export default class TableRow extends Node {
         decorations: createRowDragDecorations,
       },
     });
-
     function buildAddRowDecoration(pos: number, index: number) {
       const className = cn(EditorStyleHelper.tableAddRow, {
         first: index === 0,
       });
-
       return Decoration.widget(
         pos + 1,
         () => {
@@ -246,7 +217,6 @@ export default class TableRow extends Node {
         }
       );
     }
-
     return [
       rowDragPlugin,
       new Plugin({
@@ -255,52 +225,42 @@ export default class TableRow extends Node {
             if (!this.editor.view?.editable) {
               return;
             }
-
             // Hide add row buttons when dragging rows or columns
             const rowDragState = rowDragPluginKey.getState(state);
             const columnDragState = columnDragPluginKey.getState(state);
             const isDragging =
               rowDragState?.isDragging || columnDragState?.isDragging;
-
             const { doc } = state;
             const decorations: Decoration[] = [];
             const rows = getRowsInTable(state);
-
             if (rows && rows.length > 0 && isInTable(state)) {
               const rect = selectedRect(state);
               const firstColumnCells = new Map<number, number>();
-
               // Map each visual row index to its first column cell position
               for (let row = 0; row < rect.map.height; row++) {
                 const cellPos =
                   rect.tableStart + rect.map.map[row * rect.map.width];
                 firstColumnCells.set(row, cellPos);
               }
-
               rows.forEach((pos, visualIndex) => {
                 const index = visualIndex;
-
                 // Check if this row's first column is part of a merged cell from above
                 const currentFirstCellPos = firstColumnCells.get(visualIndex);
                 let isFirstColumnMerged = false;
-
                 for (let prevRow = 0; prevRow < visualIndex; prevRow++) {
                   if (firstColumnCells.get(prevRow) === currentFirstCellPos) {
                     isFirstColumnMerged = true;
                     break;
                   }
                 }
-
                 // Skip decorations for rows where first column is merged from above
                 if (isFirstColumnMerged) {
                   return;
                 }
-
                 if (index === 0) {
                   const className = cn(EditorStyleHelper.tableGrip, {
                     selected: isTableSelected(state),
                   });
-
                   decorations.push(
                     Decoration.widget(
                       pos + 1,
@@ -316,14 +276,12 @@ export default class TableRow extends Node {
                     )
                   );
                 }
-
                 const className = cn(EditorStyleHelper.tableGripRow, {
                   selected:
                     isRowSelected(index)(state) || isTableSelected(state),
                   first: index === 0,
                   last: visualIndex === rows.length - 1,
                 });
-
                 decorations.push(
                   Decoration.widget(
                     pos + 1,
@@ -339,14 +297,12 @@ export default class TableRow extends Node {
                     }
                   )
                 );
-
                 // The add-row affordance is too small to tap on mobile, where
                 // rows can be added via the inline menu instead.
                 if (!isDragging && !isMobile()) {
                   if (index === 0) {
                     decorations.push(buildAddRowDecoration(pos, index));
                   }
-
                   // Calculate the rowspan of the first column cell to determine the
                   // correct index for the "add row after" button. When cells are
                   // merged vertically, we need to insert after all merged rows.
@@ -359,7 +315,6 @@ export default class TableRow extends Node {
                 }
               });
             }
-
             return DecorationSet.create(doc, decorations);
           },
           handleDOMEvents: {
@@ -367,7 +322,6 @@ export default class TableRow extends Node {
               if (!(event.target instanceof HTMLElement)) {
                 return false;
               }
-
               const targetAddRow = event.target.closest(
                 `.${EditorStyleHelper.tableAddRow}`
               );
@@ -375,11 +329,9 @@ export default class TableRow extends Node {
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 const index = Number(targetAddRow.getAttribute("data-index"));
-
                 addRowBefore({ index })(view.state, view.dispatch);
                 return true;
               }
-
               const tableGrip = event.target.closest(
                 `.${EditorStyleHelper.tableGrip}`
               );
@@ -389,14 +341,12 @@ export default class TableRow extends Node {
                 selectTable()(view.state, view.dispatch);
                 return true;
               }
-
               const targetGripRow = event.target.closest(
                 `.${EditorStyleHelper.tableGripRow}`
               );
               if (targetGripRow instanceof HTMLElement) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-
                 const rowIndex = Number(
                   targetGripRow.getAttribute("data-index")
                 );
@@ -404,12 +354,10 @@ export default class TableRow extends Node {
                   view.state,
                   view.dispatch
                 );
-
                 // Setup drag tracking for potential drag operation
                 setupRowDragTracking(view, targetGripRow, rowIndex);
                 return true;
               }
-
               return false;
             },
           },
@@ -417,11 +365,9 @@ export default class TableRow extends Node {
       }),
     ];
   }
-
   toMarkdown() {
     // see: renderTable
   }
-
   parseMarkdown() {
     return { block: "tr" };
   }

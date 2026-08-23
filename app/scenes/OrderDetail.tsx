@@ -22,11 +22,9 @@ import {
   Th,
 } from "~/components/Surface";
 import { formatCurrency, formatDate } from "~/utils/format";
-
 const TotalRow = styled.tr`
   border-top: 1px solid ${s("divider")};
 `;
-
 /**
  * A single invoice with its lines.
  *
@@ -35,16 +33,16 @@ const TotalRow = styled.tr`
 function OrderDetail() {
   const { t } = useTranslation();
   const history = useHistory();
-  const { orderId } = useParams<{ orderId: string }>();
+  const { orderId } = useParams<{
+    orderId: string;
+  }>();
   const orders = useShop((state) => state.orders);
   const isLoading = useShop((state) => state.isLoading);
   const markOrderPaid = useShop((state) => state.markOrderPaid);
   const voidOrder = useShop((state) => state.voidOrder);
   const staff = useShop((state) => state.staff);
   const submission = useSubmit();
-
   const order = orders.find((item) => item.id === orderId);
-
   if (!order) {
     return (
       <AppPage title={t("Invoice")}>
@@ -59,7 +57,6 @@ function OrderDetail() {
       </AppPage>
     );
   }
-
   const handleVoid = () =>
     submission.run(async () => {
       const result = await voidOrder(order.id);
@@ -72,15 +69,12 @@ function OrderDetail() {
           )
         : t("That order could not be voided.");
     });
-
   return (
     <AppPage
       title={order.number}
       description={(() => {
         const soldBy = staff.find((member) => member.id === order.soldById);
-        return `${order.customerName} · ${order.channel.toUpperCase()}${
-          soldBy ? ` · served by ${soldBy.name}` : ""
-        }`;
+        return `${order.customerName} · ${order.channel.toUpperCase()}${soldBy ? ` · served by ${soldBy.name}` : ""}`;
       })()}
       actions={
         <Flex align="center" gap={12}>
@@ -165,5 +159,4 @@ function OrderDetail() {
     </AppPage>
   );
 }
-
 export default OrderDetail;

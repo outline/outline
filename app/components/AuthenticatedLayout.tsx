@@ -18,34 +18,29 @@ import history from "~/utils/history";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import {
   searchPath,
-  newDocumentPath,
+  newNotePath,
   settingsPath,
   homePath,
 } from "~/utils/routeHelpers";
-import { DocumentContextProvider } from "./DocumentContext";
+import { NoteContextProvider } from "./NoteContext";
 import Fade from "./Fade";
 import NotificationBadge from "./NotificationBadge";
 import { PortalContext } from "./Portal";
 import CommandBar from "./CommandBar";
-
 const SettingsSidebar = lazyWithRetry(
   () => import("~/components/Sidebar/Settings")
 );
-
 type Props = {
   children?: React.ReactNode;
 };
-
 const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const { ui, auth } = useStores();
   const location = useLocation();
   const layoutRef = React.useRef<HTMLDivElement>(null);
-  const canCollection = usePolicy(ui.activeCollectionId);
+  const canNotebook = usePolicy(ui.activeNotebookId);
   const team = useCurrentTeam();
   const [spendPostLoginPath] = usePostLoginPath();
-
   useKeyDown(".", () => ui.toggleCollapsedSidebar(), { metaKey: true });
-
   const goToSearch = (ev: KeyboardEvent) => {
     if (!ev.metaKey && !ev.ctrlKey) {
       ev.preventDefault();
@@ -53,18 +48,16 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
       history.push(searchPath());
     }
   };
-
-  const goToNewDocument = (event: KeyboardEvent) => {
+  const goToNewNote = (event: KeyboardEvent) => {
     if (event.metaKey || event.altKey) {
       return;
     }
-    const { activeCollectionId } = ui;
-    if (!activeCollectionId || !canCollection.createDocument) {
+    const { activeNotebookId } = ui;
+    if (!activeNotebookId || !canNotebook.createNote) {
       return;
     }
-    history.push(newDocumentPath(activeCollectionId));
+    history.push(newNotePath(activeNotebookId));
   };
-
   React.useEffect(() => {
     const postLoginPath = spendPostLoginPath();
     if (postLoginPath) {
@@ -79,13 +72,10 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
       }
     }
   }, [spendPostLoginPath]);
-
   if (auth.isSuspended) {
     return <ErrorSuspended />;
   }
-
   const isSettings = location.pathname.startsWith(settingsPath());
-
   const sidebar = (
     <Fade>
       <React.Suspense fallback={null}>
@@ -96,9 +86,8 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
       </div>
     </Fade>
   );
-
   return (
-    <DocumentContextProvider>
+    <NoteContextProvider>
       <RightSidebarProvider>
         <PortalContext.Provider value={layoutRef.current}>
           <DndProvider backend={EditorAwareHTML5Backend}>
@@ -108,7 +97,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
               sidebarCanCollapse={!isSettings}
               ref={layoutRef}
             >
-              <RegisterKeyDown trigger="n" handler={goToNewDocument} />
+              <RegisterKeyDown trigger="n" handler={goToNewNote} />
               <RegisterKeyDown trigger="t" handler={goToSearch} />
               <RegisterKeyDown trigger="/" handler={goToSearch} />
               {children}
@@ -118,8 +107,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
           </DndProvider>
         </PortalContext.Provider>
       </RightSidebarProvider>
-    </DocumentContextProvider>
+    </NoteContextProvider>
   );
 };
-
 export default observer(AuthenticatedLayout);

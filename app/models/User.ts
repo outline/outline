@@ -14,54 +14,42 @@ import type { NotificationSettings } from "@shared/types";
 import type { locales } from "@shared/utils/date";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { client } from "~/utils/ApiClient";
-import type Document from "./Document";
+import type Note from "./Note";
 import type Group from "./Group";
 import type UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 import type { Searchable } from "./interfaces/Searchable";
-
 class User extends ParanoidModel implements Searchable {
   static modelName = "User";
-
   @Field
   @observable
   avatarUrl: string;
-
   @Field
   @observable
   name: string;
-
   @Field
   @observable
   color: string;
-
   @Field
   @observable
   language: keyof typeof locales;
-
   @Field
   @observable
   preferences: UserPreferences | null;
-
   @Field
   @observable
   notificationSettings: NotificationSettings;
-
   @Field
   @observable
   timezone?: string;
-
   @observable
   email: string;
-
   @observable
   role: UserRole;
-
   @observable
   protected _lastActiveAt: string;
-
   /**
    * The last time the user was active. For the currently signed-in user, this
    * always returns the current date so they always appear as recently active.
@@ -73,36 +61,28 @@ class User extends ParanoidModel implements Searchable {
     }
     return this._lastActiveAt;
   }
-
   set lastActiveAt(value: string) {
     this._lastActiveAt = value;
   }
-
   @observable
   isSuspended: boolean;
-
   @observable
   invitedById: string | undefined;
-
   /** The user that invited this user, if they were invited. */
   @Relation(() => User)
   invitedBy: User | undefined;
-
   @computed
   get searchContent(): string[] {
     return [this.name, this.email, this.initials].filter(Boolean);
   }
-
   @computed
   get searchSuppressed(): boolean {
     return this.isDeleted;
   }
-
   @computed
   get initial(): string {
     return (this.name ? this.name[0] : "?").toUpperCase();
   }
-
   @computed
   get initials(): string {
     if (!this.name) {
@@ -114,42 +94,36 @@ class User extends ParanoidModel implements Searchable {
     }
     return (names[0][0] + names[names.length - 1][0]).toUpperCase();
   }
-
   /**
    * Whether the user has been invited but not yet signed in.
    */
   get isInvited(): boolean {
     return !this.lastActiveAt;
   }
-
   /**
    * Whether the user is an admin.
    */
   get isAdmin(): boolean {
     return this.role === UserRole.Admin;
   }
-
   /**
    * Whether the user is a member (editor).
    */
   get isMember(): boolean {
     return this.role === UserRole.Member;
   }
-
   /**
    * Whether the user is a viewer.
    */
   get isViewer(): boolean {
     return this.role === UserRole.Viewer;
   }
-
   /**
    * Whether the user is a guest.
    */
   get isGuest(): boolean {
     return this.role === UserRole.Guest;
   }
-
   /**
    * Whether the user has been recently active. Recently is currently defined
    * as within the last 5 minutes.
@@ -160,7 +134,6 @@ class User extends ParanoidModel implements Searchable {
   get isRecentlyActive(): boolean {
     return new Date(this.lastActiveAt) > subMinutes(now(10000), 5);
   }
-
   /**
    * The current time where the user is located, formatted for the locale of the
    * signed-in user.
@@ -172,9 +145,7 @@ class User extends ParanoidModel implements Searchable {
     if (!this.timezone) {
       return undefined;
     }
-
     const language = this.store.rootStore.auth?.user?.language;
-
     try {
       return new Date(now(60000)).toLocaleTimeString(
         language ? unicodeCLDRtoBCP47(language) : undefined,
@@ -184,7 +155,6 @@ class User extends ParanoidModel implements Searchable {
       return undefined;
     }
   }
-
   /**
    * Returns whether this user is using a separate editing mode behind an "Edit"
    * button rather than seamless always-editing.
@@ -200,41 +170,35 @@ class User extends ParanoidModel implements Searchable {
       )
     );
   }
-
   /**
-   * Returns the direct memberships that this user has to documents. Documents that the
-   * user already has access to through a collection, archived, and trashed documents are not included.
+   * Returns the direct memberships that this user has to notes. Notes that the
+   * user already has access to through a notebook, archived, and trashed notes are not included.
    *
    * @returns A list of user memberships
    */
   @computed
-  get documentMemberships(): UserMembership[] {
-    const { userMemberships, documents, policies } = this.store.rootStore;
+  get noteMemberships(): UserMembership[] {
+    const { userMemberships, notes, policies } = this.store.rootStore;
     return userMemberships.orderedData
-      .filter(
-        (m) => m.userId === this.id && m.sourceId === null && m.documentId
-      )
+      .filter((m) => m.userId === this.id && m.sourceId === null && m.noteId)
       .filter((m) => {
-        const document = documents.get(m.documentId!);
-        const policy = document?.collectionId
-          ? policies.get(document.collectionId)
+        const note = notes.get(m.noteId!);
+        const policy = note?.notebookId
+          ? policies.get(note.notebookId)
           : undefined;
-        return !policy?.abilities?.readDocument && !!document?.isActive;
+        return !policy?.abilities?.readNote && !!note?.isActive;
       });
   }
-
   @computed
-  get groupsWithDocumentMemberships() {
+  get groupsWithNoteMemberships() {
     const { groups, groupUsers } = this.store.rootStore;
-
     return groupUsers.orderedData
       .filter((groupUser) => groupUser.userId === this.id)
       .map((groupUser) => groups.get(groupUser.groupId))
       .filter(Boolean)
-      .filter((group) => group && group.documentMemberships.length > 0)
+      .filter((group) => group && group.noteMemberships.length > 0)
       .sort((a, b) => a!.name.localeCompare(b!.name)) as Group[];
   }
-
   /**
    * Returns the current preference for the given notification event type taking
    * into account the default system value.
@@ -244,7 +208,6 @@ class User extends ParanoidModel implements Searchable {
    */
   public subscribedToEventType = (type: NotificationEventType) =>
     this.notificationSettings[type] ?? NotificationEventDefaults[type] ?? false;
-
   /**
    * Sets a preference for the users notification settings on the model and
    * saves the change to the server.
@@ -261,7 +224,6 @@ class User extends ParanoidModel implements Searchable {
       ...this.notificationSettings,
       [eventType]: value,
     };
-
     if (value) {
       await client.post(`/users.notificationsSubscribe`, {
         eventType,
@@ -272,7 +234,6 @@ class User extends ParanoidModel implements Searchable {
       });
     }
   };
-
   /**
    * Get the value for a specific preference key, or return the fallback if
    * none is set.
@@ -289,7 +250,6 @@ class User extends ParanoidModel implements Searchable {
       defaultValue ??
       false) as NonNullable<UserPreferences[K]>;
   }
-
   /**
    * Set the value for a specific preference key.
    *
@@ -306,12 +266,10 @@ class User extends ParanoidModel implements Searchable {
       [key]: value,
     };
   }
-
-  getMembership(document: Document) {
+  getMembership(note: Note) {
     return this.store.rootStore.userMemberships.orderedData.find(
-      (m) => m.documentId === document.id && m.userId === this.id
+      (m) => m.noteId === note.id && m.userId === this.id
     );
   }
 }
-
 export default User;

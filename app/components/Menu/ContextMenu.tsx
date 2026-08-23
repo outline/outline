@@ -9,7 +9,6 @@ import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
 import { Menu, MenuContent, MenuTrigger } from "~/components/primitives/Menu";
 import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
-
 type Props = {
   /** Root action with children representing the menu items */
   action?: ActionWithChildren | ActionFactory;
@@ -22,7 +21,6 @@ type Props = {
   /** Callback when menu is closed */
   onClose?: () => void;
 };
-
 export const ContextMenu = observer(
   ({ action, children, ariaLabel, onOpen, onClose }: Props) => {
     const [open, setOpen] = React.useState(false);
@@ -31,25 +29,21 @@ export const ContextMenu = observer(
     const actionContext = useActionContext({
       isMenu: true,
     });
-
     // Menu items are only built while the menu is open.
     const menuItems = useComputed(() => {
       if (!open) {
         return [];
       }
-
       const resolvedAction = typeof action === "function" ? action() : action;
       if (!resolvedAction) {
         return [];
       }
-
       // children may be a factory function, so resolve it before mapping.
       return resolve<ActionVariant[]>(
         resolvedAction.children,
         actionContext
       ).map((childAction) => actionToMenuItem(childAction, actionContext));
     }, [open, action, actionContext]);
-
     const handleOpenChange = React.useCallback(
       (open: boolean) => {
         setOpen(open);
@@ -61,19 +55,16 @@ export const ContextMenu = observer(
       },
       [onOpen, onClose]
     );
-
     const enablePointerEvents = React.useCallback(() => {
       if (contentRef.current) {
         contentRef.current.style.pointerEvents = "auto";
       }
     }, []);
-
     const disablePointerEvents = React.useCallback(() => {
       if (contentRef.current) {
         contentRef.current.style.pointerEvents = "none";
       }
     }, []);
-
     // For non-factory actions we can cheaply detect an empty menu without
     // resolving any items (actionToMenuItem is length-preserving).
     const childActions =
@@ -81,13 +72,10 @@ export const ContextMenu = observer(
     const isEmpty =
       typeof action !== "function" &&
       (Array.isArray(childActions) ? childActions.length === 0 : !childActions);
-
     if (isMobile || !action || isEmpty) {
       return <>{children}</>;
     }
-
     const content = open ? toMenuItems(menuItems) : null;
-
     return (
       <MenuProvider variant="context">
         <Menu open={open} onOpenChange={handleOpenChange}>

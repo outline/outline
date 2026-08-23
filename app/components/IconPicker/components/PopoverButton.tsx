@@ -1,8 +1,9 @@
 import styled, { css } from "styled-components";
 import { s, hover } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
-
-export const PopoverButton = styled(NudeButton)<{ $borderOnHover?: boolean }>`
+export const PopoverButton = styled(NudeButton)<{
+  $borderOnHover?: boolean;
+}>`
   &: ${hover},
   &:active,
   &[aria-expanded= "true"] {

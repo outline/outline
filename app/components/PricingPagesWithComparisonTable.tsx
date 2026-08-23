@@ -9,7 +9,6 @@ import {
   XMarkIcon as XMarkIconMini,
 } from "@heroicons/react/20/solid";
 import { classNames } from "./classNames";
-
 const navigation = [
   { name: "Product", href: "#" },
   { name: "Features", href: "#" },
@@ -26,20 +25,27 @@ type PricingTier = {
   price: Record<string, string>;
   mainFeatures?: string[];
   features?: string[];
-  highlights?: { main?: boolean; text: string }[];
+  highlights?: {
+    main?: boolean;
+    text: string;
+  }[];
 };
-
 type PricingSection = {
   name: string;
-  features: { name: string; tiers: Record<string, string | boolean> }[];
+  features: {
+    name: string;
+    tiers: Record<string, string | boolean>;
+  }[];
 };
-
 type Pricing = {
-  frequencies: { value: string; label: string; priceSuffix?: string }[];
+  frequencies: {
+    value: string;
+    label: string;
+    priceSuffix?: string;
+  }[];
   tiers: PricingTier[];
   sections?: PricingSection[];
 };
-
 const pricing: Pricing = {
   frequencies: [
     { value: "monthly", label: "Monthly" },
@@ -266,7 +272,6 @@ const footerNavigation = {
     },
   ],
 };
-
 /**
  * Tailwind UI – pricing pages: with comparison table.
  *
@@ -275,7 +280,6 @@ const footerNavigation = {
 export function PricingPagesWithComparisonTable() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [frequency, setFrequency] = useState(pricing.frequencies[0]);
-
   return (
     <div className="bg-white">
       {/* Header */}

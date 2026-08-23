@@ -27,7 +27,6 @@ const incentives = [
       "https://tailwindui.com/img/ecommerce/icons/icon-gift-card-light.svg",
   },
 ];
-
 /**
  * Tailwind UI – incentives: 4 column with illustrations.
  *

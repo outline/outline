@@ -1,6 +1,6 @@
 /*
   This example requires some changes to your config:
-  
+
   ```
   // tailwind.config.js
   module.exports = {
@@ -12,7 +12,7 @@
   }
   ```
 */
-const collections = [
+const notebooks = [
   {
     name: "Women's",
     href: "#",
@@ -36,7 +36,6 @@ const collections = [
       "Person sitting at a wooden desk with paper note organizer, pencil and tablet.",
   },
 ];
-
 /**
  * Tailwind UI – promo sections: with overlapping image tiles.
  *
@@ -104,9 +103,9 @@ export function PromoSectionsWithOverlappingImageTiles() {
           Collections
         </h2>
         <div className="mx-auto grid max-w-md grid-cols-1 gap-y-6 px-4 sm:max-w-7xl sm:grid-cols-3 sm:gap-x-6 sm:gap-y-0 sm:px-6 lg:gap-x-8 lg:px-8">
-          {collections.map((collection) => (
+          {notebooks.map((notebook) => (
             <div
-              key={collection.name}
+              key={notebook.name}
               className="group relative h-96 rounded-lg bg-white shadow-xl sm:aspect-[4/5] sm:h-auto"
             >
               <div>
@@ -116,8 +115,8 @@ export function PromoSectionsWithOverlappingImageTiles() {
                 >
                   <div className="absolute inset-0 overflow-hidden group-hover:opacity-75">
                     <img
-                      src={collection.imageSrc}
-                      alt={collection.imageAlt}
+                      src={notebook.imageSrc}
+                      alt={notebook.imageAlt}
                       className="h-full w-full object-cover object-center"
                     />
                   </div>
@@ -129,9 +128,9 @@ export function PromoSectionsWithOverlappingImageTiles() {
                       Shop the collection
                     </p>
                     <h3 className="mt-1 font-semibold text-white">
-                      <a href={collection.href}>
+                      <a href={notebook.href}>
                         <span className="absolute inset-0" />
-                        {collection.name}
+                        {notebook.name}
                       </a>
                     </h3>
                   </div>

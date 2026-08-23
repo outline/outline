@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { client } from "~/utils/ApiClient";
 import { BusinessLayout } from "./BusinessLayout";
-
 /** Room availability as a visitor sees it. */
 interface Availability {
   type: string;
@@ -10,14 +9,12 @@ interface Availability {
   total: number;
   from: number;
 }
-
 const money = (amount: number) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(amount);
-
 /**
  * What boarding is like here, and what is free right now.
  *
@@ -27,9 +24,10 @@ const money = (amount: number) =>
  * @returns the rendered boarding page.
  */
 function Boarding() {
-  const { businessSlug } = useParams<{ businessSlug: string }>();
+  const { businessSlug } = useParams<{
+    businessSlug: string;
+  }>();
   const [availability, setAvailability] = useState<Availability[]>([]);
-
   useEffect(() => {
     let cancelled = false;
     void client.post("/public.availability").then((response) => {
@@ -41,7 +39,6 @@ function Boarding() {
       cancelled = true;
     };
   }, []);
-
   return (
     <BusinessLayout current="boarding">
       <h2 className="text-lg font-semibold text-gray-900">Boarding</h2>
@@ -88,5 +85,4 @@ function Boarding() {
     </BusinessLayout>
   );
 }
-
 export default Boarding;
