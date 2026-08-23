@@ -57,6 +57,7 @@ export type {
 	TBillingSubscriptionDto,
 	TBillingSummaryDto,
 	TBillingUsageDto,
+	TWhatsAppTemplateDto,
 	TAuditLogDto,
 	TAccountDto,
 	TJournalEntryDto,

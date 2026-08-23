@@ -79,6 +79,7 @@ export type {
 	TBillingSummaryDto,
 	TBillingUsageDto,
 } from "./billing.types";
+export type { TWhatsAppTemplateDto } from "./whatsapp.types";
 export type { TAuditLogDto } from "./audit.types";
 export type {
 	TAccountDto,

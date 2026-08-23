@@ -179,6 +179,7 @@ import {
 } from "@/domain/warehouse/warehouse.programs";
 import { CreateWarehouseSchema } from "@/domain/warehouse/warehouse.schemas";
 import type { TWarehouseId } from "@/domain/warehouse/warehouse.types";
+import { getWhatsAppTemplatesProgram } from "@/domain/whatsapp/whatsapp.programs";
 import { runApp } from "@/infra/runtime/app.runtime";
 import type { TTenantId, TUserId } from "@/shared/types/common.types";
 import {
@@ -253,6 +254,10 @@ import { jsonSuccess } from "./response";
 import { createReturnHandlers, type ReturnHandlers } from "./return.handlers";
 import { createRoomHandlers, type RoomHandlers } from "./room.handlers";
 import { createShiftHandlers, type ShiftHandlers } from "./shift.handlers";
+import {
+	createWhatsAppHandlers,
+	type WhatsAppHandlers,
+} from "./whatsapp.handlers";
 
 /**
  * Creates the direct REST request dispatcher.
@@ -285,6 +290,7 @@ export function createRestRequestHandler(
 	loyaltyHandlers?: LoyaltyHandlers,
 	auditHandlers?: AuditHandlers,
 	billingHandlers?: BillingHandlers,
+	whatsAppHandlers?: WhatsAppHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -315,6 +321,13 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return billingHandlers.get(request, requestId);
+		}
+		if (
+			whatsAppHandlers &&
+			url.pathname === "/api/v1/admin/whatsapp/templates" &&
+			request.method === "GET"
+		) {
+			return whatsAppHandlers.templates(request, requestId);
 		}
 		if (
 			branchHandlers &&
@@ -1634,6 +1647,21 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				})),
 				usage,
 			};
+		},
+	}),
+	createWhatsAppHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		templates: async (businessId) => {
+			const templates = await runApp(
+				getWhatsAppTemplatesProgram(businessId as TTenantId),
+			);
+			return templates.map((template) => ({
+				id: template.id,
+				name: template.name,
+				category: template.category,
+				body: template.content,
+				status: template.isActive ? "approved" : "pending",
+			}));
 		},
 	}),
 );
