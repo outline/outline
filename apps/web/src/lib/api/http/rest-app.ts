@@ -1,5 +1,14 @@
 import { Effect, Schema } from "effect";
-import { getBranchesProgram } from "@/domain/branch/branch.programs";
+import {
+	createBranchProgram,
+	deleteBranchProgram,
+	getBranchesProgram,
+	updateBranchProgram,
+} from "@/domain/branch/branch.programs";
+import {
+	CreateBranchSchema,
+	UpdateBranchSchema,
+} from "@/domain/branch/branch.schemas";
 import {
 	createCustomerProgram,
 	deleteCustomerProgram,
@@ -137,6 +146,18 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return branchHandlers.list(request, requestId);
+		}
+		const branchMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/branches(?:\/([^/]+))?$/,
+		);
+		if (
+			branchHandlers &&
+			branchMatch &&
+			(request.method === "POST" ||
+				request.method === "PATCH" ||
+				request.method === "DELETE")
+		) {
+			return branchHandlers.mutate(request, requestId, branchMatch[1]);
 		}
 		if (
 			catalogHandlers &&
@@ -313,6 +334,25 @@ const defaultRestRequestHandler = createRestRequestHandler(
 		session: async (token) => authProgramDependencies.session(token),
 		list: async (businessId) =>
 			runApp(getBranchesProgram(businessId as TTenantId)),
+		mutate: async (businessId, userId, id, input) => {
+			if (id && Object.keys(input).length === 0) {
+				await runApp(deleteBranchProgram(id, businessId as TTenantId));
+				return { deleted: true };
+			}
+			if (id) {
+				const value = Schema.decodeUnknownSync(UpdateBranchSchema)({
+					...input,
+					id,
+				});
+				await runApp(updateBranchProgram(value, businessId as TTenantId));
+				return { updated: true };
+			}
+			const value = Schema.decodeUnknownSync(CreateBranchSchema)(input);
+			const branch = await runApp(
+				createBranchProgram(value, businessId as TTenantId, userId),
+			);
+			return branch;
+		},
 	}),
 	createCatalogHandlers({
 		session: async (token) => authProgramDependencies.session(token),

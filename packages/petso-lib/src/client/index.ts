@@ -6,6 +6,7 @@ import type {
 	TAdjustStockInput,
 	TBranchContactDto,
 	TBranchDto,
+	TBranchInput,
 	TCreateOrderInput,
 	TCreateCustomerInput,
 	TCustomerDto,
@@ -366,6 +367,21 @@ export class PetsoClient {
 
 		get: (branchId: string): Promise<TBranchContactDto> =>
 			this.fetchApi<TBranchContactDto>(`/api/v1/branches/${branchId}`),
+		create: (input: TBranchInput): Promise<TBranchDto> =>
+			this.fetchApi<TBranchDto>("/api/v1/admin/branches", {
+				method: "POST",
+				body: input,
+			}),
+		update: (input: TBranchInput & { readonly id: string }): Promise<TBranchDto> =>
+			this.fetchApi<TBranchDto>(`/api/v1/admin/branches/${input.id}`, {
+				method: "PATCH",
+				body: input,
+			}),
+		remove: (id: string): Promise<{ readonly deleted: boolean }> =>
+			this.fetchApi<{ readonly deleted: boolean }>(
+				`/api/v1/admin/branches/${id}`,
+				{ method: "DELETE" },
+			),
 	};
 
 	readonly services = {

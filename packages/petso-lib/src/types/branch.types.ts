@@ -35,3 +35,20 @@ export interface TBranchDto extends TBranchContactDto {
 	readonly phone: string | null;
 	readonly createdAt: string;
 }
+
+export interface TBranchInput {
+	readonly id?: string;
+	readonly name: string;
+	readonly address?: string | null;
+	readonly phone?: string | null;
+	readonly email?: string | null;
+	readonly whatsappNumber?: string | null;
+	readonly streetAddress?: string | null;
+	readonly addressLocality?: string | null;
+	readonly addressRegion?: string | null;
+	readonly postalCode?: string | null;
+	readonly addressCountry?: string | null;
+	readonly latitude?: number | null;
+	readonly longitude?: number | null;
+	readonly operatingHours?: TOperatingHoursDto | null;
+}

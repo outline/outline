@@ -3,6 +3,7 @@ export type {
 	TBranchContactDto,
 	TDayHoursDto,
 	TOperatingHoursDto,
+	TBranchInput,
 } from "./branch.types";
 export type {
 	TAuthCredentials,

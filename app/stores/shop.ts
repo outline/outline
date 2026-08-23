@@ -1293,8 +1293,36 @@ export const useShop = create<State>((set, get) => ({
     await client.post("/branches.removeHoliday", { id });
     await get().fetchAll();
   },
-  saveBranch: async (branch) => write("/branches.save", branch, get),
-  deleteBranch: async (id) => write("/branches.delete", { id }, get),
+  saveBranch: async (branch) => {
+    const input = {
+      ...(branch.id ? { id: branch.id } : {}),
+      name: branch.name,
+      address: branch.address ?? null,
+      phone: branch.phone ?? null,
+      email: null,
+      whatsappNumber: null,
+      streetAddress: null,
+      addressLocality: null,
+      addressRegion: null,
+      postalCode: null,
+      addressCountry: null,
+      latitude: null,
+      longitude: null,
+      operatingHours: null,
+    };
+    if (branch.id) {
+      await petsoClient.branches.update(input);
+    } else {
+      await petsoClient.branches.create(input);
+    }
+    await get().fetchAll();
+    return { saved: true };
+  },
+  deleteBranch: async (id) => {
+    await petsoClient.branches.remove(id);
+    await get().fetchAll();
+    return { removed: true };
+  },
   saveLoyaltyConfig: async (config) => {
     const response = await client.post("/loyalty.saveConfig", config);
     if (response.data?.saved) {

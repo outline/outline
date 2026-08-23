@@ -4,6 +4,7 @@ export { PetsoClient, PetsoClientError } from "./client";
 export type {
 	TAuthCredentials,
 	TAuthResult,
+	TBranchInput,
 	TApiResponse,
 	TCreateOrderInput,
 	TCreateOrderItemInput,
