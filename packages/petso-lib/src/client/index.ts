@@ -6,6 +6,7 @@ import type {
 	TBranchDto,
 	TCreateOrderInput,
 	TCustomerDto,
+	TCustomerRecordDto,
 	TCustomerOrderDto,
 	TDashboardSummaryDto,
 	TLowStockItem,
@@ -17,11 +18,13 @@ import type {
 	TProductListParams,
 	TProductListResult,
 	TProductSuggestResult,
+	TPetDto,
 	TServiceDto,
 	TSessionDto,
 	TSignupInput,
 	TSignupResult,
 	TUpdateStatusInput,
+	TStaffMemberDto,
 	TValidateVoucherInput,
 	TVoucherDto,
 	TVoucherValidationResult,
@@ -146,6 +149,17 @@ export class PetsoClient {
 
 		session: (): Promise<TSessionDto> =>
 			this.fetchApi<TSessionDto>("/api/v1/auth/session"),
+	};
+
+	readonly admin = {
+		products: (): Promise<readonly TProductDto[]> =>
+			this.fetchApi<readonly TProductDto[]>("/api/v1/admin/products"),
+		customers: (): Promise<readonly TCustomerRecordDto[]> =>
+			this.fetchApi<readonly TCustomerRecordDto[]>("/api/v1/admin/customers"),
+		pets: (): Promise<readonly TPetDto[]> =>
+			this.fetchApi<readonly TPetDto[]>("/api/v1/admin/pets"),
+		staff: (): Promise<readonly TStaffMemberDto[]> =>
+			this.fetchApi<readonly TStaffMemberDto[]>("/api/v1/admin/staff"),
 	};
 
 	readonly products = {

@@ -16,7 +16,13 @@ export type {
 	TPaginated,
 	TPaginationInput,
 } from "./common.types";
-export type { TCustomerDto, TCustomerOrderDto } from "./customer.types";
+export type {
+	TCustomerDto,
+	TCustomerOrderDto,
+	TCustomerRecordDto,
+} from "./customer.types";
+export type { TPetDto } from "./pet.types";
+export type { TStaffMemberDto } from "./staff.types";
 export type {
 	TDashboardMetrics,
 	TDashboardSummaryDto,

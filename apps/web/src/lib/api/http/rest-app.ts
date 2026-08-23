@@ -1,11 +1,19 @@
-import { createAuthHandlers, type AuthHandlers } from "./auth.handlers";
-import { createAuthProgramDependencies } from "./auth.runtime";
-import { createBranchHandlers, type BranchHandlers } from "./branch.handlers";
 import { getBranchesProgram } from "@/domain/branch/branch.programs";
-import { getRequestId } from "./request-context";
-import { jsonSuccess } from "./response";
+import { getCustomersProgram } from "@/domain/customer/customer.programs";
+import { getPetsProgram } from "@/domain/pet/pet.programs";
+import { getProductsProgram } from "@/domain/product/product.programs";
+import { getStaffMembersProgram } from "@/domain/staff/staff.programs";
 import { runApp } from "@/infra/runtime/app.runtime";
 import type { TTenantId } from "@/shared/types/common.types";
+import { type AuthHandlers, createAuthHandlers } from "./auth.handlers";
+import { createAuthProgramDependencies } from "./auth.runtime";
+import { type BranchHandlers, createBranchHandlers } from "./branch.handlers";
+import {
+	type CatalogHandlers,
+	createCatalogHandlers,
+} from "./catalog.handlers";
+import { getRequestId } from "./request-context";
+import { jsonSuccess } from "./response";
 
 /**
  * Creates the direct REST request dispatcher.
@@ -16,6 +24,7 @@ import type { TTenantId } from "@/shared/types/common.types";
 export function createRestRequestHandler(
 	authHandlers: AuthHandlers,
 	branchHandlers?: BranchHandlers,
+	catalogHandlers?: CatalogHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -40,6 +49,21 @@ export function createRestRequestHandler(
 		) {
 			return branchHandlers.list(request, requestId);
 		}
+		if (
+			catalogHandlers &&
+			url.pathname.startsWith("/api/v1/admin/") &&
+			request.method === "GET"
+		) {
+			const resource = url.pathname.slice("/api/v1/admin/".length);
+			if (
+				resource === "products" ||
+				resource === "customers" ||
+				resource === "pets" ||
+				resource === "staff"
+			) {
+				return catalogHandlers.list(resource, request, requestId);
+			}
+		}
 		if (url.pathname === "/api/v1/health" && request.method === "GET") {
 			return jsonSuccess({ status: "ok" }, requestId);
 		}
@@ -48,12 +72,23 @@ export function createRestRequestHandler(
 	};
 }
 
+const authProgramDependencies = createAuthProgramDependencies();
 const defaultRestRequestHandler = createRestRequestHandler(
-	createAuthHandlers(createAuthProgramDependencies()),
+	createAuthHandlers(authProgramDependencies),
 	createBranchHandlers({
-		session: async (token) => createAuthProgramDependencies().session(token),
+		session: async (token) => authProgramDependencies.session(token),
 		list: async (businessId) =>
 			runApp(getBranchesProgram(businessId as TTenantId)),
+	}),
+	createCatalogHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		products: async (businessId) =>
+			runApp(getProductsProgram(businessId as TTenantId)),
+		customers: async (businessId) =>
+			runApp(getCustomersProgram(businessId as TTenantId)),
+		pets: async (businessId) => runApp(getPetsProgram(businessId as TTenantId)),
+		staff: async (businessId) =>
+			runApp(getStaffMembersProgram(businessId as TTenantId)),
 	}),
 );
 
