@@ -83,8 +83,10 @@ export const RoomRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const row = await db.query.rooms.findFirst({
-								where: (rooms, { and, eq }) =>
-									and(eq(rooms.id, id), eq(rooms.businessId, tenantId)),
+								where: {
+									RAW: (rooms, { and, eq }) =>
+										and(eq(rooms.id, id), eq(rooms.businessId, tenantId)),
+								},
 							});
 							if (!row) return null;
 							return mapRoomRow(row);
@@ -213,13 +215,15 @@ export const RoomRepositoryDrizzle = Layer.effect(
 						try: async () => {
 							const target = toDateOnlyString(targetDate);
 							const row = await db.query.seasonalPricing.findFirst({
-								where: (sp, { and, eq }) =>
+								where: {
+									RAW: (sp, { and, eq, lte, gte }) =>
 									and(
 										eq(sp.businessId, tenantId),
 										eq(sp.isActive, true),
 										lte(sp.startDate, target),
 										gte(sp.endDate, target),
 									),
+								},
 							});
 							return row ? mapSeasonalPricingRow(row) : null;
 						},

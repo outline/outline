@@ -47,8 +47,10 @@ export const CustomerRepositoryDrizzle = Layer.effect(
 				Effect.tryPromise({
 					try: async () => {
 						const row = await db.query.customers.findFirst({
-							where: (c, { and, eq }) =>
-								and(eq(c.id, id), eq(c.businessId, businessId)),
+							where: {
+								RAW: (c, { and, eq }) =>
+									and(eq(c.id, id), eq(c.businessId, businessId)),
+							},
 						});
 						if (!row) return null;
 						return mapCustomer(row);
@@ -60,8 +62,10 @@ export const CustomerRepositoryDrizzle = Layer.effect(
 				Effect.tryPromise({
 					try: async () => {
 						const row = await db.query.customers.findFirst({
-							where: (c, { and, eq }) =>
-								and(eq(c.businessId, businessId), eq(c.phone, phone)),
+							where: {
+								RAW: (c, { and, eq }) =>
+									and(eq(c.businessId, businessId), eq(c.phone, phone)),
+							},
 						});
 						if (!row) return null;
 						return mapCustomer(row);

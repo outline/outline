@@ -34,8 +34,10 @@ export const DocumentTemplateRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const result = await db.query.documentTemplates.findFirst({
-								where: (t, { and, eq }) =>
-									and(eq(t.businessId, businessId), eq(t.type, type)),
+								where: {
+									RAW: (t, { and, eq }) =>
+										and(eq(t.businessId, businessId), eq(t.type, type)),
+								},
 							});
 							return result ? mapTemplateRow(result) : null;
 						},

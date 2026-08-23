@@ -36,8 +36,10 @@ export const BillingRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const result = await db.query.subscriptions.findFirst({
-								where: (subscriptions, { eq }) =>
-									eq(subscriptions.businessId, tenantId),
+								where: {
+									RAW: (subscriptions, { eq }) =>
+										eq(subscriptions.businessId, tenantId),
+								},
 							});
 
 							if (!result) return null;
@@ -73,8 +75,10 @@ export const BillingRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const result = await db.query.billingEvents.findFirst({
-								where: (billingEvents, { eq }) =>
-									eq(billingEvents.midtransOrderId, orderId),
+								where: {
+									RAW: (billingEvents, { eq }) =>
+										eq(billingEvents.midtransOrderId, orderId),
+								},
 							});
 
 							if (!result) return null;
@@ -126,8 +130,10 @@ export const BillingRepositoryDrizzle = Layer.effect(
 						try: async () => {
 							// Idempotency check: if status is already success, do not update again
 							const current = await db.query.billingEvents.findFirst({
-								where: (billingEvents, { eq }) =>
-									eq(billingEvents.id, event.id),
+								where: {
+									RAW: (billingEvents, { eq }) =>
+										eq(billingEvents.id, event.id),
+								},
 							});
 
 							if (
@@ -180,8 +186,10 @@ export const BillingRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const results = await db.query.billingEvents.findMany({
-								where: (billingEvents, { eq }) =>
-									eq(billingEvents.businessId, tenantId),
+								where: {
+									RAW: (billingEvents, { eq }) =>
+										eq(billingEvents.businessId, tenantId),
+								},
 								orderBy: (billingEvents, { desc }) => [
 									desc(billingEvents.createdAt),
 								],

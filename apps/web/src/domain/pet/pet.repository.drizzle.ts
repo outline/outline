@@ -18,8 +18,10 @@ export const PetRepositoryDrizzle = Layer.effect(
 				Effect.tryPromise({
 					try: async () => {
 						const row = await db.query.pets.findFirst({
-							where: (p, { and, eq }) =>
-								and(eq(p.id, id), eq(p.businessId, tenantId)),
+							where: {
+								RAW: (p, { and, eq }) =>
+									and(eq(p.id, id), eq(p.businessId, tenantId)),
+							},
 						});
 						if (!row) throw new PetNotFoundError({ id });
 						return mapPet(row);

@@ -26,7 +26,7 @@ export const IdentityRepositoryDrizzle = Layer.effect(
 				Effect.tryPromise({
 					try: async () => {
 						const row = await db.query.profiles.findFirst({
-							where: (p, { eq }) => eq(p.userId, userId),
+							where: { RAW: (p, { eq }) => eq(p.userId, userId) },
 						});
 						if (!row) return null;
 						return {
@@ -88,7 +88,7 @@ export const IdentityRepositoryDrizzle = Layer.effect(
 				Effect.tryPromise({
 					try: async () => {
 						const row = await db.query.businesses.findFirst({
-							where: (b, { eq }) => eq(b.id, id),
+							where: { RAW: (b, { eq }) => eq(b.id, id) },
 						});
 						if (!row) return null;
 						return {
@@ -167,7 +167,7 @@ export const IdentityRepositoryDrizzle = Layer.effect(
 					try: async () => {
 						const row = await db.query.profiles.findFirst({
 							columns: { pinHash: true },
-							where: (p, { eq }) => eq(p.userId, userId),
+							where: { RAW: (p, { eq }) => eq(p.userId, userId) },
 						});
 						return !!row?.pinHash;
 					},
@@ -178,7 +178,7 @@ export const IdentityRepositoryDrizzle = Layer.effect(
 				Effect.tryPromise({
 					try: async () => {
 						const row = await db.query.users.findFirst({
-							where: (u, { eq }) => eq(u.id, userId),
+							where: { RAW: (u, { eq }) => eq(u.id, userId) },
 						});
 						if (!row) return false;
 						return verifyPassword(currentPassword, row.passwordHash);
@@ -202,7 +202,7 @@ export const IdentityRepositoryDrizzle = Layer.effect(
 				Effect.tryPromise({
 					try: async () => {
 						const row = await db.query.profiles.findFirst({
-							where: (p, { eq }) => eq(p.userId, userId),
+							where: { RAW: (p, { eq }) => eq(p.userId, userId) },
 						});
 						if (!row?.pinHash) return false;
 						// PIN uses the same scrypt hashing as passwords — it's a

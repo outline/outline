@@ -94,8 +94,10 @@ export const OrderRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const result = await db.query.orders.findFirst({
-								where: (orders, { and, eq }) =>
-									and(eq(orders.id, id), eq(orders.businessId, tenantId)),
+								where: {
+									RAW: (orders, { and, eq }) =>
+										and(eq(orders.id, id), eq(orders.businessId, tenantId)),
+								},
 							});
 
 							if (!result) return null;

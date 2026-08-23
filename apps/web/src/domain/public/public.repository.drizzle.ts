@@ -74,7 +74,7 @@ export const PublicRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const row = await db.query.businesses.findFirst({
-								where: (businesses, { eq }) => eq(businesses.slug, slug),
+								where: { RAW: (businesses, { eq }) => eq(businesses.slug, slug) },
 								columns: {
 									id: true,
 									name: true,
@@ -93,8 +93,9 @@ export const PublicRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const rows = await db.query.branches.findMany({
-								where: (branches, { eq }) =>
-									eq(branches.businessId, businessId),
+								where: {
+									RAW: (branches, { eq }) => eq(branches.businessId, businessId),
+								},
 							});
 							return rows.map(mapBranch);
 						},
@@ -107,11 +108,13 @@ export const PublicRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const rows = await db.query.rooms.findMany({
-								where: (rooms, { and, eq }) =>
+								where: {
+									RAW: (rooms, { and, eq }) =>
 									and(
 										eq(rooms.businessId, businessId),
 										eq(rooms.isActive, true),
 									),
+								},
 							});
 							return rows.map(mapRoom);
 						},
@@ -124,11 +127,13 @@ export const PublicRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const row = await db.query.products.findFirst({
-								where: (products, { and, eq }) =>
+								where: {
+									RAW: (products, { and, eq }) =>
 									and(
 										eq(products.id, productId),
 										eq(products.businessId, businessId),
 									),
+								},
 							});
 							return row ? mapProduct(row) : null;
 						},
@@ -141,12 +146,14 @@ export const PublicRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const rows = await db.query.products.findMany({
-								where: (products, { and, eq }) =>
+								where: {
+									RAW: (products, { and, eq }) =>
 									and(
 										eq(products.businessId, businessId),
 										eq(products.isActive, true),
 										eq(products.isFeatured, true),
 									),
+								},
 							});
 							return rows.map(mapProduct);
 						},

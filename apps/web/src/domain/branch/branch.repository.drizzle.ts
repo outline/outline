@@ -67,8 +67,10 @@ export const BranchRepositoryDrizzle = Layer.effect(
 					Effect.tryPromise({
 						try: async () => {
 							const row = await db.query.branches.findFirst({
-								where: (b, { and, eq }) =>
-									and(eq(b.id, id), eq(b.businessId, tenantId)),
+								where: {
+									RAW: (b, { and, eq }) =>
+										and(eq(b.id, id), eq(b.businessId, tenantId)),
+								},
 							});
 							if (!row) return null;
 							return mapBranchRow(row);

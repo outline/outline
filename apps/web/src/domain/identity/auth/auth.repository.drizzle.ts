@@ -91,7 +91,7 @@ export const AuthRepositoryDrizzle = Layer.effect(
 					try: async () => {
 						const normalizedEmail = normalizeEmail(email);
 						const row = await db.query.users.findFirst({
-							where: (u, { eq }) => eq(u.email, normalizedEmail),
+							where: { RAW: (u, { eq }) => eq(u.email, normalizedEmail) },
 						});
 						if (!row) return null;
 						return {
@@ -197,8 +197,10 @@ export const AuthRepositoryDrizzle = Layer.effect(
 						// ISO string out) — Postgres still compares this as a real
 						// timestamp, not lexicographically.
 						const row = await db.query.sessions.findFirst({
-							where: (s, { and, eq, gt }) =>
-								and(eq(s.tokenHash, tokenHash), gt(s.expiresAt, now)),
+							where: {
+								RAW: (s, { and, eq, gt }) =>
+									and(eq(s.tokenHash, tokenHash), gt(s.expiresAt, now)),
+							},
 						});
 						if (!row) return null;
 						return {
