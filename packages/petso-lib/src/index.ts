@@ -43,6 +43,8 @@ export type {
 	TWarehouseDto,
 	TPurchaseOrderDto,
 	TPurchaseOrderItemDto,
+	TCreatePurchaseOrderInput,
+	TReceivePurchaseOrderInput,
 	TSessionDto,
 	TSignupInput,
 	TSignupResult,

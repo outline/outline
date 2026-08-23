@@ -19,6 +19,8 @@ import type {
 	TOrderListResult,
 	TOrderTimelineEntry,
 	TPurchaseOrderDto,
+	TCreatePurchaseOrderInput,
+	TReceivePurchaseOrderInput,
 	TProductDto,
 	TProductListParams,
 	TProductListResult,
@@ -195,6 +197,28 @@ export class PetsoClient {
 		purchaseOrders: (): Promise<readonly TPurchaseOrderDto[]> =>
 			this.fetchApi<readonly TPurchaseOrderDto[]>(
 				"/api/v1/admin/purchase-orders",
+			),
+		createPurchaseOrder: (
+			input: TCreatePurchaseOrderInput,
+		): Promise<TPurchaseOrderDto> =>
+			this.fetchApi<TPurchaseOrderDto>("/api/v1/admin/purchase-orders", {
+				method: "POST",
+				body: input,
+			}),
+		updatePurchaseOrderStatus: (
+			id: string,
+			status: string,
+		): Promise<{ readonly updated: boolean }> =>
+			this.fetchApi<{ readonly updated: boolean }>(
+			`/api/v1/admin/purchase-orders/${id}/status`,
+			{ method: "PATCH", body: { status } },
+			),
+		receivePurchaseOrder: (
+			input: TReceivePurchaseOrderInput,
+		): Promise<Record<string, unknown>> =>
+			this.fetchApi<Record<string, unknown>>(
+				"/api/v1/admin/purchase-orders/receive",
+				{ method: "POST", body: input },
 			),
 		orders: (): Promise<readonly TOrderDto[]> =>
 			this.fetchApi<readonly TOrderDto[]>("/api/v1/admin/orders"),

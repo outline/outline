@@ -44,7 +44,17 @@ import {
 	UpdateVariantSchema,
 } from "@/domain/product/product.schemas";
 import type { TProductVariantId } from "@/domain/product/product.types";
-import { getPurchaseOrdersProgram } from "@/domain/purchase-order/purchase-order.programs";
+import {
+	createPurchaseOrderProgram,
+	getPurchaseOrdersProgram,
+	receivePurchaseOrderProgram,
+	updatePoStatusProgram,
+} from "@/domain/purchase-order/purchase-order.programs";
+import {
+	CreatePurchaseOrderSchema,
+	ReceivePurchaseOrderSchema,
+} from "@/domain/purchase-order/purchase-order.schemas";
+import type { TPurchaseOrderId } from "@/domain/purchase-order/purchase-order.types";
 import { getStaffMembersProgram } from "@/domain/staff/staff.programs";
 import { getSuppliersProgram } from "@/domain/supplier/supplier.programs";
 import { getWarehousesProgram } from "@/domain/warehouse/warehouse.programs";
@@ -229,6 +239,30 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return purchaseHandlers.list(request, requestId);
+		}
+		if (
+			purchaseHandlers &&
+			url.pathname === "/api/v1/admin/purchase-orders" &&
+			request.method === "POST"
+		) {
+			return purchaseHandlers.create(request, requestId);
+		}
+		const purchaseStatusMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/purchase-orders\/([^/]+)\/status$/,
+		);
+		if (purchaseHandlers && purchaseStatusMatch && request.method === "PATCH") {
+			return purchaseHandlers.updateStatus(
+				request,
+				requestId,
+				purchaseStatusMatch[1] ?? "",
+			);
+		}
+		if (
+			purchaseHandlers &&
+			url.pathname === "/api/v1/admin/purchase-orders/receive" &&
+			request.method === "POST"
+		) {
+			return purchaseHandlers.receive(request, requestId);
 		}
 		if (url.pathname === "/api/v1/health" && request.method === "GET") {
 			return jsonSuccess({ status: "ok" }, requestId);
@@ -467,7 +501,11 @@ const defaultRestRequestHandler = createRestRequestHandler(
 		},
 	}),
 	createPurchaseHandlers({
-		session: async (token) => authProgramDependencies.session(token),
+		session: async (token) => {
+			const session = await authProgramDependencies.session(token);
+			if (!session) return null;
+			return { business: session.business, userId: session.user.id };
+		},
 		list: async (businessId) => {
 			const orders = await runApp(
 				getPurchaseOrdersProgram(businessId as TTenantId),
@@ -480,8 +518,69 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				updatedAt: order.updatedAt.toISOString(),
 			}));
 		},
+		create: async (businessId, userId, input) => {
+			const value = Schema.decodeUnknownSync(CreatePurchaseOrderSchema)({
+				...input,
+				expectedDate:
+					typeof input.expectedDate === "string"
+						? new Date(input.expectedDate)
+						: (input.expectedDate ?? null),
+			});
+			const order = await runApp(
+				createPurchaseOrderProgram(
+					value,
+					businessId as TTenantId,
+					userId as TUserId,
+				),
+			);
+			return {
+				...order,
+				orderDate: order.orderDate.toISOString(),
+				expectedDate: order.expectedDate?.toISOString() ?? null,
+				createdAt: order.createdAt.toISOString(),
+				updatedAt: order.updatedAt.toISOString(),
+			};
+		},
+		updateStatus: async (businessId, id, status) => {
+			await runApp(
+				updatePoStatusProgram(
+					id as TPurchaseOrderId,
+					businessId as TTenantId,
+					status,
+				),
+			);
+		},
+		receive: async (businessId, userId, input) => {
+			const value = Schema.decodeUnknownSync(ReceivePurchaseOrderSchema)({
+				...input,
+				items: Array.isArray(input.items)
+					? input.items.map((item) => {
+							if (!isRecord(item)) return item;
+							return {
+								...item,
+								expiryDate:
+									typeof item.expiryDate === "string"
+										? new Date(item.expiryDate)
+										: (item.expiryDate ?? null),
+							};
+						})
+					: input.items,
+			});
+			const result = await runApp(
+				receivePurchaseOrderProgram(
+					value,
+					businessId as TTenantId,
+					userId as TUserId,
+				),
+			);
+			return result;
+		},
 	}),
 );
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 /**
  * Handles REST routes that have been migrated to the direct Pet Store API.

@@ -140,6 +140,8 @@ export interface Movement {
 }
 
 export interface PurchaseOrderItem {
+  /** Identifier of the purchase-order line in the Pet Store API. */
+  poItemId?: string;
   productId: string;
   /** Set when a particular size was ordered. */
   variantId?: string;

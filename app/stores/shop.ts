@@ -311,6 +311,7 @@ function mapPurchaseOrder(
     status,
     expectedAt: order.expectedDate ?? order.orderDate,
     items: order.items.map((item) => ({
+      poItemId: item.id,
       productId: item.variantId,
       variantId: item.variantId,
       name: productNames.get(item.variantId) ?? "",
@@ -1095,21 +1096,49 @@ export const useShop = create<State>((set, get) => ({
     return response;
   },
   receivePurchaseOrder: async (id, quantities) => {
-    const response = await client.post("/purchaseOrders.receive", {
-      id,
-      quantities,
-    });
-    if (response.data?.received) {
-      await get().fetchAll();
+    const purchaseOrder = get().purchaseOrders.find((order) => order.id === id);
+    if (!purchaseOrder) {
+      return { received: false, reason: "Purchase order not found" };
     }
-    return response.data;
+
+    const response = await petsoClient.admin.receivePurchaseOrder({
+      poId: id,
+      items: purchaseOrder.items
+        .map((item) => ({
+          poItemId: item.poItemId ?? item.variantId ?? item.productId,
+          qtyReceived: Math.max(
+            0,
+            quantities?.[item.productId] ?? item.quantity - item.received
+          ),
+          expiryDate: null,
+          batchNumber: null,
+        }))
+        .filter((item) => item.qtyReceived > 0),
+    });
+    await get().fetchAll();
+    return { received: true, result: response };
   },
   createPurchaseOrder: async (order) => {
-    const response = await client.post("/purchaseOrders.create", order);
-    if (response.data?.created) {
-      await get().fetchAll();
-    }
-    return response.data;
+    const branchId = get().branches[0]?.id ?? null;
+    const response = await petsoClient.admin.createPurchaseOrder({
+      branchId,
+      supplierId: order.supplierId,
+      expectedDate: order.expectedAt,
+      items: order.items.map((item) => ({
+        variantId:
+          item.variantId ??
+          get().products.find((product) => product.id === item.productId)
+            ?.variants?.[0]?.id ??
+          item.productId,
+        qtyOrdered: item.quantity,
+        unitCost: item.cost,
+      })),
+    });
+    await get().fetchAll();
+    return {
+      created: true,
+      order: mapPurchaseOrder(response, new Map(), new Map()),
+    };
   },
   saveNoteTemplate: async (template) => {
     const response = await client.post("/documentTemplates.save", template);

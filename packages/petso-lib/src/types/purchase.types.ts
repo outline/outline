@@ -23,3 +23,26 @@ export interface TPurchaseOrderDto {
 	readonly updatedAt: string;
 	readonly items: readonly TPurchaseOrderItemDto[];
 }
+
+export interface TCreatePurchaseOrderInput {
+	readonly branchId?: string | null;
+	readonly supplierId: string;
+	readonly expectedDate?: string | null;
+	readonly notes?: string | null;
+	readonly items: readonly {
+		readonly variantId: string;
+		readonly qtyOrdered: number;
+		readonly unitCost: number;
+	}[];
+}
+
+export interface TReceivePurchaseOrderInput {
+	readonly poId: string;
+	readonly notes?: string | null;
+	readonly items: readonly {
+		readonly poItemId: string;
+		readonly qtyReceived: number;
+		readonly expiryDate?: string | null;
+		readonly batchNumber?: string | null;
+	}[];
+}
