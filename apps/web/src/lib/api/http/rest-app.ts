@@ -83,6 +83,7 @@ import {
 } from "@/domain/room/room.programs";
 import { RoomRepository } from "@/domain/room/room.repository";
 import type { TRoomId } from "@/domain/room/room.types";
+import { clockInProgram, clockOutProgram } from "@/domain/shift/shift.programs";
 import {
 	getStaffMembersProgram,
 	removeStaffFromBranchProgram,
@@ -135,6 +136,7 @@ import {
 import { getRequestId } from "./request-context";
 import { jsonSuccess } from "./response";
 import { createRoomHandlers, type RoomHandlers } from "./room.handlers";
+import { createShiftHandlers, type ShiftHandlers } from "./shift.handlers";
 
 /**
  * Creates the direct REST request dispatcher.
@@ -152,6 +154,7 @@ export function createRestRequestHandler(
 	roomHandlers?: RoomHandlers,
 	purchaseHandlers?: PurchaseHandlers,
 	invoiceHandlers?: InvoiceHandlers,
+	shiftHandlers?: ShiftHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -240,6 +243,20 @@ export function createRestRequestHandler(
 				requestId,
 				invoiceVoidMatch[1] ?? "",
 			);
+		}
+		if (
+			shiftHandlers &&
+			url.pathname === "/api/v1/admin/shifts/clock-in" &&
+			request.method === "POST"
+		) {
+			return shiftHandlers.clockIn(request, requestId);
+		}
+		if (
+			shiftHandlers &&
+			url.pathname === "/api/v1/admin/shifts/clock-out" &&
+			request.method === "POST"
+		) {
+			return shiftHandlers.clockOut(request, requestId);
 		}
 		if (
 			catalogHandlers &&
@@ -856,6 +873,21 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			);
 		},
 	}),
+	createShiftHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		clockIn: async (businessId, input) => {
+			const attendance = await runApp(
+				clockInProgram(businessId as TTenantId, input),
+			);
+			return serializeAttendance(attendance);
+		},
+		clockOut: async (businessId, input) => {
+			const attendance = await runApp(
+				clockOutProgram(businessId as TTenantId, input),
+			);
+			return serializeAttendance(attendance);
+		},
+	}),
 );
 
 const InvoiceCreateSchema = Schema.Struct({
@@ -917,6 +949,30 @@ function serializeRoom<
 		...room,
 		createdAt: room.createdAt.toISOString(),
 		updatedAt: room.updatedAt.toISOString(),
+	};
+}
+
+function serializeAttendance(attendance: {
+	readonly id: string;
+	readonly tenantId: string;
+	readonly staffId: string;
+	readonly date: string;
+	readonly clockIn: Date | null;
+	readonly clockOut: Date | null;
+	readonly notes: string | null;
+	readonly createdAt: Date;
+	readonly updatedAt: Date;
+}) {
+	return {
+		id: attendance.id,
+		businessId: attendance.tenantId,
+		staffId: attendance.staffId,
+		date: attendance.date,
+		clockIn: attendance.clockIn?.toISOString() ?? null,
+		clockOut: attendance.clockOut?.toISOString() ?? null,
+		notes: attendance.notes,
+		createdAt: attendance.createdAt.toISOString(),
+		updatedAt: attendance.updatedAt.toISOString(),
 	};
 }
 

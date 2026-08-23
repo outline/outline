@@ -26,6 +26,7 @@ export type {
 } from "./customer.types";
 export type { TCreatePetInput, TPetDto, TUpdatePetInput } from "./pet.types";
 export type { TStaffMemberDto } from "./staff.types";
+export type { TStaffAttendanceDto } from "./shift.types";
 export type {
 	TCreateRoomInput,
 	TRoomDto,

@@ -39,6 +39,7 @@ import type {
 	TSignupResult,
 	TUpdateStatusInput,
 	TStaffMemberDto,
+	TStaffAttendanceDto,
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,
@@ -326,6 +327,20 @@ export class PetsoClient {
 				`/api/v1/admin/staff/${userId}`,
 				{ method: "DELETE", body: { branchId } },
 			),
+		clockIn: (
+			input: { readonly staffId: string; readonly date: string; readonly notes?: string | null },
+		): Promise<TStaffAttendanceDto> =>
+			this.fetchApi<TStaffAttendanceDto>("/api/v1/admin/shifts/clock-in", {
+				method: "POST",
+				body: input,
+			}),
+		clockOut: (
+			input: { readonly staffId: string; readonly date: string; readonly notes?: string | null },
+		): Promise<TStaffAttendanceDto> =>
+			this.fetchApi<TStaffAttendanceDto>("/api/v1/admin/shifts/clock-out", {
+				method: "POST",
+				body: input,
+			}),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
 				method: "POST",

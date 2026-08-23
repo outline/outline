@@ -1441,18 +1441,22 @@ export const useShop = create<State>((set, get) => ({
     return response.data;
   },
   clockIn: async (staffId) => {
-    const response = await client.post("/shifts.clockIn", { staffId });
-    if (response.data?.ok) {
-      await get().fetchAll();
-    }
-    return response.data;
+    await petsoClient.admin.clockIn({
+      staffId,
+      date: new Date().toISOString().slice(0, 10),
+      notes: null,
+    });
+    await get().fetchAll();
+    return { ok: true };
   },
   clockOut: async (staffId) => {
-    const response = await client.post("/shifts.clockOut", { staffId });
-    if (response.data?.ok) {
-      await get().fetchAll();
-    }
-    return response.data;
+    await petsoClient.admin.clockOut({
+      staffId,
+      date: new Date().toISOString().slice(0, 10),
+      notes: null,
+    });
+    await get().fetchAll();
+    return { ok: true };
   },
   createAdvance: async (advance) => {
     const response = await client.post("/advances.create", advance);
