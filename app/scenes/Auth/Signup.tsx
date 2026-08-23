@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { client } from "~/utils/ApiClient";
+import { PetsoClientError } from "@treonstudio/petso-lib";
+import useStores from "~/hooks/useStores";
+import { petsoClient } from "~/utils/petsoClient";
 import { AuthLayout, fieldClass, submitClass } from "./AuthLayout";
 const MESSAGES: Record<string, string> = {
   missing: "Enter a business name and a valid email.",
@@ -12,9 +14,11 @@ const MESSAGES: Record<string, string> = {
  * @returns the rendered signup page.
  */
 function Signup() {
+  const { auth } = useStores();
   const [businessName, setBusinessName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [done, setDone] = useState<string | undefined>();
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
   const handleSubmit = async (event: React.FormEvent) => {
@@ -22,17 +26,22 @@ function Signup() {
     setIsSaving(true);
     setError(undefined);
     try {
-      const response = await client.post("/auth.signUp", {
+      await petsoClient.auth.signup({
         businessName,
+        fullName,
         email,
+        password,
       });
-      if (response.data?.ok) {
-        setDone(response.data.businessName);
-        return;
+      await auth.fetchAuth();
+      window.location.href = "/dashboard";
+    } catch (error) {
+      if (error instanceof PetsoClientError && error.status === 409) {
+        setError(MESSAGES.taken);
+      } else if (error instanceof PetsoClientError && error.status === 422) {
+        setError(MESSAGES.missing);
+      } else {
+        setError("Could not create the account.");
       }
-      setError(
-        MESSAGES[response.data?.reason] ?? "Could not create the account."
-      );
     } finally {
       setIsSaving(false);
     }
@@ -50,57 +59,77 @@ function Signup() {
         </>
       }
     >
-      {done ? (
-        <p
-          data-testid="signup-result"
-          className="rounded-md bg-green-50 p-3 text-sm text-green-800"
+      <form onSubmit={handleSubmit}>
+        {error ? (
+          <p
+            data-testid="signup-error"
+            className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700"
+          >
+            {error}
+          </p>
+        ) : null}
+
+        <label
+          htmlFor="business"
+          className="block text-sm font-medium text-gray-900"
         >
-          {done} is set up. Check your email to confirm the address.
-        </p>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          {error ? (
-            <p
-              data-testid="signup-error"
-              className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700"
-            >
-              {error}
-            </p>
-          ) : null}
+          Business name
+        </label>
+        <input
+          id="business"
+          value={businessName}
+          onChange={(event) => setBusinessName(event.target.value)}
+          className={fieldClass}
+        />
 
-          <label
-            htmlFor="business"
-            className="block text-sm font-medium text-gray-900"
-          >
-            Business name
-          </label>
-          <input
-            id="business"
-            value={businessName}
-            onChange={(event) => setBusinessName(event.target.value)}
-            className={fieldClass}
-          />
+        <label
+          htmlFor="signup-name"
+          className="mt-4 block text-sm font-medium text-gray-900"
+        >
+          Your name
+        </label>
+        <input
+          id="signup-name"
+          autoComplete="name"
+          value={fullName}
+          onChange={(event) => setFullName(event.target.value)}
+          className={fieldClass}
+        />
 
-          <label
-            htmlFor="signup-email"
-            className="mt-4 block text-sm font-medium text-gray-900"
-          >
-            Email
-          </label>
-          <input
-            id="signup-email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className={fieldClass}
-          />
+        <label
+          htmlFor="signup-email"
+          className="mt-4 block text-sm font-medium text-gray-900"
+        >
+          Email
+        </label>
+        <input
+          id="signup-email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          className={fieldClass}
+        />
 
-          <button type="submit" disabled={isSaving} className={submitClass}>
-            {isSaving ? "Creating…" : "Create account"}
-          </button>
-        </form>
-      )}
+        <label
+          htmlFor="signup-password"
+          className="mt-4 block text-sm font-medium text-gray-900"
+        >
+          Password
+        </label>
+        <input
+          id="signup-password"
+          type="password"
+          autoComplete="new-password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          className={fieldClass}
+        />
+
+        <button type="submit" disabled={isSaving} className={submitClass}>
+          {isSaving ? "Creating…" : "Create account"}
+        </button>
+      </form>
     </AuthLayout>
   );
 }
