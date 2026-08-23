@@ -16,6 +16,8 @@ export function getStaticPaths() {
 
 import "../styles/global.css";
 import App from "../../app/index";
+
+const isDevelopment = import.meta.env.DEV;
 ---
 
 <!DOCTYPE html>
@@ -38,10 +40,12 @@ import App from "../../app/index";
     </script>
   </head>
   <body class="antialiased">
-    <script>
-      import { initMocks } from "../mocks/initMocks";
-      initMocks();
-    </script>
+    {isDevelopment && (
+      <script>
+        import { initMocks } from "../mocks/initMocks";
+        initMocks();
+      </script>
+    )}
     <App client:only="react" />
   </body>
 </html>
