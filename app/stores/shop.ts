@@ -4,6 +4,8 @@ import type {
   Customer,
   Order,
   Product,
+  ProductVariant,
+  Pet,
   Room,
   Supplier,
   Warehouse,
@@ -28,11 +30,16 @@ import type {
   Advance,
   PurchaseOrderItem,
   DocumentTemplate,
-  Pet,
   Return,
   AuditEntry,
   Insight,
 } from "../../src/mocks/shop";
+import type {
+  TCustomerRecordDto,
+  TPetDto,
+  TProductDto,
+  TStaffMemberDto,
+} from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
   occupied: number;
@@ -120,6 +127,75 @@ export type CartLine = {
 };
 import type { JSONObject } from "@shared/types";
 import { client } from "~/utils/ApiClient";
+import { petsoClient } from "~/utils/petsoClient";
+
+function mapProduct(product: TProductDto): Product {
+  const variants: ProductVariant[] = product.variants.map((variant) => ({
+    id: variant.id,
+    name: variant.name,
+    sku: variant.sku ?? "",
+    price: variant.price,
+    stock: variant.stock,
+  }));
+  const firstVariant = product.variants[0];
+  return {
+    id: product.id,
+    sku: firstVariant?.sku ?? "",
+    name: product.name,
+    category: product.category ?? "",
+    price: firstVariant?.price ?? 0,
+    stock: firstVariant?.stock ?? 0,
+    reorderLevel: firstVariant?.lowStockThreshold ?? 0,
+    supplier: "",
+    status: product.isActive ? "active" : "archived",
+    ...(variants.length > 0 ? { variants } : {}),
+  };
+}
+
+function mapCustomer(
+  customer: TCustomerRecordDto,
+  pets: readonly TPetDto[]
+): Customer {
+  return {
+    id: customer.id,
+    name: customer.fullName,
+    phone: customer.phone,
+    email: customer.email ?? "",
+    pets: pets
+      .filter((pet) => pet.customerId === customer.id)
+      .map(
+        (pet): Pet => ({
+          id: pet.id,
+          name: pet.name,
+          species: pet.species,
+          breed: pet.breed ?? "",
+        })
+      ),
+    loyaltyPoints: 0,
+    joinedAt: customer.createdAt,
+  };
+}
+
+function mapStaff(member: TStaffMemberDto): Staff {
+  const roles: Staff["role"][] = [
+    "owner",
+    "manager",
+    "groomer",
+    "cashier",
+    "caretaker",
+  ];
+  const role = roles.find((value) => value === member.role) ?? "caretaker";
+  return {
+    id: member.userId,
+    name: member.fullName,
+    email: member.email,
+    role,
+    branch: member.branches[0]?.name ?? "",
+    phone: "",
+    status: "active",
+    commissionRate: 0,
+  };
+}
 /** The figures shown across the top of the pet store dashboard. */
 export interface Dashboard {
   revenueToday: number;
@@ -603,8 +679,9 @@ export const useShop = create<State>((set, get) => ({
     try {
       const [
         dashboard,
-        products,
-        customers,
+        productDtos,
+        customerDtos,
+        petDtos,
         boardings,
         rooms,
         orders,
@@ -614,7 +691,7 @@ export const useShop = create<State>((set, get) => ({
         movements,
         purchaseOrders,
         branches,
-        staff,
+        staffDtos,
         accounts,
         journal,
         expenses,
@@ -649,8 +726,9 @@ export const useShop = create<State>((set, get) => ({
         groomingCalendar,
       ] = await Promise.all([
         client.post("/dashboard"),
-        client.post("/products.list"),
-        client.post("/customers.list"),
+        petsoClient.admin.products(),
+        petsoClient.admin.customers(),
+        petsoClient.admin.pets(),
         client.post("/boardings.list"),
         client.post("/rooms.list"),
         client.post("/orders.list"),
@@ -660,7 +738,7 @@ export const useShop = create<State>((set, get) => ({
         client.post("/movements.list"),
         client.post("/purchaseOrders.list"),
         client.post("/branches.list"),
-        client.post("/staff.list"),
+        petsoClient.admin.staff(),
         client.post("/accounts.list"),
         client.post("/journal.list"),
         client.post("/expenses.list"),
@@ -696,8 +774,10 @@ export const useShop = create<State>((set, get) => ({
       ]);
       set({
         dashboard: dashboard.data,
-        products: products.data,
-        customers: customers.data,
+        products: productDtos.map(mapProduct),
+        customers: customerDtos.map((customer) =>
+          mapCustomer(customer, petDtos)
+        ),
         boardings: boardings.data,
         rooms: rooms.data,
         orders: orders.data,
@@ -707,7 +787,7 @@ export const useShop = create<State>((set, get) => ({
         movements: movements.data,
         purchaseOrders: purchaseOrders.data,
         branches: branches.data,
-        staff: staff.data,
+        staff: staffDtos.map(mapStaff),
         accounts: accounts.data,
         journal: journal.data,
         expenses: expenses.data,
