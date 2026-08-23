@@ -1434,7 +1434,12 @@ export const useShop = create<State>((set, get) => ({
           installment: advance.installmentAmount,
           notes: advance.notes ?? "",
           createdAt: advance.createdAt,
-          payments: [],
+          payments: (advance.payments ?? []).map((payment) => ({
+            id: payment.id,
+            date: payment.paidAt,
+            amount: payment.amount,
+            source: payment.source === "manual" ? "manual" : "commission",
+          })),
           repaid: advance.amount - advance.remaining,
           remaining: advance.remaining,
           status: advance.status,

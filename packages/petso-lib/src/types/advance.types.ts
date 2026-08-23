@@ -7,6 +7,12 @@ export interface TAdvanceDto {
 	readonly notes: string | null;
 	readonly status: "active" | "paid_off";
 	readonly createdAt: string;
+	readonly payments?: readonly {
+		readonly id: string;
+		readonly amount: number;
+		readonly source: "manual" | "commission_deduction";
+		readonly paidAt: string;
+	}[];
 }
 
 export interface TCreateAdvanceInput {

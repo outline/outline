@@ -96,7 +96,25 @@ export const CommissionRepositoryDrizzle = Layer.effect(
 								.from(kasbon)
 								.where(eq(kasbon.businessId, tenantId))
 								.orderBy(desc(kasbon.createdAt));
-							return rows.map((row) => mapKasbonRow(row.kasbon));
+							const payments = await db
+								.select({ payment: kasbonPayments })
+								.from(kasbonPayments)
+								.innerJoin(kasbon, eq(kasbonPayments.kasbonId, kasbon.id))
+								.where(eq(kasbon.businessId, tenantId));
+							const paymentsByKasbon = new Map<string, TKasbonPayment[]>();
+							for (const row of payments) {
+								const payment = mapPaymentRow(row.payment);
+								const existing = paymentsByKasbon.get(payment.kasbonId) ?? [];
+								existing.push(payment);
+								paymentsByKasbon.set(payment.kasbonId, existing);
+							}
+							return rows.map((row) => {
+								const mapped = mapKasbonRow(row.kasbon);
+								return {
+									...mapped,
+									payments: paymentsByKasbon.get(mapped.id) ?? [],
+								};
+							});
 						},
 						catch: (e) => new DatabaseError({ cause: e }),
 					}),

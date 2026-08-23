@@ -52,6 +52,7 @@ export type TKasbon = {
 	readonly status: "active" | "paid_off";
 	readonly createdAt: Date;
 	readonly updatedAt: Date;
+	readonly payments?: readonly TKasbonPayment[];
 };
 
 export type TKasbonPayment = {

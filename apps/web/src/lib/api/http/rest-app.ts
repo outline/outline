@@ -1917,6 +1917,12 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				notes: kasbon.notes,
 				status: kasbon.status,
 				createdAt: kasbon.createdAt.toISOString(),
+				payments: (kasbon.payments ?? []).map((payment) => ({
+					id: payment.id,
+					amount: payment.amount,
+					source: payment.source,
+					paidAt: payment.paidAt.toISOString(),
+				})),
 			}));
 		},
 		create: async (businessId, input) => {
