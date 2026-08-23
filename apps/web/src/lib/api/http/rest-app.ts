@@ -22,6 +22,15 @@ import {
 	updateCustomerProgram,
 } from "@/domain/customer/customer.programs";
 import {
+	getTemplateByTypeProgram,
+	upsertTemplateProgram,
+} from "@/domain/document-template/document-template.programs";
+import type {
+	IBoardingTemplateContent,
+	IDocumentTemplate,
+	TTemplateId,
+} from "@/domain/document-template/document-template.types";
+import {
 	getCalendarPrograms,
 	updateAppointmentStatusProgram,
 } from "@/domain/grooming/grooming.programs";
@@ -137,6 +146,10 @@ import {
 	createCatalogHandlers,
 } from "./catalog.handlers";
 import {
+	createDocumentTemplateHandlers,
+	type DocumentTemplateHandlers,
+} from "./document-template.handlers";
+import {
 	createGroomingHandlers,
 	type GroomingHandlers,
 } from "./grooming.handlers";
@@ -183,6 +196,7 @@ export function createRestRequestHandler(
 	returnHandlers?: ReturnHandlers,
 	boardingHandlers?: BoardingHandlers,
 	groomingHandlers?: GroomingHandlers,
+	documentTemplateHandlers?: DocumentTemplateHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -313,6 +327,20 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return groomingHandlers.list(request, requestId);
+		}
+		if (
+			documentTemplateHandlers &&
+			url.pathname === "/api/v1/admin/document-templates" &&
+			request.method === "GET"
+		) {
+			return documentTemplateHandlers.list(request, requestId);
+		}
+		if (
+			documentTemplateHandlers &&
+			url.pathname === "/api/v1/admin/document-templates" &&
+			request.method === "POST"
+		) {
+			return documentTemplateHandlers.save(request, requestId);
 		}
 		const groomingStatusMatch = url.pathname.match(
 			/^\/api\/v1\/admin\/grooming\/appointments\/([^/]+)\/status$/,
@@ -1028,6 +1056,37 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				),
 			),
 	}),
+	createDocumentTemplateHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId) => {
+			const templates = await Promise.all(
+				["receipt", "agreement"].map((type) =>
+					runApp(getTemplateByTypeProgram(businessId, type)),
+				),
+			);
+			return templates
+				.filter((template): template is IDocumentTemplate => template !== null)
+				.map(serializeDocumentTemplate);
+		},
+		save: async (businessId, input) => {
+			const content = normalizeTemplateContent(input.content);
+			const command =
+				typeof input.id === "string"
+					? {
+							id: input.id as TTemplateId,
+							businessId,
+							content,
+						}
+					: {
+							type: typeof input.type === "string" ? input.type : "receipt",
+							name: typeof input.name === "string" ? input.name : "Template",
+							content,
+						};
+			return serializeDocumentTemplate(
+				await runApp(upsertTemplateProgram(businessId, command)),
+			);
+		},
+	}),
 );
 
 function serializeGroomingAppointment(appointment: TGroomingAppointment) {
@@ -1038,6 +1097,41 @@ function serializeGroomingAppointment(appointment: TGroomingAppointment) {
 		completedAt: appointment.completedAt?.toISOString() ?? null,
 		createdAt: appointment.createdAt.toISOString(),
 		updatedAt: appointment.updatedAt.toISOString(),
+	};
+}
+
+function serializeDocumentTemplate(template: IDocumentTemplate) {
+	return {
+		id: template.id,
+		type: template.type,
+		name: template.name,
+		content: template.content,
+		isActive: template.isActive,
+		createdAt: template.createdAt.toISOString(),
+		updatedAt: template.updatedAt.toISOString(),
+	};
+}
+
+function normalizeTemplateContent(value: unknown): IBoardingTemplateContent {
+	const content = isRecord(value) ? value : {};
+	const stringValue = (key: string): string =>
+		typeof content[key] === "string" ? content[key] : "";
+	return {
+		title: stringValue("title"),
+		header: stringValue("header"),
+		p1: stringValue("body") || stringValue("p1"),
+		p2: stringValue("p2"),
+		p3: stringValue("p3"),
+		p4: stringValue("p4"),
+		footer: stringValue("footer"),
+		termsAndConditions: Array.isArray(content.termsAndConditions)
+			? content.termsAndConditions.filter(
+					(term): term is string => typeof term === "string",
+				)
+			: [],
+		...(typeof content.showLogo === "boolean"
+			? { showLogo: content.showLogo }
+			: {}),
 	};
 }
 

@@ -49,6 +49,7 @@ import type {
   TInvoiceDto,
   TBoardingDto,
   TGroomingAppointmentDto,
+  TDocumentTemplateDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -458,6 +459,20 @@ function mapGrooming(
     scheduledAt: appointment.scheduledAt,
     status,
     price: appointment.price,
+  };
+}
+
+function mapDocumentTemplate(template: TDocumentTemplateDto): DocumentTemplate {
+  const content = template.content;
+  return {
+    type: template.type === "agreement" ? "agreement" : "receipt",
+    title: content.title ?? template.name,
+    header: content.header ?? "",
+    footer: content.footer ?? "",
+    showLogo: content.showLogo ?? false,
+    showStaff: content.showStaff ?? false,
+    showBranch: content.showBranch ?? false,
+    body: content.body ?? content.p1 ?? "",
   };
 }
 /** The figures shown across the top of the pet store dashboard. */
@@ -973,7 +988,7 @@ export const useShop = create<State>((set, get) => ({
         portalServices,
         portalReviews,
         advances,
-        noteTemplates,
+        documentTemplates,
         returns,
         audit,
         insights,
@@ -1019,7 +1034,7 @@ export const useShop = create<State>((set, get) => ({
         client.post("/portal.services.list"),
         client.post("/portal.reviews.list"),
         client.post("/advances.list"),
-        client.post("/documentTemplates.list"),
+        petsoClient.admin.documentTemplates(),
         client.post("/returns.list"),
         client.post("/audit.list"),
         client.post("/insights.list"),
@@ -1116,7 +1131,7 @@ export const useShop = create<State>((set, get) => ({
         portalServices: portalServices.data,
         portalReviews: portalReviews.data,
         advances: advances.data,
-        noteTemplates: noteTemplates.data,
+        noteTemplates: documentTemplates.map(mapDocumentTemplate),
         returns: returns.data,
         audit: audit.data,
         insights: insights.data,
@@ -1372,11 +1387,30 @@ export const useShop = create<State>((set, get) => ({
     };
   },
   saveNoteTemplate: async (template) => {
-    const response = await client.post("/documentTemplates.save", template);
-    if (response.data?.saved) {
-      await get().fetchAll();
+    const title = template.title?.trim() ?? "";
+    if (!title) {
+      return { saved: false, reason: "Template title is required" };
     }
-    return response.data;
+    const existingTemplates = await petsoClient.admin.documentTemplates();
+    const existing = existingTemplates.find(
+      (item) => item.type === template.type
+    );
+    await petsoClient.admin.saveDocumentTemplate({
+      ...(existing ? { id: existing.id } : {}),
+      type: template.type,
+      name: title,
+      content: {
+        title,
+        header: template.header ?? "",
+        body: template.body ?? "",
+        footer: template.footer ?? "",
+        showLogo: template.showLogo ?? false,
+        showStaff: template.showStaff ?? false,
+        showBranch: template.showBranch ?? false,
+      },
+    });
+    await get().fetchAll();
+    return { saved: true };
   },
   createReturn: async (input) => {
     const order = get().orders.find((entry) => entry.id === input.orderId);

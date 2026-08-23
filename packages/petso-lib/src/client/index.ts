@@ -44,6 +44,8 @@ import type {
 	TBoardingDto,
 	TCreateBoardingInput,
 	TGroomingAppointmentDto,
+	TDocumentTemplateDto,
+	TSaveDocumentTemplateInput,
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,
@@ -382,6 +384,17 @@ export class PetsoClient {
 			this.fetchApi<TGroomingAppointmentDto>(
 				`/api/v1/admin/grooming/appointments/${id}/status`,
 				{ method: "PATCH", body: { status } },
+			),
+		documentTemplates: (): Promise<readonly TDocumentTemplateDto[]> =>
+				this.fetchApi<readonly TDocumentTemplateDto[]>(
+					"/api/v1/admin/document-templates",
+				),
+		saveDocumentTemplate: (
+			input: TSaveDocumentTemplateInput,
+		): Promise<TDocumentTemplateDto> =>
+			this.fetchApi<TDocumentTemplateDto>(
+				"/api/v1/admin/document-templates",
+				{ method: "POST", body: input },
 			),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {

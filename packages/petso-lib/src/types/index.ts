@@ -32,6 +32,11 @@ export type { TBoardingDto, TBoardingPetDto } from "./boarding.types";
 export type { TCreateBoardingInput } from "./boarding-input.types";
 export type { TGroomingAppointmentDto } from "./grooming.types";
 export type {
+	TDocumentTemplateContent,
+	TDocumentTemplateDto,
+	TSaveDocumentTemplateInput,
+} from "./document-template.types";
+export type {
 	TCreateRoomInput,
 	TRoomDto,
 	TUpdateRoomInput,
