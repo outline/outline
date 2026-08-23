@@ -224,12 +224,20 @@ function StaffDetail() {
               <ListItem
                 title={t("Sales it is worked out on")}
                 actions={
-                  <Text weight="bold">{formatCurrency(commission.base)}</Text>
+                  <Text weight="bold">
+                    {commission.base === undefined
+                      ? t("Recorded")
+                      : formatCurrency(commission.base)}
+                  </Text>
                 }
                 border
               />
               <ListItem
-                title={`${t("Rate")} ${commission.rate}%`}
+                title={
+                  commission.rate === undefined
+                    ? t("Commission")
+                    : `${t("Rate")} ${commission.rate}%`
+                }
                 actions={
                   <Text weight="bold">{formatCurrency(commission.amount)}</Text>
                 }

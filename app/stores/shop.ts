@@ -56,6 +56,7 @@ import type {
   TAccountDto,
   TJournalEntryDto,
   TCommissionReportDto,
+  TPortalBookingDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -103,6 +104,8 @@ export interface PortalStats {
   enabled: boolean;
   slug: string;
 }
+/** A booking submitted through the public shopfront. */
+export type PortalBooking = TPortalBookingDto;
 /** An account with its journal totals and resulting balance. */
 export type TrialBalanceRow = Account & {
   debit: number;
@@ -115,8 +118,8 @@ export type CommissionRow = {
   name: string;
   branch: string;
   role: string;
-  rate: number;
-  base: number;
+  rate?: number;
+  base?: number;
   amount: number;
 };
 /** Usage of each plan limit. */
@@ -658,6 +661,7 @@ interface State {
   portalStats?: PortalStats;
   portalServices: PortalService[];
   portalReviews: PortalReview[];
+  portalBookings: PortalBooking[];
   isLoading: boolean;
   error?: string;
   fetchAll: () => Promise<void>;
@@ -666,6 +670,7 @@ interface State {
     dueDate: string;
     notes: string;
     items: InvoiceLine[];
+    taxAmount?: number;
   }) => Promise<{
     created: boolean;
     invoice?: PricedInvoice;
@@ -976,6 +981,7 @@ export const useShop = create<State>((set, get) => ({
   noteTemplates: [],
   portalServices: [],
   portalReviews: [],
+  portalBookings: [],
   isLoading: false,
   fetchAll: async () => {
     set({ isLoading: true, error: undefined });
@@ -1345,10 +1351,11 @@ export const useShop = create<State>((set, get) => ({
         commissions: commissions.map((row: TCommissionReportDto) => ({
           id: `${row.staffId}-${row.date}-${row.service}`,
           name: row.staffName,
-          branch: "",
-          role: "",
-          rate: 0,
-          base: row.amount,
+          branch:
+            staffDtos.find((staff) => staff.userId === row.staffId)?.branches[0]
+              ?.name ?? "",
+          role:
+            staffDtos.find((staff) => staff.userId === row.staffId)?.role ?? "",
           amount: row.amount,
         })),
         grooming: groomingAppointments.map((appointment) =>
@@ -1387,7 +1394,7 @@ export const useShop = create<State>((set, get) => ({
           ).length,
           totalServices: portalAdmin.stats.totalServices,
           pets: portalAdmin.stats.totalPets,
-          portalBookings: 0,
+          portalBookings: portalAdmin.bookings.length,
           enabled: portalAdmin.config.isActive,
           slug: portalAdmin.config.slug,
         },
@@ -1407,6 +1414,7 @@ export const useShop = create<State>((set, get) => ({
           body: review.content,
           createdAt: review.createdAt,
         })),
+        portalBookings: portalAdmin.bookings,
         advances: advances.map((advance) => ({
           id: advance.id,
           staffId: advance.staffId,
@@ -1421,22 +1429,28 @@ export const useShop = create<State>((set, get) => ({
           status: advance.status,
         })),
         noteTemplates: documentTemplates.map(mapDocumentTemplate),
-        returns: returns.map((item) => ({
-          id: item.id,
-          orderId: item.orderId,
-          orderNumber: item.orderId,
-          customerName: "",
-          createdAt: item.createdAt,
-          reason: item.reason ?? "",
-          refundMethod: item.refundMethod === "cash" ? "cash" : "bank",
-          refundAmount: item.refundAmount,
-          items: item.items.map((returnItem) => ({
-            productId: returnItem.orderItemId,
-            name: returnItem.orderItemId,
-            quantity: returnItem.qty,
-            isDamaged: returnItem.isDamaged,
-          })),
-        })),
+        returns: returns.map((item) => {
+          const order = orderDtos.find((entry) => entry.id === item.orderId);
+          return {
+            id: item.id,
+            orderId: item.orderId,
+            orderNumber: order?.id ?? item.orderId,
+            customerName:
+              (order?.customerId && customerNames.get(order.customerId)) ?? "",
+            createdAt: item.createdAt,
+            reason: item.reason ?? "",
+            refundMethod: item.refundMethod === "cash" ? "cash" : "bank",
+            refundAmount: item.refundAmount,
+            items: item.items.map((returnItem) => ({
+              productId: returnItem.orderItemId,
+              name:
+                order?.items.find((orderItem) => orderItem.id === returnItem.orderItemId)
+                  ?.productName ?? returnItem.orderItemId,
+              quantity: returnItem.qty,
+              isDamaged: returnItem.isDamaged,
+            })),
+          };
+        }),
         audit: audit.map((entry) => ({
           id: entry.id,
           at: entry.createdAt,
@@ -1525,14 +1539,15 @@ export const useShop = create<State>((set, get) => ({
       (total, item) => total + item.quantity * item.unitPrice - item.discount,
       0
     );
+    const taxAmount = invoice.taxAmount ?? 0;
     const response = await petsoClient.admin.createInvoice({
       customerId: customer.id,
       issueDate: new Date().toISOString().slice(0, 10),
       dueDate: invoice.dueDate,
       subtotal,
-      taxAmount: 0,
+      taxAmount,
       discountAmount: 0,
-      totalAmount: subtotal,
+      totalAmount: subtotal + taxAmount,
       notes: invoice.notes,
       items: invoice.items.map((item) => ({
         itemName: item.name,

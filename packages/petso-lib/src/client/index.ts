@@ -82,6 +82,7 @@ import type {
 	TLoyaltyMovementDto,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
+	TPortalBookingDto,
 	TPortalServiceDto,
 	TRoomDto,
 	TCreateRoomInput,

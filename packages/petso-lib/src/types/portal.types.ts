@@ -29,11 +29,24 @@ export interface TPortalReviewDto {
 	readonly createdAt: string;
 }
 
+export interface TPortalBookingDto {
+	readonly id: string;
+	readonly branchId: string | null;
+	readonly customerName: string;
+	readonly customerPhone: string;
+	readonly petName: string;
+	readonly scheduledAt: string;
+	readonly notes: string | null;
+	readonly status: "pending" | "confirmed" | "cancelled" | "completed";
+	readonly createdAt: string;
+}
+
 export interface TPortalAdminDto {
 	readonly config: TPortalConfigDto;
 	readonly services: readonly TPortalServiceDto[];
 	readonly stats: TPortalStatsDto;
 	readonly reviews: readonly TPortalReviewDto[];
+	readonly bookings: readonly TPortalBookingDto[];
 }
 
 export interface TCreatePortalServiceInput {

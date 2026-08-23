@@ -49,7 +49,7 @@ function Portal() {
   const stats = useShop((state) => state.portalStats);
   const services = useShop((state) => state.portalServices);
   const reviews = useShop((state) => state.portalReviews);
-  const boardings = useShop((state) => state.boardings);
+  const portalBookings = useShop((state) => state.portalBookings);
   const createPortalService = useShop((state) => state.createPortalService);
   const setPortalServiceActive = useShop(
     (state) => state.setPortalServiceActive
@@ -68,9 +68,6 @@ function Portal() {
     name: "",
     tagline: "",
   });
-  const portalBookings = boardings.filter(
-    (boarding) => boarding.customerId === "public"
-  );
   const summary = stats
     ? [
         { label: t("Reviews"), value: `${stats.reviews}` },
@@ -178,24 +175,23 @@ function Portal() {
           <Subheading>
             {t("Booked from the shopfront")} · {portalBookings.length}
           </Subheading>
-          {portalBookings.map((boarding) => (
+          {portalBookings.map((booking) => (
             <ListItem
-              key={boarding.id}
+              key={booking.id}
               title={
                 <>
-                  {boarding.petName}{" "}
+                  {booking.petName}{" "}
                   <Text as="span" type="tertiary">
-                    {boarding.customerName}
+                    {booking.customerName}
                   </Text>
                 </>
               }
               subtitle={
                 <>
-                  {boarding.code} · {boarding.roomName} ·{" "}
-                  {formatDate(boarding.checkIn)}–{formatDate(boarding.checkOut)}
+                  {formatDate(booking.scheduledAt)} · {booking.customerPhone}
                 </>
               }
-              actions={<StatusChip status={boarding.status} />}
+              actions={<StatusChip status={booking.status} />}
               border
             />
           ))}

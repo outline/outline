@@ -12,9 +12,8 @@ const money = (amount: number) =>
 /**
  * Public booking request.
  *
- * A booking made here creates a real reservation, so it appears on the
- * boardings board inside the app – this is the one place an outsider writes
- * into the business's data.
+ * A booking made here creates a real portal booking for the business to
+ * confirm. It is the one place an outsider writes into the business's data.
  *
  * @returns the rendered booking page.
  */
@@ -103,7 +102,7 @@ function Booking() {
     <BusinessLayout current="booking">
       <h2 className="text-lg font-semibold text-gray-900">Request a stay</h2>
       <p className="mt-1 text-sm text-gray-600">
-        Tell us about your pet and we&rsquo;ll hold a room.
+        Tell us about your pet and we&rsquo;ll contact you to confirm the stay.
       </p>
 
       {result?.created ? (
@@ -111,8 +110,8 @@ function Booking() {
           data-testid="booking-result"
           className="mt-6 rounded-md bg-green-50 p-4 text-sm text-green-800"
         >
-          Booked — reference {result.code}, room {result.room}. We&rsquo;ll be
-          in touch to confirm.
+          Request received — reference {result.code}. We&rsquo;ll be in touch to
+          confirm the stay.
         </p>
       ) : null}
 

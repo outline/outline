@@ -243,8 +243,9 @@ function Accounting() {
               subtitle={
                 <>
                   <Capitalize>{row.role}</Capitalize> · {row.branch} ·{" "}
-                  {row.rate}% {t("of")} {formatCurrency(row.base)}{" "}
-                  {t("they sold")}
+                  {row.rate !== undefined && row.base !== undefined
+                    ? `${row.rate}% ${t("of")} ${formatCurrency(row.base)} ${t("they sold")}`
+                    : t("Commission recorded")}
                 </>
               }
               actions={<Text weight="bold">{formatCurrency(row.amount)}</Text>}

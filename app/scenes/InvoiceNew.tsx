@@ -79,6 +79,7 @@ function InvoiceNew() {
         dueDate,
         notes: notes.trim(),
         items: lines,
+        taxAmount: tax,
       });
       if (result?.created && result.invoice) {
         history.push(`/invoices/${result.invoice.id}`);

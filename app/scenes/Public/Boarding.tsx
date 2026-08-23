@@ -68,7 +68,7 @@ function Boarding() {
                 {room.type}
               </p>
               <p className="mt-1 text-xs text-gray-500">
-                {room.free} of {room.total} spaces free
+                Capacity: {room.total} spaces
               </p>
             </div>
             <div className="text-right">

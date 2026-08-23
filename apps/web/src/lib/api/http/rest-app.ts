@@ -131,6 +131,7 @@ import {
 	createPortalBookingProgram,
 	deletePortalServiceProgram,
 	getPortalConfigProgram,
+	getPortalBookingsProgram,
 	getPortalReviewsProgram,
 	getPortalServicesProgram,
 	getPortalStatsProgram,
@@ -1623,11 +1624,12 @@ const defaultRestRequestHandler = createRestRequestHandler(
 		session: async (token) => authProgramDependencies.session(token),
 		get: async (businessId) => {
 			const tenantId = businessId as TTenantId;
-			const [config, services, stats, reviews] = await Promise.all([
+			const [config, services, stats, reviews, bookings] = await Promise.all([
 				runApp(getPortalConfigProgram(tenantId)),
 				runApp(getPortalServicesProgram(tenantId)),
 				runApp(getPortalStatsProgram(tenantId)),
 				runApp(getPortalReviewsProgram(tenantId)),
+				runApp(getPortalBookingsProgram(tenantId)),
 			]);
 			return {
 				config: {
@@ -1640,6 +1642,17 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				reviews: reviews.map((review) => ({
 					...review,
 					createdAt: review.createdAt,
+				})),
+				bookings: bookings.map((booking) => ({
+					id: booking.id,
+					branchId: booking.branchId,
+					customerName: booking.customerName,
+					customerPhone: booking.customerPhone,
+					petName: booking.petName,
+					scheduledAt: booking.scheduledAt.toISOString(),
+					notes: booking.notes,
+					status: booking.status,
+					createdAt: booking.createdAt.toISOString(),
 				})),
 			};
 		},

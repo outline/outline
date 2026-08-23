@@ -13,8 +13,8 @@ import { useShop } from "~/stores/shop";
 import { formatCurrency, formatDate } from "~/utils/format";
 const PLANS = [
   { id: "free", name: "Free", price: 0 },
-  { id: "pro", name: "Pro", price: 499000 },
-  { id: "business", name: "Business", price: 1290000 },
+  { id: "pro", name: "Pro", price: 199000 },
+  { id: "business", name: "Business", price: 449000 },
 ] as const;
 /**
  * The workspace subscription: which plan is in force, how much of it is being

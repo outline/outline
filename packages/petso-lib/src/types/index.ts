@@ -118,6 +118,7 @@ export type {
 export type {
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
+	TPortalBookingDto,
 	TPortalConfigDto,
 	TPortalReviewDto,
 	TPortalServiceDto,
