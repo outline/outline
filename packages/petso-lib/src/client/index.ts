@@ -21,6 +21,8 @@ import type {
 	TProductListResult,
 	TProductSuggestResult,
 	TPetDto,
+	TCreatePetInput,
+	TUpdatePetInput,
 	TServiceDto,
 	TSessionDto,
 	TSignupInput,
@@ -177,6 +179,21 @@ export class PetsoClient {
 		deleteCustomer: (id: string): Promise<{ readonly deleted: boolean }> =>
 			this.fetchApi<{ readonly deleted: boolean }>(
 				`/api/v1/admin/customers/${id}`,
+				{ method: "DELETE" },
+			),
+		createPet: (input: TCreatePetInput): Promise<TPetDto> =>
+			this.fetchApi<TPetDto>("/api/v1/admin/pets", {
+				method: "POST",
+				body: input,
+			}),
+		updatePet: (input: TUpdatePetInput): Promise<TPetDto> =>
+			this.fetchApi<TPetDto>(`/api/v1/admin/pets/${input.id}`, {
+				method: "PATCH",
+				body: input,
+			}),
+		deletePet: (id: string): Promise<{ readonly deleted: boolean }> =>
+			this.fetchApi<{ readonly deleted: boolean }>(
+				`/api/v1/admin/pets/${id}`,
 				{ method: "DELETE" },
 			),
 	};

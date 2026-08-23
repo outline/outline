@@ -31,6 +31,8 @@ export type {
 	TProductSuggestResult,
 	TProductVariantDto,
 	TPetDto,
+	TCreatePetInput,
+	TUpdatePetInput,
 	TStaffMemberDto,
 	TSessionDto,
 	TSignupInput,

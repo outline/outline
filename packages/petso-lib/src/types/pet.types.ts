@@ -19,3 +19,24 @@ export interface TPetDto {
 	readonly createdAt: string;
 	readonly updatedAt: string;
 }
+
+export interface TCreatePetInput {
+	readonly customerId: string | null;
+	readonly name: string;
+	readonly species: string;
+	readonly breed: string | null;
+	readonly gender: string | null;
+	readonly birthDate: string | null;
+	readonly weightKg: number | null;
+	readonly color: string | null;
+	readonly isVaccinated: boolean;
+	readonly vaccineNotes: string | null;
+	readonly allergies: string | null;
+	readonly medicalNotes: string | null;
+	readonly specialInstructions: string | null;
+	readonly photoUrl: string | null;
+}
+
+export interface TUpdatePetInput extends Partial<TCreatePetInput> {
+	readonly id: string;
+}

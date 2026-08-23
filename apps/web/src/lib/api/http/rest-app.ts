@@ -5,7 +5,13 @@ import {
 	getCustomersProgram,
 	updateCustomerProgram,
 } from "@/domain/customer/customer.programs";
-import { getPetsProgram } from "@/domain/pet/pet.programs";
+import {
+	addPetProgram,
+	deletePetProgram,
+	getPetsProgram,
+	updatePetProgram,
+} from "@/domain/pet/pet.programs";
+import type { TPetId } from "@/domain/pet/pet.types";
 import { getProductsProgram } from "@/domain/product/product.programs";
 import { getStaffMembersProgram } from "@/domain/staff/staff.programs";
 import { runApp } from "@/infra/runtime/app.runtime";
@@ -76,6 +82,21 @@ export function createRestRequestHandler(
 		) {
 			return catalogHandlers.mutateCustomer(request, requestId);
 		}
+		if (
+			catalogHandlers &&
+			url.pathname === "/api/v1/admin/pets" &&
+			request.method === "POST"
+		) {
+			return catalogHandlers.mutatePet(request, requestId);
+		}
+		const petMatch = url.pathname.match(/^\/api\/v1\/admin\/pets\/([^/]+)$/);
+		if (
+			catalogHandlers &&
+			petMatch &&
+			(request.method === "PATCH" || request.method === "DELETE")
+		) {
+			return catalogHandlers.mutatePet(request, requestId, petMatch[1]);
+		}
 		const customerMatch = url.pathname.match(
 			/^\/api\/v1\/admin\/customers\/([^/]+)$/,
 		);
@@ -121,6 +142,13 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			runApp(updateCustomerProgram(businessId as TTenantId, input)),
 		deleteCustomer: async (businessId, id) => {
 			await runApp(deleteCustomerProgram(businessId as TTenantId, id));
+		},
+		createPet: async (businessId, input) =>
+			runApp(addPetProgram(businessId as TTenantId, input)),
+		updatePet: async (businessId, input) =>
+			runApp(updatePetProgram(businessId as TTenantId, input)),
+		deletePet: async (businessId, id) => {
+			await runApp(deletePetProgram(businessId as TTenantId, id as TPetId));
 		},
 	}),
 );

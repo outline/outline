@@ -971,19 +971,40 @@ export const useShop = create<State>((set, get) => ({
   saveProduct: async (product) => write("/products.save", product, get),
   deleteProduct: async (id) => write("/products.delete", { id }, get),
   saveCustomer: async (customer) => {
-    if (customer.id) {
-      await petsoClient.admin.updateCustomer({
-        id: customer.id,
-        fullName: customer.name,
-        phone: customer.phone ?? "",
-        email: customer.email ?? null,
-      });
-    } else {
-      await petsoClient.admin.createCustomer({
-        fullName: customer.name,
-        phone: customer.phone ?? "",
-        email: customer.email ?? null,
-      });
+    const savedCustomer = customer.id
+      ? await petsoClient.admin.updateCustomer({
+          id: customer.id,
+          fullName: customer.name,
+          phone: customer.phone ?? "",
+          email: customer.email ?? null,
+        })
+      : await petsoClient.admin.createCustomer({
+          fullName: customer.name,
+          phone: customer.phone ?? "",
+          email: customer.email ?? null,
+        });
+    if (!customer.id && customer.pets) {
+      for (const pet of customer.pets) {
+        const species = pet.species.toLowerCase();
+        await petsoClient.admin.createPet({
+          customerId: savedCustomer.id,
+          name: pet.name,
+          species: ["dog", "cat", "rabbit", "bird", "hamster"].includes(species)
+            ? species
+            : "other",
+          breed: pet.breed || null,
+          gender: null,
+          birthDate: null,
+          weightKg: null,
+          color: null,
+          isVaccinated: false,
+          vaccineNotes: null,
+          allergies: null,
+          medicalNotes: null,
+          specialInstructions: null,
+          photoUrl: null,
+        });
+      }
     }
     await get().fetchAll();
     return { saved: true };

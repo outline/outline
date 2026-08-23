@@ -12,6 +12,9 @@ describe("REST catalog handlers", () => {
 			createCustomer: vi.fn(),
 			updateCustomer: vi.fn(),
 			deleteCustomer: vi.fn(),
+			createPet: vi.fn(),
+			updatePet: vi.fn(),
+			deletePet: vi.fn(),
 		});
 
 		for (const resource of [
@@ -44,6 +47,9 @@ describe("REST catalog handlers", () => {
 			createCustomer: vi.fn(),
 			updateCustomer: vi.fn(),
 			deleteCustomer: vi.fn(),
+			createPet: vi.fn(),
+			updatePet: vi.fn(),
+			deletePet: vi.fn(),
 		});
 
 		const response = await handlers.list(
@@ -70,6 +76,9 @@ describe("REST catalog handlers", () => {
 			createCustomer,
 			updateCustomer: vi.fn(),
 			deleteCustomer: vi.fn(),
+			createPet: vi.fn(),
+			updatePet: vi.fn(),
+			deletePet: vi.fn(),
 		});
 
 		const response = await handlers.mutateCustomer(

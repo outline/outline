@@ -23,7 +23,7 @@ export type {
 	TCreateCustomerInput,
 	TUpdateCustomerInput,
 } from "./customer.types";
-export type { TPetDto } from "./pet.types";
+export type { TCreatePetInput, TPetDto, TUpdatePetInput } from "./pet.types";
 export type { TStaffMemberDto } from "./staff.types";
 export type {
 	TDashboardMetrics,

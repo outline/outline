@@ -29,6 +29,9 @@ interface CatalogHandlerDependencies {
 		input: IUpdateCustomerCommand,
 	) => Promise<ICustomer>;
 	readonly deleteCustomer: (businessId: string, id: string) => Promise<void>;
+	readonly createPet: (businessId: string, input: unknown) => Promise<TPet>;
+	readonly updatePet: (businessId: string, input: unknown) => Promise<TPet>;
+	readonly deletePet: (businessId: string, id: string) => Promise<void>;
 }
 
 type CatalogResource = "products" | "customers" | "pets" | "staff";
@@ -40,6 +43,11 @@ export interface CatalogHandlers {
 		requestId: string,
 	) => Promise<Response>;
 	readonly mutateCustomer: (
+		request: Request,
+		requestId: string,
+		id?: string,
+	) => Promise<Response>;
+	readonly mutatePet: (
 		request: Request,
 		requestId: string,
 		id?: string,
@@ -106,6 +114,32 @@ export function createCatalogHandlers(
 				: await dependencies.createCustomer(session.business.id, input);
 			return jsonSuccess(customer, requestId, id ? 200 : 201);
 		},
+		mutatePet: async (request, requestId, id) => {
+			const token = readSessionToken(request);
+			if (!token) return unauthorized(requestId);
+			const session = await dependencies.session(token);
+			if (!session) return unauthorized(requestId);
+
+			if (request.method === "DELETE" && id) {
+				await dependencies.deletePet(session.business.id, id);
+				return jsonSuccess({ deleted: true }, requestId);
+			}
+
+			const body = await readBody(request);
+			if (!body) {
+				return jsonError(
+					new ApiHttpError(422, "validation_error", "Pet data is required"),
+					requestId,
+				);
+			}
+			const input = id
+				? { ...normalizePetBody(body), id }
+				: normalizePetBody(body);
+			const pet = id
+				? await dependencies.updatePet(session.business.id, input)
+				: await dependencies.createPet(session.business.id, input);
+			return jsonSuccess(pet, requestId, id ? 200 : 201);
+		},
 	};
 }
 
@@ -132,6 +166,14 @@ async function readBody(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizePetBody(
+	body: Record<string, unknown>,
+): Record<string, unknown> {
+	const birthDate = body.birthDate;
+	if (typeof birthDate !== "string") return body;
+	return { ...body, birthDate: new Date(birthDate) };
 }
 
 function parseCustomerInput(
