@@ -21,6 +21,7 @@ import {
 	getCustomersProgram,
 	updateCustomerProgram,
 } from "@/domain/customer/customer.programs";
+import { getTopSellersProgram } from "@/domain/dashboard/dashboard.programs";
 import {
 	getTemplateByTypeProgram,
 	upsertTemplateProgram,
@@ -146,6 +147,10 @@ import {
 	createCatalogHandlers,
 } from "./catalog.handlers";
 import {
+	createDashboardHandlers,
+	type DashboardHandlers,
+} from "./dashboard.handlers";
+import {
 	createDocumentTemplateHandlers,
 	type DocumentTemplateHandlers,
 } from "./document-template.handlers";
@@ -197,6 +202,7 @@ export function createRestRequestHandler(
 	boardingHandlers?: BoardingHandlers,
 	groomingHandlers?: GroomingHandlers,
 	documentTemplateHandlers?: DocumentTemplateHandlers,
+	dashboardHandlers?: DashboardHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -334,6 +340,13 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return documentTemplateHandlers.list(request, requestId);
+		}
+		if (
+			dashboardHandlers &&
+			url.pathname === "/api/v1/admin/dashboard/top-sellers" &&
+			request.method === "GET"
+		) {
+			return dashboardHandlers.topSellers(request, requestId);
 		}
 		if (
 			documentTemplateHandlers &&
@@ -1086,6 +1099,11 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				await runApp(upsertTemplateProgram(businessId, command)),
 			);
 		},
+	}),
+	createDashboardHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		topSellers: async (businessId) =>
+			runApp(getTopSellersProgram(businessId as TTenantId)),
 	}),
 );
 

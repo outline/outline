@@ -45,6 +45,7 @@ export type {
 	TDocumentTemplateContent,
 	TDocumentTemplateDto,
 	TSaveDocumentTemplateInput,
+	TTopSellerDto,
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,

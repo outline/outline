@@ -66,6 +66,7 @@ export type {
 	TPurchaseOrderItemDto,
 	TReceivePurchaseOrderInput,
 } from "./purchase.types";
+export type { TTopSellerDto } from "./dashboard.types";
 export type {
 	TDashboardMetrics,
 	TDashboardSummaryDto,

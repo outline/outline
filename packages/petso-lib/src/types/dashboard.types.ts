@@ -24,3 +24,11 @@ export type TLowStockItem = {
 		readonly imageUrl: string | null;
 	} | null;
 };
+
+export interface TTopSellerDto {
+	readonly id: string;
+	readonly name: string;
+	readonly category: string;
+	readonly salesCount: number;
+	readonly revenue: number;
+}

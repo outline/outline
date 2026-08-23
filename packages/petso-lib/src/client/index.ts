@@ -46,6 +46,7 @@ import type {
 	TGroomingAppointmentDto,
 	TDocumentTemplateDto,
 	TSaveDocumentTemplateInput,
+	TTopSellerDto,
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,
@@ -396,6 +397,10 @@ export class PetsoClient {
 				"/api/v1/admin/document-templates",
 				{ method: "POST", body: input },
 			),
+		topSellers: (): Promise<readonly TTopSellerDto[]> =>
+				this.fetchApi<readonly TTopSellerDto[]>(
+					"/api/v1/admin/dashboard/top-sellers",
+				),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
 				method: "POST",
