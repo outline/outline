@@ -33,6 +33,7 @@
     "outline:preview": "VITE_CJS_IGNORE_WARNING=true vite preview",
     "pet:dev": "yarn workspace @pet-store-app/web dev",
     "pet:build": "yarn workspace @pet-store-app/web build",
+    "pet:lint:boundaries": "node scripts/check-pet-boundaries.mjs",
     "pet:preview": "yarn workspace @pet-store-app/web preview",
     "pet:typecheck": "yarn workspace @pet-store-app/web typecheck",
     "pet:test": "yarn workspace @pet-store-app/web test:unit",
