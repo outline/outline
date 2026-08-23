@@ -27,6 +27,8 @@ import type {
 	TUpdatePetInput,
 	TServiceDto,
 	TSessionDto,
+	TSupplierDto,
+	TWarehouseDto,
 	TSignupInput,
 	TSignupResult,
 	TUpdateStatusInput,
@@ -185,6 +187,10 @@ export class PetsoClient {
 				"/api/v1/admin/inventory/adjust",
 				{ method: "POST", body: input },
 			),
+		suppliers: (): Promise<readonly TSupplierDto[]> =>
+			this.fetchApi<readonly TSupplierDto[]>("/api/v1/admin/suppliers"),
+		warehouses: (): Promise<readonly TWarehouseDto[]> =>
+			this.fetchApi<readonly TWarehouseDto[]>("/api/v1/admin/warehouses"),
 		orders: (): Promise<readonly TOrderDto[]> =>
 			this.fetchApi<readonly TOrderDto[]>("/api/v1/admin/orders"),
 		createOrder: (input: TCreateOrderInput): Promise<TOrderDto> =>

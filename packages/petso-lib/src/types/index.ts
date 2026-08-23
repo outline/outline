@@ -31,6 +31,7 @@ export type {
 	TInventoryMovementDto,
 	TInventorySnapshot,
 } from "./inventory.types";
+export type { TSupplierDto, TWarehouseDto } from "./reference.types";
 export type {
 	TDashboardMetrics,
 	TDashboardSummaryDto,

@@ -45,6 +45,8 @@ import {
 } from "@/domain/product/product.schemas";
 import type { TProductVariantId } from "@/domain/product/product.types";
 import { getStaffMembersProgram } from "@/domain/staff/staff.programs";
+import { getSuppliersProgram } from "@/domain/supplier/supplier.programs";
+import { getWarehousesProgram } from "@/domain/warehouse/warehouse.programs";
 import { runApp } from "@/infra/runtime/app.runtime";
 import type { TTenantId, TUserId } from "@/shared/types/common.types";
 import { type AuthHandlers, createAuthHandlers } from "./auth.handlers";
@@ -59,6 +61,10 @@ import {
 	type InventoryHandlers,
 } from "./inventory.handlers";
 import { createOrderHandlers, type OrderHandlers } from "./order.handlers";
+import {
+	createReferenceHandlers,
+	type ReferenceHandlers,
+} from "./reference.handlers";
 import { getRequestId } from "./request-context";
 import { jsonSuccess } from "./response";
 
@@ -74,6 +80,7 @@ export function createRestRequestHandler(
 	catalogHandlers?: CatalogHandlers,
 	inventoryHandlers?: InventoryHandlers,
 	orderHandlers?: OrderHandlers,
+	referenceHandlers?: ReferenceHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -199,6 +206,16 @@ export function createRestRequestHandler(
 		);
 		if (orderHandlers && voidOrderMatch && request.method === "POST") {
 			return orderHandlers.void(request, requestId, voidOrderMatch[1] ?? "");
+		}
+		if (
+			referenceHandlers &&
+			url.pathname.startsWith("/api/v1/admin/") &&
+			request.method === "GET"
+		) {
+			const resource = url.pathname.slice("/api/v1/admin/".length);
+			if (resource === "suppliers" || resource === "warehouses") {
+				return referenceHandlers.list(resource, request, requestId);
+			}
 		}
 		if (url.pathname === "/api/v1/health" && request.method === "GET") {
 			return jsonSuccess({ status: "ok" }, requestId);
@@ -411,6 +428,29 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			await runApp(
 				voidOrderProgram(value, businessId as TTenantId, userId as TUserId),
 			);
+		},
+	}),
+	createReferenceHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		suppliers: async (businessId) => {
+			const suppliers = await runApp(
+				getSuppliersProgram(businessId as TTenantId),
+			);
+			return suppliers.map((supplier) => ({
+				...supplier,
+				createdAt: supplier.createdAt.toISOString(),
+				updatedAt: supplier.updatedAt.toISOString(),
+			}));
+		},
+		warehouses: async (businessId) => {
+			const warehouses = await runApp(
+				getWarehousesProgram(businessId as TTenantId),
+			);
+			return warehouses.map((warehouse) => ({
+				...warehouse,
+				createdAt: warehouse.createdAt.toISOString(),
+				updatedAt: warehouse.updatedAt.toISOString(),
+			}));
 		},
 	}),
 );

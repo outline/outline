@@ -39,6 +39,8 @@ export type {
 	TInventoryBatchDto,
 	TInventoryMovementDto,
 	TInventorySnapshot,
+	TSupplierDto,
+	TWarehouseDto,
 	TSessionDto,
 	TSignupInput,
 	TSignupResult,

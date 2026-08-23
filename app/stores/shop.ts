@@ -41,6 +41,8 @@ import type {
   TPetDto,
   TProductDto,
   TStaffMemberDto,
+  TSupplierDto,
+  TWarehouseDto,
   TBranchDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
@@ -261,6 +263,27 @@ function mapOrder(order: TOrderDto): Order {
       quantity: item.quantity,
       price: item.priceAtTime,
     })),
+  };
+}
+
+function mapSupplier(supplier: TSupplierDto): Supplier {
+  return {
+    id: supplier.id,
+    name: supplier.name,
+    contact: supplier.contactPerson ?? "",
+    phone: supplier.phone ?? "",
+    terms: supplier.notes ?? "",
+  };
+}
+
+function mapWarehouse(
+  warehouse: TWarehouseDto,
+  branchNames: ReadonlyMap<string, string>
+): Warehouse {
+  return {
+    id: warehouse.id,
+    name: warehouse.name,
+    branch: branchNames.get(warehouse.branchId) ?? warehouse.branchId,
   };
 }
 /** The figures shown across the top of the pet store dashboard. */
@@ -752,8 +775,8 @@ export const useShop = create<State>((set, get) => ({
         boardings,
         rooms,
         orderDtos,
-        suppliers,
-        warehouses,
+        supplierDtos,
+        warehouseDtos,
         inventorySnapshot,
         purchaseOrders,
         branches,
@@ -798,8 +821,8 @@ export const useShop = create<State>((set, get) => ({
         client.post("/boardings.list"),
         client.post("/rooms.list"),
         petsoClient.admin.orders(),
-        client.post("/suppliers.list"),
-        client.post("/warehouses.list"),
+        petsoClient.admin.suppliers(),
+        petsoClient.admin.warehouses(),
         petsoClient.admin.inventory(),
         client.post("/purchaseOrders.list"),
         petsoClient.branches.list(),
@@ -843,6 +866,10 @@ export const useShop = create<State>((set, get) => ({
           productNames.set(variant.id, product.name);
         }
       }
+      const branchNames = new Map<string, string>();
+      for (const branch of branches) {
+        branchNames.set(branch.id, branch.name);
+      }
       set({
         dashboard: dashboard.data,
         products: productDtos.map(mapProduct),
@@ -852,8 +879,10 @@ export const useShop = create<State>((set, get) => ({
         boardings: boardings.data,
         rooms: rooms.data,
         orders: orderDtos.map(mapOrder),
-        suppliers: suppliers.data,
-        warehouses: warehouses.data,
+        suppliers: supplierDtos.map(mapSupplier),
+        warehouses: warehouseDtos.map((warehouse) =>
+          mapWarehouse(warehouse, branchNames)
+        ),
         batches: inventorySnapshot.batches.map((batch) =>
           mapInventoryBatch(batch, productNames)
         ),
