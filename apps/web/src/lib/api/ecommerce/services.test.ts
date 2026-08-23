@@ -88,10 +88,12 @@ describe("handleGetServices", () => {
 		expect(body.data).toEqual([
 			{
 				id: "svc-1",
+				tenantId: "biz-1",
 				name: "Instalasi Aquascape Custom",
 				description: "Jasa desain & pasang aquascape.",
 				durationMinutes: 120,
 				price: 350000,
+				isActive: true,
 				category: "freshwater",
 			},
 		]);

@@ -24,7 +24,7 @@ describe("Button Component", () => {
 	it("should apply variant classes correctly", () => {
 		const { container } = render(<Button variant="outline">Outline</Button>);
 		expect((container.firstChild as HTMLElement)?.className).toContain(
-			"border-neutral-200",
+			"border-neutral-300",
 		);
 	});
 });
