@@ -1945,15 +1945,11 @@ export const useShop = create<State>((set, get) => ({
     return response;
   },
   acceptInvite: async (id) => {
-    const response = await client.post("/staff.acceptInvite", { id });
-    if (response.data?.accepted) {
-      await get().fetchAll();
-    }
-    return response.data;
+    void id;
+    return { accepted: false };
   },
   withdrawInvite: async (id) => {
-    await client.post("/staff.withdrawInvite", { id });
-    await get().fetchAll();
+    void id;
   },
   addHoliday: async (holiday) => {
     const branchId = get().branches.find(
