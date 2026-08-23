@@ -123,6 +123,16 @@ export const deletePortalServiceProgram = (
 		return yield* repo.deleteService(tenantId, serviceId);
 	});
 
+export const updatePortalServiceStatusProgram = (
+	tenantId: TTenantId,
+	serviceId: TPortalServiceId,
+	isActive: boolean,
+): Effect.Effect<void, PortalError | DatabaseError, IPortalRepository> =>
+	Effect.gen(function* () {
+		const repo = yield* IPortalRepository;
+		yield* repo.updateServiceStatus(tenantId, serviceId, isActive);
+	});
+
 export const getPortalReviewsProgram = (
 	tenantId: TTenantId,
 	options?: { limit?: number },

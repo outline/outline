@@ -984,9 +984,7 @@ export const useShop = create<State>((set, get) => ({
         billingInvoices,
         usage,
         invoices,
-        portalStats,
-        portalServices,
-        portalReviews,
+        portalAdmin,
         advances,
         documentTemplates,
         returns,
@@ -1030,9 +1028,7 @@ export const useShop = create<State>((set, get) => ({
         client.post("/billing.invoices"),
         client.post("/billing.usage"),
         petsoClient.admin.invoices(),
-        client.post("/portal.stats"),
-        client.post("/portal.services.list"),
-        client.post("/portal.reviews.list"),
+        petsoClient.admin.portal(),
         client.post("/advances.list"),
         petsoClient.admin.documentTemplates(),
         client.post("/returns.list"),
@@ -1127,9 +1123,34 @@ export const useShop = create<State>((set, get) => ({
         billingInvoices: billingInvoices.data,
         usage: usage.data,
         invoices: invoices.map((invoice) => mapInvoice(invoice, customerNames)),
-        portalStats: portalStats.data,
-        portalServices: portalServices.data,
-        portalReviews: portalReviews.data,
+        portalStats: {
+          reviews: portalAdmin.stats.totalReviews,
+          averageRating: portalAdmin.stats.averageRating,
+          activeServices: portalAdmin.services.filter(
+            (service) => service.isActive
+          ).length,
+          totalServices: portalAdmin.stats.totalServices,
+          pets: portalAdmin.stats.totalPets,
+          portalBookings: 0,
+          enabled: portalAdmin.config.isActive,
+          slug: portalAdmin.config.slug,
+        },
+        portalServices: portalAdmin.services.map((service) => ({
+          id: service.id,
+          name: service.name,
+          description: service.description ?? "",
+          category: service.category ?? "",
+          durationMinutes: service.durationMinutes,
+          price: service.price,
+          isActive: service.isActive,
+        })),
+        portalReviews: portalAdmin.reviews.map((review) => ({
+          id: review.id,
+          customerName: review.customerName,
+          rating: review.rating,
+          body: review.content,
+          createdAt: review.createdAt,
+        })),
         advances: advances.data,
         noteTemplates: documentTemplates.map(mapDocumentTemplate),
         returns: returns.data,
@@ -1229,26 +1250,40 @@ export const useShop = create<State>((set, get) => ({
     return response;
   },
   createPortalService: async (service) => {
-    const response = await client.post("/portal.services.create", service);
-    if (response.data?.created) {
-      await get().fetchAll();
-    }
-    return Boolean(response.data?.created);
+    await petsoClient.admin.createPortalService({
+      name: service.name,
+      description: service.description,
+      category:
+        service.category.toLowerCase() === "saltwater"
+          ? "saltwater"
+          : service.category.toLowerCase() === "terrarium"
+            ? "terrarium"
+            : service.category.toLowerCase() === "freshwater"
+              ? "freshwater"
+              : "other",
+      durationMinutes: service.durationMinutes,
+      price: service.price,
+    });
+    await get().fetchAll();
+    return true;
   },
   setPortalServiceActive: async (id, isActive) => {
-    await client.post("/portal.services.setActive", { id, isActive });
+    await petsoClient.admin.setPortalServiceActive(id, isActive);
     await get().fetchAll();
   },
   deletePortalService: async (id) => {
-    await client.post("/portal.services.delete", { id });
+    await petsoClient.admin.deletePortalService(id);
     await get().fetchAll();
   },
   savePortalSettings: async (settings) => {
-    const response = await client.post("/portal.settings.update", settings);
-    if (response.data?.saved) {
-      await get().fetchAll();
-    }
-    return response.data;
+    await petsoClient.admin.updatePortalSettings({
+      ...(settings.slug ? { slug: settings.slug } : {}),
+      ...(settings.portalEnabled !== undefined
+        ? { isActive: settings.portalEnabled }
+        : {}),
+    });
+    await get().fetchAll();
+    return { saved: true };
   },
   createBoarding: async (boarding) => {
     const customer = get().customers.find(

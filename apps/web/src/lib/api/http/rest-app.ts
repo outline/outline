@@ -71,6 +71,18 @@ import {
 } from "@/domain/pet/pet.programs";
 import type { TPetId } from "@/domain/pet/pet.types";
 import {
+	createPortalServiceProgram,
+	deletePortalServiceProgram,
+	getPortalConfigProgram,
+	getPortalReviewsProgram,
+	getPortalServicesProgram,
+	getPortalStatsProgram,
+	updatePortalConfigProgram,
+	updatePortalServiceStatusProgram,
+} from "@/domain/portal/portal.programs";
+import type { UpdatePortalConfigCommand } from "@/domain/portal/portal.schemas";
+import type { TPortalServiceId } from "@/domain/portal/portal.types";
+import {
 	addProductProgram,
 	addVariantProgram,
 	deleteProductProgram,
@@ -167,6 +179,7 @@ import {
 	type InvoiceHandlers,
 } from "./invoice.handlers";
 import { createOrderHandlers, type OrderHandlers } from "./order.handlers";
+import { createPortalHandlers, type PortalHandlers } from "./portal.handlers";
 import {
 	createPurchaseHandlers,
 	type PurchaseHandlers,
@@ -203,6 +216,7 @@ export function createRestRequestHandler(
 	groomingHandlers?: GroomingHandlers,
 	documentTemplateHandlers?: DocumentTemplateHandlers,
 	dashboardHandlers?: DashboardHandlers,
+	portalHandlers?: PortalHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -347,6 +361,51 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return dashboardHandlers.topSellers(request, requestId);
+		}
+		if (
+			portalHandlers &&
+			url.pathname === "/api/v1/admin/portal" &&
+			request.method === "GET"
+		) {
+			return portalHandlers.get(request, requestId);
+		}
+		if (
+			portalHandlers &&
+			url.pathname === "/api/v1/admin/portal/services" &&
+			request.method === "POST"
+		) {
+			return portalHandlers.createService(request, requestId);
+		}
+		const portalServiceStatusMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/portal\/services\/([^/]+)\/status$/,
+		);
+		if (
+			portalHandlers &&
+			portalServiceStatusMatch &&
+			request.method === "PATCH"
+		) {
+			return portalHandlers.updateServiceStatus(
+				request,
+				requestId,
+				portalServiceStatusMatch[1] ?? "",
+			);
+		}
+		const portalServiceMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/portal\/services\/([^/]+)$/,
+		);
+		if (portalHandlers && portalServiceMatch && request.method === "DELETE") {
+			return portalHandlers.deleteService(
+				request,
+				requestId,
+				portalServiceMatch[1] ?? "",
+			);
+		}
+		if (
+			portalHandlers &&
+			url.pathname === "/api/v1/admin/portal/config" &&
+			request.method === "PATCH"
+		) {
+			return portalHandlers.updateConfig(request, requestId);
 		}
 		if (
 			documentTemplateHandlers &&
@@ -1104,6 +1163,81 @@ const defaultRestRequestHandler = createRestRequestHandler(
 		session: async (token) => authProgramDependencies.session(token),
 		topSellers: async (businessId) =>
 			runApp(getTopSellersProgram(businessId as TTenantId)),
+	}),
+	createPortalHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		get: async (businessId) => {
+			const tenantId = businessId as TTenantId;
+			const [config, services, stats, reviews] = await Promise.all([
+				runApp(getPortalConfigProgram(tenantId)),
+				runApp(getPortalServicesProgram(tenantId)),
+				runApp(getPortalStatsProgram(tenantId)),
+				runApp(getPortalReviewsProgram(tenantId)),
+			]);
+			return {
+				config: {
+					slug: config.slug,
+					isActive: config.isActive,
+					bookingEnabled: config.bookingEnabled,
+				},
+				services,
+				stats,
+				reviews: reviews.map((review) => ({
+					...review,
+					createdAt: review.createdAt,
+				})),
+			};
+		},
+		createService: async (businessId, input) =>
+			runApp(
+				createPortalServiceProgram(businessId as TTenantId, {
+					tenantId: businessId as TTenantId,
+					name: typeof input.name === "string" ? input.name : "Service",
+					description:
+						typeof input.description === "string" ? input.description : null,
+					durationMinutes:
+						typeof input.durationMinutes === "number"
+							? input.durationMinutes
+							: 60,
+					price: typeof input.price === "number" ? input.price : 0,
+					isActive: true,
+					category:
+						typeof input.category === "string"
+							? (input.category as
+									| "freshwater"
+									| "saltwater"
+									| "terrarium"
+									| "other")
+							: null,
+				}),
+			),
+		updateServiceStatus: async (businessId, id, isActive) =>
+			runApp(
+				updatePortalServiceStatusProgram(
+					businessId as TTenantId,
+					id as TPortalServiceId,
+					isActive,
+				),
+			),
+		deleteService: async (businessId, id) =>
+			runApp(
+				deletePortalServiceProgram(
+					businessId as TTenantId,
+					id as TPortalServiceId,
+				),
+			),
+		updateConfig: async (businessId, input) => {
+			const command: UpdatePortalConfigCommand = {
+				...(typeof input.slug === "string" ? { slug: input.slug } : {}),
+				...(typeof input.isActive === "boolean"
+					? { isActive: input.isActive }
+					: {}),
+				...(typeof input.bookingEnabled === "boolean"
+					? { bookingEnabled: input.bookingEnabled }
+					: {}),
+			};
+			await runApp(updatePortalConfigProgram(command, businessId as TTenantId));
+		},
 	}),
 );
 

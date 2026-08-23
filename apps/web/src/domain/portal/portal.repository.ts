@@ -34,6 +34,11 @@ export class IPortalRepository extends Context.Tag("IPortalRepository")<
 			tenantId: TTenantId,
 			serviceId: TPortalServiceId,
 		) => Effect.Effect<void, PortalError | DatabaseError>;
+		readonly updateServiceStatus: (
+			tenantId: TTenantId,
+			serviceId: TPortalServiceId,
+			isActive: boolean,
+		) => Effect.Effect<void, PortalError | DatabaseError>;
 		readonly getConfigBySlug: (
 			slug: string,
 		) => Effect.Effect<TPortalConfig | null, DatabaseError>;

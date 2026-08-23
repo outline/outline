@@ -259,6 +259,37 @@ export const PortalRepositoryDrizzle = Layer.effect(
 					}),
 				),
 
+			updateServiceStatus: (
+				tenantId: TTenantId,
+				serviceId: TPortalServiceId,
+				isActive: boolean,
+			) =>
+				withRetry(
+					Effect.tryPromise({
+						try: async () => {
+							const [updated] = await db
+								.update(portalServices)
+								.set({ isActive, updatedAt: new Date().toISOString() })
+								.where(
+									and(
+										eq(portalServices.id, serviceId),
+										eq(portalServices.businessId, tenantId),
+									),
+								)
+								.returning({ id: portalServices.id });
+							if (!updated) {
+								throw new PortalError({
+									message: `portal service ${serviceId} not found for tenant ${tenantId}`,
+								});
+							}
+						},
+						catch: (e) => {
+							if (e instanceof DatabaseError || e instanceof PortalError) return e;
+							return new PortalError({ message: (e as Error).message });
+						},
+					}),
+				),
+
 			getBookings: (tenantId: TTenantId) =>
 				withRetry(
 					Effect.tryPromise({

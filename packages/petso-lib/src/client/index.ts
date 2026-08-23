@@ -47,6 +47,9 @@ import type {
 	TDocumentTemplateDto,
 	TSaveDocumentTemplateInput,
 	TTopSellerDto,
+	TCreatePortalServiceInput,
+	TPortalAdminDto,
+	TPortalServiceDto,
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,
@@ -401,6 +404,35 @@ export class PetsoClient {
 				this.fetchApi<readonly TTopSellerDto[]>(
 					"/api/v1/admin/dashboard/top-sellers",
 				),
+		portal: (): Promise<TPortalAdminDto> =>
+			this.fetchApi<TPortalAdminDto>("/api/v1/admin/portal"),
+		createPortalService: (
+			input: TCreatePortalServiceInput,
+		): Promise<TPortalServiceDto> =>
+			this.fetchApi<TPortalServiceDto>("/api/v1/admin/portal/services", {
+				method: "POST",
+				body: input,
+			}),
+		setPortalServiceActive: (
+			id: string,
+			isActive: boolean,
+		): Promise<{ readonly updated: boolean }> =>
+			this.fetchApi<{ readonly updated: boolean }>(
+				`/api/v1/admin/portal/services/${id}/status`,
+				{ method: "PATCH", body: { isActive } },
+			),
+		deletePortalService: (id: string): Promise<{ readonly deleted: boolean }> =>
+			this.fetchApi<{ readonly deleted: boolean }>(
+				`/api/v1/admin/portal/services/${id}`,
+				{ method: "DELETE" },
+			),
+		updatePortalSettings: (
+			input: Record<string, unknown>,
+		): Promise<{ readonly updated: boolean }> =>
+			this.fetchApi<{ readonly updated: boolean }>("/api/v1/admin/portal/config", {
+				method: "PATCH",
+				body: input,
+			}),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
 				method: "POST",
