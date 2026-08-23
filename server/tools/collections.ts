@@ -2,8 +2,8 @@ import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Collection, Team } from "@server/models";
+import { buildWhere } from "@server/models/helpers/Filters";
 import { sequelize } from "@server/storage/database";
-import { QueryHelper } from "@server/storage/QueryHelper";
 import { authorize } from "@server/policies";
 import { presentCollection as presentCollectionBase } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
@@ -89,9 +89,11 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
             if (query) {
               and.push(
-                Sequelize.literal(
-                  `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-                ) as unknown as WhereOptions<Collection>
+                buildWhere<Collection>({
+                  field: "name",
+                  operator: "contains",
+                  value: query,
+                })
               );
             }
 
@@ -104,7 +106,6 @@ export function collectionTools(server: McpServer, scopes: string[]) {
               method: ["withMembership", user.id],
             }).findAll({
               where,
-              replacements: { query: QueryHelper.likeContains(query ?? "") },
               order: [
                 Sequelize.literal('"collection"."index" collate "C"'),
                 ["updatedAt", "DESC"],
