@@ -59,6 +59,7 @@ export type {
 	TLoyaltyConfigDto,
 	TLoyaltyTierDto,
 	TUpdateLoyaltyConfigInput,
+	TLoyaltyMovementDto,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
 	TPortalConfigDto,

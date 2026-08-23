@@ -282,6 +282,36 @@ export const LoyaltyRepositoryDrizzle = Layer.effect(
 					}),
 				),
 
+			getAllPointsTransactions: (tenantId: TTenantId) =>
+				withRetry(
+					Effect.tryPromise({
+						try: async () => {
+							const rows = await db
+								.select({
+									transaction: loyaltyTransactions,
+									customerId: customerLoyalty.customerId,
+									customerName: customerLoyalty.customerName,
+								})
+								.from(loyaltyTransactions)
+								.innerJoin(
+									customerLoyalty,
+									eq(
+										customerLoyalty.id,
+										loyaltyTransactions.customerLoyaltyId,
+									),
+								)
+								.where(eq(loyaltyTransactions.businessId, tenantId))
+								.orderBy(desc(loyaltyTransactions.createdAt));
+							return rows.map((row) => ({
+								transaction: mapTransactionRow(row.transaction),
+								customerId: row.customerId,
+								customerName: row.customerName ?? "",
+							}));
+						},
+						catch: (e) => new DatabaseError({ cause: e as Error }),
+					}),
+				),
+
 			atomicEarnPoints: (params: AtomicEarnPointsParams) =>
 				withRetry(
 					Effect.tryPromise({

@@ -86,6 +86,7 @@ export type {
 	TLoyaltyConfigDto,
 	TLoyaltyTierDto,
 	TUpdateLoyaltyConfigInput,
+	TLoyaltyMovementDto,
 } from "./loyalty.types";
 export type {
 	TCreatePortalServiceInput,

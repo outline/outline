@@ -70,6 +70,7 @@ import type {
 import type { TInvoiceId } from "@/domain/invoice/invoice.types";
 import {
 	getLoyaltyConfigProgram,
+	getLoyaltyTransactionsProgram,
 	redeemPointsProgram,
 	updateLoyaltyConfigProgram,
 } from "@/domain/loyalty/loyalty.programs";
@@ -494,6 +495,13 @@ export function createRestRequestHandler(
 			request.method === "PATCH"
 		) {
 			return loyaltyHandlers.updateConfig(request, requestId);
+		}
+		if (
+			loyaltyHandlers &&
+			url.pathname === "/api/v1/admin/loyalty/movements" &&
+			request.method === "GET"
+		) {
+			return loyaltyHandlers.movements(request, requestId);
 		}
 		if (
 			loyaltyHandlers &&
@@ -1506,6 +1514,22 @@ const defaultRestRequestHandler = createRestRequestHandler(
 			await runApp(
 				updateLoyaltyConfigProgram(command, businessId as TTenantId),
 			);
+		},
+		movements: async (businessId) => {
+			const rows = await runApp(
+				getLoyaltyTransactionsProgram(businessId as TTenantId),
+			);
+			return rows.map((row) => ({
+				id: row.transaction.id,
+				customerId: row.customerId ?? "",
+				customerName: row.customerName,
+				date: row.transaction.createdAt.toISOString(),
+				points:
+					row.transaction.type === "redeem"
+						? -row.transaction.points
+						: row.transaction.points,
+				reason: row.transaction.description,
+			}));
 		},
 		redeem: async (businessId, input) => {
 			const command = Schema.decodeUnknownSync(RedeemPointsSchema)({

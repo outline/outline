@@ -53,6 +53,14 @@ export const getLoyaltyConfigProgram = (
 		};
 	});
 
+export const getLoyaltyTransactionsProgram = (
+	tenantId: TTenantId,
+) =>
+	Effect.gen(function* () {
+		const repo = yield* ILoyaltyRepository;
+		return yield* repo.getAllPointsTransactions(tenantId);
+	});
+
 export const updateLoyaltyConfigProgram = (
 	command: UpdateLoyaltyConfigCommand,
 	tenantId: TTenantId,

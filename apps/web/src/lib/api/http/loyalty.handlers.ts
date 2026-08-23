@@ -16,6 +16,7 @@ interface LoyaltyHandlerDependencies {
 		businessId: string,
 		input: Record<string, unknown>,
 	) => Promise<unknown>;
+	readonly movements: (businessId: string) => Promise<readonly unknown[]>;
 }
 
 export interface LoyaltyHandlers {
@@ -25,6 +26,10 @@ export interface LoyaltyHandlers {
 		requestId: string,
 	) => Promise<Response>;
 	readonly redeem: (request: Request, requestId: string) => Promise<Response>;
+	readonly movements: (
+		request: Request,
+		requestId: string,
+	) => Promise<Response>;
 }
 
 /** Creates authenticated REST handlers for loyalty configuration and redemption. */
@@ -41,6 +46,14 @@ export function createLoyaltyHandlers(
 			if (!session) return unauthorized(requestId);
 			return jsonSuccess(
 				await dependencies.config(session.business.id),
+				requestId,
+			);
+		},
+		movements: async (request, requestId) => {
+			const session = await authenticate(request);
+			if (!session) return unauthorized(requestId);
+			return jsonSuccess(
+				await dependencies.movements(session.business.id),
 				requestId,
 			);
 		},

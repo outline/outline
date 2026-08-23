@@ -1043,7 +1043,7 @@ export const useShop = create<State>((set, get) => ({
         client.post("/shifts.list"),
         client.post("/accounting.trialBalance"),
         petsoClient.admin.commissions(),
-        client.post("/loyalty.list"),
+        petsoClient.admin.loyaltyMovements(),
         client.post("/whatsapp.templates"),
         client.post("/whatsapp.messages"),
         client.post("/billing.subscription"),
@@ -1168,7 +1168,7 @@ export const useShop = create<State>((set, get) => ({
             branchNames
           )
         ),
-        loyalty: loyalty.data,
+        loyalty,
         whatsappTemplates: whatsappTemplates.data,
         whatsappMessages: whatsappMessages.data,
         subscription: subscription.data,

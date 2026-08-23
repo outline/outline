@@ -58,6 +58,7 @@ import type {
 	TCommissionReportDto,
 	TLoyaltyConfigDto,
 	TUpdateLoyaltyConfigInput,
+	TLoyaltyMovementDto,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
 	TPortalServiceDto,
@@ -483,6 +484,10 @@ export class PetsoClient {
 			),
 		loyaltyConfig: (): Promise<TLoyaltyConfigDto> =>
 			this.fetchApi<TLoyaltyConfigDto>("/api/v1/admin/loyalty/config"),
+		loyaltyMovements: (): Promise<readonly TLoyaltyMovementDto[]> =>
+			this.fetchApi<readonly TLoyaltyMovementDto[]>(
+				"/api/v1/admin/loyalty/movements",
+			),
 		updateLoyaltyConfig: (
 			input: TUpdateLoyaltyConfigInput,
 		): Promise<{ readonly updated: boolean }> =>

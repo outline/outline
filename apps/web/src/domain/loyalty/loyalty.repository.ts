@@ -45,6 +45,16 @@ export class ILoyaltyRepository extends Context.Tag("ILoyaltyRepository")<
 			tenantId: TTenantId,
 			customerLoyaltyId: string,
 		) => Effect.Effect<readonly TPointsTransaction[], DatabaseError>;
+		readonly getAllPointsTransactions: (
+			tenantId: TTenantId,
+		) => Effect.Effect<
+			readonly {
+				readonly transaction: TPointsTransaction;
+				readonly customerId: string | null;
+				readonly customerName: string;
+			}[],
+			DatabaseError
+		>;
 		/**
 		 * Atomically inserts a points transaction AND updates the
 		 * customer_loyalty balance in a single Postgres transaction.

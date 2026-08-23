@@ -9,6 +9,7 @@ describe("REST loyalty handlers", () => {
 			config,
 			updateConfig: vi.fn(),
 			redeem: vi.fn(),
+			movements: vi.fn(),
 		});
 
 		const response = await handlers.config(

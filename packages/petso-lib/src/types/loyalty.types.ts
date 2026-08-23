@@ -18,3 +18,12 @@ export interface TUpdateLoyaltyConfigInput {
 	readonly minRedeemPoints: number;
 	readonly isActive: boolean;
 }
+
+export interface TLoyaltyMovementDto {
+	readonly id: string;
+	readonly customerId: string;
+	readonly customerName: string;
+	readonly date: string;
+	readonly points: number;
+	readonly reason: string;
+}
