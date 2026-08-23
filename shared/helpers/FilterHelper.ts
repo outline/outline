@@ -102,7 +102,7 @@ export type FieldKind = "uuid" | "string" | "number" | "boolean" | "date";
 
 /**
  * A filterable field definition: either just its column type, or an object
- * that additionally restricts which operators the field supports, and which
+ * that additionally restricts which operators the field supports and which
  * values it accepts.
  */
 export type FieldSpec =
@@ -185,8 +185,8 @@ function countNodes(filter: Filter): number {
  * Each field maps to a column type ({@link FieldKind}) so that values are
  * validated against the field at the input layer, returning a clean 400 rather
  * than letting malformed input (e.g. a non-uuid id, an invalid date) reach the
- * database. A field may also restrict its supported operators, and the values
- * it accepts ({@link FieldSpec}), so that combinations the query layer cannot
+ * database. A field may also restrict its supported operators or its accepted
+ * values ({@link FieldSpec}) so that combinations the query layer cannot
  * execute are rejected here as well.
  *
  * @param fields map of allowed field name to its column type, optionally with a restricted operator or value set.
@@ -215,6 +215,8 @@ export function createFilterSchema<S extends Record<string, FieldSpec>>(
       const allowedOperators =
         typeof spec === "string" ? undefined : spec.operators;
       const allowedValues = typeof spec === "string" ? undefined : spec.values;
+      const isAllowed = (entry: unknown) =>
+        typeof entry === "string" && !!allowedValues?.includes(entry);
 
       if (allowedOperators && !allowedOperators.includes(operator)) {
         ctx.addIssue({
@@ -279,10 +281,7 @@ export function createFilterSchema<S extends Record<string, FieldSpec>>(
           });
           return;
         }
-        if (
-          allowedValues &&
-          value.some((entry) => !allowedValues.includes(String(entry)))
-        ) {
+        if (allowedValues && value.some((entry) => !isAllowed(entry))) {
           ctx.addIssue({
             code: "custom",
             message: `value must contain only ${allowedValues.join(", ")} for field '${field}'`,
@@ -311,8 +310,7 @@ export function createFilterSchema<S extends Record<string, FieldSpec>>(
           return;
         }
         // Pattern matching (iLike/like) only applies to text columns; running
-        // it against a uuid/date/etc. column would error at the database. A
-        // field with a fixed value set is matched exactly for the same reason.
+        // it against a uuid/date/enum/etc. column would error at the database.
         if (kind !== "string" || allowedValues) {
           ctx.addIssue({
             code: "custom",
@@ -332,7 +330,7 @@ export function createFilterSchema<S extends Record<string, FieldSpec>>(
         return;
       }
 
-      if (allowedValues && !allowedValues.includes(String(value))) {
+      if (allowedValues && !isAllowed(value)) {
         ctx.addIssue({
           code: "custom",
           message: `value must be one of ${allowedValues.join(", ")} for field '${field}'`,

@@ -342,6 +342,7 @@ function MultiplayerEditor(
           defaultValue={props.defaultValue}
           extensions={props.extensions}
           scrollTo={props.scrollTo}
+          headingPrefix={props.headingPrefix}
           cacheOnly
           readOnly
           ref={ref}

@@ -76,6 +76,8 @@ export type AppState = {
   oauthClient?: OAuthClient;
   oauthIntent?: OAuthIntent;
   oauthState?: OAuthState;
+  /** The identifiers this request is rate limited against. */
+  rateLimiterIdentifiers?: string[];
 };
 
 export type AppContext = ParameterizedContext<AppState, DefaultContext>;

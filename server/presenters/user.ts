@@ -1,8 +1,10 @@
+import { pick } from "es-toolkit";
 import type {
   NotificationSettings,
   UserPreferences,
   UserRole,
 } from "@shared/types";
+import { NotificationEventType, UserPreference } from "@shared/types";
 import env from "@server/env";
 import type { User } from "@server/models";
 
@@ -51,8 +53,13 @@ export default function presentUser(
   if (options.includeDetails) {
     userData.email = user.email;
     userData.language = user.language || env.DEFAULT_LANGUAGE;
-    userData.preferences = user.preferences;
-    userData.notificationSettings = user.notificationSettings;
+    // Unrecognized keys are omitted so that clients can safely send the object back.
+    userData.preferences = user.preferences
+      ? pick(user.preferences, Object.values(UserPreference))
+      : user.preferences;
+    userData.notificationSettings = user.notificationSettings
+      ? pick(user.notificationSettings, Object.values(NotificationEventType))
+      : user.notificationSettings;
   }
 
   if (options.includeEmail) {

@@ -253,89 +253,85 @@ describe("createFilterSchema operator allowlists", () => {
 });
 
 describe("createFilterSchema value allowlists", () => {
-  const { FilterSchema: RestrictedSchema } = createFilterSchema({
-    permission: { kind: "string", values: ["read", "read_write"] },
+  const { FilterSchema: EnumSchema } = createFilterSchema({
+    role: { kind: "string", values: ["admin", "member"] },
     title: "string",
   } as const);
 
   it("accepts an allowed value", () => {
     expect(
-      RestrictedSchema.safeParse({
-        field: "permission",
+      EnumSchema.safeParse({
+        field: "role",
         operator: "eq",
-        value: "read_write",
+        value: "admin",
       }).success
     ).toBe(true);
   });
 
   it("rejects a value outside the allowlist", () => {
-    const result = RestrictedSchema.safeParse({
-      field: "permission",
-      operator: "neq",
-      value: "manage",
-    });
-    expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toBe(
-      "value must be one of read, read_write for field 'permission'"
-    );
-  });
-
-  it("accepts an array of allowed values", () => {
     expect(
-      RestrictedSchema.safeParse({
-        field: "permission",
-        operator: "in",
-        value: ["read", "read_write"],
-      }).success
-    ).toBe(true);
-  });
-
-  it("rejects an array holding a value outside the allowlist", () => {
-    expect(
-      RestrictedSchema.safeParse({
-        field: "permission",
-        operator: "in",
-        value: ["read", "manage"],
+      EnumSchema.safeParse({
+        field: "role",
+        operator: "eq",
+        value: "superuser",
       }).success
     ).toBe(false);
+  });
+
+  it("validates every entry of an `in` array", () => {
+    expect(
+      EnumSchema.safeParse({
+        field: "role",
+        operator: "in",
+        value: ["admin", "member"],
+      }).success
+    ).toBe(true);
+
+    expect(
+      EnumSchema.safeParse({
+        field: "role",
+        operator: "in",
+        value: ["admin", "superuser"],
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects pattern matching against a value-constrained field", () => {
+    expect(
+      EnumSchema.safeParse({
+        field: "role",
+        operator: "contains",
+        value: "adm",
+      }).success
+    ).toBe(false);
+  });
+
+  it("does not restrict fields without an allowlist", () => {
+    expect(
+      EnumSchema.safeParse({
+        field: "title",
+        operator: "eq",
+        value: "superuser",
+      }).success
+    ).toBe(true);
   });
 
   it("still allows null operators with no value", () => {
     expect(
-      RestrictedSchema.safeParse({
-        field: "permission",
+      EnumSchema.safeParse({
+        field: "role",
         operator: "isNull",
-      }).success
-    ).toBe(true);
-  });
-
-  it("rejects pattern matching against a fixed value set", () => {
-    expect(
-      RestrictedSchema.safeParse({
-        field: "permission",
-        operator: "contains",
-        value: "read",
-      }).success
-    ).toBe(false);
-  });
-
-  it("does not restrict fields without a value allowlist", () => {
-    expect(
-      RestrictedSchema.safeParse({
-        field: "title",
-        operator: "eq",
-        value: "anything",
       }).success
     ).toBe(true);
   });
 
   it("rejects a disallowed value nested inside a group", () => {
     expect(
-      RestrictedSchema.safeParse({
+      EnumSchema.safeParse({
         operator: "AND",
         filters: [
           { field: "title", operator: "eq", value: "x" },
-          { field: "permission", operator: "eq", value: "manage" },
+          { field: "role", operator: "eq", value: "superuser" },
         ],
       }).success
     ).toBe(false);

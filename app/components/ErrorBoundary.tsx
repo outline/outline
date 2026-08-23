@@ -14,6 +14,7 @@ import Text from "~/components/Text";
 import env from "~/env";
 import Logger from "~/utils/Logger";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { isStaleChunkError } from "~/utils/lazyWithRetry";
 import Storage from "@shared/utils/Storage";
 import { deleteAllDatabases } from "~/utils/developer";
 import Flex from "./Flex";
@@ -57,8 +58,7 @@ class ErrorBoundaryClass extends React.Component<Props> {
 
     if (
       this.props.reloadOnChunkMissing &&
-      error.message &&
-      error.message.match(/dynamically imported module/) &&
+      isStaleChunkError(error) &&
       !this.isRepeatedError
     ) {
       // If the editor bundle fails to load then reload the entire window. This
@@ -133,12 +133,7 @@ class ErrorBoundaryClass extends React.Component<Props> {
     if (this.error) {
       const error = this.error;
       const isReported = !!env.SENTRY_DSN && isCloudHosted;
-      const isChunkError = [
-        "module script failed",
-        "dynamically imported module",
-      ].some((msg) => this.error?.message?.includes(msg));
-
-      if (isChunkError) {
+      if (isStaleChunkError(error)) {
         return (
           <Component>
             {showTitle && (

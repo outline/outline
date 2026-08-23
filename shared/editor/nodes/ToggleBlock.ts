@@ -164,7 +164,7 @@ export default class ToggleBlock extends Node {
         },
 
         apply: (tr, pluginState, _oldState, newState) => {
-          if (isRemoteTransaction(tr)) {
+          if (isRemoteTransaction(tr, newState)) {
             const foldedIds = this.initFoldedIds(newState);
             return {
               foldedIds,

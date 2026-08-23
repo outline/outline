@@ -5,7 +5,7 @@ import cookie from "cookie";
 import type Koa from "koa";
 import IO from "socket.io";
 import { createAdapter } from "socket.io-redis";
-import { errToString, toError } from "@shared/utils/error";
+import { errToId, errToString, toError } from "@shared/utils/error";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -156,7 +156,7 @@ export default function init(
       Logger.debug("websockets", `Authentication error socket ${socket.id}`, {
         error: message,
       });
-      socket.emit("unauthorized", { message }, function () {
+      socket.emit("unauthorized", { message, id: errToId(err) }, function () {
         socket.disconnect();
       });
     }

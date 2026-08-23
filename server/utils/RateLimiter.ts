@@ -51,35 +51,55 @@ export default class RateLimiter {
   }
 
   /**
+   * Normalizes a request path into the key that identifies its rate limiter.
+   * The router matches paths case-insensitively and with an optional trailing
+   * slash, so every one of those variants must collapse onto a single key.
+   *
+   * @param path the request path to normalize.
+   * @returns the normalized path.
+   */
+  static normalizePath(path: string): string {
+    const lowercased = path.toLowerCase();
+    return lowercased.length > 1 && lowercased.endsWith("/")
+      ? lowercased.slice(0, -1)
+      : lowercased;
+  }
+
+  /**
    * Returns the rate limiter registered for a path, falling back to the
-   * default rate limiter.
+   * default rate limiter. The path is normalized before lookup.
    *
    * @param path the request path to look up.
    * @returns the rate limiter for the path.
    */
   static getRateLimiter(path: string): RateLimiterRedis {
-    return this.rateLimiterMap.get(path) || this.defaultRateLimiter;
+    return (
+      this.rateLimiterMap.get(this.normalizePath(path)) ||
+      this.defaultRateLimiter
+    );
   }
 
   /**
-   * Registers a rate limiter with a custom configuration for a path.
+   * Registers a rate limiter with a custom configuration for a path. The path
+   * is normalized before registration.
    *
    * @param path the request path to register the rate limiter for.
    * @param config the rate limiter configuration.
    */
   static setRateLimiter(path: string, config: IRateLimiterStoreOptions): void {
     const rateLimiter = new RateLimiterRedis(config);
-    this.rateLimiterMap.set(path, rateLimiter);
+    this.rateLimiterMap.set(this.normalizePath(path), rateLimiter);
   }
 
   /**
-   * Checks whether a custom rate limiter is registered for a path.
+   * Checks whether a custom rate limiter is registered for a path. The path is
+   * normalized before lookup.
    *
    * @param path the request path to check.
    * @returns true if a custom rate limiter is registered.
    */
   static hasRateLimiter(path: string): boolean {
-    return this.rateLimiterMap.has(path);
+    return this.rateLimiterMap.has(this.normalizePath(path));
   }
 
   /**
