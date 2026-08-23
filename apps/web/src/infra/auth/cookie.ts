@@ -4,8 +4,9 @@ import {
 	getRequestHeader,
 	setCookie,
 } from "@tanstack/react-start/server";
+import { SESSION_COOKIE_NAME } from "./http-session-cookie";
 
-export const SESSION_COOKIE_NAME = "session_token";
+export { SESSION_COOKIE_NAME } from "./http-session-cookie";
 
 // 30 days, matching the sliding-expiration window used for the DB-side
 // sessions.expiresAt column (see Task 5's touchSession).

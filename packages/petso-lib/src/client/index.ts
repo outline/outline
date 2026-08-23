@@ -1,5 +1,7 @@
 import type {
 	TApiResponse,
+	TAuthCredentials,
+	TAuthResult,
 	TBranchContactDto,
 	TCreateOrderInput,
 	TCustomerDto,
@@ -15,6 +17,9 @@ import type {
 	TProductListResult,
 	TProductSuggestResult,
 	TServiceDto,
+	TSessionDto,
+	TSignupInput,
+	TSignupResult,
 	TUpdateStatusInput,
 	TValidateVoucherInput,
 	TVoucherDto,
@@ -35,14 +40,14 @@ export class PetsoClientError extends Error {
 
 export type PetsoClientConfig = {
 	readonly baseUrl: string;
-	readonly apiKey: string;
+	readonly apiKey?: string;
 	readonly businessId?: string;
 	readonly branchId?: string;
 };
 
 export class PetsoClient {
 	private readonly baseUrl: string;
-	private readonly apiKey: string;
+	private readonly apiKey: string | undefined;
 	public readonly businessId: string;
 	public readonly branchId: string;
 
@@ -65,10 +70,12 @@ export class PetsoClient {
 	): Promise<T> {
 		const url = `${this.baseUrl}${path}`;
 		const headers: Record<string, string> = {
-			Authorization: `Bearer ${this.apiKey}`,
 			Accept: "application/json",
 			...options.headers,
 		};
+		if (this.apiKey) {
+			headers.Authorization = `Bearer ${this.apiKey}`;
+		}
 
 		if (options.body !== undefined) {
 			headers["Content-Type"] = "application/json";
@@ -78,6 +85,7 @@ export class PetsoClient {
 			method: options.method ?? "GET",
 			headers,
 			body: options.body !== undefined ? JSON.stringify(options.body) : null,
+			credentials: "include",
 			signal: options.signal ?? null,
 			...(options.cf ? { cf: options.cf } : {}),
 		} as RequestInit);
@@ -87,10 +95,17 @@ export class PetsoClient {
 			.catch(() => null)) as TApiResponse<T> | null;
 
 		if (!response.ok || !json || json.success === false) {
+			const apiError = json && "error" in json ? json.error : undefined;
 			const message =
-				json && "error" in json ? json.error : `HTTP ${response.status}`;
+				typeof apiError === "string"
+					? apiError
+					: apiError?.message ?? `HTTP ${response.status}`;
 			const details =
-				json && "details" in json ? String(json.details) : undefined;
+				json && "details" in json
+					? String(json.details)
+					: typeof apiError === "object" && apiError
+						? JSON.stringify(apiError.fields ?? {})
+						: undefined;
 			throw new PetsoClientError(response.status, message, details);
 		}
 
@@ -100,6 +115,28 @@ export class PetsoClient {
 
 		return json.data;
 	}
+
+	readonly auth = {
+		login: (input: TAuthCredentials): Promise<TAuthResult> =>
+			this.fetchApi<TAuthResult>("/api/v1/auth/login", {
+				method: "POST",
+				body: input,
+			}),
+
+		signup: (input: TSignupInput): Promise<TSignupResult> =>
+			this.fetchApi<TSignupResult>("/api/v1/auth/signup", {
+				method: "POST",
+				body: input,
+			}),
+
+		logout: (): Promise<{ loggedOut: boolean }> =>
+			this.fetchApi<{ loggedOut: boolean }>("/api/v1/auth/logout", {
+				method: "POST",
+			}),
+
+		session: (): Promise<TSessionDto> =>
+			this.fetchApi<TSessionDto>("/api/v1/auth/session"),
+	};
 
 	readonly products = {
 		list: (params?: TProductListParams): Promise<TProductListResult> => {

@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { handleRestRequest } from "./rest-app";
+import { describe, expect, it, vi } from "vitest";
+import type { AuthHandlers } from "./auth.handlers";
+import { createRestRequestHandler, handleRestRequest } from "./rest-app";
 
 describe("REST app", () => {
 	it("serves a health response with a request id", async () => {
@@ -24,5 +25,22 @@ describe("REST app", () => {
 		);
 
 		expect(response).toBeUndefined();
+	});
+
+	it("dispatches auth routes to the direct HTTP handlers", async () => {
+		const loginResponse = new Response("login", { status: 200 });
+		const authHandlers: AuthHandlers = {
+			login: vi.fn().mockResolvedValue(loginResponse),
+			signup: vi.fn(),
+			logout: vi.fn(),
+			session: vi.fn(),
+		};
+		const handleRequest = createRestRequestHandler(authHandlers);
+		const request = new Request("https://pet-store.test/api/v1/auth/login", {
+			method: "POST",
+		});
+
+		expect(await handleRequest(request)).toBe(loginResponse);
+		expect(authHandlers.login).toHaveBeenCalledWith(request, expect.any(String));
 	});
 });

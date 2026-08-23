@@ -6,7 +6,13 @@ export type TApiResponse<T = unknown> =
 	  }
 	| {
 			readonly success: false;
-			readonly error: string;
+			readonly error:
+				| string
+				| {
+						readonly code: string;
+						readonly message: string;
+						readonly fields?: Readonly<Record<string, string>>;
+				  };
 			readonly details?: unknown;
 	  };
 

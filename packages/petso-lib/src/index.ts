@@ -2,6 +2,8 @@ export type { PetsoClientConfig } from "./client";
 export { PetsoClient, PetsoClientError } from "./client";
 
 export type {
+	TAuthCredentials,
+	TAuthResult,
 	TApiResponse,
 	TCreateOrderInput,
 	TCreateOrderItemInput,
@@ -25,6 +27,9 @@ export type {
 	TProductListResult,
 	TProductSuggestResult,
 	TProductVariantDto,
+	TSessionDto,
+	TSignupInput,
+	TSignupResult,
 	TUpdateStatusInput,
 	TValidateVoucherInput,
 	TVoucherDto,
