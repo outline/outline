@@ -31,7 +31,9 @@ import type {
 	TServiceDto,
 	TSessionDto,
 	TSupplierDto,
+	TSupplierInput,
 	TWarehouseDto,
+	TWarehouseInput,
 	TSignupInput,
 	TSignupResult,
 	TUpdateStatusInput,
@@ -194,6 +196,36 @@ export class PetsoClient {
 			this.fetchApi<readonly TSupplierDto[]>("/api/v1/admin/suppliers"),
 		warehouses: (): Promise<readonly TWarehouseDto[]> =>
 			this.fetchApi<readonly TWarehouseDto[]>("/api/v1/admin/warehouses"),
+		createSupplier: (input: TSupplierInput): Promise<TSupplierDto> =>
+			this.fetchApi<TSupplierDto>("/api/v1/admin/suppliers", {
+				method: "POST",
+				body: input,
+			}),
+		updateSupplier: (input: TSupplierInput & { readonly id: string }): Promise<TSupplierDto> =>
+			this.fetchApi<TSupplierDto>(`/api/v1/admin/suppliers/${input.id}`, {
+				method: "PATCH",
+				body: input,
+			}),
+		deleteSupplier: (id: string): Promise<{ readonly deleted: boolean }> =>
+			this.fetchApi<{ readonly deleted: boolean }>(
+				`/api/v1/admin/suppliers/${id}`,
+				{ method: "DELETE" },
+			),
+		createWarehouse: (input: TWarehouseInput): Promise<TWarehouseDto> =>
+			this.fetchApi<TWarehouseDto>("/api/v1/admin/warehouses", {
+				method: "POST",
+				body: input,
+			}),
+		updateWarehouse: (input: TWarehouseInput & { readonly id: string }): Promise<TWarehouseDto> =>
+			this.fetchApi<TWarehouseDto>(`/api/v1/admin/warehouses/${input.id}`, {
+				method: "PATCH",
+				body: input,
+			}),
+		deleteWarehouse: (id: string): Promise<{ readonly deleted: boolean }> =>
+			this.fetchApi<{ readonly deleted: boolean }>(
+				`/api/v1/admin/warehouses/${id}`,
+				{ method: "DELETE" },
+			),
 		purchaseOrders: (): Promise<readonly TPurchaseOrderDto[]> =>
 			this.fetchApi<readonly TPurchaseOrderDto[]>(
 				"/api/v1/admin/purchase-orders",

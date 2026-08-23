@@ -56,8 +56,25 @@ import {
 } from "@/domain/purchase-order/purchase-order.schemas";
 import type { TPurchaseOrderId } from "@/domain/purchase-order/purchase-order.types";
 import { getStaffMembersProgram } from "@/domain/staff/staff.programs";
-import { getSuppliersProgram } from "@/domain/supplier/supplier.programs";
-import { getWarehousesProgram } from "@/domain/warehouse/warehouse.programs";
+import {
+	addSupplierProgram,
+	deleteSupplierProgram,
+	getSuppliersProgram,
+	updateSupplierProgram,
+} from "@/domain/supplier/supplier.programs";
+import {
+	CreateSupplierSchema,
+	UpdateSupplierSchema,
+} from "@/domain/supplier/supplier.schemas";
+import type { TSupplierId } from "@/domain/supplier/supplier.types";
+import {
+	createWarehouseProgram,
+	deleteWarehouseProgram,
+	getWarehousesProgram,
+	updateWarehouseProgram,
+} from "@/domain/warehouse/warehouse.programs";
+import { CreateWarehouseSchema } from "@/domain/warehouse/warehouse.schemas";
+import type { TWarehouseId } from "@/domain/warehouse/warehouse.types";
 import { runApp } from "@/infra/runtime/app.runtime";
 import type { TTenantId, TUserId } from "@/shared/types/common.types";
 import { type AuthHandlers, createAuthHandlers } from "./auth.handlers";
@@ -232,6 +249,23 @@ export function createRestRequestHandler(
 			if (resource === "suppliers" || resource === "warehouses") {
 				return referenceHandlers.list(resource, request, requestId);
 			}
+		}
+		const referenceMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/(suppliers|warehouses)(?:\/([^/]+))?$/,
+		);
+		if (
+			referenceHandlers &&
+			referenceMatch &&
+			(request.method === "POST" ||
+				request.method === "PATCH" ||
+				request.method === "DELETE")
+		) {
+			return referenceHandlers.mutate(
+				referenceMatch[1] as "suppliers" | "warehouses",
+				request,
+				requestId,
+				referenceMatch[2],
+			);
 		}
 		if (
 			purchaseHandlers &&
@@ -499,6 +533,52 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				updatedAt: warehouse.updatedAt.toISOString(),
 			}));
 		},
+		mutate: async (resource, businessId, id, input) => {
+			if (resource === "suppliers") {
+				if (!id) {
+					const value = Schema.decodeUnknownSync(CreateSupplierSchema)(input);
+					const supplier = await runApp(
+						addSupplierProgram(value, businessId as TTenantId),
+					);
+					return serializeReference(supplier);
+				}
+				if (Object.keys(input).length === 0) {
+					await runApp(
+						deleteSupplierProgram(id as TSupplierId, businessId as TTenantId),
+					);
+					return { deleted: true };
+				}
+				const value = Schema.decodeUnknownSync(UpdateSupplierSchema)({
+					...input,
+					id,
+				});
+				return serializeReference(
+					await runApp(updateSupplierProgram(value, businessId as TTenantId)),
+				);
+			}
+			if (!id) {
+				const value = Schema.decodeUnknownSync(CreateWarehouseSchema)(input);
+				return serializeReference(
+					await runApp(createWarehouseProgram(value, businessId as TTenantId)),
+				);
+			}
+			if (Object.keys(input).length === 0) {
+				await runApp(
+					deleteWarehouseProgram(id as TWarehouseId, businessId as TTenantId),
+				);
+				return { deleted: true };
+			}
+			const value = Schema.decodeUnknownSync(CreateWarehouseSchema)(input);
+			return serializeReference(
+				await runApp(
+					updateWarehouseProgram(
+						id as TWarehouseId,
+						value,
+						businessId as TTenantId,
+					),
+				),
+			);
+		},
 	}),
 	createPurchaseHandlers({
 		session: async (token) => {
@@ -580,6 +660,21 @@ const defaultRestRequestHandler = createRestRequestHandler(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function serializeReference<
+	T extends { readonly createdAt: Date; readonly updatedAt: Date },
+>(
+	value: T,
+): Omit<T, "createdAt" | "updatedAt"> & {
+	createdAt: string;
+	updatedAt: string;
+} {
+	return {
+		...value,
+		createdAt: value.createdAt.toISOString(),
+		updatedAt: value.updatedAt.toISOString(),
+	};
 }
 
 /**

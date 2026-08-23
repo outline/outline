@@ -1223,10 +1223,53 @@ export const useShop = create<State>((set, get) => ({
   },
   saveStaff: async (member) => write("/staff.save", member, get),
   deleteStaff: async (id) => write("/staff.delete", { id }, get),
-  saveSupplier: async (supplier) => write("/suppliers.save", supplier, get),
-  deleteSupplier: async (id) => write("/suppliers.delete", { id }, get),
-  saveWarehouse: async (warehouse) => write("/warehouses.save", warehouse, get),
-  deleteWarehouse: async (id) => write("/warehouses.delete", { id }, get),
+  saveSupplier: async (supplier) => {
+    const input = {
+      ...(supplier.id ? { id: supplier.id } : {}),
+      name: supplier.name,
+      contactPerson: supplier.contact ?? null,
+      phone: supplier.phone ?? null,
+      email: null,
+      address: null,
+      notes: supplier.terms ?? null,
+    };
+    if (supplier.id) {
+      await petsoClient.admin.updateSupplier(input);
+    } else {
+      await petsoClient.admin.createSupplier(input);
+    }
+    await get().fetchAll();
+    return { saved: true };
+  },
+  deleteSupplier: async (id) => {
+    await petsoClient.admin.deleteSupplier(id);
+    await get().fetchAll();
+    return { removed: true };
+  },
+  saveWarehouse: async (warehouse) => {
+    const branchId =
+      get().branches.find((branch) => branch.name === warehouse.branch)?.id ??
+      warehouse.branch;
+    const input = {
+      ...(warehouse.id ? { id: warehouse.id } : {}),
+      branchId,
+      name: warehouse.name,
+      code: null,
+      address: null,
+    };
+    if (warehouse.id) {
+      await petsoClient.admin.updateWarehouse(input);
+    } else {
+      await petsoClient.admin.createWarehouse(input);
+    }
+    await get().fetchAll();
+    return { saved: true };
+  },
+  deleteWarehouse: async (id) => {
+    await petsoClient.admin.deleteWarehouse(id);
+    await get().fetchAll();
+    return { removed: true };
+  },
   inviteStaff: async (invite) => {
     const response = await client.post("/staff.invite", invite);
     if (response.data?.sent) {

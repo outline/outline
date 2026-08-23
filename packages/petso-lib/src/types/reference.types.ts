@@ -11,6 +11,16 @@ export interface TSupplierDto {
 	readonly updatedAt: string;
 }
 
+export interface TSupplierInput {
+	readonly id?: string;
+	readonly name: string;
+	readonly contactPerson?: string | null;
+	readonly phone?: string | null;
+	readonly email?: string | null;
+	readonly address?: string | null;
+	readonly notes?: string | null;
+}
+
 export interface TWarehouseDto {
 	readonly id: string;
 	readonly tenantId: string;
@@ -21,4 +31,12 @@ export interface TWarehouseDto {
 	readonly isActive: boolean;
 	readonly createdAt: string;
 	readonly updatedAt: string;
+}
+
+export interface TWarehouseInput {
+	readonly id?: string;
+	readonly branchId: string;
+	readonly name: string;
+	readonly code?: string | null;
+	readonly address?: string | null;
 }

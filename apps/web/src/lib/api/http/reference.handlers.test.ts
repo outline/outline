@@ -8,6 +8,7 @@ describe("REST reference handlers", () => {
 			session: vi.fn().mockResolvedValue({ business: { id: "business-1" } }),
 			suppliers,
 			warehouses: vi.fn(),
+			mutate: vi.fn(),
 		});
 
 		const response = await handlers.list(

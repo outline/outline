@@ -13,6 +13,12 @@ interface ReferenceHandlerDependencies {
 	readonly warehouses: (
 		businessId: string,
 	) => Promise<readonly Record<string, unknown>[]>;
+	readonly mutate: (
+		resource: "suppliers" | "warehouses",
+		businessId: string,
+		id: string | undefined,
+		input: Record<string, unknown>,
+	) => Promise<Record<string, unknown>>;
 }
 
 export interface ReferenceHandlers {
@@ -20,6 +26,12 @@ export interface ReferenceHandlers {
 		resource: "suppliers" | "warehouses",
 		request: Request,
 		requestId: string,
+	) => Promise<Response>;
+	readonly mutate: (
+		resource: "suppliers" | "warehouses",
+		request: Request,
+		requestId: string,
+		id?: string,
 	) => Promise<Response>;
 }
 
@@ -44,7 +56,40 @@ export function createReferenceHandlers(
 					: await dependencies.warehouses(session.business.id);
 			return jsonSuccess(data, requestId);
 		},
+		mutate: async (resource, request, requestId, id) => {
+			const token = readSessionToken(request);
+			if (!token) return unauthorized(requestId);
+			const session = await dependencies.session(token);
+			if (!session) return unauthorized(requestId);
+			const body = (await readBody(request)) ?? {};
+			const data = await dependencies.mutate(
+				resource,
+				session.business.id,
+				id,
+				body,
+			);
+			return jsonSuccess(
+				data,
+				requestId,
+				request.method === "POST" ? 201 : 200,
+			);
+		},
 	};
+}
+
+async function readBody(
+	request: Request,
+): Promise<Record<string, unknown> | undefined> {
+	try {
+		const value: unknown = await request.json();
+		return isRecord(value) ? value : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function unauthorized(requestId: string): Response {
