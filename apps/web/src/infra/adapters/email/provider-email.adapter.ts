@@ -129,6 +129,16 @@ export const ProviderEmailAdapterLive = Layer.effect(
 		return IEmailPort.of({
 			sendEmail: (payload) => {
 				if (config.email.provider === "console") {
+					if (config.environment === "production") {
+						return Effect.fail(
+							new TEmailSendError({
+								cause: new Error(
+									"EMAIL_PROVIDER=console is not permitted in production",
+								),
+							}),
+						);
+					}
+
 					return Effect.tryPromise({
 						try: async () => {
 							sendConsoleEmail(payload);

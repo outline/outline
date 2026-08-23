@@ -9,8 +9,26 @@ export const UpstashCacheAdapterLive = Layer.effect(
 		const config = yield* IAppConfig;
 
 		if (!config.upstash.redisUrl || !config.upstash.redisToken) {
+			if (config.environment === "production") {
+				const cacheUnavailable = (operation: string): TCacheError => ({
+					_tag: "CacheError",
+					message: `Upstash Redis is required for cache operation "${operation}"`,
+					cause: new Error("UPSTASH_REDIS_URL and UPSTASH_REDIS_TOKEN are required"),
+				});
+
+				console.error(
+					"[Upstash Redis] URL and token are required in production. Cache operations will fail until Redis is configured.",
+				);
+				return ICache.of({
+					get: <T>() => Effect.fail(cacheUnavailable("get")),
+					set: () => Effect.fail(cacheUnavailable("set")),
+					remove: () => Effect.fail(cacheUnavailable("remove")),
+					clear: () => Effect.fail(cacheUnavailable("clear")),
+				});
+			}
+
 			console.warn(
-				"[Upstash Redis] Missing URL or Token. Falling back to No-Op Cache.",
+				"[Upstash Redis] Missing URL or token. Cache is disabled for non-production runtime.",
 			);
 			return ICache.of({
 				get: () => Effect.succeed(null),

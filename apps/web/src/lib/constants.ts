@@ -518,32 +518,3 @@ export const VALIDATION = {
 	// Portal
 	PORTAL_SLUG_PATTERN: /^[a-z0-9-]+$/,
 };
-
-// ============================================================
-// DASHBOARD MOCK DATA
-// ============================================================
-
-export const DASHBOARD_MOCK_DATA = {
-	volumeData: [
-		{ day: "Sun", count: 420 },
-		{ day: "Mon", count: 680 },
-		{ day: "Tue", count: 520 },
-		{ day: "Wed", count: 584, active: true },
-		{ day: "Thu", count: 480 },
-		{ day: "Fri", count: 620 },
-		{ day: "Sat", count: 750 },
-		{ day: "Sun", count: 680 },
-		{ day: "Mon", count: 710 },
-		{ day: "Tue", count: 540 },
-		{ day: "Wed", count: 660 },
-	],
-	metrics: {
-		customers: 12,
-		satisfaction: "98%",
-		revenueGrowth: "+12.5%",
-		transactionsGrowth: "-3.2%",
-		occupancyRate: "84%",
-		occupancyGrowth: "+5.1%",
-		customersGrowth: "+8%",
-	},
-};

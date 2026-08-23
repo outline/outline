@@ -76,8 +76,21 @@ export const UpstashRateLimitAdapterLive = Layer.effect(
 		const config = yield* IAppConfig;
 
 		if (!config.upstash.redisUrl || !config.upstash.redisToken) {
+			if (config.environment === "production") {
+				console.error(
+					"[RateLimit] Upstash URL and token are required in production. Requests will be denied until rate limiting is configured.",
+				);
+				return IRateLimit.of({
+					check: () =>
+						Effect.succeed({
+							allowed: false,
+							retryAfterSeconds: 60,
+						}),
+				});
+			}
+
 			console.warn(
-				"[RateLimit] Missing Upstash URL or token. Falling back to per-isolate in-memory rate limits.",
+				"[RateLimit] Missing Upstash URL or token. Using per-isolate in-memory rate limits for non-production runtime.",
 			);
 			return IRateLimit.of({
 				check: (input) =>
