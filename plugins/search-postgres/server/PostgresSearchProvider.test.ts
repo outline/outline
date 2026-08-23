@@ -773,6 +773,31 @@ describe("PostgresSearchProvider", () => {
       expect(total).toBe(1);
     });
 
+    it("should return context that is not shifted by earlier highlights", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "change",
+        text: "world war two was a very large conflict that involved many nations over six years. Later on, hello world became the canonical first program.",
+      });
+      const { results } = await provider.searchForUser(user, {
+        query: "hello world",
+      });
+      expect(results.length).toBe(1);
+      // The earlier "world" is highlighted too, which must not move the start
+      // of the slice into the middle of a word.
+      expect(results[0].context).toBe(
+        " conflict that involved many nations over six years. Later on, <b>hello world</b> became the canonical first program"
+      );
+    });
+
     it("should correctly handle removal of trailing spaces", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });

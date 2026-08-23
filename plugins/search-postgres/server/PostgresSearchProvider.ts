@@ -591,14 +591,13 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         ? 0
         : regexIndexOf(text, breakCharsRegex, offsetStartIndex)
     );
-    const context = text.replace(highlightRegex, "<b>$&</b>");
-    const endIndex = regexLastIndexOf(
-      context,
-      breakCharsRegex,
-      startIndex + 250
-    );
+    const endIndex = regexLastIndexOf(text, breakCharsRegex, startIndex + 250);
 
-    return context.slice(startIndex, endIndex);
+    // Highlight after slicing, as the inserted tags shift every index that
+    // follows an earlier match.
+    return text
+      .slice(startIndex, endIndex)
+      .replace(highlightRegex, "<b>$&</b>");
   }
 
   /**
