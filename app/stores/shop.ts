@@ -51,6 +51,7 @@ import type {
   TGroomingAppointmentDto,
   TDocumentTemplateDto,
   TBranchHolidayDto,
+  TExpenseDto,
 } from "@treonstudio/petso-lib";
 /** A room with the guests currently occupying it. */
 export type RoomOccupancy = Room & {
@@ -1018,7 +1019,7 @@ export const useShop = create<State>((set, get) => ({
         petsoClient.admin.groomingAppointments(),
         client.post("/accounts.list"),
         client.post("/journal.list"),
-        client.post("/expenses.list"),
+        petsoClient.admin.expenses(),
         client.post("/shifts.list"),
         client.post("/accounting.trialBalance"),
         client.post("/accounting.commissions"),
@@ -1104,7 +1105,14 @@ export const useShop = create<State>((set, get) => ({
         staff: staffDtos.map(mapStaff),
         accounts: accounts.data,
         journal: journal.data,
-        expenses: expenses.data,
+        expenses: expenses.map((expense: TExpenseDto) => ({
+          id: expense.id,
+          date: expense.expenseDate,
+          category: expense.category,
+          description: expense.description,
+          amount: expense.amount,
+          paidFrom: expense.paymentMethod,
+        })),
         shifts: shifts.data,
         trialBalance: trialBalance.data,
         commissions: commissions.data,
@@ -1758,7 +1766,16 @@ export const useShop = create<State>((set, get) => ({
     return response.deleted;
   },
   createExpense: async (expense) => {
-    await client.post("/expenses.create", expense);
+    await petsoClient.admin.createExpense({
+      branchId: get().branches[0]?.id ?? null,
+      category: expense.category,
+      description: expense.description,
+      amount: expense.amount,
+      expenseDate: new Date().toISOString(),
+      paymentMethod: expense.paidFrom,
+      receiptUrl: null,
+      notes: null,
+    });
     await get().fetchAll();
   },
   setGroomingStatus: async (id, status) => {

@@ -48,6 +48,8 @@ export type {
 	TTopSellerDto,
 	TBranchHolidayDto,
 	TCreateBranchHolidayInput,
+	TCreateExpenseInput,
+	TExpenseDto,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
 	TPortalConfigDto,

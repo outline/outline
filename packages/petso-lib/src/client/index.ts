@@ -49,6 +49,8 @@ import type {
 	TTopSellerDto,
 	TBranchHolidayDto,
 	TCreateBranchHolidayInput,
+	TCreateExpenseInput,
+	TExpenseDto,
 	TCreatePortalServiceInput,
 	TPortalAdminDto,
 	TPortalServiceDto,
@@ -451,6 +453,13 @@ export class PetsoClient {
 				`/api/v1/admin/branch-holidays/${id}`,
 				{ method: "DELETE" },
 			),
+		expenses: (): Promise<readonly TExpenseDto[]> =>
+			this.fetchApi<readonly TExpenseDto[]>("/api/v1/admin/expenses"),
+		createExpense: (input: TCreateExpenseInput): Promise<TExpenseDto> =>
+			this.fetchApi<TExpenseDto>("/api/v1/admin/expenses", {
+				method: "POST",
+				body: input,
+			}),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
 				method: "POST",

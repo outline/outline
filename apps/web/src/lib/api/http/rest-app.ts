@@ -1,5 +1,10 @@
 import { Effect, Schema } from "effect";
 import {
+	createExpenseProgram,
+	getExpensesProgram,
+} from "@/domain/accounting/accounting.programs";
+import { CreateExpenseSchema } from "@/domain/accounting/accounting.schemas";
+import {
 	createBoardingProgram,
 	getBoardingsProgram,
 	updateBoardingStatusProgram,
@@ -171,6 +176,10 @@ import {
 	type DocumentTemplateHandlers,
 } from "./document-template.handlers";
 import {
+	createExpenseHandlers,
+	type ExpenseHandlers,
+} from "./expense.handlers";
+import {
 	createGroomingHandlers,
 	type GroomingHandlers,
 } from "./grooming.handlers";
@@ -226,6 +235,7 @@ export function createRestRequestHandler(
 	dashboardHandlers?: DashboardHandlers,
 	portalHandlers?: PortalHandlers,
 	holidayHandlers?: HolidayHandlers,
+	expenseHandlers?: ExpenseHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -397,6 +407,20 @@ export function createRestRequestHandler(
 		);
 		if (holidayHandlers && holidayMatch && request.method === "DELETE") {
 			return holidayHandlers.delete(request, requestId, holidayMatch[1] ?? "");
+		}
+		if (
+			expenseHandlers &&
+			url.pathname === "/api/v1/admin/expenses" &&
+			request.method === "GET"
+		) {
+			return expenseHandlers.list(request, requestId);
+		}
+		if (
+			expenseHandlers &&
+			url.pathname === "/api/v1/admin/expenses" &&
+			request.method === "POST"
+		) {
+			return expenseHandlers.create(request, requestId);
 		}
 		if (
 			portalHandlers &&
@@ -1311,6 +1335,32 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				deleteBranchHolidayProgram(
 					{ id, branchId: holiday.branchId },
 					businessId as TTenantId,
+				),
+			);
+		},
+	}),
+	createExpenseHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId) =>
+			runApp(getExpensesProgram(businessId as TTenantId)),
+		create: async (businessId, userId, input) => {
+			const command = Schema.decodeUnknownSync(CreateExpenseSchema)({
+				...input,
+				expenseDate: new Date(
+					typeof input.expenseDate === "string"
+						? input.expenseDate
+						: new Date().toISOString(),
+				),
+				branchId: typeof input.branchId === "string" ? input.branchId : null,
+				receiptUrl:
+					typeof input.receiptUrl === "string" ? input.receiptUrl : null,
+				notes: typeof input.notes === "string" ? input.notes : null,
+			});
+			return runApp(
+				createExpenseProgram(
+					command,
+					businessId as TTenantId,
+					userId as TUserId,
 				),
 			);
 		},
