@@ -40,6 +40,7 @@ import type {
 	TUpdateStatusInput,
 	TStaffMemberDto,
 	TStaffAttendanceDto,
+	TCreateReturnInput,
 	TRoomDto,
 	TCreateRoomInput,
 	TUpdateRoomInput,
@@ -341,6 +342,15 @@ export class PetsoClient {
 				method: "POST",
 				body: input,
 			}),
+		returns: (): Promise<readonly Record<string, unknown>[]> =>
+			this.fetchApi<readonly Record<string, unknown>[]>("/api/v1/admin/returns"),
+		createReturn: (
+			input: TCreateReturnInput,
+		): Promise<{ readonly created: boolean; readonly id: string }> =>
+			this.fetchApi<{ readonly created: boolean; readonly id: string }>(
+				"/api/v1/admin/returns",
+				{ method: "POST", body: input },
+			),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
 				method: "POST",

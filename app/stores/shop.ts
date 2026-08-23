@@ -260,6 +260,7 @@ function mapOrder(order: TOrderDto): Order {
     paidAt: isPaid ? (order.payments?.[0]?.createdAt ?? null) : null,
     status: isVoided ? "void" : isPaid ? "paid" : "draft",
     items: order.items.map((item) => ({
+      orderItemId: item.id,
       productId: item.productId,
       ...(item.variantId ? { variantId: item.variantId } : {}),
       name: item.productName ?? item.productId,
@@ -1250,11 +1251,38 @@ export const useShop = create<State>((set, get) => ({
     return response.data;
   },
   createReturn: async (input) => {
-    const response = await client.post("/returns.create", input);
-    if (response.data?.created) {
-      await get().fetchAll();
+    const order = get().orders.find((entry) => entry.id === input.orderId);
+    if (!order) {
+      return { created: false, reason: "Order not found" };
     }
-    return response.data;
+    const items = input.items.map((item) => {
+      const orderItem = order.items.find(
+        (entry) =>
+          entry.productId === item.productId &&
+          (!item.variantId || entry.variantId === item.variantId)
+      );
+      return {
+        orderItemId: orderItem?.orderItemId ?? item.productId,
+        qty: item.quantity,
+        reason: input.reason,
+        isDamaged: item.isDamaged,
+      };
+    });
+    const refundAmount = items.reduce((total, item) => {
+      const orderItem = order.items.find(
+        (entry) => entry.orderItemId === item.orderItemId
+      );
+      return total + (orderItem?.price ?? 0) * item.qty;
+    }, 0);
+    await petsoClient.admin.createReturn({
+      orderId: input.orderId,
+      refundMethod: input.refundMethod,
+      refundAmount,
+      reason: input.reason,
+      items,
+    });
+    await get().fetchAll();
+    return { created: true, refundable: refundAmount };
   },
   saveProduct: async (product) => {
     const input = {

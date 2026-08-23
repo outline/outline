@@ -95,6 +95,8 @@ export interface Order {
   paidAt: string | null;
   status: "draft" | "paid" | "refunded" | "void";
   items: {
+    /** Identifier of the order line in the Pet Store API. */
+    orderItemId?: string;
     productId: string;
     /** Set when the line was a particular size of the product. */
     variantId?: string;

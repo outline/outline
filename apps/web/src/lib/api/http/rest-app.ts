@@ -77,6 +77,11 @@ import {
 } from "@/domain/purchase-order/purchase-order.schemas";
 import type { TPurchaseOrderId } from "@/domain/purchase-order/purchase-order.types";
 import {
+	getReturnsProgram,
+	processReturnProgram,
+} from "@/domain/return/return.programs";
+import { CreateReturnSchema } from "@/domain/return/return.schemas";
+import {
 	createRoomProgram,
 	deleteRoomProgram,
 	updateRoomProgram,
@@ -135,6 +140,7 @@ import {
 } from "./reference.handlers";
 import { getRequestId } from "./request-context";
 import { jsonSuccess } from "./response";
+import { createReturnHandlers, type ReturnHandlers } from "./return.handlers";
 import { createRoomHandlers, type RoomHandlers } from "./room.handlers";
 import { createShiftHandlers, type ShiftHandlers } from "./shift.handlers";
 
@@ -155,6 +161,7 @@ export function createRestRequestHandler(
 	purchaseHandlers?: PurchaseHandlers,
 	invoiceHandlers?: InvoiceHandlers,
 	shiftHandlers?: ShiftHandlers,
+	returnHandlers?: ReturnHandlers,
 ): (request: Request) => Promise<Response | undefined> {
 	return async (request) => {
 		const url = new URL(request.url);
@@ -257,6 +264,20 @@ export function createRestRequestHandler(
 			request.method === "POST"
 		) {
 			return shiftHandlers.clockOut(request, requestId);
+		}
+		if (
+			returnHandlers &&
+			url.pathname === "/api/v1/admin/returns" &&
+			request.method === "GET"
+		) {
+			return returnHandlers.list(request, requestId);
+		}
+		if (
+			returnHandlers &&
+			url.pathname === "/api/v1/admin/returns" &&
+			request.method === "POST"
+		) {
+			return returnHandlers.create(request, requestId);
 		}
 		if (
 			catalogHandlers &&
@@ -886,6 +907,18 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				clockOutProgram(businessId as TTenantId, input),
 			);
 			return serializeAttendance(attendance);
+		},
+	}),
+	createReturnHandlers({
+		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId) =>
+			runApp(getReturnsProgram(businessId as TTenantId)),
+		create: async (businessId, userId, input) => {
+			const value = Schema.decodeUnknownSync(CreateReturnSchema)(input);
+			const id = await runApp(
+				processReturnProgram(value, businessId as TTenantId, userId as TUserId),
+			);
+			return id;
 		},
 	}),
 );
