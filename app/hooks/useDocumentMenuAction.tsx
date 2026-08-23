@@ -57,7 +57,7 @@ type Props = {
 
 export function useDocumentMenuAction({
   documentId,
-  isViewing,
+  isViewing = false,
   onFindAndReplace,
   onRename,
   onSelectTemplate,
