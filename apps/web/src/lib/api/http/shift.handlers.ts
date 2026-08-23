@@ -8,6 +8,7 @@ interface ShiftSession {
 interface ShiftHandlerDependencies {
 	readonly session: (token: string) => Promise<ShiftSession | null>;
 	readonly list: (businessId: string) => Promise<readonly unknown[]>;
+	readonly onShift: (businessId: string) => Promise<readonly unknown[]>;
 	readonly clockIn: (
 		businessId: string,
 		input: Record<string, unknown>,
@@ -20,6 +21,7 @@ interface ShiftHandlerDependencies {
 
 export interface ShiftHandlers {
 	readonly list: (request: Request, requestId: string) => Promise<Response>;
+	readonly onShift: (request: Request, requestId: string) => Promise<Response>;
 	readonly clockIn: (request: Request, requestId: string) => Promise<Response>;
 	readonly clockOut: (request: Request, requestId: string) => Promise<Response>;
 }
@@ -36,6 +38,16 @@ export function createShiftHandlers(
 			if (!session) return unauthorized(requestId);
 			return jsonSuccess(
 				await dependencies.list(session.business.id),
+				requestId,
+			);
+		},
+		onShift: async (request, requestId) => {
+			const token = readSessionToken(request);
+			if (!token) return unauthorized(requestId);
+			const session = await dependencies.session(token);
+			if (!session) return unauthorized(requestId);
+			return jsonSuccess(
+				await dependencies.onShift(session.business.id),
 				requestId,
 			);
 		},

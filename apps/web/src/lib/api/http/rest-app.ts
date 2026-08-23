@@ -380,6 +380,13 @@ export function createRestRequestHandler(
 		}
 		if (
 			shiftHandlers &&
+			url.pathname === "/api/v1/admin/shifts/on-shift" &&
+			request.method === "GET"
+		) {
+			return shiftHandlers.onShift(request, requestId);
+		}
+		if (
+			shiftHandlers &&
 			url.pathname === "/api/v1/admin/shifts/clock-in" &&
 			request.method === "POST"
 		) {
@@ -1235,6 +1242,18 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				...serializeAttendance(row.attendance),
 				staffName: row.staffName,
 			}));
+		},
+		onShift: async (businessId) => {
+			const rows = await runApp(
+				getAllAttendanceProgram(businessId as TTenantId),
+			);
+			return rows
+				.filter((row) => row.attendance.clockIn && !row.attendance.clockOut)
+				.map((row) => ({
+					staffId: row.attendance.staffId,
+					staffName: row.staffName,
+					since: row.attendance.clockIn?.toISOString() ?? "",
+				}));
 		},
 		clockIn: async (businessId, input) => {
 			const attendance = await runApp(

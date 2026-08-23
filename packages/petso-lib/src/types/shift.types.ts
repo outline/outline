@@ -13,3 +13,9 @@ export interface TStaffAttendanceDto {
 export interface TShiftDto extends TStaffAttendanceDto {
 	readonly staffName: string;
 }
+
+export interface TOnShiftDto {
+	readonly staffId: string;
+	readonly staffName: string;
+	readonly since: string;
+}

@@ -38,6 +38,7 @@ export type {
 	TStaffMemberDto,
 	TStaffAttendanceDto,
 	TShiftDto,
+	TOnShiftDto,
 	TCreateReturnInput,
 	TBoardingDto,
 	TBoardingPetDto,

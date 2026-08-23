@@ -1058,7 +1058,7 @@ export const useShop = create<State>((set, get) => ({
         client.post("/insights.list"),
         client.post("/dashboard.trend", { days: 14 }),
         petsoClient.admin.topSellers(),
-        client.post("/shifts.onShift"),
+        petsoClient.admin.onShift(),
         petsoClient.admin.cashFlow(),
         petsoClient.admin.loyaltyConfig(),
         petsoClient.admin.branchHolidays(),
@@ -1228,7 +1228,11 @@ export const useShop = create<State>((set, get) => ({
           units: item.salesCount,
           revenue: item.revenue,
         })),
-        onShift: onShift.data,
+        onShift: onShift.map((entry) => ({
+          staffId: entry.staffId,
+          staffName: entry.staffName,
+          since: entry.since,
+        })),
         cashFlow: [
           ...cashFlow.inflows.map((row) => ({
             accountId: row.category,
