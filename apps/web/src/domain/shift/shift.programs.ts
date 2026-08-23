@@ -15,6 +15,12 @@ import {
 } from "./shift.schemas";
 import type { TStaffScheduleId } from "./shift.types";
 
+export const getAllAttendanceProgram = (tenantId: TTenantId) =>
+	Effect.gen(function* (_) {
+		const repo = yield* _(ShiftRepository);
+		return yield* _(repo.findAllAttendance(tenantId));
+	});
+
 export const getStaffSchedulesProgram = (
 	tenantId: TTenantId,
 	staffId: TStaffId,

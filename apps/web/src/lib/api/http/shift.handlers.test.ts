@@ -6,6 +6,7 @@ describe("REST shift handlers", () => {
 		const clockIn = vi.fn().mockResolvedValue({ id: "attendance-1" });
 		const handlers = createShiftHandlers({
 			session: vi.fn().mockResolvedValue({ business: { id: "business-1" } }),
+			list: vi.fn(),
 			clockIn,
 			clockOut: vi.fn(),
 		});

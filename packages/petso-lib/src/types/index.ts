@@ -26,7 +26,7 @@ export type {
 } from "./customer.types";
 export type { TCreatePetInput, TPetDto, TUpdatePetInput } from "./pet.types";
 export type { TStaffMemberDto } from "./staff.types";
-export type { TStaffAttendanceDto } from "./shift.types";
+export type { TShiftDto, TStaffAttendanceDto } from "./shift.types";
 export type { TCreateReturnInput } from "./return.types";
 export type { TBoardingDto, TBoardingPetDto } from "./boarding.types";
 export type { TCreateBoardingInput } from "./boarding-input.types";

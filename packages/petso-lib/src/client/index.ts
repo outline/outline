@@ -40,6 +40,7 @@ import type {
 	TUpdateStatusInput,
 	TStaffMemberDto,
 	TStaffAttendanceDto,
+	TShiftDto,
 	TCreateReturnInput,
 	TBoardingDto,
 	TCreateBoardingInput,
@@ -364,6 +365,8 @@ export class PetsoClient {
 				method: "POST",
 				body: input,
 			}),
+		shifts: (): Promise<readonly TShiftDto[]> =>
+			this.fetchApi<readonly TShiftDto[]>("/api/v1/admin/shifts"),
 		returns: (): Promise<readonly Record<string, unknown>[]> =>
 			this.fetchApi<readonly Record<string, unknown>[]>("/api/v1/admin/returns"),
 		createReturn: (

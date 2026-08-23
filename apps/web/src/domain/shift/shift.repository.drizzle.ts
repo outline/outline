@@ -1,8 +1,12 @@
-import { and, asc, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import type { TStaffId } from "@/domain/staff/staff.types";
 import { IDrizzleClient } from "@/infra/db/drizzle/client";
-import { staffAttendances, staffSchedules } from "@/infra/db/drizzle/schema";
+import {
+	profiles,
+	staffAttendances,
+	staffSchedules,
+} from "@/infra/db/drizzle/schema";
 import { DatabaseError } from "@/shared/errors/infrastructure.errors";
 import type { TTenantId } from "@/shared/types/common.types";
 import { generateId, withRetry } from "@/shared/utils";
@@ -46,6 +50,36 @@ export const ShiftRepositoryDrizzle = Layer.effect(
 	ShiftRepository,
 	Effect.map(IDrizzleClient, (db) =>
 		ShiftRepository.of({
+			findAllAttendance: (tenantId) =>
+				withRetry(
+					Effect.tryPromise({
+						try: async () => {
+							const rows = await db
+								.select({
+									attendance: staffAttendances,
+									staffName: profiles.fullName,
+								})
+								.from(staffAttendances)
+								.leftJoin(
+									profiles,
+									and(
+										eq(staffAttendances.staffId, profiles.userId),
+										eq(staffAttendances.businessId, profiles.businessId),
+									),
+								)
+								.where(eq(staffAttendances.businessId, tenantId))
+								.orderBy(
+									desc(staffAttendances.date),
+									desc(staffAttendances.clockIn),
+								);
+							return rows.map((row) => ({
+								attendance: mapAttendanceRow(row.attendance),
+								staffName: row.staffName ?? row.attendance.staffId,
+							}));
+						},
+						catch: (e) => new DatabaseError({ cause: e }),
+					}),
+				),
 			findSchedulesByStaffId: (staffId, tenantId) =>
 				withRetry(
 					Effect.tryPromise({
@@ -196,8 +230,7 @@ export const ShiftRepositoryDrizzle = Layer.effect(
 											lte(staffAttendances.date, endDate),
 										) ?? sql``,
 								},
-								orderBy: (attendances, { desc }) =>
-									desc(attendances.date),
+								orderBy: (attendances, { desc }) => desc(attendances.date),
 							});
 							return rows.map(mapAttendanceRow);
 						},

@@ -9,3 +9,7 @@ export interface TStaffAttendanceDto {
 	readonly createdAt: string;
 	readonly updatedAt: string;
 }
+
+export interface TShiftDto extends TStaffAttendanceDto {
+	readonly staffName: string;
+}

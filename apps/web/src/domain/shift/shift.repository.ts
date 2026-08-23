@@ -10,6 +10,13 @@ import type {
 } from "./shift.types";
 
 export interface IShiftRepository {
+	readonly findAllAttendance: (tenantId: TTenantId) => Effect.Effect<
+		readonly {
+			readonly attendance: TStaffAttendance;
+			readonly staffName: string;
+		}[],
+		DatabaseError
+	>;
 	readonly findSchedulesByStaffId: (
 		staffId: TStaffId,
 		tenantId: TTenantId,

@@ -55,6 +55,7 @@ function makeRepoMock(
 	overrides: Partial<IShiftRepository> = {},
 ): IShiftRepository {
 	return {
+		findAllAttendance: vi.fn(),
 		findSchedulesByStaffId: vi.fn(),
 		saveSchedule: vi.fn(),
 		updateSchedule: vi.fn(),

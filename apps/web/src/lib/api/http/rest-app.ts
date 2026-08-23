@@ -146,7 +146,11 @@ import {
 } from "@/domain/room/room.programs";
 import { RoomRepository } from "@/domain/room/room.repository";
 import type { TRoomId } from "@/domain/room/room.types";
-import { clockInProgram, clockOutProgram } from "@/domain/shift/shift.programs";
+import {
+	clockInProgram,
+	clockOutProgram,
+	getAllAttendanceProgram,
+} from "@/domain/shift/shift.programs";
 import {
 	getStaffMembersProgram,
 	removeStaffFromBranchProgram,
@@ -366,6 +370,13 @@ export function createRestRequestHandler(
 				requestId,
 				invoiceVoidMatch[1] ?? "",
 			);
+		}
+		if (
+			shiftHandlers &&
+			url.pathname === "/api/v1/admin/shifts" &&
+			request.method === "GET"
+		) {
+			return shiftHandlers.list(request, requestId);
 		}
 		if (
 			shiftHandlers &&
@@ -1216,6 +1227,15 @@ const defaultRestRequestHandler = createRestRequestHandler(
 	}),
 	createShiftHandlers({
 		session: async (token) => authProgramDependencies.session(token),
+		list: async (businessId) => {
+			const rows = await runApp(
+				getAllAttendanceProgram(businessId as TTenantId),
+			);
+			return rows.map((row) => ({
+				...serializeAttendance(row.attendance),
+				staffName: row.staffName,
+			}));
+		},
 		clockIn: async (businessId, input) => {
 			const attendance = await runApp(
 				clockInProgram(businessId as TTenantId, input),
