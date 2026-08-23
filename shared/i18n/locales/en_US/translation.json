@@ -861,7 +861,7 @@
   "Anyone with the link can view": "Anyone with the link can view",
   "Publicly shared": "Publicly shared",
   "{{ count }} document": "{{ count }} document",
-  "{{ count }} document_plural": "{{ count }} document",
+  "{{ count }} document_plural": "{{ count }} documents",
   "Drop documents to import": "Drop documents to import",
   "<em>{{ collectionName }}</em> doesn’t contain any\n                    documents yet.": "<em>{{ collectionName }}</em> doesn’t contain any\n                    documents yet.",
   "{{ usersCount }} users and {{ groupsCount }} groups with access": "{{ usersCount }} user and {{ groupsCount }} groups with access",
