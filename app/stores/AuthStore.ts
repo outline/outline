@@ -15,6 +15,7 @@ import { client } from "~/utils/ApiClient";
 import { petsoClient } from "~/utils/petsoClient";
 import { PetsoClientError } from "@treonstudio/petso-lib";
 import { mapPetStoreLanguage, mapPetStoreRole } from "./petStoreAuth";
+import { setCurrentRole } from "../../src/mocks/shop";
 import Desktop from "~/utils/Desktop";
 import { deleteAllDatabases } from "~/utils/developer";
 import Logger from "~/utils/Logger";
@@ -181,6 +182,7 @@ export default class AuthStore extends Store<Team> {
     this.isFetching = true;
     try {
       const session = await petsoClient.auth.session();
+      setCurrentRole(session.user.role);
       runInAction("AuthStore#refresh", () => {
         this.add({
           id: session.business.id,
@@ -219,10 +221,10 @@ export default class AuthStore extends Store<Team> {
         }
       });
     } catch (err) {
-		if (
-			err instanceof PetsoClientError &&
-			(err.status === 0 || err.status === 401)
-		) {
+      if (
+        err instanceof PetsoClientError &&
+        (err.status === 0 || err.status === 401)
+      ) {
         return;
       }
       if (
@@ -340,6 +342,7 @@ export default class AuthStore extends Store<Team> {
     // clear all credentials from cache (and local storage via autorun)
     this.currentUserId = null;
     this.currentTeamId = null;
+    setCurrentRole(undefined);
     this.collaborationToken = null;
     this.rootStore.clear();
     // Tell the host application we logged out, if any – allows window cleanup.

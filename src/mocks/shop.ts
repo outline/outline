@@ -572,9 +572,7 @@ export function currentBranch(): string | undefined {
   if (!chosen) {
     return undefined;
   }
-  return state.branches.some((branch) => branch.name === chosen)
-    ? chosen
-    : undefined;
+  return chosen;
 }
 
 /**
@@ -606,6 +604,18 @@ export function currentRole(): string | undefined {
     return undefined;
   }
   return localStorage.getItem(SESSION_ROLE_KEY) ?? undefined;
+}
+
+/** Stores the role returned by the Pet Store session for UI authorization. */
+export function setCurrentRole(role: string | undefined) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (role) {
+    localStorage.setItem(SESSION_ROLE_KEY, role);
+  } else {
+    localStorage.removeItem(SESSION_ROLE_KEY);
+  }
 }
 
 /**
