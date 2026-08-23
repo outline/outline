@@ -296,6 +296,14 @@ export class PetsoClient {
 			this.fetchApi<readonly TPetDto[]>("/api/v1/admin/pets"),
 		staff: (): Promise<readonly TStaffMemberDto[]> =>
 			this.fetchApi<readonly TStaffMemberDto[]>("/api/v1/admin/staff"),
+		removeStaff: (
+			userId: string,
+			branchId: string,
+		): Promise<{ readonly removed: boolean }> =>
+			this.fetchApi<{ readonly removed: boolean }>(
+				`/api/v1/admin/staff/${userId}`,
+				{ method: "DELETE", body: { branchId } },
+			),
 		createCustomer: (input: TCreateCustomerInput): Promise<TCustomerRecordDto> =>
 			this.fetchApi<TCustomerRecordDto>("/api/v1/admin/customers", {
 				method: "POST",

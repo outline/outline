@@ -71,7 +71,10 @@ import {
 } from "@/domain/room/room.programs";
 import { RoomRepository } from "@/domain/room/room.repository";
 import type { TRoomId } from "@/domain/room/room.types";
-import { getStaffMembersProgram } from "@/domain/staff/staff.programs";
+import {
+	getStaffMembersProgram,
+	removeStaffFromBranchProgram,
+} from "@/domain/staff/staff.programs";
 import {
 	addSupplierProgram,
 	deleteSupplierProgram,
@@ -254,6 +257,14 @@ export function createRestRequestHandler(
 			(request.method === "PATCH" || request.method === "DELETE")
 		) {
 			return catalogHandlers.mutateProduct(request, requestId, productMatch[1]);
+		}
+		const staffMatch = url.pathname.match(/^\/api\/v1\/admin\/staff\/([^/]+)$/);
+		if (catalogHandlers && staffMatch && request.method === "DELETE") {
+			return catalogHandlers.removeStaff(
+				request,
+				requestId,
+				staffMatch[1] ?? "",
+			);
 		}
 		if (
 			inventoryHandlers &&
@@ -475,6 +486,14 @@ const defaultRestRequestHandler = createRestRequestHandler(
 		deleteProduct: async (businessId, userId, id) => {
 			await runApp(
 				deleteProductProgram(id, businessId as TTenantId, userId as TUserId),
+			);
+		},
+		removeStaff: async (businessId, _userId, id, branchId) => {
+			await runApp(
+				removeStaffFromBranchProgram(
+					{ userId: id, branchId },
+					businessId as TTenantId,
+				),
 			);
 		},
 	}),

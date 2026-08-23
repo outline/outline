@@ -46,6 +46,12 @@ interface CatalogHandlerDependencies {
 		userId: string,
 		id: string,
 	) => Promise<void>;
+	readonly removeStaff: (
+		businessId: string,
+		userId: string,
+		staffId: string,
+		branchId: string,
+	) => Promise<void>;
 }
 
 type CatalogResource = "products" | "customers" | "pets" | "staff";
@@ -70,6 +76,11 @@ export interface CatalogHandlers {
 		request: Request,
 		requestId: string,
 		id?: string,
+	) => Promise<Response>;
+	readonly removeStaff: (
+		request: Request,
+		requestId: string,
+		id: string,
 	) => Promise<Response>;
 }
 
@@ -186,6 +197,26 @@ export function createCatalogHandlers(
 				? await dependencies.updateProduct(session.business.id, input)
 				: await dependencies.createProduct(session.business.id, input);
 			return jsonSuccess(product, requestId, id ? 200 : 201);
+		},
+		removeStaff: async (request, requestId, id) => {
+			const token = readSessionToken(request);
+			if (!token) return unauthorized(requestId);
+			const session = await dependencies.session(token);
+			if (!session) return unauthorized(requestId);
+			const body = await readBody(request);
+			if (typeof body?.branchId !== "string" || !body.branchId) {
+				return jsonError(
+					new ApiHttpError(422, "validation_error", "A branch is required"),
+					requestId,
+				);
+			}
+			await dependencies.removeStaff(
+				session.business.id,
+				session.user.id,
+				id,
+				body.branchId,
+			);
+			return jsonSuccess({ removed: true }, requestId);
 		},
 	};
 }

@@ -1241,7 +1241,15 @@ export const useShop = create<State>((set, get) => ({
     return { removed: true };
   },
   saveStaff: async (member) => write("/staff.save", member, get),
-  deleteStaff: async (id) => write("/staff.delete", { id }, get),
+  deleteStaff: async (id) => {
+    const branchId = get().branches[0]?.id;
+    if (!branchId) {
+      return { removed: false, reason: "No branch is available" };
+    }
+    await petsoClient.admin.removeStaff(id, branchId);
+    await get().fetchAll();
+    return { removed: true };
+  },
   saveSupplier: async (supplier) => {
     const input = {
       ...(supplier.id ? { id: supplier.id } : {}),

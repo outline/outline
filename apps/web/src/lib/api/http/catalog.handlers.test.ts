@@ -21,6 +21,7 @@ describe("REST catalog handlers", () => {
 			createProduct: vi.fn(),
 			updateProduct: vi.fn(),
 			deleteProduct: vi.fn(),
+			removeStaff: vi.fn(),
 		});
 
 		for (const resource of [
@@ -59,6 +60,7 @@ describe("REST catalog handlers", () => {
 			createProduct: vi.fn(),
 			updateProduct: vi.fn(),
 			deleteProduct: vi.fn(),
+			removeStaff: vi.fn(),
 		});
 
 		const response = await handlers.list(
@@ -94,6 +96,7 @@ describe("REST catalog handlers", () => {
 			createProduct: vi.fn(),
 			updateProduct: vi.fn(),
 			deleteProduct: vi.fn(),
+			removeStaff: vi.fn(),
 		});
 
 		const response = await handlers.mutateCustomer(
@@ -135,6 +138,7 @@ describe("REST catalog handlers", () => {
 			createProduct,
 			updateProduct: vi.fn(),
 			deleteProduct: vi.fn(),
+			removeStaff: vi.fn(),
 		});
 
 		const response = await handlers.mutateProduct(
