@@ -13,6 +13,7 @@ describe("REST order handlers", () => {
 			list: vi.fn(),
 			create,
 			void: vi.fn(),
+			markPaid: vi.fn(),
 		});
 
 		const response = await handlers.create(

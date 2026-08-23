@@ -49,6 +49,12 @@ export class IOrderRepository extends Context.Tag("IOrderRepository")<
 		readonly findDrafts: (
 			tenantId: TTenantId,
 		) => Effect.Effect<readonly TOrderWithItems[], DatabaseError>;
+		readonly recordPayment?: (
+			orderId: TOrderId,
+			tenantId: TTenantId,
+			amount: number,
+			method: string,
+		) => Effect.Effect<boolean, DatabaseError>;
 		/**
 		 * Persists an order with strong ACID guarantees:
 		 *   1. Insert order row + items + decrement stock + write audit log in

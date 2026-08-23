@@ -129,6 +129,7 @@ export type {
 	TOrderPaymentDto,
 	TOrderTimelineEntry,
 	TUpdateStatusInput,
+	TMarkOrderPaidResult,
 } from "./order.types";
 export type {
 	TProductDto,

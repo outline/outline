@@ -1,12 +1,12 @@
 import { Effect } from "effect";
 import type { TCustomerId } from "@/domain/customer/customer.types";
-import { ILoyaltyRepository, LoyaltyModule } from "@/domain/loyalty";
 import type {
 	TPromoCode,
 	TPromoCodeId,
 	TPromoCodeType,
 	TPromoUsageRecord,
 } from "@/domain/loyalty";
+import { ILoyaltyRepository, LoyaltyModule } from "@/domain/loyalty";
 import { IProductRepository } from "@/domain/product";
 import type { TProductId } from "@/domain/product/product.types";
 import { DatabaseError } from "@/shared/errors/infrastructure.errors";
@@ -37,6 +37,22 @@ import type {
 	TPaymentMethod,
 } from "./order.types";
 import { isValidTransition } from "./order.types";
+
+export const markOrderPaidProgram = (tenantId: TTenantId, orderId: string) =>
+	Effect.gen(function* (_) {
+		const repo = yield* _(IOrderRepository);
+		if (!repo.recordPayment) return false;
+		const order = yield* _(repo.findById(orderId as TOrderId, tenantId));
+		if (!order) return false;
+		const paid =
+			order.payments?.reduce((total, payment) => total + payment.amount, 0) ??
+			0;
+		const remaining = Math.max(0, order.totalAmount - paid);
+		if (remaining === 0) return false;
+		return yield* _(
+			repo.recordPayment(order.id, tenantId, remaining, order.paymentMethod),
+		);
+	});
 
 export const getOrdersProgram = (
 	tenantId: TTenantId,
@@ -329,8 +345,8 @@ export const createOrderProgram = (
 				...(command.payments !== undefined && {
 					payments: command.payments.map(
 						(p: NonNullable<CreateOrderCommand["payments"]>[number]) => ({
-						method: p.method as TPaymentMethod,
-						amount: p.amount,
+							method: p.method as TPaymentMethod,
+							amount: p.amount,
 						}),
 					),
 				}),

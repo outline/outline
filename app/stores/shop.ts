@@ -1680,7 +1680,7 @@ export const useShop = create<State>((set, get) => ({
     return mapOrder(order);
   },
   markOrderPaid: async (id) => {
-    await client.post("/orders.markPaid", { id });
+    await petsoClient.admin.markOrderPaid(id);
     await get().fetchAll();
   },
   voidOrder: async (id) => {

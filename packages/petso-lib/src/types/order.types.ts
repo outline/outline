@@ -114,6 +114,8 @@ export type TUpdateStatusInput = {
 	readonly cancelledReason?: string;
 };
 
+export type TMarkOrderPaidResult = { readonly paid: boolean };
+
 export type TOrderTimelineEntry = {
 	readonly id: string;
 	readonly action: string;

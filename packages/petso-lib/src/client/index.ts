@@ -38,6 +38,7 @@ import type {
 	TSignupInput,
 	TSignupResult,
 	TUpdateStatusInput,
+	TMarkOrderPaidResult,
 	TStaffMemberDto,
 	TInviteStaffInput,
 	TInviteStaffResult,
@@ -348,6 +349,11 @@ export class PetsoClient {
 			this.fetchApi<{ readonly voided: boolean }>(
 				`/api/v1/admin/orders/${id}/void`,
 				{ method: "POST", body: { reason } },
+			),
+		markOrderPaid: (id: string): Promise<TMarkOrderPaidResult> =>
+			this.fetchApi<TMarkOrderPaidResult>(
+				`/api/v1/admin/orders/${id}/mark-paid`,
+				{ method: "POST" },
 			),
 		customers: (): Promise<readonly TCustomerRecordDto[]> =>
 			this.fetchApi<readonly TCustomerRecordDto[]>("/api/v1/admin/customers"),

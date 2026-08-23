@@ -97,6 +97,7 @@ import {
 import {
 	createOrderProgram,
 	getOrdersProgram,
+	markOrderPaidProgram,
 	voidOrderProgram,
 } from "@/domain/order/order.programs";
 import {
@@ -827,6 +828,16 @@ export function createRestRequestHandler(
 		) {
 			return orderHandlers.create(request, requestId);
 		}
+		const orderPaidMatch = url.pathname.match(
+			/^\/api\/v1\/admin\/orders\/([^/]+)\/mark-paid$/,
+		);
+		if (orderHandlers && orderPaidMatch && request.method === "POST") {
+			return orderHandlers.markPaid(
+				request,
+				requestId,
+				orderPaidMatch[1] ?? "",
+			);
+		}
 		const voidOrderMatch = url.pathname.match(
 			/^\/api\/v1\/admin\/orders\/([^/]+)\/void$/,
 		);
@@ -1130,6 +1141,9 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				voidOrderProgram(value, businessId as TTenantId, userId as TUserId),
 			);
 		},
+		markPaid: async (businessId, id) => ({
+			paid: await runApp(markOrderPaidProgram(businessId as TTenantId, id)),
+		}),
 	}),
 	createReferenceHandlers({
 		session: async (token) => authProgramDependencies.session(token),

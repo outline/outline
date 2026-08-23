@@ -7,6 +7,7 @@ import {
 	auditLogs,
 	customers,
 	orderItems,
+	orderPayments,
 	orders,
 	products,
 	productVariants,
@@ -89,6 +90,28 @@ export const OrderRepositoryDrizzle = Layer.effect(
 	IOrderRepository,
 	Effect.map(IDrizzleClient, (db) =>
 		IOrderRepository.of({
+			recordPayment: (orderId, tenantId, amount, method) =>
+				withRetry(
+					Effect.tryPromise({
+						try: async () => {
+							const rows = await db
+								.select({ id: orders.id })
+								.from(orders)
+								.where(
+									and(eq(orders.id, orderId), eq(orders.businessId, tenantId)),
+								)
+								.limit(1);
+							if (!rows[0]) return false;
+							await db.insert(orderPayments).values({
+								orderId,
+								method,
+								amount: amount.toString(),
+							});
+							return true;
+						},
+						catch: (e) => new DatabaseError({ cause: e }),
+					}),
+				),
 			findById: (id: TOrderId, tenantId: TTenantId) =>
 				withRetry(
 					Effect.tryPromise({
@@ -96,7 +119,8 @@ export const OrderRepositoryDrizzle = Layer.effect(
 							const result = await db.query.orders.findFirst({
 								where: {
 									RAW: (orders, { and, eq }) =>
-										and(eq(orders.id, id), eq(orders.businessId, tenantId)) ?? sql``,
+										and(eq(orders.id, id), eq(orders.businessId, tenantId)) ??
+										sql``,
 								},
 							});
 

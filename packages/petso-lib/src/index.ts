@@ -107,6 +107,7 @@ export type {
 	TSignupInput,
 	TSignupResult,
 	TUpdateStatusInput,
+	TMarkOrderPaidResult,
 	TValidateVoucherInput,
 	TVoucherDto,
 	TVoucherValidationResult,

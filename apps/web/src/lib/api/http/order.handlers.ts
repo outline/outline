@@ -22,12 +22,21 @@ interface OrderHandlerDependencies {
 		id: string,
 		reason: string,
 	) => Promise<void>;
+	readonly markPaid: (
+		businessId: string,
+		id: string,
+	) => Promise<{ readonly paid: boolean }>;
 }
 
 export interface OrderHandlers {
 	readonly list: (request: Request, requestId: string) => Promise<Response>;
 	readonly create: (request: Request, requestId: string) => Promise<Response>;
 	readonly void: (
+		request: Request,
+		requestId: string,
+		id: string,
+	) => Promise<Response>;
+	readonly markPaid: (
 		request: Request,
 		requestId: string,
 		id: string,
@@ -82,6 +91,14 @@ export function createOrderHandlers(
 			const reason = typeof body?.reason === "string" ? body.reason : "Voided";
 			await dependencies.void(session.business.id, session.user.id, id, reason);
 			return jsonSuccess({ voided: true }, requestId);
+		},
+		markPaid: async (request, requestId, id) => {
+			const session = await getSession(request, dependencies.session);
+			if (!session) return unauthorized(requestId);
+			return jsonSuccess(
+				await dependencies.markPaid(session.business.id, id),
+				requestId,
+			);
 		},
 	};
 }
