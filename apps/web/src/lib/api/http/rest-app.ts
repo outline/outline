@@ -191,7 +191,9 @@ import type { TWarehouseId } from "@/domain/warehouse/warehouse.types";
 import {
 	getPendingRemindersProgram,
 	getWhatsAppTemplatesProgram,
+	sendWhatsAppTemplateProgram,
 } from "@/domain/whatsapp/whatsapp.programs";
+import { SendWhatsAppTemplateSchema } from "@/domain/whatsapp/whatsapp.schemas";
 import { runApp } from "@/infra/runtime/app.runtime";
 import type { TTenantId, TUserId } from "@/shared/types/common.types";
 import {
@@ -373,6 +375,13 @@ export function createRestRequestHandler(
 			request.method === "GET"
 		) {
 			return whatsAppHandlers.messages(request, requestId);
+		}
+		if (
+			whatsAppHandlers &&
+			url.pathname === "/api/v1/admin/whatsapp/send" &&
+			request.method === "POST"
+		) {
+			return whatsAppHandlers.send(request, requestId);
 		}
 		if (
 			branchHandlers &&
@@ -1754,6 +1763,30 @@ const defaultRestRequestHandler = createRestRequestHandler(
 				to: reminder.recipientPhone,
 				status: reminder.status === "failed" ? "failed" : "pending",
 			}));
+		},
+		send: async (businessId, input) => {
+			const customerId =
+				typeof input.customerId === "string" ? input.customerId : "";
+			const templateId =
+				typeof input.templateId === "string" ? input.templateId : "";
+			const [customers, templates] = await Promise.all([
+				runApp(getCustomersProgram(businessId as TTenantId)),
+				runApp(getWhatsAppTemplatesProgram(businessId as TTenantId)),
+			]);
+			const customer = customers.find((item) => item.id === customerId);
+			const template = templates.find((item) => item.id === templateId);
+			if (!customer?.phone || !template) {
+				return { sent: false };
+			}
+			const command = Schema.decodeUnknownSync(SendWhatsAppTemplateSchema)({
+				to: customer.phone,
+				templateName: template.name,
+				variables: {},
+			});
+			const result = await runApp(
+				sendWhatsAppTemplateProgram(businessId as TTenantId, command),
+			);
+			return { sent: result.status === "sent", ...result };
 		},
 	}),
 );

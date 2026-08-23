@@ -60,6 +60,8 @@ import type {
 	TBillingSummaryDto,
 	TWhatsAppTemplateDto,
 	TWhatsAppMessageDto,
+	TSendWhatsAppInput,
+	TSendWhatsAppResult,
 	TAuditLogDto,
 	TAccountDto,
 	TJournalEntryDto,
@@ -513,6 +515,13 @@ export class PetsoClient {
 			this.fetchApi<readonly TWhatsAppMessageDto[]>(
 				"/api/v1/admin/whatsapp/messages",
 			),
+		sendWhatsApp: (
+			input: TSendWhatsAppInput,
+		): Promise<TSendWhatsAppResult> =>
+			this.fetchApi<TSendWhatsAppResult>("/api/v1/admin/whatsapp/send", {
+				method: "POST",
+				body: input,
+			}),
 		accounts: (): Promise<readonly TAccountDto[]> =>
 			this.fetchApi<readonly TAccountDto[]>("/api/v1/admin/accounting/accounts"),
 		journal: (): Promise<readonly TJournalEntryDto[]> =>

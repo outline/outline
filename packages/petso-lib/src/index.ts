@@ -62,6 +62,8 @@ export type {
 	TBillingUsageDto,
 	TWhatsAppTemplateDto,
 	TWhatsAppMessageDto,
+	TSendWhatsAppInput,
+	TSendWhatsAppResult,
 	TAuditLogDto,
 	TAccountDto,
 	TJournalEntryDto,

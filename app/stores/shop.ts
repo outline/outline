@@ -2099,12 +2099,12 @@ export const useShop = create<State>((set, get) => ({
     await get().fetchAll();
   },
   sendWhatsapp: async (templateId, customerId) => {
-    const response = await client.post("/whatsapp.send", {
+    const response = await petsoClient.admin.sendWhatsApp({
       templateId,
       customerId,
     });
     await get().fetchAll();
-    return Boolean(response.data?.sent);
+    return response.sent;
   },
   changePlan: async (plan) => {
     await client.post("/billing.changePlan", { plan });

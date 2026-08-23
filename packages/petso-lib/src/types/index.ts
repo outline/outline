@@ -82,6 +82,10 @@ export type {
 } from "./billing.types";
 export type { TWhatsAppTemplateDto } from "./whatsapp.types";
 export type { TWhatsAppMessageDto } from "./whatsapp-message.types";
+export type {
+	TSendWhatsAppInput,
+	TSendWhatsAppResult,
+} from "./whatsapp-send.types";
 export type { TAuditLogDto } from "./audit.types";
 export type {
 	TAccountDto,
