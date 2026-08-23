@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import * as Schema from "effect/Schema";
 
 export const CreateOrderItemSchema = Schema.Struct({
 	productId: Schema.String,

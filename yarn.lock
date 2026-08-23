@@ -2527,17 +2527,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@effect/schema@npm:^0.75.5":
-  version: 0.75.5
-  resolution: "@effect/schema@npm:0.75.5"
-  dependencies:
-    fast-check: "npm:^3.21.0"
-  peerDependencies:
-    effect: ^3.9.2
-  checksum: 10c0/287a860f67eb41d54d0b46f2303eba273b35a9db41f1c2c352fc94023e88574969e03c6284d5dcefdda953f56eabdd98d2cdd268fa872f5966108f540c9e3f44
-  languageName: node
-  linkType: hard
-
 "@emnapi/core@npm:1.10.0":
   version: 1.10.0
   resolution: "@emnapi/core@npm:1.10.0"
@@ -7011,7 +7000,6 @@ __metadata:
   resolution: "@pet-store-app/web@workspace:apps/web"
   dependencies:
     "@biomejs/biome": "npm:^2.5.4"
-    "@effect/schema": "npm:^0.75.5"
     "@gsap/react": "npm:^2.1.2"
     "@hookform/resolvers": "npm:^5.4.0"
     "@lovable.dev/vite-tanstack-config": "npm:^2.7.6"
@@ -10968,7 +10956,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@treonstudio/petso-lib@workspace:packages/petso-lib"
   dependencies:
-    "@effect/schema": "npm:^0.75.5"
     effect: "npm:3.22.0"
   languageName: unknown
   linkType: soft
@@ -17867,7 +17854,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-check@npm:^3.21.0, fast-check@npm:^3.23.1":
+"fast-check@npm:^3.23.1":
   version: 3.23.2
   resolution: "fast-check@npm:3.23.2"
   dependencies:

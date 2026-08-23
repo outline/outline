@@ -1,4 +1,4 @@
-import { Schema } from "@effect/schema";
+import * as Schema from "effect/Schema";
 import { Effect } from "effect";
 import type { TTenantId } from "@/shared/types/common.types";
 import { calculateEffectiveDailyRate, createRoomEntity } from "./room.module";

@@ -1,4 +1,4 @@
-import { Schema } from "@effect/schema";
+import * as Schema from "effect/Schema";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect } from "effect";
 import {

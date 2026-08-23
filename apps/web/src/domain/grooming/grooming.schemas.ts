@@ -1,4 +1,4 @@
-import { Schema } from "@effect/schema";
+import * as Schema from "effect/Schema";
 import { APPOINTMENT_STATUS, PET_SIZE } from "./grooming.types";
 
 export const CreateGroomingServiceSchema = Schema.Struct({

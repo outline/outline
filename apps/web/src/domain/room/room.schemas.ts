@@ -1,4 +1,4 @@
-import { Schema } from "@effect/schema";
+import * as Schema from "effect/Schema";
 import { ROOM_TYPE } from "./room.types";
 
 export const CreateRoomSchema = Schema.Struct({

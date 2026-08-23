@@ -24,7 +24,6 @@
 		"test:e2e": "playwright test"
 	},
 	"dependencies": {
-		"@effect/schema": "^0.75.5",
 		"@gsap/react": "^2.1.2",
 		"@hookform/resolvers": "^5.4.0",
 		"@mdx-js/react": "^3.1.1",

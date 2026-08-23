@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import * as Schema from "effect/Schema";
 
 export const ValidatePromoCodeSchema = Schema.Struct({
 	code: Schema.String.pipe(Schema.minLength(1)),
